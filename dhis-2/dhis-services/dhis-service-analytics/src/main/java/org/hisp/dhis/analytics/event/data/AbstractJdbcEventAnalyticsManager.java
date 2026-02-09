@@ -1868,13 +1868,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           columns.add(getCoordinateColumn(queryItem, OU_GEOMETRY_COL_POSTFIX).asSql());
         } else if (!cteContext.isEventsAnalytics() && isStageOuDimension(queryItem)) {
           // Stage.ou dimensions use CTE columns (only for enrollment analytics)
-          columns.add(getColumnWithCte(queryItem, cteContext));
+          columns.add(getColumnWithCte(queryItem, cteContext, params));
         } else {
           columns.add(getOrgUnitQueryItemColumnAndAlias(params, queryItem).asSql());
         }
       } else if (!cteContext.isEventsAnalytics() && queryItem.hasProgramStage()) {
         // Handle program stage items with CTE (only when NOT in events analytics)
-        columns.add(getColumnWithCte(queryItem, cteContext));
+        columns.add(getColumnWithCte(queryItem, cteContext, params));
       } else {
         // Handle other types as before
         ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, false, "");
@@ -2008,7 +2008,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected abstract String getSelectClause(EventQueryParams params);
 
   /** Returns the column name associated with the CTE */
-  protected abstract String getColumnWithCte(QueryItem item, CteContext cteContext);
+  protected abstract String getColumnWithCte(
+      QueryItem item, CteContext cteContext, EventQueryParams params);
 
   protected abstract CteContext getCteDefinitions(EventQueryParams params);
 

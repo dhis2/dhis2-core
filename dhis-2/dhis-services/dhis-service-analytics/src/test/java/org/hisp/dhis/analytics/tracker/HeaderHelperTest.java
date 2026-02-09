@@ -45,6 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.AnalyticsCustomHeader;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -236,6 +237,116 @@ class HeaderHelperTest {
     GridHeader header = grid.getHeaders().get(0);
 
     assertEquals("Duplicated Name - " + stageB.getDisplayName(), header.getDisplayColumn());
+  }
+
+  @Test
+  @DisplayName("stage.ou with headers containing ouname should add ouname header")
+  void stageOuWithOunameHeaderRequested() {
+    Grid grid = new ListGrid();
+    QueryItem ouItem = stageOuItem();
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addItem(ouItem)
+            .withDisplayProperty(DisplayProperty.NAME)
+            .withHeaders(Set.of("StageAUid01.ouname"))
+            .build();
+
+    HeaderHelper.addCommonHeaders(grid, params, List.of());
+
+    List<GridHeader> headers = grid.getHeaders();
+    assertEquals(2, headers.size());
+    assertEquals("StageAUid01.ou", headers.get(0).getName());
+    assertEquals("StageAUid01.ouname", headers.get(1).getName());
+  }
+
+  @Test
+  @DisplayName("stage.ou with headers containing oucode should add oucode header")
+  void stageOuWithOucodeHeaderRequested() {
+    Grid grid = new ListGrid();
+    QueryItem ouItem = stageOuItem();
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addItem(ouItem)
+            .withDisplayProperty(DisplayProperty.NAME)
+            .withHeaders(Set.of("StageAUid01.oucode"))
+            .build();
+
+    HeaderHelper.addCommonHeaders(grid, params, List.of());
+
+    List<GridHeader> headers = grid.getHeaders();
+    assertEquals(2, headers.size());
+    assertEquals("StageAUid01.ou", headers.get(0).getName());
+    assertEquals("StageAUid01.oucode", headers.get(1).getName());
+  }
+
+  @Test
+  @DisplayName("stage.ou with headers containing both ouname and oucode should add both headers")
+  void stageOuWithBothHeadersRequested() {
+    Grid grid = new ListGrid();
+    QueryItem ouItem = stageOuItem();
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addItem(ouItem)
+            .withDisplayProperty(DisplayProperty.NAME)
+            .withHeaders(Set.of("StageAUid01.ouname", "StageAUid01.oucode"))
+            .build();
+
+    HeaderHelper.addCommonHeaders(grid, params, List.of());
+
+    List<GridHeader> headers = grid.getHeaders();
+    assertEquals(3, headers.size());
+    assertEquals("StageAUid01.ou", headers.get(0).getName());
+    assertTrue(headers.stream().anyMatch(h -> "StageAUid01.ouname".equals(h.getName())));
+    assertTrue(headers.stream().anyMatch(h -> "StageAUid01.oucode".equals(h.getName())));
+  }
+
+  @Test
+  @DisplayName("stage.ou with headers NOT containing ouname/oucode should only add ou header")
+  void stageOuWithoutOunameOucodeInHeaders() {
+    Grid grid = new ListGrid();
+    QueryItem ouItem = stageOuItem();
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addItem(ouItem)
+            .withDisplayProperty(DisplayProperty.NAME)
+            .withHeaders(Set.of("someOtherHeader"))
+            .build();
+
+    HeaderHelper.addCommonHeaders(grid, params, List.of());
+
+    List<GridHeader> headers = grid.getHeaders();
+    assertEquals(1, headers.size());
+    assertEquals("StageAUid01.ou", headers.get(0).getName());
+  }
+
+  @Test
+  @DisplayName("stage.ou without headers param should only add ou header")
+  void stageOuWithNoHeadersParam() {
+    Grid grid = new ListGrid();
+    QueryItem ouItem = stageOuItem();
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addItem(ouItem)
+            .withDisplayProperty(DisplayProperty.NAME)
+            .build();
+
+    HeaderHelper.addCommonHeaders(grid, params, List.of());
+
+    List<GridHeader> headers = grid.getHeaders();
+    assertEquals(1, headers.size());
+    assertEquals("StageAUid01.ou", headers.get(0).getName());
+  }
+
+  private QueryItem stageOuItem() {
+    BaseDimensionalItemObject ouDimItem = new BaseDimensionalItemObject("ou", "ou", "ou");
+    QueryItem item = new QueryItem(ouDimItem, null, ORGANISATION_UNIT, null, null);
+    item.setProgramStage(stageA);
+    return item;
   }
 
   private QueryItem queryItem(String uid, String name, ValueType valueType) {

@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 import static lombok.AccessLevel.PRIVATE;
+import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.isStageOuDimension;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getItemUid;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
@@ -67,6 +68,36 @@ public class HeaderHelper {
 
     for (QueryItem item : params.getItems()) {
       grid.addHeader(buildGridHeader(item, context));
+
+      if (isStageOuDimension(item) && params.hasHeaders()) {
+        String stageUid = item.getProgramStage().getUid();
+
+        if (params.getHeaders().contains(stageUid + ".ouname")) {
+          grid.addHeader(
+              new GridHeader(
+                  stageUid + ".ouname",
+                  "Organisation unit name",
+                  "Organisation unit name",
+                  TEXT,
+                  false,
+                  true,
+                  null,
+                  null));
+        }
+
+        if (params.getHeaders().contains(stageUid + ".oucode")) {
+          grid.addHeader(
+              new GridHeader(
+                  stageUid + ".oucode",
+                  "Organisation unit code",
+                  "Organisation unit code",
+                  TEXT,
+                  false,
+                  true,
+                  null,
+                  null));
+        }
+      }
     }
   }
 

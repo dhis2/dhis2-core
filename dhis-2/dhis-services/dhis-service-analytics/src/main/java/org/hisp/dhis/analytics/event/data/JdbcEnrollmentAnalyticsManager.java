@@ -679,7 +679,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   @Override
-  protected String getColumnWithCte(QueryItem item, CteContext cteContext) {
+  protected String getColumnWithCte(
+      QueryItem item, CteContext cteContext, EventQueryParams params) {
     Set<String> columns = new LinkedHashSet<>();
 
     // Get the CTE definition for the item
@@ -694,21 +695,25 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         getAlias(item).orElse("%s.%s".formatted(item.getProgramStage().getUid(), item.getItemId()));
     columns.add("%s.value as %s".formatted(cteDef.getAlias(programStageOffset), quote(alias)));
 
-    // For stage.ou dimensions, also select the ev_ouname and ev_oucode columns
-    if (isStageOuDimension(item)) {
+    // For stage.ou dimensions, conditionally select ouname/oucode columns
+    if (isStageOuDimension(item) && params.hasHeaders()) {
       String stageUid = item.getProgramStage().getUid();
-      columns.add(
-          "%s.%s as %s"
-              .formatted(
-                  cteDef.getAlias(programStageOffset),
-                  STAGE_OU_NAME_COLUMN,
-                  quote(stageUid + ".ouname")));
-      columns.add(
-          "%s.%s as %s"
-              .formatted(
-                  cteDef.getAlias(programStageOffset),
-                  STAGE_OU_CODE_COLUMN,
-                  quote(stageUid + ".oucode")));
+      if (params.getHeaders().contains(stageUid + ".ouname")) {
+        columns.add(
+            "%s.%s as %s"
+                .formatted(
+                    cteDef.getAlias(programStageOffset),
+                    STAGE_OU_NAME_COLUMN,
+                    quote(stageUid + ".ouname")));
+      }
+      if (params.getHeaders().contains(stageUid + ".oucode")) {
+        columns.add(
+            "%s.%s as %s"
+                .formatted(
+                    cteDef.getAlias(programStageOffset),
+                    STAGE_OU_CODE_COLUMN,
+                    quote(stageUid + ".oucode")));
+      }
     }
 
     if (cteDef.isRowContext()) {

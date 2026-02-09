@@ -46,6 +46,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Set;
 import java.util.function.Consumer;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -272,10 +273,12 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
   }
 
   @Test
-  void verifyGetEnrollmentsWithStageOuDimensionIncludesOuNameAndCode() {
+  void verifyGetEnrollmentsWithStageOuDimensionIncludesOuNameAndCodeWhenRequested() {
     // Stage.ou dimensions should include ev_ouname and ev_oucode columns
-    // This tests the STAGE_OU_NAME_COLUMN and STAGE_OU_CODE_COLUMN constants
-    EventQueryParams params = createStageOuRequestParams();
+    // only when explicitly requested in headers
+    String stageUid = programStage.getUid();
+    EventQueryParams params =
+        createStageOuRequestParamsWithHeaders(Set.of(stageUid + ".ouname", stageUid + ".oucode"));
 
     subject.getEnrollments(params, new ListGrid(), 10000);
     verify(jdbcTemplate).queryForRowSet(sql.capture());
@@ -286,8 +289,27 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     assertThat(generatedSql, containsString("ev_ouname"));
     assertThat(generatedSql, containsString("ev_oucode"));
     // Verify output aliases use stage UID prefix
-    assertThat(generatedSql, containsString(programStage.getUid() + ".ouname"));
-    assertThat(generatedSql, containsString(programStage.getUid() + ".oucode"));
+    assertThat(generatedSql, containsString(stageUid + ".ouname"));
+    assertThat(generatedSql, containsString(stageUid + ".oucode"));
+  }
+
+  @Test
+  void verifyGetEnrollmentsWithStageOuDimensionExcludesOuNameAndCodeWithoutHeaders() {
+    // Stage.ou dimensions should NOT include ouname/oucode columns
+    // when not explicitly requested in headers
+    EventQueryParams params = createStageOuRequestParams();
+
+    subject.getEnrollments(params, new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+
+    // CTE still includes ev_ouname and ev_oucode (they are always in the CTE)
+    assertThat(generatedSql, containsString("ev_ouname"));
+    assertThat(generatedSql, containsString("ev_oucode"));
+    // But outer SELECT should NOT alias them with stage UID prefix
+    assertThat(generatedSql, not(containsString(programStage.getUid() + ".ouname")));
+    assertThat(generatedSql, not(containsString(programStage.getUid() + ".oucode")));
   }
 
   @Test
@@ -343,6 +365,10 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
   }
 
   private EventQueryParams createStageOuRequestParams() {
+    return createStageOuRequestParamsWithHeaders(Set.of());
+  }
+
+  private EventQueryParams createStageOuRequestParamsWithHeaders(Set<String> headers) {
     // Create a stage.ou dimension query item
     BaseDimensionalItemObject ouItem = new BaseDimensionalItemObject(OU_COLUMN_NAME);
     QueryItem queryItem = new QueryItem(ouItem);
@@ -353,6 +379,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
     EventQueryParams.Builder params = createRequestParamsBuilder();
     params.addItem(queryItem);
+    params.withHeaders(headers);
     return params.build();
   }
 
