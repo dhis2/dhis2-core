@@ -50,7 +50,6 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.Page;
@@ -358,13 +357,14 @@ class JdbcTrackedEntityStore {
    * TrackedEntityQueryParams)} and {@link #addOrderBy(StringBuilder, TrackedEntityQueryParams)}.
    */
   private void addTrackedEntityFromItemSelect(StringBuilder sql, TrackedEntityQueryParams params) {
-    // When ordering by enrolledAt, use DISTINCT ON to pick one enrollment per TE.
-    // This fixes pagination when a TE has multiple enrollments (DHIS2-20811).
     if (isOrderingByEnrolledAt(params)) {
+      // When ordering by enrolledAt, use DISTINCT ON to pick one enrollment per TE.
       sql.append("select distinct on (te.trackedentityid) te.trackedentityid");
     } else if (params.hasEnrolledInTrackerProgram()) {
-      // With a single program, trackedentityprogramowner's unique index on
-      // (trackedentityid, programid) guarantees one row per TE. No DISTINCT needed.
+      // No DISTINCT needed: trackedentityprogramowner's unique index on (trackedentityid,
+      // programid) guarantees one row per TE. This relies on enrollment filters using EXISTS
+      // (addEnrollmentAndEventExistsCondition), not a JOIN. If enrollment is ever joined
+      // directly in this path, DISTINCT must be restored.
       sql.append("select te.trackedentityid");
     } else {
       // Without a program, the left join on trackedentityprogramowner can produce
@@ -487,13 +487,11 @@ class JdbcTrackedEntityStore {
     }
 
     if (params.hasEnrolledInTrackerProgram()) {
-      Program program = params.getEnrolledInTrackerProgram();
       buildOwnershipClause(
           sql,
           sqlParameters,
           params.getOrgUnitMode(),
-          program.getAccessLevel(),
-          program.getId(),
+          params.getEnrolledInTrackerProgram(),
           orgUnitTableAlias,
           MAIN_QUERY_ALIAS,
           () -> "and ");
