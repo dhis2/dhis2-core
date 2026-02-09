@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
@@ -456,7 +457,7 @@ class SmsImportMapper {
       @Nonnull SMSCommand smsCommand,
       @Nonnull Map<String, String> attributeValues,
       @Nonnull OrganisationUnit orgUnit,
-      @Nonnull CategoryService categoryService) {
+      @Nonnull CategoryOptionCombo defaultCategoryOptionCombo) {
     UID trackedEntity = UID.generate();
     Date now = new Date();
     Date occurredDate = Objects.requireNonNullElse(SmsUtils.lookForDate(sms.getText()), now);
@@ -497,8 +498,7 @@ class SmsImportMapper {
                     .enrolledAt(now.toInstant())
                     .occurredAt(toInstant(occurredDate))
                     .status(EnrollmentStatus.ACTIVE)
-                    .attributeOptionCombo(
-                        MetadataIdentifier.ofUid(categoryService.getDefaultCategoryOptionCombo()))
+                    .attributeOptionCombo(MetadataIdentifier.ofUid(defaultCategoryOptionCombo))
                     .build()))
         .build();
   }
