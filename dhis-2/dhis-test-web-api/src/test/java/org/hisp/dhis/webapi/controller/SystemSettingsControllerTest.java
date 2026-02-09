@@ -210,6 +210,13 @@ class SystemSettingsControllerTest extends H2ControllerIntegrationTestBase {
         "OK",
         200,
         "OK",
+        "System setting 'analyticsWeeklyStart' set to value 'WEEKLY_FRIDAY'.",
+        POST("/systemSettings/analyticsWeeklyStart?value=WEEKLY_FRIDAY").content(HttpStatus.OK));
+
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
         "System setting 'analyticsWeeklyStart' set to value 'WEEKLY_SATURDAY'.",
         POST("/systemSettings/analyticsWeeklyStart?value=WEEKLY_SATURDAY").content(HttpStatus.OK));
 
