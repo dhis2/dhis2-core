@@ -108,6 +108,7 @@ import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -864,8 +865,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
   }
 
   private Enrollment enrollment(TrackedEntity te) {
-    Enrollment enrollment = new Enrollment(trackerProgram, te, te.getOrganisationUnit());
-    enrollment.setAutoFields();
+    Enrollment enrollment =
+        TrackerTestBase.createEnrollment(trackerProgram, te, te.getOrganisationUnit());
     enrollment.setEnrollmentDate(new Date());
     enrollment.setOccurredDate(new Date());
     enrollment.setStatus(EnrollmentStatus.ACTIVE);
