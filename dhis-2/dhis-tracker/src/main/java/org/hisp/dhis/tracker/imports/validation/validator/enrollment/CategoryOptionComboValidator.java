@@ -127,7 +127,7 @@ class CategoryOptionComboValidator implements Validator<Enrollment> {
           enrollment,
           ValidationCode.E1130,
           enrollment.getAttributeOptionCombo(),
-          program.getEnrollmentCategoryCombo());
+          program.getEnrollmentCategoryCombo().getUid());
       return false;
     }
 
