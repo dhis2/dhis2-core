@@ -41,9 +41,11 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import jakarta.persistence.EntityManager;
 import java.sql.PreparedStatement;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -56,26 +58,40 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hibernate.Session;
 import org.hibernate.query.NativeQuery;
+import org.hisp.dhis.artemis.audit.Audit;
+import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.artemis.audit.AuditableEntity;
+import org.hisp.dhis.audit.AuditScope;
+import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DbName;
 import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryRow;
 import org.hisp.dhis.datavalue.DataEntryStore;
 import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.UserDetails;
 import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 /**
  * A store just for handling data value bulk operations.
@@ -88,6 +104,9 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     implements DataEntryStore {
 
   private final PeriodStore periodStore;
+  private final AuditManager auditManager;
+  private final DhisConfigurationProvider config;
+  private final Environment environment;
 
   /**
    * Maximum number of {@code VALUES} pairs that get added to a single {@code INSERT} SQL statement.
@@ -98,9 +117,15 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       EntityManager entityManager,
       PeriodStore periodStore,
       JdbcTemplate jdbcTemplate,
-      ApplicationEventPublisher publisher) {
+      ApplicationEventPublisher publisher,
+      AuditManager auditManager,
+      DhisConfigurationProvider config,
+      Environment environment) {
     super(entityManager, jdbcTemplate, publisher, DataValue.class, false);
     this.periodStore = periodStore;
+    this.auditManager = auditManager;
+    this.config = config;
+    this.environment = environment;
   }
 
   @Nonnull
@@ -697,7 +722,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   public int upsertValuesForJdbcTest(List<DataEntryValue> values) {
     if (values == null || values.isEmpty()) return 0;
 
-    List<DataEntryRow> internalValues = upsertValuesResolveIds(values);
+    List<ResolvedDataEntryValue> internalValues = upsertValuesResolveIds(values);
     if (internalValues.isEmpty()) return 0;
 
     @Language("sql")
@@ -717,7 +742,8 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         created = EXCLUDED.created
         """;
     int imported = 0;
-    for (DataEntryRow row : internalValues) {
+    for (ResolvedDataEntryValue value : internalValues) {
+      DataEntryRow row = value.row();
       Date now = new Date();
       imported +=
           jdbcTemplate.update(
@@ -742,8 +768,11 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   public int upsertValues(List<DataEntryValue> values) {
     if (values == null || values.isEmpty()) return 0;
 
-    List<DataEntryRow> internalValues = upsertValuesResolveIds(values);
+    List<ResolvedDataEntryValue> internalValues = upsertValuesResolveIds(values);
     if (internalValues.isEmpty()) return 0;
+
+    boolean emitAudit = shouldEmitDataValueAudit();
+    Map<DataEntryRowKey, ExistingDataValueState> existingByKey = new HashMap<>();
 
     int size = internalValues.size();
     Session session = entityManager.unwrap(Session.class);
@@ -776,22 +805,28 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
             stmt.setString(1, user);
             stmt.execute();
           }
+
+          if (emitAudit) {
+            existingByKey.putAll(getExistingDataValueState(conn, internalValues));
+          }
+
           int from = 0;
           while (from < size) {
             int n = min(MAX_ROWS_PER_INSERT, size - from);
             int to = from + n;
             try (PreparedStatement stmt = conn.prepareStatement(upsertNValuesSql(sql1, n))) {
               int p = 0;
-              for (DataEntryRow value : internalValues.subList(from, to)) {
-                stmt.setLong(p + 1, value.de());
-                stmt.setLong(p + 2, value.pe());
-                stmt.setLong(p + 3, value.ou());
-                stmt.setLong(p + 4, value.coc());
-                stmt.setLong(p + 5, value.aoc());
-                stmt.setString(p + 6, value.value());
-                stmt.setString(p + 7, value.comment());
-                stmt.setObject(p + 8, value.followup());
-                stmt.setBoolean(p + 9, value.deleted());
+              for (ResolvedDataEntryValue value : internalValues.subList(from, to)) {
+                DataEntryRow row = value.row();
+                stmt.setLong(p + 1, row.de());
+                stmt.setLong(p + 2, row.pe());
+                stmt.setLong(p + 3, row.ou());
+                stmt.setLong(p + 4, row.coc());
+                stmt.setLong(p + 5, row.aoc());
+                stmt.setString(p + 6, row.value());
+                stmt.setString(p + 7, row.comment());
+                stmt.setObject(p + 8, row.followup());
+                stmt.setBoolean(p + 9, row.deleted());
                 p += 9;
               }
               imported.addAndGet(stmt.executeUpdate());
@@ -800,13 +835,17 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
           }
         });
 
+    if (emitAudit) {
+      emitAuditsAfterCommit(buildUpsertAudits(internalValues, existingByKey, user));
+    }
+
     session.clear();
 
     return imported.get();
   }
 
   @Nonnull
-  private List<DataEntryRow> upsertValuesResolveIds(List<DataEntryValue> values) {
+  private List<ResolvedDataEntryValue> upsertValuesResolveIds(List<DataEntryValue> values) {
     Map<String, Long> des = getDataElementIdMap(values.stream().map(DataEntryValue::dataElement));
     Map<String, Long> ous = getOrgUnitIdMap(values.stream().map(DataEntryValue::orgUnit));
     Map<String, Long> cocs = getOptionComboIdMap(values);
@@ -814,7 +853,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
     long defaultCoc = getDefaultCategoryOptionComboId();
     Function<UID, Long> cocOf = uid -> uid == null ? defaultCoc : cocs.get(uid.getValue());
 
-    List<DataEntryRow> internalValues = new ArrayList<>(values.size());
+    List<ResolvedDataEntryValue> internalValues = new ArrayList<>(values.size());
 
     for (DataEntryValue value : values) {
       Long de = des.get(value.dataElement().getValue());
@@ -826,8 +865,10 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         Boolean deleted = value.deleted();
         if (deleted == null) deleted = false;
         internalValues.add(
-            new DataEntryRow(
-                de, pe, ou, coc, aoc, value.value(), value.comment(), value.followUp(), deleted));
+            new ResolvedDataEntryValue(
+                value,
+                new DataEntryRow(
+                    de, pe, ou, coc, aoc, value.value(), value.comment(), value.followUp(), deleted)));
       }
     }
     return internalValues;
@@ -840,6 +881,219 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
         "(?, ?, ?, ?, ?, ?, ?, ?, ?)",
         "(?, ?, ?, ?, ?, ?, ?, ?, ?)" + ", (?, ?, ?, ?, ?, ?, ?, ?, ?)".repeat(n - 1));
   }
+
+  @Nonnull
+  private static String selectExistingNValuesSql(int n) {
+    String values = "(?, ?, ?, ?, ?)" + ", (?, ?, ?, ?, ?)".repeat(n - 1);
+    return """
+      SELECT
+          dv.dataelementid,
+          dv.periodid,
+          dv.sourceid,
+          dv.categoryoptioncomboid,
+          dv.attributeoptioncomboid,
+          dv.comment,
+          dv.deleted
+      FROM (VALUES %s) AS e (de, pe, ou, coc, aoc)
+      JOIN datavalue dv
+          ON dv.dataelementid = e.de
+          AND dv.periodid = e.pe
+          AND dv.sourceid = e.ou
+          AND dv.categoryoptioncomboid = e.coc
+          AND dv.attributeoptioncomboid = e.aoc
+      """
+        .formatted(values);
+  }
+
+  @Nonnull
+  private Map<DataEntryRowKey, ExistingDataValueState> getExistingDataValueState(
+      java.sql.Connection conn, List<ResolvedDataEntryValue> values) throws java.sql.SQLException {
+    Map<DataEntryRowKey, ExistingDataValueState> existingByKey = new HashMap<>();
+    int size = values.size();
+    int from = 0;
+
+    while (from < size) {
+      int n = min(MAX_ROWS_PER_INSERT, size - from);
+      int to = from + n;
+
+      try (PreparedStatement stmt = conn.prepareStatement(selectExistingNValuesSql(n))) {
+        int p = 0;
+        for (ResolvedDataEntryValue value : values.subList(from, to)) {
+          DataEntryRow row = value.row();
+          stmt.setLong(p + 1, row.de());
+          stmt.setLong(p + 2, row.pe());
+          stmt.setLong(p + 3, row.ou());
+          stmt.setLong(p + 4, row.coc());
+          stmt.setLong(p + 5, row.aoc());
+          p += 5;
+        }
+
+        try (java.sql.ResultSet rows = stmt.executeQuery()) {
+          while (rows.next()) {
+            existingByKey.put(
+                new DataEntryRowKey(
+                    rows.getLong(1), rows.getLong(2), rows.getLong(3), rows.getLong(4), rows.getLong(5)),
+                new ExistingDataValueState(rows.getString(6), rows.getBoolean(7)));
+          }
+        }
+      }
+
+      from += n;
+    }
+
+    return existingByKey;
+  }
+
+  private boolean shouldEmitDataValueAudit() {
+    if (!config.isEnabled(ConfigurationKey.AUDIT_ENABLED)) {
+      return false;
+    }
+
+    String[] activeProfiles = environment.getActiveProfiles();
+    return !SystemUtils.isTestRun(activeProfiles) || SystemUtils.isAuditTest(activeProfiles);
+  }
+
+  @Nonnull
+  private List<Audit> buildUpsertAudits(
+      List<ResolvedDataEntryValue> values,
+      Map<DataEntryRowKey, ExistingDataValueState> existingByKey,
+      String user) {
+    UID defaultCocUid = getDefaultCategoryOptionComboUid();
+    List<Audit> audits = new ArrayList<>(values.size());
+
+    for (ResolvedDataEntryValue value : values) {
+      DataEntryValue auditValue = value.value();
+      ExistingDataValueState oldState = existingByKey.get(DataEntryRowKey.from(value.row()));
+      String comment = auditValue.comment();
+      if (oldState != null && !oldState.deleted() && Boolean.TRUE.equals(auditValue.deleted())) {
+        comment = oldState.comment();
+      }
+
+      DataEntryValue normalized =
+          normalizeAuditValue(auditValue, defaultCocUid, comment, value.row().deleted());
+
+      audits.add(
+          createUpsertAudit(
+              normalized, oldState == null ? AuditType.CREATE : AuditType.UPDATE, user));
+    }
+
+    return audits;
+  }
+
+  @Nonnull
+  private static DataEntryValue normalizeAuditValue(
+      DataEntryValue value, UID defaultCocUid, String comment, boolean deleted) {
+    UID coc = value.categoryOptionCombo() == null ? defaultCocUid : value.categoryOptionCombo();
+    UID aoc = value.attributeOptionCombo() == null ? defaultCocUid : value.attributeOptionCombo();
+
+    return new DataEntryValue(
+        value.index(),
+        value.dataElement(),
+        value.orgUnit(),
+        coc,
+        aoc,
+        value.period(),
+        value.value(),
+        comment,
+        value.followUp(),
+        deleted);
+  }
+
+  @Nonnull
+  private Audit createUpsertAudit(DataEntryValue value, AuditType type, String user) {
+    DataValue dataValue = createAuditDataValue(value, user);
+    return Audit.builder()
+        .auditType(type)
+        .auditScope(AuditScope.AGGREGATE)
+        .createdAt(LocalDateTime.now())
+        .object(dataValue)
+        .attributes(auditManager.collectAuditAttributes(dataValue, DataValue.class))
+        .auditableEntity(new AuditableEntity(DataValue.class, createAuditEntry(value, user)))
+        .build();
+  }
+
+  @Nonnull
+  private DataValue createAuditDataValue(DataEntryValue value, String user) {
+    DataElement dataElement = new DataElement();
+    dataElement.setUid(value.dataElement().getValue());
+
+    OrganisationUnit organisationUnit = new OrganisationUnit();
+    organisationUnit.setUid(value.orgUnit().getValue());
+
+    CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
+    categoryOptionCombo.setUid(value.categoryOptionCombo().getValue());
+
+    CategoryOptionCombo attributeOptionCombo = new CategoryOptionCombo();
+    attributeOptionCombo.setUid(value.attributeOptionCombo().getValue());
+
+    Date now = new Date();
+    DataValue dataValue =
+        new DataValue(
+            dataElement,
+            Period.of(value.period()),
+            organisationUnit,
+            categoryOptionCombo,
+            attributeOptionCombo,
+            value.value(),
+            user,
+            now,
+            value.comment(),
+            value.followUp(),
+            Boolean.TRUE.equals(value.deleted()));
+
+    dataValue.setCreated(now);
+    return dataValue;
+  }
+
+  @Nonnull
+  private static Map<String, Object> createAuditEntry(DataEntryValue value, String user) {
+    Date now = new Date();
+    Map<String, Object> entry = new LinkedHashMap<>();
+    entry.put("dataElement", value.dataElement().getValue());
+    entry.put("period", value.period());
+    entry.put("source", value.orgUnit().getValue());
+    entry.put("categoryOptionCombo", value.categoryOptionCombo().getValue());
+    entry.put("attributeOptionCombo", value.attributeOptionCombo().getValue());
+    entry.put("value", value.value());
+    entry.put("storedBy", user);
+    entry.put("created", now);
+    entry.put("lastUpdated", now);
+    entry.put("comment", value.comment());
+    entry.put("followup", value.followUp());
+    entry.put("deleted", Boolean.TRUE.equals(value.deleted()));
+    return entry;
+  }
+
+  private void emitAuditsAfterCommit(List<Audit> audits) {
+    if (audits.isEmpty()) {
+      return;
+    }
+
+    Runnable sendAudit = () -> audits.forEach(auditManager::send);
+
+    if (TransactionSynchronizationManager.isSynchronizationActive()
+        && TransactionSynchronizationManager.isActualTransactionActive()) {
+      TransactionSynchronizationManager.registerSynchronization(
+          new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+              sendAudit.run();
+            }
+          });
+    } else {
+      sendAudit.run();
+    }
+  }
+
+  private record DataEntryRowKey(long de, long pe, long ou, long coc, long aoc) {
+    private static DataEntryRowKey from(DataEntryRow row) {
+      return new DataEntryRowKey(row.de(), row.pe(), row.ou(), row.coc(), row.aoc());
+    }
+  }
+
+  private record ExistingDataValueState(String comment, boolean deleted) {}
+
+  private record ResolvedDataEntryValue(DataEntryValue value, DataEntryRow row) {}
 
   private Map<String, Long> getDataElementIdMap(Stream<UID> ids) {
     return getIdMap("dataelement", ids);
