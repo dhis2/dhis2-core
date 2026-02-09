@@ -238,7 +238,10 @@ class SmsImportMapper {
         .attributes(
             mapProgramAttributeValues(
                 submission.getValues(), programAttributes, existingAttributeValues))
-        .attributeOptionCombo(metadataUid(submission.getAttributeOptionCombo()))
+        .attributeOptionCombo(
+            submission.getAttributeOptionCombo() != null
+                ? metadataUid(submission.getAttributeOptionCombo())
+                : null)
         .build();
   }
 
