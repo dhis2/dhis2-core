@@ -3064,7 +3064,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @return the CTE SQL string
    */
   private String buildAggregateFilterCteSql(List<QueryItem> stageItems, EventQueryParams params) {
-
     QueryItem firstItem = stageItems.get(0);
     String tableName = "analytics_event_" + firstItem.getProgram().getUid().toLowerCase();
     String stageUid = firstItem.getProgramStage().getUid();
