@@ -135,8 +135,12 @@ class SecurityTrackerEventValidator
   private UID getTeUidFromEvent(
       TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.TrackerEvent event) {
     if (bundle.getStrategy(event).isUpdateOrDelete()) {
-      return UID.of(
-          bundle.getPreheat().getTrackerEvent(event.getUid()).getEnrollment().getTrackedEntity());
+      return bundle
+          .getPreheat()
+          .getTrackerEvent(event.getUID())
+          .getEnrollment()
+          .getTrackedEntity()
+          .getUID();
     }
 
     Enrollment enrollment = bundle.getPreheat().getEnrollment(event.getEnrollment());
@@ -148,7 +152,7 @@ class SecurityTrackerEventValidator
           .get();
     }
 
-    return UID.of(enrollment.getTrackedEntity());
+    return enrollment.getTrackedEntity().getUID();
   }
 
   private OrganisationUnit getOwnerOrganisationUnit(

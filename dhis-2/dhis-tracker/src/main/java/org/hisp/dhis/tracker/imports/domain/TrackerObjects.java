@@ -75,6 +75,6 @@ public class TrackerObjects implements Serializable {
   }
 
   private static <T extends TrackerDto> Optional<T> find(List<T> entities, UID uid) {
-    return entities.stream().filter(e -> Objects.equals(e.getUid(), uid)).findFirst();
+    return entities.stream().filter(e -> Objects.equals(e.getUID(), uid)).findFirst();
   }
 }

@@ -68,19 +68,19 @@ public class RelationshipOperationParams {
 
   public static RelationshipOperationParamsBuilder builder(@Nonnull TrackerEvent event) {
     return new RelationshipOperationParamsBuilder()
-        .identifier(UID.of(event))
+        .identifier(event.getUID())
         .type(TrackerType.EVENT);
   }
 
   public static RelationshipOperationParamsBuilder builder(@Nonnull Enrollment enrollment) {
     return new RelationshipOperationParamsBuilder()
-        .identifier(UID.of(enrollment))
+        .identifier(enrollment.getUID())
         .type(TrackerType.ENROLLMENT);
   }
 
   public static RelationshipOperationParamsBuilder builder(@Nonnull TrackedEntity trackedEntity) {
     return new RelationshipOperationParamsBuilder()
-        .identifier(UID.of(trackedEntity))
+        .identifier(trackedEntity.getUID())
         .type(TrackerType.TRACKED_ENTITY);
   }
 
