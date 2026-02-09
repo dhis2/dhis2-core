@@ -34,9 +34,9 @@ import com.lowagie.text.FontFactory;
 import com.lowagie.text.pdf.BaseFont;
 import java.awt.Color;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.Locale;
 
 /**
  * @author James Chang
@@ -128,7 +128,7 @@ public class PdfFormFontSettings {
    * @return the {@link Font} to be used for generating PDF file.
    */
   private Font getFont(Locale locale) {
-    if (locale.getLanguage().equals(ARABIC_FONT_CODE)) {
+    if (locale.language().equals(ARABIC_FONT_CODE)) {
       return FontFactory.getFont(ARABIC_FONT, BaseFont.IDENTITY_H, true);
     }
     return FontFactory.getFont(FONTFAMILY, FontFactory.defaultEncoding, true);

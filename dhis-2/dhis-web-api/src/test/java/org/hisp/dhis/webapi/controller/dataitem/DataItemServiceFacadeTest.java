@@ -92,7 +92,7 @@ class DataItemServiceFacadeTest {
   @BeforeEach
   public void setUp() {
     injectSecurityContext(new SystemUser());
-    dataItemServiceFacade = new DataItemServiceFacade(userService, queryExecutor);
+    dataItemServiceFacade = new DataItemServiceFacade(queryExecutor);
   }
 
   @Test

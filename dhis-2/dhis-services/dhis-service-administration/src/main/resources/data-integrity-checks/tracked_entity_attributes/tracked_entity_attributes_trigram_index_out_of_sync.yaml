@@ -1,6 +1,6 @@
 ---
 name: tracked_entity_attributes_trigram_index_out_of_sync
-description: Partial trigram indexes on trackedentityattributevalue table must be in sync with the tracked entity attribute metadata configuration.
+description: Partial trigram indexes on trackedentityattributevalue table must be in sync with the tracked entity attribute metadata configuration
 section: Tracked entity attributes
 section_order: 2
 summary_sql: >-

@@ -112,15 +112,19 @@ public class OutliersCache {
   }
 
   /**
-   * Will cache the given key/outliers pair respecting the TTL provided through the parameter
-   * "ttlInSeconds".
+   * Caches the given key/outliers pair respecting the TTL provided through the parameter
+   * "ttlInSeconds". It ignores a negative ttl, and if that happens nothing is cached.
    *
    * @param key the cache key associate with the list of {@link Outlier}.
    * @param outliers the object to be cached.
    * @param ttlInSeconds the time to live (expiration time) in seconds.
    */
   public void put(String key, List<Outlier> outliers, long ttlInSeconds) {
-    queryCache.put(key, outliers, ttlInSeconds);
+    boolean isTtlPositive = ttlInSeconds > 0;
+
+    if (isTtlPositive) {
+      queryCache.put(key, outliers, ttlInSeconds);
+    }
   }
 
   /** Clears the current cache by removing all existing entries. */
