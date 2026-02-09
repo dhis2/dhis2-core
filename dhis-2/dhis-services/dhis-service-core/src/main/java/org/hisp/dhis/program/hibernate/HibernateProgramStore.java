@@ -29,10 +29,14 @@
  */
 package org.hisp.dhis.program.hibernate;
 
+import static org.hibernate.LockMode.PESSIMISTIC_WRITE;
+
 import com.google.common.collect.Lists;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.List;
+import java.util.Set;
+import org.hibernate.LockOptions;
 import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -116,5 +120,40 @@ public class HibernateProgramStore extends HibernateIdentifiableObjectStore<Prog
     query.setParameter("ouid", organisationUnit.getId());
 
     return !query.getResultList().isEmpty();
+  }
+
+  @Override
+  public int updateCategoryComboRefs(Set<Long> sourceCategoryComboIds, long targetCategoryComboId) {
+    if (sourceCategoryComboIds == null || sourceCategoryComboIds.isEmpty()) return 0;
+    String sql =
+        """
+        update program
+        set categorycomboid = :targetCategoryComboId
+        where categorycomboid in :sourceCategoryComboIds
+        """;
+    return getSession()
+        .createNativeQuery(sql)
+        .setParameter("targetCategoryComboId", targetCategoryComboId)
+        .setParameter("sourceCategoryComboIds", sourceCategoryComboIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .executeUpdate();
+  }
+
+  @Override
+  public int updateEnrollmentCategoryComboRefs(
+      Set<Long> sourceCategoryComboIds, long targetCategoryComboId) {
+    if (sourceCategoryComboIds == null || sourceCategoryComboIds.isEmpty()) return 0;
+    String sql =
+        """
+        update program
+        set enrollmentcategorycomboid = :targetCategoryComboId
+        where enrollmentcategorycomboid in :sourceCategoryComboIds
+        """;
+    return getSession()
+        .createNativeQuery(sql)
+        .setParameter("targetCategoryComboId", targetCategoryComboId)
+        .setParameter("sourceCategoryComboIds", sourceCategoryComboIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .executeUpdate();
   }
 }

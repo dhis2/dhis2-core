@@ -30,12 +30,15 @@
 package org.hisp.dhis.dataset.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hibernate.LockMode.PESSIMISTIC_WRITE;
 
 import com.google.common.collect.Lists;
 import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
+import org.hibernate.LockOptions;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
@@ -120,5 +123,40 @@ public class HibernateDataSetStore extends HibernateIdentifiableObjectStore<Data
             DataSetElement.class)
         .setParameter("dataElements", dataElements)
         .list();
+  }
+
+  @Override
+  public int updateCategoryComboRefs(Set<Long> sourceCategoryComboIds, long targetCategoryComboId) {
+    if (sourceCategoryComboIds == null || sourceCategoryComboIds.isEmpty()) return 0;
+    String sql =
+        """
+        update dataset
+        set categorycomboid = :targetCategoryComboId
+        where categorycomboid in :sourceCategoryComboIds
+        """;
+    return getSession()
+        .createNativeQuery(sql)
+        .setParameter("targetCategoryComboId", targetCategoryComboId)
+        .setParameter("sourceCategoryComboIds", sourceCategoryComboIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .executeUpdate();
+  }
+
+  @Override
+  public int updateDataSetElementCategoryComboRefs(
+      Set<Long> sourceCategoryComboIds, long targetCategoryComboId) {
+    if (sourceCategoryComboIds == null || sourceCategoryComboIds.isEmpty()) return 0;
+    String sql =
+        """
+        update datasetelement
+        set categorycomboid = :targetCategoryComboId
+        where categorycomboid in :sourceCategoryComboIds
+        """;
+    return getSession()
+        .createNativeQuery(sql)
+        .setParameter("targetCategoryComboId", targetCategoryComboId)
+        .setParameter("sourceCategoryComboIds", sourceCategoryComboIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .executeUpdate();
   }
 }

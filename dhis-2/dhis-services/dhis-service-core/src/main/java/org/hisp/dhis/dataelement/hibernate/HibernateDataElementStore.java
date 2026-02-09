@@ -29,12 +29,16 @@
  */
 package org.hisp.dhis.dataelement.hibernate;
 
+import static org.hibernate.LockMode.PESSIMISTIC_WRITE;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
+import org.hibernate.LockOptions;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
@@ -130,5 +134,22 @@ public class HibernateDataElementStore extends HibernateIdentifiableObjectStore<
             .addPredicate(root -> builder.equal(root.get("uid"), uid));
 
     return getSingleResult(builder, param);
+  }
+
+  @Override
+  public int updateCategoryComboRefs(Set<Long> sourceCategoryComboIds, long targetCategoryComboId) {
+    if (sourceCategoryComboIds == null || sourceCategoryComboIds.isEmpty()) return 0;
+    String sql =
+        """
+        update dataelement
+        set categorycomboid = :targetCategoryComboId
+        where categorycomboid in :sourceCategoryComboIds
+        """;
+    return getSession()
+        .createNativeQuery(sql)
+        .setParameter("targetCategoryComboId", targetCategoryComboId)
+        .setParameter("sourceCategoryComboIds", sourceCategoryComboIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .executeUpdate();
   }
 }

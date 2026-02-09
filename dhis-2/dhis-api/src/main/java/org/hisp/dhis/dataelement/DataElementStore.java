@@ -30,6 +30,7 @@
 package org.hisp.dhis.dataelement;
 
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.user.User;
@@ -92,4 +93,13 @@ public interface DataElementStore extends GenericDimensionalObjectStore<DataElem
    * @return all DataElements which the user has access to.
    */
   DataElement getDataElement(String uid, User user);
+
+  /**
+   * Update all source CategoryCombo ids to the target CategoryCombo id for DataElements.
+   *
+   * @param sourceCategoryComboIds source category combo ids
+   * @param targetCategoryComboId target category combo id
+   * @return number of updated rows
+   */
+  int updateCategoryComboRefs(Set<Long> sourceCategoryComboIds, long targetCategoryComboId);
 }

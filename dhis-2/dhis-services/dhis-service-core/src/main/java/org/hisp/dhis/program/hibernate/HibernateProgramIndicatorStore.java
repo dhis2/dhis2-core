@@ -29,10 +29,14 @@
  */
 package org.hisp.dhis.program.hibernate;
 
+import static org.hibernate.LockMode.PESSIMISTIC_WRITE;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
+import org.hibernate.LockOptions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorStore;
@@ -90,5 +94,40 @@ public class HibernateProgramIndicatorStore
             group by pi"""
                 .formatted(multiLike))
         .getResultList();
+  }
+
+  @Override
+  public int updateCategoryComboRefs(Set<Long> sourceCategoryComboIds, long targetCategoryComboId) {
+    if (sourceCategoryComboIds == null || sourceCategoryComboIds.isEmpty()) return 0;
+    String sql =
+        """
+        update programindicator
+        set categorycomboid = :targetCategoryComboId
+        where categorycomboid in :sourceCategoryComboIds
+        """;
+    return getSession()
+        .createNativeQuery(sql)
+        .setParameter("targetCategoryComboId", targetCategoryComboId)
+        .setParameter("sourceCategoryComboIds", sourceCategoryComboIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .executeUpdate();
+  }
+
+  @Override
+  public int updateAttributeComboRefs(
+      Set<Long> sourceCategoryComboIds, long targetCategoryComboId) {
+    if (sourceCategoryComboIds == null || sourceCategoryComboIds.isEmpty()) return 0;
+    String sql =
+        """
+        update programindicator
+        set attributecomboid = :targetCategoryComboId
+        where attributecomboid in :sourceCategoryComboIds
+        """;
+    return getSession()
+        .createNativeQuery(sql)
+        .setParameter("targetCategoryComboId", targetCategoryComboId)
+        .setParameter("sourceCategoryComboIds", sourceCategoryComboIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .executeUpdate();
   }
 }

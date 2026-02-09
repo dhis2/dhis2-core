@@ -133,6 +133,13 @@ public enum ErrorCode {
   E1540(
       "CategoryOptionCombos must be duplicates (same cat combo, same cat options, different UID) in order to merge"),
 
+  /* CategoryCombo merge */
+  E1545("Source and target CategoryCombos must have identical Categories: source {0} has {1}"),
+  E1546(
+      "CategoryOptionCombo has incorrect number of CategoryOptions. Expected {0} but found {1} for COC: {2}"),
+  E1547(
+      "CategoryOptionCombo has CategoryOptions that are not valid for the CategoryCombo categories: {0}"),
+
   /* DataElement merge */
   E1550("All source ValueTypes must match target ValueType: `{0}`. Other ValueTypes found: `{1}`"),
   E1551(
