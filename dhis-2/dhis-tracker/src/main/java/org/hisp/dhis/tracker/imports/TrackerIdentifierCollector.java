@@ -128,6 +128,8 @@ public class TrackerIdentifierCollector {
           addIdentifier(identifiers, Enrollment.class, enrollment.getEnrollment());
           addIdentifier(identifiers, Program.class, enrollment.getProgram());
           addIdentifier(identifiers, OrganisationUnit.class, enrollment.getOrgUnit());
+          addIdentifier(
+              identifiers, CategoryOptionCombo.class, enrollment.getAttributeOptionCombo());
 
           collectNotes(identifiers, enrollment.getNotes());
           enrollment

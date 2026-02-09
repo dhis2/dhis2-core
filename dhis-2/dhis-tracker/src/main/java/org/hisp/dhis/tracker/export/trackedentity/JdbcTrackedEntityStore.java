@@ -39,7 +39,6 @@ import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipCla
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -83,10 +82,7 @@ class JdbcTrackedEntityStore {
   private static final String INVALID_ORDER_FIELD_MESSAGE =
       "Cannot order by '%s'. Supported are tracked entity attributes and fields '%s'.";
 
-  private static final String BASE_SELECT =
-      """
-      select te.trackedentityid, te.uid, te.created, te.lastupdated, te.createdatclient, \
-      te.lastupdatedatclient, te.inactive, te.potentialduplicate, te.deleted, te.trackedentitytypeid""";
+  private static final String BASE_SELECT = "select te.trackedentityid, te.uid";
 
   /**
    * Tracked entities can be ordered by given fields which correspond to fields on {@link
@@ -351,27 +347,28 @@ class JdbcTrackedEntityStore {
   }
 
   /**
-   * Add the SELECT to the {@code sql}. Columns for attribute values and the {@code enrolledAt} date
-   * are only included if tracked entities should be ordered by them. The column names in here and
-   * {@link #addJoinOnAttributes(StringBuilder, TrackedEntityQueryParams)} and {@link
-   * #addJoinOnEnrollment(StringBuilder, MapSqlParameterSource, TrackedEntityQueryParams)} and
-   * {@link #addOrderBy(StringBuilder, TrackedEntityQueryParams)} have to stay in sync.
+   * Adds the SELECT for the inner subquery. By default SELECTs only trackedentityid (the PK) and
+   * uid to avoid expensive DISTINCT comparisons on all columns. When ORDER BY is used, those
+   * columns must also be in the SELECT list because PostgreSQL requires it for SELECT DISTINCT.
+   * Adding them does not affect deduplication since the PK already guarantees uniqueness.
+   *
+   * <p>The column names here must stay in sync with {@link #addJoinOnAttributes(StringBuilder,
+   * TrackedEntityQueryParams)}, {@link #addJoinOnEnrollment(StringBuilder, MapSqlParameterSource,
+   * TrackedEntityQueryParams)} and {@link #addOrderBy(StringBuilder, TrackedEntityQueryParams)}.
    */
   private void addTrackedEntityFromItemSelect(StringBuilder sql, TrackedEntityQueryParams params) {
-    LinkedHashSet<String> columns =
-        new LinkedHashSet<>(
-            List.of(
-                "te.trackedentityid as trackedentityid",
-                "te.trackedentitytypeid as trackedentitytypeid",
-                "te.uid as uid",
-                "te.created as created",
-                "te.lastupdated as lastupdated",
-                "te.createdatclient as createdatclient",
-                "te.lastupdatedatclient as lastupdatedatclient",
-                "te.inactive as inactive",
-                "te.potentialduplicate as potentialduplicate",
-                "te.deleted as deleted"));
+    // When ordering by enrolledAt, use DISTINCT ON to pick one enrollment per TE.
+    // This fixes pagination when a TE has multiple enrollments (DHIS2-20811).
+    if (isOrderingByEnrolledAt(params)) {
+      sql.append("select distinct on (te.trackedentityid) te.trackedentityid");
+    } else {
+      sql.append("select distinct te.trackedentityid");
+    }
 
+    // TE columns needed by the outer query
+    sql.append(", te.uid");
+
+    // Add order-by columns so they are available for ORDER BY (required for DISTINCT)
     for (Order order : params.getOrder()) {
       if (order.getField() instanceof String field) {
         if (!ORDERABLE_FIELDS.containsKey(field)) {
@@ -382,12 +379,20 @@ class JdbcTrackedEntityStore {
                   String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
         }
 
-        // all orderable fields are already in the select
         if (ENROLLMENT_DATE_KEY.equals(field)) {
-          columns.add(ENROLLMENT_ALIAS + ".enrollmentdate as " + ENROLLMENT_DATE_ALIAS);
+          sql.append(", ")
+              .append(ENROLLMENT_ALIAS)
+              .append(".enrollmentdate as ")
+              .append(ENROLLMENT_DATE_ALIAS);
+        } else {
+          // TE column needed in SELECT for DISTINCT ORDER BY
+          sql.append(", te.").append(ORDERABLE_FIELDS.get(field));
         }
       } else if (order.getField() instanceof TrackedEntityAttribute tea) {
-        columns.add(quote(tea.getUid()) + ".value as " + quote(tea.getUid()));
+        sql.append(", ")
+            .append(quote(tea.getUid()))
+            .append(".value as ")
+            .append(quote(tea.getUid()));
       } else {
         throw new IllegalArgumentException(
             String.format(
@@ -396,15 +401,6 @@ class JdbcTrackedEntityStore {
                 String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
       }
     }
-
-    // When ordering by enrolledAt, use DISTINCT ON to pick one enrollment per TE.
-    // This fixes pagination when a TE has multiple enrollments (DHIS2-20811).
-    if (isOrderingByEnrolledAt(params)) {
-      sql.append("select distinct on (te.trackedentityid) ");
-    } else {
-      sql.append("select distinct ");
-    }
-    sql.append(String.join(", ", columns));
   }
 
   private void addJoinOnProgram(
