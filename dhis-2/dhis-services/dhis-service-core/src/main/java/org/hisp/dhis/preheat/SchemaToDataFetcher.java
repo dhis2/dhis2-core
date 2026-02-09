@@ -78,7 +78,7 @@ public class SchemaToDataFetcher {
    * @deprecated Use {@link #fetch(Schema, Collection)} to avoid loading all records
    */
   @Deprecated
-  public List<IdentifiableObject> fetch(Schema schema) {
+  public List<? extends IdentifiableObject> fetch(Schema schema) {
     // Preserve old behavior - load ALL records (no filtering)
     return fetch(schema, null);
   }
@@ -95,7 +95,7 @@ public class SchemaToDataFetcher {
    *     empty, returns empty list (no uniqueness conflicts possible with nothing being imported).
    * @return a List of objects corresponding to the "klass" of the given Schema
    */
-  public List<IdentifiableObject> fetch(
+  public List<? extends IdentifiableObject> fetch(
       Schema schema, Collection<? extends IdentifiableObject> objectsBeingImported) {
     if (schema == null) {
       return Collections.emptyList();
@@ -105,7 +105,7 @@ public class SchemaToDataFetcher {
   }
 
   @SuppressWarnings("unchecked")
-  private List<IdentifiableObject> mapUniqueFields(
+  private List<? extends IdentifiableObject> mapUniqueFields(
       Schema schema, Collection<? extends IdentifiableObject> objectsBeingImported) {
     List<Property> uniqueProperties = schema.getUniqueProperties();
     if (uniqueProperties.isEmpty()) {
