@@ -133,8 +133,12 @@ public class DefaultUserGroupService implements UserGroupService {
   @Override
   @Transactional(readOnly = true)
   public boolean canAddOrRemoveMember(String uid, @Nonnull UserDetails userDetails) {
-    UserGroup userGroup = getUserGroup(uid);
+    return canAddOrRemoveMember(getUserGroup(uid), userDetails);
+  }
 
+  @Override
+  @Transactional(readOnly = true)
+  public boolean canAddOrRemoveMember(UserGroup userGroup, @Nonnull UserDetails userDetails) {
     if (userGroup == null) {
       return false;
     }
@@ -153,8 +157,8 @@ public class DefaultUserGroupService implements UserGroupService {
     User lastUpdatedByUser = null;
 
     for (String uid : uids) {
-      if (canAddOrRemoveMember(uid, currentUser)) {
-        UserGroup userGroup = getUserGroup(uid);
+      UserGroup userGroup = getUserGroup(uid);
+      if (canAddOrRemoveMember(userGroup, currentUser)) {
         // Use SQL to add membership (avoids loading members collection)
         if (userGroupStore.addMemberViaSQL(userGroup.getId(), user.getId())) {
           // Update in-memory state
@@ -179,8 +183,8 @@ public class DefaultUserGroupService implements UserGroupService {
     User lastUpdatedByUser = null;
 
     for (String uid : uids) {
-      if (canAddOrRemoveMember(uid)) {
-        UserGroup userGroup = getUserGroup(uid);
+      UserGroup userGroup = getUserGroup(uid);
+      if (canAddOrRemoveMember(userGroup, currentUser)) {
         // Use SQL to remove membership (avoids loading members collection)
         if (userGroupStore.removeMemberViaSQL(userGroup.getId(), user.getId())) {
           // Update in-memory state
@@ -208,8 +212,7 @@ public class DefaultUserGroupService implements UserGroupService {
     // Groups to add to: in updates but user is not currently a member
     Set<UserGroup> groupsToAddTo = new HashSet<>();
     for (UserGroup userGroup : updates) {
-      if (!currentGroups.contains(userGroup)
-          && canAddOrRemoveMember(userGroup.getUid(), currentUser)) {
+      if (!currentGroups.contains(userGroup) && canAddOrRemoveMember(userGroup, currentUser)) {
         groupsToAddTo.add(userGroup);
       }
     }
@@ -217,7 +220,7 @@ public class DefaultUserGroupService implements UserGroupService {
     // Groups to remove from: user is currently a member but group not in updates
     Set<UserGroup> groupsToRemoveFrom = new HashSet<>();
     for (UserGroup userGroup : currentGroups) {
-      if (!updates.contains(userGroup) && canAddOrRemoveMember(userGroup.getUid(), currentUser)) {
+      if (!updates.contains(userGroup) && canAddOrRemoveMember(userGroup, currentUser)) {
         groupsToRemoveFrom.add(userGroup);
       }
     }
