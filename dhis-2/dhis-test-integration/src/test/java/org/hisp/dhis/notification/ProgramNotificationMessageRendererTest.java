@@ -90,6 +90,7 @@ import org.springframework.transaction.annotation.Transactional;
 class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase {
 
   private String dataElementUid = CodeGenerator.generateUid();
+  private String dataElementNotInProgramStageUid = CodeGenerator.generateUid();
 
   private String dataElementWithOptionSetUid = CodeGenerator.generateUid();
 
@@ -116,6 +117,7 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
   private DataElement dataElementA;
   private DataElement dataElementB;
   private DataElement dataElementWithOptionSet;
+  private DataElement dataElementNotInProgramStage;
 
   private TrackedEntityAttribute trackedEntityAttributeA;
 
@@ -142,6 +144,7 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
 
   private EventDataValue eventDataValueB;
   private EventDataValue eventDataValueC;
+  private EventDataValue eventDataValueD;
 
   private OrganisationUnit organisationUnitA;
 
@@ -200,9 +203,15 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
     dataElementB =
         createDataElement('B', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER);
     dataElementB.setUid("DEB-UID");
+
+    dataElementNotInProgramStage =
+        createDataElement('C', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER);
+    dataElementNotInProgramStage.setUid(dataElementNotInProgramStageUid);
+
     dataElementService.addDataElement(dataElementA);
     dataElementService.addDataElement(dataElementB);
     dataElementService.addDataElement(dataElementWithOptionSet);
+    dataElementService.addDataElement(dataElementNotInProgramStage);
     trackedEntityAttributeA = createTrackedEntityAttribute('A');
     trackedEntityAttributeA.setUid(trackedEntityAttributeUid);
     trackedEntityAttributeB = createTrackedEntityAttribute('B');
@@ -276,7 +285,14 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
     eventDataValueC.setDataElement(dataElementWithOptionSet.getUid());
     eventDataValueC.setAutoFields();
     eventDataValueC.setValue("OptionCodeA");
-    eventA.setEventDataValues(Sets.newHashSet(eventDataValueA, eventDataValueB, eventDataValueC));
+
+    eventDataValueD = new EventDataValue();
+    eventDataValueD.setDataElement(dataElementNotInProgramStage.getUid());
+    eventDataValueD.setAutoFields();
+    eventDataValueD.setValue("DataElementE-Text");
+
+    eventA.setEventDataValues(
+        Sets.newHashSet(eventDataValueA, eventDataValueB, eventDataValueC, eventDataValueD));
     manager.save(eventA);
     enrollmentA.getEvents().add(eventA);
     manager.save(enrollmentA);
@@ -321,6 +337,19 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
         programStageNotificationMessageRenderer.render(eventA, programNotificationTemplate);
     assertEquals("message is dataElementA-Text", notificationMessage.getMessage());
     assertEquals("subject is dataElementA-Text", notificationMessage.getSubject());
+  }
+
+  @Test
+  void testRendererForMessageWithNullDataElement() {
+    programNotificationTemplate.setMessageTemplate(
+        "message is #{" + dataElementNotInProgramStageUid + "}");
+    programNotificationTemplate.setSubjectTemplate(
+        "subject is #{" + dataElementNotInProgramStageUid + "}");
+    programNotificationTemplateStore.update(programNotificationTemplate);
+    NotificationMessage notificationMessage =
+        programStageNotificationMessageRenderer.render(eventA, programNotificationTemplate);
+    assertEquals("message is [N/A]", notificationMessage.getMessage());
+    assertEquals("subject is [N/A]", notificationMessage.getSubject());
   }
 
   @Test

@@ -142,6 +142,9 @@ public class SingleEventNotificationMessageRenderer
   // -------------------------------------------------------------------------
 
   private String resolveDataElementWithOptionSet(EventDataValue dv, DataElement dataElement) {
+    if (dataElement == null) {
+      return MISSING_VALUE_REPLACEMENT;
+    }
     String value = dv.getValue();
 
     if (value == null) {
