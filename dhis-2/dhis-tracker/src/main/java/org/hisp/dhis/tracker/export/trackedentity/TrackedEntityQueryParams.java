@@ -296,10 +296,9 @@ public class TrackedEntityQueryParams {
    * match).
    */
   public Set<TrackedEntityAttribute> getLeftJoinAttributes() {
-    Set<TrackedEntityAttribute> innerJoined = getInnerJoinAttributes();
     Set<TrackedEntityAttribute> leftJoined = new HashSet<>(getOrderAttributes());
     leftJoined.addAll(nullFilteredAttributes);
-    leftJoined.removeAll(innerJoined);
+    leftJoined.removeAll(getInnerJoinAttributes());
     return leftJoined;
   }
 
