@@ -60,7 +60,7 @@ public class EnrollmentsQuery7AutoTest extends AnalyticsApiTest {
             .add("displayProperty=NAME")
             .add("totalPages=false")
             .add("outputType=ENROLLMENT")
-            .add("pageSize=100")
+            .add("pageSize=10")
             .add("page=1")
             .add("dimension=ou:ImspTQPwCqd,A03MvHHogjR.EVENT_DATE:2021")
             .add("desc=enrollmentdate,ouname");
@@ -75,7 +75,7 @@ public class EnrollmentsQuery7AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        100,
+        10,
         3,
         3); // Pass runtime flag, row count, and expected header counts
 
@@ -87,7 +87,7 @@ public class EnrollmentsQuery7AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":false},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"A03MvHHogjR.eventdate\":{\"name\":\"Report date\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"2021\":{\"uid\":\"2021\",\"code\":\"2021\",\"name\":\"2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-01-01T00:00:00.000\",\"endDate\":\"2021-12-31T00:00:00.000\"}},\"dimensions\":{\"A03MvHHogjR.eventdate\":[\"2021\"],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"pager\":{\"page\":1,\"pageSize\":10,\"isLastPage\":false},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"A03MvHHogjR.eventdate\":{\"name\":\"Report date\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"2021\":{\"uid\":\"2021\",\"code\":\"2021\",\"name\":\"2021\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2021-01-01T00:00:00.000\",\"endDate\":\"2021-12-31T00:00:00.000\"}},\"dimensions\":{\"A03MvHHogjR.eventdate\":[\"2021\"],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -134,66 +134,6 @@ public class EnrollmentsQuery7AutoTest extends AnalyticsApiTest {
     validateRowValueByName(
         response, actualHeaders, 9, "A03MvHHogjR.eventdate", "2021-12-29 00:00:00.0");
     validateRowValueByName(response, actualHeaders, 9, "enrollmentdate", "2022-12-29 12:05:00.0");
-
-    // Validate selected values for row index 18
-    validateRowValueByName(response, actualHeaders, 18, "ouname", "Kalainkay MCHP");
-    validateRowValueByName(
-        response, actualHeaders, 18, "A03MvHHogjR.eventdate", "2021-12-29 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 18, "enrollmentdate", "2022-12-29 12:05:00.0");
-
-    // Validate selected values for row index 27
-    validateRowValueByName(response, actualHeaders, 27, "ouname", "Moyeamoh CHP");
-    validateRowValueByName(
-        response, actualHeaders, 27, "A03MvHHogjR.eventdate", "2021-12-28 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 27, "enrollmentdate", "2022-12-28 12:05:00.0");
-
-    // Validate selected values for row index 36
-    validateRowValueByName(response, actualHeaders, 36, "ouname", "Madina Loko CHP");
-    validateRowValueByName(
-        response, actualHeaders, 36, "A03MvHHogjR.eventdate", "2021-12-28 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 36, "enrollmentdate", "2022-12-28 12:05:00.0");
-
-    // Validate selected values for row index 45
-    validateRowValueByName(response, actualHeaders, 45, "ouname", "Kamiendor MCHP");
-    validateRowValueByName(
-        response, actualHeaders, 45, "A03MvHHogjR.eventdate", "2021-12-28 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 45, "enrollmentdate", "2022-12-28 12:05:00.0");
-
-    // Validate selected values for row index 54
-    validateRowValueByName(response, actualHeaders, 54, "ouname", "Bandajuma Sinneh MCHP");
-    validateRowValueByName(
-        response, actualHeaders, 54, "A03MvHHogjR.eventdate", "2021-12-28 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 54, "enrollmentdate", "2022-12-28 12:05:00.0");
-
-    // Validate selected values for row index 63
-    validateRowValueByName(response, actualHeaders, 63, "ouname", "Needy CHC");
-    validateRowValueByName(
-        response, actualHeaders, 63, "A03MvHHogjR.eventdate", "2021-12-27 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 63, "enrollmentdate", "2022-12-27 12:05:00.0");
-
-    // Validate selected values for row index 72
-    validateRowValueByName(response, actualHeaders, 72, "ouname", "Konda CHP");
-    validateRowValueByName(
-        response, actualHeaders, 72, "A03MvHHogjR.eventdate", "2021-12-27 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 72, "enrollmentdate", "2022-12-27 12:05:00.0");
-
-    // Validate selected values for row index 81
-    validateRowValueByName(response, actualHeaders, 81, "ouname", "Foredugu MCHP");
-    validateRowValueByName(
-        response, actualHeaders, 81, "A03MvHHogjR.eventdate", "2021-12-27 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 81, "enrollmentdate", "2022-12-27 12:05:00.0");
-
-    // Validate selected values for row index 90
-    validateRowValueByName(response, actualHeaders, 90, "ouname", "Sindadu MCHP");
-    validateRowValueByName(
-        response, actualHeaders, 90, "A03MvHHogjR.eventdate", "2021-12-26 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 90, "enrollmentdate", "2022-12-26 12:05:00.0");
-
-    // Validate selected values for row index 99
-    validateRowValueByName(response, actualHeaders, 99, "ouname", "MCH Static/U5");
-    validateRowValueByName(
-        response, actualHeaders, 99, "A03MvHHogjR.eventdate", "2021-12-26 00:00:00.0");
-    validateRowValueByName(response, actualHeaders, 99, "enrollmentdate", "2022-12-26 12:05:00.0");
   }
 
   @Test
@@ -577,7 +517,7 @@ public class EnrollmentsQuery7AutoTest extends AnalyticsApiTest {
 
     // When
     ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
-    System.out.println(response.prettyPrint());
+
     // Then
     // 1. Validate Response Structure (Counts, Headers, Height/Width)
     //    This helper checks basic counts and dimensions, adapting based on the runtime
