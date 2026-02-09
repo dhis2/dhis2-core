@@ -108,6 +108,7 @@ import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackerEvent;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
@@ -319,7 +320,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () ->
             assertSmsResponse(
                 submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
-    assertFalse(trackerEventService.exists(UID.of(event.getUid())));
+    assertFalse(trackerEventService.exists(event.getUID()));
   }
 
   @Test
@@ -363,7 +364,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () ->
             assertSmsResponse(
                 submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
-    assertFalse(trackerEventService.exists(UID.of(event.getUid())));
+    assertFalse(trackerEventService.exists(event.getUID()));
   }
 
   @Test
@@ -524,8 +525,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () ->
             assertSmsResponse(
                 submissionId + ":" + SmsResponse.SUCCESS, originator, smsMessageSender));
-    assertTrue(trackerEventService.exists(UID.of(event)));
-    TrackerEvent actual = trackerEventService.getEvent(UID.of(event.getUid()));
+    assertTrue(trackerEventService.exists(event.getUID()));
+    TrackerEvent actual = trackerEventService.getEvent(event.getUID());
     assertAll(
         "updated event",
         () -> assertEqualUids(submission.getEnrollment(), actual.getEnrollment()),
@@ -660,7 +661,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
     List<SingleEvent> events =
         singleEventService.findEvents(
-            SingleEventOperationParams.builderForProgram(UID.of(eventProgram)).build());
+            SingleEventOperationParams.builderForProgram(eventProgram.getUID()).build());
     assertHasSize(1, events);
     SingleEvent actual = events.get(0);
     assertAll(
@@ -739,7 +740,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
     List<TrackerEvent> events =
         trackerEventService.findEvents(
-            TrackerEventOperationParams.builderForProgram(UID.of(trackerProgram))
+            TrackerEventOperationParams.builderForProgram(trackerProgram.getUID())
                 .trackedEntity(trackedEntity)
                 .build());
     assertHasSize(1, events);
@@ -806,7 +807,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
 
     List<TrackerEvent> events =
         trackerEventService.findEvents(
-            TrackerEventOperationParams.builderForProgram(UID.of(trackerProgram))
+            TrackerEventOperationParams.builderForProgram(trackerProgram.getUID())
                 .trackedEntity(trackedEntity)
                 .build());
     assertHasSize(1, events);
@@ -864,8 +865,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
   }
 
   private Enrollment enrollment(TrackedEntity te) {
-    Enrollment enrollment = new Enrollment(trackerProgram, te, te.getOrganisationUnit());
-    enrollment.setAutoFields();
+    Enrollment enrollment =
+        TrackerTestBase.createEnrollment(trackerProgram, te, te.getOrganisationUnit());
     enrollment.setEnrollmentDate(new Date());
     enrollment.setOccurredDate(new Date());
     enrollment.setStatus(EnrollmentStatus.ACTIVE);
