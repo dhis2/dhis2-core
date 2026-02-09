@@ -105,7 +105,7 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
         TrackerImportParams.builder().importStrategy(TrackerImportStrategy.CREATE).build();
     TrackerObjects trackerObjects =
         mapTrackedEntityRegistrationParserCommand(
-            sms, smsCommand, codeValues, orgUnit, categoryService);
+            sms, smsCommand, codeValues, orgUnit, categoryService.getDefaultCategoryOptionCombo());
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     if (Status.OK == importReport.getStatus()) {
