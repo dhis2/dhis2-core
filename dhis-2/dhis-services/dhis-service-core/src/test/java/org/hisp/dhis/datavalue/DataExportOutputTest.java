@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.datavalue;
 
-import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.ByteArrayOutputStream;
@@ -158,8 +157,8 @@ class DataExportOutputTest {
                     "comment",
                     true,
                     "storedBy",
-                    parseDate("2020-01-01"),
-                    parseDate("2026-01-01"),
+                    "2020-01-01",
+                    "2026-01-01",
                     true)));
     assertJson(
         """
@@ -173,8 +172,8 @@ class DataExportOutputTest {
             "attributeOptionCombo":"aoc23456789",
             "value":"value",
             "storedBy":"storedBy",
-            "created":"2019-12-31T23:00:00.000+0000",
-            "lastUpdated":"2025-12-31T23:00:00.000+0000",
+            "created":"2020-01-01",
+            "lastUpdated":"2026-01-01",
             "comment":"comment",
             "followup":true,
             "deleted":true

@@ -121,8 +121,8 @@ public record DataExportValue(
       @CheckForNull String comment,
       @CheckForNull Boolean followUp,
       @CheckForNull String storedBy,
-      @CheckForNull Date created,
-      @CheckForNull Date lastUpdated,
+      @CheckForNull String created,
+      @CheckForNull String lastUpdated,
       boolean deleted) {
 
     public Output {

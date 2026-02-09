@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.datavalue;
 
-import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
-
 import com.csvreader.CsvWriter;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -138,8 +136,8 @@ final class DataExportOutput {
                           val.addString("attributeOptionCombo", dv.attributeOptionCombo());
                           val.addString("value", dv.value());
                           val.addString("storedBy", dv.storedBy());
-                          val.addString("created", toLongGmtDate(dv.created()));
-                          val.addString("lastUpdated", toLongGmtDate(dv.lastUpdated()));
+                          val.addString("created", dv.created());
+                          val.addString("lastUpdated", dv.lastUpdated());
                           val.addString("comment", dv.comment());
                           val.addBoolean("followup", dv.followUp());
                           if (dv.deleted()) val.addBoolean("deleted", true);
@@ -185,7 +183,7 @@ final class DataExportOutput {
               dv.attributeOptionCombo() == null ? groupAoc : dv.attributeOptionCombo(),
               dv.value(),
               dv.storedBy(),
-              dv.lastUpdated() == null ? null : toLongGmtDate(dv.lastUpdated()),
+              dv.lastUpdated(),
               dv.comment(),
               dv.followUp() == null ? null : String.valueOf(dv.followUp()),
               String.valueOf(dv.deleted())
@@ -240,9 +238,8 @@ final class DataExportOutput {
                 out.writeAttribute("attributeOptionCombo", dv.attributeOptionCombo());
               if (dv.value() != null) out.writeAttribute("value", dv.value());
               if (dv.storedBy() != null) out.writeAttribute("storedBy", dv.storedBy());
-              if (dv.created() != null) out.writeAttribute("created", toLongGmtDate(dv.created()));
-              if (dv.lastUpdated() != null)
-                out.writeAttribute("lastUpdated", toLongGmtDate(dv.lastUpdated()));
+              if (dv.created() != null) out.writeAttribute("created", dv.created());
+              if (dv.lastUpdated() != null) out.writeAttribute("lastUpdated", dv.lastUpdated());
               if (dv.comment() != null) out.writeAttribute("comment", dv.comment());
               if (Boolean.TRUE.equals(dv.followUp())) out.writeAttribute("followUp", "true");
               if (dv.deleted()) out.writeAttribute("deleted", "true");
