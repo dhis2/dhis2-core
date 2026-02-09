@@ -29,9 +29,41 @@
  */
 package org.hisp.dhis.user;
 
+import java.util.Collection;
+import java.util.Map;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /** Contains functions to manage {@link UserGroup} */
 public interface UserGroupStore extends IdentifiableObjectStore<UserGroup> {
   String ID = UserGroupStore.class.getName();
+
+  /**
+   * Returns member counts for multiple user groups in a single query. This is more efficient than
+   * calling {@code userGroup.getMembers().size()} which loads all member User objects.
+   *
+   * @param userGroupIds the IDs of the user groups to get member counts for
+   * @return a map of user group ID to member count
+   */
+  Map<Long, Integer> getMemberCounts(@Nonnull Collection<Long> userGroupIds);
+
+  /**
+   * Adds a user to a user group directly via SQL, without loading the members collection. This
+   * avoids N+1 query problems when adding users to groups with many members.
+   *
+   * @param userGroupId the ID of the user group
+   * @param userId the ID of the user to add
+   * @return true if the membership was added, false if user was already a member
+   */
+  boolean addMemberViaSQL(long userGroupId, long userId);
+
+  /**
+   * Removes a user from a user group directly via SQL, without loading the members collection. This
+   * avoids N+1 query problems when removing users from groups with many members.
+   *
+   * @param userGroupId the ID of the user group
+   * @param userId the ID of the user to remove
+   * @return true if the membership was removed, false if user was not a member
+   */
+  boolean removeMemberViaSQL(long userGroupId, long userId);
 }

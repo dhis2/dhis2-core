@@ -33,10 +33,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import jakarta.persistence.EntityManager;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hibernate.Session;
 import org.hisp.dhis.cache.Cache;
@@ -150,11 +149,23 @@ public class DefaultUserGroupService implements UserGroupService {
   @Override
   @Transactional
   public void addUserToGroups(User user, Collection<String> uids, UserDetails currentUser) {
+    Session session = entityManager.unwrap(Session.class);
+    User lastUpdatedByUser = null;
+
     for (String uid : uids) {
       if (canAddOrRemoveMember(uid, currentUser)) {
         UserGroup userGroup = getUserGroup(uid);
-        userGroup.addUser(user);
-        userGroupStore.updateNoAcl(userGroup);
+        // Use SQL to add membership (avoids loading members collection)
+        if (userGroupStore.addMemberViaSQL(userGroup.getId(), user.getId())) {
+          // Update in-memory state
+          user.getGroups().add(userGroup);
+          // Update lastUpdatedBy
+          if (lastUpdatedByUser == null) {
+            lastUpdatedByUser = session.getReference(User.class, currentUser.getId());
+          }
+          userGroup.setLastUpdatedBy(lastUpdatedByUser);
+          userGroupStore.updateNoAcl(userGroup);
+        }
       }
     }
     aclService.invalidateCurrentUserGroupInfoCache();
@@ -163,11 +174,24 @@ public class DefaultUserGroupService implements UserGroupService {
   @Override
   @Transactional
   public void removeUserFromGroups(User user, Collection<String> uids) {
+    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    Session session = entityManager.unwrap(Session.class);
+    User lastUpdatedByUser = null;
+
     for (String uid : uids) {
       if (canAddOrRemoveMember(uid)) {
         UserGroup userGroup = getUserGroup(uid);
-        userGroup.removeUser(user);
-        userGroupStore.updateNoAcl(userGroup);
+        // Use SQL to remove membership (avoids loading members collection)
+        if (userGroupStore.removeMemberViaSQL(userGroup.getId(), user.getId())) {
+          // Update in-memory state
+          user.getGroups().remove(userGroup);
+          // Update lastUpdatedBy
+          if (lastUpdatedByUser == null) {
+            lastUpdatedByUser = session.getReference(User.class, currentUser.getId());
+          }
+          userGroup.setLastUpdatedBy(lastUpdatedByUser);
+          userGroupStore.updateNoAcl(userGroup);
+        }
       }
     }
     aclService.invalidateCurrentUserGroupInfoCache();
@@ -178,32 +202,57 @@ public class DefaultUserGroupService implements UserGroupService {
   public void updateUserGroups(
       User user, @Nonnull Collection<String> uids, UserDetails currentUser) {
     Collection<UserGroup> updates = getUserGroupsByUid(uids);
+    Set<UserGroup> currentGroups = new HashSet<>(user.getGroups());
 
-    Map<UserGroup, Integer> before = new HashMap<>();
-    updates.forEach(userGroup -> before.put(userGroup, userGroup.getMembers().size()));
-
-    for (UserGroup userGroup : new HashSet<>(user.getGroups())) {
-      if (!updates.contains(userGroup) && canAddOrRemoveMember(userGroup.getUid(), currentUser)) {
-        before.put(userGroup, userGroup.getMembers().size());
-        userGroup.removeUser(user);
-      }
-    }
-
+    // Determine which groups will have membership changes
+    // Groups to add to: in updates but user is not currently a member
+    Set<UserGroup> groupsToAddTo = new HashSet<>();
     for (UserGroup userGroup : updates) {
-      if (canAddOrRemoveMember(userGroup.getUid(), currentUser)) {
-        userGroup.addUser(user);
+      if (!currentGroups.contains(userGroup)
+          && canAddOrRemoveMember(userGroup.getUid(), currentUser)) {
+        groupsToAddTo.add(userGroup);
       }
     }
 
-    Session session = entityManager.unwrap(Session.class);
-    // Update user group if members have changed
-    before.forEach(
-        (userGroup, beforeSize) -> {
-          if (beforeSize != userGroup.getMembers().size()) {
-            userGroup.setLastUpdatedBy(session.getReference(User.class, currentUser.getId()));
-            userGroupStore.updateNoAcl(userGroup);
-          }
-        });
+    // Groups to remove from: user is currently a member but group not in updates
+    Set<UserGroup> groupsToRemoveFrom = new HashSet<>();
+    for (UserGroup userGroup : currentGroups) {
+      if (!updates.contains(userGroup) && canAddOrRemoveMember(userGroup.getUid(), currentUser)) {
+        groupsToRemoveFrom.add(userGroup);
+      }
+    }
+
+    // Track which groups actually changed membership
+    Set<UserGroup> changedGroups = new HashSet<>();
+
+    // Perform the removals via SQL (avoids loading members collection)
+    for (UserGroup userGroup : groupsToRemoveFrom) {
+      if (userGroupStore.removeMemberViaSQL(userGroup.getId(), user.getId())) {
+        changedGroups.add(userGroup);
+        // Update in-memory state to keep Hibernate session consistent
+        user.getGroups().remove(userGroup);
+      }
+    }
+
+    // Perform the additions via SQL (avoids loading members collection)
+    for (UserGroup userGroup : groupsToAddTo) {
+      if (userGroupStore.addMemberViaSQL(userGroup.getId(), user.getId())) {
+        changedGroups.add(userGroup);
+        // Update in-memory state to keep Hibernate session consistent
+        user.getGroups().add(userGroup);
+      }
+    }
+
+    // Update lastUpdatedBy for all groups that actually changed
+    if (!changedGroups.isEmpty()) {
+      Session session = entityManager.unwrap(Session.class);
+      User lastUpdatedByUser = session.getReference(User.class, currentUser.getId());
+      for (UserGroup userGroup : changedGroups) {
+        userGroup.setLastUpdatedBy(lastUpdatedByUser);
+        userGroupStore.updateNoAcl(userGroup);
+      }
+    }
+
     aclService.invalidateCurrentUserGroupInfoCache();
   }
 
