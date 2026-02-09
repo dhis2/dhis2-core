@@ -35,7 +35,12 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.Base64;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +48,47 @@ import org.slf4j.LoggerFactory;
 public class MetadataImporter {
 
   private static final Logger logger = LoggerFactory.getLogger(MetadataImporter.class);
-  private static final HttpClient client = HttpClient.newHttpClient();
+  private static final HttpClient client;
+
+  static {
+    // Disable hostname verification for Java HttpClient (for development/testing with self-signed certs)
+    System.setProperty("jdk.internal.httpclient.disableHostnameVerification", "true");
+    client = createTrustAllHttpClient();
+  }
+
+  /** Creates an HttpClient that trusts all certificates (for development/testing with self-signed certs). */
+  private static HttpClient createTrustAllHttpClient() {
+    try {
+      TrustManager[] trustAllCerts = new TrustManager[] {
+        new X509TrustManager() {
+          @Override
+          public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[0];
+          }
+
+          @Override
+          public void checkClientTrusted(X509Certificate[] certs, String authType) {
+            // Trust all client certificates
+          }
+
+          @Override
+          public void checkServerTrusted(X509Certificate[] certs, String authType) {
+            // Trust all server certificates
+          }
+        }
+      };
+
+      SSLContext sslContext = SSLContext.getInstance("TLS");
+      sslContext.init(null, trustAllCerts, new SecureRandom());
+
+      return HttpClient.newBuilder()
+          .sslContext(sslContext)
+          .build();
+    } catch (Exception e) {
+      logger.warn("Failed to create trust-all HttpClient, falling back to default: {}", e.getMessage());
+      return HttpClient.newHttpClient();
+    }
+  }
 
   /**
    * Import metadata from a file on the classpath, using the user credentials passed in. Supplying a

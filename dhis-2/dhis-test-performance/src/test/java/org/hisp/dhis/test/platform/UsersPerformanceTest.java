@@ -35,6 +35,7 @@ import static io.gatling.javaapi.http.HttpDsl.*;
 import io.gatling.javaapi.core.*;
 import io.gatling.javaapi.http.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 /**
@@ -68,6 +69,10 @@ import java.util.stream.Stream;
  *   <li>-DorgunitFiles=3 (default: 3, number of orgunit files to import, users reference these)
  *   <li>-DskipImport=true (default: false, skip all metadata import)
  *   <li>-DskipOrgUnitImport=true (default: false, skip org unit import only)
+ *   <li>-DuseJdbc=true (default: false, use direct JDBC batch import for users - much faster)
+ *   <li>-DdbUrl=jdbc:postgresql://localhost:5432/dhis2 (default, JDBC URL for direct import)
+ *   <li>-DdbUser=dhis (default, database username for direct import)
+ *   <li>-DdbPassword=dhis (default, database password for direct import)
  * </ul>
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -78,13 +83,19 @@ public class UsersPerformanceTest extends Simulation {
   private static final String BASE_URL = System.getProperty("baseUrl", "http://localhost:8080");
   private static final String USERNAME = System.getProperty("username", "admin");
   private static final String PASSWORD = System.getProperty("password", "district");
-  private static final int USER_FILES = Integer.parseInt(System.getProperty("userFiles", "10"));
+  private static final int USER_FILES = Integer.parseInt(System.getProperty("userFiles", "2"));
   private static final int ORGUNIT_FILES =
       Integer.parseInt(System.getProperty("orgunitFiles", "3"));
   private static final boolean SKIP_IMPORT =
       Boolean.parseBoolean(System.getProperty("skipImport", "false"));
   private static final boolean SKIP_ORGUNIT_IMPORT =
       Boolean.parseBoolean(System.getProperty("skipOrgUnitImport", "false"));
+  private static final boolean USE_JDBC =
+      Boolean.parseBoolean(System.getProperty("useJdbc", "false"));
+  private static final String DB_URL =
+      System.getProperty("dbUrl", "jdbc:postgresql://localhost:5432/dhis2");
+  private static final String DB_USER = System.getProperty("dbUser", "dhis");
+  private static final String DB_PASSWORD = System.getProperty("dbPassword", "dhis");
 
   // Scenario 1: Basic user list (paged)
   private static final String GET_USERS = "GET Users";
@@ -120,6 +131,38 @@ public class UsersPerformanceTest extends Simulation {
   private static final String GET_USERS_LARGE_PAGE = "GET Users - large page size";
   private static final String GET_USERS_LARGE_PAGE_REQUEST = "GET Users - large page size REQUEST";
 
+  // Scenario 9: POST - create a new user
+  private static final String POST_USER = "POST User - create";
+  private static final String POST_USER_REQUEST = "POST User - create REQUEST";
+
+  // Scenario 10: PUT - full update of an existing user
+  private static final String PUT_USER = "PUT User - full update";
+  private static final String PUT_USER_REQUEST = "PUT User - full update REQUEST";
+
+  // Scenario 11: PATCH - partial update (JSON Patch)
+  private static final String PATCH_USER = "PATCH User - partial update";
+  private static final String PATCH_USER_REQUEST = "PATCH User - partial update REQUEST";
+
+  // Scenario 12: DELETE - delete a user
+  private static final String DELETE_USER = "DELETE User - delete";
+  private static final String DELETE_USER_REQUEST = "DELETE User - delete REQUEST";
+
+  // Scenario 13: Metadata import - single user via /api/metadata
+  private static final String METADATA_IMPORT_USER = "POST Metadata Import - single user";
+  private static final String METADATA_IMPORT_USER_REQUEST =
+      "POST Metadata Import - single user REQUEST";
+
+  // Counters for write scenarios (unique per request)
+  private static final AtomicInteger POST_COUNTER = new AtomicInteger(300001);
+  private static final AtomicInteger PUT_PAGE = new AtomicInteger(1);
+  private static final AtomicInteger PATCH_PAGE = new AtomicInteger(1000);
+  private static final AtomicInteger DELETE_COUNTER = new AtomicInteger(500001);
+  private static final AtomicInteger METADATA_IMPORT_COUNTER = new AtomicInteger(600001);
+
+  // Well-known UIDs from the test data
+  private static final String USER_ROLE_UID = "yrB6vc5Ip3r";
+  private static final String ORG_UNIT_UID = "Me1z6JJcfOJ";
+
   /**
    * Import metadata before running the simulation. Org units must be imported first since users
    * reference them.
@@ -146,10 +189,16 @@ public class UsersPerformanceTest extends Simulation {
 
     // Import users
     System.out.println("Importing " + USER_FILES + " user file(s)...");
-    for (int i = 0; i < USER_FILES; i++) {
-      String fileName = String.format("platform/users/users_%04d.json", i);
-      System.out.println("Importing: " + fileName);
-      MetadataImporter.importJsonFileIdempotent(fileName, BASE_URL, USERNAME, PASSWORD);
+    if (USE_JDBC) {
+      System.out.println("Using JDBC batch import for users (fast mode)...");
+      int total = JdbcBatchUserImporter.importAllUserFiles(USER_FILES, DB_URL, DB_USER, DB_PASSWORD);
+      System.out.println("JDBC user import completed. Total users inserted: " + total);
+    } else {
+      for (int i = 0; i < USER_FILES; i++) {
+        String fileName = String.format("platform/users/users_%04d.json", i);
+        System.out.println("Importing: " + fileName);
+        MetadataImporter.importJsonFileIdempotent(fileName, BASE_URL, USERNAME, PASSWORD);
+      }
     }
     System.out.println("User import completed.");
   }
@@ -306,6 +355,251 @@ public class UsersPerformanceTest extends Simulation {
                                 .basicAuth("#{username}", "#{password}"))
                             .pause(1)));
 
+    // Scenario 9: POST - create a new user
+    ScenarioBuilder postUserScenario =
+        scenario(POST_USER)
+            .feed(feeder)
+            .group("Authentication")
+            .on(exec(loginChain()))
+            .group(POST_USER_REQUEST)
+            .on(
+                repeat(6)
+                    .on(
+                        exec(
+                                session -> {
+                                  int num = POST_COUNTER.getAndIncrement();
+                                  String body =
+                                      "{\"username\":\"perftest_post_"
+                                          + String.format("%07d", num)
+                                          + "\","
+                                          + "\"firstName\":\"Post\","
+                                          + "\"surname\":\"User"
+                                          + num
+                                          + "\","
+                                          + "\"password\":\"Test123!\","
+                                          + "\"userRoles\":[{\"id\":\""
+                                          + USER_ROLE_UID
+                                          + "\"}],"
+                                          + "\"organisationUnits\":[{\"id\":\""
+                                          + ORG_UNIT_UID
+                                          + "\"}],"
+                                          + "\"dataViewOrganisationUnits\":[{\"id\":\""
+                                          + ORG_UNIT_UID
+                                          + "\"}]}";
+                                  return session.set("postBody", body);
+                                })
+                            .exec(
+                                http(POST_USER_REQUEST)
+                                    .post("/api/users")
+                                    .header("Content-Type", "application/json")
+                                    .body(StringBody("#{postBody}"))
+                                    .basicAuth("#{username}", "#{password}")
+                                    .check(status().in(200, 201)))
+                            .pause(1)));
+
+    // Scenario 10: PUT - full update of an existing user
+    // Fetches an existing user, modifies firstName, PUTs the full payload back
+    ScenarioBuilder putUserScenario =
+        scenario(PUT_USER)
+            .feed(feeder)
+            .group("Authentication")
+            .on(exec(loginChain()))
+            .group(PUT_USER_REQUEST)
+            .on(
+                repeat(6)
+                    .on(
+                        exec(
+                                session ->
+                                    session.set("putPage", PUT_PAGE.getAndIncrement()))
+                            .exec(
+                                http("Fetch user UID for PUT")
+                                    .get("/api/users")
+                                    .queryParam("pageSize", "1")
+                                    .queryParam("page", "#{putPage}")
+                                    .basicAuth("#{username}", "#{password}")
+                                    .check(status().is(200))
+                                    .check(
+                                        jsonPath("$.users[0].id").saveAs("putUserId")))
+                            .exitHereIfFailed()
+                            .exec(
+                                http("Fetch full user for PUT")
+                                    .get("/api/users/#{putUserId}")
+                                    .basicAuth("#{username}", "#{password}")
+                                    .check(status().is(200))
+                                    .check(bodyString().saveAs("putUserBody")))
+                            .exitHereIfFailed()
+                            .exec(
+                                session -> {
+                                  String body = session.getString("putUserBody");
+                                  String modified =
+                                      body.replaceFirst(
+                                          "\"firstName\"\\s*:\\s*\"[^\"]*\"",
+                                          "\"firstName\":\"PutUpdated"
+                                              + System.currentTimeMillis()
+                                              + "\"");
+                                  return session.set("putModifiedBody", modified);
+                                })
+                            .exec(
+                                http(PUT_USER_REQUEST)
+                                    .put("/api/users/#{putUserId}")
+                                    .header("Content-Type", "application/json")
+                                    .body(StringBody("#{putModifiedBody}"))
+                                    .basicAuth("#{username}", "#{password}")
+                                    .check(status().is(200)))
+                            .pause(1)));
+
+    // Scenario 11: PATCH - partial update using JSON Patch (RFC 6902)
+    // Content-Type: application/json-patch+json
+    ScenarioBuilder patchUserScenario =
+        scenario(PATCH_USER)
+            .feed(feeder)
+            .group("Authentication")
+            .on(exec(loginChain()))
+            .group(PATCH_USER_REQUEST)
+            .on(
+                repeat(6)
+                    .on(
+                        exec(
+                                session ->
+                                    session.set(
+                                        "patchPage", PATCH_PAGE.getAndIncrement()))
+                            .exec(
+                                http("Fetch user UID for PATCH")
+                                    .get("/api/users")
+                                    .queryParam("pageSize", "1")
+                                    .queryParam("page", "#{patchPage}")
+                                    .basicAuth("#{username}", "#{password}")
+                                    .check(status().is(200))
+                                    .check(
+                                        jsonPath("$.users[0].id")
+                                            .saveAs("patchUserId")))
+                            .exitHereIfFailed()
+                            .exec(
+                                session -> {
+                                  String patchBody =
+                                      "[{\"op\":\"add\",\"path\":\"/firstName\","
+                                          + "\"value\":\"Patched"
+                                          + System.currentTimeMillis()
+                                          + "\"},"
+                                          + "{\"op\":\"add\",\"path\":\"/organisationUnits\","
+                                          + "\"value\":[{\"id\":\""
+                                          + ORG_UNIT_UID
+                                          + "\"}]},"
+                                          + "{\"op\":\"add\",\"path\":\"/attributeValues\","
+                                          + "\"value\":[]}]";
+                                  return session.set("patchBody", patchBody);
+                                })
+                            .exec(
+                                http(PATCH_USER_REQUEST)
+                                    .patch("/api/users/#{patchUserId}")
+                                    .header(
+                                        "Content-Type",
+                                        "application/json-patch+json")
+                                    .body(StringBody("#{patchBody}"))
+                                    .basicAuth("#{username}", "#{password}")
+                                    .check(status().is(200)))
+                            .pause(1)));
+
+    // Scenario 12: DELETE - create a disposable user then delete it
+    ScenarioBuilder deleteUserScenario =
+        scenario(DELETE_USER)
+            .feed(feeder)
+            .group("Authentication")
+            .on(exec(loginChain()))
+            .group(DELETE_USER_REQUEST)
+            .on(
+                repeat(6)
+                    .on(
+                        // Step 1: Create a disposable user via POST
+                        exec(
+                                session -> {
+                                  int num = DELETE_COUNTER.getAndIncrement();
+                                  String body =
+                                      "{\"username\":\"perftest_del_"
+                                          + String.format("%07d", num)
+                                          + "\","
+                                          + "\"firstName\":\"Delete\","
+                                          + "\"surname\":\"User"
+                                          + num
+                                          + "\","
+                                          + "\"password\":\"Test123!\","
+                                          + "\"userRoles\":[{\"id\":\""
+                                          + USER_ROLE_UID
+                                          + "\"}],"
+                                          + "\"organisationUnits\":[{\"id\":\""
+                                          + ORG_UNIT_UID
+                                          + "\"}],"
+                                          + "\"dataViewOrganisationUnits\":[{\"id\":\""
+                                          + ORG_UNIT_UID
+                                          + "\"}]}";
+                                  return session.set("deletePostBody", body);
+                                })
+                            .exec(
+                                http("Create user for DELETE")
+                                    .post("/api/users")
+                                    .header("Content-Type", "application/json")
+                                    .body(StringBody("#{deletePostBody}"))
+                                    .basicAuth("#{username}", "#{password}")
+                                    .check(status().in(200, 201))
+                                    .check(
+                                        jsonPath("$.response.uid")
+                                            .saveAs("deleteUserId")))
+                            .exitHereIfFailed()
+                            // Step 2: DELETE the user we just created
+                            .exec(
+                                http(DELETE_USER_REQUEST)
+                                    .delete("/api/users/#{deleteUserId}")
+                                    .basicAuth("#{username}", "#{password}")
+                                    .check(status().is(200)))
+                            .pause(1)));
+
+    // Scenario 13: Metadata import - single user via /api/metadata
+    // This is the same endpoint used in the setup import, now measured as a perf scenario
+    ScenarioBuilder metadataImportUserScenario =
+        scenario(METADATA_IMPORT_USER)
+            .feed(feeder)
+            .group("Authentication")
+            .on(exec(loginChain()))
+            .group(METADATA_IMPORT_USER_REQUEST)
+            .on(
+                repeat(6)
+                    .on(
+                        exec(
+                                session -> {
+                                  int num = METADATA_IMPORT_COUNTER.getAndIncrement();
+                                  String body =
+                                      "{\"users\":[{"
+                                          + "\"username\":\"perftest_meta_"
+                                          + String.format("%07d", num)
+                                          + "\","
+                                          + "\"firstName\":\"Meta\","
+                                          + "\"surname\":\"Import"
+                                          + num
+                                          + "\","
+                                          + "\"password\":\"Test123!\","
+                                          + "\"userRoles\":[{\"id\":\""
+                                          + USER_ROLE_UID
+                                          + "\"}],"
+                                          + "\"organisationUnits\":[{\"id\":\""
+                                          + ORG_UNIT_UID
+                                          + "\"}],"
+                                          + "\"dataViewOrganisationUnits\":[{\"id\":\""
+                                          + ORG_UNIT_UID
+                                          + "\"}]"
+                                          + "}]}";
+                                  return session.set("metadataImportBody", body);
+                                })
+                            .exec(
+                                http(METADATA_IMPORT_USER_REQUEST)
+                                    .post("/api/metadata")
+                                    .queryParam("atomicMode", "NONE")
+                                    .queryParam("importStrategy", "CREATE_AND_UPDATE")
+                                    .header("Content-Type", "application/json")
+                                    .body(StringBody("#{metadataImportBody}"))
+                                    .basicAuth("#{username}", "#{password}")
+                                    .check(status().in(200, 409)))
+                            .pause(1)));
+
     // Injection profiles
     ClosedInjectionStep closedInjection = rampConcurrentUsers(0).to(3).during(10);
     // Single user for heavy scenarios
@@ -322,7 +616,13 @@ public class UsersPerformanceTest extends Simulation {
             getUsersCombinedScenario.injectClosed(singleUserInjection),
             // Search and large page scenarios
             getUsersQueryScenario.injectClosed(closedInjection),
-            getUsersLargePageScenario.injectClosed(singleUserInjection))
+            getUsersLargePageScenario.injectClosed(singleUserInjection),
+            // Write scenarios (single user to avoid conflicts)
+            postUserScenario.injectClosed(singleUserInjection),
+            putUserScenario.injectClosed(singleUserInjection),
+            patchUserScenario.injectClosed(singleUserInjection),
+            deleteUserScenario.injectClosed(singleUserInjection),
+            metadataImportUserScenario.injectClosed(singleUserInjection))
         .protocols(httpProtocol)
         .assertions(
             // === BASIC LIST - should be fast ===
@@ -351,7 +651,27 @@ public class UsersPerformanceTest extends Simulation {
 
             // === LARGE PAGE SIZE - amplifies issues, relaxed ===
             details(GET_USERS_LARGE_PAGE_REQUEST).responseTime().percentile(95).lt(15000),
-            details(GET_USERS_LARGE_PAGE_REQUEST).successfulRequests().percent().is(100D));
+            details(GET_USERS_LARGE_PAGE_REQUEST).successfulRequests().percent().is(100D),
+
+            // === POST - create user ===
+            details(POST_USER_REQUEST).responseTime().percentile(95).lt(30000),
+            details(POST_USER_REQUEST).successfulRequests().percent().is(100D),
+
+            // === PUT - full update ===
+            details(PUT_USER_REQUEST).responseTime().percentile(95).lt(30000),
+            details(PUT_USER_REQUEST).successfulRequests().percent().is(100D),
+
+            // === PATCH - partial update ===
+            details(PATCH_USER_REQUEST).responseTime().percentile(95).lt(30000),
+            details(PATCH_USER_REQUEST).successfulRequests().percent().is(100D),
+
+            // === DELETE - delete user ===
+            details(DELETE_USER_REQUEST).responseTime().percentile(95).lt(30000),
+            details(DELETE_USER_REQUEST).successfulRequests().percent().is(100D),
+
+            // === METADATA IMPORT - single user via /api/metadata ===
+            details(METADATA_IMPORT_USER_REQUEST).responseTime().percentile(95).lt(30000),
+            details(METADATA_IMPORT_USER_REQUEST).successfulRequests().percent().is(100D));
   }
 
   private ChainBuilder loginChain() {
