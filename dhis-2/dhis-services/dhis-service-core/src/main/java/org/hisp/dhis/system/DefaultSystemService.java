@@ -57,6 +57,7 @@ import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.SystemInfo.SystemInfoForAppCacheFilter;
 import org.hisp.dhis.system.SystemInfo.SystemInfoForDataStats;
 import org.hisp.dhis.system.SystemInfo.SystemInfoForMetadataExport;
+import org.hisp.dhis.system.capability.SystemCapabilityProvider;
 import org.hisp.dhis.system.database.DatabaseInfoProvider;
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
@@ -76,6 +77,7 @@ public class DefaultSystemService implements SystemService, InitializingBean {
 
   private final LocationManager locationManager;
   private final DatabaseInfoProvider databaseInfoProvider;
+  private final SystemCapabilityProvider capabilityProvider;
   private final ConfigurationService configurationService;
   private final DhisConfigurationProvider dhisConfig;
   private final CalendarService calendarService;
@@ -119,6 +121,7 @@ public class DefaultSystemService implements SystemService, InitializingBean {
 
     return systemInfo.toBuilder()
         .databaseInfo(databaseInfoProvider.getDatabaseInfo())
+        .capability(capabilityProvider.getSystemCapability())
         .calendar(calendarService.getSystemCalendar().name())
         .dateFormat(calendarService.getSystemDateFormat().getJs())
         .serverDate(now)
@@ -244,8 +247,9 @@ public class DefaultSystemService implements SystemService, InitializingBean {
       }
     } else {
       log.error(
-          "build.properties is not available in the classpath. "
-              + "Make sure you build the project with Maven before you start the embedded Jetty server.");
+          """
+          build.properties not available on classpath. \
+          Make sure to build the project with Maven before you start the embedded server.""");
     }
     return SystemInfo.builder().build();
   }

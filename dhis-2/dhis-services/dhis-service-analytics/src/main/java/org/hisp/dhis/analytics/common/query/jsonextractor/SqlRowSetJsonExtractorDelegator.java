@@ -34,8 +34,11 @@ import static java.util.Comparator.naturalOrder;
 import static java.util.Comparator.nullsFirst;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.SUPPORTED_EVENT_STATIC_DIMENSIONS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isDataElement;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isEventLevelStaticDimension;
 import static org.hisp.dhis.analytics.trackedentity.query.context.querybuilder.OffsetHelper.getItemBasedOnOffset;
+import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.feedback.ErrorCode.E7250;
 
@@ -110,11 +113,55 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
     for (DimensionIdentifier<DimensionParam> dimensionIdentifier : dimensionIdentifiers) {
       if (!dimIdByKey.containsKey(dimensionIdentifier.getKey())) {
         dimIdByKey.put(dimensionIdentifier.getKey(), dimensionIdentifier);
+
+        // For event-level static dimensions, also add short format key alias
+        // to support headers like programStageUid.eventdate
+        if (isEventLevelStaticDimension(dimensionIdentifier, SUPPORTED_EVENT_STATIC_DIMENSIONS)) {
+          String shortFormatKey =
+              dimensionIdentifier.getProgramStage().getElement().getUid()
+                  + DIMENSION_IDENTIFIER_SEP
+                  + dimensionIdentifier.getDimension().getStaticDimension().getHeaderName();
+          dimIdByKey.put(shortFormatKey, dimensionIdentifier);
+        } else if (isEventLevelOuDimensionalObject(dimensionIdentifier)) {
+          // For stage-specific OU dimensions that went through DimensionalObject resolution,
+          // also add short format key alias to support headers like programStageUid.ou
+          String shortFormatKey =
+              dimensionIdentifier.getProgramStage().getElement().getUid()
+                  + DIMENSION_IDENTIFIER_SEP
+                  + "ou";
+          dimIdByKey.put(shortFormatKey, dimensionIdentifier);
+        } else if (isEventLevelDataElementDimension(dimensionIdentifier)) {
+          // For stage-scoped data elements, add short format alias
+          // to support headers like programStageUid.dataElementUid.
+          String shortFormatKey =
+              dimensionIdentifier.getProgramStage().getElement().getUid()
+                  + DIMENSION_IDENTIFIER_SEP
+                  + dimensionIdentifier.getDimension().getUid();
+          dimIdByKey.put(shortFormatKey, dimensionIdentifier);
+        }
       }
     }
     // we need to know which columns are in the sqlrowset, so that when a column is not present, we
     // can check if it is present in the json string
     this.existingColumnsInRowSet = Arrays.asList(sqlRowSet.getMetaData().getColumnNames());
+  }
+
+  /**
+   * Checks if the dimension identifier is a stage-specific OU dimension that has a
+   * DimensionalObject (i.e., went through org unit resolution rather than being treated as a static
+   * dimension).
+   */
+  private static boolean isEventLevelOuDimensionalObject(
+      DimensionIdentifier<DimensionParam> dimIdentifier) {
+    return dimIdentifier.isEventDimension()
+        && dimIdentifier.getDimension().isDimensionalObject()
+        && dimIdentifier.getDimension().getDimensionParamObjectType()
+            == DimensionParamObjectType.ORGANISATION_UNIT;
+  }
+
+  private static boolean isEventLevelDataElementDimension(
+      DimensionIdentifier<DimensionParam> dimIdentifier) {
+    return isDataElement(dimIdentifier);
   }
 
   @Override
@@ -128,6 +175,9 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
     List<JsonEnrollment> enrollments = parseEnrollmentsFromJson(super.getString("enrollments"));
 
     DimensionIdentifier<DimensionParam> dimensionIdentifier = dimIdByKey.get(columnLabel);
+    if (dimensionIdentifier == null) {
+      throw new IllegalQueryException(E7250, columnLabel);
+    }
 
     if (dimensionIdentifier.isEnrollmentDimension()) {
       return getObjectForEnrollments(enrollments, dimensionIdentifier);
@@ -303,7 +353,7 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
     boolean isStageDefined = event != null;
     boolean isSet =
         event != null
-            && Objects.nonNull(event.getEventDataValues())
+            && nonNull(event.getEventDataValues())
             && event.getEventDataValues().containsKey(dimensionIdentifier.getDimension().getUid());
     boolean isScheduled =
         event != null && Strings.CI.equals(event.getEventStatus(), EventStatus.SCHEDULE.toString());

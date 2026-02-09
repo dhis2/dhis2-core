@@ -121,7 +121,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
         .map(
             entity -> {
               TrackedEntity newEntity = new TrackedEntity();
-              newEntity.setUid(entity.getUid().getValue());
+              newEntity.setUid(entity.getUID().getValue());
               newEntity.setOrganisationUnit(
                   bundle.getPreheat().getOrganisationUnit(entity.getOrgUnit()));
               return newEntity;
@@ -137,7 +137,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
   private OrganisationUnit getOwnerOrganisationUnit(
       TrackerPreheat preheat, TrackedEntity trackedEntity, Program program) {
     Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner =
-        preheat.getProgramOwner().get(UID.of(trackedEntity));
+        preheat.getProgramOwner().get(trackedEntity.getUID());
     if (programOwner == null || programOwner.get(program.getUid()) == null) {
       return trackedEntity.getOrganisationUnit();
     } else {
