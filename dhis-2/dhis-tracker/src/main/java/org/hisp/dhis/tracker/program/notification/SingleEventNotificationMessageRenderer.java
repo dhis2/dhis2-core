@@ -148,6 +148,6 @@ public class SingleEventNotificationMessageRenderer
       return CONFIDENTIAL_VALUE_REPLACEMENT;
     }
 
-    return getOptionName(dataElement.getOptionSet(), value);
+    return dataElement.hasOptionSet() ? getOptionName(dataElement.getOptionSet(), value) : value;
   }
 }
