@@ -57,10 +57,13 @@ import org.hisp.staxwax.writer.XMLWriter;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 final class DataExportOutput {
 
+  private static final JsonBuilder.PrettyPrint MINIMIZED =
+      new JsonBuilder.PrettyPrint(0, 0, false, false, true);
+
   static void toJson(DataExportGroup.Output group, OutputStream json) {
     try (json) {
       JsonBuilder.streamObject(
-          JsonBuilder.MINIMIZED_FULL,
+          MINIMIZED,
           json,
           dvs -> {
             // group level IDs...
