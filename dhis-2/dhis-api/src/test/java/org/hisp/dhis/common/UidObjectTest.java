@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,57 +27,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.domain;
+package org.hisp.dhis.common;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import javax.annotation.Nonnull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.tracker.TrackerType;
-import org.locationtech.jts.geom.Geometry;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class TrackedEntity implements TrackerDto, Serializable {
-  @Nonnull @JsonProperty private UID trackedEntity;
+import org.hisp.dhis.category.Category;
+import org.junit.jupiter.api.Test;
 
-  @JsonProperty private MetadataIdentifier trackedEntityType;
+class UidObjectTest {
 
-  @JsonProperty private Instant createdAtClient;
-
-  @JsonProperty private Instant updatedAtClient;
-
-  @JsonProperty private MetadataIdentifier orgUnit;
-
-  @JsonProperty private boolean inactive;
-
-  @JsonProperty private boolean potentialDuplicate;
-
-  @JsonProperty private Geometry geometry;
-
-  @JsonProperty private String storedBy;
-
-  @JsonProperty @Builder.Default private List<Attribute> attributes = new ArrayList<>();
-
-  @Override
-  public UID getUID() {
-    return trackedEntity;
-  }
-
-  @Override
-  public TrackerType getTrackerType() {
-    return TrackerType.TRACKED_ENTITY;
+  @Test
+  void getUIDTest() {
+    Category category = new Category();
+    category.setAutoFields();
+    UID uidType = category.getUID();
+    assertEquals(category.getUid(), uidType.getValue());
   }
 }
