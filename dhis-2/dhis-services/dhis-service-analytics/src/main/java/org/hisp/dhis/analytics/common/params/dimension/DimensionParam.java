@@ -287,7 +287,20 @@ public class DimensionParam implements UidObject {
         null,
         "enrollmentstatus",
         "programstatus"), /* this enum is an alias for ENROLLMENT_STATUS */
-    EVENT_STATUS("Event Status", TEXT, STATIC, null, "status", "eventstatus");
+    EVENT_STATUS("Event Status", TEXT, STATIC, null, "status", "eventstatus"),
+
+    EVENT_DATE(
+        "Event Date", DATETIME, DimensionParamObjectType.PERIOD, null, "occurreddate", "eventdate"),
+
+    SCHEDULED_DATE(
+        "Scheduled Date",
+        DATETIME,
+        DimensionParamObjectType.PERIOD,
+        null,
+        "scheduleddate",
+        "scheduleddate"),
+
+    OU("Organisation Unit", TEXT, ORGANISATION_UNIT, null, "ou", "ou");
 
     private final String headerColumnName;
 
@@ -383,6 +396,8 @@ public class DimensionParam implements UidObject {
               (sd, v) -> Strings.CI.equals(sd.name(), v),
               // Then checks if the value matches the normalized name.
               (sd, v) -> Strings.CI.equals(sd.normalizedName(), v),
+              // Then checks if the normalized input matches the normalized name.
+              (sd, v) -> Strings.CI.equals(sd.normalizedName(), normalizeInput(v)),
               // And finally checks if the value matches the column name.
               (sd, v) -> Strings.CI.equals(sd.columnName, v))
           .map(
@@ -393,6 +408,10 @@ public class DimensionParam implements UidObject {
           .filter(Optional::isPresent)
           .map(Optional::get)
           .findFirst();
+    }
+
+    private static String normalizeInput(String value) {
+      return value == null ? null : value.toLowerCase().replace("_", "");
     }
 
     @Override

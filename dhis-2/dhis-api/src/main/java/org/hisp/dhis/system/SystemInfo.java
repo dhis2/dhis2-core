@@ -36,6 +36,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.hisp.dhis.system.capability.SystemCapability;
 import org.hisp.dhis.system.database.DatabaseInfo;
 
 /**
@@ -70,6 +71,7 @@ public final class SystemInfo {
   @JsonProperty private final String intervalSinceLastAnalyticsTablePartitionSuccess;
   @JsonProperty private final String lastAnalyticsTablePartitionRuntime;
   @JsonProperty private final DatabaseInfo databaseInfo;
+  @JsonProperty private final SystemCapability capability;
 
   // -------------------------------------------------------------------------
   // Stable properties

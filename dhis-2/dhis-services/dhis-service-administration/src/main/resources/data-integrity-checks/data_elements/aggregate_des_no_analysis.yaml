@@ -26,7 +26,7 @@
 #
 ---
   name: data_elements_aggregate_no_analysis
-  description: Aggregate data elements not used in any favourites (directly or through indicators)
+  description: Aggregate data elements not used in any favourites directly or through indicators
   section: Data elements (aggregate)
   section_order: 2
   summary_sql: >-

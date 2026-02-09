@@ -166,7 +166,7 @@ class GeoJsonAttributesCheckTest {
         objectReportList::add);
 
     assertFalse(CollectionUtils.isEmpty(objectReportList));
-    assertEquals(ErrorCode.E6004, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
+    assertEquals(ErrorCode.E6005, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
   }
 
   @Test

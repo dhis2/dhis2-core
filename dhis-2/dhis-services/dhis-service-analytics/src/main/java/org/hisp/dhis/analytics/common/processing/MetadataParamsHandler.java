@@ -261,6 +261,10 @@ public class MetadataParamsHandler {
    * @return the {@link QueryItem} uid with a prefix (if applicable).
    */
   static String getItemUid(QueryItem item) {
+    if (item.hasCustomHeader()) {
+      return item.getCustomHeader().headerKey(item.getCustomHeader().key());
+    }
+
     String uid = item.getItem().getUid();
 
     if (item.hasProgramStage()) {

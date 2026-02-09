@@ -1,6 +1,6 @@
 ---
 name: tracked_entity_attributes_trigram_index_overview
-description: Tracked entity attributes that have a partial trigram index created on the trackedentityattributevalue table.
+description: Tracked entity attributes that have a partial trigram index created on the trackedentityattributevalue table
 section: Tracked entity attributes
 section_order: 3
 summary_sql: >-

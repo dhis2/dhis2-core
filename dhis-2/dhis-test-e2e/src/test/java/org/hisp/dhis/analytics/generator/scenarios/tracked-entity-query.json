@@ -153,6 +153,90 @@
       "version": {
         "min": 42
       }
+    },
+    {
+      "name": "programWithEnrollmentDate2021",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&headers=ouname,ur1Edk5Oe2n.enrollmentdate&displayProperty=NAME&totalPages=false&pageSize=10&page=1&asc=ur1Edk5Oe2n.enrollmentdate&dimension=ur1Edk5Oe2n.ENROLLMENT_DATE:2021&dimension=ou:USER_ORGUNIT",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "programWithEnrollmentDateAndDateRange",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&asc=ur1Edk5Oe2n.enrollmentdate&headers=ouname,ur1Edk5Oe2n.enrollmentdate,uIuxlbV1vRT&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=uIuxlbV1vRT,ur1Edk5Oe2n.ENROLLMENT_DATE:2021-05-30_2021-05-31,ou:USER_ORGUNIT",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "programWithEnrollmentDateGTLT",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&asc=ur1Edk5Oe2n.enrollmentdate&headers=ouname,ur1Edk5Oe2n.enrollmentdate&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=ur1Edk5Oe2n.ENROLLMENT_DATE:GT:2021-05-30&dimension=ur1Edk5Oe2n.ENROLLMENT_DATE:LT:2021-05-31&dimension=ou:USER_ORGUNIT",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "programWithIncidentDate",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&asc=ur1Edk5Oe2n.enrollmentdate&headers=ouname,ur1Edk5Oe2n.incidentdate&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=ur1Edk5Oe2n.INCIDENT_DATE:2021,ou:USER_ORGUNIT",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "programWithProgramStatus",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&asc=ur1Edk5Oe2n.enrollmentdate&headers=ouname,ur1Edk5Oe2n.incidentdate&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=ur1Edk5Oe2n.PROGRAM_STATUS:ACTIVE,ou:USER_ORGUNIT",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndEventStatus",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&asc=ur1Edk5Oe2n.enrollmentdate&headers=ouname,ur1Edk5Oe2n.enrollmentdate,ZkbAXlQUYJG.eventstatus&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=ZkbAXlQUYJG.EVENT_STATUS:ACTIVE;COMPLETED,ou:USER_ORGUNIT&relativePeriodDate=2026-01-30",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndUserOu",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&asc=ur1Edk5Oe2n.enrollmentdate&headers=ouname,ur1Edk5Oe2n.enrollmentdate,ZkbAXlQUYJG.ou&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=ZkbAXlQUYJG.ou:USER_ORGUNIT&relativePeriodDate=2026-01-30",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndMultipleOus",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&asc=ur1Edk5Oe2n.enrollmentdate&headers=ouname,ur1Edk5Oe2n.enrollmentdate,ZkbAXlQUYJG.ou&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=ZkbAXlQUYJG.ou:O6uvpzGd5pu;DiszpKrYNg8&relativePeriodDate=2026-01-30",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndLevelOu",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&asc=ur1Edk5Oe2n.enrollmentdate&headers=ouname,ur1Edk5Oe2n.enrollmentdate,ZkbAXlQUYJG.ou&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=ZkbAXlQUYJG.ou:LEVEL-tTUf91fCytl&relativePeriodDate=2026-01-30",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndEventDateFixedYear",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&asc=ur1Edk5Oe2n.enrollmentdate&headers=ouname,ur1Edk5Oe2n.enrollmentdate,ZkbAXlQUYJG.eventdate&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=ZkbAXlQUYJG.EVENT_DATE:2022,ou:USER_ORGUNIT",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndEventDateDateRange",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&asc=ur1Edk5Oe2n.enrollmentdate&headers=ouname,ur1Edk5Oe2n.enrollmentdate,ZkbAXlQUYJG.eventdate&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=ZkbAXlQUYJG.EVENT_DATE:2022-06-01_2022-09-30,ou:USER_ORGUNIT",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageSpecificHeaderWithoutDimensionShouldWork",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&asc=ouname&headers=ouname,IpHINAT79UW.enrollmentdate,A03MvHHogjR.eventdate&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=ou:USER_ORGUNIT&relativePeriodDate=2026-01-30",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

@@ -32,6 +32,9 @@ package org.hisp.dhis.analytics.trackedentity.query.context.querybuilder;
 import static java.util.function.Predicate.not;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.DIMENSION_SEPARATOR;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isEventLevelStaticDimension;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.EVENT_DATE;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.SCHEDULED_DATE;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import java.util.List;
@@ -48,7 +51,9 @@ import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.common.query.GroupableCondition;
 import org.hisp.dhis.analytics.common.query.IndexedOrder;
 import org.hisp.dhis.analytics.common.query.Order;
+import org.hisp.dhis.analytics.common.query.Renderable;
 import org.hisp.dhis.analytics.trackedentity.query.PeriodCondition;
+import org.hisp.dhis.analytics.trackedentity.query.PeriodStaticDimensionCondition;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilderAdaptor;
@@ -66,11 +71,22 @@ import org.springframework.stereotype.Service;
 @org.springframework.core.annotation.Order(3)
 public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
 
+  private static final List<StaticDimension> EVENT_LEVEL_PERIOD_DIMENSIONS =
+      List.of(EVENT_DATE, SCHEDULED_DATE);
+
   private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters =
-      List.of(d -> d.getDimension().isPeriodDimension());
+      List.of(d -> d.getDimension().isPeriodDimension() && !isEventLevelPeriodDimension(d));
 
   private final List<Predicate<AnalyticsSortingParams>> sortingFilters =
-      List.of(sortingParams -> sortingParams.getOrderBy().getDimension().isPeriodDimension());
+      List.of(
+          sortingParams ->
+              sortingParams.getOrderBy().getDimension().isPeriodDimension()
+                  && !isEventLevelPeriodDimension(sortingParams.getOrderBy()));
+
+  private static boolean isEventLevelPeriodDimension(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier) {
+    return isEventLevelStaticDimension(dimensionIdentifier, EVENT_LEVEL_PERIOD_DIMENSIONS);
+  }
 
   @Override
   public RenderableSqlQuery buildSqlQuery(
@@ -98,7 +114,7 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
                 GroupableCondition.of(
                     getGroupId(dimensionIdentifier),
                     SqlQueryHelper.buildExistsValueSubquery(
-                        dimensionIdentifier, PeriodCondition.of(dimensionIdentifier, ctx))))
+                        dimensionIdentifier, createPeriodCondition(dimensionIdentifier, ctx))))
         .forEach(builder::groupableCondition);
 
     acceptedSortingParams.forEach(
@@ -162,5 +178,13 @@ public class PeriodQueryBuilder extends SqlQueryBuilderAdaptor {
             () ->
                 staticDimensionNameExtractor.apply(
                     dimensionIdentifier.getDimension().getStaticDimension()));
+  }
+
+  private static Renderable createPeriodCondition(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier, QueryContext ctx) {
+    if (dimensionIdentifier.getDimension().isStaticDimension()) {
+      return PeriodStaticDimensionCondition.of(dimensionIdentifier, ctx);
+    }
+    return PeriodCondition.of(dimensionIdentifier, ctx);
   }
 }

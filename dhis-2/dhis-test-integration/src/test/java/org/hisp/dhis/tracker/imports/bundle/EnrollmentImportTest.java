@@ -91,7 +91,7 @@ class EnrollmentImportTest extends PostgresIntegrationTestBase {
     assertNoErrors(importReport);
 
     Enrollment enrollment =
-        enrollmentService.getEnrollment(trackerObjects.getEnrollments().get(0).getUid());
+        enrollmentService.getEnrollment(trackerObjects.getEnrollments().get(0).getUID());
 
     assertEnrollmentCompletedData(enrollment);
   }
@@ -115,7 +115,7 @@ class EnrollmentImportTest extends PostgresIntegrationTestBase {
     assertNoErrors(importReport);
 
     Enrollment enrollment =
-        enrollmentService.getEnrollment(trackerObjects.getEnrollments().get(0).getUid());
+        enrollmentService.getEnrollment(trackerObjects.getEnrollments().get(0).getUID());
 
     assertEnrollmentCompletedData(enrollment);
   }

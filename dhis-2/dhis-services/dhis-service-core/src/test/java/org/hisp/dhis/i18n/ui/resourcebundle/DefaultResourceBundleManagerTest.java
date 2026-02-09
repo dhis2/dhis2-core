@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,29 +27,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export;
+package org.hisp.dhis.i18n.ui.resourcebundle;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.program.UserInfoSnapshot;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Slf4j
-public class EventUtils {
-  private EventUtils() {
-    throw new UnsupportedOperationException("Utility class");
+import java.util.ResourceBundle;
+import org.hisp.dhis.common.Locale;
+import org.junit.jupiter.api.Test;
+
+class DefaultResourceBundleManagerTest {
+
+  private final DefaultResourceBundleManager manager = new DefaultResourceBundleManager();
+
+  @Test
+  void testGlobalBundleWithCyrillicScriptLocale() throws ResourceBundleManagerException {
+    ResourceBundle bundle = manager.getGlobalResourceBundle(Locale.of("uz_UZ_Cyrl"));
+    assertEquals("\u042f\u043d\u0432\u0430\u0440\u044c", bundle.getString("month.january"));
   }
 
-  public static UserInfoSnapshot jsonToUserInfo(String userInfoAsString, ObjectMapper mapper) {
-    try {
-      if (StringUtils.isNotEmpty(userInfoAsString)) {
-        return mapper.readValue(userInfoAsString, UserInfoSnapshot.class);
-      }
-      return null;
-    } catch (IOException e) {
-      log.error("Parsing UserInfoSnapshot json string failed. String value: " + userInfoAsString);
-      throw new IllegalArgumentException(e);
-    }
+  @Test
+  void testGlobalBundleWithLatinScriptLocale() throws ResourceBundleManagerException {
+    ResourceBundle bundle = manager.getGlobalResourceBundle(Locale.of("uz_UZ_Latn"));
+    assertEquals("Yanvar", bundle.getString("month.january"));
   }
 }

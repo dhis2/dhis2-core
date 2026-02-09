@@ -115,7 +115,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
-import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramDataElementOptionDimensionItem;
@@ -146,8 +145,6 @@ public class DefaultDimensionService implements DimensionService {
 
   private final CategoryService categoryService;
 
-  private final PeriodService periodService;
-
   private final OrganisationUnitService organisationUnitService;
 
   private final AclService aclService;
@@ -157,6 +154,7 @@ public class DefaultDimensionService implements DimensionService {
   private final MetadataMergeService metadataMergeService;
 
   private final DataDimensionExtractor dataDimensionExtractor;
+
   private final DataDimensionItemStore dataDimensionItemStore;
 
   // --------------------------------------------------------------------------

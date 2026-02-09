@@ -135,7 +135,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
         String.format(
             "Data integrity error for tracked entity %s. The lastUpdated date has not been updated"
                 + " after the import",
-            trackedEntity.getUid()));
+            trackedEntity.getUID()));
   }
 
   @Test
@@ -145,13 +145,13 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
     relationshipType.setBidirectional(false);
     manager.update(relationshipType);
     TrackedEntity fromEntityBeforeUpdate = getTrackedEntity();
-    TrackedEntity toEntityBeforeUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+    TrackedEntity toEntityBeforeUpdate = getTrackedEntity(anotherTrackedEntity.getUID());
 
     testSetup.importTrackerData("tracker/relationshipTEtoTE.json");
     clearSession();
 
     TrackedEntity fromEntityAfterUpdate = getTrackedEntity();
-    TrackedEntity toEntityAfterUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+    TrackedEntity toEntityAfterUpdate = getTrackedEntity(anotherTrackedEntity.getUID());
 
     assertTrackedEntityUpdated(fromEntityBeforeUpdate, fromEntityAfterUpdate, importUser);
     assertTrackedEntityNotUpdated(toEntityBeforeUpdate, toEntityAfterUpdate);
@@ -165,13 +165,13 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
     manager.update(relationshipType);
 
     TrackedEntity fromEntityBeforeUpdate = getTrackedEntity();
-    TrackedEntity toEntityBeforeUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+    TrackedEntity toEntityBeforeUpdate = getTrackedEntity(anotherTrackedEntity.getUID());
 
     testSetup.importTrackerData("tracker/relationshipTEtoTE.json");
     clearSession();
 
     TrackedEntity fromEntityAfterUpdate = getTrackedEntity();
-    TrackedEntity toEntityAfterUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+    TrackedEntity toEntityAfterUpdate = getTrackedEntity(anotherTrackedEntity.getUID());
 
     assertTrackedEntityUpdated(fromEntityBeforeUpdate, fromEntityAfterUpdate, importUser);
     assertTrackedEntityUpdated(toEntityBeforeUpdate, toEntityAfterUpdate, importUser);
@@ -188,7 +188,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
     clearSession();
 
     TrackedEntity fromEntityBeforeUpdate = getTrackedEntity();
-    TrackedEntity toEntityBeforeUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+    TrackedEntity toEntityBeforeUpdate = getTrackedEntity(anotherTrackedEntity.getUID());
     clearSession();
 
     testSetup.importTrackerData(
@@ -196,7 +196,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
         TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build());
 
     TrackedEntity fromEntityAfterUpdate = getTrackedEntity();
-    TrackedEntity toEntityAfterUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+    TrackedEntity toEntityAfterUpdate = getTrackedEntity(anotherTrackedEntity.getUID());
 
     assertTrackedEntityUpdated(fromEntityBeforeUpdate, fromEntityAfterUpdate, importUser);
     assertTrackedEntityNotUpdated(toEntityBeforeUpdate, toEntityAfterUpdate);
@@ -213,7 +213,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
     clearSession();
 
     TrackedEntity fromEntityBeforeUpdate = getTrackedEntity();
-    TrackedEntity toEntityBeforeUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+    TrackedEntity toEntityBeforeUpdate = getTrackedEntity(anotherTrackedEntity.getUID());
     clearSession();
 
     testSetup.importTrackerData(
@@ -221,7 +221,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
         TrackerImportParams.builder().importStrategy(TrackerImportStrategy.DELETE).build());
 
     TrackedEntity fromEntityAfterUpdate = getTrackedEntity();
-    TrackedEntity toEntityAfterUpdate = getTrackedEntity(anotherTrackedEntity.getUid());
+    TrackedEntity toEntityAfterUpdate = getTrackedEntity(anotherTrackedEntity.getUID());
 
     assertTrackedEntityUpdated(fromEntityBeforeUpdate, fromEntityAfterUpdate, importUser);
     assertTrackedEntityUpdated(toEntityBeforeUpdate, toEntityAfterUpdate, importUser);
@@ -252,14 +252,14 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
         String.format(
             "Data integrity error for tracked entity %s. The lastUpdated date has not been updated"
                 + " after the import",
-            trackedEntity.getUid()));
+            trackedEntity.getUID()));
     assertEquals(
         importUser.getUid(),
         entityAfterUpdate.getLastUpdatedByUserInfo().getUid(),
         String.format(
             "Data integrity error for tracked entity %s. The lastUpdatedByUserinfo has not been"
                 + " saved during the import",
-            trackedEntity.getUid()));
+            trackedEntity.getUID()));
   }
 
   @Test
@@ -287,14 +287,14 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
         String.format(
             "Data integrity error for tracked entity %s. The lastUpdated date has not been updated"
                 + " after the import",
-            trackedEntity.getUid()));
+            trackedEntity.getUID()));
     assertEquals(
         importUser.getUid(),
         entityAfterUpdate.getLastUpdatedByUserInfo().getUid(),
         String.format(
             "Data integrity error for tracked entity %s. The lastUpdatedByUserinfo has not been"
                 + " saved during the import",
-            trackedEntity.getUid()));
+            trackedEntity.getUID()));
   }
 
   @Test
@@ -323,7 +323,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
                 String.format(
                     "Data integrity error for tracked entity %s. The lastUpdated date has not been"
                         + " updated after the import",
-                    trackedEntity.getUid())));
+                    trackedEntity.getUID())));
   }
 
   @Test
@@ -362,7 +362,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
                 String.format(
                     "Data integrity error for tracked entity %s. The lastUpdated date has not been"
                         + " updated after the import",
-                    trackedEntity.getUid())),
+                    trackedEntity.getUID())),
         () -> assertTrue(enrollmentAfterDelete.isDeleted()),
         () ->
             assertTrue(
@@ -371,7 +371,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
                 String.format(
                     "Data integrity error for enrollment %s. The lastUpdated date has not been"
                         + " updated after the import",
-                    enrollment.getUid())));
+                    enrollment.getUID())));
   }
 
   @Test
@@ -409,7 +409,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
                 String.format(
                     "Data integrity error for tracked entity %s. The lastUpdated date has not been"
                         + " updated after the import",
-                    trackedEntity.getUid())),
+                    trackedEntity.getUID())),
         () -> assertTrue(enrollmentAfterDeletion.isDeleted()),
         () ->
             assertEquals(
@@ -418,7 +418,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
                 String.format(
                     "Data integrity error for tracked entity %s. The lastUpdatedByUserinfo has not"
                         + " been saved during the import",
-                    trackedEntity.getUid())),
+                    trackedEntity.getUID())),
         () ->
             assertTrue(
                 enrollmentAfterDeletion.getLastUpdated().getTime()
@@ -426,7 +426,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
                 String.format(
                     "Data integrity error for enrollment %s. The lastUpdated date has not been"
                         + " updated after the import",
-                    enrollment.getUid())),
+                    enrollment.getUID())),
         () ->
             assertEquals(
                 user.getUid(),
@@ -434,7 +434,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
                 String.format(
                     "Data integrity error for enrollment %s. The lastUpdatedByUserinfo has not been"
                         + " saved during the import",
-                    enrollment.getUid())),
+                    enrollment.getUID())),
         () -> assertTrue(eventAfterDeletion.isDeleted()),
         () ->
             assertTrue(
@@ -443,7 +443,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
                 String.format(
                     "Data integrity error for event %s. The lastUpdated date has not been updated"
                         + " after the import",
-                    event.getUid())),
+                    event.getUID())),
         () ->
             assertEquals(
                 user.getUid(),
@@ -451,7 +451,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
                 String.format(
                     "Data integrity error for event %s. The lastUpdatedByUserinfo has not been"
                         + " saved during the import",
-                    event.getUid())));
+                    event.getUID())));
   }
 
   @Test
@@ -488,7 +488,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
                 String.format(
                     "Data integrity error for tracked entity %s. The lastUpdated date has not been"
                         + " updated after the import",
-                    trackedEntity.getUid())),
+                    trackedEntity.getUID())),
         () ->
             assertEquals(
                 user.getUid(),
@@ -496,7 +496,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
                 String.format(
                     "Data integrity error for tracked entity %s. The lastUpdatedByUserinfo has not"
                         + " been saved during the import",
-                    trackedEntity.getUid())),
+                    trackedEntity.getUID())),
         () ->
             assertTrue(
                 enrollmentAfterDeletion.getLastUpdated().getTime()
@@ -504,7 +504,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
                 String.format(
                     "Data integrity error for enrollment %s. The lastUpdated date has not been"
                         + " updated after the import",
-                    enrollment.getUid())),
+                    enrollment.getUID())),
         () ->
             assertEquals(
                 user.getUid(),
@@ -512,7 +512,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
                 String.format(
                     "Data integrity error for enrollment %s. The lastUpdatedByUserinfo has not been"
                         + " saved during the import",
-                    enrollment.getUid())),
+                    enrollment.getUID())),
         () -> assertTrue(eventAfterDeletion.isDeleted()),
         () ->
             assertTrue(
@@ -521,7 +521,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
                 String.format(
                     "Data integrity error for event %s. The lastUpdated date has not been updated"
                         + " after the import",
-                    event.getUid())),
+                    event.getUID())),
         () ->
             assertEquals(
                 user.getUid(),
@@ -529,14 +529,14 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
                 String.format(
                     "Data integrity error for event %s. The lastUpdatedByUserinfo has not been"
                         + " saved during the import",
-                    event.getUid())));
+                    event.getUID())));
   }
 
   @Test
   void shouldUpdatedEventProgramWhenEventIsDeleted() throws IOException {
     org.hisp.dhis.tracker.imports.domain.TrackerEvent ev = importEventProgram();
 
-    SingleEvent eventBeforeDeletion = getSingleEvent(ev.getUid());
+    SingleEvent eventBeforeDeletion = getSingleEvent(ev.getUID());
 
     User user = user();
 
@@ -551,7 +551,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
     clearSession();
 
-    SingleEvent eventAfterDeletion = getSingleEvent(ev.getUid());
+    SingleEvent eventAfterDeletion = getSingleEvent(ev.getUID());
 
     assertAll(
         () -> assertTrue(eventAfterDeletion.isDeleted()),
@@ -562,7 +562,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
                 String.format(
                     "Data integrity error for event %s. The lastUpdated date has not been updated"
                         + " after the import",
-                    event.getUid())),
+                    event.getUID())),
         () ->
             assertEquals(
                 user.getUid(),
@@ -570,7 +570,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
                 String.format(
                     "Data integrity error for event %s. The lastUpdatedByUserinfo has not been"
                         + " saved during the import",
-                    event.getUid())));
+                    event.getUID())));
   }
 
   private void assertTrackedEntityUpdated(
@@ -648,11 +648,11 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
   }
 
   Enrollment getEnrollment() {
-    return getEntityJpql(Enrollment.class.getSimpleName(), enrollment.getUid().getValue());
+    return getEntityJpql(Enrollment.class.getSimpleName(), enrollment.getUID().getValue());
   }
 
   TrackerEvent getEvent() {
-    return getEntityJpql(TrackerEvent.class.getSimpleName(), event.getUid().getValue());
+    return getEntityJpql(TrackerEvent.class.getSimpleName(), event.getUID().getValue());
   }
 
   TrackerEvent getEvent(UID uid) {
@@ -664,7 +664,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
   }
 
   TrackedEntity getTrackedEntity() {
-    return getEntityJpql(TrackedEntity.class.getSimpleName(), trackedEntity.getUid().getValue());
+    return getEntityJpql(TrackedEntity.class.getSimpleName(), trackedEntity.getUID().getValue());
   }
 
   TrackedEntity getTrackedEntity(UID uid) {

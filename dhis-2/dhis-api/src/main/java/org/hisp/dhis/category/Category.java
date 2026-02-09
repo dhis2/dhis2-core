@@ -85,8 +85,11 @@ public class Category extends BaseDimensionalObject implements SystemDefaultMeta
   // -------------------------------------------------------------------------
 
   public void addCategoryOption(CategoryOption categoryOption) {
-    categoryOptions.add(categoryOption);
-    categoryOption.getCategories().add(this);
+    // prevent duplicates
+    if (!hasCategoryOption(categoryOption)) {
+      categoryOptions.add(categoryOption);
+      categoryOption.getCategories().add(this);
+    }
   }
 
   public void removeCategoryOption(CategoryOption categoryOption) {
@@ -183,5 +186,10 @@ public class Category extends BaseDimensionalObject implements SystemDefaultMeta
 
   public void setCategoryCombos(Set<CategoryCombo> categoryCombos) {
     this.categoryCombos = categoryCombos;
+  }
+
+  private boolean hasCategoryOption(CategoryOption categoryOption) {
+    return this.categoryOptions.stream()
+        .anyMatch(co -> co.getUid().equals(categoryOption.getUid()));
   }
 }

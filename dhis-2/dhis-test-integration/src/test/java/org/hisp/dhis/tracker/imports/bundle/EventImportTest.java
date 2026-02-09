@@ -86,7 +86,7 @@ class EventImportTest extends PostgresIntegrationTestBase {
 
     importTracker(params, trackerObjects);
 
-    TrackerEvent event = trackerEventService.getEvent(trackerObjects.getEvents().get(0).getUid());
+    TrackerEvent event = trackerEventService.getEvent(trackerObjects.getEvents().get(0).getUID());
 
     assertEquals(importUser.getUsername(), event.getCompletedBy());
     assertNotNull(event.getCompletedDate());
@@ -102,7 +102,7 @@ class EventImportTest extends PostgresIntegrationTestBase {
 
     importTracker(params, trackerObjects);
 
-    TrackerEvent event = trackerEventService.getEvent(trackerObjects.getEvents().get(0).getUid());
+    TrackerEvent event = trackerEventService.getEvent(trackerObjects.getEvents().get(0).getUID());
 
     assertNull(event.getCompletedBy());
     assertNull(event.getCompletedDate());
@@ -121,7 +121,7 @@ class EventImportTest extends PostgresIntegrationTestBase {
 
     importTracker(params, trackerObjects);
 
-    TrackerEvent event = trackerEventService.getEvent(trackerObjects.getEvents().get(0).getUid());
+    TrackerEvent event = trackerEventService.getEvent(trackerObjects.getEvents().get(0).getUID());
 
     assertNull(event.getCompletedBy());
     assertNull(event.getCompletedDate());
@@ -141,7 +141,7 @@ class EventImportTest extends PostgresIntegrationTestBase {
 
     importTracker(params, trackerObjects);
 
-    TrackerEvent event = trackerEventService.getEvent(trackerObjects.getEvents().get(0).getUid());
+    TrackerEvent event = trackerEventService.getEvent(trackerObjects.getEvents().get(0).getUID());
 
     assertEquals(importUser.getUsername(), event.getCompletedBy());
     assertNotNull(event.getCompletedDate());
