@@ -150,7 +150,7 @@ public class ValidationUtils {
     Stream<MetadataIdentifier> payloadDataValues =
         event.getDataValues().stream().map(DataValue::getDataElement);
     Stream<MetadataIdentifier> savedDataValues =
-        Optional.ofNullable(bundle.getPreheat().getTrackerEvent(event.getUid()))
+        Optional.ofNullable(bundle.getPreheat().getTrackerEvent(event.getUID()))
             .map(TrackerEvent::getEventDataValues)
             .orElse(Set.of())
             .stream()
@@ -331,7 +331,7 @@ public class ValidationUtils {
           () ->
               fileResource != null
                   && fileResource.getFileResourceOwner() != null
-                  && !fileResource.getFileResourceOwner().equals(trackerDto.getUid().getValue()),
+                  && !fileResource.getFileResourceOwner().equals(trackerDto.getUID().getValue()),
           trackerDto,
           E1009,
           value);

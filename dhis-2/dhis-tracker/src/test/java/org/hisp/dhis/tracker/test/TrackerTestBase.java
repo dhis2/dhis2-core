@@ -59,6 +59,9 @@ public abstract class TrackerTestBase extends TestBase {
     enrollment.setAutoFields();
     enrollment.setTrackedEntity(te);
     enrollment.setOrganisationUnit(organisationUnit);
+    if (categoryService != null) {
+      enrollment.setAttributeOptionCombo(categoryService.getDefaultCategoryOptionCombo());
+    }
     return enrollment;
   }
 

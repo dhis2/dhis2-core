@@ -162,7 +162,7 @@ class TrackerEventOperationParamsMapperTest {
 
     program = new Program();
     program.setUid("PlZSBEN7iZP");
-    eventBuilder = TrackerEventOperationParams.builderForProgram(UID.of(program));
+    eventBuilder = TrackerEventOperationParams.builderForProgram(program.getUID());
 
     userMap.put("admin", createUserWithAuthority(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS));
     userMap.put("superuser", createUserWithAuthority(Authorities.ALL));
@@ -543,7 +543,7 @@ class TrackerEventOperationParamsMapperTest {
     when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_2_UID)).thenReturn(tea2);
 
     TrackerEventOperationParams trackerEventOperationParams =
-        TrackerEventOperationParams.builderForProgram(UID.of(program.getUid()))
+        TrackerEventOperationParams.builderForProgram(program.getUID())
             .filterByAttribute(
                 UID.of(TEA_2_UID),
                 List.of(
@@ -565,7 +565,7 @@ class TrackerEventOperationParamsMapperTest {
     when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_2_UID)).thenReturn(tea2);
 
     TrackerEventOperationParams trackerEventOperationParams =
-        TrackerEventOperationParams.builderForProgram(UID.of(program.getUid()))
+        TrackerEventOperationParams.builderForProgram(program.getUID())
             .filterByAttribute(
                 UID.of(TEA_2_UID), List.of(new QueryFilter(LIKE, "12"), new QueryFilter(EQ, "0")))
             .build();
@@ -583,7 +583,7 @@ class TrackerEventOperationParamsMapperTest {
     when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
 
     TrackerEventOperationParams trackerEventOperationParams =
-        TrackerEventOperationParams.builderForProgram(UID.of(program.getUid()))
+        TrackerEventOperationParams.builderForProgram(program.getUID())
             .filterByAttribute(UID.of(TEA_1_UID), List.of(new QueryFilter(EQ, "1")))
             .build();
 
@@ -602,7 +602,7 @@ class TrackerEventOperationParamsMapperTest {
     when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
 
     TrackerEventOperationParams trackerEventOperationParams =
-        TrackerEventOperationParams.builderForProgram(UID.of(program.getUid()))
+        TrackerEventOperationParams.builderForProgram(program.getUID())
             .filterByAttribute(
                 UID.of(TEA_1_UID), List.of(new QueryFilter(EQ, "12"), new QueryFilter(LIKE, "1")))
             .build();
@@ -623,7 +623,7 @@ class TrackerEventOperationParamsMapperTest {
     when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
 
     TrackerEventOperationParams trackerEventOperationParams =
-        TrackerEventOperationParams.builderForProgram(UID.of(program.getUid()))
+        TrackerEventOperationParams.builderForProgram(program.getUID())
             .filterByAttribute(UID.of(TEA_1_UID), List.of(new QueryFilter(NULL)))
             .build();
 
@@ -638,7 +638,7 @@ class TrackerEventOperationParamsMapperTest {
     when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
 
     TrackerEventOperationParams trackerEventOperationParams =
-        TrackerEventOperationParams.builderForProgram(UID.of(program.getUid()))
+        TrackerEventOperationParams.builderForProgram(program.getUID())
             .filterByAttribute(UID.of(TEA_1_UID), List.of(new QueryFilter(EQ, "12")))
             .build();
 

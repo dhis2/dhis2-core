@@ -252,7 +252,7 @@ class DefaultSingleEventService implements SingleEventService {
         event.setRelationshipItems(
             relationshipService.findRelationshipItems(
                 TrackerType.EVENT,
-                UID.of(event),
+                event.getUID(),
                 operationParams.getFields().getRelationshipFields(),
                 queryParams.isIncludeDeleted()));
       }
@@ -281,7 +281,7 @@ class DefaultSingleEventService implements SingleEventService {
         event.setRelationshipItems(
             relationshipService.findRelationshipItems(
                 TrackerType.EVENT,
-                UID.of(event),
+                event.getUID(),
                 operationParams.getFields().getRelationshipFields(),
                 queryParams.isIncludeDeleted()));
       }

@@ -46,7 +46,6 @@ import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
@@ -208,7 +207,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
   private long countEventsForSynchronization(Program program, Date skipChangedBefore)
       throws ForbiddenException, BadRequestException {
     return singleEventService.countEvents(
-        SingleEventOperationParams.builderForDataSync(UID.of(program), skipChangedBefore, Map.of())
+        SingleEventOperationParams.builderForDataSync(program.getUID(), skipChangedBefore, Map.of())
             .build());
   }
 
@@ -265,7 +264,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
     return singleEventService
         .findEvents(
             SingleEventOperationParams.builderForDataSync(
-                    UID.of(context.program.getUid()),
+                    context.program.getUID(),
                     context.getSkipChangedBefore(),
                     context.getSkipSyncDataElementsByProgramStage())
                 .build(),
@@ -383,7 +382,7 @@ public class SingleEventDataSynchronizationService extends TrackerDataSynchroniz
       SingleEvent singleEvent) {
     org.hisp.dhis.webapi.controller.tracker.view.Event minimalEvent =
         new org.hisp.dhis.webapi.controller.tracker.view.Event();
-    minimalEvent.setEvent(UID.of(singleEvent.getUid()));
+    minimalEvent.setEvent(singleEvent.getUID());
     return minimalEvent;
   }
 }

@@ -27,33 +27,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.imports;
+package org.hisp.dhis.tracker.export;
 
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.mapstruct.Context;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import javax.annotation.CheckForNull;
+import org.apache.commons.lang3.ObjectUtils;
+import org.geotools.geometry.jts.WKBReader;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.ParseException;
 
-@Mapper(
-    uses = {
-      RelationshipMapper.class,
-      AttributeMapper.class,
-      NoteMapper.class,
-      EventMapper.class,
-      InstantMapper.class,
-      UserMapper.class,
-      MetadataIdentifierMapper.class
-    })
-interface EnrollmentMapper
-    extends DomainMapper<Enrollment, org.hisp.dhis.tracker.imports.domain.Enrollment> {
-  @Mapping(target = "program", source = "program", qualifiedByName = "programToMetadataIdentifier")
-  @Mapping(target = "orgUnit", source = "orgUnit", qualifiedByName = "orgUnitToMetadataIdentifier")
-  @Mapping(
-      target = "attributeOptionCombo",
-      source = "attributeOptionCombo",
-      qualifiedByName = "attributeOptionComboToMetadataIdentifier")
-  org.hisp.dhis.tracker.imports.domain.Enrollment from(
-      Enrollment enrollment, @Context TrackerIdSchemeParams idSchemeParams);
+public class Geometries {
+  private Geometries() {
+    throw new IllegalStateException("Utility class");
+  }
+
+  /**
+   * Parses WKB (Well-Known Binary) bytes into a JTS Geometry. Use with {@code ST_AsBinary(column)}
+   * in SQL queries.
+   *
+   * @param wkb WKB-formatted bytes from PostGIS ST_AsBinary
+   * @return parsed Geometry, or null if input is empty
+   */
+  @CheckForNull
+  public static Geometry fromWkb(byte[] wkb) {
+    if (ObjectUtils.isEmpty(wkb)) {
+      return null;
+    }
+    try {
+      return new WKBReader().read(wkb);
+    } catch (ParseException e) {
+      throw new IllegalStateException(e);
+    }
+  }
 }

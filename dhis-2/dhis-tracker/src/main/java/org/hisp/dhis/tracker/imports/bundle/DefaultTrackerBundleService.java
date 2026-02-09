@@ -190,19 +190,19 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
 
     TrackerTypeReport trackedEntitiesReport =
         deletionService.deleteTrackedEntities(
-            bundle.getTrackedEntities().stream().map(TrackerDto::getUid).toList());
+            bundle.getTrackedEntities().stream().map(TrackerDto::getUID).toList());
     TrackerTypeReport enrollmentsReport =
         deletionService.deleteEnrollments(
-            bundle.getEnrollments().stream().map(TrackerDto::getUid).toList());
+            bundle.getEnrollments().stream().map(TrackerDto::getUID).toList());
     TrackerTypeReport trackerEventsReport =
         deletionService.deleteTrackerEvents(
-            bundle.getTrackerEvents().stream().map(TrackerDto::getUid).toList());
+            bundle.getTrackerEvents().stream().map(TrackerDto::getUID).toList());
     TrackerTypeReport singleEventsReport =
         deletionService.deleteSingleEvents(
-            bundle.getSingleEvents().stream().map(TrackerDto::getUid).toList());
+            bundle.getSingleEvents().stream().map(TrackerDto::getUID).toList());
     TrackerTypeReport relationshipsReport =
         deletionService.deleteRelationships(
-            bundle.getRelationships().stream().map(TrackerDto::getUid).toList());
+            bundle.getRelationships().stream().map(TrackerDto::getUID).toList());
 
     return new PersistenceReport(
         trackedEntitiesReport,

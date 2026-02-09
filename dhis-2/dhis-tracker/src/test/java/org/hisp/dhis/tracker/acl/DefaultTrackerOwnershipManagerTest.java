@@ -46,7 +46,6 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -133,7 +132,7 @@ class DefaultTrackerOwnershipManagerTest {
     program.setAccessLevel(AccessLevel.PROTECTED);
     trackedEntityType = createTrackedEntityType('A');
     program.setTrackedEntityType(trackedEntityType);
-    when(trackerProgramService.getTrackerProgram(UID.of(program))).thenReturn(program);
+    when(trackerProgramService.getTrackerProgram(program.getUID())).thenReturn(program);
 
     User user = new User();
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
@@ -158,7 +157,8 @@ class DefaultTrackerOwnershipManagerTest {
     when(aclService.canDataRead(userDetails, trackedEntity.getTrackedEntityType()))
         .thenReturn(true);
 
-    trackerOwnershipManager.grantTemporaryOwnership(UID.of(trackedEntity), UID.of(program), reason);
+    trackerOwnershipManager.grantTemporaryOwnership(
+        trackedEntity.getUID(), program.getUID(), reason);
 
     verify(programTempOwnershipAuditStore, times(1))
         .addProgramTempOwnershipAudit(any(ProgramTempOwnershipAudit.class));
@@ -173,7 +173,8 @@ class DefaultTrackerOwnershipManagerTest {
     when(aclService.canDataRead(userDetails, trackedEntity.getTrackedEntityType()))
         .thenReturn(true);
 
-    trackerOwnershipManager.grantTemporaryOwnership(UID.of(trackedEntity), UID.of(program), reason);
+    trackerOwnershipManager.grantTemporaryOwnership(
+        trackedEntity.getUID(), program.getUID(), reason);
 
     verify(programTempOwnershipAuditStore, never())
         .addProgramTempOwnershipAudit(any(ProgramTempOwnershipAudit.class));
