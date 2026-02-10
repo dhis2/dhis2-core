@@ -78,8 +78,7 @@ public class SchemaToDataFetcher {
    * @return a List of objects corresponding to the "klass" of the given Schema
    * @deprecated Use {@link #fetch(Schema, Collection)} to avoid loading all records
    */
-  @Deprecated
-  @OpenApi.Since(43)
+  @Deprecated(since = "2.42")
   public List<? extends IdentifiableObject> fetch(Schema schema) {
     return fetch(schema, null);
   }
