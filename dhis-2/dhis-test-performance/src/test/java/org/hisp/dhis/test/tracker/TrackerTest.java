@@ -367,6 +367,18 @@ public class TrackerTest extends Simulation {
             new EnumMap<>(Map.of(Profile.SMOKE, 101, Profile.LOAD, 107)),
             "Go to second page of program " + this.eventProgram,
             "Get a list of single events");
+    Request searchSingleEventsAssignedToAnyone =
+        new Request(
+            getEventsUrl + "&assignedUserMode=ANY",
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 50)),
+            "Search single events assigned to any user in program " + this.eventProgram,
+            "Get a list of single events");
+    Request searchSingleEventsNotAssignedToUser =
+        new Request(
+            getEventsUrl + "&assignedUserMode=NONE",
+            new EnumMap<>(Map.of(Profile.SMOKE, 70, Profile.LOAD, 107)),
+            "Search single events not assigned to a user in program " + this.eventProgram,
+            "Get a list of single events");
     Request searchSingleEvents =
         new Request(
             getEventsUrl + "&occurredAfter=2025-01-01&occurredBefore=2025-12-31",
@@ -403,6 +415,14 @@ public class TrackerTest extends Simulation {
                                     .action()
                                     .check(jsonPath("$.events[*]").count().is(50)))
                             .exec(
+                                searchSingleEventsAssignedToAnyone
+                                    .action()
+                                    .check(jsonPath("$.events[*]").count().gt(3)))
+                            .exec(
+                                searchSingleEventsNotAssignedToUser
+                                    .action()
+                                    .check(jsonPath("$.events[*]").count().gt(50)))
+                            .exec(
                                 searchSingleEvents
                                     .action()
                                     .check(jsonPath("$.events[*]").count().is(50))
@@ -421,6 +441,8 @@ public class TrackerTest extends Simulation {
         List.of(
             goToFirstPage,
             goToSecondPage,
+            searchSingleEventsAssignedToAnyone,
+            searchSingleEventsNotAssignedToUser,
             searchSingleEvents,
             getFirstEvent,
             getRelationshipsForFirstEvent));
