@@ -750,11 +750,11 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     if (AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode()) {
-      fromBuilder.append(hlp.whereAnd()).append(" (au.uid is null) ");
+      fromBuilder.append(hlp.whereAnd()).append(" (ev.assigneduserid is null) ");
     }
 
     if (AssignedUserSelectionMode.ANY == params.getAssignedUserQueryParam().getMode()) {
-      fromBuilder.append(hlp.whereAnd()).append(" (au.uid is not null) ");
+      fromBuilder.append(hlp.whereAnd()).append(" (ev.assigneduserid is not null) ");
     }
 
     if (!params.isIncludeDeleted()) {
