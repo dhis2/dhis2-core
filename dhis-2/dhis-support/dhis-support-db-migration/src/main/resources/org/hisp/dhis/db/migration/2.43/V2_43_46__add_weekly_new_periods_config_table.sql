@@ -1,6 +1,7 @@
 -- Migration related to DHIS2-20837.
 
--- Migrate reqdo $$
+do
+$$
 declare
     max_retries int := 10;
     attempt int := 0;
