@@ -846,6 +846,6 @@ public non-sealed interface SystemSettings extends Settings {
    *     includes OrganisationUnit to avoid N+1 queries during cache hydration.
    */
   default String getQueryCacheSkipClasses() {
-    return asString("keyQueryCacheSkipClasses", "OrganisationUnit");
+    return asString("keyQueryCacheSkipClasses", "");
   }
 }
