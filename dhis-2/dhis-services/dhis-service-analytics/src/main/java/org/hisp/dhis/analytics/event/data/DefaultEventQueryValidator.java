@@ -47,6 +47,7 @@ import org.apache.commons.lang3.Strings;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -123,7 +124,7 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     }
     if (!params.hasPeriods()
         && (params.getStartDate() == null || params.getEndDate() == null)
-        && !hasEventDateItem(params)) {
+        && !hasDateQueryItem(params)) {
       return new ErrorMessage(ErrorCode.E7205);
     }
     if (params.getStartDate() != null
@@ -207,12 +208,25 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     return null;
   }
 
-  private boolean hasEventDateItem(EventQueryParams params) {
+  private boolean hasDateQueryItem(EventQueryParams params) {
     return params.getItems().stream()
         .anyMatch(
             item ->
                 EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(item.getItemId())
-                    || EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME.equals(
+                    || EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME.equals(item.getItemId())
+                    || EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME.equals(
+                        item.getItemId())
+                    || EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME.equals(item.getItemId())
+                    || EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME.equals(item.getItemId())
+                    || EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME.equals(item.getItemId())
+                    || EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME.equals(item.getItemId())
+                    || EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME.equals(
+                        item.getItemId())
+                    || EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(
+                        item.getItemId())
+                    || EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME.equals(
+                        item.getItemId())
+                    || EnrollmentAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME.equals(
                         item.getItemId()));
   }
 
