@@ -89,14 +89,14 @@ public enum AnalyticsDateFilter {
   CREATED(TimeField.CREATED, null, null, CommonRequestParams::getCreated),
   COMPLETED_DATE(
       TimeField.COMPLETED_DATE,
-      EventsAnalyticsQueryCriteria::getCompletedDate,
-      EnrollmentAnalyticsQueryCriteria::getCompletedDate,
+      null,
+      null,
       // No matching column for TEA analytics queries
       null),
   CREATED_DATE(
       TimeField.CREATED_DATE,
-      EventsAnalyticsQueryCriteria::getCreatedDate,
-      EnrollmentAnalyticsQueryCriteria::getCreatedDate,
+      null,
+      null,
       // No matching column for TEA analytics queries
       null);
 

@@ -56,6 +56,7 @@ import java.util.Set;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.data.DefaultQueryItemLocator;
+import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.CodeGenerator;
@@ -522,6 +523,116 @@ class QueryItemLocatorTest {
         IllegalQueryException.class,
         () -> subject.getQueryItemFromDimension("ou", programA, EventOutputType.ENROLLMENT),
         "Item identifier does not reference any data element, attribute or indicator part of the program");
+  }
+
+  @Test
+  void verifyEnrollmentDateDimensionReturnsEventColumnForEventOutput() {
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension("ENROLLMENT_DATE", programA, EventOutputType.EVENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItemId(), is(EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME));
+    assertThat(queryItem.getValueType(), is(ValueType.DATE));
+    assertThat(queryItem.getProgramStage(), is(nullValue()));
+  }
+
+  @Test
+  void verifyIncidentDateDimensionReturnsEventColumnForEventOutput() {
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension("INCIDENT_DATE", programA, EventOutputType.EVENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(
+        queryItem.getItemId(), is(EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME));
+    assertThat(queryItem.getValueType(), is(ValueType.DATE));
+    assertThat(queryItem.getProgramStage(), is(nullValue()));
+  }
+
+  @Test
+  void verifyLastUpdatedDimensionReturnsEventColumnForEventOutput() {
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension("LAST_UPDATED", programA, EventOutputType.EVENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItemId(), is(EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME));
+    assertThat(queryItem.getValueType(), is(ValueType.DATE));
+    assertThat(queryItem.getProgramStage(), is(nullValue()));
+  }
+
+  @Test
+  void verifyCreatedDateDimensionReturnsEventColumnForEventOutput() {
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension("CREATED_DATE", programA, EventOutputType.EVENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItemId(), is(EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME));
+    assertThat(queryItem.getValueType(), is(ValueType.DATE));
+    assertThat(queryItem.getProgramStage(), is(nullValue()));
+  }
+
+  @Test
+  void verifyCompletedDateDimensionReturnsEventColumnForEventOutput() {
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension("COMPLETED_DATE", programA, EventOutputType.EVENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItemId(), is(EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME));
+    assertThat(queryItem.getValueType(), is(ValueType.DATE));
+    assertThat(queryItem.getProgramStage(), is(nullValue()));
+  }
+
+  @Test
+  void verifyEnrollmentDateDimensionReturnsEnrollmentColumnForEnrollmentOutput() {
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension("ENROLLMENT_DATE", programA, EventOutputType.ENROLLMENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(
+        queryItem.getItemId(), is(EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME));
+    assertThat(queryItem.getValueType(), is(ValueType.DATE));
+    assertThat(queryItem.getProgramStage(), is(nullValue()));
+  }
+
+  @Test
+  void verifyIncidentDateDimensionReturnsEnrollmentColumnForEnrollmentOutput() {
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension("INCIDENT_DATE", programA, EventOutputType.ENROLLMENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItemId(), is(EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME));
+    assertThat(queryItem.getValueType(), is(ValueType.DATE));
+    assertThat(queryItem.getProgramStage(), is(nullValue()));
+  }
+
+  @Test
+  void verifyLastUpdatedDimensionReturnsEnrollmentColumnForEnrollmentOutput() {
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension("LAST_UPDATED", programA, EventOutputType.ENROLLMENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItemId(), is(EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME));
+    assertThat(queryItem.getValueType(), is(ValueType.DATE));
+    assertThat(queryItem.getProgramStage(), is(nullValue()));
+  }
+
+  @Test
+  void verifyCreatedDateDimensionIsNotSupportedForEnrollmentOutput() {
+    assertThrows(
+        IllegalQueryException.class,
+        () ->
+            subject.getQueryItemFromDimension(
+                "CREATED_DATE", programA, EventOutputType.ENROLLMENT));
+  }
+
+  @Test
+  void verifyCompletedDateDimensionReturnsEnrollmentColumnForEnrollmentOutput() {
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension("COMPLETED_DATE", programA, EventOutputType.ENROLLMENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItemId(), is(EnrollmentAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME));
+    assertThat(queryItem.getValueType(), is(ValueType.DATE));
+    assertThat(queryItem.getProgramStage(), is(nullValue()));
   }
 
   @Test
