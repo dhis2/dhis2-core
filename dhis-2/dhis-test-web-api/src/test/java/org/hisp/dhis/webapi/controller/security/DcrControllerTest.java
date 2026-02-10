@@ -97,7 +97,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @ActiveProfiles("oauth2-authorization-server-test")
-class DcrWithJwksTest extends ControllerWithJwtTokenAuthTestBase {
+class DcrControllerTest extends ControllerWithJwtTokenAuthTestBase {
 
   @Autowired private SystemSettingsService systemSettingsService;
   @Autowired private Dhis2OAuth2ClientService oAuth2ClientService;
@@ -349,7 +349,7 @@ class DcrWithJwksTest extends ControllerWithJwtTokenAuthTestBase {
         .getContentAsString();
   }
 
-  public static DcrWithJwksTest.KeyPair createKeys() throws NoSuchAlgorithmException {
+  public static DcrControllerTest.KeyPair createKeys() throws NoSuchAlgorithmException {
     KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA");
     kpg.initialize(2048);
     java.security.KeyPair kp = kpg.generateKeyPair();

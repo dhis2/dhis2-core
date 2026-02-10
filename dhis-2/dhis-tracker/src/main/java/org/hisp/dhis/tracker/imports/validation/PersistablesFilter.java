@@ -213,7 +213,7 @@ class PersistablesFilter {
   }
 
   private boolean isContained(Map<TrackerType, Set<UID>> map, TrackerDto entity) {
-    return map.get(entity.getTrackerType()).contains(entity.getUid());
+    return map.get(entity.getTrackerType()).contains(entity.getUID());
   }
 
   /**
@@ -238,7 +238,7 @@ class PersistablesFilter {
   }
 
   private <T extends TrackerDto> void mark(T entity) {
-    this.markedEntities.get(entity.getTrackerType()).add(entity.getUid());
+    this.markedEntities.get(entity.getTrackerType()).add(entity.getUID());
   }
 
   private <T extends TrackerDto> boolean isMarked(T entity) {
@@ -297,13 +297,13 @@ class PersistablesFilter {
   private static Error error(ValidationCode code, TrackerDto notPersistable, TrackerDto reason) {
     Object[] args = {
       notPersistable.getTrackerType().getName(),
-      notPersistable.getUid(),
+      notPersistable.getUID(),
       reason.getTrackerType().getName(),
-      reason.getUid()
+      reason.getUID()
     };
     String message = MessageFormat.format(code.getMessage(), args);
     return new Error(
-        message, code, notPersistable.getTrackerType(), notPersistable.getUid(), List.of(args));
+        message, code, notPersistable.getTrackerType(), notPersistable.getUID(), List.of(args));
   }
 
   /**
