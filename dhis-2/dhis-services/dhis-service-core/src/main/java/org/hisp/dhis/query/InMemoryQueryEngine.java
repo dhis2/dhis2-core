@@ -32,6 +32,7 @@ package org.hisp.dhis.query;
 import static org.hisp.dhis.query.Filters.eq;
 import static org.hisp.dhis.query.Filters.ilike;
 import static org.hisp.dhis.query.Filters.in;
+import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -41,10 +42,15 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import lombok.AllArgsConstructor;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.query.operators.Operator;
+import org.hisp.dhis.schema.DefaultSchemaService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -127,8 +133,8 @@ public class InMemoryQueryEngine implements QueryEngine {
 
   private static int compare(Object lside, Object rside, OrderBy orderBy) {
     Method getter = orderBy.property.getGetterMethod();
-    Object left = ReflectionUtils.invokeMethod(lside, getter);
-    Object right = ReflectionUtils.invokeMethod(rside, getter);
+    Object left = safeInvoke(lside, getter);
+    Object right = safeInvoke(rside, getter);
 
     if (left == right) return 0;
 

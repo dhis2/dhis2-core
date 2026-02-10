@@ -30,6 +30,7 @@
 package org.hisp.dhis.fieldfilter;
 
 import static java.beans.Introspector.decapitalize;
+import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
@@ -379,7 +380,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
         continue;
       }
 
-      Object returnValue = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+      Object returnValue = safeInvoke(object, property.getGetterMethod());
 
       Class<?> propertyClass = property.getKlass();
       Schema propertySchema = schemaService.getDynamicSchema(propertyClass);
