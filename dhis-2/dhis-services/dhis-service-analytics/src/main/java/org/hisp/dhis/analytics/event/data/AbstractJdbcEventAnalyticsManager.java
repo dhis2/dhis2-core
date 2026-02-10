@@ -105,6 +105,7 @@ import java.util.Date;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -1867,13 +1868,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           columns.add(getCoordinateColumn(queryItem, OU_GEOMETRY_COL_POSTFIX).asSql());
         } else if (!cteContext.isEventsAnalytics() && isStageOuDimension(queryItem)) {
           // Stage.ou dimensions use CTE columns (only for enrollment analytics)
-          columns.add(getColumnWithCte(queryItem, cteContext));
+          columns.add(getColumnWithCte(queryItem, cteContext, params));
         } else {
           columns.add(getOrgUnitQueryItemColumnAndAlias(params, queryItem).asSql());
         }
       } else if (!cteContext.isEventsAnalytics() && queryItem.hasProgramStage()) {
         // Handle program stage items with CTE (only when NOT in events analytics)
-        columns.add(getColumnWithCte(queryItem, cteContext));
+        columns.add(getColumnWithCte(queryItem, cteContext, params));
       } else {
         // Handle other types as before
         ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, false, "");
@@ -2007,7 +2008,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected abstract String getSelectClause(EventQueryParams params);
 
   /** Returns the column name associated with the CTE */
-  protected abstract String getColumnWithCte(QueryItem item, CteContext cteContext);
+  protected abstract String getColumnWithCte(
+      QueryItem item, CteContext cteContext, EventQueryParams params);
 
   protected abstract CteContext getCteDefinitions(EventQueryParams params);
 
@@ -2510,6 +2512,11 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             .filter(QueryItem::hasFilter)
             .toList();
 
+    if (isAggregateQuery) {
+      generateAggregateFilterCTEs(queryItems, params, cteContext);
+      return;
+    }
+
     // Group query items by repeatable and non-repeatable stages
     Map<RepeatableStateStatus, List<QueryItem>> itemsByRepeatableFlag =
         queryItems.stream()
@@ -2530,11 +2537,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         .forEach(
             (identifier, items) -> {
               String cteSql = buildFilterCteSql(items, params);
-              if (isAggregateQuery) {
-                cteContext.addCteFilter("latest_events", items.get(0), cteSql);
-              } else {
-                cteContext.addCteFilter(items.get(0), cteSql);
-              }
+              cteContext.addCteFilter(items.get(0), cteSql);
             });
 
     // Process non-repeatable stage filters (data elements with program stage)
@@ -2544,13 +2547,35 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             queryItem -> {
               if (queryItem.hasProgram() && queryItem.hasProgramStage()) {
                 String cteSql = buildFilterCteSql(List.of(queryItem), params);
-                if (isAggregateQuery) {
-                  cteContext.addCteFilter("latest_events", queryItem, cteSql);
-                } else {
-                  cteContext.addCteFilter(queryItem, cteSql);
-                }
+                cteContext.addCteFilter(queryItem, cteSql);
               }
             });
+  }
+
+  /**
+   * Generates filter CTEs for aggregate enrollment queries. Items are grouped by program stage UID,
+   * producing one CTE per stage with all dimension columns and filter conditions combined.
+   *
+   * @param queryItems filtered query items that have at least one filter
+   * @param params the {@link EventQueryParams} object
+   * @param cteContext the {@link CteContext} to register CTEs into
+   */
+  private void generateAggregateFilterCTEs(
+      List<QueryItem> queryItems, EventQueryParams params, CteContext cteContext) {
+
+    // Collect all items that have a program stage and group by stage UID
+    Map<String, List<QueryItem>> itemsByStage =
+        queryItems.stream()
+            .filter(qi -> qi.hasProgram() && qi.hasProgramStage())
+            .collect(groupingBy(qi -> qi.getProgramStage().getUid(), LinkedHashMap::new, toList()));
+
+    // For each stage, build a single CTE with all dimension columns and filters
+    itemsByStage.forEach(
+        (stageUid, stageItems) -> {
+          String cteSql = buildAggregateFilterCteSql(stageItems, params);
+          String cteKey = "latest_events_" + stageUid;
+          cteContext.addCteFilter(cteKey, stageItems.get(0), cteSql);
+        });
   }
 
   /**
@@ -2720,7 +2745,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     if (params.isAggregatedEnrollments()) {
       // Skip creating program stage CTE for filtered items because the filter CTE
-      // "latest_events" already handles them (see generateFilterCTEs).
+      // The stage-specific filter CTE already handles them (see generateFilterCTEs).
       if (item.hasFilter()) {
         return;
       }
@@ -3028,6 +3053,83 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     // Handle text and numeric values
     return item.isNumeric() ? filterValue : sqlBuilder.singleQuote(filterValue);
+  }
+
+  /**
+   * Builds a single aggregate filter CTE SQL for one program stage, combining all dimension columns
+   * and filter conditions from the given items into a single row_number() query.
+   *
+   * @param stageItems query items belonging to the same program stage
+   * @param params the {@link EventQueryParams} object
+   * @return the CTE SQL string
+   */
+  private String buildAggregateFilterCteSql(List<QueryItem> stageItems, EventQueryParams params) {
+    QueryItem firstItem = stageItems.get(0);
+    String tableName = "analytics_event_" + firstItem.getProgram().getUid().toLowerCase();
+    String stageUid = firstItem.getProgramStage().getUid();
+
+    List<String> innerColumns = new ArrayList<>();
+    List<String> outerColumns = new ArrayList<>();
+    List<String> filterConditions = new ArrayList<>();
+
+    for (QueryItem item : stageItems) {
+      if (isStageOuDimension(item)) {
+        OrganisationUnitResolver.StageOuCteContext stageOuContext =
+            buildStageOuCteContext(item, params);
+        // The OU value column (e.g., uidlevelX)
+        innerColumns.add(stageOuContext.valueColumn() + " as ev_" + item.getItemName());
+        outerColumns.add("ev_" + item.getItemName());
+        // Additional OU columns (ouname, oucode) — strip trailing comma from the helper
+        innerColumns.add(StringUtils.stripEnd(stageOuContext.additionalSelectColumns(), ","));
+        outerColumns.add(STAGE_OU_NAME_COLUMN);
+        outerColumns.add(STAGE_OU_CODE_COLUMN);
+        if (!stageOuContext.filterCondition().isEmpty()) {
+          filterConditions.add(stageOuContext.filterCondition());
+        }
+      } else {
+        String dbColumn = quote(item.getItemName());
+        String alias = "ev_" + item.getItemName();
+        innerColumns.add(dbColumn + " as " + alias);
+        outerColumns.add(alias);
+        String conditions = extractFiltersAsSql(item, dbColumn, params);
+        if (!conditions.isEmpty()) {
+          filterConditions.add(conditions);
+        }
+      }
+    }
+
+    String innerColsSql =
+        innerColumns.isEmpty()
+            ? ""
+            : innerColumns.stream()
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.joining(", ", "", ","));
+    String outerColsSql = outerColumns.isEmpty() ? "" : ", " + String.join(", ", outerColumns);
+    String filterSql =
+        filterConditions.isEmpty() ? "" : " and " + String.join(" and ", filterConditions);
+
+    return """
+        select enrollment%s
+        from
+            (select
+                enrollment,
+                %s
+                row_number() over (
+                    partition by enrollment
+                    order by
+                        occurreddate desc,
+                        created desc
+                ) as rn
+            from
+                %s
+            where
+                eventstatus != 'SCHEDULE'
+                and ps = '%s'%s
+            ) ranked
+        where
+            rn = 1
+        """
+        .formatted(outerColsSql, innerColsSql, tableName, stageUid, filterSql);
   }
 
   private String buildFilterCteSql(List<QueryItem> queryItems, EventQueryParams params) {

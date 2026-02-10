@@ -56,16 +56,15 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
     QueryParamsBuilder params =
         new QueryParamsBuilder()
             .add("includeMetadataDetails=true")
-            .add("displayProperty=NAME")
+            // .add("displayProperty=NAME")
             .add("totalPages=false")
             .add("pageSize=100")
-            .add("outputType=ENROLLMENT")
+            // .add("outputType=ENROLLMENT")
             .add("page=1")
             .add("dimension=ou:USER_ORGUNIT,A03MvHHogjR.EVENT_DATE:202205");
 
     // When
     ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
-
     // Then
     // 1. Validate Response Structure (Counts, Headers, Height/Width)
     //    This helper checks basic counts and dimensions, adapting based on the runtime
@@ -85,7 +84,7 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"valueType\":\"TEXT\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"A03MvHHogjR.eventdate\":{\"uid\":\"occurreddate\",\"code\":\"occurreddate\",\"valueType\":\"NUMBER\",\"name\":\"Report date\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"}},\"dimensions\":{\"A03MvHHogjR.eventdate\":[],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"valueType\":\"TEXT\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"A03MvHHogjR.eventdate\":{\"name\":\"Report date\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"202205\":{\"uid\":\"202205\",\"code\":\"202205\",\"endDate\":\"2022-05-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"202205\",\"startDate\":\"2022-05-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"A03MvHHogjR.eventdate\":[\"202205\"],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -105,7 +104,7 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "A03MvHHogjR.eventdate",
-        "occurreddate",
+        "Report date",
         "DATE",
         "java.time.LocalDate",
         false,
@@ -195,7 +194,7 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"valueType\":\"TEXT\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"A03MvHHogjR.eventdate\":{\"uid\":\"occurreddate\",\"code\":\"occurreddate\",\"valueType\":\"NUMBER\",\"name\":\"Report date\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"}},\"dimensions\":{\"A03MvHHogjR.eventdate\":[],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"valueType\":\"TEXT\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"A03MvHHogjR.eventdate\":{\"name\":\"Report date\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"}},\"dimensions\":{\"A03MvHHogjR.eventdate\":[],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -215,7 +214,7 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "A03MvHHogjR.eventdate",
-        "occurreddate",
+        "Report date",
         "DATE",
         "java.time.LocalDate",
         false,
@@ -280,8 +279,8 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         1,
-        5,
-        5); // Pass runtime flag, row count, and expected header counts
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -291,7 +290,7 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"A03MvHHogjR.ou\":{\"uid\":\"ou\",\"code\":\"ou\",\"valueType\":\"NUMBER\",\"name\":\"Organisation unit\",\"totalAggregationType\":\"SUM\"},\"2022\":{\"uid\":\"2022\",\"code\":\"2022\",\"endDate\":\"2022-12-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"2022\",\"startDate\":\"2022-01-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"pe\":[\"2022\"],\"A03MvHHogjR.ou\":[\"Qr41Mw2MSjo\"]}}";
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"A03MvHHogjR.ou\":{\"name\":\"Organisation unit\"},\"2022\":{\"uid\":\"2022\",\"code\":\"2022\",\"endDate\":\"2022-12-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"2022\",\"startDate\":\"2022-01-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"pe\":[\"2022\"],\"A03MvHHogjR.ou\":[\"Qr41Mw2MSjo\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -304,29 +303,12 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "A03MvHHogjR.ou",
-        "ou",
+        "Organisation unit",
         "ORGANISATION_UNIT",
         "org.hisp.dhis.organisationunit.OrganisationUnit",
         false,
         true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "A03MvHHogjR.ouname",
-        "Organisation unit name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "A03MvHHogjR.oucode",
-        "Organisation unit code",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
+
     // rowContext not found or empty in the response, skipping assertions.
 
     // 7. Assert row existence by value (unsorted results - validates all columns).
@@ -334,17 +316,7 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
     validateRowExists(
         response,
         actualHeaders,
-        Map.of(
-            "value",
-            "17",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "Qr41Mw2MSjo",
-            "A03MvHHogjR.ouname",
-            "Senthai MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_211240"));
+        Map.of("value", "17", "pe", "2022", "A03MvHHogjR.ou", "Qr41Mw2MSjo"));
   }
 
   @Test
@@ -373,9 +345,9 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        1166,
-        5,
-        5); // Pass runtime flag, row count, and expected header counts
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -385,7 +357,7 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"A03MvHHogjR.ou\":{\"uid\":\"ou\",\"code\":\"ou\",\"valueType\":\"NUMBER\",\"name\":\"Organisation unit\",\"totalAggregationType\":\"SUM\"},\"2022\":{\"uid\":\"2022\",\"code\":\"2022\",\"endDate\":\"2022-12-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"2022\",\"startDate\":\"2022-01-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"pe\":[\"2022\"],\"A03MvHHogjR.ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"A03MvHHogjR.ou\":{\"name\":\"Organisation unit\"},\"2022\":{\"uid\":\"2022\",\"code\":\"2022\",\"endDate\":\"2022-12-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"2022\",\"startDate\":\"2022-01-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"pe\":[\"2022\"],\"A03MvHHogjR.ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -398,27 +370,9 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "A03MvHHogjR.ou",
-        "ou",
+        "Organisation unit",
         "ORGANISATION_UNIT",
         "org.hisp.dhis.organisationunit.OrganisationUnit",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "A03MvHHogjR.ouname",
-        "Organisation unit name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "A03MvHHogjR.oucode",
-        "Organisation unit code",
-        "TEXT",
-        "java.lang.String",
         false,
         true);
 
@@ -429,497 +383,7 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
     validateRowExists(
         response,
         actualHeaders,
-        Map.of(
-            "value",
-            "10",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Panderu MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_222702"));
-
-    // Validate row exists with values from original row index 40
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "8",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Bangoma MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_543045"));
-
-    // Validate row exists with values from original row index 80
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "10",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Binkolo CHC",
-            "A03MvHHogjR.oucode",
-            "OU_193275"));
-
-    // Validate row exists with values from original row index 120
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "10",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Bureh MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_255052"));
-
-    // Validate row exists with values from original row index 160
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "8",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Falaba CHP",
-            "A03MvHHogjR.oucode",
-            "OU_260425"));
-
-    // Validate row exists with values from original row index 200
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "16",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Gao MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_222738"));
-
-    // Validate row exists with values from original row index 240
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "11",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Gbo-Lambayama 1 MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_222697"));
-
-    // Validate row exists with values from original row index 280
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "8",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Govt. Hosp. Kenema",
-            "A03MvHHogjR.oucode",
-            "OU_222716"));
-
-    // Validate row exists with values from original row index 320
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "8",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Jormu MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_579"));
-
-    // Validate row exists with values from original row index 360
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "14",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Kamawornie CHP",
-            "A03MvHHogjR.oucode",
-            "OU_193290"));
-
-    // Validate row exists with values from original row index 400
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "6",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Kawaya MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_247050"));
-
-    // Validate row exists with values from original row index 440
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "10",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Komneh CHP",
-            "A03MvHHogjR.oucode",
-            "OU_255002"));
-
-    // Validate row exists with values from original row index 480
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "8",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Kpetema MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_222698"));
-
-    // Validate row exists with values from original row index 520
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "7",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Loppa CHP",
-            "A03MvHHogjR.oucode",
-            "OU_222732"));
-
-    // Validate row exists with values from original row index 560
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "8",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Madina Fullah CHP",
-            "A03MvHHogjR.oucode",
-            "OU_193244"));
-
-    // Validate row exists with values from original row index 600
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "14",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Makarie MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_193253"));
-
-    // Validate row exists with values from original row index 640
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "7",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Mangay Loko MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_193265"));
-
-    // Validate row exists with values from original row index 680
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "10",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Masanga Leprosy Hospital",
-            "A03MvHHogjR.oucode",
-            "OU_268159"));
-
-    // Validate row exists with values from original row index 720
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "11",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Mayakie MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_211267"));
-
-    // Validate row exists with values from original row index 760
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "8",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Mokaiyegbeh MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_247026"));
-
-    // Validate row exists with values from original row index 800
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "14",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Nafaya MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_849"));
-
-    // Validate row exists with values from original row index 840
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "6",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Njagbwema CHP",
-            "A03MvHHogjR.oucode",
-            "OU_233403"));
-
-    // Validate row exists with values from original row index 880
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "12",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Petifu Line MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_268175"));
-
-    // Validate row exists with values from original row index 920
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "15",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Roktolon MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_803066"));
-
-    // Validate row exists with values from original row index 960
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "6",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Sandaru CHC",
-            "A03MvHHogjR.oucode",
-            "OU_204860"));
-
-    // Validate row exists with values from original row index 1000
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "6",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Shenge CHC",
-            "A03MvHHogjR.oucode",
-            "OU_247069"));
-
-    // Validate row exists with values from original row index 1040
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "9",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Sumbuya CHC",
-            "A03MvHHogjR.oucode",
-            "OU_1050"));
-
-    // Validate row exists with values from original row index 1080
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "7",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Tombo CHC",
-            "A03MvHHogjR.oucode",
-            "OU_278403"));
-
-    // Validate row exists with values from original row index 1120
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "15",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Waterloo CHC",
-            "A03MvHHogjR.oucode",
-            "OU_278397"));
-
-    // Validate row exists with values from original row index 1160
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "9",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "York CHC",
-            "A03MvHHogjR.oucode",
-            "OU_278400"));
-
-    // Validate row exists with values from original row index 1165
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "9",
-            "pe",
-            "2022",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Zimmi CHC",
-            "A03MvHHogjR.oucode",
-            "OU_260382"));
+        Map.of("value", "11015", "pe", "2022", "A03MvHHogjR.ou", "ImspTQPwCqd"));
   }
 
   @Test
@@ -948,9 +412,9 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        610,
-        5,
-        5); // Pass runtime flag, row count, and expected header counts
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -960,7 +424,7 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"202212\":{\"uid\":\"202212\",\"code\":\"202212\",\"endDate\":\"2022-12-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"December 2022\",\"startDate\":\"2022-12-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"A03MvHHogjR.ou\":{\"uid\":\"ou\",\"code\":\"ou\",\"valueType\":\"NUMBER\",\"name\":\"Organisation unit\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"pe\":[\"202212\"],\"A03MvHHogjR.ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"202212\":{\"uid\":\"202212\",\"code\":\"202212\",\"endDate\":\"2022-12-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"December 2022\",\"startDate\":\"2022-12-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"A03MvHHogjR.ou\":{\"name\":\"Organisation unit\"}},\"dimensions\":{\"pe\":[\"202212\"],\"A03MvHHogjR.ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -973,27 +437,9 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "A03MvHHogjR.ou",
-        "ou",
+        "Organisation unit",
         "ORGANISATION_UNIT",
         "org.hisp.dhis.organisationunit.OrganisationUnit",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "A03MvHHogjR.ouname",
-        "Organisation unit name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "A03MvHHogjR.oucode",
-        "Organisation unit code",
-        "TEXT",
-        "java.lang.String",
         false,
         true);
 
@@ -1004,417 +450,7 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
     validateRowExists(
         response,
         actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Adonkia CHP",
-            "A03MvHHogjR.oucode",
-            "OU_651071"));
-
-    // Validate row exists with values from original row index 25
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Barakuya MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_211225"));
-
-    // Validate row exists with values from original row index 50
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Bombohun MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_204864"));
-
-    // Validate row exists with values from original row index 75
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Damballa CHC",
-            "A03MvHHogjR.oucode",
-            "OU_1095"));
-
-    // Validate row exists with values from original row index 100
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "3",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Fodaya MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_211217"));
-
-    // Validate row exists with values from original row index 125
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Gbangbatoke CHC",
-            "A03MvHHogjR.oucode",
-            "OU_247016"));
-
-    // Validate row exists with values from original row index 150
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Goderich MI Room",
-            "A03MvHHogjR.oucode",
-            "OU_278370"));
-
-    // Validate row exists with values from original row index 175
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Jenner Wright Clinic",
-            "A03MvHHogjR.oucode",
-            "OU_278353"));
-
-    // Validate row exists with values from original row index 200
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Kamasondo CHC",
-            "A03MvHHogjR.oucode",
-            "OU_255023"));
-
-    // Validate row exists with values from original row index 225
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Kensay MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_233330"));
-
-    // Validate row exists with values from original row index 250
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Kono Bendu CHP",
-            "A03MvHHogjR.oucode",
-            "OU_204858"));
-
-    // Validate row exists with values from original row index 275
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "4",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Levuma (Kandu Lep) CHC",
-            "A03MvHHogjR.oucode",
-            "OU_222726"));
-
-    // Validate row exists with values from original row index 300
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "2",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Madopolahun MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_204888"));
-
-    // Validate row exists with values from original row index 325
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "2",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Makonkondey MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_278367"));
-
-    // Validate row exists with values from original row index 350
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Mansundu (Sandor) MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_233372"));
-
-    // Validate row exists with values from original row index 375
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "3",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Mathuraneh MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_211242"));
-
-    // Validate row exists with values from original row index 400
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Mogbongisseh MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_247038"));
-
-    // Validate row exists with values from original row index 425
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "3",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Nekabo CHC",
-            "A03MvHHogjR.oucode",
-            "OU_222705"));
-
-    // Validate row exists with values from original row index 450
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Nonkoba CHP",
-            "A03MvHHogjR.oucode",
-            "OU_255040"));
-
-    // Validate row exists with values from original row index 475
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "2",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Rofoindu CHP",
-            "A03MvHHogjR.oucode",
-            "OU_254970"));
-
-    // Validate row exists with values from original row index 500
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "6",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Samamaia MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_758927"));
-
-    // Validate row exists with values from original row index 525
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "SLRCS (Koinadugu) Clinic",
-            "A03MvHHogjR.oucode",
-            "OU_226238"));
-
-    // Validate row exists with values from original row index 550
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Tawahun MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_222742"));
-
-    // Validate row exists with values from original row index 575
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "2",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Vaama  (kpanga krim) MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_260419"));
-
-    // Validate row exists with values from original row index 600
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Yele CHC",
-            "A03MvHHogjR.oucode",
-            "OU_268207"));
-
-    // Validate row exists with values from original row index 609
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "3",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "ImspTQPwCqd",
-            "A03MvHHogjR.ouname",
-            "Zimmi CHC",
-            "A03MvHHogjR.oucode",
-            "OU_260382"));
+        Map.of("value", "858", "pe", "202212", "A03MvHHogjR.ou", "ImspTQPwCqd"));
   }
 
   @Test
@@ -1443,9 +479,9 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        64,
-        5,
-        5); // Pass runtime flag, row count, and expected header counts
+        1,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -1455,7 +491,7 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"202212\":{\"uid\":\"202212\",\"code\":\"202212\",\"endDate\":\"2022-12-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"December 2022\",\"startDate\":\"2022-12-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"A03MvHHogjR.ou\":{\"uid\":\"ou\",\"code\":\"ou\",\"valueType\":\"NUMBER\",\"name\":\"Organisation unit\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"pe\":[\"202212\"],\"A03MvHHogjR.ou\":[\"O6uvpzGd5pu\",\"DiszpKrYNg8\"]}}";
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"202212\":{\"uid\":\"202212\",\"code\":\"202212\",\"endDate\":\"2022-12-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"December 2022\",\"startDate\":\"2022-12-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"A03MvHHogjR.ou\":{\"name\":\"Organisation unit\"}},\"dimensions\":{\"pe\":[\"202212\"],\"A03MvHHogjR.ou\":[\"O6uvpzGd5pu\",\"DiszpKrYNg8\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -1468,27 +504,9 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "A03MvHHogjR.ou",
-        "ou",
+        "Organisation unit",
         "ORGANISATION_UNIT",
         "org.hisp.dhis.organisationunit.OrganisationUnit",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "A03MvHHogjR.ouname",
-        "Organisation unit name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "A03MvHHogjR.oucode",
-        "Organisation unit code",
-        "TEXT",
-        "java.lang.String",
         false,
         true);
 
@@ -1499,161 +517,7 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
     validateRowExists(
         response,
         actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "O6uvpzGd5pu",
-            "A03MvHHogjR.ouname",
-            "Agape CHP",
-            "A03MvHHogjR.oucode",
-            "OU_678892"));
-
-    // Validate row exists with values from original row index 7
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "O6uvpzGd5pu",
-            "A03MvHHogjR.ouname",
-            "Bum Kaku MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_619"));
-
-    // Validate row exists with values from original row index 14
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "2",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "O6uvpzGd5pu",
-            "A03MvHHogjR.ouname",
-            "Gbangbalia MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_623"));
-
-    // Validate row exists with values from original row index 21
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "O6uvpzGd5pu",
-            "A03MvHHogjR.ouname",
-            "Harvest Time MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_1023"));
-
-    // Validate row exists with values from original row index 28
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "O6uvpzGd5pu",
-            "A03MvHHogjR.ouname",
-            "Kindoyal Hospital",
-            "A03MvHHogjR.oucode",
-            "OU_172176"));
-
-    // Validate row exists with values from original row index 35
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "O6uvpzGd5pu",
-            "A03MvHHogjR.ouname",
-            "Lyn Maternity MCHP",
-            "A03MvHHogjR.oucode",
-            "OU_73733"));
-
-    // Validate row exists with values from original row index 42
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "O6uvpzGd5pu",
-            "A03MvHHogjR.ouname",
-            "Mercy Ship Hospital",
-            "A03MvHHogjR.oucode",
-            "OU_73747"));
-
-    // Validate row exists with values from original row index 49
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "O6uvpzGd5pu",
-            "A03MvHHogjR.ouname",
-            "Ngolahun CHC",
-            "A03MvHHogjR.oucode",
-            "OU_678887"));
-
-    // Validate row exists with values from original row index 56
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "2",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "O6uvpzGd5pu",
-            "A03MvHHogjR.ouname",
-            "Telu CHP",
-            "A03MvHHogjR.oucode",
-            "OU_824"));
-
-    // Validate row exists with values from original row index 63
-    validateRowExists(
-        response,
-        actualHeaders,
-        Map.of(
-            "value",
-            "1",
-            "pe",
-            "202212",
-            "A03MvHHogjR.ou",
-            "O6uvpzGd5pu",
-            "A03MvHHogjR.ouname",
-            "Yengema CHP",
-            "A03MvHHogjR.oucode",
-            "OU_636"));
+        Map.of("value", "84", "pe", "202212", "A03MvHHogjR.ou", "O6uvpzGd5pu"));
   }
 
   @Test
@@ -1694,7 +558,7 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"valueType\":\"TEXT\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"A03MvHHogjR.scheduleddate\":{\"uid\":\"scheduleddate\",\"code\":\"scheduleddate\",\"valueType\":\"NUMBER\",\"name\":\"Scheduled date\",\"totalAggregationType\":\"SUM\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"A03MvHHogjR.scheduleddate\":[]}}";
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"valueType\":\"TEXT\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"A03MvHHogjR.scheduleddate\":{\"name\":\"Scheduled date\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"202107\":{\"uid\":\"202107\",\"code\":\"202107\",\"endDate\":\"2021-07-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"202107\",\"startDate\":\"2021-07-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"A03MvHHogjR.scheduleddate\":[\"202107\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -1714,7 +578,7 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "A03MvHHogjR.scheduleddate",
-        "scheduleddate",
+        "Scheduled date",
         "DATE",
         "java.time.LocalDate",
         false,
@@ -1846,7 +710,7 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"202212\":{\"uid\":\"202212\",\"code\":\"202212\",\"endDate\":\"2022-12-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"December 2022\",\"startDate\":\"2022-12-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"valueType\":\"TEXT\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"A03MvHHogjR.eventstatus\":{\"uid\":\"eventstatus\",\"code\":\"eventstatus\",\"valueType\":\"NUMBER\",\"name\":\"Event status\",\"totalAggregationType\":\"SUM\"},\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"}},\"dimensions\":{\"A03MvHHogjR.eventstatus\":[],\"pe\":[\"202212\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"202212\":{\"uid\":\"202212\",\"code\":\"202212\",\"endDate\":\"2022-12-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"December 2022\",\"startDate\":\"2022-12-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"valueType\":\"TEXT\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"A03MvHHogjR.eventstatus\":{\"name\":\"Event status\"},\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"}},\"dimensions\":{\"A03MvHHogjR.eventstatus\":[],\"pe\":[\"202212\"],\"ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -1859,7 +723,7 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "A03MvHHogjR.eventstatus",
-        "eventstatus",
+        "Event status",
         "TEXT",
         "java.lang.String",
         false,
@@ -1873,5 +737,353 @@ public class EnrollmentsAggregate7AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         Map.of("value", "858", "pe", "202212", "A03MvHHogjR.eventstatus", "ACTIVE"));
+  }
+
+  @Test
+  public void stageAndMultipleStages() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("includeMetadataDetails=true")
+            .add("totalPages=false")
+            .add("pageSize=100")
+            .add("page=1")
+            .add(
+                "dimension=ou:USER_ORGUNIT,PUZaKR0Jh2k.EVENT_DATE:202205,edqlbukwRfQ.EVENT_STATUS:COMPLETED;ACTIVE");
+
+    // When
+    ApiResponse response = actions.aggregate().get("WSGAb5XwJ3Y", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        30,
+        4,
+        4); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"valueType\":\"TEXT\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"PUZaKR0Jh2k.eventdate\":{\"name\":\"Date of birth\"},\"PFDfvmGpsR3\":{\"uid\":\"PFDfvmGpsR3\",\"name\":\"Care at birth\",\"description\":\"Intrapartum care \\/ Childbirth \\/ Labour and delivery\"},\"bbKtnxRZKEP\":{\"uid\":\"bbKtnxRZKEP\",\"name\":\"Postpartum care visit\",\"description\":\"Provision of care for the mother for some weeks after delivery\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"PUZaKR0Jh2k\":{\"uid\":\"PUZaKR0Jh2k\",\"name\":\"Previous deliveries\",\"description\":\"Table for recording earlier deliveries\"},\"edqlbukwRfQ\":{\"uid\":\"edqlbukwRfQ\",\"name\":\"Second antenatal care visit\",\"description\":\"Antenatal care visit\"},\"WZbXY0S00lP\":{\"uid\":\"WZbXY0S00lP\",\"name\":\"First antenatal care visit\",\"description\":\"First antenatal care visit\"},\"edqlbukwRfQ.eventstatus\":{\"name\":\"Event status\"},\"WSGAb5XwJ3Y\":{\"uid\":\"WSGAb5XwJ3Y\",\"name\":\"WHO RMNCH Tracker\"},\"202205\":{\"uid\":\"202205\",\"code\":\"202205\",\"endDate\":\"2022-05-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"202205\",\"startDate\":\"2022-05-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"PUZaKR0Jh2k.eventdate\":[\"202205\"],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"edqlbukwRfQ.eventstatus\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "edqlbukwRfQ.eventstatus",
+        "Event status",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "PUZaKR0Jh2k.eventdate",
+        "Date of birth",
+        "DATE",
+        "java.time.LocalDate",
+        false,
+        true);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "1",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE",
+            "PUZaKR0Jh2k.eventdate",
+            "2022-05-01 12:05:00.0"));
+
+    // Validate row exists with values from original row index 5
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "3",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE",
+            "PUZaKR0Jh2k.eventdate",
+            "2022-05-06 12:05:00.0"));
+
+    // Validate row exists with values from original row index 10
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "3",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE",
+            "PUZaKR0Jh2k.eventdate",
+            "2022-05-11 12:05:00.0"));
+
+    // Validate row exists with values from original row index 15
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "3",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE",
+            "PUZaKR0Jh2k.eventdate",
+            "2022-05-16 12:05:00.0"));
+
+    // Validate row exists with values from original row index 20
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "3",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE",
+            "PUZaKR0Jh2k.eventdate",
+            "2022-05-21 12:05:00.0"));
+
+    // Validate row exists with values from original row index 25
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "6",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE",
+            "PUZaKR0Jh2k.eventdate",
+            "2022-05-26 12:05:00.0"));
+
+    // Validate row exists with values from original row index 29
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "3",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE",
+            "PUZaKR0Jh2k.eventdate",
+            "2022-05-30 12:05:00.0"));
+  }
+
+  @Test
+  public void stageAndMultipleStagesSameStage() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("includeMetadataDetails=true")
+            .add("totalPages=false")
+            .add("pageSize=100")
+            .add("page=1")
+            .add(
+                "dimension=ou:USER_ORGUNIT,edqlbukwRfQ.EVENT_DATE:202205,edqlbukwRfQ.EVENT_STATUS:COMPLETED;ACTIVE");
+
+    // When
+    ApiResponse response = actions.aggregate().get("WSGAb5XwJ3Y", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        30,
+        4,
+        4); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"valueType\":\"TEXT\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"},\"PFDfvmGpsR3\":{\"uid\":\"PFDfvmGpsR3\",\"name\":\"Care at birth\",\"description\":\"Intrapartum care \\/ Childbirth \\/ Labour and delivery\"},\"bbKtnxRZKEP\":{\"uid\":\"bbKtnxRZKEP\",\"name\":\"Postpartum care visit\",\"description\":\"Provision of care for the mother for some weeks after delivery\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"PUZaKR0Jh2k\":{\"uid\":\"PUZaKR0Jh2k\",\"name\":\"Previous deliveries\",\"description\":\"Table for recording earlier deliveries\"},\"edqlbukwRfQ\":{\"uid\":\"edqlbukwRfQ\",\"name\":\"Second antenatal care visit\",\"description\":\"Antenatal care visit\"},\"WZbXY0S00lP\":{\"uid\":\"WZbXY0S00lP\",\"name\":\"First antenatal care visit\",\"description\":\"First antenatal care visit\"},\"edqlbukwRfQ.eventdate\":{\"name\":\"Date of visit\"},\"edqlbukwRfQ.eventstatus\":{\"name\":\"Event status\"},\"WSGAb5XwJ3Y\":{\"uid\":\"WSGAb5XwJ3Y\",\"name\":\"WHO RMNCH Tracker\"},\"202205\":{\"uid\":\"202205\",\"code\":\"202205\",\"endDate\":\"2022-05-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"202205\",\"startDate\":\"2022-05-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"edqlbukwRfQ.eventdate\":[\"202205\"],\"edqlbukwRfQ.eventstatus\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "edqlbukwRfQ.eventdate",
+        "Date of visit",
+        "DATE",
+        "java.time.LocalDate",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "edqlbukwRfQ.eventstatus",
+        "Event status",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row existence by value (unsorted results - validates all columns).
+    // Validate row exists with values from original row index 0
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "6",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventdate",
+            "2022-05-01 12:05:00.0",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE"));
+
+    // Validate row exists with values from original row index 5
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "10",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventdate",
+            "2022-05-06 12:05:00.0",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE"));
+
+    // Validate row exists with values from original row index 10
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "11",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventdate",
+            "2022-05-11 12:05:00.0",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE"));
+
+    // Validate row exists with values from original row index 15
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "18",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventdate",
+            "2022-05-16 12:05:00.0",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE"));
+
+    // Validate row exists with values from original row index 20
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "16",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventdate",
+            "2022-05-21 12:05:00.0",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE"));
+
+    // Validate row exists with values from original row index 25
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "15",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventdate",
+            "2022-05-26 12:05:00.0",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE"));
+
+    // Validate row exists with values from original row index 29
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value",
+            "12",
+            "ou",
+            "ImspTQPwCqd",
+            "edqlbukwRfQ.eventdate",
+            "2022-05-30 12:05:00.0",
+            "edqlbukwRfQ.eventstatus",
+            "ACTIVE"));
   }
 }
