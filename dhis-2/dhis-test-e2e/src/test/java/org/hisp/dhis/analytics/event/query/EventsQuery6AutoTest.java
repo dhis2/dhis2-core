@@ -82,8 +82,8 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         100,
-        20,
-        16); // Pass runtime flag, row count, and expected header counts
+        18,
+        14); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -229,27 +229,9 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "Zj7UnCAulEk.ou",
-        "ou",
+        "Organisation unit",
         "ORGANISATION_UNIT",
         "org.hisp.dhis.organisationunit.OrganisationUnit",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "Zj7UnCAulEk.ouname",
-        "Organisation unit name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "Zj7UnCAulEk.oucode",
-        "Organisation unit code",
-        "TEXT",
-        "java.lang.String",
         false,
         true);
 
@@ -265,80 +247,56 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
     // 7. Assert row values by name (sample validation: evenly spaced rows, key columns).
     // Validate selected values for row index 0
     validateRowValueByName(response, actualHeaders, 0, "psi", "lfjiNgsMNCR");
-    validateRowValueByName(response, actualHeaders, 0, "Zj7UnCAulEk.oucode", "OU_247040");
-    validateRowValueByName(response, actualHeaders, 0, "ouname", "Mokorbu MCHP");
     validateRowValueByName(response, actualHeaders, 0, "programstatus", "");
 
     // Validate selected values for row index 9
     validateRowValueByName(response, actualHeaders, 9, "psi", "nLpj83AM1Mh");
-    validateRowValueByName(response, actualHeaders, 9, "Zj7UnCAulEk.oucode", "OU_1027");
-    validateRowValueByName(response, actualHeaders, 9, "ouname", "Yemoh Town CHC");
     validateRowValueByName(response, actualHeaders, 9, "programstatus", "");
 
     // Validate selected values for row index 18
     validateRowValueByName(response, actualHeaders, 18, "psi", "fGRi36ns4kX");
-    validateRowValueByName(response, actualHeaders, 18, "Zj7UnCAulEk.oucode", "OU_233343");
-    validateRowValueByName(response, actualHeaders, 18, "ouname", "Sukudu MCHP");
     validateRowValueByName(response, actualHeaders, 18, "programstatus", "");
 
     // Validate selected values for row index 27
     validateRowValueByName(response, actualHeaders, 27, "psi", "tA6FviZCjM3");
-    validateRowValueByName(response, actualHeaders, 27, "Zj7UnCAulEk.oucode", "OU_233402");
-    validateRowValueByName(response, actualHeaders, 27, "ouname", "Bumpeh (Nimikoro) CHC");
     validateRowValueByName(response, actualHeaders, 27, "programstatus", "");
 
     // Validate selected values for row index 36
     validateRowValueByName(response, actualHeaders, 36, "psi", "sB86NztPpJT");
-    validateRowValueByName(response, actualHeaders, 36, "Zj7UnCAulEk.oucode", "OU_8394");
-    validateRowValueByName(response, actualHeaders, 36, "ouname", "Yemoh MCHP");
     validateRowValueByName(response, actualHeaders, 36, "programstatus", "");
 
     // Validate selected values for row index 45
     validateRowValueByName(response, actualHeaders, 45, "psi", "OPxpkETTNRL");
-    validateRowValueByName(response, actualHeaders, 45, "Zj7UnCAulEk.oucode", "OU_260380");
-    validateRowValueByName(response, actualHeaders, 45, "ouname", "Gbaa (Makpele) CHP");
     validateRowValueByName(response, actualHeaders, 45, "programstatus", "");
 
     // Validate selected values for row index 54
     validateRowValueByName(response, actualHeaders, 54, "psi", "FJT2xnBFs8D");
-    validateRowValueByName(response, actualHeaders, 54, "Zj7UnCAulEk.oucode", "OU_247046");
-    validateRowValueByName(response, actualHeaders, 54, "ouname", "Mosanda CHP");
     validateRowValueByName(response, actualHeaders, 54, "programstatus", "");
 
     // Validate selected values for row index 63
     validateRowValueByName(response, actualHeaders, 63, "psi", "HdRDfv7w67a");
-    validateRowValueByName(response, actualHeaders, 63, "Zj7UnCAulEk.oucode", "OU_543008");
-    validateRowValueByName(response, actualHeaders, 63, "ouname", "Nyandehun (Mano Sakrim) MCHP");
     validateRowValueByName(response, actualHeaders, 63, "programstatus", "");
 
     // Validate selected values for row index 72
     validateRowValueByName(response, actualHeaders, 72, "psi", "eVSbPM94Nm0");
-    validateRowValueByName(response, actualHeaders, 72, "Zj7UnCAulEk.oucode", "OU_193275");
-    validateRowValueByName(response, actualHeaders, 72, "ouname", "Binkolo CHC");
     validateRowValueByName(response, actualHeaders, 72, "programstatus", "");
 
     // Validate selected values for row index 81
     validateRowValueByName(response, actualHeaders, 81, "psi", "K5r81bJsc0i");
-    validateRowValueByName(response, actualHeaders, 81, "Zj7UnCAulEk.oucode", "OU_167623");
-    validateRowValueByName(response, actualHeaders, 81, "ouname", "Serabu Hospital Mission");
     validateRowValueByName(response, actualHeaders, 81, "programstatus", "");
 
     // Validate selected values for row index 90
     validateRowValueByName(response, actualHeaders, 90, "psi", "u7Phq0A0y20");
-    validateRowValueByName(response, actualHeaders, 90, "Zj7UnCAulEk.oucode", "OU_193263");
-    validateRowValueByName(response, actualHeaders, 90, "ouname", "Stocco CHP");
     validateRowValueByName(response, actualHeaders, 90, "programstatus", "");
 
     // Validate selected values for row index 99
     validateRowValueByName(response, actualHeaders, 99, "psi", "RPNgwvx5j65");
-    validateRowValueByName(response, actualHeaders, 99, "Zj7UnCAulEk.oucode", "OU_226236");
-    validateRowValueByName(response, actualHeaders, 99, "ouname", "Gbenikoro MCHP");
     validateRowValueByName(response, actualHeaders, 99, "programstatus", "");
   }
 
   @Test
   @DisplayName("Validate period dimension with stage-specific date dimension is rejected")
-  public void validateStageAndStageSpecificDimenionRejected() {
+  public void validateStageAndStageSpecificDimensionRejected() {
 
     // Given
     QueryParamsBuilder params =
@@ -437,7 +395,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"total\":54022,\"pageCount\":541,\"pageSize\":100,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"eBAyeGv0exc\":{\"name\":\"Inpatient morbidity and mortality\"},\"ou\":{},\"Zj7UnCAulEk.eventdate\":{\"name\":\"Report date\"},\"Zj7UnCAulEk\":{\"name\":\"Inpatient morbidity and mortality\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"Zj7UnCAulEk.eventdate\":[]}}";
+        "{\"pager\":{\"total\":54022,\"pageCount\":541,\"pageSize\":100,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"eBAyeGv0exc\":{\"name\":\"Inpatient morbidity and mortality\"},\"ou\":{},\"2022\":{\"name\":\"2022\"},\"Zj7UnCAulEk.eventdate\":{\"name\":\"Report date\"},\"Zj7UnCAulEk\":{\"name\":\"Inpatient morbidity and mortality\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"Zj7UnCAulEk.eventdate\":[\"2022\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -573,7 +531,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "Zj7UnCAulEk.eventdate",
-        "occurreddate",
+        "Report date",
         "DATE",
         "java.time.LocalDate",
         false,
@@ -652,7 +610,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"total\":53768,\"pageCount\":538,\"pageSize\":100,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"eBAyeGv0exc\":{\"name\":\"Inpatient morbidity and mortality\"},\"ou\":{},\"Zj7UnCAulEk.eventdate\":{\"name\":\"Report date\"},\"Zj7UnCAulEk\":{\"name\":\"Inpatient morbidity and mortality\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"Zj7UnCAulEk.eventdate\":[]}}";
+        "{\"pager\":{\"total\":53768,\"pageCount\":538,\"pageSize\":100,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"eBAyeGv0exc\":{\"name\":\"Inpatient morbidity and mortality\"},\"ou\":{},\"2021\":{\"name\":\"2021\"},\"Zj7UnCAulEk.eventdate\":{\"name\":\"Report date\"},\"Zj7UnCAulEk\":{\"name\":\"Inpatient morbidity and mortality\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"Zj7UnCAulEk.eventdate\":[\"2021\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -788,7 +746,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "Zj7UnCAulEk.eventdate",
-        "occurreddate",
+        "Report date",
         "DATE",
         "java.time.LocalDate",
         false,
@@ -999,7 +957,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "Zj7UnCAulEk.eventdate",
-        "occurreddate",
+        "Report date",
         "DATE",
         "java.time.LocalDate",
         false,
@@ -1208,7 +1166,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "Zj7UnCAulEk.eventdate",
-        "occurreddate",
+        "Report date",
         "DATE",
         "java.time.LocalDate",
         false,
@@ -1421,7 +1379,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "Zj7UnCAulEk.eventdate",
-        "occurreddate",
+        "Report date",
         "DATE",
         "java.time.LocalDate",
         false,
@@ -1541,8 +1499,8 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         4,
-        24,
-        20); // Pass runtime flag, row count, and expected header counts
+        22,
+        18); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -1710,27 +1668,9 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "ZkbAXlQUYJG.ou",
-        "ou",
+        "Organisation unit",
         "ORGANISATION_UNIT",
         "org.hisp.dhis.organisationunit.OrganisationUnit",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "ZkbAXlQUYJG.ouname",
-        "Organisation unit name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "ZkbAXlQUYJG.oucode",
-        "Organisation unit code",
-        "TEXT",
-        "java.lang.String",
         false,
         true);
 
@@ -1746,42 +1686,34 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
     // 7. Assert row values by name (sample validation: evenly spaced rows, key columns).
     // Validate selected values for row index 0
     validateRowValueByName(response, actualHeaders, 0, "psi", "IQCiAZs7PrK");
-    validateRowValueByName(response, actualHeaders, 0, "ZkbAXlQUYJG.oucode", "OU_559");
     validateRowValueByName(response, actualHeaders, 0, "enrollmentdate", "2021-05-14 12:35:24.03");
     validateRowValueByName(response, actualHeaders, 0, "incidentdate", "2021-04-25 12:35:24.03");
     validateRowValueByName(response, actualHeaders, 0, "tei", "LxMVYhJm3Jp");
     validateRowValueByName(response, actualHeaders, 0, "pi", "awZ5RHoJin5");
-    validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
     validateRowValueByName(response, actualHeaders, 0, "programstatus", "ACTIVE");
 
     // Validate selected values for row index 1
     validateRowValueByName(response, actualHeaders, 1, "psi", "La2PAKKx3it");
-    validateRowValueByName(response, actualHeaders, 1, "ZkbAXlQUYJG.oucode", "OU_559");
     validateRowValueByName(response, actualHeaders, 1, "enrollmentdate", "2022-08-11 12:32:30.524");
     validateRowValueByName(response, actualHeaders, 1, "incidentdate", "2022-08-05 02:00:00.0");
     validateRowValueByName(response, actualHeaders, 1, "tei", "pUK3xmXayQ5");
     validateRowValueByName(response, actualHeaders, 1, "pi", "hXECENVui3x");
-    validateRowValueByName(response, actualHeaders, 1, "ouname", "Ngelehun CHC");
     validateRowValueByName(response, actualHeaders, 1, "programstatus", "ACTIVE");
 
     // Validate selected values for row index 2
     validateRowValueByName(response, actualHeaders, 2, "psi", "qgaHGxGEI56");
-    validateRowValueByName(response, actualHeaders, 2, "ZkbAXlQUYJG.oucode", "OU_559");
     validateRowValueByName(response, actualHeaders, 2, "enrollmentdate", "2023-01-01 01:00:00.0");
     validateRowValueByName(response, actualHeaders, 2, "incidentdate", "2023-01-01 01:00:00.0");
     validateRowValueByName(response, actualHeaders, 2, "tei", "fSofnQR6lAU");
     validateRowValueByName(response, actualHeaders, 2, "pi", "fMCNMupsPrg");
-    validateRowValueByName(response, actualHeaders, 2, "ouname", "Ngelehun CHC");
     validateRowValueByName(response, actualHeaders, 2, "programstatus", "CANCELLED");
 
     // Validate selected values for row index 3
     validateRowValueByName(response, actualHeaders, 3, "psi", "BijwU5PwIMh");
-    validateRowValueByName(response, actualHeaders, 3, "ZkbAXlQUYJG.oucode", "OU_559");
     validateRowValueByName(response, actualHeaders, 3, "enrollmentdate", "2023-01-15 01:00:00.0");
     validateRowValueByName(response, actualHeaders, 3, "incidentdate", "2023-01-15 01:00:00.0");
     validateRowValueByName(response, actualHeaders, 3, "tei", "fSofnQR6lAU");
     validateRowValueByName(response, actualHeaders, 3, "pi", "czKU08gniYG");
-    validateRowValueByName(response, actualHeaders, 3, "ouname", "Ngelehun CHC");
     validateRowValueByName(response, actualHeaders, 3, "programstatus", "ACTIVE");
   }
 
@@ -1811,8 +1743,8 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         1,
-        24,
-        20); // Pass runtime flag, row count, and expected header counts
+        22,
+        18); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -1985,27 +1917,9 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "ZkbAXlQUYJG.ou",
-        "ou",
+        "Organisation unit",
         "ORGANISATION_UNIT",
         "org.hisp.dhis.organisationunit.OrganisationUnit",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "ZkbAXlQUYJG.ouname",
-        "Organisation unit name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "ZkbAXlQUYJG.oucode",
-        "Organisation unit code",
-        "TEXT",
-        "java.lang.String",
         false,
         true);
 
@@ -2021,12 +1935,10 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
     // 7. Assert row values by name (sample validation: evenly spaced rows, key columns).
     // Validate selected values for row index 0
     validateRowValueByName(response, actualHeaders, 0, "psi", "La2PAKKx3it");
-    validateRowValueByName(response, actualHeaders, 0, "ZkbAXlQUYJG.oucode", "OU_559");
     validateRowValueByName(response, actualHeaders, 0, "enrollmentdate", "2022-08-11 12:32:30.524");
     validateRowValueByName(response, actualHeaders, 0, "incidentdate", "2022-08-05 02:00:00.0");
     validateRowValueByName(response, actualHeaders, 0, "tei", "pUK3xmXayQ5");
     validateRowValueByName(response, actualHeaders, 0, "pi", "hXECENVui3x");
-    validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
     validateRowValueByName(response, actualHeaders, 0, "programstatus", "ACTIVE");
   }
 
@@ -2056,8 +1968,8 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         2,
-        24,
-        20); // Pass runtime flag, row count, and expected header counts
+        22,
+        18); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -2226,27 +2138,9 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "ZkbAXlQUYJG.ou",
-        "ou",
+        "Organisation unit",
         "ORGANISATION_UNIT",
         "org.hisp.dhis.organisationunit.OrganisationUnit",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "ZkbAXlQUYJG.ouname",
-        "Organisation unit name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "ZkbAXlQUYJG.oucode",
-        "Organisation unit code",
-        "TEXT",
-        "java.lang.String",
         false,
         true);
 
@@ -2262,7 +2156,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
     // 7. Assert row values by name (sample validation: evenly spaced rows, key columns).
     // Validate selected values for row index 0
     validateRowValueByName(response, actualHeaders, 0, "psi", "o6G3PSfXK8L");
-    validateRowValueByName(response, actualHeaders, 0, "ZkbAXlQUYJG.oucode", "OU_559");
     validateRowValueByName(response, actualHeaders, 0, "enrollmentdate", "2021-11-20 12:27:48.415");
     validateRowValueByName(response, actualHeaders, 0, "incidentdate", "2021-10-29 12:27:48.415");
     validateRowValueByName(response, actualHeaders, 0, "tei", "fSofnQR6lAU");
@@ -2272,7 +2165,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
 
     // Validate selected values for row index 1
     validateRowValueByName(response, actualHeaders, 1, "psi", "TAZ4L5XN1oD");
-    validateRowValueByName(response, actualHeaders, 1, "ZkbAXlQUYJG.oucode", "OU_559");
     validateRowValueByName(response, actualHeaders, 1, "enrollmentdate", "2021-09-11 12:27:48.552");
     validateRowValueByName(response, actualHeaders, 1, "incidentdate", "2021-09-10 12:27:48.552");
     validateRowValueByName(response, actualHeaders, 1, "tei", "uh47DXf1St9");
@@ -2345,7 +2237,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"total\":1,\"pageCount\":1,\"pageSize\":100,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"ou\":{},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"ZkbAXlQUYJG.scheduleddate\":{\"name\":\"Scheduled date\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"ZkbAXlQUYJG.scheduleddate\":[]}}";
+        "{\"pager\":{\"total\":1,\"pageCount\":1,\"pageSize\":100,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"ou\":{},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"202208\":{\"name\":\"202208\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"ZkbAXlQUYJG.scheduleddate\":{\"name\":\"Scheduled date\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"ZkbAXlQUYJG.scheduleddate\":[\"202208\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -2505,7 +2397,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "ZkbAXlQUYJG.scheduleddate",
-        "scheduleddate",
+        "Scheduled date",
         "DATE",
         "java.time.LocalDate",
         false,
@@ -2733,7 +2625,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         actualHeaders,
         "ZkbAXlQUYJG.eventstatus",
-        "eventstatus",
+        "Event status",
         "TEXT",
         "java.lang.String",
         false,

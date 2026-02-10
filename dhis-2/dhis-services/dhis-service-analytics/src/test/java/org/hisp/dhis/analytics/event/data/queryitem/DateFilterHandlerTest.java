@@ -189,6 +189,48 @@ class DateFilterHandlerTest {
         () -> handler.applyFilters(queryItem, filterParts, "EVENT_DATE:INVALID_VALUE", null));
   }
 
+  @Test
+  void applyFilters_withIsoPeriod_storesDimensionValue() {
+    QueryItem queryItem = createDateQueryItem();
+    String[] filterParts = {"EVENT_DATE", "202205"};
+
+    handler.applyFilters(queryItem, filterParts, "EVENT_DATE:202205", null);
+
+    assertThat(queryItem.getDimensionValues(), hasSize(1));
+    assertThat(queryItem.getDimensionValues().get(0), is("202205"));
+  }
+
+  @Test
+  void applyFilters_withRelativePeriod_storesDimensionValues() {
+    QueryItem queryItem = createDateQueryItem();
+    String[] filterParts = {"EVENT_DATE", "THIS_MONTH"};
+
+    handler.applyFilters(queryItem, filterParts, "EVENT_DATE:THIS_MONTH", null);
+
+    assertThat(queryItem.getDimensionValues(), hasSize(1));
+    assertFalse(queryItem.getDimensionValues().isEmpty());
+  }
+
+  @Test
+  void applyFilters_withDateRange_doesNotStoreDimensionValue() {
+    QueryItem queryItem = createDateQueryItem();
+    String[] filterParts = {"EVENT_DATE", "2025-01-01_2025-01-31"};
+
+    handler.applyFilters(queryItem, filterParts, "EVENT_DATE:2025-01-01_2025-01-31", null);
+
+    assertThat(queryItem.getDimensionValues(), hasSize(0));
+  }
+
+  @Test
+  void applyFilters_withExplicitOperator_doesNotStoreDimensionValue() {
+    QueryItem queryItem = createDateQueryItem();
+    String[] filterParts = {"EVENT_DATE", "GT:2025-01-01"};
+
+    handler.applyFilters(queryItem, filterParts, "EVENT_DATE:GT:2025-01-01", null);
+
+    assertThat(queryItem.getDimensionValues(), hasSize(0));
+  }
+
   private QueryItem createDateQueryItem() {
     QueryItem queryItem =
         new QueryItem(
