@@ -66,4 +66,14 @@ public interface UserGroupStore extends IdentifiableObjectStore<UserGroup> {
    * @return true if the membership was removed, false if user was not a member
    */
   boolean removeMemberViaSQL(long userGroupId, long userId);
+
+  /**
+   * Updates the lastUpdated timestamp and lastUpdatedBy user for a user group directly via SQL.
+   * This avoids loading the entity through Hibernate which can trigger lazy initialization of the
+   * members collection.
+   *
+   * @param userGroupId the ID of the user group
+   * @param lastUpdatedBy the ID of the user who made the change
+   */
+  void updateLastUpdatedViaSQL(long userGroupId, long lastUpdatedBy);
 }

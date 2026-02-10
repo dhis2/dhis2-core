@@ -31,13 +31,11 @@ package org.hisp.dhis.user;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
-import org.hibernate.Session;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.HibernateCacheManager;
@@ -55,23 +53,19 @@ public class DefaultUserGroupService implements UserGroupService {
   private final AclService aclService;
   private final HibernateCacheManager cacheManager;
   private final Cache<String> userGroupNameCache;
-  private final EntityManager entityManager;
 
   public DefaultUserGroupService(
       UserGroupStore userGroupStore,
       AclService aclService,
       HibernateCacheManager cacheManager,
-      CacheProvider cacheProvider,
-      EntityManager entityManager) {
+      CacheProvider cacheProvider) {
     checkNotNull(userGroupStore);
     checkNotNull(aclService);
     checkNotNull(cacheManager);
-    checkNotNull(entityManager);
 
     this.userGroupStore = userGroupStore;
     this.aclService = aclService;
     this.cacheManager = cacheManager;
-    this.entityManager = entityManager;
 
     userGroupNameCache = cacheProvider.createUserGroupNameCache();
   }
@@ -153,22 +147,13 @@ public class DefaultUserGroupService implements UserGroupService {
   @Override
   @Transactional
   public void addUserToGroups(User user, Collection<String> uids, UserDetails currentUser) {
-    Session session = entityManager.unwrap(Session.class);
-    User lastUpdatedByUser = null;
-
     for (String uid : uids) {
       UserGroup userGroup = getUserGroup(uid);
       if (canAddOrRemoveMember(userGroup, currentUser)) {
-        // Use SQL to add membership (avoids loading members collection)
         if (userGroupStore.addMemberViaSQL(userGroup.getId(), user.getId())) {
-          // Update in-memory state
           user.getGroups().add(userGroup);
-          // Update lastUpdatedBy
-          if (lastUpdatedByUser == null) {
-            lastUpdatedByUser = session.getReference(User.class, currentUser.getId());
-          }
-          userGroup.setLastUpdatedBy(lastUpdatedByUser);
-          userGroupStore.updateNoAcl(userGroup);
+          // Update metadata via SQL to avoid Hibernate loading the members collection
+          userGroupStore.updateLastUpdatedViaSQL(userGroup.getId(), currentUser.getId());
         }
       }
     }
@@ -179,22 +164,13 @@ public class DefaultUserGroupService implements UserGroupService {
   @Transactional
   public void removeUserFromGroups(User user, Collection<String> uids) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-    Session session = entityManager.unwrap(Session.class);
-    User lastUpdatedByUser = null;
 
     for (String uid : uids) {
       UserGroup userGroup = getUserGroup(uid);
       if (canAddOrRemoveMember(userGroup, currentUser)) {
-        // Use SQL to remove membership (avoids loading members collection)
         if (userGroupStore.removeMemberViaSQL(userGroup.getId(), user.getId())) {
-          // Update in-memory state
           user.getGroups().remove(userGroup);
-          // Update lastUpdatedBy
-          if (lastUpdatedByUser == null) {
-            lastUpdatedByUser = session.getReference(User.class, currentUser.getId());
-          }
-          userGroup.setLastUpdatedBy(lastUpdatedByUser);
-          userGroupStore.updateNoAcl(userGroup);
+          userGroupStore.updateLastUpdatedViaSQL(userGroup.getId(), currentUser.getId());
         }
       }
     }
@@ -246,14 +222,9 @@ public class DefaultUserGroupService implements UserGroupService {
       }
     }
 
-    // Update lastUpdatedBy for all groups that actually changed
-    if (!changedGroups.isEmpty()) {
-      Session session = entityManager.unwrap(Session.class);
-      User lastUpdatedByUser = session.getReference(User.class, currentUser.getId());
-      for (UserGroup userGroup : changedGroups) {
-        userGroup.setLastUpdatedBy(lastUpdatedByUser);
-        userGroupStore.updateNoAcl(userGroup);
-      }
+    // Update metadata via SQL to avoid Hibernate loading the members collection
+    for (UserGroup userGroup : changedGroups) {
+      userGroupStore.updateLastUpdatedViaSQL(userGroup.getId(), currentUser.getId());
     }
 
     aclService.invalidateCurrentUserGroupInfoCache();

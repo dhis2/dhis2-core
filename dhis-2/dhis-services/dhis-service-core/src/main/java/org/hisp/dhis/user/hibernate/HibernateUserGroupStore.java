@@ -118,6 +118,15 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
     return rowsAffected > 0;
   }
 
+  @Override
+  public void updateLastUpdatedViaSQL(long userGroupId, long lastUpdatedBy) {
+    String sql =
+        "UPDATE usergroup SET lastupdated = now(), lastupdatedby = ? WHERE usergroupid = ?";
+    jdbcTemplate.update(sql, lastUpdatedBy, userGroupId);
+    // Evict from L2 cache since we bypassed Hibernate
+    getSession().getSessionFactory().getCache().evictEntityData(UserGroup.class, userGroupId);
+  }
+
   //  @Override
   // TODO: MAS: send event to invalidate sessions for users in this group
   //  public void update(@Nonnull UserGroup object, User user) {
