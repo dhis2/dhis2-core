@@ -9,12 +9,14 @@ begin
   -- Check if configuration table has row.
   if not exists (
     select 1
-    from periodtype where name = 'WeeklyFriday';
+    from periodtype where name = 'WeeklyFriday'
     )
   then
     insert into periodtype (periodtypeid, name) values (nextval('hibernate_sequence'), 'WeeklyFriday');
   else
     RAISE INFO '%','WeeklyFriday already exists';
   end if;
+end;
+$$ language plpgsql;
 
 insert into configuration_dataoutputperiodtype (periodtypeid, configurationid) select p.periodtypeid, c.configurationid from periodtype p, configuration c where p.name = 'WeeklyFriday';
