@@ -274,7 +274,6 @@ public class TrackedEntityQuery5AutoTest extends AnalyticsApiTest {
 
     // When
     ApiResponse response = actions.query().get("nEenWmSyUEp", JSON, JSON, params);
-    System.out.println(response.prettyPrint());
     // Then
     response
         .validate()

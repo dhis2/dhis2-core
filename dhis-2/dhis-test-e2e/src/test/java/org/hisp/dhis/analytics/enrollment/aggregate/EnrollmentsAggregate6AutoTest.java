@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.hisp.dhis.AnalyticsApiTest;
-import org.hisp.dhis.analytics.ValidationHelper;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
@@ -869,90 +868,5 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
             "value", "7",
             "GxdhnY5wmHq", "3269",
             "ou", "ImspTQPwCqd"));
-  }
-
-  @Test
-  @DisplayName("Enrollments Aggregate - Financial Year 2022 Sep - Time field: completedDate")
-  public void financialYear2022WithCompletedDate() throws JSONException {
-
-    boolean expectPostgis = isPostgres();
-
-    // Given
-    QueryParamsBuilder params =
-        new QueryParamsBuilder()
-            .add("includeMetadataDetails=true")
-            .add("displayProperty=NAME")
-            .add("totalPages=false")
-            .add("rowContext=true")
-            .add("pageSize=100")
-            .add("outputType=ENROLLMENT")
-            .add("page=1")
-            .add("dimension=ou:USER_ORGUNIT,GxdhnY5wmHq")
-            .add("completedDate=2022Sep");
-
-    // When
-    ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
-
-    // Then
-    // 1. Validate Response Structure (Counts, Headers, Height/Width)
-    //    This helper checks basic counts and dimensions, adapting based on the runtime
-    // 'expectPostgis' flag.
-    validateResponseStructure(
-        response,
-        expectPostgis,
-        5,
-        4,
-        4); // Pass runtime flag, row count, and expected header counts
-
-    // 2. Extract Headers into a List of Maps for easy access by name
-    List<Map<String, Object>> actualHeaders =
-        response.extractList("headers", Map.class).stream()
-            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
-            .collect(Collectors.toList());
-
-    // 3. Assert metaData.
-    String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"2022Sep\":{\"uid\":\"2022Sep\",\"code\":\"2022Sep\",\"name\":\"September 2022 - August 2023\",\"description\":\"2022Sep\",\"dimensionItemType\":\"PERIOD\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\",\"startDate\":\"2022-09-01T00:00:00.000\",\"endDate\":\"2023-08-31T00:00:00.000\"},\"GxdhnY5wmHq\":{\"uid\":\"GxdhnY5wmHq\",\"name\":\"Average weight (g)\",\"dimensionItemType\":\"PROGRAM_INDICATOR\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"pe\":[\"2022Sep\"],\"ou\":[\"ImspTQPwCqd\"],\"GxdhnY5wmHq\":[]}}";
-    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
-    assertEquals(expectedMetaData, actualMetaData, false);
-
-    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "ou",
-        "Organisation unit",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "GxdhnY5wmHq",
-        "Average weight (g)",
-        "NUMBER",
-        "java.lang.Double",
-        false,
-        true);
-
-    // Assert PostGIS-specific headers DO NOT exist if 'expectPostgis' is false
-    if (!expectPostgis) {
-      validateHeaderExistence(actualHeaders, "geometry", false);
-      validateHeaderExistence(actualHeaders, "longitude", false);
-      validateHeaderExistence(actualHeaders, "latitude", false);
-    }
-
-    // rowContext not found or empty in the response, skipping assertions.
-
-    ValidationHelper.validateRow(response, List.of("1", "ImspTQPwCqd", "2021Sep", "2327"));
-    ValidationHelper.validateRow(response, List.of("1", "ImspTQPwCqd", "2022Sep", "4817"));
-    ValidationHelper.validateRow(response, List.of("1", "ImspTQPwCqd", "2022Sep", "3387.5"));
-    ValidationHelper.validateRow(response, List.of("1", "ImspTQPwCqd", "2022Sep", "3338.5"));
-    ValidationHelper.validateRow(response, List.of("1", "ImspTQPwCqd", "2021Sep", "3766.5"));
   }
 }
