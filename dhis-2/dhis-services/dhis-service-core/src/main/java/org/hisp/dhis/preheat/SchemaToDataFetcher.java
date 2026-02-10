@@ -47,6 +47,7 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.springframework.stereotype.Component;
@@ -78,8 +79,8 @@ public class SchemaToDataFetcher {
    * @deprecated Use {@link #fetch(Schema, Collection)} to avoid loading all records
    */
   @Deprecated
+  @OpenApi.Since( 43 )
   public List<? extends IdentifiableObject> fetch(Schema schema) {
-    // Preserve old behavior - load ALL records (no filtering)
     return fetch(schema, null);
   }
 
