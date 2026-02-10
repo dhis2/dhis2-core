@@ -926,7 +926,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @PropertyRange(min = 2)
+  @PropertyRange(min = 1)
   public String getFirstName() {
     return firstName;
   }
@@ -937,7 +937,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @PropertyRange(min = 2)
+  @PropertyRange(min = 1)
   public String getSurname() {
     return surname;
   }

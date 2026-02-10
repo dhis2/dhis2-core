@@ -149,7 +149,6 @@
     <dependency>
       <groupId>net.sourceforge.javacsv</groupId>
       <artifactId>javacsv</artifactId>
-      <version>${javacsv.version}</version>
     </dependency>
 
     <!-- SMPP -->

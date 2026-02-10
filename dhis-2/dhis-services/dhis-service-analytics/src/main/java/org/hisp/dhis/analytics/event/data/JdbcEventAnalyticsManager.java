@@ -624,13 +624,22 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
               ? piDisagQueryGenerator.getColumnForWhereClause(params, dimName)
               : quoteAlias(dimName);
 
-      sql +=
-          hlp.whereAnd()
-              + " "
-              + col
-              + OPEN_IN
-              + sqlBuilder.singleQuotedCommaDelimited(getUids(dim.getItems()))
-              + ") ";
+      String condition =
+          col + OPEN_IN + sqlBuilder.singleQuotedCommaDelimited(getUids(dim.getItems())) + ")";
+
+      // For stage-specific categories/COGS, add program stage filter
+      if (dim.getProgramStage() != null) {
+        condition =
+            "("
+                + condition
+                + " and "
+                + quoteAlias("ps")
+                + " = '"
+                + dim.getProgramStage().getUid()
+                + "')";
+      }
+
+      sql += hlp.whereAnd() + " " + condition + " ";
     }
 
     StringBuilder sb = new StringBuilder();

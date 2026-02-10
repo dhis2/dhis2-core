@@ -2,12 +2,25 @@ name: Run api tests
 env:
   # This is to make sure Maven don't timeout fetching dependencies. See: https://github.com/actions/virtual-environments/issues/1499
   MAVEN_OPTS: -Xmx1024m -Xms1024m -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
+  # PR → quiet (unless ci-verbose label), push/schedule → info, workflow_dispatch → user choice
+  MAVEN_ARGS: ${{ (inputs.maven_log == 'debug' && '-X') || (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'ci-verbose') && '-q') || (inputs.maven_log == 'quiet' && '-q') || '' }}
 
 on:
   push:
     branches:
       - master
   pull_request:
+  workflow_dispatch:
+    inputs:
+      maven_log:
+        description: "Maven log verbosity"
+        required: false
+        default: "quiet"
+        type: choice
+        options:
+          - quiet
+          - info
+          - debug
 concurrency:
   group: ${{ github.workflow}}-${{ github.ref }}
   cancel-in-progress: true
