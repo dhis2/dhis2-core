@@ -177,6 +177,32 @@ DEFAULT_ROLE_TYPES = [
 
 
 # =============================================================================
+# User Group Configuration (deterministic UIDs from generate_usergroups.py)
+# =============================================================================
+
+# Selection weights proportional to membership counts in production data
+USER_GROUP_CONFIG = [
+    {"id": "YyAo1CZmkDm", "name": "All Users", "weight": 117730},
+    {"id": "pbKMMbWCGxJ", "name": "Data Entry", "weight": 69524},
+    {"id": "WspuBhs26O5", "name": "Data Viewers", "weight": 15760},
+    {"id": "E2kz5YmxsCO", "name": "District Users", "weight": 9385},
+    {"id": "jwns6A9Dwtc", "name": "Regional Team", "weight": 8739},
+    {"id": "soe2Fv084uC", "name": "Facility Managers", "weight": 373},
+    {"id": "YwdEQtPUf8J", "name": "Admin Team", "weight": 174},
+    {"id": "mlqRJhpXwS2", "name": "Pilot Group", "weight": 50},
+    {"id": "vMUip82RbNl", "name": "System Admins", "weight": 3},
+    {"id": "NiCmpZd3y8F", "name": "Super Admins", "weight": 2},
+]
+
+# Groups-per-user frequency distribution (from production data)
+# 99.96% of users are in exactly 1 group
+GROUPS_PER_USER_DISTRIBUTION = [
+    (1, 221425), (2, 68), (5, 2), (6, 1),
+    (7, 16), (8, 4), (9, 1), (10, 1),
+]
+
+
+# =============================================================================
 # Org Unit Loading
 # =============================================================================
 
@@ -326,6 +352,37 @@ def group_orgunits_by_level(orgunits: list[OrgUnitInfo]) -> dict[int, list[OrgUn
 # User Generation
 # =============================================================================
 
+def assign_user_groups() -> list[str]:
+    """
+    Assign user groups to a user based on production-like distribution.
+
+    Returns a list of user group UIDs. 99.96% of users get exactly 1 group.
+    """
+    # Pick how many groups this user belongs to
+    counts, weights = zip(*GROUPS_PER_USER_DISTRIBUTION)
+    num_groups = random.choices(counts, weights=weights, k=1)[0]
+
+    # Pick which groups (weighted, no duplicates)
+    group_ids = [g["id"] for g in USER_GROUP_CONFIG]
+    group_weights = [g["weight"] for g in USER_GROUP_CONFIG]
+
+    num_groups = min(num_groups, len(group_ids))
+
+    # Weighted sampling without replacement
+    selected = []
+    remaining_ids = list(group_ids)
+    remaining_weights = list(group_weights)
+    for _ in range(num_groups):
+        if not remaining_ids:
+            break
+        chosen = random.choices(range(len(remaining_ids)), weights=remaining_weights, k=1)[0]
+        selected.append(remaining_ids[chosen])
+        remaining_ids.pop(chosen)
+        remaining_weights.pop(chosen)
+
+    return selected
+
+
 @dataclass
 class User:
     """Represents a DHIS2 user."""
@@ -338,6 +395,7 @@ class User:
     orgunit_ids: list[str]
     data_view_orgunit_ids: list[str]
     role_type: str  # For tracking/debugging
+    user_group_ids: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict:
         """Convert to DHIS2 metadata format."""
@@ -354,6 +412,8 @@ class User:
             result["dataViewOrganisationUnits"] = [
                 {"id": oid} for oid in self.data_view_orgunit_ids
             ]
+        if self.user_group_ids:
+            result["userGroups"] = [{"id": gid} for gid in self.user_group_ids]
         return result
 
 
@@ -406,10 +466,11 @@ def generate_users_streaming(
     username_prefix: str = "user",
     password: str = "Test123!",
     progress_interval: int = 10000,
+    enable_user_groups: bool = True,
 ) -> Iterator[User]:
     """
     Generate users using streaming/iteration to handle large counts.
-    
+
     Args:
         target_count: Number of users to generate
         orgunits: List of org units to assign users to
@@ -418,7 +479,8 @@ def generate_users_streaming(
         username_prefix: Prefix for usernames
         password: Password for all users (will be bcrypt hashed)
         progress_interval: Print progress every N users
-    
+        enable_user_groups: Whether to assign user groups (default: True)
+
     Yields:
         User objects
     """
@@ -501,6 +563,9 @@ def generate_users_streaming(
                         else:
                             break
             
+            # Assign user groups (probabilistic)
+            user_group_ids = assign_user_groups() if enable_user_groups else []
+
             user = User(
                 id=user_id,
                 username=username,
@@ -511,6 +576,7 @@ def generate_users_streaming(
                 orgunit_ids=orgunit_ids,
                 data_view_orgunit_ids=list(data_view_ids),
                 role_type=rt.name,
+                user_group_ids=user_group_ids,
             )
             
             yield user
@@ -715,6 +781,14 @@ Default Distribution:
         help="Custom percentage distribution: 'super,regional,district,facility,field'",
     )
 
+    # User group options
+    parser.add_argument(
+        "--user-groups",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Assign user groups to users (default: enabled, use --no-user-groups to disable)",
+    )
+
     # Other options
     parser.add_argument(
         "--seed",
@@ -784,6 +858,11 @@ Default Distribution:
     print(f"\nGenerating users...", file=sys.stderr)
     start_time = datetime.now()
 
+    if args.user_groups:
+        print(f"  User groups: enabled ({len(USER_GROUP_CONFIG)} groups)", file=sys.stderr)
+    else:
+        print(f"  User groups: disabled", file=sys.stderr)
+
     users = generate_users_streaming(
         target_count=args.target,
         orgunits=orgunits,
@@ -792,6 +871,7 @@ Default Distribution:
         username_prefix=args.username_prefix,
         password=args.password,
         progress_interval=max(10000, args.target // 20),
+        enable_user_groups=args.user_groups,
     )
 
     total_written = write_json_streaming(

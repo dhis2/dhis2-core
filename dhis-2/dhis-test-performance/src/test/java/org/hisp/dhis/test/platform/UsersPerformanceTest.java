@@ -68,6 +68,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *   <li>-DorgunitFiles=3 (default: 3, number of orgunit files to import, users reference these)
  *   <li>-DskipImport=true (default: false, skip all metadata import)
  *   <li>-DskipOrgUnitImport=true (default: false, skip org unit import only)
+ *   <li>-DskipUserGroupImport=true (default: false, skip user group import only)
  *   <li>-DuseJdbc=true (default: false, use direct JDBC batch import for users - much faster)
  *   <li>-DdbUrl=jdbc:postgresql://localhost:5432/dhis2 (default, JDBC URL for direct import)
  *   <li>-DdbUser=dhis (default, database username for direct import)
@@ -98,6 +99,8 @@ public class UsersPerformanceTest extends Simulation {
       Boolean.parseBoolean(System.getProperty("skipImport", "false"));
   private static final boolean SKIP_ORGUNIT_IMPORT =
       Boolean.parseBoolean(System.getProperty("skipOrgUnitImport", "false"));
+  private static final boolean SKIP_USERGROUP_IMPORT =
+      Boolean.parseBoolean(System.getProperty("skipUserGroupImport", "false"));
   private static final boolean USE_JDBC =
       Boolean.parseBoolean(System.getProperty("useJdbc", "false"));
   private static final String DB_URL =
@@ -207,6 +210,16 @@ public class UsersPerformanceTest extends Simulation {
       System.out.println("Organisation unit import completed.");
     } else {
       System.out.println("Skipping org unit import (skipOrgUnitImport=true)");
+    }
+
+    // Import user groups (must be before users, since user JSON references group UIDs)
+    if (!SKIP_USERGROUP_IMPORT) {
+      System.out.println("Importing user groups...");
+      MetadataImporter.importJsonFileIdempotent(
+          "platform/usergroups/usergroups.json", BASE_URL, USERNAME, PASSWORD);
+      System.out.println("User group import completed.");
+    } else {
+      System.out.println("Skipping user group import (skipUserGroupImport=true)");
     }
 
     // Import users

@@ -86,6 +86,10 @@ public class JdbcBatchUserImporter {
       "INSERT INTO userdatavieworgunits (userinfoid, organisationunitid)"
           + " VALUES (?, ?) ON CONFLICT DO NOTHING";
 
+  private static final String INSERT_USERGROUPMEMBERS_SQL =
+      "INSERT INTO usergroupmembers (userid, usergroupid)"
+          + " VALUES (?, ?) ON CONFLICT DO NOTHING";
+
   private JdbcBatchUserImporter() {
     // static utility class
   }
@@ -142,9 +146,10 @@ public class JdbcBatchUserImporter {
     try (Connection conn = DriverManager.getConnection(dbUrl, dbUser, dbPassword)) {
       conn.setAutoCommit(false);
 
-      // Build lookup maps for userroles and orgunits (UID -> database PK)
+      // Build lookup maps for userroles, orgunits, and usergroups (UID -> database PK)
       Map<String, Integer> userRoleLookup = buildUserRoleLookup(conn);
       Map<String, Integer> orgUnitLookup = buildOrgUnitLookup(conn);
+      Map<String, Integer> userGroupLookup = buildUserGroupLookup(conn);
 
       int totalInserted = 0;
 
@@ -153,7 +158,7 @@ public class JdbcBatchUserImporter {
         int batchEnd = Math.min(batchStart + BATCH_SIZE, users.size());
         List<UserRecord> batch = users.subList(batchStart, batchEnd);
 
-        int inserted = insertUserBatch(conn, batch, userRoleLookup, orgUnitLookup);
+        int inserted = insertUserBatch(conn, batch, userRoleLookup, orgUnitLookup, userGroupLookup);
         totalInserted += inserted;
 
         if (batchEnd % 1000 == 0 || batchEnd == users.size()) {
@@ -220,6 +225,14 @@ public class JdbcBatchUserImporter {
           }
         }
 
+        // Parse user group UIDs
+        JsonNode groupsNode = userNode.get("userGroups");
+        if (groupsNode != null && groupsNode.isArray()) {
+          for (JsonNode gNode : groupsNode) {
+            user.userGroupUids.add(gNode.get("id").asText());
+          }
+        }
+
         users.add(user);
       }
     } catch (Exception e) {
@@ -258,11 +271,27 @@ public class JdbcBatchUserImporter {
     return lookup;
   }
 
+  private static Map<String, Integer> buildUserGroupLookup(Connection conn) throws SQLException {
+    Map<String, Integer> lookup = new HashMap<>();
+    try (PreparedStatement ps =
+        conn.prepareStatement("SELECT uid, usergroupid FROM usergroup")) {
+      ps.setFetchSize(500);
+      try (ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+          lookup.put(rs.getString("uid"), rs.getInt("usergroupid"));
+        }
+      }
+    }
+    logger.info("Loaded {} user groups into lookup map", lookup.size());
+    return lookup;
+  }
+
   private static int insertUserBatch(
       Connection conn,
       List<UserRecord> batch,
       Map<String, Integer> userRoleLookup,
-      Map<String, Integer> orgUnitLookup)
+      Map<String, Integer> orgUnitLookup,
+      Map<String, Integer> userGroupLookup)
       throws SQLException {
 
     // Step 1: Batch insert into userinfo
@@ -373,6 +402,33 @@ public class JdbcBatchUserImporter {
       }
     }
 
+    // Step 6: Batch insert into usergroupmembers
+    try (PreparedStatement ps = conn.prepareStatement(INSERT_USERGROUPMEMBERS_SQL)) {
+      int count = 0;
+      for (UserRecord user : batch) {
+        Integer userId = uidToDbId.get(user.uid);
+        if (userId == null) continue;
+
+        for (String groupUid : user.userGroupUids) {
+          Integer groupId = userGroupLookup.get(groupUid);
+          if (groupId == null) {
+            logger.warn(
+                "User group UID {} not found in database, skipping for user {}",
+                groupUid,
+                user.username);
+            continue;
+          }
+          ps.setInt(1, userId);
+          ps.setInt(2, groupId);
+          ps.addBatch();
+          count++;
+        }
+      }
+      if (count > 0) {
+        ps.executeBatch();
+      }
+    }
+
     conn.commit();
     return uidToDbId.size();
   }
@@ -386,5 +442,6 @@ public class JdbcBatchUserImporter {
     List<String> userRoleUids = new ArrayList<>();
     List<String> orgUnitUids = new ArrayList<>();
     List<String> dataViewOrgUnitUids = new ArrayList<>();
+    List<String> userGroupUids = new ArrayList<>();
   }
 }
