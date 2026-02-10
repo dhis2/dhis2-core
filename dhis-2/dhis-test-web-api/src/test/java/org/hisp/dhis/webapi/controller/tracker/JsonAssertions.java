@@ -104,7 +104,7 @@ public class JsonAssertions {
 
   public static void assertRelationship(Relationship expected, JsonRelationship actual) {
     assertFalse(actual.isEmpty(), "relationship should not be empty");
-    assertEquals(expected.getUid().getValue(), actual.getRelationship(), "relationship UID");
+    assertEquals(expected.getUID().getValue(), actual.getRelationship(), "relationship UID");
     assertEquals(
         DateUtils.toIso8601NoTz(DateUtils.fromInstant(expected.getCreatedAtClient())),
         actual.getCreatedAtClient(),
@@ -125,7 +125,7 @@ public class JsonAssertions {
       TrackerEvent expected, JsonRelationshipItem actual) {
     JsonRelationshipItem.JsonEvent jsonEvent = actual.getEvent();
     assertFalse(jsonEvent.isEmpty(), "event should not be empty");
-    assertEquals(expected.getUid().getValue(), jsonEvent.getEvent(), "event UID");
+    assertEquals(expected.getUID().getValue(), jsonEvent.getEvent(), "event UID");
 
     assertEquals(expected.getStatus().toString(), jsonEvent.getStatus(), "event status");
     assertEquals(
@@ -142,7 +142,7 @@ public class JsonAssertions {
       TrackedEntity expected, JsonRelationshipItem actual) {
     JsonRelationshipItem.JsonTrackedEntity jsonTe = actual.getTrackedEntity();
     assertFalse(jsonTe.isEmpty(), "trackedEntity should not be empty");
-    assertEquals(expected.getUid().getValue(), jsonTe.getTrackedEntity(), "trackedEntity UID");
+    assertEquals(expected.getUID().getValue(), jsonTe.getTrackedEntity(), "trackedEntity UID");
     assertEquals(
         expected.getTrackedEntityType().getIdentifier(),
         jsonTe.getTrackedEntityType(),
@@ -164,7 +164,7 @@ public class JsonAssertions {
       Enrollment expected, JsonRelationshipItem actual) {
     JsonRelationshipItem.JsonEnrollment jsonEnrollment = actual.getEnrollment();
     assertFalse(jsonEnrollment.isEmpty(), "enrollment should not be empty");
-    assertEquals(expected.getUid().getValue(), jsonEnrollment.getEnrollment(), "enrollment UID");
+    assertEquals(expected.getUID().getValue(), jsonEnrollment.getEnrollment(), "enrollment UID");
     assertEquals(
         expected.getTrackedEntity().getValue(),
         jsonEnrollment.getTrackedEntity(),

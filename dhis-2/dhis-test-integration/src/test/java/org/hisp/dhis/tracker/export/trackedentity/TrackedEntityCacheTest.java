@@ -278,6 +278,7 @@ class TrackedEntityCacheTest extends PostgresIntegrationTestBase {
         .enrolledAt(Instant.now())
         .occurredAt(Instant.now())
         .status(EnrollmentStatus.ACTIVE)
+        .attributeOptionCombo(MetadataIdentifier.ofUid("HllvX50cXC0"))
         .build();
   }
 
