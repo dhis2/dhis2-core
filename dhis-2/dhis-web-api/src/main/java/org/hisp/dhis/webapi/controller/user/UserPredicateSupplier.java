@@ -78,7 +78,7 @@ public class UserPredicateSupplier implements JpaPredicateSupplier {
 
     addOrgUnitConditions(builder, u2, conditions);
     addQueryCondition(builder, u2, conditions);
-    addCanManageCondition(builder, u2, conditions);
+    addCanManageCondition(u2, conditions);
     addAuthSubsetCondition(builder, query, u2, conditions);
     addDisjointRolesCondition(builder, query, u2, conditions);
     addSimpleConditions(builder, u2, conditions);
@@ -124,8 +124,7 @@ public class UserPredicateSupplier implements JpaPredicateSupplier {
     conditions.add(builder.or(nameLike, emailLike, usernameLike));
   }
 
-  private void addCanManageCondition(
-      CriteriaBuilder builder, Root<User> u2, List<Predicate> conditions) {
+  private void addCanManageCondition(Root<User> u2, List<Predicate> conditions) {
     if (!params.isCanManage() || params.getUserDetails() == null) return;
 
     Collection<Long> managedGroupIds = params.getUserDetails().getManagedGroupLongIds();
