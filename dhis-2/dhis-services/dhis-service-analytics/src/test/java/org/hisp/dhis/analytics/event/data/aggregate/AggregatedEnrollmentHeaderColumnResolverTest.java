@@ -168,6 +168,26 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
   }
 
   @Test
+  void shouldUseFilterCteForBacktickQuotedStageItem() {
+    CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
+    cteContext.addFilterCte("latest_events_stage1", "select 1");
+
+    SelectBuilder sb = new SelectBuilder();
+    sb.from("dummy");
+
+    subject.addHeaderColumns(
+        Set.of("`stage1.de1`"),
+        cteContext,
+        sb,
+        Collections.emptyMap(),
+        column -> "`" + column + "`");
+
+    String sql = sb.build();
+
+    assertThat(sql, containsString("ev_de1 as `stage1.de1`"));
+  }
+
+  @Test
   void shouldUseCteDefinitionWhenMatching() {
     CteDefinition cteDefinition = new CteDefinition("ps1", "de1", "select 1", 0);
     Map<String, CteDefinition> cteDefinitionMap = Map.of("\"de1\"", cteDefinition);

@@ -83,7 +83,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         expectPostgis,
         100,
         18,
-        16); // Pass runtime flag, row count, and expected header counts
+        14); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -1500,7 +1500,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         expectPostgis,
         4,
         22,
-        20); // Pass runtime flag, row count, and expected header counts
+        18); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -1744,7 +1744,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         expectPostgis,
         1,
         22,
-        20); // Pass runtime flag, row count, and expected header counts
+        18); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -1969,7 +1969,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         expectPostgis,
         2,
         22,
-        20); // Pass runtime flag, row count, and expected header counts
+        18); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =

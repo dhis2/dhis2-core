@@ -145,7 +145,7 @@ public final class AggregatedEnrollmentHeaderColumnResolver {
    * quotes if present.
    */
   private String extractStageUid(String header) {
-    String cleaned = header.replace("\"", "");
+    String cleaned = header.replace("\"", "").replace("`", "");
     int dotIndex = cleaned.indexOf('.');
     if (dotIndex <= 0) {
       return null;
