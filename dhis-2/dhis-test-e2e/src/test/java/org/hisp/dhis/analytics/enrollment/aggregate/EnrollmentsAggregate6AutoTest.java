@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import org.hisp.dhis.AnalyticsApiTest;
-import org.hisp.dhis.analytics.ValidationHelper;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEnrollmentsActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
@@ -743,9 +742,9 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
   }
 
   @Test
-  @DisplayName("Enrollments Aggregate - Financial Year 2022 Sep - Time field: completedDate")
-  public void financialYear2022WithCompletedDate() throws JSONException {
-
+  @DisplayName("Enrollments Aggregate - Financial Year 2022 Sep - dimension=INCIDENT_DATE")
+  public void financialYear2022WithIncidentDateDate_incidentDateAsDimension() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
     boolean expectPostgis = isPostgres();
 
     // Given
@@ -758,8 +757,8 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
             .add("pageSize=100")
             .add("outputType=ENROLLMENT")
             .add("page=1")
-            .add("dimension=ou:USER_ORGUNIT,GxdhnY5wmHq")
-            .add("completedDate=2022Sep");
+            /// .add("incidentDate=2022Sep")
+            .add("dimension=INCIDENT_DATE:2022Sep,ou:USER_ORGUNIT,GxdhnY5wmHq");
 
     // When
     ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
@@ -771,7 +770,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        5,
+        2497,
         4,
         4); // Pass runtime flag, row count, and expected header counts
 
@@ -818,12 +817,56 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
       validateHeaderExistence(actualHeaders, "latitude", false);
     }
 
-    // rowContext not found or empty in the response, skipping assertions.
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "1",
+            "GxdhnY5wmHq", "12",
+            "ou", "ImspTQPwCqd"));
 
-    ValidationHelper.validateRow(response, List.of("1", "ImspTQPwCqd", "2021Sep", "2327"));
-    ValidationHelper.validateRow(response, List.of("1", "ImspTQPwCqd", "2022Sep", "4817"));
-    ValidationHelper.validateRow(response, List.of("1", "ImspTQPwCqd", "2022Sep", "3387.5"));
-    ValidationHelper.validateRow(response, List.of("1", "ImspTQPwCqd", "2022Sep", "3338.5"));
-    ValidationHelper.validateRow(response, List.of("1", "ImspTQPwCqd", "2021Sep", "3766.5"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "2",
+            "GxdhnY5wmHq", "2569",
+            "ou", "ImspTQPwCqd"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "3",
+            "GxdhnY5wmHq", "3862.5",
+            "ou", "ImspTQPwCqd"));
+
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "4",
+            "GxdhnY5wmHq", "",
+            "ou", "ImspTQPwCqd"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "5",
+            "GxdhnY5wmHq", "3610.5",
+            "ou", "ImspTQPwCqd"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "6",
+            "GxdhnY5wmHq", "3176.5",
+            "ou", "ImspTQPwCqd"));
+    validateRowExists(
+        response,
+        actualHeaders,
+        Map.of(
+            "value", "7",
+            "GxdhnY5wmHq", "3269",
+            "ou", "ImspTQPwCqd"));
   }
 }

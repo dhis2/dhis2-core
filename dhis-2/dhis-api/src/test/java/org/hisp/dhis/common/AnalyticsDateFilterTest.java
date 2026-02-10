@@ -27,33 +27,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.imports;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.mapstruct.Context;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Mapper(
-    uses = {
-      RelationshipMapper.class,
-      AttributeMapper.class,
-      NoteMapper.class,
-      EventMapper.class,
-      InstantMapper.class,
-      UserMapper.class,
-      MetadataIdentifierMapper.class
-    })
-interface EnrollmentMapper
-    extends DomainMapper<Enrollment, org.hisp.dhis.tracker.imports.domain.Enrollment> {
-  @Mapping(target = "program", source = "program", qualifiedByName = "programToMetadataIdentifier")
-  @Mapping(target = "orgUnit", source = "orgUnit", qualifiedByName = "orgUnitToMetadataIdentifier")
-  @Mapping(
-      target = "attributeOptionCombo",
-      source = "attributeOptionCombo",
-      qualifiedByName = "attributeOptionComboToMetadataIdentifier")
-  org.hisp.dhis.tracker.imports.domain.Enrollment from(
-      Enrollment enrollment, @Context TrackerIdSchemeParams idSchemeParams);
+import org.junit.jupiter.api.Test;
+
+class AnalyticsDateFilterTest {
+  @Test
+  void createdDateAndCompletedDateDoNotApplyToCriteriaExtractors() {
+    assertFalse(AnalyticsDateFilter.CREATED_DATE.appliesToEvents());
+    assertFalse(AnalyticsDateFilter.CREATED_DATE.appliesToEnrollments());
+
+    assertFalse(AnalyticsDateFilter.COMPLETED_DATE.appliesToEvents());
+    assertFalse(AnalyticsDateFilter.COMPLETED_DATE.appliesToEnrollments());
+  }
+
+  @Test
+  void createdDateAndCompletedDateRemainResolvableAsDateFilters() {
+    assertTrue(AnalyticsDateFilter.of("CREATED_DATE").isPresent());
+    assertTrue(AnalyticsDateFilter.of("COMPLETED_DATE").isPresent());
+  }
 }
