@@ -30,4 +30,4 @@ end;
 $$ language plpgsql;
 
 insert into configuration_dataoutputperiodtype (periodtypeid, configurationid)
-select p.periodtypeid, c.configurationid from periodtype p, configuration c where p.name = 'weeklyfriday';
+select p.periodtypeid, c.configurationid from periodtype p, configuration c where p.name = 'WeeklyFriday';
