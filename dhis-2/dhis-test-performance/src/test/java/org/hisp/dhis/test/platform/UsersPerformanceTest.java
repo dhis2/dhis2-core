@@ -36,7 +36,6 @@ import io.gatling.javaapi.core.*;
 import io.gatling.javaapi.http.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Stream;
 
 /**
  * Performance test simulation for the /api/users endpoint.
@@ -73,6 +72,15 @@ import java.util.stream.Stream;
  *   <li>-DdbUrl=jdbc:postgresql://localhost:5432/dhis2 (default, JDBC URL for direct import)
  *   <li>-DdbUser=dhis (default, database username for direct import)
  *   <li>-DdbPassword=dhis (default, database password for direct import)
+ *   <li>-Dmode=parallel (default: parallel, "parallel" = all scenarios at once, "sequential" = one
+ *       after another)
+ *   <li>-Dscenarios=all (default: all, "read" = GET only (1-8), "write" = POST/PUT/PATCH/DELETE/
+ *       metadata (9-13), "all" = everything)
+ *   <li>-Diterations=6 (default: 6, number of times each virtual user repeats the request)
+ *   <li>-Dconcurrency=3 (default: 3, max concurrent virtual users for multi-user scenarios)
+ *   <li>-DrampDuration=10 (default: 10, ramp-up duration in seconds)
+ *   <li>-Dpause=1 (default: 1, pause in seconds between iterations)
+ *   <li>-DpageSize=50 (default: 50, page size for GET scenarios)
  * </ul>
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -96,6 +104,16 @@ public class UsersPerformanceTest extends Simulation {
       System.getProperty("dbUrl", "jdbc:postgresql://localhost:5432/dhis2");
   private static final String DB_USER = System.getProperty("dbUser", "dhis");
   private static final String DB_PASSWORD = System.getProperty("dbPassword", "dhis");
+
+  // Test execution configuration
+  private static final String MODE = System.getProperty("mode", "parallel");
+  private static final String SCENARIOS = System.getProperty("scenarios", "all");
+  private static final int ITERATIONS = Integer.parseInt(System.getProperty("iterations", "6"));
+  private static final int CONCURRENCY = Integer.parseInt(System.getProperty("concurrency", "3"));
+  private static final int RAMP_DURATION =
+      Integer.parseInt(System.getProperty("rampDuration", "10"));
+  private static final int PAUSE_SECONDS = Integer.parseInt(System.getProperty("pause", "1"));
+  private static final int PAGE_SIZE = Integer.parseInt(System.getProperty("pageSize", "50"));
 
   // Scenario 1: Basic user list (paged)
   private static final String GET_USERS = "GET Users";
@@ -223,13 +241,13 @@ public class UsersPerformanceTest extends Simulation {
             .exec(flushCookieJar())
             .group(GET_USERS_REQUEST)
             .on(
-                repeat(6)
+                repeat(ITERATIONS)
                     .on(
                         exec(http(GET_USERS_REQUEST)
                                 .get("/api/users")
-                                .queryParam("pageSize", "50")
+                                .queryParam("pageSize", String.valueOf(PAGE_SIZE))
 )
-                            .pause(1)));
+                            .pause(PAUSE_SECONDS)));
 
     // Scenario 2: All fields expansion (triggers lazy loading of ALL relationships)
     ScenarioBuilder getUsersAllFieldsScenario =
@@ -237,14 +255,14 @@ public class UsersPerformanceTest extends Simulation {
             .exec(flushCookieJar())
             .group(GET_USERS_ALL_FIELDS_REQUEST)
             .on(
-                repeat(6)
+                repeat(ITERATIONS)
                     .on(
                         exec(http(GET_USERS_ALL_FIELDS_REQUEST)
                                 .get("/api/users")
                                 .queryParam("fields", "*")
-                                .queryParam("pageSize", "50")
+                                .queryParam("pageSize", String.valueOf(PAGE_SIZE))
 )
-                            .pause(1)));
+                            .pause(PAUSE_SECONDS)));
 
     // Scenario 3: User roles expansion (N+1 on userRoles)
     ScenarioBuilder getUsersRolesScenario =
@@ -252,14 +270,14 @@ public class UsersPerformanceTest extends Simulation {
             .exec(flushCookieJar())
             .group(GET_USERS_ROLES_REQUEST)
             .on(
-                repeat(6)
+                repeat(ITERATIONS)
                     .on(
                         exec(http(GET_USERS_ROLES_REQUEST)
                                 .get("/api/users")
                                 .queryParam("fields", "id,name,userRoles[id,name]")
-                                .queryParam("pageSize", "50")
+                                .queryParam("pageSize", String.valueOf(PAGE_SIZE))
 )
-                            .pause(1)));
+                            .pause(PAUSE_SECONDS)));
 
     // Scenario 4: User groups expansion (N+1 on userGroups)
     ScenarioBuilder getUsersGroupsScenario =
@@ -267,14 +285,14 @@ public class UsersPerformanceTest extends Simulation {
             .exec(flushCookieJar())
             .group(GET_USERS_GROUPS_REQUEST)
             .on(
-                repeat(6)
+                repeat(ITERATIONS)
                     .on(
                         exec(http(GET_USERS_GROUPS_REQUEST)
                                 .get("/api/users")
                                 .queryParam("fields", "id,name,userGroups[id,name]")
-                                .queryParam("pageSize", "50")
+                                .queryParam("pageSize", String.valueOf(PAGE_SIZE))
 )
-                            .pause(1)));
+                            .pause(PAUSE_SECONDS)));
 
     // Scenario 5: Org units expansion (N+1 on organisationUnits)
     ScenarioBuilder getUsersOrgunitsScenario =
@@ -282,14 +300,14 @@ public class UsersPerformanceTest extends Simulation {
             .exec(flushCookieJar())
             .group(GET_USERS_ORGUNITS_REQUEST)
             .on(
-                repeat(6)
+                repeat(ITERATIONS)
                     .on(
                         exec(http(GET_USERS_ORGUNITS_REQUEST)
                                 .get("/api/users")
                                 .queryParam("fields", "id,name,organisationUnits[id,name]")
-                                .queryParam("pageSize", "50")
+                                .queryParam("pageSize", String.valueOf(PAGE_SIZE))
 )
-                            .pause(1)));
+                            .pause(PAUSE_SECONDS)));
 
     // Scenario 6: Combined common fields (realistic admin UI query)
     ScenarioBuilder getUsersCombinedScenario =
@@ -297,16 +315,16 @@ public class UsersPerformanceTest extends Simulation {
             .exec(flushCookieJar())
             .group(GET_USERS_COMBINED_REQUEST)
             .on(
-                repeat(6)
+                repeat(ITERATIONS)
                     .on(
                         exec(http(GET_USERS_COMBINED_REQUEST)
                                 .get("/api/users")
                                 .queryParam(
                                     "fields",
                                     "id,name,username,userRoles[id,name],userGroups[id,name],organisationUnits[id,name]")
-                                .queryParam("pageSize", "50")
+                                .queryParam("pageSize", String.valueOf(PAGE_SIZE))
 )
-                            .pause(1)));
+                            .pause(PAUSE_SECONDS)));
 
     // Scenario 7: Query filter (search) - tests getPreQueryMatches + HQL path
     ScenarioBuilder getUsersQueryScenario =
@@ -314,14 +332,14 @@ public class UsersPerformanceTest extends Simulation {
             .exec(flushCookieJar())
             .group(GET_USERS_QUERY_REQUEST)
             .on(
-                repeat(6)
+                repeat(ITERATIONS)
                     .on(
                         exec(http(GET_USERS_QUERY_REQUEST)
                                 .get("/api/users")
                                 .queryParam("query", "perftest")
-                                .queryParam("pageSize", "50")
+                                .queryParam("pageSize", String.valueOf(PAGE_SIZE))
 )
-                            .pause(1)));
+                            .pause(PAUSE_SECONDS)));
 
     // Scenario 8: Large page size (amplifies N+1 issues)
     ScenarioBuilder getUsersLargePageScenario =
@@ -329,14 +347,14 @@ public class UsersPerformanceTest extends Simulation {
             .exec(flushCookieJar())
             .group(GET_USERS_LARGE_PAGE_REQUEST)
             .on(
-                repeat(6)
+                repeat(ITERATIONS)
                     .on(
                         exec(http(GET_USERS_LARGE_PAGE_REQUEST)
                                 .get("/api/users")
                                 .queryParam("fields", "id,name,userRoles[id,name]")
-                                .queryParam("pageSize", "500")
+                                .queryParam("pageSize", String.valueOf(PAGE_SIZE * 10))
 )
-                            .pause(1)));
+                            .pause(PAUSE_SECONDS)));
 
     // Scenario 9: POST - create a new user
     ScenarioBuilder postUserScenario =
@@ -344,7 +362,7 @@ public class UsersPerformanceTest extends Simulation {
             .exec(flushCookieJar())
             .group(POST_USER_REQUEST)
             .on(
-                repeat(6)
+                repeat(ITERATIONS)
                     .on(
                         exec(
                                 session -> {
@@ -375,7 +393,7 @@ public class UsersPerformanceTest extends Simulation {
                                     .header("Content-Type", "application/json")
                                     .body(StringBody("#{postBody}"))
                                     .check(status().in(200, 201)))
-                            .pause(1)));
+                            .pause(PAUSE_SECONDS)));
 
     // Scenario 10: PUT - full update of an existing user
     // Fetches an existing user, modifies firstName, PUTs the full payload back
@@ -384,7 +402,7 @@ public class UsersPerformanceTest extends Simulation {
             .exec(flushCookieJar())
             .group(PUT_USER_REQUEST)
             .on(
-                repeat(6)
+                repeat(ITERATIONS)
                     .on(
                         exec(
                                 session ->
@@ -435,7 +453,7 @@ public class UsersPerformanceTest extends Simulation {
                                     .header("Content-Type", "application/json")
                                     .body(StringBody("#{putModifiedBody}"))
                                     .check(status().is(200)))
-                            .pause(1)));
+                            .pause(PAUSE_SECONDS)));
 
     // Scenario 11: PATCH - partial update using JSON Patch (RFC 6902)
     // Content-Type: application/json-patch+json
@@ -444,7 +462,7 @@ public class UsersPerformanceTest extends Simulation {
             .exec(flushCookieJar())
             .group(PATCH_USER_REQUEST)
             .on(
-                repeat(6)
+                repeat(ITERATIONS)
                     .on(
                         exec(
                                 session ->
@@ -477,7 +495,7 @@ public class UsersPerformanceTest extends Simulation {
                                         "application/json-patch+json")
                                     .body(StringBody("#{patchBody}"))
                                     .check(status().is(200)))
-                            .pause(1)));
+                            .pause(PAUSE_SECONDS)));
 
     // Scenario 12: DELETE - create a disposable user then delete it
     ScenarioBuilder deleteUserScenario =
@@ -485,7 +503,7 @@ public class UsersPerformanceTest extends Simulation {
             .exec(flushCookieJar())
             .group(DELETE_USER_REQUEST)
             .on(
-                repeat(6)
+                repeat(ITERATIONS)
                     .on(
                         // Step 1: Create a disposable user via POST
                         exec(
@@ -526,7 +544,7 @@ public class UsersPerformanceTest extends Simulation {
                                 http(DELETE_USER_REQUEST)
                                     .delete("/api/users/#{deleteUserId}")
                                     .check(status().is(200)))
-                            .pause(1)));
+                            .pause(PAUSE_SECONDS)));
 
     // Scenario 13: Metadata import - single user via /api/metadata
     // This is the same endpoint used in the setup import, now measured as a perf scenario
@@ -535,7 +553,7 @@ public class UsersPerformanceTest extends Simulation {
             .exec(flushCookieJar())
             .group(METADATA_IMPORT_USER_REQUEST)
             .on(
-                repeat(6)
+                repeat(ITERATIONS)
                     .on(
                         exec(
                                 session -> {
@@ -570,82 +588,117 @@ public class UsersPerformanceTest extends Simulation {
                                     .header("Content-Type", "application/json")
                                     .body(StringBody("#{metadataImportBody}"))
                                     .check(status().in(200, 409)))
-                            .pause(1)));
+                            .pause(PAUSE_SECONDS)));
 
-    // Injection profiles
-    ClosedInjectionStep closedInjection = rampConcurrentUsers(0).to(3).during(10);
-    // Single user for heavy scenarios
-    ClosedInjectionStep singleUserInjection = rampConcurrentUsers(0).to(1).during(5);
+    // Injection profiles (configurable)
+    ClosedInjectionStep multiUserInjection =
+        rampConcurrentUsers(0).to(CONCURRENCY).during(RAMP_DURATION);
+    ClosedInjectionStep singleUserInjection =
+        rampConcurrentUsers(0).to(1).during(Math.max(1, RAMP_DURATION / 2));
 
-    // Setup: all scenarios with injection profiles, protocol, and assertions
-    setUp(
-            // Basic and expansion scenarios with multiple users
-            getUsersScenario.injectClosed(closedInjection),
-            getUsersAllFieldsScenario.injectClosed(singleUserInjection),
-            getUsersRolesScenario.injectClosed(closedInjection),
-            getUsersGroupsScenario.injectClosed(closedInjection),
-            getUsersOrgunitsScenario.injectClosed(closedInjection),
-            getUsersCombinedScenario.injectClosed(singleUserInjection),
+    // Build scenario populations based on the "scenarios" property
+    List<PopulationBuilder> populations = new ArrayList<>();
+    List<Assertion> assertions = new ArrayList<>();
 
-        // Search and large page scenarios
-//            getUsersQueryScenario.injectClosed(closedInjection),
+    boolean includeRead = "all".equals(SCENARIOS) || "read".equals(SCENARIOS);
+    boolean includeWrite = "all".equals(SCENARIOS) || "write".equals(SCENARIOS);
 
-            getUsersLargePageScenario.injectClosed(singleUserInjection),
-            // Write scenarios (single user to avoid conflicts)
-            postUserScenario.injectClosed(singleUserInjection),
-            putUserScenario.injectClosed(singleUserInjection),
-            patchUserScenario.injectClosed(singleUserInjection),
-            deleteUserScenario.injectClosed(singleUserInjection),
-            metadataImportUserScenario.injectClosed(singleUserInjection))
-        .protocols(httpProtocol)
-        .assertions(
-            // === BASIC LIST - should be fast ===
-            details(GET_USERS_REQUEST).responseTime().percentile(95).lt(5000),
-            details(GET_USERS_REQUEST).successfulRequests().percent().is(100D),
+    if (includeRead) {
+      populations.add(getUsersScenario.injectClosed(multiUserInjection));
+      populations.add(getUsersAllFieldsScenario.injectClosed(singleUserInjection));
+      populations.add(getUsersRolesScenario.injectClosed(multiUserInjection));
+      populations.add(getUsersGroupsScenario.injectClosed(multiUserInjection));
+      populations.add(getUsersOrgunitsScenario.injectClosed(multiUserInjection));
+      populations.add(getUsersCombinedScenario.injectClosed(singleUserInjection));
+      populations.add(getUsersQueryScenario.injectClosed(multiUserInjection));
+      populations.add(getUsersLargePageScenario.injectClosed(singleUserInjection));
 
-            // === ALL FIELDS - heavy, relaxed threshold ===
-            details(GET_USERS_ALL_FIELDS_REQUEST).responseTime().percentile(95).lt(15000),
-            details(GET_USERS_ALL_FIELDS_REQUEST).successfulRequests().percent().is(100D),
+      assertions.add(details(GET_USERS_REQUEST).responseTime().percentile(95).lt(5000));
+      assertions.add(details(GET_USERS_REQUEST).successfulRequests().percent().is(100D));
+      assertions.add(
+          details(GET_USERS_ALL_FIELDS_REQUEST).responseTime().percentile(95).lt(15000));
+      assertions.add(
+          details(GET_USERS_ALL_FIELDS_REQUEST).successfulRequests().percent().is(100D));
+      assertions.add(details(GET_USERS_ROLES_REQUEST).responseTime().percentile(95).lt(10000));
+      assertions.add(details(GET_USERS_ROLES_REQUEST).successfulRequests().percent().is(100D));
+      assertions.add(details(GET_USERS_GROUPS_REQUEST).responseTime().percentile(95).lt(10000));
+      assertions.add(
+          details(GET_USERS_GROUPS_REQUEST).successfulRequests().percent().is(100D));
+      assertions.add(
+          details(GET_USERS_ORGUNITS_REQUEST).responseTime().percentile(95).lt(10000));
+      assertions.add(
+          details(GET_USERS_ORGUNITS_REQUEST).successfulRequests().percent().is(100D));
+      assertions.add(
+          details(GET_USERS_COMBINED_REQUEST).responseTime().percentile(95).lt(15000));
+      assertions.add(
+          details(GET_USERS_COMBINED_REQUEST).successfulRequests().percent().is(100D));
+      assertions.add(details(GET_USERS_QUERY_REQUEST).responseTime().percentile(95).lt(10000));
+      assertions.add(
+          details(GET_USERS_QUERY_REQUEST).successfulRequests().percent().is(100D));
+      assertions.add(
+          details(GET_USERS_LARGE_PAGE_REQUEST).responseTime().percentile(95).lt(15000));
+      assertions.add(
+          details(GET_USERS_LARGE_PAGE_REQUEST).successfulRequests().percent().is(100D));
+    }
 
-            // === INDIVIDUAL EXPANSIONS ===
-            details(GET_USERS_ROLES_REQUEST).responseTime().percentile(95).lt(10000),
-            details(GET_USERS_ROLES_REQUEST).successfulRequests().percent().is(100D),
-            details(GET_USERS_GROUPS_REQUEST).responseTime().percentile(95).lt(10000),
-            details(GET_USERS_GROUPS_REQUEST).successfulRequests().percent().is(100D),
-            details(GET_USERS_ORGUNITS_REQUEST).responseTime().percentile(95).lt(10000),
-            details(GET_USERS_ORGUNITS_REQUEST).successfulRequests().percent().is(100D),
+    if (includeWrite) {
+      populations.add(postUserScenario.injectClosed(singleUserInjection));
+      populations.add(putUserScenario.injectClosed(singleUserInjection));
+      populations.add(patchUserScenario.injectClosed(singleUserInjection));
+      populations.add(deleteUserScenario.injectClosed(singleUserInjection));
+      populations.add(metadataImportUserScenario.injectClosed(singleUserInjection));
 
-            // === COMBINED FIELDS - realistic admin UI query, relaxed ===
-            details(GET_USERS_COMBINED_REQUEST).responseTime().percentile(95).lt(15000),
-            details(GET_USERS_COMBINED_REQUEST).successfulRequests().percent().is(100D),
+      assertions.add(details(POST_USER_REQUEST).responseTime().percentile(95).lt(30000));
+      assertions.add(details(POST_USER_REQUEST).successfulRequests().percent().is(100D));
+      assertions.add(details(PUT_USER_REQUEST).responseTime().percentile(95).lt(30000));
+      assertions.add(details(PUT_USER_REQUEST).successfulRequests().percent().is(100D));
+      assertions.add(details(PATCH_USER_REQUEST).responseTime().percentile(95).lt(30000));
+      assertions.add(details(PATCH_USER_REQUEST).successfulRequests().percent().is(100D));
+      assertions.add(details(DELETE_USER_REQUEST).responseTime().percentile(95).lt(30000));
+      assertions.add(details(DELETE_USER_REQUEST).successfulRequests().percent().is(100D));
+      assertions.add(
+          details(METADATA_IMPORT_USER_REQUEST).responseTime().percentile(95).lt(30000));
+      assertions.add(
+          details(METADATA_IMPORT_USER_REQUEST).successfulRequests().percent().is(100D));
+    }
 
-            // === QUERY FILTER ===
-            details(GET_USERS_QUERY_REQUEST).responseTime().percentile(95).lt(10000),
-            details(GET_USERS_QUERY_REQUEST).successfulRequests().percent().is(100D),
+    if (populations.isEmpty()) {
+      throw new IllegalArgumentException(
+          "No scenarios selected. Use -Dscenarios=all|read|write (got: " + SCENARIOS + ")");
+    }
 
-            // === LARGE PAGE SIZE - amplifies issues, relaxed ===
-            details(GET_USERS_LARGE_PAGE_REQUEST).responseTime().percentile(95).lt(15000),
-            details(GET_USERS_LARGE_PAGE_REQUEST).successfulRequests().percent().is(100D),
+    System.out.println(
+        "Running "
+            + populations.size()
+            + " scenario(s) in "
+            + MODE
+            + " mode [iterations="
+            + ITERATIONS
+            + ", concurrency="
+            + CONCURRENCY
+            + ", rampDuration="
+            + RAMP_DURATION
+            + "s, pause="
+            + PAUSE_SECONDS
+            + "s, pageSize="
+            + PAGE_SIZE
+            + "]");
 
-            // === POST - create user ===
-            details(POST_USER_REQUEST).responseTime().percentile(95).lt(30000),
-            details(POST_USER_REQUEST).successfulRequests().percent().is(100D),
-
-            // === PUT - full update ===
-            details(PUT_USER_REQUEST).responseTime().percentile(95).lt(30000),
-            details(PUT_USER_REQUEST).successfulRequests().percent().is(100D),
-
-            // === PATCH - partial update ===
-            details(PATCH_USER_REQUEST).responseTime().percentile(95).lt(30000),
-            details(PATCH_USER_REQUEST).successfulRequests().percent().is(100D),
-
-            // === DELETE - delete user ===
-            details(DELETE_USER_REQUEST).responseTime().percentile(95).lt(30000),
-            details(DELETE_USER_REQUEST).successfulRequests().percent().is(100D),
-
-            // === METADATA IMPORT - single user via /api/metadata ===
-            details(METADATA_IMPORT_USER_REQUEST).responseTime().percentile(95).lt(30000),
-            details(METADATA_IMPORT_USER_REQUEST).successfulRequests().percent().is(100D));
+    // Sequential mode: chain scenarios with andThen() so they run one after another
+    // Parallel mode: all scenarios run concurrently (default/original behavior)
+    if ("sequential".equals(MODE)) {
+      PopulationBuilder chain = populations.get(0);
+      for (int i = 1; i < populations.size(); i++) {
+        chain = chain.andThen(populations.get(i));
+      }
+      setUp(chain)
+          .protocols(httpProtocol)
+          .assertions(assertions.toArray(new Assertion[0]));
+    } else {
+      setUp(populations.toArray(new PopulationBuilder[0]))
+          .protocols(httpProtocol)
+          .assertions(assertions.toArray(new Assertion[0]));
+    }
   }
 
 }
