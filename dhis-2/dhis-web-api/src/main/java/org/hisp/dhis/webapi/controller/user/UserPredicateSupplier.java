@@ -82,7 +82,7 @@ public class UserPredicateSupplier implements JpaPredicateSupplier {
     addAuthSubsetCondition(builder, query, u2, conditions);
     addDisjointRolesCondition(builder, query, u2, conditions);
     addSimpleConditions(builder, u2, conditions);
-    addUserGroupCondition(builder, u2, conditions);
+    addUserGroupCondition(u2, conditions);
 
     subquery.where(conditions.toArray(new Predicate[0]));
     return builder.exists(subquery);
@@ -203,8 +203,7 @@ public class UserPredicateSupplier implements JpaPredicateSupplier {
     }
   }
 
-  private void addUserGroupCondition(
-      CriteriaBuilder builder, Root<User> u2, List<Predicate> conditions) {
+  private void addUserGroupCondition(Root<User> u2, List<Predicate> conditions) {
     if (!params.hasUserGroups()) return;
 
     Collection<Long> groupIds = IdentifiableObjectUtils.getIdentifiers(params.getUserGroups());
