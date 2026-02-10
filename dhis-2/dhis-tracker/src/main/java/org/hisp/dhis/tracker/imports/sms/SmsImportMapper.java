@@ -241,7 +241,7 @@ class SmsImportMapper {
         .attributeOptionCombo(
             submission.getAttributeOptionCombo() != null
                 ? metadataUid(submission.getAttributeOptionCombo())
-                : null)
+                : MetadataIdentifier.ofUid((String) null))
         .build();
   }
 
