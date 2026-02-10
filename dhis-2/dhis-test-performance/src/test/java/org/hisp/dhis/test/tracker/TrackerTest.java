@@ -550,26 +550,22 @@ public class TrackerTest extends Simulation {
         new Request(
             getTEsAccessibleUrl,
             new EnumMap<>(Map.of(Profile.SMOKE, 50, Profile.LOAD, 60)),
-            "Get first page of TEs accessible",
-            "Get a list of TEs");
+            "Get first page of TEs accessible");
     Request getTEsWithEnrollmentStatus =
         new Request(
             getTEsWithEnrollmentStatusUrl,
             new EnumMap<>(Map.of(Profile.SMOKE, 50, Profile.LOAD, 60)),
-            "Get TEs with enrollment status",
-            "Get a list of TEs");
+            "Get TEs with enrollment status");
     Request getTEsWithEnrollmentDateRange =
         new Request(
             getTEsWithEnrollmentDateRangeUrl,
             new EnumMap<>(Map.of(Profile.SMOKE, 50, Profile.LOAD, 60)),
-            "Get TEs with enrollment date range",
-            "Get a list of TEs");
+            "Get TEs with enrollment date range");
     Request getTEsWithFollowUp =
         new Request(
             getTEsWithFollowUpUrl,
             new EnumMap<>(Map.of(Profile.SMOKE, 50, Profile.LOAD, 60)),
-            "Get TEs with follow up",
-            "Get a list of TEs");
+            "Get TEs with follow up");
     Request getFirstTrackedEntity =
         new Request(
             singleTrackedEntityUrl,
