@@ -437,9 +437,23 @@ public class TrackerTest extends Simulation {
   private ScenarioWithRequests trackerProgramScenario() {
     String getTEsUrl =
         "/api/tracker/trackedEntities?"
-            + "order=createdAt:desc &page=1&pageSize=15&orgUnits=DiszpKrYNg8&orgUnitMode=SELECTED&program="
+            + "order=createdAt:desc&page=1&pageSize=15&orgUnits=DiszpKrYNg8&orgUnitMode=SELECTED&program="
             + this.trackerProgram
             + "&fields=:all,!relationships,programOwner[orgUnit,program]";
+
+    String getTEsAccessibleUrl =
+        "/api/tracker/trackedEntities?"
+            + "order=createdAt:desc&page=1&pageSize=15&orgUnitMode=ACCESSIBLE&program="
+            + this.trackerProgram
+            + "&fields=:all,!relationships,programOwners[orgUnit,program]";
+
+    String getTEsWithEnrollmentStatusUrl = getTEsAccessibleUrl + "&enrollmentStatus=ACTIVE";
+
+    String getTEsWithEnrollmentDateRangeUrl =
+        getTEsAccessibleUrl
+            + "&enrollmentStatus=ACTIVE&enrollmentEnrolledAfter=2020-01-01&enrollmentEnrolledBefore=2026-12-31";
+
+    String getTEsWithFollowUpUrl = getTEsAccessibleUrl + "&enrollmentStatus=ACTIVE&followUp=true";
 
     String searchForTEByNationalId =
         "/api/tracker/trackedEntities?orgUnitMode=ACCESSIBLE&program="
@@ -531,6 +545,30 @@ public class TrackerTest extends Simulation {
             getTEsUrl,
             new EnumMap<>(Map.of(Profile.SMOKE, 44, Profile.LOAD, 53)),
             "Get first page of TEs of program " + this.trackerProgram,
+            "Get a list of TEs");
+    Request getFirstPageOfTEsAccessible =
+        new Request(
+            getTEsAccessibleUrl,
+            new EnumMap<>(Map.of(Profile.SMOKE, 50, Profile.LOAD, 60)),
+            "Get first page of TEs accessible",
+            "Get a list of TEs");
+    Request getTEsWithEnrollmentStatus =
+        new Request(
+            getTEsWithEnrollmentStatusUrl,
+            new EnumMap<>(Map.of(Profile.SMOKE, 50, Profile.LOAD, 60)),
+            "Get TEs with enrollment status",
+            "Get a list of TEs");
+    Request getTEsWithEnrollmentDateRange =
+        new Request(
+            getTEsWithEnrollmentDateRangeUrl,
+            new EnumMap<>(Map.of(Profile.SMOKE, 50, Profile.LOAD, 60)),
+            "Get TEs with enrollment date range",
+            "Get a list of TEs");
+    Request getTEsWithFollowUp =
+        new Request(
+            getTEsWithFollowUpUrl,
+            new EnumMap<>(Map.of(Profile.SMOKE, 50, Profile.LOAD, 60)),
+            "Get TEs with follow up",
             "Get a list of TEs");
     Request getFirstTrackedEntity =
         new Request(
@@ -649,8 +687,23 @@ public class TrackerTest extends Simulation {
                                             .exec(
                                                 getRelationshipsForEvent
                                                     .action()
-                                                    .check(
-                                                        jsonPath("$.relationships").exists()))))));
+                                                    .check(jsonPath("$.relationships").exists())))))
+                    .exec(
+                        getFirstPageOfTEsAccessible
+                            .action()
+                            .check(jsonPath("$.trackedEntities[*]").count().is(15)))
+                    .exec(
+                        getTEsWithEnrollmentStatus
+                            .action()
+                            .check(jsonPath("$.trackedEntities[*]").count().is(15)))
+                    .exec(
+                        getTEsWithEnrollmentDateRange
+                            .action()
+                            .check(jsonPath("$.trackedEntities[*]").count().is(15)))
+                    .exec(
+                        getTEsWithFollowUp
+                            .action()
+                            .check(jsonPath("$.trackedEntities[*]").count().is(15))));
 
     return new ScenarioWithRequests(
         scenarioBuilder,
@@ -662,6 +715,10 @@ public class TrackerTest extends Simulation {
             searchEventsByProgramStage,
             getTrackedEntitiesForEvents,
             getFirstPageOfTEs,
+            getFirstPageOfTEsAccessible,
+            getTEsWithEnrollmentStatus,
+            getTEsWithEnrollmentDateRange,
+            getTEsWithFollowUp,
             getFirstTrackedEntity,
             getFirstEnrollment,
             getRelationshipsForTrackedEntity,
