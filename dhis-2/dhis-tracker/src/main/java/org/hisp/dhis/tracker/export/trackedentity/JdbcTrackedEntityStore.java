@@ -492,6 +492,8 @@ class JdbcTrackedEntityStore {
           sqlParameters,
           params.getOrgUnitMode(),
           params.getEnrolledInTrackerProgram(),
+          params.getUserSearchScopeOrgUnits(),
+          params.getUserCaptureScopeOrgUnits(),
           orgUnitTableAlias,
           MAIN_QUERY_ALIAS,
           () -> "and ");

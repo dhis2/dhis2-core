@@ -138,13 +138,16 @@ public class OrgUnitQueryBuilder {
   /**
    * Appends an SQL clause to enforce program ownership and access level restrictions when the
    * program is known at query build time. This eliminates the need to join the program table. Only
-   * the branches relevant to the program's access level are emitted.
+   * the branches relevant to the program's access level are emitted. Uses literal path prefixes
+   * resolved from the given org unit sets for index-friendly LIKE predicates.
    */
   public static void buildOwnershipClause(
       StringBuilder sql,
       MapSqlParameterSource sqlParameters,
       OrganisationUnitSelectionMode orgUnitMode,
       Program program,
+      Set<OrganisationUnit> searchScopeOrgUnits,
+      Set<OrganisationUnit> captureScopeOrgUnits,
       String orgUnitTableAlias,
       String trackedEntityTableAlias,
       Supplier<String> clauseSupplier) {
@@ -163,15 +166,19 @@ public class OrgUnitQueryBuilder {
     sql.append(clauseSupplier.get()).append("(");
 
     if (isOpenOrAudited) {
-      addScopePathPredicate(sql, sqlParameters, orgUnitMode, orgUnitTableAlias, userDetails);
+      Set<OrganisationUnit> scopeOrgUnits =
+          orgUnitMode == CAPTURE ? captureScopeOrgUnits : searchScopeOrgUnits;
+      addPathPrefixPredicate(sql, sqlParameters, scopeOrgUnits, orgUnitTableAlias, "scope");
     } else if (isProtected) {
-      addCaptureScopePathPredicate(sql, sqlParameters, orgUnitTableAlias, userDetails);
+      addPathPrefixPredicate(
+          sql, sqlParameters, captureScopeOrgUnits, orgUnitTableAlias, "capture");
       sql.append(" or ");
       addTempOwnerPredicate(
           sql, trackedEntityTableAlias, String.valueOf(program.getId()), userDetails.getId());
     } else {
       // CLOSED: only capture scope
-      addCaptureScopePathPredicate(sql, sqlParameters, orgUnitTableAlias, userDetails);
+      addPathPrefixPredicate(
+          sql, sqlParameters, captureScopeOrgUnits, orgUnitTableAlias, "capture");
     }
 
     sql.append(")");
@@ -209,6 +216,29 @@ public class OrgUnitQueryBuilder {
         .append(
             ".path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:captureScopeOrgUnits))");
     sqlParameters.addValue("captureScopeOrgUnits", userDetails.getUserOrgUnitIds());
+  }
+
+  /**
+   * Appends a path-prefix predicate using literal path values from the given org unit set. Emits
+   * {@code (alias.path like :prefix0 or alias.path like :prefix1 ...)} with each parameter bound to
+   * {@code orgUnit.getStoredPath() + "%"}.
+   */
+  private static void addPathPrefixPredicate(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParameters,
+      Set<OrganisationUnit> scopeOrgUnits,
+      String orgUnitTableAlias,
+      String paramPrefix) {
+    SqlHelper orHlp = new SqlHelper(true);
+    sql.append("(");
+    int index = 0;
+    for (OrganisationUnit orgUnit : scopeOrgUnits) {
+      String paramName = paramPrefix + "Path" + index;
+      sql.append(orHlp.or()).append(orgUnitTableAlias).append(".path like :").append(paramName);
+      sqlParameters.addValue(paramName, orgUnit.getStoredPath() + "%");
+      index++;
+    }
+    sql.append(")");
   }
 
   /**

@@ -150,7 +150,14 @@ class TrackedEntityOperationParamsMapper {
         .setAssignedUserQueryParam(operationParams.getAssignedUserQueryParam())
         .setTrackedEntities(operationParams.getTrackedEntities())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
-        .setPotentialDuplicate(operationParams.getPotentialDuplicate());
+        .setPotentialDuplicate(operationParams.getPotentialDuplicate())
+        .setUserSearchScopeOrgUnits(
+            Set.copyOf(
+                organisationUnitService.getOrganisationUnitsByUid(
+                    user.getUserEffectiveSearchOrgUnitIds())))
+        .setUserCaptureScopeOrgUnits(
+            Set.copyOf(
+                organisationUnitService.getOrganisationUnitsByUid(user.getUserOrgUnitIds())));
 
     validateSearchOutsideCaptureScopeParameters(params, user);
 

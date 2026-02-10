@@ -154,6 +154,10 @@ public class TrackedEntityQueryParams {
 
   @Getter private final List<Order> order = new ArrayList<>();
 
+  @Getter private Set<OrganisationUnit> userSearchScopeOrgUnits = Set.of();
+
+  @Getter private Set<OrganisationUnit> userCaptureScopeOrgUnits = Set.of();
+
   @Setter private boolean isSearchOutsideCaptureScope = false;
 
   // -------------------------------------------------------------------------
@@ -422,6 +426,18 @@ public class TrackedEntityQueryParams {
 
   public TrackedEntityQueryParams setIncludeDeleted(boolean includeDeleted) {
     this.includeDeleted = includeDeleted;
+    return this;
+  }
+
+  public TrackedEntityQueryParams setUserSearchScopeOrgUnits(
+      Set<OrganisationUnit> userSearchScopeOrgUnits) {
+    this.userSearchScopeOrgUnits = userSearchScopeOrgUnits;
+    return this;
+  }
+
+  public TrackedEntityQueryParams setUserCaptureScopeOrgUnits(
+      Set<OrganisationUnit> userCaptureScopeOrgUnits) {
+    this.userCaptureScopeOrgUnits = userCaptureScopeOrgUnits;
     return this;
   }
 
