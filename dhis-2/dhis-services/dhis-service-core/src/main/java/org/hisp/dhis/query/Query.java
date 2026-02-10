@@ -106,6 +106,7 @@ public class Query<T extends IdentifiableObject> {
     copy.setSkipSharing(query.isSkipSharing());
     copy.setCurrentUserDetails(query.getCurrentUserDetails());
     copy.setLocale(query.getLocale());
+    copy.predicateSuppliers.addAll(query.getPredicateSuppliers());
     return copy;
   }
 
