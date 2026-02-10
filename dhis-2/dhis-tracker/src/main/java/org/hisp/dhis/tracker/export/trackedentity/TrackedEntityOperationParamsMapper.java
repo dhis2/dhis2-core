@@ -231,7 +231,7 @@ class TrackedEntityOperationParamsMapper {
     }
 
     return program.getProgramStages().stream()
-        .filter(ps -> ps.getUid().equals(programStage.getValue()))
+        .filter(ps -> ps.getUID().equals(programStage))
         .findFirst()
         .orElse(null);
   }

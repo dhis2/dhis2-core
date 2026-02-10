@@ -1423,6 +1423,9 @@
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
+      "enrollmentCategoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
       "completeEventsExpiryDays": 0,
       "code": "BFcipDERJnf code",
       "created": "2020-05-31T09:02:52.718",
@@ -1548,6 +1551,9 @@
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
+      "enrollmentCategoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
       "completeEventsExpiryDays": 0,
       "created": "2019-01-28T11:23:20.906",
       "displayIncidentDate": true,
@@ -1580,6 +1586,9 @@
       "id": "BFcipDERJng",
       "accessLevel": "OPEN",
       "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "enrollmentCategoryCombo": {
         "id": "bjDvmb4bfuf"
       },
       "completeEventsExpiryDays": 0,
@@ -1624,6 +1633,9 @@
       "categoryCombo": {
         "id": "O4VaNks6tta"
       },
+      "enrollmentCategoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
       "code": "iS7eutanDry code",
       "completeEventsExpiryDays": 0,
       "created": "2022-04-22T05:57:48.409",
@@ -1653,6 +1665,9 @@
       "accessLevel": "OPEN",
       "categoryCombo": {
         "id": "O4VaNks6tta"
+      },
+      "enrollmentCategoryCombo": {
+        "id": "bjDvmb4bfuf"
       },
       "completeEventsExpiryDays": 0,
       "created": "2020-05-31T09:02:52.718",
@@ -1691,6 +1706,9 @@
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
+      "enrollmentCategoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
       "completeEventsExpiryDays": 0,
       "created": "2020-05-31T09:02:52.718",
       "displayIncidentDate": true,
@@ -1726,6 +1744,9 @@
       "id": "UWRnoyBjvqi",
       "accessLevel": "CLOSED",
       "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "enrollmentCategoryCombo": {
         "id": "bjDvmb4bfuf"
       },
       "completeEventsExpiryDays": 0,
@@ -1771,6 +1792,9 @@
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
+      "enrollmentCategoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
       "completeEventsExpiryDays": 0,
       "created": "2020-05-31T09:02:52.718",
       "displayIncidentDate": true,
@@ -1806,6 +1830,9 @@
       "id": "SeeUNWLQmZk",
       "accessLevel": "OPEN",
       "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "enrollmentCategoryCombo": {
         "id": "bjDvmb4bfuf"
       },
       "completeEventsExpiryDays": 0,
@@ -1845,6 +1872,9 @@
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
+      "enrollmentCategoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
       "completeEventsExpiryDays": 0,
       "created": "2020-05-31T09:02:52.718",
       "displayIncidentDate": true,
@@ -1882,6 +1912,9 @@
       "accessLevel": "OPEN",
       "categoryCombo": {
         "id": "O4VaNks6tta"
+      },
+      "enrollmentCategoryCombo": {
+        "id": "bjDvmb4bfuf"
       },
       "completeEventsExpiryDays": 0,
       "created": "2020-05-31T09:02:52.718",

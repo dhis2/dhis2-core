@@ -84,7 +84,7 @@ public class EnrollmentPersister
   protected void updatePreheat(TrackerPreheat preheat, Enrollment enrollment) {
     preheat.putEnrollment(enrollment);
     preheat.addProgramOwner(
-        UID.of(enrollment.getTrackedEntity()),
+        enrollment.getTrackedEntity().getUID(),
         enrollment.getProgram().getUid(),
         enrollment.getOrganisationUnit());
   }
@@ -95,7 +95,7 @@ public class EnrollmentPersister
 
     return TrackerNotificationDataBundle.builder()
         .klass(Enrollment.class)
-        .enrollmentNotifications(bundle.getEnrollmentNotifications().get(UID.of(enrollment)))
+        .enrollmentNotifications(bundle.getEnrollmentNotifications().get(enrollment.getUID()))
         .object(enrollment.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUser().getUsername())
@@ -108,7 +108,7 @@ public class EnrollmentPersister
   @Override
   protected List<NotificationTrigger> determineNotificationTriggers(
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Enrollment entity) {
-    Enrollment persistedEnrollment = preheat.getEnrollment(entity.getUid());
+    Enrollment persistedEnrollment = preheat.getEnrollment(entity.getUID());
     List<NotificationTrigger> triggers = new ArrayList<>();
 
     if (persistedEnrollment == null) {
@@ -152,11 +152,11 @@ public class EnrollmentPersister
       org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto,
       Enrollment entity) {
     if (isNew(bundle, trackerDto)
-        && (bundle.getPreheat().getProgramOwner().get(UID.of(entity.getTrackedEntity())) == null
+        && (bundle.getPreheat().getProgramOwner().get(entity.getTrackedEntity().getUID()) == null
             || bundle
                     .getPreheat()
                     .getProgramOwner()
-                    .get(UID.of(entity.getTrackedEntity()))
+                    .get(entity.getTrackedEntity().getUID())
                     .get(entity.getProgram().getUid())
                 == null)) {
       trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
@@ -177,7 +177,7 @@ public class EnrollmentPersister
 
   @Override
   protected Set<UID> getUpdatedTrackedEntities(Enrollment entity) {
-    return Set.of(UID.of(entity.getTrackedEntity()));
+    return Set.of(entity.getTrackedEntity().getUID());
   }
 
   @Override

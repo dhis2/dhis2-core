@@ -39,265 +39,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-import java.util.function.Function;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.eventhook.targets.ConsoleTarget;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.security.acl.Access;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.AuthenticationService;
-import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.Test;
 
 class EventHookListenerTest {
-
-  private static class MockAclService implements AclService {
-
-    private final String canReadUserUid;
-
-    public MockAclService(String canReadUserUid) {
-      this.canReadUserUid = canReadUserUid;
-    }
-
-    @Override
-    public CurrentUserGroupInfo getCurrentUserGroupInfo(
-        String userUid, Function<String, CurrentUserGroupInfo> cacheSupplier) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void invalidateCurrentUserGroupInfoCache() {}
-
-    @Override
-    public void invalidateCurrentUserGroupInfoCache(String userUid) {}
-
-    @Override
-    public boolean isSupported(IdentifiableObject object) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> boolean isClassShareable(Class<T> klass) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> boolean isDataClassShareable(Class<T> klass) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isShareable(String type) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isShareable(IdentifiableObject o) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean canRead(UserDetails userDetails, IdentifiableObject object) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean canRead(User user, IdentifiableObject object) {
-      return user.getUid().equals(canReadUserUid);
-    }
-
-    @Override
-    public <T extends IdentifiableObject> boolean canRead(
-        UserDetails userDetails, T object, Class<? extends T> objType) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean canDataRead(UserDetails userDetails, IdentifiableObject object) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean canDataRead(User user, IdentifiableObject object) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean canDataOrMetadataRead(UserDetails userDetails, IdentifiableObject object) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean canDataOrMetadataRead(User user, IdentifiableObject object) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean canWrite(UserDetails userDetails, IdentifiableObject object) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean canWrite(User user, IdentifiableObject object) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean canDataWrite(UserDetails userDetails, IdentifiableObject object) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean canDataWrite(User user, IdentifiableObject object) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean canUpdate(UserDetails userDetails, IdentifiableObject object) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean canUpdate(User user, IdentifiableObject object) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean canDelete(UserDetails userDetails, IdentifiableObject object) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean canDelete(User user, IdentifiableObject object) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean canManage(UserDetails userDetails, IdentifiableObject object) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean canManage(User user, IdentifiableObject object) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> boolean canRead(UserDetails userDetails, Class<T> klass) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> boolean canCreate(
-        UserDetails userDetails, Class<T> klass) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> boolean canCreate(User user, Class<T> klass) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> boolean canMakePublic(UserDetails userDetails, T object) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> boolean canMakeClassPublic(
-        UserDetails userDetails, Class<T> klass) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> boolean canMakeClassPublic(User user, Class<T> klass) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> boolean canMakePrivate(
-        UserDetails userDetails, T object) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> boolean canMakeClassPrivate(
-        UserDetails userDNonNuletails, Class<T> klass) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> boolean canMakeClassPrivate(User user, Class<T> klass) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> boolean defaultPrivate(Class<T> klass) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> boolean defaultPublic(T object) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Class<? extends IdentifiableObject> classForType(String type) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> Access getAccess(T object, UserDetails userDetails) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> Access getAccess(T object, User user) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> Access getAccess(
-        T object, UserDetails userDetails, Class<? extends T> objType) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> void resetSharing(T object, UserDetails userDetails) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> void resetSharing(T object, User user) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> void clearSharing(T object, UserDetails userDetails) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> List<ErrorReport> verifySharing(
-        T object, UserDetails userDetails) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T extends IdentifiableObject> List<ErrorReport> verifySharing(T object, User user) {
-      throw new UnsupportedOperationException();
-    }
-  }
 
   private final ObjectMapper objectMapper = JacksonObjectMapperConfig.staticJsonMapper();
   private final AuthenticationService mockAuthenticationService =
@@ -456,46 +214,12 @@ class EventHookListenerTest {
   private final FieldFilterService fieldFilterService = mock(FieldFilterService.class);
 
   @Test
-  void testOnEventDropsMetadataWhenEventHookUserDoesNotHaveMetadataReadAccess()
-      throws NotFoundException, JsonProcessingException {
+  void testOnEventEmitsMetadata() throws NotFoundException, JsonProcessingException {
     User user = new User();
     user.setUid(CodeGenerator.generateUid());
     EventHookListener eventHookListener =
         new EventHookListener(
-            null,
-            null,
-            null,
-            null,
-            mockAuthenticationService,
-            new MockAclService(CodeGenerator.generateUid()));
-
-    EventHook eventHook = createMockEventHook(user);
-    eventHookListener.getEventHookContext().setEventHooks(List.of(eventHook));
-    CountDownLatch countDownLatch = new CountDownLatch(1);
-    eventHookListener
-        .getEventHookContext()
-        .setTargets(
-            Map.of(
-                eventHook.getUid(), List.of((eh, event, payload) -> countDownLatch.countDown())));
-
-    eventHookListener.onEvent(EventUtils.metadataCreate(mockIdentifiableObject));
-
-    assertEquals(1, countDownLatch.getCount());
-  }
-
-  @Test
-  void testOnEventEmitsMetadataWhenEventHookUserHasMetadataReadAccess()
-      throws NotFoundException, JsonProcessingException {
-    User user = new User();
-    user.setUid(CodeGenerator.generateUid());
-    EventHookListener eventHookListener =
-        new EventHookListener(
-            null,
-            objectMapper,
-            fieldFilterService,
-            null,
-            mockAuthenticationService,
-            new MockAclService(user.getUid()));
+            null, objectMapper, fieldFilterService, null, mockAuthenticationService);
 
     EventHook eventHook = createMockEventHook(user);
     eventHookListener.getEventHookContext().setEventHooks(List.of(eventHook));
