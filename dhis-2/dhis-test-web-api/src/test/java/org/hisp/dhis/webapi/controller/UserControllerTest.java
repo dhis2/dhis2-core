@@ -1178,7 +1178,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   @DisplayName("GET /users?query=alice returns only matching users by name/email/username")
   void testGetUsersFilterByQuery() {
     User alice = createUserWithAuth("alice");
-    User bob = createUserWithAuth("bob");
+    createUserWithAuth("bob");
 
     JsonList<JsonUser> users =
         GET("/users?query=alice").content(HttpStatus.OK).getList("users", JsonUser.class);
