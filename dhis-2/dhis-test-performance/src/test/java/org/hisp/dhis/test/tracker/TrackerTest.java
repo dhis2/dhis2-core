@@ -459,9 +459,17 @@ public class TrackerTest extends Simulation {
   private ScenarioWithRequests trackerProgramScenario() {
     String getTEsUrl =
         "/api/tracker/trackedEntities?"
-            + "order=createdAt:desc &page=1&pageSize=15&orgUnits=DiszpKrYNg8&orgUnitMode=SELECTED&program="
+            + "order=createdAt:desc&page=1&pageSize=15&orgUnits=DiszpKrYNg8&orgUnitMode=SELECTED&program="
             + this.trackerProgram
             + "&fields=:all,!relationships,programOwner[orgUnit,program]";
+
+    String getTEsWithEnrollmentStatusUrl =
+        "/api/tracker/trackedEntities?"
+            + "order=createdAt:desc&page=1&pageSize=15&orgUnitMode=ACCESSIBLE&program="
+            + this.trackerProgram
+            + "&filter=w75KJ2mc4zz:ge:A"
+            + "&enrollmentStatus=ACTIVE"
+            + "&fields=:all,!relationships,programOwners[orgUnit,program]";
 
     String searchForTEByNationalId =
         "/api/tracker/trackedEntities?orgUnitMode=ACCESSIBLE&program="
@@ -554,6 +562,11 @@ public class TrackerTest extends Simulation {
             new EnumMap<>(Map.of(Profile.SMOKE, 44, Profile.LOAD, 53)),
             "Get first page of TEs of program " + this.trackerProgram,
             "Get a list of TEs");
+    Request getTEsWithEnrollmentStatus =
+        new Request(
+            getTEsWithEnrollmentStatusUrl,
+            new EnumMap<>(Map.of(Profile.SMOKE, 50, Profile.LOAD, 60)),
+            "Get TEs with enrollment status");
     Request getFirstTrackedEntity =
         new Request(
             singleTrackedEntityUrl,
@@ -671,8 +684,11 @@ public class TrackerTest extends Simulation {
                                             .exec(
                                                 getRelationshipsForEvent
                                                     .action()
-                                                    .check(
-                                                        jsonPath("$.relationships").exists()))))));
+                                                    .check(jsonPath("$.relationships").exists())))))
+                    .exec(
+                        getTEsWithEnrollmentStatus
+                            .action()
+                            .check(jsonPath("$.trackedEntities[*]").count().is(15))));
 
     return new ScenarioWithRequests(
         scenarioBuilder,
@@ -684,6 +700,7 @@ public class TrackerTest extends Simulation {
             searchEventsByProgramStage,
             getTrackedEntitiesForEvents,
             getFirstPageOfTEs,
+            getTEsWithEnrollmentStatus,
             getFirstTrackedEntity,
             getFirstEnrollment,
             getRelationshipsForTrackedEntity,
