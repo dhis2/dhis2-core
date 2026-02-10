@@ -1,22 +1,33 @@
 -- Migration related to DHIS2-20837.
 
--- Migrate required data into the new table.
-do
-$$
+-- Migrate reqdo $$
 declare
-    stmt TEXT;
+    max_retries int := 10;
+    attempt int := 0;
 begin
-  -- Check if configuration table has row.
   if not exists (
-    select 1
-    from periodtype where name = 'WeeklyFriday'
-    )
-  then
-    insert into periodtype (periodtypeid, name) values (nextval('hibernate_sequence'), 'WeeklyFriday');
+    select 1 from periodtype where name = 'weeklyfriday'
+  ) then
+    loop
+      begin
+        insert into periodtype (periodtypeid, name)
+        values (nextval('hibernate_sequence'), 'weeklyfriday');
+        exit; -- success, leave the loop
+      exception
+        when unique_violation then
+          attempt := attempt + 1;
+          if attempt >= max_retries then
+            raise exception 'failed to insert weeklyfriday after % attempts due to duplicate key', max_retries;
+          end if;
+          raise info 'duplicate key on attempt %, retrying...', attempt;
+          -- loop continues, nextval will get a new value
+      end;
+    end loop;
   else
-    RAISE INFO '%','WeeklyFriday already exists';
+    raise info '%', 'weeklyfriday already exists';
   end if;
 end;
 $$ language plpgsql;
 
-insert into configuration_dataoutputperiodtype (periodtypeid, configurationid) select p.periodtypeid, c.configurationid from periodtype p, configuration c where p.name = 'WeeklyFriday';
+insert into configuration_dataoutputperiodtype (periodtypeid, configurationid)
+select p.periodtypeid, c.configurationid from periodtype p, configuration c where p.name = 'weeklyfriday';
