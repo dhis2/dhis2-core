@@ -47,6 +47,8 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
 import java.util.Date;
 import java.util.Objects;
@@ -98,20 +100,20 @@ public class Legend implements IdentifiableObject, EmbeddedObject {
   protected String uid;
 
   @Column(name = "created", nullable = false, updatable = false)
-  @jakarta.persistence.Temporal(jakarta.persistence.TemporalType.TIMESTAMP)
+  @Temporal(TemporalType.TIMESTAMP)
   protected Date created;
 
   @Column(name = "lastupdated", nullable = false)
-  @jakarta.persistence.Temporal(jakarta.persistence.TemporalType.TIMESTAMP)
+  @Temporal(TemporalType.TIMESTAMP)
   protected Date lastUpdated;
 
   @ManyToOne
   @JoinColumn(name = "lastupdatedby")
   protected User lastUpdatedBy;
 
-  @Transient protected String href;
+  @Transient protected transient String href;
 
-  @Transient protected Access access;
+  @Transient protected transient Access access;
 
   @Column(name = "code", unique = true, length = 50)
   private String code;
