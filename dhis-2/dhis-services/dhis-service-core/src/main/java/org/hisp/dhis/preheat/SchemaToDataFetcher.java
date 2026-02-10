@@ -47,7 +47,6 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.springframework.stereotype.Component;
