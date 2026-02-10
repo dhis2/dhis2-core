@@ -86,6 +86,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.query.Query;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
@@ -233,15 +234,21 @@ public class UserController
   }
 
   @Override
-  protected List<UID> getPreQueryMatches(GetUserObjectListParams params) throws ConflictException {
-    if (!params.isUsingAnySpecialFilters()) return null;
-    UserQueryParams queryParams = toUserQueryParams(params);
+  protected List<UID> getPreQueryMatches(GetUserObjectListParams params) {
+    // No longer materializing UIDs; filtering is handled via subquery in modifyGetObjectList
+    return null;
+  }
 
+  @Override
+  protected void modifyGetObjectList(GetUserObjectListParams params, Query<User> query) {
+    if (!params.isUsingAnySpecialFilters()) return;
+    UserQueryParams queryParams = toUserQueryParams(params);
     if (params.isManage()) {
       queryParams.setCanManage(true);
       queryParams.setAuthSubset(true);
     }
-    return userService.getUserIds(queryParams, params.getOrders());
+    userService.handleUserQueryParams(queryParams);
+    query.addPredicateSupplier(new UserPredicateSupplier(queryParams));
   }
 
   private UserQueryParams toUserQueryParams(GetUserObjectListParams params) {
