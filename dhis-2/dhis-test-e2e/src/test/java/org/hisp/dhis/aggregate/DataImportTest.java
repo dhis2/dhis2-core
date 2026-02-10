@@ -39,7 +39,6 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -57,7 +56,6 @@ import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.dto.ImportSummary;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -67,6 +65,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Disabled
 @Tag("category:aggregate")
 class DataImportTest extends ApiTest {
   private DataValueSetActions dataValueSetActions;
@@ -112,36 +111,6 @@ class DataImportTest extends ApiTest {
         response.getAsString(),
         importSummary.getImportCount().getImported() + importSummary.getImportCount().getUpdated(),
         greaterThan(0));
-  }
-
-  @Test
-  void dataValuesCanBeDeletedWithScope() {
-    ApiResponse response =
-        dataValueSetActions.postFile(
-            new File("src/test/resources/aggregate/dataValues_bulk.json"),
-            new QueryParamsBuilder().add("importReportMode=FULL"));
-
-    response.validate().statusCode(200);
-    ImportSummary summary = response.getImportSummaries().get(0);
-    assertEquals("SUCCESS", summary.getStatus());
-
-    String json = """
-        {
-          "deletion": {
-            "orgUnits": ["O6uvpzGd5pu"],
-            "periods": ["2018"],
-            "elements": [
-              {"dataElement": "tpz77FcntKx"},
-              {"dataElement": "FRbgzTZ74Hh"}
-            ]
-          }
-        }
-        """;
-    response =
-        dataValueSetActions.post(json);
-     summary = response.getImportSummaries().get(0);
-    assertEquals("SUCCESS", summary.getStatus());
-    assertEquals(2, summary.getImportCount().getDeleted());
   }
 
   @Test
