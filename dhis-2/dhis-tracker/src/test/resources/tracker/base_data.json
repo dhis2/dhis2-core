@@ -311,7 +311,30 @@
       "orgUnitName": "Mbokie CHP",
       "enrolledAt": "2021-02-28T12:05:00.000",
       "occurredAt": "2021-02-28T12:05:00.000",
-      "scheduledAt": "2021-02-28T12:05:00.000"
+      "scheduledAt": "2021-02-28T12:05:00.000",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
+    },
+    {
+      "enrollment": "nxP7UnKhomK",
+      "createdAtClient": "2016-12-15T10:00:00.000",
+      "trackedEntity": "QS6w44flWAf",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "BFcipDERJnf"
+      },
+      "status": "COMPLETED",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "h4w96yEMlzO"
+      },
+      "orgUnitName": "Mbokie CHP",
+      "enrolledAt": "2021-01-15T12:05:00.000",
+      "occurredAt": "2021-01-15T12:05:00.000",
+      "scheduledAt": "2021-01-15T12:05:00.000",
+      "attributeOptionCombo": {}
     },
     {
       "enrollment": "nxP8UnKhomJ",
@@ -328,7 +351,11 @@
       },
       "enrolledAt": "2021-04-28T12:05:00.000",
       "occurredAt": "2021-04-28T12:05:00.000",
-      "scheduledAt": "2021-04-28T12:05:00.000"
+      "scheduledAt": "2021-04-28T12:05:00.000",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
     },
     {
       "enrollment": "TvctPPhpD8z",
@@ -361,7 +388,11 @@
           "note": "f9423652692",
           "value": "enrollment comment value"
         }
-      ]
+      ],
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
     },
     {
       "enrollment": "ipBifypAQTP",
@@ -379,7 +410,11 @@
       "orgUnitName": "Mbokie CHP",
       "enrolledAt": "2021-03-28T12:05:00.000",
       "occurredAt": "2021-03-28T12:05:00.000",
-      "scheduledAt": "2021-02-28T12:05:00.000"
+      "scheduledAt": "2021-02-28T12:05:00.000",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
     },
     {
       "enrollment": "AbctCDhqH3s",
@@ -397,7 +432,11 @@
       "orgUnitName": "Mbokie CHP",
       "enrolledAt": "2021-04-28T12:05:00.000",
       "occurredAt": "2021-04-28T12:05:00.000",
-      "scheduledAt": "2021-02-28T12:05:00.000"
+      "scheduledAt": "2021-02-28T12:05:00.000",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
     },
     {
       "enrollment": "JuioKiICQqI",
@@ -415,7 +454,11 @@
       "orgUnitName": "test-orgunit-2",
       "enrolledAt": "2021-02-28T12:05:00.000",
       "occurredAt": "2021-02-28T12:05:00.000",
-      "scheduledAt": "2021-02-28T12:05:00.000"
+      "scheduledAt": "2021-02-28T12:05:00.000",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
     },
     {
       "enrollment": "iHFHfPKTSYP",
@@ -433,7 +476,11 @@
       "orgUnitName": "test-orgunit-2",
       "enrolledAt": "2021-02-28T12:05:00.000",
       "occurredAt": "2021-02-28T12:05:00.000",
-      "scheduledAt": "2021-02-28T12:05:00.000"
+      "scheduledAt": "2021-02-28T12:05:00.000",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
     },
     {
       "enrollment": "ipBifypAQTo",
@@ -451,7 +498,11 @@
       "orgUnitName": "test-orgunit-3",
       "enrolledAt": "2021-02-28T12:05:00.000",
       "occurredAt": "2021-02-28T12:05:00.000",
-      "scheduledAt": "2021-02-28T12:05:00.000"
+      "scheduledAt": "2021-02-28T12:05:00.000",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
     },
     {
       "enrollment": "qxOSXoEZkOA",
@@ -469,7 +520,11 @@
       "orgUnitName": "test-orgunit-3",
       "enrolledAt": "2021-02-28T12:05:00.000",
       "occurredAt": "2021-02-28T12:05:00.000",
-      "scheduledAt": "2021-02-28T12:05:00.000"
+      "scheduledAt": "2021-02-28T12:05:00.000",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
     },
     {
       "enrollment": "HDWTYSYkICe",
@@ -487,7 +542,11 @@
       "orgUnitName": "test-orgunit-3",
       "enrolledAt": "2021-02-28T12:05:00.000",
       "occurredAt": "2021-02-28T12:05:00.000",
-      "scheduledAt": "2021-02-28T12:05:00.000"
+      "scheduledAt": "2021-02-28T12:05:00.000",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
     },
     {
       "enrollment": "FXWSSZunTLk",
@@ -505,7 +564,11 @@
       "orgUnitName": "test-orgunit-3",
       "enrolledAt": "2021-02-28T12:05:00.000",
       "occurredAt": "2021-02-28T12:05:00.000",
-      "scheduledAt": "2021-02-28T12:05:00.000"
+      "scheduledAt": "2021-02-28T12:05:00.000",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
     },
     {
       "enrollment": "GYWSSZunTLk",
@@ -523,7 +586,11 @@
       "orgUnitName": "test-orgunit-3",
       "enrolledAt": "2021-02-28T12:05:00.000",
       "occurredAt": "2021-02-28T12:05:00.000",
-      "scheduledAt": "2021-02-28T12:05:00.000"
+      "scheduledAt": "2021-02-28T12:05:00.000",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
     }
   ],
   "events": [

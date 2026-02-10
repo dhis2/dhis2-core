@@ -47,7 +47,6 @@ import lombok.ToString;
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @ToString
 public final class DatabaseInfo {
-
   @JsonProperty private final String name;
   @JsonProperty private final String user;
   @JsonProperty private final String url;

@@ -68,6 +68,11 @@ public class DorisSqlBuilder extends AbstractSqlBuilder {
     return Database.DORIS;
   }
 
+  @Override
+  public boolean isHighPerformance() {
+    return true;
+  }
+
   // Data types
 
   @Override

@@ -1024,4 +1024,343 @@ class MetadataItemsHandlerTest {
       assertTrue(dimensions.containsKey("customDim"));
     }
   }
+
+  @Nested
+  @DisplayName("Date Dimension Value Tests")
+  class DateDimensionValueTests {
+
+    @Test
+    @DisplayName("should include dimension values for date items with period identifiers")
+    void shouldIncludeDimensionValuesForDateItems() {
+      // Given
+      Grid grid = new ListGrid();
+
+      org.hisp.dhis.program.ProgramStage programStage = createProgramStage('S', programA);
+      programStage.setUid("A03MvHHogjR");
+
+      org.hisp.dhis.common.BaseDimensionalItemObject eventDateItem =
+          new org.hisp.dhis.common.BaseDimensionalItemObject("occurreddate");
+      eventDateItem.setUid("occurreddate");
+      eventDateItem.setName("Event date");
+
+      QueryItem queryItem = new QueryItem(eventDateItem, null, ValueType.DATE, null, null);
+      queryItem.setProgramStage(programStage);
+      queryItem.addDimensionValue("202205");
+      queryItem.setCustomHeader(
+          org.hisp.dhis.common.AnalyticsCustomHeader.forEventDate(programStage));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(queryItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertNotNull(dimensions);
+
+      assertTrue(
+          dimensions.containsKey("A03MvHHogjR.eventdate"),
+          "Dimensions should contain key 'A03MvHHogjR.eventdate'");
+      assertEquals(
+          List.of("202205"),
+          dimensions.get("A03MvHHogjR.eventdate"),
+          "Dimension values should contain the period identifier '202205'");
+    }
+
+    @Test
+    @DisplayName("should add period metadata items for date dimension values")
+    void shouldAddPeriodMetadataItemsForDateDimensionValues() {
+      // Given
+      Grid grid = new ListGrid();
+
+      org.hisp.dhis.program.ProgramStage programStage = createProgramStage('S', programA);
+      programStage.setUid("A03MvHHogjR");
+
+      org.hisp.dhis.common.BaseDimensionalItemObject eventDateItem =
+          new org.hisp.dhis.common.BaseDimensionalItemObject("occurreddate");
+      eventDateItem.setUid("occurreddate");
+      eventDateItem.setName("Event date");
+
+      QueryItem queryItem = new QueryItem(eventDateItem, null, ValueType.DATE, null, null);
+      queryItem.setProgramStage(programStage);
+      queryItem.addDimensionValue("202205");
+      queryItem.setCustomHeader(
+          org.hisp.dhis.common.AnalyticsCustomHeader.forEventDate(programStage));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(queryItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+
+      assertTrue(
+          items.containsKey("202205"), "Items should contain period metadata entry for '202205'");
+      MetadataItem periodItem = (MetadataItem) items.get("202205");
+      assertNotNull(periodItem.getName(), "Period metadata item should have a name");
+    }
+
+    @Test
+    @DisplayName(
+        "should not replace existing metadata when period dimension value key already exists")
+    void shouldNotReplaceExistingMetadataForDuplicatePeriodDimensionValueKey() {
+      // Given
+      Grid grid = new ListGrid();
+      grid.addRow();
+      grid.addValue("value1");
+
+      DimensionItemKeywords dimensionItemKeywords = new DimensionItemKeywords();
+      dimensionItemKeywords.addKeyword("202205", "Existing Keyword Name");
+      Keyword keyword = dimensionItemKeywords.getKeyword("202205");
+
+      QueryItem queryItem =
+          new QueryItem(
+              dataElementA, null, ValueType.DATE, dataElementA.getAggregationType(), null);
+      queryItem.addDimensionValue("202205");
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(QUERY)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(queryItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+      when(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(any()))
+          .thenReturn(Map.of());
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of(keyword));
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+
+      MetadataItem periodItem = (MetadataItem) items.get("202205");
+      assertNotNull(periodItem);
+      assertEquals(
+          "Existing Keyword Name",
+          periodItem.getName(),
+          "Existing metadata should not be replaced by period value metadata");
+    }
+
+    @Test
+    @DisplayName("should ignore invalid period identifiers in date dimension values")
+    void shouldIgnoreInvalidPeriodIdentifiersInDateDimensionValues() {
+      // Given
+      Grid grid = new ListGrid();
+
+      QueryItem queryItem =
+          new QueryItem(
+              dataElementA, null, ValueType.DATE, dataElementA.getAggregationType(), null);
+      queryItem.addDimensionValue("not-a-period");
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(queryItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+      assertFalse(items.containsKey("not-a-period"));
+    }
+
+    @Test
+    @DisplayName("should ignore dimension values for non-date items")
+    void shouldIgnoreDimensionValuesForNonDateItems() {
+      // Given
+      Grid grid = new ListGrid();
+
+      QueryItem queryItem =
+          new QueryItem(
+              dataElementA, null, ValueType.TEXT, dataElementA.getAggregationType(), null);
+      queryItem.addDimensionValue("202205");
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(queryItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+      assertFalse(items.containsKey("202205"));
+    }
+  }
+
+  @Nested
+  @DisplayName("Custom Header Tests")
+  class CustomHeaderTests {
+
+    @Test
+    @DisplayName("should use headerKey for metadata item key when item has custom header")
+    void shouldUseHeaderKeyForMetadataItemKeyWhenItemHasCustomHeader() {
+      // Given
+      Grid grid = new ListGrid();
+      grid.addRow();
+      grid.addValue("2024-01-01");
+
+      org.hisp.dhis.program.ProgramStage programStage = createProgramStage('S', programA);
+      programStage.setUid("A03MvHHogjR");
+      programStage.setName("Birth");
+
+      org.hisp.dhis.common.BaseDimensionalItemObject eventDateItem =
+          new org.hisp.dhis.common.BaseDimensionalItemObject("occurreddate");
+      eventDateItem.setUid("occurreddate");
+      eventDateItem.setName("Event date");
+
+      QueryItem queryItem = new QueryItem(eventDateItem, null, ValueType.DATETIME, null, null);
+      queryItem.setProgramStage(programStage);
+      queryItem.setCustomHeader(
+          org.hisp.dhis.common.AnalyticsCustomHeader.forEventDate(programStage));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(QUERY)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(queryItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+      when(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(any()))
+          .thenReturn(Map.of());
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+
+      // Should use headerKey() which converts "A03MvHHogjR.EVENT_DATE" -> "A03MvHHogjR.eventdate"
+      assertTrue(
+          items.containsKey("A03MvHHogjR.eventdate"),
+          "Items should contain key 'A03MvHHogjR.eventdate' (from headerKey())");
+
+      // Should NOT use raw key() which is "A03MvHHogjR.EVENT_DATE"
+      assertFalse(
+          items.containsKey("A03MvHHogjR.EVENT_DATE"),
+          "Items should NOT contain raw key 'A03MvHHogjR.EVENT_DATE'");
+
+      // Should NOT use the underlying UID "occurreddate"
+      assertFalse(
+          items.containsKey("A03MvHHogjR.occurreddate"),
+          "Items should NOT contain the underlying UID 'A03MvHHogjR.occurreddate'");
+
+      // Verify the metadata item value - should be just the label, NOT "Event date, Birth"
+      MetadataItem metadataItem = (MetadataItem) items.get("A03MvHHogjR.eventdate");
+      assertNotNull(metadataItem);
+      assertEquals(
+          "Event date",
+          metadataItem.getName(),
+          "Metadata item name should be just 'Event date' (not including stage name)");
+    }
+
+    @Test
+    @DisplayName("should use headerKey for dimension key when item has custom header")
+    void shouldUseHeaderKeyForDimensionKeyWhenItemHasCustomHeader() {
+      // Given
+      Grid grid = new ListGrid();
+      grid.addRow();
+      grid.addValue("2024-01-01");
+
+      org.hisp.dhis.program.ProgramStage programStage = createProgramStage('S', programA);
+      programStage.setUid("A03MvHHogjR");
+      programStage.setName("Birth");
+
+      org.hisp.dhis.common.BaseDimensionalItemObject eventDateItem =
+          new org.hisp.dhis.common.BaseDimensionalItemObject("occurreddate");
+      eventDateItem.setUid("occurreddate");
+      eventDateItem.setName("Event date");
+
+      QueryItem queryItem = new QueryItem(eventDateItem, null, ValueType.DATETIME, null, null);
+      queryItem.setProgramStage(programStage);
+      queryItem.setCustomHeader(
+          org.hisp.dhis.common.AnalyticsCustomHeader.forEventDate(programStage));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(QUERY)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(queryItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+      when(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(any()))
+          .thenReturn(Map.of());
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertNotNull(dimensions);
+
+      // Should use headerKey() which converts "A03MvHHogjR.EVENT_DATE" -> "A03MvHHogjR.eventdate"
+      assertTrue(
+          dimensions.containsKey("A03MvHHogjR.eventdate"),
+          "Dimensions should contain key 'A03MvHHogjR.eventdate' (from headerKey())");
+    }
+  }
 }

@@ -261,7 +261,7 @@ class SeqTest {
   private static TrackerDto dummyDto() {
     return new TrackerDto() {
       @Override
-      public UID getUid() {
+      public UID getUID() {
         return UID.generate();
       }
 

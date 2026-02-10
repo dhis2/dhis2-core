@@ -44,7 +44,7 @@ class StatusUpdateValidator implements Validator<Event> {
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
     org.hisp.dhis.tracker.model.TrackerEvent savedEvent =
-        bundle.getPreheat().getTrackerEvent(event.getUid());
+        bundle.getPreheat().getTrackerEvent(event.getUID());
 
     if (event instanceof TrackerEvent
         && checkInvalidStatusTransition(savedEvent.getStatus(), event.getStatus())) {

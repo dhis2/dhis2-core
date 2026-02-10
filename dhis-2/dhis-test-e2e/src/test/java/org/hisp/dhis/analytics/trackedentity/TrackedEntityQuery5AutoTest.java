@@ -249,6 +249,210 @@ public class TrackedEntityQuery5AutoTest extends AnalyticsApiTest {
             "2017-01-26 13:48:13.334"));
   }
 
+  /**
+   * This test is identical to 'randomQueryWithTeCreated'. The only difference is that it test using
+   * the alternative dimension format for data element: "stageId.dataElementId" instead of
+   * "programId.stageId.dataElementId". This is to ensure that both formats are working as expected.
+   */
+  @Test
+  public void randomQueryWithTeCreated_stageIdOnly() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("includeMetadataDetails=true")
+            .add(
+                "headers=ouname,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6,created")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("rowContext=true")
+            .add("pageSize=20")
+            .add("page=1")
+            .add(
+                "dimension=ou:USER_ORGUNIT,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6")
+            .add("desc=created")
+            .add("relativePeriodDate=2017-01-27");
+
+    // When
+    ApiResponse response = actions.query().get("nEenWmSyUEp", JSON, JSON, params);
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(7)))
+        .body("rows", hasSize(equalTo(20)))
+        .body("height", equalTo(20))
+        .body("width", equalTo(7))
+        .body("headerWidth", equalTo(7));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"pageSize\":20,\"isLastPage\":false},\"items\":{\"IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6\":{\"uid\":\"a3kGcGDCuk6\",\"code\":\"DE_2006098\",\"name\":\"MCH Apgar Score\",\"description\":\"Apgar is a quick test performed on a baby at 1 and 5 minutes after birth. The 1-minute score determines how well the baby tolerated the birthing process. The 5-minute score tells the doctor how well the baby is doing outside the mother's womb.\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"bx6fsa0t90x\":{\"uid\":\"bx6fsa0t90x\",\"code\":\"DE_2006101\",\"name\":\"MCH BCG dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"BOOLEAN\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ciq2USN94oJ\":{\"uid\":\"ciq2USN94oJ\",\"code\":\"MMD_PER_STA\",\"name\":\"Civil status\",\"description\":\"Civil status\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"NONE\"},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"a3kGcGDCuk6\":{\"uid\":\"a3kGcGDCuk6\",\"code\":\"DE_2006098\",\"name\":\"MCH Apgar Score\",\"description\":\"Apgar is a quick test performed on a baby at 1 and 5 minutes after birth. The 1-minute score determines how well the baby tolerated the birthing process. The 5-minute score tells the doctor how well the baby is doing outside the mother's womb.\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"},\"cejWyOfXge6\":{\"uid\":\"cejWyOfXge6\",\"name\":\"Gender\",\"description\":\"Gender\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"valueType\":\"TEXT\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"NONE\"},\"gHGyrwKPzej\":{\"uid\":\"gHGyrwKPzej\",\"code\":\"MMD_PER_DOB\",\"name\":\"Birth date\",\"description\":\"Birth date\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"valueType\":\"DATE\",\"aggregationType\":\"NONE\",\"totalAggregationType\":\"NONE\"},\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x\":{\"uid\":\"bx6fsa0t90x\",\"code\":\"DE_2006101\",\"name\":\"MCH BCG dose\",\"dimensionItemType\":\"DATA_ELEMENT\",\"valueType\":\"BOOLEAN\",\"aggregationType\":\"SUM\",\"totalAggregationType\":\"SUM\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"ouname\":{\"name\":\"Organisation Unit Name\",\"dimensionType\":\"ORGANISATION_UNIT\"}},\"dimensions\":{\"zDhUuAYrxNC\":[],\"lw1SqmMlnfh\":[],\"bx6fsa0t90x\":[],\"Qo571yj6Zcn\":[],\"DODgdr5Oo2v\":[],\"iESIqZ0R0R0\":[],\"n9nUvfpTsxQ\":[],\"kyIzQsj96BD\":[],\"xs8A6tQJY0s\":[],\"A4xFHyieXys\":[],\"OvY4VVhSDeJ\":[],\"RG7uGl4w5Jq\":[],\"spFvx9FndA4\":[],\"GUOBQt5K2WI\":[],\"Agywv2JGwuq\":[],\"lZGmxYbs97q\":[],\"VqEFza8wbwA\":[],\"ciq2USN94oJ\":[],\"ou\":[\"ImspTQPwCqd\"],\"w75KJ2mc4zz\":[],\"KmEUg2hHEtx\":[],\"G7vUx908SwP\":[],\"o9odfev2Ty5\":[],\"a3kGcGDCuk6\":[],\"FO4sWYJ64LQ\":[],\"NDXw0cluzSw\":[],\"ruQQnf6rswq\":[],\"cejWyOfXge6\":[],\"P2cwLGskgxn\":[],\"gHGyrwKPzej\":[],\"pe\":[],\"VHfUeXpawmE\":[],\"AuPLng5hLbE\":[],\"ZcBPrXKahq2\":[],\"H9IlTX2X6SL\":[]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    // assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(
+        response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response, 1, "gHGyrwKPzej", "Birth date", "DATE", "java.time.LocalDate", false, true);
+    validateHeader(
+        response, 2, "ciq2USN94oJ", "Civil status", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 3, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        4,
+        "A03MvHHogjR.bx6fsa0t90x",
+        "MCH BCG dose, Child Programme, Birth",
+        "BOOLEAN",
+        "java.lang.Boolean",
+        false,
+        true);
+    validateHeader(
+        response,
+        5,
+        "IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6",
+        "MCH Apgar Score, Child Programme, Birth",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        true);
+    validateHeader(
+        response, 6, "created", "Created", "DATETIME", "java.time.LocalDateTime", false, true);
+
+    // Assert rows.
+    validateRow(
+        response,
+        0,
+        List.of("Blamawo MCHP", "1986-07-04 00:00:00.0", "", "", "", "", "2017-01-26 13:48:13.37"));
+    validateRow(
+        response,
+        1,
+        List.of(
+            "Petifu Mayepoh MCHP",
+            "1972-05-03 00:00:00.0",
+            "",
+            "",
+            "",
+            "",
+            "2017-01-26 13:48:13.369"));
+    validateRow(
+        response,
+        2,
+        List.of(
+            "Kondewakoro CHP", "1982-03-04 00:00:00.0", "", "", "", "", "2017-01-26 13:48:13.367"));
+    validateRow(
+        response,
+        3,
+        List.of("Mathen MCHP", "1987-01-28 00:00:00.0", "", "", "", "", "2017-01-26 13:48:13.365"));
+    validateRow(
+        response,
+        4,
+        List.of("Mbokie CHP", "1981-03-21 00:00:00.0", "", "", "", "", "2017-01-26 13:48:13.363"));
+    validateRow(
+        response,
+        5,
+        List.of(
+            "Kolisokor MCHP", "1988-01-18 00:00:00.0", "", "", "", "", "2017-01-26 13:48:13.36"));
+    validateRow(
+        response,
+        6,
+        List.of(
+            "Grey Bush CHC", "1985-03-17 00:00:00.0", "", "", "", "", "2017-01-26 13:48:13.359"));
+    validateRow(
+        response,
+        7,
+        List.of(
+            "Dankawalia MCHP", "1978-03-30 00:00:00.0", "", "", "", "", "2017-01-26 13:48:13.357"));
+    validateRow(
+        response,
+        8,
+        List.of(
+            "Kenema Gbandoma MCHP",
+            "1984-09-14 00:00:00.0",
+            "",
+            "",
+            "",
+            "",
+            "2017-01-26 13:48:13.355"));
+    validateRow(
+        response,
+        9,
+        List.of(
+            "Bangoma MCHP", "1989-02-22 00:00:00.0", "", "", "", "", "2017-01-26 13:48:13.353"));
+    validateRow(
+        response,
+        10,
+        List.of(
+            "Blessed Mokaka East Clinic",
+            "1979-11-04 00:00:00.0",
+            "",
+            "",
+            "",
+            "",
+            "2017-01-26 13:48:13.35"));
+    validateRow(
+        response,
+        11,
+        List.of(
+            "MCH Static/U5", "1981-10-03 00:00:00.0", "", "", "", "", "2017-01-26 13:48:13.349"));
+    validateRow(
+        response,
+        12,
+        List.of(
+            "Sembehun CHC", "1973-05-17 00:00:00.0", "", "", "", "", "2017-01-26 13:48:13.347"));
+    validateRow(
+        response,
+        13,
+        List.of(
+            "Baoma (Koya) CHC",
+            "1976-07-07 00:00:00.0",
+            "",
+            "",
+            "",
+            "",
+            "2017-01-26 13:48:13.346"));
+    validateRow(
+        response,
+        14,
+        List.of("Konjo MCHP", "1980-09-30 00:00:00.0", "", "", "", "", "2017-01-26 13:48:13.344"));
+    validateRow(
+        response,
+        15,
+        List.of("Fogbo CHP", "1985-08-09 00:00:00.0", "", "", "", "", "2017-01-26 13:48:13.343"));
+    validateRow(
+        response,
+        16,
+        List.of(
+            "Lakka/Ogoo Farm CHC",
+            "1986-05-10 00:00:00.0",
+            "",
+            "",
+            "",
+            "",
+            "2017-01-26 13:48:13.34"));
+    validateRow(
+        response,
+        17,
+        List.of(
+            "Moriba Town CHC", "1980-03-18 00:00:00.0", "", "", "", "", "2017-01-26 13:48:13.339"));
+    validateRow(
+        response,
+        18,
+        List.of(
+            "Makonkorie MCHP", "1978-08-12 00:00:00.0", "", "", "", "", "2017-01-26 13:48:13.336"));
+    validateRow(
+        response,
+        19,
+        List.of(
+            "Gbo-Kakajama 1 MCHP",
+            "1975-09-20 00:00:00.0",
+            "",
+            "",
+            "",
+            "",
+            "2017-01-26 13:48:13.334"));
+  }
+
   @Test
   public void sortByEnrollmentOuAsc() throws JSONException {
     // Given

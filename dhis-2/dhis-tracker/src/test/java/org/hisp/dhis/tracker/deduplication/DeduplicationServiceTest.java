@@ -118,7 +118,9 @@ class DeduplicationServiceTest {
     trackedEntityPerson.setName("Person");
     trackedEntityPerson.setUid(CodeGenerator.generateUid());
     when(trackedEntityA.getUid()).thenReturn(TE_A_UID);
+    when(trackedEntityA.getUID()).thenReturn(UID.of(TE_A_UID));
     when(trackedEntityB.getUid()).thenReturn(TE_B_UID);
+    when(trackedEntityB.getUID()).thenReturn(UID.of(TE_B_UID));
     when(trackedEntityA.getTrackedEntityType()).thenReturn(trackedEntityPerson);
     when(trackedEntityB.getTrackedEntityType()).thenReturn(trackedEntityPerson);
     when(deduplicationHelper.getUserAccessErrors(any(), any(), any())).thenReturn(null);

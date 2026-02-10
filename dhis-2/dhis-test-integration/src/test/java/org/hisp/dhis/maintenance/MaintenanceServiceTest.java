@@ -201,10 +201,12 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     enrollment = new Enrollment(enrollmentDate, occurredDate, trackedEntity, program);
     enrollment.setUid(CodeGenerator.generateUid());
     enrollment.setOrganisationUnit(organisationUnit);
+    enrollment.setAttributeOptionCombo(coA);
     Enrollment enrollmentWithTeAssociation =
         new Enrollment(enrollmentDate, occurredDate, trackedEntityWithAssociations, program);
     enrollmentWithTeAssociation.setUid(UID.generate().getValue());
     enrollmentWithTeAssociation.setOrganisationUnit(organisationUnit);
+    enrollmentWithTeAssociation.setAttributeOptionCombo(coA);
     manager.save(trackedEntityWithAssociations);
     manager.save(enrollmentWithTeAssociation);
     manager.save(enrollment);

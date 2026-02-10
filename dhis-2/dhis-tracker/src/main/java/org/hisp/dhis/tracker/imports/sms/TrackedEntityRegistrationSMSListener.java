@@ -36,6 +36,7 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -65,15 +66,19 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
 
   private final TrackerImportService trackerImportService;
 
+  private final CategoryService categoryService;
+
   public TrackedEntityRegistrationSMSListener(
       UserService userService,
       IncomingSmsService incomingSmsService,
       MessageSender smsMessageSender,
       SMSCommandService smsCommandService,
-      TrackerImportService trackerImportService) {
+      TrackerImportService trackerImportService,
+      CategoryService categoryService) {
     super(userService, incomingSmsService, smsMessageSender);
     this.smsCommandService = smsCommandService;
     this.trackerImportService = trackerImportService;
+    this.categoryService = categoryService;
   }
 
   @Override
@@ -99,7 +104,8 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener {
     TrackerImportParams params =
         TrackerImportParams.builder().importStrategy(TrackerImportStrategy.CREATE).build();
     TrackerObjects trackerObjects =
-        mapTrackedEntityRegistrationParserCommand(sms, smsCommand, codeValues, orgUnit);
+        mapTrackedEntityRegistrationParserCommand(
+            sms, smsCommand, codeValues, orgUnit, categoryService.getDefaultCategoryOptionCombo());
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     if (Status.OK == importReport.getStatus()) {
