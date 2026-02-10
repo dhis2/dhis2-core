@@ -37,7 +37,7 @@ import org.hisp.dhis.calendar.DateTimeUnit;
  */
 public class FinancialSeptemberPeriodType extends FinancialPeriodType {
   /** Determines if a de-serialized file is compatible with this class. */
-  private static final long serialVersionUID = 4502014025445088272L;
+  private static final long serialVersionUID = -1623576547899897922L;
 
   private static final String ISO_FORMAT = "yyyySep";
 
