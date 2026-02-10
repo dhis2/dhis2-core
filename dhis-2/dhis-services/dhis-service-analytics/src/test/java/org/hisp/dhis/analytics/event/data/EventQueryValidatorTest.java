@@ -468,6 +468,25 @@ class EventQueryValidatorTest extends TestBase {
   }
 
   @Test
+  void validateSuccessWithStaticDateItem_EnrollmentDate() {
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi.addFilter(new QueryFilter(QueryOperator.GE, "2025-01-01"));
+    qi.addFilter(new QueryFilter(QueryOperator.LE, "2025-12-31"));
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withOrganisationUnits(List.of(ouA))
+            .addItem(qi)
+            .build();
+
+    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
+    assertNull(error);
+  }
+
+  @Test
   void validateFailsWhenStageParamWithStageSpecificDimension() {
     ProgramStage psA = createProgramStage('A', prA);
     BaseDimensionalItemObject item =
