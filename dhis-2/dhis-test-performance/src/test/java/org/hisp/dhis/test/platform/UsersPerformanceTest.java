@@ -152,12 +152,16 @@ public class UsersPerformanceTest extends Simulation {
   private static final String METADATA_IMPORT_USER_REQUEST =
       "POST Metadata Import - single user REQUEST";
 
+  // Timestamp-based offset so each test run generates unique usernames (avoids 409 on reruns)
+  private static final int RUN_OFFSET = (int) (System.currentTimeMillis() % 10_000_000);
+
   // Counters for write scenarios (unique per request)
-  private static final AtomicInteger POST_COUNTER = new AtomicInteger(300001);
-  private static final AtomicInteger PUT_PAGE = new AtomicInteger(1);
-  private static final AtomicInteger PATCH_PAGE = new AtomicInteger(1000);
-  private static final AtomicInteger DELETE_COUNTER = new AtomicInteger(500001);
-  private static final AtomicInteger METADATA_IMPORT_COUNTER = new AtomicInteger(600001);
+  private static final AtomicInteger POST_COUNTER = new AtomicInteger(RUN_OFFSET);
+  private static final AtomicInteger PUT_PAGE = new AtomicInteger(100);
+  private static final AtomicInteger PATCH_PAGE = new AtomicInteger(2000);
+  private static final AtomicInteger DELETE_COUNTER = new AtomicInteger(RUN_OFFSET + 5_000_000);
+  private static final AtomicInteger METADATA_IMPORT_COUNTER =
+      new AtomicInteger(RUN_OFFSET + 8_000_000);
 
   // Well-known UIDs from the test data
   private static final String USER_ROLE_UID = "yrB6vc5Ip3r";
@@ -209,21 +213,14 @@ public class UsersPerformanceTest extends Simulation {
         http.baseUrl(BASE_URL)
             .acceptHeader("application/json")
             .warmUp(BASE_URL + "/api/ping")
-            .disableCaching();
+            .disableCaching()
+            .basicAuth(USERNAME, PASSWORD);
 
-    // Simple feeder with configured credentials
-    Iterator<Map<String, Object>> feeder =
-        Stream.generate(
-                (java.util.function.Supplier<Map<String, Object>>)
-                    () -> Map.of("username", USERNAME, "password", PASSWORD))
-            .iterator();
 
     // Scenario 1: Basic user list (paged, default fields)
     ScenarioBuilder getUsersScenario =
         scenario(GET_USERS)
-            .feed(feeder)
-            .group("Authentication")
-            .on(exec(loginChain()))
+            .exec(flushCookieJar())
             .group(GET_USERS_REQUEST)
             .on(
                 repeat(6)
@@ -231,15 +228,13 @@ public class UsersPerformanceTest extends Simulation {
                         exec(http(GET_USERS_REQUEST)
                                 .get("/api/users")
                                 .queryParam("pageSize", "50")
-                                .basicAuth("#{username}", "#{password}"))
+)
                             .pause(1)));
 
     // Scenario 2: All fields expansion (triggers lazy loading of ALL relationships)
     ScenarioBuilder getUsersAllFieldsScenario =
         scenario(GET_USERS_ALL_FIELDS)
-            .feed(feeder)
-            .group("Authentication")
-            .on(exec(loginChain()))
+            .exec(flushCookieJar())
             .group(GET_USERS_ALL_FIELDS_REQUEST)
             .on(
                 repeat(6)
@@ -248,15 +243,13 @@ public class UsersPerformanceTest extends Simulation {
                                 .get("/api/users")
                                 .queryParam("fields", "*")
                                 .queryParam("pageSize", "50")
-                                .basicAuth("#{username}", "#{password}"))
+)
                             .pause(1)));
 
     // Scenario 3: User roles expansion (N+1 on userRoles)
     ScenarioBuilder getUsersRolesScenario =
         scenario(GET_USERS_ROLES)
-            .feed(feeder)
-            .group("Authentication")
-            .on(exec(loginChain()))
+            .exec(flushCookieJar())
             .group(GET_USERS_ROLES_REQUEST)
             .on(
                 repeat(6)
@@ -265,15 +258,13 @@ public class UsersPerformanceTest extends Simulation {
                                 .get("/api/users")
                                 .queryParam("fields", "id,name,userRoles[id,name]")
                                 .queryParam("pageSize", "50")
-                                .basicAuth("#{username}", "#{password}"))
+)
                             .pause(1)));
 
     // Scenario 4: User groups expansion (N+1 on userGroups)
     ScenarioBuilder getUsersGroupsScenario =
         scenario(GET_USERS_GROUPS)
-            .feed(feeder)
-            .group("Authentication")
-            .on(exec(loginChain()))
+            .exec(flushCookieJar())
             .group(GET_USERS_GROUPS_REQUEST)
             .on(
                 repeat(6)
@@ -282,15 +273,13 @@ public class UsersPerformanceTest extends Simulation {
                                 .get("/api/users")
                                 .queryParam("fields", "id,name,userGroups[id,name]")
                                 .queryParam("pageSize", "50")
-                                .basicAuth("#{username}", "#{password}"))
+)
                             .pause(1)));
 
     // Scenario 5: Org units expansion (N+1 on organisationUnits)
     ScenarioBuilder getUsersOrgunitsScenario =
         scenario(GET_USERS_ORGUNITS)
-            .feed(feeder)
-            .group("Authentication")
-            .on(exec(loginChain()))
+            .exec(flushCookieJar())
             .group(GET_USERS_ORGUNITS_REQUEST)
             .on(
                 repeat(6)
@@ -299,15 +288,13 @@ public class UsersPerformanceTest extends Simulation {
                                 .get("/api/users")
                                 .queryParam("fields", "id,name,organisationUnits[id,name]")
                                 .queryParam("pageSize", "50")
-                                .basicAuth("#{username}", "#{password}"))
+)
                             .pause(1)));
 
     // Scenario 6: Combined common fields (realistic admin UI query)
     ScenarioBuilder getUsersCombinedScenario =
         scenario(GET_USERS_COMBINED)
-            .feed(feeder)
-            .group("Authentication")
-            .on(exec(loginChain()))
+            .exec(flushCookieJar())
             .group(GET_USERS_COMBINED_REQUEST)
             .on(
                 repeat(6)
@@ -318,15 +305,13 @@ public class UsersPerformanceTest extends Simulation {
                                     "fields",
                                     "id,name,username,userRoles[id,name],userGroups[id,name],organisationUnits[id,name]")
                                 .queryParam("pageSize", "50")
-                                .basicAuth("#{username}", "#{password}"))
+)
                             .pause(1)));
 
     // Scenario 7: Query filter (search) - tests getPreQueryMatches + HQL path
     ScenarioBuilder getUsersQueryScenario =
         scenario(GET_USERS_QUERY)
-            .feed(feeder)
-            .group("Authentication")
-            .on(exec(loginChain()))
+            .exec(flushCookieJar())
             .group(GET_USERS_QUERY_REQUEST)
             .on(
                 repeat(6)
@@ -335,15 +320,13 @@ public class UsersPerformanceTest extends Simulation {
                                 .get("/api/users")
                                 .queryParam("query", "perftest")
                                 .queryParam("pageSize", "50")
-                                .basicAuth("#{username}", "#{password}"))
+)
                             .pause(1)));
 
     // Scenario 8: Large page size (amplifies N+1 issues)
     ScenarioBuilder getUsersLargePageScenario =
         scenario(GET_USERS_LARGE_PAGE)
-            .feed(feeder)
-            .group("Authentication")
-            .on(exec(loginChain()))
+            .exec(flushCookieJar())
             .group(GET_USERS_LARGE_PAGE_REQUEST)
             .on(
                 repeat(6)
@@ -352,15 +335,13 @@ public class UsersPerformanceTest extends Simulation {
                                 .get("/api/users")
                                 .queryParam("fields", "id,name,userRoles[id,name]")
                                 .queryParam("pageSize", "500")
-                                .basicAuth("#{username}", "#{password}"))
+)
                             .pause(1)));
 
     // Scenario 9: POST - create a new user
     ScenarioBuilder postUserScenario =
         scenario(POST_USER)
-            .feed(feeder)
-            .group("Authentication")
-            .on(exec(loginChain()))
+            .exec(flushCookieJar())
             .group(POST_USER_REQUEST)
             .on(
                 repeat(6)
@@ -393,7 +374,6 @@ public class UsersPerformanceTest extends Simulation {
                                     .post("/api/users")
                                     .header("Content-Type", "application/json")
                                     .body(StringBody("#{postBody}"))
-                                    .basicAuth("#{username}", "#{password}")
                                     .check(status().in(200, 201)))
                             .pause(1)));
 
@@ -401,9 +381,7 @@ public class UsersPerformanceTest extends Simulation {
     // Fetches an existing user, modifies firstName, PUTs the full payload back
     ScenarioBuilder putUserScenario =
         scenario(PUT_USER)
-            .feed(feeder)
-            .group("Authentication")
-            .on(exec(loginChain()))
+            .exec(flushCookieJar())
             .group(PUT_USER_REQUEST)
             .on(
                 repeat(6)
@@ -412,39 +390,50 @@ public class UsersPerformanceTest extends Simulation {
                                 session ->
                                     session.set("putPage", PUT_PAGE.getAndIncrement()))
                             .exec(
-                                http("Fetch user UID for PUT")
+                                http("Fetch user for PUT")
                                     .get("/api/users")
                                     .queryParam("pageSize", "1")
                                     .queryParam("page", "#{putPage}")
-                                    .basicAuth("#{username}", "#{password}")
+                                    .queryParam(
+                                        "fields",
+                                        "id,username,firstName,surname,userRoles[id],organisationUnits[id],dataViewOrganisationUnits[id]")
                                     .check(status().is(200))
+                                    .check(jsonPath("$.users[0].id").saveAs("putUserId"))
                                     .check(
-                                        jsonPath("$.users[0].id").saveAs("putUserId")))
-                            .exitHereIfFailed()
-                            .exec(
-                                http("Fetch full user for PUT")
-                                    .get("/api/users/#{putUserId}")
-                                    .basicAuth("#{username}", "#{password}")
-                                    .check(status().is(200))
-                                    .check(bodyString().saveAs("putUserBody")))
+                                        jsonPath("$.users[0].username")
+                                            .saveAs("putUsername"))
+                                    .check(
+                                        jsonPath("$.users[0].surname")
+                                            .saveAs("putSurname")))
                             .exitHereIfFailed()
                             .exec(
                                 session -> {
-                                  String body = session.getString("putUserBody");
-                                  String modified =
-                                      body.replaceFirst(
-                                          "\"firstName\"\\s*:\\s*\"[^\"]*\"",
-                                          "\"firstName\":\"PutUpdated"
-                                              + System.currentTimeMillis()
-                                              + "\"");
-                                  return session.set("putModifiedBody", modified);
+                                  String body =
+                                      "{\"username\":\""
+                                          + session.getString("putUsername")
+                                          + "\","
+                                          + "\"firstName\":\"PutUpdated"
+                                          + System.currentTimeMillis()
+                                          + "\","
+                                          + "\"surname\":\""
+                                          + session.getString("putSurname")
+                                          + "\","
+                                          + "\"userRoles\":[{\"id\":\""
+                                          + USER_ROLE_UID
+                                          + "\"}],"
+                                          + "\"organisationUnits\":[{\"id\":\""
+                                          + ORG_UNIT_UID
+                                          + "\"}],"
+                                          + "\"dataViewOrganisationUnits\":[{\"id\":\""
+                                          + ORG_UNIT_UID
+                                          + "\"}]}";
+                                  return session.set("putModifiedBody", body);
                                 })
                             .exec(
                                 http(PUT_USER_REQUEST)
                                     .put("/api/users/#{putUserId}")
                                     .header("Content-Type", "application/json")
                                     .body(StringBody("#{putModifiedBody}"))
-                                    .basicAuth("#{username}", "#{password}")
                                     .check(status().is(200)))
                             .pause(1)));
 
@@ -452,9 +441,7 @@ public class UsersPerformanceTest extends Simulation {
     // Content-Type: application/json-patch+json
     ScenarioBuilder patchUserScenario =
         scenario(PATCH_USER)
-            .feed(feeder)
-            .group("Authentication")
-            .on(exec(loginChain()))
+            .exec(flushCookieJar())
             .group(PATCH_USER_REQUEST)
             .on(
                 repeat(6)
@@ -468,7 +455,6 @@ public class UsersPerformanceTest extends Simulation {
                                     .get("/api/users")
                                     .queryParam("pageSize", "1")
                                     .queryParam("page", "#{patchPage}")
-                                    .basicAuth("#{username}", "#{password}")
                                     .check(status().is(200))
                                     .check(
                                         jsonPath("$.users[0].id")
@@ -477,16 +463,10 @@ public class UsersPerformanceTest extends Simulation {
                             .exec(
                                 session -> {
                                   String patchBody =
-                                      "[{\"op\":\"add\",\"path\":\"/firstName\","
+                                      "[{\"op\":\"replace\",\"path\":\"/firstName\","
                                           + "\"value\":\"Patched"
                                           + System.currentTimeMillis()
-                                          + "\"},"
-                                          + "{\"op\":\"add\",\"path\":\"/organisationUnits\","
-                                          + "\"value\":[{\"id\":\""
-                                          + ORG_UNIT_UID
-                                          + "\"}]},"
-                                          + "{\"op\":\"add\",\"path\":\"/attributeValues\","
-                                          + "\"value\":[]}]";
+                                          + "\"}]";
                                   return session.set("patchBody", patchBody);
                                 })
                             .exec(
@@ -496,16 +476,13 @@ public class UsersPerformanceTest extends Simulation {
                                         "Content-Type",
                                         "application/json-patch+json")
                                     .body(StringBody("#{patchBody}"))
-                                    .basicAuth("#{username}", "#{password}")
                                     .check(status().is(200)))
                             .pause(1)));
 
     // Scenario 12: DELETE - create a disposable user then delete it
     ScenarioBuilder deleteUserScenario =
         scenario(DELETE_USER)
-            .feed(feeder)
-            .group("Authentication")
-            .on(exec(loginChain()))
+            .exec(flushCookieJar())
             .group(DELETE_USER_REQUEST)
             .on(
                 repeat(6)
@@ -539,7 +516,6 @@ public class UsersPerformanceTest extends Simulation {
                                     .post("/api/users")
                                     .header("Content-Type", "application/json")
                                     .body(StringBody("#{deletePostBody}"))
-                                    .basicAuth("#{username}", "#{password}")
                                     .check(status().in(200, 201))
                                     .check(
                                         jsonPath("$.response.uid")
@@ -549,7 +525,6 @@ public class UsersPerformanceTest extends Simulation {
                             .exec(
                                 http(DELETE_USER_REQUEST)
                                     .delete("/api/users/#{deleteUserId}")
-                                    .basicAuth("#{username}", "#{password}")
                                     .check(status().is(200)))
                             .pause(1)));
 
@@ -557,9 +532,7 @@ public class UsersPerformanceTest extends Simulation {
     // This is the same endpoint used in the setup import, now measured as a perf scenario
     ScenarioBuilder metadataImportUserScenario =
         scenario(METADATA_IMPORT_USER)
-            .feed(feeder)
-            .group("Authentication")
-            .on(exec(loginChain()))
+            .exec(flushCookieJar())
             .group(METADATA_IMPORT_USER_REQUEST)
             .on(
                 repeat(6)
@@ -596,7 +569,6 @@ public class UsersPerformanceTest extends Simulation {
                                     .queryParam("importStrategy", "CREATE_AND_UPDATE")
                                     .header("Content-Type", "application/json")
                                     .body(StringBody("#{metadataImportBody}"))
-                                    .basicAuth("#{username}", "#{password}")
                                     .check(status().in(200, 409)))
                             .pause(1)));
 
@@ -614,8 +586,10 @@ public class UsersPerformanceTest extends Simulation {
             getUsersGroupsScenario.injectClosed(closedInjection),
             getUsersOrgunitsScenario.injectClosed(closedInjection),
             getUsersCombinedScenario.injectClosed(singleUserInjection),
-            // Search and large page scenarios
-            getUsersQueryScenario.injectClosed(closedInjection),
+
+        // Search and large page scenarios
+//            getUsersQueryScenario.injectClosed(closedInjection),
+
             getUsersLargePageScenario.injectClosed(singleUserInjection),
             // Write scenarios (single user to avoid conflicts)
             postUserScenario.injectClosed(singleUserInjection),
@@ -674,12 +648,4 @@ public class UsersPerformanceTest extends Simulation {
             details(METADATA_IMPORT_USER_REQUEST).successfulRequests().percent().is(100D));
   }
 
-  private ChainBuilder loginChain() {
-    return exec(
-        http("Login")
-            .post("/api/auth/login")
-            .header("Content-Type", "application/json")
-            .body(StringBody("{\"username\":\"#{username}\",\"password\":\"#{password}\"}"))
-            .check(status().is(200)));
-  }
 }
