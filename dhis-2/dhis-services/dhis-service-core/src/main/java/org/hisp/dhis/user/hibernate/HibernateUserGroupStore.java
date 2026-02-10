@@ -123,7 +123,8 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
     String sql =
         "UPDATE usergroup SET lastupdated = now(), lastupdatedby = ? WHERE usergroupid = ?";
     jdbcTemplate.update(sql, lastUpdatedBy, userGroupId);
-    // Evict from L2 cache since we bypassed Hibernate
+    // Evict from both L1 (session) and L2 caches since we bypassed Hibernate
+    getSession().evict(getSession().getReference(UserGroup.class, userGroupId));
     getSession().getSessionFactory().getCache().evictEntityData(UserGroup.class, userGroupId);
   }
 
