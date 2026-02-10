@@ -6,25 +6,25 @@ declare
     attempt int := 0;
 begin
   if not exists (
-    select 1 from periodtype where name = 'weeklyfriday'
+    select 1 from periodtype where name = 'WeeklyFriday'
   ) then
     loop
       begin
         insert into periodtype (periodtypeid, name)
-        values (nextval('hibernate_sequence'), 'weeklyfriday');
+        values (nextval('hibernate_sequence'), 'WeeklyFriday');
         exit; -- success, leave the loop
       exception
         when unique_violation then
           attempt := attempt + 1;
           if attempt >= max_retries then
-            raise exception 'failed to insert weeklyfriday after % attempts due to duplicate key', max_retries;
+            raise exception 'failed to insert WeeklyFriday after % attempts due to duplicate key', max_retries;
           end if;
           raise info 'duplicate key on attempt %, retrying...', attempt;
           -- loop continues, nextval will get a new value
       end;
     end loop;
   else
-    raise info '%', 'weeklyfriday already exists';
+    raise info '%', 'WeeklyFriday already exists';
   end if;
 end;
 $$ language plpgsql;
