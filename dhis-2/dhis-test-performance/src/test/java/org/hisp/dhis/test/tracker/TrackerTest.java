@@ -370,13 +370,13 @@ public class TrackerTest extends Simulation {
     Request searchSingleEventsAssignedToAnyone =
         new Request(
             getEventsUrl + "&assignedUserMode=ANY",
-            new EnumMap<>(Map.of(Profile.SMOKE, 101, Profile.LOAD, 107)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 50)),
             "Search single events assigned to any user in program " + this.eventProgram,
             "Get a list of single events");
     Request searchSingleEventsNotAssignedToUser =
         new Request(
             getEventsUrl + "&assignedUserMode=NONE",
-            new EnumMap<>(Map.of(Profile.SMOKE, 101, Profile.LOAD, 107)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 70, Profile.LOAD, 107)),
             "Search single events not assigned to a user in program " + this.eventProgram,
             "Get a list of single events");
     Request searchSingleEvents =
@@ -417,11 +417,11 @@ public class TrackerTest extends Simulation {
                             .exec(
                                 searchSingleEventsAssignedToAnyone
                                     .action()
-                                    .check(jsonPath("$.events[*]").count().gt(0)))
+                                    .check(jsonPath("$.events[*]").count().gt(3)))
                             .exec(
                                 searchSingleEventsNotAssignedToUser
                                     .action()
-                                    .check(jsonPath("$.events[*]").count().gt(0)))
+                                    .check(jsonPath("$.events[*]").count().gt(50)))
                             .exec(
                                 searchSingleEvents
                                     .action()
