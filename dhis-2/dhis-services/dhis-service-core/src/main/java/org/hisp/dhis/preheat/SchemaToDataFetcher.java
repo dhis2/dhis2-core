@@ -79,7 +79,7 @@ public class SchemaToDataFetcher {
    * @deprecated Use {@link #fetch(Schema, Collection)} to avoid loading all records
    */
   @Deprecated
-  @OpenApi.Since( 43 )
+  @OpenApi.Since(43)
   public List<? extends IdentifiableObject> fetch(Schema schema) {
     return fetch(schema, null);
   }
