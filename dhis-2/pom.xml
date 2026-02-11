@@ -179,7 +179,7 @@
     <classgraph.version>4.8.181</classgraph.version>
 
     <!-- SMS/SMPP -->
-    <sms-compression.version>0.3</sms-compression.version>
+    <sms-compression.version>0.3.2</sms-compression.version>
     <javacsv.version>2.0</javacsv.version>
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <jsmpp.version>3.0.1</jsmpp.version>

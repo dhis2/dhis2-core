@@ -357,11 +357,18 @@ class JdbcTrackedEntityStore {
    * TrackedEntityQueryParams)} and {@link #addOrderBy(StringBuilder, TrackedEntityQueryParams)}.
    */
   private void addTrackedEntityFromItemSelect(StringBuilder sql, TrackedEntityQueryParams params) {
-    // When ordering by enrolledAt, use DISTINCT ON to pick one enrollment per TE.
-    // This fixes pagination when a TE has multiple enrollments (DHIS2-20811).
     if (isOrderingByEnrolledAt(params)) {
+      // When ordering by enrolledAt, use DISTINCT ON to pick one enrollment per TE.
       sql.append("select distinct on (te.trackedentityid) te.trackedentityid");
+    } else if (params.hasEnrolledInTrackerProgram()) {
+      // No DISTINCT needed: trackedentityprogramowner's unique index on (trackedentityid,
+      // programid) guarantees one row per TE. This relies on enrollment filters using EXISTS
+      // (addEnrollmentAndEventExistsCondition), not a JOIN. If enrollment is ever joined
+      // directly in this path, DISTINCT must be restored.
+      sql.append("select te.trackedentityid");
     } else {
+      // Without a program, the left join on trackedentityprogramowner can produce
+      // multiple rows per TE (one per program enrollment). DISTINCT is needed.
       sql.append("select distinct te.trackedentityid");
     }
 
@@ -405,12 +412,11 @@ class JdbcTrackedEntityStore {
 
   private void addJoinOnProgram(
       StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
-    sql.append("inner join program p on p.trackedentitytypeid = te.trackedentitytypeid");
-
     if (params.hasEnrolledInTrackerProgram()) {
       return;
     }
 
+    sql.append("inner join program p on p.trackedentitytypeid = te.trackedentitytypeid");
     sql.append(" and p.programid in (:accessiblePrograms)");
     sqlParameters.addValue(
         "accessiblePrograms", getIdentifiers(params.getAccessibleTrackerPrograms()));
@@ -423,8 +429,7 @@ class JdbcTrackedEntityStore {
           """
           inner join trackedentityprogramowner po \
            on po.programid = :enrolledInTrackerProgram\
-           and po.trackedentityid = te.trackedentityid \
-           and p.programid = po.programid""");
+           and po.trackedentityid = te.trackedentityid""");
       sqlParameters.addValue(
           "enrolledInTrackerProgram", params.getEnrolledInTrackerProgram().getId());
       return;
@@ -461,7 +466,6 @@ class JdbcTrackedEntityStore {
   private void addJoinOnOrgUnit(
       StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
     String orgUnitTableAlias = "ou";
-    String programTableAlias = "p";
 
     sql.append("inner join organisationunit ");
     sql.append(orgUnitTableAlias);
@@ -482,14 +486,25 @@ class JdbcTrackedEntityStore {
           "and ");
     }
 
-    buildOwnershipClause(
-        sql,
-        sqlParameters,
-        params.getOrgUnitMode(),
-        programTableAlias,
-        orgUnitTableAlias,
-        MAIN_QUERY_ALIAS,
-        () -> "and ");
+    if (params.hasEnrolledInTrackerProgram() && params.getOwnershipScope() != null) {
+      buildOwnershipClause(
+          sql,
+          sqlParameters,
+          params.getEnrolledInTrackerProgram(),
+          params.getOwnershipScope(),
+          orgUnitTableAlias,
+          MAIN_QUERY_ALIAS,
+          () -> "and ");
+    } else if (!params.hasEnrolledInTrackerProgram()) {
+      buildOwnershipClause(
+          sql,
+          sqlParameters,
+          params.getOrgUnitMode(),
+          "p",
+          orgUnitTableAlias,
+          MAIN_QUERY_ALIAS,
+          () -> "and ");
+    }
   }
 
   /**
@@ -680,26 +695,37 @@ class JdbcTrackedEntityStore {
   }
 
   /**
-   * Adds a single LEFT JOIN for each attribute used for filtering and sorting. The result of this
-   * LEFT JOIN is used in the subquery projection and for ordering in both the subquery and the main
-   * query.
+   * Adds joins on tracked entity attribute values for filtering and sorting. Attributes with
+   * non-null filters use INNER JOIN (the WHERE clause eliminates NULLs anyway), which lets the
+   * planner use the join as a filter. Order-only attributes and attributes with a {@code null}
+   * operator filter use LEFT JOIN to preserve rows without a value.
    *
    * <p>Attribute filtering is handled in {@link #addAttributeFilterConditions(StringBuilder,
    * MapSqlParameterSource, TrackedEntityQueryParams, SqlHelper)}.
    */
   private void addJoinOnAttributes(StringBuilder sql, TrackedEntityQueryParams params) {
-    for (TrackedEntityAttribute attribute : params.getLeftJoinAttributes()) {
-      String col = quote(attribute.getUid());
-      sql.append(" left join trackedentityattributevalue as ")
-          .append(col)
-          .append(" on ")
-          .append(col)
-          .append(".trackedentityid = te.trackedentityid and ")
-          .append(col)
-          .append(".trackedentityattributeid = ")
-          .append(attribute.getId())
-          .append(" ");
+    for (TrackedEntityAttribute attribute : params.getInnerJoinAttributes()) {
+      addAttributeJoin(sql, "inner", attribute);
     }
+    for (TrackedEntityAttribute attribute : params.getLeftJoinAttributes()) {
+      addAttributeJoin(sql, "left", attribute);
+    }
+  }
+
+  private void addAttributeJoin(
+      StringBuilder sql, String joinType, TrackedEntityAttribute attribute) {
+    String col = quote(attribute.getUid());
+    sql.append(" ")
+        .append(joinType)
+        .append(" join trackedentityattributevalue as ")
+        .append(col)
+        .append(" on ")
+        .append(col)
+        .append(".trackedentityid = te.trackedentityid and ")
+        .append(col)
+        .append(".trackedentityattributeid = ")
+        .append(attribute.getId())
+        .append(" ");
   }
 
   /** Adds the WHERE-clause conditions related to the user provided filters. */
@@ -731,7 +757,12 @@ class JdbcTrackedEntityStore {
     if (params.hasTrackedEntityType()) {
       sql.append(whereAnd.whereAnd()).append("te.trackedentitytypeid = :trackedEntityTypeId ");
       sqlParameters.addValue("trackedEntityTypeId", params.getTrackedEntityType().getId());
-    } else if (!params.hasEnrolledInTrackerProgram()) {
+    } else if (params.hasEnrolledInTrackerProgram()) {
+      sql.append(whereAnd.whereAnd()).append("te.trackedentitytypeid = :trackedEntityTypeId ");
+      sqlParameters.addValue(
+          "trackedEntityTypeId",
+          params.getEnrolledInTrackerProgram().getTrackedEntityType().getId());
+    } else {
       sql.append(whereAnd.whereAnd()).append("te.trackedentitytypeid in (:trackedEntityTypeIds) ");
       sqlParameters.addValue(
           "trackedEntityTypeIds", getIdentifiers(params.getTrackedEntityTypes()));
