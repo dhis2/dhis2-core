@@ -109,7 +109,7 @@ public record DataEntrySummary(
     // maps to "updated", values attempted but failed become "ignored"
     // "imported" (created) is not used as we cannot (easily) tell the difference
     int ignored = ignored();
-    summary.setImportCount(new ImportCount(0, succeeded(), ignored, deleted()));
+    summary.setImportCount(new ImportCount(0, succeeded(), ignored, deleted));
     for (DataEntryError error : errors()) {
       summary.addRejected(error.value().index());
       summary.addConflict(toConflict(error));

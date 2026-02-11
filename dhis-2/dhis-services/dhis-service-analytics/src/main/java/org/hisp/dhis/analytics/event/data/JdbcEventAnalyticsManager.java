@@ -372,7 +372,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   }
 
   @Override
-  protected String getColumnWithCte(QueryItem item, CteContext cteContext) {
+  protected String getColumnWithCte(
+      QueryItem item, CteContext cteContext, EventQueryParams params) {
     Set<String> columns = new LinkedHashSet<>();
 
     // Get the CTE definition for the item
@@ -387,21 +388,25 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         getAlias(item).orElse("%s.%s".formatted(item.getProgramStage().getUid(), item.getItemId()));
     columns.add("%s.value as %s".formatted(cteDef.getAlias(programStageOffset), quote(alias)));
 
-    // For stage.ou dimensions, also select the ev_ouname and ev_oucode columns
-    if (isStageOuDimension(item)) {
+    // For stage.ou dimensions, conditionally select ouname/oucode columns
+    if (isStageOuDimension(item) && params.hasHeaders()) {
       String stageUid = item.getProgramStage().getUid();
-      columns.add(
-          "%s.%s as %s"
-              .formatted(
-                  cteDef.getAlias(programStageOffset),
-                  STAGE_OU_NAME_COLUMN,
-                  quote(stageUid + ".ouname")));
-      columns.add(
-          "%s.%s as %s"
-              .formatted(
-                  cteDef.getAlias(programStageOffset),
-                  STAGE_OU_CODE_COLUMN,
-                  quote(stageUid + ".oucode")));
+      if (params.getHeaders().contains(stageUid + ".ouname")) {
+        columns.add(
+            "%s.%s as %s"
+                .formatted(
+                    cteDef.getAlias(programStageOffset),
+                    STAGE_OU_NAME_COLUMN,
+                    quote(stageUid + ".ouname")));
+      }
+      if (params.getHeaders().contains(stageUid + ".oucode")) {
+        columns.add(
+            "%s.%s as %s"
+                .formatted(
+                    cteDef.getAlias(programStageOffset),
+                    STAGE_OU_CODE_COLUMN,
+                    quote(stageUid + ".oucode")));
+      }
     }
 
     if (cteDef.isRowContext()) {
@@ -1082,16 +1087,21 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         OrganisationUnitResolver.StageOuCteContext stageOuContext =
             organisationUnitResolver.buildStageOuCteContext(queryItem, params);
         columns.add(stageOuContext.valueColumn() + " as " + quote(stageUid + ".ou"));
-        // Additional columns: ouname and oucode
-        columns.add(
-            quote(EventAnalyticsColumnName.OU_NAME_COLUMN_NAME)
-                + " as "
-                + quote(stageUid + ".ouname"));
-        columns.add(
-            quote(EventAnalyticsColumnName.OU_CODE_COLUMN_NAME)
-                + " as "
-                + quote(stageUid + ".oucode"));
-        // No row context for stage.ou dimensions in event analytics
+        // Conditionally add ouname/oucode columns
+        if (params.hasHeaders()) {
+          if (params.getHeaders().contains(stageUid + ".ouname")) {
+            columns.add(
+                quote(EventAnalyticsColumnName.OU_NAME_COLUMN_NAME)
+                    + " as "
+                    + quote(stageUid + ".ouname"));
+          }
+          if (params.getHeaders().contains(stageUid + ".oucode")) {
+            columns.add(
+                quote(EventAnalyticsColumnName.OU_CODE_COLUMN_NAME)
+                    + " as "
+                    + quote(stageUid + ".oucode"));
+          }
+        }
       } else {
         ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, params, false, false);
 

@@ -72,7 +72,7 @@ public class TrackedEntity implements TrackerDto, Serializable {
   @JsonProperty @Builder.Default private List<Attribute> attributes = new ArrayList<>();
 
   @Override
-  public UID getUid() {
+  public UID getUID() {
     return trackedEntity;
   }
 

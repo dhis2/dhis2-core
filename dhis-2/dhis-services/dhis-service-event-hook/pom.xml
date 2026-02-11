@@ -31,10 +31,6 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-system</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-service-acl</artifactId>
-    </dependency>
     <!-- Application -->
     <dependency>
       <groupId>org.springframework</groupId>

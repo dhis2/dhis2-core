@@ -210,6 +210,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .status(ACTIVE)
             .storedBy(creatingUser.getUsername())
             .notes(notes(creatingUser))
+            .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
             .build();
 
     Enrollment actual = TrackerObjectsMapper.map(preheat, enrollment, creatingUser);
@@ -235,6 +236,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .status(ACTIVE)
             .storedBy(creatingUser.getUsername())
             .notes(notes(creatingUser))
+            .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
             .build();
 
     Enrollment actual = TrackerObjectsMapper.map(preheat, enrollment, creatingUser);
@@ -262,6 +264,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .status(EnrollmentStatus.COMPLETED)
             .storedBy(creatingUser.getUsername())
             .notes(notes(creatingUser))
+            .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
             .build();
 
     Enrollment actual = TrackerObjectsMapper.map(preheat, enrollment, updatingUser);
@@ -289,6 +292,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .status(EnrollmentStatus.CANCELLED)
             .storedBy(creatingUser.getUsername())
             .notes(notes(creatingUser))
+            .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
             .build();
 
     Enrollment actual = TrackerObjectsMapper.map(preheat, enrollment, updatingUser);
@@ -316,6 +320,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .status(ACTIVE)
             .storedBy(creatingUser.getUsername())
             .notes(notes(creatingUser))
+            .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
             .build();
 
     Enrollment actual = TrackerObjectsMapper.map(preheat, enrollment, updatingUser);
@@ -565,7 +570,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
       TrackerEvent actual,
       UserDetails createdBy,
       UserDetails updatedBy) {
-    assertEqualUids(event.getUid(), actual);
+    assertEqualUids(event.getUID(), actual);
     assertEqualUids(event.getEnrollment(), actual.getEnrollment());
     assertEquals(event.getOrgUnit().getIdentifier(), actual.getOrganisationUnit().getUid());
     assertEquals(event.getProgramStage().getIdentifier(), actual.getProgramStage().getUid());

@@ -58,7 +58,11 @@
           "storedAt": "2019-08-19T13:58:26.874",
           "storedBy": "admin"
         }
-      ]
+      ],
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "wpVV2AvPM89"
+      }
     }
   ],
   "events": [],
