@@ -459,7 +459,7 @@ public class DataAnalysisController {
     if (!dataValues.isEmpty()) {
       dataEntryService.upsertGroup(
           new DataEntryGroup.Options(false, true, false),
-          new DataEntryGroup(null, dataValues),
+          new DataEntryGroup(null, null, null, dataValues),
           transitory());
     }
   }

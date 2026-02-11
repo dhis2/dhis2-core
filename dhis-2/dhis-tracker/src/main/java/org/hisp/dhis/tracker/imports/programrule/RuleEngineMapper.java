@@ -69,7 +69,7 @@ class RuleEngineMapper {
     Program program = preheat.getProgram(enrollment.getProgram());
 
     return new RuleEnrollment(
-        enrollment.getUid().getValue(),
+        enrollment.getUID().getValue(),
         program.getName(),
         getDate(ObjectUtils.firstNonNull(enrollment.getOccurredAt(), enrollment.getEnrolledAt())),
         getDate(enrollment.getEnrolledAt()),
@@ -162,12 +162,12 @@ class RuleEngineMapper {
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.TrackerEvent eventToEvaluate) {
     OrganisationUnit organisationUnit = preheat.getOrganisationUnit(eventToEvaluate.getOrgUnit());
     ProgramStage programStage = preheat.getProgramStage(eventToEvaluate.getProgramStage());
-    TrackerEvent event = preheat.getTrackerEvent(eventToEvaluate.getUid());
+    TrackerEvent event = preheat.getTrackerEvent(eventToEvaluate.getUID());
     RuleInstant createdDate =
         event == null ? RuleInstant.now() : DateUtils.toRuleInstant(event.getCreated());
 
     return new RuleEvent(
-        eventToEvaluate.getUid().getValue(),
+        eventToEvaluate.getUID().getValue(),
         programStage.getUid(),
         programStage.getName(),
         RuleEventStatus.valueOf(eventToEvaluate.getStatus().toString()),
@@ -193,12 +193,12 @@ class RuleEngineMapper {
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.SingleEvent eventToEvaluate) {
     OrganisationUnit organisationUnit = preheat.getOrganisationUnit(eventToEvaluate.getOrgUnit());
     ProgramStage programStage = preheat.getProgramStage(eventToEvaluate.getProgramStage());
-    SingleEvent event = preheat.getSingleEvent(eventToEvaluate.getUid());
+    SingleEvent event = preheat.getSingleEvent(eventToEvaluate.getUID());
     RuleInstant createdDate =
         event == null ? RuleInstant.now() : DateUtils.toRuleInstant(event.getCreated());
 
     return new RuleEvent(
-        eventToEvaluate.getUid().getValue(),
+        eventToEvaluate.getUID().getValue(),
         programStage.getUid(),
         programStage.getName(),
         RuleEventStatus.valueOf(eventToEvaluate.getStatus().toString()),

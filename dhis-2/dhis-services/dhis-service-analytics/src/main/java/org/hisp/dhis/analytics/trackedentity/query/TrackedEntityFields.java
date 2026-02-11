@@ -34,6 +34,7 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.SUPPORTED_EVENT_STATIC_DIMENSIONS;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getCustomLabelOrFullName;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getCustomLabelOrHeaderColumnName;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isDataElement;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isEventLevelStaticDimension;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.joinedWithPrefixesIfNeeded;
 import static org.hisp.dhis.analytics.trackedentity.query.context.QueryContextConstants.TRACKED_ENTITY_ALIAS;
@@ -251,6 +252,26 @@ public class TrackedEntityFields {
 
       headersMap.put(shortFormatName, shortFormatHeader);
       headersMap.put(offsetHeader.getName(), shortFormatHeader);
+    } else if (isEventLevelDataElementDimension(dimIdentifier)) {
+      // Stage-scoped data elements should also be addressable using short format
+      // (programStageUid.dataElementUid) for consistency with stage-specific static headers.
+      String shortFormatName =
+          dimIdentifier.getProgramStage().getElement().getUid()
+              + DIMENSION_IDENTIFIER_SEP
+              + dimIdentifier.getDimension().getUid();
+
+      GridHeader shortFormatHeader =
+          new GridHeader(
+              shortFormatName,
+              offsetHeader.getColumn(),
+              offsetHeader.getValueType(),
+              offsetHeader.isHidden(),
+              offsetHeader.isMeta(),
+              offsetHeader.getOptionSetObject(),
+              offsetHeader.getLegendSetObject());
+
+      headersMap.put(shortFormatName, shortFormatHeader);
+      headersMap.put(offsetHeader.getName(), offsetHeader);
     } else {
       headersMap.put(offsetHeader.getName(), offsetHeader);
     }
@@ -267,6 +288,11 @@ public class TrackedEntityFields {
         && dimIdentifier.getDimension().isDimensionalObject()
         && dimIdentifier.getDimension().getDimensionParamObjectType()
             == DimensionParamObjectType.ORGANISATION_UNIT;
+  }
+
+  private static boolean isEventLevelDataElementDimension(
+      DimensionIdentifier<DimensionParam> dimIdentifier) {
+    return isDataElement(dimIdentifier);
   }
 
   /**

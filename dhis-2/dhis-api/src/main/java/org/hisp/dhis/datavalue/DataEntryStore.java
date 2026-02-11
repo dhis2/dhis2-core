@@ -164,6 +164,10 @@ public interface DataEntryStore {
   Import support
    */
 
+  int countScope(@Nonnull DataEntryGroup.Scope scope);
+
+  int deleteScope(@Nonnull DataEntryGroup.Scope scope);
+
   int deleteByKeys(List<DataEntryKey> keys);
 
   int upsertValues(List<DataEntryValue> values);

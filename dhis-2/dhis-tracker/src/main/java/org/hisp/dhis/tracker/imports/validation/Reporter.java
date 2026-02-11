@@ -162,7 +162,7 @@ public class Reporter {
             MessageFormatter.format(idSchemes, code.getMessage(), args),
             code,
             dto.getTrackerType(),
-            dto.getUid(),
+            dto.getUID(),
             args == null ? List.of() : Arrays.asList(args)));
     return true;
   }
@@ -208,7 +208,7 @@ public class Reporter {
             MessageFormatter.format(idSchemes, code.getMessage(), args),
             code,
             dto.getTrackerType(),
-            dto.getUid()));
+            dto.getUID()));
   }
 
   public void addWarning(Warning warning) {
@@ -217,7 +217,7 @@ public class Reporter {
 
   /** Checks if a TrackerDto is invalid (i.e. has at least one Error in the Reporter). */
   public boolean isInvalid(TrackerDto dto) {
-    return this.isInvalid(dto.getTrackerType(), dto.getUid());
+    return this.isInvalid(dto.getTrackerType(), dto.getUID());
   }
 
   /**
