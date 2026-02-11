@@ -36,7 +36,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import org.hisp.dhis.common.AccessLevel;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.experimental.Accessors;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.UserDetails;
@@ -47,22 +52,33 @@ import org.hisp.dhis.user.UserDetails;
  * re-derive which scope applies.
  *
  * <p>An unrestricted scope (for super users or org unit mode ALL) produces no ownership SQL clause.
- *
- * @param userId the user's database ID, used for temporary ownership predicates
- * @param restricted whether ownership restrictions apply (false for super users or org unit mode
- *     ALL)
- * @param outsideCaptureScope whether the search extends beyond the user's capture scope (triggers
- *     max TE limit enforcement)
- * @param scope the effective scope for OPEN/AUDITED programs, pre-resolved from the org unit mode
- *     (search scope when mode is not CAPTURE, capture scope when mode is CAPTURE)
- * @param captureScope the user's capture scope, used for PROTECTED/CLOSED programs
  */
-public record SearchScope(
-    long userId,
-    boolean restricted,
-    boolean outsideCaptureScope,
-    Set<OrganisationUnit> scope,
-    Set<OrganisationUnit> captureScope) {
+@Getter
+@Accessors(fluent = true)
+@AllArgsConstructor(access = AccessLevel.PACKAGE)
+@EqualsAndHashCode
+@ToString
+public final class SearchScope {
+
+  /** The user's database ID, used for temporary ownership predicates. */
+  private final long userId;
+
+  /** Whether ownership restrictions apply (false for super users or org unit mode ALL). */
+  private final boolean restricted;
+
+  /**
+   * Whether the search extends beyond the user's capture scope (triggers max TE limit enforcement).
+   */
+  private final boolean outsideCaptureScope;
+
+  /**
+   * The effective scope for OPEN/AUDITED programs, pre-resolved from the org unit mode (search
+   * scope when mode is not CAPTURE, capture scope when mode is CAPTURE).
+   */
+  private final Set<OrganisationUnit> scope;
+
+  /** The user's capture scope, used for PROTECTED/CLOSED programs. */
+  private final Set<OrganisationUnit> captureScope;
 
   /**
    * Creates a search scope by resolving the user's org unit scopes via the given resolver. Use this
@@ -114,11 +130,11 @@ public record SearchScope(
     }
     Set<OrganisationUnit> searchOrgUnits =
         Set.copyOf(orgUnitResolver.apply(user.getUserEffectiveSearchOrgUnitIds()));
-    Set<OrganisationUnit> scope = mode == CAPTURE ? captureOrgUnits : searchOrgUnits;
-    return new SearchScope(user.getId(), true, outsideCaptureScope, scope, captureOrgUnits);
+    Set<OrganisationUnit> resolvedScope = mode == CAPTURE ? captureOrgUnits : searchOrgUnits;
+    return new SearchScope(user.getId(), true, outsideCaptureScope, resolvedScope, captureOrgUnits);
   }
 
-  public Set<OrganisationUnit> forAccessLevel(AccessLevel accessLevel) {
+  public Set<OrganisationUnit> forAccessLevel(org.hisp.dhis.common.AccessLevel accessLevel) {
     return switch (accessLevel) {
       case OPEN, AUDITED -> scope;
       case PROTECTED, CLOSED -> captureScope;
