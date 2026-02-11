@@ -55,8 +55,6 @@ public class Query<T extends IdentifiableObject> {
 
   private final List<Filter> filters = new ArrayList<>();
 
-  private final List<JpaPredicateSupplier> predicateSuppliers = new ArrayList<>();
-
   @Getter private final Class<T> objectType;
 
   @ToString.Exclude private UserDetails currentUserDetails;
@@ -106,7 +104,6 @@ public class Query<T extends IdentifiableObject> {
     copy.setSkipSharing(query.isSkipSharing());
     copy.setCurrentUserDetails(query.getCurrentUserDetails());
     copy.setLocale(query.getLocale());
-    copy.predicateSuppliers.addAll(query.getPredicateSuppliers());
     return copy;
   }
 
@@ -124,7 +121,6 @@ public class Query<T extends IdentifiableObject> {
     copy.setMaxResults(query.getMaxResults());
     copy.add(query.getFilters());
     copy.setObjects(query.getObjects());
-    copy.predicateSuppliers.addAll(query.getPredicateSuppliers());
 
     return copy;
   }
@@ -183,15 +179,6 @@ public class Query<T extends IdentifiableObject> {
     if (orders.isEmpty()) {
       defaultOrders = true;
     }
-    return this;
-  }
-
-  public List<JpaPredicateSupplier> getPredicateSuppliers() {
-    return predicateSuppliers;
-  }
-
-  public Query<T> addPredicateSupplier(JpaPredicateSupplier supplier) {
-    this.predicateSuppliers.add(supplier);
     return this;
   }
 }

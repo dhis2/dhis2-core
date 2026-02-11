@@ -207,14 +207,6 @@ public interface UserService {
   boolean isLastSuperUser(User user);
 
   /**
-   * Handles the user query parameters by setting defaults and processing specific fields such as
-   * organisation units and user roles.
-   *
-   * @param params the {@link UserQueryParams}.
-   */
-  void handleUserQueryParams(UserQueryParams params);
-
-  /**
    * Returns a list of users based on the given query parameters. The default order of last name and
    * first name will be applied.
    *

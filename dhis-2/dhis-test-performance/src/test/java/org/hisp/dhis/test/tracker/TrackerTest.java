@@ -417,11 +417,11 @@ public class TrackerTest extends Simulation {
                             .exec(
                                 searchSingleEventsAssignedToAnyone
                                     .action()
-                                    .check(jsonPath("$.events[*]").count().gt(3)))
+                                    .check(jsonPath("$.events[*]").count().is(3)))
                             .exec(
                                 searchSingleEventsNotAssignedToUser
                                     .action()
-                                    .check(jsonPath("$.events[*]").count().gt(50)))
+                                    .check(jsonPath("$.events[*]").count().is(50)))
                             .exec(
                                 searchSingleEvents
                                     .action()

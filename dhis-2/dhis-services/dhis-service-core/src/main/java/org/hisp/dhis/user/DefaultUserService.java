@@ -381,9 +381,12 @@ public class DefaultUserService implements UserService {
     return userStore.getUserCount();
   }
 
-  @Override
-  @Transactional(readOnly = true)
-  public void handleUserQueryParams(UserQueryParams params) {
+  /**
+   * Handles the user query parameters by setting defaults and processing specific fields.
+   *
+   * @param params the {@link UserQueryParams}.
+   */
+  private void handleUserQueryParams(UserQueryParams params) {
     boolean canSeeOwnRoles =
         params.isCanSeeOwnRoles()
             || settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();

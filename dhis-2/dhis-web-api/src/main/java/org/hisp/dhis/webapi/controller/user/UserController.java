@@ -42,13 +42,13 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -85,6 +85,8 @@ import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
@@ -213,55 +215,62 @@ public class UserController
     @OpenApi.Description(
         "Shorthand for `canManage=true` + `authSubset=true` (takes precedence over individual parameters)")
     boolean manage;
-
-    @JsonIgnore
-    boolean isUsingAnySpecialFilters() {
-      return getQuery() != null
-          || phoneNumber != null
-          || canManage
-          || authSubset
-          || lastLogin != null
-          || inactiveMonths != null
-          || inactiveSince != null
-          || selfRegistered
-          || invitationStatus != null
-          || userOrgUnits
-          || includeChildren
-          || orgUnitBoundary != null
-          || ou != null
-          || manage;
-    }
   }
 
   @Override
-  protected List<UID> getPreQueryMatches(GetUserObjectListParams params) {
-    // No longer materializing UIDs; filtering is handled via subquery in modifyGetObjectList
-    return null;
+  protected List<UID> getPreQueryMatches(GetUserObjectListParams params) throws ConflictException {
+    if (!needsPreQuery(params)) return null;
+    return userService.getUserIds(toComplexQueryParams(params), null);
   }
 
   @Override
   protected void modifyGetObjectList(GetUserObjectListParams params, Query<User> query) {
-    if (!params.isUsingAnySpecialFilters()) return;
-    UserQueryParams queryParams = toUserQueryParams(params);
-    if (params.isManage()) {
-      queryParams.setCanManage(true);
-      queryParams.setAuthSubset(true);
-    }
-    userService.handleUserQueryParams(queryParams);
-    query.addPredicateSupplier(new UserPredicateSupplier(queryParams));
+    addSimpleFilters(params, query);
   }
 
-  private UserQueryParams toUserQueryParams(GetUserObjectListParams params) {
+  private boolean needsPreQuery(GetUserObjectListParams params) {
+    return params.getQuery() != null
+        || params.isCanManage()
+        || params.isAuthSubset()
+        || params.isManage()
+        || params.isUserOrgUnits()
+        || params.getOrgUnitBoundary() != null
+        || params.getOu() != null
+        || params.isIncludeChildren()
+        || params.getInvitationStatus() == UserInvitationStatus.EXPIRED;
+  }
+
+  private void addSimpleFilters(GetUserObjectListParams params, Query<User> query) {
+    if (params.getPhoneNumber() != null) {
+      query.add(Filters.eq("phoneNumber", params.getPhoneNumber()));
+    }
+    if (params.getLastLogin() != null) {
+      query.add(Filters.ge("lastLogin", params.getLastLogin()));
+    }
+    if (params.getInactiveMonths() != null) {
+      Calendar cal = PeriodType.createCalendarInstance();
+      cal.add(Calendar.MONTH, (params.getInactiveMonths() * -1));
+      query.add(Filters.lt("lastLogin", cal.getTime()));
+    } else if (params.getInactiveSince() != null) {
+      query.add(Filters.lt("lastLogin", params.getInactiveSince()));
+    }
+    if (params.isSelfRegistered()) {
+      query.add(Filters.eq("selfRegistered", true));
+    }
+    if (params.getInvitationStatus() == UserInvitationStatus.ALL) {
+      query.add(Filters.eq("invitation", true));
+    }
+  }
+
+  private UserQueryParams toComplexQueryParams(GetUserObjectListParams params) {
     UserQueryParams res = new UserQueryParams();
     res.setQuery(StringUtils.trimToNull(params.getQuery()));
-    res.setPhoneNumber(StringUtils.trimToNull(params.getPhoneNumber()));
     res.setCanManage(params.isCanManage());
     res.setAuthSubset(params.isAuthSubset());
-    res.setLastLogin(params.getLastLogin());
-    res.setInactiveMonths(params.getInactiveMonths());
-    res.setInactiveSince(params.getInactiveSince());
-    res.setSelfRegistered(params.isSelfRegistered());
-    res.setInvitationStatus(params.getInvitationStatus());
+    if (params.isManage()) {
+      res.setCanManage(true);
+      res.setAuthSubset(true);
+    }
     res.setUserOrgUnits(params.isUserOrgUnits());
     res.setIncludeOrgUnitChildren(params.isIncludeChildren());
     String ou = params.getOu();
@@ -270,6 +279,9 @@ public class UserController
     }
     UserOrgUnitType boundary = params.getOrgUnitBoundary();
     if (boundary != null) res.setOrgUnitBoundary(boundary);
+    if (params.getInvitationStatus() == UserInvitationStatus.EXPIRED) {
+      res.setInvitationStatus(UserInvitationStatus.EXPIRED);
+    }
     return res;
   }
 
