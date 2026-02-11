@@ -499,7 +499,6 @@ class TrackerEventOperationParamsMapperTest {
 
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
         .thenReturn(searchScopeChildOrgUnit);
-    when(organisationUnitService.getOrganisationUnitsByUid(any())).thenReturn(List.of());
 
     TrackerEventOperationParams operationParams =
         eventBuilder.program(program).orgUnit(searchScopeChildOrgUnit).orgUnitMode(ALL).build();
@@ -530,7 +529,6 @@ class TrackerEventOperationParamsMapperTest {
   @ValueSource(strings = {"admin", "superuser"})
   void shouldMapOrgUnitAndModeWhenModeAllAndUserIsAuthorized(String userName)
       throws ForbiddenException, BadRequestException {
-    when(organisationUnitService.getOrganisationUnitsByUid(any())).thenReturn(List.of());
     User mappedUser = userMap.get(userName);
     mappedUser.setUid(CodeGenerator.generateUid());
     mappedUser.setUsername(userName);
