@@ -239,13 +239,13 @@ class JdbcEnrollmentStore {
           sql,
           sqlParams,
           params.getEnrolledInTrackerProgram(),
-          params.getOwnershipScope(),
+          params.getSearchScope(),
           "ou",
           "te",
-          () -> hlp.whereAnd());
+          hlp::whereAnd);
     } else {
       buildOwnershipClause(
-          sql, sqlParams, params.getOrganisationUnitMode(), "p", "ou", "te", () -> hlp.whereAnd());
+          sql, sqlParams, params.getOrganisationUnitMode(), "p", "ou", "te", hlp::whereAnd);
     }
   }
 

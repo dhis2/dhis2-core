@@ -977,19 +977,13 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           orgUnitBuilder,
           sqlParameters,
           params.getEnrolledInTrackerProgram(),
-          params.getOwnershipScope(),
+          params.getSearchScope(),
           "ou",
           "te",
-          () -> hlp.whereAnd());
+          hlp::whereAnd);
     } else {
       buildOwnershipClause(
-          orgUnitBuilder,
-          sqlParameters,
-          params.getOrgUnitMode(),
-          "p",
-          "ou",
-          "te",
-          () -> hlp.whereAnd());
+          orgUnitBuilder, sqlParameters, params.getOrgUnitMode(), "p", "ou", "te", hlp::whereAnd);
     }
 
     return orgUnitBuilder.toString();

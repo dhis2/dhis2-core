@@ -42,46 +42,63 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.UserDetails;
 
 /**
- * Bundles the user's org unit scopes needed by ownership-based access control clauses. Resolves the
- * org unit selection mode at construction time so consumers don't need to re-derive which scope
- * applies.
+ * Bundles the user's org unit scopes and search context needed by ownership-based access control
+ * clauses. Resolves the org unit selection mode at construction time so consumers don't need to
+ * re-derive which scope applies.
  *
  * <p>An unrestricted scope (for super users or org unit mode ALL) produces no ownership SQL clause.
  *
  * @param userId the user's database ID, used for temporary ownership predicates
  * @param restricted whether ownership restrictions apply (false for super users or org unit mode
  *     ALL)
+ * @param outsideCaptureScope whether the search extends beyond the user's capture scope (triggers
+ *     max TE limit enforcement)
  * @param scope the effective scope for OPEN/AUDITED programs, pre-resolved from the org unit mode
  *     (search scope when mode is not CAPTURE, capture scope when mode is CAPTURE)
  * @param captureScope the user's capture scope, used for PROTECTED/CLOSED programs
  */
-public record OwnershipScope(
+public record SearchScope(
     long userId,
     boolean restricted,
+    boolean outsideCaptureScope,
     Set<OrganisationUnit> scope,
     Set<OrganisationUnit> captureScope) {
 
   /**
-   * Creates an ownership scope by resolving the user's org unit scopes via the given resolver.
-   * Always resolves the capture scope (needed by callers for validation); skips the search scope
-   * fetch for super users or org unit mode ALL since no ownership SQL clause is emitted.
+   * Creates a search scope by resolving the user's org unit scopes via the given resolver. Always
+   * resolves the capture scope; skips the search scope fetch for superusers or org unit mode ALL
+   * since no ownership SQL clause is emitted.
    *
    * @param orgUnitResolver resolves a set of org unit UIDs to their entities (typically {@code
    *     organisationUnitService::getOrganisationUnitsByUid})
    */
-  public static OwnershipScope of(
+  public static SearchScope of(
       UserDetails user,
       OrganisationUnitSelectionMode mode,
+      boolean outsideCaptureScope,
       Function<Collection<String>, List<OrganisationUnit>> orgUnitResolver) {
     Set<OrganisationUnit> captureOrgUnits =
         Set.copyOf(orgUnitResolver.apply(user.getUserOrgUnitIds()));
+    return of(user, mode, outsideCaptureScope, captureOrgUnits, orgUnitResolver);
+  }
+
+  /**
+   * Creates a search scope using pre-resolved capture scope org units. Use this overload when the
+   * caller has already resolved capture scope (e.g. for determining {@code outsideCaptureScope}).
+   */
+  public static SearchScope of(
+      UserDetails user,
+      OrganisationUnitSelectionMode mode,
+      boolean outsideCaptureScope,
+      Set<OrganisationUnit> captureOrgUnits,
+      Function<Collection<String>, List<OrganisationUnit>> orgUnitResolver) {
     if (mode == ALL || user.isSuper()) {
-      return new OwnershipScope(0, false, Set.of(), captureOrgUnits);
+      return new SearchScope(0, false, false, Set.of(), captureOrgUnits);
     }
     Set<OrganisationUnit> searchOrgUnits =
         Set.copyOf(orgUnitResolver.apply(user.getUserEffectiveSearchOrgUnitIds()));
     Set<OrganisationUnit> scope = mode == CAPTURE ? captureOrgUnits : searchOrgUnits;
-    return new OwnershipScope(user.getId(), true, scope, captureOrgUnits);
+    return new SearchScope(user.getId(), true, outsideCaptureScope, scope, captureOrgUnits);
   }
 
   public Set<OrganisationUnit> forAccessLevel(AccessLevel accessLevel) {

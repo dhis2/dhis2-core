@@ -65,7 +65,7 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.tracker.export.OwnershipScope;
+import org.hisp.dhis.tracker.export.SearchScope;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -153,14 +153,20 @@ class TrackedEntityOperationParamsMapper {
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setPotentialDuplicate(operationParams.getPotentialDuplicate());
 
-    params.setOwnershipScope(
-        OwnershipScope.of(
+    Set<OrganisationUnit> captureScope =
+        Set.copyOf(organisationUnitService.getOrganisationUnitsByUid(user.getUserOrgUnitIds()));
+    boolean outsideCaptureScope = !isSearchInCaptureScope(params, user, captureScope);
+    params.setSearchScope(
+        SearchScope.of(
             user,
             operationParams.getOrgUnitMode(),
+            outsideCaptureScope,
+            captureScope,
             organisationUnitService::getOrganisationUnitsByUid));
-
-    validateSearchOutsideCaptureScopeParameters(
-        params, user, params.getOwnershipScope().captureScope());
+    if (outsideCaptureScope) {
+      validateSearchableAttributes(params);
+      validateMinAttributesToSearch(params);
+    }
 
     return params;
   }
@@ -308,18 +314,6 @@ class TrackedEntityOperationParamsMapper {
               "Invalid page size: %d. It must not exceed the system limit of KeyTrackedEntityMaxLimit %d.",
               pageParams.getPageSize(), systemMaxLimit));
     }
-  }
-
-  private void validateSearchOutsideCaptureScopeParameters(
-      TrackedEntityQueryParams params, UserDetails user, Set<OrganisationUnit> captureScopeOrgUnits)
-      throws IllegalQueryException {
-    if (isSearchInCaptureScope(params, user, captureScopeOrgUnits)) {
-      return;
-    }
-
-    params.setSearchOutsideCaptureScope(true);
-    validateSearchableAttributes(params);
-    validateMinAttributesToSearch(params);
   }
 
   private List<UID> getSearchableAttributeIds(TrackedEntityQueryParams params) {

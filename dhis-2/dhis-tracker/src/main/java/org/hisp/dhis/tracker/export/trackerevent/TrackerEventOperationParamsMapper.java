@@ -60,7 +60,7 @@ import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.CategoryOptionComboService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.tracker.export.OwnershipScope;
+import org.hisp.dhis.tracker.export.SearchScope;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
@@ -123,7 +123,7 @@ class TrackerEventOperationParamsMapper {
 
     List<Program> accessibleTrackerPrograms = getTrackerPrograms(program);
 
-    queryParams
+    return queryParams
         .setEnrolledInTrackerProgram(program)
         .setAccessibleTrackerPrograms(getTrackerPrograms(program))
         .setProgramStage(programStage)
@@ -135,6 +135,12 @@ class TrackerEventOperationParamsMapper {
         .setEnrollmentStatus(operationParams.getEnrollmentStatus())
         .setFollowUp(operationParams.getFollowUp())
         .setOrgUnitMode(operationParams.getOrgUnitMode())
+        .setSearchScope(
+            SearchScope.of(
+                user,
+                operationParams.getOrgUnitMode(),
+                false,
+                organisationUnitService::getOrganisationUnitsByUid))
         .setAssignedUserQueryParam(
             new AssignedUserQueryParam(
                 operationParams.getAssignedUserMode(),
@@ -157,14 +163,6 @@ class TrackerEventOperationParamsMapper {
         .setEnrollments(operationParams.getEnrollments())
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setIdSchemeParams(operationParams.getIdSchemeParams());
-
-    queryParams.setOwnershipScope(
-        OwnershipScope.of(
-            user,
-            operationParams.getOrgUnitMode(),
-            organisationUnitService::getOrganisationUnitsByUid));
-
-    return queryParams;
   }
 
   private List<Program> getTrackerPrograms(Program program) {

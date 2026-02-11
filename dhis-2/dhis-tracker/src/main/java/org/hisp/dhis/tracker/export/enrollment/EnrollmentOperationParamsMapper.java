@@ -43,7 +43,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
-import org.hisp.dhis.tracker.export.OwnershipScope;
+import org.hisp.dhis.tracker.export.SearchScope;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,11 +88,11 @@ class EnrollmentOperationParamsMapper {
     params.setOrder(operationParams.getOrder());
     params.setEnrollments(operationParams.getEnrollments());
     params.setIncludeAttributes(operationParams.getFields().isIncludesAttributes());
-
-    params.setOwnershipScope(
-        OwnershipScope.of(
+    params.setSearchScope(
+        SearchScope.of(
             user,
             operationParams.getOrgUnitMode(),
+            false,
             organisationUnitService::getOrganisationUnitsByUid));
 
     return params;
