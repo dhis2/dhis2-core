@@ -61,6 +61,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.FilterJdbcPredicate;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.OwnershipScope;
 
 @ToString
 public class TrackedEntityQueryParams {
@@ -153,6 +154,8 @@ public class TrackedEntityQueryParams {
   @Getter private Boolean potentialDuplicate;
 
   @Getter private final List<Order> order = new ArrayList<>();
+
+  @Getter private OwnershipScope ownershipScope;
 
   @Setter private boolean isSearchOutsideCaptureScope = false;
 
@@ -422,6 +425,11 @@ public class TrackedEntityQueryParams {
 
   public TrackedEntityQueryParams setIncludeDeleted(boolean includeDeleted) {
     this.includeDeleted = includeDeleted;
+    return this;
+  }
+
+  public TrackedEntityQueryParams setOwnershipScope(OwnershipScope ownershipScope) {
+    this.ownershipScope = ownershipScope;
     return this;
   }
 
