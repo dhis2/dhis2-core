@@ -44,6 +44,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.csv.CSV;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 
 /** A single data value in the data entry service API. */
 public record DataEntryValue(
@@ -53,7 +54,7 @@ public record DataEntryValue(
     @Nonnull UID orgUnit,
     @CheckForNull UID categoryOptionCombo,
     @CheckForNull UID attributeOptionCombo,
-    @Nonnull String period,
+    @Nonnull Period period,
     String value,
     String comment,
     Boolean followUp,

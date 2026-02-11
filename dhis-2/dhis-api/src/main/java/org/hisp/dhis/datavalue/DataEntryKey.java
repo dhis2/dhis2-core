@@ -46,7 +46,7 @@ public record DataEntryKey(
     @Nonnull UID orgUnit,
     @CheckForNull UID categoryOptionCombo,
     @CheckForNull UID attributeOptionCombo,
-    @Nonnull String period)
+    @Nonnull Period period)
     implements DataEntryId {
 
   public DataEntryKey {
@@ -67,7 +67,7 @@ public record DataEntryKey(
         UID.of(orgUnit),
         UID.of(categoryOptionCombo),
         UID.of(attributeOptionCombo),
-        period.getIsoDate());
+        period);
   }
 
   @Nonnull

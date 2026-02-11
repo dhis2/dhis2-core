@@ -55,6 +55,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
@@ -122,7 +123,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
   private DataEntryGroup decodeGroup(DataEntryGroup.Input group, boolean partial)
       throws BadRequestException {
-    UnaryOperator<String> isoOf = DefaultDataEntryService::decodeIso;
+    Function<String, Period> peOf = DefaultDataEntryService::decodeIso;
     UnaryOperator<String> dsOf = UnaryOperator.identity();
     UnaryOperator<String> deOf = UnaryOperator.identity();
     UnaryOperator<String> ouOf = UnaryOperator.identity();
@@ -131,8 +132,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
     DataEntryGroup.Ids ids = group.ids();
     DataEntryGroup.Input.Scope deletion = group.deletion();
-    String peGroup = decodeIso(group.period());
-    if (peGroup != null) isoOf = iso -> iso != null ? decodeIso(iso) : peGroup;
+    Period peGroup = decodeIso(group.period());
+    if (peGroup != null) peOf = iso -> iso != null ? decodeIso(iso) : peGroup;
     List<DataEntryValue.Input> values = group.values();
     String dataSet = group.dataSet();
     String deGroup = group.dataElement();
@@ -208,7 +209,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     Map<String, Map<Set<String>, String>> aocOptionsByCc = null;
     for (DataEntryValue.Input dv : values) {
       // PE
-      String pe = isoOf.apply(dv.period());
+      Period pe = peOf.apply(dv.period());
       if (pe == null) throw new BadRequestException(ErrorCode.E8100, i, dv);
       // DE
       String deVal = dv.dataElement();
@@ -302,11 +303,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       UID attributeOptionCombo = aocGroup == null ? null : UID.ofNullable(aocOf.apply(aocGroup));
       completion =
           new DataSetCompletion(
-              ds,
-              Period.of(peGroup),
-              UID.of(ouOf.apply(ouGroup)),
-              attributeOptionCombo,
-              completionDate);
+              ds, peGroup, UID.of(ouOf.apply(ouGroup)), attributeOptionCombo, completionDate);
     }
     // decode deletion scope
     DataEntryGroup.Scope del = null;
@@ -347,10 +344,9 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   }
 
   @CheckForNull
-  private static String decodeIso(@CheckForNull String period) {
+  private static Period decodeIso(@CheckForNull String period) {
     if (period == null || period.isEmpty()) return null;
-    // normalize the format to the ISO
-    return Period.of(period).getIsoDate();
+    return Period.of(period);
   }
 
   @CheckForNull
@@ -1023,19 +1019,19 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
     @Override
     public Stream<Period> periods() {
-      return values.stream().map(DataEntryValue::period).map(Period::of).distinct();
+      return values.stream().map(DataEntryValue::period).distinct();
     }
 
     @Override
     public Stream<Map.Entry<UID, Period>> orgUnitPeriodPairs() {
-      return values.stream().map(dv -> Map.entry(dv.orgUnit(), Period.of(dv.period()))).distinct();
+      return values.stream().map(dv -> Map.entry(dv.orgUnit(), dv.period())).distinct();
     }
 
     @Override
     public Stream<Map.Entry<UID, Period>> attributeOptionComboPeriodPairs() {
       return values.stream()
           .filter(dv -> dv.attributeOptionCombo() != null)
-          .map(dv -> Map.entry(dv.attributeOptionCombo(), Period.of(dv.period())))
+          .map(dv -> Map.entry(dv.attributeOptionCombo(), dv.period()))
           .distinct();
     }
 
