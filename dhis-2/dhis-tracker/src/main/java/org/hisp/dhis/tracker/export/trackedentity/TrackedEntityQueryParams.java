@@ -61,6 +61,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.FilterJdbcPredicate;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.OwnershipScope;
 
 @ToString
 public class TrackedEntityQueryParams {
@@ -154,9 +155,7 @@ public class TrackedEntityQueryParams {
 
   @Getter private final List<Order> order = new ArrayList<>();
 
-  @Getter private Set<OrganisationUnit> userSearchScopeOrgUnits = Set.of();
-
-  @Getter private Set<OrganisationUnit> userCaptureScopeOrgUnits = Set.of();
+  @Getter private OwnershipScope ownershipScope;
 
   @Setter private boolean isSearchOutsideCaptureScope = false;
 
@@ -429,15 +428,8 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public TrackedEntityQueryParams setUserSearchScopeOrgUnits(
-      Set<OrganisationUnit> userSearchScopeOrgUnits) {
-    this.userSearchScopeOrgUnits = userSearchScopeOrgUnits;
-    return this;
-  }
-
-  public TrackedEntityQueryParams setUserCaptureScopeOrgUnits(
-      Set<OrganisationUnit> userCaptureScopeOrgUnits) {
-    this.userCaptureScopeOrgUnits = userCaptureScopeOrgUnits;
+  public TrackedEntityQueryParams setOwnershipScope(OwnershipScope ownershipScope) {
+    this.ownershipScope = ownershipScope;
     return this;
   }
 

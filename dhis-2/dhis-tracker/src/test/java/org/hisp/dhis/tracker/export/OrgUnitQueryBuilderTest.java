@@ -221,29 +221,14 @@ class OrgUnitQueryBuilderTest {
   }
 
   @Test
-  void shouldNotBuildProgramScopedOwnershipQueryWhenModeAll() {
-    StringBuilder sql = new StringBuilder();
-    MapSqlParameterSource params = new MapSqlParameterSource();
-    Program program = createProgram(1, AccessLevel.OPEN);
-
-    buildOwnershipClause(
-        sql, params, ALL, program, Set.of(orgUnitA), Set.of(orgUnitB), "ou", "t", () -> "and");
-
-    assertTrue(
-        sql.toString().isEmpty(),
-        String.format("Expected sql query predicate to be empty, but was %s", sql));
-    Assertions.assertIsEmpty(params.getValues().values());
-  }
-
-  @Test
   void shouldBuildProgramScopedOwnershipQueryForOpenProgram() {
     StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
     Program program = createProgram(1, AccessLevel.OPEN);
-    Set<OrganisationUnit> searchScope = new LinkedHashSet<>(List.of(orgUnitA));
+    OwnershipScope scope =
+        new OwnershipScope(0, new LinkedHashSet<>(List.of(orgUnitA)), Set.of(orgUnitB));
 
-    buildOwnershipClause(
-        sql, params, SELECTED, program, searchScope, Set.of(orgUnitB), "ou", "t", () -> " and ");
+    buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
 
     assertEquals(" and ((  ou.path like :scopePath0))", sql.toString());
 
@@ -256,10 +241,10 @@ class OrgUnitQueryBuilderTest {
     StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
     Program program = createProgram(1, AccessLevel.AUDITED);
-    Set<OrganisationUnit> captureScope = new LinkedHashSet<>(List.of(orgUnitB));
+    OwnershipScope scope =
+        new OwnershipScope(0, new LinkedHashSet<>(List.of(orgUnitB)), Set.of(orgUnitB));
 
-    buildOwnershipClause(
-        sql, params, CAPTURE, program, Set.of(orgUnitA), captureScope, "ou", "t", () -> " and ");
+    buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
 
     assertEquals(" and ((  ou.path like :scopePath0))", sql.toString());
 
@@ -272,17 +257,30 @@ class OrgUnitQueryBuilderTest {
     StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
     Program program = createProgram(42, AccessLevel.PROTECTED);
-    Set<OrganisationUnit> captureScope = new LinkedHashSet<>(List.of(orgUnitB));
+    OwnershipScope scope =
+        new OwnershipScope(0, Set.of(orgUnitA), new LinkedHashSet<>(List.of(orgUnitB)));
 
-    buildOwnershipClause(
-        sql, params, SELECTED, program, Set.of(orgUnitA), captureScope, "ou", "t", () -> " and ");
+    buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
 
     assertEquals(
-        " and ((  ou.path like :capturePath0) or exists (select 1 from programtempowner where programid = 42 and trackedentityid = t.trackedentityid and userid = 0 and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0))",
+        " and ((  ou.path like :scopePath0) or exists (select 1 from programtempowner where programid = 42 and trackedentityid = t.trackedentityid and userid = 0 and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0))",
         sql.toString());
 
-    expectedParams.put("capturePath0", orgUnitB.getPath() + "%");
+    expectedParams.put("scopePath0", orgUnitB.getPath() + "%");
     assertParameters(params);
+  }
+
+  @Test
+  void shouldBuildFalsePredicateWhenScopeOrgUnitsEmpty() {
+    StringBuilder sql = new StringBuilder();
+    MapSqlParameterSource params = new MapSqlParameterSource();
+    Program program = createProgram(1, AccessLevel.OPEN);
+    OwnershipScope scope = new OwnershipScope(0, Set.of(), Set.of());
+
+    buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
+
+    assertEquals(" and (false)", sql.toString());
+    Assertions.assertIsEmpty(params.getValues().values());
   }
 
   @Test
@@ -290,14 +288,14 @@ class OrgUnitQueryBuilderTest {
     StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
     Program program = createProgram(42, AccessLevel.CLOSED);
-    Set<OrganisationUnit> captureScope = new LinkedHashSet<>(List.of(orgUnitB));
+    OwnershipScope scope =
+        new OwnershipScope(0, Set.of(orgUnitA), new LinkedHashSet<>(List.of(orgUnitB)));
 
-    buildOwnershipClause(
-        sql, params, SELECTED, program, Set.of(orgUnitA), captureScope, "ou", "t", () -> " and ");
+    buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
 
-    assertEquals(" and ((  ou.path like :capturePath0))", sql.toString());
+    assertEquals(" and ((  ou.path like :scopePath0))", sql.toString());
 
-    expectedParams.put("capturePath0", orgUnitB.getPath() + "%");
+    expectedParams.put("scopePath0", orgUnitB.getPath() + "%");
     assertParameters(params);
   }
 
