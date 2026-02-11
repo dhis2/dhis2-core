@@ -555,7 +555,7 @@ public class MetadataItemsHandler {
 
   /**
    * Synthetic dimensions may be injected into query params internally (for SQL/disaggregation
-   * support) and should not leak into metadata dimensions/items for API responses.
+   * support) and should not end up into metadata dimensions/items for API responses.
    */
   private boolean isSyntheticDimension(DimensionalObject dim, EventQueryParams params) {
     if (!params.isComingFromQuery()) {
