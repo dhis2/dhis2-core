@@ -45,7 +45,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -163,19 +162,19 @@ public class DefaultDataExportService implements DataExportService {
               .build();
 
       Iterator<DataExportValue> iter = store.exportValues(dsParams).iterator();
-      String peG = null;
+      Period peG = null;
       UID ouG = null;
       UID aocG = null;
       List<DataExportValue> valuesG = null;
       // split into groups of same PE, OU, AOC
       while (iter.hasNext()) {
         DataExportValue dv = iter.next();
-        String pe = dv.period();
+        Period pe = dv.period();
         UID ou = dv.orgUnit();
         UID aoc = dv.attributeOptionCombo();
         if (!pe.equals(peG) || !ou.equals(ouG) || !aoc.equals(aocG)) {
           if (valuesG != null)
-            groups.add(new DataExportGroup(ds, Period.of(peG), ouG, aocG, valuesG.stream()));
+            groups.add(new DataExportGroup(ds, peG, ouG, aocG, valuesG.stream()));
           valuesG = new ArrayList<>();
         }
         valuesG.add(dv);
@@ -185,7 +184,7 @@ public class DefaultDataExportService implements DataExportService {
       }
       // add last group
       if (valuesG != null && !valuesG.isEmpty())
-        groups.add(new DataExportGroup(ds, Period.of(peG), ouG, aocG, valuesG.stream()));
+        groups.add(new DataExportGroup(ds, peG, ouG, aocG, valuesG.stream()));
     }
 
     DataExportGroup.Ids encodeTo = DataExportGroup.Ids.of(parameters.getOutputIdSchemes());
@@ -291,8 +290,8 @@ public class DefaultDataExportService implements DataExportService {
     // DV encoding
     Map<UID, Map<String, String>> cocEncodeMap = cocMap;
     Function<UID, String> deEncode = deOf;
-    UnaryOperator<String> peEncode =
-        period == null ? UnaryOperator.identity() : pe -> pe.equals(period) ? null : pe;
+    Function<Period, String> peEncode =
+        peG == null ? Period::getIsoDate : pe -> pe.equals(peG) ? null : pe.getIsoDate();
     UID ouGroup = ouG;
     Function<UID, String> ouEncode =
         ouGroup == null ? ouOf : ou -> ou.equals(ouGroup) ? null : ou.getValue();
