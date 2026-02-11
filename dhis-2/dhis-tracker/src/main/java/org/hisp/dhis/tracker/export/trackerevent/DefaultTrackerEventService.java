@@ -246,7 +246,7 @@ class DefaultTrackerEventService implements TrackerEventService {
         event.setRelationshipItems(
             relationshipService.findRelationshipItems(
                 TrackerType.EVENT,
-                UID.of(event),
+                event.getUID(),
                 operationParams.getFields().getRelationshipFields(),
                 queryParams.isIncludeDeleted()));
       }
@@ -267,7 +267,7 @@ class DefaultTrackerEventService implements TrackerEventService {
         event.setRelationshipItems(
             relationshipService.findRelationshipItems(
                 TrackerType.EVENT,
-                UID.of(event),
+                event.getUID(),
                 operationParams.getFields().getRelationshipFields(),
                 queryParams.isIncludeDeleted()));
       }

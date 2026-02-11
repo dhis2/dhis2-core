@@ -83,7 +83,11 @@
           "value": "2020-02-10"
         }
       ],
-      "notes": []
+      "notes": [],
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "wpVV2AvPM89"
+      }
     }
   ],
   "events": [],
