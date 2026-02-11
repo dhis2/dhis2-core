@@ -40,7 +40,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryComboStore;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -98,9 +97,6 @@ public class CategoryComboMergeService implements MergeService {
         sourceCategoryCombos.stream().map(CategoryCombo::getName).collect(Collectors.toSet());
     String targetCcName = targetCategoryCombo.getName();
 
-    // duplicate COCs check
-    checkForDuplicateCocsForCc(sourceCcNames, targetCcName, mergeReport);
-
     // validate that sources and target have identical categories
     validateIdenticalCategories(sourceCategoryCombos, targetCategoryCombo, mergeReport);
     if (mergeReport.hasErrorMessages()) {
@@ -108,21 +104,30 @@ public class CategoryComboMergeService implements MergeService {
     }
 
     // validate CategoryOptionCombos
+    checkForDuplicateCocsForCc(sourceCcNames, targetCcName, mergeReport);
     validateCategoryOptionCombos(sourceCategoryCombos, targetCategoryCombo, mergeReport);
 
     return request;
   }
 
+  /**
+   * Run a data integrity check for duplicate CategoryOptionCombos in CategoryCombos. Check the
+   * details returned for duplicates.
+   */
   private void checkForDuplicateCocsForCc(
       Set<String> sourceCcNames, @Nonnull String targetCcName, @Nonnull MergeReport mergeReport) {
     dataIntegrityService.runDetailsChecks(Set.of(DUPLICATE_COCS_CHECK), JobProgress.noop());
     Map<String, DataIntegrityDetails> checkDetails =
-        dataIntegrityService.getDetails(Set.of(DUPLICATE_COCS_CHECK), 10L);
+        dataIntegrityService.getDetails(Set.of(DUPLICATE_COCS_CHECK), 10_000L);
 
     checkForDuplicates(
         sourceCcNames, targetCcName, checkDetails.get(DUPLICATE_COCS_CHECK), mergeReport);
   }
 
+  /**
+   * Check the data integrity details for duplicate CategoryOptionCombos in CategoryCombos. The
+   * check details contain the names of any duplicates found, so it's a name check.
+   */
   protected static void checkForDuplicates(
       Set<String> sourceCcNames,
       String targetCcName,
@@ -175,9 +180,9 @@ public class CategoryComboMergeService implements MergeService {
   }
 
   /**
-   * Validates that all CategoryOptionCombos in the source CategoryCombos are valid: - Have the
-   * correct number of CategoryOptions (one per Category) - Have CategoryOptions that belong to
-   * Categories in the combo
+   * Validates that all CategoryOptionCombos in the source CategoryCombos are valid: <br>
+   * - have the correct number of CategoryOptions (one per Category) <br>
+   * - have CategoryOptions that are part of a Category from the CategoryCombo <br>
    *
    * @param sources list of source CategoryCombos
    * @param target target CategoryCombo
@@ -185,17 +190,15 @@ public class CategoryComboMergeService implements MergeService {
    */
   protected static void validateCategoryOptionCombos(
       List<CategoryCombo> sources, CategoryCombo target, MergeReport mergeReport) {
-    // 1. check for duplicate COCs - use existing integrity check
-    // category_option_combos_have_duplicates
-
     int expectedOptionCount = target.getCategories().size();
 
-    Set<UID> validCategoryOptionUids = new HashSet<>();
-    for (Category category : target.getCategories()) {
-      category.getCategoryOptions().forEach(co -> validCategoryOptionUids.add(co.getUID()));
-    }
+    Set<UID> validCategoryOptionUids =
+        target.getCategories().stream()
+            .flatMap(c -> c.getCategoryOptions().stream())
+            .map(IdentifiableObject::getUID)
+            .collect(Collectors.toSet());
 
-    // 2. check for COC cardinality - number matches number of Categories
+    // 1. check for COC cardinality - number of options match number of Categories
     for (CategoryCombo source : sources) {
       for (CategoryOptionCombo coc : source.getOptionCombos()) {
         // check cardinality
@@ -209,9 +212,8 @@ public class CategoryComboMergeService implements MergeService {
                   coc.getUid()));
         }
 
-        // 3. check for COC CO validity - must be part of C from CC
+        // 2. check for COC CO validity - must be part of C from CC
         // check that all CategoryOptions are valid for the target's Categories
-
         Set<UID> invalidOptions =
             coc.getCategoryOptions().stream()
                 .map(IdentifiableObject::getUID)
