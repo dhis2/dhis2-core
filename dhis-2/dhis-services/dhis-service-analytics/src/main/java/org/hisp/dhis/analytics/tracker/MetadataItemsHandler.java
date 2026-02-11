@@ -392,7 +392,38 @@ public class MetadataItemsHandler {
                 metadataItemMap.put(
                     key, new MetadataItem(name, includeDetails ? item.getItem() : null));
               }
+
+              addResolvedOrgUnitMetadata(metadataItemMap, params, includeDetails, item);
             });
+  }
+
+  /**
+   * Adds metadata entries for organisation units resolved from query item filters (including
+   * keywords like USER_ORGUNIT). This is needed for aggregate endpoints where query items are used
+   * as dimensions (e.g. stage.ou).
+   */
+  private void addResolvedOrgUnitMetadata(
+      Map<String, MetadataItem> metadataItemMap,
+      EventQueryParams params,
+      boolean includeDetails,
+      QueryItem item) {
+    if (item.getValueType() != ORGANISATION_UNIT) {
+      return;
+    }
+
+    List<String> resolvedOrgUnits =
+        organisationUnitResolver.resolveOrgUnitsForMetadata(params, item);
+    for (String uid : resolvedOrgUnits) {
+      DimensionalItemObject itemObject =
+          organisationUnitResolver.loadOrgUnitDimensionalItem(uid, IdScheme.UID);
+      if (itemObject != null) {
+        addItemToMetadata(
+            metadataItemMap,
+            new QueryItem(itemObject),
+            includeDetails,
+            params.getDisplayProperty());
+      }
+    }
   }
 
   /**

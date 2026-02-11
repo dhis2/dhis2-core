@@ -42,7 +42,6 @@ import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.substringBefore;
 import static org.apache.commons.lang3.StringUtils.substringBetween;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.apache.commons.lang3.math.NumberUtils.createDouble;
@@ -175,6 +174,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -501,7 +501,31 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @return the columns without aliases.
    */
   List<String> removeAliases(List<String> columns) {
-    return columns.stream().map(c -> substringBefore(c, " as ")).toList();
+    return columns.stream().map(this::removeOuterAlias).toList();
+  }
+
+  /**
+   * Removes only a trailing projection alias while preserving inner SQL that may also contain
+   * {@code as}.
+   *
+   * <p>Examples:
+   *
+   * <ul>
+   *   <li>{@code ax."uidlevel1" as "ou"} -> {@code ax."uidlevel1"}
+   *   <li>{@code nullif(ax."deA", '') as deA} -> {@code nullif(ax."deA", '')}
+   *   <li>{@code (select "yearly" from analytics_rs_dateperiodstructure as dps_stage where
+   *       dps_stage."dateperiod" = cast(ax."occurreddate" as date)) as "occurreddate"} -> {@code
+   *       (select "yearly" from analytics_rs_dateperiodstructure as dps_stage where
+   *       dps_stage."dateperiod" = cast(ax."occurreddate" as date))}
+   * </ul>
+   *
+   * <p>This is important for GROUP BY generation: only the outer alias should be removed. Inner
+   * aliases/casts must remain valid SQL.
+   */
+  private String removeOuterAlias(String column) {
+    return column
+        .replaceFirst("(?i)\\s+as\\s+\"[^\"]+\"\\s*$", "")
+        .replaceFirst("(?i)\\s+as\\s+[A-Za-z0-9_\\.]+\\s*$", "");
   }
 
   /**
@@ -666,6 +690,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       return ColumnAndAlias.ofColumnAndAlias(programIndicatorSubquery, asClause);
     } else if (ValueType.COORDINATE == queryItem.getValueType()) {
       return getCoordinateColumn(queryItem);
+    } else if (isAggregated && isStageDateItem(queryItem)) {
+      return getStageDateColumnAndAlias(queryItem, isGroupByClause);
     } else if (ValueType.ORGANISATION_UNIT == queryItem.getValueType()) {
       if (params.getCoordinateFields().stream()
           .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
@@ -701,6 +727,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private ColumnAndAlias getOrgUnitQueryItemColumnAndAlias(
       EventQueryParams params, QueryItem queryItem) {
     if (EventAnalyticsColumnName.OU_COLUMN_NAME.equals(queryItem.getItemId())) {
+      if (OrganisationUnitResolver.isStageOuDimension(queryItem)) {
+        OrganisationUnitResolver.StageOuCteContext stageOuContext =
+            organisationUnitResolver.buildStageOuCteContext(queryItem, params);
+        return ColumnAndAlias.ofColumnAndAlias(
+            stageOuContext.valueColumn(), queryItem.getItemName());
+      }
+
       return ColumnAndAlias.ofColumnAndAlias(
           quote(EventAnalyticsColumnName.OU_NAME_COLUMN_NAME),
           EventAnalyticsColumnName.OU_NAME_COLUMN_NAME);
@@ -713,6 +746,62 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             .withPostfix(OU_NAME_COL_POSTFIX)
         : ColumnAndAlias.ofColumn(getColumn(queryItem, OU_NAME_COL_POSTFIX))
             .withPostfix(OU_NAME_COL_POSTFIX);
+  }
+
+  /**
+   * Resolves stage-specific date dimensions (e.g. stageUid.EVENT_DATE:THIS_YEAR) to period bucket
+   * columns for aggregate queries. This avoids grouping by raw timestamps, which would produce one
+   * row per event date.
+   */
+  private ColumnAndAlias getStageDateColumnAndAlias(QueryItem queryItem, boolean isGroupByClause) {
+    Optional<String> periodColumn = getPeriodBucketColumn(queryItem);
+
+    if (periodColumn.isPresent()) {
+      // Use the stage date field itself (occurreddate/scheduleddate) to resolve period buckets.
+      // We intentionally avoid ax.yearly/ax.monthly/etc because those are generated from
+      // eventDateExpression in analytics tables, which can differ from stage-specific EVENT_DATE
+      // semantics (e.g. scheduled events).
+      String stageDateColumn = quoteAlias(queryItem.getItemId());
+      String periodColumnName = quote(periodColumn.get());
+      String datePeriodColumn = quote("dateperiod");
+      String column =
+          "(select "
+              + periodColumnName
+              + " from analytics_rs_dateperiodstructure as dps_stage where dps_stage."
+              + datePeriodColumn
+              + " = cast("
+              + stageDateColumn
+              + " as date))";
+      if (isGroupByClause) {
+        return ColumnAndAlias.ofColumn(column);
+      }
+      return ColumnAndAlias.ofColumnAndAlias(column, queryItem.getItemName());
+    }
+
+    return getColumnAndAlias(queryItem, isGroupByClause, "");
+  }
+
+  private Optional<String> getPeriodBucketColumn(QueryItem queryItem) {
+    if (queryItem.getDimensionValues().isEmpty()) {
+      return Optional.empty();
+    }
+
+    List<PeriodType> periodTypes = new ArrayList<>();
+
+    for (String periodId : queryItem.getDimensionValues()) {
+      PeriodDimension periodDimension = PeriodDimension.of(periodId);
+      if (periodDimension == null || periodDimension.getPeriodType() == null) {
+        return Optional.empty();
+      }
+      periodTypes.add(periodDimension.getPeriodType());
+    }
+
+    PeriodType firstType = periodTypes.get(0);
+    if (periodTypes.stream().anyMatch(type -> !type.equals(firstType))) {
+      return Optional.empty();
+    }
+
+    return Optional.of(firstType.getName().toLowerCase());
   }
 
   /**

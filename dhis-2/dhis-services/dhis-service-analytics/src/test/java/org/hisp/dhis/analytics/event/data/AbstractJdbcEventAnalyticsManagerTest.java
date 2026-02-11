@@ -90,6 +90,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams.Builder;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
+import org.hisp.dhis.common.AnalyticsCustomHeader;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -274,6 +275,113 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     String column = eventSubject.getColumn(item);
 
     assertThat(column, is("ax.\"" + dataElementA.getUid() + "\""));
+  }
+
+  @Test
+  void verifyGetColumnAndAliasUsesStageOuResolvedColumnForAggregate() {
+    QueryItem stageOuItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME),
+            programA,
+            null,
+            ValueType.ORGANISATION_UNIT,
+            AggregationType.NONE,
+            null);
+    stageOuItem.setProgramStage(programStage);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams()).addItem(stageOuItem).build();
+
+    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params))
+        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("ax.\"uidlevel1\"", "", ""));
+
+    ColumnAndAlias columnAndAlias =
+        eventSubject.getColumnAndAlias(stageOuItem, params, false, true);
+
+    assertThat(columnAndAlias.asSql(), is("ax.\"uidlevel1\" as \"ou\""));
+  }
+
+  @Test
+  void verifyGetColumnAndAliasUsesPeriodBucketForStageDateDimension() {
+    QueryItem stageDateItem =
+        new QueryItem(
+                new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
+                programA,
+                null,
+                ValueType.DATE,
+                AggregationType.NONE,
+                null)
+            .withCustomHeader(AnalyticsCustomHeader.forEventDate(programStage));
+    stageDateItem.setProgramStage(programStage);
+    stageDateItem.addDimensionValue("2021");
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams()).addItem(stageDateItem).build();
+
+    ColumnAndAlias selectColumnAndAlias =
+        eventSubject.getColumnAndAlias(stageDateItem, params, false, true);
+    ColumnAndAlias groupByColumnAndAlias =
+        eventSubject.getColumnAndAlias(stageDateItem, params, true, true);
+
+    String expectedExpression =
+        "(select \"yearly\" from analytics_rs_dateperiodstructure as dps_stage where dps_stage."
+            + "\"dateperiod\" = cast(ax.\"occurreddate\" as date))";
+    assertThat(selectColumnAndAlias.asSql(), is(expectedExpression + " as \"occurreddate\""));
+    assertThat(groupByColumnAndAlias.asSql(), is(expectedExpression));
+  }
+
+  @Test
+  void verifyGetColumnAndAliasUsesPeriodBucketForStageScheduledDateDimension() {
+    QueryItem stageDateItem =
+        new QueryItem(
+                new BaseDimensionalItemObject(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME),
+                programA,
+                null,
+                ValueType.DATE,
+                AggregationType.NONE,
+                null)
+            .withCustomHeader(AnalyticsCustomHeader.forScheduledDate(programStage));
+    stageDateItem.setProgramStage(programStage);
+    stageDateItem.addDimensionValue("2021");
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams()).addItem(stageDateItem).build();
+
+    ColumnAndAlias selectColumnAndAlias =
+        eventSubject.getColumnAndAlias(stageDateItem, params, false, true);
+    ColumnAndAlias groupByColumnAndAlias =
+        eventSubject.getColumnAndAlias(stageDateItem, params, true, true);
+
+    String expectedExpression =
+        "(select \"yearly\" from analytics_rs_dateperiodstructure as dps_stage where dps_stage."
+            + "\"dateperiod\" = cast(ax.\"scheduleddate\" as date))";
+    assertThat(selectColumnAndAlias.asSql(), is(expectedExpression + " as \"scheduleddate\""));
+    assertThat(groupByColumnAndAlias.asSql(), is(expectedExpression));
+  }
+
+  @Test
+  void verifyGetColumnAndAliasUsesEventStatusColumnForStageEventStatusDimension() {
+    QueryItem stageStatusItem =
+        new QueryItem(
+                new BaseDimensionalItemObject(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME),
+                programA,
+                null,
+                ValueType.TEXT,
+                AggregationType.NONE,
+                null)
+            .withCustomHeader(AnalyticsCustomHeader.forEventStatus(programStage));
+    stageStatusItem.setProgramStage(programStage);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams()).addItem(stageStatusItem).build();
+
+    ColumnAndAlias selectColumnAndAlias =
+        eventSubject.getColumnAndAlias(stageStatusItem, params, false, true);
+    ColumnAndAlias groupByColumnAndAlias =
+        eventSubject.getColumnAndAlias(stageStatusItem, params, true, true);
+
+    assertThat(selectColumnAndAlias.asSql(), is("ax.\"eventstatus\""));
+    assertThat(groupByColumnAndAlias.asSql(), is("ax.\"eventstatus\""));
   }
 
   @Override
