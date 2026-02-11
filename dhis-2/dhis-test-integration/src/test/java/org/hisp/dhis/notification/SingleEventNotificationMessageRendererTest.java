@@ -91,7 +91,6 @@ class SingleEventNotificationMessageRendererTest extends PostgresIntegrationTest
 
   private DataElement dataElementA;
   private DataElement dataElementWithOptionSet;
-  private DataElement dataElementNotInProgramStage;
 
   private Program program;
   private ProgramStage programStage;
@@ -181,7 +180,7 @@ class SingleEventNotificationMessageRendererTest extends PostgresIntegrationTest
     dataElementWithOptionSet =
         createDataElement('Q', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER);
     dataElementWithOptionSet.setUid(DE_WITH_OPTION_SET_UID);
-    dataElementNotInProgramStage = createAndSaveDataElement(DE_NOT_IN_STAGE_UID, 'C');
+    DataElement dataElementNotInProgramStage = createAndSaveDataElement(DE_NOT_IN_STAGE_UID, 'C');
   }
 
   private DataElement createAndSaveDataElement(String uid, char uniqueChar) {
