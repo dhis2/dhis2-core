@@ -226,7 +226,7 @@ class OrgUnitQueryBuilderTest {
     MapSqlParameterSource params = new MapSqlParameterSource();
     Program program = createProgram(1, AccessLevel.OPEN);
     OwnershipScope scope =
-        new OwnershipScope(0, new LinkedHashSet<>(List.of(orgUnitA)), Set.of(orgUnitB));
+        new OwnershipScope(0, true, new LinkedHashSet<>(List.of(orgUnitA)), Set.of(orgUnitB));
 
     buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
 
@@ -242,7 +242,7 @@ class OrgUnitQueryBuilderTest {
     MapSqlParameterSource params = new MapSqlParameterSource();
     Program program = createProgram(1, AccessLevel.AUDITED);
     OwnershipScope scope =
-        new OwnershipScope(0, new LinkedHashSet<>(List.of(orgUnitB)), Set.of(orgUnitB));
+        new OwnershipScope(0, true, new LinkedHashSet<>(List.of(orgUnitB)), Set.of(orgUnitB));
 
     buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
 
@@ -258,7 +258,7 @@ class OrgUnitQueryBuilderTest {
     MapSqlParameterSource params = new MapSqlParameterSource();
     Program program = createProgram(42, AccessLevel.PROTECTED);
     OwnershipScope scope =
-        new OwnershipScope(0, Set.of(orgUnitA), new LinkedHashSet<>(List.of(orgUnitB)));
+        new OwnershipScope(0, true, Set.of(orgUnitA), new LinkedHashSet<>(List.of(orgUnitB)));
 
     buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
 
@@ -275,11 +275,26 @@ class OrgUnitQueryBuilderTest {
     StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
     Program program = createProgram(1, AccessLevel.OPEN);
-    OwnershipScope scope = new OwnershipScope(0, Set.of(), Set.of());
+    OwnershipScope scope = new OwnershipScope(0, true, Set.of(), Set.of());
 
     buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
 
     assertEquals(" and (false)", sql.toString());
+    Assertions.assertIsEmpty(params.getValues().values());
+  }
+
+  @Test
+  void shouldNotBuildOwnershipQueryWhenScopeUnrestricted() {
+    StringBuilder sql = new StringBuilder();
+    MapSqlParameterSource params = new MapSqlParameterSource();
+    Program program = createProgram(1, AccessLevel.OPEN);
+    OwnershipScope scope = new OwnershipScope(0, false, Set.of(), Set.of());
+
+    buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
+
+    assertTrue(
+        sql.toString().isEmpty(),
+        String.format("Expected sql query predicate to be empty, but was %s", sql));
     Assertions.assertIsEmpty(params.getValues().values());
   }
 
@@ -289,7 +304,7 @@ class OrgUnitQueryBuilderTest {
     MapSqlParameterSource params = new MapSqlParameterSource();
     Program program = createProgram(42, AccessLevel.CLOSED);
     OwnershipScope scope =
-        new OwnershipScope(0, Set.of(orgUnitA), new LinkedHashSet<>(List.of(orgUnitB)));
+        new OwnershipScope(0, true, Set.of(orgUnitA), new LinkedHashSet<>(List.of(orgUnitB)));
 
     buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
 

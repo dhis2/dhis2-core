@@ -972,7 +972,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           hlp.whereAnd());
     }
 
-    if (params.getOwnershipScope() != null) {
+    if (params.hasEnrolledInTrackerProgram()) {
       buildOwnershipClause(
           orgUnitBuilder,
           sqlParameters,

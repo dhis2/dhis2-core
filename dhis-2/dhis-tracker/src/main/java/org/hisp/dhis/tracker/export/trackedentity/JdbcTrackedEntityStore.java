@@ -486,7 +486,7 @@ class JdbcTrackedEntityStore {
           "and ");
     }
 
-    if (params.hasEnrolledInTrackerProgram() && params.getOwnershipScope() != null) {
+    if (params.hasEnrolledInTrackerProgram()) {
       buildOwnershipClause(
           sql,
           sqlParameters,
@@ -495,7 +495,7 @@ class JdbcTrackedEntityStore {
           orgUnitTableAlias,
           MAIN_QUERY_ALIAS,
           () -> "and ");
-    } else if (!params.hasEnrolledInTrackerProgram()) {
+    } else {
       buildOwnershipClause(
           sql,
           sqlParameters,

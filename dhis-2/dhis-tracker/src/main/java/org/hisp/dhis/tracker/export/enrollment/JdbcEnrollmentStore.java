@@ -234,7 +234,7 @@ class JdbcEnrollmentStore {
           hlp.whereAnd());
     }
 
-    if (params.getOwnershipScope() != null) {
+    if (params.hasEnrolledInTrackerProgram()) {
       buildOwnershipClause(
           sql,
           sqlParams,

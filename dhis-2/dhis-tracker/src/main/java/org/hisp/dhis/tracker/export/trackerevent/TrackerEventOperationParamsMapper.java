@@ -30,7 +30,6 @@
 package org.hisp.dhis.tracker.export.trackerevent;
 
 import static java.util.Collections.emptyList;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateAttributeOperators;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateMinimumCharactersToSearch;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
@@ -39,12 +38,10 @@ import static org.hisp.dhis.util.ObjectUtils.applyIfNotNull;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
@@ -161,17 +158,11 @@ class TrackerEventOperationParamsMapper {
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setIdSchemeParams(operationParams.getIdSchemeParams());
 
-    OrganisationUnitSelectionMode orgUnitMode = operationParams.getOrgUnitMode();
-    if (orgUnitMode != ALL && !user.isSuper()) {
-      Set<OrganisationUnit> captureScopeOrgUnits =
-          Set.copyOf(organisationUnitService.getOrganisationUnitsByUid(user.getUserOrgUnitIds()));
-      Set<OrganisationUnit> searchScopeOrgUnits =
-          Set.copyOf(
-              organisationUnitService.getOrganisationUnitsByUid(
-                  user.getUserEffectiveSearchOrgUnitIds()));
-      queryParams.setOwnershipScope(
-          OwnershipScope.of(user, orgUnitMode, searchScopeOrgUnits, captureScopeOrgUnits));
-    }
+    queryParams.setOwnershipScope(
+        OwnershipScope.of(
+            user,
+            operationParams.getOrgUnitMode(),
+            organisationUnitService::getOrganisationUnitsByUid));
 
     return queryParams;
   }

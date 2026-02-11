@@ -153,19 +153,14 @@ class TrackedEntityOperationParamsMapper {
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setPotentialDuplicate(operationParams.getPotentialDuplicate());
 
-    OrganisationUnitSelectionMode orgUnitMode = operationParams.getOrgUnitMode();
-    Set<OrganisationUnit> captureScopeOrgUnits =
-        Set.copyOf(organisationUnitService.getOrganisationUnitsByUid(user.getUserOrgUnitIds()));
-    if (orgUnitMode != ALL && !user.isSuper()) {
-      Set<OrganisationUnit> searchScopeOrgUnits =
-          Set.copyOf(
-              organisationUnitService.getOrganisationUnitsByUid(
-                  user.getUserEffectiveSearchOrgUnitIds()));
-      params.setOwnershipScope(
-          OwnershipScope.of(user, orgUnitMode, searchScopeOrgUnits, captureScopeOrgUnits));
-    }
+    params.setOwnershipScope(
+        OwnershipScope.of(
+            user,
+            operationParams.getOrgUnitMode(),
+            organisationUnitService::getOrganisationUnitsByUid));
 
-    validateSearchOutsideCaptureScopeParameters(params, user, captureScopeOrgUnits);
+    validateSearchOutsideCaptureScopeParameters(
+        params, user, params.getOwnershipScope().captureScope());
 
     return params;
   }

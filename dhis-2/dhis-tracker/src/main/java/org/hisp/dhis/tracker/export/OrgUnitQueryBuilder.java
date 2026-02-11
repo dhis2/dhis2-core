@@ -141,8 +141,7 @@ public class OrgUnitQueryBuilder {
    * the branches relevant to the program's access level are emitted. Uses literal path prefixes
    * resolved from the given {@link OwnershipScope} for index-friendly LIKE predicates.
    *
-   * <p>The caller is responsible for skipping this method when no ownership restriction applies
-   * (e.g. super users or org unit mode ALL).
+   * <p>Does nothing when the given scope is {@linkplain OwnershipScope#restricted() unrestricted}.
    */
   public static void buildOwnershipClause(
       StringBuilder sql,
@@ -152,6 +151,10 @@ public class OrgUnitQueryBuilder {
       String orgUnitTableAlias,
       String trackedEntityTableAlias,
       Supplier<String> clauseSupplier) {
+    if (!ownershipScope.restricted()) {
+      return;
+    }
+
     AccessLevel accessLevel = program.getAccessLevel();
 
     sql.append(clauseSupplier.get()).append("(");

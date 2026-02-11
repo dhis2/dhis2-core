@@ -30,14 +30,12 @@
 package org.hisp.dhis.tracker.export.enrollment;
 
 import static java.util.Collections.emptyList;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -91,17 +89,11 @@ class EnrollmentOperationParamsMapper {
     params.setEnrollments(operationParams.getEnrollments());
     params.setIncludeAttributes(operationParams.getFields().isIncludesAttributes());
 
-    OrganisationUnitSelectionMode orgUnitMode = operationParams.getOrgUnitMode();
-    if (orgUnitMode != ALL && !user.isSuper()) {
-      Set<OrganisationUnit> captureScopeOrgUnits =
-          Set.copyOf(organisationUnitService.getOrganisationUnitsByUid(user.getUserOrgUnitIds()));
-      Set<OrganisationUnit> searchScopeOrgUnits =
-          Set.copyOf(
-              organisationUnitService.getOrganisationUnitsByUid(
-                  user.getUserEffectiveSearchOrgUnitIds()));
-      params.setOwnershipScope(
-          OwnershipScope.of(user, orgUnitMode, searchScopeOrgUnits, captureScopeOrgUnits));
-    }
+    params.setOwnershipScope(
+        OwnershipScope.of(
+            user,
+            operationParams.getOrgUnitMode(),
+            organisationUnitService::getOrganisationUnitsByUid));
 
     return params;
   }
