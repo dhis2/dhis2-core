@@ -155,7 +155,7 @@ class TrackedEntityOperationParamsMapper {
 
     Set<OrganisationUnit> captureScope =
         Set.copyOf(organisationUnitService.getOrganisationUnitsByUid(user.getUserOrgUnitIds()));
-    boolean outsideCaptureScope = !isSearchInCaptureScope(params, user, captureScope);
+    boolean outsideCaptureScope = isSearchOutsideCaptureScope(params, user, captureScope);
     params.setSearchScope(
         SearchScope.of(
             user,
@@ -378,13 +378,12 @@ class TrackedEntityOperationParamsMapper {
     }
   }
 
-  private boolean isSearchInCaptureScope(
+  private boolean isSearchOutsideCaptureScope(
       TrackedEntityQueryParams params,
       UserDetails user,
       Set<OrganisationUnit> captureScopeOrgUnits) {
-    // If the organization unit selection mode is set to CAPTURE, then it's a local search.
     if (OrganisationUnitSelectionMode.CAPTURE == params.getOrgUnitMode()) {
-      return true;
+      return false;
     }
     Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
 
@@ -404,11 +403,11 @@ class TrackedEntityOperationParamsMapper {
 
     for (OrganisationUnit ou : searchOrgUnits) {
       if (!ou.isDescendant(captureScopeOrgUnits)) {
-        return false;
+        return true;
       }
     }
 
-    return true;
+    return false;
   }
 
   private boolean isTeTypeMinAttributesViolated(TrackedEntityQueryParams params) {

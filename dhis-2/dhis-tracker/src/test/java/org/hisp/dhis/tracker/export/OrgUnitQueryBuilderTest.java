@@ -36,6 +36,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -54,7 +55,6 @@ import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.test.utils.Assertions;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -163,7 +163,7 @@ class OrgUnitQueryBuilderTest {
     assertTrue(
         sql.toString().isEmpty(),
         String.format("Expected sql query predicate to be empty, but was %s", sql));
-    Assertions.assertIsEmpty(params.getValues().values());
+    assertIsEmpty(params.getValues().values());
   }
 
   @Test
@@ -176,7 +176,7 @@ class OrgUnitQueryBuilderTest {
     assertTrue(
         sql.toString().isEmpty(),
         String.format("Expected sql query predicate to be empty, but was %s", sql));
-    Assertions.assertIsEmpty(params.getValues().values());
+    assertIsEmpty(params.getValues().values());
   }
 
   @Test
@@ -280,7 +280,7 @@ class OrgUnitQueryBuilderTest {
     buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
 
     assertEquals(" and (false)", sql.toString());
-    Assertions.assertIsEmpty(params.getValues().values());
+    assertIsEmpty(params.getValues().values());
   }
 
   @Test
@@ -295,7 +295,7 @@ class OrgUnitQueryBuilderTest {
     assertTrue(
         sql.toString().isEmpty(),
         String.format("Expected sql query predicate to be empty, but was %s", sql));
-    Assertions.assertIsEmpty(params.getValues().values());
+    assertIsEmpty(params.getValues().values());
   }
 
   @Test

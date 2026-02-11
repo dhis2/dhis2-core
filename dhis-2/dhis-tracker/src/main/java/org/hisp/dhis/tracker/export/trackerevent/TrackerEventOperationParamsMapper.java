@@ -139,7 +139,6 @@ class TrackerEventOperationParamsMapper {
             SearchScope.of(
                 user,
                 operationParams.getOrgUnitMode(),
-                false,
                 organisationUnitService::getOrganisationUnitsByUid))
         .setAssignedUserQueryParam(
             new AssignedUserQueryParam(

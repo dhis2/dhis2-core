@@ -92,7 +92,6 @@ class EnrollmentOperationParamsMapper {
         SearchScope.of(
             user,
             operationParams.getOrgUnitMode(),
-            false,
             organisationUnitService::getOrganisationUnitsByUid));
 
     return params;

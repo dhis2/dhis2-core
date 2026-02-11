@@ -65,9 +65,23 @@ public record SearchScope(
     Set<OrganisationUnit> captureScope) {
 
   /**
-   * Creates a search scope by resolving the user's org unit scopes via the given resolver. Always
-   * resolves the capture scope; skips the search scope fetch for superusers or org unit mode ALL
-   * since no ownership SQL clause is emitted.
+   * Creates a search scope by resolving the user's org unit scopes via the given resolver. Use this
+   * overload for endpoints that don't enforce the max TE limit (enrollments, events).
+   *
+   * @param orgUnitResolver resolves a set of org unit UIDs to their entities (typically {@code
+   *     organisationUnitService::getOrganisationUnitsByUid})
+   */
+  public static SearchScope of(
+      UserDetails user,
+      OrganisationUnitSelectionMode mode,
+      Function<Collection<String>, List<OrganisationUnit>> orgUnitResolver) {
+    return of(user, mode, false, orgUnitResolver);
+  }
+
+  /**
+   * Creates a search scope by resolving the user's org unit scopes via the given resolver. Skips
+   * all org unit fetching for superusers or org unit mode ALL since no ownership SQL clause is
+   * emitted.
    *
    * @param orgUnitResolver resolves a set of org unit UIDs to their entities (typically {@code
    *     organisationUnitService::getOrganisationUnitsByUid})
@@ -77,6 +91,9 @@ public record SearchScope(
       OrganisationUnitSelectionMode mode,
       boolean outsideCaptureScope,
       Function<Collection<String>, List<OrganisationUnit>> orgUnitResolver) {
+    if (mode == ALL || user.isSuper()) {
+      return new SearchScope(0, false, false, Set.of(), Set.of());
+    }
     Set<OrganisationUnit> captureOrgUnits =
         Set.copyOf(orgUnitResolver.apply(user.getUserOrgUnitIds()));
     return of(user, mode, outsideCaptureScope, captureOrgUnits, orgUnitResolver);
