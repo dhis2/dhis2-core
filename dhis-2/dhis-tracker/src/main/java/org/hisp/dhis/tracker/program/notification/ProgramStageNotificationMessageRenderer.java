@@ -158,7 +158,7 @@ public class ProgramStageNotificationMessageRenderer
         .collect(
             Collectors.toMap(
                 EventDataValue::getDataElement,
-                dv -> resolveDataElementValue(dv, dataElementsMap.get(dv.getDataElement()))));
+                dv -> renderDataElementValue(dv, dataElementsMap.get(dv.getDataElement()))));
   }
 
   @Override
@@ -184,21 +184,5 @@ public class ProgramStageNotificationMessageRenderer
     return av.getAttribute().hasOptionSet()
         ? getOptionName(av.getAttribute().getOptionSet(), value)
         : value;
-  }
-
-  private String resolveDataElementValue(EventDataValue dv, DataElement dataElement) {
-    if (dataElement == null) {
-      return MISSING_VALUE_REPLACEMENT;
-    }
-    String value = dv.getValue();
-
-    if (value == null) {
-      return CONFIDENTIAL_VALUE_REPLACEMENT;
-    }
-
-    // If the DV has an OptionSet -> substitute value with the name of the
-    // Option
-
-    return dataElement.hasOptionSet() ? getOptionName(dataElement.getOptionSet(), value) : value;
   }
 }

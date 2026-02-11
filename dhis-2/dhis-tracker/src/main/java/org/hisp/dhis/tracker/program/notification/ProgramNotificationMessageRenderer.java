@@ -105,7 +105,7 @@ public class ProgramNotificationMessageRenderer
 
     return entity.getTrackedEntity().getTrackedEntityAttributeValues().stream()
         .filter(av -> attributeKeys.contains(av.getAttribute().getUid()))
-        .collect(Collectors.toMap(av -> av.getAttribute().getUid(), this::resolveAttributeValue));
+        .collect(Collectors.toMap(av -> av.getAttribute().getUid(), this::renderAttributeValue));
   }
 
   @Override
@@ -129,7 +129,7 @@ public class ProgramNotificationMessageRenderer
   // Internal methods
   // -------------------------------------------------------------------------
 
-  private String resolveAttributeValue(TrackedEntityAttributeValue av) {
+  private String renderAttributeValue(TrackedEntityAttributeValue av) {
     String value = av.getPlainValue();
 
     if (value == null) {

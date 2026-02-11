@@ -123,8 +123,7 @@ public class SingleEventNotificationMessageRenderer
         .collect(
             Collectors.toMap(
                 EventDataValue::getDataElement,
-                dv ->
-                    resolveDataElementWithOptionSet(dv, dataElementsMap.get(dv.getDataElement()))));
+                dv -> renderDataElementValue(dv, dataElementsMap.get(dv.getDataElement()))));
   }
 
   @Override
@@ -135,22 +134,5 @@ public class SingleEventNotificationMessageRenderer
   @Override
   protected Set<ExpressionType> getSupportedExpressionTypes() {
     return SUPPORTED_EXPRESSION_TYPES;
-  }
-
-  // -------------------------------------------------------------------------
-  // Internal methods
-  // -------------------------------------------------------------------------
-
-  private String resolveDataElementWithOptionSet(EventDataValue dv, DataElement dataElement) {
-    if (dataElement == null) {
-      return MISSING_VALUE_REPLACEMENT;
-    }
-    String value = dv.getValue();
-
-    if (value == null) {
-      return CONFIDENTIAL_VALUE_REPLACEMENT;
-    }
-
-    return dataElement.hasOptionSet() ? getOptionName(dataElement.getOptionSet(), value) : value;
   }
 }

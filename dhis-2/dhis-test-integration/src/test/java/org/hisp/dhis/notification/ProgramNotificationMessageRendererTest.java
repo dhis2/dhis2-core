@@ -348,8 +348,8 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
     programNotificationTemplateStore.update(programNotificationTemplate);
     NotificationMessage notificationMessage =
         programStageNotificationMessageRenderer.render(eventA, programNotificationTemplate);
-    assertEquals("message is [N/A]", notificationMessage.getMessage());
-    assertEquals("subject is [N/A]", notificationMessage.getSubject());
+    assertEquals("message is [DataElement not in Program Stage]", notificationMessage.getMessage());
+    assertEquals("subject is [DataElement not in Program Stage]", notificationMessage.getSubject());
   }
 
   @Test
