@@ -1095,22 +1095,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
-  void testRemoveAliases() {
-    // Given
-    List<String> columnsWithAliases = List.of("columnA as cA", "columnB", "columnC as cC", "");
-
-    // When
-    List<String> columnsWithNoAliases = eventSubject.removeAliases(columnsWithAliases);
-
-    // Then
-    assertEquals(columnsWithAliases.size(), columnsWithNoAliases.size());
-    assertTrue(columnsWithNoAliases.contains("columnA"));
-    assertTrue(columnsWithNoAliases.contains("columnB"));
-    assertTrue(columnsWithNoAliases.contains("columnC"));
-    assertTrue(columnsWithNoAliases.contains(""));
-  }
-
-  @Test
   void testGetGroupByColumnNamesWithoutAliases() {
     // Given
     DataElement deA = createDataElement('A', ValueType.ORGANISATION_UNIT, AggregationType.NONE);

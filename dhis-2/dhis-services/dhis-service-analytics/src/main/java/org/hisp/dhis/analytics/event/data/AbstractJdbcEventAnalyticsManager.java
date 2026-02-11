@@ -487,45 +487,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * clause.
    */
   protected List<String> getGroupByColumnNames(EventQueryParams params, boolean isAggregated) {
-    List<String> columns = getSelectColumns(params, true, isAggregated);
-
-    return removeAliases(columns);
-  }
-
-  /**
-   * It removes the aliases from the list of given columns, if any.
-   *
-   * <p>ie: columnA as cA -> columnA
-   *
-   * @param columns the columns that may have aliases.
-   * @return the columns without aliases.
-   */
-  List<String> removeAliases(List<String> columns) {
-    return columns.stream().map(this::removeOuterAlias).toList();
-  }
-
-  /**
-   * Removes only a trailing projection alias while preserving inner SQL that may also contain
-   * {@code as}.
-   *
-   * <p>Examples:
-   *
-   * <ul>
-   *   <li>{@code ax."uidlevel1" as "ou"} -> {@code ax."uidlevel1"}
-   *   <li>{@code nullif(ax."deA", '') as deA} -> {@code nullif(ax."deA", '')}
-   *   <li>{@code (select "yearly" from analytics_rs_dateperiodstructure as dps_stage where
-   *       dps_stage."dateperiod" = cast(ax."occurreddate" as date)) as "occurreddate"} -> {@code
-   *       (select "yearly" from analytics_rs_dateperiodstructure as dps_stage where
-   *       dps_stage."dateperiod" = cast(ax."occurreddate" as date))}
-   * </ul>
-   *
-   * <p>This is important for GROUP BY generation: only the outer alias should be removed. Inner
-   * aliases/casts must remain valid SQL.
-   */
-  private String removeOuterAlias(String column) {
-    return column
-        .replaceFirst("(?i)\\s+as\\s+\"[^\"]+\"\\s*$", "")
-        .replaceFirst("(?i)\\s+as\\s+[A-Za-z0-9_\\.]+\\s*$", "");
+    return getSelectColumns(params, true, isAggregated);
   }
 
   /**
@@ -601,14 +563,22 @@ public abstract class AbstractJdbcEventAnalyticsManager {
               } else if (params.hasSinglePeriod()) {
                 PeriodDimension period = (PeriodDimension) params.getPeriods().get(0);
                 columns.add(
-                    singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
+                    isGroupByClause
+                        ? singleQuote(period.getIsoDate())
+                        : singleQuote(period.getIsoDate())
+                            + " as "
+                            + period.getPeriodType().getName());
               } else if (!params.hasPeriods() && params.hasFilterPeriods()) {
                 // Assuming same period type for all period filters, as the
                 // query planner splits into one query per period type
 
                 PeriodDimension period = (PeriodDimension) params.getFilterPeriods().get(0);
                 columns.add(
-                    singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
+                    isGroupByClause
+                        ? singleQuote(period.getIsoDate())
+                        : singleQuote(period.getIsoDate())
+                            + " as "
+                            + period.getPeriodType().getName());
               } else {
                 throw new IllegalStateException(
                     """
@@ -627,10 +597,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       ColumnAndAlias columnAndAlias =
           getColumnAndAlias(queryItem, params, isGroupByClause, isAggregated);
 
-      columns.add(columnAndAlias.asSql());
+      columns.add(isGroupByClause ? columnAndAlias.getColumn() : columnAndAlias.asSql());
 
       // asked for row context if allowed and needed based on column and its alias
-      handleRowContext(columns, params, queryItem, columnAndAlias);
+      if (!isGroupByClause) {
+        handleRowContext(columns, params, queryItem, columnAndAlias);
+      }
     }
   }
 
