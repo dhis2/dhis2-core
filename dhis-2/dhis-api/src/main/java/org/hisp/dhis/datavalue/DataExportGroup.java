@@ -31,6 +31,7 @@ package org.hisp.dhis.datavalue;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
@@ -87,11 +88,34 @@ public record DataExportGroup(
       @CheckForNull String orgUnit,
       @CheckForNull String attributeOptionCombo,
       @CheckForNull Map<String, String> attributeOptions,
+      @CheckForNull Scope deletion,
       @Nonnull Stream<DataExportValue.Output> values) {
 
     public Output {
       requireNonNull(ids);
       requireNonNull(values);
+    }
+  }
+
+  public record Scope(
+      @Nonnull List<String> orgUnits,
+      @Nonnull List<String> periods,
+      @Nonnull List<Element> elements) {
+
+    public Scope {
+      requireNonNull(orgUnits);
+      requireNonNull(periods);
+      requireNonNull(elements);
+    }
+
+    public record Element(
+        @Nonnull String dataElement,
+        @CheckForNull String categoryOptionCombo,
+        @CheckForNull String attributeOptionCombo) {
+
+      public Element {
+        requireNonNull(dataElement);
+      }
     }
   }
 
