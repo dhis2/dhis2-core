@@ -302,7 +302,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
       @Nonnull UID orgUnit,
       @CheckForNull UID categoryOptionCombo,
       @CheckForNull UID attributeOptionCombo,
-      @Nonnull String period) {
+      @Nonnull Period period) {
     String sql =
         """
       SELECT dv.value, dv.comment, dv.followup, dv.deleted
@@ -321,7 +321,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
             .setParameter("ou", orgUnit.getValue())
             .setParameter("coc", categoryOptionCombo.getValue())
             .setParameter("aoc", attributeOptionCombo.getValue())
-            .setParameter("iso", period)
+            .setParameter("iso", period.getIsoDate())
             .list();
     if (rows.isEmpty()) return null; // does not exist
     Object[] row0 = rows.get(0);
@@ -925,7 +925,7 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
 
     for (DataEntryValue value : values) {
       Long de = des.get(value.dataElement().getValue());
-      Long pe = pes.get(value.period());
+      Long pe = pes.get(value.period().getIsoDate());
       Long ou = ous.get(value.orgUnit().getValue());
       Long coc = cocOf.apply(value.categoryOptionCombo());
       Long aoc = cocOf.apply(value.attributeOptionCombo());
@@ -979,7 +979,8 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
 
   @Nonnull
   private Map<String, Long> getPeriodsIdMap(List<DataEntryValue> values) {
-    List<String> isoPeriods = values.stream().map(DataEntryValue::period).distinct().toList();
+    List<String> isoPeriods =
+        values.stream().map(DataEntryValue::period).map(Period::getIsoDate).distinct().toList();
     Map<String, Long> res = new HashMap<>(isoPeriods.size());
     String sql = "SELECT iso, periodid FROM period where iso IN (:iso)";
     @SuppressWarnings("unchecked")
