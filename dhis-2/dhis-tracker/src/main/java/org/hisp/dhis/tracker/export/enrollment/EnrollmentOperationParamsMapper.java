@@ -30,18 +30,22 @@
 package org.hisp.dhis.tracker.export.enrollment;
 
 import static java.util.Collections.emptyList;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
+import org.hisp.dhis.tracker.export.OwnershipScope;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,6 +58,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 class EnrollmentOperationParamsMapper {
   private final TrackerProgramService trackerProgramService;
+
+  private final OrganisationUnitService organisationUnitService;
 
   private final OperationsParamsValidator paramsValidator;
 
@@ -84,6 +90,18 @@ class EnrollmentOperationParamsMapper {
     params.setOrder(operationParams.getOrder());
     params.setEnrollments(operationParams.getEnrollments());
     params.setIncludeAttributes(operationParams.getFields().isIncludesAttributes());
+
+    OrganisationUnitSelectionMode orgUnitMode = operationParams.getOrgUnitMode();
+    if (orgUnitMode != ALL && !user.isSuper()) {
+      Set<OrganisationUnit> captureScopeOrgUnits =
+          Set.copyOf(organisationUnitService.getOrganisationUnitsByUid(user.getUserOrgUnitIds()));
+      Set<OrganisationUnit> searchScopeOrgUnits =
+          Set.copyOf(
+              organisationUnitService.getOrganisationUnitsByUid(
+                  user.getUserEffectiveSearchOrgUnitIds()));
+      params.setOwnershipScope(
+          OwnershipScope.of(user, orgUnitMode, searchScopeOrgUnits, captureScopeOrgUnits));
+    }
 
     return params;
   }

@@ -972,14 +972,25 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           hlp.whereAnd());
     }
 
-    buildOwnershipClause(
-        orgUnitBuilder,
-        sqlParameters,
-        params.getOrgUnitMode(),
-        "p",
-        "ou",
-        "te",
-        () -> hlp.whereAnd());
+    if (params.getOwnershipScope() != null) {
+      buildOwnershipClause(
+          orgUnitBuilder,
+          sqlParameters,
+          params.getEnrolledInTrackerProgram(),
+          params.getOwnershipScope(),
+          "ou",
+          "te",
+          () -> hlp.whereAnd());
+    } else {
+      buildOwnershipClause(
+          orgUnitBuilder,
+          sqlParameters,
+          params.getOrgUnitMode(),
+          "p",
+          "ou",
+          "te",
+          () -> hlp.whereAnd());
+    }
 
     return orgUnitBuilder.toString();
   }

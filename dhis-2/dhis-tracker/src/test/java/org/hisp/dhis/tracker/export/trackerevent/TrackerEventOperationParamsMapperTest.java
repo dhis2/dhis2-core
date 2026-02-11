@@ -170,6 +170,8 @@ class TrackerEventOperationParamsMapperTest {
     tea1 = new TrackedEntityAttribute();
     tea1.setUid(TEA_1_UID);
     tea1.setValueType(ValueType.INTEGER);
+
+    when(organisationUnitService.getOrganisationUnitsByUid(any())).thenReturn(List.of());
   }
 
   @Test

@@ -44,6 +44,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.OwnershipScope;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -101,6 +102,8 @@ class EnrollmentQueryParams {
 
   /** Indicates whether to include tracked entity attribute data in the enrollment */
   private boolean includeAttributes;
+
+  @Getter private OwnershipScope ownershipScope;
 
   private List<Order> order;
 

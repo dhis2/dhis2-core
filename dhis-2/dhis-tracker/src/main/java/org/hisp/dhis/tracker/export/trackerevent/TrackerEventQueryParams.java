@@ -59,6 +59,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.FilterJdbcPredicate;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.OwnershipScope;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 
 /**
@@ -164,6 +165,8 @@ class TrackerEventQueryParams {
   @Getter private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
   @Getter private TrackerIdSchemeParams idSchemeParams = TrackerIdSchemeParams.builder().build();
+
+  @Getter private OwnershipScope ownershipScope;
 
   public TrackerEventQueryParams() {}
 
@@ -413,6 +416,11 @@ class TrackerEventQueryParams {
 
   public TrackerEventQueryParams setIdSchemeParams(TrackerIdSchemeParams idSchemeParams) {
     this.idSchemeParams = idSchemeParams;
+    return this;
+  }
+
+  public TrackerEventQueryParams setOwnershipScope(OwnershipScope ownershipScope) {
+    this.ownershipScope = ownershipScope;
     return this;
   }
 }
