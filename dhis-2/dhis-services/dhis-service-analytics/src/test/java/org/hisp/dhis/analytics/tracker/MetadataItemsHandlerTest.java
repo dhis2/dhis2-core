@@ -62,17 +62,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.OrganisationUnitResolver;
+import org.hisp.dhis.common.AnalyticsCustomHeader;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.MetadataItem;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.Legend;
@@ -81,6 +87,7 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
@@ -618,6 +625,64 @@ class MetadataItemsHandlerTest {
       assertNotNull(items);
       assertTrue(items.containsKey("kO3z4Dhc038.C31vHZqu0qU"));
       assertFalse(items.containsKey("LFsZ8v5v7rq"));
+    }
+
+    @Test
+    @DisplayName("should include resolved org unit item for stage ou aggregate dimension")
+    void shouldIncludeResolvedOrgUnitItemForStageOuAggregateDimension() {
+      // Given
+      Grid grid = new ListGrid();
+
+      ProgramStage programStage = createProgramStage('S', programA);
+      programStage.setUid("A03MvHHogjR");
+      programStage.setName("Birth");
+
+      QueryItem stageOuItem =
+          new QueryItem(
+                  new BaseDimensionalItemObject("ou"),
+                  programA,
+                  null,
+                  ValueType.ORGANISATION_UNIT,
+                  AggregationType.NONE,
+                  null)
+              .withCustomHeader(AnalyticsCustomHeader.forOrgUnit(programStage));
+      stageOuItem.setProgramStage(programStage);
+      stageOuItem.addFilter(new QueryFilter(QueryOperator.IN, "USER_ORGUNIT"));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withUserOrgUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(stageOuItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+      when(organisationUnitResolver.resolveOrgUnits(
+              any(EventQueryParams.class), any(QueryItem.class)))
+          .thenReturn(List.of(orgUnitA.getUid()));
+      when(organisationUnitResolver.resolveOrgUnitsForMetadata(
+              any(EventQueryParams.class), any(QueryItem.class)))
+          .thenReturn(List.of(orgUnitA.getUid()));
+      when(organisationUnitResolver.loadOrgUnitDimensionalItem(orgUnitA.getUid(), IdScheme.UID))
+          .thenReturn(orgUnitA);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+
+      assertTrue(items.containsKey("A03MvHHogjR.ou"));
+      assertTrue(items.containsKey(orgUnitA.getUid()));
+
+      MetadataItem orgUnitItem = (MetadataItem) items.get(orgUnitA.getUid());
+      assertEquals(orgUnitA.getDisplayName(), orgUnitItem.getName());
     }
   }
 
