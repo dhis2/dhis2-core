@@ -486,16 +486,16 @@ class JdbcTrackedEntityStore {
           "and ");
     }
 
-    if (params.hasEnrolledInTrackerProgram()) {
+    if (params.hasEnrolledInTrackerProgram() && params.getOwnershipScope() != null) {
       buildOwnershipClause(
           sql,
           sqlParameters,
-          params.getOrgUnitMode(),
           params.getEnrolledInTrackerProgram(),
+          params.getOwnershipScope(),
           orgUnitTableAlias,
           MAIN_QUERY_ALIAS,
           () -> "and ");
-    } else {
+    } else if (!params.hasEnrolledInTrackerProgram()) {
       buildOwnershipClause(
           sql,
           sqlParameters,

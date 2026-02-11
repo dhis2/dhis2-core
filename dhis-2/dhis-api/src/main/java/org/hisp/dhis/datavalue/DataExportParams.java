@@ -154,6 +154,10 @@ public class DataExportParams {
     return c != null && !c.isEmpty();
   }
 
+  /** The parameters adjusting the encoding process of the export. */
+  public record EncodingParams(
+      boolean unfoldOptionCombos, boolean excludeDefaultCoc, boolean excludeDefaultAoc) {}
+
   /**
    * All query parameters to read data value sets as provided by user input to create {@link
    * DataExportParams}.
@@ -257,6 +261,16 @@ public class DataExportParams {
     @Maturity.Alpha
     private Boolean unfoldOptionCombos;
 
+    @OpenApi.Description(
+        "When `true`, data values with default category option combo skip the ID in the export output.")
+    @Maturity.Beta
+    private boolean excludeDefaultCoc;
+
+    @OpenApi.Description(
+        "When `true`, data values with default attribute option combo skip the ID in the export output.")
+    @Maturity.Beta
+    private boolean excludeDefaultAoc;
+
     @OpenApi.Ignore
     public IdSchemes getOutputIdSchemes() {
       IdSchemes schemes = new IdSchemes();
@@ -273,6 +287,11 @@ public class DataExportParams {
       setNonNull(schemes, dataSetIdScheme, IdSchemes::setDataSetIdScheme);
       setNonNull(schemes, attributeOptionComboIdScheme, IdSchemes::setAttributeOptionComboIdScheme);
       return schemes;
+    }
+
+    public EncodingParams geEncodingParams() {
+      return new EncodingParams(
+          Boolean.TRUE.equals(unfoldOptionCombos), excludeDefaultCoc, excludeDefaultAoc);
     }
 
     private static void setNonNull(

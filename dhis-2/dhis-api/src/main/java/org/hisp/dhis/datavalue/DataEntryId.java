@@ -32,6 +32,7 @@ package org.hisp.dhis.datavalue;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.period.Period;
 
 public interface DataEntryId {
 
@@ -48,5 +49,5 @@ public interface DataEntryId {
   UID attributeOptionCombo();
 
   @Nonnull
-  String period();
+  Period period();
 }

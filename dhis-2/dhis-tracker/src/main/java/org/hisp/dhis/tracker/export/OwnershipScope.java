@@ -27,61 +27,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datavalue;
+package org.hisp.dhis.tracker.export;
 
-import static java.util.Objects.requireNonNull;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.UsageTestOnly;
-import org.hisp.dhis.dataelement.DataElement;
+import java.util.Set;
+import org.hisp.dhis.common.AccessLevel;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.user.UserDetails;
 
-/** A record of the ID combination that points to a unique aggregate data value row. */
-public record DataEntryKey(
-    @Nonnull UID dataElement,
-    @Nonnull UID orgUnit,
-    @CheckForNull UID categoryOptionCombo,
-    @CheckForNull UID attributeOptionCombo,
-    @Nonnull Period period)
-    implements DataEntryId {
+/**
+ * Bundles the user's org unit scopes needed by ownership-based access control clauses. Resolves the
+ * org unit selection mode at construction time so consumers don't need to re-derive which scope
+ * applies.
+ *
+ * @param userId the user's database ID, used for temporary ownership predicates
+ * @param scope the effective scope for OPEN/AUDITED programs, pre-resolved from the org unit mode
+ *     (search scope when mode is not CAPTURE, capture scope when mode is CAPTURE)
+ * @param captureScope the user's capture scope, used for PROTECTED/CLOSED programs
+ */
+public record OwnershipScope(
+    long userId, Set<OrganisationUnit> scope, Set<OrganisationUnit> captureScope) {
 
-  public DataEntryKey {
-    requireNonNull(dataElement);
-    requireNonNull(orgUnit);
-    requireNonNull(period);
+  public static OwnershipScope of(
+      UserDetails user,
+      OrganisationUnitSelectionMode mode,
+      Set<OrganisationUnit> searchOrgUnits,
+      Set<OrganisationUnit> captureOrgUnits) {
+    Set<OrganisationUnit> scope = mode == CAPTURE ? captureOrgUnits : searchOrgUnits;
+    return new OwnershipScope(user.getId(), scope, captureOrgUnits);
   }
 
-  @UsageTestOnly
-  public DataEntryKey(
-      @Nonnull DataElement dataElement,
-      @Nonnull Period period,
-      @Nonnull OrganisationUnit orgUnit,
-      @CheckForNull CategoryOptionCombo categoryOptionCombo,
-      @CheckForNull CategoryOptionCombo attributeOptionCombo) {
-    this(
-        UID.of(dataElement),
-        UID.of(orgUnit),
-        UID.of(categoryOptionCombo),
-        UID.of(attributeOptionCombo),
-        period);
-  }
-
-  @Nonnull
-  public DataEntryValue toDeletedValue() {
-    return new DataEntryValue(
-        0,
-        dataElement,
-        orgUnit,
-        categoryOptionCombo,
-        attributeOptionCombo,
-        period,
-        null,
-        null,
-        null,
-        true);
+  public Set<OrganisationUnit> forAccessLevel(AccessLevel accessLevel) {
+    return switch (accessLevel) {
+      case OPEN, AUDITED -> scope;
+      case PROTECTED, CLOSED -> captureScope;
+    };
   }
 }
