@@ -149,7 +149,7 @@ class JdbcTrackedEntityStore {
   }
 
   private void validateMaxTeLimit(TrackedEntityQueryParams params) {
-    if (!params.isSearchOutsideCaptureScope()) {
+    if (!params.getSearchScope().outsideCaptureScope()) {
       return;
     }
 
@@ -486,16 +486,16 @@ class JdbcTrackedEntityStore {
           "and ");
     }
 
-    if (params.hasEnrolledInTrackerProgram() && params.getOwnershipScope() != null) {
+    if (params.hasEnrolledInTrackerProgram()) {
       buildOwnershipClause(
           sql,
           sqlParameters,
           params.getEnrolledInTrackerProgram(),
-          params.getOwnershipScope(),
+          params.getSearchScope(),
           orgUnitTableAlias,
           MAIN_QUERY_ALIAS,
           () -> "and ");
-    } else if (!params.hasEnrolledInTrackerProgram()) {
+    } else {
       buildOwnershipClause(
           sql,
           sqlParameters,

@@ -207,6 +207,38 @@ public class ValidationHelper {
   }
 
   /**
+   * Validates the common properties of a specific header identified by its name.
+   *
+   * @param response The ApiResponse object.
+   * @param actualHeaders List of headers extracted from the response.
+   * @param headerName The exact 'name' of the header to validate.
+   * @param expectedValueType The expected 'valueType' property value.
+   * @param expectedType The expected 'type' property value.
+   * @param expectedHidden The expected 'hidden' property value.
+   * @param expectedMeta The expected 'meta' property value.
+   */
+  public static void validateHeaderPropertiesByName(
+      ApiResponse response,
+      List<Map<String, Object>> actualHeaders,
+      String headerName,
+      String expectedValueType,
+      String expectedType,
+      boolean expectedHidden,
+      boolean expectedMeta) {
+
+    // Find the header first to ensure it exists before using index
+    int headerIndex = getHeaderIndexByName(actualHeaders, headerName);
+
+    response
+        .validate()
+        .body("headers[" + headerIndex + "].name", equalTo(headerName))
+        .body("headers[" + headerIndex + "].valueType", equalTo(expectedValueType))
+        .body("headers[" + headerIndex + "].type", equalTo(expectedType))
+        .body("headers[" + headerIndex + "].hidden", is(expectedHidden))
+        .body("headers[" + headerIndex + "].meta", is(expectedMeta));
+  }
+
+  /**
    * Validates a specific cell value in the response rows, identifying the column by header name.
    *
    * @param response The ApiResponse object.

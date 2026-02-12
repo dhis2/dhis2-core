@@ -61,6 +61,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.OrganisationUnitResolver;
@@ -567,6 +568,56 @@ class MetadataItemsHandlerTest {
       assertNotNull(items);
       assertTrue(items.containsKey(optionA.getUid()));
       assertTrue(items.containsKey(optionB.getUid()));
+    }
+
+    @Test
+    @DisplayName("should exclude synthetic dimensions from query metadata")
+    void shouldExcludeSyntheticDimensionsFromQueryMetadata() {
+      Grid grid = new ListGrid();
+      grid.addRow();
+      grid.addValue("value1");
+
+      BaseDimensionalObject requestedDimension = new BaseDimensionalObject();
+      requestedDimension.setUid("kO3z4Dhc038.C31vHZqu0qU");
+      requestedDimension.setDimensionType(DimensionType.CATEGORY_OPTION_GROUP_SET);
+      requestedDimension.setDimensionName("C31vHZqu0qU");
+      requestedDimension.setName("Funding Partner");
+      requestedDimension.setItems(List.of());
+      requestedDimension.setGroupUUID(UUID.randomUUID());
+
+      BaseDimensionalObject syntheticDimension =
+          new BaseDimensionalObject(
+              "LFsZ8v5v7rq", DimensionType.CATEGORY, "LFsZ8v5v7rq", "Partner", List.of());
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(QUERY)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addDimension(requestedDimension)
+              .addDimension(syntheticDimension)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+      when(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(any()))
+          .thenReturn(Map.of());
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertNotNull(dimensions);
+      assertTrue(dimensions.containsKey("kO3z4Dhc038.C31vHZqu0qU"));
+      assertFalse(dimensions.containsKey("LFsZ8v5v7rq"));
+
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+      assertTrue(items.containsKey("kO3z4Dhc038.C31vHZqu0qU"));
+      assertFalse(items.containsKey("LFsZ8v5v7rq"));
     }
   }
 
