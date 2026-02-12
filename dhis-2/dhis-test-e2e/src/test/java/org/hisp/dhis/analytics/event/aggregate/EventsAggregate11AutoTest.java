@@ -814,15 +814,14 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // 4. Validate Headers By Name (conditionally checking PostGIS headers).
-    //    validateHeaderPropertiesByName(
-    //        response,
-    //        actualHeaders,
-    //        "kO3z4Dhc038.C31vHZqu0qU",
-    //        "",
-    //        "TEXT",
-    //        "java.lang.String",
-    //        false,
-    //        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "kO3z4Dhc038.C31vHZqu0qU",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
     validateHeaderPropertiesByName(
         response, actualHeaders, "pe", "Period", "TEXT", "java.lang.String", false, true);
     validateHeaderPropertiesByName(
