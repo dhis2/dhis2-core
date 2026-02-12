@@ -84,7 +84,7 @@ class SchemaToDataFetcherTest extends TestBase {
 
   @Test
   void verifyInput() {
-    assertThat(subject.fetch(null), hasSize(0));
+    assertThat(subject.fetch(null, null), hasSize(0));
   }
 
   @Test
@@ -112,7 +112,7 @@ class SchemaToDataFetcherTest extends TestBase {
 
     when(query.getResultList()).thenReturn(l);
 
-    List<DataElement> result = (List<DataElement>) subject.fetch(schema);
+    List<DataElement> result = (List<DataElement>) subject.fetch(schema, null);
 
     assertThat(result, hasSize(3));
 
@@ -145,7 +145,7 @@ class SchemaToDataFetcherTest extends TestBase {
 
     when(query.getResultList()).thenReturn(l);
 
-    List<DataElement> result = (List<DataElement>) subject.fetch(schema);
+    List<DataElement> result = (List<DataElement>) subject.fetch(schema, null);
 
     assertThat(result, hasSize(2));
 
@@ -178,7 +178,7 @@ class SchemaToDataFetcherTest extends TestBase {
 
     when(query.getResultList()).thenReturn(l);
 
-    List<DataElement> result = (List<DataElement>) subject.fetch(schema);
+    List<DataElement> result = (List<DataElement>) subject.fetch(schema, null);
 
     assertThat(result, hasSize(3));
 
@@ -194,7 +194,7 @@ class SchemaToDataFetcherTest extends TestBase {
   void verifyNoSqlWhenUniquePropertiesListIsEmpty() {
     Schema schema = createSchema(SMSCommand.class, "smsCommand", Lists.newArrayList());
 
-    subject.fetch(schema);
+    subject.fetch(schema, null);
 
     verify(entityManager, times(0)).createQuery(anyString());
   }
@@ -210,7 +210,7 @@ class SchemaToDataFetcherTest extends TestBase {
                     createProperty(String.class, "id", true, true))
                 .collect(toList()));
 
-    subject.fetch(schema);
+    subject.fetch(schema, null);
 
     verify(entityManager, times(0)).createQuery(anyString());
   }

@@ -69,20 +69,6 @@ public class SchemaToDataFetcher {
 
   /**
    * Executes a read-only query for the given Schema class and fetches only the fields marked as
-   * "unique". This method loads ALL records - use {@link #fetch(Schema, Collection)} instead for
-   * better performance when importing specific objects.
-   *
-   * @param schema a {@link Schema}
-   * @return a List of objects corresponding to the "klass" of the given Schema
-   * @deprecated Use {@link #fetch(Schema, Collection)} to avoid loading all records
-   */
-  @Deprecated(since = "2.42")
-  public List<? extends IdentifiableObject> fetch(Schema schema) {
-    return fetch(schema, null);
-  }
-
-  /**
-   * Executes a read-only query for the given Schema class and fetches only the fields marked as
    * "unique", filtered to only include records that have matching unique property values from the
    * objects being imported.
    *
