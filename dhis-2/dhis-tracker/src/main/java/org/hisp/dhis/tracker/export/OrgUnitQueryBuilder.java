@@ -139,29 +139,32 @@ public class OrgUnitQueryBuilder {
    * Appends an SQL clause to enforce program ownership and access level restrictions when the
    * program is known at query build time. This eliminates the need to join the program table. Only
    * the branches relevant to the program's access level are emitted. Uses literal path prefixes
-   * resolved from the given {@link OwnershipScope} for index-friendly LIKE predicates.
+   * resolved from the given {@link SearchScope} for index-friendly LIKE predicates.
    *
-   * <p>The caller is responsible for skipping this method when no ownership restriction applies
-   * (e.g. super users or org unit mode ALL).
+   * <p>Does nothing when the given scope is {@linkplain SearchScope#restricted() unrestricted}.
    */
   public static void buildOwnershipClause(
       StringBuilder sql,
       MapSqlParameterSource sqlParameters,
       Program program,
-      OwnershipScope ownershipScope,
+      SearchScope searchScope,
       String orgUnitTableAlias,
       String trackedEntityTableAlias,
       Supplier<String> clauseSupplier) {
+    if (!searchScope.restricted()) {
+      return;
+    }
+
     AccessLevel accessLevel = program.getAccessLevel();
 
     sql.append(clauseSupplier.get()).append("(");
     addPathPrefixPredicate(
-        sql, sqlParameters, ownershipScope.forAccessLevel(accessLevel), orgUnitTableAlias, "scope");
+        sql, sqlParameters, searchScope.forAccessLevel(accessLevel), orgUnitTableAlias, "scope");
 
     if (accessLevel == AccessLevel.PROTECTED) {
       sql.append(" or ");
       addTempOwnerPredicate(
-          sql, trackedEntityTableAlias, String.valueOf(program.getId()), ownershipScope.userId());
+          sql, trackedEntityTableAlias, String.valueOf(program.getId()), searchScope.userId());
     }
 
     sql.append(")");

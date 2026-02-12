@@ -39,9 +39,11 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
+import org.hisp.dhis.tracker.export.SearchScope;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,6 +56,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 class EnrollmentOperationParamsMapper {
   private final TrackerProgramService trackerProgramService;
+
+  private final OrganisationUnitService organisationUnitService;
 
   private final OperationsParamsValidator paramsValidator;
 
@@ -84,6 +88,11 @@ class EnrollmentOperationParamsMapper {
     params.setOrder(operationParams.getOrder());
     params.setEnrollments(operationParams.getEnrollments());
     params.setIncludeAttributes(operationParams.getFields().isIncludesAttributes());
+    params.setSearchScope(
+        SearchScope.of(
+            user,
+            operationParams.getOrgUnitMode(),
+            organisationUnitService::getOrganisationUnitsByUid));
 
     return params;
   }
