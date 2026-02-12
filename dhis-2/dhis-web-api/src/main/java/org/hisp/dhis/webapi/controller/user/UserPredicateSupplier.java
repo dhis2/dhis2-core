@@ -44,7 +44,6 @@ import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.JpaPredicateSupplier;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 
 /**
@@ -84,7 +83,6 @@ public class UserPredicateSupplier implements JpaPredicateSupplier {
     addCanManageCondition(builder, u2, conditions);
     addAuthSubsetCondition(builder, query, u2, conditions);
     addDisjointRolesCondition(builder, query, u2, conditions);
-    addInvitationExpiredCondition(builder, u2, conditions);
     addUserGroupCondition(builder, u2, conditions);
 
     subquery.where(conditions.toArray(new Predicate[0]));
@@ -167,16 +165,6 @@ public class UserPredicateSupplier implements JpaPredicateSupplier {
     Join<Object, Object> ag3 = uc3.join("userRoles");
     roleSub.where(builder.equal(uc3.get("id"), u2.get("id")), ag3.get("id").in(roleIds));
     conditions.add(builder.not(builder.exists(roleSub)));
-  }
-
-  private void addInvitationExpiredCondition(
-      CriteriaBuilder builder, Root<User> u2, List<Predicate> conditions) {
-    if (params.getInvitationStatus() != UserInvitationStatus.EXPIRED) return;
-
-    conditions.add(builder.isTrue(u2.get("invitation")));
-    conditions.add(builder.isNotNull(u2.get("restoreToken")));
-    conditions.add(builder.isNotNull(u2.get("restoreExpiry")));
-    conditions.add(builder.lessThan(u2.get("restoreExpiry"), builder.currentTimestamp()));
   }
 
   private void addUserGroupCondition(

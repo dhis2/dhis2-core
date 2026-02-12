@@ -248,8 +248,7 @@ public class UserController
         || params.isUserOrgUnits()
         || params.getOrgUnitBoundary() != null
         || params.getOu() != null
-        || params.isIncludeChildren()
-        || params.getInvitationStatus() == UserInvitationStatus.EXPIRED;
+        || params.isIncludeChildren();
   }
 
   private void addSimpleFilters(GetUserObjectListParams params, List<Filter> filters) {
@@ -272,6 +271,12 @@ public class UserController
     if (params.getInvitationStatus() == UserInvitationStatus.ALL) {
       filters.add(Filters.eq("invitation", true));
     }
+    if (params.getInvitationStatus() == UserInvitationStatus.EXPIRED) {
+      filters.add(Filters.eq("invitation", true));
+      filters.add(Filters.isNotNull("restoreToken"));
+      filters.add(Filters.isNotNull("restoreExpiry"));
+      filters.add(Filters.lt("restoreExpiry", new Date()));
+    }
   }
 
   private UserQueryParams toUserQueryParams(GetUserObjectListParams params) {
@@ -291,9 +296,6 @@ public class UserController
     }
     UserOrgUnitType boundary = params.getOrgUnitBoundary();
     if (boundary != null) res.setOrgUnitBoundary(boundary);
-    if (params.getInvitationStatus() == UserInvitationStatus.EXPIRED) {
-      res.setInvitationStatus(UserInvitationStatus.EXPIRED);
-    }
     return res;
   }
 
