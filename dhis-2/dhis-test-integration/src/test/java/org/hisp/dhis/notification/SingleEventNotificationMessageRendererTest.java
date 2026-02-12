@@ -110,7 +110,7 @@ class SingleEventNotificationMessageRendererTest extends PostgresIntegrationTest
 
   @BeforeEach
   void setUp() throws ConflictException {
-    createOptionSet();
+
     createDataElements();
     createOrganisationUnit();
     createProgram();
@@ -163,7 +163,7 @@ class SingleEventNotificationMessageRendererTest extends PostgresIntegrationTest
         "subject is " + programStage.getUid());
   }
 
-  private void createOptionSet() throws ConflictException {
+  private OptionSet createOptionSet() throws ConflictException {
     Option optionA = createOption('A');
     Option optionB = createOption('B');
 
@@ -171,25 +171,25 @@ class SingleEventNotificationMessageRendererTest extends PostgresIntegrationTest
     optionSet.setValueType(ValueType.TEXT);
     optionService.saveOptionSet(optionSet);
 
-    dataElementWithOptionSet.setOptionSet(optionSet);
-    dataElementService.addDataElement(dataElementWithOptionSet);
+    return optionSet;
   }
 
-  private void createDataElements() {
-    dataElementA = createAndSaveDataElement(DATA_ELEMENT_UID, 'A');
+  private void createDataElements() throws ConflictException {
+    dataElementA =
+        createDataElement('A', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER);
+    dataElementA.setUid(DATA_ELEMENT_UID);
+    dataElementService.addDataElement(dataElementA);
+
     dataElementWithOptionSet =
-        createDataElement('Q', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER);
+        createDataElement('B', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER);
     dataElementWithOptionSet.setUid(DE_WITH_OPTION_SET_UID);
-    createAndSaveDataElement(DE_NOT_IN_STAGE_UID, 'C');
-  }
+    dataElementWithOptionSet.setOptionSet(createOptionSet());
+    dataElementService.addDataElement(dataElementWithOptionSet);
 
-  private DataElement createAndSaveDataElement(String uid, char uniqueChar) {
-    DataElement element =
-        createDataElement(
-            uniqueChar, ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER);
-    element.setUid(uid);
-    dataElementService.addDataElement(element);
-    return element;
+    DataElement dataElementNotInProgramStage =
+        createDataElement('C', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER);
+    dataElementNotInProgramStage.setUid(DE_NOT_IN_STAGE_UID);
+    dataElementService.addDataElement(dataElementNotInProgramStage);
   }
 
   private void createOrganisationUnit() {
