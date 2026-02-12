@@ -75,8 +75,8 @@ public class SchemaToDataFetcher {
    * <p>This avoids loading ALL records when only checking uniqueness for specific values.
    *
    * @param schema a {@link Schema}
-   * @param objectsBeingImported the objects being imported, used to filter the query. If null or
-   *     empty, returns empty list (no uniqueness conflicts possible with nothing being imported).
+   * @param objectsBeingImported the objects being imported, used to filter the query. If empty,
+   *     returns empty list (no uniqueness conflicts possible with nothing being imported).
    * @return a List of objects corresponding to the "klass" of the given Schema
    */
   public List<? extends IdentifiableObject> fetch(
@@ -96,8 +96,7 @@ public class SchemaToDataFetcher {
       return List.of();
     }
 
-    // Handle early exit for empty imports
-    if (objectsBeingImported != null && objectsBeingImported.isEmpty()) {
+    if (objectsBeingImported.isEmpty()) {
       return List.of();
     }
 
@@ -115,7 +114,6 @@ public class SchemaToDataFetcher {
         : handleMultipleColumn((List<Object[]>) (List<?>) objects, uniqueProperties, schema);
   }
 
-  private static final String HQL_TEMPLATE = "SELECT :fields from :entity";
   private static final String HQL_FILTERED_TEMPLATE = "SELECT :fields from :entity WHERE :filter";
 
   private Query createQuery(
@@ -125,13 +123,6 @@ public class SchemaToDataFetcher {
     String fields = extractUniqueFields(uniqueProperties);
     String entity = schema.getKlass().getSimpleName();
 
-    // If objectsBeingImported is null, use old behavior (load all records)
-    if (objectsBeingImported == null) {
-      String hql = HQL_TEMPLATE.replace(":fields", fields).replace(":entity", entity);
-      return entityManager.createQuery(hql).setHint(QueryHints.HINT_READONLY, true);
-    }
-
-    // New optimized behavior - only fetch records that might conflict
     Map<String, Set<Object>> valuesToCheck =
         extractValuesToCheck(uniqueProperties, objectsBeingImported);
 
