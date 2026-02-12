@@ -130,7 +130,7 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExecutePrunesOldestPartitionsWhenMaxPartitionsReached() {
+  void testExecuteDeletesOldestPartitionsWhenMinPartitionsExceeded() {
     EventHook eventHook = new EventHook();
     Source source = new Source();
     eventHook.setName("Foo");
@@ -140,27 +140,115 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
     eventHookStore.save(eventHook);
     eventHookService.createOutbox(eventHook);
 
+    assertEquals(1, outboxRotationJob.getOutboxPartitions(eventHook).size());
+
     addOutboxMessages(eventHook, eventHookService.getPartitionRange());
     outboxRotationJob.execute(null, JobProgress.noop());
+    assertEquals(2, outboxRotationJob.getOutboxPartitions(eventHook).size());
+
     addOutboxMessages(eventHook, eventHookService.getPartitionRange());
     outboxRotationJob.execute(null, JobProgress.noop());
-    addOutboxMessages(eventHook, eventHookService.getPartitionRange());
-    outboxRotationJob.execute(null, JobProgress.noop());
-    assertEquals(4, outboxRotationJob.getOutboxPartitions(eventHook).size());
+    assertEquals(3, outboxRotationJob.getOutboxPartitions(eventHook).size());
+
+    EventHookOutboxLog eventHookOutboxLog = new EventHookOutboxLog();
+    eventHookOutboxLog.setNextOutboxMessageId(1000);
+    eventHookOutboxLog.setOutboxTableName(
+        EventHookService.OUTBOX_PREFIX_TABLE_NAME + eventHook.getUID());
+    eventHookOutboxLog.setEventHook(eventHook);
+    entityManager.merge(eventHookOutboxLog);
 
     outboxRotationJob.execute(null, JobProgress.noop());
 
     List<Map<String, Object>> outboxPartitions = outboxRotationJob.getOutboxPartitions(eventHook);
-    assertEquals(3, outboxPartitions.size());
-    assertEquals(
-        "\"outbox_" + eventHook.getUID() + "_3\"",
-        outboxPartitions.get(0).get("partition_name").toString());
+    assertEquals(2, outboxPartitions.size());
     assertEquals(
         "\"outbox_" + eventHook.getUID() + "_2\"",
-        outboxPartitions.get(1).get("partition_name").toString());
+        outboxPartitions.get(0).get("partition_name").toString());
     assertEquals(
         "\"outbox_" + eventHook.getUID() + "_1\"",
+        outboxPartitions.get(1).get("partition_name").toString());
+  }
+
+  @Test
+  void testExecuteDoesNotDeletePartitionWhenItHasUndeliveredOutboxMessages() {
+    EventHook eventHook = new EventHook();
+    Source source = new Source();
+    eventHook.setName("FooBarQuuz");
+    eventHook.setSource(source);
+    eventHook.setTargets(List.of(new WebhookTarget()));
+
+    eventHookStore.save(eventHook);
+    eventHookService.createOutbox(eventHook);
+
+    EventHookOutboxLog eventHookOutboxLog = new EventHookOutboxLog();
+    eventHookOutboxLog.setNextOutboxMessageId(23);
+    eventHookOutboxLog.setOutboxTableName(
+        EventHookService.OUTBOX_PREFIX_TABLE_NAME + eventHook.getUID());
+    eventHookOutboxLog.setEventHook(eventHook);
+    entityManager.merge(eventHookOutboxLog);
+
+    addOutboxMessages(eventHook, eventHookService.getPartitionRange());
+    outboxRotationJob.execute(null, JobProgress.noop());
+    addOutboxMessages(eventHook, eventHookService.getPartitionRange());
+    outboxRotationJob.execute(null, JobProgress.noop());
+    addOutboxMessages(eventHook, eventHookService.getPartitionRange());
+    outboxRotationJob.execute(null, JobProgress.noop());
+    addOutboxMessages(eventHook, eventHookService.getPartitionRange());
+    outboxRotationJob.execute(null, JobProgress.noop());
+
+    assertEquals(5, outboxRotationJob.getOutboxPartitions(eventHook).size());
+    List<Map<String, Object>> outboxPartitions = outboxRotationJob.getOutboxPartitions(eventHook);
+    assertEquals(
+        "\"outbox_" + eventHook.getUID() + "_4\"",
+        outboxPartitions.get(0).get("partition_name").toString());
+    assertEquals(
+        "\"outbox_" + eventHook.getUID() + "_3\"",
+        outboxPartitions.get(1).get("partition_name").toString());
+    assertEquals(
+        "\"outbox_" + eventHook.getUID() + "_2\"",
         outboxPartitions.get(2).get("partition_name").toString());
+    assertEquals(
+        "\"outbox_" + eventHook.getUID() + "_1\"",
+        outboxPartitions.get(3).get("partition_name").toString());
+    assertEquals(
+        "\"outbox_" + eventHook.getUID() + "_0\"",
+        outboxPartitions.get(4).get("partition_name").toString());
+
+    eventHookOutboxLog.setNextOutboxMessageId(1005);
+    entityManager.merge(eventHookOutboxLog);
+    outboxRotationJob.execute(null, JobProgress.noop());
+
+    outboxPartitions = outboxRotationJob.getOutboxPartitions(eventHook);
+    assertEquals(3, outboxPartitions.size());
+    assertEquals(
+        "\"outbox_" + eventHook.getUID() + "_4\"",
+        outboxPartitions.get(0).get("partition_name").toString());
+    assertEquals(
+        "\"outbox_" + eventHook.getUID() + "_3\"",
+        outboxPartitions.get(1).get("partition_name").toString());
+    assertEquals(
+        "\"outbox_" + eventHook.getUID() + "_2\"",
+        outboxPartitions.get(2).get("partition_name").toString());
+  }
+
+  @Test
+  void testExecuteDoesNotAddPartitionWhenMaxPartitionCountReached() {
+    EventHook eventHook = new EventHook();
+    Source source = new Source();
+    eventHook.setName("BarQuuz");
+    eventHook.setSource(source);
+    eventHook.setTargets(List.of(new WebhookTarget()));
+
+    eventHookStore.save(eventHook);
+    eventHookService.createOutbox(eventHook);
+
+    for (int i = 0; i < OutboxRotationJob.MAX_PARTITIONS; i++) {
+      addOutboxMessages(eventHook, eventHookService.getPartitionRange());
+      outboxRotationJob.execute(null, JobProgress.noop());
+    }
+
+    assertEquals(
+        OutboxRotationJob.MAX_PARTITIONS, outboxRotationJob.getOutboxPartitions(eventHook).size());
   }
 
   private void addOutboxMessages(EventHook eventHook, int outboxMessageCount) {

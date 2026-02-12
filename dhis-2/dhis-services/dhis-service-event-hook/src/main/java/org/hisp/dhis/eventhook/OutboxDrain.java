@@ -57,17 +57,19 @@ public class OutboxDrain {
   private final EventHookService eventHookService;
 
   private record DefaultHandlerCallback(
-      OutboxLog outboxLog, EntityManagerFactory entityManagerFactory, Semaphore semaphore)
+      EventHookOutboxLog eventHookOutboxLog,
+      EntityManagerFactory entityManagerFactory,
+      Semaphore semaphore)
       implements ReactiveHandlerCallback {
 
     @Override
     public void onError(Map<String, Object> outboxMessageCause) {
-      updateOutboxLog((Long) outboxMessageCause.get("id") - 1);
+      updateOutboxLog((Long) outboxMessageCause.get("id"));
     }
 
     @Override
     public void onSuccess(Map<String, Object> lastSuccessfulOutboxMessage) {
-      updateOutboxLog((Long) lastSuccessfulOutboxMessage.get("id"));
+      updateOutboxLog((Long) lastSuccessfulOutboxMessage.get("id") + 1);
     }
 
     @Override
@@ -75,12 +77,10 @@ public class OutboxDrain {
       semaphore.release();
     }
 
-    private void updateOutboxLog(long lastProcessedId) {
-      OutboxLog updatedOutboxLog = new OutboxLog();
-      updatedOutboxLog.setOutboxTableName(outboxLog.getOutboxTableName());
-      updatedOutboxLog.setLastProcessedId(lastProcessedId);
+    private void updateOutboxLog(long nextOutboxMessageId) {
+      eventHookOutboxLog.setNextOutboxMessageId(nextOutboxMessageId);
       try (EntityManager em = entityManagerFactory.createEntityManager()) {
-        em.merge(updatedOutboxLog);
+        em.merge(eventHookOutboxLog);
         em.flush();
       }
     }
@@ -109,20 +109,21 @@ public class OutboxDrain {
   private void drainOutbox(EventHookTargets eventHookTargets, Semaphore semaphore) {
     String outboxTableName =
         EventHookService.OUTBOX_PREFIX_TABLE_NAME + eventHookTargets.getEventHook().getUID();
-    OutboxLog outboxLog = entityManager.find(OutboxLog.class, outboxTableName);
+    EventHookOutboxLog eventHookOutboxLog =
+        entityManager.find(EventHookOutboxLog.class, outboxTableName);
     List<Map<String, Object>> outboxMessages = Collections.emptyList();
-    if (outboxLog != null) {
+    if (eventHookOutboxLog != null) {
       outboxMessages =
           jdbcTemplate.queryForList(
               String.format(
-                  "SELECT * FROM \"%s\" WHERE id > ? ORDER BY id LIMIT 100", outboxTableName),
-              outboxLog.getLastProcessedId());
+                  "SELECT * FROM \"%s\" WHERE id >= ? ORDER BY id LIMIT 100", outboxTableName),
+              eventHookOutboxLog.getNextOutboxMessageId());
 
       if (!outboxMessages.isEmpty()) {
         emit(
             outboxMessages,
             eventHookTargets,
-            new DefaultHandlerCallback(outboxLog, entityManagerFactory, semaphore));
+            new DefaultHandlerCallback(eventHookOutboxLog, entityManagerFactory, semaphore));
       }
     }
 

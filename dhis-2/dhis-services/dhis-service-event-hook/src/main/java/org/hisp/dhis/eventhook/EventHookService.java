@@ -109,9 +109,9 @@ public class EventHookService {
     eventHookTargetsCache.invalidateAll();
 
     List<EventHook> eventHooks = getAll();
-    List<ReactiveHandler> handlers = new ArrayList<>();
 
     for (EventHook eh : eventHooks.stream().filter(eh -> !eh.isDisabled()).toList()) {
+      List<ReactiveHandler> handlers = new ArrayList<>();
       for (Target target : eh.getTargets()) {
         if (WebhookTarget.TYPE.equals(target.getType())) {
           handlers.add(new WebhookReactiveHandler(applicationContext, (WebhookTarget) target));
@@ -132,12 +132,12 @@ public class EventHookService {
             outboxTableName));
     addOutboxPartition(eventHook, 0, 1, partitionRange);
 
-    OutboxLog outboxLog = new OutboxLog();
-    outboxLog.setOutboxTableName(outboxTableName);
-    outboxLog.setLastProcessedId(0);
-    outboxLog.setEventHook(eventHook);
+    EventHookOutboxLog eventHookOutboxLog = new EventHookOutboxLog();
+    eventHookOutboxLog.setOutboxTableName(outboxTableName);
+    eventHookOutboxLog.setNextOutboxMessageId(1);
+    eventHookOutboxLog.setEventHook(eventHook);
 
-    entityManager.persist(outboxLog);
+    entityManager.persist(eventHookOutboxLog);
   }
 
   public void deleteOutbox(UID eventHookUid) {

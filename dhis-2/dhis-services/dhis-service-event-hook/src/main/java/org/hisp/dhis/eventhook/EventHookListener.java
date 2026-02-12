@@ -35,12 +35,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.feedback.NotFoundException;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
-import org.hisp.dhis.user.AuthenticationService;
-import org.hisp.dhis.user.User;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceUtils;
+import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -48,6 +50,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 /**
  * @author Morten Olav Hansen
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class EventHookListener {
@@ -55,54 +58,69 @@ public class EventHookListener {
 
   private final FieldFilterService fieldFilterService;
 
-  private final AuthenticationService authenticationService;
-
-  private final JdbcTemplate jdbcTemplate;
-
   private final EventHookService eventHookService;
+
+  private final DataSource dataSource;
 
   @TransactionalEventListener(
       classes = Event.class,
       phase = TransactionPhase.BEFORE_COMMIT,
       fallbackExecution = true)
-  public void onPreCommit(Event event) throws JsonProcessingException, NotFoundException {
-    for (EventHookTargets eventHookContext : eventHookService.getEventHookTargets()) {
-      if (doSendOutbox(event, eventHookContext)) {
-        EventHook eventHook = eventHookContext.getEventHook();
-        User eventHookUser = eventHook.getUser();
+  public void onPreCommit(Event event) {
+    try {
+      JdbcTemplate jdbcTemplate =
+          new JdbcTemplate(
+              new SingleConnectionDataSource(DataSourceUtils.getConnection(dataSource), true));
+      for (EventHookTargets eventHookTargets : eventHookService.getEventHookTargets()) {
         try {
-          authenticationService.obtainAuthentication(eventHookUser.getUID().getValue());
-          final Event filteredEvent;
-          if (event.getObject() instanceof Collection) {
-            List<ObjectNode> objects = new ArrayList<>();
-
-            for (Object object : ((Collection<?>) event.getObject())) {
-              objects.add(
-                  fieldFilterService.toObjectNode(object, eventHook.getSource().getFields()));
-            }
-
-            filteredEvent = event.withObject(objects);
-          } else {
-            ObjectNode objectNode =
-                fieldFilterService.toObjectNode(
-                    event.getObject(), eventHook.getSource().getFields());
-            filteredEvent = event.withObject(objectNode);
+          if (doPersistOutboxMessage(event, eventHookTargets)) {
+            persistOutboxMessage(event, eventHookTargets, jdbcTemplate);
           }
-
-          if (filteredEvent != null) {
-            String tableName = EventHookService.OUTBOX_PREFIX_TABLE_NAME + eventHook.getUID();
-            jdbcTemplate.update(
-                String.format("INSERT INTO \"%s\" (payload) VALUES (?::JSONB)", tableName),
-                objectMapper.writeValueAsString(event));
-          }
-        } finally {
-          authenticationService.clearAuthentication();
+        } catch (Exception e) {
+          log.error(e.getMessage(), e);
         }
+      }
+    } catch (Exception e) {
+      log.error(e.getMessage(), e);
+    }
+  }
+
+  public void persistOutboxMessage(
+      Event event, EventHookTargets eventHookTargets, JdbcTemplate jdbcTemplate)
+      throws JsonProcessingException {
+    EventHook eventHook = eventHookTargets.getEventHook();
+    final Event filteredEvent;
+    if (event.getObject() instanceof Collection) {
+      List<ObjectNode> objects = new ArrayList<>();
+
+      for (Object object : ((Collection<?>) event.getObject())) {
+        objects.add(fieldFilterService.toObjectNode(object, eventHook.getSource().getFields()));
+      }
+
+      filteredEvent = event.withObject(objects);
+    } else {
+      ObjectNode objectNode =
+          fieldFilterService.toObjectNode(event.getObject(), eventHook.getSource().getFields());
+      filteredEvent = event.withObject(objectNode);
+    }
+
+    if (filteredEvent != null) {
+      String eventAsString = objectMapper.writeValueAsString(event);
+      jdbcTemplate.execute("SAVEPOINT event_hook_" + eventHook.getUID());
+      try {
+        jdbcTemplate.update(
+            String.format(
+                "INSERT INTO \"%s\" (payload) VALUES (?::JSONB)",
+                EventHookService.OUTBOX_PREFIX_TABLE_NAME + eventHook.getUID()),
+            eventAsString);
+      } catch (DataAccessException e) {
+        jdbcTemplate.execute("ROLLBACK to event_hook_" + eventHook.getUID());
+        throw e;
       }
     }
   }
 
-  protected boolean doSendOutbox(Event event, EventHookTargets eventHookTargets) {
+  protected boolean doPersistOutboxMessage(Event event, EventHookTargets eventHookTargets) {
     return event.getPath().startsWith(eventHookTargets.getEventHook().getSource().getPath())
         && !(event.getObject() instanceof EventHook)
         && !eventHookTargets.getTargets().isEmpty();

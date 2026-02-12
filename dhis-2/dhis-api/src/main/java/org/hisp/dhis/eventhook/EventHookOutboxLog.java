@@ -40,18 +40,18 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "outboxlog")
+@Table(name = "eventhookoutboxlog")
 @NoArgsConstructor
 @Getter
 @Setter
-public class OutboxLog {
+public class EventHookOutboxLog {
 
   @Id
   @Column(name = "outboxtablename")
   private String outboxTableName;
 
-  @Column(name = "lastprocessedid")
-  private long lastProcessedId;
+  @Column(name = "nextoutboxmessageid")
+  private long nextOutboxMessageId;
 
   @OneToOne
   @JoinColumn(name = "eventhookid")
