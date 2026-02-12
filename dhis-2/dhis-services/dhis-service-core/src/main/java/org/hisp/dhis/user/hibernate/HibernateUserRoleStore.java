@@ -30,7 +30,9 @@
 package org.hisp.dhis.user.hibernate;
 
 import jakarta.persistence.EntityManager;
+import javax.annotation.Nonnull;
 import org.hibernate.query.Query;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AclService;
@@ -62,5 +64,16 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
     query.setParameter("dataSet", dataSet);
 
     return query.getSingleResult().intValue();
+  }
+
+  @Override
+  public void removeMemberViaSQL(@Nonnull UID userRoleUid, @Nonnull UID userUid) {
+    String sql =
+        """
+        DELETE FROM userrolemembers
+        WHERE userroleid = (SELECT userroleid FROM userrole WHERE uid = ?)
+        AND userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        """;
+    jdbcTemplate.update(sql, userRoleUid.getValue(), userUid.getValue());
   }
 }

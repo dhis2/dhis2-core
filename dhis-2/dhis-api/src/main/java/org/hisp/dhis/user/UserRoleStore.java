@@ -29,7 +29,9 @@
  */
 package org.hisp.dhis.user;
 
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.DataSet;
 
 /**
@@ -43,4 +45,13 @@ public interface UserRoleStore extends IdentifiableObjectStore<UserRole> {
    * @return number of UserRoles.
    */
   int countDataSetUserRoles(DataSet dataSet);
+
+  /**
+   * Removes a user from a user role directly via SQL, without loading the members collection. This
+   * avoids loading all members (potentially 100K+) just to remove one user.
+   *
+   * @param userRoleUid the UID of the user role
+   * @param userUid the UID of the user to remove
+   */
+  void removeMemberViaSQL(@Nonnull UID userRoleUid, @Nonnull UID userUid);
 }
