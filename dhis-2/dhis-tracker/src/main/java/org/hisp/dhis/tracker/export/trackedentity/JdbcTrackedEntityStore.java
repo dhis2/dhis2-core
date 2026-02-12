@@ -246,7 +246,7 @@ class JdbcTrackedEntityStore {
     addTrackedEntityFromItem(sql, sqlParameters, params, pageParams, false);
     addOrderBy(sql, params);
     // LIMIT must be in outer query for DISTINCT ON (applied after final ORDER BY)
-    if (isOrderingByEnrolledAt(params)) {
+    if (needsDistinctOnForEnrolledAt(params)) {
       sql.append(" ");
       addLimitAndOffset(sql, pageParams);
     }
@@ -322,7 +322,7 @@ class JdbcTrackedEntityStore {
     if (!isCountQuery) {
       sql.append(" ");
       // DISTINCT ON requires ORDER BY to start with the DISTINCT columns
-      if (isOrderingByEnrolledAt(params)) {
+      if (needsDistinctOnForEnrolledAt(params)) {
         addDistinctOnOrderBy(sql, params);
         // LIMIT must be in outer query for DISTINCT ON (after final ORDER BY)
       } else {
@@ -357,14 +357,15 @@ class JdbcTrackedEntityStore {
    * TrackedEntityQueryParams)} and {@link #addOrderBy(StringBuilder, TrackedEntityQueryParams)}.
    */
   private void addTrackedEntityFromItemSelect(StringBuilder sql, TrackedEntityQueryParams params) {
-    if (isOrderingByEnrolledAt(params)) {
-      // When ordering by enrolledAt, use DISTINCT ON to pick one enrollment per TE.
+    if (needsDistinctOnForEnrolledAt(params)) {
+      // When ordering by enrolledAt and multiple enrollments per TE are possible,
+      // use DISTINCT ON to pick one enrollment per TE.
       sql.append("select distinct on (te.trackedentityid) te.trackedentityid");
-    } else if (params.hasEnrolledInTrackerProgram()) {
-      // No DISTINCT needed: trackedentityprogramowner's unique index on (trackedentityid,
-      // programid) guarantees one row per TE. This relies on enrollment filters using EXISTS
-      // (addEnrollmentAndEventExistsCondition), not a JOIN. If enrollment is ever joined
-      // directly in this path, DISTINCT must be restored.
+    } else if (isOrderingByEnrolledAt(params) || params.hasEnrolledInTrackerProgram()) {
+      // No DISTINCT needed: either the program has onlyEnrollOnce=true (at most one enrollment
+      // per TE, so the enrollment JOIN cannot produce duplicates) or
+      // trackedentityprogramowner's unique index on (trackedentityid, programid) guarantees
+      // one row per TE via EXISTS (addEnrollmentAndEventExistsCondition).
       sql.append("select te.trackedentityid");
     } else {
       // Without a program, the left join on trackedentityprogramowner can produce
@@ -938,6 +939,17 @@ class JdbcTrackedEntityStore {
   /** Returns true if ordering by enrolledAt (enrollment.enrollmentDate). */
   private static boolean isOrderingByEnrolledAt(TrackedEntityQueryParams params) {
     return getEnrolledAtOrder(params) != null;
+  }
+
+  /**
+   * Returns true if ordering by enrolledAt requires DISTINCT ON to deduplicate rows. Programs with
+   * {@code onlyEnrollOnce = true} guarantee at most one enrollment per tracked entity, so DISTINCT
+   * ON is unnecessary and can be skipped, allowing PG to stop early via LIMIT instead of sorting
+   * all enrollment rows.
+   */
+  private static boolean needsDistinctOnForEnrolledAt(TrackedEntityQueryParams params) {
+    return isOrderingByEnrolledAt(params)
+        && !Boolean.TRUE.equals(params.getEnrolledInTrackerProgram().getOnlyEnrollOnce());
   }
 
   /** Returns the Order for enrolledAt, or null if not ordering by it. */
