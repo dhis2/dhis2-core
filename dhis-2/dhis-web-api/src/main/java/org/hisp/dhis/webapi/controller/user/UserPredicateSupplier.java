@@ -44,6 +44,7 @@ import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.JpaPredicateSupplier;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserQueryParams;
 
 /**
@@ -80,10 +81,10 @@ public class UserPredicateSupplier implements JpaPredicateSupplier {
 
     addOrgUnitConditions(builder, u2, conditions);
     addQueryCondition(builder, u2, conditions);
-    addCanManageCondition(builder, u2, conditions);
+    addCanManageCondition(u2, conditions);
     addAuthSubsetCondition(builder, query, u2, conditions);
     addDisjointRolesCondition(builder, query, u2, conditions);
-    addUserGroupCondition(builder, u2, conditions);
+    addUserGroupCondition(u2, conditions);
 
     subquery.where(conditions.toArray(new Predicate[0]));
     return builder.exists(subquery);
@@ -125,11 +126,11 @@ public class UserPredicateSupplier implements JpaPredicateSupplier {
     conditions.add(builder.or(nameLike, emailLike, usernameLike));
   }
 
-  private void addCanManageCondition(
-      CriteriaBuilder builder, Root<User> u2, List<Predicate> conditions) {
+  private void addCanManageCondition(Root<User> u2, List<Predicate> conditions) {
     if (!params.isCanManage() || params.getUserDetails() == null) return;
+    UserDetails userDetails = params.getUserDetails();
 
-    Collection<Long> managedGroupIds = params.getUserDetails().getManagedGroupLongIds();
+    Collection<Long> managedGroupIds = userDetails.getManagedGroupLongIds();
     if (managedGroupIds.isEmpty()) return;
 
     Join<Object, Object> groupJoin = u2.join("groups");
@@ -139,8 +140,9 @@ public class UserPredicateSupplier implements JpaPredicateSupplier {
   private void addAuthSubsetCondition(
       CriteriaBuilder builder, CriteriaQuery<?> query, Root<User> u2, List<Predicate> conditions) {
     if (!params.isAuthSubset() || params.getUserDetails() == null) return;
+    UserDetails userDetails = params.getUserDetails();
 
-    var auths = params.getUserDetails().getAllAuthorities();
+    var auths = userDetails.getAllAuthorities();
     if (auths.isEmpty()) return;
 
     Subquery<User> authSub = query.subquery(User.class);
@@ -155,8 +157,9 @@ public class UserPredicateSupplier implements JpaPredicateSupplier {
   private void addDisjointRolesCondition(
       CriteriaBuilder builder, CriteriaQuery<?> query, Root<User> u2, List<Predicate> conditions) {
     if (!params.isDisjointRoles() || params.getUserDetails() == null) return;
+    UserDetails userDetails = params.getUserDetails();
 
-    Collection<Long> roleIds = params.getUserDetails().getUserRoleLongIds();
+    Collection<Long> roleIds = userDetails.getUserRoleLongIds();
     if (roleIds.isEmpty()) return;
 
     Subquery<User> roleSub = query.subquery(User.class);
@@ -167,8 +170,7 @@ public class UserPredicateSupplier implements JpaPredicateSupplier {
     conditions.add(builder.not(builder.exists(roleSub)));
   }
 
-  private void addUserGroupCondition(
-      CriteriaBuilder builder, Root<User> u2, List<Predicate> conditions) {
+  private void addUserGroupCondition(Root<User> u2, List<Predicate> conditions) {
     if (!params.hasUserGroups()) return;
 
     Collection<Long> groupIds = IdentifiableObjectUtils.getIdentifiers(params.getUserGroups());
