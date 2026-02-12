@@ -89,6 +89,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.query.Query;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
@@ -218,9 +219,16 @@ public class UserController
   }
 
   @Override
-  protected List<UID> getPreQueryMatches(GetUserObjectListParams params) throws ConflictException {
-    if (!needsPreQuery(params)) return null;
-    return userService.getUserIds(toComplexQueryParams(params), null);
+  protected List<UID> getPreQueryMatches(GetUserObjectListParams params) {
+    return null;
+  }
+
+  @Override
+  protected void modifyGetObjectList(GetUserObjectListParams params, Query<User> query) {
+    if (!needsPreQuery(params)) return;
+    UserQueryParams queryParams = toUserQueryParams(params);
+    userService.handleUserQueryParams(queryParams);
+    query.addPredicateSupplier(new UserPredicateSupplier(queryParams));
   }
 
   @Override
@@ -266,7 +274,7 @@ public class UserController
     }
   }
 
-  private UserQueryParams toComplexQueryParams(GetUserObjectListParams params) {
+  private UserQueryParams toUserQueryParams(GetUserObjectListParams params) {
     UserQueryParams res = new UserQueryParams();
     res.setQuery(StringUtils.trimToNull(params.getQuery()));
     res.setCanManage(params.isCanManage());
@@ -285,20 +293,6 @@ public class UserController
     if (boundary != null) res.setOrgUnitBoundary(boundary);
     if (params.getInvitationStatus() == UserInvitationStatus.EXPIRED) {
       res.setInvitationStatus(UserInvitationStatus.EXPIRED);
-    }
-
-    // include simple filters in pre-query to reduce the number of UIDs returned
-    res.setPhoneNumber(params.getPhoneNumber());
-    if (params.getLastLogin() != null) {
-      res.setLastLogin(params.getLastLogin());
-    }
-    res.setInactiveMonths(params.getInactiveMonths());
-    if (params.getInactiveSince() != null) {
-      res.setInactiveSince(params.getInactiveSince());
-    }
-    res.setSelfRegistered(params.isSelfRegistered());
-    if (params.getInvitationStatus() == UserInvitationStatus.ALL) {
-      res.setInvitationStatus(UserInvitationStatus.ALL);
     }
     return res;
   }
