@@ -29,13 +29,10 @@
  */
 package org.hisp.dhis.query.operators;
 
-import com.google.common.collect.Lists;
 import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.Collection;
-import java.util.List;
 import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.schema.Property;
 
@@ -57,21 +54,7 @@ public class NotInOperator<T extends Comparable<T>> extends InOperator<T> {
               .in(getValue(Collection.class, path.getProperty().getItemKlass(), getArgs())));
     }
 
-    return buildBatchedNotInPredicate(builder, getPropertyPath(root, path), getArgs());
-  }
-
-  private <Y> Predicate buildBatchedNotInPredicate(
-      CriteriaBuilder builder, Path<Y> propertyPath, List<T> values) {
-    if (values.size() <= BATCH_SIZE) {
-      return builder.not(propertyPath.in(values));
-    }
-    // De Morgan's law: NOT IN (a,b,c,d) = NOT IN (a,b) AND NOT IN (c,d)
-    List<List<T>> batches = Lists.partition(values, BATCH_SIZE);
-    Predicate[] predicates = new Predicate[batches.size()];
-    for (int i = 0; i < batches.size(); i++) {
-      predicates[i] = builder.not(propertyPath.in(batches.get(i)));
-    }
-    return builder.and(predicates);
+    return builder.not(getPropertyPath(root, path).in(getArgs()));
   }
 
   @Override

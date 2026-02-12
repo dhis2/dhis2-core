@@ -29,9 +29,7 @@
  */
 package org.hisp.dhis.query.operators;
 
-import com.google.common.collect.Lists;
 import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.Collection;
@@ -45,8 +43,6 @@ import org.hisp.dhis.schema.Property;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class InOperator<T extends Comparable<T>> extends Operator<T> {
-  static final int BATCH_SIZE = 30_000;
-
   public InOperator(Collection<T> arg) {
     super("in", List.of(Collection.class), arg);
   }
@@ -64,20 +60,7 @@ public class InOperator<T extends Comparable<T>> extends Operator<T> {
           .in(getValue(Collection.class, path.getProperty().getItemKlass(), getArgs()));
     }
 
-    return buildBatchedInPredicate(builder, getPropertyPath(root, path), getArgs());
-  }
-
-  <Y> Predicate buildBatchedInPredicate(
-      CriteriaBuilder builder, Path<Y> propertyPath, List<T> values) {
-    if (values.size() <= BATCH_SIZE) {
-      return propertyPath.in(values);
-    }
-    List<List<T>> batches = Lists.partition(values, BATCH_SIZE);
-    Predicate[] predicates = new Predicate[batches.size()];
-    for (int i = 0; i < batches.size(); i++) {
-      predicates[i] = propertyPath.in(batches.get(i));
-    }
-    return builder.or(predicates);
+    return getPropertyPath(root, path).in(getArgs());
   }
 
   @Override
