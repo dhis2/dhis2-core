@@ -33,235 +33,82 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.beanutils.PropertyUtils;
+import javax.annotation.CheckForNull;
 import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.schema.Schema;
 import org.springframework.stereotype.Component;
 
 /**
- * This component is responsible for fetching all the unique attributes for a {@link
- * IdentifiableObject} subclass.
+ * Fetches existing uid and code values for a given {@link Schema} class to support uniqueness
+ * checking during preheat/import.
  *
  * @author Luciano Fiandesio
  */
-@Slf4j
 @Component
 public class SchemaToDataFetcher {
+
+  public record UniqueFields(@CheckForNull UID uid, @CheckForNull String code) {}
+
   private final EntityManager entityManager;
 
   public SchemaToDataFetcher(EntityManager entityManager) {
     checkNotNull(entityManager);
-
     this.entityManager = entityManager;
   }
 
   /**
-   * Executes a read-only query for the given Schema class and fetches only the fields marked as
-   * "unique". This method loads ALL records - use {@link #fetch(Schema, Collection)} instead for
-   * better performance when importing specific objects.
-   *
-   * @param schema a {@link Schema}
-   * @return a List of objects corresponding to the "klass" of the given Schema
-   * @deprecated Use {@link #fetch(Schema, Collection)} to avoid loading all records
-   */
-  @Deprecated(since = "2.42")
-  public List<? extends IdentifiableObject> fetch(Schema schema) {
-    return fetch(schema, null);
-  }
-
-  /**
-   * Executes a read-only query for the given Schema class and fetches only the fields marked as
-   * "unique", filtered to only include records that have matching unique property values from the
-   * objects being imported.
-   *
-   * <p>This avoids loading ALL records when only checking uniqueness for specific values.
+   * Fetches uid and code values for existing records of the given Schema class, filtered to only
+   * include records that have matching uid or code values from the objects being imported.
    *
    * @param schema a {@link Schema}
    * @param objectsBeingImported the objects being imported, used to filter the query. If null or
-   *     empty, returns empty list (no uniqueness conflicts possible with nothing being imported).
-   * @return a List of objects corresponding to the "klass" of the given Schema
+   *     empty, returns empty list.
+   * @return a list of {@link UniqueFields} for existing records that might conflict
    */
-  public List<? extends IdentifiableObject> fetch(
-      Schema schema, Collection<? extends IdentifiableObject> objectsBeingImported) {
-    if (schema == null) {
-      return Collections.emptyList();
-    }
-
-    return mapUniqueFields(schema, objectsBeingImported);
-  }
-
   @SuppressWarnings("unchecked")
-  private List<? extends IdentifiableObject> mapUniqueFields(
+  public List<UniqueFields> fetch(
       Schema schema, Collection<? extends IdentifiableObject> objectsBeingImported) {
-    List<Property> uniqueProperties = schema.getUniqueProperties();
-    if (uniqueProperties.isEmpty()) {
-      return Collections.emptyList();
+    if (schema == null || objectsBeingImported == null || objectsBeingImported.isEmpty()) {
+      return List.of();
     }
 
-    // Handle early exit for empty imports
-    if (objectsBeingImported != null && objectsBeingImported.isEmpty()) {
-      return Collections.emptyList();
+    Set<String> uids = new HashSet<>();
+    Set<String> codes = new HashSet<>();
+    for (IdentifiableObject obj : objectsBeingImported) {
+      if (obj.getUid() != null) uids.add(obj.getUid());
+      if (obj.getCode() != null) codes.add(obj.getCode());
     }
 
-    Query query = createQuery(schema, uniqueProperties, objectsBeingImported);
-    if (query == null) {
-      return Collections.emptyList();
+    if (uids.isEmpty() && codes.isEmpty()) {
+      return List.of();
     }
 
-    List<Object> objects = query.getResultList();
-
-    // Hibernate returns a List containing an array of Objects if multiple
-    // columns are used in the query, or a "simple" List if only one column is used
-    return uniqueProperties.size() == 1
-        ? handleSingleColumn(objects, uniqueProperties, schema)
-        : handleMultipleColumn((List<Object[]>) (List<?>) objects, uniqueProperties, schema);
-  }
-
-  private Query createQuery(
-      Schema schema,
-      List<Property> uniqueProperties,
-      Collection<? extends IdentifiableObject> objectsBeingImported) {
-    String fields = extractUniqueFields(uniqueProperties);
-    String hql = "SELECT " + fields + " from " + schema.getKlass().getSimpleName();
-
-    // If objectsBeingImported is null, use old behavior (load all records)
-    if (objectsBeingImported == null) {
-      return entityManager.createQuery(hql).setHint(QueryHints.HINT_READONLY, true);
+    String entityName = schema.getKlass().getSimpleName();
+    String hql;
+    if (!uids.isEmpty() && !codes.isEmpty()) {
+      hql =
+          "SELECT uid, code FROM %s WHERE uid IN (:uids) OR code IN (:codes)".formatted(entityName);
+    } else if (!uids.isEmpty()) {
+      hql = "SELECT uid, code FROM %s WHERE uid IN (:uids)".formatted(entityName);
+    } else {
+      hql = "SELECT uid, code FROM %s WHERE code IN (:codes)".formatted(entityName);
     }
 
-    // New optimized behavior - only fetch records that might conflict
-    Map<String, Set<Object>> valuesToCheck =
-        extractValuesToCheck(uniqueProperties, objectsBeingImported);
-
-    String whereClause = buildWhereClause(uniqueProperties, valuesToCheck);
-    if (whereClause.isEmpty()) {
-      return null; // No unique property values - no conflicts possible
-    }
-
-    hql += " WHERE " + whereClause;
     Query query = entityManager.createQuery(hql).setHint(QueryHints.HINT_READONLY, true);
-    setQueryParameters(query, uniqueProperties, valuesToCheck);
-    return query;
-  }
+    if (!uids.isEmpty()) query.setParameter("uids", uids);
+    if (!codes.isEmpty()) query.setParameter("codes", codes);
 
-  private void setQueryParameters(
-      Query query, List<Property> uniqueProperties, Map<String, Set<Object>> valuesToCheck) {
-    for (Property property : uniqueProperties) {
-      String fieldName = property.getFieldName();
-      Set<Object> values = valuesToCheck.get(fieldName);
-      if (values != null && !values.isEmpty()) {
-        query.setParameter(fieldName + "Values", values);
-      }
-    }
-  }
-
-  /** Extracts the unique property values from the objects being imported. */
-  private Map<String, Set<Object>> extractValuesToCheck(
-      List<Property> uniqueProperties,
-      Collection<? extends IdentifiableObject> objectsBeingImported) {
-    Map<String, Set<Object>> valuesToCheck = new HashMap<>();
-
-    for (Property property : uniqueProperties) {
-      valuesToCheck.put(property.getFieldName(), new HashSet<>());
-    }
-
-    for (IdentifiableObject object : objectsBeingImported) {
-      for (Property property : uniqueProperties) {
-        try {
-          Object value = PropertyUtils.getProperty(object, property.getFieldName());
-          if (value != null) {
-            valuesToCheck.get(property.getFieldName()).add(value);
-          }
-        } catch (Exception e) {
-          log.debug(
-              "Could not extract property {} from object: {}",
-              property.getFieldName(),
-              e.getMessage());
-        }
-      }
-    }
-
-    return valuesToCheck;
-  }
-
-  /**
-   * Builds a WHERE clause that filters by the unique property values being imported. Returns empty
-   * string if no values to check.
-   */
-  private String buildWhereClause(
-      List<Property> uniqueProperties, Map<String, Set<Object>> valuesToCheck) {
-    List<String> conditions = new ArrayList<>();
-
-    for (Property property : uniqueProperties) {
-      String fieldName = property.getFieldName();
-      Set<Object> values = valuesToCheck.get(fieldName);
-      if (values != null && !values.isEmpty()) {
-        conditions.add(fieldName + " IN (:" + fieldName + "Values)");
-      }
-    }
-
-    // Use OR because we want to find ANY existing record that conflicts with ANY unique value
-    return String.join(" OR ", conditions);
-  }
-
-  private List<IdentifiableObject> handleMultipleColumn(
-      List<Object[]> objects, List<Property> uniqueProperties, Schema schema) {
-    List<IdentifiableObject> resultsObjects = new ArrayList<>(objects.size());
-
-    for (Object[] uniqueValuesArray : objects) {
-      Map<String, Object> valuesMap = new HashMap<>();
-
-      for (int i = 0; i < uniqueValuesArray.length; i++) {
-        valuesMap.put(uniqueProperties.get(i).getFieldName(), uniqueValuesArray[i]);
-      }
-
-      addToResult(schema, valuesMap, resultsObjects);
-    }
-
-    return resultsObjects;
-  }
-
-  private List<IdentifiableObject> handleSingleColumn(
-      List<Object> objects, List<Property> uniqueProperties, Schema schema) {
-    List<IdentifiableObject> resultsObjects = new ArrayList<>(objects.size());
-    for (Object uniqueValue : objects) {
-      Map<String, Object> valuesMap = new HashMap<>();
-      valuesMap.put(uniqueProperties.get(0).getFieldName(), uniqueValue);
-
-      addToResult(schema, valuesMap, resultsObjects);
-    }
-
-    return resultsObjects;
-  }
-
-  private void addToResult(
-      Schema schema, Map<String, Object> valuesMap, List<IdentifiableObject> resultsObjects) {
-    try {
-      IdentifiableObject identifiableObject =
-          (IdentifiableObject) schema.getKlass().getDeclaredConstructor().newInstance();
-      BeanUtils.populate(identifiableObject, valuesMap);
-      resultsObjects.add(identifiableObject);
-    } catch (ReflectiveOperationException e) {
-      log.error(
-          "Error during dynamic population of object type: " + schema.getKlass().getSimpleName(),
-          e);
-    }
-  }
-
-  private String extractUniqueFields(List<Property> uniqueProperties) {
-    return uniqueProperties.stream().map(Property::getFieldName).collect(Collectors.joining(","));
+    List<Object[]> rows = query.getResultList();
+    return rows.stream()
+        .map(
+            row ->
+                new UniqueFields(row[0] != null ? UID.of((String) row[0]) : null, (String) row[1]))
+        .toList();
   }
 }

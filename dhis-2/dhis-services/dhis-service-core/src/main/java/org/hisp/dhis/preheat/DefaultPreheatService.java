@@ -129,7 +129,7 @@ public class DefaultPreheatService implements PreheatService {
     preheat.put(PreheatIdentifier.UID, user);
     preheat.put(PreheatIdentifier.CODE, user);
 
-    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> uniqueCollectionMap =
+    Map<Class<? extends IdentifiableObject>, Map<String, Map<Object, String>>> uniqueCollectionMap =
         new HashMap<>();
     Set<Class<? extends IdentifiableObject>> klasses = new HashSet<>(params.getObjects().keySet());
 
@@ -205,12 +205,23 @@ public class DefaultPreheatService implements PreheatService {
     }
 
     for (Class<? extends IdentifiableObject> klass : klasses) {
-      // Pass the objects being imported to avoid loading ALL records for uniqueness checking
       List<IdentifiableObject> objectsBeingImported = params.getObjects().get(klass);
-      List<? extends IdentifiableObject> objects =
+      List<SchemaToDataFetcher.UniqueFields> existing =
           schemaToDataFetcher.fetch(schemaService.getDynamicSchema(klass), objectsBeingImported);
-      if (!objects.isEmpty()) {
-        uniqueCollectionMap.put(klass, new ArrayList<>(objects));
+      if (!existing.isEmpty()) {
+        Map<String, Map<Object, String>> propMap = new HashMap<>();
+        for (SchemaToDataFetcher.UniqueFields uf : existing) {
+          String identifier = uf.uid() != null ? uf.uid().getValue() : uf.code();
+          if (uf.uid() != null) {
+            propMap
+                .computeIfAbsent("uid", k -> new HashMap<>())
+                .put(uf.uid().getValue(), identifier);
+          }
+          if (uf.code() != null) {
+            propMap.computeIfAbsent("code", k -> new HashMap<>()).put(uf.code(), identifier);
+          }
+        }
+        uniqueCollectionMap.put(klass, propMap);
       }
     }
 
@@ -234,7 +245,7 @@ public class DefaultPreheatService implements PreheatService {
               });
     }
 
-    preheat.setUniquenessMap(collectUniqueness(params.getPreheatIdentifier(), uniqueCollectionMap));
+    preheat.setUniquenessMap(uniqueCollectionMap);
 
     // add preheat placeholders for objects that will be created and set
     // mandatory/unique attributes

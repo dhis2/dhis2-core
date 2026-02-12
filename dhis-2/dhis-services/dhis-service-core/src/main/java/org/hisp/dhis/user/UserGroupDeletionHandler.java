@@ -31,6 +31,7 @@ package org.hisp.dhis.user;
 
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
@@ -51,10 +52,11 @@ public class UserGroupDeletionHandler extends IdObjectDeletionHandler<UserGroup>
   }
 
   private void deleteUser(User user) {
-    long currentUserId = CurrentUserUtil.getCurrentUserDetails().getId();
+    UID currentUserUid = UID.of(CurrentUserUtil.getCurrentUserDetails().getUid());
+    UID userUid = UID.of(user.getUid());
     for (UserGroup group : user.getGroups()) {
-      userGroupStore.removeMemberViaSQL(group.getId(), user.getId());
-      userGroupStore.updateLastUpdatedViaSQL(group.getId(), currentUserId);
+      userGroupStore.removeMemberViaSQL(UID.of(group.getUid()), userUid);
+      userGroupStore.updateLastUpdatedViaSQL(UID.of(group.getUid()), currentUserUid);
     }
     aclService.invalidateCurrentUserGroupInfoCache();
   }

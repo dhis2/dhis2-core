@@ -39,6 +39,7 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.HibernateCacheManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.stereotype.Service;
@@ -147,12 +148,13 @@ public class DefaultUserGroupService implements UserGroupService {
   @Override
   @Transactional
   public void addUserToGroups(User user, Collection<String> uids, UserDetails currentUser) {
+    UID currentUserUid = UID.of(currentUser.getUid());
     for (String uid : uids) {
       UserGroup userGroup = getUserGroup(uid);
       if (canAddOrRemoveMember(userGroup, currentUser)
-          && userGroupStore.addMemberViaSQL(userGroup.getId(), user.getId())) {
+          && userGroupStore.addMemberViaSQL(UID.of(userGroup.getUid()), UID.of(user.getUid()))) {
         user.getGroups().add(userGroup);
-        userGroupStore.updateLastUpdatedViaSQL(userGroup.getId(), currentUser.getId());
+        userGroupStore.updateLastUpdatedViaSQL(UID.of(userGroup.getUid()), currentUserUid);
       }
     }
     aclService.invalidateCurrentUserGroupInfoCache();
@@ -162,13 +164,14 @@ public class DefaultUserGroupService implements UserGroupService {
   @Transactional
   public void removeUserFromGroups(User user, Collection<String> uids) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    UID currentUserUid = UID.of(currentUser.getUid());
 
     for (String uid : uids) {
       UserGroup userGroup = getUserGroup(uid);
       if (canAddOrRemoveMember(userGroup, currentUser)
-          && userGroupStore.removeMemberViaSQL(userGroup.getId(), user.getId())) {
+          && userGroupStore.removeMemberViaSQL(UID.of(userGroup.getUid()), UID.of(user.getUid()))) {
         user.getGroups().remove(userGroup);
-        userGroupStore.updateLastUpdatedViaSQL(userGroup.getId(), currentUser.getId());
+        userGroupStore.updateLastUpdatedViaSQL(UID.of(userGroup.getUid()), currentUserUid);
       }
     }
     aclService.invalidateCurrentUserGroupInfoCache();
@@ -200,10 +203,11 @@ public class DefaultUserGroupService implements UserGroupService {
 
     // Track which groups actually changed membership
     Set<UserGroup> changedGroups = new HashSet<>();
+    UID userUid = UID.of(user.getUid());
 
     // Perform the removals via SQL (avoids loading members collection)
     for (UserGroup userGroup : groupsToRemoveFrom) {
-      if (userGroupStore.removeMemberViaSQL(userGroup.getId(), user.getId())) {
+      if (userGroupStore.removeMemberViaSQL(UID.of(userGroup.getUid()), userUid)) {
         changedGroups.add(userGroup);
         // Update in-memory state to keep Hibernate session consistent
         user.getGroups().remove(userGroup);
@@ -212,7 +216,7 @@ public class DefaultUserGroupService implements UserGroupService {
 
     // Perform the additions via SQL (avoids loading members collection)
     for (UserGroup userGroup : groupsToAddTo) {
-      if (userGroupStore.addMemberViaSQL(userGroup.getId(), user.getId())) {
+      if (userGroupStore.addMemberViaSQL(UID.of(userGroup.getUid()), userUid)) {
         changedGroups.add(userGroup);
         // Update in-memory state to keep Hibernate session consistent
         user.getGroups().add(userGroup);
@@ -220,8 +224,9 @@ public class DefaultUserGroupService implements UserGroupService {
     }
 
     // Update metadata via SQL to avoid Hibernate loading the members collection
+    UID currentUserUid = UID.of(currentUser.getUid());
     for (UserGroup userGroup : changedGroups) {
-      userGroupStore.updateLastUpdatedViaSQL(userGroup.getId(), currentUser.getId());
+      userGroupStore.updateLastUpdatedViaSQL(UID.of(userGroup.getUid()), currentUserUid);
     }
 
     aclService.invalidateCurrentUserGroupInfoCache();

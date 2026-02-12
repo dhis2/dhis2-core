@@ -29,35 +29,29 @@
  */
 package org.hisp.dhis.preheat;
 
-import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.google.common.collect.Lists;
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.stream.Stream;
-import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hibernate.query.Query;
-import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.preheat.SchemaToDataFetcher.UniqueFields;
 import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.test.TestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -83,169 +77,123 @@ class SchemaToDataFetcherTest extends TestBase {
   }
 
   @Test
-  void verifyInput() {
-    assertThat(subject.fetch(null), hasSize(0));
+  void verifyNullSchemaReturnsEmpty() {
+    List<UniqueFields> result = subject.fetch(null, List.of());
+    assertThat(result, hasSize(0));
   }
 
   @Test
-  void verifyUniqueFieldsAreMappedToHibernateObject() {
-    Schema schema =
-        createSchema(
-            DataElement.class,
-            "dataElement",
-            Stream.of(
-                    createUniqueProperty(Integer.class, "id", true, true),
-                    createProperty(String.class, "name", true, true),
-                    createUniqueProperty(String.class, "code", true, true),
-                    createProperty(Date.class, "created", true, true),
-                    createProperty(Date.class, "lastUpdated", true, true),
-                    createProperty(Integer.class, "int", true, true))
-                .collect(toList()));
-
-    mockSession("SELECT code,id from " + schema.getKlass().getSimpleName());
-
-    List<Object[]> l = new ArrayList<>();
-
-    l.add(new Object[] {"abc", 123456});
-    l.add(new Object[] {"bce", 123888});
-    l.add(new Object[] {"def", 123999});
-
-    when(query.getResultList()).thenReturn(l);
-
-    List<DataElement> result = (List<DataElement>) subject.fetch(schema);
-
-    assertThat(result, hasSize(3));
-
-    assertThat(
-        result,
-        IsIterableContainingInAnyOrder.containsInAnyOrder(
-            allOf(hasProperty("code", is("abc")), hasProperty("id", is(123456L))),
-            allOf(hasProperty("code", is("bce")), hasProperty("id", is(123888L))),
-            allOf(hasProperty("code", is("def")), hasProperty("id", is(123999L)))));
+  void verifyNullObjectsReturnsEmpty() {
+    Schema schema = createSchema(DataElement.class, "dataElement");
+    List<UniqueFields> result = subject.fetch(schema, null);
+    assertThat(result, hasSize(0));
   }
 
   @Test
-  void verifyUniqueFieldsAreSkippedOnReflectionError() {
-    Schema schema =
-        createSchema(
-            DummyDataElement.class,
-            "dummyDataElement",
-            Stream.of(
-                    createUniqueProperty(String.class, "url", true, true),
-                    createUniqueProperty(String.class, "code", true, true))
-                .collect(toList()));
+  void verifyEmptyObjectsReturnsEmpty() {
+    Schema schema = createSchema(DataElement.class, "dataElement");
+    List<UniqueFields> result = subject.fetch(schema, List.of());
+    assertThat(result, hasSize(0));
+    verify(entityManager, times(0)).createQuery(anyString());
+  }
 
-    mockSession("SELECT code,url from " + schema.getKlass().getSimpleName());
+  @Test
+  void verifyFetchWithUidsAndCodes() {
+    Schema schema = createSchema(DataElement.class, "dataElement");
 
-    List<Object[]> l = new ArrayList<>();
+    DataElement de1 = new DataElement("DE1");
+    de1.setUid("abcdefghij1");
+    de1.setCode("CODE_1");
+    DataElement de2 = new DataElement("DE2");
+    de2.setUid("abcdefghij2");
+    de2.setCode("CODE_2");
 
-    l.add(new Object[] {"abc", "http://ok"});
-    l.add(new Object[] {"bce", "http://-exception"});
-    l.add(new Object[] {"def", "http://also-ok"});
+    mockQuery();
 
-    when(query.getResultList()).thenReturn(l);
+    List<Object[]> rows = new ArrayList<>();
+    rows.add(new Object[] {"abcdefghij1", "CODE_1"});
+    rows.add(new Object[] {"abcdefghij2", null});
+    when(query.getResultList()).thenReturn(rows);
 
-    List<DataElement> result = (List<DataElement>) subject.fetch(schema);
+    List<UniqueFields> result = subject.fetch(schema, List.of(de1, de2));
 
     assertThat(result, hasSize(2));
-
-    assertThat(
-        result,
-        IsIterableContainingInAnyOrder.containsInAnyOrder(
-            allOf(hasProperty("code", is("def")), hasProperty("url", is("http://also-ok"))),
-            allOf(hasProperty("code", is("abc")), hasProperty("url", is("http://ok")))));
+    assertEquals(UID.of("abcdefghij1"), result.get(0).uid());
+    assertEquals("CODE_1", result.get(0).code());
+    assertEquals(UID.of("abcdefghij2"), result.get(1).uid());
+    assertNull(result.get(1).code());
   }
 
   @Test
-  void verifyUniqueFieldsAre() {
-    Schema schema =
-        createSchema(
-            DummyDataElement.class,
-            "dummyDataElement",
-            Stream.of(
-                    createProperty(String.class, "name", true, true),
-                    createUniqueProperty(String.class, "url", true, true),
-                    createProperty(String.class, "code", true, true))
-                .collect(toList()));
+  void verifyFetchWithOnlyUids() {
+    Schema schema = createSchema(DataElement.class, "dataElement");
 
-    mockSession("SELECT url from " + schema.getKlass().getSimpleName());
+    DataElement de1 = new DataElement("DE1");
+    de1.setUid("abcdefghij1");
 
-    List<Object> l = new ArrayList<>();
+    mockQuery();
 
-    l.add("http://ok");
-    l.add("http://is-ok");
-    l.add("http://also-ok");
+    List<Object[]> rows = new ArrayList<>();
+    rows.add(new Object[] {"abcdefghij1", "EXISTING_CODE"});
+    when(query.getResultList()).thenReturn(rows);
 
-    when(query.getResultList()).thenReturn(l);
+    List<UniqueFields> result = subject.fetch(schema, List.of(de1));
 
-    List<DataElement> result = (List<DataElement>) subject.fetch(schema);
+    assertThat(result, hasSize(1));
+    assertEquals(UID.of("abcdefghij1"), result.get(0).uid());
+    assertEquals("EXISTING_CODE", result.get(0).code());
 
-    assertThat(result, hasSize(3));
-
-    assertThat(
-        result,
-        IsIterableContainingInAnyOrder.containsInAnyOrder(
-            allOf(hasProperty("url", is("http://also-ok"))),
-            allOf(hasProperty("url", is("http://ok"))),
-            allOf(hasProperty("url", is("http://is-ok")))));
+    ArgumentCaptor<String> hqlCaptor = ArgumentCaptor.forClass(String.class);
+    verify(entityManager).createQuery(hqlCaptor.capture());
+    String hql = hqlCaptor.getValue();
+    assertEquals("SELECT uid, code FROM DataElement WHERE uid IN (:uids)", hql);
   }
 
   @Test
-  void verifyNoSqlWhenUniquePropertiesListIsEmpty() {
-    Schema schema = createSchema(SMSCommand.class, "smsCommand", Lists.newArrayList());
+  void verifyFetchWithOnlyCodes() {
+    Schema schema = createSchema(DataElement.class, "dataElement");
 
-    subject.fetch(schema);
+    DataElement de1 = new DataElement("DE1");
+    de1.setCode("CODE_1");
 
+    mockQuery();
+
+    List<Object[]> rows = new ArrayList<>();
+    rows.add(new Object[] {"xyzxyzxyz11", "CODE_1"});
+    when(query.getResultList()).thenReturn(rows);
+
+    List<UniqueFields> result = subject.fetch(schema, List.of(de1));
+
+    assertThat(result, hasSize(1));
+    assertEquals(UID.of("xyzxyzxyz11"), result.get(0).uid());
+    assertEquals("CODE_1", result.get(0).code());
+
+    ArgumentCaptor<String> hqlCaptor = ArgumentCaptor.forClass(String.class);
+    verify(entityManager).createQuery(hqlCaptor.capture());
+    String hql = hqlCaptor.getValue();
+    assertEquals("SELECT uid, code FROM DataElement WHERE code IN (:codes)", hql);
+  }
+
+  @Test
+  void verifyNoSqlWhenObjectsHaveNoUidOrCode() {
+    Schema schema = createSchema(DataElement.class, "dataElement");
+
+    DataElement de1 = new DataElement("DE1");
+
+    List<UniqueFields> result = subject.fetch(schema, List.of(de1));
+
+    assertThat(result, hasSize(0));
     verify(entityManager, times(0)).createQuery(anyString());
   }
 
-  @Test
-  void verifyNoSqlWhenNoUniquePropertyExist() {
-    Schema schema =
-        createSchema(
-            SMSCommand.class,
-            "smsCommand",
-            Stream.of(
-                    createProperty(String.class, "name", true, true),
-                    createProperty(String.class, "id", true, true))
-                .collect(toList()));
-
-    subject.fetch(schema);
-
-    verify(entityManager, times(0)).createQuery(anyString());
-  }
-
-  private void mockSession(String hql) {
-    when(entityManager.createQuery(hql)).thenReturn(query);
+  private void mockQuery() {
+    when(entityManager.createQuery(anyString())).thenReturn(query);
     when(query.setHint(any(), any())).thenReturn(query);
+    when(query.setParameter(anyString(), any())).thenReturn(query);
   }
 
   private Schema createSchema(
-      Class<? extends IdentifiableObject> klass, String singularName, List<Property> properties) {
-    Schema schema = new Schema(klass, singularName, singularName + "s");
-
-    for (Property property : properties) {
-      schema.addProperty(property);
-    }
-
-    return schema;
-  }
-
-  private Property createProperty(Class<?> klazz, String name, boolean simple, boolean persisted) {
-    Property property = new Property(klazz);
-    property.setName(name);
-    property.setFieldName(name);
-    property.setSimple(simple);
-    property.setOwner(true);
-    property.setPersisted(persisted);
-
-    return property;
-  }
-
-  public Property createUniqueProperty(
-      Class<?> klazz, String name, boolean simple, boolean persisted) {
-    Property property = createProperty(klazz, name, simple, persisted);
-    property.setUnique(true);
-    return property;
+      Class<? extends org.hisp.dhis.common.IdentifiableObject> klass, String singularName) {
+    return new Schema(klass, singularName, singularName + "s");
   }
 }
