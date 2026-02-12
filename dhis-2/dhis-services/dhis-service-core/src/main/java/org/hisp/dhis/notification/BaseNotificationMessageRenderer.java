@@ -47,6 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.RegexUtils;
+import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.option.Option;
@@ -350,7 +351,7 @@ public abstract class BaseNotificationMessageRenderer<T> implements Notification
   }
 
   protected static String getOptionName(OptionSet optionSet, String value) {
-    if (optionSet == null || optionSet.getOptions() == null) {
+    if (optionSet == null || CollectionUtils.isEmpty(optionSet.getOptions())) {
       return OPTION_SET_NOT_FOUND;
     }
 

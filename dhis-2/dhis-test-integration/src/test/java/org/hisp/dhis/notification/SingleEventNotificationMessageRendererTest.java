@@ -46,7 +46,6 @@ import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -78,6 +77,7 @@ class SingleEventNotificationMessageRendererTest extends PostgresIntegrationTest
   private static final String DATA_ELEMENT_UID = CodeGenerator.generateUid();
   private static final String DE_NOT_IN_STAGE_UID = CodeGenerator.generateUid();
   private static final String DE_WITH_OPTION_SET_UID = CodeGenerator.generateUid();
+  private static final String DE_WITH_NO_OPTION_UID = CodeGenerator.generateUid();
   private static final String PROGRAM_UID = CodeGenerator.generateUid();
   private static final String PROGRAM_STAGE_UID = CodeGenerator.generateUid();
   private static final String ORG_UNIT_UID = CodeGenerator.generateUid();
@@ -88,9 +88,11 @@ class SingleEventNotificationMessageRendererTest extends PostgresIntegrationTest
   private static final String OPTION_CODE = "OptionCodeA";
   private static final String OPTION_NAME = "OptionA";
   private static final String DE_NOT_IN_PROGRAM_STAGE = "[DataElement not in Program Stage]";
+  private static final String OPTION_SET_NOT_FOUND = "[OptionSet not found]";
 
   private DataElement dataElementA;
   private DataElement dataElementWithOptionSet;
+  private DataElement dataElementWithNoOption;
 
   private Program program;
   private ProgramStage programStage;
@@ -110,7 +112,6 @@ class SingleEventNotificationMessageRendererTest extends PostgresIntegrationTest
 
   @BeforeEach
   void setUp() throws ConflictException {
-
     createDataElements();
     createOrganisationUnit();
     createProgram();
@@ -120,7 +121,7 @@ class SingleEventNotificationMessageRendererTest extends PostgresIntegrationTest
   }
 
   @Test
-  void testRenderWithDataElement() {
+  void shouldRenderMessageAndSubjectWhenDataElementExists() {
     assertRenderedMessage(
         template -> {
           template.setMessageTemplate("message is #{" + DATA_ELEMENT_UID + "}");
@@ -131,7 +132,7 @@ class SingleEventNotificationMessageRendererTest extends PostgresIntegrationTest
   }
 
   @Test
-  void testRenderWithMissingDataElement() {
+  void shouldRenderErrorMessageWhenDataElementMissing() {
     assertRenderedMessage(
         template -> {
           template.setMessageTemplate("message is #{" + DE_NOT_IN_STAGE_UID + "}");
@@ -142,7 +143,7 @@ class SingleEventNotificationMessageRendererTest extends PostgresIntegrationTest
   }
 
   @Test
-  void testRenderWithDataElementAndOptionSet() {
+  void shouldRenderOptionNameWhenDataElementHasOptionSet() {
     assertRenderedMessage(
         template -> {
           template.setMessageTemplate("message is #{" + DE_WITH_OPTION_SET_UID + "}");
@@ -153,7 +154,18 @@ class SingleEventNotificationMessageRendererTest extends PostgresIntegrationTest
   }
 
   @Test
-  void testRenderWithVariableIds() {
+  void shouldRenderErrorMessageWhenDataElementHasOptionSetWithNoOptions() {
+    assertRenderedMessage(
+        template -> {
+          template.setMessageTemplate("message is #{" + DE_WITH_NO_OPTION_UID + "}");
+          template.setSubjectTemplate("subject is #{" + DE_WITH_NO_OPTION_UID + "}");
+        },
+        "message is " + OPTION_SET_NOT_FOUND,
+        "subject is " + OPTION_SET_NOT_FOUND);
+  }
+
+  @Test
+  void shouldRenderMessageAndSubjectWhenUsingVariableIds() {
     assertRenderedMessage(
         template -> {
           template.setMessageTemplate("message is V{program_id} and V{event_org_unit_id}");
@@ -161,17 +173,6 @@ class SingleEventNotificationMessageRendererTest extends PostgresIntegrationTest
         },
         "message is " + program.getUid() + " and " + ORG_UNIT_UID,
         "subject is " + programStage.getUid());
-  }
-
-  private OptionSet createOptionSet() throws ConflictException {
-    Option optionA = createOption('A');
-    Option optionB = createOption('B');
-
-    OptionSet optionSet = createOptionSet('O', optionA, optionB);
-    optionSet.setValueType(ValueType.TEXT);
-    optionService.saveOptionSet(optionSet);
-
-    return optionSet;
   }
 
   private void createDataElements() throws ConflictException {
@@ -183,13 +184,26 @@ class SingleEventNotificationMessageRendererTest extends PostgresIntegrationTest
     dataElementWithOptionSet =
         createDataElement('B', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER);
     dataElementWithOptionSet.setUid(DE_WITH_OPTION_SET_UID);
-    dataElementWithOptionSet.setOptionSet(createOptionSet());
+    dataElementWithOptionSet.setOptionSet(
+        saveOptionSet(createOptionSet('A', createOption('A'), createOption('B'))));
     dataElementService.addDataElement(dataElementWithOptionSet);
+
+    dataElementWithNoOption =
+        createDataElement('X', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER);
+    dataElementWithNoOption.setUid(DE_WITH_NO_OPTION_UID);
+    dataElementWithNoOption.setOptionSet(saveOptionSet(createOptionSet('E')));
+    dataElementService.addDataElement(dataElementWithNoOption);
 
     DataElement dataElementNotInProgramStage =
         createDataElement('C', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER);
     dataElementNotInProgramStage.setUid(DE_NOT_IN_STAGE_UID);
     dataElementService.addDataElement(dataElementNotInProgramStage);
+  }
+
+  private OptionSet saveOptionSet(OptionSet optionSet) throws ConflictException {
+    optionSet.setValueType(ValueType.TEXT);
+    optionService.saveOptionSet(optionSet);
+    return optionSet;
   }
 
   private void createOrganisationUnit() {
@@ -212,6 +226,7 @@ class SingleEventNotificationMessageRendererTest extends PostgresIntegrationTest
 
     addProgramStageDataElement(programStage, dataElementA, 1);
     addProgramStageDataElement(programStage, dataElementWithOptionSet, 2);
+    addProgramStageDataElement(programStage, dataElementWithNoOption, 3);
 
     programStageService.updateProgramStage(programStage);
 
@@ -234,6 +249,7 @@ class SingleEventNotificationMessageRendererTest extends PostgresIntegrationTest
         Sets.newHashSet(
             createEventDataValue(DATA_ELEMENT_UID, DATA_ELEMENT_VALUE),
             createEventDataValue(DE_NOT_IN_STAGE_UID, "dataElementD-Text"),
+            createEventDataValue(DE_WITH_NO_OPTION_UID, OPTION_CODE),
             createEventDataValue(DE_WITH_OPTION_SET_UID, OPTION_CODE)));
 
     manager.save(event);
