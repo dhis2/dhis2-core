@@ -86,9 +86,9 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.GetObjectListParams;
-import org.hisp.dhis.query.Query;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
@@ -224,8 +224,12 @@ public class UserController
   }
 
   @Override
-  protected void modifyGetObjectList(GetUserObjectListParams params, Query<User> query) {
-    addSimpleFilters(params, query);
+  @Nonnull
+  protected List<Filter> getAdditionalFilters(GetUserObjectListParams params)
+      throws ConflictException {
+    List<Filter> filters = super.getAdditionalFilters(params);
+    addSimpleFilters(params, filters);
+    return filters;
   }
 
   private boolean needsPreQuery(GetUserObjectListParams params) {
@@ -240,25 +244,25 @@ public class UserController
         || params.getInvitationStatus() == UserInvitationStatus.EXPIRED;
   }
 
-  private void addSimpleFilters(GetUserObjectListParams params, Query<User> query) {
+  private void addSimpleFilters(GetUserObjectListParams params, List<Filter> filters) {
     if (params.getPhoneNumber() != null) {
-      query.add(Filters.eq("phoneNumber", params.getPhoneNumber()));
+      filters.add(Filters.eq("phoneNumber", params.getPhoneNumber()));
     }
     if (params.getLastLogin() != null) {
-      query.add(Filters.ge("lastLogin", params.getLastLogin()));
+      filters.add(Filters.ge("lastLogin", params.getLastLogin()));
     }
     if (params.getInactiveMonths() != null) {
       Calendar cal = PeriodType.createCalendarInstance();
       cal.add(Calendar.MONTH, (params.getInactiveMonths() * -1));
-      query.add(Filters.lt("lastLogin", cal.getTime()));
+      filters.add(Filters.lt("lastLogin", cal.getTime()));
     } else if (params.getInactiveSince() != null) {
-      query.add(Filters.lt("lastLogin", params.getInactiveSince()));
+      filters.add(Filters.lt("lastLogin", params.getInactiveSince()));
     }
     if (params.isSelfRegistered()) {
-      query.add(Filters.eq("selfRegistered", true));
+      filters.add(Filters.eq("selfRegistered", true));
     }
     if (params.getInvitationStatus() == UserInvitationStatus.ALL) {
-      query.add(Filters.eq("invitation", true));
+      filters.add(Filters.eq("invitation", true));
     }
   }
 
