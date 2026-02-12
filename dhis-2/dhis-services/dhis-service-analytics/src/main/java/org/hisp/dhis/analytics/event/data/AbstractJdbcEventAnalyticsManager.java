@@ -168,6 +168,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -729,11 +730,24 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     Optional<String> periodColumn = getPeriodBucketColumn(queryItem);
 
     if (periodColumn.isPresent()) {
+      String stageDateColumn = quoteAlias(queryItem.getItemId());
+
+      // Doris/ClickHouse: avoid correlated subqueries in grouped aggregate projections.
+      // Build period buckets directly from the stage date column to preserve stage-date semantics.
+      Optional<String> highPerfExpression =
+          getHighPerformanceStageDatePeriodExpression(stageDateColumn, periodColumn.get());
+      if (highPerfExpression.isPresent()) {
+        String column = highPerfExpression.get();
+        if (isGroupByClause) {
+          return ColumnAndAlias.ofColumn(column);
+        }
+        return ColumnAndAlias.ofColumnAndAlias(column, queryItem.getItemName());
+      }
+
       // Use the stage date field itself (occurreddate/scheduleddate) to resolve period buckets.
       // We intentionally avoid ax.yearly/ax.monthly/etc because those are generated from
       // eventDateExpression in analytics tables, which can differ from stage-specific EVENT_DATE
       // semantics (e.g. scheduled events).
-      String stageDateColumn = quoteAlias(queryItem.getItemId());
       String periodColumnName = quote(periodColumn.get());
       String datePeriodColumn = quote("dateperiod");
       String column =
@@ -751,6 +765,52 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     return getColumnAndAlias(queryItem, isGroupByClause, "");
+  }
+
+  private Optional<String> getHighPerformanceStageDatePeriodExpression(
+      String stageDateColumn, String periodColumn) {
+    Database db = sqlBuilder.getDatabase();
+    if (db == Database.DORIS) {
+      return Optional.ofNullable(getDorisStageDatePeriodExpression(stageDateColumn, periodColumn));
+    }
+    if (db == Database.CLICKHOUSE) {
+      return Optional.ofNullable(
+          getClickHouseStageDatePeriodExpression(stageDateColumn, periodColumn));
+    }
+    return Optional.empty();
+  }
+
+  private String getDorisStageDatePeriodExpression(String stageDateColumn, String periodColumn) {
+    String dateExpr = "cast(" + stageDateColumn + " as date)";
+    return switch (periodColumn) {
+      case "yearly" -> "date_format(" + dateExpr + ", '%Y')";
+      case "monthly" -> "date_format(" + dateExpr + ", '%Y%m')";
+      case "daily" -> "date_format(" + dateExpr + ", '%Y%m%d')";
+      case "quarterly" ->
+          "concat(date_format("
+              + dateExpr
+              + ", '%Y'), 'Q', cast(quarter("
+              + dateExpr
+              + ") as char))";
+      default -> null;
+    };
+  }
+
+  private String getClickHouseStageDatePeriodExpression(
+      String stageDateColumn, String periodColumn) {
+    String dateExpr = "toDate(" + stageDateColumn + ")";
+    return switch (periodColumn) {
+      case "yearly" -> "formatDateTime(" + dateExpr + ", '%Y')";
+      case "monthly" -> "formatDateTime(" + dateExpr + ", '%Y%m')";
+      case "daily" -> "formatDateTime(" + dateExpr + ", '%Y%m%d')";
+      case "quarterly" ->
+          "concat(formatDateTime("
+              + dateExpr
+              + ", '%Y'), 'Q', toString(toQuarter("
+              + dateExpr
+              + ")))";
+      default -> null;
+    };
   }
 
   private Optional<String> getPeriodBucketColumn(QueryItem queryItem) {

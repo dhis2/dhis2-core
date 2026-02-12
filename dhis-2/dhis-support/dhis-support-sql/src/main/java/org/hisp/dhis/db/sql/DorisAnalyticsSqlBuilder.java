@@ -30,9 +30,13 @@
 package org.hisp.dhis.db.sql;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import org.apache.commons.lang3.StringUtils;
 
 public class DorisAnalyticsSqlBuilder extends DorisSqlBuilder implements AnalyticsSqlBuilder {
+  private static final DateTimeFormatter SQL_DATETIME_FORMATTER =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.SSS][.SS][.S]");
 
   public DorisAnalyticsSqlBuilder(String catalog, String driverFilename) {
     super(catalog, driverFilename);
@@ -46,7 +50,12 @@ public class DorisAnalyticsSqlBuilder extends DorisSqlBuilder implements Analyti
   @Override
   public String renderTimestamp(String timestampAsString) {
     if (StringUtils.isBlank(timestampAsString)) return null;
-    LocalDateTime dateTime = LocalDateTime.parse(timestampAsString);
+    LocalDateTime dateTime = tryParseDateTime(timestampAsString);
+    if (dateTime == null) {
+      // Keep non-timestamp values (for example period buckets like "202104") as-is.
+      return timestampAsString;
+    }
+
     String formattedDate = dateTime.format(TIMESTAMP_FORMATTER);
 
     // Find the position of the decimal point
@@ -65,5 +74,19 @@ public class DorisAnalyticsSqlBuilder extends DorisSqlBuilder implements Analyti
     }
 
     return formattedDate;
+  }
+
+  private LocalDateTime tryParseDateTime(String value) {
+    try {
+      return LocalDateTime.parse(value);
+    } catch (DateTimeParseException ignored) {
+      // Try SQL-like datetime format used by some JDBC result values.
+    }
+
+    try {
+      return LocalDateTime.parse(value, SQL_DATETIME_FORMATTER);
+    } catch (DateTimeParseException ignored) {
+      return null;
+    }
   }
 }

@@ -106,6 +106,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
@@ -328,6 +329,37 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             + "\"dateperiod\" = cast(ax.\"occurreddate\" as date))";
     assertThat(selectColumnAndAlias.asSql(), is(expectedExpression + " as \"occurreddate\""));
     assertThat(groupByColumnAndAlias.asSql(), is(expectedExpression));
+  }
+
+  @Test
+  void verifyGetColumnAndAliasUsesStageDateExpressionForDorisOnHighPerformanceDb() {
+    QueryItem stageDateItem =
+        new QueryItem(
+                new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
+                programA,
+                null,
+                ValueType.DATE,
+                AggregationType.NONE,
+                null)
+            .withCustomHeader(AnalyticsCustomHeader.forEventDate(programStage));
+    stageDateItem.setProgramStage(programStage);
+    stageDateItem.addDimensionValue("2021");
+
+    when(sqlBuilder.getDatabase()).thenReturn(Database.DORIS);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams()).addItem(stageDateItem).build();
+
+    ColumnAndAlias selectColumnAndAlias =
+        eventSubject.getColumnAndAlias(stageDateItem, params, false, true);
+    ColumnAndAlias groupByColumnAndAlias =
+        eventSubject.getColumnAndAlias(stageDateItem, params, true, true);
+
+    assertThat(
+        selectColumnAndAlias.asSql(),
+        is("date_format(cast(ax.\"occurreddate\" as date), '%Y') as \"occurreddate\""));
+    assertThat(
+        groupByColumnAndAlias.asSql(), is("date_format(cast(ax.\"occurreddate\" as date), '%Y')"));
   }
 
   @Test
