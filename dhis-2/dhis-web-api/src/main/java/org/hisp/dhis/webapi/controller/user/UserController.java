@@ -219,13 +219,8 @@ public class UserController
   }
 
   @Override
-  protected List<UID> getPreQueryMatches(GetUserObjectListParams params) {
-    return null;
-  }
-
-  @Override
   protected void modifyGetObjectList(GetUserObjectListParams params, Query<User> query) {
-    if (!needsPreQuery(params)) return;
+    if (!needsSpecialPredicates(params)) return;
     UserQueryParams queryParams = toUserQueryParams(params);
     userService.handleUserQueryParams(queryParams);
     query.addPredicateSupplier(new UserPredicateSupplier(queryParams));
@@ -240,7 +235,7 @@ public class UserController
     return filters;
   }
 
-  private boolean needsPreQuery(GetUserObjectListParams params) {
+  private boolean needsSpecialPredicates(GetUserObjectListParams params) {
     return params.getQuery() != null
         || params.isCanManage()
         || params.isAuthSubset()
