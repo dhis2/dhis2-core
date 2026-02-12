@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,60 +27,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.event.data;
+package org.hisp.dhis.analytics.event.data.stage;
 
-import java.util.Optional;
-import lombok.Getter;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.system.util.SqlUtils;
+import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.ColumnAndAlias;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.program.AnalyticsType;
 
-@Getter
-public class ColumnAndAlias {
-  public static final ColumnAndAlias EMPTY = ColumnAndAlias.ofColumn("");
+/**
+ * Builds stage-scoped org unit SQL fragments for selection and filtering.
+ *
+ * <p>This encapsulates {@code stage.ou} behavior and keeps org unit level handling out of manager
+ * code.
+ */
+public interface StageOrgUnitSqlService {
+  /**
+   * Creates the SELECT/GROUP BY column expression for a stage org unit item.
+   *
+   * @param item the stage org unit query item
+   * @param params query parameters
+   * @param isGroupByClause true when the expression is for GROUP BY
+   * @return stage org unit SQL column and alias information
+   */
+  ColumnAndAlias selectColumn(QueryItem item, EventQueryParams params, boolean isGroupByClause);
 
-  protected final String column;
-
-  protected final String alias;
-
-  protected final String postfix;
-
-  protected ColumnAndAlias(String column, String alias, String postfix) {
-    this.column = column;
-    this.alias = alias;
-    this.postfix = postfix;
-  }
-
-  protected ColumnAndAlias(String column, String alias) {
-    this.column = column;
-    this.alias = alias;
-    this.postfix = null;
-  }
-
-  public static ColumnAndAlias ofColumn(String column) {
-    return ofColumnAndAlias(column, null);
-  }
-
-  public static ColumnAndAlias ofColumnAndAlias(String column, String alias) {
-    return new ColumnAndAlias(column, alias, null);
-  }
-
-  public String asSql() {
-    if (StringUtils.isNotEmpty(alias)) {
-      return String.join(" as ", column, getQuotedAlias());
-    } else {
-      return column;
-    }
-  }
-
-  public String getQuotedAlias() {
-    return Optional.ofNullable(alias).map(SqlUtils::quote).orElse(null);
-  }
-
-  public ColumnAndAlias withPostfix(String postfix) {
-    return new ColumnAndAlias(column, alias, postfix);
-  }
-
-  public boolean hasPostfix() {
-    return StringUtils.isNotEmpty(postfix);
-  }
+  /**
+   * Creates the WHERE clause fragment for a stage org unit item.
+   *
+   * @param item the stage org unit query item
+   * @param params query parameters
+   * @param analyticsType analytics type used for org unit level columns
+   * @return SQL fragment for stage org unit filtering
+   */
+  String whereClause(QueryItem item, EventQueryParams params, AnalyticsType analyticsType);
 }

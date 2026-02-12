@@ -77,6 +77,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 import javax.sql.rowset.RowSetMetaDataImpl;
@@ -89,7 +90,13 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams.Builder;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
+import org.hisp.dhis.analytics.event.data.stage.DefaultStageDatePeriodBucketSqlRenderer;
+import org.hisp.dhis.analytics.event.data.stage.DefaultStageOrgUnitSqlService;
+import org.hisp.dhis.analytics.event.data.stage.DefaultStageQueryItemClassifier;
+import org.hisp.dhis.analytics.event.data.stage.DefaultStageQuerySqlFacade;
+import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
+import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.common.AnalyticsCustomHeader;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -106,7 +113,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
@@ -128,7 +134,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -174,9 +179,9 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   private EnrollmentTimeFieldSqlRenderer enrollmentTimeFieldSqlRenderer =
       new EnrollmentTimeFieldSqlRenderer(sqlBuilder);
 
-  @InjectMocks private JdbcEventAnalyticsManager eventSubject;
+  private JdbcEventAnalyticsManager eventSubject;
 
-  @InjectMocks private JdbcEnrollmentAnalyticsManager enrollmentSubject;
+  private JdbcEnrollmentAnalyticsManager enrollmentSubject;
 
   private Program programA;
 
@@ -195,6 +200,49 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     programA = createProgram('A');
     dataElementA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     dataElementA.setUid("fWIAEtYVEGk");
+
+    ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
+    QueryItemFilterBuilder filterBuilder =
+        new QueryItemFilterBuilder(organisationUnitResolver, sqlBuilder);
+    StageQuerySqlFacade stageQuerySqlFacade =
+        new DefaultStageQuerySqlFacade(
+            new DefaultStageQueryItemClassifier(),
+            new DefaultStageDatePeriodBucketSqlRenderer(sqlBuilder),
+            new DefaultStageOrgUnitSqlService(organisationUnitResolver, sqlBuilder));
+
+    eventSubject =
+        new JdbcEventAnalyticsManager(
+            jdbcTemplate,
+            programIndicatorService,
+            programIndicatorSubqueryBuilder,
+            null,
+            piDisagQueryGenerator,
+            eventTimeFieldSqlRenderer,
+            executionPlanStore,
+            systemSettingsService,
+            null,
+            sqlBuilder,
+            organisationUnitResolver,
+            columnMapper,
+            filterBuilder,
+            stageQuerySqlFacade);
+
+    enrollmentSubject =
+        new JdbcEnrollmentAnalyticsManager(
+            jdbcTemplate,
+            programIndicatorService,
+            programIndicatorSubqueryBuilder,
+            null,
+            piDisagQueryGenerator,
+            enrollmentTimeFieldSqlRenderer,
+            executionPlanStore,
+            systemSettingsService,
+            null,
+            sqlBuilder,
+            organisationUnitResolver,
+            columnMapper,
+            filterBuilder,
+            stageQuerySqlFacade);
   }
 
   @Test
@@ -345,7 +393,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     stageDateItem.setProgramStage(programStage);
     stageDateItem.addDimensionValue("2021");
 
-    when(sqlBuilder.getDatabase()).thenReturn(Database.DORIS);
+    when(sqlBuilder.renderStageDatePeriodBucket(any(), any()))
+        .thenReturn(Optional.of("date_format(cast(ax.\"occurreddate\" as date), '%Y')"));
 
     EventQueryParams params =
         new EventQueryParams.Builder(createRequestParams()).addItem(stageDateItem).build();

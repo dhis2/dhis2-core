@@ -139,6 +139,7 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagDataHandler;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
+import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.model.AnalyticsTableColumn;
@@ -168,14 +169,12 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.db.model.Database;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -275,6 +274,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected final ColumnMapper columnMapper;
 
   protected final QueryItemFilterBuilder filterBuilder;
+
+  protected final StageQuerySqlFacade stageQuerySqlFacade;
 
   static final String ANALYTICS_EVENT = "analytics_event_";
 
@@ -663,8 +664,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       return ColumnAndAlias.ofColumnAndAlias(programIndicatorSubquery, asClause);
     } else if (ValueType.COORDINATE == queryItem.getValueType()) {
       return getCoordinateColumn(queryItem);
-    } else if (isAggregated && isStageDateItem(queryItem)) {
-      return getStageDateColumnAndAlias(queryItem, isGroupByClause);
+    }
+
+    Optional<ColumnAndAlias> stageSelectColumn =
+        stageQuerySqlFacade.resolveSelectColumn(queryItem, params, isGroupByClause, isAggregated);
+    if (stageSelectColumn.isPresent()) {
+      return stageSelectColumn.get();
     } else if (ValueType.ORGANISATION_UNIT == queryItem.getValueType()) {
       if (params.getCoordinateFields().stream()
           .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
@@ -719,121 +724,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             .withPostfix(OU_NAME_COL_POSTFIX)
         : ColumnAndAlias.ofColumn(getColumn(queryItem, OU_NAME_COL_POSTFIX))
             .withPostfix(OU_NAME_COL_POSTFIX);
-  }
-
-  /**
-   * Resolves stage-specific date dimensions (e.g. stageUid.EVENT_DATE:THIS_YEAR) to period bucket
-   * columns for aggregate queries. This avoids grouping by raw timestamps, which would produce one
-   * row per event date.
-   */
-  private ColumnAndAlias getStageDateColumnAndAlias(QueryItem queryItem, boolean isGroupByClause) {
-    Optional<String> periodColumn = getPeriodBucketColumn(queryItem);
-
-    if (periodColumn.isPresent()) {
-      String stageDateColumn = quoteAlias(queryItem.getItemId());
-
-      // Doris/ClickHouse: avoid correlated subqueries in grouped aggregate projections.
-      // Build period buckets directly from the stage date column to preserve stage-date semantics.
-      Optional<String> highPerfExpression =
-          getHighPerformanceStageDatePeriodExpression(stageDateColumn, periodColumn.get());
-      if (highPerfExpression.isPresent()) {
-        String column = highPerfExpression.get();
-        if (isGroupByClause) {
-          return ColumnAndAlias.ofColumn(column);
-        }
-        return ColumnAndAlias.ofColumnAndAlias(column, queryItem.getItemName());
-      }
-
-      // Use the stage date field itself (occurreddate/scheduleddate) to resolve period buckets.
-      // We intentionally avoid ax.yearly/ax.monthly/etc because those are generated from
-      // eventDateExpression in analytics tables, which can differ from stage-specific EVENT_DATE
-      // semantics (e.g. scheduled events).
-      String periodColumnName = quote(periodColumn.get());
-      String datePeriodColumn = quote("dateperiod");
-      String column =
-          "(select "
-              + periodColumnName
-              + " from analytics_rs_dateperiodstructure as dps_stage where dps_stage."
-              + datePeriodColumn
-              + " = cast("
-              + stageDateColumn
-              + " as date))";
-      if (isGroupByClause) {
-        return ColumnAndAlias.ofColumn(column);
-      }
-      return ColumnAndAlias.ofColumnAndAlias(column, queryItem.getItemName());
-    }
-
-    return getColumnAndAlias(queryItem, isGroupByClause, "");
-  }
-
-  private Optional<String> getHighPerformanceStageDatePeriodExpression(
-      String stageDateColumn, String periodColumn) {
-    Database db = sqlBuilder.getDatabase();
-    if (db == Database.DORIS) {
-      return Optional.ofNullable(getDorisStageDatePeriodExpression(stageDateColumn, periodColumn));
-    }
-    if (db == Database.CLICKHOUSE) {
-      return Optional.ofNullable(
-          getClickHouseStageDatePeriodExpression(stageDateColumn, periodColumn));
-    }
-    return Optional.empty();
-  }
-
-  private String getDorisStageDatePeriodExpression(String stageDateColumn, String periodColumn) {
-    String dateExpr = "cast(" + stageDateColumn + " as date)";
-    return switch (periodColumn) {
-      case "yearly" -> "date_format(" + dateExpr + ", '%Y')";
-      case "monthly" -> "date_format(" + dateExpr + ", '%Y%m')";
-      case "daily" -> "date_format(" + dateExpr + ", '%Y%m%d')";
-      case "quarterly" ->
-          "concat(date_format("
-              + dateExpr
-              + ", '%Y'), 'Q', cast(quarter("
-              + dateExpr
-              + ") as char))";
-      default -> null;
-    };
-  }
-
-  private String getClickHouseStageDatePeriodExpression(
-      String stageDateColumn, String periodColumn) {
-    String dateExpr = "toDate(" + stageDateColumn + ")";
-    return switch (periodColumn) {
-      case "yearly" -> "formatDateTime(" + dateExpr + ", '%Y')";
-      case "monthly" -> "formatDateTime(" + dateExpr + ", '%Y%m')";
-      case "daily" -> "formatDateTime(" + dateExpr + ", '%Y%m%d')";
-      case "quarterly" ->
-          "concat(formatDateTime("
-              + dateExpr
-              + ", '%Y'), 'Q', toString(toQuarter("
-              + dateExpr
-              + ")))";
-      default -> null;
-    };
-  }
-
-  private Optional<String> getPeriodBucketColumn(QueryItem queryItem) {
-    if (queryItem.getDimensionValues().isEmpty()) {
-      return Optional.empty();
-    }
-
-    List<PeriodType> periodTypes = new ArrayList<>();
-
-    for (String periodId : queryItem.getDimensionValues()) {
-      PeriodDimension periodDimension = PeriodDimension.of(periodId);
-      if (periodDimension == null || periodDimension.getPeriodType() == null) {
-        return Optional.empty();
-      }
-      periodTypes.add(periodDimension.getPeriodType());
-    }
-
-    PeriodType firstType = periodTypes.get(0);
-    if (periodTypes.stream().anyMatch(type -> !type.equals(firstType))) {
-      return Optional.empty();
-    }
-
-    return Optional.of(firstType.getName().toLowerCase());
   }
 
   /**
@@ -1675,26 +1565,16 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return IdentifiableSql.builder()
         .identifier(getIdentifier(queryItem))
         .sql(toSql(queryItem, params))
-        .stageDateItem(isStageDateItem(queryItem))
+        .stageDateItem(stageQuerySqlFacade.isStageDate(queryItem))
         .build();
-  }
-
-  /**
-   * Returns true if the query item is a stage-specific date dimension (EVENT_DATE or SCHEDULED_DATE
-   * with a program stage).
-   */
-  private boolean isStageDateItem(QueryItem item) {
-    return item.hasProgramStage()
-        && (EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(item.getItemId())
-            || EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME.equals(item.getItemId()));
   }
 
   /** Converts given queryItem into SQL joining its filters using AND. */
   private String toSql(QueryItem queryItem, EventQueryParams params) {
-    // Special handling for stage.ou dimension - use uidlevelX instead of ou
-    if (EventAnalyticsColumnName.OU_COLUMN_NAME.equals(queryItem.getItemId())
-        && queryItem.hasProgramStage()) {
-      return getStageOuWhereClause(queryItem, params);
+    Optional<String> stageWhereClause =
+        stageQuerySqlFacade.resolveWhereClause(queryItem, params, getAnalyticsType());
+    if (stageWhereClause.isPresent()) {
+      return stageWhereClause.get();
     }
 
     String sql =
@@ -1717,46 +1597,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     return sql;
-  }
-
-  /**
-   * Generates a WHERE clause for stage.ou dimension using proper uidlevelX columns based on
-   * organisation unit levels.
-   */
-  private String getStageOuWhereClause(QueryItem item, EventQueryParams params) {
-    Map<Integer, List<OrganisationUnit>> orgUnitsByLevel =
-        organisationUnitResolver.resolveOrgUnitsGroupedByLevel(params, item);
-
-    if (orgUnitsByLevel.isEmpty()) {
-      return "";
-    }
-
-    StringJoiner conditions = new StringJoiner(" and ");
-
-    for (Map.Entry<Integer, List<OrganisationUnit>> entry : orgUnitsByLevel.entrySet()) {
-      int level = entry.getKey();
-      List<OrganisationUnit> orgUnits = entry.getValue();
-
-      String column =
-          params
-              .getOrgUnitField()
-              .withSqlBuilder(sqlBuilder)
-              .getOrgUnitLevelCol(level, getAnalyticsType());
-
-      String quotedUids =
-          orgUnits.stream()
-              .map(OrganisationUnit::getUid)
-              .filter(StringUtils::isNotEmpty)
-              .map(uid -> "'" + uid + "'")
-              .collect(joining(","));
-
-      conditions.add(column + " in (" + quotedUids + ")");
-    }
-
-    String psCondition = quoteAlias("ps") + " = '" + item.getProgramStage().getUid() + "'";
-    conditions.add(psCondition);
-
-    return "(" + conditions + ")";
   }
 
   /** Returns PSID.ITEM_ID of given queryItem. */

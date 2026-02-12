@@ -146,16 +146,27 @@ public class ValidationHelper {
     }
 
     response
-            .validate()
-            .statusCode(200)
-            .body("rows", describedAs("Row count mismatch (expected %0, rows: %1)",
-                    hasSize(expectedRowCount), expectedRowCount, rows))
-            .body("height", describedAs("Height mismatch (expected %0, got height from response)",
-                    equalTo(expectedRowCount), expectedRowCount))
-            .body("width", describedAs("Width mismatch (expected %0)",
-                    equalTo(expectedWidth), expectedWidth))
-            .body("headerWidth", describedAs("HeaderWidth mismatch (expected %0, headers: %1)",
-                    equalTo(expectedSize), expectedSize, currentHeaders));  }
+        .validate()
+        .statusCode(200)
+        .body(
+            "rows",
+            describedAs(
+                "Row count mismatch (expected %0, rows: %1)",
+                hasSize(expectedRowCount), expectedRowCount, rows))
+        .body(
+            "height",
+            describedAs(
+                "Height mismatch (expected %0, got height from response)",
+                equalTo(expectedRowCount), expectedRowCount))
+        .body(
+            "width",
+            describedAs("Width mismatch (expected %0)", equalTo(expectedWidth), expectedWidth))
+        .body(
+            "headerWidth",
+            describedAs(
+                "HeaderWidth mismatch (expected %0, headers: %1)",
+                equalTo(expectedSize), expectedSize, currentHeaders));
+  }
 
   /**
    * Asserts whether a header with the given name exists or does not exist in the response.

@@ -32,6 +32,7 @@ package org.hisp.dhis.db.sql;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
 
 public class DorisAnalyticsSqlBuilder extends DorisSqlBuilder implements AnalyticsSqlBuilder {
@@ -74,6 +75,26 @@ public class DorisAnalyticsSqlBuilder extends DorisSqlBuilder implements Analyti
     }
 
     return formattedDate;
+  }
+
+  @Override
+  public Optional<String> renderStageDatePeriodBucket(
+      String stageDateColumn, String periodBucketColumn) {
+    String dateExpr = "cast(" + stageDateColumn + " as date)";
+
+    return Optional.ofNullable(
+        switch (periodBucketColumn) {
+          case "yearly" -> "date_format(" + dateExpr + ", '%Y')";
+          case "monthly" -> "date_format(" + dateExpr + ", '%Y%m')";
+          case "daily" -> "date_format(" + dateExpr + ", '%Y%m%d')";
+          case "quarterly" ->
+              "concat(date_format("
+                  + dateExpr
+                  + ", '%Y'), 'Q', cast(quarter("
+                  + dateExpr
+                  + ") as char))";
+          default -> null;
+        });
   }
 
   private LocalDateTime tryParseDateTime(String value) {
