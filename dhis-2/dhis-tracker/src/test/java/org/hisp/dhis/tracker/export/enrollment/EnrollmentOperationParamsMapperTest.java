@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -44,6 +45,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -86,6 +88,8 @@ class EnrollmentOperationParamsMapperTest {
   @Mock private TrackedEntityTypeService trackedEntityTypeService;
 
   @Mock private TrackedEntityService trackedEntityService;
+
+  @Mock private OrganisationUnitService organisationUnitService;
 
   @Mock private OperationsParamsValidator paramsValidator;
 
@@ -134,6 +138,8 @@ class EnrollmentOperationParamsMapperTest {
         .thenReturn(trackedEntity);
     when(paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), user))
         .thenReturn(Set.of(orgUnit1, orgUnit2));
+
+    when(organisationUnitService.getOrganisationUnitsByUid(any())).thenReturn(List.of());
   }
 
   @Test

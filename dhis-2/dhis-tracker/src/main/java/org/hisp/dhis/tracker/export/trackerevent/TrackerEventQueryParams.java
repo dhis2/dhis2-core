@@ -59,6 +59,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.FilterJdbcPredicate;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.SearchScope;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 
 /**
@@ -96,6 +97,8 @@ class TrackerEventQueryParams {
   @Getter private OrganisationUnit orgUnit;
 
   @Getter private OrganisationUnitSelectionMode orgUnitMode;
+
+  @Getter private SearchScope searchScope;
 
   @Getter private TrackedEntity trackedEntity;
 
@@ -154,10 +157,6 @@ class TrackerEventQueryParams {
   private boolean hasDataElementFilter;
 
   @Getter private boolean includeDeleted;
-
-  @Getter private Set<UID> accessiblePrograms;
-
-  @Getter private Set<UID> accessibleProgramStages;
 
   @Getter private Set<UID> enrollments;
 
@@ -392,20 +391,6 @@ class TrackerEventQueryParams {
     return this;
   }
 
-  public TrackerEventQueryParams setAccessiblePrograms(Set<UID> accessiblePrograms) {
-    this.accessiblePrograms = accessiblePrograms;
-    return this;
-  }
-
-  public TrackerEventQueryParams setAccessibleProgramStages(Set<UID> accessibleProgramStages) {
-    this.accessibleProgramStages = accessibleProgramStages;
-    return this;
-  }
-
-  public boolean hasSecurityFilter() {
-    return accessiblePrograms != null && accessibleProgramStages != null;
-  }
-
   public TrackerEventQueryParams setEnrollments(Set<UID> enrollments) {
     this.enrollments = enrollments;
     return this;
@@ -413,6 +398,11 @@ class TrackerEventQueryParams {
 
   public TrackerEventQueryParams setIdSchemeParams(TrackerIdSchemeParams idSchemeParams) {
     this.idSchemeParams = idSchemeParams;
+    return this;
+  }
+
+  public TrackerEventQueryParams setSearchScope(SearchScope searchScope) {
+    this.searchScope = searchScope;
     return this;
   }
 }
