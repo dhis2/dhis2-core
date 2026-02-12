@@ -218,17 +218,14 @@ public class UserController
   }
 
   @Override
-  protected List<UID> getPreQueryMatches(GetUserObjectListParams params) throws ConflictException {
-    if (!needsPreQuery(params)) return null;
-    return userService.getUserIds(toComplexQueryParams(params), null);
-  }
-
-  @Override
   protected void modifyGetObjectList(GetUserObjectListParams params, Query<User> query) {
+    if (hasComplexConditions(params)) {
+      query.setObjects(userService.getUsers(toComplexQueryParams(params)));
+    }
     addSimpleFilters(params, query);
   }
 
-  private boolean needsPreQuery(GetUserObjectListParams params) {
+  private boolean hasComplexConditions(GetUserObjectListParams params) {
     return params.getQuery() != null
         || params.isCanManage()
         || params.isAuthSubset()

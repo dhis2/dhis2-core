@@ -94,14 +94,17 @@ public class DefaultQueryService implements QueryService {
   // ---------------------------------------------------------------------------------------------
 
   private <T extends IdentifiableObject> long countObjects(Query<T> query) {
-    List<? extends IdentifiableObject> objects;
+    List<T> preSet = query.getObjects();
+    if (preSet != null) {
+      return memoryQueryEngine.query(query.setObjects(preSet)).size();
+    }
+
     QueryPlan<T> plan = queryPlanner.planQuery(query);
     Query<T> dbQuery = plan.dbQuery();
     Query<T> memoryQuery = plan.memoryQuery();
     if (!memoryQuery.isEmpty()) {
       memoryQuery.setObjects(dbQueryEngine.query(dbQuery));
-      objects = memoryQueryEngine.query(memoryQuery);
-      return objects.size();
+      return memoryQueryEngine.query(memoryQuery).size();
     }
     return dbQueryEngine.count(dbQuery);
   }
