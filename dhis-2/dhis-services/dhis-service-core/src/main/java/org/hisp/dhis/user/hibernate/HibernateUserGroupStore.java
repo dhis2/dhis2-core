@@ -31,6 +31,7 @@ package org.hisp.dhis.user.hibernate;
 
 import jakarta.persistence.EntityManager;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.UserGroup;
@@ -61,7 +62,7 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
   }
 
   @Override
-  public boolean addMemberViaSQL(@Nonnull String userGroupUid, @Nonnull String userUid) {
+  public boolean addMemberViaSQL(@Nonnull UID userGroupUid, @Nonnull UID userUid) {
     String sql =
         """
         INSERT INTO usergroupmembers (usergroupid, userid)
@@ -73,34 +74,35 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
           WHERE ugm.usergroupid = ug.usergroupid AND ugm.userid = u.userinfoid
         )
         """;
-    return jdbcTemplate.update(sql, userGroupUid, userUid) > 0;
+    return jdbcTemplate.update(sql, userGroupUid.getValue(), userUid.getValue()) > 0;
   }
 
   @Override
-  public boolean removeMemberViaSQL(@Nonnull String userGroupUid, @Nonnull String userUid) {
+  public boolean removeMemberViaSQL(@Nonnull UID userGroupUid, @Nonnull UID userUid) {
     String sql =
         """
         DELETE FROM usergroupmembers
         WHERE usergroupid = (SELECT usergroupid FROM usergroup WHERE uid = ?)
         AND userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
         """;
-    return jdbcTemplate.update(sql, userGroupUid, userUid) > 0;
+    return jdbcTemplate.update(sql, userGroupUid.getValue(), userUid.getValue()) > 0;
   }
 
   @Override
-  public void updateLastUpdatedViaSQL(
-      @Nonnull String userGroupUid, @Nonnull String lastUpdatedByUid) {
+  public void updateLastUpdatedViaSQL(@Nonnull UID userGroupUid, @Nonnull UID lastUpdatedByUid) {
     String sql =
         """
         UPDATE usergroup SET lastupdated = now(),
         lastupdatedby = (SELECT userinfoid FROM userinfo WHERE uid = ?)
         WHERE uid = ?
         """;
-    jdbcTemplate.update(sql, lastUpdatedByUid, userGroupUid);
+    jdbcTemplate.update(sql, lastUpdatedByUid.getValue(), userGroupUid.getValue());
     // Evict from both L1 (session) and L2 caches since we bypassed Hibernate
     Long id =
         jdbcTemplate.queryForObject(
-            "SELECT usergroupid FROM usergroup WHERE uid = ?", Long.class, userGroupUid);
+            "SELECT usergroupid FROM usergroup WHERE uid = ?",
+            Long.class,
+            userGroupUid.getValue());
     getSession().evict(getSession().getReference(UserGroup.class, id));
     getSession().getSessionFactory().getCache().evictEntityData(UserGroup.class, id);
   }

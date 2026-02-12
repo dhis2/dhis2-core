@@ -35,7 +35,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -97,7 +96,7 @@ public class SchemaToDataFetcher {
   public List<? extends IdentifiableObject> fetch(
       Schema schema, Collection<? extends IdentifiableObject> objectsBeingImported) {
     if (schema == null) {
-      return Collections.emptyList();
+      return List.of();
     }
 
     return mapUniqueFields(schema, objectsBeingImported);
@@ -108,17 +107,17 @@ public class SchemaToDataFetcher {
       Schema schema, Collection<? extends IdentifiableObject> objectsBeingImported) {
     List<Property> uniqueProperties = schema.getUniqueProperties();
     if (uniqueProperties.isEmpty()) {
-      return Collections.emptyList();
+      return List.of();
     }
 
     // Handle early exit for empty imports
     if (objectsBeingImported != null && objectsBeingImported.isEmpty()) {
-      return Collections.emptyList();
+      return List.of();
     }
 
     Query query = createQuery(schema, uniqueProperties, objectsBeingImported);
     if (query == null) {
-      return Collections.emptyList();
+      return List.of();
     }
 
     List<Object> objects = query.getResultList();

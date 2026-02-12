@@ -31,6 +31,7 @@ package org.hisp.dhis.user;
 
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 
 /** Contains functions to manage {@link UserGroup} */
 public interface UserGroupStore extends IdentifiableObjectStore<UserGroup> {
@@ -44,7 +45,7 @@ public interface UserGroupStore extends IdentifiableObjectStore<UserGroup> {
    * @param userUid the UID of the user to add
    * @return true if the membership was added, false if user was already a member
    */
-  boolean addMemberViaSQL(@Nonnull String userGroupUid, @Nonnull String userUid);
+  boolean addMemberViaSQL(@Nonnull UID userGroupUid, @Nonnull UID userUid);
 
   /**
    * Removes a user from a user group directly via SQL, without loading the members collection. This
@@ -54,7 +55,7 @@ public interface UserGroupStore extends IdentifiableObjectStore<UserGroup> {
    * @param userUid the UID of the user to remove
    * @return true if the membership was removed, false if user was not a member
    */
-  boolean removeMemberViaSQL(@Nonnull String userGroupUid, @Nonnull String userUid);
+  boolean removeMemberViaSQL(@Nonnull UID userGroupUid, @Nonnull UID userUid);
 
   /**
    * Updates the lastUpdated timestamp and lastUpdatedBy user for a user group directly via SQL.
@@ -64,5 +65,5 @@ public interface UserGroupStore extends IdentifiableObjectStore<UserGroup> {
    * @param userGroupUid the UID of the user group
    * @param lastUpdatedByUid the UID of the user who made the change
    */
-  void updateLastUpdatedViaSQL(@Nonnull String userGroupUid, @Nonnull String lastUpdatedByUid);
+  void updateLastUpdatedViaSQL(@Nonnull UID userGroupUid, @Nonnull UID lastUpdatedByUid);
 }
