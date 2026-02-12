@@ -100,9 +100,7 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
     // Evict from both L1 (session) and L2 caches since we bypassed Hibernate
     Long id =
         jdbcTemplate.queryForObject(
-            "SELECT usergroupid FROM usergroup WHERE uid = ?",
-            Long.class,
-            userGroupUid.getValue());
+            "SELECT usergroupid FROM usergroup WHERE uid = ?", Long.class, userGroupUid.getValue());
     getSession().evict(getSession().getReference(UserGroup.class, id));
     getSession().getSessionFactory().getCache().evictEntityData(UserGroup.class, id);
   }
