@@ -54,4 +54,12 @@ public interface UserRoleStore extends IdentifiableObjectStore<UserRole> {
    * @param userUid the UID of the user to remove
    */
   void removeMemberViaSQL(@Nonnull UID userRoleUid, @Nonnull UID userUid);
+
+  /**
+   * Removes all user role memberships for a user directly via SQL. This avoids loading UserRole
+   * entities and their members collections (potentially 100K+ users each).
+   *
+   * @param userUid the UID of the user whose role memberships should be removed
+   */
+  void removeUserRoleMembershipsByUserViaSQL(@Nonnull UID userUid);
 }

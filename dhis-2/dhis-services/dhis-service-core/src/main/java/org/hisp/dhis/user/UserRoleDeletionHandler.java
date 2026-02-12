@@ -48,9 +48,7 @@ public class UserRoleDeletionHandler extends IdObjectDeletionHandler<UserRole> {
   }
 
   private void deleteUser(User user) {
-    for (UserRole role : user.getUserRoles()) {
-      userRoleStore.removeMemberViaSQL(role.getUID(), user.getUID());
-    }
+    userRoleStore.removeUserRoleMembershipsByUserViaSQL(user.getUID());
     user.setUserRoles(new HashSet<>());
   }
 }
