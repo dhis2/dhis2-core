@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.webapi.filter;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -54,7 +53,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 @ExtendWith(MockitoExtension.class)
-class SessionTimeoutHeaderFilterTest {
+class SessionTimeoutCookieTest {
 
   private final SessionTimeoutHeaderFilter filter = new SessionTimeoutHeaderFilter();
 
@@ -76,80 +75,6 @@ class SessionTimeoutHeaderFilterTest {
   @AfterEach
   void tearDown() {
     SecurityContextHolder.clearContext();
-  }
-
-  @Test
-  void shouldAddHeaderForAuthenticatedUserWithSession() throws Exception {
-    SecurityContextHolder.getContext()
-        .setAuthentication(
-            new UsernamePasswordAuthenticationToken("admin", "password", Collections.emptyList()));
-
-    when(session.getMaxInactiveInterval()).thenReturn(3600);
-    request.setSession(session);
-
-    filter.doFilter(request, response, filterChain);
-
-    assertEquals("3600", response.getHeader(SessionTimeoutHeaderFilter.HEADER_NAME));
-  }
-
-  @Test
-  void shouldNotAddHeaderWhenNotAuthenticated() throws Exception {
-    filter.doFilter(request, response, filterChain);
-
-    assertFalse(response.containsHeader(SessionTimeoutHeaderFilter.HEADER_NAME));
-  }
-
-  @Test
-  void shouldNotAddHeaderForAnonymousUser() throws Exception {
-    SecurityContextHolder.getContext()
-        .setAuthentication(
-            new AnonymousAuthenticationToken(
-                "key",
-                "anonymous",
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_ANONYMOUS"))));
-
-    filter.doFilter(request, response, filterChain);
-
-    assertFalse(response.containsHeader(SessionTimeoutHeaderFilter.HEADER_NAME));
-  }
-
-  @Test
-  void shouldNotAddHeaderWhenNoSession() throws Exception {
-    SecurityContextHolder.getContext()
-        .setAuthentication(
-            new UsernamePasswordAuthenticationToken("admin", "password", Collections.emptyList()));
-
-    filter.doFilter(request, response, filterChain);
-
-    assertFalse(response.containsHeader(SessionTimeoutHeaderFilter.HEADER_NAME));
-  }
-
-  @Test
-  void shouldNotAddHeaderWhenMaxInactiveIntervalIsZero() throws Exception {
-    SecurityContextHolder.getContext()
-        .setAuthentication(
-            new UsernamePasswordAuthenticationToken("admin", "password", Collections.emptyList()));
-
-    when(session.getMaxInactiveInterval()).thenReturn(0);
-    request.setSession(session);
-
-    filter.doFilter(request, response, filterChain);
-
-    assertFalse(response.containsHeader(SessionTimeoutHeaderFilter.HEADER_NAME));
-  }
-
-  @Test
-  void shouldNotAddHeaderWhenMaxInactiveIntervalIsNegative() throws Exception {
-    SecurityContextHolder.getContext()
-        .setAuthentication(
-            new UsernamePasswordAuthenticationToken("admin", "password", Collections.emptyList()));
-
-    when(session.getMaxInactiveInterval()).thenReturn(-1);
-    request.setSession(session);
-
-    filter.doFilter(request, response, filterChain);
-
-    assertFalse(response.containsHeader(SessionTimeoutHeaderFilter.HEADER_NAME));
   }
 
   @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,26 +37,18 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.time.Instant;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.http.ResponseCookie;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Adds an {@code X-Session-Timeout} response header and a {@code SESSION_EXPIRE} cookie to every
- * authenticated API response that has a server-side session.
+ * Adds a {@code SESSION_EXPIRE} cookie to every authenticated API response that has a server-side
+ * session.
  *
  * <p>The header value is the session's {@code maxInactiveInterval} in seconds. The cookie value is
- * the epoch-second timestamp when the session will expire, so any JavaScript code can compare
- * {@code Date.now()/1000} against it without needing to intercept response headers.
- *
- * <p>Neither the header nor the cookie is added for stateless authentication (PAT, JWT) since there
- * is no session to expire.
+ * the epoch-second timestamp when the session will expire.
  */
 public class SessionTimeoutHeaderFilter extends OncePerRequestFilter {
-
-  public static final String HEADER_NAME = "X-Session-Timeout";
 
   public static final String COOKIE_NAME = "SESSION_EXPIRE";
 
@@ -64,22 +56,14 @@ public class SessionTimeoutHeaderFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-    filterChain.doFilter(request, response);
-
-    Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-    if (auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
-      return;
-    }
-
     HttpSession session = request.getSession(false);
-    if (session != null && session.getMaxInactiveInterval() > 0) {
+    if (session != null
+        && session.getMaxInactiveInterval() > 0
+        && CurrentUserUtil.hasCurrentUser()) {
       int maxInactiveInterval = session.getMaxInactiveInterval();
-      response.setIntHeader(HEADER_NAME, maxInactiveInterval);
-
       long expiresEpochSecond = Instant.now().plusSeconds(maxInactiveInterval).getEpochSecond();
       SessionCookieConfig sessionCookieConfig =
           request.getServletContext().getSessionCookieConfig();
-
       ResponseCookie cookie =
           ResponseCookie.from(COOKIE_NAME, String.valueOf(expiresEpochSecond))
               .maxAge(maxInactiveInterval)
@@ -88,8 +72,8 @@ public class SessionTimeoutHeaderFilter extends OncePerRequestFilter {
               .secure(sessionCookieConfig.isSecure())
               .sameSite(sessionCookieConfig.getAttribute("SameSite"))
               .build();
-
       response.addHeader("Set-Cookie", cookie.toString());
     }
+    filterChain.doFilter(request, response);
   }
 }

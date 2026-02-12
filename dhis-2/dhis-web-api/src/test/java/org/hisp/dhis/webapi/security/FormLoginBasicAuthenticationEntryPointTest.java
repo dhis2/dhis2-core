@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,11 +32,9 @@ package org.hisp.dhis.webapi.security;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import jakarta.servlet.http.HttpServletResponse;
-import org.hisp.dhis.render.RenderService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -45,8 +43,6 @@ import org.springframework.security.core.AuthenticationException;
 
 @ExtendWith(MockitoExtension.class)
 class FormLoginBasicAuthenticationEntryPointTest {
-
-  @Mock private RenderService renderService;
 
   @InjectMocks
   private FormLoginBasicAuthenticationEntryPoint entryPoint =
