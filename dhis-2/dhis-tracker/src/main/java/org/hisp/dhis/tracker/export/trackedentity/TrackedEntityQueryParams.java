@@ -41,7 +41,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.AssignedUserQueryParam;
@@ -61,6 +60,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.FilterJdbcPredicate;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.SearchScope;
 
 @ToString
 public class TrackedEntityQueryParams {
@@ -154,7 +154,7 @@ public class TrackedEntityQueryParams {
 
   @Getter private final List<Order> order = new ArrayList<>();
 
-  @Setter private boolean isSearchOutsideCaptureScope = false;
+  @Getter private SearchScope searchScope;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -425,6 +425,11 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
+  public TrackedEntityQueryParams setSearchScope(SearchScope searchScope) {
+    this.searchScope = searchScope;
+    return this;
+  }
+
   /**
    * Filter the given tracked entity attribute {@code tea} using the specified {@link QueryFilter}
    * that consist of an operator and a value.
@@ -475,9 +480,5 @@ public class TrackedEntityQueryParams {
       List<TrackedEntityType> trackedEntityTypes) {
     this.trackedEntityTypes = trackedEntityTypes;
     return this;
-  }
-
-  public boolean isSearchOutsideCaptureScope() {
-    return isSearchOutsideCaptureScope;
   }
 }
