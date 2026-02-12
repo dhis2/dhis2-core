@@ -938,7 +938,7 @@ public class DefaultPreheatService implements PreheatService {
     List<Property> uniqueProperties =
         schema.getProperties().stream()
             .filter(p -> p.isPersisted() && p.isOwner() && p.isUnique() && p.isSimple())
-            .collect(toList());
+            .toList();
 
     Map<String, Map<Object, String>> map = new HashMap<>();
 

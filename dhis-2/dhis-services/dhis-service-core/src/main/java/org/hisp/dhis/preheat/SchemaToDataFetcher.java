@@ -129,15 +129,19 @@ public class SchemaToDataFetcher {
         : handleMultipleColumn((List<Object[]>) (List<?>) objects, uniqueProperties, schema);
   }
 
+  private static final String HQL_TEMPLATE = "SELECT :fields from :entity";
+  private static final String HQL_FILTERED_TEMPLATE = "SELECT :fields from :entity WHERE :filter";
+
   private Query createQuery(
       Schema schema,
       List<Property> uniqueProperties,
       Collection<? extends IdentifiableObject> objectsBeingImported) {
     String fields = extractUniqueFields(uniqueProperties);
-    String hql = "SELECT " + fields + " from " + schema.getKlass().getSimpleName();
+    String entity = schema.getKlass().getSimpleName();
 
     // If objectsBeingImported is null, use old behavior (load all records)
     if (objectsBeingImported == null) {
+      String hql = HQL_TEMPLATE.replace(":fields", fields).replace(":entity", entity);
       return entityManager.createQuery(hql).setHint(QueryHints.HINT_READONLY, true);
     }
 
@@ -150,7 +154,11 @@ public class SchemaToDataFetcher {
       return null; // No unique property values - no conflicts possible
     }
 
-    hql += " WHERE " + whereClause;
+    String hql =
+        HQL_FILTERED_TEMPLATE
+            .replace(":fields", fields)
+            .replace(":entity", entity)
+            .replace(":filter", whereClause);
     Query query = entityManager.createQuery(hql).setHint(QueryHints.HINT_READONLY, true);
     setQueryParameters(query, uniqueProperties, valuesToCheck);
     return query;
