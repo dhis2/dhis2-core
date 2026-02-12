@@ -43,10 +43,10 @@ import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.test.cache.TestCache;
 import org.junit.jupiter.api.Test;
 
-public class EventHookServiceTest extends TestBase {
+class EventHookServiceTest extends TestBase {
 
   @Test
-  public void testReloadRefreshesEventHookTargets() throws Exception {
+  void testReloadRefreshesEventHookTargets() throws Exception {
     EventHook barEventHook = new EventHook();
     barEventHook.setUid(CodeGenerator.generateUid());
     WebhookTarget barWebhookTarget = new WebhookTarget();
@@ -77,6 +77,7 @@ public class EventHookServiceTest extends TestBase {
             mockEventHookStore,
             new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false),
             new EventHookSecretManager(null) {
+              @Override
               public void decrypt(EventHook eventHook) {}
             },
             mockCacheProvider,

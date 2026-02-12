@@ -68,20 +68,24 @@ public class EventHookListener {
       fallbackExecution = true)
   public void onPreCommit(Event event) {
     try {
-      JdbcTemplate jdbcTemplate =
-          new JdbcTemplate(
-              new SingleConnectionDataSource(DataSourceUtils.getConnection(dataSource), true));
-      for (EventHookTargets eventHookTargets : eventHookService.getEventHookTargets()) {
-        try {
-          if (doPersistOutboxMessage(event, eventHookTargets)) {
-            persistOutboxMessage(event, eventHookTargets, jdbcTemplate);
-          }
-        } catch (Exception e) {
-          log.error(e.getMessage(), e);
-        }
-      }
+      doOnPreCommit(event);
     } catch (Exception e) {
       log.error(e.getMessage(), e);
+    }
+  }
+
+  protected void doOnPreCommit(Event event) {
+    JdbcTemplate jdbcTemplate =
+        new JdbcTemplate(
+            new SingleConnectionDataSource(DataSourceUtils.getConnection(dataSource), true));
+    for (EventHookTargets eventHookTargets : eventHookService.getEventHookTargets()) {
+      try {
+        if (doPersistOutboxMessage(event, eventHookTargets)) {
+          persistOutboxMessage(event, eventHookTargets, jdbcTemplate);
+        }
+      } catch (Exception e) {
+        log.error(e.getMessage(), e);
+      }
     }
   }
 

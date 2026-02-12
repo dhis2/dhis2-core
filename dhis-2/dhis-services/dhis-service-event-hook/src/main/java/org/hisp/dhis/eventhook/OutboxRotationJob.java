@@ -147,7 +147,7 @@ public class OutboxRotationJob implements Job {
     Float undeliveredOutboxMessageCount =
         partitions.subList(0, i).stream()
             .map(p -> (float) p.get("reltuples"))
-            .reduce((float) 0, (p1, p2) -> (float) p1 + p2);
+            .reduce((float) 0, Float::sum);
 
     return undeliveredOutboxMessageCount
         + ((long) candidatePartition.get("upper_bound")
