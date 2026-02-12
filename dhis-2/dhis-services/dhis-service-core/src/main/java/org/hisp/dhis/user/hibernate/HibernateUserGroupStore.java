@@ -30,10 +30,6 @@
 package org.hisp.dhis.user.hibernate;
 
 import jakarta.persistence.EntityManager;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -65,67 +61,48 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
   }
 
   @Override
-  public Map<Long, Integer> getMemberCounts(@Nonnull Collection<Long> userGroupIds) {
-    Map<Long, Integer> result = new HashMap<>();
-    if (userGroupIds.isEmpty()) {
-      return result;
-    }
-
+  public boolean addMemberViaSQL(@Nonnull String userGroupUid, @Nonnull String userUid) {
     String sql =
         """
-        SELECT usergroupid, COUNT(userid) as member_count
-        FROM usergroupmembers
-        WHERE usergroupid IN (:ids)
-        GROUP BY usergroupid
+        INSERT INTO usergroupmembers (usergroupid, userid)
+        SELECT ug.usergroupid, u.userinfoid
+        FROM usergroup ug, userinfo u
+        WHERE ug.uid = ? AND u.uid = ?
+        AND NOT EXISTS (
+          SELECT 1 FROM usergroupmembers ugm
+          WHERE ugm.usergroupid = ug.usergroupid AND ugm.userid = u.userinfoid
+        )
         """;
-
-    List<Object[]> rows =
-        entityManager.createNativeQuery(sql).setParameter("ids", userGroupIds).getResultList();
-
-    for (Object[] row : rows) {
-      Long groupId = ((Number) row[0]).longValue();
-      Integer count = ((Number) row[1]).intValue();
-      result.put(groupId, count);
-    }
-
-    // Groups with no members won't appear in results, add them with count 0
-    for (Long id : userGroupIds) {
-      result.putIfAbsent(id, 0);
-    }
-
-    return result;
+    return jdbcTemplate.update(sql, userGroupUid, userUid) > 0;
   }
 
   @Override
-  public boolean addMemberViaSQL(long userGroupId, long userId) {
-    // Check if already a member
-    String checkSql = "SELECT 1 FROM usergroupmembers WHERE usergroupid = ? AND userid = ?";
-    List<?> existing = jdbcTemplate.queryForList(checkSql, userGroupId, userId);
-    if (!existing.isEmpty()) {
-      return false; // Already a member
-    }
-
-    // Add the membership
-    String insertSql = "INSERT INTO usergroupmembers (usergroupid, userid) VALUES (?, ?)";
-    jdbcTemplate.update(insertSql, userGroupId, userId);
-    return true;
-  }
-
-  @Override
-  public boolean removeMemberViaSQL(long userGroupId, long userId) {
-    String deleteSql = "DELETE FROM usergroupmembers WHERE usergroupid = ? AND userid = ?";
-    int rowsAffected = jdbcTemplate.update(deleteSql, userGroupId, userId);
-    return rowsAffected > 0;
-  }
-
-  @Override
-  public void updateLastUpdatedViaSQL(long userGroupId, long lastUpdatedBy) {
+  public boolean removeMemberViaSQL(@Nonnull String userGroupUid, @Nonnull String userUid) {
     String sql =
-        "UPDATE usergroup SET lastupdated = now(), lastupdatedby = ? WHERE usergroupid = ?";
-    jdbcTemplate.update(sql, lastUpdatedBy, userGroupId);
+        """
+        DELETE FROM usergroupmembers
+        WHERE usergroupid = (SELECT usergroupid FROM usergroup WHERE uid = ?)
+        AND userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        """;
+    return jdbcTemplate.update(sql, userGroupUid, userUid) > 0;
+  }
+
+  @Override
+  public void updateLastUpdatedViaSQL(
+      @Nonnull String userGroupUid, @Nonnull String lastUpdatedByUid) {
+    String sql =
+        """
+        UPDATE usergroup SET lastupdated = now(),
+        lastupdatedby = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        WHERE uid = ?
+        """;
+    jdbcTemplate.update(sql, lastUpdatedByUid, userGroupUid);
     // Evict from both L1 (session) and L2 caches since we bypassed Hibernate
-    getSession().evict(getSession().getReference(UserGroup.class, userGroupId));
-    getSession().getSessionFactory().getCache().evictEntityData(UserGroup.class, userGroupId);
+    Long id =
+        jdbcTemplate.queryForObject(
+            "SELECT usergroupid FROM usergroup WHERE uid = ?", Long.class, userGroupUid);
+    getSession().evict(getSession().getReference(UserGroup.class, id));
+    getSession().getSessionFactory().getCache().evictEntityData(UserGroup.class, id);
   }
 
   //  @Override
