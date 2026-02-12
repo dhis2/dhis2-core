@@ -286,6 +286,20 @@ public class UserController
     if (params.getInvitationStatus() == UserInvitationStatus.EXPIRED) {
       res.setInvitationStatus(UserInvitationStatus.EXPIRED);
     }
+
+    // include simple filters in pre-query to reduce the number of UIDs returned
+    res.setPhoneNumber(params.getPhoneNumber());
+    if (params.getLastLogin() != null) {
+      res.setLastLogin(params.getLastLogin());
+    }
+    res.setInactiveMonths(params.getInactiveMonths());
+    if (params.getInactiveSince() != null) {
+      res.setInactiveSince(params.getInactiveSince());
+    }
+    res.setSelfRegistered(params.isSelfRegistered());
+    if (params.getInvitationStatus() == UserInvitationStatus.ALL) {
+      res.setInvitationStatus(UserInvitationStatus.ALL);
+    }
     return res;
   }
 
