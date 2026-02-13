@@ -513,6 +513,7 @@ public class TrackerTest extends Simulation {
 
     String allEnrollmentsUrl =
         "/api/tracker/enrollments?program=ur1Edk5Oe2n&pageSize=100&fields=enrollment,trackedEntity,program,status,orgUnit,enrolledAt,occurredAt,followUp,deleted,createdBy,updatedBy,updatedAt,geometry";
+
     String relationshipForTrackedEntityUrl =
         "/api/tracker/relationships?trackedEntity=#{trackedEntityUid}&paging=false&fields=relationship,relationshipType,createdAt,from[trackedEntity[trackedEntity,attributes,program,orgUnit,trackedEntityType],event[event,dataValues,program,orgUnit,orgUnitName,status,createdAt]],to[trackedEntity[trackedEntity,attributes,program,orgUnit,trackedEntityType],event[event,dataValues,program,orgUnit,orgUnitName,status,createdAt]]";
 
@@ -586,7 +587,7 @@ public class TrackerTest extends Simulation {
     Request getAllEnrollments =
         new Request(
             allEnrollmentsUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 27)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 50, Profile.LOAD, 200)),
             "Get all enrollments",
             "Get a list of TEs");
     Request getRelationshipsForTrackedEntity =
