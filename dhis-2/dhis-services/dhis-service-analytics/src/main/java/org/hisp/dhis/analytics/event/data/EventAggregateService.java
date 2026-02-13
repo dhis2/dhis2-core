@@ -79,6 +79,7 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
 import org.hisp.dhis.analytics.OrgUnitFieldType;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
@@ -330,6 +331,16 @@ public class EventAggregateService {
           new GridHeader(
               dimension.getDimension(),
               dimension.getDisplayProperty(params.getDisplayProperty()),
+              TEXT,
+              false,
+              true));
+    }
+
+    if (params.hasEnrollmentOuDimension()) {
+      grid.addHeader(
+          new GridHeader(
+              ColumnHeader.ENROLLMENT_OU.getItem(),
+              ColumnHeader.ENROLLMENT_OU.getName(),
               TEXT,
               false,
               true));

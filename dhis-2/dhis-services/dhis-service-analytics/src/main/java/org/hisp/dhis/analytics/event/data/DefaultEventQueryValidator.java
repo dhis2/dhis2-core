@@ -98,7 +98,7 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
     if (params == null) {
       throw new IllegalQueryException(ErrorCode.E7100);
     }
-    if (!params.hasOrganisationUnits()) {
+    if (!params.hasOrganisationUnits() && !params.hasEnrollmentOu()) {
       return new ErrorMessage(ErrorCode.E7200);
     }
     if (!params.getDuplicateDimensions().isEmpty()) {
