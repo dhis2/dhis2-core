@@ -76,12 +76,32 @@ public abstract class PeriodType implements Serializable {
           .withMaximumSize(30000)
           .build();
 
+  protected String label;
+
+  protected transient String displayLabel;
+
   private String getCacheKey(Date date) {
     return getCalendar().name() + getName() + date.getTime();
   }
 
   private String getCacheKey(org.hisp.dhis.calendar.Calendar calendar, Date date) {
     return calendar.name() + getName() + date.getTime();
+  }
+
+  public String getLabel() {
+    return label;
+  }
+
+  public void setLabel(String label) {
+    this.label = label;
+  }
+
+  public String getDisplayLabel() {
+    return displayLabel;
+  }
+
+  public void setDisplayLabel(String displayLabel) {
+    this.displayLabel = displayLabel;
   }
 
   /**

@@ -247,6 +247,8 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
   @Override
   public void addPeriodType(PeriodType periodType) {
     String name = periodType.getName();
+    String label = periodType.getLabel();
+
     String sql1 = "SELECT periodtypeid from periodtype where name = :name";
     String sql2 =
         """
@@ -272,8 +274,36 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
   }
 
   @Override
+  public void updatePeriodType(PeriodType periodType) {
+    String name = periodType.getName();
+    String label = periodType.getLabel();
+
+    String sql =
+        """
+        UPDATE periodtype SET label = :label
+        WHERE name = :name""";
+
+    runAutoJoinTransaction(
+        session ->
+            session
+                .createNativeQuery(sql)
+                .setParameter("name", name)
+                .setParameter("label", label)
+                .executeUpdate());
+  }
+
+  @Override
   public List<PeriodType> getAllPeriodTypes() {
-    return getSession().createNativeQuery("select * from periodtype", PeriodType.class).list();
+    return getSession()
+        .createNativeQuery("select * from periodtype order by name asc", PeriodType.class)
+        .list();
+  }
+
+  public PeriodType getPeriodTypeByName(String name) {
+    return getSession()
+        .createNativeQuery("select * from periodtype where name = :name", PeriodType.class)
+        .setParameter("name", name)
+        .uniqueResult();
   }
 
   private <R> R runAutoJoinTransaction(Function<StatelessSession, R> query) {

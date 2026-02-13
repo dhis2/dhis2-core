@@ -29,6 +29,11 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
+import static org.hisp.dhis.http.HttpStatus.OK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -77,5 +82,50 @@ class PeriodTypeControllerTest extends H2ControllerIntegrationTestBase {
     assertNotNull(periodType.getIsoFormat());
     assertNull(periodType.getIsoDuration());
     assertNull(periodType.getFrequencyOrder());
+  }
+
+  @Test
+  void testPut() {
+    // Given
+    String body =
+        """
+          {
+            "name": "Daily",
+            "displayName": "Daily",
+            "isoDuration": "P1D",
+            "isoFormat": "yyyyMMdd",
+            "frequencyOrder": 1,
+            "label": "Daily-test",
+            "displayLabel": "Daily"
+          }
+        """;
+
+    // When
+    assertStatus(OK, PUT("/periodTypes/", body));
+
+    // Then
+    JsonObject response = GET("/periodTypes").content();
+
+    assertThat(response.get("periodTypes").toString(), containsString("Daily-test"));
+  }
+
+  @Test
+  void testPutError() {
+    // Given
+    String body =
+        """
+          {
+            "name": "DailyInvalid",
+            "displayName": "Daily",
+            "isoDuration": "P1D",
+            "isoFormat": "yyyyMMdd",
+            "frequencyOrder": 1,
+            "label": "Daily-test",
+            "displayLabel": "Daily"
+          }
+        """;
+
+    // Then
+    assertStatus(BAD_REQUEST, PUT("/periodTypes/", body));
   }
 }
