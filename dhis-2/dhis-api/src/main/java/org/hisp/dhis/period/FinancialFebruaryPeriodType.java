@@ -27,40 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.period;
 
-import org.hisp.dhis.period.FinancialAprilPeriodType;
-import org.hisp.dhis.period.FinancialAugustPeriodType;
-import org.hisp.dhis.period.FinancialJulyPeriodType;
-import org.hisp.dhis.period.FinancialOctoberPeriodType;
-import org.hisp.dhis.period.FinancialPeriodType;
-import org.hisp.dhis.period.FinancialSeptemberPeriodType;
+import java.util.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
 
-/**
- * @author Henning Håkonsen
- */
-public enum AnalyticsFinancialYearStartKey {
-  FINANCIAL_YEAR_FEBRUARY("FINANCIAL_YEAR_FEBRUARY", new FinancialAprilPeriodType()),
-  FINANCIAL_YEAR_APRIL("FINANCIAL_YEAR_APRIL", new FinancialAprilPeriodType()),
-  FINANCIAL_YEAR_JULY("FINANCIAL_YEAR_JULY", new FinancialJulyPeriodType()),
-  FINANCIAL_YEAR_AUGUST("FINANCIAL_YEAR_AUGUST", new FinancialAugustPeriodType()),
-  FINANCIAL_YEAR_SEPTEMBER("FINANCIAL_YEAR_SEPTEMBER", new FinancialSeptemberPeriodType()),
-  FINANCIAL_YEAR_OCTOBER("FINANCIAL_YEAR_OCTOBER", new FinancialOctoberPeriodType());
+public class FinancialFebruaryPeriodType extends FinancialPeriodType {
+  /** Determines if a de-serialized file is compatible with this class. */
+  private static final long serialVersionUID = 6913569374301327356L;
 
-  private final String name;
+  private static final String ISO_FORMAT = "yyyyFeb";
 
-  private final FinancialPeriodType financialPeriodType;
+  private static final String ISO8601_DURATION = "P1Y";
 
-  AnalyticsFinancialYearStartKey(String name, FinancialPeriodType financialPeriodType) {
-    this.name = name;
-    this.financialPeriodType = financialPeriodType;
+  @Override
+  public int getBaseMonth() {
+    return Calendar.FEBRUARY;
   }
 
-  public String getName() {
-    return name;
+  @Override
+  public PeriodTypeEnum getPeriodTypeEnum() {
+    return PeriodTypeEnum.FINANCIAL_FEB;
   }
 
-  public FinancialPeriodType getFinancialPeriodType() {
-    return financialPeriodType;
+  @Override
+  public String getIsoDate(DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar) {
+    return String.format("%dFeb", dateTimeUnit.getYear());
+  }
+
+  @Override
+  public String getIsoFormat() {
+    return ISO_FORMAT;
+  }
+
+  @Override
+  public String getIso8601Duration() {
+    return ISO8601_DURATION;
   }
 }
