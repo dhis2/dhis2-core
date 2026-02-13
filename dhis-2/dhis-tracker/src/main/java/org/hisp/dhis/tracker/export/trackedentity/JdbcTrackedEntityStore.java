@@ -602,48 +602,15 @@ class JdbcTrackedEntityStore {
    */
   private void addEventExistsForEnrollmentJoin(
       StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
-    sql.append("select 1 from trackerevent ").append(EVENT_ALIAS).append(" ");
-
-    if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
-      sql.append("inner join (")
-          .append("select userinfoid as userid from userinfo where uid in (:assignedUserUids)")
-          .append(") au on au.userid = ")
-          .append(EVENT_ALIAS)
-          .append(".assigneduserid ");
-      sqlParameters.addValue(
-          "assignedUserUids",
-          UID.toValueSet(params.getAssignedUserQueryParam().getAssignedUsers()));
-    }
-
-    sql.append("where ")
+    sql.append("select 1 from trackerevent ")
+        .append(EVENT_ALIAS)
+        .append(" where ")
         .append(EVENT_ALIAS)
         .append(".enrollmentid = ")
         .append(ENROLLMENT_ALIAS)
         .append(".enrollmentid");
 
-    if (params.hasEventStatus()) {
-      sql.append(" and ");
-      addEventDateRangeCondition(sql, sqlParameters, params);
-      sql.append(" and ");
-      addEventStatusCondition(sql, sqlParameters, params);
-    }
-
-    if (params.hasProgramStage()) {
-      sql.append(" and ").append(EVENT_ALIAS).append(".programstageid = :programStageId");
-      sqlParameters.addValue("programStageId", params.getProgramStage().getId());
-    }
-
-    if (AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode()) {
-      sql.append(" and ").append(EVENT_ALIAS).append(".assigneduserid is null");
-    }
-
-    if (AssignedUserSelectionMode.ANY == params.getAssignedUserQueryParam().getMode()) {
-      sql.append(" and ").append(EVENT_ALIAS).append(".assigneduserid is not null");
-    }
-
-    if (!params.isIncludeDeleted()) {
-      sql.append(" and ").append(EVENT_ALIAS).append(".deleted is false");
-    }
+    addEventFilterConditions(sql, sqlParameters, params);
   }
 
   /** Appends event date range condition to SQL. Reusable across EXISTS subquery and JOIN paths. */
@@ -819,13 +786,17 @@ class JdbcTrackedEntityStore {
 
     sql.append(whereAnd.whereAnd())
         .append("exists (")
-        .append("select en.trackedentityid ")
+        .append("select 1 ")
         .append("from enrollment en ");
 
     if (params.hasFilterForEvents()) {
-      sql.append("inner join (");
-      addEventFilter(sql, sqlParameters, params);
-      sql.append(") ev on ev.enrollmentid = en.enrollmentid ");
+      sql.append("inner join trackerevent ")
+          .append(EVENT_ALIAS)
+          .append(" on ")
+          .append(EVENT_ALIAS)
+          .append(".enrollmentid = en.enrollmentid");
+      addEventFilterConditions(sql, sqlParameters, params);
+      sql.append(" ");
     }
 
     sql.append(
@@ -838,45 +809,50 @@ class JdbcTrackedEntityStore {
     sql.append(")");
   }
 
-  /** Adds event query with event related query params to given {@code sql}. */
-  private void addEventFilter(
+  /**
+   * Appends event filter conditions as {@code " and ..."} fragments. Used by both the EXISTS
+   * subquery path ({@link #addEnrollmentAndEventExistsCondition}) and the enrollment JOIN path
+   * ({@link #addEventExistsForEnrollmentJoin}).
+   */
+  private void addEventFilterConditions(
       StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
-    sql.append("select ev.enrollmentid ").append("from trackerevent ev ");
-
-    if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
-      sql.append("inner join (")
-          .append("select userinfoid as userid ")
-          .append("from userinfo ")
-          .append("where uid in (:assignedUserUids) ")
-          .append(") au on au.userid = ev.assigneduserid");
-      sqlParameters.addValue(
-          "assignedUserUids",
-          UID.toValueSet(params.getAssignedUserQueryParam().getAssignedUsers()));
-    }
-
-    SqlHelper whereHlp = new SqlHelper(true);
     if (params.hasEventStatus()) {
-      sql.append(whereHlp.whereAnd());
+      sql.append(" and ");
       addEventDateRangeCondition(sql, sqlParameters, params);
-      sql.append(whereHlp.whereAnd());
+      sql.append(" and ");
       addEventStatusCondition(sql, sqlParameters, params);
     }
 
     if (params.hasProgramStage()) {
-      sql.append(whereHlp.whereAnd()).append("ev.programstageid = :programStageId ");
+      sql.append(" and ").append(EVENT_ALIAS).append(".programstageid = :programStageId");
       sqlParameters.addValue("programStageId", params.getProgramStage().getId());
     }
 
     if (AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode()) {
-      sql.append(whereHlp.whereAnd()).append("ev.assigneduserid is null ");
+      sql.append(" and ").append(EVENT_ALIAS).append(".assigneduserid is null");
     }
 
     if (AssignedUserSelectionMode.ANY == params.getAssignedUserQueryParam().getMode()) {
-      sql.append(whereHlp.whereAnd()).append("ev.assigneduserid is not null ");
+      sql.append(" and ").append(EVENT_ALIAS).append(".assigneduserid is not null");
+    }
+
+    if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
+      Set<UID> assignedUsers = params.getAssignedUserQueryParam().getAssignedUsers();
+      sql.append(" and ").append(EVENT_ALIAS);
+      if (assignedUsers.size() == 1) {
+        // Use = for a single user so PostgreSQL can use the assigneduserid index
+        sql.append(
+            ".assigneduserid = (select userinfoid from userinfo where uid = :assignedUserUid)");
+        sqlParameters.addValue("assignedUserUid", assignedUsers.iterator().next().getValue());
+      } else {
+        sql.append(
+            ".assigneduserid in (select userinfoid from userinfo where uid in (:assignedUserUids))");
+        sqlParameters.addValue("assignedUserUids", UID.toValueSet(assignedUsers));
+      }
     }
 
     if (!params.isIncludeDeleted()) {
-      sql.append(whereHlp.whereAnd()).append("ev.deleted is false");
+      sql.append(" and ").append(EVENT_ALIAS).append(".deleted is false");
     }
   }
 
