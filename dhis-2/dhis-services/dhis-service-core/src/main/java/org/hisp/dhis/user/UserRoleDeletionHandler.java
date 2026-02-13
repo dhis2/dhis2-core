@@ -31,7 +31,6 @@ package org.hisp.dhis.user;
 
 import java.util.HashSet;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
@@ -48,9 +47,13 @@ public class UserRoleDeletionHandler extends IdObjectDeletionHandler<UserRole> {
     whenDeleting(User.class, this::deleteUser);
   }
 
+  // Note: unlike UserGroupDeletionHandler, we cannot call updateLastUpdatedForUserRolesViaSQL
+  // here. That method evicts UserRole entities from the Hibernate session, and because
+  // User.userRoles is the owning side with cascade="all", Hibernate will encounter the detached
+  // UserRole during auto-flush and throw PersistentObjectException. User.groups is inverse="true"
+  // (no cascade from User), so evicting UserGroup entities is safe. This asymmetry is due to
+  // inconsistent Hibernate mapping ownership between User↔UserRole and User↔UserGroup.
   private void deleteUser(User user) {
-    UID currentUserUid = UID.of(CurrentUserUtil.getCurrentUserDetails().getUid());
-    userRoleStore.updateLastUpdatedForUserRolesViaSQL(user.getUID(), currentUserUid);
     userRoleStore.removeAllMembershipsViaSQL(user.getUID());
     user.setUserRoles(new HashSet<>());
   }
