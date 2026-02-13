@@ -33,8 +33,8 @@ import static java.util.Map.entry;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
+import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildAccessLevelClauseForSingleEvents;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
-import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClauseForSingleEvents;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -80,6 +80,7 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.export.Geometries;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.OrgUnitQueryBuilder;
 import org.hisp.dhis.tracker.export.UserInfoSnapshots;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -770,14 +771,14 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     if (params.getProgram() == null) {
-      buildOwnershipClauseForSingleEvents(
+      buildAccessLevelClauseForSingleEvents(
           orgUnitBuilder, sqlParameters, params.getOrgUnitMode(), "p", "ou", () -> hlp.whereAnd());
     } else {
-      buildOwnershipClauseForSingleEvents(
+      OrgUnitQueryBuilder.buildAccessLevelClauseForSingleEvents(
           orgUnitBuilder,
           sqlParameters,
           params.getProgram(),
-          params.getSearchScope(),
+          params.getQuerySearchScope(),
           "ou",
           () -> hlp.whereAnd());
     }

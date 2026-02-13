@@ -43,7 +43,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.tracker.export.SearchScope;
+import org.hisp.dhis.tracker.export.QuerySearchScope;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -69,7 +69,7 @@ class EnrollmentQueryParams {
   /** Selection mode for the specified organisation units. */
   private OrganisationUnitSelectionMode organisationUnitMode;
 
-  private SearchScope searchScope;
+  private QuerySearchScope querySearchScope;
 
   /**
    * Tracker program the tracked entity must be enrolled in. This should not be set when {@link

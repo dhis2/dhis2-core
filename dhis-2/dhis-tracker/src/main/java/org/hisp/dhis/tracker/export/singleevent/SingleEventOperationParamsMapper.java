@@ -52,7 +52,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.tracker.export.CategoryOptionComboService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.tracker.export.SearchScope;
+import org.hisp.dhis.tracker.export.QuerySearchScope;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -103,8 +103,8 @@ class SingleEventOperationParamsMapper {
         .setProgram(program)
         .setOrgUnit(orgUnit)
         .setOrgUnitMode(operationParams.getOrgUnitMode())
-        .setSearchScope(
-            SearchScope.of(
+        .setQuerySearchScope(
+            QuerySearchScope.of(
                 user,
                 operationParams.getOrgUnitMode(),
                 organisationUnitService::getOrganisationUnitsByUid))

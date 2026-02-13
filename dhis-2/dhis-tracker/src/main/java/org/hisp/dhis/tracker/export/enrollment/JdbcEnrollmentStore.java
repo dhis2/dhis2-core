@@ -239,7 +239,7 @@ class JdbcEnrollmentStore {
           sql,
           sqlParams,
           params.getEnrolledInTrackerProgram(),
-          params.getSearchScope(),
+          params.getQuerySearchScope(),
           "ou",
           "te",
           hlp::whereAnd);
