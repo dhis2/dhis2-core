@@ -429,9 +429,14 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
   @Override
   void addFromClause(SelectBuilder sb, EventQueryParams params) {
-
-    // FIXME: use same logic from `getFromClause` method
     sb.from(params.getTableName(), "ax");
+
+    if (params.hasEnrollmentOu()) {
+      sb.innerJoin(
+          "analytics_rs_orgunitstructure",
+          "ous",
+          alias -> "ax.\"enrollmentou\" = " + alias + ".\"organisationunituid\"");
+    }
   }
 
   /**
@@ -536,6 +541,11 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
               + "."
               + quote("dateperiod")
               + " ";
+    }
+
+    if (params.hasEnrollmentOu()) {
+      sql +=
+          "inner join analytics_rs_orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" ";
     }
 
     return sql + joinOrgUnitTables(params, getAnalyticsType());
@@ -760,6 +770,31 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     if (params.isCompletedOnly()) {
       sql += hlp.whereAnd() + " completeddate is not null ";
+    }
+
+    if (params.hasEnrollmentOu()) {
+      List<String> enrollmentOuPredicates = new ArrayList<>();
+
+      if (!params.getAllEnrollmentOuItemsForSql().isEmpty()) {
+        enrollmentOuPredicates.add(
+            " ous.\"organisationunituid\" in ("
+                + sqlBuilder.singleQuotedCommaDelimited(
+                    getUids(params.getAllEnrollmentOuItemsForSql()))
+                + ") ");
+      }
+
+      if (!params.getAllEnrollmentOuLevelsForSql().isEmpty()) {
+        enrollmentOuPredicates.add(
+            " ous.\"level\" in ("
+                + params.getAllEnrollmentOuLevelsForSql().stream()
+                    .map(String::valueOf)
+                    .collect(joining(","))
+                + ") ");
+      }
+
+      if (!enrollmentOuPredicates.isEmpty()) {
+        sql += hlp.whereAnd() + " (" + String.join(" or ", enrollmentOuPredicates) + ") ";
+      }
     }
 
     if (params.hasBbox()) {
@@ -1062,6 +1097,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     List<String> columns = new ArrayList<>(getStandardColumns(params));
     addDimensionSelectColumns(columns, params, false);
+    addEnrollmentOuSelectColumns(columns, params);
     addEventsItemSelectColumns(columns, params, cteContext);
 
     columns.forEach(
@@ -1076,6 +1112,15 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       // if there are no CTEs, we can use the standard columns
       getSelectColumnsWithCTE(params, cteContext).forEach(sb::addColumn);
     }
+  }
+
+  private void addEnrollmentOuSelectColumns(List<String> columns, EventQueryParams params) {
+    if (!params.hasEnrollmentOuDimension()) {
+      return;
+    }
+
+    columns.add("ous.\"organisationunituid\" as enrollmentou");
+    columns.add("ous.\"name\" as enrollmentouname");
   }
 
   private void addEventsItemSelectColumns(

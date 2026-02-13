@@ -90,6 +90,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -106,6 +107,9 @@ import org.springframework.util.Assert;
 @Service("org.hisp.dhis.analytics.event.EventDataQueryService")
 @RequiredArgsConstructor
 public class DefaultEventDataQueryService implements EventDataQueryService {
+  private static final String ENROLLMENT_OU_DIMENSION = "ENROLLMENT_OU";
+  private static final String LEVEL_PREFIX = "LEVEL-";
+
   private static final Set<String> STATIC_DATE_DIMENSIONS =
       Set.of("ENROLLMENT_DATE", "INCIDENT_DATE", "LAST_UPDATED", "CREATED_DATE", "COMPLETED_DATE");
 
@@ -122,6 +126,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   private final TrackedEntityAttributeService attributeService;
 
   private final DataQueryService dataQueryService;
+
+  private final OrganisationUnitService organisationUnitService;
 
   private final QueryItemFilterHandlerRegistry filterHandlerRegistry;
 
@@ -255,35 +261,35 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       Program pr,
       IdScheme idScheme) {
     if (request.getFilter() != null) {
-      for (Set<String> filterGroup : request.getFilter()) {
-        UUID groupUUID = UUID.randomUUID();
-        for (String dim : filterGroup) {
-          String dimensionId = getDimensionFromParam(dim);
-          List<String> items = getDimensionItemsFromParam(dim);
-          validateStaticDateDimensionSupport(dimensionId, dim, request);
-          DimensionAndItems normalized = normalizeStaticDateDimension(dimensionId, items);
-          dimensionId = normalized.dimension();
-          items = normalized.items();
+      for (NormalizedDimensionInput input :
+          normalizeDimensionInputs(request.getFilter(), request)) {
+        if (ENROLLMENT_OU_DIMENSION.equals(input.dimensionId())) {
+          resolveEnrollmentOuFilter(params, request, userOrgUnits, input.items(), idScheme);
+          continue;
+        }
 
-          GroupableItem groupableItem =
-              dataQueryService.getDimension(
-                  dimensionId,
-                  items,
-                  request.getRelativePeriodDate(),
-                  userOrgUnits,
-                  true,
-                  null,
-                  idScheme);
+        GroupableItem groupableItem =
+            dataQueryService.getDimension(
+                input.dimensionId(),
+                input.items(),
+                request.getRelativePeriodDate(),
+                userOrgUnits,
+                true,
+                null,
+                idScheme);
 
-          if (groupableItem != null) {
-            params.addFilter((DimensionalObject) groupableItem);
-          } else {
-            groupableItem =
-                getQueryItem(dim, pr, request.getOutputType(), request.getRelativePeriodDate());
-            params.addItemFilter((QueryItem) groupableItem);
-          }
-
-          groupableItem.setGroupUUID(groupUUID);
+        if (groupableItem != null) {
+          groupableItem.setGroupUUID(input.groupUUID());
+          params.addFilter((DimensionalObject) groupableItem);
+        } else {
+          groupableItem =
+              getQueryItem(
+                  input.rawDimension(),
+                  pr,
+                  request.getOutputType(),
+                  request.getRelativePeriodDate());
+          params.addItemFilter((QueryItem) groupableItem);
+          groupableItem.setGroupUUID(input.groupUUID());
         }
       }
     }
@@ -296,34 +302,91 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       Program pr,
       IdScheme idScheme) {
     if (request.getDimension() != null) {
-      for (Set<String> dimensionGroup : request.getDimension()) {
-        UUID groupUUID = UUID.randomUUID();
+      for (NormalizedDimensionInput input :
+          normalizeDimensionInputs(request.getDimension(), request)) {
+        if (ENROLLMENT_OU_DIMENSION.equals(input.dimensionId())) {
+          resolveEnrollmentOuDimension(params, request, userOrgUnits, input.items(), idScheme);
+          continue;
+        }
 
-        for (String dim : dimensionGroup) {
-          String dimensionId = getDimensionFromParam(dim);
-          List<String> items = getDimensionItemsFromParam(dim);
-          validateStaticDateDimensionSupport(dimensionId, dim, request);
-          DimensionAndItems normalized = normalizeStaticDateDimension(dimensionId, items);
-          dimensionId = normalized.dimension();
-          items = normalized.items();
+        GroupableItem groupableItem =
+            dataQueryService.getDimension(
+                input.dimensionId(), input.items(), request, userOrgUnits, true, idScheme);
 
-          GroupableItem groupableItem =
-              dataQueryService.getDimension(
-                  dimensionId, items, request, userOrgUnits, true, idScheme);
-
-          if (groupableItem != null) {
-            params.addDimension((DimensionalObject) groupableItem);
-          } else {
-            groupableItem =
-                getQueryItem(dim, pr, request.getOutputType(), request.getRelativePeriodDate());
-            params.addItem((QueryItem) groupableItem);
-          }
-
-          groupableItem.setGroupUUID(groupUUID);
+        if (groupableItem != null) {
+          groupableItem.setGroupUUID(input.groupUUID());
+          params.addDimension((DimensionalObject) groupableItem);
+        } else {
+          groupableItem =
+              getQueryItem(
+                  input.rawDimension(),
+                  pr,
+                  request.getOutputType(),
+                  request.getRelativePeriodDate());
+          params.addItem((QueryItem) groupableItem);
+          groupableItem.setGroupUUID(input.groupUUID());
         }
       }
     }
   }
+
+  private List<NormalizedDimensionInput> normalizeDimensionInputs(
+      Set<Set<String>> requestDimensions, EventDataQueryRequest request) {
+    List<NormalizedDimensionInput> normalizedInputs = new ArrayList<>();
+    List<String> mergedPeItems = new ArrayList<>();
+    int firstPeIndex = -1;
+    UUID firstPeGroupUUID = null;
+
+    for (Set<String> dimensionGroup : requestDimensions) {
+      UUID groupUUID = UUID.randomUUID();
+
+      for (String rawDimension : dimensionGroup) {
+        String dimensionId = getDimensionFromParam(rawDimension);
+        List<String> items = getDimensionItemsFromParam(rawDimension);
+
+        if (ENROLLMENT_OU_DIMENSION.equals(dimensionId)) {
+          normalizedInputs.add(
+              new NormalizedDimensionInput(rawDimension, dimensionId, items, groupUUID));
+          continue;
+        }
+
+        validateStaticDateDimensionSupport(dimensionId, rawDimension, request);
+        DimensionAndItems normalized = normalizeStaticDateDimension(dimensionId, items);
+
+        if ("pe".equals(normalized.dimension())) {
+          if (firstPeIndex < 0) {
+            firstPeIndex = normalizedInputs.size();
+            firstPeGroupUUID = groupUUID;
+          }
+          mergedPeItems.addAll(normalized.items());
+          continue;
+        }
+
+        normalizedInputs.add(
+            new NormalizedDimensionInput(
+                rawDimension, normalized.dimension(), normalized.items(), groupUUID));
+      }
+    }
+
+    if (!mergedPeItems.isEmpty()) {
+      List<String> distinctMergedPeItems = mergedPeItems.stream().distinct().toList();
+      String mergedPeRawDimension = "pe:" + String.join(";", distinctMergedPeItems);
+      NormalizedDimensionInput mergedPeInput =
+          new NormalizedDimensionInput(
+              mergedPeRawDimension, "pe", distinctMergedPeItems, firstPeGroupUUID);
+
+      if (firstPeIndex >= 0 && firstPeIndex <= normalizedInputs.size()) {
+        normalizedInputs.add(firstPeIndex, mergedPeInput);
+      } else {
+        normalizedInputs.add(mergedPeInput);
+      }
+    }
+
+    return normalizedInputs;
+  }
+
+  private record NormalizedDimensionInput(
+      String rawDimension, String dimensionId, List<String> items, UUID groupUUID) {}
 
   @Override
   public EventQueryParams getFromAnalyticalObject(EventAnalyticalObject object) {
@@ -571,6 +634,9 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     throw new IllegalQueryException(new ErrorMessage(ErrorCode.E7223, value));
   }
 
+  private static final Set<String> DATE_COMPARISON_OPERATORS =
+      Set.of("GT", "GE", "LT", "LE", "EQ", "NE");
+
   private DimensionAndItems normalizeStaticDateDimension(String dimensionId, List<String> items) {
     if (dimensionId == null || items == null || items.isEmpty()) {
       return new DimensionAndItems(dimensionId, items);
@@ -580,10 +646,22 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       return new DimensionAndItems(dimensionId, items);
     }
 
+    // Operator-based items (e.g., GT:2023-01-01) bypass period normalization
+    // and are handled by DateFilterHandler via the QueryItem path
+    if (hasDateOperatorPrefix(items)) {
+      return new DimensionAndItems(dimensionId, items);
+    }
+
     List<String> periodItems =
         items.stream().map(item -> item + DIMENSION_NAME_SEP + dimensionId).distinct().toList();
 
     return new DimensionAndItems("pe", periodItems);
+  }
+
+  private static boolean hasDateOperatorPrefix(List<String> items) {
+    String first = items.get(0);
+    int colonIndex = first.indexOf(':');
+    return colonIndex > 0 && DATE_COMPARISON_OPERATORS.contains(first.substring(0, colonIndex));
   }
 
   private void validateStaticDateDimensionSupport(
@@ -601,6 +679,97 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     return EndpointAction.AGGREGATE.equals(request.getEndpointAction())
         && EndpointItem.EVENT.equals(request.getEndpointItem());
   }
+
+  /**
+   * Resolves ENROLLMENT_OU items as org units and stores them as enrollment OU dimension items.
+   * Reuses the standard OU resolution infrastructure by passing "ou" to getDimension().
+   */
+  private void resolveEnrollmentOuDimension(
+      EventQueryParams.Builder params,
+      EventDataQueryRequest request,
+      List<OrganisationUnit> userOrgUnits,
+      List<String> items,
+      IdScheme idScheme) {
+    EnrollmentOuResolution resolution =
+        resolveEnrollmentOuItems(items, request, userOrgUnits, idScheme, true);
+
+    if (!resolution.uidItems().isEmpty()) {
+      params.withEnrollmentOuDimension(resolution.uidItems());
+    }
+
+    params.withEnrollmentOuDimensionLevels(resolution.levels());
+  }
+
+  /**
+   * Resolves ENROLLMENT_OU items as org units and stores them as enrollment OU filter items. Reuses
+   * the standard OU resolution infrastructure by passing "ou" to getDimension().
+   */
+  private void resolveEnrollmentOuFilter(
+      EventQueryParams.Builder params,
+      EventDataQueryRequest request,
+      List<OrganisationUnit> userOrgUnits,
+      List<String> items,
+      IdScheme idScheme) {
+    EnrollmentOuResolution resolution =
+        resolveEnrollmentOuItems(items, request, userOrgUnits, idScheme, false);
+
+    if (!resolution.uidItems().isEmpty()) {
+      params.withEnrollmentOuFilter(resolution.uidItems());
+    }
+
+    params.withEnrollmentOuFilterLevels(resolution.levels());
+  }
+
+  private EnrollmentOuResolution resolveEnrollmentOuItems(
+      List<String> items,
+      EventDataQueryRequest request,
+      List<OrganisationUnit> userOrgUnits,
+      IdScheme idScheme,
+      boolean fromDimension) {
+    List<String> nonLevelItems = new ArrayList<>();
+    Set<Integer> levels = new java.util.LinkedHashSet<>();
+
+    for (String item : items) {
+      if (item != null && item.startsWith(LEVEL_PREFIX)) {
+        String levelId = substringAfter(item, LEVEL_PREFIX);
+        Integer level = organisationUnitService.getOrganisationUnitLevelByLevelOrUid(levelId);
+        if (level != null) {
+          levels.add(level);
+        }
+      } else {
+        nonLevelItems.add(item);
+      }
+    }
+
+    List<DimensionalItemObject> uidItems = new ArrayList<>();
+
+    if (!nonLevelItems.isEmpty()) {
+      GroupableItem ouDimension =
+          fromDimension
+              ? dataQueryService.getDimension(
+                  "ou", nonLevelItems, request, userOrgUnits, true, idScheme)
+              : dataQueryService.getDimension(
+                  "ou",
+                  nonLevelItems,
+                  request.getRelativePeriodDate(),
+                  userOrgUnits,
+                  true,
+                  null,
+                  idScheme);
+      if (ouDimension != null) {
+        uidItems.addAll(((DimensionalObject) ouDimension).getItems());
+      }
+    }
+
+    if (uidItems.isEmpty() && levels.isEmpty()) {
+      throwIllegalQueryEx(ErrorCode.E7143, ENROLLMENT_OU_DIMENSION);
+    }
+
+    return new EnrollmentOuResolution(uidItems, levels);
+  }
+
+  private record EnrollmentOuResolution(
+      List<DimensionalItemObject> uidItems, Set<Integer> levels) {}
 
   private record DimensionAndItems(String dimension, List<String> items) {}
 

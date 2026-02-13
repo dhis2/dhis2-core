@@ -193,6 +193,10 @@ class AggregatedRowBuilder {
           extractStringValue(dimension.getDimensionName(), dimension.getValueType());
       row.add(dimensionValue);
     }
+
+    if (params.hasEnrollmentOuDimension()) {
+      row.add(extractStringValue("enrollmentou", ValueType.TEXT));
+    }
   }
 
   /**
