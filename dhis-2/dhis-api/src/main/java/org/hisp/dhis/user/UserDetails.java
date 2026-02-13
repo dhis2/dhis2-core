@@ -158,6 +158,7 @@ public interface UserDetails
             .accountNonExpired(user.isAccountNonExpired())
             .accountNonLocked(accountNonLocked)
             .credentialsNonExpired(credentialsNonExpired)
+            .dataViewMaxOrganisationUnitLevel(user.getDataViewMaxOrganisationUnitLevel())
             .authorities(user.getAuthorities())
             .allAuthorities(
                 new HashSet<>(
@@ -252,6 +253,8 @@ public interface UserDetails
 
   String getSurname();
 
+  String getEmail();
+
   @Nonnull
   Set<String> getUserGroupIds();
 
@@ -296,6 +299,12 @@ public interface UserDetails
   TwoFactorType getTwoFactorType();
 
   boolean isEmailVerified();
+
+  default String getName() {
+    return getFirstName() + " " + getSurname();
+  }
+
+  Integer getDataViewMaxOrganisationUnitLevel();
 
   boolean hasAnyRestrictions(Collection<String> restrictions);
 

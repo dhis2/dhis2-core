@@ -121,6 +121,11 @@ public class SystemUser implements UserDetails {
     return "user";
   }
 
+  @Override
+  public String getEmail() {
+    return "";
+  }
+
   @Nonnull
   @Override
   public Set<String> getUserGroupIds() {
@@ -210,6 +215,11 @@ public class SystemUser implements UserDetails {
   @Override
   public boolean isEmailVerified() {
     return true;
+  }
+
+  @Override
+  public Integer getDataViewMaxOrganisationUnitLevel() {
+    return Integer.MAX_VALUE;
   }
 
   @Override
