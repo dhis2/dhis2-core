@@ -55,7 +55,9 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class EventHookService {
-  public static final String OUTBOX_PREFIX_TABLE_NAME = "outbox_";
+  protected static final String OUTBOX_PREFIX_TABLE_NAME = "outbox_";
+  protected static final int MIN_PARTITIONS = 2;
+  protected static final int MAX_PARTITIONS = 10;
 
   private final JdbcTemplate jdbcTemplate;
 
@@ -130,7 +132,14 @@ public class EventHookService {
         String.format(
             "CREATE TABLE \"%s\" (id BIGINT GENERATED ALWAYS AS IDENTITY (CYCLE) PRIMARY KEY, payload JSONB) PARTITION BY RANGE (id);",
             outboxTableName));
-    addOutboxPartition(eventHook, 0, 1, partitionRange);
+
+    int lowerBound = 1;
+    int upperBound = partitionRange;
+    for (int i = 1; i <= MIN_PARTITIONS; i++) {
+      addOutboxPartition(eventHook, i, lowerBound, upperBound);
+      lowerBound = upperBound;
+      upperBound = lowerBound + partitionRange;
+    }
 
     EventHookOutboxLog eventHookOutboxLog = new EventHookOutboxLog();
     eventHookOutboxLog.setOutboxTableName(outboxTableName);
