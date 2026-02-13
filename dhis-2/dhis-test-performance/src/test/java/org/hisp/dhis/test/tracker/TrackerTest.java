@@ -511,6 +511,8 @@ public class TrackerTest extends Simulation {
     String singleEnrollmentUrl =
         "/api/tracker/enrollments/#{enrollmentUid}?fields=enrollment,trackedEntity,program,status,orgUnit,enrolledAt,occurredAt,followUp,deleted,createdBy,updatedBy,updatedAt,geometry";
 
+    String allEnrollmentsUrl =
+        "/api/tracker/enrollments?program=ur1Edk5Oe2n&pageSize=100&fields=enrollment,trackedEntity,program,status,orgUnit,enrolledAt,occurredAt,followUp,deleted,createdBy,updatedBy,updatedAt,geometry";
     String relationshipForTrackedEntityUrl =
         "/api/tracker/relationships?trackedEntity=#{trackedEntityUid}&paging=false&fields=relationship,relationshipType,createdAt,from[trackedEntity[trackedEntity,attributes,program,orgUnit,trackedEntityType],event[event,dataValues,program,orgUnit,orgUnitName,status,createdAt]],to[trackedEntity[trackedEntity,attributes,program,orgUnit,trackedEntityType],event[event,dataValues,program,orgUnit,orgUnitName,status,createdAt]]";
 
@@ -581,6 +583,13 @@ public class TrackerTest extends Simulation {
             "Get first enrollment",
             "Get a list of TEs",
             "Go to single enrollment");
+    Request getAllEnrollments =
+        new Request(
+            allEnrollmentsUrl,
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 27)),
+            "Get all enrollments",
+            "Get a list of TEs");
+        );
     Request getRelationshipsForTrackedEntity =
         new Request(
             relationshipForTrackedEntityUrl,
@@ -654,6 +663,12 @@ public class TrackerTest extends Simulation {
                                         jsonPath("$.trackedEntities[0].trackedEntity")
                                             .saveAs("trackedEntityUid")))
                             .exitHereIfFailed()
+                            .exec(getAllEnrollments
+                                .action()
+                                .check(jsonPath("$.enrollments[*]").count().gte(1))
+                                .check(
+                                    jsonPath("$.enrollments[0].enrollment")
+                                        .saveAs("enrollmentUid")))
                             .group("Go to single enrollment")
                             .on(
                                 exec(getFirstTrackedEntity
@@ -703,6 +718,7 @@ public class TrackerTest extends Simulation {
             getTEsWithEnrollmentStatus,
             getFirstTrackedEntity,
             getFirstEnrollment,
+            getAllEnrollments,
             getRelationshipsForTrackedEntity,
             getFirstEventFromEnrollment,
             getRelationshipsForEvent));
