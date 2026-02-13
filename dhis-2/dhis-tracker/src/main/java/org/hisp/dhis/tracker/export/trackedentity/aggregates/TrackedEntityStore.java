@@ -34,17 +34,18 @@ import com.google.common.collect.Multimap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.CheckForNull;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.ProgramOwnerRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.TrackedEntityAttributeRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.TrackedEntityRowCallbackHandler;
-import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TrackedEntityQuery;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -55,7 +56,37 @@ import org.springframework.stereotype.Repository;
 class TrackedEntityStore extends AbstractStore {
   private static final String GET_TE_SQL = TrackedEntityQuery.getQuery();
 
-  private static final String GET_TE_ATTRIBUTES = TeAttributeQuery.getQuery();
+  // language=SQL
+  private static final String GET_TE_ATTRIBUTES_WITHOUT_PROGRAM =
+      """
+      select te.uid as teuid, teav.trackedentityid as id, teav.created, teav.lastupdated,
+             teav.storedby, teav.value, tea.uid as att_uid, tea.code as att_code, tea.name as att_name,
+             tea.attributevalues as att_attributevalues, tea.valuetype as att_val_type,
+             tea.skipsynchronization as att_skip_sync
+      from trackedentityattributevalue teav
+      join trackedentityattribute tea on teav.trackedentityattributeid = tea.trackedentityattributeid
+      join trackedentity te on teav.trackedentityid = te.trackedentityid
+      where teav.trackedentityid in (:ids)
+        and teav.trackedentityattributeid in (
+          select teta.trackedentityattributeid from trackedentitytypeattribute teta
+        )""";
+
+  // language=SQL
+  private static final String GET_TE_ATTRIBUTES_WITH_PROGRAM =
+      """
+      select te.uid as teuid, teav.trackedentityid as id, teav.created, teav.lastupdated,
+             teav.storedby, teav.value, tea.uid as att_uid, tea.code as att_code, tea.name as att_name,
+             tea.attributevalues as att_attributevalues, tea.valuetype as att_val_type,
+             tea.skipsynchronization as att_skip_sync
+      from trackedentityattributevalue teav
+      join trackedentityattribute tea on teav.trackedentityattributeid = tea.trackedentityattributeid
+      join trackedentity te on teav.trackedentityid = te.trackedentityid
+      where teav.trackedentityid in (:ids)
+        and teav.trackedentityattributeid in (
+          select teta.trackedentityattributeid from trackedentitytypeattribute teta
+          union
+          select pa.trackedentityattributeid from program_attributes pa where pa.programid = :programId
+        )""";
 
   private static final String GET_PROGRAM_OWNERS =
       "select te.uid as key, p.uid as prguid, o.uid as ouuid "
@@ -88,8 +119,19 @@ class TrackedEntityStore extends AbstractStore {
     return handler.getItems();
   }
 
-  Multimap<String, TrackedEntityAttributeValue> getAttributes(List<Long> ids) {
-    return fetch(GET_TE_ATTRIBUTES, new TrackedEntityAttributeRowCallbackHandler(), ids);
+  Multimap<String, TrackedEntityAttributeValue> getAttributes(
+      List<Long> ids, @CheckForNull Long programId) {
+    if (programId == null) {
+      return fetch(
+          GET_TE_ATTRIBUTES_WITHOUT_PROGRAM,
+          new TrackedEntityAttributeRowCallbackHandler(),
+          ids);
+    }
+    return fetch(
+        GET_TE_ATTRIBUTES_WITH_PROGRAM,
+        new TrackedEntityAttributeRowCallbackHandler(),
+        ids,
+        new MapSqlParameterSource("programId", programId));
   }
 
   Multimap<String, TrackedEntityProgramOwner> getProgramOwners(List<Long> ids) {

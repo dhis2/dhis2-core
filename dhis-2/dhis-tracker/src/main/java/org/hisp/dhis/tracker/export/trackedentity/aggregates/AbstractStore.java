@@ -79,17 +79,33 @@ abstract class AbstractStore {
    *     RowCallbackHandler}
    */
   protected <T> Multimap<String, T> fetch(String sql, AbstractMapper<T> handler, List<Long> ids) {
+    return fetch(sql, handler, ids, null);
+  }
+
+  protected <T> Multimap<String, T> fetch(
+      String sql,
+      AbstractMapper<T> handler,
+      List<Long> ids,
+      MapSqlParameterSource extraParams) {
     List<List<Long>> idPartitions = Lists.partition(ids, PARITITION_SIZE);
 
     Multimap<String, T> multimap = ArrayListMultimap.create();
 
-    idPartitions.forEach(partition -> multimap.putAll(fetchPartitioned(sql, handler, partition)));
+    idPartitions.forEach(
+        partition -> multimap.putAll(fetchPartitioned(sql, handler, partition, extraParams)));
     return multimap;
   }
 
   private <T> Multimap<String, T> fetchPartitioned(
-      String sql, AbstractMapper<T> handler, List<Long> ids) {
-    jdbcTemplate.query(sql, createIdsParam(ids), handler);
+      String sql,
+      AbstractMapper<T> handler,
+      List<Long> ids,
+      MapSqlParameterSource extraParams) {
+    MapSqlParameterSource params = createIdsParam(ids);
+    if (extraParams != null) {
+      extraParams.getValues().forEach(params::addValue);
+    }
+    jdbcTemplate.query(sql, params, handler);
     return handler.getItems();
   }
 }

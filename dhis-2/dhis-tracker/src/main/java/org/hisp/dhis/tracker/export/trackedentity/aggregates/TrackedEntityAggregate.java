@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -35,7 +35,6 @@ import static org.hisp.dhis.tracker.export.trackedentity.aggregates.AsyncUtils.c
 import static org.hisp.dhis.tracker.export.trackedentity.aggregates.ThreadPoolManager.getPool;
 
 import com.google.common.collect.Multimap;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -43,11 +42,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityIdentifiers;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityQueryParams;
@@ -71,8 +67,6 @@ public class TrackedEntityAggregate {
   @Nonnull
   private final EnrollmentAggregate enrollmentAggregate;
 
-  @Nonnull private final TrackedEntityAttributeService trackedEntityAttributeService;
-
   /**
    * Fetches a List of {@see TrackedEntity} based on the list of primary keys and search parameters
    */
@@ -84,6 +78,11 @@ public class TrackedEntityAggregate {
       return Collections.emptyList();
     }
     Context ctx = new Context(CurrentUserUtil.getCurrentUserDetails(), fields, queryParams);
+
+    Long programId =
+        queryParams.hasEnrolledInTrackerProgram()
+            ? queryParams.getEnrolledInTrackerProgram().getId()
+            : null;
 
     List<Long> ids = identifiers.stream().map(TrackedEntityIdentifiers::id).toList();
     final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync =
@@ -100,14 +99,12 @@ public class TrackedEntityAggregate {
         supplyAsync(() -> trackedEntityStore.getTrackedEntities(ids), getPool());
     final CompletableFuture<Multimap<String, TrackedEntityAttributeValue>> attributesAsync =
         conditionalAsyncFetch(
-            fields.isIncludesAttributes(), () -> trackedEntityStore.getAttributes(ids), getPool());
+            fields.isIncludesAttributes(),
+            () -> trackedEntityStore.getAttributes(ids, programId),
+            getPool());
 
-    // Fetch allowed attributes on the HTTP thread while async tasks are fetching other data
-    Set<String> allowedAttributeUids = getAllowedAttributeUids(queryParams);
-    // Wait for all async fetches to complete
     allOf(trackedEntitiesAsync, attributesAsync, enrollmentsAsync, programOwnersAsync).join();
 
-    // Merge results on the HTTP thread (futures are complete)
     Map<String, TrackedEntity> trackedEntities = trackedEntitiesAsync.join();
     Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
     Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
@@ -117,39 +114,11 @@ public class TrackedEntityAggregate {
         .map(
             uid -> {
               TrackedEntity te = trackedEntities.get(uid);
-              te.setTrackedEntityAttributeValues(
-                  filterAttributes(allowedAttributeUids, attributes.get(uid)));
+              te.setTrackedEntityAttributeValues(new LinkedHashSet<>(attributes.get(uid)));
               te.setEnrollments(new HashSet<>(enrollments.get(uid)));
               te.setProgramOwners(new HashSet<>(programOwners.get(uid)));
               return te;
             })
         .toList();
-  }
-
-  private Set<String> getAllowedAttributeUids(TrackedEntityQueryParams params) {
-    Set<String> allowedAttributeUids =
-        trackedEntityAttributeService.getTrackedEntityAttributesByTrackedEntityTypes().stream()
-            .map(IdentifiableObject::getUid)
-            .collect(Collectors.toSet());
-
-    if (params.hasEnrolledInTrackerProgram()) {
-      Set<String> teasInProgram =
-          trackedEntityAttributeService.getTrackedEntityAttributesInProgram(
-              params.getEnrolledInTrackerProgram());
-      allowedAttributeUids.addAll(teasInProgram);
-    }
-
-    return allowedAttributeUids;
-  }
-
-  private Set<TrackedEntityAttributeValue> filterAttributes(
-      Set<String> allowedAttributeUids, Collection<TrackedEntityAttributeValue> attributes) {
-    if (attributes.isEmpty()) {
-      return Set.of();
-    }
-
-    return attributes.stream()
-        .filter(av -> allowedAttributeUids.contains(av.getAttribute().getUid()))
-        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 }
