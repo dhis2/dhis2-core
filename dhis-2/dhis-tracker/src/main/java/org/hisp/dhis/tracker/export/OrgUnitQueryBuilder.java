@@ -37,6 +37,7 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.Set;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -102,13 +103,51 @@ public class OrgUnitQueryBuilder {
    * user scopes and org unit mode. The program's access level is resolved at query execution time
    * via the given program table alias.
    */
+  public static void buildOwnershipClauseForSingleEvents(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParameters,
+      OrganisationUnitSelectionMode orgUnitMode,
+      String programTableAlias,
+      String orgUnitTableAlias,
+      Supplier<String> clauseSupplier) {
+    buildOwnershipClause(
+        sql,
+        sqlParameters,
+        orgUnitMode,
+        programTableAlias,
+        orgUnitTableAlias,
+        null,
+        clauseSupplier);
+  }
+
+  /**
+   * Appends an SQL clause to enforce program ownership and access level restrictions based on the
+   * user scopes and org unit mode. The program's access level is resolved at query execution time
+   * via the given program table alias.
+   */
+  public static void buildOwnershipClauseForSingleEvents(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParameters,
+      Program program,
+      SearchScope searchScope,
+      String orgUnitTableAlias,
+      Supplier<String> clauseSupplier) {
+    buildOwnershipClause(
+        sql, sqlParameters, program, searchScope, orgUnitTableAlias, null, clauseSupplier);
+  }
+
+  /**
+   * Appends an SQL clause to enforce program ownership and access level restrictions based on the
+   * user scopes and org unit mode. The program's access level is resolved at query execution time
+   * via the given program table alias.
+   */
   public static void buildOwnershipClause(
       StringBuilder sql,
       MapSqlParameterSource sqlParameters,
       OrganisationUnitSelectionMode orgUnitMode,
       String programTableAlias,
       String orgUnitTableAlias,
-      String trackedEntityTableAlias,
+      @Nullable String trackedEntityTableAlias,
       Supplier<String> clauseSupplier) {
     UserDetails userDetails = getCurrentUserDetails();
 
@@ -129,10 +168,13 @@ public class OrgUnitQueryBuilder {
     addCaptureScopePathPredicate(sql, sqlParameters, orgUnitTableAlias, userDetails);
     sql.append(")");
 
-    sql.append(" or (").append(programTableAlias).append(".accesslevel = 'PROTECTED' and ");
-    addTempOwnerPredicate(
-        sql, trackedEntityTableAlias, programTableAlias + ".programid", userDetails.getId());
-    sql.append("))");
+    if (trackedEntityTableAlias != null) {
+      sql.append(" or (").append(programTableAlias).append(".accesslevel = 'PROTECTED' and ");
+      addTempOwnerPredicate(
+          sql, trackedEntityTableAlias, programTableAlias + ".programid", userDetails.getId());
+      sql.append(")");
+    }
+    sql.append(")");
   }
 
   /**

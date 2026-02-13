@@ -56,6 +56,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.FilterJdbcPredicate;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.SearchScope;
 
 /**
  * @author Lars Helge Overland
@@ -66,6 +67,8 @@ class SingleEventQueryParams {
   @Getter private OrganisationUnit orgUnit;
 
   @Getter private OrganisationUnitSelectionMode orgUnitMode;
+
+  @Getter private SearchScope searchScope;
 
   @Getter private Date occurredStartDate;
 
@@ -275,6 +278,11 @@ class SingleEventQueryParams {
 
   public SingleEventQueryParams setIdSchemeParams(TrackerIdSchemeParams idSchemeParams) {
     this.idSchemeParams = idSchemeParams;
+    return this;
+  }
+
+  public SingleEventQueryParams setSearchScope(SearchScope searchScope) {
+    this.searchScope = searchScope;
     return this;
   }
 }
