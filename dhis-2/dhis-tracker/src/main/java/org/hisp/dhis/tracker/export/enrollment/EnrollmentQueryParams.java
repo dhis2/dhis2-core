@@ -36,7 +36,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.Data;
-import lombok.Getter;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
@@ -44,6 +43,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.SearchScope;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -69,11 +69,13 @@ class EnrollmentQueryParams {
   /** Selection mode for the specified organisation units. */
   private OrganisationUnitSelectionMode organisationUnitMode;
 
+  private SearchScope searchScope;
+
   /**
    * Tracker program the tracked entity must be enrolled in. This should not be set when {@link
    * #accessibleTrackerPrograms} is set. The user must have data read access to this program.
    */
-  @Getter private Program enrolledInTrackerProgram;
+  private Program enrolledInTrackerProgram;
 
   /**
    * Tracker programs the user has data read access to. This should not be set when {@link

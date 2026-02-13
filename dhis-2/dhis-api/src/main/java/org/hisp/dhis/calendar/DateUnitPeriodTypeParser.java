@@ -293,6 +293,16 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
       end.setDayOfWeek(calendar.weekday(end));
 
       return new DateInterval(start, end);
+    } else if (PeriodTypeEnum.FINANCIAL_FEB == type) {
+      DateTimeUnit start = new DateTimeUnit(year, 2, 1, calendar.isIso8601());
+      DateTimeUnit end = new DateTimeUnit(start);
+      end = calendar.plusYears(end, 1);
+      end = calendar.minusDays(end, 1);
+
+      start.setDayOfWeek(calendar.weekday(start));
+      end.setDayOfWeek(calendar.weekday(end));
+
+      return new DateInterval(start, end);
     } else if (PeriodTypeEnum.FINANCIAL_APRIL == type) {
       DateTimeUnit start = new DateTimeUnit(year, 4, 1, calendar.isIso8601());
       DateTimeUnit end = new DateTimeUnit(start);
@@ -305,6 +315,16 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable 
       return new DateInterval(start, end);
     } else if (PeriodTypeEnum.FINANCIAL_JULY == type) {
       DateTimeUnit start = new DateTimeUnit(year, 7, 1, calendar.isIso8601());
+      DateTimeUnit end = new DateTimeUnit(start);
+      end = calendar.plusYears(end, 1);
+      end = calendar.minusDays(end, 1);
+
+      start.setDayOfWeek(calendar.weekday(start));
+      end.setDayOfWeek(calendar.weekday(end));
+
+      return new DateInterval(start, end);
+    } else if (PeriodTypeEnum.FINANCIAL_AUG == type) {
+      DateTimeUnit start = new DateTimeUnit(year, 8, 1, calendar.isIso8601());
       DateTimeUnit end = new DateTimeUnit(start);
       end = calendar.plusYears(end, 1);
       end = calendar.minusDays(end, 1);

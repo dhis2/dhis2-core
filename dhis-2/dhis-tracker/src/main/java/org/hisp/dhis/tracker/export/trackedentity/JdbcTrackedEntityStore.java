@@ -149,7 +149,7 @@ class JdbcTrackedEntityStore {
   }
 
   private void validateMaxTeLimit(TrackedEntityQueryParams params) {
-    if (!params.isSearchOutsideCaptureScope()) {
+    if (!params.getSearchScope().outsideCaptureScope()) {
       return;
     }
 
@@ -357,11 +357,18 @@ class JdbcTrackedEntityStore {
    * TrackedEntityQueryParams)} and {@link #addOrderBy(StringBuilder, TrackedEntityQueryParams)}.
    */
   private void addTrackedEntityFromItemSelect(StringBuilder sql, TrackedEntityQueryParams params) {
-    // When ordering by enrolledAt, use DISTINCT ON to pick one enrollment per TE.
-    // This fixes pagination when a TE has multiple enrollments (DHIS2-20811).
     if (isOrderingByEnrolledAt(params)) {
+      // When ordering by enrolledAt, use DISTINCT ON to pick one enrollment per TE.
       sql.append("select distinct on (te.trackedentityid) te.trackedentityid");
+    } else if (params.hasEnrolledInTrackerProgram()) {
+      // No DISTINCT needed: trackedentityprogramowner's unique index on (trackedentityid,
+      // programid) guarantees one row per TE. This relies on enrollment filters using EXISTS
+      // (addEnrollmentAndEventExistsCondition), not a JOIN. If enrollment is ever joined
+      // directly in this path, DISTINCT must be restored.
+      sql.append("select te.trackedentityid");
     } else {
+      // Without a program, the left join on trackedentityprogramowner can produce
+      // multiple rows per TE (one per program enrollment). DISTINCT is needed.
       sql.append("select distinct te.trackedentityid");
     }
 
@@ -405,12 +412,11 @@ class JdbcTrackedEntityStore {
 
   private void addJoinOnProgram(
       StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
-    sql.append("inner join program p on p.trackedentitytypeid = te.trackedentitytypeid");
-
     if (params.hasEnrolledInTrackerProgram()) {
       return;
     }
 
+    sql.append("inner join program p on p.trackedentitytypeid = te.trackedentitytypeid");
     sql.append(" and p.programid in (:accessiblePrograms)");
     sqlParameters.addValue(
         "accessiblePrograms", getIdentifiers(params.getAccessibleTrackerPrograms()));
@@ -423,8 +429,7 @@ class JdbcTrackedEntityStore {
           """
           inner join trackedentityprogramowner po \
            on po.programid = :enrolledInTrackerProgram\
-           and po.trackedentityid = te.trackedentityid \
-           and p.programid = po.programid""");
+           and po.trackedentityid = te.trackedentityid""");
       sqlParameters.addValue(
           "enrolledInTrackerProgram", params.getEnrolledInTrackerProgram().getId());
       return;
@@ -461,7 +466,6 @@ class JdbcTrackedEntityStore {
   private void addJoinOnOrgUnit(
       StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
     String orgUnitTableAlias = "ou";
-    String programTableAlias = "p";
 
     sql.append("inner join organisationunit ");
     sql.append(orgUnitTableAlias);
@@ -482,14 +486,25 @@ class JdbcTrackedEntityStore {
           "and ");
     }
 
-    buildOwnershipClause(
-        sql,
-        sqlParameters,
-        params.getOrgUnitMode(),
-        programTableAlias,
-        orgUnitTableAlias,
-        MAIN_QUERY_ALIAS,
-        () -> "and ");
+    if (params.hasEnrolledInTrackerProgram()) {
+      buildOwnershipClause(
+          sql,
+          sqlParameters,
+          params.getEnrolledInTrackerProgram(),
+          params.getSearchScope(),
+          orgUnitTableAlias,
+          MAIN_QUERY_ALIAS,
+          () -> "and ");
+    } else {
+      buildOwnershipClause(
+          sql,
+          sqlParameters,
+          params.getOrgUnitMode(),
+          "p",
+          orgUnitTableAlias,
+          MAIN_QUERY_ALIAS,
+          () -> "and ");
+    }
   }
 
   /**
@@ -587,48 +602,15 @@ class JdbcTrackedEntityStore {
    */
   private void addEventExistsForEnrollmentJoin(
       StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
-    sql.append("select 1 from trackerevent ").append(EVENT_ALIAS).append(" ");
-
-    if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
-      sql.append("inner join (")
-          .append("select userinfoid as userid from userinfo where uid in (:assignedUserUids)")
-          .append(") au on au.userid = ")
-          .append(EVENT_ALIAS)
-          .append(".assigneduserid ");
-      sqlParameters.addValue(
-          "assignedUserUids",
-          UID.toValueSet(params.getAssignedUserQueryParam().getAssignedUsers()));
-    }
-
-    sql.append("where ")
+    sql.append("select 1 from trackerevent ")
+        .append(EVENT_ALIAS)
+        .append(" where ")
         .append(EVENT_ALIAS)
         .append(".enrollmentid = ")
         .append(ENROLLMENT_ALIAS)
         .append(".enrollmentid");
 
-    if (params.hasEventStatus()) {
-      sql.append(" and ");
-      addEventDateRangeCondition(sql, sqlParameters, params);
-      sql.append(" and ");
-      addEventStatusCondition(sql, sqlParameters, params);
-    }
-
-    if (params.hasProgramStage()) {
-      sql.append(" and ").append(EVENT_ALIAS).append(".programstageid = :programStageId");
-      sqlParameters.addValue("programStageId", params.getProgramStage().getId());
-    }
-
-    if (AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode()) {
-      sql.append(" and ").append(EVENT_ALIAS).append(".assigneduserid is null");
-    }
-
-    if (AssignedUserSelectionMode.ANY == params.getAssignedUserQueryParam().getMode()) {
-      sql.append(" and ").append(EVENT_ALIAS).append(".assigneduserid is not null");
-    }
-
-    if (!params.isIncludeDeleted()) {
-      sql.append(" and ").append(EVENT_ALIAS).append(".deleted is false");
-    }
+    addEventFilterConditions(sql, sqlParameters, params);
   }
 
   /** Appends event date range condition to SQL. Reusable across EXISTS subquery and JOIN paths. */
@@ -680,26 +662,37 @@ class JdbcTrackedEntityStore {
   }
 
   /**
-   * Adds a single LEFT JOIN for each attribute used for filtering and sorting. The result of this
-   * LEFT JOIN is used in the subquery projection and for ordering in both the subquery and the main
-   * query.
+   * Adds joins on tracked entity attribute values for filtering and sorting. Attributes with
+   * non-null filters use INNER JOIN (the WHERE clause eliminates NULLs anyway), which lets the
+   * planner use the join as a filter. Order-only attributes and attributes with a {@code null}
+   * operator filter use LEFT JOIN to preserve rows without a value.
    *
    * <p>Attribute filtering is handled in {@link #addAttributeFilterConditions(StringBuilder,
    * MapSqlParameterSource, TrackedEntityQueryParams, SqlHelper)}.
    */
   private void addJoinOnAttributes(StringBuilder sql, TrackedEntityQueryParams params) {
-    for (TrackedEntityAttribute attribute : params.getLeftJoinAttributes()) {
-      String col = quote(attribute.getUid());
-      sql.append(" left join trackedentityattributevalue as ")
-          .append(col)
-          .append(" on ")
-          .append(col)
-          .append(".trackedentityid = te.trackedentityid and ")
-          .append(col)
-          .append(".trackedentityattributeid = ")
-          .append(attribute.getId())
-          .append(" ");
+    for (TrackedEntityAttribute attribute : params.getInnerJoinAttributes()) {
+      addAttributeJoin(sql, "inner", attribute);
     }
+    for (TrackedEntityAttribute attribute : params.getLeftJoinAttributes()) {
+      addAttributeJoin(sql, "left", attribute);
+    }
+  }
+
+  private void addAttributeJoin(
+      StringBuilder sql, String joinType, TrackedEntityAttribute attribute) {
+    String col = quote(attribute.getUid());
+    sql.append(" ")
+        .append(joinType)
+        .append(" join trackedentityattributevalue as ")
+        .append(col)
+        .append(" on ")
+        .append(col)
+        .append(".trackedentityid = te.trackedentityid and ")
+        .append(col)
+        .append(".trackedentityattributeid = ")
+        .append(attribute.getId())
+        .append(" ");
   }
 
   /** Adds the WHERE-clause conditions related to the user provided filters. */
@@ -731,7 +724,12 @@ class JdbcTrackedEntityStore {
     if (params.hasTrackedEntityType()) {
       sql.append(whereAnd.whereAnd()).append("te.trackedentitytypeid = :trackedEntityTypeId ");
       sqlParameters.addValue("trackedEntityTypeId", params.getTrackedEntityType().getId());
-    } else if (!params.hasEnrolledInTrackerProgram()) {
+    } else if (params.hasEnrolledInTrackerProgram()) {
+      sql.append(whereAnd.whereAnd()).append("te.trackedentitytypeid = :trackedEntityTypeId ");
+      sqlParameters.addValue(
+          "trackedEntityTypeId",
+          params.getEnrolledInTrackerProgram().getTrackedEntityType().getId());
+    } else {
       sql.append(whereAnd.whereAnd()).append("te.trackedentitytypeid in (:trackedEntityTypeIds) ");
       sqlParameters.addValue(
           "trackedEntityTypeIds", getIdentifiers(params.getTrackedEntityTypes()));
@@ -788,13 +786,17 @@ class JdbcTrackedEntityStore {
 
     sql.append(whereAnd.whereAnd())
         .append("exists (")
-        .append("select en.trackedentityid ")
+        .append("select 1 ")
         .append("from enrollment en ");
 
     if (params.hasFilterForEvents()) {
-      sql.append("inner join (");
-      addEventFilter(sql, sqlParameters, params);
-      sql.append(") ev on ev.enrollmentid = en.enrollmentid ");
+      sql.append("inner join trackerevent ")
+          .append(EVENT_ALIAS)
+          .append(" on ")
+          .append(EVENT_ALIAS)
+          .append(".enrollmentid = en.enrollmentid");
+      addEventFilterConditions(sql, sqlParameters, params);
+      sql.append(" ");
     }
 
     sql.append(
@@ -807,45 +809,50 @@ class JdbcTrackedEntityStore {
     sql.append(")");
   }
 
-  /** Adds event query with event related query params to given {@code sql}. */
-  private void addEventFilter(
+  /**
+   * Appends event filter conditions as {@code " and ..."} fragments. Used by both the EXISTS
+   * subquery path ({@link #addEnrollmentAndEventExistsCondition}) and the enrollment JOIN path
+   * ({@link #addEventExistsForEnrollmentJoin}).
+   */
+  private void addEventFilterConditions(
       StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
-    sql.append("select ev.enrollmentid ").append("from trackerevent ev ");
-
-    if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
-      sql.append("inner join (")
-          .append("select userinfoid as userid ")
-          .append("from userinfo ")
-          .append("where uid in (:assignedUserUids) ")
-          .append(") au on au.userid = ev.assigneduserid");
-      sqlParameters.addValue(
-          "assignedUserUids",
-          UID.toValueSet(params.getAssignedUserQueryParam().getAssignedUsers()));
-    }
-
-    SqlHelper whereHlp = new SqlHelper(true);
     if (params.hasEventStatus()) {
-      sql.append(whereHlp.whereAnd());
+      sql.append(" and ");
       addEventDateRangeCondition(sql, sqlParameters, params);
-      sql.append(whereHlp.whereAnd());
+      sql.append(" and ");
       addEventStatusCondition(sql, sqlParameters, params);
     }
 
     if (params.hasProgramStage()) {
-      sql.append(whereHlp.whereAnd()).append("ev.programstageid = :programStageId ");
+      sql.append(" and ").append(EVENT_ALIAS).append(".programstageid = :programStageId");
       sqlParameters.addValue("programStageId", params.getProgramStage().getId());
     }
 
     if (AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode()) {
-      sql.append(whereHlp.whereAnd()).append("ev.assigneduserid is null ");
+      sql.append(" and ").append(EVENT_ALIAS).append(".assigneduserid is null");
     }
 
     if (AssignedUserSelectionMode.ANY == params.getAssignedUserQueryParam().getMode()) {
-      sql.append(whereHlp.whereAnd()).append("ev.assigneduserid is not null ");
+      sql.append(" and ").append(EVENT_ALIAS).append(".assigneduserid is not null");
+    }
+
+    if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
+      Set<UID> assignedUsers = params.getAssignedUserQueryParam().getAssignedUsers();
+      sql.append(" and ").append(EVENT_ALIAS);
+      if (assignedUsers.size() == 1) {
+        // Use = for a single user so PostgreSQL can use the assigneduserid index
+        sql.append(
+            ".assigneduserid = (select userinfoid from userinfo where uid = :assignedUserUid)");
+        sqlParameters.addValue("assignedUserUid", assignedUsers.iterator().next().getValue());
+      } else {
+        sql.append(
+            ".assigneduserid in (select userinfoid from userinfo where uid in (:assignedUserUids))");
+        sqlParameters.addValue("assignedUserUids", UID.toValueSet(assignedUsers));
+      }
     }
 
     if (!params.isIncludeDeleted()) {
-      sql.append(whereHlp.whereAnd()).append("ev.deleted is false");
+      sql.append(" and ").append(EVENT_ALIAS).append(".deleted is false");
     }
   }
 

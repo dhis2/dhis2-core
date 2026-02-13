@@ -34,6 +34,8 @@ import static org.hisp.dhis.period.PeriodTypeEnum.BI_MONTHLY;
 import static org.hisp.dhis.period.PeriodTypeEnum.BI_WEEKLY;
 import static org.hisp.dhis.period.PeriodTypeEnum.DAILY;
 import static org.hisp.dhis.period.PeriodTypeEnum.FINANCIAL_APRIL;
+import static org.hisp.dhis.period.PeriodTypeEnum.FINANCIAL_AUG;
+import static org.hisp.dhis.period.PeriodTypeEnum.FINANCIAL_FEB;
 import static org.hisp.dhis.period.PeriodTypeEnum.FINANCIAL_JULY;
 import static org.hisp.dhis.period.PeriodTypeEnum.FINANCIAL_NOV;
 import static org.hisp.dhis.period.PeriodTypeEnum.FINANCIAL_OCT;
@@ -405,6 +407,8 @@ public class Period implements Serializable {
         throw illegalInfix(p, "W", "Q", "S");
       }
       if (len == 7) {
+        if (p.endsWith("Feb")) return new Input(FINANCIAL_FEB, year);
+        if (p.endsWith("Aug")) return new Input(FINANCIAL_AUG, year);
         if (p.endsWith("Sep")) return new Input(FINANCIAL_SEP, year);
         if (p.endsWith("Oct")) return new Input(FINANCIAL_OCT, year);
         if (p.endsWith("Nov")) return new Input(FINANCIAL_NOV, year);

@@ -37,11 +37,12 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.Set;
 import java.util.function.Supplier;
-import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
@@ -62,7 +63,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * <p>This class is non-instantiable and exposes all functionality through static methods.
  */
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class OrgUnitQueryBuilder {
 
   /** Appends an SQL clause to filter by org units based on the given org unit mode. */
@@ -98,7 +99,8 @@ public class OrgUnitQueryBuilder {
 
   /**
    * Appends an SQL clause to enforce program ownership and access level restrictions based on the
-   * user scopes and org unit mode.
+   * user scopes and org unit mode. The program's access level is resolved at query execution time
+   * via the given program table alias.
    */
   public static void buildOwnershipClause(
       StringBuilder sql,
@@ -117,34 +119,132 @@ public class OrgUnitQueryBuilder {
     sql.append(clauseSupplier.get())
         .append("((")
         .append(programTableAlias)
-        .append(".accesslevel in ('OPEN', 'AUDITED') and ")
-        .append(orgUnitTableAlias);
-    if (orgUnitMode == CAPTURE) {
-      sql.append(
-          ".path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:captureScopeOrgUnits)))");
-    } else {
-      sql.append(
-          ".path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:effectiveSearchScopeOrgUnits)))");
-      sqlParameters.addValue(
-          "effectiveSearchScopeOrgUnits", userDetails.getUserEffectiveSearchOrgUnitIds());
-    }
+        .append(".accesslevel in ('OPEN', 'AUDITED') and ");
+    addScopePathPredicate(sql, sqlParameters, orgUnitMode, orgUnitTableAlias, userDetails);
+    sql.append(")");
 
     sql.append(" or (")
         .append(programTableAlias)
-        .append(".accesslevel in ('PROTECTED', 'CLOSED') and ")
-        .append(orgUnitTableAlias)
-        .append(
-            ".path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:captureScopeOrgUnits)))");
-    sqlParameters.addValue("captureScopeOrgUnits", userDetails.getUserOrgUnitIds());
+        .append(".accesslevel in ('PROTECTED', 'CLOSED') and ");
+    addCaptureScopePathPredicate(sql, sqlParameters, orgUnitTableAlias, userDetails);
+    sql.append(")");
 
-    sql.append(
-            " or (p.accesslevel = 'PROTECTED' and exists (select 1 from programtempowner where programid = ")
-        .append(programTableAlias)
-        .append(".programid and trackedentityid = ")
+    sql.append(" or (").append(programTableAlias).append(".accesslevel = 'PROTECTED' and ");
+    addTempOwnerPredicate(
+        sql, trackedEntityTableAlias, programTableAlias + ".programid", userDetails.getId());
+    sql.append("))");
+  }
+
+  /**
+   * Appends an SQL clause to enforce program ownership and access level restrictions when the
+   * program is known at query build time. This eliminates the need to join the program table. Only
+   * the branches relevant to the program's access level are emitted. Uses literal path prefixes
+   * resolved from the given {@link SearchScope} for index-friendly LIKE predicates.
+   *
+   * <p>Does nothing when the given scope is {@linkplain SearchScope#restricted() unrestricted}.
+   */
+  public static void buildOwnershipClause(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParameters,
+      Program program,
+      SearchScope searchScope,
+      String orgUnitTableAlias,
+      String trackedEntityTableAlias,
+      Supplier<String> clauseSupplier) {
+    if (!searchScope.restricted()) {
+      return;
+    }
+
+    AccessLevel accessLevel = program.getAccessLevel();
+
+    sql.append(clauseSupplier.get()).append("(");
+    addPathPrefixPredicate(
+        sql, sqlParameters, searchScope.forAccessLevel(accessLevel), orgUnitTableAlias, "scope");
+
+    if (accessLevel == AccessLevel.PROTECTED) {
+      sql.append(" or ");
+      addTempOwnerPredicate(
+          sql, trackedEntityTableAlias, String.valueOf(program.getId()), searchScope.userId());
+    }
+
+    sql.append(")");
+  }
+
+  /**
+   * Appends a path-prefix predicate using the user's search or capture scope depending on the org
+   * unit mode. Uses the capture scope when the mode is {@code CAPTURE}, otherwise the effective
+   * search scope.
+   */
+  private static void addScopePathPredicate(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParameters,
+      OrganisationUnitSelectionMode orgUnitMode,
+      String orgUnitTableAlias,
+      UserDetails userDetails) {
+    if (orgUnitMode == CAPTURE) {
+      addCaptureScopePathPredicate(sql, sqlParameters, orgUnitTableAlias, userDetails);
+    } else {
+      sql.append(orgUnitTableAlias)
+          .append(
+              ".path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:effectiveSearchScopeOrgUnits))");
+      sqlParameters.addValue(
+          "effectiveSearchScopeOrgUnits", userDetails.getUserEffectiveSearchOrgUnitIds());
+    }
+  }
+
+  /** Appends a path-prefix predicate using the user's capture scope org units. */
+  private static void addCaptureScopePathPredicate(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParameters,
+      String orgUnitTableAlias,
+      UserDetails userDetails) {
+    sql.append(orgUnitTableAlias)
+        .append(
+            ".path like any (select concat(o.path, '%') from organisationunit o where o.uid in (:captureScopeOrgUnits))");
+    sqlParameters.addValue("captureScopeOrgUnits", userDetails.getUserOrgUnitIds());
+  }
+
+  /**
+   * Appends a path-prefix predicate using literal path values from the given org unit set. Emits
+   * {@code (alias.path like :prefix0 or alias.path like :prefix1 ...)} with each parameter bound to
+   * {@code orgUnit.getStoredPath() + "%"}.
+   */
+  private static void addPathPrefixPredicate(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParameters,
+      Set<OrganisationUnit> scopeOrgUnits,
+      String orgUnitTableAlias,
+      String paramPrefix) {
+    if (scopeOrgUnits.isEmpty()) {
+      sql.append("false");
+      return;
+    }
+
+    SqlHelper orHlp = new SqlHelper(true);
+    sql.append("(");
+    int index = 0;
+    for (OrganisationUnit orgUnit : scopeOrgUnits) {
+      String paramName = paramPrefix + "Path" + index;
+      sql.append(orHlp.or()).append(orgUnitTableAlias).append(".path like :").append(paramName);
+      sqlParameters.addValue(paramName, orgUnit.getStoredPath() + "%");
+      index++;
+    }
+    sql.append(")");
+  }
+
+  /**
+   * Appends a temporary ownership EXISTS predicate. The {@code programIdExpression} can be a table
+   * column reference (e.g. {@code "p.programid"}) or a literal ID value.
+   */
+  private static void addTempOwnerPredicate(
+      StringBuilder sql, String trackedEntityTableAlias, String programIdExpression, long userId) {
+    sql.append("exists (select 1 from programtempowner where programid = ")
+        .append(programIdExpression)
+        .append(" and trackedentityid = ")
         .append(trackedEntityTableAlias)
         .append(".trackedentityid and userid = ")
-        .append(userDetails.getId())
-        .append(" and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0)))");
+        .append(userId)
+        .append(" and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0)");
   }
 
   private static void addOrgUnitDescendantsCondition(
@@ -152,20 +252,7 @@ public class OrgUnitQueryBuilder {
       Set<OrganisationUnit> orgUnits,
       MapSqlParameterSource sqlParameters,
       String tableAlias) {
-    SqlHelper orHlp = new SqlHelper(true);
-
-    sql.append("(");
-    int index = 0;
-    for (OrganisationUnit organisationUnit : orgUnits) {
-      String paramName = "orgUnitPath" + index;
-      String paramValue = organisationUnit.getStoredPath() + "%";
-
-      sql.append(orHlp.or()).append(tableAlias).append(".path like :").append(paramName);
-
-      sqlParameters.addValue(paramName, paramValue);
-      index++;
-    }
-    sql.append(")");
+    addPathPrefixPredicate(sql, sqlParameters, orgUnits, tableAlias, "orgUnit");
   }
 
   private static void addOrgUnitsChildrenCondition(

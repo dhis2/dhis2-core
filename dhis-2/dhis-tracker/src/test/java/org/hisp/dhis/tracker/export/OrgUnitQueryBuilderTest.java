@@ -36,6 +36,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,13 +46,15 @@ import static org.mockito.Mockito.mockStatic;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.test.utils.Assertions;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -160,7 +163,7 @@ class OrgUnitQueryBuilderTest {
     assertTrue(
         sql.toString().isEmpty(),
         String.format("Expected sql query predicate to be empty, but was %s", sql));
-    Assertions.assertIsEmpty(params.getValues().values());
+    assertIsEmpty(params.getValues().values());
   }
 
   @Test
@@ -173,7 +176,7 @@ class OrgUnitQueryBuilderTest {
     assertTrue(
         sql.toString().isEmpty(),
         String.format("Expected sql query predicate to be empty, but was %s", sql));
-    Assertions.assertIsEmpty(params.getValues().values());
+    assertIsEmpty(params.getValues().values());
   }
 
   @Test
@@ -217,6 +220,100 @@ class OrgUnitQueryBuilderTest {
     assertParameters(params);
   }
 
+  @Test
+  void shouldBuildProgramScopedOwnershipQueryForOpenProgram() {
+    StringBuilder sql = new StringBuilder();
+    MapSqlParameterSource params = new MapSqlParameterSource();
+    Program program = createProgram(1, AccessLevel.OPEN);
+    SearchScope scope =
+        new SearchScope(0, true, false, new LinkedHashSet<>(List.of(orgUnitA)), Set.of(orgUnitB));
+
+    buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
+
+    assertEquals(" and ((  ou.path like :scopePath0))", sql.toString());
+
+    expectedParams.put("scopePath0", orgUnitA.getPath() + "%");
+    assertParameters(params);
+  }
+
+  @Test
+  void shouldBuildProgramScopedOwnershipQueryForOpenProgramWithCaptureMode() {
+    StringBuilder sql = new StringBuilder();
+    MapSqlParameterSource params = new MapSqlParameterSource();
+    Program program = createProgram(1, AccessLevel.AUDITED);
+    SearchScope scope =
+        new SearchScope(0, true, false, new LinkedHashSet<>(List.of(orgUnitB)), Set.of(orgUnitB));
+
+    buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
+
+    assertEquals(" and ((  ou.path like :scopePath0))", sql.toString());
+
+    expectedParams.put("scopePath0", orgUnitB.getPath() + "%");
+    assertParameters(params);
+  }
+
+  @Test
+  void shouldBuildProgramScopedOwnershipQueryForProtectedProgram() {
+    StringBuilder sql = new StringBuilder();
+    MapSqlParameterSource params = new MapSqlParameterSource();
+    Program program = createProgram(42, AccessLevel.PROTECTED);
+    SearchScope scope =
+        new SearchScope(0, true, false, Set.of(orgUnitA), new LinkedHashSet<>(List.of(orgUnitB)));
+
+    buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
+
+    assertEquals(
+        " and ((  ou.path like :scopePath0) or exists (select 1 from programtempowner where programid = 42 and trackedentityid = t.trackedentityid and userid = 0 and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0))",
+        sql.toString());
+
+    expectedParams.put("scopePath0", orgUnitB.getPath() + "%");
+    assertParameters(params);
+  }
+
+  @Test
+  void shouldBuildFalsePredicateWhenScopeOrgUnitsEmpty() {
+    StringBuilder sql = new StringBuilder();
+    MapSqlParameterSource params = new MapSqlParameterSource();
+    Program program = createProgram(1, AccessLevel.OPEN);
+    SearchScope scope = new SearchScope(0, true, false, Set.of(), Set.of());
+
+    buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
+
+    assertEquals(" and (false)", sql.toString());
+    assertIsEmpty(params.getValues().values());
+  }
+
+  @Test
+  void shouldNotBuildOwnershipQueryWhenScopeUnrestricted() {
+    StringBuilder sql = new StringBuilder();
+    MapSqlParameterSource params = new MapSqlParameterSource();
+    Program program = createProgram(1, AccessLevel.OPEN);
+    SearchScope scope = new SearchScope(0, false, false, Set.of(), Set.of());
+
+    buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
+
+    assertTrue(
+        sql.toString().isEmpty(),
+        String.format("Expected sql query predicate to be empty, but was %s", sql));
+    assertIsEmpty(params.getValues().values());
+  }
+
+  @Test
+  void shouldBuildProgramScopedOwnershipQueryForClosedProgram() {
+    StringBuilder sql = new StringBuilder();
+    MapSqlParameterSource params = new MapSqlParameterSource();
+    Program program = createProgram(42, AccessLevel.CLOSED);
+    SearchScope scope =
+        new SearchScope(0, true, false, Set.of(orgUnitA), new LinkedHashSet<>(List.of(orgUnitB)));
+
+    buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
+
+    assertEquals(" and ((  ou.path like :scopePath0))", sql.toString());
+
+    expectedParams.put("scopePath0", orgUnitB.getPath() + "%");
+    assertParameters(params);
+  }
+
   private void assertParameters(MapSqlParameterSource params) {
     assertContainsOnly(expectedParams.keySet(), Arrays.asList(params.getParameterNames()));
     assertContainsOnly(expectedParams.values(), params.getValues().values());
@@ -229,5 +326,12 @@ class OrgUnitQueryBuilderTest {
     orgUnit.setPath(path);
 
     return orgUnit;
+  }
+
+  private Program createProgram(long id, AccessLevel accessLevel) {
+    Program program = new Program();
+    program.setId(id);
+    program.setAccessLevel(accessLevel);
+    return program;
   }
 }
