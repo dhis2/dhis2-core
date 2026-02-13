@@ -817,7 +817,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnEnrollmentWithGivenAttributeOptionCombo()
+  void shouldReturnEnrollmentWhenRequestedAttributeOptionComboAccessible()
       throws ForbiddenException, BadRequestException {
     CategoryOptionCombo attributeOptionCombo =
         createAttributeOptionCombo(enrollmentA, AccessStringHelper.READ_ONLY);
@@ -832,7 +832,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldFailWhenCategoryOptionNotAccessible() {
+  void shouldFailWhenRequestedAttributeOptionComboNotAccessible() {
     CategoryOptionCombo attributeOptionCombo =
         createAttributeOptionCombo(enrollmentA, AccessStringHelper.DEFAULT);
     EnrollmentOperationParams operationParams =
@@ -847,7 +847,7 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnNoEnrollmentsWhenCategoryOptionNotAccessible()
+  void shouldReturnNoEnrollmentsWhenRequestedEnrollmentAttributeOptionComboNotAccessible()
       throws ForbiddenException, BadRequestException {
     createAttributeOptionCombo(enrollmentA, AccessStringHelper.DEFAULT);
     EnrollmentOperationParams operationParams =
