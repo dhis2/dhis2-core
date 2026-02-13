@@ -30,6 +30,7 @@
 package org.hisp.dhis.user.hibernate;
 
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -103,6 +104,34 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
             "SELECT usergroupid FROM usergroup WHERE uid = ?", Long.class, userGroupUid.getValue());
     getSession().evict(getSession().getReference(UserGroup.class, id));
     getSession().getSessionFactory().getCache().evictEntityData(UserGroup.class, id);
+  }
+
+  @Override
+  public void removeAllMembershipsViaSQL(@Nonnull UID userUid) {
+    String sql =
+        """
+        DELETE FROM usergroupmembers
+        WHERE userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        """;
+    jdbcTemplate.update(sql, userUid.getValue());
+  }
+
+  @Override
+  public void updateLastUpdatedForUserGroupsViaSQL(
+      @Nonnull UID userUid, @Nonnull UID lastUpdatedByUid) {
+    List<String> groupUids =
+        jdbcTemplate.queryForList(
+            """
+            SELECT ug.uid FROM usergroup ug
+            JOIN usergroupmembers ugm ON ug.usergroupid = ugm.usergroupid
+            WHERE ugm.userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+            """,
+            String.class,
+            userUid.getValue());
+
+    for (String groupUid : groupUids) {
+      updateLastUpdatedViaSQL(UID.of(groupUid), lastUpdatedByUid);
+    }
   }
 
   //  @Override

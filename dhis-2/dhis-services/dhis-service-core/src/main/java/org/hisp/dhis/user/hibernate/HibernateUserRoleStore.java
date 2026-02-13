@@ -30,6 +30,7 @@
 package org.hisp.dhis.user.hibernate;
 
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import javax.annotation.Nonnull;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.UID;
@@ -67,23 +68,73 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
   }
 
   @Override
-  public void removeMemberViaSQL(@Nonnull UID userRoleUid, @Nonnull UID userUid) {
+  public boolean addMemberViaSQL(@Nonnull UID userRoleUid, @Nonnull UID userUid) {
+    String sql =
+        """
+        INSERT INTO userrolemembers (userroleid, userid)
+        SELECT ur.userroleid, u.userinfoid
+        FROM userrole ur, userinfo u
+        WHERE ur.uid = ? AND u.uid = ?
+        AND NOT EXISTS (
+          SELECT 1 FROM userrolemembers urm
+          WHERE urm.userroleid = ur.userroleid AND urm.userid = u.userinfoid
+        )
+        """;
+    return jdbcTemplate.update(sql, userRoleUid.getValue(), userUid.getValue()) > 0;
+  }
+
+  @Override
+  public boolean removeMemberViaSQL(@Nonnull UID userRoleUid, @Nonnull UID userUid) {
     String sql =
         """
         DELETE FROM userrolemembers
         WHERE userroleid = (SELECT userroleid FROM userrole WHERE uid = ?)
         AND userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
         """;
-    jdbcTemplate.update(sql, userRoleUid.getValue(), userUid.getValue());
+    return jdbcTemplate.update(sql, userRoleUid.getValue(), userUid.getValue()) > 0;
   }
 
   @Override
-  public void removeUserRoleMembershipsByUserViaSQL(@Nonnull UID userUid) {
+  public void removeAllMembershipsViaSQL(@Nonnull UID userUid) {
     String sql =
         """
         DELETE FROM userrolemembers
         WHERE userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
         """;
     jdbcTemplate.update(sql, userUid.getValue());
+  }
+
+  @Override
+  public void updateLastUpdatedViaSQL(@Nonnull UID userRoleUid, @Nonnull UID lastUpdatedByUid) {
+    String sql =
+        """
+        UPDATE userrole SET lastupdated = now(),
+        lastupdatedby = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        WHERE uid = ?
+        """;
+    jdbcTemplate.update(sql, lastUpdatedByUid.getValue(), userRoleUid.getValue());
+    Long id =
+        jdbcTemplate.queryForObject(
+            "SELECT userroleid FROM userrole WHERE uid = ?", Long.class, userRoleUid.getValue());
+    getSession().evict(getSession().getReference(UserRole.class, id));
+    getSession().getSessionFactory().getCache().evictEntityData(UserRole.class, id);
+  }
+
+  @Override
+  public void updateLastUpdatedForUserRolesViaSQL(
+      @Nonnull UID userUid, @Nonnull UID lastUpdatedByUid) {
+    List<String> roleUids =
+        jdbcTemplate.queryForList(
+            """
+            SELECT ur.uid FROM userrole ur
+            JOIN userrolemembers urm ON ur.userroleid = urm.userroleid
+            WHERE urm.userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+            """,
+            String.class,
+            userUid.getValue());
+
+    for (String roleUid : roleUids) {
+      updateLastUpdatedViaSQL(UID.of(roleUid), lastUpdatedByUid);
+    }
   }
 }

@@ -66,4 +66,21 @@ public interface UserGroupStore extends IdentifiableObjectStore<UserGroup> {
    * @param lastUpdatedByUid the UID of the user who made the change
    */
   void updateLastUpdatedViaSQL(@Nonnull UID userGroupUid, @Nonnull UID lastUpdatedByUid);
+
+  /**
+   * Removes all user group memberships for a user directly via SQL. This avoids loading UserGroup
+   * entities and their members collections.
+   *
+   * @param userUid the UID of the user whose group memberships should be removed
+   */
+  void removeAllMembershipsViaSQL(@Nonnull UID userUid);
+
+  /**
+   * Updates the lastUpdated timestamp and lastUpdatedBy user for all user groups that the given
+   * user belongs to, directly via SQL.
+   *
+   * @param userUid the UID of the user whose groups should be updated
+   * @param lastUpdatedByUid the UID of the user performing the update
+   */
+  void updateLastUpdatedForUserGroupsViaSQL(@Nonnull UID userUid, @Nonnull UID lastUpdatedByUid);
 }

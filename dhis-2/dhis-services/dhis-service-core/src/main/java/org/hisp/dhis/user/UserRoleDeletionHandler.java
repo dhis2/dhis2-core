@@ -31,6 +31,7 @@ package org.hisp.dhis.user;
 
 import java.util.HashSet;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
@@ -48,7 +49,9 @@ public class UserRoleDeletionHandler extends IdObjectDeletionHandler<UserRole> {
   }
 
   private void deleteUser(User user) {
-    userRoleStore.removeUserRoleMembershipsByUserViaSQL(user.getUID());
+    UID currentUserUid = UID.of(CurrentUserUtil.getCurrentUserDetails().getUid());
+    userRoleStore.updateLastUpdatedForUserRolesViaSQL(user.getUID(), currentUserUid);
+    userRoleStore.removeAllMembershipsViaSQL(user.getUID());
     user.setUserRoles(new HashSet<>());
   }
 }

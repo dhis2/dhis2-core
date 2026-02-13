@@ -47,13 +47,23 @@ public interface UserRoleStore extends IdentifiableObjectStore<UserRole> {
   int countDataSetUserRoles(DataSet dataSet);
 
   /**
+   * Adds a user to a user role directly via SQL, without loading the members collection. This
+   * avoids loading all members (potentially 100K+) just to add one user.
+   *
+   * @param userRoleUid the UID of the user role
+   * @param userUid the UID of the user to add
+   * @return true if the membership was added, false if user was already a member
+   */
+  boolean addMemberViaSQL(@Nonnull UID userRoleUid, @Nonnull UID userUid);
+
+  /**
    * Removes a user from a user role directly via SQL, without loading the members collection. This
    * avoids loading all members (potentially 100K+) just to remove one user.
    *
    * @param userRoleUid the UID of the user role
    * @param userUid the UID of the user to remove
    */
-  void removeMemberViaSQL(@Nonnull UID userRoleUid, @Nonnull UID userUid);
+  boolean removeMemberViaSQL(@Nonnull UID userRoleUid, @Nonnull UID userUid);
 
   /**
    * Removes all user role memberships for a user directly via SQL. This avoids loading UserRole
@@ -61,5 +71,24 @@ public interface UserRoleStore extends IdentifiableObjectStore<UserRole> {
    *
    * @param userUid the UID of the user whose role memberships should be removed
    */
-  void removeUserRoleMembershipsByUserViaSQL(@Nonnull UID userUid);
+  void removeAllMembershipsViaSQL(@Nonnull UID userUid);
+
+  /**
+   * Updates the lastUpdated timestamp and lastUpdatedBy user for a user role directly via SQL. This
+   * avoids loading the entity through Hibernate which can trigger lazy initialization of the
+   * members collection.
+   *
+   * @param userRoleUid the UID of the user role to update
+   * @param lastUpdatedByUid the UID of the user performing the update
+   */
+  void updateLastUpdatedViaSQL(@Nonnull UID userRoleUid, @Nonnull UID lastUpdatedByUid);
+
+  /**
+   * Updates the lastUpdated timestamp and lastUpdatedBy user for all user roles that the given user
+   * belongs to, directly via SQL.
+   *
+   * @param userUid the UID of the user whose roles should be updated
+   * @param lastUpdatedByUid the UID of the user performing the update
+   */
+  void updateLastUpdatedForUserRolesViaSQL(@Nonnull UID userUid, @Nonnull UID lastUpdatedByUid);
 }
