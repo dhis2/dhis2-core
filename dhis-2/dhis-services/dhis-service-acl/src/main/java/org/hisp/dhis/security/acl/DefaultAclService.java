@@ -554,11 +554,6 @@ public class DefaultAclService implements AclService {
   }
 
   @Override
-  public <T extends IdentifiableObject> List<ErrorReport> verifySharing(T object, User user) {
-    return verifySharing(object, UserDetails.fromUser(user));
-  }
-
-  @Override
   public <T extends IdentifiableObject> List<ErrorReport> verifySharing(
       T object, @Nonnull UserDetails userDetails) {
     List<ErrorReport> errorReports = new ArrayList<>();

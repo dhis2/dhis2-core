@@ -73,18 +73,14 @@ public interface UserDetails
   }
 
   /**
-   * Create UserDetails from User
-   *
-   * <p>TODO MAS: This is a workaround and usually indicated a design flaw, and that we should
-   * refactor // to use UserDetails higher up in the layers.
+   * Create UserDetails from a User. This method should be avoided if possible. Always prefer using
+   * CurrentUserUtil.getCurrentUser() over fetching the currnt user from the DB.
    *
    * @param user user to convert
    * @return UserDetails
    */
   @CheckForNull
   static UserDetails fromUser(@CheckForNull User user) {
-    // TODO check in session if a UserDetails for the user already exists (if the user is the
-    // current user)
     if (user == null) {
       return null;
     }
