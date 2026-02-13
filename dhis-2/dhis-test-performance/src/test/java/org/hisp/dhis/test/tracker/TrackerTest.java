@@ -589,7 +589,6 @@ public class TrackerTest extends Simulation {
             new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 27)),
             "Get all enrollments",
             "Get a list of TEs");
-        );
     Request getRelationshipsForTrackedEntity =
         new Request(
             relationshipForTrackedEntityUrl,
