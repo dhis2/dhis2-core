@@ -40,6 +40,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -95,6 +96,10 @@ public class CategoryOptionComboService {
 
       return aoc;
     }
+  }
+
+  public CategoryOptionCombo getAttributeOptionCombo(UID uid) {
+    return categoryService.getCategoryOptionCombo(uid.getValue());
   }
 
   private CategoryOptionCombo getAttributeOptionComboInternal(

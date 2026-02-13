@@ -40,6 +40,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -48,9 +49,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.acl.TrackerProgramService;
+import org.hisp.dhis.tracker.export.CategoryOptionComboService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
@@ -94,6 +97,10 @@ class EnrollmentOperationParamsMapperTest {
   @Mock private OperationsParamsValidator paramsValidator;
 
   @Mock private TrackerProgramService trackerProgramService;
+
+  @Mock private CategoryOptionComboService categoryOptionComboService;
+
+  @Mock private AclService aclService;
 
   @InjectMocks private EnrollmentOperationParamsMapper mapper;
 
@@ -194,5 +201,19 @@ class EnrollmentOperationParamsMapperTest {
     EnrollmentQueryParams params = mapper.map(operationParams, user);
 
     assertEquals(CHILDREN, params.getOrganisationUnitMode());
+  }
+
+  @Test
+  void shouldMapAttributeOptionComboWhenUserHasAccess()
+      throws ForbiddenException, BadRequestException {
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder().attributeOptionCombo(UID.of("HllvX50cXC0")).build();
+    CategoryOptionCombo combo = new CategoryOptionCombo();
+
+    when(categoryOptionComboService.getAttributeOptionCombo(UID.of("HllvX50cXC0")))
+        .thenReturn(combo);
+
+    EnrollmentQueryParams queryParams = mapper.map(operationParams, user);
+    assertEquals(combo, queryParams.getAttributeOptionCombo());
   }
 }
