@@ -219,7 +219,7 @@ public class SystemUser implements UserDetails {
 
   @Override
   public Integer getDataViewMaxOrganisationUnitLevel() {
-    return Integer.MAX_VALUE;
+    return null;
   }
 
   @Override
