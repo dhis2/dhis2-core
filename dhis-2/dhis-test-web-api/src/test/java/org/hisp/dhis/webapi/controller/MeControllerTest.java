@@ -37,13 +37,19 @@ import static org.hisp.dhis.http.HttpClientAdapter.ContentType;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePersonalAccessToken;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.http.HttpStatus.Series;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -61,6 +67,8 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -73,6 +81,8 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
   private User userA;
 
   @Autowired private ApiTokenStore apiTokenStore;
+
+  @Autowired private FileResourceService fileResourceService;
 
   @BeforeEach
   void setUp() {
@@ -315,5 +325,93 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
   void testGetTwoFactorType() {
     JsonMeDto jsonMeDto = GET("/me").content().as(JsonMeDto.class);
     assertEquals(TwoFactorType.NOT_ENABLED.toString(), jsonMeDto.getTwoFactorType());
+  }
+
+  // NOTE: ACL filtering tests for userGroups/userRoles in /api/me are in
+  // MeControllerAclTest.java which extends PostgresControllerIntegrationTestBase.
+  // These tests require PostgreSQL-specific JSON functions (jsonb_has_user_group_ids, etc.)
+  // See DHIS2-20458 for details.
+
+  @Test
+  void testRemoveAvatar() throws IOException {
+    // First, upload an avatar image
+    File file = new ClassPathResource("file/dhis2.png").getFile();
+    MockMultipartFile image =
+        new MockMultipartFile("file", "dhis2.png", "image/png", Files.readAllBytes(file.toPath()));
+    HttpResponse uploadResponse = POST_MULTIPART("/fileResources?domain=USER_AVATAR", image);
+    JsonObject savedObject =
+        uploadResponse.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
+    String fileResourceId = savedObject.getString("id").string();
+
+    // Set the avatar on the current user
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User user = userService.getUserByUsername(currentUsername);
+    FileResource fileResource = fileResourceService.getFileResource(fileResourceId);
+    user.setAvatar(fileResource);
+    userService.updateUser(user);
+
+    // Verify avatar is set
+    User userWithAvatar = userService.getUserByUsername(currentUsername);
+    assertNotNull(userWithAvatar.getAvatar());
+    assertEquals(fileResourceId, userWithAvatar.getAvatar().getUid());
+
+    // Now remove the avatar
+    assertStatus(HttpStatus.NO_CONTENT, DELETE("/me/avatar"));
+
+    // Verify avatar is removed
+    User userAfterRemoval = userService.getUserByUsername(currentUsername);
+    assertNull(userAfterRemoval.getAvatar());
+
+    // Verify file resource is marked as unassigned
+    FileResource fileResourceAfterRemoval = fileResourceService.getFileResource(fileResourceId);
+    assertFalse(fileResourceAfterRemoval.isAssigned());
+  }
+
+  @Test
+  void testRemoveAvatar_NoExistingAvatar() {
+    // Verify user has no avatar
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User user = userService.getUserByUsername(currentUsername);
+    assertNull(user.getAvatar());
+
+    // Removing avatar when there is none should succeed (idempotent operation)
+    assertStatus(HttpStatus.NO_CONTENT, DELETE("/me/avatar"));
+
+    // Verify still no avatar
+    User userAfter = userService.getUserByUsername(currentUsername);
+    assertNull(userAfter.getAvatar());
+  }
+
+  @Test
+  void testRemoveAvatar_WithoutSpecialAuthorities() throws IOException {
+    // Switch to a user without special authorities (simulating a guest user)
+    switchToNewUser("guestUser");
+
+    // First, upload an avatar image
+    File file = new ClassPathResource("file/dhis2.png").getFile();
+    MockMultipartFile image =
+        new MockMultipartFile("file", "dhis2.png", "image/png", Files.readAllBytes(file.toPath()));
+    HttpResponse uploadResponse = POST_MULTIPART("/fileResources?domain=USER_AVATAR", image);
+    JsonObject savedObject =
+        uploadResponse.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
+    String fileResourceId = savedObject.getString("id").string();
+
+    // Set the avatar on the current user
+    String currentUsername = CurrentUserUtil.getCurrentUsername();
+    User user = userService.getUserByUsername(currentUsername);
+    FileResource fileResource = fileResourceService.getFileResource(fileResourceId);
+    user.setAvatar(fileResource);
+    userService.updateUser(user);
+
+    // Verify avatar is set
+    User userWithAvatar = userService.getUserByUsername(currentUsername);
+    assertNotNull(userWithAvatar.getAvatar());
+
+    // Remove the avatar - this should work even without special authorities
+    assertStatus(HttpStatus.NO_CONTENT, DELETE("/me/avatar"));
+
+    // Verify avatar is removed
+    User userAfterRemoval = userService.getUserByUsername(currentUsername);
+    assertNull(userAfterRemoval.getAvatar());
   }
 }

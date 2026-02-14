@@ -53,7 +53,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
@@ -63,6 +62,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.dataelement.DataElement;
@@ -1671,7 +1671,7 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
     String instructionTranslated = "Validation rule instruction translated";
     Set<Translation> listObjectTranslation = new HashSet<>(rule.getTranslations());
     listObjectTranslation.add(
-        new Translation(locale.getLanguage(), "INSTRUCTION", instructionTranslated));
+        new Translation(locale.language(), "INSTRUCTION", instructionTranslated));
     identifiableObjectManager.updateTranslations(rule, listObjectTranslation);
     assertEquals(instructionTranslated, rule.getDisplayInstruction());
   }

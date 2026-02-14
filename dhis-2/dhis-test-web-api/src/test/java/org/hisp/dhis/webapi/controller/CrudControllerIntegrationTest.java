@@ -34,8 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Locale;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;

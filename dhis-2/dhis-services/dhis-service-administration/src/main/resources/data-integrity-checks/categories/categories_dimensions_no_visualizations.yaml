@@ -26,7 +26,7 @@
 #
 ---
 name: categories_dimensions_no_visualizations
-description: Categories which are enabled as a data dimension but which have no associated visualizations.
+description: Categories which are enabled as a data dimension but which have no associated visualizations
 section: Categories
 summary_sql: >-
   select

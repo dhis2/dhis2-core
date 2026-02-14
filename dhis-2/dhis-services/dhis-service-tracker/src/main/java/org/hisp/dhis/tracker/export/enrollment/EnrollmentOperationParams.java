@@ -93,8 +93,8 @@ public class EnrollmentOperationParams {
   /** Tracked entity type of the tracked entity in the response. */
   private final UID trackedEntityType;
 
-  /** Tracked entity. */
-  private final UID trackedEntity;
+  /** Set of tracked entity uids to explicitly select. */
+  @Builder.Default private final Set<UID> trackedEntities = new HashSet<>();
 
   /** Indicates whether to include soft-deleted enrollments */
   private final boolean includeDeleted;
@@ -125,16 +125,6 @@ public class EnrollmentOperationParams {
 
     public EnrollmentOperationParamsBuilder trackedEntityType(TrackedEntityType trackedEntityType) {
       this.trackedEntityType = UID.of(trackedEntityType);
-      return this;
-    }
-
-    public EnrollmentOperationParamsBuilder trackedEntity(UID uid) {
-      this.trackedEntity = uid;
-      return this;
-    }
-
-    public EnrollmentOperationParamsBuilder trackedEntity(TrackedEntity trackedEntity) {
-      this.trackedEntity = UID.of(trackedEntity);
       return this;
     }
 
@@ -169,6 +159,18 @@ public class EnrollmentOperationParams {
     public EnrollmentOperationParamsBuilder enrollments(Enrollment... enrollments) {
       this.enrollments$value = UID.of(enrollments);
       this.enrollments$set = true;
+      return this;
+    }
+
+    public EnrollmentOperationParamsBuilder trackedEntities(Set<UID> uids) {
+      this.trackedEntities$value = uids;
+      this.trackedEntities$set = true;
+      return this;
+    }
+
+    public EnrollmentOperationParamsBuilder trackedEntities(TrackedEntity... trackedEntities) {
+      this.trackedEntities$value = UID.of(trackedEntities);
+      this.trackedEntities$set = true;
       return this;
     }
   }

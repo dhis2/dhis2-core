@@ -45,6 +45,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -87,6 +88,8 @@ import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -99,6 +102,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -174,12 +178,25 @@ public class MeController {
     List<String> programs =
         programService.getCurrentUserPrograms().stream().map(IdentifiableObject::getUid).toList();
 
+    UserDetails userDetails = UserDetails.fromUser(user);
+
     List<String> dataSets =
-        dataSetService.getUserDataRead(UserDetails.fromUser(user)).stream()
+        dataSetService.getUserDataRead(userDetails).stream()
             .map(IdentifiableObject::getUid)
             .toList();
 
     List<ApiToken> patTokens = apiTokenService.getAllOwning(user);
+
+    // Filter userGroups and userRoles based on ACL read access
+    Set<UserGroup> filteredUserGroups =
+        user.getGroups().stream()
+            .filter(group -> aclService.canRead(userDetails, group))
+            .collect(Collectors.toSet());
+
+    Set<UserRole> filteredUserRoles =
+        user.getUserRoles().stream()
+            .filter(role -> aclService.canRead(userDetails, role))
+            .collect(Collectors.toSet());
 
     Set<String> settingKeys =
         fields.stream()
@@ -190,7 +207,8 @@ public class MeController {
     UserSettings settings = UserSettings.getCurrentSettings();
     JsonMap<JsonMixed> s =
         settingKeys.isEmpty() ? settings.toJson(false) : settings.toJson(true, settingKeys);
-    MeDto meDto = new MeDto(user, s, programs, dataSets, patTokens);
+    MeDto meDto =
+        new MeDto(user, s, programs, dataSets, patTokens, filteredUserGroups, filteredUserRoles);
     determineUserImpersonation(meDto);
 
     ObjectNode jsonNodes = fieldFilterService.toObjectNodes(of(meDto, fields)).get(0);
@@ -248,7 +266,8 @@ public class MeController {
         && user.getEmail() != null
         && !currentUser.getVerifiedEmail().equals(user.getEmail())) {
       throw new ConflictException(
-          "Email address cannot be changed, when email-based 2FA is enabled, please disable 2FA first");
+          "Email address cannot be changed, when email-based 2FA is enabled, please disable 2FA"
+              + " first");
     }
 
     merge(currentUser, user);
@@ -274,6 +293,31 @@ public class MeController {
         NodeUtils.createRootNode(collectionNode.getChildren().get(0)),
         APPLICATION_JSON_VALUE,
         response.getOutputStream());
+  }
+
+  /**
+   * Removes the avatar (profile picture) for the current user. This endpoint allows users to remove
+   * their profile picture without requiring special authorities to access the /users endpoint.
+   *
+   * @param currentUser the currently authenticated user
+   */
+  @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
+  @DeleteMapping(value = "/avatar")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void removeAvatar(@CurrentUser(required = true) User currentUser) {
+    FileResource avatar = currentUser.getAvatar();
+
+    if (avatar != null) {
+      // Mark the file resource as unassigned so it can be cleaned up
+      FileResource fileResource = fileResourceService.getFileResource(avatar.getUid());
+      if (fileResource != null) {
+        fileResource.setAssigned(false);
+        fileResourceService.updateFileResource(fileResource);
+      }
+
+      currentUser.setAvatar(null);
+      manager.update(currentUser);
+    }
   }
 
   @GetMapping(

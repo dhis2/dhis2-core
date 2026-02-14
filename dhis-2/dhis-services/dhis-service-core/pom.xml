@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.42.4-SNAPSHOT</version>
+    <version>2.42.5-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-service-core</artifactId>
@@ -113,12 +113,12 @@
     <dependency>
       <groupId>io.projectreactor</groupId>
       <artifactId>reactor-core</artifactId>
-      <version>3.8.1</version>
+      <version>3.7.6</version>
     </dependency>
     <dependency>
       <groupId>io.projectreactor.netty</groupId>
       <artifactId>reactor-netty-http</artifactId>
-      <version>1.3.1</version>
+      <version>1.2.8</version>
     </dependency>
     <dependency>
       <groupId>org.reactivestreams</groupId>

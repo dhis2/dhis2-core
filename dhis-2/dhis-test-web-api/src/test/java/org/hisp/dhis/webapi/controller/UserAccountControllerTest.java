@@ -315,6 +315,40 @@ class UserAccountControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("Self registration succeeds with single character first name")
+  void selfRegSingleCharFirstName() {
+    disableRecaptcha();
+    enableSelfRegistration();
+
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "Account created",
+        POST(
+                "/auth/registration",
+                renderService.toJsonAsString(getRegParamsWithFirstName("A", RegType.SELF_REG)))
+            .content(HttpStatus.CREATED));
+  }
+
+  @Test
+  @DisplayName("Self registration succeeds with single character surname")
+  void selfRegSingleCharSurname() {
+    disableRecaptcha();
+    enableSelfRegistration();
+
+    assertWebMessage(
+        "Created",
+        201,
+        "OK",
+        "Account created",
+        POST(
+                "/auth/registration",
+                renderService.toJsonAsString(getRegParamsWithSurname("A", RegType.SELF_REG)))
+            .content(HttpStatus.CREATED));
+  }
+
+  @Test
   @DisplayName("Self registration error when surname null")
   void selfRegSurnameNull() {
     disableRecaptcha();

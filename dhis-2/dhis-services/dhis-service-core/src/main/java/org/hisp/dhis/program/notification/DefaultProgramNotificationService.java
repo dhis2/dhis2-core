@@ -80,7 +80,6 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -177,9 +176,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Eve
         "Fetching and filtering ProgramStageNotification messages scheduled by program rules");
 
     ProgramNotificationInstanceParam param =
-        ProgramNotificationInstanceParam.builder()
-            .scheduledAt(DateUtils.removeTimeStamp(new Date()))
-            .build();
+        ProgramNotificationInstanceParam.builder().scheduledAt(new Date()).build();
 
     List<NotificationInstanceWithTemplate> instancesWithTemplates =
         progress.runStage(

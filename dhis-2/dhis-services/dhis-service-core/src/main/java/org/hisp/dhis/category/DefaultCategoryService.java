@@ -423,7 +423,11 @@ public class DefaultCategoryService implements CategoryService {
   @Override
   @Transactional(readOnly = true)
   public void validate(CategoryOptionCombo combo) throws ConflictException {
-    validate(combo.getCategoryCombo());
+    CategoryCombo categoryCombo = combo.getCategoryCombo();
+    if (categoryCombo == null) {
+      throw new ConflictException(ErrorCode.E1133, combo.getUid());
+    }
+    validate(categoryCombo);
   }
 
   @Override

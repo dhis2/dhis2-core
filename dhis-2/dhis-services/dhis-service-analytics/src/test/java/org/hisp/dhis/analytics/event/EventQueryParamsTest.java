@@ -42,12 +42,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DateRange;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.ValueType;

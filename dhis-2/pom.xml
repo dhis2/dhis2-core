@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.hisp.dhis</groupId>
   <artifactId>dhis</artifactId>
-  <version>2.42.4-SNAPSHOT</version>
+  <version>2.42.5-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>DHIS2</name>
 
@@ -173,7 +173,7 @@
     <jts.version>1.20.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis-jakarta.version>2.42.0</artemis-jakarta.version>
+    <artemis-jakarta.version>2.44.0</artemis-jakarta.version>
     <netty-all.version>4.2.1.Final</netty-all.version>
     <classgraph.version>4.8.184</classgraph.version>
 
