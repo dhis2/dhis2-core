@@ -74,6 +74,14 @@ public interface UserRoleStore extends IdentifiableObjectStore<UserRole> {
   void removeAllMembershipsViaSQL(@Nonnull UID userUid);
 
   /**
+   * Removes all user memberships for a user role directly via SQL. Used when deleting a user role
+   * to avoid loading all member User entities.
+   *
+   * @param userRoleUid the UID of the user role whose memberships should be removed
+   */
+  void removeAllMembershipsForRoleViaSQL(@Nonnull UID userRoleUid);
+
+  /**
    * Updates the lastUpdated timestamp and lastUpdatedBy user for a user role directly via SQL. This
    * avoids loading the entity through Hibernate which can trigger lazy initialization of the
    * members collection.

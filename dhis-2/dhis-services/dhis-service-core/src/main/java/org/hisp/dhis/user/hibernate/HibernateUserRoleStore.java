@@ -105,6 +105,16 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
   }
 
   @Override
+  public void removeAllMembershipsForRoleViaSQL(@Nonnull UID userRoleUid) {
+    String sql =
+        """
+        DELETE FROM userrolemembers
+        WHERE userroleid = (SELECT userroleid FROM userrole WHERE uid = ?)
+        """;
+    jdbcTemplate.update(sql, userRoleUid.getValue());
+  }
+
+  @Override
   public void updateLastUpdatedViaSQL(@Nonnull UID userRoleUid, @Nonnull UID lastUpdatedByUid) {
     String sql =
         """
