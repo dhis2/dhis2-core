@@ -2428,7 +2428,6 @@ public abstract class TestBase {
     User user = makeUser(getNextUniqueChar());
     user.setUsername(username);
     user.getUserRoles().add(group);
-    group.getMembers().add(user);
 
     if (organisationUnits != null) {
       user.setOrganisationUnits(organisationUnits);
@@ -2443,6 +2442,9 @@ public abstract class TestBase {
     }
 
     userService.addUser(user);
+
+    group.getMembers().add(user);
+    userService.updateUserRole(group);
 
     injectSecurityContextUser(user);
 
@@ -2482,7 +2484,6 @@ public abstract class TestBase {
     user.setUsername(username);
     user.setOpenId(openIDIdentifier);
     user.getUserRoles().add(userRole);
-    userRole.getMembers().add(user);
 
     if (!Strings.isNullOrEmpty(openIDIdentifier)) {
       user.setOpenId(openIDIdentifier);
@@ -2492,6 +2493,9 @@ public abstract class TestBase {
     userService.encodeAndSetPassword(user, DEFAULT_ADMIN_PASSWORD);
 
     userService.addUser(user);
+
+    userRole.getMembers().add(user);
+    userService.updateUserRole(userRole);
 
     return user;
   }
@@ -2524,7 +2528,6 @@ public abstract class TestBase {
     user.setUsername(username);
     user.setPassword(password);
     user.getUserRoles().add(role);
-    role.getMembers().add(user);
 
     user.setCreatedBy(user);
     role.setCreatedBy(user);
@@ -2534,6 +2537,9 @@ public abstract class TestBase {
     userService.updateUser(user);
 
     userService.addUserRole(role);
+
+    role.getMembers().add(user);
+    userService.updateUserRole(role);
 
     return user;
   }
@@ -2665,12 +2671,14 @@ public abstract class TestBase {
   }
 
   protected final User addUser(String uniqueCharacter, UserRole... roles) {
-    return addUser(
-        uniqueCharacter,
-        user -> {
-          user.getUserRoles().addAll(asList(roles));
-          for (UserRole role : roles) role.getMembers().add(user);
-        });
+    User user =
+        addUser(
+            uniqueCharacter, u -> u.getUserRoles().addAll(asList(roles)));
+    for (UserRole role : roles) {
+      role.getMembers().add(user);
+      userService.updateUserRole(role);
+    }
+    return user;
   }
 
   protected final User addUser(String uniqueCharacter, Consumer<User> consumer) {
@@ -2698,11 +2706,15 @@ public abstract class TestBase {
   private User persistUserAndRoles(User user) {
     for (UserRole role : user.getUserRoles()) {
       role.setName(CodeGenerator.generateUid());
-      role.getMembers().add(user);
       userService.addUserRole(role);
     }
 
     userService.addUser(user);
+
+    for (UserRole role : user.getUserRoles()) {
+      role.getMembers().add(user);
+      userService.updateUserRole(role);
+    }
 
     return user;
   }
@@ -2798,7 +2810,6 @@ public abstract class TestBase {
     User user = new User();
     user.setUsername(username);
     user.getUserRoles().add(userRole);
-    userRole.getMembers().add(user);
     user.setFirstName("First name");
     user.setSurname("Last name");
     user.setOrganisationUnits(organisationUnits);
@@ -2828,7 +2839,6 @@ public abstract class TestBase {
     user.setUsername(DEFAULT_USERNAME);
     user.setPassword(DEFAULT_ADMIN_PASSWORD);
     user.getUserRoles().add(role);
-    role.getMembers().add(user);
 
     user.setCreatedBy(user);
     role.setCreatedBy(user);
@@ -2845,6 +2855,11 @@ public abstract class TestBase {
     userService.addUser(user);
 
     user.getUserRoles().forEach(userRole -> userService.addUserRole(userRole));
+
+    for (UserRole userRole : user.getUserRoles()) {
+      userRole.getMembers().add(user);
+      userService.updateUserRole(userRole);
+    }
 
     userService.encodeAndSetPassword(user, user.getPassword());
     userService.updateUser(user);
@@ -2942,6 +2957,7 @@ public abstract class TestBase {
     user.setCreated(new Date());
 
     entityManager.persist(user);
+    entityManager.flush();
 
     return user;
   }

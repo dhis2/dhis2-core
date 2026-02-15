@@ -37,6 +37,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserRoleStore;
 import org.springframework.context.ApplicationEventPublisher;
@@ -69,18 +70,28 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
 
   @Override
   public boolean addMemberViaSQL(@Nonnull UID userRoleUid, @Nonnull UID userUid) {
+    getSession().flush();
     String sql =
         """
         INSERT INTO userrolemembers (userroleid, userid)
         SELECT ur.userroleid, u.userinfoid
         FROM userrole ur, userinfo u
-        WHERE ur.uid = ? AND u.uid = ?
+        WHERE ur.uid = :roleUid AND u.uid = :userUid
         AND NOT EXISTS (
           SELECT 1 FROM userrolemembers urm
           WHERE urm.userroleid = ur.userroleid AND urm.userid = u.userinfoid
         )
         """;
-    return jdbcTemplate.update(sql, userRoleUid.getValue(), userUid.getValue()) > 0;
+    int rows =
+        getSession()
+            .createNativeQuery(sql)
+            .setParameter("roleUid", userRoleUid.getValue())
+            .setParameter("userUid", userUid.getValue())
+            .executeUpdate();
+    if (rows > 0) {
+      evictUserRolesCollectionCache(userUid);
+    }
+    return rows > 0;
   }
 
   @Override
@@ -91,7 +102,11 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
         WHERE userroleid = (SELECT userroleid FROM userrole WHERE uid = ?)
         AND userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
         """;
-    return jdbcTemplate.update(sql, userRoleUid.getValue(), userUid.getValue()) > 0;
+    boolean removed = jdbcTemplate.update(sql, userRoleUid.getValue(), userUid.getValue()) > 0;
+    if (removed) {
+      evictUserRolesCollectionCache(userUid);
+    }
+    return removed;
   }
 
   @Override
@@ -102,6 +117,7 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
         WHERE userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
         """;
     jdbcTemplate.update(sql, userUid.getValue());
+    evictUserRolesCollectionCache(userUid);
   }
 
   @Override
@@ -145,6 +161,18 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
 
     for (String roleUid : roleUids) {
       updateLastUpdatedViaSQL(UID.of(roleUid), lastUpdatedByUid);
+    }
+  }
+
+  private void evictUserRolesCollectionCache(@Nonnull UID userUid) {
+    Long userId =
+        jdbcTemplate.queryForObject(
+            "SELECT userinfoid FROM userinfo WHERE uid = ?", Long.class, userUid.getValue());
+    if (userId != null) {
+      getSession()
+          .getSessionFactory()
+          .getCache()
+          .evictCollectionData(User.class.getName() + ".userRoles", userId);
     }
   }
 }

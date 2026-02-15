@@ -722,15 +722,15 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
     // Create users with different display names
     org.hisp.dhis.user.User userAlice =
         createUserAndRole("Alice", "Smith", false, "alice2", Set.of(), Set.of());
-    userService.addUser(userAlice);
+    saveUserWithRoles(userAlice);
     assertEquals("Alice Smith", userAlice.getDisplayName());
 
     org.hisp.dhis.user.User userZoe =
         createUserAndRole("Zoe", "Johnson", false, "zoe2", Set.of(), Set.of());
-    userService.addUser(userZoe);
+    saveUserWithRoles(userZoe);
     org.hisp.dhis.user.User userBob =
         createUserAndRole("Bob", "Wilson", false, "bob2", Set.of(), Set.of());
-    userService.addUser(userBob);
+    saveUserWithRoles(userBob);
 
     // Query users ordered by displayName descending
     JsonList<JsonUser> users =
@@ -762,7 +762,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   void testDisplayNameFieldInResponse() {
     // Create a user
     User testUser = createUserAndRole("Test", "User", false, "testuser", Set.of(), Set.of());
-    userService.addUser(testUser);
+    saveUserWithRoles(testUser);
     // Query the user and verify displayName field is returned
     JsonUser user =
         GET("/users/{id}?fields=displayName,id", testUser.getUid())
@@ -822,6 +822,14 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
             .size());
   }
 
+  private void saveUserWithRoles(User user) {
+    userService.addUser(user);
+    for (UserRole role : user.getUserRoles()) {
+      role.getMembers().add(user);
+      userService.updateUserRole(role);
+    }
+  }
+
   private User createUserAndRole(
       String firstName,
       String lastName,
@@ -837,11 +845,11 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
     if (superUserFlag) {
       userRole.getAuthorities().add("ALL");
     }
+    userService.addUserRole(userRole);
 
     User user = new User();
     user.setUsername(username);
     user.getUserRoles().add(userRole);
-    userRole.getMembers().add(user);
     user.setFirstName(firstName);
     user.setSurname(lastName);
     user.setOrganisationUnits(organisationUnits);

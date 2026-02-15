@@ -105,6 +105,7 @@ public class DefaultUserAccountService implements UserAccountService {
 
     userService.encodeAndSetPassword(user, params.getPassword());
     user.setSelfRegistered(true);
+    user.getUserRoles().add(userRole);
 
     userService.addUser(user, new SystemUser());
 

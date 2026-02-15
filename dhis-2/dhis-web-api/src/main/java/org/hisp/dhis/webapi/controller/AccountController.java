@@ -414,6 +414,7 @@ public class AccountController {
     userService.encodeAndSetPassword(user, userRegistration.getPassword());
 
     user.setSelfRegistered(true);
+    user.getUserRoles().add(userRole);
 
     userService.addUser(user, new SystemUser());
 

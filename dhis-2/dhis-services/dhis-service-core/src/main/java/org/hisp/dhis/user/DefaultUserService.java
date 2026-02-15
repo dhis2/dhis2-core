@@ -561,6 +561,12 @@ public class DefaultUserService implements UserService {
   }
 
   @Override
+  @Transactional
+  public void addUserToRole(UID roleUid, UID userUid) {
+    userRoleStore.addMemberViaSQL(roleUid, userUid);
+  }
+
+  @Override
   @Transactional(readOnly = true)
   public UserRole getUserRole(String uid) {
     return userRoleStore.getByUid(uid);
