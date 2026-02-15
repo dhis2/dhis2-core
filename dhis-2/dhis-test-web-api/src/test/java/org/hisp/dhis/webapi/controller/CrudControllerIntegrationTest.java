@@ -841,6 +841,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
     User user = new User();
     user.setUsername(username);
     user.getUserRoles().add(userRole);
+    userRole.getMembers().add(user);
     user.setFirstName(firstName);
     user.setSurname(lastName);
     user.setOrganisationUnits(organisationUnits);

@@ -2428,6 +2428,7 @@ public abstract class TestBase {
     User user = makeUser(getNextUniqueChar());
     user.setUsername(username);
     user.getUserRoles().add(group);
+    group.getMembers().add(user);
 
     if (organisationUnits != null) {
       user.setOrganisationUnits(organisationUnits);
@@ -2481,6 +2482,7 @@ public abstract class TestBase {
     user.setUsername(username);
     user.setOpenId(openIDIdentifier);
     user.getUserRoles().add(userRole);
+    userRole.getMembers().add(user);
 
     if (!Strings.isNullOrEmpty(openIDIdentifier)) {
       user.setOpenId(openIDIdentifier);
@@ -2522,6 +2524,7 @@ public abstract class TestBase {
     user.setUsername(username);
     user.setPassword(password);
     user.getUserRoles().add(role);
+    role.getMembers().add(user);
 
     user.setCreatedBy(user);
     role.setCreatedBy(user);
@@ -2662,7 +2665,12 @@ public abstract class TestBase {
   }
 
   protected final User addUser(String uniqueCharacter, UserRole... roles) {
-    return addUser(uniqueCharacter, user -> user.getUserRoles().addAll(asList(roles)));
+    return addUser(
+        uniqueCharacter,
+        user -> {
+          user.getUserRoles().addAll(asList(roles));
+          for (UserRole role : roles) role.getMembers().add(user);
+        });
   }
 
   protected final User addUser(String uniqueCharacter, Consumer<User> consumer) {
@@ -2690,6 +2698,7 @@ public abstract class TestBase {
   private User persistUserAndRoles(User user) {
     for (UserRole role : user.getUserRoles()) {
       role.setName(CodeGenerator.generateUid());
+      role.getMembers().add(user);
       userService.addUserRole(role);
     }
 
@@ -2789,6 +2798,7 @@ public abstract class TestBase {
     User user = new User();
     user.setUsername(username);
     user.getUserRoles().add(userRole);
+    userRole.getMembers().add(user);
     user.setFirstName("First name");
     user.setSurname("Last name");
     user.setOrganisationUnits(organisationUnits);
@@ -2818,6 +2828,7 @@ public abstract class TestBase {
     user.setUsername(DEFAULT_USERNAME);
     user.setPassword(DEFAULT_ADMIN_PASSWORD);
     user.getUserRoles().add(role);
+    role.getMembers().add(user);
 
     user.setCreatedBy(user);
     role.setCreatedBy(user);
@@ -2926,6 +2937,7 @@ public abstract class TestBase {
     user.setUsername(DEFAULT_USERNAME + "_test_" + CodeGenerator.generateUid());
     user.setPassword(DEFAULT_ADMIN_PASSWORD);
     user.getUserRoles().add(role);
+    role.getMembers().add(user);
     user.setLastUpdated(new Date());
     user.setCreated(new Date());
 
