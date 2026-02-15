@@ -563,7 +563,12 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public void addUserToRole(UID roleUid, UID userUid) {
-    userRoleStore.addMemberViaSQL(roleUid, userUid);
+    UserRole role = userRoleStore.getByUid(roleUid.getValue());
+    User user = userStore.getByUid(userUid.getValue());
+    if (role != null && user != null) {
+      role.getMembers().add(user);
+      entityManager.flush();
+    }
   }
 
   @Override

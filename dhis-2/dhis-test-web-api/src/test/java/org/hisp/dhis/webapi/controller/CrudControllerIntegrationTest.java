@@ -44,6 +44,7 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.Locale;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
@@ -825,8 +826,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   private void saveUserWithRoles(User user) {
     userService.addUser(user);
     for (UserRole role : user.getUserRoles()) {
-      role.getMembers().add(user);
-      userService.updateUserRole(role);
+      userService.addUserToRole(UID.of(role.getUid()), UID.of(user.getUid()));
     }
   }
 

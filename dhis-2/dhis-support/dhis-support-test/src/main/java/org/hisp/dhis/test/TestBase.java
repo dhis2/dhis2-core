@@ -83,6 +83,7 @@ import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -2443,8 +2444,7 @@ public abstract class TestBase {
 
     userService.addUser(user);
 
-    group.getMembers().add(user);
-    userService.updateUserRole(group);
+    userService.addUserToRole(UID.of(group.getUid()), UID.of(user.getUid()));
 
     injectSecurityContextUser(user);
 
@@ -2494,8 +2494,7 @@ public abstract class TestBase {
 
     userService.addUser(user);
 
-    userRole.getMembers().add(user);
-    userService.updateUserRole(userRole);
+    userService.addUserToRole(UID.of(userRole.getUid()), UID.of(user.getUid()));
 
     return user;
   }
@@ -2538,8 +2537,7 @@ public abstract class TestBase {
 
     userService.addUserRole(role);
 
-    role.getMembers().add(user);
-    userService.updateUserRole(role);
+    userService.addUserToRole(UID.of(role.getUid()), UID.of(user.getUid()));
 
     return user;
   }
@@ -2675,8 +2673,7 @@ public abstract class TestBase {
         addUser(
             uniqueCharacter, u -> u.getUserRoles().addAll(asList(roles)));
     for (UserRole role : roles) {
-      role.getMembers().add(user);
-      userService.updateUserRole(role);
+      userService.addUserToRole(UID.of(role.getUid()), UID.of(user.getUid()));
     }
     return user;
   }
@@ -2712,8 +2709,7 @@ public abstract class TestBase {
     userService.addUser(user);
 
     for (UserRole role : user.getUserRoles()) {
-      role.getMembers().add(user);
-      userService.updateUserRole(role);
+      userService.addUserToRole(UID.of(role.getUid()), UID.of(user.getUid()));
     }
 
     return user;
@@ -2857,8 +2853,7 @@ public abstract class TestBase {
     user.getUserRoles().forEach(userRole -> userService.addUserRole(userRole));
 
     for (UserRole userRole : user.getUserRoles()) {
-      userRole.getMembers().add(user);
-      userService.updateUserRole(userRole);
+      userService.addUserToRole(UID.of(userRole.getUid()), UID.of(user.getUid()));
     }
 
     userService.encodeAndSetPassword(user, user.getPassword());
