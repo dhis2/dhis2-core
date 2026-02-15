@@ -249,20 +249,32 @@ class DataValueSetControllerTest extends PostgresControllerIntegrationTestBase {
                 dsId)
             .content(HttpStatus.OK);
     assertTrue(ds.isObject());
+    assertEquals("default", ds.getString("attributeOptionCombo").string());
     JsonArray values = ds.getArray("dataValues");
     assertEquals(1, values.size());
     JsonObject dv0 = values.getObject(0);
     assertEquals("My data element", dv0.getString("dataElement").string());
     assertEquals("10", dv0.getString("value").string());
     assertEquals("My Child Unit", ds.getString("orgUnit").string());
-    assertNull(
-        dv0.getString("categoryOptionCombo").string(), "default COC should given as undefined");
-    assertNull(
-        dv0.getString("attributeOptionCombo").string(), "default AOC should given as undefined");
+    assertEquals("default", dv0.getString("categoryOptionCombo").string());
+    assertNull(dv0.getString("attributeOptionCombo").string(), "AOC is defined in DS");
     assertEquals("admin", dv0.getString("storedBy").string());
     // Confirm that the created and lastUpdated fields are timestamp-ish
     assertTrue(dv0.getString("created").string().matches(timestampPattern));
     assertTrue(dv0.getString("lastUpdated").string().matches(timestampPattern));
+
+    ds =
+        GET(
+                "/dataValueSets/?inputOrgUnitIdScheme=code&idScheme=name&orgUnit={ou}&period=202201&dataSet={ds}&children=true&excludeDefaultCoc=true&excludeDefaultAoc=true",
+                "OU1",
+                dsId)
+            .content(HttpStatus.OK);
+
+    dv0 = ds.getArray("dataValues").getObject(0);
+    assertNull(
+        dv0.getString("categoryOptionCombo").string(), "default COC should given as undefined");
+    assertNull(
+        dv0.getString("attributeOptionCombo").string(), "default AOC should given as undefined");
   }
 
   @Test

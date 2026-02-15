@@ -139,7 +139,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     assertNotNull(dvA.created());
     assertEquals(ouA.getUid(), dvA.orgUnit().getValue());
     assertEquals(deA.getUid(), dvA.dataElement().getValue());
-    assertEquals(peA.getIsoDate(), dvA.period());
+    assertEquals(peA.getIsoDate(), dvA.period().getIsoDate());
     assertEquals("1", dvA.value());
     DataExportValue dvB =
         dataExportService.exportValue(new DataEntryKey(deB, peA, ouA, optionCombo, optionCombo));
@@ -147,7 +147,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     assertNotNull(dvB.created());
     assertEquals(ouA.getUid(), dvB.orgUnit().getValue());
     assertEquals(deB.getUid(), dvB.dataElement().getValue());
-    assertEquals(peA.getIsoDate(), dvB.period());
+    assertEquals(peA.getIsoDate(), dvB.period().getIsoDate());
     assertEquals("2", dvB.value());
     DataExportValue dvC =
         dataExportService.exportValue(new DataEntryKey(deC, peC, ouA, optionCombo, optionCombo));
@@ -155,7 +155,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     assertNotNull(dvC.created());
     assertEquals(ouA.getUid(), dvC.orgUnit().getValue());
     assertEquals(deC.getUid(), dvC.dataElement().getValue());
-    assertEquals(peC.getIsoDate(), dvC.period());
+    assertEquals(peC.getIsoDate(), dvC.period().getIsoDate());
     assertEquals("3", dvC.value());
   }
 
