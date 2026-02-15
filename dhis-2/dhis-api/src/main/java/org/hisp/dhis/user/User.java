@@ -490,9 +490,9 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
 
   /**
    * The Hibernate mapping for this collection is {@code inverse="true"} (UserRole.members is the
-   * owning side), which means Hibernate does not manage the join table through this collection. This
-   * was done to align with User↔UserGroup semantics and to prevent cascade-triggered chain loading
-   * during user deletion.
+   * owning side), which means Hibernate does not manage the join table through this collection.
+   * This was done to align with User↔UserGroup semantics and to prevent cascade-triggered chain
+   * loading during user deletion.
    *
    * <p>The {@code @Property(owner = TRUE)} override tells the DHIS2 schema/import framework to
    * still treat this as an owner property. Without it, {@code resetNonOwnerProperties()} would

@@ -83,13 +83,13 @@ import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitDescendants;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -2669,9 +2669,7 @@ public abstract class TestBase {
   }
 
   protected final User addUser(String uniqueCharacter, UserRole... roles) {
-    User user =
-        addUser(
-            uniqueCharacter, u -> u.getUserRoles().addAll(asList(roles)));
+    User user = addUser(uniqueCharacter, u -> u.getUserRoles().addAll(asList(roles)));
     for (UserRole role : roles) {
       userService.addUserToRole(UID.of(role.getUid()), UID.of(user.getUid()));
     }
