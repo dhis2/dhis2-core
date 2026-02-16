@@ -346,13 +346,12 @@ class JdbcEnrollmentStore {
       MapSqlParameterSource sqlParams,
       EnrollmentQueryParams params,
       SqlHelper hlp) {
-    sql.append(hlp.whereAnd()).append("p.type = :programType");
-    sqlParams.addValue("programType", ProgramType.WITH_REGISTRATION.name());
-
     if (params.hasEnrolledInTrackerProgram()) {
-      sql.append(hlp.whereAnd()).append("p.uid = :programUid");
-      sqlParams.addValue("programUid", params.getEnrolledInTrackerProgram().getUid());
+      sql.append(hlp.whereAnd()).append("e.programid = :programId");
+      sqlParams.addValue("programId", params.getEnrolledInTrackerProgram().getId());
     } else {
+      sql.append(hlp.whereAnd()).append("p.type = :programType");
+      sqlParams.addValue("programType", ProgramType.WITH_REGISTRATION.name());
       sql.append(" and p.programid in (:accessiblePrograms)");
       sqlParams.addValue(
           "accessiblePrograms", getIdentifiers(params.getAccessibleTrackerPrograms()));
@@ -459,7 +458,9 @@ class JdbcEnrollmentStore {
    * Builds the count query. Only includes joins needed for filtering:
    *
    * <ul>
-   *   <li>{@code program} - program type/uid filter and ownership access level check
+   *   <li>{@code program} - only when no specific program is given (needed for {@code
+   *       p.accesslevel} and {@code p.programid in (...)}). When a program is known, its conditions
+   *       are resolved in Java and the join is skipped.
    *   <li>{@code trackedentity} - needed when filtering by tracked entity UIDs or for the PROTECTED
    *       temp owner check in ownership clause
    *   <li>{@code trackedentityprogramowner} + {@code organisationunit} - ownership and org unit
@@ -477,7 +478,9 @@ class JdbcEnrollmentStore {
       EnrollmentQueryParams enrollmentParams, MapSqlParameterSource sqlParams) {
     StringBuilder sql = new StringBuilder();
     sql.append("select count(*) from enrollment e ");
-    addJoinOnProgram(sql);
+    if (!enrollmentParams.hasEnrolledInTrackerProgram()) {
+      addJoinOnProgram(sql);
+    }
     addJoinOnTrackedEntity(sql);
     addJoinOnProgramOwner(sql);
     addJoinOnOwnerOrgUnit(sql);
