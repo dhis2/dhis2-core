@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,25 +29,9 @@
  */
 package org.hisp.dhis.datavalue;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.period.Period;
-
-public interface DataEntryId {
-
-  @Nonnull
-  UID dataElement();
-
-  @Nonnull
-  UID orgUnit();
-
-  @CheckForNull
-  UID categoryOptionCombo();
-
-  @CheckForNull
-  UID attributeOptionCombo();
-
-  @Nonnull
-  Period period();
-}
+/**
+ * Data record for a usual data value key (with no attribute option combo).
+ *
+ * @author Jan Bernitt
+ */
+public record DataValueFileResourceKey(String de, String ou, long pe, String co) {}

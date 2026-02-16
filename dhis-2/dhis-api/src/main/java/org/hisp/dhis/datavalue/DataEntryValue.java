@@ -59,7 +59,7 @@ public record DataEntryValue(
     String comment,
     Boolean followUp,
     Boolean deleted)
-    implements DataEntryId {
+    implements DataValueId {
 
   public DataEntryValue {
     requireNonNull(dataElement);
@@ -83,8 +83,8 @@ public record DataEntryValue(
             true);
   }
 
-  public DataEntryKey toKey() {
-    return new DataEntryKey(
+  public DataValueKey toKey() {
+    return new DataValueKey(
         dataElement, orgUnit, categoryOptionCombo, attributeOptionCombo, period);
   }
 
@@ -160,6 +160,11 @@ public record DataEntryValue(
           comment,
           null,
           null);
+    }
+
+    public DataValueKey.Input getKey() {
+      return new DataValueKey.Input(
+          dataElement, orgUnit, categoryOptionCombo, attributeOptionCombo, period);
     }
   }
 }

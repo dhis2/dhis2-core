@@ -45,12 +45,12 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.LockStatus;
-import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.minmax.MinMaxDataElement;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
@@ -119,7 +119,7 @@ public class DataSetValueController {
     UID de = UID.of(ds.getDataElements().iterator().next());
     LockStatus lockStatus =
         dataEntryService.getEntryStatus(
-            UID.of(ds), new DataEntryKey(de, UID.of(ou), null, UID.of(aoc), pe));
+            UID.of(ds), new DataValueKey(de, UID.of(ou), null, UID.of(aoc), pe));
 
     CompleteDataSetRegistration registration =
         registrationService.getCompleteDataSetRegistration(ds, pe, ou, aoc);

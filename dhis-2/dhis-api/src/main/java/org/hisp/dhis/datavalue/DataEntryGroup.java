@@ -242,17 +242,37 @@ public record DataEntryGroup(
       if (!Objects.equals(de, other.dataElement)) de = null;
       if (!Objects.equals(ou, other.orgUnit)) ou = null;
       if (!Objects.equals(pe, other.period)) pe = null;
+      String aoc = attributeOptionCombo;
+      Map<String, String> aox = attributeOptions;
+      return new Input(ids, dataSet, completionDate, de, ou, pe, aoc, aox, deletion, merged);
+    }
+
+    public Input withIds(@CheckForNull Ids ids) {
       return new Input(
           ids,
           dataSet,
           completionDate,
-          de,
-          ou,
-          pe,
+          dataElement,
+          orgUnit,
+          period,
           attributeOptionCombo,
           attributeOptions,
           deletion,
-          merged);
+          values);
+    }
+
+    public Input withDeletion(@CheckForNull DataEntryGroup.Input.Scope deletion) {
+      return new Input(
+          ids,
+          dataSet,
+          completionDate,
+          dataElement,
+          orgUnit,
+          period,
+          attributeOptionCombo,
+          attributeOptions,
+          deletion,
+          values);
     }
   }
 

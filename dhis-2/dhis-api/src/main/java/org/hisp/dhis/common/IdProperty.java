@@ -84,6 +84,42 @@ public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId) {
     };
   }
 
+  /**
+   * Parse an ID scheme input with fallback.
+   *
+   * @param scheme the scheme to use
+   * @param orElseScheme the fallback in case the scheme is undefined
+   * @return the input as object, {@link #UID} in case both are undefined
+   */
+  @Nonnull
+  public static IdProperty of(@CheckForNull String scheme, @CheckForNull String orElseScheme) {
+    IdProperty orElse = of(orElseScheme);
+    return scheme == null ? orElse : of(scheme);
+  }
+
+  /**
+   * Parse an ID scheme input (same format as {@link IdScheme#from(String)})
+   *
+   * @param scheme user input
+   * @return the input as object, {@link UID} in case input is undefined
+   */
+  @Nonnull
+  public static IdProperty of(@CheckForNull String scheme) {
+    if (scheme == null) return UID;
+    String type = scheme.toUpperCase();
+    return switch (type) {
+      case "ID", "UID" -> UID;
+      case "CODE" -> CODE;
+      case "NAME" -> NAME;
+      default -> {
+        if (type.length() == 21 && type.startsWith("ATTRIBUTE:"))
+          yield new IdProperty(Name.ATTR, org.hisp.dhis.common.UID.of(scheme.substring(10)));
+        throw new IllegalArgumentException(
+            "Invalid ID scheme: %s\n\tUse UID, CODE, NAME, ATTRIBUTE:<uid>".formatted(scheme));
+      }
+    };
+  }
+
   public enum Name {
     UID,
     CODE,

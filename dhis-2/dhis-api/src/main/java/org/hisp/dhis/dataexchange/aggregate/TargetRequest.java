@@ -37,6 +37,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.ObjectUtils;
+import org.hisp.dhis.common.IdProperty;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataExportGroup;
 import org.hisp.dhis.importexport.ImportStrategy;
 
 @Getter
@@ -69,5 +72,37 @@ public class TargetRequest implements Serializable {
   @JsonIgnore
   public boolean isSkipAuditOrDefault() {
     return ObjectUtils.firstNonNull(skipAudit, true);
+  }
+
+  /**
+   * @return the IDs as used by data export (external exchange)
+   */
+  @JsonIgnore
+  public DataExportGroup.Ids getExportIds() {
+    IdProperty others = IdProperty.of(idScheme);
+    return new DataExportGroup.Ids(
+        others,
+        IdProperty.of(dataElementIdScheme, idScheme),
+        IdProperty.of(orgUnitIdScheme, idScheme),
+        IdProperty.of(categoryOptionComboIdScheme, idScheme),
+        IdProperty.of(categoryOptionComboIdScheme, idScheme),
+        others,
+        others);
+  }
+
+  /**
+   * @return the IDS as used by data entry (internal exchange)
+   */
+  @JsonIgnore
+  public DataEntryGroup.Ids getEntryIds() {
+    IdProperty others = IdProperty.of(idScheme);
+    return new DataEntryGroup.Ids(
+        others,
+        IdProperty.of(dataElementIdScheme, idScheme),
+        IdProperty.of(orgUnitIdScheme, idScheme),
+        IdProperty.of(categoryOptionComboIdScheme, idScheme),
+        IdProperty.of(categoryOptionComboIdScheme, idScheme),
+        others,
+        others);
   }
 }

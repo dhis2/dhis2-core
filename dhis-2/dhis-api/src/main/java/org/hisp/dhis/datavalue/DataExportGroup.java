@@ -95,6 +95,16 @@ public record DataExportGroup(
       requireNonNull(ids);
       requireNonNull(values);
     }
+
+    public Output withIds(@Nonnull Ids ids) {
+      return new Output(
+          ids, dataSet, period, orgUnit, attributeOptionCombo, attributeOptions, deletion, values);
+    }
+
+    public Output withDeletion(@CheckForNull Scope deletion) {
+      return new Output(
+          ids, dataSet, period, orgUnit, attributeOptionCombo, attributeOptions, deletion, values);
+    }
   }
 
   public record Scope(
