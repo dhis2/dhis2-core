@@ -27,45 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
+package org.hisp.dhis.period;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.tracker.model.TrackedEntity;
-import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
+import java.util.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
 
-/**
- * @author Luciano Fiandesio
- */
-public class ProgramOwnerRowCallbackHandler extends AbstractMapper<TrackedEntityProgramOwner> {
+public class FinancialAugustPeriodType extends FinancialPeriodType {
+  /** Determines if a de-serialized file is compatible with this class. */
+  private static final long serialVersionUID = 1599667482719470930L;
+
+  private static final String ISO_FORMAT = "yyyyAug";
+
+  private static final String ISO8601_DURATION = "P1Y";
 
   @Override
-  TrackedEntityProgramOwner getItem(ResultSet rs) throws SQLException {
-    return getProgramOwner(rs);
+  public int getBaseMonth() {
+    return Calendar.AUGUST;
   }
 
   @Override
-  String getKeyColumn() {
-    return "key";
+  public PeriodTypeEnum getPeriodTypeEnum() {
+    return PeriodTypeEnum.FINANCIAL_AUG;
   }
 
-  private TrackedEntityProgramOwner getProgramOwner(ResultSet rs) throws SQLException {
-    TrackedEntityProgramOwner programOwner = new TrackedEntityProgramOwner();
+  @Override
+  public String getIsoDate(DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar) {
+    return String.format("%dAug", dateTimeUnit.getYear());
+  }
 
-    OrganisationUnit orgUnit = new OrganisationUnit();
-    orgUnit.setUid(rs.getString("ouuid"));
-    programOwner.setOrganisationUnit(orgUnit);
+  @Override
+  public String getIsoFormat() {
+    return ISO_FORMAT;
+  }
 
-    Program program = new Program();
-    program.setUid(rs.getString("prguid"));
-    programOwner.setProgram(program);
-
-    TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setUid(rs.getString("key"));
-    programOwner.setTrackedEntity(trackedEntity);
-
-    return programOwner;
+  @Override
+  public String getIso8601Duration() {
+    return ISO8601_DURATION;
   }
 }

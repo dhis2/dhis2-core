@@ -27,42 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
+package org.hisp.dhis.period;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Optional;
-import java.util.function.Consumer;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
-import org.hisp.dhis.program.UserInfoSnapshot;
+import java.util.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-class JsonbToObjectHelper {
+public class FinancialFebruaryPeriodType extends FinancialPeriodType {
+  /** Determines if a de-serialized file is compatible with this class. */
+  private static final long serialVersionUID = 6913569374301327356L;
 
-  private static final ObjectMapper MAPPER;
+  private static final String ISO_FORMAT = "yyyyFeb";
 
-  static {
-    MAPPER = new ObjectMapper();
-    MAPPER.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-    MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    MAPPER.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
+  private static final String ISO8601_DURATION = "P1Y";
+
+  @Override
+  public int getBaseMonth() {
+    return Calendar.FEBRUARY;
   }
 
-  static void setUserInfoSnapshot(
-      ResultSet rs, String columnName, Consumer<UserInfoSnapshot> applier) throws SQLException {
-    Optional.ofNullable(rs.getObject(columnName))
-        .map(Object::toString)
-        .map(JsonbToObjectHelper::safelyConvert)
-        .ifPresent(applier);
+  @Override
+  public PeriodTypeEnum getPeriodTypeEnum() {
+    return PeriodTypeEnum.FINANCIAL_FEB;
   }
 
-  @SneakyThrows
-  static UserInfoSnapshot safelyConvert(String userInfoSnapshotAsString) {
-    return MAPPER.readValue(userInfoSnapshotAsString, UserInfoSnapshot.class);
+  @Override
+  public String getIsoDate(DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar) {
+    return String.format("%dFeb", dateTimeUnit.getYear());
+  }
+
+  @Override
+  public String getIsoFormat() {
+    return ISO_FORMAT;
+  }
+
+  @Override
+  public String getIso8601Duration() {
+    return ISO8601_DURATION;
   }
 }

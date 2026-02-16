@@ -244,7 +244,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     User user = createAndAddRandomUser("F_DATAELEMENT_PRIVATE_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
-    assertFalse(aclService.verifySharing(dataElement, user).isEmpty());
+    assertFalse(aclService.verifySharing(dataElement, UserDetails.fromUser(user)).isEmpty());
   }
 
   @Test
@@ -252,7 +252,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     User user = createAndAddRandomUser("F_DATAELEMENT_PRIVATE_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
-    assertTrue(aclService.verifySharing(dataElement, user).isEmpty());
+    assertTrue(aclService.verifySharing(dataElement, UserDetails.fromUser(user)).isEmpty());
   }
 
   @Test
@@ -260,7 +260,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     User user = createAndAddRandomUser("F_DATAELEMENT_PUBLIC_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.READ_WRITE);
-    assertTrue(aclService.verifySharing(dataElement, user).isEmpty());
+    assertTrue(aclService.verifySharing(dataElement, UserDetails.fromUser(user)).isEmpty());
   }
 
   @Test
@@ -268,7 +268,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     User user = createAndAddRandomUser("F_DATAELEMENT_PUBLIC_ADD");
     DataElement dataElement = createDataElement('A');
     dataElement.setPublicAccess(AccessStringHelper.DEFAULT);
-    assertTrue(aclService.verifySharing(dataElement, user).isEmpty());
+    assertTrue(aclService.verifySharing(dataElement, UserDetails.fromUser(user)).isEmpty());
   }
 
   @Test
@@ -722,7 +722,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     assertTrue(access.isUpdate());
     assertFalse(access.isDelete());
     assertTrue(access.isManage());
-    List<ErrorReport> errorReports = aclService.verifySharing(program, user);
+    List<ErrorReport> errorReports = aclService.verifySharing(program, UserDetails.fromUser(user));
     assertTrue(errorReports.isEmpty());
     manager.update(program);
   }
@@ -743,7 +743,8 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     manager.save(visualization);
     injectSecurityContextUser(userNoAuthorities);
     assertEquals(userNoAuthorities, getCurrentUser());
-    List<ErrorReport> errorReports = aclService.verifySharing(visualization, userNoAuthorities);
+    List<ErrorReport> errorReports =
+        aclService.verifySharing(visualization, UserDetails.fromUser(userNoAuthorities));
     assertFalse(errorReports.isEmpty());
   }
 
@@ -766,7 +767,8 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     manager.update(visualization);
     injectSecurityContextUser(user2);
     assertEquals(user2, getCurrentUser());
-    List<ErrorReport> errorReports = aclService.verifySharing(visualization, user2);
+    List<ErrorReport> errorReports =
+        aclService.verifySharing(visualization, UserDetails.fromUser(user2));
     assertFalse(errorReports.isEmpty());
   }
 
@@ -788,7 +790,8 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     manager.update(visualization);
     injectSecurityContextUser(adminUser);
     assertEquals(adminUser, getCurrentUser());
-    List<ErrorReport> errorReports = aclService.verifySharing(visualization, adminUser);
+    List<ErrorReport> errorReports =
+        aclService.verifySharing(visualization, UserDetails.fromUser(adminUser));
     assertTrue(errorReports.isEmpty());
   }
 
@@ -816,7 +819,8 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     assertTrue(access.isUpdate());
     assertFalse(access.isDelete());
     assertTrue(aclService.canUpdate(user2, dataElement));
-    List<ErrorReport> errorReports = aclService.verifySharing(dataElement, user2);
+    List<ErrorReport> errorReports =
+        aclService.verifySharing(dataElement, UserDetails.fromUser(user2));
     assertTrue(errorReports.isEmpty());
   }
 
@@ -844,7 +848,8 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     assertFalse(access.isUpdate());
     assertFalse(access.isDelete());
     assertFalse(aclService.canUpdate(user2, dataElement));
-    List<ErrorReport> errorReports = aclService.verifySharing(dataElement, user2);
+    List<ErrorReport> errorReports =
+        aclService.verifySharing(dataElement, UserDetails.fromUser(user2));
     assertTrue(errorReports.isEmpty());
   }
 
@@ -871,7 +876,8 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     assertFalse(access.isUpdate());
     assertFalse(access.isDelete());
     assertFalse(aclService.canUpdate(user2, dataElement));
-    List<ErrorReport> errorReports = aclService.verifySharing(dataElement, user2);
+    List<ErrorReport> errorReports =
+        aclService.verifySharing(dataElement, UserDetails.fromUser(user2));
     assertTrue(errorReports.isEmpty());
   }
 

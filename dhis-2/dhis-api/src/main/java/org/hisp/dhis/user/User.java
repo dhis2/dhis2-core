@@ -1261,21 +1261,4 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
   public void setEmailVerificationToken(String emailVerificationToken) {
     this.emailVerificationToken = emailVerificationToken;
   }
-
-  public static String username(User user) {
-    // TODO: MAS get rid of this default value use of "system-process"
-    return username(user, "system-process");
-  }
-
-  public static String username(UserDetails user) {
-    return username(user, "system-process");
-  }
-
-  public static String username(User user, String defaultValue) {
-    return user != null ? user.getUsername() : defaultValue;
-  }
-
-  public static String username(UserDetails user, String defaultValue) {
-    return user != null ? user.getUsername() : defaultValue;
-  }
 }
