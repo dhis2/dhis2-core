@@ -145,6 +145,11 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
     return user.getSurname();
   }
 
+  @Override
+  public String getEmail() {
+    return user.getEmail();
+  }
+
   @Nonnull
   @Override
   public Set<String> getUserGroupIds() {
@@ -240,6 +245,11 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
   @Override
   public boolean isEmailVerified() {
     return user.isEmailVerified();
+  }
+
+  @Override
+  public Integer getDataViewMaxOrganisationUnitLevel() {
+    return user.getDataViewMaxOrganisationUnitLevel();
   }
 
   @Override

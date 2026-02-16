@@ -149,7 +149,7 @@ class JdbcTrackedEntityStore {
   }
 
   private void validateMaxTeLimit(TrackedEntityQueryParams params) {
-    if (!params.getSearchScope().outsideCaptureScope()) {
+    if (!params.getQuerySearchScope().outsideCaptureScope()) {
       return;
     }
 
@@ -492,7 +492,7 @@ class JdbcTrackedEntityStore {
           sql,
           sqlParameters,
           params.getEnrolledInTrackerProgram(),
-          params.getSearchScope(),
+          params.getQuerySearchScope(),
           orgUnitTableAlias,
           MAIN_QUERY_ALIAS,
           () -> "and ");
