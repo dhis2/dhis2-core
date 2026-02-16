@@ -60,6 +60,7 @@ import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.CategoryOptionComboService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.QuerySearchScope;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
@@ -134,6 +135,11 @@ class TrackerEventOperationParamsMapper {
         .setEnrollmentStatus(operationParams.getEnrollmentStatus())
         .setFollowUp(operationParams.getFollowUp())
         .setOrgUnitMode(operationParams.getOrgUnitMode())
+        .setQuerySearchScope(
+            QuerySearchScope.of(
+                user,
+                operationParams.getOrgUnitMode(),
+                organisationUnitService::getOrganisationUnitsByUid))
         .setAssignedUserQueryParam(
             new AssignedUserQueryParam(
                 operationParams.getAssignedUserMode(),

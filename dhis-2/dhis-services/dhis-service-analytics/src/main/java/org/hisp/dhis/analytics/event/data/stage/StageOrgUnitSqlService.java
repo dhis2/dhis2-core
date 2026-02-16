@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,37 +27,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates;
+package org.hisp.dhis.analytics.event.data.stage;
 
-import static java.util.concurrent.CompletableFuture.supplyAsync;
-
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.function.Supplier;
+import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.ColumnAndAlias;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.program.AnalyticsType;
 
 /**
- * @author Luciano Fiandesio
+ * Builds stage-scoped org unit SQL fragments for selection and filtering.
+ *
+ * <p>This encapsulates {@code stage.ou} behavior and keeps org unit level handling out of manager
+ * code.
  */
-class AsyncUtils {
-  AsyncUtils() {
-    throw new IllegalStateException("Utility class");
-  }
+public interface StageOrgUnitSqlService {
+  /**
+   * Creates the SELECT/GROUP BY column expression for a stage org unit item.
+   *
+   * @param item the stage org unit query item
+   * @param params query parameters
+   * @param isGroupByClause true when the expression is for GROUP BY
+   * @return stage org unit SQL column and alias information
+   */
+  ColumnAndAlias selectColumn(QueryItem item, EventQueryParams params, boolean isGroupByClause);
 
   /**
-   * Executes the Supplier asynchronously using the thread pool from the provided {@see Executor}
+   * Creates the WHERE clause fragment for a stage org unit item.
    *
-   * @param condition A condition that, if true, executes the Supplier, if false, returns an empty
-   *     Multimap
-   * @param supplier The Supplier to execute
-   * @param executor an Executor instance
-   * @return A CompletableFuture with the result of the Supplier
+   * @param item the stage org unit query item
+   * @param params query parameters
+   * @param analyticsType analytics type used for org unit level columns
+   * @return SQL fragment for stage org unit filtering
    */
-  static <T> CompletableFuture<Multimap<String, T>> conditionalAsyncFetch(
-      boolean condition, Supplier<Multimap<String, T>> supplier, Executor executor) {
-    return (condition
-        ? supplyAsync(supplier, executor)
-        : supplyAsync(ArrayListMultimap::create, executor));
-  }
+  String whereClause(QueryItem item, EventQueryParams params, AnalyticsType analyticsType);
 }

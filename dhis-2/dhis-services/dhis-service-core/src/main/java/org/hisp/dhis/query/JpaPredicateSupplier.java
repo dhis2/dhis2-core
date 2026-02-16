@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,32 +27,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates.query;
+package org.hisp.dhis.query;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
 /**
- * @author Luciano Fiandesio
+ * Supplies a JPA Criteria {@link Predicate} that can be added to a query. This allows controllers
+ * to inject complex predicates (such as EXISTS subqueries) into the generic query engine without
+ * materializing large ID lists.
  */
-@Getter
-@RequiredArgsConstructor
-class Function implements QueryElement {
-  private final String name;
-
-  private final String prefix;
-
-  private final String column;
-
-  private final String alias;
-
-  @Override
-  public String useInSelect() {
-    return this.name + "(" + prefix + "." + column + ") as " + alias;
-  }
-
-  @Override
-  public String getResultsetValue() {
-    return alias == null ? column : alias;
-  }
+@FunctionalInterface
+public interface JpaPredicateSupplier {
+  <T> Predicate getPredicate(CriteriaBuilder builder, Root<T> root, CriteriaQuery<?> query);
 }

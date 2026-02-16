@@ -358,14 +358,14 @@ public class DataValue implements Serializable {
         UID.of(source),
         UID.of(categoryOptionCombo),
         UID.of(attributeOptionCombo),
-        period.getIsoDate());
+        period);
   }
 
   @UsageTestOnly
   public DataExportValue toEntry() {
     return new DataExportValue(
         UID.of(dataElement),
-        period.getIsoDate(),
+        period,
         UID.of(source),
         UID.of(categoryOptionCombo),
         UID.of(attributeOptionCombo),
@@ -386,7 +386,7 @@ public class DataValue implements Serializable {
         UID.of(getSource()),
         UID.of(getCategoryOptionCombo()),
         UID.of(getAttributeOptionCombo()),
-        getPeriod().getIsoDate(),
+        getPeriod(),
         value,
         comment,
         followup,
