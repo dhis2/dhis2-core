@@ -41,7 +41,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.notification.BaseNotificationMessageRenderer;
 import org.hisp.dhis.notification.TemplateVariable;
-import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.notification.ProgramTemplateVariable;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
@@ -54,8 +53,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ProgramNotificationMessageRenderer
     extends BaseNotificationMessageRenderer<Enrollment> {
-
-  private final OptionService optionService;
 
   public static final ImmutableMap<TemplateVariable, Function<Enrollment, String>>
       VARIABLE_RESOLVERS =

@@ -47,7 +47,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.RegexUtils;
-import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.option.Option;
@@ -80,7 +79,6 @@ public abstract class BaseNotificationMessageRenderer<T> implements Notification
   protected static final String VALUE_ON_ERROR = "[SERVER ERROR]";
   protected static final String DE_NOT_IN_STAGE = "[DataElement not in Program Stage]";
   protected static final String OPTION_SET_NOT_FOUND = "[OptionSet not found]";
-  protected static final String OPTION_NAME_NOT_FOUND = "[Option name not found]";
 
   /** For Variable. */
   protected static final Pattern VARIABLE_CONTENT_PATTERN = Pattern.compile("^[A-Za-z0-9_]+$");
@@ -350,16 +348,12 @@ public abstract class BaseNotificationMessageRenderer<T> implements Notification
     return input.substring(0, Math.min(input.length(), limit));
   }
 
-  protected static String getOptionName(OptionSet optionSet, String value) {
-    if (optionSet == null || CollectionUtils.isEmpty(optionSet.getOptions())) {
-      return OPTION_SET_NOT_FOUND;
-    }
-
+  protected static String getOptionName(@Nonnull OptionSet optionSet, String value) {
     return optionSet.getOptions().stream()
         .filter(option -> Objects.equals(option.getCode(), value))
         .findFirst()
         .map(Option::getName)
-        .orElse(OPTION_NAME_NOT_FOUND);
+        .orElse(OPTION_SET_NOT_FOUND);
   }
 
   protected static String daysUntil(Date date) {

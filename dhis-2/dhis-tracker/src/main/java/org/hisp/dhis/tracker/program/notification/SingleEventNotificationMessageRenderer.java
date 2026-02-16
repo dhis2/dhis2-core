@@ -42,7 +42,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.notification.BaseNotificationMessageRenderer;
 import org.hisp.dhis.notification.TemplateVariable;
-import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.notification.ProgramStageTemplateVariable;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.springframework.stereotype.Component;
@@ -51,8 +50,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SingleEventNotificationMessageRenderer
     extends BaseNotificationMessageRenderer<SingleEvent> {
-
-  private final OptionService optionService;
 
   public static final ImmutableMap<TemplateVariable, Function<SingleEvent, String>>
       VARIABLE_RESOLVERS =
