@@ -151,9 +151,9 @@ public class DefaultUserGroupService implements UserGroupService {
     for (String uid : uids) {
       UserGroup userGroup = getUserGroup(uid);
       if (canAddOrRemoveMember(userGroup, currentUser)
-          && userGroupStore.addMemberViaSQL(userGroup.getUID(), user.getUID())) {
+          && userGroupStore.addMember(userGroup.getUID(), user.getUID())) {
         user.getGroups().add(userGroup);
-        userGroupStore.updateLastUpdatedViaSQL(userGroup.getUID(), UID.of(currentUser.getUid()));
+        userGroupStore.updateLastUpdated(userGroup.getUID(), UID.of(currentUser.getUid()));
       }
     }
     aclService.invalidateCurrentUserGroupInfoCache();
@@ -167,9 +167,9 @@ public class DefaultUserGroupService implements UserGroupService {
     for (String uid : uids) {
       UserGroup userGroup = getUserGroup(uid);
       if (canAddOrRemoveMember(userGroup, currentUser)
-          && userGroupStore.removeMemberViaSQL(userGroup.getUID(), user.getUID())) {
+          && userGroupStore.removeMember(userGroup.getUID(), user.getUID())) {
         user.getGroups().remove(userGroup);
-        userGroupStore.updateLastUpdatedViaSQL(userGroup.getUID(), UID.of(currentUser.getUid()));
+        userGroupStore.updateLastUpdated(userGroup.getUID(), UID.of(currentUser.getUid()));
       }
     }
     aclService.invalidateCurrentUserGroupInfoCache();
@@ -204,7 +204,7 @@ public class DefaultUserGroupService implements UserGroupService {
 
     // Perform the removals via SQL (avoids loading members collection)
     for (UserGroup userGroup : groupsToRemoveFrom) {
-      if (userGroupStore.removeMemberViaSQL(userGroup.getUID(), user.getUID())) {
+      if (userGroupStore.removeMember(userGroup.getUID(), user.getUID())) {
         changedGroups.add(userGroup);
         // Update in-memory state to keep Hibernate session consistent
         user.getGroups().remove(userGroup);
@@ -213,7 +213,7 @@ public class DefaultUserGroupService implements UserGroupService {
 
     // Perform the additions via SQL (avoids loading members collection)
     for (UserGroup userGroup : groupsToAddTo) {
-      if (userGroupStore.addMemberViaSQL(userGroup.getUID(), user.getUID())) {
+      if (userGroupStore.addMember(userGroup.getUID(), user.getUID())) {
         changedGroups.add(userGroup);
         // Update in-memory state to keep Hibernate session consistent
         user.getGroups().add(userGroup);
@@ -222,7 +222,7 @@ public class DefaultUserGroupService implements UserGroupService {
 
     // Update metadata via SQL to avoid Hibernate loading the members collection
     for (UserGroup userGroup : changedGroups) {
-      userGroupStore.updateLastUpdatedViaSQL(userGroup.getUID(), UID.of(currentUser.getUid()));
+      userGroupStore.updateLastUpdated(userGroup.getUID(), UID.of(currentUser.getUid()));
     }
 
     aclService.invalidateCurrentUserGroupInfoCache();

@@ -69,7 +69,7 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
   }
 
   @Override
-  public boolean addMemberViaSQL(@Nonnull UID userRoleUid, @Nonnull UID userUid) {
+  public boolean addMember(@Nonnull UID userRoleUid, @Nonnull UID userUid) {
     getSession().flush();
     String sql =
         """
@@ -95,7 +95,7 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
   }
 
   @Override
-  public boolean removeMemberViaSQL(@Nonnull UID userRoleUid, @Nonnull UID userUid) {
+  public boolean removeMember(@Nonnull UID userRoleUid, @Nonnull UID userUid) {
     String sql =
         """
         DELETE FROM userrolemembers
@@ -110,7 +110,7 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
   }
 
   @Override
-  public void removeAllMembershipsViaSQL(@Nonnull UID userUid) {
+  public void removeAllMemberships(@Nonnull UID userUid) {
     String sql =
         """
         DELETE FROM userrolemembers
@@ -121,7 +121,7 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
   }
 
   @Override
-  public void removeAllMembershipsForRoleViaSQL(@Nonnull UID userRoleUid) {
+  public void removeAllMembershipsForRole(@Nonnull UID userRoleUid) {
     String sql =
         """
         DELETE FROM userrolemembers
@@ -131,7 +131,7 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
   }
 
   @Override
-  public void updateLastUpdatedViaSQL(@Nonnull UID userRoleUid, @Nonnull UID lastUpdatedByUid) {
+  public void updateLastUpdated(@Nonnull UID userRoleUid, @Nonnull UID lastUpdatedByUid) {
     String sql =
         """
         UPDATE userrole SET lastupdated = now(),
@@ -147,8 +147,7 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
   }
 
   @Override
-  public void updateLastUpdatedForUserRolesViaSQL(
-      @Nonnull UID userUid, @Nonnull UID lastUpdatedByUid) {
+  public void updateLastUpdatedForUserRoles(@Nonnull UID userUid, @Nonnull UID lastUpdatedByUid) {
     List<String> roleUids =
         jdbcTemplate.queryForList(
             """
@@ -160,7 +159,7 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
             userUid.getValue());
 
     for (String roleUid : roleUids) {
-      updateLastUpdatedViaSQL(UID.of(roleUid), lastUpdatedByUid);
+      updateLastUpdated(UID.of(roleUid), lastUpdatedByUid);
     }
   }
 

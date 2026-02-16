@@ -316,9 +316,9 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
 
   private void syncUserRoleMembershipsViaSQL(User user) {
     UID userUid = UID.of(user.getUid());
-    userRoleStore.removeAllMembershipsViaSQL(userUid);
+    userRoleStore.removeAllMemberships(userUid);
     for (UserRole role : user.getUserRoles()) {
-      userRoleStore.addMemberViaSQL(UID.of(role.getUid()), userUid);
+      userRoleStore.addMember(UID.of(role.getUid()), userUid);
     }
   }
 

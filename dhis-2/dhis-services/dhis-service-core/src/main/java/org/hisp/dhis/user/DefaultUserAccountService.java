@@ -109,7 +109,7 @@ public class DefaultUserAccountService implements UserAccountService {
 
     userService.addUser(user, new SystemUser());
 
-    userRoleStore.addMemberViaSQL(UID.of(userRole.getUid()), UID.of(user.getUid()));
+    userRoleStore.addMember(UID.of(userRole.getUid()), UID.of(user.getUid()));
     log.info("Created new user");
 
     authenticate(user.getUsername(), params.getPassword(), user.getAuthorities(), request);

@@ -53,8 +53,8 @@ public class UserGroupDeletionHandler extends IdObjectDeletionHandler<UserGroup>
 
   private void deleteUser(User user) {
     UID currentUserUid = UID.of(CurrentUserUtil.getCurrentUserDetails().getUid());
-    userGroupStore.updateLastUpdatedForUserGroupsViaSQL(user.getUID(), currentUserUid);
-    userGroupStore.removeAllMembershipsViaSQL(user.getUID());
+    userGroupStore.updateLastUpdatedForUserGroups(user.getUID(), currentUserUid);
+    userGroupStore.removeAllMemberships(user.getUID());
     aclService.invalidateCurrentUserGroupInfoCache();
   }
 

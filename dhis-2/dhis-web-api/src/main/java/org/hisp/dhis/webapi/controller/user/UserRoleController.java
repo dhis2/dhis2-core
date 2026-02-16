@@ -110,7 +110,7 @@ public class UserRoleController
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 
-    userRoleStore.addMemberViaSQL(UID.of(pvId), UID.of(pvUserId));
+    userRoleStore.addMember(UID.of(pvId), UID.of(pvUserId));
   }
 
   @DeleteMapping("/{id}/users/{userId}")
@@ -137,6 +137,6 @@ public class UserRoleController
       throw new ForbiddenException("You don't have the proper permissions to delete this object.");
     }
 
-    userRoleStore.removeMemberViaSQL(UID.of(pvId), UID.of(pvUserId));
+    userRoleStore.removeMember(UID.of(pvId), UID.of(pvUserId));
   }
 }

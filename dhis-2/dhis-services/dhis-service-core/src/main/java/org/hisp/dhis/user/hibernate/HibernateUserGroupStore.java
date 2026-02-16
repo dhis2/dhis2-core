@@ -63,7 +63,7 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
   }
 
   @Override
-  public boolean addMemberViaSQL(@Nonnull UID userGroupUid, @Nonnull UID userUid) {
+  public boolean addMember(@Nonnull UID userGroupUid, @Nonnull UID userUid) {
     String sql =
         """
         INSERT INTO usergroupmembers (usergroupid, userid)
@@ -79,7 +79,7 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
   }
 
   @Override
-  public boolean removeMemberViaSQL(@Nonnull UID userGroupUid, @Nonnull UID userUid) {
+  public boolean removeMember(@Nonnull UID userGroupUid, @Nonnull UID userUid) {
     String sql =
         """
         DELETE FROM usergroupmembers
@@ -90,7 +90,7 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
   }
 
   @Override
-  public void updateLastUpdatedViaSQL(@Nonnull UID userGroupUid, @Nonnull UID lastUpdatedByUid) {
+  public void updateLastUpdated(@Nonnull UID userGroupUid, @Nonnull UID lastUpdatedByUid) {
     String sql =
         """
         UPDATE usergroup SET lastupdated = now(),
@@ -107,7 +107,7 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
   }
 
   @Override
-  public void removeAllMembershipsViaSQL(@Nonnull UID userUid) {
+  public void removeAllMemberships(@Nonnull UID userUid) {
     String sql =
         """
         DELETE FROM usergroupmembers
@@ -117,8 +117,7 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
   }
 
   @Override
-  public void updateLastUpdatedForUserGroupsViaSQL(
-      @Nonnull UID userUid, @Nonnull UID lastUpdatedByUid) {
+  public void updateLastUpdatedForUserGroups(@Nonnull UID userUid, @Nonnull UID lastUpdatedByUid) {
     List<String> groupUids =
         jdbcTemplate.queryForList(
             """
@@ -130,7 +129,7 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
             userUid.getValue());
 
     for (String groupUid : groupUids) {
-      updateLastUpdatedViaSQL(UID.of(groupUid), lastUpdatedByUid);
+      updateLastUpdated(UID.of(groupUid), lastUpdatedByUid);
     }
   }
 

@@ -64,7 +64,7 @@ public class UserDeletionHandler extends JdbcDeletionHandler {
   }
 
   private void deleteUserRole(UserRole role) {
-    userRoleStore.removeAllMembershipsForRoleViaSQL(role.getUID());
+    userRoleStore.removeAllMembershipsForRole(role.getUID());
   }
 
   private void deleteOrganisationUnit(OrganisationUnit unit) {

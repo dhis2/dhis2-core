@@ -101,7 +101,7 @@ public class DefaultAdminUserPopulator extends TransactionContextStartupRoutine 
 
     userService.addUser(user, actingUser);
 
-    userRoleStore.addMemberViaSQL(UID.of(userRole.getUid()), UID.of(user.getUid()));
+    userRoleStore.addMember(UID.of(userRole.getUid()), UID.of(user.getUid()));
 
     UserRole twoFactorRole = new UserRole();
     twoFactorRole.setUid("jcK4oq1Ol8x");

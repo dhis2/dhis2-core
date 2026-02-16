@@ -418,7 +418,7 @@ public class AccountController {
 
     userService.addUser(user, new SystemUser());
 
-    userRoleStore.addMemberViaSQL(UID.of(userRole.getUid()), UID.of(user.getUid()));
+    userRoleStore.addMember(UID.of(userRole.getUid()), UID.of(user.getUid()));
 
     log.info("Created user with username: " + user.getUsername());
 
