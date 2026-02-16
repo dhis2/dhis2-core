@@ -97,11 +97,8 @@ public abstract class PeriodType implements Serializable {
   }
 
   public String getDisplayLabel() {
-    return displayLabel;
-  }
-
-  public void setDisplayLabel(String displayLabel) {
-    this.displayLabel = displayLabel;
+    // TODO: Return actual displayLabel.
+    return label;
   }
 
   /**

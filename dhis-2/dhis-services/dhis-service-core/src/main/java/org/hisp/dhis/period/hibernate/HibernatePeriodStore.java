@@ -247,7 +247,6 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
   @Override
   public void addPeriodType(PeriodType periodType) {
     String name = periodType.getName();
-    String label = periodType.getLabel();
 
     String sql1 = "SELECT periodtypeid from periodtype where name = :name";
     String sql2 =
