@@ -58,7 +58,7 @@ import org.hisp.dhis.user.UserDetails;
 @AllArgsConstructor(access = AccessLevel.PACKAGE)
 @EqualsAndHashCode
 @ToString
-public final class SearchScope {
+public final class QuerySearchScope {
 
   /** The user's database ID, used for temporary ownership predicates. */
   private final long userId;
@@ -87,7 +87,7 @@ public final class SearchScope {
    * @param orgUnitResolver resolves a set of org unit UIDs to their entities (typically {@code
    *     organisationUnitService::getOrganisationUnitsByUid})
    */
-  public static SearchScope of(
+  public static QuerySearchScope of(
       UserDetails user,
       OrganisationUnitSelectionMode mode,
       Function<Collection<String>, List<OrganisationUnit>> orgUnitResolver) {
@@ -102,13 +102,13 @@ public final class SearchScope {
    * @param orgUnitResolver resolves a set of org unit UIDs to their entities (typically {@code
    *     organisationUnitService::getOrganisationUnitsByUid})
    */
-  public static SearchScope of(
+  public static QuerySearchScope of(
       UserDetails user,
       OrganisationUnitSelectionMode mode,
       boolean outsideCaptureScope,
       Function<Collection<String>, List<OrganisationUnit>> orgUnitResolver) {
     if (mode == ALL || user.isSuper()) {
-      return new SearchScope(0, false, false, Set.of(), Set.of());
+      return new QuerySearchScope(0, false, false, Set.of(), Set.of());
     }
     Set<OrganisationUnit> captureOrgUnits =
         Set.copyOf(orgUnitResolver.apply(user.getUserOrgUnitIds()));
@@ -119,19 +119,20 @@ public final class SearchScope {
    * Creates a search scope using pre-resolved capture scope org units. Use this overload when the
    * caller has already resolved capture scope (e.g. for determining {@code outsideCaptureScope}).
    */
-  public static SearchScope of(
+  public static QuerySearchScope of(
       UserDetails user,
       OrganisationUnitSelectionMode mode,
       boolean outsideCaptureScope,
       Set<OrganisationUnit> captureOrgUnits,
       Function<Collection<String>, List<OrganisationUnit>> orgUnitResolver) {
     if (mode == ALL || user.isSuper()) {
-      return new SearchScope(0, false, false, Set.of(), captureOrgUnits);
+      return new QuerySearchScope(0, false, false, Set.of(), captureOrgUnits);
     }
     Set<OrganisationUnit> searchOrgUnits =
         Set.copyOf(orgUnitResolver.apply(user.getUserEffectiveSearchOrgUnitIds()));
     Set<OrganisationUnit> resolvedScope = mode == CAPTURE ? captureOrgUnits : searchOrgUnits;
-    return new SearchScope(user.getId(), true, outsideCaptureScope, resolvedScope, captureOrgUnits);
+    return new QuerySearchScope(
+        user.getId(), true, outsideCaptureScope, resolvedScope, captureOrgUnits);
   }
 
   public Set<OrganisationUnit> forAccessLevel(org.hisp.dhis.common.AccessLevel accessLevel) {
