@@ -45,7 +45,7 @@ import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.setting.SystemSettingsService;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.UserService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
@@ -63,7 +63,7 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler {
   private final DhisConfigurationProvider config;
   private final DhisOidcProviderRepository dhisOidcProviderRepository;
   private final UserService userService;
-  private final SystemSettingsService systemSettingsService;
+  private final SystemSettingsProvider settingsProvider;
 
   private SimpleUrlLogoutSuccessHandler handler;
 
@@ -140,7 +140,7 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler {
 
   /**
    * Check if the provided redirect URI is allowed based on the device enrollment redirect allowlist
-   * from system settings. Uses glob-to-regex matching, consistent with {@link
+   * from system settings. Uses case-insensitive glob-to-regex matching, consistent with {@link
    * org.hisp.dhis.commons.util.TextUtils#createRegexFromGlob}.
    *
    * @param redirectUri the redirect URI to check
@@ -148,14 +148,13 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler {
    */
   private boolean isRedirectUriAllowed(String redirectUri) {
     if (redirectUri == null || redirectUri.isBlank()) return false;
-    String allowlist =
-        systemSettingsService.getCurrentSettings().getDeviceEnrollmentRedirectAllowlist();
+    String allowlist = settingsProvider.getCurrentSettings().getDeviceEnrollmentRedirectAllowlist();
     if (allowlist == null || allowlist.isBlank()) return false;
     for (String entry : allowlist.split(",")) {
       String trimmed = entry.trim();
       if (trimmed.isEmpty()) continue;
       String regex = TextUtils.createRegexFromGlob(trimmed);
-      if (Pattern.compile(regex).matcher(redirectUri.toLowerCase()).matches()) {
+      if (Pattern.compile(regex, Pattern.CASE_INSENSITIVE).matcher(redirectUri).matches()) {
         return true;
       }
     }
