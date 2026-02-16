@@ -185,14 +185,14 @@ class JdbcEnrollmentStore {
         inner join (
           select coc.categoryoptioncomboid as id, coc.uid
           from categoryoptioncombo coc
-          inner join categoryoptioncombos_categoryoptions cocco on coc.categoryoptioncomboid = cocco.categoryoptioncomboid
-          inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid
-          group by coc.categoryoptioncomboid
         """;
 
     if (isNotSuperUser(getCurrentUserDetails())) {
       joinCondition +=
-          " having bool_and(case when "
+          "   inner join categoryoptioncombos_categoryoptions cocco on coc.categoryoptioncomboid = cocco.categoryoptioncomboid "
+              + " inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid "
+              + " group by coc.categoryoptioncomboid "
+              + " having bool_and(case when "
               + JpaQueryUtils.generateSQlQueryForSharingCheck(
                   "co.sharing", getCurrentUserDetails(), AclService.LIKE_READ_DATA)
               + " then true else false end) = true ";
@@ -202,7 +202,7 @@ class JdbcEnrollmentStore {
   }
 
   private static boolean isNotSuperUser(UserDetails user) {
-    return user != null && !user.isSuper();
+    return !user.isSuper();
   }
 
   private void addLeftLateralNoteJoin(StringBuilder sql) {
