@@ -242,7 +242,7 @@ class JdbcEventAnalyticsTableManagerDorisTest {
         .withName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
         .withMainName(TABLE_PREFIX + program.getUid().toLowerCase())
         .withTableType(AnalyticsTableType.EVENT)
-        .withColumnSize(62 + OU_NAME_HIERARCHY_COUNT)
+        .withColumnSize(63 + OU_NAME_HIERARCHY_COUNT)
         .addColumns(periodColumns)
         .addColumn(
             deA.getUid(),

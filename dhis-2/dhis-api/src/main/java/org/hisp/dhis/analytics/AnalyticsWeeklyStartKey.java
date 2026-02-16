@@ -27,52 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.period;
+package org.hisp.dhis.analytics;
 
-import javax.annotation.Nonnull;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.WeeklyFridayPeriodType;
+import org.hisp.dhis.period.WeeklyPeriodType;
+import org.hisp.dhis.period.WeeklySaturdayPeriodType;
+import org.hisp.dhis.period.WeeklySundayPeriodType;
+import org.hisp.dhis.period.WeeklyThursdayPeriodType;
+import org.hisp.dhis.period.WeeklyWednesdayPeriodType;
 
-@RequiredArgsConstructor
-public enum PeriodTypeEnum {
-  BI_MONTHLY("BiMonthly"),
-  BI_WEEKLY("BiWeekly"),
-  DAILY("Daily"),
-  FINANCIAL_FEB("FinancialFeb"),
-  FINANCIAL_APRIL("FinancialApril"),
-  FINANCIAL_JULY("FinancialJuly"),
-  FINANCIAL_AUG("FinancialAug"),
-  FINANCIAL_SEP("FinancialSep"),
-  FINANCIAL_OCT("FinancialOct"),
-  FINANCIAL_NOV("FinancialNov"),
-  MONTHLY("Monthly"),
-  QUARTERLY("Quarterly"),
-  QUARTERLY_NOV("QuarterlyNov"),
-  SIX_MONTHLY_APRIL("SixMonthlyApril"),
-  SIX_MONTHLY_NOV("SixMonthlyNov"),
-  SIX_MONTHLY("SixMonthly"),
-  TWO_YEARLY("TwoYearly"),
-  WEEKLY("Weekly"),
-  WEEKLY_SATURDAY("WeeklySaturday"),
-  WEEKLY_SUNDAY("WeeklySunday"),
-  WEEKLY_THURSDAY("WeeklyThursday"),
-  WEEKLY_FRIDAY("WeeklyFriday"),
-  WEEKLY_WEDNESDAY("WeeklyWednesday"),
-  YEARLY("Yearly");
+public enum AnalyticsWeeklyStartKey {
+  WEEKLY("Weekly", new WeeklyPeriodType()),
+  WEEKLY_WEDNESDAY("WeeklyWednesday", new WeeklyWednesdayPeriodType()),
+  WEEKLY_THURSDAY("WeeklyThursday", new WeeklyThursdayPeriodType()),
+  WEEKLY_FRIDAY("WeeklyFriday", new WeeklyFridayPeriodType()),
+  WEEKLY_SATURDAY("WeeklySaturday", new WeeklySaturdayPeriodType()),
+  WEEKLY_SUNDAY("WeeklySunday", new WeeklySundayPeriodType());
 
-  @Getter private final String name;
+  private final String name;
 
-  /**
-   * Parses an ISO period to extract its type.
-   *
-   * @param isoPeriod a ISO period (any format)
-   * @return the type of the period
-   * @throws IllegalArgumentException if the given ISO period is formally invalid. This does not
-   *     detect semantically invalid periods, like for example a quarterly period for a 5th quarter,
-   *     but it would detect a two digit quarter.
-   */
-  @Nonnull
-  public static PeriodTypeEnum ofIsoPeriod(String isoPeriod) {
-    return Period.Input.of(isoPeriod).type();
+  private final PeriodType periodType;
+
+  AnalyticsWeeklyStartKey(String name, PeriodType periodType) {
+    this.name = name;
+    this.periodType = periodType;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public PeriodType getPeriodType() {
+    return periodType;
   }
 }
