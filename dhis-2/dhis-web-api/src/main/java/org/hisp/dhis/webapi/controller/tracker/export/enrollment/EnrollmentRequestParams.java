@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Set;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrderCriteria;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -132,6 +132,6 @@ will take more time to return.**
   @OpenApi.Property(value = String[].class)
   private Fields fields = DEFAULT_FIELDS_PARAM_PARSED;
 
-  @OpenApi.Property({UID.class, CategoryCombo.class})
+  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
   private UID attributeOptionCombo;
 }

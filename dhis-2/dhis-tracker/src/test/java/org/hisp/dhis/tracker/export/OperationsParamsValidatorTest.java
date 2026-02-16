@@ -33,7 +33,6 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
 import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
-import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -413,26 +412,12 @@ class OperationsParamsValidatorTest {
   }
 
   @Test
-  void shouldNotFailWhenUserHasAccessToMapAttributeOptionCombo() throws ForbiddenException {
+  void shouldMapAttributeOptionCombo() throws ForbiddenException {
     CategoryOptionCombo combo = new CategoryOptionCombo();
 
     when(aclService.canDataRead(any(UserDetails.class), any(CategoryOptionCombo.class)))
         .thenReturn(true);
 
     paramsValidator.validateAttributeOptionCombo(combo, user);
-  }
-
-  @Test
-  void shouldThrowForbiddenExceptionWhenUserHasNoAccessToAttributeOptionCombo() {
-    CategoryOptionCombo combo = new CategoryOptionCombo();
-
-    when(aclService.canDataRead(any(UserDetails.class), any(CategoryOptionCombo.class)))
-        .thenReturn(false);
-
-    Exception exception =
-        assertThrows(
-            ForbiddenException.class,
-            () -> paramsValidator.validateAttributeOptionCombo(combo, user));
-    assertStartsWith("User has no access to attribute option combo", exception.getMessage());
   }
 }

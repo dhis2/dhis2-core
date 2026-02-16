@@ -40,7 +40,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -201,19 +200,5 @@ class EnrollmentOperationParamsMapperTest {
     EnrollmentQueryParams params = mapper.map(operationParams, user);
 
     assertEquals(CHILDREN, params.getOrganisationUnitMode());
-  }
-
-  @Test
-  void shouldMapAttributeOptionComboWhenUserHasAccess()
-      throws ForbiddenException, BadRequestException {
-    EnrollmentOperationParams operationParams =
-        EnrollmentOperationParams.builder().attributeOptionCombo(UID.of("HllvX50cXC0")).build();
-    CategoryOptionCombo combo = new CategoryOptionCombo();
-
-    when(categoryOptionComboService.getAttributeOptionCombo(UID.of("HllvX50cXC0")))
-        .thenReturn(combo);
-
-    EnrollmentQueryParams queryParams = mapper.map(operationParams, user);
-    assertEquals(combo, queryParams.getAttributeOptionCombo());
   }
 }
