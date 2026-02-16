@@ -60,7 +60,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.FilterJdbcPredicate;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.tracker.export.SearchScope;
+import org.hisp.dhis.tracker.export.QuerySearchScope;
 
 @ToString
 public class TrackedEntityQueryParams {
@@ -154,7 +154,7 @@ public class TrackedEntityQueryParams {
 
   @Getter private final List<Order> order = new ArrayList<>();
 
-  @Getter private SearchScope searchScope;
+  @Getter private QuerySearchScope querySearchScope;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -425,8 +425,8 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public TrackedEntityQueryParams setSearchScope(SearchScope searchScope) {
-    this.searchScope = searchScope;
+  public TrackedEntityQueryParams setQuerySearchScope(QuerySearchScope querySearchScope) {
+    this.querySearchScope = querySearchScope;
     return this;
   }
 

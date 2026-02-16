@@ -73,18 +73,14 @@ public interface UserDetails
   }
 
   /**
-   * Create UserDetails from User
-   *
-   * <p>TODO MAS: This is a workaround and usually indicated a design flaw, and that we should
-   * refactor // to use UserDetails higher up in the layers.
+   * Create UserDetails from a User. This method should be avoided if possible. Always prefer using
+   * CurrentUserUtil.getCurrentUser() over fetching the currnt user from the DB.
    *
    * @param user user to convert
    * @return UserDetails
    */
   @CheckForNull
   static UserDetails fromUser(@CheckForNull User user) {
-    // TODO check in session if a UserDetails for the user already exists (if the user is the
-    // current user)
     if (user == null) {
       return null;
     }
@@ -158,6 +154,7 @@ public interface UserDetails
             .accountNonExpired(user.isAccountNonExpired())
             .accountNonLocked(accountNonLocked)
             .credentialsNonExpired(credentialsNonExpired)
+            .dataViewMaxOrganisationUnitLevel(user.getDataViewMaxOrganisationUnitLevel())
             .authorities(user.getAuthorities())
             .allAuthorities(
                 new HashSet<>(
@@ -252,6 +249,8 @@ public interface UserDetails
 
   String getSurname();
 
+  String getEmail();
+
   @Nonnull
   Set<String> getUserGroupIds();
 
@@ -296,6 +295,12 @@ public interface UserDetails
   TwoFactorType getTwoFactorType();
 
   boolean isEmailVerified();
+
+  default String getName() {
+    return getFirstName() + " " + getSurname();
+  }
+
+  Integer getDataViewMaxOrganisationUnitLevel();
 
   boolean hasAnyRestrictions(Collection<String> restrictions);
 
