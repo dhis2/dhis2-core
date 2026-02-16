@@ -698,7 +698,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           .append(" ");
     }
 
-    fromBuilder.append(addOrgUnitSql(params, sqlParameters, hlp));
+    addOrgUnitSql(fromBuilder, sqlParameters, params, hlp);
 
     if (params.getOccurredStartDate() != null) {
       sqlParameters.addValue("startOccurredDate", params.getOccurredStartDate(), Types.TIMESTAMP);
@@ -756,13 +756,14 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     return fromBuilder;
   }
 
-  private String addOrgUnitSql(
-      SingleEventQueryParams params, MapSqlParameterSource sqlParameters, SqlHelper hlp) {
-    StringBuilder orgUnitBuilder = new StringBuilder();
-
+  private void addOrgUnitSql(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParameters,
+      SingleEventQueryParams params,
+      SqlHelper hlp) {
     if (params.getOrgUnit() != null) {
       buildOrgUnitModeClause(
-          orgUnitBuilder,
+          sql,
           sqlParameters,
           Set.of(params.getOrgUnit()),
           params.getOrgUnitMode(),
@@ -772,17 +773,16 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
     if (params.getProgram() == null) {
       buildAccessLevelClauseForSingleEvents(
-          orgUnitBuilder, sqlParameters, params.getOrgUnitMode(), "p", "ou", () -> hlp.whereAnd());
+          sql, sqlParameters, params.getOrgUnitMode(), "p", "ou", hlp::whereAnd);
     } else {
       OrgUnitQueryBuilder.buildAccessLevelClauseForSingleEvents(
-          orgUnitBuilder,
+          sql,
           sqlParameters,
           params.getProgram(),
           params.getQuerySearchScope(),
           "ou",
-          () -> hlp.whereAnd());
+          hlp::whereAnd);
     }
-    return orgUnitBuilder.toString();
   }
 
   private String eventStatusSql(
