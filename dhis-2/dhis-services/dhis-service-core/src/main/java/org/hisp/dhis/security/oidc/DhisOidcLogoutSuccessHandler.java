@@ -92,6 +92,13 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler {
   public void onLogoutSuccess(
       HttpServletRequest request, HttpServletResponse response, Authentication authentication)
       throws IOException, ServletException {
+    // Support custom redirect URI for mobile app deep links (e.g., dhis2oauth://oauth)
+    String redirectUri = request.getParameter("redirect_uri");
+    if (!isNullOrEmpty(redirectUri)) {
+      response.sendRedirect(redirectUri);
+      return;
+    }
+
     if (config.isEnabled(OIDC_OAUTH2_LOGIN_ENABLED) && config.isEnabled(LINKED_ACCOUNTS_ENABLED)) {
       handleLinkedAccountsLogout(request, response, authentication);
       return;
