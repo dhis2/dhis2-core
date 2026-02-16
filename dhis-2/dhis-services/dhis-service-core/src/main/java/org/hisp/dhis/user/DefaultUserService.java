@@ -246,7 +246,7 @@ public class DefaultUserService implements UserService {
 
     Set<UserRole> snapshot = new HashSet<>(roles);
     for (UserRole role : snapshot) {
-      if (role.getId() == 0) {
+      if (!entityManager.contains(role)) {
         userRoleStore.save(role);
       }
     }
