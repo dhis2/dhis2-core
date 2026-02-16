@@ -36,7 +36,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.DhisConvenienceTest;
@@ -44,6 +43,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.rules.api.RuleSupplementaryData;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
@@ -94,13 +94,15 @@ class SupplementaryDataProviderTest extends DhisConvenienceTest {
 
   @Test
   void getSupplementaryData() {
-    Map<String, List<String>> supplementaryData =
-        providerToTest.getSupplementaryData(getProgramRules());
-    assertFalse(supplementaryData.isEmpty());
-    assertEquals(getUserRoleUids(), new HashSet<>(supplementaryData.get("USER")));
-    assertFalse(supplementaryData.get(ORG_UNIT_GROUP_UID).isEmpty());
-    assertEquals(orgUnitA.getUid(), supplementaryData.get(ORG_UNIT_GROUP_UID).get(0));
-    assertNull(supplementaryData.get(NOT_NEEDED_ORG_UNIT_GROUP_UID));
+    User user = new User();
+    user.setUserRoles(getUserRoles());
+    RuleSupplementaryData supplementaryData =
+        providerToTest.getSupplementaryData(getProgramRules(), UserDetails.fromUser(user));
+    assertEquals(getUserRoleUids(), new HashSet<>(supplementaryData.getUserRoles()));
+    assertFalse(supplementaryData.getOrgUnitGroups().get(ORG_UNIT_GROUP_UID).isEmpty());
+    assertEquals(
+        orgUnitA.getUid(), supplementaryData.getOrgUnitGroups().get(ORG_UNIT_GROUP_UID).get(0));
+    assertNull(supplementaryData.getOrgUnitGroups().get(NOT_NEEDED_ORG_UNIT_GROUP_UID));
   }
 
   private List<ProgramRule> getProgramRules() {

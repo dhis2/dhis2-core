@@ -43,6 +43,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleValidationResult;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,7 +74,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
   @Override
   @Transactional
-  public List<RuleEffect> evaluateEnrollmentAndRunEffects(long enrollmentId) {
+  public List<RuleEffect> evaluateEnrollmentAndRunEffects(long enrollmentId, UserDetails user) {
     if (config.isDisabled(SYSTEM_PROGRAM_RULE_SERVER_EXECUTION)) {
       return List.of();
     }
@@ -92,7 +93,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     }
 
     List<RuleEffect> ruleEffects =
-        programRuleEngine.evaluateEvent(enrollment, enrollment.getEvents(), programRules);
+        programRuleEngine.evaluateEvent(enrollment, enrollment.getEvents(), programRules, user);
 
     for (RuleEffect effect : ruleEffects) {
       ruleActionImplementers.stream()
@@ -111,12 +112,12 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
   @Override
   @Transactional
-  public List<RuleEffect> evaluateEventAndRunEffects(String event) {
+  public List<RuleEffect> evaluateEventAndRunEffects(String event, UserDetails user) {
     if (config.isDisabled(SYSTEM_PROGRAM_RULE_SERVER_EXECUTION)) {
       return Lists.newArrayList();
     }
 
-    return evaluateEventAndRunEffects(eventService.getEvent(event));
+    return evaluateEventAndRunEffects(eventService.getEvent(event), user);
   }
 
   @Override
@@ -134,7 +135,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     return programRuleEngine.getDataExpressionDescription(dataExpression, program);
   }
 
-  private List<RuleEffect> evaluateEventAndRunEffects(Event event) {
+  private List<RuleEffect> evaluateEventAndRunEffects(Event event, UserDetails user) {
     if (event == null) {
       return Lists.newArrayList();
     }
@@ -149,12 +150,13 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     List<RuleEffect> ruleEffects;
 
     if (program.isWithoutRegistration()) {
-      ruleEffects = programRuleEngine.evaluateProgramEvent(event, program, programRules);
+      ruleEffects = programRuleEngine.evaluateProgramEvent(event, program, programRules, user);
     } else {
       Enrollment enrollment = enrollmentService.getEnrollment(event.getEnrollment().getId());
 
       ruleEffects =
-          programRuleEngine.evaluateEvent(enrollment, event, enrollment.getEvents(), programRules);
+          programRuleEngine.evaluateEvent(
+              enrollment, event, enrollment.getEvents(), programRules, user);
     }
 
     for (RuleEffect effect : ruleEffects) {

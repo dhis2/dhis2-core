@@ -95,6 +95,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -223,6 +225,8 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
 
   @Autowired private OptionService optionService;
 
+  private UserDetails user;
+
   @Override
   public void setUpTest() throws ParseException, ConflictException {
     optionSet = new OptionSet("optionSetName", ValueType.TEXT);
@@ -273,6 +277,8 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     psEventDate = cal.getTime();
     setupEvents();
     setupProgramRuleEngine();
+
+    user = UserDetails.fromUser(new User());
   }
 
   @Test
@@ -280,7 +286,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     ProgramRule programRule = setUpSendMessageForEnrollment();
     Enrollment enrollment = enrollmentService.getEnrollment("UID-P1");
     List<RuleEffect> ruleEffects =
-        programRuleEngine.evaluateEvent(enrollment, Sets.newHashSet(), List.of(programRule));
+        programRuleEngine.evaluateEvent(enrollment, Sets.newHashSet(), List.of(programRule), user);
     assertEquals(1, ruleEffects.size());
     RuleAction ruleAction = ruleEffects.get(0).getRuleAction();
     assertEquals(ProgramRuleActionType.SENDMESSAGE.name(), ruleAction.getType());
@@ -293,7 +299,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     Enrollment enrollment = enrollmentService.getEnrollment("UID-P1");
     List<RuleEffects> ruleEffects =
         programRuleEngine.evaluateEnrollmentAndTrackerEvents(
-            enrollment, Sets.newHashSet(), Lists.newArrayList());
+            enrollment, Sets.newHashSet(), Lists.newArrayList(), user);
     assertEquals(1, ruleEffects.size());
     RuleEffects enrollmentRuleEffects = ruleEffects.get(0);
     assertTrue(enrollmentRuleEffects.isEnrollment());
@@ -308,7 +314,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     ProgramRule programRule = setUpNotificationForD2HasValue();
     Enrollment enrollment = enrollmentService.getEnrollment("UID-P2");
     List<RuleEffect> ruleEffects =
-        programRuleEngine.evaluateEvent(enrollment, Sets.newHashSet(), List.of(programRule));
+        programRuleEngine.evaluateEvent(enrollment, Sets.newHashSet(), List.of(programRule), user);
     assertEquals(1, ruleEffects.size());
     RuleAction ruleAction = ruleEffects.get(0).getRuleAction();
     assertEquals(ProgramRuleActionType.SENDMESSAGE.name(), ruleAction.getType());
@@ -327,7 +333,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     Enrollment enrollment = enrollmentService.getEnrollment("UID-P2");
     List<RuleEffects> ruleEffects =
         programRuleEngine.evaluateEnrollmentAndTrackerEvents(
-            enrollment, Sets.newHashSet(), Lists.newArrayList());
+            enrollment, Sets.newHashSet(), Lists.newArrayList(), user);
     assertEquals(1, ruleEffects.size());
     RuleEffects enrollmentRuleEffects = ruleEffects.get(0);
     assertTrue(enrollmentRuleEffects.isEnrollment());
@@ -349,7 +355,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     Event event = eventService.getEvent("UID-PS1");
     List<RuleEffect> ruleEffects =
         programRuleEngine.evaluateEvent(
-            event.getEnrollment(), event, Sets.newHashSet(), List.of(programRule));
+            event.getEnrollment(), event, Sets.newHashSet(), List.of(programRule), user);
     assertEquals(1, ruleEffects.size());
     RuleAction ruleAction = ruleEffects.get(0).getRuleAction();
     assertEquals(ProgramRuleActionType.SENDMESSAGE.name(), ruleAction.getType());
@@ -367,7 +373,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     Event event = eventService.getEvent("UID-PS1");
     List<RuleEffects> ruleEffects =
         programRuleEngine.evaluateEnrollmentAndTrackerEvents(
-            event.getEnrollment(), Sets.newHashSet(event), Lists.newArrayList());
+            event.getEnrollment(), Sets.newHashSet(event), Lists.newArrayList(), user);
     assertEquals(2, ruleEffects.size());
     RuleEffects enrollmentRuleEffects =
         ruleEffects.stream().filter(RuleEffects::isEnrollment).findFirst().get();
@@ -391,7 +397,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     setUpScheduleMessage();
     Enrollment enrollment = enrollmentService.getEnrollment("UID-PS");
     List<RuleEffect> ruleEffects =
-        programRuleEngineService.evaluateEnrollmentAndRunEffects(enrollment.getId());
+        programRuleEngineService.evaluateEnrollmentAndRunEffects(enrollment.getId(), user);
     assertEquals(1, ruleEffects.size());
     RuleAction ruleAction = ruleEffects.get(0).getRuleAction();
     assertEquals(ProgramRuleActionType.SCHEDULEMESSAGE.name(), ruleAction.getType());
@@ -399,7 +405,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     assertEquals(scheduledDate, ruleEffects.get(0).getData());
     // For duplication detection
     List<RuleEffect> ruleEffects2 =
-        programRuleEngineService.evaluateEnrollmentAndRunEffects(enrollment.getId());
+        programRuleEngineService.evaluateEnrollmentAndRunEffects(enrollment.getId(), user);
     assertNotNull(ruleEffects2.get(0));
     RuleAction ruleAction2 = ruleEffects2.get(0).getRuleAction();
     assertEquals(ProgramRuleActionType.SCHEDULEMESSAGE.name(), ruleAction2.getType());
@@ -419,14 +425,14 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     pnt.setSendRepeatable(true);
     Enrollment enrollment = enrollmentService.getEnrollment("UID-PS");
     List<RuleEffect> ruleEffects =
-        programRuleEngineService.evaluateEnrollmentAndRunEffects(enrollment.getId());
+        programRuleEngineService.evaluateEnrollmentAndRunEffects(enrollment.getId(), user);
     assertEquals(1, ruleEffects.size());
     RuleAction ruleAction = ruleEffects.get(0).getRuleAction();
     assertEquals(ProgramRuleActionType.SCHEDULEMESSAGE.name(), ruleAction.getType());
     assertEquals("PNT-1-SCH", ruleAction.getValues().get(NOTIFICATION));
     assertEquals(scheduledDate, ruleEffects.get(0).getData());
     List<RuleEffect> ruleEffects2 =
-        programRuleEngineService.evaluateEnrollmentAndRunEffects(enrollment.getId());
+        programRuleEngineService.evaluateEnrollmentAndRunEffects(enrollment.getId(), user);
     assertNotNull(ruleEffects2.get(0));
     RuleAction ruleAction2 = ruleEffects2.get(0).getRuleAction();
     assertEquals(ProgramRuleActionType.SCHEDULEMESSAGE.name(), ruleAction2.getType());
@@ -450,7 +456,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     Event event = eventService.getEvent("UID-PS12");
     List<RuleEffect> ruleEffects =
         programRuleEngine.evaluateEvent(
-            event.getEnrollment(), event, Sets.newHashSet(), List.of(programRule));
+            event.getEnrollment(), event, Sets.newHashSet(), List.of(programRule), user);
     assertNotNull(ruleEffects);
     assertEquals("10", ruleEffects.get(0).getData());
   }
@@ -461,7 +467,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     Event event = eventService.getEvent("UID-PS12");
     List<RuleEffects> ruleEffects =
         programRuleEngine.evaluateEnrollmentAndTrackerEvents(
-            event.getEnrollment(), Sets.newHashSet(event), Lists.newArrayList());
+            event.getEnrollment(), Sets.newHashSet(event), Lists.newArrayList(), user);
     assertNotNull(ruleEffects);
     assertEquals(2, ruleEffects.size());
     assertTrue(
@@ -488,7 +494,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     Event event = eventService.getEvent("UID-PS13");
     List<RuleEffect> ruleEffects =
         programRuleEngine.evaluateEvent(
-            event.getEnrollment(), event, Sets.newHashSet(), List.of(programRule));
+            event.getEnrollment(), event, Sets.newHashSet(), List.of(programRule), user);
     assertNotNull(ruleEffects);
     assertEquals("10", ruleEffects.get(0).getData());
   }
@@ -500,7 +506,11 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     Event event = eventService.getEvent("UID-PS13");
     List<RuleEffect> ruleEffects =
         programRuleEngine.evaluateEvent(
-            event.getEnrollment(), event, Sets.newHashSet(), List.of(programRuleToTestOptionSet));
+            event.getEnrollment(),
+            event,
+            Sets.newHashSet(),
+            List.of(programRuleToTestOptionSet),
+            user);
 
     assertNotNull(ruleEffects);
     assertEquals(
@@ -515,7 +525,11 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest {
     Event event = eventService.getEvent("UID-PS13");
     List<RuleEffect> ruleEffects =
         programRuleEngine.evaluateEvent(
-            event.getEnrollment(), event, Sets.newHashSet(), List.of(programRuleToTestOptionSet));
+            event.getEnrollment(),
+            event,
+            Sets.newHashSet(),
+            List.of(programRuleToTestOptionSet),
+            user);
 
     assertNotNull(ruleEffects);
     assertEquals(

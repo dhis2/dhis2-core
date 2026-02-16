@@ -55,8 +55,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import kotlinx.datetime.Instant;
-import kotlinx.datetime.LocalDate;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
@@ -88,6 +86,8 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleDataValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
+import org.hisp.dhis.rules.models.RuleInstant;
+import org.hisp.dhis.rules.models.RuleLocalDate;
 import org.hisp.dhis.rules.models.RuleVariable;
 import org.hisp.dhis.rules.models.RuleVariableAttribute;
 import org.hisp.dhis.rules.models.RuleVariableCalculatedValue;
@@ -547,8 +547,12 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
     assertDataValue(event.getEventDataValues().iterator().next(), ruleEvent.getDataValues().get(0));
   }
 
-  private void assertDates(Date expected, Instant actual) {
-    assertEquals(expected.getTime(), actual.getValue$kotlinx_datetime().toEpochMilli());
+  private void assertDates(Date expected, RuleInstant actual) {
+    assertEquals(expected.toInstant().toEpochMilli(), actual.getMillis());
+  }
+
+  private void assertDates(Date expected, RuleLocalDate actual) {
+    assertEquals(DateUtils.toMediumDate(expected), actual.toString());
   }
 
   private void assertDataValue(EventDataValue expectedDataValue, RuleDataValue actualDataValue) {
@@ -566,9 +570,5 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest {
     assertEquals(
         enrollment.getOrganisationUnit().getCode(), ruleEnrollment.getOrganisationUnitCode());
     assertEquals(SAMPLE_VALUE_A, ruleEnrollment.getAttributeValues().get(0).getValue());
-  }
-
-  private void assertDates(Date expected, LocalDate actual) {
-    assertEquals(DateUtils.toMediumDate(expected), actual.toString());
   }
 }

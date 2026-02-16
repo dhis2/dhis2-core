@@ -67,7 +67,8 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest {
             new RuleAction(
                 "action-data",
                 ProgramRuleActionType.ASSIGN.name(),
-                Map.of("content", "content", "field", "field")),
+                Map.of("content", "content", "field", "field"),
+                0),
             "field-data"),
         enrollment);
 
@@ -82,7 +83,8 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest {
             new RuleAction(
                 "action-data",
                 ProgramRuleActionType.ASSIGN.name(),
-                Map.of("content", "content", "field", "field123")),
+                Map.of("content", "content", "field", "field123"),
+                0),
             "field-data"),
         enrollment);
 
@@ -97,7 +99,8 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest {
             new RuleAction(
                 "action-data",
                 ProgramRuleActionType.ASSIGN.name(),
-                Map.of("content", "content", "field", "name-field")),
+                Map.of("content", "content", "field", "name-field"),
+                0),
             "field-data"),
         enrollment);
 
@@ -112,7 +115,8 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest {
             new RuleAction(
                 "action-data",
                 ProgramRuleActionType.ASSIGN.name(),
-                Map.of("content", "content", "field", "name field")),
+                Map.of("content", "content", "field", "name field"),
+                0),
             "field-data"),
         enrollment);
 
@@ -127,7 +131,8 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest {
             new RuleAction(
                 "action-data",
                 ProgramRuleActionType.ASSIGN.name(),
-                Map.of("content", "content", "field", "name.field")),
+                Map.of("content", "content", "field", "name.field"),
+                0),
             "field-data"),
         enrollment);
 
@@ -142,7 +147,8 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest {
             new RuleAction(
                 "action-data",
                 ProgramRuleActionType.ASSIGN.name(),
-                Map.of("content", "content", "field", "first name field")),
+                Map.of("content", "content", "field", "first name field"),
+                0),
             "field-data"),
         enrollment);
 

@@ -57,6 +57,7 @@ import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -89,6 +90,7 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
   private Enrollment programInstance;
   private Enrollment programInstanceB;
   private UserGroup userGroup;
+  private UserDetails user;
 
   private String today = LocalDate.now().toString();
   private String tomorrow = LocalDate.now().plusDays(1).toString();
@@ -108,6 +110,7 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
 
     userGroup = createUserGroup('U', new HashSet<>());
     manager.save(userGroup);
+    user = UserDetails.fromUser(new User());
 
     createAndAddUsersToUserGroupAndOrgUnit();
 
@@ -145,7 +148,7 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
     programInstanceB = createEnrollment(program, trackedEntityInstance, organisationUnit);
     programInstanceService.addEnrollment(programInstanceB);
 
-    programRuleEngineService.evaluateEnrollmentAndRunEffects(programInstance.getId());
+    programRuleEngineService.evaluateEnrollmentAndRunEffects(programInstance.getId(), user);
   }
 
   @Test
@@ -174,7 +177,7 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
 
   @Test
   void testDeleteProgramNotificationInstance() {
-    programRuleEngineService.evaluateEnrollmentAndRunEffects(programInstanceB.getId());
+    programRuleEngineService.evaluateEnrollmentAndRunEffects(programInstanceB.getId(), user);
     List<ProgramNotificationInstance> programNotificationInstances =
         programNotificationInstanceService.getProgramNotificationInstances(
             ProgramNotificationInstanceParam.builder().enrollment(programInstanceB).build());
