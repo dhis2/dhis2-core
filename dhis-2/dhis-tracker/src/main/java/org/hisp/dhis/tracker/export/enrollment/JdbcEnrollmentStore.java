@@ -497,6 +497,7 @@ class JdbcEnrollmentStore {
    *   <li>{@code program} - only when no specific program is given (needed for {@code
    *       p.accesslevel} and {@code p.programid in (...)}). When a program is known, its conditions
    *       are resolved in Java and the join is skipped.
+<<<<<<< HEAD
    *   <li>{@code trackedentity} - only when the program is unknown (ownership clause needs {@code
    *       te.trackedentityid} for the PROTECTED temp owner check resolved at query time) or when
    *       the program is PROTECTED. Skipped for OPEN/AUDITED programs. Tracked entity UID filters
