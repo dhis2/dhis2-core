@@ -225,8 +225,9 @@ class OrgUnitQueryBuilderTest {
     StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
     Program program = createProgram(1, AccessLevel.OPEN);
-    SearchScope scope =
-        new SearchScope(0, true, false, new LinkedHashSet<>(List.of(orgUnitA)), Set.of(orgUnitB));
+    QuerySearchScope scope =
+        new QuerySearchScope(
+            0, true, false, new LinkedHashSet<>(List.of(orgUnitA)), Set.of(orgUnitB));
 
     buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
 
@@ -241,8 +242,9 @@ class OrgUnitQueryBuilderTest {
     StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
     Program program = createProgram(1, AccessLevel.AUDITED);
-    SearchScope scope =
-        new SearchScope(0, true, false, new LinkedHashSet<>(List.of(orgUnitB)), Set.of(orgUnitB));
+    QuerySearchScope scope =
+        new QuerySearchScope(
+            0, true, false, new LinkedHashSet<>(List.of(orgUnitB)), Set.of(orgUnitB));
 
     buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
 
@@ -257,8 +259,9 @@ class OrgUnitQueryBuilderTest {
     StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
     Program program = createProgram(42, AccessLevel.PROTECTED);
-    SearchScope scope =
-        new SearchScope(0, true, false, Set.of(orgUnitA), new LinkedHashSet<>(List.of(orgUnitB)));
+    QuerySearchScope scope =
+        new QuerySearchScope(
+            0, true, false, Set.of(orgUnitA), new LinkedHashSet<>(List.of(orgUnitB)));
 
     buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
 
@@ -275,7 +278,7 @@ class OrgUnitQueryBuilderTest {
     StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
     Program program = createProgram(1, AccessLevel.OPEN);
-    SearchScope scope = new SearchScope(0, true, false, Set.of(), Set.of());
+    QuerySearchScope scope = new QuerySearchScope(0, true, false, Set.of(), Set.of());
 
     buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
 
@@ -288,7 +291,7 @@ class OrgUnitQueryBuilderTest {
     StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
     Program program = createProgram(1, AccessLevel.OPEN);
-    SearchScope scope = new SearchScope(0, false, false, Set.of(), Set.of());
+    QuerySearchScope scope = new QuerySearchScope(0, false, false, Set.of(), Set.of());
 
     buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
 
@@ -303,8 +306,9 @@ class OrgUnitQueryBuilderTest {
     StringBuilder sql = new StringBuilder();
     MapSqlParameterSource params = new MapSqlParameterSource();
     Program program = createProgram(42, AccessLevel.CLOSED);
-    SearchScope scope =
-        new SearchScope(0, true, false, Set.of(orgUnitA), new LinkedHashSet<>(List.of(orgUnitB)));
+    QuerySearchScope scope =
+        new QuerySearchScope(
+            0, true, false, Set.of(orgUnitA), new LinkedHashSet<>(List.of(orgUnitB)));
 
     buildOwnershipClause(sql, params, program, scope, "ou", "t", () -> " and ");
 

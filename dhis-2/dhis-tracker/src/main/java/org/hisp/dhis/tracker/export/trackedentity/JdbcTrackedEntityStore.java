@@ -149,7 +149,7 @@ class JdbcTrackedEntityStore {
   }
 
   private void validateMaxTeLimit(TrackedEntityQueryParams params) {
-    if (!params.getSearchScope().outsideCaptureScope()) {
+    if (!params.getQuerySearchScope().outsideCaptureScope()) {
       return;
     }
 
@@ -191,59 +191,41 @@ class JdbcTrackedEntityStore {
   }
 
   /**
-   * Generates SQL based on "params". The purpose of the SQL is to retrieve a list of tracked
-   * entities.
+   * Generates the TE ID query. The query shape is:
    *
-   * <p>The general structure of the query is as follows:
-   *
-   * <p>select (main_projection) from (constraint_subquery) left join (additional_information) group
-   * by (main_groupby) order by (order)
-   *
-   * <p>The constraint_subquery looks as follows:
-   *
-   * <p>select (subquery_projection) from (tracked entities) inner join (attribute_constraints)
-   * [inner join (program_owner)] inner join (organisation units) left join (attribute_orderby)
-   * where exist(program_constraint) order by (order) limit (limit_offset)
-   *
-   * <p>main_projection: Will have an aggregate string of attributevalues (uid:value) as well as
-   * basic te-info. constraint_subquery: Includes all SQL related to narrowing down the number of
-   * te's we are looking for. We use inner join primarily for this, as well as exists for program
-   * instances. Do make sure we get the right selection, we also use left join on attributes, when
-   * we are sorting by attributes, before we sort and finally limit the selection.
-   * subquery_projection: Has all the required information for knowing what tracked entities to
-   * return and how to order them attribute_constraints: We inner join the attributes, and add 3
-   * conditions: te id, tea id and value. This uses a (te, tea, lower(value)) index. For each
-   * attribute constraints, we add subsequent inner joins. program_owner: Only included when a
-   * program is specified. If included, it will join on 3 columns: te, program and ou. We have an
-   * index for this (program, ou, te) which allows a scan only lookup attribute_orderby: When a user
-   * specified an attribute in the order param, we need to join that attribute (We do left join, in
-   * case the value is not there. This join is not for removing resulting records). After joining it
-   * and projecting it, we can order by it. program_constraint: If a program is specified, it
-   * indicates the te must be enrolled in that program. Since the relation between te and
-   * enrollments are not 1:1, but 1:many, we use exists to avoid duplicate rows of te, allowing us
-   * to avoid grouping the result before we order and limit. This saves a lot of time. NOTE: Within
-   * the program_constraint, we also have a sub-query to deal with any event-related constraints.
-   * These can either be constraints on any static properties, or user assignment. For user
-   * assignment, we also join with the userinfo table. For events, we have an index (status,
-   * occurreddate) which speeds up the lookup significantly order: Order is used both in the
-   * sub-query and the main query. The sort depends on the params (see more info on the related
-   * method). We order the sub-query to make sure we get correct results before we limit. We order
-   * the main query since the aggregation mixes up the order, so to return a consistent order, we
-   * order again. limit_offset: The limit and offset is set based on a combination of params:
-   * program and tet can have a maxte limit, which only applies during a search outside the users
-   * capture scope. If applied, it will throw an error if the number of results exceeds the limit.
-   * Otherwise, we use paging. If no paging is set, there is no limit. additional_information: Here
-   * we do a left join with any relevant information needed for the result: tet name, any attributes
-   * to project, etc. We left join, since we don't want to reduce the results, just add information.
-   * main_groupby: The purpose of this group by, is to aggregate any attributes added in
-   * additional_information
+   * <pre>{@code
+   * select te.trackedentityid, te.uid [, en_enrollmentdate]   -- outer select
+   * from (
+   *   select [distinct [on (...)]] te.trackedentityid, ...    -- subquery select
+   *   from trackedentity te                                   -- subquery from
+   *   [inner join program p ...]                              -- subquery joins
+   *   [inner|left join trackedentityprogramowner po ...]
+   *   inner join organisationunit ou ...
+   *   [inner join enrollment en ...]
+   *   [inner|left join trackedentityattributevalue ...]
+   *   [where ...]                                             -- subquery where
+   *   [order by ...]                                          -- subquery order
+   *   [limit ... offset ...]                                  -- subquery limit
+   * ) te
+   * order by ...                                              -- outer order
+   * [limit ... offset ...]                                    -- outer limit (DISTINCT ON only)
+   * }</pre>
    */
   private String getQuery(
       TrackedEntityQueryParams params, PageParams pageParams, MapSqlParameterSource sqlParameters) {
     StringBuilder sql = new StringBuilder();
-    addSelect(sql, params);
-    sql.append(" from ");
-    addTrackedEntityFromItem(sql, sqlParameters, params, pageParams, false);
+    addOuterSelect(sql, params);
+    sql.append(" from (");
+    addSubqueryBody(sql, sqlParameters, params);
+    sql.append(" ");
+    if (needsDistinctOnForEnrolledAt(params)) {
+      addDistinctOnOrderBy(sql, params);
+    } else {
+      addOrderBy(sql, params);
+      sql.append(" ");
+      addLimitAndOffset(sql, pageParams);
+    }
+    sql.append(") ").append(MAIN_QUERY_ALIAS).append(" ");
     addOrderBy(sql, params);
     // LIMIT must be in outer query for DISTINCT ON (applied after final ORDER BY)
     if (needsDistinctOnForEnrolledAt(params)) {
@@ -253,56 +235,49 @@ class JdbcTrackedEntityStore {
     return sql.toString();
   }
 
-  /**
-   * Uses the same basis as the getQuery method, but replaces the projection with a count and
-   * ignores order and limit
-   */
+  /** Wraps the TE ID query in a count, ignoring order and limit. */
   private String getCountQuery(
       TrackedEntityQueryParams params, MapSqlParameterSource sqlParameters) {
     StringBuilder sql = new StringBuilder("select count(trackedentityid) from (");
-    addSelect(sql, params);
-    sql.append(" from ");
-    addTrackedEntityFromItem(sql, sqlParameters, params, null, true);
-    sql.append(" ) tecount");
+    addOuterSelect(sql, params);
+    sql.append(" from (");
+    addSubqueryBody(sql, sqlParameters, params);
+    sql.append(") ").append(MAIN_QUERY_ALIAS).append(" ");
+    sql.append(") tecount");
     return sql.toString();
   }
 
-  /**
-   * Uses the same basis as the getQuery method, but replaces the projection with a count, ignores
-   * order but uses the te limit set on the program if higher than 0
-   */
+  /** Like {@link #getCountQuery} but caps results at the program/TET max TE limit. */
   private String getCountQueryWithMaxTrackedEntityLimit(
       TrackedEntityQueryParams params, MapSqlParameterSource sqlParameters) {
     StringBuilder sql = new StringBuilder("select count(trackedentityid) from (");
-    addSelect(sql, params);
-    sql.append(" from ");
-    addTrackedEntityFromItem(sql, sqlParameters, params, null, true);
+    addOuterSelect(sql, params);
+    sql.append(" from (");
+    addSubqueryBody(sql, sqlParameters, params);
+    sql.append(") ").append(MAIN_QUERY_ALIAS).append(" ");
     sql.append("limit ").append(getMaxTeLimit(params) + 1);
     sql.append(" ) tecount");
     return sql.toString();
   }
 
-  private void addSelect(StringBuilder sql, TrackedEntityQueryParams params) {
+  private void addOuterSelect(StringBuilder sql, TrackedEntityQueryParams params) {
     sql.append(BASE_SELECT);
     if (isOrderingByEnrolledAt(params)) {
       sql.append(", ").append(ENROLLMENT_DATE_ALIAS);
     }
   }
 
-  /**
-   * Generates the SQL of the sub-query, used to find the correct subset of tracked entities to
-   * return. Orchestrates all the different segments of the SQL into a complete sub-query.
-   */
-  private void addTrackedEntityFromItem(
-      StringBuilder sql,
-      MapSqlParameterSource sqlParameters,
-      TrackedEntityQueryParams params,
-      PageParams pageParams,
-      boolean isCountQuery) {
-    sql.append("(");
-    addTrackedEntityFromItemSelect(sql, params);
+  /** Builds the subquery SELECT, FROM, JOINs and WHERE. No ORDER BY or LIMIT. */
+  private void addSubqueryBody(
+      StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
+    addSubquerySelect(sql, params);
     sql.append(" from trackedentity ").append(MAIN_QUERY_ALIAS).append(" ");
+    addSubqueryJoins(sql, sqlParameters, params);
+    addSubqueryWhere(sql, sqlParameters, params);
+  }
 
+  private void addSubqueryJoins(
+      StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
     addJoinOnProgram(sql, sqlParameters, params);
     sql.append(" ");
     addJoinOnProgramOwner(sql, sqlParameters, params);
@@ -313,26 +288,14 @@ class JdbcTrackedEntityStore {
     sql.append(" ");
     addJoinOnAttributes(sql, params);
     sql.append(" ");
+  }
 
+  private void addSubqueryWhere(
+      StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
     SqlHelper sqlHelper = new SqlHelper(true);
     addAttributeFilterConditions(sql, sqlParameters, params, sqlHelper);
     addTrackedEntityConditions(sql, sqlParameters, params, sqlHelper);
     addEnrollmentAndEventExistsCondition(sql, sqlParameters, params, sqlHelper);
-
-    if (!isCountQuery) {
-      sql.append(" ");
-      // DISTINCT ON requires ORDER BY to start with the DISTINCT columns
-      if (needsDistinctOnForEnrolledAt(params)) {
-        addDistinctOnOrderBy(sql, params);
-        // LIMIT must be in outer query for DISTINCT ON (after final ORDER BY)
-      } else {
-        addOrderBy(sql, params);
-        sql.append(" ");
-        addLimitAndOffset(sql, pageParams);
-      }
-    }
-
-    sql.append(") ").append(MAIN_QUERY_ALIAS).append(" ");
   }
 
   /**
@@ -356,7 +319,7 @@ class JdbcTrackedEntityStore {
    * TrackedEntityQueryParams)}, {@link #addJoinOnEnrollment(StringBuilder, MapSqlParameterSource,
    * TrackedEntityQueryParams)} and {@link #addOrderBy(StringBuilder, TrackedEntityQueryParams)}.
    */
-  private void addTrackedEntityFromItemSelect(StringBuilder sql, TrackedEntityQueryParams params) {
+  private void addSubquerySelect(StringBuilder sql, TrackedEntityQueryParams params) {
     if (needsDistinctOnForEnrolledAt(params)) {
       // When ordering by enrolledAt and multiple enrollments per TE are possible,
       // use DISTINCT ON to pick one enrollment per TE.
@@ -492,7 +455,7 @@ class JdbcTrackedEntityStore {
           sql,
           sqlParameters,
           params.getEnrolledInTrackerProgram(),
-          params.getSearchScope(),
+          params.getQuerySearchScope(),
           orgUnitTableAlias,
           MAIN_QUERY_ALIAS,
           () -> "and ");
@@ -858,10 +821,8 @@ class JdbcTrackedEntityStore {
   }
 
   /**
-   * Adds the ORDER BY clause. This clause is used both in the sub-query and main query. When using
-   * it in the sub-query, we want to make sure we get the right tracked entities. When we order in
-   * the main query, it's to make sure we return the results in the correct order, since order might
-   * be mixed after GROUP BY.
+   * Adds the ORDER BY clause. Used in both the subquery (to get the right tracked entities before
+   * LIMIT) and the outer query (to return results in the correct order).
    */
   private void addOrderBy(StringBuilder sql, TrackedEntityQueryParams params) {
     List<String> orderFields = new ArrayList<>();
@@ -898,14 +859,13 @@ class JdbcTrackedEntityStore {
   }
 
   /**
-   * Adds the LIMIT and OFFSET part of the sub-query. The limit is decided by the page size, page
-   * offset and the system setting KeyTrackedEntityMaxLimit.
+   * Adds the LIMIT and OFFSET clause. Normally placed in the subquery so outer joins have fewer
+   * rows to consider. For DISTINCT ON queries the LIMIT is placed in the outer query instead (see
+   * {@link #getQuery}).
    *
-   * <p>If the page parameters are not null, we use the page size and its offset. The validation in
-   * {@link TrackedEntityOperationParamsMapper} guarantees that if the page parameters are set, the
-   * page size will always be smaller than the system limit.
-   *
-   * <p>The limit is set in the sub-query, so the latter joins have fewer rows to consider.
+   * <p>If page parameters are set, uses page size and offset. The validation in {@link
+   * TrackedEntityOperationParamsMapper} guarantees the page size is within the system limit.
+   * Otherwise, falls back to the system-wide max TE limit.
    */
   private void addLimitAndOffset(StringBuilder sql, PageParams pageParams) {
     int systemMaxLimit = settingsProvider.getCurrentSettings().getTrackedEntityMaxLimit();

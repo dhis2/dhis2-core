@@ -48,9 +48,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.acl.TrackerProgramService;
+import org.hisp.dhis.tracker.export.CategoryOptionComboService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
@@ -94,6 +96,10 @@ class EnrollmentOperationParamsMapperTest {
   @Mock private OperationsParamsValidator paramsValidator;
 
   @Mock private TrackerProgramService trackerProgramService;
+
+  @Mock private CategoryOptionComboService categoryOptionComboService;
+
+  @Mock private AclService aclService;
 
   @InjectMocks private EnrollmentOperationParamsMapper mapper;
 

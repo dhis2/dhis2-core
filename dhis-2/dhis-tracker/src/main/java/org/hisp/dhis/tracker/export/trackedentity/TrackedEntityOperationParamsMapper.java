@@ -65,7 +65,7 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.tracker.export.SearchScope;
+import org.hisp.dhis.tracker.export.QuerySearchScope;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -156,8 +156,8 @@ class TrackedEntityOperationParamsMapper {
     Set<OrganisationUnit> captureScope =
         Set.copyOf(organisationUnitService.getOrganisationUnitsByUid(user.getUserOrgUnitIds()));
     boolean outsideCaptureScope = isSearchOutsideCaptureScope(params, user, captureScope);
-    params.setSearchScope(
-        SearchScope.of(
+    params.setQuerySearchScope(
+        QuerySearchScope.of(
             user,
             operationParams.getOrgUnitMode(),
             outsideCaptureScope,

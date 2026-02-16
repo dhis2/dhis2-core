@@ -977,7 +977,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           orgUnitBuilder,
           sqlParameters,
           params.getEnrolledInTrackerProgram(),
-          params.getSearchScope(),
+          params.getQuerySearchScope(),
           "ou",
           "te",
           hlp::whereAnd);
