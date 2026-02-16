@@ -124,7 +124,7 @@ public class CategoryOptionComboDeletionHandler
   private void deleteCategoryCombo(CategoryCombo categoryCombo) {
     Iterator<CategoryOptionCombo> iterator = categoryCombo.getOptionCombos().iterator();
 
-    while (iterator.hasNext()) {
+    while (iterator.hasNext()) { // todo this should be 0 so it passes the veto
       CategoryOptionCombo optionCombo = iterator.next();
       iterator.remove();
       categoryService.deleteCategoryOptionCombo(optionCombo);

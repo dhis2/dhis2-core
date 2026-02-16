@@ -29,14 +29,18 @@
  */
 package org.hisp.dhis.merge.category.categorycombo;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboStore;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflowStore;
 import org.hisp.dhis.dataelement.DataElementStore;
@@ -56,6 +60,7 @@ import org.springframework.stereotype.Component;
 public class CategoryComboMergeHandler {
 
   private final CategoryOptionComboStore categoryOptionComboStore;
+  private final CategoryService categoryService;
   private final DataElementStore dataElementStore;
   private final DataSetStore dataSetStore;
   private final ProgramStore programStore;
@@ -72,27 +77,48 @@ public class CategoryComboMergeHandler {
   public void handleCategories(List<CategoryCombo> sources, CategoryCombo target) {
     for (CategoryCombo source : sources) {
       for (Category category : source.getCategories()) {
-        category.getCategoryCombos().remove(source);
-        if (!category.getCategoryCombos().contains(target)) {
-          category.getCategoryCombos().add(target);
-        }
+        category.removeCategoryCombo(source);
       }
     }
-    log.info("Categories handled for CategoryCombo merge");
+    log.info(
+        "{} Categories updated by removing target CategoryCombo {}",
+        sources.size(),
+        target.getUid());
   }
 
   /**
-   * Updates CategoryOptionCombo references to point to the target CategoryCombo. Uses SQL approach
-   * for efficiency.
+   * Updates CategoryOptionCombo references to point to the target CategoryCombo. Has to update
+   * twice effectively to satisfy the dependency chain of DeletionHandlers & nested
+   * DeletionHandlers. <br>
+   * Updates references through native SQL to handle mappings, which satisfies CC deletion Updates
+   * references through Hibernate to handle mappings, which satisfies COC deletion (no COC are being
+   * deleted but the CC deletion handler uses a mix of Hibernate + JDBC when attempting to delete a
+   * COC.
    *
    * @param sources list of source CategoryCombos
    * @param target target CategoryCombo
    */
   public void handleCategoryOptionCombos(List<CategoryCombo> sources, CategoryCombo target) {
+    final AtomicInteger updatedCocs = new AtomicInteger();
+
+    // Hibernate - removes source combos from categories and adds target.
+    for (CategoryCombo srcCc : sources) {
+      Iterator<CategoryOptionCombo> srcCocIterator = srcCc.getOptionCombos().iterator();
+      while (srcCocIterator.hasNext()) {
+        CategoryOptionCombo srcCoc = srcCocIterator.next();
+        srcCocIterator.remove();
+        target.addCategoryOptionCombo(srcCoc);
+      }
+      categoryService.updateCategoryCombo(srcCc);
+    }
+    // SQL - updates CC <-> COC mapping table
     Set<Long> sourceIds =
         sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet());
     int updated = categoryOptionComboStore.updateCategoryComboRefs(sourceIds, target.getId());
     log.info("{} CategoryOptionCombos updated with target CategoryCombo ref", updated);
+
+    //    categoryService.updateCategoryCombo(target);
+    log.info("{} CategoryOptionCombos updated with target CategoryCombo ref", updatedCocs);
   }
 
   /**
