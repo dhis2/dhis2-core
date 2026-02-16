@@ -54,7 +54,7 @@ public interface UserRoleStore extends IdentifiableObjectStore<UserRole> {
    * @param userUid the UID of the user to add
    * @return true if the membership was added, false if user was already a member
    */
-  boolean addMemberViaSQL(@Nonnull UID userRoleUid, @Nonnull UID userUid);
+  boolean addMember(@Nonnull UID userRoleUid, @Nonnull UID userUid);
 
   /**
    * Removes a user from a user role directly via SQL, without loading the members collection. This
@@ -63,7 +63,7 @@ public interface UserRoleStore extends IdentifiableObjectStore<UserRole> {
    * @param userRoleUid the UID of the user role
    * @param userUid the UID of the user to remove
    */
-  boolean removeMemberViaSQL(@Nonnull UID userRoleUid, @Nonnull UID userUid);
+  boolean removeMember(@Nonnull UID userRoleUid, @Nonnull UID userUid);
 
   /**
    * Removes all user role memberships for a user directly via SQL. This avoids loading UserRole
@@ -71,7 +71,15 @@ public interface UserRoleStore extends IdentifiableObjectStore<UserRole> {
    *
    * @param userUid the UID of the user whose role memberships should be removed
    */
-  void removeAllMembershipsViaSQL(@Nonnull UID userUid);
+  void removeAllMemberships(@Nonnull UID userUid);
+
+  /**
+   * Removes all user memberships for a user role directly via SQL. Used when deleting a user role
+   * to avoid loading all member User entities.
+   *
+   * @param userRoleUid the UID of the user role whose memberships should be removed
+   */
+  void removeAllMembershipsForRole(@Nonnull UID userRoleUid);
 
   /**
    * Updates the lastUpdated timestamp and lastUpdatedBy user for a user role directly via SQL. This
@@ -81,7 +89,7 @@ public interface UserRoleStore extends IdentifiableObjectStore<UserRole> {
    * @param userRoleUid the UID of the user role to update
    * @param lastUpdatedByUid the UID of the user performing the update
    */
-  void updateLastUpdatedViaSQL(@Nonnull UID userRoleUid, @Nonnull UID lastUpdatedByUid);
+  void updateLastUpdated(@Nonnull UID userRoleUid, @Nonnull UID lastUpdatedByUid);
 
   /**
    * Updates the lastUpdated timestamp and lastUpdatedBy user for all user roles that the given user
@@ -90,5 +98,5 @@ public interface UserRoleStore extends IdentifiableObjectStore<UserRole> {
    * @param userUid the UID of the user whose roles should be updated
    * @param lastUpdatedByUid the UID of the user performing the update
    */
-  void updateLastUpdatedForUserRolesViaSQL(@Nonnull UID userUid, @Nonnull UID lastUpdatedByUid);
+  void updateLastUpdatedForUserRoles(@Nonnull UID userUid, @Nonnull UID lastUpdatedByUid);
 }

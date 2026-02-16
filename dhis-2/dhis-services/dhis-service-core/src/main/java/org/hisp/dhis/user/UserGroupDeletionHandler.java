@@ -51,13 +51,10 @@ public class UserGroupDeletionHandler extends IdObjectDeletionHandler<UserGroup>
     whenDeleting(UserGroup.class, this::deleteUserGroup);
   }
 
-  // Note: updateLastUpdatedForUserGroupsViaSQL evicts UserGroup entities from the Hibernate
-  // session, which is safe here because User.groups is mapped as inverse="true" (no cascade from
-  // User). This would NOT be safe for UserRole — see UserRoleDeletionHandler for details.
   private void deleteUser(User user) {
     UID currentUserUid = UID.of(CurrentUserUtil.getCurrentUserDetails().getUid());
-    userGroupStore.updateLastUpdatedForUserGroupsViaSQL(user.getUID(), currentUserUid);
-    userGroupStore.removeAllMembershipsViaSQL(user.getUID());
+    userGroupStore.updateLastUpdatedForUserGroups(user.getUID(), currentUserUid);
+    userGroupStore.removeAllMemberships(user.getUID());
     aclService.invalidateCurrentUserGroupInfoCache();
   }
 

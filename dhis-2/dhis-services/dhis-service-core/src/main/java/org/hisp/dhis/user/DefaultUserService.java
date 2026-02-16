@@ -215,7 +215,10 @@ public class DefaultUserService implements UserService {
     String currentUsername = CurrentUserUtil.getCurrentUsername();
     AuditLogUtil.infoWrapper(log, currentUsername, user, AuditLogUtil.ACTION_CREATE);
 
+    boolean isNew = !entityManager.contains(user);
+    Set<UserRole> roles = isNew ? persistUnsavedUserRoles(user) : Set.of();
     userStore.save(user);
+    addUserToRoles(user, roles);
 
     return user.getId();
   }
@@ -225,9 +228,49 @@ public class DefaultUserService implements UserService {
   public long addUser(User user, UserDetails actingUser) {
     AuditLogUtil.infoWrapper(log, actingUser.getUsername(), user, AuditLogUtil.ACTION_CREATE);
 
+    boolean isNew = !entityManager.contains(user);
+    Set<UserRole> roles = isNew ? persistUnsavedUserRoles(user) : Set.of();
     userStore.save(user, actingUser, false);
+    addUserToRoles(user, roles);
 
     return user.getId();
+  }
+
+  /**
+   * Saves any unsaved UserRoles from the user's in-memory collection. Must be called before saving
+   * the user, since User.userRoles is {@code inverse="true"} and won't cascade.
+   */
+  private Set<UserRole> persistUnsavedUserRoles(User user) {
+    Set<UserRole> roles = user.getUserRoles();
+    if (roles == null || roles.isEmpty()) return Set.of();
+
+    Set<UserRole> snapshot = new HashSet<>(roles);
+    for (UserRole role : snapshot) {
+      if (!entityManager.contains(role)) {
+        userRoleStore.save(role);
+      }
+    }
+    return snapshot;
+  }
+
+  /**
+   * Links the user to roles via the owning side (UserRole.members). Since User.userRoles is {@code
+   * inverse="true"}, saving a User does not persist the join table. This method adds the user to
+   * each role's members collection and flushes to persist the join table rows.
+   */
+  private void addUserToRoles(User user, Set<UserRole> roles) {
+    if (roles.isEmpty()) return;
+
+    boolean changed = false;
+    for (UserRole role : roles) {
+      if (!role.getMembers().contains(user)) {
+        role.getMembers().add(user);
+        changed = true;
+      }
+    }
+    if (changed) {
+      entityManager.flush();
+    }
   }
 
   @Override
@@ -558,6 +601,17 @@ public class DefaultUserService implements UserService {
   @Transactional
   public void updateUserRole(UserRole userRole, UserDetails userDetails) {
     userRoleStore.update(userRole, userDetails);
+  }
+
+  @Override
+  @Transactional
+  public void addUserToRole(UID roleUid, UID userUid) {
+    UserRole role = userRoleStore.getByUid(roleUid.getValue());
+    User user = userStore.getByUid(userUid.getValue());
+    if (role != null && user != null) {
+      role.getMembers().add(user);
+      entityManager.flush();
+    }
   }
 
   @Override
