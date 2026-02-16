@@ -2694,20 +2694,19 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"total\":658,\"pageSize\":10,\"pageCount\":66},\"items\":{\"RkbOhHwiOgW\":{\"name\":\"CARE International\"},\"kO3z4Dhc038.LFsZ8v5v7rq\":{},\"ou\":{},\"uilaJSyXt7d\":{\"name\":\"World Vision\"},\"2021\":{\"name\":\"2021\"},\"VLFVaH1MwnF\":{\"name\":\"Pathfinder International\"},\"CW81uF03hvV\":{\"name\":\"AIDSRelief Consortium\"},\"hERJraxV8D9\":{\"name\":\"Hope Worldwide\"},\"LFsZ8v5v7rq\":{},\"g3bcPGD5Q5i\":{\"name\":\"International Rescue Committee\"},\"yrwgRxRhBoU\":{\"name\":\"Path\"},\"TY5rBQzlBRa\":{\"name\":\"Family Health International\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"yfWXlxYNbhy\":{\"name\":\"IntraHealth International\"},\"e5YBV5F5iUd\":{\"name\":\"Plan International\"},\"LEWNFo4Qrrs\":{\"name\":\"World Concern\"},\"XK6u6cJCR0t\":{\"name\":\"Population Services International\"},\"C6nZpLKjEJr\":{\"name\":\"African Medical and Research Foundation\"},\"bMcwwoVnbSR\":{\"name\":\"Malaria testing and surveillance\"},\"B3nxOazOO2G\":{\"name\":\"APHIAplus\"},\"kO3z4Dhc038\":{\"name\":\"Malaria testing and surveillance\"},\"xwZ2u3WyQR0\":{\"name\":\"Unicef\"},\"xEunk8LPzkb\":{\"name\":\"World Relief\"}},\"dimensions\":{\"kO3z4Dhc038.LFsZ8v5v7rq\":[\"CW81uF03hvV\",\"B3nxOazOO2G\"],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"LFsZ8v5v7rq\":[\"C6nZpLKjEJr\",\"CW81uF03hvV\",\"B3nxOazOO2G\",\"RkbOhHwiOgW\",\"TY5rBQzlBRa\",\"hERJraxV8D9\",\"g3bcPGD5Q5i\",\"yfWXlxYNbhy\",\"yrwgRxRhBoU\",\"VLFVaH1MwnF\",\"e5YBV5F5iUd\",\"XK6u6cJCR0t\",\"xwZ2u3WyQR0\",\"LEWNFo4Qrrs\",\"xEunk8LPzkb\",\"uilaJSyXt7d\"]}}";
+        "{\"pager\":{\"page\":1,\"total\":658,\"pageSize\":10,\"pageCount\":66},\"items\":{\"RkbOhHwiOgW\":{\"name\":\"CARE International\"},\"kO3z4Dhc038.LFsZ8v5v7rq\":{\"name\":\"Implementing Partner\"},\"ou\":{},\"uilaJSyXt7d\":{\"name\":\"World Vision\"},\"2021\":{\"name\":\"2021\"},\"VLFVaH1MwnF\":{\"name\":\"Pathfinder International\"},\"CW81uF03hvV\":{\"name\":\"AIDSRelief Consortium\"},\"hERJraxV8D9\":{\"name\":\"Hope Worldwide\"},\"g3bcPGD5Q5i\":{\"name\":\"International Rescue Committee\"},\"yrwgRxRhBoU\":{\"name\":\"Path\"},\"TY5rBQzlBRa\":{\"name\":\"Family Health International\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"yfWXlxYNbhy\":{\"name\":\"IntraHealth International\"},\"e5YBV5F5iUd\":{\"name\":\"Plan International\"},\"LEWNFo4Qrrs\":{\"name\":\"World Concern\"},\"XK6u6cJCR0t\":{\"name\":\"Population Services International\"},\"C6nZpLKjEJr\":{\"name\":\"African Medical and Research Foundation\"},\"bMcwwoVnbSR\":{\"name\":\"Malaria testing and surveillance\"},\"B3nxOazOO2G\":{\"name\":\"APHIAplus\"},\"kO3z4Dhc038\":{\"name\":\"Malaria testing and surveillance\"},\"xwZ2u3WyQR0\":{\"name\":\"Unicef\"},\"xEunk8LPzkb\":{\"name\":\"World Relief\"}},\"dimensions\":{\"kO3z4Dhc038.LFsZ8v5v7rq\":[\"CW81uF03hvV\",\"B3nxOazOO2G\"],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
-    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
-    //    validateHeaderPropertiesByName(
-    //        response,
-    //        actualHeaders,
-    //        "kO3z4Dhc038.LFsZ8v5v7rq",
-    //        "",
-    //        "TEXT",
-    //        "java.lang.String",
-    //        false,
-    //        true);
+    // 4. Validate Headers By Name
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "kO3z4Dhc038.LFsZ8v5v7rq",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
     validateHeaderPropertiesByName(
         response,
         actualHeaders,
@@ -2777,20 +2776,19 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"total\":1582,\"pageSize\":10,\"pageCount\":159},\"items\":{\"uilaJSyXt7d\":{\"name\":\"World Vision\"},\"VLFVaH1MwnF\":{\"name\":\"Pathfinder International\"},\"CW81uF03hvV\":{\"name\":\"AIDSRelief Consortium\"},\"hERJraxV8D9\":{\"name\":\"Hope Worldwide\"},\"TY5rBQzlBRa\":{\"name\":\"Family Health International\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"XK6u6cJCR0t\":{\"name\":\"Population Services International\"},\"B3nxOazOO2G\":{\"name\":\"APHIAplus\"},\"ddAo6zmIHOk\":{\"name\":\"DFID\"},\"j3C417uW6J7\":{\"name\":\"DANIDA\"},\"RkbOhHwiOgW\":{\"name\":\"CARE International\"},\"ou\":{},\"2021\":{\"name\":\"2021\"},\"LFsZ8v5v7rq\":{},\"g3bcPGD5Q5i\":{\"name\":\"International Rescue Committee\"},\"yrwgRxRhBoU\":{\"name\":\"Path\"},\"kO3z4Dhc038.C31vHZqu0qU\":{},\"yfWXlxYNbhy\":{\"name\":\"IntraHealth International\"},\"e5YBV5F5iUd\":{\"name\":\"Plan International\"},\"LEWNFo4Qrrs\":{\"name\":\"World Concern\"},\"C6nZpLKjEJr\":{\"name\":\"African Medical and Research Foundation\"},\"bMcwwoVnbSR\":{\"name\":\"Malaria testing and surveillance\"},\"kO3z4Dhc038\":{\"name\":\"Malaria testing and surveillance\"},\"xwZ2u3WyQR0\":{\"name\":\"Unicef\"},\"xEunk8LPzkb\":{\"name\":\"World Relief\"}},\"dimensions\":{\"kO3z4Dhc038.C31vHZqu0qU\":[\"j3C417uW6J7\",\"ddAo6zmIHOk\"],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"LFsZ8v5v7rq\":[\"C6nZpLKjEJr\",\"CW81uF03hvV\",\"B3nxOazOO2G\",\"RkbOhHwiOgW\",\"TY5rBQzlBRa\",\"hERJraxV8D9\",\"g3bcPGD5Q5i\",\"yfWXlxYNbhy\",\"yrwgRxRhBoU\",\"VLFVaH1MwnF\",\"e5YBV5F5iUd\",\"XK6u6cJCR0t\",\"xwZ2u3WyQR0\",\"LEWNFo4Qrrs\",\"xEunk8LPzkb\",\"uilaJSyXt7d\"]}}";
+        "{\"pager\":{\"page\":1,\"total\":1582,\"pageSize\":10,\"pageCount\":159},\"items\":{\"uilaJSyXt7d\":{\"name\":\"World Vision\"},\"VLFVaH1MwnF\":{\"name\":\"Pathfinder International\"},\"CW81uF03hvV\":{\"name\":\"AIDSRelief Consortium\"},\"hERJraxV8D9\":{\"name\":\"Hope Worldwide\"},\"TY5rBQzlBRa\":{\"name\":\"Family Health International\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"XK6u6cJCR0t\":{\"name\":\"Population Services International\"},\"B3nxOazOO2G\":{\"name\":\"APHIAplus\"},\"ddAo6zmIHOk\":{\"name\":\"DFID\"},\"j3C417uW6J7\":{\"name\":\"DANIDA\"},\"RkbOhHwiOgW\":{\"name\":\"CARE International\"},\"ou\":{},\"2021\":{\"name\":\"2021\"},\"g3bcPGD5Q5i\":{\"name\":\"International Rescue Committee\"},\"yrwgRxRhBoU\":{\"name\":\"Path\"},\"kO3z4Dhc038.C31vHZqu0qU\":{\"name\":\"Donor\"},\"yfWXlxYNbhy\":{\"name\":\"IntraHealth International\"},\"e5YBV5F5iUd\":{\"name\":\"Plan International\"},\"LEWNFo4Qrrs\":{\"name\":\"World Concern\"},\"C6nZpLKjEJr\":{\"name\":\"African Medical and Research Foundation\"},\"bMcwwoVnbSR\":{\"name\":\"Malaria testing and surveillance\"},\"kO3z4Dhc038\":{\"name\":\"Malaria testing and surveillance\"},\"xwZ2u3WyQR0\":{\"name\":\"Unicef\"},\"xEunk8LPzkb\":{\"name\":\"World Relief\"}},\"dimensions\":{\"kO3z4Dhc038.C31vHZqu0qU\":[\"j3C417uW6J7\",\"ddAo6zmIHOk\"],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // 4. Validate Headers By Name (conditionally checking PostGIS headers).
-    //    validateHeaderPropertiesByName(
-    //        response,
-    //        actualHeaders,
-    //        "kO3z4Dhc038.C31vHZqu0qU",
-    //        "",
-    //        "TEXT",
-    //        "java.lang.String",
-    //        false,
-    //        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "kO3z4Dhc038.C31vHZqu0qU",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
     validateHeaderPropertiesByName(
         response,
         actualHeaders,

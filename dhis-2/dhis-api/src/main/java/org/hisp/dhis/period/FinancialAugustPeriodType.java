@@ -27,23 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
+package org.hisp.dhis.period;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.util.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
 
-/**
- * @author Ameen Mohamed
- */
-public class OwnedTeMapper extends AbstractMapper<String> {
+public class FinancialAugustPeriodType extends FinancialPeriodType {
+  /** Determines if a de-serialized file is compatible with this class. */
+  private static final long serialVersionUID = 1599667482719470930L;
+
+  private static final String ISO_FORMAT = "yyyyAug";
+
+  private static final String ISO8601_DURATION = "P1Y";
 
   @Override
-  String getItem(ResultSet rs) throws SQLException {
-    return rs.getString("pgm_uid");
+  public int getBaseMonth() {
+    return Calendar.AUGUST;
   }
 
   @Override
-  String getKeyColumn() {
-    return "te_uid";
+  public PeriodTypeEnum getPeriodTypeEnum() {
+    return PeriodTypeEnum.FINANCIAL_AUG;
+  }
+
+  @Override
+  public String getIsoDate(DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar) {
+    return String.format("%dAug", dateTimeUnit.getYear());
+  }
+
+  @Override
+  public String getIsoFormat() {
+    return ISO_FORMAT;
+  }
+
+  @Override
+  public String getIso8601Duration() {
+    return ISO8601_DURATION;
   }
 }

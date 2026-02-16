@@ -27,32 +27,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates.query;
+package org.hisp.dhis.period;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import static org.hisp.dhis.period.PeriodTypeEnum.WEEKLY_FRIDAY;
 
 /**
- * @author Luciano Fiandesio
+ * PeriodType for weekly Periods. A valid weekly Period has startDate set to Friday and endDate set
+ * to Saturday the same week, assuming Friday is the first day and Saturday is the last day of the
+ * week.
  */
-@Getter
-@RequiredArgsConstructor
-class Function implements QueryElement {
-  private final String name;
-
-  private final String prefix;
-
-  private final String column;
-
-  private final String alias;
-
-  @Override
-  public String useInSelect() {
-    return this.name + "(" + prefix + "." + column + ") as " + alias;
+public class WeeklyFridayPeriodType extends WeeklyAbstractPeriodType {
+  public WeeklyFridayPeriodType() {
+    super(WEEKLY_FRIDAY.getName(), 5, "yyyyFriWn", "P7D", 7, "1 week", "FriW");
   }
 
   @Override
-  public String getResultsetValue() {
-    return alias == null ? column : alias;
+  public PeriodTypeEnum getPeriodTypeEnum() {
+    return WEEKLY_FRIDAY;
   }
 }

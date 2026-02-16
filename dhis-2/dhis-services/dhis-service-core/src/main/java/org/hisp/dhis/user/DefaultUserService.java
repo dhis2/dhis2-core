@@ -381,12 +381,9 @@ public class DefaultUserService implements UserService {
     return userStore.getUserCount();
   }
 
-  /**
-   * Handles the user query parameters by setting defaults and processing specific fields.
-   *
-   * @param params the {@link UserQueryParams}.
-   */
-  private void handleUserQueryParams(UserQueryParams params) {
+  @Override
+  @Transactional(readOnly = true)
+  public void handleUserQueryParams(UserQueryParams params) {
     boolean canSeeOwnRoles =
         params.isCanSeeOwnRoles()
             || settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
@@ -503,7 +500,6 @@ public class DefaultUserService implements UserService {
     return canAddOrUpdateUser(userGroups, CurrentUserUtil.getCurrentUserDetails());
   }
 
-  // TODO: MAS refactor to use user details instead of user
   @Override
   @Transactional(readOnly = true)
   public boolean canAddOrUpdateUser(Collection<String> userGroups, UserDetails currentUser) {

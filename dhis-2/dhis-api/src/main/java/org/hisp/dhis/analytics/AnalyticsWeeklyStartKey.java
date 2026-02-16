@@ -27,45 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
+package org.hisp.dhis.analytics;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.tracker.model.TrackedEntity;
-import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.WeeklyFridayPeriodType;
+import org.hisp.dhis.period.WeeklyPeriodType;
+import org.hisp.dhis.period.WeeklySaturdayPeriodType;
+import org.hisp.dhis.period.WeeklySundayPeriodType;
+import org.hisp.dhis.period.WeeklyThursdayPeriodType;
+import org.hisp.dhis.period.WeeklyWednesdayPeriodType;
 
-/**
- * @author Luciano Fiandesio
- */
-public class ProgramOwnerRowCallbackHandler extends AbstractMapper<TrackedEntityProgramOwner> {
+public enum AnalyticsWeeklyStartKey {
+  WEEKLY("Weekly", new WeeklyPeriodType()),
+  WEEKLY_WEDNESDAY("WeeklyWednesday", new WeeklyWednesdayPeriodType()),
+  WEEKLY_THURSDAY("WeeklyThursday", new WeeklyThursdayPeriodType()),
+  WEEKLY_FRIDAY("WeeklyFriday", new WeeklyFridayPeriodType()),
+  WEEKLY_SATURDAY("WeeklySaturday", new WeeklySaturdayPeriodType()),
+  WEEKLY_SUNDAY("WeeklySunday", new WeeklySundayPeriodType());
 
-  @Override
-  TrackedEntityProgramOwner getItem(ResultSet rs) throws SQLException {
-    return getProgramOwner(rs);
+  private final String name;
+
+  private final PeriodType periodType;
+
+  AnalyticsWeeklyStartKey(String name, PeriodType periodType) {
+    this.name = name;
+    this.periodType = periodType;
   }
 
-  @Override
-  String getKeyColumn() {
-    return "key";
+  public String getName() {
+    return name;
   }
 
-  private TrackedEntityProgramOwner getProgramOwner(ResultSet rs) throws SQLException {
-    TrackedEntityProgramOwner programOwner = new TrackedEntityProgramOwner();
-
-    OrganisationUnit orgUnit = new OrganisationUnit();
-    orgUnit.setUid(rs.getString("ouuid"));
-    programOwner.setOrganisationUnit(orgUnit);
-
-    Program program = new Program();
-    program.setUid(rs.getString("prguid"));
-    programOwner.setProgram(program);
-
-    TrackedEntity trackedEntity = new TrackedEntity();
-    trackedEntity.setUid(rs.getString("key"));
-    programOwner.setTrackedEntity(trackedEntity);
-
-    return programOwner;
+  public PeriodType getPeriodType() {
+    return periodType;
   }
 }
