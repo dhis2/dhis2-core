@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.Data;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
@@ -103,6 +104,8 @@ class EnrollmentQueryParams {
 
   /** Indicates whether to include tracked entity attribute data in the enrollment */
   private boolean includeAttributes;
+
+  private CategoryOptionCombo attributeOptionCombo;
 
   private List<Order> order;
 

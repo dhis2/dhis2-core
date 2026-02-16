@@ -278,7 +278,11 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     assertAll(
         "created enrollment",
         () -> assertEquals(enrollmentUid.getValue(), actual.getUid()),
-        () -> assertEqualUids(submission.getTrackedEntityInstance(), actual.getTrackedEntity()));
+        () -> assertEqualUids(submission.getTrackedEntityInstance(), actual.getTrackedEntity()),
+        () ->
+            assertEquals(
+                categoryService.getDefaultCategoryOptionCombo().getUid(),
+                actual.getAttributeOptionCombo().getUid()));
     assertDoesNotThrow(
         () ->
             trackedEntityService.getTrackedEntity(

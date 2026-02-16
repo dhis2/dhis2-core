@@ -113,7 +113,7 @@ class TrackerEventOperationParamsMapper {
             UID.toValueSet(operationParams.getAttributeCategoryOptions()),
             true);
 
-    validateAttributeOptionCombo(attributeOptionCombo, user);
+    paramsValidator.validateAttributeOptionCombo(attributeOptionCombo, user);
 
     TrackerEventQueryParams queryParams = new TrackerEventQueryParams();
 
@@ -217,17 +217,6 @@ class TrackerEventOperationParamsMapper {
     }
 
     return orgUnit;
-  }
-
-  private void validateAttributeOptionCombo(
-      CategoryOptionCombo attributeOptionCombo, UserDetails user) throws ForbiddenException {
-    if (attributeOptionCombo != null
-        && !user.isSuper()
-        && !aclService.canDataRead(user, attributeOptionCombo)) {
-      throw new ForbiddenException(
-          "User has no access to attribute category option combo: "
-              + attributeOptionCombo.getUid());
-    }
   }
 
   private void mapDataElementFilters(

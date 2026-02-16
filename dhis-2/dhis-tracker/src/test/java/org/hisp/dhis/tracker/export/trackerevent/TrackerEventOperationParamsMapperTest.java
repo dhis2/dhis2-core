@@ -199,30 +199,6 @@ class TrackerEventOperationParamsMapperTest {
   }
 
   @Test
-  void
-      shouldFailWithForbiddenExceptionWhenUserHasNoAccessToCategoryComboGivenAttributeCategoryOptions() {
-    TrackerEventOperationParams operationParams =
-        eventBuilder
-            .attributeCategoryCombo(UID.of("NeU85luyD4w"))
-            .attributeCategoryOptions(UID.of("tqrzUqNMHib", "bT6OSf4qnnk"))
-            .build();
-    CategoryOptionCombo combo = new CategoryOptionCombo();
-    combo.setUid("uid");
-    when(categoryOptionComboService.getAttributeOptionCombo(
-            "NeU85luyD4w", Set.of("tqrzUqNMHib", "bT6OSf4qnnk"), true))
-        .thenReturn(combo);
-    when(aclService.canDataRead(any(UserDetails.class), any(CategoryOptionCombo.class)))
-        .thenReturn(false);
-
-    Exception exception =
-        assertThrows(ForbiddenException.class, () -> mapper.map(operationParams, user));
-
-    assertEquals(
-        "User has no access to attribute category option combo: " + combo.getUid(),
-        exception.getMessage());
-  }
-
-  @Test
   void shouldMapGivenAttributeCategoryOptionsWhenUserHasAccessToCategoryCombo()
       throws BadRequestException, ForbiddenException {
     TrackerEventOperationParams operationParams =
@@ -235,8 +211,6 @@ class TrackerEventOperationParamsMapperTest {
     when(categoryOptionComboService.getAttributeOptionCombo(
             "NeU85luyD4w", Set.of("tqrzUqNMHib", "bT6OSf4qnnk"), true))
         .thenReturn(combo);
-    when(aclService.canDataRead(any(UserDetails.class), any(CategoryOptionCombo.class)))
-        .thenReturn(true);
     when(organisationUnitService.getOrganisationUnitsByUid(any())).thenReturn(List.of());
 
     TrackerEventQueryParams queryParams = mapper.map(operationParams, user);

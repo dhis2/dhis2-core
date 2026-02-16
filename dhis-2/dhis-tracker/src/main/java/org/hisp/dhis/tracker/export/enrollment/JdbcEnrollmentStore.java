@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.export.enrollment;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -51,6 +52,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
@@ -61,6 +63,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.query.JpaQueryUtils;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.Page;
@@ -72,6 +76,7 @@ import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.jdbc.core.RowMapper;
@@ -132,7 +137,8 @@ class JdbcEnrollmentStore {
             p.shortname as program_short_name, p.type as program_type, p.accesslevel as program_accesslevel,
             te.uid as tracked_entity_uid, te.code as tracked_entity_code,
             en_ou.uid as en_org_unit_uid,
-            tet.uid as tet_uid, tet.allowauditlog as tet_allowauditlog, tet.enablechangelog as tet_enablechangelog, tet.sharing as tet_sharing, notes.jsonnotes as notes
+            tet.uid as tet_uid, tet.allowauditlog as tet_allowauditlog, tet.enablechangelog as tet_enablechangelog, tet.sharing as tet_sharing, notes.jsonnotes as notes,
+            coc.uid as coc_uid
         """);
 
     if (params.isIncludeAttributes()) {
@@ -156,6 +162,7 @@ class JdbcEnrollmentStore {
     addProgramConditions(sql, enrollmentParams, sqlParams, hlp);
     addEnrollmentConditions(sql, enrollmentParams, sqlParams, hlp);
     addTrackedEntityConditions(sql, enrollmentParams, sqlParams, hlp);
+    addAttributeOptionComboConditions(sql, enrollmentParams, sqlParams, hlp);
   }
 
   private void addInnerJoins(StringBuilder sql) {
@@ -168,6 +175,34 @@ class JdbcEnrollmentStore {
       inner join organisationunit ou on ou.organisationunitid = po.organisationunitid
       inner join organisationunit en_ou on en_ou.organisationunitid = e.organisationunitid
       """);
+
+    sql.append(addCategoryOptionComboJoin());
+  }
+
+  private String addCategoryOptionComboJoin() {
+    String joinCondition =
+        """
+        inner join (
+          select coc.categoryoptioncomboid as id, coc.uid
+          from categoryoptioncombo coc
+        """;
+
+    if (isNotSuperUser(getCurrentUserDetails())) {
+      joinCondition +=
+          "   inner join categoryoptioncombos_categoryoptions cocco on coc.categoryoptioncomboid = cocco.categoryoptioncomboid "
+              + " inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid "
+              + " group by coc.categoryoptioncomboid "
+              + " having bool_and(case when "
+              + JpaQueryUtils.generateSQlQueryForSharingCheck(
+                  "co.sharing", getCurrentUserDetails(), AclService.LIKE_READ_DATA)
+              + " then true else false end) = true ";
+    }
+
+    return joinCondition + ") as coc on coc.id = e.attributeoptioncomboid ";
+  }
+
+  private static boolean isNotSuperUser(UserDetails user) {
+    return !user.isSuper();
   }
 
   private void addLeftLateralNoteJoin(StringBuilder sql) {
@@ -314,6 +349,22 @@ class JdbcEnrollmentStore {
     }
   }
 
+  private void addAttributeOptionComboConditions(
+      StringBuilder sql,
+      EnrollmentQueryParams enrollmentParams,
+      MapSqlParameterSource sqlParams,
+      SqlHelper hlp) {
+    if (enrollmentParams.getAttributeOptionCombo() != null) {
+      sqlParams.addValue(
+          "attributeoptioncomboid", enrollmentParams.getAttributeOptionCombo().getId());
+
+      sql.append(hlp.whereAnd())
+          .append(" e.attributeoptioncomboid = ")
+          .append(":attributeoptioncomboid")
+          .append(" ");
+    }
+  }
+
   private void addOrderBy(StringBuilder sql, EnrollmentQueryParams params) {
     sql.append(" order by ");
     sql.append(orderBy(params.getOrder()));
@@ -451,6 +502,10 @@ class JdbcEnrollmentStore {
                   mapTrackedEntityAttributeValues(jsonAttributes, trackedEntity));
         }
       }
+
+      CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
+      categoryOptionCombo.setUid(rs.getString("coc_uid"));
+      enrollment.setAttributeOptionCombo(categoryOptionCombo);
 
       return enrollment;
     }

@@ -36,12 +36,14 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.acl.TrackerProgramService;
+import org.hisp.dhis.tracker.export.CategoryOptionComboService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.QuerySearchScope;
 import org.hisp.dhis.user.UserDetails;
@@ -59,6 +61,8 @@ class EnrollmentOperationParamsMapper {
 
   private final OrganisationUnitService organisationUnitService;
 
+  private final CategoryOptionComboService categoryOptionComboService;
+
   private final OperationsParamsValidator paramsValidator;
 
   @Transactional(readOnly = true)
@@ -71,6 +75,12 @@ class EnrollmentOperationParamsMapper {
     Set<OrganisationUnit> orgUnits =
         paramsValidator.validateOrgUnits(operationParams.getOrgUnits(), user);
     validateOrgUnitMode(operationParams.getOrgUnitMode(), program, user);
+    CategoryOptionCombo categoryOptionCombo =
+        operationParams.getAttributeOptionCombo() != null
+            ? categoryOptionComboService.getAttributeOptionCombo(
+                operationParams.getAttributeOptionCombo())
+            : null;
+    paramsValidator.validateAttributeOptionCombo(categoryOptionCombo, user);
 
     EnrollmentQueryParams params = new EnrollmentQueryParams();
     params.setEnrolledInTrackerProgram(program);
@@ -93,6 +103,7 @@ class EnrollmentOperationParamsMapper {
             user,
             operationParams.getOrgUnitMode(),
             organisationUnitService::getOrganisationUnitsByUid));
+    params.setAttributeOptionCombo(categoryOptionCombo);
 
     return params;
   }

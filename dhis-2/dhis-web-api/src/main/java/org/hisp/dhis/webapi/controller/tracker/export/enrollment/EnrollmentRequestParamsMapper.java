@@ -99,6 +99,7 @@ class EnrollmentRequestParamsMapper {
             .orgUnitMode(orgUnitMode)
             .includeDeleted(enrollmentRequestParams.isIncludeDeleted())
             .enrollments(enrollmentRequestParams.getEnrollments())
+            .attributeOptionCombo(enrollmentRequestParams.getAttributeOptionCombo())
             .fields(
                 EnrollmentFields.of(
                     enrollmentRequestParams.getFields()::includes, FieldPath.FIELD_PATH_SEPARATOR));
