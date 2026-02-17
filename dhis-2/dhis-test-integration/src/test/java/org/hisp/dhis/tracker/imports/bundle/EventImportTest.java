@@ -157,7 +157,7 @@ class EventImportTest extends PostgresIntegrationTestBase {
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/single_single_event.json");
+    TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/one_single_event.json");
     trackerObjects.getEvents().get(0).setStatus(EventStatus.COMPLETED);
     trackerObjects.getEvents().get(0).setDataValues(Set.of());
     importTracker(TrackerImportParams.builder().build(), trackerObjects);

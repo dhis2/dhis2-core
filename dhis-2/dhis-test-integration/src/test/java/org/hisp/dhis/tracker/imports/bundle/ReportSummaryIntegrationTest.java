@@ -70,7 +70,7 @@ class ReportSummaryIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testStatsCountForOneCreatedTE() throws IOException {
-    TrackerObjects trackerObjects = testSetup.fromJson("tracker/single_te.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/one_te.json");
     TrackerImportParams params =
         TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
 
@@ -85,7 +85,7 @@ class ReportSummaryIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testStatsCountForOneCreatedAndOneUpdatedTE() throws IOException {
-    TrackerObjects trackerObjects = testSetup.fromJson("tracker/single_te.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/one_te.json");
     TrackerImportParams params =
         TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
     trackerImportService.importTracker(params, trackerObjects);
@@ -104,7 +104,7 @@ class ReportSummaryIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testStatsCountForOneCreatedAndOneUpdatedTEAndOneInvalidTE() throws IOException {
-    TrackerObjects trackerObjects = testSetup.fromJson("tracker/single_te.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/one_te.json");
     TrackerImportParams params =
         TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
     trackerImportService.importTracker(params, trackerObjects);
@@ -127,12 +127,12 @@ class ReportSummaryIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testStatsCountForOneCreatedEnrollment() throws IOException {
-    TrackerObjects trackerObjects = testSetup.fromJson("tracker/single_te.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/one_te.json");
     TrackerImportParams params =
         TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
     trackerImportService.importTracker(params, trackerObjects);
 
-    trackerObjects = testSetup.fromJson("tracker/single_enrollment.json");
+    trackerObjects = testSetup.fromJson("tracker/one_enrollment.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport trackerImportEnrollmentReport =
@@ -147,12 +147,12 @@ class ReportSummaryIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testStatsCountForOneCreatedEnrollmentAndUpdateSameEnrollment() throws IOException {
-    TrackerObjects trackerObjects = testSetup.fromJson("tracker/single_te.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/one_te.json");
     TrackerImportParams params =
         TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
     trackerImportService.importTracker(params, trackerObjects);
 
-    trackerObjects = testSetup.fromJson("tracker/single_enrollment.json");
+    trackerObjects = testSetup.fromJson("tracker/one_enrollment.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     ImportReport trackerImportEnrollmentReport =
@@ -164,7 +164,7 @@ class ReportSummaryIntegrationTest extends PostgresIntegrationTestBase {
     assertEquals(0, trackerImportEnrollmentReport.getStats().getIgnored());
     assertEquals(0, trackerImportEnrollmentReport.getStats().getDeleted());
 
-    trackerObjects = testSetup.fromJson("tracker/single_enrollment.json");
+    trackerObjects = testSetup.fromJson("tracker/one_enrollment.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
 
     trackerImportEnrollmentReport = trackerImportService.importTracker(params, trackerObjects);
@@ -183,7 +183,7 @@ class ReportSummaryIntegrationTest extends PostgresIntegrationTestBase {
         TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
     trackerImportService.importTracker(params, trackerObjects);
 
-    trackerObjects = testSetup.fromJson("tracker/single_enrollment.json");
+    trackerObjects = testSetup.fromJson("tracker/one_enrollment.json");
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects =
@@ -208,7 +208,7 @@ class ReportSummaryIntegrationTest extends PostgresIntegrationTestBase {
         TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
     trackerImportService.importTracker(params, trackerObjects);
 
-    trackerObjects = testSetup.fromJson("tracker/single_enrollment.json");
+    trackerObjects = testSetup.fromJson("tracker/one_enrollment.json");
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects =
@@ -231,15 +231,15 @@ class ReportSummaryIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testStatsCountForOneCreatedEvent() throws IOException {
-    TrackerObjects trackerObjects = testSetup.fromJson("tracker/single_te.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/one_te.json");
     TrackerImportParams params =
         TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
     trackerImportService.importTracker(params, trackerObjects);
 
-    trackerObjects = testSetup.fromJson("tracker/single_enrollment.json");
+    trackerObjects = testSetup.fromJson("tracker/one_enrollment.json");
     trackerImportService.importTracker(params, trackerObjects);
 
-    trackerObjects = testSetup.fromJson("tracker/single_tracker_event.json");
+    trackerObjects = testSetup.fromJson("tracker/one_tracker_event.json");
     ImportReport trackerImportEventReport =
         trackerImportService.importTracker(params, trackerObjects);
 
@@ -252,15 +252,15 @@ class ReportSummaryIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testStatsCountForOneUpdateEventAndOneNewEvent() throws IOException {
-    TrackerObjects trackerObjects = testSetup.fromJson("tracker/single_te.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/one_te.json");
     TrackerImportParams params =
         TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
     trackerImportService.importTracker(params, trackerObjects);
 
-    trackerObjects = testSetup.fromJson("tracker/single_enrollment.json");
+    trackerObjects = testSetup.fromJson("tracker/one_enrollment.json");
     trackerImportService.importTracker(params, trackerObjects);
 
-    trackerObjects = testSetup.fromJson("tracker/single_tracker_event.json");
+    trackerObjects = testSetup.fromJson("tracker/one_tracker_event.json");
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects = testSetup.fromJson("tracker/one_update_event_and_one_new_event.json");
@@ -278,15 +278,15 @@ class ReportSummaryIntegrationTest extends PostgresIntegrationTestBase {
 
   @Test
   void testStatsCountForOneUpdateEventAndOneNewEventAndOneInvalidEvent() throws IOException {
-    TrackerObjects trackerObjects = testSetup.fromJson("tracker/single_te.json");
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/one_te.json");
     TrackerImportParams params =
         TrackerImportParams.builder().atomicMode(AtomicMode.OBJECT).build();
     trackerImportService.importTracker(params, trackerObjects);
 
-    trackerObjects = testSetup.fromJson("tracker/single_enrollment.json");
+    trackerObjects = testSetup.fromJson("tracker/one_enrollment.json");
     trackerImportService.importTracker(params, trackerObjects);
 
-    trackerObjects = testSetup.fromJson("tracker/single_tracker_event.json");
+    trackerObjects = testSetup.fromJson("tracker/one_tracker_event.json");
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects =
