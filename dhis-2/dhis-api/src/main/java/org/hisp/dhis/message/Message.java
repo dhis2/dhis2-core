@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -33,6 +33,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.*;
 import java.util.Date;
 import java.util.Set;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -44,21 +45,34 @@ import org.hisp.dhis.user.User;
 /**
  * @author Lars Helge Overland
  */
+@Entity
+@Table(name = "message")
 @JacksonXmlRootElement(localName = "message", namespace = DxfNamespaces.DXF_2_0)
 public class Message extends BaseIdentifiableObject {
+
   /** The message text. */
+  @Column(name = "messagetext", columnDefinition = "text")
   private String text;
 
   /** The message meta data, like user agent and OS of sender. */
+  @Column(name = "metadata")
   private String metaData;
 
   /** The message sender. */
+  @ManyToOne
+  @JoinColumn(name = "userid", foreignKey = @ForeignKey(name = "fk_message_userid"))
   private User sender;
 
   /** Internal message flag. Can only be seen by users in "FeedbackRecipients" group. */
+  @Column(name = "internal")
   private Boolean internal;
 
   /** Attached files */
+  @ManyToMany(cascade = CascadeType.ALL)
+  @JoinTable(
+      name = "messageattachments",
+      joinColumns = @JoinColumn(name = "messageid"),
+      inverseJoinColumns = @JoinColumn(name = "fileresourceid", unique = true))
   private Set<FileResource> attachments;
 
   public Message() {
@@ -84,6 +98,54 @@ public class Message extends BaseIdentifiableObject {
     this.sender = sender;
     this.internal = internal;
   }
+
+  // -------------------------------------------------------------------------
+  // Inherited field mappings from BaseIdentifiableObject
+  // BaseIdentifiableObject is not a @MappedSuperclass, so these inherited
+  // fields must be mapped explicitly via property access.
+  // -------------------------------------------------------------------------
+
+  @Id
+  @GeneratedValue(
+      strategy = GenerationType.SEQUENCE,
+      generator = "message_sequence")
+  @SequenceGenerator(
+      name = "message_sequence",
+      sequenceName = "message_sequence",
+      allocationSize = 1)
+  @Column(name = "messageid")
+  @Access(AccessType.PROPERTY)
+  @Override
+  public long getId() {
+    return super.getId();
+  }
+
+  @Column(name = "uid", length = 11)
+  @Access(AccessType.PROPERTY)
+  @Override
+  public String getUid() {
+    return super.getUid();
+  }
+
+  @Column(name = "created", nullable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  @Access(AccessType.PROPERTY)
+  @Override
+  public Date getCreated() {
+    return super.getCreated();
+  }
+
+  @Column(name = "lastUpdated", nullable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  @Access(AccessType.PROPERTY)
+  @Override
+  public Date getLastUpdated() {
+    return super.getLastUpdated();
+  }
+
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
   @Override
   public String getName() {
