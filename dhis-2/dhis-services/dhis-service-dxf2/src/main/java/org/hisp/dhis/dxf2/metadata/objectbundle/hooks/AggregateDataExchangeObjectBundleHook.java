@@ -37,9 +37,11 @@ import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.Api;
 import org.hisp.dhis.dataexchange.aggregate.SourceRequest;
+import org.hisp.dhis.dataexchange.aggregate.TargetRequest;
 import org.hisp.dhis.dataexchange.aggregate.TargetType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -122,6 +124,15 @@ public class AggregateDataExchangeObjectBundleHook
       if (isEmpty(request.getDx()) || isEmpty(request.getPe()) || isEmpty(request.getOu())) {
         addReports.accept(new ErrorReport(AggregateDataExchange.class, ErrorCode.E6303));
       }
+
+      validateIdScheme(request.getInputIdScheme(), "source.inputIdScheme", addReports);
+      validateIdScheme(
+          request.getOutputDataElementIdScheme(), "source.outputDataElementIdScheme", addReports);
+      validateIdScheme(
+          request.getOutputOrgUnitIdScheme(), "source.outputOrgUnitIdScheme", addReports);
+      validateIdScheme(
+          request.getOutputDataItemIdScheme(), "source.outputDataItemIdScheme", addReports);
+      validateIdScheme(request.getOutputIdScheme(), "source.outputIdScheme", addReports);
     }
   }
 
@@ -151,6 +162,32 @@ public class AggregateDataExchangeObjectBundleHook
 
     if (exchange.getId() == 0 && api != null && !(api.isAccessTokenAuth() || api.isBasicAuth())) {
       addReports.accept(new ErrorReport(AggregateDataExchange.class, ErrorCode.E6305));
+    }
+
+    TargetRequest request = exchange.getTarget().getRequest();
+
+    if (request != null) {
+      validateIdScheme(request.getDataElementIdScheme(), "target.dataElementIdScheme", addReports);
+      validateIdScheme(request.getOrgUnitIdScheme(), "target.orgUnitIdScheme", addReports);
+      validateIdScheme(
+          request.getCategoryOptionComboIdScheme(),
+          "target.categoryOptionComboIdScheme",
+          addReports);
+      validateIdScheme(request.getIdScheme(), "target.idScheme", addReports);
+    }
+  }
+
+  /**
+   * Validates that the given identifier scheme string is valid if present.
+   *
+   * @param value the identifier scheme value.
+   * @param field the field name.
+   * @param addReports the consumer of {@link ErrorReport}.
+   */
+  private void validateIdScheme(String value, String field, Consumer<ErrorReport> addReports) {
+    if (StringUtils.isNotBlank(value) && !IdScheme.isValid(value)) {
+      addReports.accept(
+          new ErrorReport(AggregateDataExchange.class, ErrorCode.E6307, value, field));
     }
   }
 

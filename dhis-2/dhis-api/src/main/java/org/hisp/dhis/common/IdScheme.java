@@ -171,4 +171,26 @@ public class IdScheme implements Serializable {
         && str.toUpperCase().startsWith(ATTR_ID_SCHEME_PREFIX)
         && str.length() == 21;
   }
+
+  /**
+   * Indicates whether the given string is a valid identifier scheme. A valid scheme is either a
+   * valid {@link IdentifiableProperty} name or matches the {@code ATTRIBUTE:<uid>} pattern.
+   *
+   * @param scheme the identifier scheme string.
+   * @return true if the scheme is valid.
+   */
+  public static boolean isValid(String scheme) {
+    if (scheme == null) {
+      return false;
+    }
+    if (isAttribute(scheme)) {
+      return true;
+    }
+    try {
+      IdentifiableProperty.valueOf(scheme.toUpperCase());
+      return true;
+    } catch (IllegalArgumentException e) {
+      return false;
+    }
+  }
 }

@@ -457,6 +457,7 @@ public enum ErrorCode {
   E6304("Aggregate data exchange target API must be specified when target type is EXTERNAL"),
   E6305(
       "Aggregate data exchange target API must specify either access token or username and password"),
+  E6307("Aggregate data exchange contains invalid identifier scheme: `{0}` for field `{1}`"),
 
   /*Analytics table hook*/
   E6400("Analytics table hook `{0}` is a duplicate of `{1}`"),

@@ -40,6 +40,7 @@ import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.Api;
 import org.hisp.dhis.dataexchange.aggregate.Source;
 import org.hisp.dhis.dataexchange.aggregate.Target;
+import org.hisp.dhis.dataexchange.aggregate.TargetRequest;
 import org.hisp.dhis.dataexchange.aggregate.TargetType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -164,6 +165,38 @@ class AggregateDataExchangeObjectBundleHookTest {
     exchange.setTarget(target);
 
     assertErrorCode(ErrorCode.E6305, objectBundleHook.validate(exchange, objectBundle));
+  }
+
+  @Test
+  void testInvalidSourceInputIdScheme() {
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
+    exchange.getSource().getRequests().get(0).setInputIdScheme("FOO");
+
+    assertErrorCode(ErrorCode.E6307, objectBundleHook.validate(exchange, objectBundle));
+  }
+
+  @Test
+  void testInvalidTargetOrgUnitIdScheme() {
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
+    exchange.getTarget().setRequest(new TargetRequest().setOrgUnitIdScheme("INVALID"));
+
+    assertErrorCode(ErrorCode.E6307, objectBundleHook.validate(exchange, objectBundle));
+  }
+
+  @Test
+  void testValidSourceAttributeIdScheme() {
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
+    exchange.getSource().getRequests().get(0).setInputIdScheme("ATTRIBUTE:DnrLSdo4hMl");
+
+    assertIsEmpty(objectBundleHook.validate(exchange, objectBundle));
+  }
+
+  @Test
+  void testValidSourceCodeIdScheme() {
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
+    exchange.getSource().getRequests().get(0).setInputIdScheme("CODE");
+
+    assertIsEmpty(objectBundleHook.validate(exchange, objectBundle));
   }
 
   /**
