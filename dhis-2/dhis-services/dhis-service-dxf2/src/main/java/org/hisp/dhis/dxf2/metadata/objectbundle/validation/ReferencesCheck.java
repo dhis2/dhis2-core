@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.joinObjects;
+import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
 
 import java.util.ArrayList;
 import java.util.Collection;

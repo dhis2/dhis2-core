@@ -31,6 +31,7 @@ package org.hisp.dhis.fieldfiltering;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.function.Predicate.not;
+import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
 
 import java.util.ArrayList;
 import java.util.Collection;
