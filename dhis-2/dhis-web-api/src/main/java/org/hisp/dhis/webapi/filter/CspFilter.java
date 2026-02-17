@@ -94,7 +94,7 @@ public class CspFilter extends OncePerRequestFilter {
       }
 
       // Add frame-ancestors directive based on CORS whitelist for all responses
-      cspPolicy += getFrameAncestorsCspPolicy(res);
+      cspPolicy += getFrameAncestorsCspPolicy();
 
       // Set the base CSP policy
       res.addHeader(CONTENT_SECURITY_POLICY_HEADER_NAME, cspPolicy);
@@ -110,7 +110,7 @@ public class CspFilter extends OncePerRequestFilter {
     }
   }
 
-  private String getFrameAncestorsCspPolicy(HttpServletResponse res) {
+  private String getFrameAncestorsCspPolicy() {
     Set<String> corsWhitelist = getCorsWhitelist();
     String corsAllowedOrigins = "";
     if (!corsWhitelist.isEmpty()) {
