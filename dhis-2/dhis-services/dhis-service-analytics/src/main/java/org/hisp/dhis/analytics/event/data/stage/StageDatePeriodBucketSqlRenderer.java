@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,42 +27,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
+package org.hisp.dhis.analytics.event.data.stage;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.Optional;
-import java.util.function.Consumer;
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-import lombok.SneakyThrows;
-import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.common.QueryItem;
 
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-class JsonbToObjectHelper {
+/**
+ * Resolves and renders period bucket SQL expressions for stage date dimensions.
+ *
+ * <p>Implementations can provide database-specific SQL generation while keeping manager code
+ * database-agnostic.
+ */
+public interface StageDatePeriodBucketSqlRenderer {
+  /**
+   * Resolves the common period bucket column for all requested dimension values of a stage date
+   * item.
+   *
+   * @param item the stage date query item
+   * @return the resolved period bucket column, empty if values cannot be represented as one bucket
+   */
+  Optional<String> resolvePeriodBucketColumn(QueryItem item);
 
-  private static final ObjectMapper MAPPER;
-
-  static {
-    MAPPER = new ObjectMapper();
-    MAPPER.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-    MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    MAPPER.configure(DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false);
-  }
-
-  static void setUserInfoSnapshot(
-      ResultSet rs, String columnName, Consumer<UserInfoSnapshot> applier) throws SQLException {
-    Optional.ofNullable(rs.getObject(columnName))
-        .map(Object::toString)
-        .map(JsonbToObjectHelper::safelyConvert)
-        .ifPresent(applier);
-  }
-
-  @SneakyThrows
-  static UserInfoSnapshot safelyConvert(String userInfoSnapshotAsString) {
-    return MAPPER.readValue(userInfoSnapshotAsString, UserInfoSnapshot.class);
-  }
+  /**
+   * Renders the SQL expression used to derive the period bucket from the stage date column.
+   *
+   * @param item the stage date query item
+   * @param periodBucketColumn the target bucket column (for example {@code yearly}, {@code
+   *     monthly})
+   * @return SQL expression for SELECT/GROUP BY
+   */
+  String renderPeriodBucketExpression(QueryItem item, String periodBucketColumn);
 }

@@ -105,7 +105,7 @@ public class HibernateDataExportStore implements DataExportStore {
     return createQuery(sql)
         .setParameter("de", key.dataElement())
         .setParameter("ou", key.orgUnit())
-        .setParameter("pe", key.period())
+        .setParameter("pe", key.period().getIsoDate())
         .setParameter("coc", key.categoryOptionCombo())
         .setParameter("aoc", key.attributeOptionCombo())
         .stream()
