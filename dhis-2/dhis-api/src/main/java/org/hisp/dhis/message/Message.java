@@ -132,12 +132,10 @@ public class Message implements IdentifiableObject {
    * As part of the serializing process, this field can be set to indicate a link to this
    * identifiable object (will be used on the web layer for navigating the REST API)
    */
-  @Transient
-  protected String href;
+  @Transient protected String href;
 
   /** Access information for this object. Applies to current user. */
-  @Transient 
-  protected org.hisp.dhis.security.acl.Access access;
+  @Transient protected org.hisp.dhis.security.acl.Access access;
 
   public Message() {
     this.uid = CodeGenerator.generateUid();
