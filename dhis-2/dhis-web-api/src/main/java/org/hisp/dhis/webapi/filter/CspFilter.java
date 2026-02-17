@@ -93,11 +93,12 @@ public class CspFilter extends OncePerRequestFilter {
         cspPolicy = DEFAULT_CSP_POLICY;
       }
 
+      // Add frame-ancestors directive based on CORS whitelist for all responses
+      cspPolicy += getFrameAncestorsCspPolicy(res);
+
       // Set the base CSP policy
       res.addHeader(CONTENT_SECURITY_POLICY_HEADER_NAME, cspPolicy);
-
-      // Add frame-ancestors CSP rule based on CORS whitelist
-      setFrameAncestorsCspRule(res);
+      
 
       // Add additional security headers
       // Always set X-Content-Type-Options to nosniff to prevent MIME type sniffing
@@ -110,15 +111,14 @@ public class CspFilter extends OncePerRequestFilter {
     }
   }
 
-  private void setFrameAncestorsCspRule(HttpServletResponse res) {
+  private String getFrameAncestorsCspPolicy(HttpServletResponse res) {
     Set<String> corsWhitelist = getCorsWhitelist();
+    String corsAllowedOrigins = "";
     if (!corsWhitelist.isEmpty()) {
-      String corsAllowedOrigins = String.join(" ", corsWhitelist);
-      res.addHeader(
-          CONTENT_SECURITY_POLICY_HEADER_NAME,
-          FRAME_ANCESTORS_DEFAULT_CSP + " " + corsAllowedOrigins + ";");
+      corsAllowedOrigins = String.join(" ", corsWhitelist);
+      return FRAME_ANCESTORS_DEFAULT_CSP + " " + corsAllowedOrigins + ";";
     } else {
-      res.addHeader(CONTENT_SECURITY_POLICY_HEADER_NAME, FRAME_ANCESTORS_DEFAULT_CSP + ";");
+      return FRAME_ANCESTORS_DEFAULT_CSP + ";";
     }
   }
 
