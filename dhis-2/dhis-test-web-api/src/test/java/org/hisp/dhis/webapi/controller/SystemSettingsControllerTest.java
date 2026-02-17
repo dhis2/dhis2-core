@@ -184,6 +184,51 @@ class SystemSettingsControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testSetSystemSettingAnalyticsWeeklyStart() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "System setting 'analyticsWeeklyStart' set to value 'WEEKLY'.",
+        POST("/systemSettings/analyticsWeeklyStart?value=WEEKLY").content(HttpStatus.OK));
+
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "System setting 'analyticsWeeklyStart' set to value 'WEEKLY_WEDNESDAY'.",
+        POST("/systemSettings/analyticsWeeklyStart?value=WEEKLY_WEDNESDAY").content(HttpStatus.OK));
+
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "System setting 'analyticsWeeklyStart' set to value 'WEEKLY_THURSDAY'.",
+        POST("/systemSettings/analyticsWeeklyStart?value=WEEKLY_THURSDAY").content(HttpStatus.OK));
+
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "System setting 'analyticsWeeklyStart' set to value 'WEEKLY_FRIDAY'.",
+        POST("/systemSettings/analyticsWeeklyStart?value=WEEKLY_FRIDAY").content(HttpStatus.OK));
+
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "System setting 'analyticsWeeklyStart' set to value 'WEEKLY_SATURDAY'.",
+        POST("/systemSettings/analyticsWeeklyStart?value=WEEKLY_SATURDAY").content(HttpStatus.OK));
+
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "System setting 'analyticsWeeklyStart' set to value 'WEEKLY_SUNDAY'.",
+        POST("/systemSettings/analyticsWeeklyStart?value=WEEKLY_SUNDAY").content(HttpStatus.OK));
+  }
+
+  @Test
   void testSetSystemSettingAnalyticsFinancialYearStartSep() {
     assertWebMessage(
         "OK",
