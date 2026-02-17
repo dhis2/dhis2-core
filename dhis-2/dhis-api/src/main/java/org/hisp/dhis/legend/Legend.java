@@ -63,6 +63,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
@@ -72,6 +73,7 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -284,8 +286,11 @@ public class Legend implements IdentifiableObject, EmbeddedObject {
     return name;
   }
 
+  @Override
+  @Sortable(whenPersisted = false)
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "name", key = "NAME")
   public String getDisplayName() {
     return translations.getTranslation("name", name);
   }

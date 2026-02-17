@@ -32,11 +32,17 @@ package org.hisp.dhis.webapi.controller;
 import static com.google.common.collect.Sets.newHashSet;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -406,6 +412,127 @@ class MessageConversationControllerTest extends H2ControllerIntegrationTestBase 
         "Not authorized to remove assigned users to this conversation.",
         DELETE("/messageConversations?mc=%s&user=%s".formatted(uid, getAdminUid()))
             .content(HttpStatus.FORBIDDEN));
+  }
+
+  @Test
+  @DisplayName("Verify Message entity fields are correctly persisted and retrieved")
+  void testGetConversationWithMessageFields() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/messageConversations/",
+                "{'subject':'Test Subject','text':'Hello World','users':[{'id':'"
+                    + getAdminUid()
+                    + "'}]}"));
+
+    JsonObject conversation =
+        GET("/messageConversations/" + uid + "?fields=messages[text,sender,internal,lastUpdated]")
+            .content(HttpStatus.OK);
+    JsonArray messages = conversation.getArray("messages");
+    assertFalse(messages.isEmpty(), "Conversation should have messages");
+
+    JsonObject message = messages.getObject(0);
+    assertEquals("Hello World", message.getString("text").string());
+    assertNotNull(message.get("lastUpdated"), "lastUpdated should be mapped");
+    assertFalse(message.getBoolean("internal").booleanValue(), "internal should default to false");
+    assertNotNull(message.getObject("sender").getString("id"), "sender should be mapped");
+  }
+
+  @Test
+  @DisplayName("Verify reply creates a new Message with correct sender mapping")
+  void testReplyMessageSenderMapping() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/messageConversations/",
+                "{'subject':'Subject','text':'Original','users':[{'id':'"
+                    + getAdminUid()
+                    + "'}]}"));
+
+    // Reply to conversation
+    assertStatus(HttpStatus.CREATED, POST("/messageConversations/" + uid, "Reply message"));
+
+    JsonObject conversation =
+        GET("/messageConversations/" + uid + "?fields=messages[text,sender[id]]")
+            .content(HttpStatus.OK);
+    JsonArray messages = conversation.getArray("messages");
+    assertEquals(2, messages.size(), "Should have original + reply");
+
+    // Both messages should have a sender with a valid id
+    for (int i = 0; i < messages.size(); i++) {
+      JsonObject msg = messages.getObject(i);
+      assertNotNull(
+          msg.getObject("sender").getString("id").string(),
+          "Message " + i + " should have sender mapped");
+    }
+  }
+
+  @Test
+  @DisplayName("Verify internal message flag is persisted")
+  void testInternalMessageFlag() {
+    // Create a feedback conversation first
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/messageConversations/feedback?subject=test", "Feedback message"));
+
+    // Set up feedback recipients group so we can post internal messages
+    User ringo = createUserWithAuth("ringo");
+    UserGroup ugA = createUserGroup('A', newHashSet(ringo));
+    manager.save(ugA);
+    Configuration config = configurationService.getConfiguration();
+    config.setFeedbackRecipients(ugA);
+    configurationService.setConfiguration(config);
+
+    switchContextToUser(ringo);
+
+    // Reply with internal=true
+    assertStatus(
+        HttpStatus.CREATED,
+        POST("/messageConversations/" + uid + "?internal=true", "Internal reply"));
+
+    // Switch back to admin to read the conversation
+    switchToAdminUser();
+
+    JsonObject conversation =
+        GET("/messageConversations/" + uid + "?fields=messages[text,internal]")
+            .content(HttpStatus.OK);
+    JsonArray messages = conversation.getArray("messages");
+
+    boolean hasInternal =
+        messages.asList(JsonObject.class).stream()
+            .anyMatch(m -> m.has("internal") && m.getBoolean("internal").booleanValue());
+    assertTrue(hasInternal, "Should have at least one internal message");
+  }
+
+  @Test
+  @DisplayName("Verify multiple replies maintain correct message ordering and fields")
+  void testMultipleRepliesMessageMapping() {
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/messageConversations/",
+                "{'subject':'Subject','text':'First','users':[{'id':'" + getAdminUid() + "'}]}"));
+
+    assertStatus(HttpStatus.CREATED, POST("/messageConversations/" + uid, "Second"));
+    assertStatus(HttpStatus.CREATED, POST("/messageConversations/" + uid, "Third"));
+
+    JsonObject conversation =
+        GET("/messageConversations/" + uid + "?fields=messages[text,sender,lastUpdated]")
+            .content(HttpStatus.OK);
+    JsonArray messages = conversation.getArray("messages");
+    assertEquals(3, messages.size(), "Should have 3 messages");
+
+    // All messages should have required fields properly mapped
+    for (int i = 0; i < messages.size(); i++) {
+      JsonObject msg = messages.getObject(i);
+      assertNotNull(msg.getString("text").string(), "Message " + i + " should have text");
+      assertNotNull(msg.get("lastUpdated"), "Message " + i + " should have lastUpdated");
+      assertNotNull(msg.get("sender"), "Message " + i + " should have sender");
+    }
   }
 
   @Test

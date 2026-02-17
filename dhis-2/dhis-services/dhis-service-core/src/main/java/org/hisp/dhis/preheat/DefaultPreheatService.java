@@ -30,6 +30,7 @@
 package org.hisp.dhis.preheat;
 
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -513,15 +514,14 @@ public class DefaultPreheatService implements PreheatService {
                 if (!uidMap.containsKey(itemKlass)) uidMap.put(itemKlass, new HashSet<>());
                 if (!codeMap.containsKey(itemKlass)) codeMap.put(itemKlass, new HashSet<>());
 
-                Object reference = ReflectionUtils.invokeMethod(object, p.getGetterMethod());
+                Object reference = safeInvoke(object, p.getGetterMethod());
 
                 if (reference != null) {
                   IdentifiableObject identifiableObject = (IdentifiableObject) reference;
                   addIdentifiers(map, identifiableObject);
                 }
               } else {
-                Collection<IdentifiableObject> reference =
-                    ReflectionUtils.invokeMethod(object, p.getGetterMethod());
+                Collection<IdentifiableObject> reference = safeInvoke(object, p.getGetterMethod());
 
                 if (reference != null) {
                   reference.forEach(identifiableObject -> addIdentifiers(map, identifiableObject));
@@ -700,8 +700,7 @@ public class DefaultPreheatService implements PreheatService {
         properties.forEach(
             p -> {
               if (!p.isCollection()) {
-                IdentifiableObject reference =
-                    ReflectionUtils.invokeMethod(object, p.getGetterMethod());
+                IdentifiableObject reference = safeInvoke(object, p.getGetterMethod());
 
                 if (reference != null) {
                   try {
@@ -716,8 +715,7 @@ public class DefaultPreheatService implements PreheatService {
               } else {
                 Collection<IdentifiableObject> refObjects =
                     ReflectionUtils.newCollectionInstance(p.getKlass());
-                Collection<IdentifiableObject> references =
-                    ReflectionUtils.invokeMethod(object, p.getGetterMethod());
+                Collection<IdentifiableObject> references = safeInvoke(object, p.getGetterMethod());
 
                 if (references != null) {
                   for (IdentifiableObject reference : references) {
@@ -767,8 +765,7 @@ public class DefaultPreheatService implements PreheatService {
 
           objects.forEach(
               o -> {
-                Collection<Object> propertyValue =
-                    ReflectionUtils.invokeMethod(o, property.getGetterMethod());
+                Collection<Object> propertyValue = safeInvoke(o, property.getGetterMethod());
                 if (!org.apache.commons.collections4.CollectionUtils.isEmpty(propertyValue)) {
                   list.addAll(propertyValue);
                 }
@@ -783,7 +780,7 @@ public class DefaultPreheatService implements PreheatService {
 
           objects.forEach(
               o -> {
-                Object item = ReflectionUtils.invokeMethod(o, property.getGetterMethod());
+                Object item = safeInvoke(o, property.getGetterMethod());
                 if (item != null) {
                   list.add(item);
                 }
@@ -841,8 +838,7 @@ public class DefaultPreheatService implements PreheatService {
       }
 
       if (!property.isCollection()) {
-        IdentifiableObject refObject =
-            ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+        IdentifiableObject refObject = safeInvoke(object, property.getGetterMethod());
         IdentifiableObject ref = getPersistedObject(preheat, identifier, refObject);
 
         ref = connectDefaults(preheat, property, object, refObject, ref);
@@ -855,8 +851,7 @@ public class DefaultPreheatService implements PreheatService {
       } else {
         Collection<IdentifiableObject> objects =
             ReflectionUtils.newCollectionInstance(property.getKlass());
-        Collection<IdentifiableObject> refObjects =
-            ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+        Collection<IdentifiableObject> refObjects = safeInvoke(object, property.getGetterMethod());
 
         for (IdentifiableObject refObject : refObjects) {
           IdentifiableObject ref = getPersistedObject(preheat, identifier, refObject);
@@ -946,7 +941,7 @@ public class DefaultPreheatService implements PreheatService {
       uniqueProperties.forEach(
           property -> {
             if (!map.containsKey(property.getName())) map.put(property.getName(), new HashMap<>());
-            Object value = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+            Object value = safeInvoke(object, property.getGetterMethod());
             if (value != null)
               map.get(property.getName()).put(value, identifier.getIdentifier(object));
           });
