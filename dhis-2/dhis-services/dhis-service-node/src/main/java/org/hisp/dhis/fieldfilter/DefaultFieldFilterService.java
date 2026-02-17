@@ -692,7 +692,7 @@ public class DefaultFieldFilterService implements FieldFilterService {
         continue;
       }
 
-      Object returnValue = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+      Object returnValue = safeInvoke(object, property.getGetterMethod());
 
       SimpleNode simpleNode = new SimpleNode(field, returnValue);
       simpleNode.setAttribute(property.isAttribute());

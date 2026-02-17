@@ -573,35 +573,34 @@ public class DefaultSchemaService implements SchemaService {
     }
     return new PropertyPath(curProperty, persisted, alias.toArray(new String[] {}));
   }
-  
+
   public static Class<?> getInterfaceOfBaseClass(Class<?> klass) {
     for (Class<?> iface : BASE_ALIAS_MAP.keySet()) {
-      if (iface.isAssignableFrom(klass)) {
+      if (BASE_ALIAS_MAP.get(iface).equals(klass)) {
         return iface;
       }
     }
     return null;
   }
 
-  public static Object safeInvoke(Object object, Method method) {
+  public static <T> T safeInvoke(Object object, Method method) {
     try {
-      ReflectionUtils.invokeMethod(object, method);
+      return ReflectionUtils.invokeMethod(object, method);
     } catch (Exception e) {
-      Class<?> interfaceClass = DefaultSchemaService.getInterfaceOfBaseClass(method.getDeclaringClass());
+      Class<?> interfaceClass =
+          DefaultSchemaService.getInterfaceOfBaseClass(method.getDeclaringClass());
       if (interfaceClass != null) {
         try {
           Method fallback = interfaceClass.getMethod(method.getName());
           return ReflectionUtils.invokeMethod(object, fallback);
         } catch (Exception ex) {
-          throw new RuntimeException("Failed to invoke fallback method for " + method.getName(),
-              ex);
+          throw new RuntimeException(
+              "Failed to invoke fallback method for " + method.getName(), ex);
         }
-      }
-      else {
+      } else {
         throw new RuntimeException("Failed to invoke method " + method.getName(), e);
       }
     }
-    return null;
   }
 
   private boolean isFilterByAttributeId(Property curProperty, String propertyName) {

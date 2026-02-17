@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
+
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -54,7 +56,7 @@ public class PeriodTypeObjectBundleHook extends AbstractObjectBundleHook<Identif
 
     for (Property property : schema.getPropertyMap().values()) {
       if (PeriodType.class.isAssignableFrom(property.getKlass())) {
-        PeriodType periodType = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+        PeriodType periodType = safeInvoke(object, property.getGetterMethod());
 
         if (periodType != null) {
           periodType = bundle.getPreheat().getPeriodTypeMap().get(periodType.getName());
@@ -72,7 +74,7 @@ public class PeriodTypeObjectBundleHook extends AbstractObjectBundleHook<Identif
 
     for (Property property : schema.getPropertyMap().values()) {
       if (PeriodType.class.isAssignableFrom(property.getKlass())) {
-        PeriodType periodType = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+        PeriodType periodType = safeInvoke(object, property.getGetterMethod());
 
         if (periodType != null) {
           periodType = bundle.getPreheat().getPeriodTypeMap().get(periodType.getName());
