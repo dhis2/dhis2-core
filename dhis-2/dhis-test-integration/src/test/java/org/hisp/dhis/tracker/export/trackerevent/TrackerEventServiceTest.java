@@ -81,7 +81,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class TrackerEventExporterTest extends PostgresIntegrationTestBase {
+class TrackerEventServiceTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
 
   @Autowired private TrackerEventService trackerEventService;

@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -44,11 +45,14 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.acl.TrackerProgramService;
+import org.hisp.dhis.tracker.export.CategoryOptionComboService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
@@ -87,9 +91,15 @@ class EnrollmentOperationParamsMapperTest {
 
   @Mock private TrackedEntityService trackedEntityService;
 
+  @Mock private OrganisationUnitService organisationUnitService;
+
   @Mock private OperationsParamsValidator paramsValidator;
 
   @Mock private TrackerProgramService trackerProgramService;
+
+  @Mock private CategoryOptionComboService categoryOptionComboService;
+
+  @Mock private AclService aclService;
 
   @InjectMocks private EnrollmentOperationParamsMapper mapper;
 
@@ -134,6 +144,8 @@ class EnrollmentOperationParamsMapperTest {
         .thenReturn(trackedEntity);
     when(paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_1_UID, ORG_UNIT_2_UID), user))
         .thenReturn(Set.of(orgUnit1, orgUnit2));
+
+    when(organisationUnitService.getOrganisationUnitsByUid(any())).thenReturn(List.of());
   }
 
   @Test

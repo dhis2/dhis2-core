@@ -106,7 +106,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     CriteriaQuery<T> criteriaQuery = builder.createQuery(objectType);
     Root<T> root = criteriaQuery.from(objectType);
 
-    criteriaQuery.where(buildFilters(query, store, builder, root));
+    criteriaQuery.where(buildFilters(query, store, builder, root, criteriaQuery));
 
     if (!query.getOrders().isEmpty()) criteriaQuery.orderBy(getOrders(query, builder, root));
 
@@ -146,13 +146,18 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
       Query<T> query,
       InternalHibernateGenericStore<T> store,
       CriteriaBuilder builder,
-      Root<T> root) {
+      Root<T> root,
+      CriteriaQuery<?> criteriaQuery) {
     Predicate filters = buildQueryFilters(builder, root, query);
     Predicate sharing = buildSharingFilters(query, store, builder, root);
-    if (sharing == null) return filters;
     Predicate and = builder.conjunction();
     and.getExpressions().add(filters);
-    and.getExpressions().add(sharing);
+    if (sharing != null) {
+      and.getExpressions().add(sharing);
+    }
+    for (JpaPredicateSupplier supplier : query.getPredicateSuppliers()) {
+      and.getExpressions().add(supplier.getPredicate(builder, root, criteriaQuery));
+    }
     return and;
   }
 
@@ -200,7 +205,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
 
     criteriaQuery.select(builder.count(root));
 
-    criteriaQuery.where(buildFilters(query, store, builder, root));
+    criteriaQuery.where(buildFilters(query, store, builder, root, criteriaQuery));
 
     TypedQuery<Long> typedQuery = entityManager.createQuery(criteriaQuery);
 

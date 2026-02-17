@@ -119,7 +119,7 @@ public class DataSetValueController {
     UID de = UID.of(ds.getDataElements().iterator().next());
     LockStatus lockStatus =
         dataEntryService.getEntryStatus(
-            UID.of(ds), new DataEntryKey(de, UID.of(ou), null, UID.of(aoc), pe.getIsoDate()));
+            UID.of(ds), new DataEntryKey(de, UID.of(ou), null, UID.of(aoc), pe));
 
     CompleteDataSetRegistration registration =
         registrationService.getCompleteDataSetRegistration(ds, pe, ou, aoc);
@@ -141,7 +141,7 @@ public class DataSetValueController {
       DataExportValue value, DataValueCategoryParams attribute) {
     return new DataValuePostParams()
         .setDataElement(value.dataElement().getValue())
-        .setPeriod(value.period())
+        .setPeriod(value.period().getIsoDate())
         .setOrgUnit(value.orgUnit().getValue())
         .setCategoryOptionCombo(value.categoryOptionCombo().getValue())
         .setAttribute(attribute)
