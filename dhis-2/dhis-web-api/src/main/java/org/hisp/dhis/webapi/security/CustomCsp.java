@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.utils;
+package org.hisp.dhis.webapi.security;
 
-public class CspConstants {
-  private CspConstants() {}
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-  public static final String SCRIPT_SOURCE_DEFAULT = "script-src 'none'; ";
-
-  public static final String CONTENT_SECURITY_POLICY_HEADER_NAME = "Content-Security-Policy";
-  public static final String FRAME_ANCESTORS_DEFAULT_CSP = "frame-ancestors 'self'";
-  
+/**
+ * Annotation to specify a custom Content-Security-Policy for a controller method.
+ * 
+ * When applied to a controller method, this annotation allows overriding the default
+ * strict CSP policy with a custom one. This is useful for endpoints that serve
+ * user-uploaded content or have other specific CSP requirements.
+ * 
+ * Example:
+ * @CustomCsp("script-src 'none'; ")
+ * @GetMapping("/files/{id}")
+ * public void serveFile(@PathVariable String id) { ... }
+ * 
+ * @see CspUserUploadedContent for standard strict CSP for user-uploaded content
+ * @see CspInterceptor for how this annotation is processed and applied to responses
+ * @see CspFilter for how the CSP policy is added to response headers
+ */
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface CustomCsp {
   /**
-   * Strict default CSP policy applied to all endpoints.
-   * This policy only allows resources from the same origin.
+   * The Content-Security-Policy header value to use for this endpoint.
+   * 
+   * @return the CSP policy string (e.g., "script-src 'none'; ")
    */
-  public static final String DEFAULT_CSP_POLICY = "default-src 'self'; ";
+  String value();
 }

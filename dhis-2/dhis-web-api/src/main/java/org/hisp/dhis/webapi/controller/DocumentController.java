@@ -29,16 +29,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -46,9 +39,10 @@ import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import org.hisp.dhis.dxf2.webmessage.responses.ObjectReportWebMessageResponse;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
@@ -58,14 +52,19 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.webapi.security.CspUserUploadedContent;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -82,8 +81,8 @@ public class DocumentController extends AbstractCrudController<Document, GetObje
   private final LocationManager locationManager;
   private final FileResourceService fileResourceService;
   private final ContextUtils contextUtils;
-  private final DhisConfigurationProvider dhisConfig;
 
+  @CspUserUploadedContent
   @GetMapping("/{uid}/data")
   public void getDocumentContent(@PathVariable("uid") String uid, HttpServletResponse response)
       throws Exception {
@@ -102,8 +101,6 @@ public class DocumentController extends AbstractCrudController<Document, GetObje
       response.setContentType(fileResource.getContentType());
       response.setContentLengthLong(fileResource.getContentLength());
       response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName());
-      HeaderUtils.setSecurityHeaders(
-          response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
 
       try {
         fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());

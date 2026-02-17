@@ -35,9 +35,8 @@ public class HeaderUtils {
   public static final String X_CONTENT_TYPE_OPTIONS_VALUE = "nosniff";
   public static final String X_XSS_PROTECTION_VALUE = "1; mode=block";
 
-  public static void setSecurityHeaders(HttpServletResponse response, String cspHeaders) {
-    response.setHeader("Content-Security-Policy", cspHeaders);
-    response.setHeader("X-Content-Type-Options", X_CONTENT_TYPE_OPTIONS_VALUE);
-    response.setHeader("X-XSS-Protection", X_XSS_PROTECTION_VALUE);
+  private HeaderUtils() {
+    // Utility class, prevent instantiation
   }
 }
+

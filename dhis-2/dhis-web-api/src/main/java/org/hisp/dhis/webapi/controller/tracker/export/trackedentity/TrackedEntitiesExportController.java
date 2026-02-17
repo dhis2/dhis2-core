@@ -73,6 +73,7 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.controller.tracker.RequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
+import org.hisp.dhis.webapi.security.CspUserUploadedContent;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
 import org.hisp.dhis.webapi.controller.tracker.view.FilteredEntity;
@@ -325,6 +326,7 @@ class TrackedEntitiesExportController {
     entityCsvService.write(outputStream, List.of(trackedEntity), !skipHeader);
   }
 
+  @CspUserUploadedContent
   @GetMapping("/{trackedEntity}/attributes/{attribute}/file")
   ResponseEntity<InputStreamResource> getAttributeValueFile(
       @OpenApi.Param({UID.class, org.hisp.dhis.tracker.model.TrackedEntity.class}) @PathVariable
@@ -343,6 +345,7 @@ class TrackedEntitiesExportController {
         request, trackedEntityService.getFileResource(trackedEntity, attribute, program));
   }
 
+  @CspUserUploadedContent
   @GetMapping("/{trackedEntity}/attributes/{attribute}/image")
   ResponseEntity<InputStreamResource> getAttributeValueImage(
       @OpenApi.Param({UID.class, org.hisp.dhis.tracker.model.TrackedEntity.class}) @PathVariable

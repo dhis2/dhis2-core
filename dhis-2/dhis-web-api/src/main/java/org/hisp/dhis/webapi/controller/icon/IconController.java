@@ -29,24 +29,17 @@
  */
 package org.hisp.dhis.webapi.controller.icon;
 
-import static java.lang.String.format;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import static java.lang.String.format;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -62,10 +55,10 @@ import org.hisp.dhis.icon.IconService;
 import org.hisp.dhis.icon.UpdateIconRequest;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.tracker.export.FileResourceStream;
+import org.hisp.dhis.webapi.security.CspUserUploadedContent;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -82,6 +75,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Kristian Wærstad
  */
@@ -97,7 +97,6 @@ public class IconController {
 
   private final IconService iconService;
   private final FileResourceService fileResourceService;
-  private final DhisConfigurationProvider dhisConfig;
   private final FieldFilterService fieldFilterService;
   private final ContextService contextService;
   private final LinkService linkService;
@@ -126,6 +125,7 @@ public class IconController {
     return new IconListResponse(pager, objectNodes);
   }
 
+  @CspUserUploadedContent
   @GetMapping(value = "/{key}/icon")
   public void getIconData(@PathVariable String key, HttpServletResponse response)
       throws NotFoundException, ConflictException {
@@ -140,6 +140,7 @@ public class IconController {
     return new ResponseEntity<>(icon, HttpStatus.OK);
   }
 
+  @CspUserUploadedContent
   @GetMapping("/{key}/icon.svg")
   @Deprecated
   public void getIconData(
@@ -195,8 +196,6 @@ public class IconController {
     response.setHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(image.getContentLength()));
     response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + image.getName());
     response.setHeader("Cache-Control", CacheControl.maxAge(TTL, TimeUnit.DAYS).getHeaderValue());
-    HeaderUtils.setSecurityHeaders(
-        response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
 
     try {
       fileResourceService.copyFileResourceContent(image, response.getOutputStream());

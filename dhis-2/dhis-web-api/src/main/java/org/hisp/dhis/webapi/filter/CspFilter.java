@@ -29,30 +29,29 @@
  */
 package org.hisp.dhis.webapi.filter;
 
+import java.io.IOException;
+import java.util.Set;
+
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.configuration.ConfigurationService;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
-import static org.hisp.dhis.security.utils.CspConstants.EXTERNAL_STATIC_CONTENT_URL_PATTERNS;
-import static org.hisp.dhis.security.utils.CspConstants.SCRIPT_SOURCE_DEFAULT;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.webapi.security.CspPolicyHolder;
+import org.springframework.web.filter.OncePerRequestFilter;
+import static org.hisp.dhis.security.utils.CspConstants.DEFAULT_CSP_POLICY;
+import static org.hisp.dhis.security.utils.CspConstants.CONTENT_SECURITY_POLICY_HEADER_NAME;
+import static org.hisp.dhis.security.utils.CspConstants.FRAME_ANCESTORS_DEFAULT_CSP;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Set;
-import java.util.regex.Pattern;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.configuration.ConfigurationService;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class CspFilter extends OncePerRequestFilter {
-  public static final String CONTENT_SECURITY_POLICY_HEADER_NAME = "Content-Security-Policy";
-  public static final String FRAME_ANCESTORS_DEFAULT_CSP = "frame-ancestors 'self'";
-
   private final boolean enabled;
 
   private final ConfigurationService configurationService;
@@ -73,21 +72,42 @@ public class CspFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest req, HttpServletResponse res, FilterChain chain)
       throws ServletException, IOException {
-    String url = req.getRequestURL().toString();
+    try {
+      if (!enabled) {
+        // If CSP is not enabled, just set X-Frame-Options to SAMEORIGIN for clickjacking protection and proceed
+        res.addHeader("X-Frame-Options", "SAMEORIGIN");
+        
+        chain.doFilter(req, res);
+        return;
+      }
 
-    if (!enabled) {
-      res.addHeader("X-Frame-Options", "SAMEORIGIN");
+      // Check if a custom CSP policy was set via @CustomCsp annotation
+      String customCspPolicy = CspPolicyHolder.getCspPolicy();
+      String cspPolicy;
+
+      if (customCspPolicy != null) {
+        // Use the custom CSP policy from the controller
+        cspPolicy = customCspPolicy;
+      } else {
+        // Use strict default policy for all other endpoints
+        cspPolicy = DEFAULT_CSP_POLICY;
+      }
+
+      // Set the base CSP policy
+      res.addHeader(CONTENT_SECURITY_POLICY_HEADER_NAME, cspPolicy);
+
+      // Add frame-ancestors CSP rule based on CORS whitelist
+      setFrameAncestorsCspRule(res);
+
+      // Add additional security headers
+      // Always set X-Content-Type-Options to nosniff to prevent MIME type sniffing
+      res.addHeader("X-Content-Type-Options", "nosniff");
+
       chain.doFilter(req, res);
-      return;
+    } finally {
+      // Clean up the ThreadLocal to prevent memory leaks
+      CspPolicyHolder.clear();
     }
-
-    if (isUploadedContentInsideApi(url)) {
-      res.addHeader(CONTENT_SECURITY_POLICY_HEADER_NAME, SCRIPT_SOURCE_DEFAULT);
-    }
-
-    setFrameAncestorsCspRule(res);
-
-    chain.doFilter(req, res);
   }
 
   private void setFrameAncestorsCspRule(HttpServletResponse res) {
@@ -111,14 +131,5 @@ public class CspFilter extends OncePerRequestFilter {
   private Set<String> getCorsWhitelist() {
     return corsWhitelistCache.get(
         "CORS_WHITELIST", key -> configurationService.getConfiguration().getCorsWhitelist());
-  }
-
-  private boolean isUploadedContentInsideApi(String requestURI) {
-    for (Pattern pattern : EXTERNAL_STATIC_CONTENT_URL_PATTERNS) {
-      if (pattern.matcher(requestURI).matches()) {
-        return true;
-      }
-    }
-    return false;
   }
 }

@@ -29,22 +29,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
-import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeAvatarToDefaultSize;
-import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeIconToDefaultSize;
-import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeOrgToDefaultSize;
-import static org.hisp.dhis.webapi.utils.FileResourceUtils.validateCustomIconFile;
-
-import com.google.common.base.MoreObjects;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -63,8 +54,12 @@ import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.webapi.security.CspUserUploadedContent;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
-import org.hisp.dhis.webapi.utils.HeaderUtils;
+import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeAvatarToDefaultSize;
+import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeIconToDefaultSize;
+import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeOrgToDefaultSize;
+import static org.hisp.dhis.webapi.utils.FileResourceUtils.validateCustomIconFile;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -75,6 +70,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.google.common.base.MoreObjects;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -122,6 +124,7 @@ public class FileResourceController
     return fileResource;
   }
 
+  @CspUserUploadedContent
   @GetMapping(value = "/{uid}/data")
   public void getFileResourceData(
       @PathVariable String uid,
@@ -149,9 +152,6 @@ public class FileResourceController
         HttpHeaders.CONTENT_LENGTH,
         String.valueOf(fileResourceService.getFileResourceContentLength(fileResource)));
     response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName());
-
-    HeaderUtils.setSecurityHeaders(
-        response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
 
     try {
       fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());

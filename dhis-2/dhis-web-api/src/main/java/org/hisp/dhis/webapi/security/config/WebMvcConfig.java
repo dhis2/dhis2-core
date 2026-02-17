@@ -29,15 +29,12 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
-import static org.springframework.http.MediaType.parseMediaType;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
@@ -57,6 +54,7 @@ import org.hisp.dhis.webapi.mvc.messageconverter.MetadataExportParamsMessageConv
 import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlPathMappingJackson2XmlHttpMessageConverter;
+import org.hisp.dhis.webapi.security.CspInterceptor;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -68,6 +66,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.http.MediaType;
+import static org.springframework.http.MediaType.parseMediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -89,6 +88,9 @@ import org.springframework.web.servlet.config.annotation.DelegatingWebMvcConfigu
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -116,6 +118,9 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Autowired private AuthorityInterceptor authorityInterceptor;
 
   @Autowired private SystemSettingsInterceptor settingsInterceptor;
+
+  @Autowired
+  private CspInterceptor cspInterceptor;
 
   @Autowired private NodeService nodeService;
 
@@ -245,6 +250,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Override
   public void addInterceptors(InterceptorRegistry registry) {
+    registry.addInterceptor(cspInterceptor);
     registry.addInterceptor(new UserContextInterceptor());
     registry.addInterceptor(authorityInterceptor);
     registry.addInterceptor(settingsInterceptor);

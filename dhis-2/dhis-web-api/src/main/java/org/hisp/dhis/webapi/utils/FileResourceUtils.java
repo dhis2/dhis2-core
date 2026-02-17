@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.utils;
 
 import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_HEADER_VALUE;
 import static org.imgscalr.Scalr.resize;
 
 import com.google.common.hash.Hashing;
@@ -190,7 +189,6 @@ public class FileResourceUtils {
     response.setContentType(fileResource.getContentType());
     response.setContentLengthLong(fileResource.getContentLength());
     response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName());
-    HeaderUtils.setSecurityHeaders(response, dhisConfig.getProperty(CSP_HEADER_VALUE));
 
     try {
       fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());
