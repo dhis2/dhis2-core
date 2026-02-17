@@ -182,8 +182,7 @@ public class FileResourceUtils {
     }
   }
 
-  public void configureFileResourceResponse(
-      HttpServletResponse response, FileResource fileResource)
+  public void configureFileResourceResponse(HttpServletResponse response, FileResource fileResource)
       throws WebMessageException {
     response.setContentType(fileResource.getContentType());
     response.setContentLengthLong(fileResource.getContentLength());

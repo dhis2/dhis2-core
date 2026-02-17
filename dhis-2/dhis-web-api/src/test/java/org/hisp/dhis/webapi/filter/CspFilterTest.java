@@ -152,7 +152,9 @@ class CspFilterTest {
     // Then: CSP header should include frame-ancestors with CORS origins
     String cspHeader = response.getHeader(CONTENT_SECURITY_POLICY_HEADER_NAME);
     assertNotNull(cspHeader);
-    assertTrue(cspHeader.contains(FRAME_ANCESTORS_DEFAULT_CSP + " 'https://example.com' 'https://other.com';"));
+    assertTrue(
+        cspHeader.contains(
+            FRAME_ANCESTORS_DEFAULT_CSP + " 'https://example.com' 'https://other.com';"));
   }
 
   @SuppressWarnings("unchecked")
