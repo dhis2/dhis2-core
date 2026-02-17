@@ -125,6 +125,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "weeklyPeriodFriday",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&dimension=pe:2022FriW32&stage=A03MvHHogjR&displayProperty=NAME&totalPages=false&outputType=EVENT",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

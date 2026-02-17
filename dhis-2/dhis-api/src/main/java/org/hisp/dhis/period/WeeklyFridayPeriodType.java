@@ -29,50 +29,20 @@
  */
 package org.hisp.dhis.period;
 
-import javax.annotation.Nonnull;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import static org.hisp.dhis.period.PeriodTypeEnum.WEEKLY_FRIDAY;
 
-@RequiredArgsConstructor
-public enum PeriodTypeEnum {
-  BI_MONTHLY("BiMonthly"),
-  BI_WEEKLY("BiWeekly"),
-  DAILY("Daily"),
-  FINANCIAL_FEB("FinancialFeb"),
-  FINANCIAL_APRIL("FinancialApril"),
-  FINANCIAL_JULY("FinancialJuly"),
-  FINANCIAL_AUG("FinancialAug"),
-  FINANCIAL_SEP("FinancialSep"),
-  FINANCIAL_OCT("FinancialOct"),
-  FINANCIAL_NOV("FinancialNov"),
-  MONTHLY("Monthly"),
-  QUARTERLY("Quarterly"),
-  QUARTERLY_NOV("QuarterlyNov"),
-  SIX_MONTHLY_APRIL("SixMonthlyApril"),
-  SIX_MONTHLY_NOV("SixMonthlyNov"),
-  SIX_MONTHLY("SixMonthly"),
-  TWO_YEARLY("TwoYearly"),
-  WEEKLY("Weekly"),
-  WEEKLY_SATURDAY("WeeklySaturday"),
-  WEEKLY_SUNDAY("WeeklySunday"),
-  WEEKLY_THURSDAY("WeeklyThursday"),
-  WEEKLY_FRIDAY("WeeklyFriday"),
-  WEEKLY_WEDNESDAY("WeeklyWednesday"),
-  YEARLY("Yearly");
+/**
+ * PeriodType for weekly Periods. A valid weekly Period has startDate set to Friday and endDate set
+ * to Saturday the same week, assuming Friday is the first day and Saturday is the last day of the
+ * week.
+ */
+public class WeeklyFridayPeriodType extends WeeklyAbstractPeriodType {
+  public WeeklyFridayPeriodType() {
+    super(WEEKLY_FRIDAY.getName(), 5, "yyyyFriWn", "P7D", 7, "1 week", "FriW");
+  }
 
-  @Getter private final String name;
-
-  /**
-   * Parses an ISO period to extract its type.
-   *
-   * @param isoPeriod a ISO period (any format)
-   * @return the type of the period
-   * @throws IllegalArgumentException if the given ISO period is formally invalid. This does not
-   *     detect semantically invalid periods, like for example a quarterly period for a 5th quarter,
-   *     but it would detect a two digit quarter.
-   */
-  @Nonnull
-  public static PeriodTypeEnum ofIsoPeriod(String isoPeriod) {
-    return Period.Input.of(isoPeriod).type();
+  @Override
+  public PeriodTypeEnum getPeriodTypeEnum() {
+    return WEEKLY_FRIDAY;
   }
 }

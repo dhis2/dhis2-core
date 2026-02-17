@@ -98,7 +98,7 @@ public class TranslationProperty implements Serializable {
   private String getTranslationValue(String locale, String translationKey, String defaultValue) {
     for (Translation translation : translations) {
       if (locale.equals(translation.getLocale())
-          && translationKey.equals(translation.getProperty())
+          && translationKey.equalsIgnoreCase(translation.getProperty())
           && !StringUtils.isEmpty(translation.getValue())) {
         return translation.getValue();
       }
