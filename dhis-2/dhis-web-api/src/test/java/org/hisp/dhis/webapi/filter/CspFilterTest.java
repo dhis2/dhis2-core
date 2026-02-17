@@ -153,9 +153,9 @@ class CspFilterTest {
     String cspHeader = response.getHeader(CONTENT_SECURITY_POLICY_HEADER_NAME);
     assertNotNull(cspHeader);
     assertTrue(
-        cspHeader.contains(
-            FRAME_ANCESTORS_DEFAULT_CSP + " https://example.com https://other.com;") || cspHeader.contains(
-            FRAME_ANCESTORS_DEFAULT_CSP + " https://other.com https://example.com;"));
+        cspHeader.contains(FRAME_ANCESTORS_DEFAULT_CSP + " https://example.com https://other.com;")
+            || cspHeader.contains(
+                FRAME_ANCESTORS_DEFAULT_CSP + " https://other.com https://example.com;"));
   }
 
   @SuppressWarnings("unchecked")
