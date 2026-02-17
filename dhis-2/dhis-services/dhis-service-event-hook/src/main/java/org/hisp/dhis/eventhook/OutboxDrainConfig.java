@@ -36,7 +36,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 @Configuration
 public class OutboxDrainConfig {
-  @Bean(name = "outboxDrainTaskScheduler")
+  @Bean(name = "singleThreadedTaskScheduler")
   public TaskScheduler outboxDrainTaskScheduler() {
     ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
     threadPoolTaskScheduler.setPoolSize(1);

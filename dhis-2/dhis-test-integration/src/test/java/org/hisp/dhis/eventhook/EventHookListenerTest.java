@@ -41,13 +41,14 @@ import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
-@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class EventHookListenerTest extends PostgresIntegrationTestBase {
 
   @Autowired private ObjectMapper objectMapper;
@@ -60,10 +61,104 @@ class EventHookListenerTest extends PostgresIntegrationTestBase {
 
   @Autowired private JdbcTemplate jdbcTemplate;
 
+  @Autowired private EventHookStore eventHookStore;
+
   @Test
+  void testOnPreCommitCreatesTransactionWhenNotInTransaction() {
+    EventHook eventHook = newEventHook("FooBar");
+    eventHookStore.save(eventHook);
+    eventHookService.createOutbox(eventHook.getUID());
+
+    EventHookService mockEventHookService = mock(EventHookService.class);
+    when(mockEventHookService.getEventHookTargets())
+        .thenReturn(
+            List.of(
+                EventHookTargets.builder()
+                    .eventHook(eventHook)
+                    .targets(List.of((outboxMessages, handlerCallback) -> {}))
+                    .build()));
+
+    assertEquals(
+        0,
+        jdbcTemplate
+            .queryForList(
+                String.format(
+                    "SELECT * FROM \"%s\"",
+                    EventHookService.OUTBOX_PREFIX_TABLE_NAME + eventHook.getUID()))
+            .size());
+
+    EventHookListener eventHookListener =
+        new EventHookListener(objectMapper, fieldFilterService, mockEventHookService, dataSource);
+    eventHookListener.onPreCommit(EventUtils.metadataCreate(new OrganisationUnit()));
+
+    assertEquals(
+        1,
+        jdbcTemplate
+            .queryForList(
+                String.format(
+                    "SELECT * FROM \"%s\"",
+                    EventHookService.OUTBOX_PREFIX_TABLE_NAME + eventHook.getUID()))
+            .size());
+  }
+
+  @Test
+  @Transactional
+  void testOnPreCommitsJoinsTransactionWhenInTransaction() {
+    EventHook eventHook = newEventHook("Bar");
+    eventHookStore.save(eventHook);
+    eventHookService.createOutbox(eventHook.getUID());
+
+    EventHookService mockEventHookService = mock(EventHookService.class);
+    when(mockEventHookService.getEventHookTargets())
+        .thenReturn(
+            List.of(
+                EventHookTargets.builder()
+                    .eventHook(eventHook)
+                    .targets(List.of((outboxMessages, handlerCallback) -> {}))
+                    .build()));
+
+    EventHookListener eventHookListener =
+        new EventHookListener(objectMapper, fieldFilterService, mockEventHookService, dataSource);
+
+    assertEquals(
+        0,
+        jdbcTemplate
+            .queryForList(
+                String.format(
+                    "SELECT * FROM \"%s\"",
+                    EventHookService.OUTBOX_PREFIX_TABLE_NAME + eventHook.getUID()))
+            .size());
+
+    OrganisationUnit organisationUnit = new OrganisationUnit();
+    eventHookListener.onPreCommit(EventUtils.metadataCreate(organisationUnit));
+
+    assertEquals(
+        1,
+        jdbcTemplate
+            .queryForList(
+                String.format(
+                    "SELECT * FROM \"%s\"",
+                    EventHookService.OUTBOX_PREFIX_TABLE_NAME + eventHook.getUID()))
+            .size());
+
+    TestTransaction.end();
+
+    assertEquals(
+        0,
+        jdbcTemplate
+            .queryForList(
+                String.format(
+                    "SELECT * FROM \"%s\"",
+                    EventHookService.OUTBOX_PREFIX_TABLE_NAME + eventHook.getUID()))
+            .size());
+  }
+
+  @Test
+  @Transactional
   void testOnPreCommitPersistsEvent() {
     EventHook eventHook = newEventHook("Bar");
-    eventHookService.createOutbox(eventHook);
+    eventHookStore.save(eventHook);
+    eventHookService.createOutbox(eventHook.getUID());
 
     EventHookService mockEventHookService = mock(EventHookService.class);
     when(mockEventHookService.getEventHookTargets())
@@ -100,10 +195,13 @@ class EventHookListenerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  @Transactional
   void testOnPreCommitSkipsEventHookAndSwallowsExceptionOnPersistenceFailure() {
     EventHook barEventHook = newEventHook("Bar");
     EventHook quuzEventHook = newEventHook("Quuz");
-    eventHookService.createOutbox(quuzEventHook);
+
+    eventHookStore.save(quuzEventHook);
+    eventHookService.createOutbox(quuzEventHook.getUID());
 
     EventHookService mockEventHookService = mock(EventHookService.class);
     when(mockEventHookService.getEventHookTargets())
@@ -147,15 +245,11 @@ class EventHookListenerTest extends PostgresIntegrationTestBase {
     Source source = new Source();
     source.setPath("metadata.");
 
-    User user = new User();
-    user.setUid(CodeGenerator.generateUid());
-
     WebhookTarget webhookTarget = new WebhookTarget();
     webhookTarget.setUrl("http://stub");
 
     EventHook eventHook = new EventHook();
     eventHook.setName(name);
-    eventHook.setUser(user);
     eventHook.setTargets(List.of(webhookTarget));
     eventHook.setUid(CodeGenerator.generateUid());
     eventHook.setSource(source);

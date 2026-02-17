@@ -32,6 +32,7 @@ package org.hisp.dhis.eventhook;
 import com.google.common.base.CaseFormat;
 import java.util.Map;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobStatus;
 
@@ -47,7 +48,7 @@ public final class EventUtils {
     return metadata(object, "update");
   }
 
-  public static Event metadataDelete(Class<?> type, String uid) {
+  public static Event metadataDelete(Class<?> type, UID uid) {
     String name = camelCase(type.getSimpleName());
 
     return Event.builder()
@@ -61,7 +62,7 @@ public final class EventUtils {
     String name = camelCase(object.getClass().getSimpleName());
 
     return Event.builder()
-        .path(String.format("metadata.%s.%s", name, object.getUid()))
+        .path(String.format("metadata.%s.%s", name, object.getUID()))
         .meta(Map.of("op", op))
         .object(object)
         .build();

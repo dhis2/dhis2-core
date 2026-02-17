@@ -70,22 +70,14 @@ class EventHookServiceTest extends TestBase {
     when(mockCacheProvider.<EventHookTargets>createEventHookTargetsCache())
         .thenReturn(new TestCache<>());
 
-    EventHookService eventHookService =
-        new EventHookService(
-            null,
-            null,
-            mockEventHookStore,
-            new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false),
-            new EventHookSecretManager(null) {
-              @Override
-              public void decrypt(EventHook eventHook) {}
-            },
-            mockCacheProvider,
-            null);
+    EventHookService eventHookService = newEventHookService(mockEventHookStore, mockCacheProvider);
     eventHookService.postConstruct();
     eventHookService.reload();
 
-    List<EventHookTargets> eventHookTargets = eventHookService.getEventHookTargets();
+    List<EventHookTargets> eventHookTargets =
+        eventHookService.getEventHookTargets().stream()
+            .sorted((o1, o2) -> o1.getEventHook().equals(barEventHook) ? -1 : 1)
+            .toList();
     assertEquals(
         barEventHook.getUID().getValue(),
         eventHookTargets.get(0).getEventHook().getUID().getValue());
@@ -95,5 +87,53 @@ class EventHookServiceTest extends TestBase {
         fooEventHook.getUID().getValue(),
         eventHookTargets.get(1).getEventHook().getUID().getValue());
     assertEquals(2, eventHookTargets.get(1).getTargets().size());
+  }
+
+  @Test
+  void testReloadDoesNotCacheDisabledEventHooks() throws Exception {
+    EventHook barEventHook = new EventHook();
+    barEventHook.setDisabled(true);
+    barEventHook.setUid(CodeGenerator.generateUid());
+    WebhookTarget barWebhookTarget = new WebhookTarget();
+    barWebhookTarget.setUrl("bar");
+    barEventHook.setTargets(List.of(barWebhookTarget));
+
+    EventHook fooEventHook = new EventHook();
+    fooEventHook.setUid(CodeGenerator.generateUid());
+    WebhookTarget fooWebhookTarget = new WebhookTarget();
+    fooWebhookTarget.setUrl("foo");
+    fooEventHook.setTargets(List.of(fooWebhookTarget));
+
+    EventHookStore mockEventHookStore = mock(EventHookStore.class);
+    when(mockEventHookStore.getAll())
+        .thenReturn(List.of())
+        .thenReturn(List.of(barEventHook, fooEventHook));
+
+    CacheProvider mockCacheProvider = mock(CacheProvider.class);
+    when(mockCacheProvider.<EventHookTargets>createEventHookTargetsCache())
+        .thenReturn(new TestCache<>());
+
+    EventHookService eventHookService = newEventHookService(mockEventHookStore, mockCacheProvider);
+    eventHookService.postConstruct();
+    eventHookService.reload();
+
+    List<EventHookTargets> eventHookTargets = eventHookService.getEventHookTargets();
+    assertEquals(1, eventHookTargets.size());
+    assertEquals(fooEventHook.getUID(), eventHookTargets.get(0).getEventHook().getUID());
+  }
+
+  private EventHookService newEventHookService(
+      EventHookStore eventHookStore, CacheProvider cacheProvider) {
+    return new EventHookService(
+        null,
+        null,
+        eventHookStore,
+        new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false),
+        new EventHookSecretManager(null) {
+          @Override
+          public void decrypt(EventHook eventHook) {}
+        },
+        cacheProvider,
+        null);
   }
 }

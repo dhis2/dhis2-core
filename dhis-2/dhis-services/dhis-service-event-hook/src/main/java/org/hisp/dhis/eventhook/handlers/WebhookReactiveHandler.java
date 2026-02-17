@@ -30,6 +30,7 @@
 package org.hisp.dhis.eventhook.handlers;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 @Slf4j
@@ -87,15 +89,20 @@ public class WebhookReactiveHandler implements ReactiveHandler {
                         .bodyValue(outboxMessage.get("payload").toString())
                         .retrieve()
                         .toBodilessEntity()
-                        .retryWhen(Retry.backoff(3, Duration.ofSeconds(2)))
-                        .doOnError(
-                            t -> {
-                              log.error(t.getMessage(), t);
-                              handlerCallback.onError(outboxMessage);
-                            })
+                        .retryWhen(
+                            Retry.backoff(3, Duration.ofSeconds(3))
+                                .onRetryExhaustedThrow(
+                                    (retryBackoffSpec, retrySignal) -> retrySignal.failure()))
+                        .doOnError(t -> handlerCallback.onError(t, outboxMessage))
                         .map(voidResponseEntity -> outboxMessage))
         .collectList()
-        .doOnSuccess(om -> handlerCallback.onSuccess((Map<String, Object>) om.get(om.size() - 1)))
+        .onErrorResume(throwable -> Mono.just(List.of()))
+        .doOnSuccess(
+            om -> {
+              if (!om.isEmpty()) {
+                handlerCallback.onSuccess((Map<String, Object>) om.get(om.size() - 1));
+              }
+            })
         .doFinally(signalType -> handlerCallback.onComplete())
         .subscribe(om -> {});
   }

@@ -32,6 +32,7 @@ package org.hisp.dhis.eventhook;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -48,7 +49,13 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 /**
- * @author Morten Olav Hansen
+ * Intercepts the event tied to the database commit, filters it, and persists it to the matching
+ * event hook outbox tables as part of the web request transaction. An event that is not part of a
+ * database transaction can also be intercepted (e.g., scheduler events) with the caveat that the
+ * listener creates a new transaction instead of joining an existing one.
+ *
+ * <p>Any exception results in the listener logging the error, partially rolling back the
+ * transaction, and swallowing the exception so that web request is not impacted.
  */
 @Slf4j
 @Component
@@ -69,28 +76,42 @@ public class EventHookListener {
   public void onPreCommit(Event event) {
     try {
       doOnPreCommit(event);
-    } catch (Exception e) {
-      log.error(e.getMessage(), e);
+    } catch (Throwable t) {
+      log.error(t.getMessage(), t);
     }
   }
 
   protected void doOnPreCommit(Event event) {
-    JdbcTemplate jdbcTemplate =
-        new JdbcTemplate(
-            new SingleConnectionDataSource(DataSourceUtils.getConnection(dataSource), true));
-    for (EventHookTargets eventHookTargets : eventHookService.getEventHookTargets()) {
-      try {
-        if (doPersistOutboxMessage(event, eventHookTargets)) {
-          persistOutboxMessage(event, eventHookTargets, jdbcTemplate);
+    Connection connection = null;
+    try {
+      connection = DataSourceUtils.getConnection(dataSource);
+      JdbcTemplate jdbcTemplate =
+          new JdbcTemplate(new SingleConnectionDataSource(connection, true));
+      for (EventHookTargets eventHookTargets : eventHookService.getEventHookTargets()) {
+        try {
+          if (doPersistOutboxMessage(event, eventHookTargets)) {
+            persistOutboxMessage(
+                event,
+                eventHookTargets,
+                jdbcTemplate,
+                DataSourceUtils.isConnectionTransactional(connection, dataSource));
+          }
+        } catch (Throwable t) {
+          log.error(t.getMessage(), t);
         }
-      } catch (Exception e) {
-        log.error(e.getMessage(), e);
+      }
+    } finally {
+      if (connection != null) {
+        DataSourceUtils.releaseConnection(connection, dataSource);
       }
     }
   }
 
-  public void persistOutboxMessage(
-      Event event, EventHookTargets eventHookTargets, JdbcTemplate jdbcTemplate)
+  protected void persistOutboxMessage(
+      Event event,
+      EventHookTargets eventHookTargets,
+      JdbcTemplate jdbcTemplate,
+      boolean inTransaction)
       throws JsonProcessingException {
     EventHook eventHook = eventHookTargets.getEventHook();
     final Event filteredEvent;
@@ -110,15 +131,22 @@ public class EventHookListener {
 
     if (filteredEvent != null) {
       String eventAsString = objectMapper.writeValueAsString(event);
-      jdbcTemplate.execute("SAVEPOINT event_hook_" + eventHook.getUID());
+      if (inTransaction) {
+        jdbcTemplate.execute("SAVEPOINT event_hook_" + eventHook.getUID());
+      }
       try {
-        jdbcTemplate.update(
+        String outboxMessageInsert =
             String.format(
-                "INSERT INTO \"%s\" (payload) VALUES (?::JSONB)",
-                EventHookService.OUTBOX_PREFIX_TABLE_NAME + eventHook.getUID()),
-            eventAsString);
+                "INSERT INTO \"%s\" (payload) VALUES (?::JSONB); ",
+                EventHookService.OUTBOX_PREFIX_TABLE_NAME + eventHook.getUID());
+        if (inTransaction) {
+          outboxMessageInsert += String.format("RELEASE event_hook_%s;", eventHook.getUID());
+        }
+        jdbcTemplate.update(outboxMessageInsert, eventAsString);
       } catch (DataAccessException e) {
-        jdbcTemplate.execute("ROLLBACK to event_hook_" + eventHook.getUID());
+        if (inTransaction) {
+          jdbcTemplate.execute("ROLLBACK to event_hook_" + eventHook.getUID());
+        }
         throw e;
       }
     }

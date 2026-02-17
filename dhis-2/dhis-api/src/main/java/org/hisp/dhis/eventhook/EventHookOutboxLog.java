@@ -54,6 +54,6 @@ public class EventHookOutboxLog {
   private long nextOutboxMessageId;
 
   @OneToOne
-  @JoinColumn(name = "eventhookid")
+  @JoinColumn(name = "eventhookid", nullable = false)
   private EventHook eventHook;
 }

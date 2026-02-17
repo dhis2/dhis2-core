@@ -33,7 +33,7 @@ import java.util.Map;
 
 public interface ReactiveHandlerCallback {
 
-  void onError(Map<String, Object> outboxMessageCause);
+  void onError(Throwable throwable, Map<String, Object> outboxMessageCause);
 
   void onSuccess(Map<String, Object> lastSuccessfulOutboxMessage);
 

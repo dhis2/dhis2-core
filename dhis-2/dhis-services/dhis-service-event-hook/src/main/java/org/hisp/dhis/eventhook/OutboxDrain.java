@@ -31,40 +31,76 @@ package org.hisp.dhis.eventhook;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.PersistenceUnit;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.eventhook.handlers.ReactiveHandlerCallback;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.leader.election.LeaderManager;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
+/**
+ * If cluster leader and event hooks are enabled then:
+ *
+ * <ul>
+ *   <li>Reads a sequence of message in batch from each outbox table
+ *   <li>Emits the event pulled out from the outbox message to the event hook target
+ * </ul>
+ *
+ * A batch consists of messages with IDs equal to or greater than the <code>nextOutboxMessageId
+ * </code> column found in the corresponding event hook row of the <code>
+ * EventHookOutboxLog</code> table.
+ *
+ * <p>When each event in the batch is successfully delivered, <code>OutboxDrain</code> updates the
+ * event hook's offset in <code>EventHookOutboxLog</code> to point to the starting message ID for
+ * the next batch. In contrast, a failed delivery in the batch will cause <code>OutboxDrain
+ * </code> to update the offset such that it points to the failed message ID. <code>OutboxDrain
+ * </code/> will keep retrying to deliver the failed event until it is successful before moving on
+ * to the next outbox message. Since draining does not happen within a transaction, it is possible
+ * that successful messages are re-drained following an unexpected failure. This can lead to
+ * duplicate messages on a non-idempotent event hook consumer.
+ *
+ * <p>A single thread is routinely dispatched to drain the outbox messages so draining should be
+ * non-blocking as far as possible. Blocking I/O for emitting events will destroy the performance of
+ * this class. Furthermore, events must be emitted in sequence per event hook to guarantee ordering.
+ */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class OutboxDrain {
-  private final EntityManagerFactory entityManagerFactory;
   private final LeaderManager leaderManager;
-  private final Map<UID, Semaphore> semaphores = new ConcurrentHashMap<>();
-  private final EntityManager entityManager;
+  private final Map<UID, Semaphore> semaphores = new HashMap<>();
   private final JdbcTemplate jdbcTemplate;
   private final EventHookService eventHookService;
+  private final DhisConfigurationProvider dhisConfig;
+
+  @PersistenceUnit private final EntityManagerFactory entityManagerFactory;
 
   private record DefaultHandlerCallback(
       EventHookOutboxLog eventHookOutboxLog,
       EntityManagerFactory entityManagerFactory,
+      EventHook eventHook,
       Semaphore semaphore)
       implements ReactiveHandlerCallback {
 
     @Override
-    public void onError(Map<String, Object> outboxMessageCause) {
+    public void onError(Throwable throwable, Map<String, Object> outboxMessageCause) {
       updateOutboxLog((Long) outboxMessageCause.get("id"));
+      log.warn(
+          "Failed to deliver outbox message {} to event hook [{}]. Retaining message and retrying until successfully delivered before emitting next message to this event hook. Error => {}",
+          outboxMessageCause.get("id"),
+          eventHook.getName(),
+          throwable.getMessage());
     }
 
     @Override
@@ -77,36 +113,40 @@ public class OutboxDrain {
       semaphore.release();
     }
 
-    private void updateOutboxLog(long nextOutboxMessageId) {
-      eventHookOutboxLog.setNextOutboxMessageId(nextOutboxMessageId);
-      try (EntityManager em = entityManagerFactory.createEntityManager()) {
-        em.merge(eventHookOutboxLog);
-        em.flush();
-      }
-    }
-  }
-
-  @Scheduled(fixedRate = 100)
-  @Qualifier("outboxDrainTaskScheduler")
-  public void drainOutboxes() {
-    if (leaderManager.isLeader()) {
-      for (EventHookTargets eventHookTargets : eventHookService.getEventHookTargets()) {
-        Semaphore semaphore =
-            semaphores.computeIfAbsent(
-                eventHookTargets.getEventHook().getUID(), s -> new Semaphore(1));
-        try {
-          if (semaphore.tryAcquire()) {
-            drainOutbox(eventHookTargets, semaphore);
-          }
-        } catch (Throwable t) {
-          semaphore.release();
-          throw t;
+    private void updateOutboxLog(long newNextOutboxMessageId) {
+      if (eventHookOutboxLog.getNextOutboxMessageId() != newNextOutboxMessageId) {
+        eventHookOutboxLog.setNextOutboxMessageId(newNextOutboxMessageId);
+        try (EntityManager em = entityManagerFactory.createEntityManager()) {
+          em.merge(eventHookOutboxLog);
+          em.flush();
         }
       }
     }
   }
 
-  private void drainOutbox(EventHookTargets eventHookTargets, Semaphore semaphore) {
+  @Scheduled(fixedRate = 100, scheduler = "singleThreadedTaskScheduler")
+  public void drainOutboxes() {
+    if (dhisConfig.isEnabled(ConfigurationKey.EVENT_HOOKS_ENABLED) && leaderManager.isLeader()) {
+      try (EntityManager em = entityManagerFactory.createEntityManager()) {
+        for (EventHookTargets eventHookTargets : eventHookService.getEventHookTargets()) {
+          Semaphore semaphore =
+              semaphores.computeIfAbsent(
+                  eventHookTargets.getEventHook().getUID(), s -> new Semaphore(1));
+          try {
+            if (semaphore.tryAcquire()) {
+              drainOutbox(eventHookTargets, semaphore, em);
+            }
+          } catch (Throwable t) {
+            semaphore.release();
+            log.error(t.getMessage(), t);
+          }
+        }
+      }
+    }
+  }
+
+  protected void drainOutbox(
+      EventHookTargets eventHookTargets, Semaphore semaphore, EntityManager entityManager) {
     String outboxTableName =
         EventHookService.OUTBOX_PREFIX_TABLE_NAME + eventHookTargets.getEventHook().getUID();
     EventHookOutboxLog eventHookOutboxLog =
@@ -120,10 +160,15 @@ public class OutboxDrain {
               eventHookOutboxLog.getNextOutboxMessageId());
 
       if (!outboxMessages.isEmpty()) {
+        entityManager.detach(eventHookOutboxLog);
         emit(
             outboxMessages,
             eventHookTargets,
-            new DefaultHandlerCallback(eventHookOutboxLog, entityManagerFactory, semaphore));
+            new DefaultHandlerCallback(
+                eventHookOutboxLog,
+                entityManagerFactory,
+                eventHookTargets.getEventHook(),
+                semaphore));
       }
     }
 

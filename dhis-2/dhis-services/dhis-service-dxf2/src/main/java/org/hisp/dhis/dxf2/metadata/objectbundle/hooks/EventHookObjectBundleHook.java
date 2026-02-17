@@ -69,7 +69,7 @@ public class EventHookObjectBundleHook extends AbstractObjectBundleHook<EventHoo
 
   @Override
   public void postCreate(EventHook eventHook, ObjectBundle bundle) {
-    eventHookService.createOutbox(eventHook);
+    eventHookService.createOutbox(eventHook.getUID());
   }
 
   @Override

@@ -27,6 +27,10 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-field-filtering</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-external</artifactId>
+    </dependency>
     <!-- Application -->
     <dependency>
       <groupId>org.springframework</groupId>

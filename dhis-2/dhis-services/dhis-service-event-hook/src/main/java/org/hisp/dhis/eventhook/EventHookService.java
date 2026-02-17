@@ -32,6 +32,7 @@ package org.hisp.dhis.eventhook;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -48,6 +49,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen
@@ -55,13 +57,13 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class EventHookService {
-  protected static final String OUTBOX_PREFIX_TABLE_NAME = "outbox_";
+  protected static final String OUTBOX_PREFIX_TABLE_NAME = "eventhookoutbox_";
   protected static final int MIN_PARTITIONS = 2;
   protected static final int MAX_PARTITIONS = 10;
 
-  private final JdbcTemplate jdbcTemplate;
+  @PersistenceContext private final EntityManager entityManager;
 
-  private final EntityManager entityManager;
+  private final JdbcTemplate jdbcTemplate;
 
   private final EventHookStore eventHookStore;
 
@@ -125,9 +127,10 @@ public class EventHookService {
     }
   }
 
-  public void createOutbox(EventHook eventHook) {
-    String outboxTableName = OUTBOX_PREFIX_TABLE_NAME + eventHook.getUID();
-    deleteOutbox(eventHook.getUID());
+  @Transactional
+  public void createOutbox(UID eventHookUid) {
+    String outboxTableName = OUTBOX_PREFIX_TABLE_NAME + eventHookUid;
+    deleteOutbox(eventHookUid);
     jdbcTemplate.execute(
         String.format(
             "CREATE TABLE \"%s\" (id BIGINT GENERATED ALWAYS AS IDENTITY (CYCLE) PRIMARY KEY, payload JSONB) PARTITION BY RANGE (id);",
@@ -136,7 +139,7 @@ public class EventHookService {
     int lowerBound = 1;
     int upperBound = partitionRange;
     for (int i = 1; i <= MIN_PARTITIONS; i++) {
-      addOutboxPartition(eventHook, i, lowerBound, upperBound);
+      addOutboxPartition(eventHookUid, i, lowerBound, upperBound);
       lowerBound = upperBound;
       upperBound = lowerBound + partitionRange;
     }
@@ -144,7 +147,7 @@ public class EventHookService {
     EventHookOutboxLog eventHookOutboxLog = new EventHookOutboxLog();
     eventHookOutboxLog.setOutboxTableName(outboxTableName);
     eventHookOutboxLog.setNextOutboxMessageId(1);
-    eventHookOutboxLog.setEventHook(eventHook);
+    eventHookOutboxLog.setEventHook(eventHookStore.getByUid(eventHookUid));
 
     entityManager.persist(eventHookOutboxLog);
   }
@@ -154,13 +157,12 @@ public class EventHookService {
         String.format("DROP TABLE IF EXISTS \"%s\"", OUTBOX_PREFIX_TABLE_NAME + eventHookUid));
   }
 
-  public void addOutboxPartition(
-      EventHook eventHook, long index, long lowerBound, long upperBound) {
+  public void addOutboxPartition(UID eventHookUid, long index, long lowerBound, long upperBound) {
     jdbcTemplate.execute(
         String.format(
             "CREATE TABLE IF NOT EXISTS \"%s\" PARTITION OF \"%s\" FOR VALUES FROM (%s) TO (%s);",
-            OUTBOX_PREFIX_TABLE_NAME + eventHook.getUID() + "_" + index,
-            OUTBOX_PREFIX_TABLE_NAME + eventHook.getUID(),
+            OUTBOX_PREFIX_TABLE_NAME + eventHookUid + "_" + index,
+            OUTBOX_PREFIX_TABLE_NAME + eventHookUid,
             lowerBound,
             upperBound));
   }

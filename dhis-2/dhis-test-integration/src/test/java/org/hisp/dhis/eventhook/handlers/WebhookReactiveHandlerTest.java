@@ -103,7 +103,7 @@ class WebhookReactiveHandlerTest {
         Flux.fromIterable(outboxMessages),
         new ReactiveHandlerCallback() {
           @Override
-          public void onError(Map<String, Object> outboxMessageCause) {
+          public void onError(Throwable throwable, Map<String, Object> outboxMessageCause) {
             assertEquals("error 1", outboxMessageCause.get("payload"));
             errorCountDownLatch.countDown();
           }
@@ -148,7 +148,7 @@ class WebhookReactiveHandlerTest {
         Flux.fromIterable(outboxMessages),
         new ReactiveHandlerCallback() {
           @Override
-          public void onError(Map<String, Object> outboxMessageCause) {
+          public void onError(Throwable throwable, Map<String, Object> outboxMessageCause) {
             errorCountDownLatch.countDown();
           }
 

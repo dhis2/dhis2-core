@@ -78,10 +78,10 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
     List<Map<String, Object>> outboxPartitions = outboxRotationJob.getOutboxPartitions(eventHook);
     assertEquals(EventHookService.MIN_PARTITIONS, outboxPartitions.size());
     assertEquals(
-        "\"outbox_" + eventHook.getUID() + "_2\"",
+        "\"eventhookoutbox_" + eventHook.getUID() + "_2\"",
         outboxPartitions.get(0).get("partition_name").toString());
     assertEquals(
-        "\"outbox_" + eventHook.getUID() + "_1\"",
+        "\"eventhookoutbox_" + eventHook.getUID() + "_1\"",
         outboxPartitions.get(1).get("partition_name").toString());
   }
 
@@ -94,7 +94,7 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
     eventHook.setTargets(List.of(new WebhookTarget()));
 
     eventHookStore.save(eventHook);
-    eventHookService.createOutbox(eventHook);
+    eventHookService.createOutbox(eventHook.getUID());
 
     int outboxMessageCount =
         (eventHookService.getPartitionRange() * (EventHookService.MIN_PARTITIONS - 1));
@@ -113,13 +113,13 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
     List<Map<String, Object>> outboxPartitions = outboxRotationJob.getOutboxPartitions(eventHook);
     assertEquals(EventHookService.MIN_PARTITIONS + 1, outboxPartitions.size());
     assertEquals(
-        "\"outbox_" + eventHook.getUid() + "_4\"",
+        "\"eventhookoutbox_" + eventHook.getUid() + "_4\"",
         outboxPartitions.get(0).get("partition_name").toString());
     assertEquals(
-        "\"outbox_" + eventHook.getUid() + "_3\"",
+        "\"eventhookoutbox_" + eventHook.getUid() + "_3\"",
         outboxPartitions.get(1).get("partition_name").toString());
     assertEquals(
-        "\"outbox_" + eventHook.getUid() + "_2\"",
+        "\"eventhookoutbox_" + eventHook.getUid() + "_2\"",
         outboxPartitions.get(2).get("partition_name").toString());
   }
 
@@ -132,7 +132,7 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
     eventHook.setTargets(List.of(new WebhookTarget()));
 
     eventHookStore.save(eventHook);
-    eventHookService.createOutbox(eventHook);
+    eventHookService.createOutbox(eventHook.getUID());
 
     int outboxMessageCount =
         (eventHookService.getPartitionRange() * (EventHookService.MIN_PARTITIONS - 1)) - 1;
@@ -151,10 +151,10 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
     List<Map<String, Object>> outboxPartitions = outboxRotationJob.getOutboxPartitions(eventHook);
     assertEquals(2, outboxPartitions.size());
     assertEquals(
-        "\"outbox_" + eventHook.getUID() + "_2\"",
+        "\"eventhookoutbox_" + eventHook.getUID() + "_2\"",
         outboxPartitions.get(0).get("partition_name").toString());
     assertEquals(
-        "\"outbox_" + eventHook.getUID() + "_1\"",
+        "\"eventhookoutbox_" + eventHook.getUID() + "_1\"",
         outboxPartitions.get(1).get("partition_name").toString());
   }
 
@@ -167,7 +167,7 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
     eventHook.setTargets(List.of(new WebhookTarget()));
 
     eventHookStore.save(eventHook);
-    eventHookService.createOutbox(eventHook);
+    eventHookService.createOutbox(eventHook.getUID());
 
     assertEquals(2, outboxRotationJob.getOutboxPartitions(eventHook).size());
 
@@ -184,13 +184,13 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
     List<Map<String, Object>> outboxPartitions = outboxRotationJob.getOutboxPartitions(eventHook);
     assertEquals(3, outboxPartitions.size());
     assertEquals(
-        "\"outbox_" + eventHook.getUID() + "_4\"",
+        "\"eventhookoutbox_" + eventHook.getUID() + "_4\"",
         outboxPartitions.get(0).get("partition_name").toString());
     assertEquals(
-        "\"outbox_" + eventHook.getUID() + "_3\"",
+        "\"eventhookoutbox_" + eventHook.getUID() + "_3\"",
         outboxPartitions.get(1).get("partition_name").toString());
     assertEquals(
-        "\"outbox_" + eventHook.getUID() + "_2\"",
+        "\"eventhookoutbox_" + eventHook.getUID() + "_2\"",
         outboxPartitions.get(2).get("partition_name").toString());
   }
 
@@ -203,7 +203,7 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
     eventHook.setTargets(List.of(new WebhookTarget()));
 
     eventHookStore.save(eventHook);
-    eventHookService.createOutbox(eventHook);
+    eventHookService.createOutbox(eventHook.getUID());
 
     assertEquals(2, outboxRotationJob.getOutboxPartitions(eventHook).size());
 
@@ -219,10 +219,10 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
     List<Map<String, Object>> outboxPartitions = outboxRotationJob.getOutboxPartitions(eventHook);
     assertEquals(2, outboxPartitions.size());
     assertEquals(
-        "\"outbox_" + eventHook.getUID() + "_2\"",
+        "\"eventhookoutbox_" + eventHook.getUID() + "_2\"",
         outboxPartitions.get(0).get("partition_name").toString());
     assertEquals(
-        "\"outbox_" + eventHook.getUID() + "_1\"",
+        "\"eventhookoutbox_" + eventHook.getUID() + "_1\"",
         outboxPartitions.get(1).get("partition_name").toString());
   }
 
@@ -235,7 +235,7 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
     eventHook.setTargets(List.of(new WebhookTarget()));
 
     eventHookStore.save(eventHook);
-    eventHookService.createOutbox(eventHook);
+    eventHookService.createOutbox(eventHook.getUID());
 
     addOutboxMessages(eventHook, eventHookService.getPartitionRange());
     outboxRotationJob.execute(null, JobProgress.noop());
@@ -249,22 +249,22 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
     assertEquals(6, outboxRotationJob.getOutboxPartitions(eventHook).size());
     List<Map<String, Object>> outboxPartitions = outboxRotationJob.getOutboxPartitions(eventHook);
     assertEquals(
-        "\"outbox_" + eventHook.getUID() + "_6\"",
+        "\"eventhookoutbox_" + eventHook.getUID() + "_6\"",
         outboxPartitions.get(0).get("partition_name").toString());
     assertEquals(
-        "\"outbox_" + eventHook.getUID() + "_5\"",
+        "\"eventhookoutbox_" + eventHook.getUID() + "_5\"",
         outboxPartitions.get(1).get("partition_name").toString());
     assertEquals(
-        "\"outbox_" + eventHook.getUID() + "_4\"",
+        "\"eventhookoutbox_" + eventHook.getUID() + "_4\"",
         outboxPartitions.get(2).get("partition_name").toString());
     assertEquals(
-        "\"outbox_" + eventHook.getUID() + "_3\"",
+        "\"eventhookoutbox_" + eventHook.getUID() + "_3\"",
         outboxPartitions.get(3).get("partition_name").toString());
     assertEquals(
-        "\"outbox_" + eventHook.getUID() + "_2\"",
+        "\"eventhookoutbox_" + eventHook.getUID() + "_2\"",
         outboxPartitions.get(4).get("partition_name").toString());
     assertEquals(
-        "\"outbox_" + eventHook.getUID() + "_1\"",
+        "\"eventhookoutbox_" + eventHook.getUID() + "_1\"",
         outboxPartitions.get(5).get("partition_name").toString());
 
     EventHookOutboxLog eventHookOutboxLog = new EventHookOutboxLog();
@@ -279,13 +279,13 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
     outboxPartitions = outboxRotationJob.getOutboxPartitions(eventHook);
     assertEquals(3, outboxPartitions.size());
     assertEquals(
-        "\"outbox_" + eventHook.getUID() + "_6\"",
+        "\"eventhookoutbox_" + eventHook.getUID() + "_6\"",
         outboxPartitions.get(0).get("partition_name").toString());
     assertEquals(
-        "\"outbox_" + eventHook.getUID() + "_5\"",
+        "\"eventhookoutbox_" + eventHook.getUID() + "_5\"",
         outboxPartitions.get(1).get("partition_name").toString());
     assertEquals(
-        "\"outbox_" + eventHook.getUID() + "_4\"",
+        "\"eventhookoutbox_" + eventHook.getUID() + "_4\"",
         outboxPartitions.get(2).get("partition_name").toString());
   }
 
@@ -298,7 +298,7 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
     eventHook.setTargets(List.of(new WebhookTarget()));
 
     eventHookStore.save(eventHook);
-    eventHookService.createOutbox(eventHook);
+    eventHookService.createOutbox(eventHook.getUID());
 
     for (int i = 0; i < EventHookService.MAX_PARTITIONS; i++) {
       int outboxMessageCount = eventHookService.getPartitionRange();
@@ -318,12 +318,13 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
     for (int i = 0; i < outboxMessageCount; i++) {
       inserts.add(
           String.format(
-              "INSERT INTO \"outbox_%s\"" + " (payload) VALUES ('{}'::JSONB)", eventHook.getUID()));
+              "INSERT INTO \"eventhookoutbox_%s\"" + " (payload) VALUES ('{}'::JSONB)",
+              eventHook.getUID()));
     }
     jdbcTemplate.batchUpdate(inserts.toArray(new String[] {}));
     TestTransaction.flagForCommit();
     TestTransaction.end();
     TestTransaction.start();
-    jdbcTemplate.execute(String.format("ANALYZE \"outbox_%s\"", eventHook.getUID()));
+    jdbcTemplate.execute(String.format("ANALYZE \"eventhookoutbox_%s\"", eventHook.getUID()));
   }
 }

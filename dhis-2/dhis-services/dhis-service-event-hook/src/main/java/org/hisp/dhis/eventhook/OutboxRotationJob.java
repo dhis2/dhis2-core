@@ -30,10 +30,13 @@
 package org.hisp.dhis.eventhook;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Map;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -41,14 +44,28 @@ import org.hisp.dhis.scheduling.JobType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+/**
+ * A routine job that creates and drops partitions on outbox tables to keep the outbox messages
+ * within the partition range and prevent the disk from filling up with delivered events. This job
+ * will only run if the event hooks setting is enabled.
+ *
+ * <p>As a safeguard, a partition holding an undelivered event will never be dropped. Additionally,
+ * no more than {@link org.hisp.dhis.eventhook.EventHookService#MAX_PARTITIONS} partitions can be
+ * created for each outbox table. This keeps outbox table growth bounded, however, it also means
+ * that the new events will be lost once the partition upper bound is reached and the last partition
+ * is full. Such a scenario can happen if the event hook consumer is offline or is replying too
+ * slowly. It can also happen if DHIS2 is not emitting the events fast enough. Server warnings are
+ * printed when the max no. of partitions is reached.
+ */
 @Slf4j
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class OutboxRotationJob implements Job {
 
-  private final EntityManager entityManager;
+  @PersistenceContext private final EntityManager entityManager;
   private final EventHookService eventHookService;
   private final JdbcTemplate jdbcTemplate;
+  private final DhisConfigurationProvider dhisConfig;
 
   @Override
   public JobType getJobType() {
@@ -57,20 +74,22 @@ public class OutboxRotationJob implements Job {
 
   @Override
   public void execute(JobEntry config, JobProgress progress) {
-    for (EventHook eventHook : eventHookService.getAll()) {
-      List<Map<String, Object>> outboxPartitions = getOutboxPartitions(eventHook);
-      if (outboxPartitions.isEmpty()) {
-        eventHookService.createOutbox(eventHook);
-      } else if (outboxPartitions.size() < EventHookService.MAX_PARTITIONS) {
-        Map<String, Object> lastPartition = outboxPartitions.get(0);
+    if (dhisConfig.isEnabled(ConfigurationKey.EVENT_HOOKS_ENABLED)) {
+      for (EventHook eventHook : eventHookService.getAll()) {
+        List<Map<String, Object>> outboxPartitions = getOutboxPartitions(eventHook);
+        if (outboxPartitions.isEmpty()) {
+          eventHookService.createOutbox(eventHook.getUID());
+        } else if (outboxPartitions.size() < EventHookService.MAX_PARTITIONS) {
+          Map<String, Object> lastPartition = outboxPartitions.get(0);
 
-        if (outboxPartitions.size() < EventHookService.MIN_PARTITIONS
-            || isPartitionNotEmpty(lastPartition)) {
-          addEmptyPartitions(
-              outboxPartitions.get(0), eventHook, (long) lastPartition.get("upper_bound"));
+          if (outboxPartitions.size() < EventHookService.MIN_PARTITIONS
+              || isPartitionNotEmpty(lastPartition)) {
+            addEmptyPartitions(
+                outboxPartitions.get(0), eventHook, (long) lastPartition.get("upper_bound"));
+          }
         }
+        prunePartitions(getOutboxPartitions(eventHook), eventHook);
       }
-      prunePartitions(getOutboxPartitions(eventHook), eventHook);
     }
   }
 
@@ -174,7 +193,7 @@ public class OutboxRotationJob implements Job {
         i < (nextPartitionIndex + EventHookService.MIN_PARTITIONS);
         i++) {
       eventHookService.addOutboxPartition(
-          eventHook, i, newLastPartitionLowerBound, newLastPartitionUpperBound);
+          eventHook.getUID(), i, newLastPartitionLowerBound, newLastPartitionUpperBound);
       newLastPartitionLowerBound = newLastPartitionUpperBound;
       newLastPartitionUpperBound =
           newLastPartitionLowerBound + eventHookService.getPartitionRange();
