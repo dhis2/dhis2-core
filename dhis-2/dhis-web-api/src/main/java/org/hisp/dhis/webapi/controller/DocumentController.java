@@ -56,7 +56,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.webapi.security.CspUserUploadedContent;
+import org.hisp.dhis.webapi.security.csp.CspUserUploadedContent;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

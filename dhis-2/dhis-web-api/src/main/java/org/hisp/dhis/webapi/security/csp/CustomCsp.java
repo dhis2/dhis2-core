@@ -27,44 +27,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security;
+package org.hisp.dhis.webapi.security.csp;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Thread-local holder for storing the Content-Security-Policy to be applied to the current request.
+ * Annotation to specify a custom Content-Security-Policy for a controller method.
  *
- * <p>This allows handlers and interceptors to set a custom CSP policy that will be used by the
- * CspFilter when adding CSP headers to the response.
+ * <p>When applied to a controller method, this annotation allows overriding the default strict CSP
+ * policy with a custom one. This is useful for endpoints that serve user-uploaded content or have
+ * other specific CSP requirements.
  *
- * @author DHIS2 Team
+ * <p>Example: @CustomCsp("script-src 'none'; ") @GetMapping("/files/{id}") public void
+ * serveFile(@PathVariable String id) { ... }
+ *
+ * @see CspUserUploadedContent for standard strict CSP for user-uploaded content
+ * @see CspInterceptor for how this annotation is processed and applied to responses
+ * @see CspPolicyHolder for storing the CSP policy for the request
  */
-public class CspPolicyHolder {
-  private static final ThreadLocal<String> CSP_POLICY = new ThreadLocal<>();
-
-  private CspPolicyHolder() {}
-
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface CustomCsp {
   /**
-   * Set the CSP policy for the current request.
+   * The Content-Security-Policy header value to use for this endpoint.
    *
-   * @param policy the CSP policy string (e.g., "script-src 'none'; ")
+   * @return the CSP policy string (e.g., "script-src 'none'; ")
    */
-  public static void setCspPolicy(String policy) {
-    CSP_POLICY.set(policy);
-  }
-
-  /**
-   * Get the CSP policy for the current request, if one was set.
-   *
-   * @return the CSP policy string, or null if no custom policy was set
-   */
-  public static String getCspPolicy() {
-    return CSP_POLICY.get();
-  }
-
-  /**
-   * Clear the CSP policy for the current request. This should be called at the end of request
-   * processing to avoid ThreadLocal leaks.
-   */
-  public static void clear() {
-    CSP_POLICY.remove();
-  }
+  String value();
 }

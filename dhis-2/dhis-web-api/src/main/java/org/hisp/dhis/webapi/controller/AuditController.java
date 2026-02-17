@@ -82,7 +82,7 @@ import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.security.CspUserUploadedContent;
+import org.hisp.dhis.webapi.security.csp.CspUserUploadedContent;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.GetMapping;

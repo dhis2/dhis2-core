@@ -44,7 +44,7 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.webapi.security.CspPolicyHolder;
+import org.hisp.dhis.webapi.security.csp.CspPolicyHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**

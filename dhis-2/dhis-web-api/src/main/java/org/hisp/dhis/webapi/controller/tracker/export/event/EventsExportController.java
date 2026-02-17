@@ -83,7 +83,7 @@ import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
 import org.hisp.dhis.webapi.controller.tracker.view.FilteredEntity;
 import org.hisp.dhis.webapi.controller.tracker.view.FilteredPage;
 import org.hisp.dhis.webapi.controller.tracker.view.Page;
-import org.hisp.dhis.webapi.security.CspUserUploadedContent;
+import org.hisp.dhis.webapi.security.csp.CspUserUploadedContent;
 import org.mapstruct.factory.Mappers;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;

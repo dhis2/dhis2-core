@@ -60,7 +60,7 @@ import org.hisp.dhis.icon.IconService;
 import org.hisp.dhis.icon.UpdateIconRequest;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.tracker.export.FileResourceStream;
-import org.hisp.dhis.webapi.security.CspUserUploadedContent;
+import org.hisp.dhis.webapi.security.csp.CspUserUploadedContent;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;

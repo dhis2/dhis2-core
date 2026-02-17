@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security;
+package org.hisp.dhis.webapi.security.csp;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -53,7 +53,7 @@ import java.lang.annotation.Target;
  *
  * @see CustomCsp for custom CSP policies
  * @see CspInterceptor for how this annotation is processed and applied to responses
- * @see CspFilter for how the CSP policy is added to response headers
+ * @see CspPolicyHolder for storing the CSP policy for the request
  */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)

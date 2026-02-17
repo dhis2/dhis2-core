@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security;
+package org.hisp.dhis.webapi.security.csp;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -39,16 +39,17 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
- * Interceptor that detects @CustomCsp and @CspUserUploadedContent annotations on controller methods
- * and sets the appropriate CSP policy in the CspPolicyHolder for use by the CspFilter.
+ * Interceptor that detects @CustomCsp and @CspUserUploadedContent annotations on controller
+ * methods and sets the appropriate CSP policy in the CspPolicyHolder for use by the CspFilter.
  *
  * <p>This interceptor checks both the method and the class level for CSP annotations, with
  * method-level annotations taking precedence over class-level ones.
  *
  * <p>Precedence order: 1. Method-level @CustomCsp (custom policy) 2.
- * Method-level @CspUserUploadedContent (default-src 'none';) 3. Class-level @CustomCsp (custom
- * policy) 4. Class-level @CspUserUploadedContent (default-src 'none';) 5. No annotation (CspFilter
- * applies default)
+ * Method-level @CspUserUploadedContent (default-src 'none';) 3.
+ * Class-level @CustomCsp (custom policy) 4.
+ * Class-level @CspUserUploadedContent (default-src 'none';) 5. No annotation
+ * (CspFilter applies default)
  *
  * @author DHIS2 Team
  */
