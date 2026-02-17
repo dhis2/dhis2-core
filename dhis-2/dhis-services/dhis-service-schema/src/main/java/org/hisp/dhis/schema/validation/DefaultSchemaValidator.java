@@ -32,6 +32,7 @@ package org.hisp.dhis.schema.validation;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,7 +49,6 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.PasswordValidationResult;
@@ -122,7 +122,7 @@ public class DefaultSchemaValidator implements SchemaValidator {
 
   private void validateProperty(
       Property property, Object object, Class<?> mainErrorClass, List<ErrorReport> errors) {
-    Object value = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+    Object value = safeInvoke(object, property.getGetterMethod());
 
     if (value == null) {
       if (property.isRequired() && !Preheat.isDefaultClass(property.getKlass())) {
