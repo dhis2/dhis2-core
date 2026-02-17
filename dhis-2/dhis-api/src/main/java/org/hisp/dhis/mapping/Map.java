@@ -69,7 +69,7 @@ public class Map extends BaseNameableObject
    */
   private String basemap;
 
-  private List<BaseMap> baseMaps;
+  private List<BaseMap> baseMaps = new ArrayList<>();
 
   private String title;
 
@@ -140,8 +140,9 @@ public class Map extends BaseNameableObject
     this.basemap = basemap;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DXF_2_0)
+  @JsonProperty("basemaps")
+  @JacksonXmlElementWrapper(localName = "basemaps", namespace = DXF_2_0)
+  @JacksonXmlProperty(localName = "basemaps", namespace = DXF_2_0)
   public List<BaseMap> getBaseMaps() {
     return baseMaps;
   }

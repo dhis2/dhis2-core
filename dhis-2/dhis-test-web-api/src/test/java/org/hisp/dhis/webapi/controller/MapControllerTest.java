@@ -111,4 +111,36 @@ class MapControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(attrId, mapView.getString("orgUnitField").string());
     assertEquals("GeoJsonAttribute", mapView.getString("orgUnitFieldDisplayName").string());
   }
+
+  @Test
+  void testPostWithBaseMap() {
+    String id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/maps",
+                """
+                        {"type": "MAP",
+                        "name": "Test",
+                        "basemap": "openStreetMap",
+                        "basemaps": [
+                            {
+                                "id": "openStreetMap",
+                                "opacity": 1.2,
+                                "hidden": true
+                            }
+                        ]}
+                    """));
+
+    JsonObject map = GET("/maps/{uid}", id).content();
+    assertNotNull(map.getArray("basemaps"));
+    assertEquals(1, map.getArray("basemaps").size());
+
+    JsonObject basemaps = map.getArray("basemaps").get(0).as(JsonObject.class);
+    assertEquals("openStreetMap", basemaps.getString("id").string());
+    assertEquals(1.2, basemaps.getNumber("opacity").doubleValue());
+    assertEquals(true, basemaps.getBoolean("hidden").booleanValue());
+
+    assertEquals("openStreetMap", map.getString("basemap").string());
+  }
 }

@@ -33,22 +33,24 @@ import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import javax.annotation.Nonnull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 @EqualsAndHashCode
 public class BaseMap {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
-  @Nonnull
   private String id;
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
   private Double opacity;
 
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
   private boolean hidden;
 }
