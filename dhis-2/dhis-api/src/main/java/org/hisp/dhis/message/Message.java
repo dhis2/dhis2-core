@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -29,18 +29,31 @@
  */
 package org.hisp.dhis.message;
 
+import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.*;
 import java.util.Date;
+import java.util.Objects;
 import java.util.Set;
+import lombok.Setter;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.schema.annotation.Gist.Include;
+import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
 
 /**
  * @author Lars Helge Overland
@@ -48,7 +61,24 @@ import org.hisp.dhis.user.User;
 @Entity
 @Table(name = "message")
 @JacksonXmlRootElement(localName = "message", namespace = DxfNamespaces.DXF_2_0)
-public class Message extends BaseIdentifiableObject {
+@Setter
+public class Message implements IdentifiableObject {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "message_sequence")
+  @SequenceGenerator(
+      name = "message_sequence",
+      sequenceName = "message_sequence",
+      allocationSize = 1)
+  @Column(name = "messageid")
+  private long id;
+
+  @Column(name = "uid", unique = true, nullable = false, length = 11)
+  private String uid;
+
+  @Column(name = "created", nullable = false, updatable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  protected Date created;
 
   /** The message text. */
   @Column(name = "messagetext", columnDefinition = "text")
@@ -67,6 +97,10 @@ public class Message extends BaseIdentifiableObject {
   @Column(name = "internal")
   private Boolean internal;
 
+  @Column(name = "lastUpdated", nullable = false)
+  @Temporal(TemporalType.TIMESTAMP)
+  protected Date lastUpdated;
+
   /** Attached files */
   @ManyToMany(cascade = CascadeType.ALL)
   @JoinTable(
@@ -74,6 +108,19 @@ public class Message extends BaseIdentifiableObject {
       joinColumns = @JoinColumn(name = "messageid"),
       inverseJoinColumns = @JoinColumn(name = "fileresourceid", unique = true))
   private Set<FileResource> attachments;
+
+  // -------------------------------------------------------------------------------------------
+  // Transient fields
+  // -------------------------------------------------------------------------------------------
+
+  /**
+   * As part of the serializing process, this field can be set to indicate a link to this
+   * identifiable object (will be used on the web layer for navigating the REST API)
+   */
+  @Transient protected String href;
+
+  /** Access information for this object. Applies to current user. */
+  @Transient protected org.hisp.dhis.security.acl.Access access;
 
   public Message() {
     this.uid = CodeGenerator.generateUid();
@@ -99,32 +146,34 @@ public class Message extends BaseIdentifiableObject {
     this.internal = internal;
   }
 
-  // -------------------------------------------------------------------------
-  // Inherited field mappings from BaseIdentifiableObject
-  // BaseIdentifiableObject is not a @MappedSuperclass, so these inherited
-  // fields must be mapped explicitly via property access.
-  // -------------------------------------------------------------------------
-
-  @Id
-  @GeneratedValue(
-      strategy = GenerationType.SEQUENCE,
-      generator = "message_sequence")
-  @SequenceGenerator(
-      name = "message_sequence",
-      sequenceName = "message_sequence",
-      allocationSize = 1)
-  @Column(name = "messageid")
-  @Access(AccessType.PROPERTY)
   @Override
-  public long getId() {
-    return super.getId();
+  public int hashCode() {
+    return uid != null ? uid.hashCode() : 0;
   }
 
-  @Column(name = "uid", length = 11)
-  @Access(AccessType.PROPERTY)
+  @Override
+  public boolean equals(Object obj) {
+    return this == obj
+        || obj instanceof Message other
+            && getRealClass(this) == getRealClass(obj)
+            && Objects.equals(getUid(), other.getUid());
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getHref() {
+    return href;
+  }
+
+  @Override
+  @JsonIgnore
+  public long getId() {
+    return id;
+  }
+
   @Override
   public String getUid() {
-    return super.getUid();
+    return uid;
   }
 
   @Column(name = "created", nullable = false)
@@ -132,15 +181,13 @@ public class Message extends BaseIdentifiableObject {
   @Access(AccessType.PROPERTY)
   @Override
   public Date getCreated() {
-    return super.getCreated();
+    return created;
   }
 
-  @Column(name = "lastUpdated", nullable = false)
-  @Temporal(TemporalType.TIMESTAMP)
-  @Access(AccessType.PROPERTY)
   @Override
+  @JsonProperty
   public Date getLastUpdated() {
-    return super.getLastUpdated();
+    return lastUpdated;
   }
 
   // -------------------------------------------------------------------------
@@ -148,8 +195,9 @@ public class Message extends BaseIdentifiableObject {
   // -------------------------------------------------------------------------
 
   @Override
+  @Deprecated
   public String getName() {
-    return text;
+    return null;
   }
 
   @JsonProperty
@@ -158,18 +206,10 @@ public class Message extends BaseIdentifiableObject {
     return text;
   }
 
-  public void setText(String text) {
-    this.text = text;
-  }
-
   @JsonProperty
   @JacksonXmlProperty
   public String getMetaData() {
     return metaData;
-  }
-
-  public void setMetaData(String metaData) {
-    this.metaData = metaData;
   }
 
   @JsonProperty
@@ -177,10 +217,6 @@ public class Message extends BaseIdentifiableObject {
   @JacksonXmlProperty
   public User getSender() {
     return sender;
-  }
-
-  public void setSender(User sender) {
-    this.sender = sender;
   }
 
   @Override
@@ -204,7 +240,121 @@ public class Message extends BaseIdentifiableObject {
     return attachments;
   }
 
-  public void setAttachments(Set<FileResource> attachments) {
-    this.attachments = attachments;
+  @Sortable(value = false)
+  @Gist(included = Include.FALSE)
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+  @JacksonXmlProperty(localName = "access", namespace = DxfNamespaces.DXF_2_0)
+  public org.hisp.dhis.security.acl.Access getAccess() {
+    return access;
+  }
+
+  @Deprecated
+  @Override
+  public String getCode() {
+    return "";
+  }
+
+  @Deprecated
+  @Override
+  public String getDisplayName() {
+    return "";
+  }
+
+  @Deprecated
+  @Override
+  public User getLastUpdatedBy() {
+    return null;
+  }
+
+  @Deprecated
+  @Override
+  public AttributeValues getAttributeValues() {
+    return null;
+  }
+
+  @Deprecated
+  @Override
+  public void setAttributeValues(AttributeValues attributeValues) {}
+
+  @Deprecated
+  @Override
+  public void addAttributeValue(String attributeUid, String value) {}
+
+  @Deprecated
+  @Override
+  public void removeAttributeValue(String attributeId) {}
+
+  @Deprecated
+  @Override
+  public Set<Translation> getTranslations() {
+    return null;
+  }
+
+  @Deprecated
+  @Override
+  public void setAccess(org.hisp.dhis.security.acl.Access access) {}
+
+  @Deprecated
+  @Override
+  public User getCreatedBy() {
+    return null;
+  }
+
+  @Deprecated
+  @Override
+  public User getUser() {
+    return null;
+  }
+
+  @Deprecated
+  @Override
+  public void setCreatedBy(User createdBy) {}
+
+  @Deprecated
+  @Override
+  public void setUser(User user) {}
+
+  @Deprecated
+  @Override
+  public Sharing getSharing() {
+    return null;
+  }
+
+  @Override
+  public void setSharing(Sharing sharing) {}
+
+  @Override
+  public String getPropertyValue(IdScheme idScheme) {
+    return "";
+  }
+
+  @Override
+  public String getDisplayPropertyValue(IdScheme idScheme) {
+    return "";
+  }
+
+  @Deprecated
+  @Override
+  public void setName(String name) {}
+
+  @Deprecated
+  @Override
+  public void setCode(String code) {}
+
+  @Deprecated
+  @Override
+  public void setOwner(String owner) {}
+
+  @Deprecated
+  @Override
+  public void setTranslations(Set<Translation> translations) {}
+
+  @Deprecated
+  @Override
+  public void setLastUpdatedBy(User user) {}
+
+  @Override
+  public void setHref(String link) {
+    this.href = link;
   }
 }
