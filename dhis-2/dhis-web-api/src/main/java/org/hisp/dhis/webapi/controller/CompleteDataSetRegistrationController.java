@@ -219,7 +219,7 @@ public class CompleteDataSetRegistrationController {
                   .next()); // de is not relevant but required, so we use any
       for (OrganisationUnit orgUnit : orgUnitsToCheck) {
         DataEntryKey key =
-            new DataEntryKey(de, UID.of(orgUnit), null, UID.of(attributeOptionCombo), pe);
+            new DataEntryKey(de, UID.of(orgUnit), null, UID.of(attributeOptionCombo), period);
         if (!dataEntryService.getEntryStatus(UID.of(dataSet), key).isOpen()) {
           lockedDataSets.add(dataSet.getUid());
           break;

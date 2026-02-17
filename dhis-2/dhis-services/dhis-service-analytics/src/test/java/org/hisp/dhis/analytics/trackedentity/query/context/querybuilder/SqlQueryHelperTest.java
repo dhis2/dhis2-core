@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics.trackedentity.query.context.querybuilder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -59,7 +60,7 @@ class SqlQueryHelperTest {
 
   @BeforeEach
   void beforeEach() {
-    when(testedDimension.getDimension()).thenReturn(dimensionParam);
+    lenient().when(testedDimension.getDimension()).thenReturn(dimensionParam);
   }
 
   @Test
@@ -190,6 +191,45 @@ class SqlQueryHelperTest {
   }
 
   @Test
+  void test_subQuery_event_includes_schedule() {
+    TrackedEntityType trackedEntityType = mock(TrackedEntityType.class);
+    when(trackedEntityType.getUid()).thenReturn("trackedEntityType");
+
+    ElementWithOffset<Program> program =
+        mockElementWithOffset(
+            Program.class,
+            "programUid",
+            p -> when(p.getTrackedEntityType()).thenReturn(trackedEntityType));
+
+    ElementWithOffset<ProgramStage> programStage =
+        mockElementWithOffset(ProgramStage.class, "programStageUid");
+
+    when(testedDimension.getProgram()).thenReturn(program);
+    when(testedDimension.getProgramStage()).thenReturn(programStage);
+
+    when(testedDimension.isEventDimension()).thenReturn(true);
+
+    assertEquals(
+        """
+        (select field
+         from (select *,
+               row_number() over ( partition by enrollment
+                                   order by coalesce(occurreddate, scheduleddate) desc ) as rn
+               from analytics_te_event_trackedentitytype events
+               where programstage = 'programStageUid'
+                 and enrollment = (select enrollment
+         from (select *,
+               row_number() over ( partition by trackedentity
+                                   order by enrollmentdate desc ) as rn
+               from analytics_te_enrollment_trackedentitytype
+               where program = 'programUid'
+                 and t_1.trackedentity = trackedentity) en
+         where en.rn = 1)) ev
+         where ev.rn = 1)""",
+        SqlQueryHelper.buildOrderSubQueryIncludeSchedule(testedDimension, () -> "field").render());
+  }
+
+  @Test
   void test_subQuery_data_element() {
     when(dimensionParam.isOfType(any())).thenReturn(true);
     when(testedDimension.getPrefix()).thenReturn("prefix");
@@ -255,6 +295,143 @@ class SqlQueryHelperTest {
                where "prefix".event = event
                  and field)))""",
         SqlQueryHelper.buildExistsValueSubquery(testedDimension, () -> "field").render());
+  }
+
+  @Test
+  void test_existsValueSubqueryIncludeSchedule_event() {
+    when(testedDimension.getPrefix()).thenReturn("prefix");
+
+    TrackedEntityType trackedEntityType = mock(TrackedEntityType.class);
+    when(trackedEntityType.getUid()).thenReturn("trackedEntityType");
+
+    ElementWithOffset<Program> program =
+        mockElementWithOffset(
+            Program.class,
+            "programUid",
+            p -> when(p.getTrackedEntityType()).thenReturn(trackedEntityType));
+
+    ElementWithOffset<ProgramStage> programStage =
+        mockElementWithOffset(ProgramStage.class, "programStageUid");
+
+    when(testedDimension.getProgram()).thenReturn(program);
+    when(testedDimension.getProgramStage()).thenReturn(programStage);
+    when(testedDimension.isEventDimension()).thenReturn(true);
+
+    assertEquals(
+        """
+        exists(select 1
+               from (select *
+                     from (select *, row_number() over (partition by trackedentity order by enrollmentdate desc) as rn
+                           from analytics_te_enrollment_trackedentitytype
+                           where program = 'programUid'
+                             and trackedentity = t_1.trackedentity) en
+                     where en.rn = 1) as "enrollmentSubqueryAlias"
+               where exists(select 1
+               from (select *
+                     from (select *, row_number() over ( partition by enrollment order by coalesce(occurreddate, scheduleddate) desc ) as rn
+                           from analytics_te_event_trackedentitytype
+                           where "enrollmentSubqueryAlias".enrollment = enrollment
+                             and programstage = 'programStageUid') ev
+                     where ev.rn = 1) as "prefix"
+               where field))""",
+        SqlQueryHelper.buildExistsValueSubqueryIncludeSchedule(testedDimension, () -> "field")
+            .render());
+  }
+
+  @Test
+  void test_selectSubQuery_event() {
+    TrackedEntityType trackedEntityType = mock(TrackedEntityType.class);
+    when(trackedEntityType.getUid()).thenReturn("trackedEntityType");
+
+    ElementWithOffset<Program> program =
+        mockElementWithOffset(
+            Program.class,
+            "programUid",
+            p -> when(p.getTrackedEntityType()).thenReturn(trackedEntityType));
+
+    ElementWithOffset<ProgramStage> programStage =
+        mockElementWithOffset(ProgramStage.class, "programStageUid");
+
+    when(testedDimension.getProgram()).thenReturn(program);
+    when(testedDimension.getProgramStage()).thenReturn(programStage);
+    when(testedDimension.isEventDimension()).thenReturn(true);
+
+    assertEquals(
+        """
+        (select ev."occurreddate"
+         from (select *, row_number() over (partition by enrollment order by occurreddate desc) as rn
+               from analytics_te_event_trackedentitytype
+               where programstage = 'programStageUid'
+                 and status != 'SCHEDULE') ev
+         where ev.rn = 1
+           and ev.enrollment = (select enrollment
+         from (select *,
+               row_number() over ( partition by trackedentity
+                                   order by enrollmentdate desc ) as rn
+               from analytics_te_enrollment_trackedentitytype
+               where program = 'programUid'
+                 and t_1.trackedentity = trackedentity) en
+         where en.rn = 1))""",
+        SqlQueryHelper.buildSelectSubquery(testedDimension, "occurreddate").render());
+  }
+
+  @Test
+  void test_selectSubQuery_event_includeSchedule() {
+    TrackedEntityType trackedEntityType = mock(TrackedEntityType.class);
+    when(trackedEntityType.getUid()).thenReturn("trackedEntityType");
+
+    ElementWithOffset<Program> program =
+        mockElementWithOffset(
+            Program.class,
+            "programUid",
+            p -> when(p.getTrackedEntityType()).thenReturn(trackedEntityType));
+
+    ElementWithOffset<ProgramStage> programStage =
+        mockElementWithOffset(ProgramStage.class, "programStageUid");
+
+    when(testedDimension.getProgram()).thenReturn(program);
+    when(testedDimension.getProgramStage()).thenReturn(programStage);
+    when(testedDimension.isEventDimension()).thenReturn(true);
+
+    assertEquals(
+        """
+        (select ev."scheduleddate"
+         from (select *, row_number() over (partition by enrollment order by coalesce(occurreddate, scheduleddate) desc) as rn
+               from analytics_te_event_trackedentitytype
+               where programstage = 'programStageUid') ev
+         where ev.rn = 1
+           and ev.enrollment = (select enrollment
+         from (select *,
+               row_number() over ( partition by trackedentity
+                                   order by enrollmentdate desc ) as rn
+               from analytics_te_enrollment_trackedentitytype
+               where program = 'programUid'
+                 and t_1.trackedentity = trackedentity) en
+         where en.rn = 1))""",
+        SqlQueryHelper.buildSelectSubqueryIncludeSchedule(testedDimension, "scheduleddate")
+            .render());
+  }
+
+  @Test
+  void test_selectSubQuery_throws_for_nonEvent() {
+    when(testedDimension.isEventDimension()).thenReturn(false);
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> SqlQueryHelper.buildSelectSubquery(testedDimension, "field"));
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> SqlQueryHelper.buildSelectSubqueryIncludeSchedule(testedDimension, "field"));
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () ->
+            SqlQueryHelper.buildExistsValueSubqueryIncludeSchedule(testedDimension, () -> "field"));
+
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> SqlQueryHelper.buildOrderSubQueryIncludeSchedule(testedDimension, () -> "field"));
   }
 
   private <T extends UidObject> ElementWithOffset<T> mockElementWithOffset(

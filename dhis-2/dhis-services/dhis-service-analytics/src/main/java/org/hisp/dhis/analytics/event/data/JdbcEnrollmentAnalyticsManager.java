@@ -33,8 +33,9 @@ import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
-import static org.hisp.dhis.analytics.common.CteContext.ENROLLMENT_AGGR_BASE;
+import static org.hisp.dhis.analytics.common.CteDefinition.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
+import static org.hisp.dhis.analytics.event.data.AbstractJdbcEventAnalyticsManager.COL_VALUE;
 import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter;
 import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.isAggregateEnrollment;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
@@ -48,6 +49,7 @@ import static org.hisp.dhis.analytics.util.EventQueryParamsUtils.getProgramIndic
 import static org.hisp.dhis.analytics.util.EventQueryParamsUtils.withoutProgramStageItems;
 import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
@@ -79,7 +81,7 @@ import org.hisp.dhis.analytics.event.data.aggregate.AggregatedEnrollmentHeaderCo
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.event.data.stage.StageHeaderClassifier;
-import org.hisp.dhis.analytics.event.data.stage.StageHeaderClassifier.StageHeaderType;
+import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
@@ -157,7 +159,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       AnalyticsSqlBuilder sqlBuilder,
       OrganisationUnitResolver organisationUnitResolver,
       ColumnMapper columnMapper,
-      QueryItemFilterBuilder filterBuilder) {
+      QueryItemFilterBuilder filterBuilder,
+      StageQuerySqlFacade stageQuerySqlFacade) {
     super(
         jdbcTemplate,
         programIndicatorService,
@@ -170,7 +173,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         config,
         organisationUnitResolver,
         columnMapper,
-        filterBuilder);
+        filterBuilder,
+        stageQuerySqlFacade);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
@@ -188,7 +192,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               ? buildAnalyticsQuery(params, maxLimit)
               : getAggregatedEnrollmentsSql(params, maxLimit);
     }
-
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql));
@@ -449,23 +452,41 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     // ---------------------------------------------------------------------
-    // Categories (enrollments don't have attribute categories)
+    // Categories and category option group sets (enrollments don't have attribute categories)
     // ---------------------------------------------------------------------
 
     List<DimensionalObject> dynamicDimensions =
-        params.getDimensionsAndFilters(Sets.newHashSet(DimensionType.CATEGORY));
+        params.getDimensionsAndFilters(
+            Sets.newHashSet(DimensionType.CATEGORY, DimensionType.CATEGORY_OPTION_GROUP_SET));
 
     for (DimensionalObject dim : dynamicDimensions) {
-      if (!isAttributeCategory(dim)) {
-        String dimName = dim.getDimensionName();
-        String col =
-            params.isPiDisagDimension(dimName)
-                ? piDisagQueryGenerator.getColumnForWhereClause(params, dimName)
-                : quoteAlias(dimName);
-
-        sql +=
-            "and " + col + " in (" + getQuotedCommaDelimitedString(getUids(dim.getItems())) + ") ";
+      // Skip attribute categories for enrollments
+      if (dim.getDimensionType() == DimensionType.CATEGORY && isAttributeCategory(dim)) {
+        continue;
       }
+
+      String dimName = dim.getDimensionName();
+      String col =
+          params.isPiDisagDimension(dimName)
+              ? piDisagQueryGenerator.getColumnForWhereClause(params, dimName)
+              : quoteAlias(dimName);
+
+      String condition =
+          "and " + col + " in (" + getQuotedCommaDelimitedString(getUids(dim.getItems())) + ") ";
+
+      // For stage-specific categories/COGS, add program stage filter
+      if (dim.getProgramStage() != null) {
+        condition =
+            "and ("
+                + col
+                + " in ("
+                + getQuotedCommaDelimitedString(getUids(dim.getItems()))
+                + ") and ps = '"
+                + dim.getProgramStage().getUid()
+                + "') ";
+      }
+
+      sql += condition;
     }
 
     // ---------------------------------------------------------------------
@@ -661,7 +682,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   @Override
-  protected String getColumnWithCte(QueryItem item, CteContext cteContext) {
+  protected String getColumnWithCte(
+      QueryItem item, CteContext cteContext, EventQueryParams params) {
     Set<String> columns = new LinkedHashSet<>();
 
     // Get the CTE definition for the item
@@ -676,21 +698,25 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         getAlias(item).orElse("%s.%s".formatted(item.getProgramStage().getUid(), item.getItemId()));
     columns.add("%s.value as %s".formatted(cteDef.getAlias(programStageOffset), quote(alias)));
 
-    // For stage.ou dimensions, also select the ev_ouname and ev_oucode columns
-    if (isStageOuDimension(item)) {
+    // For stage.ou dimensions, conditionally select ouname/oucode columns
+    if (isStageOuDimension(item) && params.hasHeaders()) {
       String stageUid = item.getProgramStage().getUid();
-      columns.add(
-          "%s.%s as %s"
-              .formatted(
-                  cteDef.getAlias(programStageOffset),
-                  STAGE_OU_NAME_COLUMN,
-                  quote(stageUid + ".ouname")));
-      columns.add(
-          "%s.%s as %s"
-              .formatted(
-                  cteDef.getAlias(programStageOffset),
-                  STAGE_OU_CODE_COLUMN,
-                  quote(stageUid + ".oucode")));
+      if (params.getHeaders().contains(stageUid + ".ouname")) {
+        columns.add(
+            "%s.%s as %s"
+                .formatted(
+                    cteDef.getAlias(programStageOffset),
+                    STAGE_OU_NAME_COLUMN,
+                    quote(stageUid + ".ouname")));
+      }
+      if (params.getHeaders().contains(stageUid + ".oucode")) {
+        columns.add(
+            "%s.%s as %s"
+                .formatted(
+                    cteDef.getAlias(programStageOffset),
+                    STAGE_OU_CODE_COLUMN,
+                    quote(stageUid + ".oucode")));
+      }
     }
 
     if (cteDef.isRowContext()) {
@@ -921,14 +947,11 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         getProgramIndicators(params).stream().map(QueryItem::getItemId).toList();
 
     // Add the columns from the headers (only the ones that are not program indicators
-    // and not stage date dimensions which are fetched from the latest_events CTE)
+    // and not stage-specific dimensions which are fetched from the filter CTE)
     for (String column : getHeaderColumns(headers, params)) {
-      // Check for stage-specific headers before removing table alias, since the stage UID prefix
-      // is part of the header format (e.g., stageUid.eventdate, stageUid.ou)
-      StageHeaderType stageHeaderType = stageHeaderClassifier.classify(column);
-      if (stageHeaderType == StageHeaderType.EVENT_DATE
-          || stageHeaderType == StageHeaderType.SCHEDULED_DATE
-          || stageHeaderType == StageHeaderType.OU) {
+      // Skip stage-specific headers (e.g., stageUid.eventdate, stageUid.ou) since
+      // they are resolved from the per-stage filter CTE, not the base enrollment table
+      if (stageHeaderClassifier.isStageSpecific(column)) {
         continue;
       }
       String colToAdd = SqlColumnParser.removeTableAlias(column);
@@ -1082,9 +1105,18 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    */
   private void addHeaderAggregateColumns(
       List<GridHeader> headers, CteContext cteContext, SelectBuilder sb) {
-    // Collect all columns from the headers
-    Set<String> headerColumns = getHeaderColumns(headers, "");
-    // Collect all CTE definitions for program indicators and program stages
+    // Build header columns preserving stage-specific prefixes (e.g. "stageUid.eventdate")
+    // so the resolver can look up the correct per-stage filter CTE
+    Set<String> headerColumns = new LinkedHashSet<>();
+    for (GridHeader header : headers) {
+      String name = header.getName();
+      if (!name.equalsIgnoreCase(COL_VALUE)
+          && !name.equalsIgnoreCase(PERIOD_DIM_ID)
+          && !name.equalsIgnoreCase(ORGUNIT_DIM_ID)) {
+        headerColumns.add(quote(name));
+      }
+    }
+
     Map<String, CteDefinition> cteDefinitionMap = collectCteDefinitions(cteContext);
     headerColumnResolver.addHeaderColumns(
         headerColumns, cteContext, sb, cteDefinitionMap, this::quote);

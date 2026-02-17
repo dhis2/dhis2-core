@@ -159,7 +159,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
             UID.of(params.getOu()),
             UID.ofNullable(params.getCo()),
             UID.ofNullable(aoc),
-            params.getPe()));
+            Period.of(params.getPe())));
   }
 
   @Override
@@ -186,7 +186,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         .of(sql, NativeSQL.of(getSession()))
         .setParameter("de", key.dataElement())
         .setParameter("ou", key.orgUnit())
-        .setParameter("iso", key.period())
+        .setParameter("iso", key.period().getIsoDate())
         .eraseNullParameterLines()
         .setParameter("coc", key.categoryOptionCombo())
         .setParameter("aoc", key.attributeOptionCombo())

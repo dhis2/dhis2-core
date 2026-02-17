@@ -123,6 +123,12 @@ public enum ErrorCode {
   E1533("{0} {1} does not exist: `{2}`"),
   E1534("dataMergeStrategy field must be specified. With value `DISCARD` or `LAST_UPDATED`"),
 
+  /* Category merge */
+  E1535("Source CategoryOptions: {0} do not match target CategoryOptions: {1}"),
+  E1536(
+      "Source and target Categories cannot share a CategoryCombo. Shared CategoryCombos found: {0}"),
+  E1537("Source Categories cannot share a CategoryCombo. Shared CategoryCombos found: {0}"),
+
   /* CategoryOptionCombo merge */
   E1540(
       "CategoryOptionCombos must be duplicates (same cat combo, same cat options, different UID) in order to merge"),
@@ -583,10 +589,13 @@ public enum ErrorCode {
       "Period dimension cannot be used with stage-specific date dimensions (ie: EVENT_DATE, SCHEDULED_DATE)"),
   E7243("Duplicate stage dimension identifier: `{0}`"),
   E7244("Multiple stages in stage-specific dimensions are not allowed: `{0}`"),
+  E7245("Program stage `{0}` does not belong to program `{1}`"),
 
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),
   E7251("Query does not support program indicators: `{0}`"),
+  E7253(
+      "Dimension `{0}` is not supported for program stage `{1}`. Only event-level dimensions are supported for stage-specific scope"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
@@ -667,6 +676,8 @@ public enum ErrorCode {
       "Untimely data entry for attribute option combo ${combo:{0}} and period(s): `${periods:{1}}`"),
   E8033(
       "Untimely data entry (already approved) for attribute option combo ${combo:{0}}, org unit ${unit:{1}} and periods: `${periods:{2}}`"),
+  E8034("Data set deletion scope ID refers to a non-existing object: `${id:{1}}`"),
+  E8035("Data set deletion scope ID is not a valid UID: `${id:{1}}`"),
   // value level decoding and input issues
   E8100("Value #${index:{0}} period not defined in group or value: `${dv:{1}}`"),
   E8101("Value #${index:{0}} data set is required to decode category options: `${options:{1}}`"),

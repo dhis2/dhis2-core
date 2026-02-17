@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static java.lang.String.format;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntityAttributeValue;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.assertEqualUids;
@@ -49,6 +50,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -132,6 +134,8 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
   private DefaultFakeMessageSender messageSender;
 
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
+
+  @Autowired private CategoryService categoryService;
 
   private OrganisationUnit orgUnit;
 
@@ -274,7 +278,11 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     assertAll(
         "created enrollment",
         () -> assertEquals(enrollmentUid.getValue(), actual.getUid()),
-        () -> assertEqualUids(submission.getTrackedEntityInstance(), actual.getTrackedEntity()));
+        () -> assertEqualUids(submission.getTrackedEntityInstance(), actual.getTrackedEntity()),
+        () ->
+            assertEquals(
+                categoryService.getDefaultCategoryOptionCombo().getUid(),
+                actual.getAttributeOptionCombo().getUid()));
     assertDoesNotThrow(
         () ->
             trackedEntityService.getTrackedEntity(
@@ -341,6 +349,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     submission.setEnrollmentDate(enrollment.getEnrollmentDate());
     submission.setIncidentDate(enrollment.getOccurredDate());
     submission.setEnrollmentStatus(SmsEnrollmentStatus.COMPLETED);
+    submission.setAttributeOptionCombo(enrollment.getAttributeOptionCombo().getUid());
     submission.setValues(
         List.of(
             new SmsAttributeValue(teaA.getUid(), "AttributeAUpdated"),
@@ -494,8 +503,7 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
   }
 
   private Enrollment enrollment(TrackedEntity te) {
-    Enrollment enrollment = new Enrollment(trackerProgram, te, te.getOrganisationUnit());
-    enrollment.setAutoFields();
+    Enrollment enrollment = createEnrollment(trackerProgram, te, te.getOrganisationUnit());
     enrollment.setEnrollmentDate(new Date());
     enrollment.setOccurredDate(new Date());
     enrollment.setStatus(EnrollmentStatus.ACTIVE);

@@ -91,9 +91,12 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.period.FinancialAprilPeriodType;
+import org.hisp.dhis.period.FinancialAugustPeriodType;
+import org.hisp.dhis.period.FinancialFebruaryPeriodType;
 import org.hisp.dhis.period.FinancialJulyPeriodType;
 import org.hisp.dhis.period.FinancialNovemberPeriodType;
 import org.hisp.dhis.period.FinancialOctoberPeriodType;
+import org.hisp.dhis.period.FinancialSeptemberPeriodType;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
@@ -736,8 +739,11 @@ class AnalyticsUtilsTest extends TestBase {
 
   @Test
   void testGetBaseMonth() {
+    assertEquals(0, AnalyticsUtils.getBaseMonth(new FinancialFebruaryPeriodType()), 1);
     assertEquals(0, AnalyticsUtils.getBaseMonth(new FinancialAprilPeriodType()), 3);
     assertEquals(0, AnalyticsUtils.getBaseMonth(new FinancialJulyPeriodType()), 6);
+    assertEquals(0, AnalyticsUtils.getBaseMonth(new FinancialAugustPeriodType()), 7);
+    assertEquals(0, AnalyticsUtils.getBaseMonth(new FinancialSeptemberPeriodType()), 8);
     assertEquals(0, AnalyticsUtils.getBaseMonth(new FinancialOctoberPeriodType()), 9);
     assertEquals(0, AnalyticsUtils.getBaseMonth(new FinancialNovemberPeriodType()), 10);
     assertEquals(0, AnalyticsUtils.getBaseMonth(new DailyPeriodType()), 0);

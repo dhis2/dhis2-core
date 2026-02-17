@@ -64,6 +64,7 @@ import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseTrackerObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
@@ -196,6 +197,15 @@ public class Enrollment extends BaseTrackerObject
       inverseJoinColumns = @JoinColumn(name = "noteid"))
   @OrderColumn(name = "sort_order")
   private List<Note> notes = new ArrayList<>();
+
+  @JsonProperty
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "attributeoptioncomboid",
+      referencedColumnName = "categoryoptioncomboid",
+      nullable = false)
+  @AuditAttribute
+  private CategoryOptionCombo attributeOptionCombo;
 
   // -------------------------------------------------------------------------
   // Constructors

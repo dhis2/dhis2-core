@@ -287,7 +287,20 @@ public class DimensionParam implements UidObject {
         null,
         "enrollmentstatus",
         "programstatus"), /* this enum is an alias for ENROLLMENT_STATUS */
-    EVENT_STATUS("Event Status", TEXT, STATIC, null, "status", "eventstatus");
+    EVENT_STATUS("Event Status", TEXT, STATIC, null, "status", "eventstatus"),
+
+    EVENT_DATE(
+        "Event Date", DATETIME, DimensionParamObjectType.PERIOD, null, "occurreddate", "eventdate"),
+
+    SCHEDULED_DATE(
+        "Scheduled Date",
+        DATETIME,
+        DimensionParamObjectType.PERIOD,
+        null,
+        "scheduleddate",
+        "scheduleddate"),
+
+    OU("Organisation Unit", TEXT, ORGANISATION_UNIT, null, "ou", "ou");
 
     private final String headerColumnName;
 

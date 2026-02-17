@@ -121,6 +121,7 @@ public abstract class PeriodType implements Serializable {
           new WeeklyPeriodType(),
           new WeeklyWednesdayPeriodType(),
           new WeeklyThursdayPeriodType(),
+          new WeeklyFridayPeriodType(),
           new WeeklySaturdayPeriodType(),
           new WeeklySundayPeriodType(),
           new BiWeeklyPeriodType(),
@@ -132,8 +133,10 @@ public abstract class PeriodType implements Serializable {
           new SixMonthlyAprilPeriodType(),
           new SixMonthlyNovemberPeriodType(),
           new YearlyPeriodType(),
+          new FinancialFebruaryPeriodType(),
           new FinancialAprilPeriodType(),
           new FinancialJulyPeriodType(),
+          new FinancialAugustPeriodType(),
           new FinancialSeptemberPeriodType(),
           new FinancialOctoberPeriodType(),
           new FinancialNovemberPeriodType());
@@ -143,6 +146,7 @@ public abstract class PeriodType implements Serializable {
           PeriodTypeEnum.WEEKLY_WEDNESDAY.getName(), DayOfWeek.WEDNESDAY,
           PeriodTypeEnum.WEEKLY_THURSDAY.getName(), DayOfWeek.THURSDAY,
           PeriodTypeEnum.WEEKLY_SATURDAY.getName(), DayOfWeek.SATURDAY,
+          PeriodTypeEnum.WEEKLY_FRIDAY.getName(), DayOfWeek.FRIDAY,
           PeriodTypeEnum.WEEKLY_SUNDAY.getName(), DayOfWeek.SUNDAY,
           PeriodTypeEnum.WEEKLY.getName(), DayOfWeek.MONDAY);
 

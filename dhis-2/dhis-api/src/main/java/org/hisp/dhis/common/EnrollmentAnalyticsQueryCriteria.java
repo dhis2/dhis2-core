@@ -65,12 +65,6 @@ public class EnrollmentAnalyticsQueryCriteria extends AnalyticsPagingCriteria {
   /** Time interval for last updated date */
   private String lastUpdated;
 
-  /** Time interval for created date */
-  private String createdDate;
-
-  /** Time interval for completed date */
-  private String completedDate;
-
   /** Time interval for event date */
   private String eventDate;
 

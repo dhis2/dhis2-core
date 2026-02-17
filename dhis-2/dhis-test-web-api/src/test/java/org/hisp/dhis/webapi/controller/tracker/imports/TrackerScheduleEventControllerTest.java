@@ -54,6 +54,7 @@ import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.webapi.controller.tracker.JsonImportReport;
@@ -323,8 +324,7 @@ class TrackerScheduleEventControllerTest extends PostgresControllerIntegrationTe
   }
 
   private Enrollment createEnrollment(TrackedEntity te, Program program, OrganisationUnit orgUnit) {
-    Enrollment enrollmentA = new Enrollment(program, te, orgUnit);
-    enrollmentA.setAutoFields();
+    Enrollment enrollmentA = TrackerTestBase.createEnrollment(program, te, orgUnit);
     enrollmentA.setEnrollmentDate(new Date());
     enrollmentA.setOccurredDate(new Date());
     enrollmentA.setStatus(EnrollmentStatus.COMPLETED);

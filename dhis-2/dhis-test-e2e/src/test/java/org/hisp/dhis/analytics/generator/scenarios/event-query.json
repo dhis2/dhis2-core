@@ -160,6 +160,41 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "stageAndCategory",
+      "query": "/api/analytics/events/query/bMcwwoVnbSR.json?displayProperty=NAME&outputType=EVENT&pageSize=10&page=1&asc=eventdate&headers=kO3z4Dhc038.LFsZ8v5v7rq,oucode&dimension=pe:2021&dimension=kO3z4Dhc038.LFsZ8v5v7rq:CW81uF03hvV;B3nxOazOO2G&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "stageAndCategoryOptionGroupSet",
+      "query": "/api/analytics/events/query/bMcwwoVnbSR.json?displayProperty=NAME&outputType=EVENT&pageSize=10&page=1&asc=eventdate&headers=kO3z4Dhc038.C31vHZqu0qU,oucode&dimension=pe:2021&dimension=kO3z4Dhc038.C31vHZqu0qU:j3C417uW6J7;ddAo6zmIHOk&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "fixedPeriod2017Feb",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&headers=ouname,lastupdated&totalPages=false&lastUpdated=2017Feb&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=EVENT&stage=A03MvHHogjR&desc=lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "fixedPeriod2018Sep",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&headers=ouname,lastupdated&totalPages=false&lastUpdated=2018Sep&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=EVENT&stage=A03MvHHogjR&desc=lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "fixedPeriod2017Aug",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&headers=ouname,lastupdated&totalPages=false&lastUpdated=2017Aug&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=EVENT&stage=A03MvHHogjR&desc=lastupdated",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

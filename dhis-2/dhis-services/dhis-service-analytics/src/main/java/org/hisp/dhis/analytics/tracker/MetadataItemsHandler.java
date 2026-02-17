@@ -83,6 +83,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -238,6 +239,9 @@ public class MetadataItemsHandler {
       addItemsAndFiltersMetadataForNonQuery(metadataItemMap, params, includeDetails);
     }
 
+    removeSyntheticDimensionMetadataKeys(metadataItemMap, params);
+    addPeriodDimensionValueMetadata(metadataItemMap, params, includeDetails);
+
     return metadataItemMap;
   }
 
@@ -377,11 +381,49 @@ public class MetadataItemsHandler {
     params.getItemsAndItemFilters().stream()
         .filter(Objects::nonNull)
         .forEach(
-            item ->
+            item -> {
+              String key = getItemIdWithProgramStageIdPrefix(item);
+              if (item.hasCustomHeader()) {
+                // For custom headers, only include the label (name), not the underlying item
+                // details
+                metadataItemMap.put(key, new MetadataItem(item.getCustomHeader().label()));
+              } else {
+                String name = item.getItem().getDisplayName();
                 metadataItemMap.put(
-                    getItemIdWithProgramStageIdPrefix(item),
-                    new MetadataItem(
-                        item.getItem().getDisplayName(), includeDetails ? item.getItem() : null)));
+                    key, new MetadataItem(name, includeDetails ? item.getItem() : null));
+              }
+
+              addResolvedOrgUnitMetadata(metadataItemMap, params, includeDetails, item);
+            });
+  }
+
+  /**
+   * Adds metadata entries for organisation units resolved from query item filters (including
+   * keywords like USER_ORGUNIT). This is needed for aggregate endpoints where query items are used
+   * as dimensions (e.g. stage.ou).
+   */
+  private void addResolvedOrgUnitMetadata(
+      Map<String, MetadataItem> metadataItemMap,
+      EventQueryParams params,
+      boolean includeDetails,
+      QueryItem item) {
+    if (item.getValueType() != ORGANISATION_UNIT) {
+      return;
+    }
+
+    List<String> resolvedOrgUnits =
+        organisationUnitResolver.resolveOrgUnitsForMetadata(params, item);
+    for (String uid : resolvedOrgUnits) {
+      DimensionalItemObject itemObject =
+          organisationUnitResolver.loadOrgUnitDimensionalItem(uid, IdScheme.UID);
+      if (itemObject != null) {
+        addItemToMetadata(
+            metadataItemMap,
+            new QueryItem(itemObject),
+            includeDetails,
+            params.getDisplayProperty());
+      }
+    }
   }
 
   /**
@@ -405,6 +447,56 @@ public class MetadataItemsHandler {
   }
 
   /**
+   * Adds period metadata items for date-type query items that have dimension values (e.g.
+   * "202205"). This ensures the "items" section contains entries like "202205": {"name": "May
+   * 2022"}, matching the behavior of standard period dimensions.
+   *
+   * @param metadataItemMap the metadata item map.
+   * @param params the {@link EventQueryParams}.
+   * @param includeDetails whether to include metadata details.
+   */
+  private void addPeriodDimensionValueMetadata(
+      Map<String, MetadataItem> metadataItemMap, EventQueryParams params, boolean includeDetails) {
+    for (QueryItem item : params.getItems()) {
+      if (!isDateItemWithDimensionValues(item)) {
+        continue;
+      }
+
+      for (String value : item.getDimensionValues()) {
+        addPeriodDimensionMetadataValue(
+            metadataItemMap, params.getDisplayProperty(), includeDetails, value);
+      }
+    }
+  }
+
+  private boolean isDateItemWithDimensionValues(QueryItem item) {
+    return item.getValueType() != null
+        && item.getValueType().isDate()
+        && !item.getDimensionValues().isEmpty();
+  }
+
+  private void addPeriodDimensionMetadataValue(
+      Map<String, MetadataItem> metadataItemMap,
+      DisplayProperty displayProperty,
+      boolean includeDetails,
+      String periodDimensionValue) {
+    if (metadataItemMap.containsKey(periodDimensionValue)) {
+      return;
+    }
+
+    PeriodDimension periodDimension = PeriodDimension.of(periodDimensionValue);
+    if (periodDimension == null) {
+      return;
+    }
+
+    metadataItemMap.put(
+        periodDimensionValue,
+        new MetadataItem(
+            periodDimension.getDisplayProperty(displayProperty),
+            includeDetails ? periodDimension : null));
+  }
+
+  /**
    * Adds the given item to the given metadata item map.
    *
    * @param metadataItemMap the metadata item map.
@@ -419,7 +511,8 @@ public class MetadataItemsHandler {
       DisplayProperty displayProperty) {
     if (item.hasCustomHeader()) {
       metadataItemMap.put(
-          item.getCustomHeader().key(), new MetadataItem(item.getCustomHeader().value()));
+          item.getCustomHeader().headerKey(item.getCustomHeader().key()),
+          new MetadataItem(item.getCustomHeader().label()));
     } else {
 
       MetadataItem metadataItem =
@@ -475,8 +568,36 @@ public class MetadataItemsHandler {
   private void addDimensionsAndFilters(
       Map<String, List<String>> dimensionItems, EventQueryParams params) {
     for (DimensionalObject dim : params.getDimensionsAndFilters()) {
+      if (isSyntheticDimension(dim, params)) {
+        continue;
+      }
+
       dimensionItems.put(dim.getDimension(), getDimensionalItemIds(dim.getItems()));
     }
+  }
+
+  private void removeSyntheticDimensionMetadataKeys(
+      Map<String, MetadataItem> metadataItemMap, EventQueryParams params) {
+    params.getDimensionsAndFilters().stream()
+        .filter(dim -> isSyntheticDimension(dim, params))
+        .map(DimensionalObject::getDimension)
+        .forEach(metadataItemMap::remove);
+  }
+
+  /**
+   * Synthetic dimensions may be injected into query params internally (for SQL/disaggregation
+   * support) and should not end up into metadata dimensions/items for API responses.
+   */
+  private boolean isSyntheticDimension(DimensionalObject dim, EventQueryParams params) {
+    if (!params.isComingFromQuery()) {
+      return false;
+    }
+
+    if (PERIOD_DIM_ID.equals(dim.getDimension()) || ORGUNIT_DIM_ID.equals(dim.getDimension())) {
+      return false;
+    }
+
+    return dim.getGroupUUID() == null;
   }
 
   /**
@@ -528,6 +649,10 @@ public class MetadataItemsHandler {
 
     if (item.hasLegendSet()) {
       return item.getLegendSetFilterItemsOrAll();
+    }
+
+    if (!item.getDimensionValues().isEmpty()) {
+      return item.getDimensionValues();
     }
 
     return List.of();
@@ -590,6 +715,10 @@ public class MetadataItemsHandler {
    * @param item {@link QueryItem}.
    */
   private String getItemIdWithProgramStageIdPrefix(QueryItem item) {
+    if (item.hasCustomHeader()) {
+      return item.getCustomHeader().headerKey(item.getCustomHeader().key());
+    }
+
     if (item.hasProgramStage()) {
       return item.getProgramStage().getUid() + "." + item.getItemId();
     }

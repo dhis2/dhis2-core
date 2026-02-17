@@ -102,7 +102,7 @@ class AdxPeriodTest {
 
   @Test
   void testParseBadYearly() {
-    failToParse("2014-02-01/P1Y");
+    failToParse("2014-06-01/P1Y");
   }
 
   @Test

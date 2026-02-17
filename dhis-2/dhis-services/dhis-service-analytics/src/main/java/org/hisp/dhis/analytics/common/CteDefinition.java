@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.analytics.common;
 
-import static org.hisp.dhis.analytics.common.CteContext.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_INDICATOR_ENROLLMENT;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_INDICATOR_EVENT;
 
@@ -47,6 +46,8 @@ import org.hisp.dhis.program.AnalyticsType;
  */
 @Getter
 public class CteDefinition {
+
+  public static final String ENROLLMENT_AGGR_BASE = "enrollment_aggr_base";
 
   @Getter
   public enum CteType {

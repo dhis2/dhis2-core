@@ -258,6 +258,7 @@ public class AggregateDataExchangeService {
         set.getPeriod(),
         set.getAttributeOptionCombo(),
         null,
+        null,
         set.getDataValues().stream().map(AggregateDataExchangeService::toDataEntryValue).toList());
   }
 
