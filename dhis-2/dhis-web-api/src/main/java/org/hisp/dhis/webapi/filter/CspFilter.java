@@ -98,7 +98,6 @@ public class CspFilter extends OncePerRequestFilter {
 
       // Set the base CSP policy
       res.addHeader(CONTENT_SECURITY_POLICY_HEADER_NAME, cspPolicy);
-      
 
       // Add additional security headers
       // Always set X-Content-Type-Options to nosniff to prevent MIME type sniffing
