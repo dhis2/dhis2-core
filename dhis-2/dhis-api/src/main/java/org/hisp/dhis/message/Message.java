@@ -195,7 +195,6 @@ public class Message implements IdentifiableObject {
 
   @Column(name = "created", nullable = false)
   @Temporal(TemporalType.TIMESTAMP)
-  @Access(AccessType.PROPERTY)
   @Override
   public Date getCreated() {
     return created;
