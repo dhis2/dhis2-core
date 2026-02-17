@@ -150,7 +150,7 @@ public class IdScheme implements Serializable {
 
   public boolean isAttribute() {
     return IdentifiableProperty.ATTRIBUTE == identifiableProperty
-        && !StringUtils.isEmpty(attribute);
+        && CodeGenerator.isValidUid(attribute);
   }
 
   /**
@@ -169,7 +169,7 @@ public class IdScheme implements Serializable {
   public static boolean isAttribute(String str) {
     return !StringUtils.isEmpty(str)
         && str.toUpperCase().startsWith(ATTR_ID_SCHEME_PREFIX)
-        && str.length() == 21;
+        && CodeGenerator.isValidUid(str.substring(ATTR_ID_SCHEME_PREFIX.length()));
   }
 
   /**

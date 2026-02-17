@@ -65,6 +65,12 @@ class IdSchemeTest {
   }
 
   @Test
+  void testIsValidWithInvalidAttributeUid() {
+    assertFalse(IdScheme.isValid("ATTRIBUTE:notavaliduid"));
+    assertFalse(IdScheme.isValid("ATTRIBUTE:12345678901"));
+  }
+
+  @Test
   void testIsValidWithNull() {
     assertFalse(IdScheme.isValid(null));
   }
