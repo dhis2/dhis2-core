@@ -36,7 +36,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
@@ -117,10 +132,12 @@ public class Message implements IdentifiableObject {
    * As part of the serializing process, this field can be set to indicate a link to this
    * identifiable object (will be used on the web layer for navigating the REST API)
    */
-  @Transient protected String href;
+  @Transient
+  protected String href;
 
   /** Access information for this object. Applies to current user. */
-  @Transient protected org.hisp.dhis.security.acl.Access access;
+  @Transient 
+  protected org.hisp.dhis.security.acl.Access access;
 
   public Message() {
     this.uid = CodeGenerator.generateUid();
