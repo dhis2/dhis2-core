@@ -114,7 +114,11 @@ class JdbcEnrollmentStore {
     MapSqlParameterSource sqlParams = new MapSqlParameterSource();
     String sql = getQuery(enrollmentParams, sqlParams);
     return jdbcTemplate.query(
-        sql, sqlParams, new EnrollmentRowMapper(enrollmentParams.isIncludeAttributes()));
+        sql,
+        sqlParams,
+        new EnrollmentRowMapper(
+            enrollmentParams.isIncludeAttributes(),
+            enrollmentParams.getEnrolledInTrackerProgram()));
   }
 
   /**
@@ -140,9 +144,11 @@ class JdbcEnrollmentStore {
     StringBuilder sql = new StringBuilder();
     addSelect(sql, enrollmentParams);
     sql.append(" from enrollment e ");
-    addJoinOnProgram(sql);
     addJoinOnTrackedEntity(sql);
-    addJoinOnTrackedEntityType(sql);
+    if (!enrollmentParams.hasEnrolledInTrackerProgram()) {
+      addJoinOnProgram(sql);
+      addJoinOnTrackedEntityType(sql);
+    }
     addJoinOnProgramOwner(sql);
     addJoinOnOwnerOrgUnit(sql);
     addJoinOnEnrollmentOrgUnit(sql);
@@ -162,6 +168,21 @@ class JdbcEnrollmentStore {
             e.lastupdated, e.lastupdatedatclient, e.lastupdatedbyuserinfo, e.occurreddate,
             e.enrollmentdate, e.completeddate, e.followup, e.completedby, e.storedby, e.deleted, e.status,
             ST_AsBinary(e.geometry) as geometry,
+        """);
+
+    if (params.hasEnrolledInTrackerProgram()) {
+      // program and trackedentitytype columns are not needed; the RowMapper
+      // reuses the already loaded Program entity instead
+      sql.append(
+          """
+            te.uid as tracked_entity_uid, te.code as tracked_entity_code,
+            en_ou.uid as en_org_unit_uid,
+            notes.jsonnotes as notes,
+            coc.uid as coc_uid
+          """);
+    } else {
+      sql.append(
+          """
             p.programid as program_id, p.uid as program_uid, p.name as program_name, p.code as program_code, p.sharing as program_sharing,
             p.description as program_description, p.created as program_created, p.lastupdated as program_lastupdated,
             p.shortname as program_short_name, p.type as program_type, p.accesslevel as program_accesslevel,
@@ -169,7 +190,8 @@ class JdbcEnrollmentStore {
             en_ou.uid as en_org_unit_uid,
             tet.uid as tet_uid, tet.allowauditlog as tet_allowauditlog, tet.enablechangelog as tet_enablechangelog, tet.sharing as tet_sharing, notes.jsonnotes as notes,
             coc.uid as coc_uid
-        """);
+          """);
+    }
 
     if (params.isIncludeAttributes()) {
       sql.append(
@@ -453,7 +475,11 @@ class JdbcEnrollmentStore {
 
     List<Enrollment> enrollments =
         jdbcTemplate.query(
-            sql, sqlParams, new EnrollmentRowMapper(enrollmentParams.isIncludeAttributes()));
+            sql,
+            sqlParams,
+            new EnrollmentRowMapper(
+                enrollmentParams.isIncludeAttributes(),
+                enrollmentParams.getEnrolledInTrackerProgram()));
     return new Page<>(enrollments, pageParams, () -> countEnrollments(enrollmentParams));
   }
 
@@ -580,9 +606,11 @@ class JdbcEnrollmentStore {
 
   private static class EnrollmentRowMapper implements RowMapper<Enrollment> {
     private final boolean isIncludeAttributes;
+    private final Program program;
 
-    EnrollmentRowMapper(boolean isIncludeAttributes) {
+    EnrollmentRowMapper(boolean isIncludeAttributes, @Nullable Program program) {
       this.isIncludeAttributes = isIncludeAttributes;
+      this.program = program;
     }
 
     @Override
@@ -608,26 +636,34 @@ class JdbcEnrollmentStore {
       enrollment.setStatus(EnrollmentStatus.valueOf(rs.getString("status")));
       enrollment.setGeometry(Geometries.fromWkb(rs.getBytes("geometry")));
 
-      TrackedEntityType trackedEntityType = new TrackedEntityType();
-      trackedEntityType.setUid(rs.getString("tet_uid"));
-      trackedEntityType.setAllowAuditLog(rs.getBoolean("tet_allowauditlog"));
-      trackedEntityType.setEnableChangeLog(rs.getBoolean("tet_enablechangelog"));
-      trackedEntityType.setSharing(mapSharingJsonIntoSharingObject(rs.getString("tet_sharing")));
+      Program enrollmentProgram;
+      TrackedEntityType trackedEntityType;
+      if (program != null) {
+        enrollmentProgram = program;
+        trackedEntityType = program.getTrackedEntityType();
+      } else {
+        trackedEntityType = new TrackedEntityType();
+        trackedEntityType.setUid(rs.getString("tet_uid"));
+        trackedEntityType.setAllowAuditLog(rs.getBoolean("tet_allowauditlog"));
+        trackedEntityType.setEnableChangeLog(rs.getBoolean("tet_enablechangelog"));
+        trackedEntityType.setSharing(mapSharingJsonIntoSharingObject(rs.getString("tet_sharing")));
 
-      Program program = new Program();
-      program.setId(rs.getLong("program_id"));
-      program.setUid(rs.getString("program_uid"));
-      program.setName(rs.getString("program_name"));
-      program.setShortName(rs.getString("program_short_name"));
-      program.setCode(rs.getString("program_code"));
-      program.setDescription(rs.getString("program_description"));
-      program.setCreated(formatDate(rs.getTimestamp("program_created")));
-      program.setLastUpdated(formatDate(rs.getTimestamp("program_lastupdated")));
-      program.setTrackedEntityType(trackedEntityType);
-      program.setProgramType(ProgramType.valueOf(rs.getString("program_type")));
-      program.setAccessLevel(AccessLevel.valueOf(rs.getString("program_accesslevel")));
-      program.setSharing(mapSharingJsonIntoSharingObject(rs.getString("program_sharing")));
-      enrollment.setProgram(program);
+        enrollmentProgram = new Program();
+        enrollmentProgram.setId(rs.getLong("program_id"));
+        enrollmentProgram.setUid(rs.getString("program_uid"));
+        enrollmentProgram.setName(rs.getString("program_name"));
+        enrollmentProgram.setShortName(rs.getString("program_short_name"));
+        enrollmentProgram.setCode(rs.getString("program_code"));
+        enrollmentProgram.setDescription(rs.getString("program_description"));
+        enrollmentProgram.setCreated(formatDate(rs.getTimestamp("program_created")));
+        enrollmentProgram.setLastUpdated(formatDate(rs.getTimestamp("program_lastupdated")));
+        enrollmentProgram.setTrackedEntityType(trackedEntityType);
+        enrollmentProgram.setProgramType(ProgramType.valueOf(rs.getString("program_type")));
+        enrollmentProgram.setAccessLevel(AccessLevel.valueOf(rs.getString("program_accesslevel")));
+        enrollmentProgram.setSharing(
+            mapSharingJsonIntoSharingObject(rs.getString("program_sharing")));
+      }
+      enrollment.setProgram(enrollmentProgram);
 
       TrackedEntity trackedEntity = new TrackedEntity();
       trackedEntity.setUid(rs.getString("tracked_entity_uid"));
