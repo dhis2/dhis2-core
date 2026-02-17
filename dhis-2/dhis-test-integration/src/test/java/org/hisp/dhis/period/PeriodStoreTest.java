@@ -96,9 +96,9 @@ class PeriodStoreTest extends PostgresIntegrationTestBase {
     PeriodType periodTypeA = it.next();
     PeriodType periodTypeB = it.next();
     PeriodType periodTypeC = it.next();
-    Period periodA = new Period(periodTypeA, getDay(1), getDay(2));
-    Period periodB = new Period(periodTypeB, getDay(2), getDay(3));
-    Period periodC = new Period(periodTypeC, getDay(2), getDay(3));
+    Period periodA = new Period(periodTypeA, getDay(1), getDay(1));
+    Period periodB = new Period(periodTypeB, getDay(8), getDay(8));
+    Period periodC = new Period(periodTypeC, getDay(10), getDay(10));
     periodStore.addPeriod(periodA);
     periodStore.addPeriod(periodB);
     periodStore.addPeriod(periodC);
