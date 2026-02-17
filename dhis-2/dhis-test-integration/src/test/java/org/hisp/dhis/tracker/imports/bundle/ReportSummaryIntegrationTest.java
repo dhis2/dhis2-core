@@ -239,7 +239,7 @@ class ReportSummaryIntegrationTest extends PostgresIntegrationTestBase {
     trackerObjects = testSetup.fromJson("tracker/single_enrollment.json");
     trackerImportService.importTracker(params, trackerObjects);
 
-    trackerObjects = testSetup.fromJson("tracker/single_event.json");
+    trackerObjects = testSetup.fromJson("tracker/single_tracker_event.json");
     ImportReport trackerImportEventReport =
         trackerImportService.importTracker(params, trackerObjects);
 
@@ -260,7 +260,7 @@ class ReportSummaryIntegrationTest extends PostgresIntegrationTestBase {
     trackerObjects = testSetup.fromJson("tracker/single_enrollment.json");
     trackerImportService.importTracker(params, trackerObjects);
 
-    trackerObjects = testSetup.fromJson("tracker/single_event.json");
+    trackerObjects = testSetup.fromJson("tracker/single_tracker_event.json");
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects = testSetup.fromJson("tracker/one_update_event_and_one_new_event.json");
@@ -286,7 +286,7 @@ class ReportSummaryIntegrationTest extends PostgresIntegrationTestBase {
     trackerObjects = testSetup.fromJson("tracker/single_enrollment.json");
     trackerImportService.importTracker(params, trackerObjects);
 
-    trackerObjects = testSetup.fromJson("tracker/single_event.json");
+    trackerObjects = testSetup.fromJson("tracker/single_tracker_event.json");
     trackerImportService.importTracker(params, trackerObjects);
 
     trackerObjects =

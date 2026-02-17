@@ -76,7 +76,7 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
 
     testSetup.importTrackerData("tracker/single_te.json");
     testSetup.importTrackerData("tracker/single_enrollment.json");
-    testSetup.importTrackerData("tracker/single_event.json");
+    testSetup.importTrackerData("tracker/single_tracker_event.json");
     manager.flush();
   }
 

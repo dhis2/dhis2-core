@@ -105,7 +105,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
     enrollment = trackerObjects.getEnrollments().get(0);
 
-    trackerObjects = testSetup.importTrackerData("tracker/single_event.json");
+    trackerObjects = testSetup.importTrackerData("tracker/single_tracker_event.json");
 
     event = trackerObjects.getEvents().get(0);
 
@@ -616,7 +616,8 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
   private org.hisp.dhis.tracker.imports.domain.TrackerEvent importEventProgram()
       throws IOException {
-    TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/single_event.json");
+    TrackerObjects trackerObjects =
+        testSetup.importTrackerData("tracker/single_tracker_event.json");
     org.hisp.dhis.tracker.imports.domain.TrackerEvent ev = trackerObjects.getEvents().get(0);
     ev.setEvent(UID.generate());
     ev.setProgramStage(MetadataIdentifier.of(TrackerIdScheme.UID, "NpsdDv6kKSe", null));
