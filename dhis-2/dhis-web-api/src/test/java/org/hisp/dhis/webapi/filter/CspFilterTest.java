@@ -154,7 +154,7 @@ class CspFilterTest {
     assertNotNull(cspHeader);
     assertTrue(
         cspHeader.contains(
-            FRAME_ANCESTORS_DEFAULT_CSP + " 'https://example.com' 'https://other.com';"));
+            FRAME_ANCESTORS_DEFAULT_CSP + " https://example.com https://other.com;"));
   }
 
   @SuppressWarnings("unchecked")
