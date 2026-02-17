@@ -55,6 +55,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AccessLevel;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -149,8 +150,13 @@ class JdbcEnrollmentStore {
       addJoinOnProgram(sql);
       addJoinOnTrackedEntityType(sql);
     }
-    addJoinOnProgramOwner(sql);
-    addJoinOnOwnerOrgUnit(sql);
+    if (isSelectedModeWithProgram(enrollmentParams)) {
+      addSelectedOrgUnitCte(sql, sqlParams, enrollmentParams);
+      addSelectedOrgUnitJoin(sql);
+    } else {
+      addJoinOnProgramOwner(sql);
+      addJoinOnOwnerOrgUnit(sql);
+    }
     addJoinOnEnrollmentOrgUnit(sql);
     addJoinOnCategoryOptionCombo(sql);
     addLeftJoinOnNotes(sql);
@@ -281,6 +287,19 @@ class JdbcEnrollmentStore {
     sql.append(") as coc on coc.id = e.attributeoptioncomboid ");
   }
 
+  /**
+   * orgUnitMode=SELECTED with a known program can use a subquery on {@code
+   * trackedentityprogramowner} instead of joining {@code trackedentityprogramowner} + {@code
+   * organisationunit}. This lets PostgreSQL use the {@code (programid, organisationunitid)}
+   * composite index to find the small set of tracked entities at the selected org units, instead of
+   * scanning all enrollments and filtering.
+   */
+  private static boolean isSelectedModeWithProgram(EnrollmentQueryParams params) {
+    return params.hasEnrolledInTrackerProgram()
+        && params.hasOrganisationUnits()
+        && params.getOrganisationUnitMode() == OrganisationUnitSelectionMode.SELECTED;
+  }
+
   private static boolean isNotSuperUser(UserDetails user) {
     return !user.isSuper();
   }
@@ -348,6 +367,11 @@ class JdbcEnrollmentStore {
       EnrollmentQueryParams params,
       SqlHelper hlp,
       @Nullable String trackedEntityTableAlias) {
+    if (isSelectedModeWithProgram(params)) {
+      // CTE and join already added by getQuery/getCountQuery
+      return;
+    }
+
     if (params.hasOrganisationUnits()) {
       buildOrgUnitModeClause(
           sql,
@@ -371,6 +395,35 @@ class JdbcEnrollmentStore {
       buildOwnershipClause(
           sql, sqlParams, params.getOrganisationUnitMode(), "p", "ou", "te", hlp::whereAnd);
     }
+  }
+
+  /**
+   * For orgUnitMode=SELECTED with a known program, uses a materialized CTE to find tracked entities
+   * owned at the selected org units. The CTE uses the composite index on {@code (programid,
+   * organisationunitid)} to efficiently find the small set of tracked entity IDs, which then drives
+   * the join to enrollment. Without materialization, PostgreSQL flattens the subquery into a
+   * semi-join and scans all enrollments instead.
+   *
+   * <p>The ownership access control clause is not needed here because the mapper already validates
+   * that the user has appropriate access (search or capture scope depending on program access
+   * level) to the requested org units before they reach the store.
+   */
+  private void addSelectedOrgUnitCte(
+      StringBuilder sql, MapSqlParameterSource sqlParams, EnrollmentQueryParams params) {
+    sql.insert(
+        0,
+        "with selected_tes as materialized ("
+            + "select po.trackedentityid from trackedentityprogramowner po"
+            + " where po.programid = :programId"
+            + " and po.organisationunitid in (:selectedOrgUnits)) ");
+    sqlParams.addValue("selectedOrgUnits", getIdentifiers(params.getOrganisationUnits()));
+  }
+
+  private void addSelectedOrgUnitJoin(StringBuilder sql) {
+    sql.append(
+        """
+      inner join selected_tes on selected_tes.trackedentityid = e.trackedentityid
+      """);
   }
 
   private void addProgramConditions(
@@ -524,8 +577,13 @@ class JdbcEnrollmentStore {
     if (needsTrackedEntityJoin) {
       addJoinOnTrackedEntity(sql);
     }
-    addJoinOnProgramOwner(sql);
-    addJoinOnOwnerOrgUnit(sql);
+    if (isSelectedModeWithProgram(enrollmentParams)) {
+      addSelectedOrgUnitCte(sql, sqlParams, enrollmentParams);
+      addSelectedOrgUnitJoin(sql);
+    } else {
+      addJoinOnProgramOwner(sql);
+      addJoinOnOwnerOrgUnit(sql);
+    }
     addJoinOnCategoryOptionCombo(sql);
     addCountWhereConditions(sql, sqlParams, enrollmentParams, needsTrackedEntityJoin);
 
