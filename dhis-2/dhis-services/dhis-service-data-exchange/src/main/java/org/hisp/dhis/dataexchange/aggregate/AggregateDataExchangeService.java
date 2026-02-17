@@ -51,6 +51,7 @@ import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdScheme;
@@ -147,6 +148,17 @@ public class AggregateDataExchangeService {
               String.format(
                   "User has no data write access for AggregateDataExchange: %s",
                   exchange.getDisplayName())));
+      return summaries;
+    }
+
+    if (!hasAllowedDxItemTypes(exchange)) {
+      summaries.addImportSummary(
+          new ImportSummary(
+              ImportStatus.ERROR,
+              String.format(
+                  "Aggregate data exchange '%s' contains source request data items with unsupported types, "
+                      + "allowed types are: %s",
+                  exchange.getDisplayName(), AggregateDataExchange.ALLOWED_DX_ITEM_TYPES)));
       return summaries;
     }
 
@@ -537,5 +549,25 @@ public class AggregateDataExchangeService {
    */
   boolean isPersisted(AggregateDataExchange exchange) {
     return exchange != null && exchange.getId() > 0;
+  }
+
+  /**
+   * Returns true if all data items across all source requests of the given exchange are of allowed
+   * types.
+   *
+   * @param exchange the {@link AggregateDataExchange}.
+   * @return true if all data item types are allowed.
+   */
+  private boolean hasAllowedDxItemTypes(AggregateDataExchange exchange) {
+    return exchange.getSource().getRequests().stream()
+        .flatMap(
+            request -> {
+              IdScheme inputIdScheme = toIdSchemeOrDefault(request.getInputIdScheme());
+              DimensionalObject dxDimension =
+                  toDimensionalObject(DATA_X_DIM_ID, request.getDx(), inputIdScheme);
+              return dxDimension.getItems().stream();
+            })
+        .map(DimensionalItemObject::getDimensionItemType)
+        .allMatch(AggregateDataExchange.ALLOWED_DX_ITEM_TYPES::contains);
   }
 }

@@ -33,13 +33,10 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
-import java.util.EnumSet;
-import java.util.Set;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdScheme;
@@ -62,13 +59,6 @@ import org.springframework.stereotype.Component;
 public class AggregateDataExchangeObjectBundleHook
     extends AbstractObjectBundleHook<AggregateDataExchange> {
   private static final int SOURCE_REQUEST_NAME_MAX_LENGTH = 50;
-
-  private static final Set<DimensionItemType> ALLOWED_DX_ITEM_TYPES =
-      EnumSet.of(
-          DimensionItemType.INDICATOR,
-          DimensionItemType.DATA_ELEMENT,
-          DimensionItemType.DATA_ELEMENT_OPERAND,
-          DimensionItemType.PROGRAM_INDICATOR);
 
   @Qualifier(AES_128_STRING_ENCRYPTOR)
   private final PooledPBEStringEncryptor encryptor;
@@ -158,10 +148,15 @@ public class AggregateDataExchangeObjectBundleHook
       DimensionalItemObject dxObject =
           dimensionService.getDataDimensionalItemObject(idScheme, item);
 
-      if (dxObject != null && !ALLOWED_DX_ITEM_TYPES.contains(dxObject.getDimensionItemType())) {
+      if (dxObject != null
+          && !AggregateDataExchange.ALLOWED_DX_ITEM_TYPES.contains(
+              dxObject.getDimensionItemType())) {
         addReports.accept(
             new ErrorReport(
-                AggregateDataExchange.class, ErrorCode.E6306, dxObject.getDimensionItemType()));
+                AggregateDataExchange.class,
+                ErrorCode.E6306,
+                dxObject.getDimensionItemType(),
+                AggregateDataExchange.ALLOWED_DX_ITEM_TYPES));
       }
     }
   }
