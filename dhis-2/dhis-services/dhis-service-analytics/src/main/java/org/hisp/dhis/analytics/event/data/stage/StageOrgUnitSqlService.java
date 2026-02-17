@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,33 +27,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
+package org.hisp.dhis.analytics.event.data.stage;
 
-import java.util.Optional;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
-import org.geotools.geometry.jts.WKBReader;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.io.ParseException;
+import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.ColumnAndAlias;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.program.AnalyticsType;
 
 /**
- * @author Luciano Fiandesio
+ * Builds stage-scoped org unit SQL fragments for selection and filtering.
+ *
+ * <p>This encapsulates {@code stage.ou} behavior and keeps org unit level handling out of manager
+ * code.
  */
-@Slf4j
-class MapperGeoUtils {
-  private MapperGeoUtils() {
-    throw new IllegalStateException("Utility class");
-  }
+public interface StageOrgUnitSqlService {
+  /**
+   * Creates the SELECT/GROUP BY column expression for a stage org unit item.
+   *
+   * @param item the stage org unit query item
+   * @param params query parameters
+   * @param isGroupByClause true when the expression is for GROUP BY
+   * @return stage org unit SQL column and alias information
+   */
+  ColumnAndAlias selectColumn(QueryItem item, EventQueryParams params, boolean isGroupByClause);
 
-  public static Optional<Geometry> resolveGeometry(byte[] geometry) {
-    if (ObjectUtils.isEmpty(geometry)) {
-      return Optional.empty();
-    }
-    try {
-      return Optional.of(new WKBReader().read(geometry));
-    } catch (ParseException e) {
-      log.error("An error occurred parsing a geometry field", e);
-    }
-    return Optional.empty();
-  }
+  /**
+   * Creates the WHERE clause fragment for a stage org unit item.
+   *
+   * @param item the stage org unit query item
+   * @param params query parameters
+   * @param analyticsType analytics type used for org unit level columns
+   * @return SQL fragment for stage org unit filtering
+   */
+  String whereClause(QueryItem item, EventQueryParams params, AnalyticsType analyticsType);
 }

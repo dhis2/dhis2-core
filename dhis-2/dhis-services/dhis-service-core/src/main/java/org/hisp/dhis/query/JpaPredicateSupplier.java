@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,26 +27,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper;
+package org.hisp.dhis.query;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery;
-import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeAttributeQuery.COLUMNS;
-import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
 /**
- * @author Luciano Fiandesio
+ * Supplies a JPA Criteria {@link Predicate} that can be added to a query. This allows controllers
+ * to inject complex predicates (such as EXISTS subqueries) into the generic query engine without
+ * materializing large ID lists.
  */
-public class TrackedEntityAttributeRowCallbackHandler
-    extends AbstractMapper<TrackedEntityAttributeValue> implements AttributeMapper {
-  @Override
-  TrackedEntityAttributeValue getItem(ResultSet rs) throws SQLException {
-    return getAttribute(rs);
-  }
-
-  @Override
-  String getKeyColumn() {
-    return TeAttributeQuery.getColumnName(COLUMNS.TE_UID);
-  }
+@FunctionalInterface
+public interface JpaPredicateSupplier {
+  <T> Predicate getPredicate(CriteriaBuilder builder, Root<T> root, CriteriaQuery<?> query);
 }

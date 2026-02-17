@@ -79,6 +79,7 @@ import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
+import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
@@ -145,7 +146,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       AnalyticsSqlBuilder sqlBuilder,
       OrganisationUnitResolver organisationUnitResolver,
       ColumnMapper columnMapper,
-      QueryItemFilterBuilder filterBuilder) {
+      QueryItemFilterBuilder filterBuilder,
+      StageQuerySqlFacade stageQuerySqlFacade) {
     super(
         jdbcTemplate,
         programIndicatorService,
@@ -158,7 +160,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         config,
         organisationUnitResolver,
         columnMapper,
-        filterBuilder);
+        filterBuilder,
+        stageQuerySqlFacade);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 

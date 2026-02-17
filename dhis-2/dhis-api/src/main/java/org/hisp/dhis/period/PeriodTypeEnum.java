@@ -38,11 +38,13 @@ public enum PeriodTypeEnum {
   BI_MONTHLY("BiMonthly"),
   BI_WEEKLY("BiWeekly"),
   DAILY("Daily"),
+  FINANCIAL_FEB("FinancialFeb"),
   FINANCIAL_APRIL("FinancialApril"),
   FINANCIAL_JULY("FinancialJuly"),
-  FINANCIAL_NOV("FinancialNov"),
+  FINANCIAL_AUG("FinancialAug"),
   FINANCIAL_SEP("FinancialSep"),
   FINANCIAL_OCT("FinancialOct"),
+  FINANCIAL_NOV("FinancialNov"),
   MONTHLY("Monthly"),
   QUARTERLY("Quarterly"),
   QUARTERLY_NOV("QuarterlyNov"),
@@ -54,6 +56,7 @@ public enum PeriodTypeEnum {
   WEEKLY_SATURDAY("WeeklySaturday"),
   WEEKLY_SUNDAY("WeeklySunday"),
   WEEKLY_THURSDAY("WeeklyThursday"),
+  WEEKLY_FRIDAY("WeeklyFriday"),
   WEEKLY_WEDNESDAY("WeeklyWednesday"),
   YEARLY("Yearly");
 
