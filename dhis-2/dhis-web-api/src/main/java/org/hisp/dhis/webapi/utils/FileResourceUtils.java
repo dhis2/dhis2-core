@@ -56,7 +56,6 @@ import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.fileresource.FileResource;
@@ -184,7 +183,7 @@ public class FileResourceUtils {
   }
 
   public void configureFileResourceResponse(
-      HttpServletResponse response, FileResource fileResource, DhisConfigurationProvider dhisConfig)
+      HttpServletResponse response, FileResource fileResource)
       throws WebMessageException {
     response.setContentType(fileResource.getContentType());
     response.setContentLengthLong(fileResource.getContentLength());

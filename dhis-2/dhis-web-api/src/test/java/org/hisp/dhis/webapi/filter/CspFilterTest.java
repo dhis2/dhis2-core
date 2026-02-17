@@ -152,10 +152,7 @@ class CspFilterTest {
     // Then: CSP header should include frame-ancestors with CORS origins
     String cspHeader = response.getHeader(CONTENT_SECURITY_POLICY_HEADER_NAME);
     assertNotNull(cspHeader);
-    assertTrue(cspHeader.startsWith(FRAME_ANCESTORS_DEFAULT_CSP));
-    assertTrue(
-        cspHeader.contains("https://example.com") || cspHeader.contains("https://other.com"));
-    assertTrue(cspHeader.endsWith(";"));
+    assertTrue(cspHeader.contains(FRAME_ANCESTORS_DEFAULT_CSP + " 'https://example.com' 'https://other.com';"));
   }
 
   @SuppressWarnings("unchecked")
@@ -174,7 +171,7 @@ class CspFilterTest {
 
     // Then: CSP header should only have default frame-ancestors
     String cspHeader = response.getHeader(CONTENT_SECURITY_POLICY_HEADER_NAME);
-    assertEquals(FRAME_ANCESTORS_DEFAULT_CSP + ";", cspHeader);
+    assertTrue(cspHeader.contains(FRAME_ANCESTORS_DEFAULT_CSP + ";"));
   }
 
   @SuppressWarnings("unchecked")
