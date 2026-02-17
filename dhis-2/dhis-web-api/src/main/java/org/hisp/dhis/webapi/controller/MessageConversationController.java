@@ -943,7 +943,7 @@ public class MessageConversationController
       throw new WebMessageException(conflict("Invalid messageattachment."));
     }
 
-    fileResourceUtils.configureFileResourceResponse(response, fr, dhisConfig);
+    fileResourceUtils.configureFileResourceResponse(response, fr);
   }
 
   // --------------------------------------------------------------------------
