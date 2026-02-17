@@ -29,31 +29,27 @@
  */
 package org.hisp.dhis.webapi.security;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 /**
- * Interceptor that detects @CustomCsp and @CspUserUploadedContent annotations on controller
- * methods and sets the appropriate CSP policy in the CspPolicyHolder for use by the CspFilter.
- * 
- * This interceptor checks both the method and the class level for CSP annotations,
- * with method-level annotations taking precedence over class-level ones.
- * 
- * Precedence order:
- * 1. Method-level @CustomCsp (custom policy)
- * 2. Method-level @CspUserUploadedContent (default-src 'none';)
- * 3. Class-level @CustomCsp (custom policy)
- * 4. Class-level @CspUserUploadedContent (default-src 'none';)
- * 5. No annotation (CspFilter applies default)
- * 
+ * Interceptor that detects @CustomCsp and @CspUserUploadedContent annotations on controller methods
+ * and sets the appropriate CSP policy in the CspPolicyHolder for use by the CspFilter.
+ *
+ * <p>This interceptor checks both the method and the class level for CSP annotations, with
+ * method-level annotations taking precedence over class-level ones.
+ *
+ * <p>Precedence order: 1. Method-level @CustomCsp (custom policy) 2.
+ * Method-level @CspUserUploadedContent (default-src 'none';) 3. Class-level @CustomCsp (custom
+ * policy) 4. Class-level @CspUserUploadedContent (default-src 'none';) 5. No annotation (CspFilter
+ * applies default)
+ *
  * @author DHIS2 Team
  */
 @Slf4j
@@ -95,7 +91,8 @@ public class CspInterceptor implements HandlerInterceptor {
     CustomCsp classAnnotation = controllerClass.getAnnotation(CustomCsp.class);
     if (classAnnotation != null) {
       String cspPolicy = classAnnotation.value();
-      log.debug("Setting custom CSP policy for class {} to: {}", controllerClass.getName(), cspPolicy);
+      log.debug(
+          "Setting custom CSP policy for class {} to: {}", controllerClass.getName(), cspPolicy);
       CspPolicyHolder.setCspPolicy(cspPolicy);
       return true;
     }
@@ -112,7 +109,8 @@ public class CspInterceptor implements HandlerInterceptor {
   }
 
   @Override
-  public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+  public void afterCompletion(
+      HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
       throws Exception {
     // Clean up ThreadLocal after request processing to prevent memory leaks
     CspPolicyHolder.clear();

@@ -29,24 +29,23 @@
  */
 package org.hisp.dhis.webapi.filter;
 
-import java.io.IOException;
-import java.util.Set;
-
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.configuration.ConfigurationService;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.webapi.security.CspPolicyHolder;
-import org.springframework.web.filter.OncePerRequestFilter;
-import static org.hisp.dhis.security.utils.CspConstants.DEFAULT_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.CONTENT_SECURITY_POLICY_HEADER_NAME;
+import static org.hisp.dhis.security.utils.CspConstants.DEFAULT_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.FRAME_ANCESTORS_DEFAULT_CSP;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Set;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.webapi.security.CspPolicyHolder;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -74,9 +73,10 @@ public class CspFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
     try {
       if (!enabled) {
-        // If CSP is not enabled, just set X-Frame-Options to SAMEORIGIN for clickjacking protection and proceed
+        // If CSP is not enabled, just set X-Frame-Options to SAMEORIGIN for clickjacking protection
+        // and proceed
         res.addHeader("X-Frame-Options", "SAMEORIGIN");
-        
+
         chain.doFilter(req, res);
         return;
       }

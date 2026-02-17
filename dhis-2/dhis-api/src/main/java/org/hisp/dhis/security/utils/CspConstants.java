@@ -36,10 +36,10 @@ public class CspConstants {
 
   public static final String CONTENT_SECURITY_POLICY_HEADER_NAME = "Content-Security-Policy";
   public static final String FRAME_ANCESTORS_DEFAULT_CSP = "frame-ancestors 'self'";
-  
+
   /**
-   * Strict default CSP policy applied to all endpoints.
-   * This policy only allows resources from the same origin.
+   * Strict default CSP policy applied to all endpoints. This policy only allows resources from the
+   * same origin.
    */
   public static final String DEFAULT_CSP_POLICY = "default-src 'self'; ";
 }

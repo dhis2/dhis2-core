@@ -29,11 +29,18 @@
  */
 package org.hisp.dhis.webapi.controller.datavalue;
 
+import static java.util.stream.Collectors.joining;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
+import static org.hisp.dhis.security.Authorities.F_DATAVALUE_ADD;
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
-import static java.util.stream.Collectors.joining;
-
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -52,8 +59,6 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
@@ -68,12 +73,9 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
-import static org.hisp.dhis.security.Authorities.F_DATAVALUE_ADD;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.webapi.security.CspUserUploadedContent;
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.webdomain.DataValueFollowUpRequest;
 import org.hisp.dhis.webapi.webdomain.DataValuesFollowUpRequest;
@@ -91,9 +93,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author Lars Helge Overland

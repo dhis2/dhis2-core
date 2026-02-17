@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.webapi.utils;
 
-import jakarta.servlet.http.HttpServletResponse;
-
 public class HeaderUtils {
   public static final String X_CONTENT_TYPE_OPTIONS_VALUE = "nosniff";
   public static final String X_XSS_PROTECTION_VALUE = "1; mode=block";
@@ -39,4 +37,3 @@ public class HeaderUtils {
     // Utility class, prevent instantiation
   }
 }
-

@@ -36,16 +36,14 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation to specify a custom Content-Security-Policy for a controller method.
- * 
- * When applied to a controller method, this annotation allows overriding the default
- * strict CSP policy with a custom one. This is useful for endpoints that serve
- * user-uploaded content or have other specific CSP requirements.
- * 
- * Example:
- * @CustomCsp("script-src 'none'; ")
- * @GetMapping("/files/{id}")
- * public void serveFile(@PathVariable String id) { ... }
- * 
+ *
+ * <p>When applied to a controller method, this annotation allows overriding the default strict CSP
+ * policy with a custom one. This is useful for endpoints that serve user-uploaded content or have
+ * other specific CSP requirements.
+ *
+ * <p>Example: @CustomCsp("script-src 'none'; ") @GetMapping("/files/{id}") public void
+ * serveFile(@PathVariable String id) { ... }
+ *
  * @see CspUserUploadedContent for standard strict CSP for user-uploaded content
  * @see CspInterceptor for how this annotation is processed and applied to responses
  * @see CspFilter for how the CSP policy is added to response headers
@@ -55,7 +53,7 @@ import java.lang.annotation.Target;
 public @interface CustomCsp {
   /**
    * The Content-Security-Policy header value to use for this endpoint.
-   * 
+   *
    * @return the CSP policy string (e.g., "script-src 'none'; ")
    */
   String value();

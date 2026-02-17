@@ -31,10 +31,10 @@ package org.hisp.dhis.webapi.security;
 
 /**
  * Thread-local holder for storing the Content-Security-Policy to be applied to the current request.
- * 
- * This allows handlers and interceptors to set a custom CSP policy that will be used
- * by the CspFilter when adding CSP headers to the response.
- * 
+ *
+ * <p>This allows handlers and interceptors to set a custom CSP policy that will be used by the
+ * CspFilter when adding CSP headers to the response.
+ *
  * @author DHIS2 Team
  */
 public class CspPolicyHolder {
@@ -44,7 +44,7 @@ public class CspPolicyHolder {
 
   /**
    * Set the CSP policy for the current request.
-   * 
+   *
    * @param policy the CSP policy string (e.g., "script-src 'none'; ")
    */
   public static void setCspPolicy(String policy) {
@@ -53,7 +53,7 @@ public class CspPolicyHolder {
 
   /**
    * Get the CSP policy for the current request, if one was set.
-   * 
+   *
    * @return the CSP policy string, or null if no custom policy was set
    */
   public static String getCspPolicy() {
@@ -61,8 +61,8 @@ public class CspPolicyHolder {
   }
 
   /**
-   * Clear the CSP policy for the current request.
-   * This should be called at the end of request processing to avoid ThreadLocal leaks.
+   * Clear the CSP policy for the current request. This should be called at the end of request
+   * processing to avoid ThreadLocal leaks.
    */
   public static void clear() {
     CSP_POLICY.remove();
