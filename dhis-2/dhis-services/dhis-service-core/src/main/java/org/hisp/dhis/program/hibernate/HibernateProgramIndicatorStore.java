@@ -97,31 +97,26 @@ public class HibernateProgramIndicatorStore
   }
 
   @Override
-  public int updateCategoryComboRefs(Set<Long> sourceCategoryComboIds, long targetCategoryComboId) {
-    if (sourceCategoryComboIds == null || sourceCategoryComboIds.isEmpty()) return 0;
-    String sql =
-        """
-        update programindicator
-        set categorycomboid = :targetCategoryComboId
-        where categorycomboid in :sourceCategoryComboIds
-        """;
-    return getSession()
-        .createNativeQuery(sql)
-        .setParameter("targetCategoryComboId", targetCategoryComboId)
-        .setParameter("sourceCategoryComboIds", sourceCategoryComboIds)
-        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
-        .executeUpdate();
-  }
-
-  @Override
-  public int updateAttributeComboRefs(
+  public int updateCategoryComboAndAttributeComboRefs(
       Set<Long> sourceCategoryComboIds, long targetCategoryComboId) {
     if (sourceCategoryComboIds == null || sourceCategoryComboIds.isEmpty()) return 0;
     String sql =
         """
-        update programindicator
-        set attributecomboid = :targetCategoryComboId
-        where attributecomboid in :sourceCategoryComboIds
+        UPDATE programindicator
+        SET
+            categorycomboid = CASE
+                WHEN categorycomboid IN (:sourceCategoryComboIds)
+                THEN :targetCategoryComboId
+                ELSE categorycomboid
+            END,
+            attributecomboid = CASE
+                WHEN attributecomboid IN (:sourceCategoryComboIds)
+                THEN :targetCategoryComboId
+                ELSE attributecomboid
+            END
+        WHERE
+            categorycomboid IN (:sourceCategoryComboIds)
+            OR attributecomboid IN (:sourceCategoryComboIds);
         """;
     return getSession()
         .createNativeQuery(sql)

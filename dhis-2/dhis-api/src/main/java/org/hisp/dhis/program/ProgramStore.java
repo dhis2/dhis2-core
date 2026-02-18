@@ -76,21 +76,13 @@ public interface ProgramStore extends IdentifiableObjectStore<Program> {
   boolean hasOrgUnit(Program program, OrganisationUnit organisationUnit);
 
   /**
-   * Update all source CategoryCombo ids to the target CategoryCombo id for Program.categoryCombo.
-   *
-   * @param sourceCategoryComboIds source category combo ids
-   * @param targetCategoryComboId target category combo id
-   * @return number of updated rows
-   */
-  int updateCategoryComboRefs(Set<Long> sourceCategoryComboIds, long targetCategoryComboId);
-
-  /**
-   * Update all source CategoryCombo ids to the target CategoryCombo id for
+   * Update all source CategoryCombo ids to the target CategoryCombo id for Program.categoryCombo &
    * Program.enrollmentCategoryCombo.
    *
    * @param sourceCategoryComboIds source category combo ids
    * @param targetCategoryComboId target category combo id
    * @return number of updated rows
    */
-  int updateEnrollmentCategoryComboRefs(Set<Long> sourceCategoryComboIds, long targetCategoryComboId);
+  int updateCategoryComboAndEnrollmentCategoryComboRefs(
+      Set<Long> sourceCategoryComboIds, long targetCategoryComboId);
 }

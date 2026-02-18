@@ -51,15 +51,6 @@ public interface ProgramIndicatorStore extends IdentifiableObjectStore<ProgramIn
    * @param targetCategoryComboId ID of target CategoryCombo
    * @return number of updated records
    */
-  int updateCategoryComboRefs(Set<Long> sourceCategoryComboIds, long targetCategoryComboId);
-
-  /**
-   * Updates all ProgramIndicator.attributeCombo references from source CategoryCombos to the
-   * target.
-   *
-   * @param sourceCategoryComboIds IDs of source CategoryCombos to replace
-   * @param targetCategoryComboId ID of target CategoryCombo
-   * @return number of updated records
-   */
-  int updateAttributeComboRefs(Set<Long> sourceCategoryComboIds, long targetCategoryComboId);
+  int updateCategoryComboAndAttributeComboRefs(
+      Set<Long> sourceCategoryComboIds, long targetCategoryComboId);
 }

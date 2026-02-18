@@ -268,10 +268,8 @@ public class CategoryComboMergeService implements MergeService {
             categoryComboMergeHandler::handleDataSets,
             categoryComboMergeHandler::handleDataSetElements,
             categoryComboMergeHandler::handlePrograms,
-            categoryComboMergeHandler::handleProgramEnrollments,
             categoryComboMergeHandler::handleDataApprovalWorkflows,
-            categoryComboMergeHandler::handleProgramIndicatorCategoryCombos,
-            categoryComboMergeHandler::handleProgramIndicatorAttributeCombos);
+            categoryComboMergeHandler::handleProgramIndicatorCategoryCombos);
   }
 
   /**

@@ -123,31 +123,26 @@ public class HibernateProgramStore extends HibernateIdentifiableObjectStore<Prog
   }
 
   @Override
-  public int updateCategoryComboRefs(Set<Long> sourceCategoryComboIds, long targetCategoryComboId) {
-    if (sourceCategoryComboIds == null || sourceCategoryComboIds.isEmpty()) return 0;
-    String sql =
-        """
-        update program
-        set categorycomboid = :targetCategoryComboId
-        where categorycomboid in :sourceCategoryComboIds
-        """;
-    return getSession()
-        .createNativeQuery(sql)
-        .setParameter("targetCategoryComboId", targetCategoryComboId)
-        .setParameter("sourceCategoryComboIds", sourceCategoryComboIds)
-        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
-        .executeUpdate();
-  }
-
-  @Override
-  public int updateEnrollmentCategoryComboRefs(
+  public int updateCategoryComboAndEnrollmentCategoryComboRefs(
       Set<Long> sourceCategoryComboIds, long targetCategoryComboId) {
     if (sourceCategoryComboIds == null || sourceCategoryComboIds.isEmpty()) return 0;
     String sql =
         """
-        update program
-        set enrollmentcategorycomboid = :targetCategoryComboId
-        where enrollmentcategorycomboid in :sourceCategoryComboIds
+        UPDATE program
+        SET
+            categorycomboid = CASE
+                WHEN categorycomboid IN (:sourceCategoryComboIds)
+                THEN :targetCategoryComboId
+                ELSE categorycomboid
+            END,
+            enrollmentcategorycomboid = CASE
+                WHEN enrollmentcategorycomboid IN (:sourceCategoryComboIds)
+                THEN :targetCategoryComboId
+                ELSE enrollmentcategorycomboid
+            END
+        WHERE
+            categorycomboid IN (:sourceCategoryComboIds)
+            OR enrollmentcategorycomboid IN (:sourceCategoryComboIds);
         """;
     return getSession()
         .createNativeQuery(sql)

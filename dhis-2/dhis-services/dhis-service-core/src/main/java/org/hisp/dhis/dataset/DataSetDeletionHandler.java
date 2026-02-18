@@ -35,6 +35,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
@@ -51,6 +52,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class DataSetDeletionHandler extends IdObjectDeletionHandler<DataSet> {
   private final DataSetService dataSetService;
 
@@ -119,6 +121,7 @@ public class DataSetDeletionHandler extends IdObjectDeletionHandler<DataSet> {
   }
 
   private void deleteCategoryCombo(CategoryCombo categoryCombo) {
+    log.info("Starting deleteCategoryCombo handler - DataSet");
     CategoryCombo defaultCategoryCombo =
         categoryService.getCategoryComboByName(DEFAULT_CATEGORY_COMBO_NAME);
 
@@ -130,6 +133,7 @@ public class DataSetDeletionHandler extends IdObjectDeletionHandler<DataSet> {
         idObjectManager.updateNoAcl(dataSet);
       }
     }
+    log.info("Finished deleteCategoryCombo handler - DataSet");
   }
 
   private void deleteOrganisationUnit(OrganisationUnit unit) {

@@ -34,6 +34,7 @@ import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import java.util.Iterator;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataset.DataSet;
@@ -49,6 +50,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class DataElementDeletionHandler extends IdObjectDeletionHandler<DataElement> {
   private final CategoryService categoryService;
 
@@ -62,6 +64,7 @@ public class DataElementDeletionHandler extends IdObjectDeletionHandler<DataElem
   }
 
   private void deleteCategoryCombo(CategoryCombo categoryCombo) {
+    log.info("Starting deleteCategoryCombo handler - DataElement");
     CategoryCombo defaultCategoryCombo =
         categoryService.getCategoryComboByName(DEFAULT_CATEGORY_COMBO_NAME);
 
@@ -72,6 +75,7 @@ public class DataElementDeletionHandler extends IdObjectDeletionHandler<DataElem
         idObjectManager.updateNoAcl(dataElement);
       }
     }
+    log.info("Finished deleteCategoryCombo handler - DataElement");
   }
 
   private void deleteDataSet(DataSet dataSet) {

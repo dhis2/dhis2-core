@@ -32,14 +32,12 @@ package org.hisp.dhis.merge.category.categorycombo;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflowStore;
@@ -59,7 +57,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class CategoryComboMergeHandler {
 
-  private final CategoryOptionComboStore categoryOptionComboStore;
   private final CategoryService categoryService;
   private final DataElementStore dataElementStore;
   private final DataSetStore dataSetStore;
@@ -87,38 +84,26 @@ public class CategoryComboMergeHandler {
   }
 
   /**
-   * Updates CategoryOptionCombo references to point to the target CategoryCombo. Has to update
-   * twice effectively to satisfy the dependency chain of DeletionHandlers & nested
-   * DeletionHandlers. <br>
-   * Updates references through native SQL to handle mappings, which satisfies CC deletion Updates
-   * references through Hibernate to handle mappings, which satisfies COC deletion (no COC are being
-   * deleted but the CC deletion handler uses a mix of Hibernate + JDBC when attempting to delete a
-   * COC.
+   * Updates CategoryOptionCombo references to point to the target CategoryCombo.
    *
    * @param sources list of source CategoryCombos
    * @param target target CategoryCombo
    */
   public void handleCategoryOptionCombos(List<CategoryCombo> sources, CategoryCombo target) {
-    final AtomicInteger updatedCocs = new AtomicInteger();
-
-    // Hibernate - removes source combos from categories and adds target.
+    int cocsUpdated = 0;
     for (CategoryCombo srcCc : sources) {
       Iterator<CategoryOptionCombo> srcCocIterator = srcCc.getOptionCombos().iterator();
       while (srcCocIterator.hasNext()) {
         CategoryOptionCombo srcCoc = srcCocIterator.next();
+        srcCoc.setCategoryCombo(target);
         srcCocIterator.remove();
         target.addCategoryOptionCombo(srcCoc);
+        categoryService.updateCategoryOptionCombo(srcCoc);
+        ++cocsUpdated;
       }
       categoryService.updateCategoryCombo(srcCc);
     }
-    // SQL - updates CC <-> COC mapping table
-    Set<Long> sourceIds =
-        sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet());
-    int updated = categoryOptionComboStore.updateCategoryComboRefs(sourceIds, target.getId());
-    log.info("{} CategoryOptionCombos updated with target CategoryCombo ref", updated);
-
-    //    categoryService.updateCategoryCombo(target);
-    log.info("{} CategoryOptionCombos updated with target CategoryCombo ref", updatedCocs);
+    log.info("{} CategoryOptionCombos updated with target CategoryCombo ref", cocsUpdated);
   }
 
   /**
@@ -164,8 +149,8 @@ public class CategoryComboMergeHandler {
   }
 
   /**
-   * Updates Program.categoryCombo references to point to the target CategoryCombo. Uses SQL
-   * approach for efficiency.
+   * Updates Program.categoryCombo and Program.enrollmentCategoryCombo references to point to the
+   * target CategoryCombo. Uses SQL approach for efficiency.
    *
    * @param sources list of source CategoryCombos
    * @param target target CategoryCombo
@@ -173,22 +158,11 @@ public class CategoryComboMergeHandler {
   public void handlePrograms(List<CategoryCombo> sources, CategoryCombo target) {
     Set<Long> sourceIds =
         sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet());
-    int updated = programStore.updateCategoryComboRefs(sourceIds, target.getId());
-    log.info("{} Programs updated with target CategoryCombo ref", updated);
-  }
-
-  /**
-   * Updates Program.enrollmentCategoryCombo references to point to the target CategoryCombo. Uses
-   * SQL approach for efficiency.
-   *
-   * @param sources list of source CategoryCombos
-   * @param target target CategoryCombo
-   */
-  public void handleProgramEnrollments(List<CategoryCombo> sources, CategoryCombo target) {
-    Set<Long> sourceIds =
-        sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet());
-    int updated = programStore.updateEnrollmentCategoryComboRefs(sourceIds, target.getId());
-    log.info("{} Program enrollment CategoryCombos updated with target CategoryCombo ref", updated);
+    int updated =
+        programStore.updateCategoryComboAndEnrollmentCategoryComboRefs(sourceIds, target.getId());
+    log.info(
+        "{} Programs (categorycombo and enrollment categorycombo) updated with target CategoryCombo ref",
+        updated);
   }
 
   /**
@@ -206,8 +180,8 @@ public class CategoryComboMergeHandler {
   }
 
   /**
-   * Updates ProgramIndicator.categoryCombo references to point to the target CategoryCombo. Uses
-   * SQL approach for efficiency.
+   * Updates ProgramIndicator.categoryCombo and ProgramIndicator.attributeCategoryCombo references
+   * to point to the target CategoryCombo. Uses SQL approach for efficiency.
    *
    * @param sources list of source CategoryCombos
    * @param target target CategoryCombo
@@ -216,22 +190,8 @@ public class CategoryComboMergeHandler {
       List<CategoryCombo> sources, CategoryCombo target) {
     Set<Long> sourceIds =
         sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet());
-    int updated = programIndicatorStore.updateCategoryComboRefs(sourceIds, target.getId());
+    int updated =
+        programIndicatorStore.updateCategoryComboAndAttributeComboRefs(sourceIds, target.getId());
     log.info("{} ProgramIndicator CategoryCombos updated with target CategoryCombo ref", updated);
-  }
-
-  /**
-   * Updates ProgramIndicator.attributeCombo references to point to the target CategoryCombo. Uses
-   * SQL approach for efficiency.
-   *
-   * @param sources list of source CategoryCombos
-   * @param target target CategoryCombo
-   */
-  public void handleProgramIndicatorAttributeCombos(
-      List<CategoryCombo> sources, CategoryCombo target) {
-    Set<Long> sourceIds =
-        sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet());
-    int updated = programIndicatorStore.updateAttributeComboRefs(sourceIds, target.getId());
-    log.info("{} ProgramIndicator AttributeCombos updated with target CategoryCombo ref", updated);
   }
 }

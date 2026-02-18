@@ -38,6 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -54,6 +55,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class ProgramDeletionHandler extends IdObjectDeletionHandler<Program> {
   private final ProgramService programService;
 
@@ -70,6 +72,7 @@ public class ProgramDeletionHandler extends IdObjectDeletionHandler<Program> {
   }
 
   private void deleteCategoryCombo(CategoryCombo categoryCombo) {
+    log.info("Starting deleteCategoryCombo handler - Program");
     CategoryCombo defaultCategoryCombo =
         categoryService.getCategoryComboByName(DEFAULT_CATEGORY_COMBO_NAME);
 
@@ -86,6 +89,7 @@ public class ProgramDeletionHandler extends IdObjectDeletionHandler<Program> {
 
       programsToUpdate.forEach(idObjectManager::updateNoAcl);
     }
+    log.info("Finished deleteCategoryCombo handler - Program");
   }
 
   private void deleteOrganisationUnit(OrganisationUnit unit) {
