@@ -157,7 +157,7 @@ public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId)
     return switch (name) {
       case CODE -> "CODE";
       case NAME -> "NAME";
-      case UID -> "ID";
+      case UID -> "UID";
       case ATTR -> "ATTRIBUTE:%s".formatted(attributeId);
     };
   }

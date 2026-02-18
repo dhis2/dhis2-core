@@ -333,7 +333,6 @@ public class AggregateDataExchangeService {
     if (inputIdScheme == null) inputIdScheme = IdScheme.UID;
 
     IdScheme outputIdScheme = IdScheme.of(request.getOutputIdScheme());
-    if (outputIdScheme == null) outputIdScheme = IdScheme.of(params.getOutputIdScheme());
     if (outputIdScheme == null) outputIdScheme = IdScheme.UID;
     IdScheme outputDataElementIdScheme = IdScheme.of(request.getOutputDataElementIdScheme());
     if (outputDataElementIdScheme == null) outputDataElementIdScheme = outputIdScheme;
@@ -341,6 +340,12 @@ public class AggregateDataExchangeService {
     if (outputOrgUnitIdScheme == null) outputOrgUnitIdScheme = outputIdScheme;
     IdScheme outputDataItemIdScheme = IdScheme.of(request.getOutputDataItemIdScheme());
     if (outputDataItemIdScheme == null) outputDataItemIdScheme = outputIdScheme;
+    if (params.getOutputIdScheme() != null) {
+      outputIdScheme = IdScheme.of(params.getOutputIdScheme());
+      outputDataElementIdScheme = outputIdScheme;
+      outputOrgUnitIdScheme = outputIdScheme;
+      outputDataItemIdScheme = outputIdScheme;
+    }
 
     IdScheme iis = inputIdScheme;
     List<DimensionalObject> filters =
