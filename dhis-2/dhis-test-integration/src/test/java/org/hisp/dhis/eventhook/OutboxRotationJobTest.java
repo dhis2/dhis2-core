@@ -34,19 +34,26 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ContextConfiguration(classes = {OutboxRotationJobTest.DhisConfigurationProviderTestConfig.class})
 class OutboxRotationJobTest extends PostgresIntegrationTestBase {
 
   @Autowired private OutboxRotationJob outboxRotationJob;
@@ -56,6 +63,19 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
   @Autowired private EventHookStore eventHookStore;
 
   @Autowired private JdbcTemplate jdbcTemplate;
+
+  public static class DhisConfigurationProviderTestConfig {
+    @Bean
+    public DhisConfigurationProvider dhisConfigurationProvider() {
+      Properties override = new Properties();
+      override.put(ConfigurationKey.EVENT_HOOKS_ENABLED.getKey(), "on");
+
+      PostgresDhisConfigurationProvider postgresDhisConfigurationProvider =
+          new PostgresDhisConfigurationProvider(null);
+      postgresDhisConfigurationProvider.addProperties(override);
+      return postgresDhisConfigurationProvider;
+    }
+  }
 
   @BeforeEach
   void beforeEach() {
