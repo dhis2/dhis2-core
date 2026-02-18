@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.webapi.filter;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.APP_HTML_CACHE_MAX_AGE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.STATIC_ASSETS_CACHE_MAX_AGE;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -47,38 +47,33 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Filter which enforces no cache for HTML pages like index pages to prevent stale versions being
- * rendered in clients.
+ * Filter which applies cache headers to static assets like JS/CSS/images when enabled.
  *
- * @author Kai Vandivier
+ * @author Jason P. Pickering
  */
 @Component
-public class AppHtmlNoCacheFilter extends OncePerRequestFilter {
-  // Match paths with '/dhis-web-' or '/apps' that end with '.html' or '/'
-  // https://regex101.com/r/4QfxgS/1
-  public static final String HTML_PATH_REGEX = "\\/(dhis-web-|apps).*(\\.html|\\/)$";
-  public static final Pattern HTML_PATH_PATTERN = Pattern.compile(HTML_PATH_REGEX);
+public class StaticAssetsCacheFilter extends OncePerRequestFilter {
+  // Match asset paths with '/dhis-web-' or '/apps' that end with common static extensions.
+  public static final String ASSET_PATH_REGEX =
+      "\\/(dhis-web-|apps).*(\\.(js|css|png|jpg|jpeg|gif|svg|webp|ico|woff2?|ttf|eot|map|properties))$";
+  public static final Pattern ASSET_PATH_PATTERN = Pattern.compile(ASSET_PATH_REGEX);
 
   private final long maxAgeSeconds;
 
-  public AppHtmlNoCacheFilter(DhisConfigurationProvider dhisConfig) {
-    this.maxAgeSeconds = parseMaxAgeSeconds(dhisConfig.getProperty(APP_HTML_CACHE_MAX_AGE));
+  public StaticAssetsCacheFilter(DhisConfigurationProvider dhisConfig) {
+    this.maxAgeSeconds = parseMaxAgeSeconds(dhisConfig.getProperty(STATIC_ASSETS_CACHE_MAX_AGE));
   }
 
   @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain chain)
       throws IOException, ServletException {
-
-    String uri = request.getRequestURI();
-    Matcher m = HTML_PATH_PATTERN.matcher(uri);
-
-    if (m.find() && HttpMethod.GET.matches(request.getMethod())) {
-      if (maxAgeSeconds > 0) {
+    if (maxAgeSeconds > 0 && HttpMethod.GET.matches(request.getMethod())) {
+      String uri = request.getRequestURI();
+      Matcher matcher = ASSET_PATH_PATTERN.matcher(uri);
+      if (matcher.find()) {
         ContextUtils.setCacheControl(
             response, CacheControl.maxAge(maxAgeSeconds, TimeUnit.SECONDS).cachePublic());
-      } else {
-        ContextUtils.setNoStore(response);
       }
     }
 
