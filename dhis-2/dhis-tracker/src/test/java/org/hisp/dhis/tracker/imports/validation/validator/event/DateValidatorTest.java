@@ -37,20 +37,23 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1047;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1050;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1051;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.domain.SingleEvent;
 import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
@@ -59,6 +62,11 @@ import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.EnumSource.Mode;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -68,9 +76,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DateValidatorTest extends TrackerTestBase {
 
-  private static final String PROGRAM_WITH_REGISTRATION_ID = "ProgramWithRegistration";
-
-  private static final String PROGRAM_WITHOUT_REGISTRATION_ID = "ProgramWithoutRegistration";
+  private static final String PROGRAM_ID = "ProgramId";
 
   private DateValidator validator;
 
@@ -92,13 +98,12 @@ class DateValidatorTest extends TrackerTestBase {
   }
 
   @Test
-  void testEventIsValid() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID)))
-        .thenReturn(getProgramWithoutRegistration());
+  void shouldPassWhenTrackerEventIsValid() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(0));
     Event event =
         TrackerEvent.builder()
             .event(UID.generate())
-            .program(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .occurredAt(now())
             .status(EventStatus.ACTIVE)
             .build();
@@ -108,14 +113,18 @@ class DateValidatorTest extends TrackerTestBase {
     assertIsEmpty(reporter.getErrors());
   }
 
-  @Test
-  void testEventIsNotValidWhenOccurredDateIsNotPresentAndProgramIsWithoutRegistration() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID)))
-        .thenReturn(getProgramWithoutRegistration());
+  @ParameterizedTest
+  @EnumSource(
+      value = EventStatus.class,
+      mode = Mode.INCLUDE,
+      names = {"ACTIVE", "COMPLETED"})
+  void shouldFailWhenTrackerEventMandatoryOccurredAtIsNotPresent(EventStatus eventStatus) {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(0));
     Event event =
         TrackerEvent.builder()
             .event(UID.generate())
-            .program(MetadataIdentifier.ofUid(PROGRAM_WITHOUT_REGISTRATION_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .status(eventStatus)
             .build();
 
     validator.validate(reporter, bundle, event);
@@ -124,14 +133,12 @@ class DateValidatorTest extends TrackerTestBase {
   }
 
   @Test
-  void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsActive() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration(5));
+  void shouldFailWhenSingleEventMandatoryOccurredAtIsNotPresent() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(0));
     Event event =
-        TrackerEvent.builder()
+        SingleEvent.builder()
             .event(UID.generate())
-            .program(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID))
-            .status(EventStatus.ACTIVE)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .build();
 
     validator.validate(reporter, bundle, event);
@@ -140,29 +147,12 @@ class DateValidatorTest extends TrackerTestBase {
   }
 
   @Test
-  void testEventIsNotValidWhenOccurredDateIsNotPresentAndEventIsCompleted() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration(5));
+  void shouldFailWhenTrackerEventScheduledDateIsNotPresentAndEventIsSchedule() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
     Event event =
         TrackerEvent.builder()
             .event(UID.generate())
-            .program(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID))
-            .status(EventStatus.COMPLETED)
-            .build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertHasError(reporter, event, E1031);
-  }
-
-  @Test
-  void testEventIsNotValidWhenScheduledDateIsNotPresentAndEventIsSchedule() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration(5));
-    Event event =
-        TrackerEvent.builder()
-            .event(UID.generate())
-            .program(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .occurredAt(Instant.now())
             .status(EventStatus.SCHEDULE)
             .build();
@@ -173,13 +163,12 @@ class DateValidatorTest extends TrackerTestBase {
   }
 
   @Test
-  void shouldFailWhenCompletedAtIsPresentAndStatusIsNotCompleted() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration(5));
+  void shouldFailWhenTrackerEventCompletedAtIsPresentAndStatusIsNotCompleted() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
     Event event =
         TrackerEvent.builder()
             .event(UID.generate())
-            .program(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .occurredAt(now())
             .completedAt(now())
             .status(EventStatus.ACTIVE)
@@ -191,13 +180,12 @@ class DateValidatorTest extends TrackerTestBase {
   }
 
   @Test
-  void testEventIsNotValidWhenCompletedAtIsTooSoonAndEventIsCompleted() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration(5));
+  void shouldFailWhenTrackerEventCompletedAtIsTooSoonAndEventIsCompleted() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
     Event event =
         TrackerEvent.builder()
             .event(UID.generate())
-            .program(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .occurredAt(now())
             .completedAt(sevenDaysAgo())
             .status(EventStatus.COMPLETED)
@@ -209,13 +197,12 @@ class DateValidatorTest extends TrackerTestBase {
   }
 
   @Test
-  void testEventIsNotValidWhenOccurredAtAndScheduledAtAreNotPresent() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration(5));
+  void shouldFailWhenTrackerEventOccurredAtAndScheduledAtAreNotPresent() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
     Event event =
         TrackerEvent.builder()
             .event(UID.generate())
-            .program(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .occurredAt(null)
             .scheduledAt(null)
             .status(EventStatus.SKIPPED)
@@ -226,34 +213,43 @@ class DateValidatorTest extends TrackerTestBase {
     assertHasError(reporter, event, E1046);
   }
 
-  @Test
-  void shouldFailValidationForEventWhenDateBelongsToExpiredPeriod() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration(5));
-    Event event =
-        TrackerEvent.builder()
-            .event(UID.generate())
-            .program(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID))
-            .occurredAt(sevenDaysAgo())
-            .status(EventStatus.ACTIVE)
-            .build();
+  @ParameterizedTest
+  @MethodSource("getEvents")
+  void shouldFailWhenEventDateBelongsToExpiredPeriod(Event event) {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
 
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, E1047);
   }
 
-  @Test
-  void shouldPassValidationForEventWhenDateBelongsToPastPeriodWithZeroExpiryDays() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration(0));
-    Event event =
-        TrackerEvent.builder()
-            .event(UID.generate())
-            .program(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID))
-            .occurredAt(sevenDaysAgo())
-            .status(EventStatus.ACTIVE)
-            .build();
+  @ParameterizedTest
+  @MethodSource("getEvents")
+  void shouldPassWhenEventDateBelongsToExpiredPeriodIfUserIsAuthorized(Event event) {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
+    UserDetails user = mock(UserDetails.class);
+    when(user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())).thenReturn(true);
+    bundle.setUser(user);
+
+    validator.validate(reporter, bundle, event);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @ParameterizedTest
+  @MethodSource("getEvents")
+  void shouldPassWhenEventDateBelongsToPastPeriodWithZeroExpiryDays(Event event) {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(0));
+
+    validator.validate(reporter, bundle, event);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @ParameterizedTest
+  @MethodSource("getEvents")
+  void shouldPassWhenTrackerEventDateBelongsPastEventPeriodButWithinExpiryDays(Event event) {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(7));
 
     validator.validate(reporter, bundle, event);
 
@@ -261,30 +257,12 @@ class DateValidatorTest extends TrackerTestBase {
   }
 
   @Test
-  void shouldPassValidationForEventWhenDateBelongsPastEventPeriodButWithinExpiryDays() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration(7));
+  void shouldPassWhenTrackerEventScheduledDateBelongsToFuturePeriod() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(5));
     Event event =
         TrackerEvent.builder()
             .event(UID.generate())
-            .program(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID))
-            .occurredAt(sevenDaysAgo())
-            .status(EventStatus.ACTIVE)
-            .build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void shouldPassValidationForEventWhenScheduledDateBelongsToFuturePeriod() {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
-        .thenReturn(getProgramWithRegistration(5));
-    Event event =
-        TrackerEvent.builder()
-            .event(UID.generate())
-            .program(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
             .scheduledAt(sevenDaysLater())
             .status(EventStatus.SCHEDULE)
             .build();
@@ -294,20 +272,32 @@ class DateValidatorTest extends TrackerTestBase {
     assertIsEmpty(reporter.getErrors());
   }
 
-  private Program getProgramWithRegistration(int expiryDays) {
+  private static Stream<Arguments> getEvents() {
+    Event trackerEvent =
+        TrackerEvent.builder()
+            .event(UID.generate())
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .occurredAt(sevenDaysAgo())
+            .status(EventStatus.ACTIVE)
+            .build();
+
+    Event singleEvent =
+        SingleEvent.builder()
+            .event(UID.generate())
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .occurredAt(sevenDaysAgo())
+            .status(EventStatus.ACTIVE)
+            .build();
+
+    return Stream.of(Arguments.of(trackerEvent), Arguments.of(singleEvent));
+  }
+
+  private Program getProgram(int expiryDays) {
     Program program = createProgram('A');
-    program.setUid(PROGRAM_WITH_REGISTRATION_ID);
-    program.setProgramType(ProgramType.WITH_REGISTRATION);
+    program.setUid(PROGRAM_ID);
     program.setCompleteEventsExpiryDays(5);
     program.setExpiryDays(expiryDays);
     program.setExpiryPeriodType(new DailyPeriodType());
-    return program;
-  }
-
-  private Program getProgramWithoutRegistration() {
-    Program program = createProgram('A');
-    program.setUid(PROGRAM_WITHOUT_REGISTRATION_ID);
-    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     return program;
   }
 
@@ -315,7 +305,7 @@ class DateValidatorTest extends TrackerTestBase {
     return Instant.now();
   }
 
-  private Instant sevenDaysAgo() {
+  private static Instant sevenDaysAgo() {
     return LocalDateTime.now().minusDays(7).toInstant(ZoneOffset.UTC);
   }
 
