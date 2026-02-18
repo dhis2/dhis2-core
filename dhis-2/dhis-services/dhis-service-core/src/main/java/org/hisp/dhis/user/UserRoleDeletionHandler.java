@@ -49,7 +49,7 @@ public class UserRoleDeletionHandler extends IdObjectDeletionHandler<UserRole> {
 
   private void deleteUser(User user) {
     UID currentUserUid = CurrentUserUtil.getCurrentUserDetails().getUID();
-    userRoleStore.updateLastUpdatedForUserRoles(user.getUID(), currentUserUid);
+    userRoleStore.updateLastUpdatedForMembershipsOf(user.getUID(), currentUserUid);
     userRoleStore.removeAllMemberships(user.getUID());
   }
 }

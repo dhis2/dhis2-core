@@ -147,7 +147,8 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
   }
 
   @Override
-  public void updateLastUpdatedForUserRoles(@Nonnull UID userUid, @Nonnull UID lastUpdatedByUid) {
+  public void updateLastUpdatedForMembershipsOf(
+      @Nonnull UID userUid, @Nonnull UID lastUpdatedByUid) {
     List<String> roleUids =
         jdbcTemplate.queryForList(
             """

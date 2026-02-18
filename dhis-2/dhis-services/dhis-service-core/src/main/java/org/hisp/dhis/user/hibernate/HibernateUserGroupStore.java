@@ -112,7 +112,8 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
   }
 
   @Override
-  public void updateLastUpdatedForUserGroups(@Nonnull UID userUid, @Nonnull UID lastUpdatedByUid) {
+  public void updateLastUpdatedForMembershipsOf(
+      @Nonnull UID userUid, @Nonnull UID lastUpdatedByUid) {
     List<String> groupUids =
         jdbcTemplate.queryForList(
             """

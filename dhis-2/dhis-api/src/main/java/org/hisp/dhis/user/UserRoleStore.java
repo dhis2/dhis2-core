@@ -82,21 +82,24 @@ public interface UserRoleStore extends IdentifiableObjectStore<UserRole> {
   void removeAllMembershipsForRole(@Nonnull UID userRoleUid);
 
   /**
-   * Updates the lastUpdated timestamp and lastUpdatedBy user for a user role directly via SQL. This
-   * avoids loading the entity through Hibernate which can trigger lazy initialization of the
-   * members collection.
+   * Updates the lastUpdated timestamp and lastUpdatedBy user for a <em>single</em> user role
+   * identified by its own UID, directly via SQL. This avoids loading the entity through Hibernate
+   * which can trigger lazy initialization of the members collection.
    *
    * @param userRoleUid the UID of the user role to update
    * @param lastUpdatedByUid the UID of the user performing the update
+   * @see #updateLastUpdatedForMembershipsOf(UID, UID)
    */
   void updateLastUpdated(@Nonnull UID userRoleUid, @Nonnull UID lastUpdatedByUid);
 
   /**
-   * Updates the lastUpdated timestamp and lastUpdatedBy user for all user roles that the given user
-   * belongs to, directly via SQL.
+   * Updates the lastUpdated timestamp and lastUpdatedBy user for <em>all</em> user roles that the
+   * given user is a member of, directly via SQL. The first argument is a <em>user</em> UID, not a
+   * role UID — contrast with {@link #updateLastUpdated(UID, UID)} which targets a single role by
+   * its own UID.
    *
-   * @param userUid the UID of the user whose roles should be updated
+   * @param userUid the UID of the user whose role memberships should be touched
    * @param lastUpdatedByUid the UID of the user performing the update
    */
-  void updateLastUpdatedForUserRoles(@Nonnull UID userUid, @Nonnull UID lastUpdatedByUid);
+  void updateLastUpdatedForMembershipsOf(@Nonnull UID userUid, @Nonnull UID lastUpdatedByUid);
 }
