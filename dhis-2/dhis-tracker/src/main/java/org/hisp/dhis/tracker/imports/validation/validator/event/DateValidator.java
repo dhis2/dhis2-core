@@ -69,12 +69,11 @@ class DateValidator implements Validator<Event> {
       return;
     }
 
-    if (event instanceof TrackerEvent trackerEvent) {
-      if (trackerEvent.getScheduledAt() == null
-          && EventStatus.SCHEDULE == trackerEvent.getStatus()) {
-        reporter.addError(trackerEvent, E1050, trackerEvent);
-        return;
-      }
+    if (event instanceof TrackerEvent trackerEvent
+        && trackerEvent.getScheduledAt() == null
+        && EventStatus.SCHEDULE == trackerEvent.getStatus()) {
+      reporter.addError(trackerEvent, E1050, trackerEvent);
+      return;
     }
     validateExpiryPeriodType(reporter, event, program, bundle.getUser());
     validateCompletedDateIsSetOnlyForSupportedStatus(reporter, event);
