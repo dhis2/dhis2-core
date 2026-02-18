@@ -33,7 +33,10 @@ import com.google.common.base.MoreObjects;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
+import java.util.Map;
+import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,8 +44,7 @@ import net.ttddyy.dsproxy.listener.logging.DefaultQueryLogEntryCreator;
 import net.ttddyy.dsproxy.listener.logging.SLF4JLogLevel;
 import net.ttddyy.dsproxy.listener.logging.SLF4JQueryLoggingListener;
 import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
-import org.hibernate.engine.jdbc.internal.FormatStyle;
-import org.hibernate.engine.jdbc.internal.Formatter;
+import net.ttddyy.dsproxy.transform.TransformInfo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
@@ -50,6 +52,7 @@ import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.slf4j.MDC;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -95,7 +98,7 @@ public class DataSourceConfig {
   @Primary
   @Bean("actualDataSource")
   public DataSource dataSource(DhisConfigurationProvider config) {
-    return createLoggingDataSource(config, actualDataSource(config));
+    return createProxyDataSource(config, actualDataSource(config));
   }
 
   private DataSource actualDataSource(DhisConfigurationProvider config) {
@@ -121,21 +124,16 @@ public class DataSourceConfig {
     }
   }
 
-  static DataSource createLoggingDataSource(
-      DhisConfigurationProvider dhisConfig, DataSource actualDataSource) {
-    boolean enableQueryLogging = dhisConfig.isEnabled(ConfigurationKey.ENABLE_QUERY_LOGGING);
+  private static final String[] MDC_KEYS = {"controller", "action", "sessionId", "xRequestID"};
 
-    if (!enableQueryLogging) {
+  static DataSource createProxyDataSource(
+      DhisConfigurationProvider dhisConfig, DataSource actualDataSource) {
+    boolean queryLogging = dhisConfig.isEnabled(ConfigurationKey.ENABLE_QUERY_LOGGING);
+    boolean queryComments = dhisConfig.isEnabled(ConfigurationKey.LOGGING_QUERY_COMMENTS);
+
+    if (!queryLogging && !queryComments) {
       return actualDataSource;
     }
-
-    PrettyQueryEntryCreator creator = new PrettyQueryEntryCreator();
-    creator.setMultiline(true);
-
-    SLF4JQueryLoggingListener listener = new SLF4JQueryLoggingListener();
-    listener.setLogger("org.hisp.dhis.datasource.query");
-    listener.setLogLevel(SLF4JLogLevel.INFO);
-    listener.setQueryLogEntryCreator(creator);
 
     ProxyDataSourceBuilder builder =
         ProxyDataSourceBuilder.create(actualDataSource)
@@ -143,29 +141,61 @@ public class DataSourceConfig {
                 "ProxyDS_DHIS2_"
                     + dhisConfig.getProperty(ConfigurationKey.DB_POOL_TYPE)
                     + "_"
-                    + CodeGenerator.generateCode(5))
-            .logSlowQueryBySlf4j(
-                Integer.parseInt(
-                    dhisConfig.getProperty(ConfigurationKey.SLOW_QUERY_LOGGING_THRESHOLD_TIME_MS)),
-                TimeUnit.MILLISECONDS,
-                SLF4JLogLevel.WARN)
-            .listener(listener);
+                    + CodeGenerator.generateCode(5));
+
+    if (queryLogging) {
+      SingleLineQueryEntryCreator creator = new SingleLineQueryEntryCreator();
+
+      SLF4JQueryLoggingListener listener = new SLF4JQueryLoggingListener();
+      listener.setLogger("org.hisp.dhis.datasource.query");
+      listener.setLogLevel(SLF4JLogLevel.INFO);
+      listener.setQueryLogEntryCreator(creator);
+
+      builder
+          .logSlowQueryBySlf4j(
+              Integer.parseInt(
+                  dhisConfig.getProperty(ConfigurationKey.SLOW_QUERY_LOGGING_THRESHOLD_TIME_MS)),
+              TimeUnit.MILLISECONDS,
+              SLF4JLogLevel.WARN)
+          .listener(listener);
+    }
+
+    if (queryComments) {
+      builder.queryTransformer(DataSourceConfig::addMdcComment);
+    }
 
     return builder.build();
   }
 
-  private static class PrettyQueryEntryCreator extends DefaultQueryLogEntryCreator {
-    private final Formatter formatter = FormatStyle.BASIC.getFormatter();
+  static String addMdcComment(TransformInfo transformInfo) {
+    String query = transformInfo.getQuery();
+    Map<String, String> mdc = MDC.getCopyOfContextMap();
+    if (mdc == null || mdc.isEmpty()) {
+      return query;
+    }
 
+    StringJoiner joiner = new StringJoiner(",");
+    for (String key : MDC_KEYS) {
+      String value = mdc.get(key);
+      if (value != null) {
+        joiner.add(key + "='" + value + "'");
+      }
+    }
+
+    if (joiner.length() == 0) {
+      return query;
+    }
+
+    return "/* " + joiner + " */ " + query;
+  }
+
+  private static final Pattern WHITESPACE = Pattern.compile("\\s+");
+
+  /** Collapses multi-line SQL into a single line for log parsing. */
+  private static class SingleLineQueryEntryCreator extends DefaultQueryLogEntryCreator {
     @Override
     protected String formatQuery(String query) {
-      try {
-        return this.formatter.format(query) + "\n";
-      } catch (Exception e) {
-        log.error("Query formatter failed!", e);
-      }
-
-      return "Formatter error!";
+      return WHITESPACE.matcher(query).replaceAll(" ");
     }
   }
 }

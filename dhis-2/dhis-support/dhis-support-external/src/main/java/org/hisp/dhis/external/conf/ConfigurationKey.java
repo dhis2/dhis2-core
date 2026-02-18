@@ -667,8 +667,8 @@ public enum ConfigurationKey {
   /** Database debugging feature. Enables logging of all SQL queries to the log. */
   ENABLE_QUERY_LOGGING("enable.query.logging", Constants.OFF, false),
 
-  /** Database debugging feature. Defines database logging before/after methods. */
-  METHOD_QUERY_LOGGING_ENABLED("method.query.logging.enabled", Constants.OFF, false),
+  /** Prepends SQL comments with MDC context (controller, action, sessionId, xRequestID). */
+  LOGGING_QUERY_COMMENTS("logging.query.comments", Constants.OFF, false),
 
   /**
    * Database debugging feature. Enable time query logging.
