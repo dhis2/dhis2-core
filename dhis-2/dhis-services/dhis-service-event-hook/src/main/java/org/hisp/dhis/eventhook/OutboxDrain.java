@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
+import javax.annotation.concurrent.NotThreadSafe;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
@@ -77,6 +78,7 @@ import reactor.core.publisher.Flux;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@NotThreadSafe
 public class OutboxDrain {
   private final LeaderManager leaderManager;
   private final Map<UID, Semaphore> semaphores = new HashMap<>();
@@ -128,19 +130,27 @@ public class OutboxDrain {
   public void drainOutboxes() {
     if (dhisConfig.isEnabled(ConfigurationKey.EVENT_HOOKS_ENABLED) && leaderManager.isLeader()) {
       try (EntityManager em = entityManagerFactory.createEntityManager()) {
-        for (EventHookTargets eventHookTargets : eventHookService.getEventHookTargets()) {
-          Semaphore semaphore =
-              semaphores.computeIfAbsent(
-                  eventHookTargets.getEventHook().getUID(), s -> new Semaphore(1));
+        List<EventHookTargets> eventHooksTargets = eventHookService.getEventHookTargets();
+        Map<UID, Semaphore> activeSemaphores = new HashMap<>();
+        for (EventHookTargets eventHookTargets : eventHooksTargets) {
+          Semaphore semaphore = null;
           try {
+            semaphore =
+                semaphores.getOrDefault(eventHookTargets.getEventHook().getUID(), new Semaphore(1));
+            activeSemaphores.put(eventHookTargets.getEventHook().getUID(), semaphore);
             if (semaphore.tryAcquire()) {
               drainOutbox(eventHookTargets, semaphore, em);
             }
           } catch (Throwable t) {
-            semaphore.release();
+            if (semaphore != null) {
+              semaphore.release();
+            }
             log.error(t.getMessage(), t);
           }
         }
+
+        semaphores.clear();
+        semaphores.putAll(activeSemaphores);
       }
     }
   }
