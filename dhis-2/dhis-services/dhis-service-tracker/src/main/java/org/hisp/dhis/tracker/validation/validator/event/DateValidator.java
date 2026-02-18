@@ -74,7 +74,7 @@ class DateValidator implements Validator<Event> {
     }
 
     validateCompletionExpiryDays(reporter, bundle, event, program);
-    validateExpiryPeriodType(reporter, event, program);
+    validateExpiryPeriodType(reporter, event, program, bundle.getUser());
   }
 
   private void validateCompletionExpiryDays(
@@ -101,14 +101,16 @@ class DateValidator implements Validator<Event> {
     }
   }
 
-  private void validateExpiryPeriodType(Reporter reporter, Event event, Program program) {
+  private void validateExpiryPeriodType(
+      Reporter reporter, Event event, Program program, User user) {
     checkNotNull(event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL);
     checkNotNull(program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL);
 
     PeriodType periodType = program.getExpiryPeriodType();
 
-    if (periodType == null || program.getExpiryDays() == 0) {
-      // Nothing more to check here, return out
+    if (periodType == null
+        || program.getExpiryDays() == 0
+        || user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       return;
     }
 
