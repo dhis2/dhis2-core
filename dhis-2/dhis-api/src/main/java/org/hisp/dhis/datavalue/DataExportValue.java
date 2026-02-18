@@ -159,10 +159,5 @@ public record DataExportValue(
           null,
           false);
     }
-
-    public DataValueKey.Input getKey() {
-      return new DataValueKey.Input(
-          dataElement, orgUnit, categoryOptionCombo, attributeOptionCombo, period);
-    }
   }
 }

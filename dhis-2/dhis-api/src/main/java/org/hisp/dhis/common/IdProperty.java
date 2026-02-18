@@ -31,6 +31,8 @@ package org.hisp.dhis.common;
 
 import static java.util.Objects.requireNonNull;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import java.io.Serializable;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
@@ -42,7 +44,8 @@ import javax.annotation.Nonnull;
  * @author Jan Bernitt
  * @since 2.43
  */
-public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId) {
+public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId)
+    implements Serializable {
 
   public static final IdProperty UID = new IdProperty(Name.UID, null);
   public static final IdProperty CODE = new IdProperty(Name.CODE, null);
@@ -67,6 +70,11 @@ public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId) {
       case UUID ->
           throw new UnsupportedOperationException("UUID is not supported for this operation");
     };
+  }
+
+  @Nonnull
+  public static IdProperty of(@Nonnull UID attributeId) {
+    return new IdProperty(Name.ATTR, attributeId);
   }
 
   public static IdProperty of(@CheckForNull IdScheme scheme) {
@@ -118,6 +126,19 @@ public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId) {
             "Invalid ID scheme: %s\n\tUse UID, CODE, NAME, ATTRIBUTE:<uid>".formatted(scheme));
       }
     };
+  }
+
+  /**
+   * @apiNote When creating an {@link IdProperty} from a nullable {@link String} the output must
+   *     also be nullable to allow implementing the fallback logic of a common {@link IdProperty}.
+   *     This is why this factory method is used to deserialize from JSON.
+   * @param scheme as provided by user input
+   * @return input as {@link IdProperty} or null for null input
+   */
+  @JsonCreator
+  @CheckForNull
+  public static IdProperty ofNullable(@CheckForNull String scheme) {
+    return scheme == null ? null : of(scheme);
   }
 
   public enum Name {

@@ -101,11 +101,6 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementOperand.TotalType;
-import org.hisp.dhis.datavalue.DataEntryGroup;
-import org.hisp.dhis.datavalue.DataEntryValue;
-import org.hisp.dhis.datavalue.DataExportGroup;
-import org.hisp.dhis.datavalue.DataExportValue;
-import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
@@ -501,81 +496,6 @@ public final class AnalyticsUtils {
     return dvs;
   }
 
-  public static DataEntryGroup.Input toDataEntryGroup(DataQueryParams params, Grid grid) {
-    validateGridForDataValueSet(grid);
-
-    int dxInx = grid.getIndexOfHeader(DATA_X_DIM_ID);
-    int peInx = grid.getIndexOfHeader(PERIOD_DIM_ID);
-    int ouInx = grid.getIndexOfHeader(ORGUNIT_DIM_ID);
-    int coInx = grid.getIndexOfHeader(CATEGORYOPTIONCOMBO_DIM_ID);
-    int aoInx = grid.getIndexOfHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID);
-    int vlInx = grid.getHeaderWidth() - 1;
-
-    Set<DataValueKey.Input> primaryKeys = new HashSet<>();
-
-    List<List<Object>> rows = grid.getRows();
-    List<DataEntryValue.Input> values = new ArrayList<>(rows.size());
-    for (List<Object> row : rows) {
-      Object coc = row.get(coInx);
-      Object aoc = row.get(aoInx);
-
-      DataEntryValue.Input dv =
-          new DataEntryValue.Input(
-              String.valueOf(row.get(dxInx)),
-              String.valueOf(row.get(ouInx)),
-              coc != null ? String.valueOf(coc) : null,
-              aoc != null ? String.valueOf(aoc) : null,
-              String.valueOf(row.get(peInx)),
-              String.valueOf(row.get(vlInx)),
-              KEY_AGG_VALUE);
-
-      if (!params.isDuplicatesOnly() || !primaryKeys.add(dv.getKey())) {
-        values.add(dv);
-      }
-    }
-
-    return new DataEntryGroup.Input(values);
-  }
-
-  public static DataExportGroup.Output toDataExportGroup(DataQueryParams params, Grid grid) {
-    validateGridForDataValueSet(grid);
-
-    int dxInx = grid.getIndexOfHeader(DATA_X_DIM_ID);
-    int peInx = grid.getIndexOfHeader(PERIOD_DIM_ID);
-    int ouInx = grid.getIndexOfHeader(ORGUNIT_DIM_ID);
-    int coInx = grid.getIndexOfHeader(CATEGORYOPTIONCOMBO_DIM_ID);
-    int aoInx = grid.getIndexOfHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID);
-    int vlInx = grid.getHeaderWidth() - 1;
-
-    Set<DataValueKey.Input> primaryKeys = new HashSet<>();
-
-    List<List<Object>> rows = grid.getRows();
-    List<DataExportValue.Output> values = new ArrayList<>(rows.size());
-    for (List<Object> row : rows) {
-      Object coc = row.get(coInx);
-      Object aoc = row.get(aoInx);
-
-      DataExportValue.Output dv =
-          new DataExportValue.Output(
-              String.valueOf(row.get(dxInx)),
-              String.valueOf(row.get(ouInx)),
-              coc != null ? String.valueOf(coc) : null,
-              aoc != null ? String.valueOf(aoc) : null,
-              String.valueOf(row.get(peInx)),
-              ValueType
-                  .INTEGER, // unknown, but JSON serialisation does not care so anything is fine
-              String.valueOf(row.get(vlInx)),
-              KEY_AGG_VALUE);
-
-      if (!params.isDuplicatesOnly() || !primaryKeys.add(dv.getKey())) {
-        values.add(dv);
-      }
-    }
-
-    DataExportGroup.Ids ids = new DataExportGroup.Ids();
-    return new DataExportGroup.Output(ids, null, null, null, null, null, null, values.stream());
-  }
-
   /**
    * Retrieve fallback date parsed by dhis modified format yyyy-MM-dd'T'HH.mm or ..mm.ss
    * 2024-04-04T15.00
@@ -654,7 +574,7 @@ public final class AnalyticsUtils {
    * @param grid the {@link Grid}.
    * @throws IllegalArgumentException if validation fails.
    */
-  private static void validateGridForDataValueSet(Grid grid) {
+  public static void validateGridForDataValueSet(Grid grid) {
     isTrue(grid.headerExists(DATA_X_DIM_ID), "Data header does not exist");
     isTrue(grid.headerExists(PERIOD_DIM_ID), "Period header does not exist");
     isTrue(grid.headerExists(ORGUNIT_DIM_ID), "Org unit header does not exist");

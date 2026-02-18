@@ -37,7 +37,6 @@ import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdProperty;
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.period.Period;
 
@@ -155,17 +154,24 @@ public record DataExportGroup(
           IdProperty.UID);
     }
 
-    public static DataExportGroup.Ids of(IdSchemes schemes) {
-      return schemes == null
-          ? null
-          : new DataExportGroup.Ids(
-              IdProperty.of(schemes.getDataSetIdScheme()),
-              IdProperty.of(schemes.getDataElementIdScheme()),
-              IdProperty.of(schemes.getOrgUnitIdScheme()),
-              IdProperty.of(schemes.getCategoryOptionComboIdScheme()),
-              IdProperty.of(schemes.getAttributeOptionComboIdScheme()),
-              IdProperty.of(schemes.getCategoryOptionIdScheme()),
-              IdProperty.of(schemes.getCategoryIdScheme()));
+    public static DataExportGroup.Ids of(
+        @CheckForNull IdProperty fallback,
+        @CheckForNull IdProperty dataSets,
+        @CheckForNull IdProperty dataElements,
+        @CheckForNull IdProperty orgUnits,
+        @CheckForNull IdProperty categoryOptionCombos,
+        @CheckForNull IdProperty attributeOptionCombos,
+        @CheckForNull IdProperty categoryOptions,
+        @CheckForNull IdProperty categories) {
+      IdProperty nullValue = fallback == null ? IdProperty.UID : fallback;
+      return new DataExportGroup.Ids(
+          dataSets == null ? nullValue : dataSets,
+          dataElements == null ? nullValue : dataElements,
+          orgUnits == null ? nullValue : orgUnits,
+          categoryOptionCombos == null ? nullValue : categoryOptionCombos,
+          attributeOptionCombos == null ? nullValue : attributeOptionCombos,
+          categoryOptions == null ? nullValue : categoryOptions,
+          categories == null ? nullValue : categories);
     }
   }
 }

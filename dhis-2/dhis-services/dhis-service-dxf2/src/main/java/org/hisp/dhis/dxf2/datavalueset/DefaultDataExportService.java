@@ -120,7 +120,7 @@ public class DefaultDataExportService implements DataExportService {
       validateFilters(params);
       validateAccess(params);
     }
-    DataExportGroup.Ids encodeTo = DataExportGroup.Ids.of(parameters.getOutputIdSchemes());
+    DataExportGroup.Ids encodeTo = parameters.getOutputIdSchemes();
     UID ds = getUnique(params.getDataSets());
     Period pe = getUnique(params.getPeriods());
     UID ou = getUnique(params.getOrganisationUnits());
@@ -187,7 +187,7 @@ public class DefaultDataExportService implements DataExportService {
         groups.add(new DataExportGroup(ds, peG, ouG, aocG, valuesG.stream()));
     }
 
-    DataExportGroup.Ids encodeTo = DataExportGroup.Ids.of(parameters.getOutputIdSchemes());
+    DataExportGroup.Ids encodeTo = parameters.getOutputIdSchemes();
     List<DataExportGroup.Output> res = new ArrayList<>(groups.size());
     DataExportParams.EncodingParams encoding = parameters.geEncodingParams();
     for (DataExportGroup g : groups) res.add(encodeGroup(g, encodeTo, encoding));

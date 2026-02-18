@@ -766,7 +766,7 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
             getDataValue("DE_C", "201202", "OU_B", "10012"));
 
     DataEntryGroup.Ids ids =
-        new DataEntryGroup.Ids().dataElements(IdProperty.CODE).orgUnits(IdProperty.CODE);
+        DataEntryGroup.Ids.of(null, null, IdProperty.CODE, IdProperty.CODE, null, null, null, null);
     DataEntrySummary summary =
         dataEntryService.upsertGroup(
             new DataEntryGroup.Options(),

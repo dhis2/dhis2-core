@@ -161,10 +161,5 @@ public record DataEntryValue(
           null,
           null);
     }
-
-    public DataValueKey.Input getKey() {
-      return new DataValueKey.Input(
-          dataElement, orgUnit, categoryOptionCombo, attributeOptionCombo, period);
-    }
   }
 }

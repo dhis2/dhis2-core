@@ -38,7 +38,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -49,7 +48,7 @@ import lombok.Setter;
 import lombok.Value;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.Compression;
-import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
@@ -107,8 +106,6 @@ public class DataExportParams {
   /* Paging */
   Integer limit;
   Integer offset;
-
-  IdSchemes outputIdSchemes;
 
   public boolean hasDataElementFilters() {
     return notEmpty(dataSets) || notEmpty(dataElements) || notEmpty(dataElementGroups);
@@ -240,17 +237,14 @@ public class DataExportParams {
      * output)
      */
 
-    private String idScheme;
-    private String dataElementIdScheme;
-    private String categoryOptionComboIdScheme;
-    private String categoryOptionIdScheme;
-    private String categoryIdScheme;
-    private String orgUnitIdScheme;
-    private String programIdScheme;
-    private String programStageIdScheme;
-    private String trackedEntityAttributeIdScheme;
-    private String dataSetIdScheme;
-    private String attributeOptionComboIdScheme;
+    private IdProperty idScheme;
+    private IdProperty dataElementIdScheme;
+    private IdProperty categoryOptionComboIdScheme;
+    private IdProperty categoryOptionIdScheme;
+    private IdProperty categoryIdScheme;
+    private IdProperty orgUnitIdScheme;
+    private IdProperty dataSetIdScheme;
+    private IdProperty attributeOptionComboIdScheme;
 
     @OpenApi.Description(
         """
@@ -272,33 +266,20 @@ public class DataExportParams {
     private boolean excludeDefaultAoc;
 
     @OpenApi.Ignore
-    public IdSchemes getOutputIdSchemes() {
-      IdSchemes schemes = new IdSchemes();
-      setNonNull(schemes, idScheme, IdSchemes::setIdScheme);
-      setNonNull(schemes, dataElementIdScheme, IdSchemes::setDataElementIdScheme);
-      setNonNull(schemes, categoryOptionComboIdScheme, IdSchemes::setCategoryOptionComboIdScheme);
-      setNonNull(schemes, categoryOptionIdScheme, IdSchemes::setCategoryOptionIdScheme);
-      setNonNull(schemes, categoryIdScheme, IdSchemes::setCategoryIdScheme);
-      setNonNull(schemes, orgUnitIdScheme, IdSchemes::setOrgUnitIdScheme);
-      setNonNull(schemes, programIdScheme, IdSchemes::setProgramIdScheme);
-      setNonNull(schemes, programStageIdScheme, IdSchemes::setProgramStageIdScheme);
-      setNonNull(
-          schemes, trackedEntityAttributeIdScheme, IdSchemes::setTrackedEntityAttributeIdScheme);
-      setNonNull(schemes, dataSetIdScheme, IdSchemes::setDataSetIdScheme);
-      setNonNull(schemes, attributeOptionComboIdScheme, IdSchemes::setAttributeOptionComboIdScheme);
-      return schemes;
+    public DataExportGroup.Ids getOutputIdSchemes() {
+      return new DataExportGroup.Ids(
+          idScheme,
+          dataElementIdScheme,
+          orgUnitIdScheme,
+          categoryOptionComboIdScheme,
+          attributeOptionComboIdScheme,
+          categoryOptionIdScheme,
+          categoryIdScheme);
     }
 
     public EncodingParams geEncodingParams() {
       return new EncodingParams(
           Boolean.TRUE.equals(unfoldOptionCombos), excludeDefaultCoc, excludeDefaultAoc);
-    }
-
-    private static void setNonNull(
-        IdSchemes schemes, String property, BiFunction<IdSchemes, String, IdSchemes> setter) {
-      if (property != null) {
-        setter.apply(schemes, property);
-      }
     }
 
     @Nonnull

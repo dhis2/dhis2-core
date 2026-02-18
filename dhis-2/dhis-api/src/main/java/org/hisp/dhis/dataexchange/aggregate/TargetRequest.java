@@ -48,19 +48,19 @@ import org.hisp.dhis.importexport.ImportStrategy;
 @Accessors(chain = true)
 public class TargetRequest implements Serializable {
   /** Data element identifier scheme. */
-  @JsonProperty private String dataElementIdScheme;
+  @JsonProperty private IdProperty dataElementIdScheme;
 
   /** Org unit identifier scheme. */
-  @JsonProperty private String orgUnitIdScheme;
+  @JsonProperty private IdProperty orgUnitIdScheme;
 
   /** Category option combination identifier scheme. */
-  @JsonProperty private String categoryOptionComboIdScheme;
+  @JsonProperty private IdProperty categoryOptionComboIdScheme;
 
   /** General identifier scheme. */
-  @JsonProperty private String idScheme;
+  @JsonProperty private IdProperty idScheme;
 
   /** Import strategy. */
-  @JsonProperty private ImportStrategy importStrategy;
+  @JsonProperty private ImportStrategy importStrategy = ImportStrategy.CREATE_AND_UPDATE;
 
   /** Indicates whether to skip audit records. */
   @JsonProperty private Boolean skipAudit;
@@ -79,15 +79,15 @@ public class TargetRequest implements Serializable {
    */
   @JsonIgnore
   public DataExportGroup.Ids getExportIds() {
-    IdProperty others = IdProperty.of(idScheme);
-    return new DataExportGroup.Ids(
-        others,
-        IdProperty.of(dataElementIdScheme, idScheme),
-        IdProperty.of(orgUnitIdScheme, idScheme),
-        IdProperty.of(categoryOptionComboIdScheme, idScheme),
-        IdProperty.of(categoryOptionComboIdScheme, idScheme),
-        others,
-        others);
+    return DataExportGroup.Ids.of(
+        idScheme,
+        null,
+        dataElementIdScheme,
+        orgUnitIdScheme,
+        categoryOptionComboIdScheme,
+        null,
+        null,
+        null);
   }
 
   /**
@@ -95,14 +95,14 @@ public class TargetRequest implements Serializable {
    */
   @JsonIgnore
   public DataEntryGroup.Ids getEntryIds() {
-    IdProperty others = IdProperty.of(idScheme);
-    return new DataEntryGroup.Ids(
-        others,
-        IdProperty.of(dataElementIdScheme, idScheme),
-        IdProperty.of(orgUnitIdScheme, idScheme),
-        IdProperty.of(categoryOptionComboIdScheme, idScheme),
-        IdProperty.of(categoryOptionComboIdScheme, idScheme),
-        others,
-        others);
+    return DataEntryGroup.Ids.of(
+        idScheme,
+        null,
+        dataElementIdScheme,
+        orgUnitIdScheme,
+        categoryOptionComboIdScheme,
+        null,
+        null,
+        null);
   }
 }
