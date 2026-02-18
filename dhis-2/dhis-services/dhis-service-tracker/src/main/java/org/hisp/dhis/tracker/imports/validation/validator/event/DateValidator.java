@@ -74,7 +74,7 @@ class DateValidator implements Validator<Event> {
 
     validateCompletedDateIsSetOnlyForSupportedStatus(reporter, event);
     validateCompletionExpiryDays(reporter, event, program, bundle.getUser());
-    validateExpiryPeriodType(reporter, event, program);
+    validateExpiryPeriodType(reporter, event, program, bundle.getUser());
   }
 
   private void validateCompletedDateIsSetOnlyForSupportedStatus(Reporter reporter, Event event) {
@@ -97,11 +97,13 @@ class DateValidator implements Validator<Event> {
     }
   }
 
-  private void validateExpiryPeriodType(Reporter reporter, Event event, Program program) {
+  private void validateExpiryPeriodType(
+      Reporter reporter, Event event, Program program, UserDetails user) {
     PeriodType periodType = program.getExpiryPeriodType();
 
-    if (periodType == null || program.getExpiryDays() == 0) {
-      // Nothing more to check here, return out
+    if (periodType == null
+        || program.getExpiryDays() == 0
+        || user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       return;
     }
 

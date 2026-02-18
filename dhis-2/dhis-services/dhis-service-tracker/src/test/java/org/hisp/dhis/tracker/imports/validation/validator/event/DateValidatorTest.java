@@ -37,6 +37,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1047;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1050;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1051;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
@@ -47,6 +48,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.period.DailyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.TestBase;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -262,6 +264,26 @@ class DateValidatorTest extends TestBase {
     event.setProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID));
     event.setScheduledAt(sevenDaysLater());
     event.setStatus(EventStatus.SCHEDULE);
+
+    validator.validate(reporter, bundle, event);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldPassValidationForEventWhenDateBelongsToExpiredPeriodIfUserIsAuthorized() {
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID)))
+        .thenReturn(getProgramWithRegistration(5));
+    UserDetails user = mock(UserDetails.class);
+    when(user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())).thenReturn(true);
+    bundle.setUser(user);
+    Event event =
+        Event.builder()
+            .event(UID.generate())
+            .program(MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION_ID))
+            .occurredAt(sevenDaysAgo())
+            .status(EventStatus.ACTIVE)
+            .build();
 
     validator.validate(reporter, bundle, event);
 
