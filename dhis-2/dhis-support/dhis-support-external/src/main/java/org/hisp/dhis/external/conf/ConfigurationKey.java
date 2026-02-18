@@ -667,10 +667,16 @@ public enum ConfigurationKey {
   /** Database debugging feature. Enables logging of all SQL queries to the log. */
   ENABLE_QUERY_LOGGING("enable.query.logging", Constants.OFF, false),
 
-  /** Database debugging feature. Defines database logging before/after methods */
+  /** Database debugging feature. Defines database logging before/after methods. */
   METHOD_QUERY_LOGGING_ENABLED("method.query.logging.enabled", Constants.OFF, false),
 
-  /** Database debugging feature. Enable time query logging. */
+  /**
+   * Database debugging feature. Enable time query logging.
+   *
+   * @deprecated for removal in v44, datasource-proxy already includes elapsed time in every log
+   *     entry
+   */
+  @Deprecated(since = "v43", forRemoval = true)
   ELAPSED_TIME_QUERY_LOGGING_ENABLED("elapsed.time.query.logging.enabled", Constants.OFF, false),
 
   /**

@@ -33,12 +33,10 @@ import com.google.common.base.MoreObjects;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.ttddyy.dsproxy.listener.MethodExecutionContext;
 import net.ttddyy.dsproxy.listener.logging.DefaultQueryLogEntryCreator;
 import net.ttddyy.dsproxy.listener.logging.SLF4JLogLevel;
 import net.ttddyy.dsproxy.listener.logging.SLF4JQueryLoggingListener;
@@ -151,61 +149,17 @@ public class DataSourceConfig {
                     dhisConfig.getProperty(ConfigurationKey.SLOW_QUERY_LOGGING_THRESHOLD_TIME_MS)),
                 TimeUnit.MILLISECONDS,
                 SLF4JLogLevel.WARN)
-            .listener(listener)
-            .proxyResultSet();
-
-    boolean elapsedTimeLogging =
-        dhisConfig.isEnabled(ConfigurationKey.ELAPSED_TIME_QUERY_LOGGING_ENABLED);
-    boolean methodLoggingEnabled =
-        dhisConfig.isEnabled(ConfigurationKey.METHOD_QUERY_LOGGING_ENABLED);
-
-    if (methodLoggingEnabled) {
-      builder.afterMethod(DataSourceConfig::executeAfterMethod);
-    }
-
-    if (elapsedTimeLogging) {
-      builder.afterQuery(
-          (execInfo, queryInfoList) ->
-              log.info("Query took " + execInfo.getElapsedTime() + "msec"));
-    }
+            .listener(listener);
 
     return builder.build();
   }
 
-  private static void executeAfterMethod(MethodExecutionContext executionContext) {
-    Thread thread = Thread.currentThread();
-    StackTraceElement[] stackTrace = thread.getStackTrace();
-
-    for (int i = 0; i < stackTrace.length; i++) {
-      StackTraceElement stackTraceElement = stackTrace[i];
-      String methodName = stackTraceElement.getMethodName();
-      String className = stackTraceElement.getClassName();
-      int pos = className.lastIndexOf('.');
-      String packageName = className.substring(0, pos);
-
-      if (className.contains("org.hisp.dhis.cacheinvalidation.KnownTransactionsService")
-          || methodName.equals("getSingleResult")
-          || methodName.equals("doFilterInternal")) {
-        break;
-      }
-
-      if (packageName.startsWith("org.hisp.dhis") && !methodName.equals("executeAfterMethod")) {
-        StackTraceElement nextElement = stackTrace[i - 1];
-        String methodName1 = nextElement.getMethodName();
-        String className1 = nextElement.getClassName();
-        log.info("JDBC: {}#{} - \n - {}#{}", className, methodName, className1, methodName1);
-        break;
-      }
-    }
-  }
-
   private static class PrettyQueryEntryCreator extends DefaultQueryLogEntryCreator {
-    private final Formatter formatter = FormatStyle.HIGHLIGHT.getFormatter();
+    private final Formatter formatter = FormatStyle.BASIC.getFormatter();
 
     @Override
     protected String formatQuery(String query) {
       try {
-        Objects.requireNonNull(query);
         return this.formatter.format(query) + "\n";
       } catch (Exception e) {
         log.error("Query formatter failed!", e);
