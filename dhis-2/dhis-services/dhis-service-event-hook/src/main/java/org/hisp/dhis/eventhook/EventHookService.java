@@ -52,7 +52,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author Morten Olav Hansen
+ * Principally responsible for:
+ *
+ * <ul>
+ *   <li>creating a corresponding outbox table given an event hook ID and adding the first
+ *       partitions
+ *   <li>refreshing the event hook target cache
+ *   <li>returning all the event hooks from the database
+ * </ul>
  */
 @Service
 @RequiredArgsConstructor
