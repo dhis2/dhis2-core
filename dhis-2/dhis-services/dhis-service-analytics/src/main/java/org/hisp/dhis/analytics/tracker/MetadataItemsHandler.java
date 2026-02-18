@@ -239,6 +239,7 @@ public class MetadataItemsHandler {
       addItemsAndFiltersMetadataForNonQuery(metadataItemMap, params, includeDetails);
     }
 
+    removeSyntheticDimensionMetadataKeys(metadataItemMap, params);
     addPeriodDimensionValueMetadata(metadataItemMap, params, includeDetails);
 
     return metadataItemMap;
@@ -391,7 +392,38 @@ public class MetadataItemsHandler {
                 metadataItemMap.put(
                     key, new MetadataItem(name, includeDetails ? item.getItem() : null));
               }
+
+              addResolvedOrgUnitMetadata(metadataItemMap, params, includeDetails, item);
             });
+  }
+
+  /**
+   * Adds metadata entries for organisation units resolved from query item filters (including
+   * keywords like USER_ORGUNIT). This is needed for aggregate endpoints where query items are used
+   * as dimensions (e.g. stage.ou).
+   */
+  private void addResolvedOrgUnitMetadata(
+      Map<String, MetadataItem> metadataItemMap,
+      EventQueryParams params,
+      boolean includeDetails,
+      QueryItem item) {
+    if (item.getValueType() != ORGANISATION_UNIT) {
+      return;
+    }
+
+    List<String> resolvedOrgUnits =
+        organisationUnitResolver.resolveOrgUnitsForMetadata(params, item);
+    for (String uid : resolvedOrgUnits) {
+      DimensionalItemObject itemObject =
+          organisationUnitResolver.loadOrgUnitDimensionalItem(uid, IdScheme.UID);
+      if (itemObject != null) {
+        addItemToMetadata(
+            metadataItemMap,
+            new QueryItem(itemObject),
+            includeDetails,
+            params.getDisplayProperty());
+      }
+    }
   }
 
   /**
@@ -536,8 +568,36 @@ public class MetadataItemsHandler {
   private void addDimensionsAndFilters(
       Map<String, List<String>> dimensionItems, EventQueryParams params) {
     for (DimensionalObject dim : params.getDimensionsAndFilters()) {
+      if (isSyntheticDimension(dim, params)) {
+        continue;
+      }
+
       dimensionItems.put(dim.getDimension(), getDimensionalItemIds(dim.getItems()));
     }
+  }
+
+  private void removeSyntheticDimensionMetadataKeys(
+      Map<String, MetadataItem> metadataItemMap, EventQueryParams params) {
+    params.getDimensionsAndFilters().stream()
+        .filter(dim -> isSyntheticDimension(dim, params))
+        .map(DimensionalObject::getDimension)
+        .forEach(metadataItemMap::remove);
+  }
+
+  /**
+   * Synthetic dimensions may be injected into query params internally (for SQL/disaggregation
+   * support) and should not end up into metadata dimensions/items for API responses.
+   */
+  private boolean isSyntheticDimension(DimensionalObject dim, EventQueryParams params) {
+    if (!params.isComingFromQuery()) {
+      return false;
+    }
+
+    if (PERIOD_DIM_ID.equals(dim.getDimension()) || ORGUNIT_DIM_ID.equals(dim.getDimension())) {
+      return false;
+    }
+
+    return dim.getGroupUUID() == null;
   }
 
   /**

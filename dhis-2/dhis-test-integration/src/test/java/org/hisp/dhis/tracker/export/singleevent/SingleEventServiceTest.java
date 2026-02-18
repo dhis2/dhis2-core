@@ -78,7 +78,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class SingleEventExporterTest extends PostgresIntegrationTestBase {
+class SingleEventServiceTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
 
   @Autowired private SingleEventService singleEventService;

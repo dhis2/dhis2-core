@@ -27,37 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.trackedentity.aggregates;
+package org.hisp.dhis.period;
 
-import static java.util.concurrent.CompletableFuture.supplyAsync;
+import java.util.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.function.Supplier;
+public class FinancialFebruaryPeriodType extends FinancialPeriodType {
+  /** Determines if a de-serialized file is compatible with this class. */
+  private static final long serialVersionUID = 6913569374301327356L;
 
-/**
- * @author Luciano Fiandesio
- */
-class AsyncUtils {
-  AsyncUtils() {
-    throw new IllegalStateException("Utility class");
+  private static final String ISO_FORMAT = "yyyyFeb";
+
+  private static final String ISO8601_DURATION = "P1Y";
+
+  @Override
+  public int getBaseMonth() {
+    return Calendar.FEBRUARY;
   }
 
-  /**
-   * Executes the Supplier asynchronously using the thread pool from the provided {@see Executor}
-   *
-   * @param condition A condition that, if true, executes the Supplier, if false, returns an empty
-   *     Multimap
-   * @param supplier The Supplier to execute
-   * @param executor an Executor instance
-   * @return A CompletableFuture with the result of the Supplier
-   */
-  static <T> CompletableFuture<Multimap<String, T>> conditionalAsyncFetch(
-      boolean condition, Supplier<Multimap<String, T>> supplier, Executor executor) {
-    return (condition
-        ? supplyAsync(supplier, executor)
-        : supplyAsync(ArrayListMultimap::create, executor));
+  @Override
+  public PeriodTypeEnum getPeriodTypeEnum() {
+    return PeriodTypeEnum.FINANCIAL_FEB;
+  }
+
+  @Override
+  public String getIsoDate(DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar) {
+    return String.format("%dFeb", dateTimeUnit.getYear());
+  }
+
+  @Override
+  public String getIsoFormat() {
+    return ISO_FORMAT;
+  }
+
+  @Override
+  public String getIso8601Duration() {
+    return ISO8601_DURATION;
   }
 }
