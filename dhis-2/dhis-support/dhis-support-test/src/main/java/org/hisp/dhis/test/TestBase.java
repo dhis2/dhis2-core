@@ -84,7 +84,7 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
-import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitDescendants;
@@ -471,8 +471,8 @@ public abstract class TestBase {
                     new Filter()
                         .setDimension("dAOgE7mgysJ")
                         .setItems(newArrayList("rbE2mZX86AA", "XjOFfrPwake"))))
-            .setInputIdScheme(IdScheme.UID.name())
-            .setOutputIdScheme(IdScheme.UID.name());
+            .setInputIdScheme(IdProperty.UID)
+            .setOutputIdScheme(IdProperty.UID);
 
     Source source = new Source().setParams(sourceParams).setRequests(newArrayList(sourceRequest));
 
@@ -482,7 +482,7 @@ public abstract class TestBase {
             .setUsername(DEFAULT_USERNAME)
             .setPassword(DEFAULT_ADMIN_PASSWORD);
 
-    TargetRequest targetRequest = new TargetRequest().setIdScheme(IdScheme.UID.name());
+    TargetRequest targetRequest = new TargetRequest().setIdScheme(IdProperty.UID);
 
     Target target = new Target().setApi(api).setType(TargetType.EXTERNAL).setRequest(targetRequest);
 
