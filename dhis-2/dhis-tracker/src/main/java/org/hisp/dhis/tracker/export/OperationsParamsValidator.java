@@ -39,6 +39,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -327,6 +328,16 @@ public class OperationsParamsValidator {
                 "At least %d character(s) should be present in the filter to start a search, but the filter for the tracked entity attribute %s doesn't contain enough.",
                 tea.getMinCharactersToSearch(), tea.getUid()));
       }
+    }
+  }
+
+  public void validateAttributeOptionCombo(
+      CategoryOptionCombo attributeOptionCombo, UserDetails user) throws ForbiddenException {
+    if (attributeOptionCombo != null
+        && !user.isSuper()
+        && !aclService.canDataRead(user, attributeOptionCombo)) {
+      throw new ForbiddenException(
+          "User has no access to attribute option combo: " + attributeOptionCombo.getUid());
     }
   }
 }

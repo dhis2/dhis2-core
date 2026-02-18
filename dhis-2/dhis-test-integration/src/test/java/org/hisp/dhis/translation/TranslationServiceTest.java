@@ -350,7 +350,7 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testDashboardItemTextTranslation() {
+  void testDashboardItemTextTranslationUpperCaseProperty() {
     DashboardItem dashboardItem = new DashboardItem();
     dashboardItem.setText("Dashboard Item");
     dashboardItem.setAutoFields();
@@ -359,6 +359,21 @@ class TranslationServiceTest extends PostgresIntegrationTestBase {
     String translatedText = "Translated Dashboard Item";
     Set<Translation> translations = new HashSet<>();
     translations.add(new Translation(locale.language(), "TEXT", translatedText));
+    manager.updateTranslations(dashboardItem, translations);
+    dashboardItem = manager.get(DashboardItem.class, dashboardItem.getUid());
+    assertEquals(translatedText, dashboardItem.getDisplayText());
+  }
+
+  @Test
+  void testDashboardItemTextTranslationLowerCaseProperty() {
+    DashboardItem dashboardItem = new DashboardItem();
+    dashboardItem.setText("Dashboard Item");
+    dashboardItem.setAutoFields();
+    manager.save(dashboardItem);
+
+    String translatedText = "Translated Dashboard Item";
+    Set<Translation> translations = new HashSet<>();
+    translations.add(new Translation(locale.language(), "text", translatedText));
     manager.updateTranslations(dashboardItem, translations);
     dashboardItem = manager.get(DashboardItem.class, dashboardItem.getUid());
     assertEquals(translatedText, dashboardItem.getDisplayText());

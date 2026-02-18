@@ -79,6 +79,57 @@ class DateFilterHandlerTest {
   }
 
   @Test
+  void supports_withEnrollmentDateAndDateType_returnsTrue() {
+    QueryItem queryItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME));
+    queryItem.setValueType(ValueType.DATE);
+
+    assertTrue(handler.supports(queryItem));
+  }
+
+  @Test
+  void supports_withEnrollmentOccurredDateAndDateType_returnsTrue() {
+    QueryItem queryItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(
+                EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME));
+    queryItem.setValueType(ValueType.DATE);
+
+    assertTrue(handler.supports(queryItem));
+  }
+
+  @Test
+  void supports_withLastUpdatedAndDateType_returnsTrue() {
+    QueryItem queryItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME));
+    queryItem.setValueType(ValueType.DATE);
+
+    assertTrue(handler.supports(queryItem));
+  }
+
+  @Test
+  void supports_withCreatedDateAndDateType_returnsTrue() {
+    QueryItem queryItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME));
+    queryItem.setValueType(ValueType.DATE);
+
+    assertTrue(handler.supports(queryItem));
+  }
+
+  @Test
+  void supports_withCompletedDateAndDateType_returnsTrue() {
+    QueryItem queryItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME));
+    queryItem.setValueType(ValueType.DATE);
+
+    assertTrue(handler.supports(queryItem));
+  }
+
+  @Test
   void supports_withOtherItem_returnsFalse() {
     DataElement dataElement = createDataElement('A');
     QueryItem queryItem = new QueryItem(dataElement);

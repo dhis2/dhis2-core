@@ -82,6 +82,8 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RequestTypeAware;
+import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
+import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -104,6 +106,8 @@ import org.springframework.util.Assert;
 @Service("org.hisp.dhis.analytics.event.EventDataQueryService")
 @RequiredArgsConstructor
 public class DefaultEventDataQueryService implements EventDataQueryService {
+  private static final Set<String> STATIC_DATE_DIMENSIONS =
+      Set.of("ENROLLMENT_DATE", "INCIDENT_DATE", "LAST_UPDATED", "CREATED_DATE", "COMPLETED_DATE");
 
   private final ProgramService programService;
 
@@ -255,8 +259,11 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         UUID groupUUID = UUID.randomUUID();
         for (String dim : filterGroup) {
           String dimensionId = getDimensionFromParam(dim);
-
           List<String> items = getDimensionItemsFromParam(dim);
+          validateStaticDateDimensionSupport(dimensionId, dim, request);
+          DimensionAndItems normalized = normalizeStaticDateDimension(dimensionId, items);
+          dimensionId = normalized.dimension();
+          items = normalized.items();
 
           GroupableItem groupableItem =
               dataQueryService.getDimension(
@@ -294,8 +301,11 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
         for (String dim : dimensionGroup) {
           String dimensionId = getDimensionFromParam(dim);
-
           List<String> items = getDimensionItemsFromParam(dim);
+          validateStaticDateDimensionSupport(dimensionId, dim, request);
+          DimensionAndItems normalized = normalizeStaticDateDimension(dimensionId, items);
+          dimensionId = normalized.dimension();
+          items = normalized.items();
 
           GroupableItem groupableItem =
               dataQueryService.getDimension(
@@ -560,6 +570,39 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     throw new IllegalQueryException(new ErrorMessage(ErrorCode.E7223, value));
   }
+
+  private DimensionAndItems normalizeStaticDateDimension(String dimensionId, List<String> items) {
+    if (dimensionId == null || items == null || items.isEmpty()) {
+      return new DimensionAndItems(dimensionId, items);
+    }
+
+    if (!STATIC_DATE_DIMENSIONS.contains(dimensionId)) {
+      return new DimensionAndItems(dimensionId, items);
+    }
+
+    List<String> periodItems =
+        items.stream().map(item -> item + DIMENSION_NAME_SEP + dimensionId).distinct().toList();
+
+    return new DimensionAndItems("pe", periodItems);
+  }
+
+  private void validateStaticDateDimensionSupport(
+      String dimensionId, String dimensionString, EventDataQueryRequest request) {
+    if (!"CREATED_DATE".equals(dimensionId)) {
+      return;
+    }
+
+    if (!isEventAggregateRequest(request)) {
+      throwIllegalQueryEx(ErrorCode.E7222, dimensionString);
+    }
+  }
+
+  private boolean isEventAggregateRequest(EventDataQueryRequest request) {
+    return EndpointAction.AGGREGATE.equals(request.getEndpointAction())
+        && EndpointItem.EVENT.equals(request.getEndpointItem());
+  }
+
+  private record DimensionAndItems(String dimension, List<String> items) {}
 
   @Getter
   @RequiredArgsConstructor

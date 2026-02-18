@@ -938,11 +938,11 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     if (AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode()) {
-      fromBuilder.append(hlp.whereAnd()).append(" (au.uid is null) ");
+      fromBuilder.append(hlp.whereAnd()).append(" (ev.assigneduserid is null) ");
     }
 
     if (AssignedUserSelectionMode.ANY == params.getAssignedUserQueryParam().getMode()) {
-      fromBuilder.append(hlp.whereAnd()).append(" (au.uid is not null) ");
+      fromBuilder.append(hlp.whereAnd()).append(" (ev.assigneduserid is not null) ");
     }
 
     if (!params.isIncludeDeleted()) {
@@ -972,14 +972,19 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           hlp.whereAnd());
     }
 
-    buildOwnershipClause(
-        orgUnitBuilder,
-        sqlParameters,
-        params.getOrgUnitMode(),
-        "p",
-        "ou",
-        "te",
-        () -> hlp.whereAnd());
+    if (params.hasEnrolledInTrackerProgram()) {
+      buildOwnershipClause(
+          orgUnitBuilder,
+          sqlParameters,
+          params.getEnrolledInTrackerProgram(),
+          params.getQuerySearchScope(),
+          "ou",
+          "te",
+          hlp::whereAnd);
+    } else {
+      buildOwnershipClause(
+          orgUnitBuilder, sqlParameters, params.getOrgUnitMode(), "p", "ou", "te", hlp::whereAnd);
+    }
 
     return orgUnitBuilder.toString();
   }

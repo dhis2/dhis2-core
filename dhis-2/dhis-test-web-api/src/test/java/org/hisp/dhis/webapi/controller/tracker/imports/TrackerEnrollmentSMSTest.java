@@ -244,7 +244,6 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     submission.setEnrollmentDate(DateUtils.getDate(2024, 9, 2, 10, 15));
     submission.setIncidentDate(DateUtils.getDate(2024, 9, 3, 16, 23));
     submission.setEnrollmentStatus(SmsEnrollmentStatus.COMPLETED);
-    submission.setAttributeOptionCombo(categoryService.getDefaultCategoryOptionCombo().getUid());
     submission.setValues(
         List.of(
             new SmsAttributeValue(teaA.getUid(), "TrackedEntityTypeAttributeValue"),
@@ -279,7 +278,11 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
     assertAll(
         "created enrollment",
         () -> assertEquals(enrollmentUid.getValue(), actual.getUid()),
-        () -> assertEqualUids(submission.getTrackedEntityInstance(), actual.getTrackedEntity()));
+        () -> assertEqualUids(submission.getTrackedEntityInstance(), actual.getTrackedEntity()),
+        () ->
+            assertEquals(
+                categoryService.getDefaultCategoryOptionCombo().getUid(),
+                actual.getAttributeOptionCombo().getUid()));
     assertDoesNotThrow(
         () ->
             trackedEntityService.getTrackedEntity(

@@ -34,6 +34,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
+import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -70,7 +71,16 @@ public class DateFilterHandler implements QueryItemFilterHandler {
   public boolean supports(QueryItem queryItem) {
     String itemId = queryItem.getItemId();
     return (EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(itemId)
-            || EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME.equals(itemId))
+            || EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME.equals(itemId)
+            || EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME.equals(itemId)
+            || EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME.equals(itemId)
+            || EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME.equals(itemId)
+            || EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME.equals(itemId)
+            || EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME.equals(itemId)
+            || EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME.equals(itemId)
+            || EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(itemId)
+            || EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME.equals(itemId)
+            || EnrollmentAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME.equals(itemId))
         && queryItem.getValueType() == ValueType.DATE;
   }
 

@@ -65,6 +65,7 @@ import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.QuerySearchScope;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -152,7 +153,20 @@ class TrackedEntityOperationParamsMapper {
         .setIncludeDeleted(operationParams.isIncludeDeleted())
         .setPotentialDuplicate(operationParams.getPotentialDuplicate());
 
-    validateSearchOutsideCaptureScopeParameters(params, user);
+    Set<OrganisationUnit> captureScope =
+        Set.copyOf(organisationUnitService.getOrganisationUnitsByUid(user.getUserOrgUnitIds()));
+    boolean outsideCaptureScope = isSearchOutsideCaptureScope(params, user, captureScope);
+    params.setQuerySearchScope(
+        QuerySearchScope.of(
+            user,
+            operationParams.getOrgUnitMode(),
+            outsideCaptureScope,
+            captureScope,
+            organisationUnitService::getOrganisationUnitsByUid));
+    if (outsideCaptureScope) {
+      validateSearchableAttributes(params);
+      validateMinAttributesToSearch(params);
+    }
 
     return params;
   }
@@ -302,17 +316,6 @@ class TrackedEntityOperationParamsMapper {
     }
   }
 
-  private void validateSearchOutsideCaptureScopeParameters(
-      TrackedEntityQueryParams params, UserDetails user) throws IllegalQueryException {
-    if (isSearchInCaptureScope(params, user)) {
-      return;
-    }
-
-    params.setSearchOutsideCaptureScope(true);
-    validateSearchableAttributes(params);
-    validateMinAttributesToSearch(params);
-  }
-
   private List<UID> getSearchableAttributeIds(TrackedEntityQueryParams params) {
     List<UID> searchableAttributeIds = new ArrayList<>();
 
@@ -375,14 +378,13 @@ class TrackedEntityOperationParamsMapper {
     }
   }
 
-  private boolean isSearchInCaptureScope(TrackedEntityQueryParams params, UserDetails user) {
-    // If the organization unit selection mode is set to CAPTURE, then it's a local search.
+  private boolean isSearchOutsideCaptureScope(
+      TrackedEntityQueryParams params,
+      UserDetails user,
+      Set<OrganisationUnit> captureScopeOrgUnits) {
     if (OrganisationUnitSelectionMode.CAPTURE == params.getOrgUnitMode()) {
-      return true;
+      return false;
     }
-
-    List<OrganisationUnit> localOrgUnits =
-        organisationUnitService.getOrganisationUnitsByUid(user.getUserOrgUnitIds());
     Set<OrganisationUnit> searchOrgUnits = new HashSet<>();
 
     if (params.isOrganisationUnitMode(SELECTED)) {
@@ -400,12 +402,12 @@ class TrackedEntityOperationParamsMapper {
     }
 
     for (OrganisationUnit ou : searchOrgUnits) {
-      if (!ou.isDescendant(localOrgUnits)) {
-        return false;
+      if (!ou.isDescendant(captureScopeOrgUnits)) {
+        return true;
       }
     }
 
-    return true;
+    return false;
   }
 
   private boolean isTeTypeMinAttributesViolated(TrackedEntityQueryParams params) {

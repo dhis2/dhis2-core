@@ -429,7 +429,7 @@ public class BaseDimensionalObject extends BaseNameableObject implements Dimensi
 
   @Override
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public LegendSet getLegendSet() {
     return legendSet;

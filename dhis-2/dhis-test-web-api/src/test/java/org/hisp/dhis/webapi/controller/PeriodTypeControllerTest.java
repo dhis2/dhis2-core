@@ -55,7 +55,7 @@ class PeriodTypeControllerTest extends H2ControllerIntegrationTestBase {
     JsonObject object = GET("/periodTypes").content(HttpStatus.OK).as(JsonObject.class);
     JsonList<JsonPeriodType> periodTypes = object.getList("periodTypes", JsonPeriodType.class);
     assertTrue(periodTypes.exists());
-    assertEquals(20, periodTypes.size());
+    assertEquals(23, periodTypes.size());
     JsonPeriodType periodType = periodTypes.get(0);
     assertNotNull(periodType.getName());
     assertNotNull(periodType.getIsoDuration());
@@ -71,7 +71,7 @@ class PeriodTypeControllerTest extends H2ControllerIntegrationTestBase {
             .as(JsonObject.class)
             .getList("periodTypes", JsonPeriodType.class);
     assertTrue(periodTypes.exists());
-    assertEquals(20, periodTypes.size());
+    assertEquals(23, periodTypes.size());
     JsonPeriodType periodType = periodTypes.get(0);
     assertNotNull(periodType.getName());
     assertNotNull(periodType.getIsoFormat());
