@@ -47,6 +47,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -316,6 +317,15 @@ class JdbcEnrollmentStore {
       MapSqlParameterSource sqlParams,
       EnrollmentQueryParams params,
       SqlHelper hlp) {
+    addOrgUnitConditions(sql, sqlParams, params, hlp, "te");
+  }
+
+  private void addOrgUnitConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      EnrollmentQueryParams params,
+      SqlHelper hlp,
+      @Nullable String trackedEntityTableAlias) {
     if (params.hasOrganisationUnits()) {
       buildOrgUnitModeClause(
           sql,
@@ -333,7 +343,7 @@ class JdbcEnrollmentStore {
           params.getEnrolledInTrackerProgram(),
           params.getQuerySearchScope(),
           "ou",
-          "te",
+          trackedEntityTableAlias,
           hlp::whereAnd);
     } else {
       buildOwnershipClause(
@@ -346,13 +356,12 @@ class JdbcEnrollmentStore {
       MapSqlParameterSource sqlParams,
       EnrollmentQueryParams params,
       SqlHelper hlp) {
-    sql.append(hlp.whereAnd()).append("p.type = :programType");
-    sqlParams.addValue("programType", ProgramType.WITH_REGISTRATION.name());
-
     if (params.hasEnrolledInTrackerProgram()) {
-      sql.append(hlp.whereAnd()).append("p.uid = :programUid");
-      sqlParams.addValue("programUid", params.getEnrolledInTrackerProgram().getUid());
+      sql.append(hlp.whereAnd()).append("e.programid = :programId");
+      sqlParams.addValue("programId", params.getEnrolledInTrackerProgram().getId());
     } else {
+      sql.append(hlp.whereAnd()).append("p.type = :programType");
+      sqlParams.addValue("programType", ProgramType.WITH_REGISTRATION.name());
       sql.append(" and p.programid in (:accessiblePrograms)");
       sqlParams.addValue(
           "accessiblePrograms", getIdentifiers(params.getAccessibleTrackerPrograms()));
@@ -459,9 +468,13 @@ class JdbcEnrollmentStore {
    * Builds the count query. Only includes joins needed for filtering:
    *
    * <ul>
-   *   <li>{@code program} - program type/uid filter and ownership access level check
-   *   <li>{@code trackedentity} - needed when filtering by tracked entity UIDs or for the PROTECTED
-   *       temp owner check in ownership clause
+   *   <li>{@code program} - only when no specific program is given (needed for {@code
+   *       p.accesslevel} and {@code p.programid in (...)}). When a program is known, its conditions
+   *       are resolved in Java and the join is skipped.
+   *   <li>{@code trackedentity} - only when the program is unknown (ownership clause needs {@code
+   *       te.trackedentityid} for the PROTECTED temp owner check resolved at query time) or when
+   *       the program is PROTECTED. Skipped for OPEN/AUDITED programs. Tracked entity UID filters
+   *       use a subquery instead of a join when the table is absent.
    *   <li>{@code trackedentityprogramowner} + {@code organisationunit} - ownership and org unit
    *       filtering
    *   <li>{@code categoryoptioncombo} - attribute option combo access control
@@ -475,16 +488,78 @@ class JdbcEnrollmentStore {
    */
   private String getCountQuery(
       EnrollmentQueryParams enrollmentParams, MapSqlParameterSource sqlParams) {
+    boolean needsTrackedEntityJoin = needsTrackedEntityJoinForCount(enrollmentParams);
+
     StringBuilder sql = new StringBuilder();
     sql.append("select count(*) from enrollment e ");
-    addJoinOnProgram(sql);
-    addJoinOnTrackedEntity(sql);
+    if (!enrollmentParams.hasEnrolledInTrackerProgram()) {
+      addJoinOnProgram(sql);
+    }
+    if (needsTrackedEntityJoin) {
+      addJoinOnTrackedEntity(sql);
+    }
     addJoinOnProgramOwner(sql);
     addJoinOnOwnerOrgUnit(sql);
     addJoinOnCategoryOptionCombo(sql);
-    addWhereConditions(sql, sqlParams, enrollmentParams);
+    addCountWhereConditions(sql, sqlParams, enrollmentParams, needsTrackedEntityJoin);
 
     return sql.toString();
+  }
+
+  /**
+   * The {@code trackedentity} join is needed in the count query only when no specific program is
+   * given (the ownership clause resolves access level at query time via the program table and needs
+   * {@code te.trackedentityid} for the PROTECTED temp owner check). When a program is known, the
+   * temp owner check uses {@code e.trackedentityid} instead, so the join can be skipped. Tracked
+   * entity UID filters use a subquery instead when the table is absent.
+   */
+  private static boolean needsTrackedEntityJoinForCount(EnrollmentQueryParams params) {
+    return !params.hasEnrolledInTrackerProgram();
+  }
+
+  private void addCountWhereConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      EnrollmentQueryParams params,
+      boolean hasTrackedEntityJoin) {
+    SqlHelper hlp = new SqlHelper(true);
+    addLastUpdatedConditions(sql, sqlParams, params, hlp);
+    addCountOrgUnitConditions(sql, sqlParams, params, hlp, hasTrackedEntityJoin);
+    addProgramConditions(sql, sqlParams, params, hlp);
+    addEnrollmentConditions(sql, sqlParams, params, hlp);
+    if (hasTrackedEntityJoin) {
+      addTrackedEntityConditions(sql, sqlParams, params, hlp);
+    } else {
+      addTrackedEntitySubqueryConditions(sql, sqlParams, params, hlp);
+    }
+    addAttributeOptionComboConditions(sql, sqlParams, params, hlp);
+  }
+
+  private void addCountOrgUnitConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      EnrollmentQueryParams params,
+      SqlHelper hlp,
+      boolean hasTrackedEntityJoin) {
+    addOrgUnitConditions(sql, sqlParams, params, hlp, hasTrackedEntityJoin ? "te" : "e");
+  }
+
+  /**
+   * Filters by tracked entity UIDs using a subquery when the {@code trackedentity} table is not
+   * joined.
+   */
+  private void addTrackedEntitySubqueryConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      EnrollmentQueryParams params,
+      SqlHelper hlp) {
+    if (params.hasTrackedEntities()) {
+      sql.append(hlp.whereAnd())
+          .append(
+              "e.trackedentityid in (select trackedentityid from trackedentity where uid in (:trackedEntityUids))");
+      sqlParams.addValue(
+          "trackedEntityUids", params.getTrackedEntities().stream().map(UID::getValue).toList());
+    }
   }
 
   private static String orderBy(List<Order> orders) {
