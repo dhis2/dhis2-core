@@ -77,6 +77,7 @@ public class PeriodTypeController {
   @OpenApi.Response(
       status = Status.OK,
       object = {@OpenApi.Property(name = "periodType", value = PeriodType.class)})
+  @RequiresAuthority(anyOf = ALL)
   @PutMapping
   public WebMessage putPeriodType(@RequestBody PeriodType periodType) {
     periodService.updatePeriodTypeLabel(periodType.getName(), periodType.getLabel());
@@ -91,7 +92,6 @@ public class PeriodTypeController {
         @OpenApi.Property(name = "periodTypes", value = PeriodType[].class)
       })
   @GetMapping
-  @RequiresAuthority(anyOf = ALL)
   public ResponseEntity<JsonRoot> getPeriodTypes(
       @RequestParam(defaultValue = "*") List<String> fields) {
     I18n i18n = i18nManager.getI18n();
