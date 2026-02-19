@@ -298,6 +298,7 @@ public class HibernatePeriodStore extends HibernateGenericStore<Period> implemen
         .list();
   }
 
+  @Override
   public PeriodType getPeriodTypeByName(String name) {
     return getSession()
         .createNativeQuery("select * from periodtype where name = :name", PeriodType.class)
