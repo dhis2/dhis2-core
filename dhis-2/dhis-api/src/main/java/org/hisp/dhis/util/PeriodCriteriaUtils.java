@@ -32,7 +32,9 @@ package org.hisp.dhis.util;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.STATIC_DATE_DIMENSIONS;
 
+import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
@@ -89,7 +91,9 @@ public class PeriodCriteriaUtils {
         || !isBlank(criteria.getEnrollmentOccurredDate())
         || !isBlank(criteria.getLastUpdated())
         || !isBlank(criteria.getScheduledDate())
-        || criteria.getRelativePeriodDate() != null;
+        || criteria.getRelativePeriodDate() != null
+        || Stream.concat(criteria.getDimension().stream(), criteria.getFilter().stream())
+            .anyMatch(d -> STATIC_DATE_DIMENSIONS.contains(d.split(":")[0]));
   }
 
   /**
@@ -107,6 +111,8 @@ public class PeriodCriteriaUtils {
         || !isBlank(criteria.getIncidentDate())
         || !isBlank(criteria.getOccurredDate())
         || !isBlank(criteria.getLastUpdated())
-        || criteria.getRelativePeriodDate() != null;
+        || criteria.getRelativePeriodDate() != null
+        || Stream.concat(criteria.getDimension().stream(), criteria.getFilter().stream())
+            .anyMatch(d -> STATIC_DATE_DIMENSIONS.contains(d.split(":")[0]));
   }
 }
