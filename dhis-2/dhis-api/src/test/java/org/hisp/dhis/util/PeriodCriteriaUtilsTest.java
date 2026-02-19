@@ -42,6 +42,8 @@ import java.util.Set;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /** Unit tests for {@link PeriodCriteriaUtils}. */
 class PeriodCriteriaUtilsTest {
@@ -329,6 +331,66 @@ class PeriodCriteriaUtilsTest {
     Set<String> filters = new HashSet<>();
     filters.add("A03MvHHogjR.SCHEDULED_DATE:201910");
     c.setFilter(filters);
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "ENROLLMENT_DATE",
+        "INCIDENT_DATE",
+        "LAST_UPDATED",
+        "CREATED_DATE",
+        "COMPLETED_DATE"
+      })
+  void testHasPeriodEvent_whenDimensionContainsStaticDateDimension(String staticDim) {
+    EventsAnalyticsQueryCriteria c = getDefaultEventsAnalyticsQueryCriteria();
+    c.getDimension().add(staticDim + ":THIS_YEAR");
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "ENROLLMENT_DATE",
+        "INCIDENT_DATE",
+        "LAST_UPDATED",
+        "CREATED_DATE",
+        "COMPLETED_DATE"
+      })
+  void testHasPeriodEvent_whenFilterContainsStaticDateDimension(String staticDim) {
+    EventsAnalyticsQueryCriteria c = getDefaultEventsAnalyticsQueryCriteria();
+    c.getFilter().add(staticDim + ":THIS_YEAR");
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "ENROLLMENT_DATE",
+        "INCIDENT_DATE",
+        "LAST_UPDATED",
+        "CREATED_DATE",
+        "COMPLETED_DATE"
+      })
+  void testHasPeriodEnrollment_whenDimensionContainsStaticDateDimension(String staticDim) {
+    EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
+    c.getDimension().add(staticDim + ":THIS_YEAR");
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {
+        "ENROLLMENT_DATE",
+        "INCIDENT_DATE",
+        "LAST_UPDATED",
+        "CREATED_DATE",
+        "COMPLETED_DATE"
+      })
+  void testHasPeriodEnrollment_whenFilterContainsStaticDateDimension(String staticDim) {
+    EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
+    c.getFilter().add(staticDim + ":THIS_YEAR");
     assertTrue(PeriodCriteriaUtils.hasPeriod(c));
   }
 
