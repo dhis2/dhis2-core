@@ -36,11 +36,11 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
- * Interceptor that adds controller and action to MDC so they can be included as SQL comments by
- * {@link org.hisp.dhis.config.DataSourceConfig}. This allows correlating queries in
- * pg_stat_activity/pg_stat_statements back to the API endpoint that triggered them.
+ * Adds the controller class name and handler method name to MDC. This is a {@link
+ * HandlerInterceptor} rather than a servlet filter because {@link HandlerMethod} is only available
+ * after Spring MVC resolves the request mapping.
  */
-public class SqlCommentInterceptor implements HandlerInterceptor {
+public class HandlerMethodInterceptor implements HandlerInterceptor {
 
   static final String CONTROLLER_KEY = "controller";
   static final String METHOD_KEY = "method";

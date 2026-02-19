@@ -181,7 +181,7 @@ public class DataSourceConfig {
    * logs. Values are embedded verbatim so they MUST be validated before being put into MDC.
    * Unvalidated input (e.g. containing {@code * /}) would close the comment early and allow SQL
    * injection. See {@link org.hisp.dhis.webapi.filter.RequestIdFilter} and {@link
-   * org.hisp.dhis.webapi.mvc.interceptor.SqlCommentInterceptor} for the validation of each key.
+   * org.hisp.dhis.webapi.mvc.interceptor.HandlerMethodInterceptor} for the validation of each key.
    */
   static String addMdcComment(TransformInfo transformInfo) {
     String query = transformInfo.getQuery();
