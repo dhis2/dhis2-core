@@ -44,6 +44,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionConstants.STATIC_DATE_DIMENSIONS;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
@@ -106,9 +107,6 @@ import org.springframework.util.Assert;
 @Service("org.hisp.dhis.analytics.event.EventDataQueryService")
 @RequiredArgsConstructor
 public class DefaultEventDataQueryService implements EventDataQueryService {
-  private static final Set<String> STATIC_DATE_DIMENSIONS =
-      Set.of("ENROLLMENT_DATE", "INCIDENT_DATE", "LAST_UPDATED", "CREATED_DATE", "COMPLETED_DATE");
-
   private final ProgramService programService;
 
   private final ProgramStageService programStageService;

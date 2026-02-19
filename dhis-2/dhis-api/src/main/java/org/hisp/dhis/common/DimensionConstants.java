@@ -113,6 +113,13 @@ public final class DimensionConstants {
 
   // Dynamic dimensions
 
+  /**
+   * Static date dimension identifiers usable as period-equivalent dimensions in event/enrollment
+   * aggregate analytics queries.
+   */
+  public static final Set<String> STATIC_DATE_DIMENSIONS =
+      Set.of("ENROLLMENT_DATE", "INCIDENT_DATE", "LAST_UPDATED", "CREATED_DATE", "COMPLETED_DATE");
+
   /** Classes which represent dynamic dimensions. */
   public static final Set<Class<? extends DimensionalObject>> DYNAMIC_DIMENSION_CLASSES =
       Set.of(
