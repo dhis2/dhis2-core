@@ -89,6 +89,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitDescendants;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -462,7 +463,7 @@ public abstract class TestBase {
             .setVisualization("JHKuBWP20RO")
             .setDx(newArrayList("LrDpG50RAU9", "uR5HCiJhQ1w"))
             .setPe(newArrayList("202201", "202202"))
-            .setOu(newArrayList("G9BuXqtNeeb", "jDgiLmYwPDm"))
+            .setOu(newArrayList(UID.of("G9BuXqtNeeb"), UID.of("jDgiLmYwPDm")))
             .setFilters(
                 newArrayList(
                     new Filter()

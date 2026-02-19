@@ -56,6 +56,7 @@ import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -121,7 +122,7 @@ class AggregateDataExchangeServiceTest {
             .setName("SourceRequestA")
             .setDx(List.of("Vz0C3i4Wy3M", "ToaOToReol6"))
             .setPe(List.of("202101", "202102"))
-            .setOu(List.of("lGgJFgRkZui", "pvINfKxtqyN", "VOyqQ54TehY"))
+            .setOu(List.of(UID.of("lGgJFgRkZui"), UID.of("pvINfKxtqyN"), UID.of("VOyqQ54TehY")))
             .setAggregationType(AggregationType.COUNT)
             .setOutputDataElementIdScheme(IdScheme.UID.name())
             .setOutputOrgUnitIdScheme(IdScheme.CODE.name())

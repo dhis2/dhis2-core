@@ -38,6 +38,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.UID;
 
 @Getter
 @Setter
@@ -57,7 +58,7 @@ public class SourceRequest implements Serializable {
   @JsonProperty private List<String> pe = new ArrayList<>();
 
   /** Org unit identifiers. */
-  @JsonProperty private List<String> ou = new ArrayList<>();
+  @JsonProperty private List<UID> ou = new ArrayList<>();
 
   /** Request filters. */
   @JsonProperty private List<Filter> filters = new ArrayList<>();

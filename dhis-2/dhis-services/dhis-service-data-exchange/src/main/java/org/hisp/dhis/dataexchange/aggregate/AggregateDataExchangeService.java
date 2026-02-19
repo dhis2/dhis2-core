@@ -55,6 +55,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataEntryPipeline;
@@ -361,7 +362,8 @@ public class AggregateDataExchangeService {
     return DataQueryParams.newBuilder()
         .addDimension(toDimensionalObject(DATA_X_DIM_ID, request.getDx(), inputIdScheme))
         .addDimension(toDimensionalObject(PERIOD_DIM_ID, request.getPe(), inputIdScheme))
-        .addDimension(toDimensionalObject(ORGUNIT_DIM_ID, request.getOu(), inputIdScheme))
+        .addDimension(
+            toDimensionalObject(ORGUNIT_DIM_ID, UID.toValueList(request.getOu()), inputIdScheme))
         .addFilters(filters)
         .withAggregationType(toAnalyticsAggregationType(request.getAggregationType()))
         .withOutputDataElementIdScheme(outputDataElementIdScheme)
@@ -500,7 +502,9 @@ public class AggregateDataExchangeService {
   private static String toItemDescription(SourceRequest request) {
     return format(
         "dx: %s; pe: %s; ou: %s",
-        join(",", request.getDx()), join(",", request.getPe()), join(",", request.getOu()));
+        join(",", request.getDx()),
+        join(",", request.getPe()),
+        join(",", UID.toValueList(request.getOu())));
   }
 
   /**
