@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -57,6 +58,7 @@ import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.UserRoleStore;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingsService;
 import org.springframework.stereotype.Component;
@@ -72,6 +74,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
   public static final String PRE_UPDATE_USER_KEY = "preUpdateUser";
 
   private final UserService userService;
+
+  private final UserRoleStore userRoleStore;
 
   private final FileResourceService fileResourceService;
 
@@ -275,6 +279,8 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
 
       handleNoAccessRoles(user, bundle, userRoles);
       getSession().update(user);
+
+      syncUserRoleMembershipsViaSQL(user);
     }
   }
 
@@ -305,6 +311,14 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User> {
                   roles.add(persistedRole);
                 }
               });
+    }
+  }
+
+  private void syncUserRoleMembershipsViaSQL(User user) {
+    UID userUid = UID.of(user.getUid());
+    userRoleStore.removeAllMemberships(userUid);
+    for (UserRole role : user.getUserRoles()) {
+      userRoleStore.addMember(UID.of(role.getUid()), userUid);
     }
   }
 

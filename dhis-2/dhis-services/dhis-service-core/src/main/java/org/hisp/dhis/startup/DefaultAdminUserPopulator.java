@@ -34,11 +34,13 @@ import static org.hisp.dhis.security.twofa.TwoFactorAuthService.TWO_FACTOR_AUTH_
 
 import java.util.Set;
 import java.util.UUID;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.UserRoleStore;
 import org.hisp.dhis.user.UserService;
 
 /**
@@ -50,10 +52,13 @@ public class DefaultAdminUserPopulator extends TransactionContextStartupRoutine 
       Set.of(TWO_FACTOR_AUTH_REQUIRED_RESTRICTION_NAME);
 
   private final UserService userService;
+  private final UserRoleStore userRoleStore;
 
-  public DefaultAdminUserPopulator(UserService userService) {
+  public DefaultAdminUserPopulator(UserService userService, UserRoleStore userRoleStore) {
     checkNotNull(userService);
+    checkNotNull(userRoleStore);
     this.userService = userService;
+    this.userRoleStore = userRoleStore;
   }
 
   @Override
@@ -92,11 +97,11 @@ public class DefaultAdminUserPopulator extends TransactionContextStartupRoutine 
 
     userService.addUserRole(userRole, actingUser);
 
-    user.getUserRoles().add(userRole);
-
     userService.encodeAndSetPassword(user, password);
 
     userService.addUser(user, actingUser);
+
+    userRoleStore.addMember(UID.of(userRole.getUid()), UID.of(user.getUid()));
 
     UserRole twoFactorRole = new UserRole();
     twoFactorRole.setUid("jcK4oq1Ol8x");

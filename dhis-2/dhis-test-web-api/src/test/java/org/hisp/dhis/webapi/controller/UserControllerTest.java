@@ -330,6 +330,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
     User user = createUserWithAuth("someone", "F_USER_ADD");
     user.getUserRoles().add(roleB);
+    roleB.getMembers().add(user);
     userService.updateUser(user);
 
     switchContextToUser(user);
@@ -450,6 +451,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
     User user = createUserWithAuth("someone", "NONE");
     user.getUserRoles().add(roleB);
+    roleB.getMembers().add(user);
     userService.updateUser(user);
 
     switchContextToUser(user);

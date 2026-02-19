@@ -44,6 +44,7 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.Locale;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
@@ -722,15 +723,15 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
     // Create users with different display names
     org.hisp.dhis.user.User userAlice =
         createUserAndRole("Alice", "Smith", false, "alice2", Set.of(), Set.of());
-    userService.addUser(userAlice);
+    saveUserWithRoles(userAlice);
     assertEquals("Alice Smith", userAlice.getDisplayName());
 
     org.hisp.dhis.user.User userZoe =
         createUserAndRole("Zoe", "Johnson", false, "zoe2", Set.of(), Set.of());
-    userService.addUser(userZoe);
+    saveUserWithRoles(userZoe);
     org.hisp.dhis.user.User userBob =
         createUserAndRole("Bob", "Wilson", false, "bob2", Set.of(), Set.of());
-    userService.addUser(userBob);
+    saveUserWithRoles(userBob);
 
     // Query users ordered by displayName descending
     JsonList<JsonUser> users =
@@ -762,7 +763,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
   void testDisplayNameFieldInResponse() {
     // Create a user
     User testUser = createUserAndRole("Test", "User", false, "testuser", Set.of(), Set.of());
-    userService.addUser(testUser);
+    saveUserWithRoles(testUser);
     // Query the user and verify displayName field is returned
     JsonUser user =
         GET("/users/{id}?fields=displayName,id", testUser.getUid())
@@ -822,6 +823,13 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
             .size());
   }
 
+  private void saveUserWithRoles(User user) {
+    userService.addUser(user);
+    for (UserRole role : user.getUserRoles()) {
+      userService.addUserToRole(UID.of(role.getUid()), UID.of(user.getUid()));
+    }
+  }
+
   private User createUserAndRole(
       String firstName,
       String lastName,
@@ -837,6 +845,7 @@ class CrudControllerIntegrationTest extends PostgresControllerIntegrationTestBas
     if (superUserFlag) {
       userRole.getAuthorities().add("ALL");
     }
+    userService.addUserRole(userRole);
 
     User user = new User();
     user.setUsername(username);

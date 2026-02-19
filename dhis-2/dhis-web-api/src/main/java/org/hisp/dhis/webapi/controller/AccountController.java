@@ -56,6 +56,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -80,6 +81,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserLookup;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.UserRoleStore;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
@@ -116,6 +118,8 @@ public class AccountController {
   private static final int MAX_PHONE_NO_LENGTH = 30;
 
   private final UserService userService;
+
+  private final UserRoleStore userRoleStore;
 
   private final TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
@@ -413,6 +417,8 @@ public class AccountController {
     user.getUserRoles().add(userRole);
 
     userService.addUser(user, new SystemUser());
+
+    userRoleStore.addMember(UID.of(userRole.getUid()), UID.of(user.getUid()));
 
     log.info("Created user with username: " + user.getUsername());
 

@@ -21,7 +21,7 @@
 
     <property name="translations" type="jblTranslations"/>
 
-    <set name="members" table="userrolemembers" inverse="true">
+    <set name="members" table="userrolemembers">
       <key column="userroleid" />
       <many-to-many column="userid" class="org.hisp.dhis.user.User" />
     </set>
