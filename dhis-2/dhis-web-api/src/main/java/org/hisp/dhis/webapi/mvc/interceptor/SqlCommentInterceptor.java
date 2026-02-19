@@ -43,14 +43,14 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class SqlCommentInterceptor implements HandlerInterceptor {
 
   static final String CONTROLLER_KEY = "controller";
-  static final String ACTION_KEY = "action";
+  static final String METHOD_KEY = "method";
 
   @Override
   public boolean preHandle(
       HttpServletRequest request, HttpServletResponse response, Object handler) {
     if (handler instanceof HandlerMethod handlerMethod) {
       MDC.put(CONTROLLER_KEY, handlerMethod.getBeanType().getSimpleName());
-      MDC.put(ACTION_KEY, handlerMethod.getMethod().getName());
+      MDC.put(METHOD_KEY, handlerMethod.getMethod().getName());
     }
     return true;
   }
@@ -59,6 +59,6 @@ public class SqlCommentInterceptor implements HandlerInterceptor {
   public void afterCompletion(
       HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
     MDC.remove(CONTROLLER_KEY);
-    MDC.remove(ACTION_KEY);
+    MDC.remove(METHOD_KEY);
   }
 }

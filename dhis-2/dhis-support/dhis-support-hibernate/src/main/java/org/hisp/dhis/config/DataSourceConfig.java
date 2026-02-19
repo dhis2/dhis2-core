@@ -124,7 +124,7 @@ public class DataSourceConfig {
     }
   }
 
-  private static final String[] MDC_KEYS = {"controller", "action", "sessionId", "xRequestID"};
+  private static final String[] MDC_KEYS = {"controller", "method", "sessionId", "xRequestID"};
 
   static DataSource createProxyDataSource(
       DhisConfigurationProvider dhisConfig, DataSource actualDataSource) {

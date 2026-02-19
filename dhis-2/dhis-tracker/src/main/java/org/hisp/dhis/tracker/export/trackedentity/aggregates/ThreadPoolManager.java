@@ -30,9 +30,11 @@
 package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import org.slf4j.MDC;
 
 /**
  * Exposes a static method to fetch an Executor for the Aggregates operations
@@ -53,7 +55,24 @@ class ThreadPoolManager {
   private static final Executor AGGREGATE_THREAD_POOL =
       Executors.newCachedThreadPool(threadFactory);
 
+  /**
+   * Returns an executor that propagates the caller's {@link MDC} context to the worker thread. This
+   * ensures SQL comments added by {@link org.hisp.dhis.config.DataSourceConfig#addMdcComment} are
+   * present on queries executed on the aggregate thread pool.
+   */
   static Executor getPool() {
-    return AGGREGATE_THREAD_POOL;
+    Map<String, String> callerMdc = MDC.getCopyOfContextMap();
+    return runnable ->
+        AGGREGATE_THREAD_POOL.execute(
+            () -> {
+              if (callerMdc != null) {
+                MDC.setContextMap(callerMdc);
+              }
+              try {
+                runnable.run();
+              } finally {
+                MDC.clear();
+              }
+            });
   }
 }
