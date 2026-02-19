@@ -52,6 +52,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.FilterJdbcPredicate;
@@ -63,6 +64,8 @@ import org.hisp.dhis.tracker.export.QuerySearchScope;
  */
 class SingleEventQueryParams {
   @Getter private Program program;
+
+  @Getter private ProgramStage programStage;
 
   @Getter private OrganisationUnit orgUnit;
 
@@ -153,6 +156,9 @@ class SingleEventQueryParams {
 
   public SingleEventQueryParams setProgram(Program program) {
     this.program = program;
+    if (program != null) {
+      this.programStage = program.getProgramStages().iterator().next();
+    }
     return this;
   }
 

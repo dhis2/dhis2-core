@@ -93,7 +93,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/single_te.json");
+    TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/one_te.json");
 
     trackedEntity = trackerObjects.getTrackedEntities().get(0);
 
@@ -101,11 +101,11 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
     anotherTrackedEntity = trackerObjects.getTrackedEntities().get(0);
 
-    trackerObjects = testSetup.importTrackerData("tracker/single_enrollment.json");
+    trackerObjects = testSetup.importTrackerData("tracker/one_enrollment.json");
 
     enrollment = trackerObjects.getEnrollments().get(0);
 
-    trackerObjects = testSetup.importTrackerData("tracker/single_event.json");
+    trackerObjects = testSetup.importTrackerData("tracker/one_tracker_event.json");
 
     event = trackerObjects.getEvents().get(0);
 
@@ -126,7 +126,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
     TrackerImportParams params =
         TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
-    testSetup.importTrackerData("tracker/single_te.json", params);
+    testSetup.importTrackerData("tracker/one_te.json", params);
 
     Date lastUpdateAfter = getTrackedEntity().getLastUpdated();
 
@@ -616,7 +616,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
   private org.hisp.dhis.tracker.imports.domain.TrackerEvent importEventProgram()
       throws IOException {
-    TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/single_event.json");
+    TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/one_tracker_event.json");
     org.hisp.dhis.tracker.imports.domain.TrackerEvent ev = trackerObjects.getEvents().get(0);
     ev.setEvent(UID.generate());
     ev.setProgramStage(MetadataIdentifier.of(TrackerIdScheme.UID, "NpsdDv6kKSe", null));
