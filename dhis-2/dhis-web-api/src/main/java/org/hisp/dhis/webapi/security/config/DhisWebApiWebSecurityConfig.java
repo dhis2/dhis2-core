@@ -41,7 +41,6 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import javax.sql.DataSource;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -58,7 +57,6 @@ import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
-import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.DhisCorsProcessor;
 import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
@@ -89,7 +87,6 @@ import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.security.web.csrf.CsrfTokenRequestHandler;
 import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler;
-import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
@@ -140,8 +137,6 @@ public class DhisWebApiWebSecurityConfig {
   private HttpBasicWebAuthenticationDetailsSource httpBasicWebAuthenticationDetailsSource;
 
   @Autowired private ConfigurationService configurationService;
-
-  @Autowired private CacheProvider cacheProvider;
 
   @Autowired private ApiTokenAuthManager apiTokenAuthManager;
 
@@ -261,7 +256,6 @@ public class DhisWebApiWebSecurityConfig {
     }
 
     configureMatchers(http);
-    configureCspFilter(http, dhisConfig, configurationService, cacheProvider);
     configureApiTokenAuthorizationFilter(http);
     configureOAuthTokenFilters(http);
 
@@ -466,15 +460,6 @@ public class DhisWebApiWebSecurityConfig {
     CorsFilter corsFilter = new CorsFilter(new UrlBasedCorsConfigurationSource());
     corsFilter.setCorsProcessor(new DhisCorsProcessor(configurationService));
     return corsFilter;
-  }
-
-  private void configureCspFilter(
-      HttpSecurity http,
-      DhisConfigurationProvider dhisConfig,
-      ConfigurationService configurationService,
-      CacheProvider cacheProvider) {
-    http.addFilterBefore(
-        new CspFilter(dhisConfig, configurationService, cacheProvider), HeaderWriterFilter.class);
   }
 
   private void configureApiTokenAuthorizationFilter(HttpSecurity http) {

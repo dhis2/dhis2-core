@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,28 +27,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.filter;
+package org.hisp.dhis.webapi.security.csp;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import org.springframework.web.filter.OncePerRequestFilter;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * @deprecated This filter is deprecated and no longer used. CSP handling has been moved to {@link
- *     org.hisp.dhis.webapi.security.csp.CspInterceptor}.
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Annotation to specify a custom Content-Security-Policy for a controller method.
+ *
+ * <p>When applied to a controller method, this annotation allows overriding the default strict CSP
+ * policy with a custom one. This is useful for endpoints that serve user-uploaded content or have
+ * other specific CSP requirements.
+ *
+ * <p>Example: @CustomCsp("script-src 'none'; ") @GetMapping("/files/{id}") public void
+ * serveFile(@PathVariable String id) { ... }
+ *
+ * @see CspUserUploadedContent for standard strict CSP for user-uploaded content
+ * @see CspInterceptor for how this annotation is processed and applied to responses
  */
-@Deprecated(forRemoval = true, since = "2.42")
-public class CspFilter extends OncePerRequestFilter {
-
-  @Override
-  protected void doFilterInternal(
-      HttpServletRequest req, HttpServletResponse res, FilterChain chain)
-      throws ServletException, IOException {
-    // CSP handling now done in CspInterceptor - this filter is deprecated and does nothing
-    chain.doFilter(req, res);
-  }
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface CustomCsp {
+  /**
+   * The Content-Security-Policy header value to use for this endpoint.
+   *
+   * @return the CSP policy string (e.g., "script-src 'none'; ")
+   */
+  String value();
 }

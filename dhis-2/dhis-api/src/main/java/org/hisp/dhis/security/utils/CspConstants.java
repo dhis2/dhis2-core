@@ -29,26 +29,18 @@
  */
 package org.hisp.dhis.security.utils;
 
-import java.util.List;
-import java.util.regex.Pattern;
-
 public class CspConstants {
   private CspConstants() {}
 
   public static final String SCRIPT_SOURCE_DEFAULT = "script-src 'none'; ";
 
-  public static final Pattern P_1 = Pattern.compile("^.+/dataValues/files$");
+  public static final String CONTENT_SECURITY_POLICY_HEADER_NAME = "Content-Security-Policy";
+  public static final String FRAME_ANCESTORS_DEFAULT_CSP = "frame-ancestors 'self'";
 
-  public static final Pattern P_2 =
-      Pattern.compile(
-          "^.+messageConversations/[a-zA-Z\\d]+/[a-zA-Z\\d]+/attachments/[a-zA-Z\\d]+$");
-
-  public static final Pattern P_3 = Pattern.compile("^.+fileResources/[a-zA-Z\\d]+/data$");
-
-  public static final Pattern P_4 = Pattern.compile("^.+audits/files/[a-zA-Z\\d]+$");
-
-  public static final List<Pattern> EXTERNAL_STATIC_CONTENT_URL_PATTERNS =
-      List.of(P_1, P_2, P_2, P_4);
-
-  public static final Pattern LOGIN_PATTERN = Pattern.compile("^.+/dhis-web-commons/security/.+$");
+  /**
+   * Strict default CSP policy applied to all endpoints. This policy only allows resources from the
+   * same origin.
+   */
+  public static final String DEFAULT_CSP_POLICY =
+      "default-src 'self'; style-src 'self' 'unsafe-inline';";
 }

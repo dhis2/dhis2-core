@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,28 +27,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.filter;
+package org.hisp.dhis.webapi.security.csp;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import org.springframework.web.filter.OncePerRequestFilter;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * @deprecated This filter is deprecated and no longer used. CSP handling has been moved to {@link
- *     org.hisp.dhis.webapi.security.csp.CspInterceptor}.
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Marks controller handler methods serving user-uploaded content (files, images, documents, etc.)
+ * with a strict Content-Security-Policy that disables all unsafe sources.
+ *
+ * <p>Applied policy: {@code default-src 'none';}
+ *
+ * <p>This is a specialized decorator for endpoints serving user-uploaded content where maximum
+ * security is required to prevent injection attacks on potentially untrusted content.
+ *
+ * <p>Example usage:
+ *
+ * <pre>
+ *   &#64;CspUserUploadedContent
+ *   &#64;GetMapping("/{id}/file")
+ *   public ResponseEntity&lt;InputStreamResource&gt; getFile(&#64;PathVariable UID id) { ... }
+ * </pre>
+ *
+ * @see CustomCsp for custom CSP policies
+ * @see CspInterceptor for how this annotation is processed and applied to responses
  */
-@Deprecated(forRemoval = true, since = "2.42")
-public class CspFilter extends OncePerRequestFilter {
-
-  @Override
-  protected void doFilterInternal(
-      HttpServletRequest req, HttpServletResponse res, FilterChain chain)
-      throws ServletException, IOException {
-    // CSP handling now done in CspInterceptor - this filter is deprecated and does nothing
-    chain.doFilter(req, res);
-  }
-}
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface CspUserUploadedContent {}
