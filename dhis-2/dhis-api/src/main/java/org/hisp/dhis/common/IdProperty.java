@@ -32,6 +32,7 @@ package org.hisp.dhis.common;
 import static java.util.Objects.requireNonNull;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import java.io.Serializable;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -153,6 +154,7 @@ public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId)
   }
 
   @Override
+  @JsonValue
   public String toString() {
     return switch (name) {
       case CODE -> "CODE";
