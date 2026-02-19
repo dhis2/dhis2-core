@@ -267,8 +267,9 @@ public class DataExportParams {
 
     @OpenApi.Ignore
     public DataExportGroup.Ids getOutputIdSchemes() {
-      return new DataExportGroup.Ids(
+      return DataExportGroup.Ids.of(
           idScheme,
+          dataSetIdScheme,
           dataElementIdScheme,
           orgUnitIdScheme,
           categoryOptionComboIdScheme,

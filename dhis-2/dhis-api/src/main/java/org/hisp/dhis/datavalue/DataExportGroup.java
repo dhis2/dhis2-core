@@ -143,6 +143,16 @@ public record DataExportGroup(
       @Nonnull IdProperty categoryOptions,
       @Nonnull IdProperty categories) {
 
+    public Ids {
+      requireNonNull(dataSets);
+      requireNonNull(dataElements);
+      requireNonNull(orgUnits);
+      requireNonNull(categoryOptionCombos);
+      requireNonNull(attributeOptionCombos);
+      requireNonNull(categoryOptions);
+      requireNonNull(categories);
+    }
+
     public Ids() {
       this(
           IdProperty.UID,
