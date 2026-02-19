@@ -39,7 +39,6 @@ import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
-import static org.hisp.dhis.util.ObjectUtils.notNull;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -67,7 +66,6 @@ import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataExportGroup;
 import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataExportValue;
-import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -252,11 +250,14 @@ public class AggregateDataExchangeService {
    * @return an {@link ImportSummary} describing the outcome of the exchange.
    */
   private ImportSummary pushToInternal(AggregateDataExchange exchange, Grid dataValues) {
+    TargetRequest request = exchange.getTarget().getRequest();
     DataEntryGroup.Input group = toDataEntryGroup(dataValues);
-    group = group.withIds(exchange.getTarget().getRequest().getEntryIds());
+    group = group.withIds(request.getEntryIds());
     // TODO set scope
-    return dataEntryPipeline.importInputGroups(
-        List.of(group), toImportOptions(exchange), transitory());
+
+    DataEntryGroup.Options options =
+        new DataEntryGroup.Options(Boolean.TRUE.equals(request.getDryRun()), false, false);
+    return dataEntryPipeline.importInputGroups(List.of(group), options, false, transitory());
   }
 
   /**
@@ -296,29 +297,6 @@ public class AggregateDataExchangeService {
             uri.build().toUri(), json.toString(), InternalImportSummaryResponse.class)
         .getBody()
         .getImportSummary();
-  }
-
-  /**
-   * Converts the {@link TargetRequest} of the given {@link AggregateDataExchange} to an {@link
-   * ImportOptions}.
-   *
-   * <p>Note that the data value set service does not using {@code null} values as specific ID
-   * schemes. When it does, this method can be simplified.
-   *
-   * @param exchange the {@link AggregateDataExchange}.
-   * @return an {@link ImportOptions}.
-   */
-  @Deprecated
-  ImportOptions toImportOptions(AggregateDataExchange exchange) {
-    TargetRequest request = exchange.getTarget().getRequest();
-
-    ImportOptions options = new ImportOptions();
-    if (notNull(request.getImportStrategy()))
-      options.setImportStrategy(request.getImportStrategy());
-    options.setSkipAudit(request.isSkipAuditOrDefault());
-    options.setDryRun(Boolean.TRUE.equals(request.getDryRun()));
-
-    return options;
   }
 
   /**

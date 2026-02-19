@@ -124,7 +124,7 @@ public record IdProperty(@Nonnull Name name, @CheckForNull UID attributeId)
         if (type.length() == 21 && type.startsWith("ATTRIBUTE:"))
           yield new IdProperty(Name.ATTR, org.hisp.dhis.common.UID.of(scheme.substring(10)));
         throw new IllegalArgumentException(
-            "Invalid ID scheme: %s\n\tUse UID, CODE, NAME, ATTRIBUTE:<uid>".formatted(scheme));
+            "Invalid ID scheme: %s%n\tUse UID, CODE, NAME, ATTRIBUTE:<uid>".formatted(scheme));
       }
     };
   }
