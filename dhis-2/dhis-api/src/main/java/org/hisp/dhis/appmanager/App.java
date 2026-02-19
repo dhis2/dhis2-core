@@ -126,6 +126,8 @@ public class App implements Serializable {
 
   private AppCacheConfig cacheConfig;
 
+  private String cacheBustKey;
+
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
@@ -472,6 +474,16 @@ public class App implements Serializable {
 
   public void setCacheConfig(AppCacheConfig cacheConfig) {
     this.cacheConfig = cacheConfig;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getCacheBustKey() {
+    return cacheBustKey;
+  }
+
+  public void setCacheBustKey(String cacheBustKey) {
+    this.cacheBustKey = cacheBustKey;
   }
 
   // -------------------------------------------------------------------------

@@ -50,11 +50,17 @@ public class AppCacheConfig implements Serializable {
 
   private static final long serialVersionUID = 1L;
 
-  public static final AppCacheConfig DEFAULT = new AppCacheConfig(List.of(), null);
+  public static final AppCacheConfig DEFAULT = new AppCacheConfig(List.of(), null, null);
 
   private List<CacheRule> rules = List.of();
 
   private Integer defaultMaxAgeSeconds;
+
+  /**
+   * Whether HTML cache-busting rewrite is enabled for this app. {@code null} or {@code true} means
+   * enabled (default behavior). {@code false} means this app opts out of HTML cache-busting.
+   */
+  private Boolean htmlRewriteEnabled;
 
   /**
    * A single cache rule from {@code dhis2-cache.json}. Pattern uses Ant-style globs (e.g. {@code **

@@ -41,6 +41,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -65,6 +66,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.staticresource.HtmlCacheBustingService;
 import org.hisp.dhis.webapi.staticresource.StaticCacheControlService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,6 +107,8 @@ public class AppController {
   @Autowired private ContextService contextService;
 
   @Autowired private StaticCacheControlService staticCacheControlService;
+
+  @Autowired private HtmlCacheBustingService htmlCacheBustingService;
 
   @GetMapping(value = "/menu", produces = ContextUtils.CONTENT_TYPE_JSON)
   public @ResponseBody Map<String, List<WebModule>> getWebModules(HttpServletRequest request) {
@@ -153,6 +157,7 @@ public class AppController {
       throw new WebMessageException(conflict(message));
     }
 
+    htmlCacheBustingService.invalidateAll();
     return new ResponseEntity<>(installedApp, HttpStatus.CREATED);
   }
 
@@ -161,6 +166,7 @@ public class AppController {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void reloadApps() {
     appManager.reloadApps();
+    htmlCacheBustingService.invalidateAll();
   }
 
   @GetMapping("/{app}/**")
@@ -245,9 +251,26 @@ public class AppController {
       response.setContentType(mimeType);
     }
 
-    long contentLength = appManager.getUriContentLength(resourceResult.resource());
+    boolean isHtmlEntry =
+        (mimeType != null && mimeType.startsWith("text/html"))
+            || (filename != null && filename.endsWith(".html"));
 
-    response.setContentLengthLong(contentLength);
+    InputStream inputStream;
+    long contentLength;
+
+    if (isHtmlEntry) {
+      inputStream =
+          htmlCacheBustingService.rewriteIfNeeded(
+              resourceResult.resource().getInputStream(), app, requestUri);
+      contentLength = -1;
+    } else {
+      inputStream = resourceResult.resource().getInputStream();
+      contentLength = appManager.getUriContentLength(resourceResult.resource());
+    }
+
+    if (contentLength > 0) {
+      response.setContentLengthLong(contentLength);
+    }
 
     log.debug(
         "Serving resource: {} (contentType: {}, contentLength: {}, lastModified: {}, etag: {})",
@@ -256,8 +279,7 @@ public class AppController {
         contentLength,
         String.valueOf(lastModified),
         etag);
-    StreamUtils.copyThenCloseInputStream(
-        resourceResult.resource().getInputStream(), response.getOutputStream());
+    StreamUtils.copyThenCloseInputStream(inputStream, response.getOutputStream());
   }
 
   @DeleteMapping("/{app}")
@@ -274,6 +296,8 @@ public class AppController {
     if (!appManager.deleteApp(appToDelete, deleteAppData)) {
       throw new WebMessageException(badRequest("App cannot be deleted."));
     }
+
+    htmlCacheBustingService.invalidateAll();
   }
 
   @SuppressWarnings("unchecked")

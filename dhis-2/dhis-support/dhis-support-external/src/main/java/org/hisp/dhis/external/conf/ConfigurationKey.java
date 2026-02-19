@@ -832,7 +832,10 @@ public enum ConfigurationKey {
 
   /** Force no-store on all static resources (dev mode). (default: off) */
   STATIC_CACHE_DEV_MODE_FORCE_NO_CACHE(
-      "dhis2.static.cache.dev_mode_force_no_cache", Constants.OFF, false);
+      "dhis2.static.cache.dev_mode_force_no_cache", Constants.OFF, false),
+
+  /** Whether HTML cache-busting rewrite is enabled. (default: on) */
+  STATIC_CACHE_HTML_REWRITE_ENABLED("dhis2.static.cache.html_rewrite_enabled", Constants.ON, false);
 
   private final String key;
 

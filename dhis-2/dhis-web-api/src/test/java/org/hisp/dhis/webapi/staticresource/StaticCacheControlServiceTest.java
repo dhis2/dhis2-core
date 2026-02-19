@@ -142,7 +142,7 @@ class StaticCacheControlServiceTest {
     app.setName("my-app");
     app.setShortName("my-app");
     CacheRule rule = new CacheRule("**/assets/**", 86400, null, null);
-    app.setCacheConfig(new AppCacheConfig(List.of(rule), null));
+    app.setCacheConfig(new AppCacheConfig(List.of(rule), null, null));
 
     when(appManager.getApp("my-app")).thenReturn(app);
 
@@ -160,7 +160,7 @@ class StaticCacheControlServiceTest {
     app.setName("my-app");
     app.setShortName("my-app");
     CacheRule rule = new CacheRule("**/static/**", null, true, null);
-    app.setCacheConfig(new AppCacheConfig(List.of(rule), null));
+    app.setCacheConfig(new AppCacheConfig(List.of(rule), null, null));
 
     when(appManager.getApp("my-app")).thenReturn(app);
 
@@ -178,7 +178,7 @@ class StaticCacheControlServiceTest {
     app.setName("my-app");
     app.setShortName("my-app");
     CacheRule rule = new CacheRule("**/config.json", 0, null, null);
-    app.setCacheConfig(new AppCacheConfig(List.of(rule), null));
+    app.setCacheConfig(new AppCacheConfig(List.of(rule), null, null));
 
     when(appManager.getApp("my-app")).thenReturn(app);
 
@@ -231,7 +231,7 @@ class StaticCacheControlServiceTest {
     App app = new App();
     app.setName("my-app");
     app.setShortName("my-app");
-    app.setCacheConfig(new AppCacheConfig(List.of(), 7200));
+    app.setCacheConfig(new AppCacheConfig(List.of(), 7200, null));
 
     when(appManager.getApp("my-app")).thenReturn(app);
 
