@@ -41,5 +41,6 @@ public class CspConstants {
    * Strict default CSP policy applied to all endpoints. This policy only allows resources from the
    * same origin.
    */
-  public static final String DEFAULT_CSP_POLICY = "default-src 'self'; style-src 'self' 'unsafe-inline';";
+  public static final String DEFAULT_CSP_POLICY =
+      "default-src 'self'; style-src 'self' 'unsafe-inline';";
 }

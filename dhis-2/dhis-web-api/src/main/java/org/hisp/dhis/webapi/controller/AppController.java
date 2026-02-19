@@ -162,7 +162,8 @@ public class AppController {
     appManager.reloadApps();
   }
 
-  @CustomCsp("default-src 'self'; style-src 'self' 'unsafe-inline'; child-src 'self' blob:; img-src * data:; connect-src *;")
+  @CustomCsp(
+      "default-src 'self'; style-src 'self' 'unsafe-inline'; child-src 'self' blob:; img-src * data:; connect-src *;")
   @GetMapping("/{app}/**")
   public void renderApp(
       @PathVariable("app") String appName, HttpServletRequest request, HttpServletResponse response)
