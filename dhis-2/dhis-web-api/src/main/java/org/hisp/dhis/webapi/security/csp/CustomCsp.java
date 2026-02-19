@@ -46,7 +46,6 @@ import java.lang.annotation.Target;
  *
  * @see CspUserUploadedContent for standard strict CSP for user-uploaded content
  * @see CspInterceptor for how this annotation is processed and applied to responses
- * @see CspPolicyHolder for storing the CSP policy for the request
  */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)

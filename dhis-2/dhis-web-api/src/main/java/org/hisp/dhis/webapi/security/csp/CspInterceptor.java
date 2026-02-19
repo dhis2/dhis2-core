@@ -29,26 +29,35 @@
  */
 package org.hisp.dhis.webapi.security.csp;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
+import static org.hisp.dhis.security.utils.CspConstants.CONTENT_SECURITY_POLICY_HEADER_NAME;
+import static org.hisp.dhis.security.utils.CspConstants.DEFAULT_CSP_POLICY;
+import static org.hisp.dhis.security.utils.CspConstants.FRAME_ANCESTORS_DEFAULT_CSP;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.servlet.ModelAndView;
 
 /**
  * Interceptor that detects @CustomCsp and @CspUserUploadedContent annotations on controller methods
- * and sets the appropriate CSP policy in the CspPolicyHolder for use by the CspFilter.
+ * and applies the appropriate CSP headers to the response.
  *
  * <p>This interceptor checks both the method and the class level for CSP annotations, with
- * method-level annotations taking precedence over class-level ones.
+ * method-level annotations taking precedence over class-level ones. Headers are applied in
+ * postHandle, which runs after the handler method but before the response is committed.
  *
  * <p>Precedence order: 1. Method-level @CustomCsp (custom policy) 2.
  * Method-level @CspUserUploadedContent (default-src 'none';) 3. Class-level @CustomCsp (custom
- * policy) 4. Class-level @CspUserUploadedContent (default-src 'none';) 5. No annotation (CspFilter
- * applies default)
+ * policy) 4. Class-level @CspUserUploadedContent (default-src 'none';) 5. Default CSP policy
  *
  * @author DHIS2 Team
  */
@@ -56,12 +65,13 @@ import org.springframework.web.servlet.HandlerInterceptor;
 @Component
 @RequiredArgsConstructor
 public class CspInterceptor implements HandlerInterceptor {
+  private final DhisConfigurationProvider dhisConfig;
+
+  private final ConfigurationService configurationService;
+
   @Override
   public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
       throws Exception {
-    // Clear any previous CSP policy before processing the request
-    CspPolicyHolder.clear();
-
     if (!(handler instanceof HandlerMethod)) {
       return true;
     }
@@ -70,49 +80,77 @@ public class CspInterceptor implements HandlerInterceptor {
     Method method = handlerMethod.getMethod();
     Class<?> controllerClass = handlerMethod.getBeanType();
 
+    // Determine the CSP policy to apply
+    String cspPolicy = null;
+
     // Check for @CustomCsp annotation on the method first (takes precedence)
     CustomCsp methodAnnotation = method.getAnnotation(CustomCsp.class);
     if (methodAnnotation != null) {
-      String cspPolicy = methodAnnotation.value();
-      log.debug("Setting custom CSP policy for method {} to: {}", method.getName(), cspPolicy);
-      CspPolicyHolder.setCspPolicy(cspPolicy);
-      return true;
+      cspPolicy = methodAnnotation.value();
+      log.info("Setting custom CSP policy for method {} to: {}", method.getName(), cspPolicy);
+    } else if (method.getAnnotation(CspUserUploadedContent.class) != null) {
+      // Check for @CspUserUploadedContent annotation on the method
+      cspPolicy = "default-src 'none'; ";
+      log.info("Setting user-uploaded-content CSP policy for method {}", method.getName());
+    } else {
+      // Check for @CustomCsp annotation on the class
+      CustomCsp classAnnotation = controllerClass.getAnnotation(CustomCsp.class);
+      if (classAnnotation != null) {
+        cspPolicy = classAnnotation.value();
+        log.info(
+            "Setting custom CSP policy for class {} to: {}", controllerClass.getName(), cspPolicy);
+      } else if (controllerClass.getAnnotation(CspUserUploadedContent.class) != null) {
+        // Check for @CspUserUploadedContent annotation on the class
+        cspPolicy = "default-src 'none'; ";
+        log.info(
+            "Setting user-uploaded-content CSP policy for class {}", controllerClass.getName());
+      }
     }
 
-    // Check for @CspUserUploadedContent annotation on the method
-    if (method.getAnnotation(CspUserUploadedContent.class) != null) {
-      String cspPolicy = "default-src 'none'; ";
-      log.debug("Setting user-uploaded-content CSP policy for method {}", method.getName());
-      CspPolicyHolder.setCspPolicy(cspPolicy);
-      return true;
+    // If no CSP annotation found, use the default
+    if (cspPolicy == null) {
+      cspPolicy = DEFAULT_CSP_POLICY;
     }
 
-    // Check for @CustomCsp annotation on the class
-    CustomCsp classAnnotation = controllerClass.getAnnotation(CustomCsp.class);
-    if (classAnnotation != null) {
-      String cspPolicy = classAnnotation.value();
-      log.debug(
-          "Setting custom CSP policy for class {} to: {}", controllerClass.getName(), cspPolicy);
-      CspPolicyHolder.setCspPolicy(cspPolicy);
-      return true;
-    }
-
-    // Check for @CspUserUploadedContent annotation on the class
-    if (controllerClass.getAnnotation(CspUserUploadedContent.class) != null) {
-      String cspPolicy = "default-src 'none'; ";
-      log.debug("Setting user-uploaded-content CSP policy for class {}", controllerClass.getName());
-      CspPolicyHolder.setCspPolicy(cspPolicy);
-      return true;
-    }
-
+    // Apply CSP headers
+    applySecurityHeaders(response, cspPolicy);
     return true;
+  }
+
+  private void applySecurityHeaders(HttpServletResponse response, String cspPolicy) {
+    if (!dhisConfig.isEnabled(CSP_ENABLED)) {
+      // If CSP is not enabled, just set X-Frame-Options to SAMEORIGIN for clickjacking
+      // protection
+      response.addHeader("X-Frame-Options", "SAMEORIGIN");
+      return;
+    }
+
+    // Add frame-ancestors directive based on CORS whitelist
+    cspPolicy += getFrameAncestorsCspPolicy();
+
+    // Set the CSP policy and additional security headers
+    response.addHeader(CONTENT_SECURITY_POLICY_HEADER_NAME, cspPolicy);
+    response.addHeader("X-Content-Type-Options", "nosniff");
+    response.addHeader("X-Frame-Options", "SAMEORIGIN");
+
+    log.info("Applied CSP policy and security headers for response");
+  }
+
+  private String getFrameAncestorsCspPolicy() {
+    Set<String> corsWhitelist = configurationService.getConfiguration().getCorsWhitelist();
+    String corsAllowedOrigins = "";
+    if (!corsWhitelist.isEmpty()) {
+      corsAllowedOrigins = String.join(" ", corsWhitelist);
+      return FRAME_ANCESTORS_DEFAULT_CSP + " " + corsAllowedOrigins + ";";
+    } else {
+      return FRAME_ANCESTORS_DEFAULT_CSP + ";";
+    }
   }
 
   @Override
   public void afterCompletion(
       HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
       throws Exception {
-    // Clean up ThreadLocal after request processing to prevent memory leaks
-    CspPolicyHolder.clear();
+    // No cleanup needed
   }
 }

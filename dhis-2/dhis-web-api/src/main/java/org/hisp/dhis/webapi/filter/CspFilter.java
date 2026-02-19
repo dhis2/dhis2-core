@@ -29,106 +29,26 @@
  */
 package org.hisp.dhis.webapi.filter;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
-import static org.hisp.dhis.security.utils.CspConstants.CONTENT_SECURITY_POLICY_HEADER_NAME;
-import static org.hisp.dhis.security.utils.CspConstants.DEFAULT_CSP_POLICY;
-import static org.hisp.dhis.security.utils.CspConstants.FRAME_ANCESTORS_DEFAULT_CSP;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Set;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.configuration.ConfigurationService;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.webapi.security.csp.CspPolicyHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
+ * @deprecated This filter is deprecated and no longer used. CSP handling has been moved to {@link
+ *     org.hisp.dhis.webapi.security.csp.CspInterceptor}.
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Deprecated(forRemoval = true, since = "2.42")
 public class CspFilter extends OncePerRequestFilter {
-  private final boolean enabled;
-
-  private final ConfigurationService configurationService;
-
-  /** Cache for CORS whitelist to avoid DB lookups on every request. Expires after 5 minutes. */
-  private final Cache<Set<String>> corsWhitelistCache;
-
-  public CspFilter(
-      DhisConfigurationProvider dhisConfig,
-      ConfigurationService configurationService,
-      CacheProvider cacheProvider) {
-    this.enabled = dhisConfig.isEnabled(CSP_ENABLED);
-    this.configurationService = configurationService;
-    this.corsWhitelistCache = cacheProvider.createCorsWhitelistCache();
-  }
 
   @Override
   protected void doFilterInternal(
       HttpServletRequest req, HttpServletResponse res, FilterChain chain)
       throws ServletException, IOException {
-    try {
-      if (!enabled) {
-        // If CSP is not enabled, just set X-Frame-Options to SAMEORIGIN for clickjacking protection
-        // and proceed
-        res.addHeader("X-Frame-Options", "SAMEORIGIN");
-
-        chain.doFilter(req, res);
-        return;
-      }
-
-      // Check if a custom CSP policy was set via @CustomCsp annotation
-      String customCspPolicy = CspPolicyHolder.getCspPolicy();
-      String cspPolicy;
-
-      if (customCspPolicy != null) {
-        // Use the custom CSP policy from the controller
-        cspPolicy = customCspPolicy;
-      } else {
-        // Use strict default policy for all other endpoints
-        cspPolicy = DEFAULT_CSP_POLICY;
-      }
-
-      // Add frame-ancestors directive based on CORS whitelist for all responses
-      cspPolicy += getFrameAncestorsCspPolicy();
-
-      // Set the base CSP policy
-      res.addHeader(CONTENT_SECURITY_POLICY_HEADER_NAME, cspPolicy);
-
-      // Add additional security headers
-      // Always set X-Content-Type-Options to nosniff to prevent MIME type sniffing
-      res.addHeader("X-Content-Type-Options", "nosniff");
-
-      chain.doFilter(req, res);
-    } finally {
-      // Clean up the ThreadLocal to prevent memory leaks
-      CspPolicyHolder.clear();
-    }
-  }
-
-  private String getFrameAncestorsCspPolicy() {
-    Set<String> corsWhitelist = getCorsWhitelist();
-    String corsAllowedOrigins = "";
-    if (!corsWhitelist.isEmpty()) {
-      corsAllowedOrigins = String.join(" ", corsWhitelist);
-      return FRAME_ANCESTORS_DEFAULT_CSP + " " + corsAllowedOrigins + ";";
-    } else {
-      return FRAME_ANCESTORS_DEFAULT_CSP + ";";
-    }
-  }
-
-  /**
-   * Returns the cached CORS whitelist, refreshing from the database if the cache has expired (older
-   * than 5 minutes) or is not yet initialized.
-   *
-   * @return the CORS whitelist Set
-   */
-  private Set<String> getCorsWhitelist() {
-    return corsWhitelistCache.get(
-        "CORS_WHITELIST", key -> configurationService.getConfiguration().getCorsWhitelist());
+    // CSP handling now done in CspInterceptor - this filter is deprecated and does nothing
+    chain.doFilter(req, res);
   }
 }

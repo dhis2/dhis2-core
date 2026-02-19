@@ -53,7 +53,6 @@ import java.lang.annotation.Target;
  *
  * @see CustomCsp for custom CSP policies
  * @see CspInterceptor for how this annotation is processed and applied to responses
- * @see CspPolicyHolder for storing the CSP policy for the request
  */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
