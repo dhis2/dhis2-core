@@ -42,6 +42,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
@@ -51,7 +52,9 @@ import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
@@ -59,8 +62,11 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -314,5 +320,49 @@ class AggregateDataExchangeServiceTest {
         () ->
             service.getSourceDataValueSets(
                 UserDetails.fromUser(new User()), "uid", new SourceDataQueryParams()));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void testExchangeDataWithForbiddenDxItemType() {
+    when(aclService.canDataWrite(any(UserDetails.class), any(IdentifiableObject.class)))
+        .thenReturn(true);
+
+    BaseDimensionalItemObject forbiddenItem = new BaseDimensionalItemObject();
+    forbiddenItem.setDimensionItemType(DimensionItemType.REPORTING_RATE);
+
+    when(dataQueryService.getDimension(
+            eq(DATA_X_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(
+            new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, List.of(forbiddenItem)));
+
+    SourceRequest sourceRequest =
+        new SourceRequest()
+            .setName("SourceRequestA")
+            .setDx(List.of("reportingRate123"))
+            .setPe(List.of("202101"))
+            .setOu(List.of("orgUnitA"));
+
+    Source source = new Source().setRequests(List.of(sourceRequest));
+    TargetRequest targetRequest = new TargetRequest();
+    Target target =
+        new Target().setType(TargetType.INTERNAL).setApi(new Api()).setRequest(targetRequest);
+    AggregateDataExchange exchange =
+        new AggregateDataExchange().setSource(source).setTarget(target);
+
+    ImportSummaries summaries =
+        service.exchangeData(UserDetails.fromUser(new User()), exchange, JobProgress.noop());
+
+    assertEquals(1, summaries.getImportSummaries().size());
+    assertEquals(ImportStatus.ERROR, summaries.getImportSummaries().get(0).getStatus());
+    assertTrue(
+        summaries.getImportSummaries().get(0).getDescription().contains("unsupported types"));
+    verifyNoInteractions(analyticsService);
   }
 }
