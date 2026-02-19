@@ -45,6 +45,7 @@ import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.actions.UserActions;
 import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -59,6 +60,7 @@ class CategoryComboMergeTest extends ApiTest {
   private RestApiActions dataApprovalWorkflowsApiActions;
   private RestApiActions programsIndicatorsApiActions;
   private RestApiActions dataSetApiActions;
+  private RestApiActions dataValueApiActions;
   private MetadataActions metadataActions;
   private UserActions userActions;
   private LoginActions loginActions;
@@ -77,18 +79,22 @@ class CategoryComboMergeTest extends ApiTest {
     dataApprovalWorkflowsApiActions = new RestApiActions("dataApprovalWorkflows");
     programsIndicatorsApiActions = new RestApiActions("programIndicators");
     dataSetApiActions = new RestApiActions("dataSets");
+    dataValueApiActions = new RestApiActions("dataValues");
     metadataActions = new MetadataActions();
     loginActions.loginAsSuperUser();
 
     // add user with required merge auth
-    userActions.addUserFull(
-        "user",
-        "auth",
-        "userWithCcMergeAuth",
-        "Test1234!",
-        "F_CATEGORY_COMBO_MERGE",
-        "F_CATEGORY_COMBO_DELETE",
-        "F_CATEGORY_COMBO_PUBLIC_ADD");
+    String userId =
+        userActions.addUserFull(
+            "user",
+            "auth",
+            "userWithCcMergeAuth",
+            "Test1234!",
+            "F_CATEGORY_COMBO_MERGE",
+            "F_CATEGORY_COMBO_DELETE",
+            "F_CATEGORY_COMBO_PUBLIC_ADD");
+
+    //    userActions.grantUserAccessToOrgUnit(userId, "OrgUnitUID1");
   }
 
   @BeforeEach
@@ -111,6 +117,25 @@ class CategoryComboMergeTest extends ApiTest {
     List<String> srcCc2Cocs = getCocUids(sourceUid2);
     List<String> targetCcCocs = getCocUids(targetUid);
 
+    // get 1 source COC to use with a data value
+    String srcCoc = srcCc1Cocs.get(0);
+
+    // and data value exists with source COC
+    dataValueApiActions
+        .post(
+            """
+            {
+                "dataElement": "DeUID000001",
+                "period": "202208",
+                "orgUnit": "OrgUnitUID1",
+                "categoryOptionCombo": "%s",
+                "attributeOptionCombo": "HllvX50cXC0",
+                "value": "test value"
+            }
+            """
+                .formatted(srcCoc))
+        .validateStatus(201);
+
     assertEquals(4, srcCc1Cocs.size(), "Source CC1 should have 4 COCs");
     assertEquals(4, srcCc2Cocs.size(), "Source CC2 should have 4 COCs");
     assertEquals(4, targetCcCocs.size(), "Target CC should have 4 COCs");
@@ -127,7 +152,11 @@ class CategoryComboMergeTest extends ApiTest {
         .validate()
         .statusCode(200)
         .body("httpStatus", equalTo("OK"))
-        .body("response.mergeReport.message", equalTo("CategoryCombo merge complete"))
+        .body(
+            "response.mergeReport.message",
+            equalTo(
+                "CategoryCombo merge complete. There will be duplicate CategoryOptionCombos as a result of the merge. "
+                    + "These should be merged immediately to help keep system integrity. Duplicates can be found using the data integrity check `category_option_combos_have_duplicates`"))
         .body("response.mergeReport.mergeErrors", empty())
         .body("response.mergeReport.mergeType", equalTo("CategoryCombo"))
         .body("response.mergeReport.sourcesDeleted", hasItems(sourceUid1, sourceUid2));
@@ -141,6 +170,19 @@ class CategoryComboMergeTest extends ApiTest {
 
     // assert post merge state
     assertPostMergeState(srcCc1Cocs, srcCc2Cocs, targetCcCocs);
+
+    // and data value still exists with original src COC
+    loginActions.loginAsSuperUser();
+    dataValueApiActions
+        .get(
+            new QueryParamsBuilder()
+                .add("de", "DeUID000001")
+                .add("ou", "OrgUnitUID1")
+                .add("pe", "202208")
+                .add("co", srcCoc)
+                .build())
+        .validate()
+        .body("[0]", equalTo("test value"));
   }
 
   @Test
@@ -184,7 +226,6 @@ class CategoryComboMergeTest extends ApiTest {
     assertDataElementHasCombo("DeUID000003", targetUid);
 
     // data sets have the target CC
-    assertDataSetHasCombo("DsUID000001", targetUid);
     assertDataSetHasCombo("DsUID000002", targetUid);
     assertDataSetHasCombo("DsUID000003", targetUid);
 
@@ -202,16 +243,6 @@ class CategoryComboMergeTest extends ApiTest {
     assertProgIndHasCc("prgIndUID01", targetUid);
     assertProgIndHasCc("prgIndUID02", targetUid);
     assertProgIndHasCc("prgIndUID03", targetUid);
-
-    // DataElements have target CategoryCombo refs
-    assertDataElementHasCombo("DeUID000001", targetUid);
-    assertDataElementHasCombo("DeUID000002", targetUid);
-    assertDataElementHasCombo("DeUID000003", targetUid);
-
-    // data sets have target CategoryCombo refs
-    assertDataSetHasCombo("DsUID000001", targetUid);
-    assertDataSetHasCombo("DsUID000002", targetUid);
-    assertDataSetHasCombo("DsUID000003", targetUid);
   }
 
   private void assertProgIndHasCc(String prgIndUid, String ccUid) {
@@ -245,7 +276,6 @@ class CategoryComboMergeTest extends ApiTest {
     assertDataElementHasCombo("DeUID000003", targetUid);
 
     // data sets
-    assertDataSetHasCombo("DsUID000001", sourceUid1);
     assertDataSetHasCombo("DsUID000002", sourceUid2);
     assertDataSetHasCombo("DsUID000003", targetUid);
 
@@ -284,7 +314,7 @@ class CategoryComboMergeTest extends ApiTest {
                 getCatOptions(),
                 getCats(),
                 getCombos(),
-                getDataSet(sourceUid1, sourceUid2, targetUid),
+                getDataSet(sourceUid2, targetUid),
                 getDataElement(),
                 getOrgUnit(),
                 getPrograms(sourceUid1, sourceUid2, targetUid),
@@ -335,33 +365,6 @@ class CategoryComboMergeTest extends ApiTest {
         .validate()
         .body("categoryCombo.id", equalTo(catComboUid));
   }
-
-  //  @Test
-  //  @DisplayName("CategoryCombo merge fails when sources and target have different Categories")
-  //  void testCategoryComboMergeDifferentCategories() {
-  //    // login as merge user
-  //    loginActions.loginAsUser("userWithCcMergeAuth", "Test1234!");
-  //
-  //    // when trying to merge combos with different categories
-  //    JsonObject body = new JsonObject();
-  //    JsonArray sources = new JsonArray();
-  //    sources.add("CatComboDif"); // This has a different category
-  //    body.add("sources", sources);
-  //    body.addProperty("target", targetUid);
-  //    body.addProperty("deleteSources", true);
-  //
-  //    ApiResponse response = categoryComboApiActions.post("merge", body).validateStatus(409);
-  //
-  //    // then validation error
-  //    response
-  //        .validate()
-  //        .statusCode(409)
-  //        .body("httpStatus", equalTo("Conflict"))
-  //        .body("status", equalTo("ERROR"))
-  //        .body("message", equalTo("Merge validation error"));
-  //  }
-
-  // todo need test when CC COC has DV to ensure COC still exists & DV exists
 
   private JsonObject getMergeBody() {
     JsonObject json = new JsonObject();
@@ -482,7 +485,7 @@ class CategoryComboMergeTest extends ApiTest {
         """;
   }
 
-  private String getDataSet(String catComboId1, String catComboId2, String catComboId3) {
+  private String getDataSet(String catComboId2, String catComboId3) {
     return """
         "dataSets": [
             {
@@ -490,9 +493,6 @@ class CategoryComboMergeTest extends ApiTest {
                 "id": "DsUID000001",
                 "shortName": "ds 1",
                 "periodType": "Monthly",
-                "categoryCombo": {
-                   "id": "%s"
-                },
                 "dataSetElements": [
                     {
                         "dataElement": {
@@ -550,7 +550,7 @@ class CategoryComboMergeTest extends ApiTest {
             }
         ]
         """
-        .formatted(catComboId1, catComboId2, catComboId3);
+        .formatted(catComboId2, catComboId3);
   }
 
   private String getDataElement() {
