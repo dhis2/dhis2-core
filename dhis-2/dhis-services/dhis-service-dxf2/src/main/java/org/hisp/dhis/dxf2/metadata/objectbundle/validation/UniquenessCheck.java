@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.createObjectReport;
+import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,7 +50,6 @@ import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.stereotype.Component;
 
 /**
@@ -120,7 +120,7 @@ public class UniquenessCheck implements ObjectValidationCheck {
     List<ErrorReport> errorReports = new ArrayList<>();
     uniqueProperties.forEach(
         property -> {
-          Object value = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+          Object value = safeInvoke(object, property.getGetterMethod());
 
           if (value != null) {
             String objectIdentifier =
