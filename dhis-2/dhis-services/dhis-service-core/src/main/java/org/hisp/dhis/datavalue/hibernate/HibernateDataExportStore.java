@@ -48,11 +48,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UsageTestOnly;
-import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataExportParams.Order;
 import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportValue;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.sql.NativeSQL;
@@ -72,7 +72,7 @@ public class HibernateDataExportStore implements DataExportStore {
 
   @Override
   @CheckForNull
-  public DataExportValue exportValue(@Nonnull DataEntryKey key) {
+  public DataExportValue exportValue(@Nonnull DataValueKey key) {
     String sql =
         """
       SELECT

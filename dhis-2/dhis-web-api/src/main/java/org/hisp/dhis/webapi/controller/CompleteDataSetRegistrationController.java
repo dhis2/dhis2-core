@@ -56,8 +56,8 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
 import org.hisp.dhis.dxf2.dataset.ExportParams;
@@ -218,8 +218,8 @@ public class CompleteDataSetRegistrationController {
                   .iterator()
                   .next()); // de is not relevant but required, so we use any
       for (OrganisationUnit orgUnit : orgUnitsToCheck) {
-        DataEntryKey key =
-            new DataEntryKey(de, UID.of(orgUnit), null, UID.of(attributeOptionCombo), period);
+        DataValueKey key =
+            new DataValueKey(de, UID.of(orgUnit), null, UID.of(attributeOptionCombo), period);
         if (!dataEntryService.getEntryStatus(UID.of(dataSet), key).isOpen()) {
           lockedDataSets.add(dataSet.getUid());
           break;

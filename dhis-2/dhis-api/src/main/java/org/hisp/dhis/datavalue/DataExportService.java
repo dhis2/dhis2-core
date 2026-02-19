@@ -57,7 +57,7 @@ public interface DataExportService {
    * @throws ConflictException in case current user has no access to the value
    */
   @CheckForNull
-  DataExportValue exportValue(@Nonnull DataEntryKey key) throws ConflictException;
+  DataExportValue exportValue(@Nonnull DataValueKey key) throws ConflictException;
 
   /**
    * Export matching values as a single {@link Stream}.

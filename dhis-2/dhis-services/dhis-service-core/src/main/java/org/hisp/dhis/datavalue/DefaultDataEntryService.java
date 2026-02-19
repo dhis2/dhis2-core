@@ -517,7 +517,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
   @Override
   @Transactional
-  public boolean deleteValue(boolean force, @CheckForNull UID dataSet, @Nonnull DataEntryKey key)
+  public boolean deleteValue(boolean force, @CheckForNull UID dataSet, @Nonnull DataValueKey key)
       throws ConflictException, BadRequestException {
     DataEntryValue value = key.toDeletedValue();
     List<DataEntryError> errors = new ArrayList<>(1);
@@ -529,7 +529,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
   @Override
   @Transactional(readOnly = true)
-  public LockStatus getEntryStatus(UID dataSet, @Nonnull DataEntryKey key)
+  public LockStatus getEntryStatus(UID dataSet, @Nonnull DataValueKey key)
       throws ConflictException {
     DataEntryValue e = key.toDeletedValue();
     ValidationSource source = new ValuesValidationSource(List.of(e));
@@ -683,7 +683,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     if (values.isEmpty()) return values;
 
     // - require: no two values may affect the same data value (=key =row)
-    Map<DataEntryKey, List<DataEntryValue>> valuesByKey =
+    Map<DataValueKey, List<DataEntryValue>> valuesByKey =
         values.stream().collect(groupingBy(DataEntryValue::toKey));
     if (valuesByKey.size() != values.size()) {
       // only report first to keep error message manageable
