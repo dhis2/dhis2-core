@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.webdomain;
 
+import static org.apache.commons.lang3.StringUtils.firstNonBlank;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -52,6 +53,10 @@ public class PeriodType {
 
   private int frequencyOrder;
 
+  private String label;
+
+  private String displayLabel;
+
   public PeriodType() {}
 
   public PeriodType(org.hisp.dhis.period.PeriodType periodType, I18n i18n) {
@@ -60,6 +65,9 @@ public class PeriodType {
     this.frequencyOrder = periodType.getFrequencyOrder();
     this.isoDuration = periodType.getIso8601Duration();
     this.isoFormat = periodType.getIsoFormat();
+    this.label = firstNonBlank(periodType.getLabel(), periodType.getDisplayName(i18n));
+    this.displayLabel =
+        firstNonBlank(periodType.getDisplayLabel(), periodType.getDisplayName(i18n));
   }
 
   @JsonProperty(namespace = DXF_2_0)
@@ -85,5 +93,15 @@ public class PeriodType {
   @JsonProperty(namespace = DXF_2_0)
   public int getFrequencyOrder() {
     return frequencyOrder;
+  }
+
+  @JsonProperty(namespace = DXF_2_0)
+  public String getLabel() {
+    return label;
+  }
+
+  @JsonProperty(namespace = DXF_2_0)
+  public String getDisplayLabel() {
+    return displayLabel;
   }
 }
