@@ -261,7 +261,10 @@ public class AppController {
     if (isHtmlEntry) {
       inputStream =
           htmlCacheBustingService.rewriteIfNeeded(
-              resourceResult.resource().getInputStream(), app, requestUri);
+              resourceResult.resource().getInputStream(),
+              app,
+              requestUri,
+              request.getContextPath());
       contentLength = -1;
     } else {
       inputStream = resourceResult.resource().getInputStream();

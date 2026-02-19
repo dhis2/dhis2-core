@@ -86,10 +86,17 @@ public class HtmlCacheBustingService {
 
   /**
    * Rewrites relative asset URLs in the given HTML stream with a cache-busting query parameter
-   * derived from the app's {@code cacheBustKey}. Returns the original stream unchanged when
-   * rewriting is disabled, the app has no cache-bust key, or the URI is not an HTML entry point.
+   * derived from the app's {@code cacheBustKey}. Relative paths ({@code ./assets/...}) are
+   * converted to absolute paths under {@code /apps/} so that both the parent page and iframe
+   * reference the same canonical URL, eliminating duplicate requests.
+   *
+   * <p>Returns the original stream unchanged when rewriting is disabled, the app has no cache-bust
+   * key, or the URI is not an HTML entry point.
+   *
+   * @param contextPath the servlet context path (e.g. {@code ""} or {@code "/dhis"})
    */
-  public InputStream rewriteIfNeeded(InputStream original, @CheckForNull App app, String requestUri)
+  public InputStream rewriteIfNeeded(
+      InputStream original, @CheckForNull App app, String requestUri, String contextPath)
       throws IOException {
     if (!isEnabled()
         || !shouldRewrite(requestUri)
@@ -105,7 +112,7 @@ public class HtmlCacheBustingService {
       return toStream(cached.get());
     }
 
-    String rewritten = doRewrite(original, app.getCacheBustKey());
+    String rewritten = doRewrite(original, app.getCacheBustKey(), contextPath);
     rewrittenHtmlCache.put(cacheKey, rewritten);
     return toStream(rewritten);
   }
@@ -132,25 +139,43 @@ public class HtmlCacheBustingService {
     return uri.endsWith(".html") || uri.endsWith("/");
   }
 
-  private String doRewrite(InputStream stream, String bustKey) throws IOException {
+  private String doRewrite(InputStream stream, String bustKey, String contextPath)
+      throws IOException {
     Document doc = Jsoup.parse(stream, StandardCharsets.UTF_8.name(), "");
     String param = "v=" + bustKey;
+    String appsPrefix = (contextPath != null ? contextPath : "") + "/apps/";
 
     for (Element el : doc.select("script[src], link[href], img[src], source[src]")) {
       String attr = el.hasAttr("src") ? "src" : "href";
-      rewriteAttribute(el, attr, param);
+      rewriteAttribute(el, attr, param, appsPrefix);
     }
 
     return doc.outerHtml();
   }
 
-  private void rewriteAttribute(Element el, String attr, String param) {
+  private void rewriteAttribute(Element el, String attr, String param, String appsPrefix) {
     String url = el.attr(attr).trim();
     if (url.isEmpty() || isExternal(url) || url.contains("?v=") || url.contains("&v=")) {
       return;
     }
-    String separator = url.contains("?") ? "&" : "?";
-    el.attr(attr, url + separator + param);
+    String rewrittenUrl = toAbsoluteAppsPath(url, appsPrefix);
+    String separator = rewrittenUrl.contains("?") ? "&" : "?";
+    el.attr(attr, rewrittenUrl + separator + param);
+  }
+
+  /**
+   * Converts relative asset paths to absolute paths under the {@code /apps/} prefix. This ensures
+   * that both the parent page (served from {@code /apps/dashboard/}) and the iframe (served from
+   * {@code /dhis-web-dashboard/}) reference the same canonical URL for shared shell assets.
+   */
+  private String toAbsoluteAppsPath(String url, String appsPrefix) {
+    if (url.startsWith("./")) {
+      return appsPrefix + url.substring(2);
+    }
+    if (!url.startsWith("/") && !url.startsWith("./")) {
+      return appsPrefix + url;
+    }
+    return url;
   }
 
   private boolean isExternal(String url) {

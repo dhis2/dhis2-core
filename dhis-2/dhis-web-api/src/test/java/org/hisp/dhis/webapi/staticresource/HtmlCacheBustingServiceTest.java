@@ -76,18 +76,18 @@ class HtmlCacheBustingServiceTest {
   }
 
   @Test
-  @DisplayName("Rewrites script src with cache-bust parameter")
+  @DisplayName("Rewrites script src with cache-bust parameter and absolute path")
   void rewritesScriptSrc() throws IOException {
     String html = "<html><head><script src=\"app.js\"></script></head><body></body></html>";
     App app = appWithCacheBustKey("abc123");
 
     String result = rewrite(html, app, "/apps/my-app/index.html");
 
-    assertThat(result, containsString("src=\"app.js?v=abc123\""));
+    assertThat(result, containsString("src=\"/apps/app.js?v=abc123\""));
   }
 
   @Test
-  @DisplayName("Rewrites link href with cache-bust parameter")
+  @DisplayName("Rewrites link href with cache-bust parameter and absolute path")
   void rewritesLinkHref() throws IOException {
     String html =
         "<html><head><link href=\"style.css\" rel=\"stylesheet\"></head><body></body></html>";
@@ -95,29 +95,29 @@ class HtmlCacheBustingServiceTest {
 
     String result = rewrite(html, app, "/apps/my-app/index.html");
 
-    assertThat(result, containsString("href=\"style.css?v=abc123\""));
+    assertThat(result, containsString("href=\"/apps/style.css?v=abc123\""));
   }
 
   @Test
-  @DisplayName("Rewrites img src with cache-bust parameter")
+  @DisplayName("Rewrites img src with cache-bust parameter and absolute path")
   void rewritesImgSrc() throws IOException {
     String html = "<html><body><img src=\"logo.png\"></body></html>";
     App app = appWithCacheBustKey("abc123");
 
     String result = rewrite(html, app, "/apps/my-app/index.html");
 
-    assertThat(result, containsString("src=\"logo.png?v=abc123\""));
+    assertThat(result, containsString("src=\"/apps/logo.png?v=abc123\""));
   }
 
   @Test
-  @DisplayName("Rewrites source src with cache-bust parameter")
+  @DisplayName("Rewrites source src with cache-bust parameter and absolute path")
   void rewritesSourceSrc() throws IOException {
     String html = "<html><body><video><source src=\"video.mp4\"></video></body></html>";
     App app = appWithCacheBustKey("abc123");
 
     String result = rewrite(html, app, "/apps/my-app/index.html");
 
-    assertThat(result, containsString("src=\"video.mp4?v=abc123\""));
+    assertThat(result, containsString("src=\"/apps/video.mp4?v=abc123\""));
   }
 
   @Test
@@ -134,9 +134,9 @@ class HtmlCacheBustingServiceTest {
 
     String result = rewrite(html, app, "/apps/my-app/index.html");
 
-    assertThat(result, containsString("src=\"app.js?v=xyz789\""));
-    assertThat(result, containsString("href=\"style.css?v=xyz789\""));
-    assertThat(result, containsString("src=\"logo.png?v=xyz789\""));
+    assertThat(result, containsString("src=\"/apps/app.js?v=xyz789\""));
+    assertThat(result, containsString("href=\"/apps/style.css?v=xyz789\""));
+    assertThat(result, containsString("src=\"/apps/logo.png?v=xyz789\""));
   }
 
   @Test
@@ -195,7 +195,7 @@ class HtmlCacheBustingServiceTest {
 
     String result = rewrite(html, app, "/apps/my-app/index.html");
 
-    assertThat(result, containsString("src=\"app.js?ts=123&amp;v=abc123\""));
+    assertThat(result, containsString("src=\"/apps/app.js?ts=123&amp;v=abc123\""));
   }
 
   @Test
@@ -249,7 +249,7 @@ class HtmlCacheBustingServiceTest {
   @Test
   @DisplayName("Returns cached HTML on second call")
   void returnsCachedHtmlOnSecondCall() throws IOException {
-    String cachedHtml = "<html><head><script src=\"app.js?v=abc123\"></script></head></html>";
+    String cachedHtml = "<html><head><script src=\"/apps/app.js?v=abc123\"></script></head></html>";
     App app = appWithCacheBustKey("abc123");
     String cacheKey = app.getKey() + ":" + app.getCacheBustKey() + ":/apps/my-app/index.html";
 
@@ -284,7 +284,7 @@ class HtmlCacheBustingServiceTest {
 
     String result = rewrite(html, app, "/apps/my-app/plugin.html");
 
-    assertThat(result, containsString("src=\"plugin.js?v=abc123\""));
+    assertThat(result, containsString("src=\"/apps/plugin.js?v=abc123\""));
   }
 
   @Test
@@ -295,7 +295,7 @@ class HtmlCacheBustingServiceTest {
 
     String result = rewrite(html, app, "/apps/my-app/");
 
-    assertThat(result, containsString("src=\"app.js?v=abc123\""));
+    assertThat(result, containsString("src=\"/apps/app.js?v=abc123\""));
   }
 
   @Test
@@ -320,7 +320,7 @@ class HtmlCacheBustingServiceTest {
 
     String result = rewrite(html, app, "/apps/my-app/index.html");
 
-    assertThat(result, containsString("src=\"app.js?v=abc123\""));
+    assertThat(result, containsString("src=\"/apps/app.js?v=abc123\""));
   }
 
   @Test
@@ -332,7 +332,7 @@ class HtmlCacheBustingServiceTest {
 
     String result = rewrite(html, app, "/apps/my-app/index.html");
 
-    assertThat(result, containsString("src=\"app.js?v=abc123\""));
+    assertThat(result, containsString("src=\"/apps/app.js?v=abc123\""));
   }
 
   @Test
@@ -351,9 +351,59 @@ class HtmlCacheBustingServiceTest {
     return app;
   }
 
+  @Test
+  @DisplayName("Rewrites relative ./ paths to absolute /apps/ paths")
+  void rewritesRelativeToAbsoluteAppsPath() throws IOException {
+    String html = "<html><head><script src=\"./assets/main.js\"></script></head></html>";
+    App app = appWithCacheBustKey("abc123");
+
+    String result = rewrite(html, app, "/apps/my-app/index.html");
+
+    assertThat(result, containsString("src=\"/apps/assets/main.js?v=abc123\""));
+  }
+
+  @Test
+  @DisplayName("Includes context path in absolute /apps/ rewrite")
+  void includesContextPathInAbsoluteRewrite() throws IOException {
+    String html = "<html><head><script src=\"./assets/main.js\"></script></head></html>";
+    App app = appWithCacheBustKey("abc123");
+
+    String result = rewrite(html, app, "/apps/my-app/index.html", "/dhis");
+
+    assertThat(result, containsString("src=\"/dhis/apps/assets/main.js?v=abc123\""));
+  }
+
+  @Test
+  @DisplayName("Bare relative paths (no ./) are also rewritten to /apps/ paths")
+  void rewritesBareRelativeToAbsoluteAppsPath() throws IOException {
+    String html = "<html><head><script src=\"assets/main.js\"></script></head></html>";
+    App app = appWithCacheBustKey("abc123");
+
+    String result = rewrite(html, app, "/apps/my-app/index.html");
+
+    assertThat(result, containsString("src=\"/apps/assets/main.js?v=abc123\""));
+  }
+
+  @Test
+  @DisplayName("Absolute paths starting with / are left as-is")
+  void leavesAbsolutePathsUnchanged() throws IOException {
+    String html = "<html><head><script src=\"/some/path/main.js\"></script></head></html>";
+    App app = appWithCacheBustKey("abc123");
+
+    String result = rewrite(html, app, "/apps/my-app/index.html");
+
+    assertThat(result, containsString("src=\"/some/path/main.js?v=abc123\""));
+    assertThat(result, not(containsString("/apps/some")));
+  }
+
   private String rewrite(String content, App app, String requestUri) throws IOException {
+    return rewrite(content, app, requestUri, "");
+  }
+
+  private String rewrite(String content, App app, String requestUri, String contextPath)
+      throws IOException {
     InputStream input = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
-    InputStream result = service.rewriteIfNeeded(input, app, requestUri);
+    InputStream result = service.rewriteIfNeeded(input, app, requestUri, contextPath);
     return new String(result.readAllBytes(), StandardCharsets.UTF_8);
   }
 }
