@@ -40,7 +40,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode
-public class BaseMap {
+public class Basemap {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)

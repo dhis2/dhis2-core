@@ -65,11 +65,11 @@ public class Map extends BaseNameableObject
 
   @Deprecated(forRemoval = true, since = "43")
   /**
-   * @deprecated use "baseMaps", instead.
+   * @deprecated use "basemaps", instead.
    */
   private String basemap;
 
-  private List<BaseMap> baseMaps = new ArrayList<>();
+  private List<Basemap> basemaps = new ArrayList<>();
 
   private String title;
 
@@ -143,12 +143,12 @@ public class Map extends BaseNameableObject
   @JsonProperty("basemaps")
   @JacksonXmlElementWrapper(localName = "basemaps", namespace = DXF_2_0)
   @JacksonXmlProperty(localName = "basemaps", namespace = DXF_2_0)
-  public List<BaseMap> getBaseMaps() {
-    return baseMaps;
+  public List<Basemap> getBasemaps() {
+    return basemaps;
   }
 
-  public void setBaseMaps(List<BaseMap> baseMaps) {
-    this.baseMaps = baseMaps;
+  public void setBasemaps(List<Basemap> basemaps) {
+    this.basemaps = basemaps;
   }
 
   @JsonProperty
