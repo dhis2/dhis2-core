@@ -33,6 +33,7 @@ import com.google.common.base.MoreObjects;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
@@ -124,7 +125,15 @@ public class DataSourceConfig {
     }
   }
 
-  private static final String[] MDC_KEYS = {"controller", "method", "sessionId", "xRequestID"};
+  /** Maps MDC keys to SQL comment keys. LinkedHashMap for deterministic comment order. */
+  private static final LinkedHashMap<String, String> MDC_TO_SQL_KEY = new LinkedHashMap<>();
+
+  static {
+    MDC_TO_SQL_KEY.put("controller", "controller");
+    MDC_TO_SQL_KEY.put("method", "method");
+    MDC_TO_SQL_KEY.put("xRequestID", "request_id");
+    MDC_TO_SQL_KEY.put("sessionId", "session_id");
+  }
 
   static DataSource createProxyDataSource(
       DhisConfigurationProvider dhisConfig, DataSource actualDataSource) {
@@ -182,10 +191,10 @@ public class DataSourceConfig {
     }
 
     StringJoiner joiner = new StringJoiner(",");
-    for (String key : MDC_KEYS) {
-      String value = mdc.get(key);
+    for (Map.Entry<String, String> entry : MDC_TO_SQL_KEY.entrySet()) {
+      String value = mdc.get(entry.getKey());
       if (value != null) {
-        joiner.add(key + "='" + value + "'");
+        joiner.add(entry.getValue() + "='" + value + "'");
       }
     }
 
