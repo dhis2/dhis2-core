@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,45 +27,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.filter;
+package org.hisp.dhis.appmanager;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.http.HttpMethod;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import java.io.Serializable;
+import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
- * Filter which enforces no cache for HTML pages like index pages to prevent stale versions being
- * rendered in clients.
- *
- * @author Kai Vandivier
+ * Per-app cache configuration, parsed from {@code dhis2-cache.json} at the root of an app ZIP.
+ * Falls back to {@link #DEFAULT} when the file is absent.
  */
-@Component
-public class AppHtmlNoCacheFilter extends OncePerRequestFilter {
-  // Match paths with '/dhis-web-' or '/apps' that end with '.html' or '/'
-  // https://regex101.com/r/4QfxgS/1
-  public static final String HTML_PATH_REGEX = "\\/(dhis-web-|apps).*(\\.html|\\/)$";
-  public static final Pattern HTML_PATH_PATTERN = Pattern.compile(HTML_PATH_REGEX);
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class AppCacheConfig implements Serializable {
 
-  @Override
-  protected void doFilterInternal(
-      HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-      throws IOException, ServletException {
+  private static final long serialVersionUID = 1L;
 
-    String uri = request.getRequestURI();
-    Matcher m = HTML_PATH_PATTERN.matcher(uri);
+  public static final AppCacheConfig DEFAULT = new AppCacheConfig(List.of(), null);
 
-    if (m.find() && HttpMethod.GET.matches(request.getMethod())) {
-      ContextUtils.setNoStore(response);
-    }
+  private List<CacheRule> rules = List.of();
 
-    chain.doFilter(request, response);
+  private Integer defaultMaxAgeSeconds;
+
+  /**
+   * A single cache rule from {@code dhis2-cache.json}. Pattern uses Ant-style globs (e.g. {@code **
+   * /*.html}).
+   */
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  public static class CacheRule implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    private String pattern;
+
+    private Integer maxAgeSeconds;
+
+    private Boolean immutable;
+
+    private Boolean mustRevalidate;
   }
 }

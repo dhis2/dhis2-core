@@ -57,7 +57,6 @@ import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
-import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -66,6 +65,7 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.staticresource.StaticCacheControlService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -103,6 +103,8 @@ public class AppController {
   @Autowired private I18nManager i18nManager;
 
   @Autowired private ContextService contextService;
+
+  @Autowired private StaticCacheControlService staticCacheControlService;
 
   @GetMapping(value = "/menu", produces = ContextUtils.CONTENT_TYPE_JSON)
   public @ResponseBody Map<String, List<WebModule>> getWebModules(HttpServletRequest request) {
@@ -222,20 +224,14 @@ public class AppController {
     String filename = resourceResult.resource().getFilename();
     log.debug("Serving app resource, filename: {}", filename);
 
-    // Use a combination of app version and last modified timestamp to generate an ETag
-    // This is to ensure that the ETag changes when the app is updated
-    // There is no guarantee that a new app uploaded will have a different version number, so we
-    // need to include the last modified timestamp
-    // Similarly, with classPath resources the lastModified timestamp may be missing or not
-    // reliable, so we need to include the version number
-    // See also AppHtmlNoCacheFilter for cache control headers set on index.html responses
+    String requestUri = request.getRequestURI();
+    staticCacheControlService.setHeaders(response, requestUri, app.getKey());
 
     long lastModified = resourceResult.resource().lastModified();
-    String etagSource = String.format("%s-%s", app.getVersion(), String.valueOf(lastModified));
-    String etag = HashUtils.hashMD5(etagSource.getBytes());
+    String etag = staticCacheControlService.generateETag(app, lastModified, requestUri);
 
     if (new ServletWebRequest(request, response).checkNotModified(etag, lastModified)) {
-      log.debug("Resource not modified (etag {}, source {})", etag, etagSource);
+      log.debug("Resource not modified (etag {}, uri {})", etag, requestUri);
       response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
       return;
     }

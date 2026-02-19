@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.appmanager;
 
+import static org.hisp.dhis.appmanager.AppStorageService.CACHE_CONFIG_FILENAME;
 import static org.hisp.dhis.appmanager.AppStorageService.MANIFEST_FILENAME;
 import static org.hisp.dhis.appmanager.AppStorageService.MANIFEST_TRANSLATION_FILENAME;
 
@@ -299,8 +300,22 @@ public interface AppManager {
       app = jsonMapper.readValue(inputStream, App.class);
 
       extractManifestTranslations(zip, topLevelFolder, app);
+      extractCacheConfig(zip, topLevelFolder, app);
     }
     return app;
+  }
+
+  static void extractCacheConfig(ZipFile zip, String prefix, App app) {
+    ZipEntry cacheConfigEntry = zip.getEntry(prefix + CACHE_CONFIG_FILENAME);
+    if (cacheConfigEntry == null) {
+      return;
+    }
+    try (InputStream inputStream = zip.getInputStream(cacheConfigEntry)) {
+      AppCacheConfig cacheConfig = App.MAPPER.readValue(inputStream, AppCacheConfig.class);
+      app.setCacheConfig(cacheConfig);
+    } catch (IOException e) {
+      LOGGER.warn("Failed to read {} for app {}", CACHE_CONFIG_FILENAME, app.getName(), e);
+    }
   }
 
   static void extractManifestTranslations(ZipFile zip, String prefix, App app) {

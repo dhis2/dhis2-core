@@ -124,6 +124,8 @@ public class App implements Serializable {
 
   private boolean isLocalised = false;
 
+  private AppCacheConfig cacheConfig;
+
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
@@ -460,6 +462,16 @@ public class App implements Serializable {
 
   private void setIsLocalised(boolean localised) {
     this.isLocalised = localised;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public AppCacheConfig getCacheConfig() {
+    return cacheConfig;
+  }
+
+  public void setCacheConfig(AppCacheConfig cacheConfig) {
+    this.cacheConfig = cacheConfig;
   }
 
   // -------------------------------------------------------------------------
