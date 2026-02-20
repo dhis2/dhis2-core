@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.webapi.filter;
 
+import static org.hisp.dhis.log.MdcKeys.MDC_REQUEST_ID;
+import static org.hisp.dhis.log.MdcKeys.MDC_X_REQUEST_ID;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,14 +54,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component("requestIdFilter")
 public class RequestIdFilter extends OncePerRequestFilter {
 
-  /** MDC key for the X-Request-ID header value. Use {@code %X{requestId}} in log patterns. */
-  private static final String REQUEST_ID = "requestId";
-
-  /**
-   * Kept for backward compatibility with custom log4j2.xml configs. Remove in next major version.
-   */
-  private static final String X_REQUEST_ID = "xRequestID";
-
   /** Pattern for valid request IDs: alphanumeric, dash, and underscore, 1-36 characters. */
   private static final Pattern VALID_REQUEST_ID_PATTERN = Pattern.compile("[-_a-zA-Z0-9]{1,36}");
 
@@ -70,13 +65,13 @@ public class RequestIdFilter extends OncePerRequestFilter {
       String headerValue = request.getHeader("X-Request-ID");
       if (headerValue != null) {
         String sanitized = sanitizeRequestId(headerValue);
-        MDC.put(REQUEST_ID, sanitized);
-        MDC.put(X_REQUEST_ID, sanitized);
+        MDC.put(MDC_REQUEST_ID, sanitized);
+        MDC.put(MDC_X_REQUEST_ID, sanitized);
       }
       filterChain.doFilter(request, response);
     } finally {
-      MDC.remove(REQUEST_ID);
-      MDC.remove(X_REQUEST_ID);
+      MDC.remove(MDC_REQUEST_ID);
+      MDC.remove(MDC_X_REQUEST_ID);
     }
   }
 

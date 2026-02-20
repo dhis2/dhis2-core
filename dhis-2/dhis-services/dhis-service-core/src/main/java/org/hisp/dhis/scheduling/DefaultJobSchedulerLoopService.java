@@ -34,6 +34,7 @@ import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.eventhook.EventUtils.schedulerCompleted;
 import static org.hisp.dhis.eventhook.EventUtils.schedulerFailed;
 import static org.hisp.dhis.eventhook.EventUtils.schedulerStart;
+import static org.hisp.dhis.log.MdcKeys.MDC_SESSION_ID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -156,7 +157,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
     if (!jobConfigurationStore.tryStart(jobId)) return false;
     JobEntry job = jobConfigurationStore.getJobById(jobId);
     if (job == null) return false;
-    doSafely("start", "MDC.put", () -> MDC.put("sessionId", getSessionId(job)));
+    doSafely("start", "MDC.put", () -> MDC.put(MDC_SESSION_ID, getSessionId(job)));
     doSafely("start", "publishEvent", () -> events.publishEvent(schedulerStart(job)));
     return true;
   }
@@ -205,7 +206,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
       String message = String.format("Job failed: '%s'", job.name());
       doSafely("fail", "stop recording", () -> stopRecording(jobId));
       doSafely("fail", "log.error", () -> logError(message, ex));
-      doSafely("fail", "MDC.remove", () -> MDC.remove("sessionId"));
+      doSafely("fail", "MDC.remove", () -> MDC.remove(MDC_SESSION_ID));
       doSafely("fail", "publishEvent", () -> events.publishEvent(schedulerFailed(job)));
       Exception cause = ex;
       if (cause == null) {
@@ -232,7 +233,7 @@ public class DefaultJobSchedulerLoopService implements JobSchedulerLoopService {
       String message = String.format("Job cancelled: '%s'", job.name());
       doSafely("cancel", "stop recording", () -> stopRecording(jobId));
       doSafely("cancel", "log.error", () -> logError(message, null));
-      doSafely("cancel", "MDC.remove", () -> MDC.remove("sessionId"));
+      doSafely("cancel", "MDC.remove", () -> MDC.remove(MDC_SESSION_ID));
       doSafely("cancel", "publishEvent", () -> events.publishEvent(schedulerFailed(job)));
       skipRestOfQueue(job);
     }

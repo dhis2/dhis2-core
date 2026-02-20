@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.config;
 
-import static org.hisp.dhis.config.DataSourceConfig.createLoggingDataSource;
+import static org.hisp.dhis.config.DataSourceConfig.createProxyDataSource;
 import static org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper.ANALYTICS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_URL;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
@@ -74,7 +74,7 @@ public class AnalyticsDataSourceConfig {
   @DependsOn("analyticsActualDataSource")
   public DataSource jdbcDataSource(
       @Qualifier("analyticsActualDataSource") DataSource actualDataSource) {
-    return createLoggingDataSource(config, actualDataSource);
+    return createProxyDataSource(config, actualDataSource);
   }
 
   /**
