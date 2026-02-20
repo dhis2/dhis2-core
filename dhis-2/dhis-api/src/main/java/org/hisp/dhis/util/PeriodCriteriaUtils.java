@@ -32,6 +32,7 @@ package org.hisp.dhis.util;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.STATIC_DATE_DIMENSIONS;
 
 import java.util.Set;
 import java.util.stream.Stream;
