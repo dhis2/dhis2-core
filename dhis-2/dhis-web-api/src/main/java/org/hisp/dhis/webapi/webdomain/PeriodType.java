@@ -66,8 +66,7 @@ public class PeriodType {
     this.isoDuration = periodType.getIso8601Duration();
     this.isoFormat = periodType.getIsoFormat();
     this.label = periodType.getLabel();
-    this.displayLabel =
-        firstNonBlank(periodType.getDisplayLabel(), periodType.getLabel());
+    this.displayLabel = firstNonBlank(periodType.getDisplayLabel(), periodType.getLabel());
   }
 
   @JsonProperty(namespace = DXF_2_0)
