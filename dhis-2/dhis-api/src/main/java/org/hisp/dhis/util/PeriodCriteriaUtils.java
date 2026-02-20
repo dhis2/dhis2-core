@@ -33,8 +33,8 @@ import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 
-import java.util.stream.Stream;
 import java.util.Set;
+import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;

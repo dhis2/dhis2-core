@@ -136,6 +136,7 @@ import org.hisp.dhis.analytics.common.EndpointItem;
 import org.hisp.dhis.analytics.common.InQueryCteFilter;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlCoordinator;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagDataHandler;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
@@ -513,7 +514,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       EventQueryParams params, boolean isGroupByClause, boolean isAggregated) {
     List<String> columns = new ArrayList<>();
 
-    addDimensionSelectColumns(columns, params, isGroupByClause);
+    addDimensionSelectColumns(columns, params, isGroupByClause, isAggregated);
     addItemSelectColumns(columns, params, isGroupByClause, isAggregated);
 
     return columns;
@@ -530,7 +531,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * group by columns.
    */
   protected void addDimensionSelectColumns(
-      List<String> columns, EventQueryParams params, boolean isGroupByClause) {
+      List<String> columns,
+      EventQueryParams params,
+      boolean isGroupByClause,
+      boolean isAggregated) {
     params
         .getDimensions()
         .forEach(
@@ -588,6 +592,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
                     exactly one period, or no periods and a period filter""");
               }
             });
+
+    OrgUnitSqlCoordinator.addDimensionSelectColumns(
+        columns, params, isGroupByClause, isAggregated, getAnalyticsType());
   }
 
   private void addItemSelectColumns(
@@ -1802,7 +1809,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // Add dimension columns only when the analytics query
     // is for enrollments
     if (!cteContext.isEventsAnalytics()) {
-      addDimensionSelectColumns(columns, params, false);
+      addDimensionSelectColumns(columns, params, false, false);
     }
 
     // Process query items with CTE references

@@ -111,7 +111,6 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   private static final String ENROLLMENT_OU_DIMENSION = "ENROLLMENT_OU";
   private static final String LEVEL_PREFIX = "LEVEL-";
 
-
   private final ProgramService programService;
 
   private final ProgramStageService programStageService;

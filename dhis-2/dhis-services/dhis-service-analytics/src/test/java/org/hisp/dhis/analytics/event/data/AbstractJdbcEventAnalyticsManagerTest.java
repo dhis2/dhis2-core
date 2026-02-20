@@ -1392,6 +1392,40 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void testAggregatedLegacySelectColumnsIncludesEnrollmentOuColumn() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withEnrollmentOuDimension(List.of(ouA))
+            .build();
+
+    List<String> columns = eventSubject.getSelectColumns(params, true);
+
+    assertTrue(columns.stream().anyMatch(c -> c.contains("as enrollmentou")));
+  }
+
+  @Test
+  void testAggregatedLegacyGroupByColumnsIncludesEnrollmentOuColumn() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withEnrollmentOuDimension(List.of(ouA))
+            .build();
+
+    List<String> columns = eventSubject.getGroupByColumnNames(params, true);
+
+    assertTrue(columns.stream().anyMatch(c -> c.contains("ous.\"organisationunituid\"")));
+  }
+
+  @Test
   void testEnrollmentOuInWhereClause() {
     OrganisationUnit ouA = createOrganisationUnit('A');
     OrganisationUnit ouB = createOrganisationUnit('B');
