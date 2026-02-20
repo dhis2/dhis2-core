@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
 import static org.hisp.dhis.security.acl.AccessStringHelper.READ;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.Assertions.assertHasTimeStamp;
 import static org.hisp.dhis.tracker.Assertions.assertNotes;
@@ -129,6 +130,32 @@ class EventExporterTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(importUser);
 
     operationParamsBuilder = EventOperationParams.builder().orgUnit(orgUnit).orgUnitMode(SELECTED);
+  }
+
+  @Test
+  void shouldFetchOneEventWhenPassingEventUid() throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder.events(Set.of(UID.of("D9PbzJY8bJM"))).build();
+
+    List<Event> events = eventService.findEvents(params);
+
+    assertHasSize(1, events);
+    assertEquals("D9PbzJY8bJM", events.get(0).getUid());
+  }
+
+  @Test
+  void shouldFetchOneEventWhenPassingEventUidAndFilterByDataElement()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .events(Set.of(UID.of("D9PbzJY8bJM")))
+            .filterByDataElement(UID.of("DATAEL00001"))
+            .build();
+
+    List<Event> events = eventService.findEvents(params);
+
+    assertHasSize(1, events);
+    assertEquals("D9PbzJY8bJM", events.get(0).getUid());
   }
 
   @Test
