@@ -68,12 +68,10 @@ public class FormLoginBasicAuthenticationEntryPoint extends LoginUrlAuthenticati
       AuthenticationException authException)
       throws IOException, ServletException {
     String acceptHeader = MoreObjects.firstNonNull(request.getHeader(HttpHeaders.ACCEPT), "");
-    String requestWithHeader =
-        MoreObjects.firstNonNull(request.getHeader(HttpHeaders.X_REQUESTED_WITH), "");
     String authorizationHeader =
         MoreObjects.firstNonNull(request.getHeader(HttpHeaders.AUTHORIZATION), "");
 
-    if ("XMLHttpRequest".equals(requestWithHeader) || authorizationHeader.contains("Basic")) {
+    if (ApiRequestDetector.isApiRequest(request) || authorizationHeader.contains("Basic")) {
       String message = "Unauthorized";
 
       if (ExceptionUtils.indexOfThrowable(authException, LockedException.class) != -1) {

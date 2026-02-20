@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -45,6 +47,7 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.security.apikey.DhisApiTokenAuthenticationEntryPoint;
@@ -60,6 +63,8 @@ import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.DhisCorsProcessor;
+import org.hisp.dhis.webapi.filter.SessionTimeoutHeaderFilter;
+import org.hisp.dhis.webapi.security.ApiRequestDetector;
 import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
@@ -70,6 +75,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
@@ -92,6 +98,7 @@ import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler
 import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
+import org.springframework.security.web.session.SessionManagementFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StringUtils;
@@ -150,6 +157,8 @@ public class DhisWebApiWebSecurityConfig {
   @Autowired private DhisCustomAuthorizationRequestResolver dhisCustomAuthorizationRequestResolver;
 
   @Autowired private DhisAuthorizationCodeTokenResponseClient jwtPrivateCodeTokenResponseClient;
+
+  @Autowired private RenderService renderService;
 
   @Autowired private RequestCache requestCache;
 
@@ -264,6 +273,8 @@ public class DhisWebApiWebSecurityConfig {
     configureCspFilter(http, dhisConfig, configurationService, cacheProvider);
     configureApiTokenAuthorizationFilter(http);
     configureOAuthTokenFilters(http);
+
+    http.addFilterAfter(new SessionTimeoutHeaderFilter(), SessionManagementFilter.class);
 
     setHttpHeaders(http);
 
@@ -429,7 +440,7 @@ public class DhisWebApiWebSecurityConfig {
         .logout()
         .logoutUrl("/dhis-web-commons-security/logout.action")
         .logoutSuccessHandler(dhisOidcLogoutSuccessHandler)
-        .deleteCookies("JSESSIONID")
+        .deleteCookies("JSESSIONID", "SESSION_EXPIRE")
         .and()
         ////////////////////
         .sessionManagement()
@@ -439,7 +450,19 @@ public class DhisWebApiWebSecurityConfig {
         .enableSessionUrlRewriting(false)
         .maximumSessions(
             Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
-        .expiredUrl("/dhis-web-commons-security/logout.action");
+        .expiredSessionStrategy(
+            event -> {
+              HttpServletRequest request = event.getRequest();
+              HttpServletResponse response = event.getResponse();
+              if (ApiRequestDetector.isApiRequest(request)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                renderService.toJson(response.getOutputStream(), unauthorized("Session expired"));
+              } else {
+                response.sendRedirect(
+                    request.getContextPath() + "/dhis-web-commons-security/logout.action");
+              }
+            });
   }
 
   @Bean

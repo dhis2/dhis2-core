@@ -57,7 +57,7 @@ public class Http401LoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticat
       HttpServletResponse response,
       AuthenticationException authException)
       throws IOException, ServletException {
-    if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
+    if (ApiRequestDetector.isApiRequest(request)) {
       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
       response.setContentType(MediaType.APPLICATION_JSON_VALUE);
       renderService.toJson(response.getOutputStream(), unauthorized("Unauthorized"));
