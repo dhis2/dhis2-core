@@ -265,9 +265,6 @@ public final class DatabasePoolUtils {
     hc.setJdbcUrl(jdbcUrl);
     hc.setUsername(username);
     hc.setPassword(password);
-    hc.addDataSourceProperty("cachePrepStmts", "true");
-    hc.addDataSourceProperty("prepStmtCacheSize", "250");
-    hc.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
     hc.setConnectionTestQuery(connectionTestQuery);
     final String leakThresholdStr =
         dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_WARN_MAX_AGE));
