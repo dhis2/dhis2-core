@@ -557,6 +557,18 @@ public enum ConfigurationKey {
   /** Enable secure settings if system is deployed on HTTPS, can be 'off', 'on'. */
   SERVER_HTTPS("server.https", Constants.OFF),
 
+  /** Prepends SQL comments with MDC context (controller, method, request_id, session_id). */
+  MONITORING_SQL_CONTEXT("monitoring.sql.context", Constants.OFF, false),
+
+  /**
+   * Comma-separated MDC keys to include in SQL comments. Uses the same key names as log4j2 {@code
+   * %X{key}} patterns. Supported keys: {@code controller}, {@code method}, {@code requestId},
+   * {@code sessionId}. Adding {@code requestId} or {@code sessionId} produces unique SQL per
+   * request, which prevents PgJDBC from promoting queries to server-side prepared statements.
+   * Invalid keys cause a startup failure.
+   */
+  MONITORING_SQL_CONTEXT_KEYS("monitoring.sql.context.keys", "controller,method", false),
+
   /** DHIS2 API monitoring. */
   MONITORING_API_ENABLED("monitoring.api.enabled", Constants.OFF, false),
 
