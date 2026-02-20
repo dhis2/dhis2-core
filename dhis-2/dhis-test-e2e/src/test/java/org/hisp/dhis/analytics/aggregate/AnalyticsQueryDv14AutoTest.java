@@ -65,6 +65,7 @@ public class AnalyticsQueryDv14AutoTest extends AnalyticsApiTest {
             .add("includeNumDen=true")
             .add("displayProperty=NAME")
             .add("skipMeta=false")
+            .add("relativePeriodDate=2025-01-01")
             .add("dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS");
 
     // When
@@ -114,6 +115,7 @@ public class AnalyticsQueryDv14AutoTest extends AnalyticsApiTest {
             .add("includeNumDen=true")
             .add("displayProperty=NAME")
             .add("skipMeta=false")
+            .add("relativePeriodDate=2025-01-01")
             .add("dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS");
 
     // When
@@ -164,6 +166,7 @@ public class AnalyticsQueryDv14AutoTest extends AnalyticsApiTest {
             .add("includeNumDen=true")
             .add("displayProperty=NAME")
             .add("skipMeta=false")
+            .add("relativePeriodDate=2025-01-01")
             .add("dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS");
 
     // When
