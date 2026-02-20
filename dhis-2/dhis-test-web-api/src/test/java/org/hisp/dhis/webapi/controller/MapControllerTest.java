@@ -33,6 +33,7 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -110,5 +111,37 @@ class MapControllerTest extends H2ControllerIntegrationTestBase {
     JsonObject mapView = map.getArray("mapViews").get(0).as(JsonObject.class);
     assertEquals(attrId, mapView.getString("orgUnitField").string());
     assertEquals("GeoJsonAttribute", mapView.getString("orgUnitFieldDisplayName").string());
+  }
+
+  @Test
+  void testPostWithBaseMap() {
+    String id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/maps",
+                """
+                        {"type": "MAP",
+                        "name": "Test",
+                        "basemap": "openStreetMap",
+                        "basemaps": [
+                            {
+                                "id": "openStreetMap",
+                                "opacity": 1.2,
+                                "hidden": true
+                            }
+                        ]}
+                    """));
+
+    JsonObject map = GET("/maps/{uid}", id).content();
+    assertNotNull(map.getArray("basemaps"));
+    assertEquals(1, map.getArray("basemaps").size());
+
+    JsonObject basemaps = map.getArray("basemaps").get(0).as(JsonObject.class);
+    assertEquals("openStreetMap", basemaps.getString("id").string());
+    assertEquals(1.2, basemaps.getNumber("opacity").doubleValue());
+    assertTrue(basemaps.getBoolean("hidden").booleanValue());
+
+    assertEquals("openStreetMap", map.getString("basemap").string());
   }
 }
