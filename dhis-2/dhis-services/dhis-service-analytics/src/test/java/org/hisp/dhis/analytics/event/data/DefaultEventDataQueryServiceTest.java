@@ -510,6 +510,44 @@ class DefaultEventDataQueryServiceTest {
     assertEquals(Set.of(4), params.getEnrollmentOuFilterLevels());
   }
 
+  @Test
+  void getFromRequestMergesMultiplePeriodDimensions() {
+    BaseDimensionalObject peDimension =
+        new BaseDimensionalObject("pe", DimensionType.PERIOD, List.of());
+
+    when(dataQueryService.getDimension(
+            eq("pe"),
+            eq(List.of("LAST_12_MONTHS", "2021:ENROLLMENT_DATE", "2022")),
+            any(),
+            anyList(),
+            anyBoolean(),
+            any()))
+        .thenReturn(peDimension);
+
+    Set<Set<String>> dimensions = new LinkedHashSet<>();
+    dimensions.add(Set.of("pe:LAST_12_MONTHS"));
+    dimensions.add(Set.of("ENROLLMENT_DATE:2021"));
+    dimensions.add(Set.of("pe:2022"));
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).dimension(dimensions).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    List<String> dimensionOrder =
+        params.getDimensions().stream().map(DimensionalObject::getDimension).toList();
+
+    assertEquals(List.of("pe"), dimensionOrder);
+    verify(dataQueryService, times(1))
+        .getDimension(
+            eq("pe"),
+            eq(List.of("LAST_12_MONTHS", "2021:ENROLLMENT_DATE", "2022")),
+            any(),
+            anyList(),
+            anyBoolean(),
+            any());
+  }
+
   private EventDataQueryRequest.EventDataQueryRequestBuilder baseRequestBuilder(
       org.hisp.dhis.common.RequestTypeAware.EndpointAction action,
       org.hisp.dhis.common.RequestTypeAware.EndpointItem item) {

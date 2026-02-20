@@ -235,157 +235,6 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     return eventQueryParams;
   }
 
-  private void addSortToParams(
-      EventQueryParams.Builder params, EventDataQueryRequest request, Program pr) {
-    if (request.getAsc() != null) {
-      for (String sort : request.getAsc()) {
-        params.addAscSortItem(
-            getSortItem(sort, pr, request.getOutputType(), request.getEndpointItem()));
-      }
-    }
-
-    if (request.getDesc() != null) {
-      for (String sort : request.getDesc()) {
-        params.addDescSortItem(
-            getSortItem(sort, pr, request.getOutputType(), request.getEndpointItem()));
-      }
-    }
-  }
-
-  private void addFiltersToParams(
-      EventQueryParams.Builder params,
-      EventDataQueryRequest request,
-      List<OrganisationUnit> userOrgUnits,
-      Program pr,
-      IdScheme idScheme) {
-    if (request.getFilter() != null) {
-      for (NormalizedDimensionInput input :
-          normalizeDimensionInputs(request.getFilter(), request)) {
-        if (ENROLLMENT_OU_DIMENSION.equals(input.dimensionId())) {
-          resolveEnrollmentOuFilter(params, request, userOrgUnits, input.items(), idScheme);
-          continue;
-        }
-
-        GroupableItem groupableItem =
-            dataQueryService.getDimension(
-                input.dimensionId(),
-                input.items(),
-                request.getRelativePeriodDate(),
-                userOrgUnits,
-                true,
-                null,
-                idScheme);
-
-        if (groupableItem != null) {
-          groupableItem.setGroupUUID(input.groupUUID());
-          params.addFilter((DimensionalObject) groupableItem);
-        } else {
-          groupableItem =
-              getQueryItem(
-                  input.rawDimension(),
-                  pr,
-                  request.getOutputType(),
-                  request.getRelativePeriodDate());
-          params.addItemFilter((QueryItem) groupableItem);
-          groupableItem.setGroupUUID(input.groupUUID());
-        }
-      }
-    }
-  }
-
-  private void addDimensionsToParams(
-      EventQueryParams.Builder params,
-      EventDataQueryRequest request,
-      List<OrganisationUnit> userOrgUnits,
-      Program pr,
-      IdScheme idScheme) {
-    if (request.getDimension() != null) {
-      for (NormalizedDimensionInput input :
-          normalizeDimensionInputs(request.getDimension(), request)) {
-        if (ENROLLMENT_OU_DIMENSION.equals(input.dimensionId())) {
-          resolveEnrollmentOuDimension(params, request, userOrgUnits, input.items(), idScheme);
-          continue;
-        }
-
-        GroupableItem groupableItem =
-            dataQueryService.getDimension(
-                input.dimensionId(), input.items(), request, userOrgUnits, true, idScheme);
-
-        if (groupableItem != null) {
-          groupableItem.setGroupUUID(input.groupUUID());
-          params.addDimension((DimensionalObject) groupableItem);
-        } else {
-          groupableItem =
-              getQueryItem(
-                  input.rawDimension(),
-                  pr,
-                  request.getOutputType(),
-                  request.getRelativePeriodDate());
-          params.addItem((QueryItem) groupableItem);
-          groupableItem.setGroupUUID(input.groupUUID());
-        }
-      }
-    }
-  }
-
-  private List<NormalizedDimensionInput> normalizeDimensionInputs(
-      Set<Set<String>> requestDimensions, EventDataQueryRequest request) {
-    List<NormalizedDimensionInput> normalizedInputs = new ArrayList<>();
-    List<String> mergedPeItems = new ArrayList<>();
-    int firstPeIndex = -1;
-    UUID firstPeGroupUUID = null;
-
-    for (Set<String> dimensionGroup : requestDimensions) {
-      UUID groupUUID = UUID.randomUUID();
-
-      for (String rawDimension : dimensionGroup) {
-        String dimensionId = getDimensionFromParam(rawDimension);
-        List<String> items = getDimensionItemsFromParam(rawDimension);
-
-        if (ENROLLMENT_OU_DIMENSION.equals(dimensionId)) {
-          normalizedInputs.add(
-              new NormalizedDimensionInput(rawDimension, dimensionId, items, groupUUID));
-          continue;
-        }
-
-        validateStaticDateDimensionSupport(dimensionId, rawDimension, request);
-        DimensionAndItems normalized = normalizeStaticDateDimension(dimensionId, items);
-
-        if ("pe".equals(normalized.dimension())) {
-          if (firstPeIndex < 0) {
-            firstPeIndex = normalizedInputs.size();
-            firstPeGroupUUID = groupUUID;
-          }
-          mergedPeItems.addAll(normalized.items());
-          continue;
-        }
-
-        normalizedInputs.add(
-            new NormalizedDimensionInput(
-                rawDimension, normalized.dimension(), normalized.items(), groupUUID));
-      }
-    }
-
-    if (!mergedPeItems.isEmpty()) {
-      List<String> distinctMergedPeItems = mergedPeItems.stream().distinct().toList();
-      String mergedPeRawDimension = "pe:" + String.join(";", distinctMergedPeItems);
-      NormalizedDimensionInput mergedPeInput =
-          new NormalizedDimensionInput(
-              mergedPeRawDimension, "pe", distinctMergedPeItems, firstPeGroupUUID);
-
-      if (firstPeIndex >= 0 && firstPeIndex <= normalizedInputs.size()) {
-        normalizedInputs.add(firstPeIndex, mergedPeInput);
-      } else {
-        normalizedInputs.add(mergedPeInput);
-      }
-    }
-
-    return normalizedInputs;
-  }
-
-  private record NormalizedDimensionInput(
-      String rawDimension, String dimensionId, List<String> items, UUID groupUUID) {}
-
   @Override
   public EventQueryParams getFromAnalyticalObject(EventAnalyticalObject object) {
     Assert.notNull(object, "Event analytical object cannot be null");
@@ -528,6 +377,219 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     return coordinateFields.stream().distinct().collect(Collectors.toList());
   }
 
+  @Override
+  public QueryItem getQueryItem(String dimensionString, Program program, EventOutputType type) {
+    return getQueryItem(dimensionString, program, type, null);
+  }
+
+  private void addSortToParams(
+      EventQueryParams.Builder params, EventDataQueryRequest request, Program pr) {
+    if (request.getAsc() != null) {
+      for (String sort : request.getAsc()) {
+        params.addAscSortItem(
+            getSortItem(sort, pr, request.getOutputType(), request.getEndpointItem()));
+      }
+    }
+
+    if (request.getDesc() != null) {
+      for (String sort : request.getDesc()) {
+        params.addDescSortItem(
+            getSortItem(sort, pr, request.getOutputType(), request.getEndpointItem()));
+      }
+    }
+  }
+
+  private void addFiltersToParams(
+      EventQueryParams.Builder params,
+      EventDataQueryRequest request,
+      List<OrganisationUnit> userOrgUnits,
+      Program pr,
+      IdScheme idScheme) {
+    if (request.getFilter() != null) {
+      for (NormalizedDimensionInput input :
+          normalizeDimensionInputs(request.getFilter(), request)) {
+        if (ENROLLMENT_OU_DIMENSION.equals(input.dimensionId())) {
+          resolveEnrollmentOuFilter(params, request, userOrgUnits, input.items(), idScheme);
+          continue;
+        }
+
+        GroupableItem groupableItem =
+            dataQueryService.getDimension(
+                input.dimensionId(),
+                input.items(),
+                request.getRelativePeriodDate(),
+                userOrgUnits,
+                true,
+                null,
+                idScheme);
+
+        if (groupableItem != null) {
+          groupableItem.setGroupUUID(input.groupUUID());
+          params.addFilter((DimensionalObject) groupableItem);
+        } else {
+          groupableItem =
+              getQueryItem(
+                  input.rawDimension(),
+                  pr,
+                  request.getOutputType(),
+                  request.getRelativePeriodDate());
+          params.addItemFilter((QueryItem) groupableItem);
+          groupableItem.setGroupUUID(input.groupUUID());
+        }
+      }
+    }
+  }
+
+  private void addDimensionsToParams(
+      EventQueryParams.Builder params,
+      EventDataQueryRequest request,
+      List<OrganisationUnit> userOrgUnits,
+      Program pr,
+      IdScheme idScheme) {
+    if (request.getDimension() != null) {
+      for (NormalizedDimensionInput input :
+          normalizeDimensionInputs(request.getDimension(), request)) {
+        if (ENROLLMENT_OU_DIMENSION.equals(input.dimensionId())) {
+          resolveEnrollmentOuDimension(params, request, userOrgUnits, input.items(), idScheme);
+          continue;
+        }
+
+        GroupableItem groupableItem =
+            dataQueryService.getDimension(
+                input.dimensionId(), input.items(), request, userOrgUnits, true, idScheme);
+
+        if (groupableItem != null) {
+          groupableItem.setGroupUUID(input.groupUUID());
+          params.addDimension((DimensionalObject) groupableItem);
+        } else {
+          groupableItem =
+              getQueryItem(
+                  input.rawDimension(),
+                  pr,
+                  request.getOutputType(),
+                  request.getRelativePeriodDate());
+          params.addItem((QueryItem) groupableItem);
+          groupableItem.setGroupUUID(input.groupUUID());
+        }
+      }
+    }
+  }
+
+  /**
+   * Helper class to track and merge period (pe) dimensions. State management for merging `pe`
+   * parameters is isolated here to reduce cognitive complexity.
+   */
+  private static class PeriodDimensionTracker {
+    private final List<String> mergedItems = new ArrayList<>();
+    private int firstIndex = -1;
+    private UUID firstGroupUUID = null;
+
+    /**
+     * Tracks a period dimension item for later merging.
+     *
+     * @param currentIndex the current index in the normalized inputs list
+     * @param groupUUID the group UUID associated with the item
+     * @param items the list of items to track
+     */
+    public void track(int currentIndex, UUID groupUUID, List<String> items) {
+      if (firstIndex < 0) {
+        firstIndex = currentIndex;
+        firstGroupUUID = groupUUID;
+      }
+      mergedItems.addAll(items);
+    }
+
+    /**
+     * Inserts the merged period items into the normalized inputs list at the appropriate position.
+     *
+     * @param inputs the list of normalized inputs
+     */
+    private void insertMergedInto(List<NormalizedDimensionInput> inputs) {
+      if (mergedItems.isEmpty()) {
+        return;
+      }
+      List<String> distinctItems = mergedItems.stream().distinct().toList();
+      String mergedRawDimension = "pe:" + String.join(";", distinctItems);
+
+      NormalizedDimensionInput mergedInput =
+          new NormalizedDimensionInput(mergedRawDimension, "pe", distinctItems, firstGroupUUID);
+
+      if (firstIndex >= 0 && firstIndex <= inputs.size()) {
+        inputs.add(firstIndex, mergedInput);
+      } else {
+        inputs.add(mergedInput);
+      }
+    }
+  }
+
+  /**
+   * Processes a single dimension and adds it to the list of normalized inputs or tracks it if it's
+   * a period dimension.
+   *
+   * @param rawDimension the raw dimension string
+   * @param groupUUID the group UUID
+   * @param request the original data query request
+   * @param normalizedInputs the list of normalized inputs to populate
+   * @param peTracker the period dimension tracker
+   */
+  private void processDimension(
+      String rawDimension,
+      UUID groupUUID,
+      EventDataQueryRequest request,
+      List<NormalizedDimensionInput> normalizedInputs,
+      PeriodDimensionTracker peTracker) {
+
+    String dimensionId = getDimensionFromParam(rawDimension);
+    List<String> items = getDimensionItemsFromParam(rawDimension);
+
+    if (ENROLLMENT_OU_DIMENSION.equals(dimensionId)) {
+      normalizedInputs.add(
+          new NormalizedDimensionInput(rawDimension, dimensionId, items, groupUUID));
+      return;
+    }
+
+    validateStaticDateDimensionSupport(dimensionId, rawDimension, request);
+    DimensionAndItems normalized = normalizeStaticDateDimension(dimensionId, items);
+
+    if ("pe".equals(normalized.dimension())) {
+      peTracker.track(normalizedInputs.size(), groupUUID, normalized.items());
+      return;
+    }
+
+    normalizedInputs.add(
+        new NormalizedDimensionInput(
+            rawDimension, normalized.dimension(), normalized.items(), groupUUID));
+  }
+
+  /**
+   * Normalizes the dimension inputs by separating and processing them, merging period dimensions as
+   * needed.
+   *
+   * @param requestDimensions the raw request dimensions
+   * @param request the original data query request
+   * @return the list of normalized dimension inputs
+   */
+  private List<NormalizedDimensionInput> normalizeDimensionInputs(
+      Set<Set<String>> requestDimensions, EventDataQueryRequest request) {
+
+    List<NormalizedDimensionInput> normalizedInputs = new ArrayList<>();
+    PeriodDimensionTracker peTracker = new PeriodDimensionTracker();
+
+    for (Set<String> dimensionGroup : requestDimensions) {
+      UUID groupUUID = UUID.randomUUID();
+
+      for (String rawDimension : dimensionGroup) {
+        processDimension(rawDimension, groupUUID, request, normalizedInputs, peTracker);
+      }
+    }
+
+    peTracker.insertMergedInto(normalizedInputs);
+    return normalizedInputs;
+  }
+
+  private record NormalizedDimensionInput(
+      String rawDimension, String dimensionId, List<String> items, UUID groupUUID) {}
+
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
@@ -566,11 +628,6 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     }
 
     return getQueryItem(dimension, program, type, relativePeriodDate);
-  }
-
-  @Override
-  public QueryItem getQueryItem(String dimensionString, Program program, EventOutputType type) {
-    return getQueryItem(dimensionString, program, type, null);
   }
 
   private QueryItem getQueryItem(

@@ -83,6 +83,6 @@ class OrgUnitSqlFragmentsTest {
     assertEquals(ANALYTICS_TBL_ALIAS, OrgUnitSqlConstants.EVENT_TABLE_ALIAS);
     assertEquals(ORG_UNIT_STRUCT_ALIAS, OrgUnitSqlConstants.ORG_UNIT_STRUCTURE_ALIAS);
     assertEquals(ENROLLMENT_OU_COLUMN_NAME, OrgUnitSqlConstants.EVENT_ENROLLMENT_OU_COLUMN);
-    assertEquals(ENROLLMENT_OU_NAME.getItem(), OrgUnitSqlConstants.ENROLLMENT_OU_NAME_RESULT_ALIAS);
+    assertEquals(OrgUnitSqlConstants.ENROLLMENT_OU_NAME_RESULT_ALIAS, ENROLLMENT_OU_NAME.getItem());
   }
 }

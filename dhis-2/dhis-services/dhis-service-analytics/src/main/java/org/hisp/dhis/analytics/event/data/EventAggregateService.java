@@ -333,7 +333,7 @@ public class EventAggregateService {
 
   private void addDimensionHeaders(EventQueryParams params, Grid grid) {
     for (DimensionalObject dimension : params.getDimensions()) {
-      String headerName = getDimensionHeaderName(dimension, params);
+      String headerName = getDimensionHeaderName(dimension);
       String headerColumn = getDimensionHeaderColumn(dimension, params);
 
       grid.addHeader(new GridHeader(headerName, headerColumn, TEXT, false, true));
@@ -350,7 +350,7 @@ public class EventAggregateService {
     }
   }
 
-  private String getDimensionHeaderName(DimensionalObject dimension, EventQueryParams params) {
+  private String getDimensionHeaderName(DimensionalObject dimension) {
     return getStaticDateField(dimension).map(this::toDateFieldKey).orElse(dimension.getDimension());
   }
 
