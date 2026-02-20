@@ -65,6 +65,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -78,6 +79,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 import javax.sql.rowset.RowSetMetaDataImpl;
@@ -85,6 +87,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryParams.Builder;
@@ -97,6 +100,7 @@ import org.hisp.dhis.analytics.event.data.stage.DefaultStageQuerySqlFacade;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
+import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.common.AnalyticsCustomHeader;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -116,6 +120,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodTypeEnum;
@@ -134,6 +139,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -1347,6 +1353,216 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     queryItem.setGroupUUID(groupUUID);
     queryItem.setFilters(new ArrayList<>(filters));
     return queryItem;
+  }
+
+  @Test
+  void testLegacySelectColumnsDoesNotIncludeEnrollmentOuColumns() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withEnrollmentOuDimension(List.of(ouA))
+            .build();
+
+    List<String> columns = eventSubject.getSelectColumns(params, false);
+
+    assertTrue(columns.stream().noneMatch(c -> c.contains("enrollmentou")));
+    assertTrue(columns.stream().noneMatch(c -> c.contains("enrollmentouname")));
+  }
+
+  @Test
+  void testLegacyGroupByColumnsDoesNotIncludeEnrollmentOuColumns() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withEnrollmentOuDimension(List.of(ouA))
+            .build();
+
+    List<String> columns = eventSubject.getGroupByColumnNames(params, false);
+
+    assertTrue(columns.stream().noneMatch(c -> c.contains("enrollmentou")));
+    assertTrue(columns.stream().noneMatch(c -> c.contains("enrollmentouname")));
+  }
+
+  @Test
+  void testAggregatedLegacySelectColumnsIncludesEnrollmentOuColumn() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withEnrollmentOuDimension(List.of(ouA))
+            .build();
+
+    List<String> columns = eventSubject.getSelectColumns(params, true);
+
+    assertTrue(columns.stream().anyMatch(c -> c.contains("as enrollmentou")));
+  }
+
+  @Test
+  void testAggregatedLegacyGroupByColumnsIncludesEnrollmentOuColumn() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withEnrollmentOuDimension(List.of(ouA))
+            .build();
+
+    List<String> columns = eventSubject.getGroupByColumnNames(params, true);
+
+    assertTrue(columns.stream().anyMatch(c -> c.contains("ous.\"organisationunituid\"")));
+  }
+
+  @Test
+  void testEnrollmentOuInWhereClause() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withEnrollmentOuFilter(List.of(ouA, ouB))
+            .build();
+
+    String whereClause = eventSubject.getWhereClause(params);
+
+    assertThat(whereClause, containsString("ous.\"organisationunituid\""));
+    assertThat(whereClause, containsString(ouA.getUid()));
+    assertThat(whereClause, containsString(ouB.getUid()));
+  }
+
+  @Test
+  void testFromClauseIncludesEnrollmentOuJoinWhenEnrollmentOuIsUsed() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .withEnrollmentOuDimension(List.of(ouA))
+            .build();
+
+    String fromClause = eventSubject.getFromClause(params);
+
+    assertThat(fromClause, containsString("inner join analytics_rs_orgunitstructure as ous"));
+    assertThat(fromClause, containsString("ax.\"enrollmentou\" = ous.\"organisationunituid\""));
+  }
+
+  @Test
+  void testExperimentalFromClauseIncludesEnrollmentOuJoinWhenDimension() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .withEnrollmentOuDimension(List.of(ouA))
+            .build();
+
+    SelectBuilder sb = new SelectBuilder();
+    eventSubject.addFromClause(sb, params);
+    String fromClause = sb.build();
+
+    assertThat(fromClause, containsString("analytics_rs_orgunitstructure"));
+    assertThat(fromClause, containsString("ous"));
+    assertThat(fromClause, containsString("ax.\"enrollmentou\""));
+  }
+
+  @Test
+  void testExperimentalSelectClauseIncludesEnrollmentOuColumnsWhenDimension() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withEnrollmentOuDimension(List.of(ouA))
+            .build();
+
+    SelectBuilder sb = new SelectBuilder();
+    eventSubject.addSelectClause(
+        sb, params, new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT));
+    String selectClause = sb.build();
+
+    assertThat(selectClause, containsString("ous.\"organisationunituid\" as enrollmentou"));
+    assertThat(selectClause, containsString("ous.\"name\" as enrollmentouname"));
+  }
+
+  @Test
+  void testEnrollmentOuLevelConstraintUsesOrgUnitLevelColumn() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withEnrollmentOuFilterLevels(Set.of(4))
+            .build();
+
+    String whereClause = eventSubject.getWhereClause(params);
+
+    assertThat(whereClause, containsString("ous.\"level\" in (4)"));
+    assertThat(whereClause.contains("uidlevel"), is(false));
+  }
+
+  @Test
+  void testEnrollmentOuAndExplicitOuBothAppearInWhereClause() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withOrganisationUnits(List.of(ouA))
+            .withEnrollmentOuFilterLevels(Set.of(4))
+            .build();
+
+    String whereClause = eventSubject.getWhereClause(params);
+
+    assertThat(whereClause, containsString("uidlevel1"));
+    assertThat(whereClause, containsString("ous.\"level\" in (4)"));
+  }
+
+  @Test
+  void testGetEventCountIncludesEnrollmentOuJoinForLevelFilter() {
+    when(jdbcTemplate.queryForObject(any(String.class), eq(Long.class))).thenReturn(1L);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .withEnrollmentOuFilterLevels(Set.of(4))
+            .build();
+
+    eventSubject.getEventCount(params);
+
+    ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+    verify(jdbcTemplate).queryForObject(sqlCaptor.capture(), eq(Long.class));
+
+    String sql = sqlCaptor.getValue();
+    assertThat(sql, containsString("inner join analytics_rs_orgunitstructure as ous"));
+    assertThat(sql, containsString("ous.\"level\" in (4)"));
   }
 
   private EventQueryParams getEventQueryParamsForCoordinateFieldsTest(
