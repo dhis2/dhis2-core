@@ -83,7 +83,7 @@ public class OutboxRotationJob implements Job {
           Map<String, Object> lastPartition = outboxPartitions.get(0);
 
           if (outboxPartitions.size() < EventHookService.MIN_PARTITIONS
-              || isPartitionNotEmpty(lastPartition)) {
+              || !isEmpty(lastPartition)) {
             addEmptyPartitions(
                 outboxPartitions.get(0), eventHook, (long) lastPartition.get("upper_bound"));
           }
@@ -105,40 +105,36 @@ public class OutboxRotationJob implements Job {
                 + "FROM pg_inherits "
                 + "JOIN pg_class ON pg_inherits.inhrelid = pg_class.oid "
                 + "WHERE pg_class.relkind = 'r' AND pg_inherits.inhparent = to_regclass(quote_ident('%s')) "
-                + "ORDER BY partition_name DESC",
+                + "ORDER BY upper_bound DESC",
             EventHookService.OUTBOX_PREFIX_TABLE_NAME + eventHook.getUID()));
   }
 
   protected void prunePartitions(List<Map<String, Object>> partitions, EventHook eventHook) {
-    if (partitions.size() > 1) {
-      EventHookOutboxLog eventHookOutboxLog =
-          entityManager.find(
-              EventHookOutboxLog.class,
-              EventHookService.OUTBOX_PREFIX_TABLE_NAME + eventHook.getUID());
-      for (int i = partitions.size() - 1; i > 0; i--) {
-        Map<String, Object> candidatePartition = partitions.get(i);
-        Map<String, Object> lastOutboxMessage = getLastOutboxMessage(candidatePartition);
-        if (isExpired(eventHookOutboxLog, lastOutboxMessage)) {
-          jdbcTemplate.execute(
-              String.format("DROP TABLE IF EXISTS %s", candidatePartition.get("partition_name")));
-        } else {
-          if (eventHookOutboxLog != null
-              && lastOutboxMessage != null
-              && partitions.size() >= EventHookService.MAX_PARTITIONS) {
-            log.error(
-                String.format(
-                    "Undelivered outbox message [{}] for event hook [{}] is causing the event backlog to grow. "
-                        + "New events will be discarded when backlog limit is reached. "
-                        + "Estimated total no. of undelivered events: %.0f. "
-                        + "Estimated no. of future events that can be retained: %.0f. "
-                        + "Hint: is event hook subscriber lagging behind? Consider disabling the event hook if the issue persists",
-                    calcBacklogCount(partitions.subList(0, i + 1), eventHookOutboxLog),
-                    calcRemainingEvents(partitions.subList(0, i + 1))),
-                eventHookOutboxLog.getNextOutboxMessageId(),
-                eventHook.getName());
-          }
-          break;
+    EventHookOutboxLog eventHookOutboxLog =
+        entityManager.find(
+            EventHookOutboxLog.class,
+            EventHookService.OUTBOX_PREFIX_TABLE_NAME + eventHook.getUID());
+    for (int i = partitions.size() - 1; i > 0; i--) {
+      Map<String, Object> candidatePartition = partitions.get(i);
+      if (isExpired(eventHookOutboxLog, candidatePartition)) {
+        eventHookService.removeOutboxPartition(candidatePartition.get("partition_name").toString());
+      } else {
+        if (eventHookOutboxLog != null
+            && !isEmpty(candidatePartition)
+            && partitions.size() >= EventHookService.MAX_PARTITIONS) {
+          log.error(
+              String.format(
+                  "Undelivered outbox message [{}] for event hook [{}] is causing the event backlog to grow. "
+                      + "New events will be discarded when backlog limit is reached. "
+                      + "Estimated total no. of undelivered events: %.0f. "
+                      + "Estimated no. of future events that can be retained: %.0f. "
+                      + "Hint: is event hook subscriber lagging behind? Consider disabling the event hook if the issue persists",
+                  calcBacklogCount(partitions.subList(0, i + 1), eventHookOutboxLog),
+                  calcRemainingEvents(partitions.subList(0, i + 1))),
+              eventHookOutboxLog.getNextOutboxMessageId(),
+              eventHook.getName());
         }
+        break;
       }
     }
   }
@@ -165,10 +161,12 @@ public class OutboxRotationJob implements Job {
   }
 
   protected boolean isExpired(
-      EventHookOutboxLog eventHookOutboxLog, Map<String, Object> lastOutboxMessage) {
+      EventHookOutboxLog eventHookOutboxLog, Map<String, Object> partition) {
     if (eventHookOutboxLog != null) {
-      return lastOutboxMessage != null
-          && ((long) lastOutboxMessage.get("id")) < eventHookOutboxLog.getNextOutboxMessageId();
+      return (long) partition.get("upper_bound") <= eventHookOutboxLog.getNextOutboxMessageId()
+          && !isEmpty(
+              partition); // an empty partition with a range behind the offset means that partition
+      // range was reset
     } else {
       // should not happen
       return true;
@@ -178,38 +176,61 @@ public class OutboxRotationJob implements Job {
   protected void addEmptyPartitions(
       Map<String, Object> partition, EventHook eventHook, long lastPartitionUpperBound) {
 
-    String partitionOutboxTableName = partition.get("partition_name").toString();
-    long lastPartitionIndex =
-        Long.parseLong(
-            partitionOutboxTableName.substring(
-                partitionOutboxTableName.lastIndexOf("_") + 1,
-                partitionOutboxTableName.length() - 1));
-    long nextPartitionIndex = lastPartitionIndex + 1;
+    long nextPartitionLowerBound;
+    long nextPartitionUpperBound;
+    try {
+      nextPartitionUpperBound =
+          Math.addExact(lastPartitionUpperBound, eventHookService.getPartitionRange());
+      nextPartitionLowerBound = lastPartitionUpperBound;
+    } catch (ArithmeticException e) {
+      if (lastPartitionUpperBound == Long.MAX_VALUE) {
+        // partition range is reset since the upper bound value can't be any bigger
+        nextPartitionLowerBound = 1;
+        nextPartitionUpperBound = eventHookService.getPartitionRange();
+      } else {
+        // partition range is set to the remaining space
+        nextPartitionLowerBound = lastPartitionUpperBound;
+        nextPartitionUpperBound = Long.MAX_VALUE;
+      }
+    }
 
-    long newLastPartitionLowerBound = lastPartitionUpperBound;
-    long newLastPartitionUpperBound =
-        lastPartitionUpperBound + eventHookService.getPartitionRange();
+    long nextPartitionIndex;
+    if (nextPartitionLowerBound == 1) {
+      nextPartitionIndex = 1; // in case of partition range reset
+    } else {
+      String partitionOutboxTableName = partition.get("partition_name").toString();
+      long lastPartitionIndex =
+          Long.parseLong(
+              partitionOutboxTableName.substring(
+                  partitionOutboxTableName.lastIndexOf("_") + 1,
+                  partitionOutboxTableName.length() - 1));
+      nextPartitionIndex = lastPartitionIndex + 1;
+    }
+
     for (long i = nextPartitionIndex;
         i < (nextPartitionIndex + EventHookService.MIN_PARTITIONS);
         i++) {
       eventHookService.addOutboxPartition(
-          eventHook.getUID(), i, newLastPartitionLowerBound, newLastPartitionUpperBound);
-      newLastPartitionLowerBound = newLastPartitionUpperBound;
-      newLastPartitionUpperBound =
-          newLastPartitionLowerBound + eventHookService.getPartitionRange();
+          eventHook.getUID(), i, nextPartitionLowerBound, nextPartitionUpperBound);
+      if (nextPartitionUpperBound == Long.MAX_VALUE) {
+        // the next job execution will create a fully-sized empty partition with a range lower bound
+        // of 1
+        break;
+      } else {
+        nextPartitionLowerBound = nextPartitionUpperBound;
+        try {
+          nextPartitionUpperBound =
+              Math.addExact(nextPartitionUpperBound, eventHookService.getPartitionRange());
+        } catch (ArithmeticException e) {
+          nextPartitionUpperBound = Long.MAX_VALUE;
+        }
+      }
     }
   }
 
-  protected boolean isPartitionNotEmpty(Map<String, Object> partition) {
-    return ((float) partition.get("reltuples")) > 0;
-  }
-
-  protected Map<String, Object> getLastOutboxMessage(Map<String, Object> partition) {
-    List<Map<String, Object>> outboxMessages =
-        jdbcTemplate.queryForList(
-            String.format(
-                "SELECT * FROM %s ORDER BY id DESC LIMIT 1", partition.get("partition_name")));
-
-    return outboxMessages.isEmpty() ? null : outboxMessages.get(0);
+  protected boolean isEmpty(Map<String, Object> partition) {
+    return jdbcTemplate
+        .queryForList(String.format("SELECT * FROM %s LIMIT 1", partition.get("partition_name")))
+        .isEmpty();
   }
 }

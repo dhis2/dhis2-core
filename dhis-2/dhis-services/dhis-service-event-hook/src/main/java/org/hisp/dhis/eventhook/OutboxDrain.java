@@ -107,7 +107,12 @@ public class OutboxDrain {
 
     @Override
     public void onSuccess(Map<String, Object> lastSuccessfulOutboxMessage) {
-      updateOutboxLog((Long) lastSuccessfulOutboxMessage.get("id") + 1);
+      Long outboxMessageId = (Long) lastSuccessfulOutboxMessage.get("id");
+      if (outboxMessageId == Long.MAX_VALUE - 1) {
+        updateOutboxLog(1L);
+      } else {
+        updateOutboxLog(outboxMessageId + 1);
+      }
     }
 
     @Override

@@ -84,7 +84,7 @@ public class EventHookService {
 
   private Cache<EventHookTargets> eventHookTargetsCache;
 
-  @Setter @Getter private int partitionRange = 100000;
+  @Setter @Getter private long partitionRange = 100000;
 
   @PostConstruct
   public void postConstruct() throws Exception {
@@ -143,8 +143,8 @@ public class EventHookService {
             "CREATE TABLE \"%s\" (id BIGINT GENERATED ALWAYS AS IDENTITY (CYCLE) PRIMARY KEY, payload JSONB) PARTITION BY RANGE (id);",
             outboxTableName));
 
-    int lowerBound = 1;
-    int upperBound = partitionRange;
+    long lowerBound = 1;
+    long upperBound = partitionRange;
     for (int i = 1; i <= MIN_PARTITIONS; i++) {
       addOutboxPartition(eventHookUid, i, lowerBound, upperBound);
       lowerBound = upperBound;
@@ -172,5 +172,9 @@ public class EventHookService {
             OUTBOX_PREFIX_TABLE_NAME + eventHookUid,
             lowerBound,
             upperBound));
+  }
+
+  public void removeOutboxPartition(String partitionName) {
+    jdbcTemplate.execute(String.format("DROP TABLE IF EXISTS %s", partitionName));
   }
 }

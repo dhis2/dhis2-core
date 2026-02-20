@@ -83,6 +83,100 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void testExecuteAddsNotFullySizedEmptyPartitionWhenNextPartitionUpperBoundExceedsMax() {
+    EventHook eventHook = new EventHook();
+    Source source = new Source();
+    eventHook.setName("Foobar");
+    eventHook.setSource(source);
+    eventHook.setTargets(List.of(new WebhookTarget()));
+
+    eventHookStore.save(eventHook);
+    eventHookService.createOutbox(eventHook.getUID());
+    eventHookService.removeOutboxPartition("\"eventhookoutbox_" + eventHook.getUID() + "_1\"");
+    eventHookService.removeOutboxPartition("\"eventhookoutbox_" + eventHook.getUID() + "_2\"");
+    eventHookService.addOutboxPartition(
+        eventHook.getUID(), 3, Long.MAX_VALUE - 2, Long.MAX_VALUE - 1);
+
+    List<Map<String, Object>> outboxPartitions = outboxRotationJob.getOutboxPartitions(eventHook);
+    assertEquals(1, outboxRotationJob.getOutboxPartitions(eventHook).size());
+    assertEquals(
+        "\"eventhookoutbox_" + eventHook.getUID() + "_3\"",
+        outboxPartitions.get(0).get("partition_name").toString());
+    assertEquals(Long.MAX_VALUE - 1, outboxPartitions.get(0).get("upper_bound"));
+
+    EventHookOutboxLog eventHookOutboxLog = new EventHookOutboxLog();
+    eventHookOutboxLog.setNextOutboxMessageId(Long.MAX_VALUE - 1);
+    eventHookOutboxLog.setOutboxTableName(
+        EventHookService.OUTBOX_PREFIX_TABLE_NAME + eventHook.getUID());
+    eventHookOutboxLog.setEventHook(eventHook);
+    entityManager.merge(eventHookOutboxLog);
+
+    outboxRotationJob.execute(null, JobProgress.noop());
+
+    List<Map<String, Object>> postExecuteOutboxPartitions =
+        outboxRotationJob.getOutboxPartitions(eventHook);
+    assertEquals(2, postExecuteOutboxPartitions.size());
+    assertEquals(
+        "\"eventhookoutbox_" + eventHook.getUID() + "_4\"",
+        postExecuteOutboxPartitions.get(0).get("partition_name").toString());
+    assertEquals(
+        "\"eventhookoutbox_" + eventHook.getUID() + "_3\"",
+        postExecuteOutboxPartitions.get(1).get("partition_name").toString());
+
+    assertEquals(Long.MAX_VALUE - 1, (long) postExecuteOutboxPartitions.get(0).get("lower_bound"));
+    assertEquals(Long.MAX_VALUE, postExecuteOutboxPartitions.get(0).get("upper_bound"));
+  }
+
+  @Test
+  void testExecuteCyclesPartitionRangeWhenLastPartitionUpperBoundIsMax() {
+    EventHook eventHook = new EventHook();
+    Source source = new Source();
+    eventHook.setName("Foobar");
+    eventHook.setSource(source);
+    eventHook.setTargets(List.of(new WebhookTarget()));
+
+    eventHookStore.save(eventHook);
+    eventHookService.createOutbox(eventHook.getUID());
+    eventHookService.removeOutboxPartition("\"eventhookoutbox_" + eventHook.getUID() + "_1\"");
+    eventHookService.removeOutboxPartition("\"eventhookoutbox_" + eventHook.getUID() + "_2\"");
+    eventHookService.addOutboxPartition(eventHook.getUID(), 3, Long.MAX_VALUE - 2, Long.MAX_VALUE);
+
+    List<Map<String, Object>> outboxPartitions = outboxRotationJob.getOutboxPartitions(eventHook);
+    assertEquals(1, outboxRotationJob.getOutboxPartitions(eventHook).size());
+    assertEquals(
+        "\"eventhookoutbox_" + eventHook.getUID() + "_3\"",
+        outboxPartitions.get(0).get("partition_name").toString());
+    assertEquals(Long.MAX_VALUE, outboxPartitions.get(0).get("upper_bound"));
+
+    EventHookOutboxLog eventHookOutboxLog = new EventHookOutboxLog();
+    eventHookOutboxLog.setNextOutboxMessageId(Long.MAX_VALUE - 1);
+    eventHookOutboxLog.setOutboxTableName(
+        EventHookService.OUTBOX_PREFIX_TABLE_NAME + eventHook.getUID());
+    eventHookOutboxLog.setEventHook(eventHook);
+    entityManager.merge(eventHookOutboxLog);
+
+    outboxRotationJob.execute(null, JobProgress.noop());
+
+    List<Map<String, Object>> postExecuteOutboxPartitions =
+        outboxRotationJob.getOutboxPartitions(eventHook);
+    assertEquals(1 + EventHookService.MIN_PARTITIONS, postExecuteOutboxPartitions.size());
+    assertEquals(
+        "\"eventhookoutbox_" + eventHook.getUID() + "_3\"",
+        postExecuteOutboxPartitions.get(0).get("partition_name").toString());
+    assertEquals(
+        "\"eventhookoutbox_" + eventHook.getUID() + "_2\"",
+        postExecuteOutboxPartitions.get(1).get("partition_name").toString());
+    assertEquals(
+        "\"eventhookoutbox_" + eventHook.getUID() + "_1\"",
+        postExecuteOutboxPartitions.get(2).get("partition_name").toString());
+
+    assertEquals(1L, (long) postExecuteOutboxPartitions.get(2).get("lower_bound"));
+    assertEquals(
+        eventHookService.getPartitionRange(),
+        postExecuteOutboxPartitions.get(2).get("upper_bound"));
+  }
+
+  @Test
   void testExecuteAddsEmptyPartitionWhenPartitionsAreMissing() {
     EventHook eventHook = new EventHook();
     Source source = new Source();
@@ -116,7 +210,7 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
     eventHookStore.save(eventHook);
     eventHookService.createOutbox(eventHook.getUID());
 
-    int outboxMessageCount =
+    long outboxMessageCount =
         (eventHookService.getPartitionRange() * (EventHookService.MIN_PARTITIONS - 1));
     addOutboxMessages(eventHook, outboxMessageCount);
     EventHookOutboxLog eventHookOutboxLog = new EventHookOutboxLog();
@@ -154,7 +248,7 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
     eventHookStore.save(eventHook);
     eventHookService.createOutbox(eventHook.getUID());
 
-    int outboxMessageCount =
+    long outboxMessageCount =
         (eventHookService.getPartitionRange() * (EventHookService.MIN_PARTITIONS - 1)) - 1;
     addOutboxMessages(eventHook, outboxMessageCount);
     EventHookOutboxLog eventHookOutboxLog = new EventHookOutboxLog();
@@ -321,7 +415,7 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
     eventHookService.createOutbox(eventHook.getUID());
 
     for (int i = 0; i < EventHookService.MAX_PARTITIONS; i++) {
-      int outboxMessageCount = eventHookService.getPartitionRange();
+      long outboxMessageCount = eventHookService.getPartitionRange();
       if (i == EventHookService.MAX_PARTITIONS - 1) {
         outboxMessageCount--;
       }
@@ -333,7 +427,7 @@ class OutboxRotationJobTest extends PostgresIntegrationTestBase {
         EventHookService.MAX_PARTITIONS, outboxRotationJob.getOutboxPartitions(eventHook).size());
   }
 
-  private void addOutboxMessages(EventHook eventHook, int outboxMessageCount) {
+  private void addOutboxMessages(EventHook eventHook, long outboxMessageCount) {
     List<String> inserts = new ArrayList<>();
     for (int i = 0; i < outboxMessageCount; i++) {
       inserts.add(

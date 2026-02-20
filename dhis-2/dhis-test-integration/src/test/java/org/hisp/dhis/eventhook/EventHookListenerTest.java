@@ -104,10 +104,13 @@ class EventHookListenerTest extends PostgresIntegrationTestBase {
   @Test
   @Transactional
   void testOnPreCommitsJoinsTransactionWhenInTransaction() {
-    EventHook eventHook = newEventHook("Bar");
+    EventHook eventHook = newEventHook("FooBarQuuz");
     eventHookStore.save(eventHook);
     eventHookService.createOutbox(eventHook.getUID());
+    TestTransaction.flagForCommit();
+    TestTransaction.end();
 
+    TestTransaction.start();
     EventHookService mockEventHookService = mock(EventHookService.class);
     when(mockEventHookService.getEventHookTargets())
         .thenReturn(
