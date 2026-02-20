@@ -73,6 +73,7 @@ import org.hisp.dhis.analytics.event.data.queryitem.QueryItemFilterHandlerRegist
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.DimensionConstants;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
@@ -586,7 +587,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
   private void validateStaticDateDimensionSupport(
       String dimensionId, String dimensionString, EventDataQueryRequest request) {
-    if (!"CREATED_DATE".equals(dimensionId)) {
+    if (!DimensionConstants.CREATED.equals(dimensionId)) {
       return;
     }
 

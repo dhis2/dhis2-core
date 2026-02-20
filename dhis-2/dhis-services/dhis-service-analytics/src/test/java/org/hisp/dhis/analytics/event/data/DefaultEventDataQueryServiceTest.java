@@ -119,10 +119,10 @@ class DefaultEventDataQueryServiceTest {
   }
 
   @Test
-  void getFromRequestRejectsCreatedDateDimensionForEnrollmentAggregate() {
+  void getFromRequestRejectsCreatedDimensionForEnrollmentAggregate() {
     EventDataQueryRequest request =
         baseRequestBuilder(AGGREGATE, ENROLLMENT)
-            .dimension(Set.of(Set.of("CREATED_DATE:LAST_12_MONTHS")))
+            .dimension(Set.of(Set.of("CREATED:LAST_12_MONTHS")))
             .build();
 
     IllegalQueryException ex =
@@ -131,10 +131,10 @@ class DefaultEventDataQueryServiceTest {
   }
 
   @Test
-  void getFromRequestRejectsCreatedDateFilterForEnrollmentAggregate() {
+  void getFromRequestRejectsCreatedFilterForEnrollmentAggregate() {
     EventDataQueryRequest request =
         baseRequestBuilder(AGGREGATE, ENROLLMENT)
-            .filter(Set.of(Set.of("CREATED_DATE:LAST_12_MONTHS")))
+            .filter(Set.of(Set.of("CREATED:LAST_12_MONTHS")))
             .build();
 
     IllegalQueryException ex =
@@ -143,10 +143,10 @@ class DefaultEventDataQueryServiceTest {
   }
 
   @Test
-  void getFromRequestRejectsCreatedDateDimensionForEventQueryEndpoint() {
+  void getFromRequestRejectsCreatedDimensionForEventQueryEndpoint() {
     EventDataQueryRequest request =
         baseRequestBuilder(QUERY, EVENT)
-            .dimension(Set.of(Set.of("CREATED_DATE:LAST_12_MONTHS")))
+            .dimension(Set.of(Set.of("CREATED:LAST_12_MONTHS")))
             .build();
 
     IllegalQueryException ex =
@@ -155,10 +155,10 @@ class DefaultEventDataQueryServiceTest {
   }
 
   @Test
-  void getFromRequestAcceptsAndNormalizesCreatedDateDimensionForEventAggregate() {
+  void getFromRequestAcceptsAndNormalizesCreatedDimensionForEventAggregate() {
     EventDataQueryRequest request =
         baseRequestBuilder(AGGREGATE, EVENT)
-            .dimension(Set.of(Set.of("CREATED_DATE:LAST_12_MONTHS")))
+            .dimension(Set.of(Set.of("CREATED:LAST_12_MONTHS")))
             .build();
 
     subject.getFromRequest(request);
@@ -166,7 +166,45 @@ class DefaultEventDataQueryServiceTest {
     verify(dataQueryService)
         .getDimension(
             eq("pe"),
-            eq(List.of("LAST_12_MONTHS:CREATED_DATE")),
+            eq(List.of("LAST_12_MONTHS:CREATED")),
+            eq(request),
+            anyList(),
+            eq(true),
+            any());
+  }
+
+  @Test
+  void getFromRequestAcceptsAndNormalizesCompletedDimensionForEnrollmentAggregate() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, ENROLLMENT)
+            .dimension(Set.of(Set.of("COMPLETED:LAST_12_MONTHS")))
+            .build();
+
+    subject.getFromRequest(request);
+
+    verify(dataQueryService)
+        .getDimension(
+            eq("pe"),
+            eq(List.of("LAST_12_MONTHS:COMPLETED")),
+            eq(request),
+            anyList(),
+            eq(true),
+            any());
+  }
+
+  @Test
+  void getFromRequestAcceptsAndNormalizesCompletedDimensionForEventAggregate() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .dimension(Set.of(Set.of("COMPLETED:LAST_12_MONTHS")))
+            .build();
+
+    subject.getFromRequest(request);
+
+    verify(dataQueryService)
+        .getDimension(
+            eq("pe"),
+            eq(List.of("LAST_12_MONTHS:COMPLETED")),
             eq(request),
             anyList(),
             eq(true),
