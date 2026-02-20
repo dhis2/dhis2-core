@@ -125,7 +125,7 @@ public class DataSourceConfig {
 
   static DataSource createLoggingDataSource(
       DhisConfigurationProvider dhisConfig, DataSource actualDataSource) {
-    boolean enableQueryLogging = dhisConfig.isEnabled(ConfigurationKey.ENABLE_QUERY_LOGGING);
+    boolean enableQueryLogging = dhisConfig.isEnabled(ConfigurationKey.LOGGING_QUERY);
 
     if (!enableQueryLogging) {
       return actualDataSource;
@@ -148,25 +148,16 @@ public class DataSourceConfig {
                     + CodeGenerator.generateCode(5))
             .logSlowQueryBySlf4j(
                 Integer.parseInt(
-                    dhisConfig.getProperty(ConfigurationKey.SLOW_QUERY_LOGGING_THRESHOLD_TIME_MS)),
+                    dhisConfig.getProperty(ConfigurationKey.LOGGING_QUERY_SLOW_THRESHOLD)),
                 TimeUnit.MILLISECONDS,
                 SLF4JLogLevel.WARN)
             .listener(listener)
             .proxyResultSet();
 
-    boolean elapsedTimeLogging =
-        dhisConfig.isEnabled(ConfigurationKey.ELAPSED_TIME_QUERY_LOGGING_ENABLED);
-    boolean methodLoggingEnabled =
-        dhisConfig.isEnabled(ConfigurationKey.METHOD_QUERY_LOGGING_ENABLED);
+    boolean methodLoggingEnabled = dhisConfig.isEnabled(ConfigurationKey.LOGGING_QUERY_METHOD);
 
     if (methodLoggingEnabled) {
       builder.afterMethod(DataSourceConfig::executeAfterMethod);
-    }
-
-    if (elapsedTimeLogging) {
-      builder.afterQuery(
-          (execInfo, queryInfoList) ->
-              log.info("Query took " + execInfo.getElapsedTime() + "msec"));
     }
 
     return builder.build();

@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.security.Authorities.ALL;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
@@ -38,15 +40,20 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.fieldfiltering.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.webdomain.PeriodType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -65,6 +72,19 @@ public class PeriodTypeController {
 
   private final I18nManager i18nManager;
 
+  private final PeriodService periodService;
+
+  @OpenApi.Response(
+      status = Status.OK,
+      object = {@OpenApi.Property(name = "periodType", value = PeriodType.class)})
+  @RequiresAuthority(anyOf = ALL)
+  @PutMapping
+  public WebMessage putPeriodType(@RequestBody PeriodType periodType) {
+    periodService.updatePeriodTypeLabel(periodType.getName(), periodType.getLabel());
+
+    return ok(periodType.getName() + " updated successfully.");
+  }
+
   @OpenApi.Response(
       status = Status.OK,
       object = {
@@ -77,8 +97,8 @@ public class PeriodTypeController {
     I18n i18n = i18nManager.getI18n();
 
     var periodTypes =
-        org.hisp.dhis.period.PeriodType.getAvailablePeriodTypes().stream()
-            .map(periodType -> new org.hisp.dhis.webapi.webdomain.PeriodType(periodType, i18n))
+        periodService.loadAllPeriodTypes().stream()
+            .map(periodType -> new PeriodType(periodType, i18n))
             .collect(Collectors.toList());
 
     var params = FieldFilterParams.of(periodTypes, fields);
