@@ -65,9 +65,8 @@ public class PeriodType {
     this.frequencyOrder = periodType.getFrequencyOrder();
     this.isoDuration = periodType.getIso8601Duration();
     this.isoFormat = periodType.getIsoFormat();
-    this.label = firstNonBlank(periodType.getLabel(), periodType.getDisplayName(i18n));
-    this.displayLabel =
-        firstNonBlank(periodType.getDisplayLabel(), periodType.getDisplayName(i18n));
+    this.label = periodType.getLabel();
+    this.displayLabel = firstNonBlank(periodType.getDisplayLabel(), periodType.getLabel());
   }
 
   @JsonProperty(namespace = DXF_2_0)
