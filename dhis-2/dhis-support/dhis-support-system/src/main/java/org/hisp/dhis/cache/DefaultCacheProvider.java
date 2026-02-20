@@ -456,4 +456,14 @@ public class DefaultCacheProvider implements CacheProvider {
             .forceInMemory()
             .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_1))));
   }
+
+  @Override
+  public <V> Cache<V> createEventHookTargetsCache() {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.eventHookTargetsCache.name())
+            .expireAfterWrite(15, MINUTES)
+            .withInitialCapacity((int) getActualSize(SIZE_1))
+            .withMaximumSize(getActualSize(SIZE_100)));
+  }
 }
