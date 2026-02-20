@@ -136,6 +136,8 @@ public class Main {
 
     context.addLifecycleListener(new StaticResourceConfigurer(context));
 
+    context.getPipeline().addValve(new StaticCacheValve());
+
     Thread.currentThread().setContextClassLoader(context.getParentClassLoader());
 
     host.addChild(context);
