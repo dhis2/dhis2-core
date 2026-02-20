@@ -29,22 +29,30 @@
  */
 package org.hisp.dhis.config;
 
+import static org.hisp.dhis.log.MdcKeys.MDC_CONTROLLER;
+import static org.hisp.dhis.log.MdcKeys.MDC_METHOD;
+import static org.hisp.dhis.log.MdcKeys.MDC_REQUEST_ID;
+import static org.hisp.dhis.log.MdcKeys.MDC_SESSION_ID;
+
 import com.google.common.base.MoreObjects;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
-import java.util.Objects;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import javax.sql.DataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.ttddyy.dsproxy.listener.MethodExecutionContext;
 import net.ttddyy.dsproxy.listener.logging.DefaultQueryLogEntryCreator;
 import net.ttddyy.dsproxy.listener.logging.SLF4JLogLevel;
 import net.ttddyy.dsproxy.listener.logging.SLF4JQueryLoggingListener;
 import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
-import org.hibernate.engine.jdbc.internal.FormatStyle;
-import org.hibernate.engine.jdbc.internal.Formatter;
+import net.ttddyy.dsproxy.transform.TransformInfo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
@@ -52,6 +60,7 @@ import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.slf4j.MDC;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -97,7 +106,7 @@ public class DataSourceConfig {
   @Primary
   @Bean("actualDataSource")
   public DataSource dataSource(DhisConfigurationProvider config) {
-    return createLoggingDataSource(config, actualDataSource(config));
+    return createProxyDataSource(config, actualDataSource(config));
   }
 
   private DataSource actualDataSource(DhisConfigurationProvider config) {
@@ -123,21 +132,24 @@ public class DataSourceConfig {
     }
   }
 
-  static DataSource createLoggingDataSource(
-      DhisConfigurationProvider dhisConfig, DataSource actualDataSource) {
-    boolean enableQueryLogging = dhisConfig.isEnabled(ConfigurationKey.LOGGING_QUERY);
+  /** All supported MDC-to-SQL-comment key mappings. */
+  private static final LinkedHashMap<String, String> VALID_KEYS = new LinkedHashMap<>();
 
-    if (!enableQueryLogging) {
+  static {
+    VALID_KEYS.put(MDC_CONTROLLER, "controller");
+    VALID_KEYS.put(MDC_METHOD, "method");
+    VALID_KEYS.put(MDC_REQUEST_ID, "request_id");
+    VALID_KEYS.put(MDC_SESSION_ID, "session_id");
+  }
+
+  static DataSource createProxyDataSource(
+      DhisConfigurationProvider dhisConfig, DataSource actualDataSource) {
+    boolean queryLogging = dhisConfig.isEnabled(ConfigurationKey.LOGGING_QUERY);
+    boolean queryComments = dhisConfig.isEnabled(ConfigurationKey.MONITORING_SQL_CONTEXT);
+
+    if (!queryLogging && !queryComments) {
       return actualDataSource;
     }
-
-    PrettyQueryEntryCreator creator = new PrettyQueryEntryCreator();
-    creator.setMultiline(true);
-
-    SLF4JQueryLoggingListener listener = new SLF4JQueryLoggingListener();
-    listener.setLogger("org.hisp.dhis.datasource.query");
-    listener.setLogLevel(SLF4JLogLevel.INFO);
-    listener.setQueryLogEntryCreator(creator);
 
     ProxyDataSourceBuilder builder =
         ProxyDataSourceBuilder.create(actualDataSource)
@@ -145,64 +157,101 @@ public class DataSourceConfig {
                 "ProxyDS_DHIS2_"
                     + dhisConfig.getProperty(ConfigurationKey.DB_POOL_TYPE)
                     + "_"
-                    + CodeGenerator.generateCode(5))
-            .logSlowQueryBySlf4j(
-                Integer.parseInt(
-                    dhisConfig.getProperty(ConfigurationKey.LOGGING_QUERY_SLOW_THRESHOLD)),
-                TimeUnit.MILLISECONDS,
-                SLF4JLogLevel.WARN)
-            .listener(listener)
-            .proxyResultSet();
+                    + CodeGenerator.generateCode(5));
 
-    boolean methodLoggingEnabled = dhisConfig.isEnabled(ConfigurationKey.LOGGING_QUERY_METHOD);
+    if (queryLogging) {
+      SingleLineQueryEntryCreator creator = new SingleLineQueryEntryCreator();
 
-    if (methodLoggingEnabled) {
-      builder.afterMethod(DataSourceConfig::executeAfterMethod);
+      SLF4JQueryLoggingListener listener = new SLF4JQueryLoggingListener();
+      listener.setLogger("org.hisp.dhis.datasource.query");
+      listener.setLogLevel(SLF4JLogLevel.INFO);
+      listener.setQueryLogEntryCreator(creator);
+
+      builder
+          .logSlowQueryBySlf4j(
+              Integer.parseInt(
+                  dhisConfig.getProperty(ConfigurationKey.LOGGING_QUERY_SLOW_THRESHOLD)),
+              TimeUnit.MILLISECONDS,
+              SLF4JLogLevel.WARN)
+          .listener(listener);
+    }
+
+    if (queryComments) {
+      LinkedHashMap<String, String> keyMap = buildKeyMap(dhisConfig);
+      builder.queryTransformer(info -> addMdcComment(info, keyMap));
     }
 
     return builder.build();
   }
 
-  private static void executeAfterMethod(MethodExecutionContext executionContext) {
-    Thread thread = Thread.currentThread();
-    StackTraceElement[] stackTrace = thread.getStackTrace();
-
-    for (int i = 0; i < stackTrace.length; i++) {
-      StackTraceElement stackTraceElement = stackTrace[i];
-      String methodName = stackTraceElement.getMethodName();
-      String className = stackTraceElement.getClassName();
-      int pos = className.lastIndexOf('.');
-      String packageName = className.substring(0, pos);
-
-      if (className.contains("org.hisp.dhis.cacheinvalidation.KnownTransactionsService")
-          || methodName.equals("getSingleResult")
-          || methodName.equals("doFilterInternal")) {
-        break;
+  /**
+   * Builds the MDC-to-SQL key map from the configured {@link
+   * ConfigurationKey#MONITORING_SQL_CONTEXT_KEYS} value. Validates that all keys are known.
+   *
+   * @throws IllegalStateException if any key is not in {@link #VALID_KEYS}
+   */
+  static LinkedHashMap<String, String> buildKeyMap(DhisConfigurationProvider dhisConfig) {
+    String raw = dhisConfig.getProperty(ConfigurationKey.MONITORING_SQL_CONTEXT_KEYS);
+    LinkedHashMap<String, String> keyMap = new LinkedHashMap<>();
+    Set<String> invalid = new LinkedHashSet<>();
+    for (String key : raw.split(",")) {
+      String trimmed = key.trim();
+      if (trimmed.isEmpty()) {
+        continue;
       }
-
-      if (packageName.startsWith("org.hisp.dhis") && !methodName.equals("executeAfterMethod")) {
-        StackTraceElement nextElement = stackTrace[i - 1];
-        String methodName1 = nextElement.getMethodName();
-        String className1 = nextElement.getClassName();
-        log.info("JDBC: {}#{} - \n - {}#{}", className, methodName, className1, methodName1);
-        break;
+      String sqlKey = VALID_KEYS.get(trimmed);
+      if (sqlKey == null) {
+        invalid.add(trimmed);
+      } else {
+        keyMap.put(trimmed, sqlKey);
       }
     }
+    if (!invalid.isEmpty()) {
+      throw new IllegalStateException(
+          "Invalid monitoring.sql.context.keys value(s) "
+              + invalid
+              + ". Valid keys: "
+              + VALID_KEYS.keySet());
+    }
+    return keyMap;
   }
 
-  private static class PrettyQueryEntryCreator extends DefaultQueryLogEntryCreator {
-    private final Formatter formatter = FormatStyle.HIGHLIGHT.getFormatter();
+  /**
+   * Prepends a SQL comment with MDC context to the query for observability in pg_stat_activity and
+   * logs. Values are embedded verbatim so they MUST be validated before being put into MDC.
+   * Unvalidated input (e.g. containing {@code * /}) would close the comment early and allow SQL
+   * injection. See {@link org.hisp.dhis.webapi.filter.RequestIdFilter} and {@link
+   * org.hisp.dhis.webapi.mvc.interceptor.HandlerMethodInterceptor} for the validation of each key.
+   */
+  static String addMdcComment(TransformInfo transformInfo, LinkedHashMap<String, String> keyMap) {
+    String query = transformInfo.getQuery();
+    Map<String, String> mdc = MDC.getCopyOfContextMap();
+    if (mdc == null || mdc.isEmpty()) {
+      return query;
+    }
 
+    StringJoiner comment = new StringJoiner(",");
+    for (Map.Entry<String, String> entry : keyMap.entrySet()) {
+      String value = mdc.get(entry.getKey());
+      if (value != null) {
+        comment.add(entry.getValue() + "='" + value + "'");
+      }
+    }
+
+    if (comment.length() == 0) {
+      return query;
+    }
+
+    return "/* " + comment + " */ " + query;
+  }
+
+  private static final Pattern WHITESPACE = Pattern.compile("\\s+");
+
+  /** Collapses multi-line SQL into a single line for {@code logging.query} output. */
+  private static class SingleLineQueryEntryCreator extends DefaultQueryLogEntryCreator {
     @Override
     protected String formatQuery(String query) {
-      try {
-        Objects.requireNonNull(query);
-        return this.formatter.format(query) + "\n";
-      } catch (Exception e) {
-        log.error("Query formatter failed!", e);
-      }
-
-      return "Formatter error!";
+      return WHITESPACE.matcher(query).replaceAll(" ");
     }
   }
 }
