@@ -63,6 +63,8 @@ public enum ColumnHeader {
   EXTENT("extent", "Extent"),
   POINTS("points", "Points"),
   EVENT_STATUS("eventstatus", "Event status"),
+  ENROLLMENT_OU("enrollmentou", "Enrollment org unit"),
+  ENROLLMENT_OU_NAME("enrollmentouname", "Enrollment org unit name"),
   DIMENSION("dx", "Data"),
   DIMENSION_NAME("dxname", "Data name"),
   PERIOD("pe", "Period"),
