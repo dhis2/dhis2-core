@@ -682,8 +682,10 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
     if (params.getProgram() != null) {
       sqlParameters.addValue("programid", params.getProgram().getId());
-
       fromBuilder.append(hlp.whereAnd()).append(" p.programid = ").append(":programid").append(" ");
+
+      sqlParameters.addValue("programstageid", params.getProgramStage().getId());
+      fromBuilder.append(hlp.whereAnd()).append(" ev.programstageid = :programstageid ");
     }
 
     fromBuilder.append(addLastUpdatedFilters(params, sqlParameters, hlp));

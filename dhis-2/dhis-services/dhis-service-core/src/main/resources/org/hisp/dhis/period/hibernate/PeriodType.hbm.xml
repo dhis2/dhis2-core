@@ -14,6 +14,8 @@
 
     <discriminator column="name" type="string" length="50" not-null="true" />
 
+    <property name="label" not-null="false" type="string" length="230" />
+
     <subclass name="org.hisp.dhis.period.DailyPeriodType" discriminator-value="Daily" />
     <subclass name="org.hisp.dhis.period.WeeklyPeriodType" discriminator-value="Weekly" />
     <subclass name="org.hisp.dhis.period.WeeklyWednesdayPeriodType" discriminator-value="WeeklyWednesday" />

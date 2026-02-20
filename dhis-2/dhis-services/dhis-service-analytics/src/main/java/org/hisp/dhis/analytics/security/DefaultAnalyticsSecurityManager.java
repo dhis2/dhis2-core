@@ -321,6 +321,14 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
       return;
     }
 
+    // ENROLLMENT_OU in event queries has its own OU semantics via enrollment org unit predicates.
+    // Skip implicit default OU assignment only for ENROLLMENT_OU-only event queries.
+    if (params instanceof EventQueryParams eventParams
+        && eventParams.hasEnrollmentOu()
+        && !eventParams.hasOrganisationUnits()) {
+      return;
+    }
+
     // -----------------------------------------------------------------
     // Apply constraint as filter, and remove potential all-dimension
     // -----------------------------------------------------------------
