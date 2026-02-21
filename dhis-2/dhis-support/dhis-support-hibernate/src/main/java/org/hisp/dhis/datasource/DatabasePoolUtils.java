@@ -268,7 +268,24 @@ public final class DatabasePoolUtils {
     hc.addDataSourceProperty("cachePrepStmts", "true");
     hc.addDataSourceProperty("prepStmtCacheSize", "250");
     hc.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-    hc.setConnectionTestQuery(connectionTestQuery);
+
+    // Only set a custom test query if explicitly configured. By default, HikariCP uses
+    // Connection.isValid() which delegates to the JDBC driver's native ping implementation.
+    // For PostgreSQL this sends a lightweight protocol-level message that is more efficient
+    // than executing a SQL query. A custom test query should only be needed for JDBC3 drivers
+    // or non-standard databases that don't implement Connection.isValid().
+    if (connectionTestQuery != null && !connectionTestQuery.isBlank()) {
+      hc.setConnectionTestQuery(connectionTestQuery);
+    }
+
+    hc.setConnectionTimeout(connectionTimeout);
+    hc.setValidationTimeout(validationTimeout);
+    hc.setMaximumPoolSize(maxPoolSize);
+    hc.setMinimumIdle(minIdleConnections);
+    hc.setKeepaliveTime(SECONDS.toMillis(keepAliveTimeSeconds));
+    hc.setIdleTimeout(SECONDS.toMillis(maxIdleTime));
+    hc.setMaxLifetime(SECONDS.toMillis(maxLifeTimeSeconds));
+
     final String leakThresholdStr =
         dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_WARN_MAX_AGE));
 
@@ -299,16 +316,7 @@ public final class DatabasePoolUtils {
       hc.setMetricsTrackerFactory(new MicrometerMetricsTrackerFactory(meterRegistry));
     }
 
-    HikariDataSource ds = new HikariDataSource(hc);
-    ds.setConnectionTimeout(connectionTimeout);
-    ds.setValidationTimeout(validationTimeout);
-    ds.setMaximumPoolSize(maxPoolSize);
-    ds.setMinimumIdle(minIdleConnections);
-    ds.setKeepaliveTime(SECONDS.toMillis(keepAliveTimeSeconds));
-    ds.setIdleTimeout(SECONDS.toMillis(maxIdleTime));
-    ds.setMaxLifetime(SECONDS.toMillis(maxLifeTimeSeconds));
-
-    return ds;
+    return new HikariDataSource(hc);
   }
 
   /** Create a data source based on a C3p0 connection pool. */
