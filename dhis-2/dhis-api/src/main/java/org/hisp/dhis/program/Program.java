@@ -31,14 +31,34 @@ package org.hisp.dhis.program;
 
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 import static org.hisp.dhis.util.ObjectUtils.copyOf;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
+import jakarta.persistence.OrderColumn;
+import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -46,18 +66,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.Type;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.common.BaseMetadataObject;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.IdentifiableProperty;
+import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.common.VersionedObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
+import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.FeatureType;
@@ -65,11 +95,17 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.setting.UserSettings;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.translation.Translatable;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.sharing.Sharing;
 
 /**
  * Programe entity object.
@@ -78,133 +114,220 @@ import org.hisp.dhis.user.UserRole;
  *
  * @author Abyot Asalefew
  */
+@Entity
+@Table(name = "program")
 @JacksonXmlRootElement(localName = "program", namespace = DxfNamespaces.DXF_2_0)
-public class Program extends BaseNameableObject implements VersionedObject, MetadataObject {
+public class Program extends BaseMetadataObject
+    implements IdentifiableObject, NameableObject, VersionedObject {
   static final String DEFAULT_PREFIX = "Copy of ";
 
   static final String PREFIX_KEY = "prefix";
 
+  // -------------------------------------------------------------------------
+  // Fields from identifiableProperties (not in BaseMetadataObject)
+  // -------------------------------------------------------------------------
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "programid")
+  private long id;
+
+  @Column(name = "code", unique = true, length = 50)
+  private String code;
+
+  // -------------------------------------------------------------------------
+  // Fields from Program.hbm.xml
+  // -------------------------------------------------------------------------
+
+  @Column(name = "name", nullable = false, length = 230)
+  private String name;
+
+  @Column(name = "shortname", nullable = false, length = 50)
+  private String shortName;
+
+  @Column(name = "description", columnDefinition = "text")
+  private String description;
+
+  @Column(name = "formname", columnDefinition = "text")
   private String formName;
 
+  @Column(name = "version")
   private int version;
 
+  @Column(name = "enrollmentdatelabel", columnDefinition = "text")
   private String enrollmentDateLabel;
 
+  @Column(name = "incidentdatelabel", columnDefinition = "text")
   private String incidentDateLabel;
 
+  @Column(name = "enrollmentlabel", columnDefinition = "text")
   private String enrollmentLabel;
 
+  @Column(name = "followuplabel", columnDefinition = "text")
   private String followUpLabel;
 
+  @Column(name = "orgunitlabel", columnDefinition = "text")
   private String orgUnitLabel;
 
+  @Column(name = "relationshiplabel", columnDefinition = "text")
   private String relationshipLabel;
 
+  @Column(name = "notelabel", columnDefinition = "text")
   private String noteLabel;
 
+  @Column(name = "trackedentityattributelabel", columnDefinition = "text")
   private String trackedEntityAttributeLabel;
 
+  @Column(name = "programstagelabel", columnDefinition = "text")
   private String programStageLabel;
 
+  @Column(name = "eventlabel", columnDefinition = "text")
   private String eventLabel;
 
+  @ManyToMany
+  @JoinTable(
+      name = "program_organisationunits",
+      joinColumns = @JoinColumn(name = "programid"),
+      inverseJoinColumns = @JoinColumn(name = "organisationunitid"))
   private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
+  @OneToMany
+  @JoinColumn(name = "programid")
+  @OrderBy("sortOrder")
   private Set<ProgramStage> programStages = new HashSet<>();
 
+  @OneToMany
+  @JoinColumn(name = "programid")
+  @OrderBy("sortOrder")
   private Set<ProgramSection> programSections = new HashSet<>();
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "type", nullable = false)
   private ProgramType programType;
 
+  @Column(name = "displayincidentdate")
   private Boolean displayIncidentDate = true;
 
+  @Column(name = "ignoreoverdueevents")
   private Boolean ignoreOverdueEvents = false;
 
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "programid")
+  @OrderColumn(name = "sort_order")
   private List<ProgramTrackedEntityAttribute> programAttributes = new ArrayList<>();
 
+  @ManyToMany
+  @JoinTable(
+      name = "program_userroles",
+      joinColumns = @JoinColumn(name = "programid"),
+      inverseJoinColumns = @JoinColumn(name = "userroleid"))
   private Set<UserRole> userRoles = new HashSet<>();
 
+  @OneToMany(mappedBy = "program")
   private Set<ProgramIndicator> programIndicators = new HashSet<>();
 
+  @OneToMany(mappedBy = "program")
   private Set<ProgramRuleVariable> programRuleVariables = new HashSet<>();
 
+  @Column(name = "onlyenrollonce")
   private Boolean onlyEnrollOnce = false;
 
+  @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+  @JoinColumn(name = "programid")
   private Set<ProgramNotificationTemplate> notificationTemplates = new HashSet<>();
 
+  @Column(name = "selectenrollmentdatesinfuture")
   private Boolean selectEnrollmentDatesInFuture = false;
 
+  @Column(name = "selectincidentdatesinfuture")
   private Boolean selectIncidentDatesInFuture = false;
 
+  @ManyToOne
+  @JoinColumn(name = "relatedprogramid")
   private Program relatedProgram;
 
+  @ManyToOne
+  @JoinColumn(name = "trackedentitytypeid")
   private TrackedEntityType trackedEntityType;
 
+  @ManyToOne(cascade = CascadeType.ALL)
+  @JoinColumn(name = "dataentryformid")
   private DataEntryForm dataEntryForm;
 
+  @Type(type = "jbObjectStyle")
+  @Column(name = "style")
   private ObjectStyle style;
 
   /** The CategoryCombo used for tracker and single events. */
+  @ManyToOne
+  @JoinColumn(name = "categorycomboid", nullable = false)
   private CategoryCombo categoryCombo;
 
   /** The CategoryCombo used for enrollments. */
+  @ManyToOne
+  @JoinColumn(name = "enrollmentcategorycomboid", nullable = false)
   private CategoryCombo enrollmentCategoryCombo;
 
   /** Property indicating whether offline storage is enabled for this program or not */
+  @Column(name = "skipoffline", nullable = false)
   private boolean skipOffline;
 
-  /**
-   * Property indicating whether a list of tracked entities should be displayed, or whether a query
-   * must be made.
-   */
+  @Column(name = "displayfrontpagelist")
   private Boolean displayFrontPageList = false;
 
-  /**
-   * Property indicating whether first stage can appear for data entry on the same page with
-   * registration
-   */
+  @Column(name = "usefirststageduringregistration")
   private Boolean useFirstStageDuringRegistration = false;
 
-  /**
-   * Property indicating type of feature - none, point, symbol, polygon or multipolygon - to capture
-   * for program.
-   */
+  @Enumerated(EnumType.STRING)
+  @Column(name = "featuretype")
   private FeatureType featureType;
 
-  /**
-   * How many days after period is over will this program block creation and modification of events
-   */
+  @Column(name = "expirydays")
   private int expiryDays;
 
-  /**
-   * The PeriodType indicating the frequency that this program will use to decide on expiration.
-   * This relates to the {@link Program#expiryDays} property. The end date of the relevant period is
-   * used as basis for the number of expiration days.
-   */
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "expiryperiodtypeid")
   private PeriodType expiryPeriodType;
 
-  /** How many days after an event is completed will this program block modification of the event */
+  @Column(name = "completeeventsexpirydays")
   private int completeEventsExpiryDays;
 
-  /** Number of days to open for data capture that are after the category option's end date. */
+  @Column(name = "opendaysaftercoenddate")
   private int openDaysAfterCoEndDate;
 
-  /**
-   * Property indicating minimum number of attributes required to fill before search is triggered
-   */
+  @Column(name = "minattributesrequiredtosearch")
   private int minAttributesRequiredToSearch = 1;
 
-  /** Property indicating maximum number of TE to return after search */
+  @Column(name = "maxteicounttoreturn")
   private int maxTeiCountToReturn = 0;
 
-  /** Property indicating level of access */
+  @Enumerated(EnumType.STRING)
+  @Column(name = "accesslevel", length = 100)
   private AccessLevel accessLevel = AccessLevel.OPEN;
 
-  /** Library of Category Mappings available to this program's program indicators */
+  @Type(type = "jsbProgramCategoryMappings")
+  @Column(name = "categorymappings")
   private Set<ProgramCategoryMapping> categoryMappings = new HashSet<>();
 
-  /** Property indicating whether change logging is enabled. */
+  @Column(name = "enablechangelog")
   private boolean enableChangeLog;
+
+  // -------------------------------------------------------------------------
+  // Shared metadata fields (translations, sharing, attributeValues)
+  // -------------------------------------------------------------------------
+
+  @Embedded private TranslationProperty translations = new TranslationProperty();
+
+  @Type(type = "jsbObjectSharing")
+  @Column(name = "sharing")
+  private Sharing sharing = new Sharing();
+
+  @Type(type = "jsbAttributeValues")
+  @Column(name = "attributevalues")
+  private AttributeValues attributeValues = AttributeValues.empty();
+
+  /** Translation cache for display properties. */
+  private final transient Map<String, String> translationCache = new ConcurrentHashMap<>();
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -374,6 +497,241 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
   public boolean isSingleProgramStage() {
     return programStages != null && programStages.size() == 1;
   }
+
+  // -------------------------------------------------------------------------
+  // IdentifiableObject / NameableObject getters and setters
+  // -------------------------------------------------------------------------
+
+  @Override
+  @JsonIgnore
+  public long getId() {
+    return id;
+  }
+
+  @Override
+  public void setId(long id) {
+    this.id = id;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Description("The unique code for this Object.")
+  @Property(PropertyType.IDENTIFIER)
+  public String getCode() {
+    return code;
+  }
+
+  @Override
+  public void setCode(String code) {
+    this.code = code;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @PropertyRange(min = 1, max = 230)
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  @Override
+  public String getDisplayName() {
+    return getTranslation("NAME", getName());
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @PropertyRange(min = 1, max = 50)
+  public String getShortName() {
+    return shortName;
+  }
+
+  public void setShortName(String shortName) {
+    this.shortName = shortName;
+  }
+
+  @Override
+  public String getDisplayShortName() {
+    return getTranslation("SHORT_NAME", getShortName());
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 1)
+  public String getDescription() {
+    return description;
+  }
+
+  public void setDescription(String description) {
+    this.description = description;
+  }
+
+  @Override
+  public String getDisplayDescription() {
+    return getTranslation("DESCRIPTION", getDescription());
+  }
+
+  @Override
+  public String getDisplayProperty(DisplayProperty displayProperty) {
+    if (DisplayProperty.SHORTNAME == displayProperty && getDisplayShortName() != null) {
+      return getDisplayShortName();
+    } else {
+      return getDisplayName();
+    }
+  }
+
+  @Override
+  public Set<Translation> getTranslations() {
+    if (translations == null) {
+      return new HashSet<>();
+    }
+    return translations.getTranslations();
+  }
+
+  @Override
+  public void setTranslations(Set<Translation> translations) {
+    this.translationCache.clear();
+    if (this.translations == null) {
+      this.translations = new TranslationProperty();
+    }
+    this.translations.setTranslations(translations);
+  }
+
+  @Override
+  public Sharing getSharing() {
+    if (sharing == null) {
+      sharing = new Sharing();
+    }
+    return sharing;
+  }
+
+  @Override
+  public void setSharing(Sharing sharing) {
+    this.sharing = sharing;
+  }
+
+  public String getPublicAccess() {
+    return sharing != null ? sharing.getPublicAccess() : null;
+  }
+
+  public void setPublicAccess(String access) {
+    if (sharing == null) {
+      sharing = new Sharing();
+    }
+    sharing.setPublicAccess(access);
+  }
+
+  @Override
+  public AttributeValues getAttributeValues() {
+    return attributeValues;
+  }
+
+  @Override
+  public void setAttributeValues(AttributeValues attributeValues) {
+    this.attributeValues = attributeValues;
+  }
+
+  @Override
+  public void addAttributeValue(String attributeId, String value) {
+    this.attributeValues = attributeValues.added(attributeId, value);
+  }
+
+  @Override
+  public void removeAttributeValue(String attributeId) {
+    this.attributeValues = attributeValues.removed(attributeId);
+  }
+
+  @Override
+  public void setUser(User user) {
+    setCreatedBy(user);
+  }
+
+  @Override
+  public void setOwner(String userId) {
+    getSharing().setOwner(userId);
+  }
+
+  @Override
+  public String getPropertyValue(IdScheme idScheme) {
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return uid;
+    } else if (idScheme.is(IdentifiableProperty.CODE)) {
+      return code;
+    } else if (idScheme.is(IdentifiableProperty.NAME)) {
+      return name;
+    } else if (idScheme.is(IdentifiableProperty.ID)) {
+      return id > 0 ? String.valueOf(id) : null;
+    }
+    return null;
+  }
+
+  @Override
+  public String getDisplayPropertyValue(IdScheme idScheme) {
+    if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getDisplayName();
+    } else {
+      return getPropertyValue(idScheme);
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Translation helper
+  // -------------------------------------------------------------------------
+
+  protected String getTranslation(String translationKey, String defaultValue) {
+    org.hisp.dhis.common.Locale locale = UserSettings.getCurrentSettings().getUserDbLocale();
+    final String defaultTranslation = defaultValue != null ? defaultValue.trim() : null;
+    if (locale == null || translationKey == null || CollectionUtils.isEmpty(getTranslations())) {
+      return defaultValue;
+    }
+    return translationCache.computeIfAbsent(
+        Translation.getCacheKey(locale.toString(), translationKey),
+        key -> getTranslationValue(locale.toString(), translationKey, defaultTranslation));
+  }
+
+  private String getTranslationValue(String locale, String translationKey, String defaultValue) {
+    for (Translation translation : getTranslations()) {
+      if (locale.equals(translation.getLocale())
+          && translationKey.equals(translation.getProperty())
+          && !StringUtils.isEmpty(translation.getValue())) {
+        return translation.getValue();
+      }
+    }
+    return defaultValue;
+  }
+
+  // -------------------------------------------------------------------------
+  // hashCode, equals
+  // -------------------------------------------------------------------------
+
+  @Override
+  public int hashCode() {
+    int result = getUid() != null ? getUid().hashCode() : 0;
+    result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
+    result = 31 * result + (getName() != null ? getName().hashCode() : 0);
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return this == obj
+        || obj instanceof Program other
+            && getRealClass(this) == getRealClass(obj)
+            && Objects.equals(getUid(), other.getUid())
+            && Objects.equals(getCode(), other.getCode())
+            && Objects.equals(getName(), other.getName());
+  }
+
+  // -------------------------------------------------------------------------
+  // Logic methods
+  // -------------------------------------------------------------------------
 
   @Override
   public int increaseVersion() {
@@ -938,16 +1296,26 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
     this.style = style;
   }
 
-  @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getFormName() {
     return formName;
   }
 
-  @Override
   public void setFormName(String formName) {
     this.formName = formName;
+  }
+
+  /** Returns the form name, or the name if it does not exist. */
+  public String getFormNameFallback() {
+    return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "formName", key = "FORM_NAME")
+  public String getDisplayFormName() {
+    return getTranslation("FORM_NAME", getFormNameFallback());
   }
 
   @JsonProperty("programSections")
