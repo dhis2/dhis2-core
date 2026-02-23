@@ -320,7 +320,7 @@ class BaseNotificationMessageRendererTest {
 
     @Override
     public String getDisplaySubjectTemplate() {
-      return null;
+      return getSubjectTemplate();
     }
 
     @Override
@@ -330,7 +330,7 @@ class BaseNotificationMessageRendererTest {
 
     @Override
     public String getDisplayMessageTemplate() {
-      return null;
+      return getMessageTemplate();
     }
 
     @Override
