@@ -46,6 +46,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.ValueType.DATETIME;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
+import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 import static org.hisp.dhis.feedback.ErrorCode.E7218;
 
 import java.util.List;
@@ -59,6 +60,8 @@ import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.tracker.MetadataItemsHandler;
 import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.db.sql.SqlBuilder;
@@ -103,6 +106,9 @@ public class EventQueryService {
 
     List<Keyword> keywords = getDimensionsKeywords(params);
 
+    // Retain original period dimensions before consuming them for date filtering
+    List<DimensionalObject> periods = getPeriodDimensions(params);
+
     params = new EventQueryParams.Builder(params).withStartEndDatesForPeriods().build();
 
     // Headers
@@ -116,6 +122,14 @@ public class EventQueryService {
 
     if (!params.isSkipData() || params.analyzeOnly()) {
       count = addData(grid, params);
+    }
+
+    // Re-add period items for metadata generation (items + dimensions sections)
+    if (!periods.isEmpty()) {
+      params =
+          new EventQueryParams.Builder(params)
+              .withPeriods(periods.stream().flatMap(p -> p.getItems().stream()).toList(), EMPTY)
+              .build();
     }
 
     // Metadata
@@ -340,5 +354,11 @@ public class EventQueryService {
    */
   private boolean isGeospatialSupport() {
     return sqlBuilder.supportsGeospatialData();
+  }
+
+  private static List<DimensionalObject> getPeriodDimensions(EventQueryParams params) {
+    return params.getDimensions().stream()
+        .filter(d -> d.getDimensionType() == DimensionType.PERIOD)
+        .toList();
   }
 }

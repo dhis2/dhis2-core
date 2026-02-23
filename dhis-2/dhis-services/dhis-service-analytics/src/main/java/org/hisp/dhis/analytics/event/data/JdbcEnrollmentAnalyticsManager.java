@@ -935,7 +935,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     List<String> columns = new ArrayList<>();
 
     // Add base column
-    addDimensionSelectColumns(columns, params, true);
+    addDimensionSelectColumns(columns, params, true, true);
 
     SelectBuilder sb = new SelectBuilder();
     sb.addColumn(ENROLLMENT_COL, "ax");

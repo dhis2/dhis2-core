@@ -77,6 +77,7 @@ import org.hisp.dhis.analytics.common.EndpointItem;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlCoordinator;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
@@ -429,9 +430,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
   @Override
   void addFromClause(SelectBuilder sb, EventQueryParams params) {
-
-    // FIXME: use same logic from `getFromClause` method
-    sb.from(params.getTableName(), "ax");
+    sb.from(params.getTableName(), ANALYTICS_TBL_ALIAS);
+    OrgUnitSqlCoordinator.addJoinIfNeeded(sb, params);
   }
 
   /**
@@ -514,31 +514,32 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
    */
   @Override
   protected String getFromClause(EventQueryParams params) {
-    String sql = " from ";
+    StringBuilder sql = new StringBuilder(" from ");
 
     if (params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
-      sql += getFirstOrLastValueSubquerySql(params);
+      sql.append(getFirstOrLastValueSubquerySql(params));
     } else {
-      sql += params.getTableName();
+      sql.append(params.getTableName());
     }
 
-    sql += " as " + ANALYTICS_TBL_ALIAS + " ";
+    sql.append(" as ").append(ANALYTICS_TBL_ALIAS).append(" ");
 
     if (params.hasTimeField()) {
       String joinCol = quoteAlias(params.getTimeFieldAsField(AnalyticsType.EVENT));
-      sql +=
-          "left join analytics_rs_dateperiodstructure as "
-              + DATE_PERIOD_STRUCT_ALIAS
-              + " on cast("
-              + joinCol
-              + " as date) = "
-              + DATE_PERIOD_STRUCT_ALIAS
-              + "."
-              + quote("dateperiod")
-              + " ";
+      sql.append("left join analytics_rs_dateperiodstructure as ")
+          .append(DATE_PERIOD_STRUCT_ALIAS)
+          .append(" on cast(")
+          .append(joinCol)
+          .append(" as date) = ")
+          .append(DATE_PERIOD_STRUCT_ALIAS)
+          .append(".")
+          .append(quote("dateperiod"))
+          .append(" ");
     }
 
-    return sql + joinOrgUnitTables(params, getAnalyticsType());
+    OrgUnitSqlCoordinator.appendLegacyJoin(sql, params);
+
+    return sql.append(joinOrgUnitTables(params, getAnalyticsType())).toString();
   }
 
   /**
@@ -761,6 +762,10 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (params.isCompletedOnly()) {
       sql += hlp.whereAnd() + " completeddate is not null ";
     }
+
+    StringBuilder enrollmentOuSql = new StringBuilder();
+    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(enrollmentOuSql, hlp, params, sqlBuilder);
+    sql += enrollmentOuSql;
 
     if (params.hasBbox()) {
       sql +=
@@ -1061,7 +1066,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   void addSelectClause(SelectBuilder sb, EventQueryParams params, CteContext cteContext) {
 
     List<String> columns = new ArrayList<>(getStandardColumns(params));
-    addDimensionSelectColumns(columns, params, false);
+    addDimensionSelectColumns(columns, params, false, false);
+    OrgUnitSqlCoordinator.addQuerySelectColumns(columns, params);
     addEventsItemSelectColumns(columns, params, cteContext);
 
     columns.forEach(
