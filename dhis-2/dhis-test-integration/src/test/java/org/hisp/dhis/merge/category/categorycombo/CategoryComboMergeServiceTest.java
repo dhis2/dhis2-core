@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -113,9 +113,9 @@ class CategoryComboMergeServiceTest extends PostgresIntegrationTestBase {
     categoryService.addCategoryCombo(ccTarget);
 
     // Generate option combos for all combos
-      categoryOptionComboGenerateService.addAndPruneOptionCombosWithSummary(ccSource1);
-      categoryOptionComboGenerateService.addAndPruneOptionCombosWithSummary(ccSource2);
-      categoryOptionComboGenerateService.addAndPruneOptionCombosWithSummary(ccTarget);
+    categoryOptionComboGenerateService.addAndPruneOptionCombosWithSummary(ccSource1);
+    categoryOptionComboGenerateService.addAndPruneOptionCombosWithSummary(ccSource2);
+    categoryOptionComboGenerateService.addAndPruneOptionCombosWithSummary(ccTarget);
   }
 
   // -----------------------------
@@ -373,7 +373,8 @@ class CategoryComboMergeServiceTest extends PostgresIntegrationTestBase {
 
     DataApprovalWorkflow wf1 =
         new DataApprovalWorkflow("Workflow1", periodType, ccSource1, Set.of());
-    DataApprovalWorkflow wf2 = new DataApprovalWorkflow("Workflow2", periodType, ccSource2, Set.of());
+    DataApprovalWorkflow wf2 =
+        new DataApprovalWorkflow("Workflow2", periodType, ccSource2, Set.of());
     wf1.getLevels().add(level);
     wf2.getLevels().add(level);
     manager.save(wf1);
@@ -413,8 +414,7 @@ class CategoryComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertFalse(report.hasErrorMessages());
     assertNull(categoryService.getCategoryCombo(source1Uid), "Source 1 should be deleted");
     assertNull(categoryService.getCategoryCombo(source2Uid), "Source 2 should be deleted");
-    assertNotNull(
-        categoryService.getCategoryCombo(ccTarget.getUid()), "Target should still exist");
+    assertNotNull(categoryService.getCategoryCombo(ccTarget.getUid()), "Target should still exist");
   }
 
   @Test
