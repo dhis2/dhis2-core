@@ -32,7 +32,6 @@ package org.hisp.dhis.tracker.export.singleevent;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.tracker.Assertions.assertNotes;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -136,8 +135,7 @@ class SingleEventServiceTest extends PostgresIntegrationTestBase {
 
     List<SingleEvent> events = singleEventService.findEvents(params);
 
-    assertHasSize(1, events);
-    assertEquals("QRYjLTiJTrA", events.get(0).getUid());
+    assertEquals(List.of("QRYjLTiJTrA"), uids(events));
   }
 
   @Test
@@ -151,8 +149,7 @@ class SingleEventServiceTest extends PostgresIntegrationTestBase {
 
     List<SingleEvent> events = singleEventService.findEvents(params);
 
-    assertHasSize(1, events);
-    assertEquals("QRYjLTiJTrA", events.get(0).getUid());
+    assertEquals(List.of("QRYjLTiJTrA"), uids(events));
   }
 
   @Test

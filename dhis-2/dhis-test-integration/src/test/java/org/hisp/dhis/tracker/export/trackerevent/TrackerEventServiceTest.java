@@ -34,7 +34,6 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
 import static org.hisp.dhis.security.acl.AccessStringHelper.READ;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.Assertions.assertHasTimeStamp;
 import static org.hisp.dhis.tracker.Assertions.assertNotes;
@@ -144,8 +143,7 @@ class TrackerEventServiceTest extends PostgresIntegrationTestBase {
 
     List<TrackerEvent> events = trackerEventService.findEvents(params);
 
-    assertHasSize(1, events);
-    assertEquals("D9PbzJY8bJM", events.get(0).getUid());
+    assertEquals(List.of("D9PbzJY8bJM"), uids(events));
   }
 
   @Test
@@ -159,8 +157,7 @@ class TrackerEventServiceTest extends PostgresIntegrationTestBase {
 
     List<TrackerEvent> events = trackerEventService.findEvents(params);
 
-    assertHasSize(1, events);
-    assertEquals("D9PbzJY8bJM", events.get(0).getUid());
+    assertEquals(List.of("D9PbzJY8bJM"), uids(events));
   }
 
   @Test
