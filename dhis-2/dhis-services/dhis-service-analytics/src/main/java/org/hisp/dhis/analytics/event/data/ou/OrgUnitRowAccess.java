@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,32 +27,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.analytics.event.data.ou;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-import org.junit.jupiter.api.Test;
+/** Column names used when reading ENROLLMENT_OU values from result rows. */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class OrgUnitRowAccess {
 
-class AnalyticsDateFilterTest {
-  @Test
-  void createdAndCompletedDoNotApplyToCriteriaExtractors() {
-    assertFalse(AnalyticsDateFilter.CREATED.appliesToEvents());
-    assertFalse(AnalyticsDateFilter.CREATED.appliesToEnrollments());
-
-    assertFalse(AnalyticsDateFilter.COMPLETED.appliesToEvents());
-    assertFalse(AnalyticsDateFilter.COMPLETED.appliesToEnrollments());
-  }
-
-  @Test
-  void createdAndCompletedRemainResolvableAsDateFilters() {
-    assertTrue(AnalyticsDateFilter.of("CREATED").isPresent());
-    assertTrue(AnalyticsDateFilter.of("COMPLETED").isPresent());
-  }
-
-  @Test
-  void createdDateAndCompletedDateAreNoLongerResolvableAsDateFilters() {
-    assertTrue(AnalyticsDateFilter.of("CREATED_DATE").isEmpty());
-    assertTrue(AnalyticsDateFilter.of("COMPLETED_DATE").isEmpty());
+  /**
+   * Returns the result-set column alias used for ENROLLMENT_OU values in aggregated event rows.
+   *
+   * @return enrollment OU result column alias
+   */
+  public static String enrollmentOuResultColumn() {
+    return OrgUnitSqlConstants.ENROLLMENT_OU_RESULT_ALIAS;
   }
 }

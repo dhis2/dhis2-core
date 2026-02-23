@@ -527,10 +527,23 @@ public enum ConfigurationKey {
   LOGGING_FILE_MAX_ARCHIVES("logging.file.max_archives", "1"),
 
   /**
-   * Adds a hashed (SHA-256) session_id to each log line. Useful for tracking which user is
-   * responsible for the logging line.
+   * Adds a hashed (SHA-256) session ID to the MDC ({@code sessionId} key). Include it in log output
+   * via {@code %X{sessionId}} in the log4j2 pattern layout.
    */
-  LOGGING_REQUEST_ID_ENABLED("logging.request_id.enabled", Constants.ON, false),
+  LOGGING_SESSION_ID("logging.session_id", Constants.ON, false),
+
+  /**
+   * Enables SQL query logging via a datasource proxy. All {@code logging.query.*} keys below
+   * require this to be enabled.
+   */
+  LOGGING_QUERY("logging.query", Constants.OFF, false),
+
+  /** Threshold in milliseconds for logging slow queries at WARN level. */
+  LOGGING_QUERY_SLOW_THRESHOLD(
+      "logging.query.slow_threshold", String.valueOf(SECONDS.toMillis(1)), false),
+
+  /** Logs the calling method and class for each query. */
+  LOGGING_QUERY_METHOD("logging.query.method", Constants.OFF, false),
 
   /** Base URL to the DHIS 2 instance. */
   SERVER_BASE_URL("server.base.url", "", false),
@@ -659,19 +672,6 @@ public enum ConfigurationKey {
 
   /** WSO2 IdP specific parameters. Enable logout */
   OIDC_PROVIDER_WSO2_ENABLE_LOGOUT("oidc.provider.wso2.enable_logout", Constants.ON, false),
-
-  /** Database debugging feature. Defines threshold for logging of slow queries in the log. */
-  SLOW_QUERY_LOGGING_THRESHOLD_TIME_MS(
-      "slow.query.logging.threshold.time", String.valueOf(SECONDS.toMillis(1)), false),
-
-  /** Database debugging feature. Enables logging of all SQL queries to the log. */
-  ENABLE_QUERY_LOGGING("enable.query.logging", Constants.OFF, false),
-
-  /** Database debugging feature. Defines database logging before/after methods */
-  METHOD_QUERY_LOGGING_ENABLED("method.query.logging.enabled", Constants.OFF, false),
-
-  /** Database debugging feature. Enable time query logging. */
-  ELAPSED_TIME_QUERY_LOGGING_ENABLED("elapsed.time.query.logging.enabled", Constants.OFF, false),
 
   /**
    * Database datasource pool type. Supported pool types are: hikari (default), c3p0 (deprecated),
