@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -72,8 +72,7 @@ class Dhis2InternalOidcProviderTest {
     assertNotNull(registration);
     ClientRegistration cr = registration.getClientRegistration();
     assertEquals(
-        "http://example.com:8080/oauth2/authorize",
-        cr.getProviderDetails().getAuthorizationUri());
+        "http://example.com:8080/oauth2/authorize", cr.getProviderDetails().getAuthorizationUri());
     assertEquals("http://example.com:8080/oauth2/token", cr.getProviderDetails().getTokenUri());
     assertEquals("http://example.com:8080/oauth2/jwks", cr.getProviderDetails().getJwkSetUri());
     assertEquals("http://example.com:8080", cr.getProviderDetails().getIssuerUri());
@@ -117,8 +116,7 @@ class Dhis2InternalOidcProviderTest {
     assertNotNull(registration);
     ClientRegistration cr = registration.getClientRegistration();
     assertEquals(
-        "http://example.com:8080/oauth2/authorize",
-        cr.getProviderDetails().getAuthorizationUri());
+        "http://example.com:8080/oauth2/authorize", cr.getProviderDetails().getAuthorizationUri());
     assertEquals("http://example.com:8080", cr.getProviderDetails().getIssuerUri());
   }
 
