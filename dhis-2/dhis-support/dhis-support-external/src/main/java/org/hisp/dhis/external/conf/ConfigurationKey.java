@@ -819,7 +819,7 @@ public enum ConfigurationKey {
   OIDC_DHIS2_INTERNAL_CLIENT_ID("oidc.provider.dhis2.client_id", "dhis2-internal", false),
   OIDC_DHIS2_INTERNAL_CLIENT_SECRET("oidc.provider.dhis2.client_secret", "secret", false),
   OIDC_DHIS2_INTERNAL_MAPPING_CLAIM("oidc.provider.dhis2.mapping_claim", "username", false),
-  OIDC_DHIS2_INTERNAL_SERVER_URL("oidc.provider.dhis2.server_url", "http://localhost:8080", false);
+  OIDC_DHIS2_INTERNAL_SERVER_URL("oidc.provider.dhis2.server_url", "", false);
 
   private final String key;
 
