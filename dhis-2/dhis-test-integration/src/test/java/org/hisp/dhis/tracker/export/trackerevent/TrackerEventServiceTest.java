@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.security.acl.AccessStringHelper.DATA_READ;
 import static org.hisp.dhis.security.acl.AccessStringHelper.READ;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.Assertions.assertHasTimeStamp;
 import static org.hisp.dhis.tracker.Assertions.assertNotes;
@@ -134,6 +135,32 @@ class TrackerEventServiceTest extends PostgresIntegrationTestBase {
         operationParamsBuilder.program(UID.of("iS7eutanDry")).build();
 
     assertThrows(BadRequestException.class, () -> trackerEventService.findEvents(params));
+  }
+
+  @Test
+  void shouldFetchOneEventWhenPassingEventUid() throws ForbiddenException, BadRequestException {
+    TrackerEventOperationParams params =
+        operationParamsBuilder.events(Set.of(UID.of("D9PbzJY8bJM"))).build();
+
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
+
+    assertHasSize(1, events);
+    assertEquals("D9PbzJY8bJM", events.get(0).getUid());
+  }
+
+  @Test
+  void shouldFetchOneEventWhenPassingEventUidAndFilterByDataElement()
+      throws ForbiddenException, BadRequestException {
+    TrackerEventOperationParams params =
+        operationParamsBuilder
+            .events(Set.of(UID.of("D9PbzJY8bJM")))
+            .filterByDataElement(UID.of("DATAEL00001"))
+            .build();
+
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
+
+    assertHasSize(1, events);
+    assertEquals("D9PbzJY8bJM", events.get(0).getUid());
   }
 
   @Test

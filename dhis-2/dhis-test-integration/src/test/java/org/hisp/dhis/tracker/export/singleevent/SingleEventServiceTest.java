@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.export.singleevent;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.tracker.Assertions.assertNotes;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -126,6 +127,32 @@ class SingleEventServiceTest extends PostgresIntegrationTestBase {
         operationParamsBuilder.program(UID.of("shPjYNifvMK")).build();
 
     assertThrows(BadRequestException.class, () -> singleEventService.findEvents(params));
+  }
+
+  @Test
+  void shouldFetchOneEventWhenPassingEventUid() throws ForbiddenException, BadRequestException {
+    SingleEventOperationParams params =
+        operationParamsBuilder.events(Set.of(UID.of("QRYjLTiJTrA"))).build();
+
+    List<SingleEvent> events = singleEventService.findEvents(params);
+
+    assertHasSize(1, events);
+    assertEquals("QRYjLTiJTrA", events.get(0).getUid());
+  }
+
+  @Test
+  void shouldFetchOneEventWhenPassingEventUidAndFilterByDataElement()
+      throws ForbiddenException, BadRequestException {
+    SingleEventOperationParams params =
+        operationParamsBuilder
+            .events(Set.of(UID.of("QRYjLTiJTrA")))
+            .filterByDataElement(UID.of("GieVkTxp4HH"))
+            .build();
+
+    List<SingleEvent> events = singleEventService.findEvents(params);
+
+    assertHasSize(1, events);
+    assertEquals("QRYjLTiJTrA", events.get(0).getUid());
   }
 
   @Test
