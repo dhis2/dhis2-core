@@ -129,6 +129,30 @@ class SingleEventServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldFetchOneEventWhenPassingEventUid() throws ForbiddenException, BadRequestException {
+    SingleEventOperationParams params =
+        operationParamsBuilder.events(Set.of(UID.of("QRYjLTiJTrA"))).build();
+
+    List<SingleEvent> events = singleEventService.findEvents(params);
+
+    assertEquals(List.of("QRYjLTiJTrA"), uids(events));
+  }
+
+  @Test
+  void shouldFetchOneEventWhenPassingEventUidAndFilterByDataElement()
+      throws ForbiddenException, BadRequestException {
+    SingleEventOperationParams params =
+        operationParamsBuilder
+            .events(Set.of(UID.of("QRYjLTiJTrA")))
+            .filterByDataElement(UID.of("GieVkTxp4HH"))
+            .build();
+
+    List<SingleEvent> events = singleEventService.findEvents(params);
+
+    assertEquals(List.of("QRYjLTiJTrA"), uids(events));
+  }
+
+  @Test
   void shouldExportEventAndMapAssignedUserWhenAssignedUserIsNotNull()
       throws ForbiddenException, BadRequestException {
     SingleEventOperationParams params =
