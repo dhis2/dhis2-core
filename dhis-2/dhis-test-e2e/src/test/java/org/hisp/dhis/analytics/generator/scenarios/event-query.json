@@ -195,6 +195,42 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "enrollmentDate",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?asc=eventdate&headers=oucode,enrollmentdate&displayProperty=NAME&outputType=EVENT&pageSize=10&page=1&dimension=ENROLLMENT_DATE:2021&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "enrollmentDateRelativePeriod",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?relativePeriodDate=2021-11-11&asc=eventdate&headers=oucode,enrollmentdate&displayProperty=NAME&outputType=EVENT&pageSize=10&page=1&dimension=ENROLLMENT_DATE:LAST_6_MONTHS&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "enrollmentIncidentDateFixedYear",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?asc=eventdate&headers=oucode,enrollmentdate&displayProperty=NAME&outputType=EVENT&pageSize=10&page=1&dimension=INCIDENT_DATE:2021&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "enrollmentOuWithLevel",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?asc=eventdate&headers=oucode,enrollmentou,enrollmentouname&displayProperty=NAME&pageSize=10&page=1&dimension=ENROLLMENT_OU:LEVEL-m9lBJogzE95&dimension=pe:2021&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "enrollmentOuWithMultipleOus",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?asc=eventdate&headers=oucode,enrollmentou,enrollmentouname&displayProperty=NAME&pageSize=10&page=1&dimension=ENROLLMENT_OU:BXd3TqaAxkK;VpYAl8dXs6m;uFp0ztDOFbI,pe:2021&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
     }
+
   ]
 }
