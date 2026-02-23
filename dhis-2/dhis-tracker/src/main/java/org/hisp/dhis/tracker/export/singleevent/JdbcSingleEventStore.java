@@ -735,10 +735,17 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
-      sqlParameters.addValue(
-          "au_uid", UID.toValueSet(params.getAssignedUserQueryParam().getAssignedUsers()));
-
-      fromBuilder.append(hlp.whereAnd()).append(" (au.uid in (").append(":au_uid").append(")) ");
+      Set<UID> assignedUsers = params.getAssignedUserQueryParam().getAssignedUsers();
+      fromBuilder.append(hlp.whereAnd());
+      if (assignedUsers.size() == 1) {
+        sqlParameters.addValue("au_uid", assignedUsers.iterator().next().getValue());
+        fromBuilder.append(
+            " ev.assigneduserid = (select userinfoid from userinfo where uid = :au_uid) ");
+      } else {
+        sqlParameters.addValue("au_uid", UID.toValueSet(assignedUsers));
+        fromBuilder.append(
+            " ev.assigneduserid in (select userinfoid from userinfo where uid in (:au_uid)) ");
+      }
     }
 
     if (AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode()) {
