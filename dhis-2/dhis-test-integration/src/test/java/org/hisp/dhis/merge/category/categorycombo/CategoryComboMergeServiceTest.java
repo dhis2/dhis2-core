@@ -40,14 +40,12 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryComboStore;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionComboGenerateService;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
@@ -79,7 +77,6 @@ class CategoryComboMergeServiceTest extends PostgresIntegrationTestBase {
 
   @Autowired private CategoryService categoryService;
   @Autowired private CategoryOptionComboGenerateService categoryOptionComboGenerateService;
-  @Autowired private CategoryComboStore categoryComboStore;
   @Autowired private IdentifiableObjectManager manager;
   @Autowired private MergeService categoryComboMergeService;
   @Autowired private DbmsManager dbmsManager;
@@ -89,33 +86,52 @@ class CategoryComboMergeServiceTest extends PostgresIntegrationTestBase {
   private CategoryCombo ccSource2;
   private CategoryCombo ccTarget;
   private Category category1;
+  private Category category2;
   private CategoryOption co1;
   private CategoryOption co2;
+  private CategoryOption co3;
+  private CategoryOption co4;
 
   @BeforeEach
   void setUpCatModel() {
-    // Create category options
-    co1 = createCategoryOption('1');
-    co2 = createCategoryOption('2');
-    categoryService.addCategoryOption(co1);
-    categoryService.addCategoryOption(co2);
+    // Create category model that satisfies validation constraints
+    createCos();
+    createCs();
+    createCcs();
+    generateCocs();
+  }
 
-    // Create a single category with both options
-    category1 = createCategory('1', co1, co2);
-    categoryService.addCategory(category1);
-
-    // Create source and target CategoryCombos all with the same category
-    ccSource1 = createCategoryCombo('A', category1);
-    ccSource2 = createCategoryCombo('B', category1);
-    ccTarget = createCategoryCombo('C', category1);
-    categoryService.addCategoryCombo(ccSource1);
-    categoryService.addCategoryCombo(ccSource2);
-    categoryService.addCategoryCombo(ccTarget);
-
-    // Generate option combos for all combos
+  private void generateCocs() {
     categoryOptionComboGenerateService.addAndPruneOptionCombosWithSummary(ccSource1);
     categoryOptionComboGenerateService.addAndPruneOptionCombosWithSummary(ccSource2);
     categoryOptionComboGenerateService.addAndPruneOptionCombosWithSummary(ccTarget);
+  }
+
+  private void createCcs() {
+    ccSource1 = createCategoryCombo('A', category1, category2);
+    ccSource2 = createCategoryCombo('B', category1, category2);
+    ccTarget = createCategoryCombo('C', category1, category2);
+    categoryService.addCategoryCombo(ccSource1);
+    categoryService.addCategoryCombo(ccSource2);
+    categoryService.addCategoryCombo(ccTarget);
+  }
+
+  private void createCs() {
+    category1 = createCategory('1', co1, co2);
+    category2 = createCategory('2', co3, co4);
+    categoryService.addCategory(category1);
+    categoryService.addCategory(category2);
+  }
+
+  private void createCos() {
+    co1 = createCategoryOption('1');
+    co2 = createCategoryOption('2');
+    co3 = createCategoryOption('3');
+    co4 = createCategoryOption('4');
+    categoryService.addCategoryOption(co1);
+    categoryService.addCategoryOption(co2);
+    categoryService.addCategoryOption(co3);
+    categoryService.addCategoryOption(co4);
   }
 
   // -----------------------------
@@ -366,17 +382,10 @@ class CategoryComboMergeServiceTest extends PostgresIntegrationTestBase {
   void dataApprovalWorkflowRefsReplacedTest() throws ConflictException {
     // given DataApprovalWorkflows with source CategoryCombos
     PeriodType periodType = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY);
-
-    // Create approval level first
-    DataApprovalLevel level = new DataApprovalLevel("Level1", 1);
-    dataApprovalLevelService.addDataApprovalLevel(level);
-
     DataApprovalWorkflow wf1 =
         new DataApprovalWorkflow("Workflow1", periodType, ccSource1, Set.of());
     DataApprovalWorkflow wf2 =
         new DataApprovalWorkflow("Workflow2", periodType, ccSource2, Set.of());
-    wf1.getLevels().add(level);
-    wf2.getLevels().add(level);
     manager.save(wf1);
     manager.save(wf2);
 
@@ -464,6 +473,7 @@ class CategoryComboMergeServiceTest extends PostgresIntegrationTestBase {
     MergeParams mergeParams = new MergeParams();
     mergeParams.setSources(UID.of(sources.toArray(new CategoryCombo[0])));
     mergeParams.setTarget(UID.of(target));
+    mergeParams.setDeleteSources(true);
     return mergeParams;
   }
 }

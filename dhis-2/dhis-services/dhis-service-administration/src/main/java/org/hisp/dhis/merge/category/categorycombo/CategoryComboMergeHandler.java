@@ -65,8 +65,10 @@ public class CategoryComboMergeHandler {
   private final DataApprovalWorkflowStore dataApprovalWorkflowStore;
 
   /**
-   * Handles replacing source {@link CategoryCombo} references with target in {@link Category}s.
-   * Uses Hibernate approach - removes source combos from categories and adds target.
+   * Handles removing source {@link CategoryCombo} references with target in {@link Category}s.
+   * Removes source combos from categories. No adding of target {@link CategoryCombo} refs is
+   * carried out as source & target {@link CategoryCombo}s have to have the same categories to start
+   * with (early validation).
    *
    * @param sources list of source CategoryCombos
    * @param target target CategoryCombo
@@ -77,10 +79,7 @@ public class CategoryComboMergeHandler {
         category.removeCategoryCombo(source);
       }
     }
-    log.info(
-        "{} Categories updated by removing target CategoryCombo {}",
-        sources.size(),
-        target.getUid());
+    log.info("{} Categories updated by removing source CategoryCombos", sources.size());
   }
 
   /**
@@ -107,8 +106,7 @@ public class CategoryComboMergeHandler {
   }
 
   /**
-   * Updates DataElement references to point to the target CategoryCombo. Uses SQL approach for
-   * efficiency.
+   * Updates DataElement references to point to the target CategoryCombo.
    *
    * @param sources list of source CategoryCombos
    * @param target target CategoryCombo
@@ -121,8 +119,7 @@ public class CategoryComboMergeHandler {
   }
 
   /**
-   * Updates DataSet references to point to the target CategoryCombo. Uses SQL approach for
-   * efficiency.
+   * Updates DataSet references to point to the target CategoryCombo.
    *
    * @param sources list of source CategoryCombos
    * @param target target CategoryCombo
@@ -135,8 +132,7 @@ public class CategoryComboMergeHandler {
   }
 
   /**
-   * Updates DataSetElement references to point to the target CategoryCombo. Uses SQL approach for
-   * efficiency.
+   * Updates DataSetElement references to point to the target CategoryCombo.
    *
    * @param sources list of source CategoryCombos
    * @param target target CategoryCombo
@@ -150,7 +146,7 @@ public class CategoryComboMergeHandler {
 
   /**
    * Updates Program.categoryCombo and Program.enrollmentCategoryCombo references to point to the
-   * target CategoryCombo. Uses SQL approach for efficiency.
+   * target CategoryCombo.
    *
    * @param sources list of source CategoryCombos
    * @param target target CategoryCombo
@@ -161,13 +157,12 @@ public class CategoryComboMergeHandler {
     int updated =
         programStore.updateCategoryComboAndEnrollmentCategoryComboRefs(sourceIds, target.getId());
     log.info(
-        "{} Programs (categorycombo and enrollment categorycombo) updated with target CategoryCombo ref",
+        "{} Programs (categorycombo and/or enrollment categorycombo) updated with target CategoryCombo ref",
         updated);
   }
 
   /**
-   * Updates DataApprovalWorkflow references to point to the target CategoryCombo. Uses SQL approach
-   * for efficiency.
+   * Updates DataApprovalWorkflow references to point to the target CategoryCombo.
    *
    * @param sources list of source CategoryCombos
    * @param target target CategoryCombo
@@ -181,7 +176,7 @@ public class CategoryComboMergeHandler {
 
   /**
    * Updates ProgramIndicator.categoryCombo and ProgramIndicator.attributeCategoryCombo references
-   * to point to the target CategoryCombo. Uses SQL approach for efficiency.
+   * to point to the target CategoryCombo.
    *
    * @param sources list of source CategoryCombos
    * @param target target CategoryCombo
@@ -192,6 +187,8 @@ public class CategoryComboMergeHandler {
         sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet());
     int updated =
         programIndicatorStore.updateCategoryComboAndAttributeComboRefs(sourceIds, target.getId());
-    log.info("{} ProgramIndicator CategoryCombos updated with target CategoryCombo ref", updated);
+    log.info(
+        "{} ProgramIndicator (categoryCombo and/or attributeCategoryCombo) updated with target CategoryCombo ref",
+        updated);
   }
 }

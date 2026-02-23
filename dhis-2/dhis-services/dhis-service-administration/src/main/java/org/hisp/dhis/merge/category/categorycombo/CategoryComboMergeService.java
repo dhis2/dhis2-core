@@ -198,10 +198,22 @@ public class CategoryComboMergeService implements MergeService {
             .map(IdentifiableObject::getUID)
             .collect(Collectors.toSet());
 
-    // 1. check for COC cardinality - number of options match number of Categories
+    // check target COC cardinality
+    for (CategoryOptionCombo coc : target.getOptionCombos()) {
+      int actualOptionCount = coc.getCategoryOptions().size();
+      if (actualOptionCount != expectedOptionCount) {
+        mergeReport.addErrorMessage(
+            new ErrorMessage(
+                ErrorCode.E1546,
+                String.valueOf(expectedOptionCount),
+                String.valueOf(actualOptionCount),
+                coc.getUid()));
+      }
+    }
+
+    // check sources for COC cardinality - number of COs match number of Cs
     for (CategoryCombo source : sources) {
       for (CategoryOptionCombo coc : source.getOptionCombos()) {
-        // check cardinality
         int actualOptionCount = coc.getCategoryOptions().size();
         if (actualOptionCount != expectedOptionCount) {
           mergeReport.addErrorMessage(
@@ -212,8 +224,8 @@ public class CategoryComboMergeService implements MergeService {
                   coc.getUid()));
         }
 
-        // 2. check for COC CO validity - must be part of C from CC
-        // check that all CategoryOptions are valid for the target's Categories
+        // check for COC CO validity, must be part of C from CC
+        // check that all COs are valid for the target's Cs
         Set<UID> invalidOptions =
             coc.getCategoryOptions().stream()
                 .map(IdentifiableObject::getUID)
@@ -240,8 +252,8 @@ public class CategoryComboMergeService implements MergeService {
     metadataMergeHandlers.forEach(h -> h.merge(sources, target));
 
     // a flush is required here to bring the system into a consistent state. This is required so
-    // that the deletion handler hooks, which are usually done using JDBC (non-Hibernate), can
-    // see the most up-to-date state, including merges done using Hibernate.
+    // that the deletion handler hooks, which are usually done mixing JDBC (direct to DB) &
+    // Hibernate (in memory), can see the most up-to-date state.
     entityManager.flush();
 
     // handle deletes

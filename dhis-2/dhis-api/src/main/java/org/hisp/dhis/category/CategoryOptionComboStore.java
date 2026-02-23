@@ -81,13 +81,4 @@ public interface CategoryOptionComboStore extends IdentifiableObjectStore<Catego
    */
   @CheckForNull
   String findByCategoryComboAndCategoryOptions(UID cc, Set<UID> cos);
-
-  /**
-   * Update all source CategoryCombo ids to the target CategoryCombo id for CategoryOptionCombos.
-   *
-   * @param sourceCategoryComboIds source category combo ids
-   * @param targetCategoryComboId target category combo id
-   * @return number of updated rows
-   */
-  int updateCategoryComboRefs(Set<Long> sourceCategoryComboIds, long targetCategoryComboId);
 }

@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.category.hibernate;
 
-import static org.hibernate.LockMode.PESSIMISTIC_WRITE;
 
 import jakarta.persistence.EntityManager;
 import java.util.Collection;
@@ -37,7 +36,6 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.hibernate.LockOptions;
 import org.hibernate.NonUniqueResultException;
 import org.hibernate.Session;
 import org.hibernate.query.Query;
@@ -192,22 +190,5 @@ public class HibernateCategoryOptionComboStore
             .getResultList();
 
     return resultList.isEmpty() ? null : (String) resultList.get(0);
-  }
-
-  @Override
-  public int updateCategoryComboRefs(Set<Long> sourceCategoryComboIds, long targetCategoryComboId) {
-    if (sourceCategoryComboIds == null || sourceCategoryComboIds.isEmpty()) return 0;
-    String sql =
-        """
-        update categorycombos_optioncombos
-        set categorycomboid = :targetCategoryComboId
-        where categorycomboid in :sourceCategoryComboIds
-        """;
-    return getSession()
-        .createNativeQuery(sql)
-        .setParameter("targetCategoryComboId", targetCategoryComboId)
-        .setParameter("sourceCategoryComboIds", sourceCategoryComboIds)
-        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
-        .executeUpdate();
   }
 }

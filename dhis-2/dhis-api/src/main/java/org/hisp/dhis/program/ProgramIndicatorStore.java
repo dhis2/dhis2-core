@@ -45,7 +45,8 @@ public interface ProgramIndicatorStore extends IdentifiableObjectStore<ProgramIn
   List<ProgramIndicator> getAllWithFilterContainingStrings(@Nonnull List<String> searchStrings);
 
   /**
-   * Updates all ProgramIndicator.categoryCombo references from source CategoryCombos to the target.
+   * Updates all ProgramIndicator.categoryCombo and ProgramIndicator.attributeCategoryCombo
+   * references from source CategoryCombos to the target.
    *
    * @param sourceCategoryComboIds IDs of source CategoryCombos to replace
    * @param targetCategoryComboId ID of target CategoryCombo

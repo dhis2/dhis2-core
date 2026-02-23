@@ -73,8 +73,7 @@ class CategoryComboMergeServiceTest {
   }
 
   @Test
-  @DisplayName(
-      "When source CategoryCombo has different Categories than target, error E1545 reported")
+  @DisplayName("When source CategoryCombo has different Categories than target then error reported")
   void differentCategoriesFailTest() {
     // given different categories for source and target
     Category cat1 = createCategory("cat1");
@@ -125,6 +124,7 @@ class CategoryComboMergeServiceTest {
     source.setOptionCombos(Set.of(coc1, coc2, coc3, coc4));
 
     CategoryCombo target = createCategoryCombo("target", cat1, cat2);
+    target.setOptionCombos(Set.of(coc1, coc2, coc3, coc4));
 
     MergeReport mergeReport = new MergeReport();
 
@@ -137,7 +137,7 @@ class CategoryComboMergeServiceTest {
 
   @Test
   @DisplayName(
-      "When CategoryOptionCombo has incorrect cardinality (wrong number of options), error E1546 reported")
+      "When CategoryOptionCombo has incorrect cardinality (wrong number of options) then error reported")
   void incorrectCocCardinalityFailTest() {
     // given categories with options
     CategoryOption co1 = createCategoryOption("co1");
@@ -151,7 +151,7 @@ class CategoryComboMergeServiceTest {
     cat2.addCategoryOption(co3);
     cat2.addCategoryOption(co4);
 
-    // source combo with COC having only 1 option (incorrect for 2 categories)
+    // source & target combo with COC having only 1 option (incorrect for 2 categories)
     CategoryCombo source = createCategoryCombo("source", cat1, cat2);
     CategoryOptionCombo coc1 = createCategoryOptionCombo("coc1", source, co1); // 1 option
     CategoryOptionCombo coc2 = createCategoryOptionCombo("coc2", source, co1, co4);
@@ -160,6 +160,7 @@ class CategoryComboMergeServiceTest {
     source.setOptionCombos(Set.of(coc1, coc2, coc3, coc4));
 
     CategoryCombo target = createCategoryCombo("target", cat1, cat2);
+    target.setOptionCombos(Set.of(coc1, coc2, coc3, coc4));
 
     MergeReport mergeReport = new MergeReport();
 
@@ -168,7 +169,7 @@ class CategoryComboMergeServiceTest {
 
     // then error is expected
     assertTrue(mergeReport.hasErrorMessages());
-    assertEquals(1, mergeReport.getMergeErrors().size());
+    assertEquals(2, mergeReport.getMergeErrors().size());
     assertTrue(
         mergeReport
             .getMergeErrors()
@@ -179,7 +180,7 @@ class CategoryComboMergeServiceTest {
 
   @Test
   @DisplayName(
-      "When CategoryOptionCombo has CategoryOptions not in any Category, error E1547 reported")
+      "When CategoryOptionCombo has CategoryOptions not in any Category then error reported")
   void invalidCategoryOptionsFailTest() {
     // given categories with specific options
     CategoryOption co1 = createCategoryOption("co1");
