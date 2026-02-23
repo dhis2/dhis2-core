@@ -49,7 +49,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -91,7 +90,6 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -121,11 +119,6 @@ class JdbcTrackerEventStore {
        inner join note n\
        on evn.noteid = n.noteid\
        left join userinfo on n.lastupdatedby = userinfo.userinfoid\s""";
-
-  private static final Pattern SELECT_TO_FROM = Pattern.compile("select .*? from", Pattern.DOTALL);
-  private static final Pattern ORDER_CLAUSE =
-      Pattern.compile("order .*? (desc|asc)", Pattern.DOTALL);
-  private static final Pattern LIMIT_OFFSET = Pattern.compile("limit \\d+ offset \\d+");
 
   private static final String DEFAULT_ORDER = "ev_id desc";
 
@@ -433,35 +426,10 @@ class JdbcTrackerEventStore {
 
   private long getEventCount(TrackerEventQueryParams params) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-
-    String sql;
-
-    MapSqlParameterSource sqlParameters = new MapSqlParameterSource();
-
-    sql = getQuery(params, sqlParameters, currentUser);
-
-    sql = SELECT_TO_FROM.matcher(sql).replaceFirst("select count(*) as ev_count from");
-
-    sql = ORDER_CLAUSE.matcher(sql).replaceFirst("");
-
-    sql = LIMIT_OFFSET.matcher(sql).replaceFirst("");
-
-    RowCountHandler rowCountHandler = new RowCountHandler();
-    jdbcTemplate.query(sql, sqlParameters, rowCountHandler);
-    return rowCountHandler.getCount();
-  }
-
-  private static class RowCountHandler implements RowCallbackHandler {
-    private long count;
-
-    @Override
-    public void processRow(ResultSet rs) throws SQLException {
-      count = rs.getLong("ev_count");
-    }
-
-    public long getCount() {
-      return count;
-    }
+    MapSqlParameterSource sqlParams = new MapSqlParameterSource();
+    String sql = getCountQuery(params, sqlParams, currentUser);
+    Long count = jdbcTemplate.queryForObject(sql, sqlParams, Long.class);
+    return count != null ? count : 0L;
   }
 
   /**
@@ -550,6 +518,157 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     addJoinOnCategoryOptionCombo(sql, user);
     addWhereConditions(sql, sqlParams, params);
     return sql.toString();
+  }
+
+  /**
+   * Builds the count query. Only includes joins needed for filtering:
+   *
+   * <ul>
+   *   <li>{@code enrollment} - always needed (links event to program and tracked entity)
+   *   <li>{@code program} + {@code trackedentity} - only when no specific program is given. The
+   *       program join is needed for {@code p.accesslevel} and {@code p.programid in (...)}; the
+   *       tracked entity join is needed for the PROTECTED temp owner check. When a program is
+   *       known, conditions use {@code en.programid} / {@code en.trackedentityid} directly and both
+   *       joins are skipped.
+   *   <li>{@code trackedentityprogramowner} + {@code organisationunit} - ownership and org unit
+   *       filtering
+   *   <li>{@code categoryoptioncombo} - attribute option combo access control
+   * </ul>
+   *
+   * <p>Always skips: {@code programstage} (uses {@code ev.programstageid} directly), event {@code
+   * organisationunit} (evou), tracked entity {@code organisationunit} (teou), {@code userinfo}
+   * (au), and attribute LEFT JOINs.
+   *
+   * <p>Uses {@code count(*)} instead of {@code count(distinct ev.uid)} because all remaining joins
+   * are many-to-one from {@code trackerevent}, so no duplicate rows are possible.
+   */
+  private String getCountQuery(
+      TrackerEventQueryParams params, MapSqlParameterSource sqlParams, UserDetails user) {
+    boolean needsProgramAndTrackedEntityJoin = !params.hasEnrolledInTrackerProgram();
+
+    StringBuilder sql = new StringBuilder();
+    sql.append("select count(*) from trackerevent ev ");
+    addJoinOnEnrollment(sql);
+    if (needsProgramAndTrackedEntityJoin) {
+      addJoinOnProgram(sql);
+      addJoinOnTrackedEntity(sql);
+    }
+    addJoinOnProgramOwner(sql);
+    addJoinOnOwnerOrgUnit(sql);
+    addJoinOnCategoryOptionCombo(sql, user);
+    addCountWhereConditions(sql, sqlParams, params, needsProgramAndTrackedEntityJoin);
+
+    return sql.toString();
+  }
+
+  private void addCountWhereConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      TrackerEventQueryParams params,
+      boolean hasTrackedEntityJoin) {
+    SqlHelper hlp = new SqlHelper(true);
+    addDataElementConditions(sql, sqlParams, params);
+    if (hasTrackedEntityJoin) {
+      addTrackedEntityConditions(sql, sqlParams, params, hlp);
+    } else {
+      addTrackedEntitySubqueryConditions(sql, sqlParams, params, hlp);
+    }
+    addCountProgramConditions(sql, sqlParams, params, hlp);
+    addCountProgramStageConditions(sql, sqlParams, params, hlp);
+    addEnrollmentConditions(sql, sqlParams, params, hlp);
+    addLastUpdatedConditions(sql, sqlParams, params, hlp);
+    addCategoryOptionComboConditions(sql, sqlParams, params, hlp);
+    addCountOrgUnitConditions(sql, sqlParams, params, hlp, hasTrackedEntityJoin);
+    addOccurredDateConditions(sql, sqlParams, params, hlp);
+    addEventStatusConditions(sql, sqlParams, params, hlp);
+    addEventConditions(sql, sqlParams, params, hlp);
+    addAssignedUserConditions(sql, sqlParams, params, hlp);
+    addDeletedCondition(sql, params, hlp);
+    addEnrollmentUidConditions(sql, sqlParams, params, hlp);
+  }
+
+  /**
+   * Program condition for count query. When a specific program is known, filters on {@code
+   * en.programid} directly (no program table join needed). Otherwise delegates to the standard
+   * method which uses {@code p.programid}.
+   */
+  private void addCountProgramConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      TrackerEventQueryParams params,
+      SqlHelper hlp) {
+    if (params.hasEnrolledInTrackerProgram()) {
+      sqlParams.addValue("programid", params.getEnrolledInTrackerProgram().getId());
+      sql.append(hlp.whereAnd()).append(" en.programid = :programid ");
+    } else {
+      addProgramConditions(sql, sqlParams, params, hlp);
+    }
+  }
+
+  /**
+   * Program stage condition for count query. Always filters on {@code ev.programstageid} directly
+   * (no programstage table join needed) since the FK exists on the trackerevent table.
+   */
+  private void addCountProgramStageConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      TrackerEventQueryParams params,
+      SqlHelper hlp) {
+    if (params.hasProgramStage()) {
+      sqlParams.addValue("programstageid", params.getProgramStage().getId());
+      sql.append(hlp.whereAnd()).append(" ev.programstageid = :programstageid ");
+    } else {
+      sqlParams.addValue(
+          "programstageid",
+          params.getAccessibleTrackerProgramStages().isEmpty()
+              ? null
+              : getIdentifiers(params.getAccessibleTrackerProgramStages()));
+      sql.append(hlp.whereAnd()).append(" ev.programstageid in (:programstageid) ");
+    }
+  }
+
+  private void addCountOrgUnitConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      TrackerEventQueryParams params,
+      SqlHelper hlp,
+      boolean hasTrackedEntityJoin) {
+    if (params.getOrgUnit() != null) {
+      buildOrgUnitModeClause(
+          sql,
+          sqlParams,
+          Set.of(params.getOrgUnit()),
+          params.getOrgUnitMode(),
+          "ou",
+          hlp.whereAnd());
+    }
+
+    if (params.hasEnrolledInTrackerProgram()) {
+      buildOwnershipClause(
+          sql,
+          sqlParams,
+          params.getEnrolledInTrackerProgram(),
+          params.getQuerySearchScope(),
+          "ou",
+          hasTrackedEntityJoin ? "te" : "en",
+          hlp::whereAnd);
+    } else {
+      buildOwnershipClause(sql, sqlParams, params.getOrgUnitMode(), "p", "ou", "te", hlp::whereAnd);
+    }
+  }
+
+  /**
+   * Filters by tracked entity using a subquery when the {@code trackedentity} table is not joined.
+   */
+  private void addTrackedEntitySubqueryConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      TrackerEventQueryParams params,
+      SqlHelper hlp) {
+    if (params.getTrackedEntity() != null) {
+      sqlParams.addValue("trackedentityid", params.getTrackedEntity().getId());
+      sql.append(hlp.whereAnd()).append(" en.trackedentityid = :trackedentityid ");
+    }
   }
 
   private void addSelect(StringBuilder sql, TrackerEventQueryParams params) {
