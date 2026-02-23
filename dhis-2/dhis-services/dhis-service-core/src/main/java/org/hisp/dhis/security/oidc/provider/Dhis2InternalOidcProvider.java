@@ -109,7 +109,7 @@ public class Dhis2InternalOidcProvider {
     builder.tokenUri(providerBaseUrl + "/oauth2/token");
     builder.jwkSetUri(providerBaseUrl + "/oauth2/jwks");
     builder.userInfoUri(providerBaseUrl + "/oauth2/userinfo");
-    builder.issuerUri(providerBaseUrl);
+    builder.issuerUri(providerBaseUrl + "/");
     builder.redirectUri(DEFAULT_REDIRECT_TEMPLATE_URL);
     builder.userInfoAuthenticationMethod(AuthenticationMethod.HEADER);
     builder.userNameAttributeName(IdTokenClaimNames.SUB);
