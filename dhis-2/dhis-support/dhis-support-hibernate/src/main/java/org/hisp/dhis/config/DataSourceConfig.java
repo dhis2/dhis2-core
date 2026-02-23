@@ -160,12 +160,10 @@ public class DataSourceConfig {
                     + CodeGenerator.generateCode(5));
 
     if (queryLogging) {
-      SingleLineQueryEntryCreator creator = new SingleLineQueryEntryCreator();
-
       SLF4JQueryLoggingListener listener = new SLF4JQueryLoggingListener();
       listener.setLogger("org.hisp.dhis.datasource.query");
       listener.setLogLevel(SLF4JLogLevel.INFO);
-      listener.setQueryLogEntryCreator(creator);
+      listener.setQueryLogEntryCreator(new SingleLineQueryEntryCreator());
 
       builder
           .logSlowQueryBySlf4j(
@@ -191,19 +189,18 @@ public class DataSourceConfig {
    * @throws IllegalStateException if any key is not in {@link #VALID_KEYS}
    */
   static LinkedHashMap<String, String> buildKeyMap(DhisConfigurationProvider dhisConfig) {
-    String raw = dhisConfig.getProperty(ConfigurationKey.MONITORING_SQL_CONTEXT_KEYS);
-    LinkedHashMap<String, String> keyMap = new LinkedHashMap<>();
+    String configuredKeys = dhisConfig.getProperty(ConfigurationKey.MONITORING_SQL_CONTEXT_KEYS);
+    Set<String> requested = new LinkedHashSet<>();
     Set<String> invalid = new LinkedHashSet<>();
-    for (String key : raw.split(",")) {
+    for (String key : configuredKeys.split(",")) {
       String trimmed = key.trim();
       if (trimmed.isEmpty()) {
         continue;
       }
-      String sqlKey = VALID_KEYS.get(trimmed);
-      if (sqlKey == null) {
-        invalid.add(trimmed);
+      if (VALID_KEYS.containsKey(trimmed)) {
+        requested.add(trimmed);
       } else {
-        keyMap.put(trimmed, sqlKey);
+        invalid.add(trimmed);
       }
     }
     if (!invalid.isEmpty()) {
@@ -212,6 +209,14 @@ public class DataSourceConfig {
               + invalid
               + ". Valid keys: "
               + VALID_KEYS.keySet());
+    }
+    // Use VALID_KEYS iteration order so SQL comments have a stable key order
+    // regardless of the config value order.
+    LinkedHashMap<String, String> keyMap = new LinkedHashMap<>();
+    for (Map.Entry<String, String> entry : VALID_KEYS.entrySet()) {
+      if (requested.contains(entry.getKey())) {
+        keyMap.put(entry.getKey(), entry.getValue());
+      }
     }
     return keyMap;
   }
