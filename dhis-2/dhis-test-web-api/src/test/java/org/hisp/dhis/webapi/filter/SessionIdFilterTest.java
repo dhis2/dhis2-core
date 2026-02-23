@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.webapi.filter;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_ENABLED;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_SESSION_ID;
 import static org.hisp.dhis.webapi.filter.SessionIdFilter.hashToBase64;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -110,7 +110,7 @@ class SessionIdFilterTest {
   }
 
   private void init(boolean enabled) {
-    when(dhisConfigurationProvider.isEnabled(LOGGING_REQUEST_ID_ENABLED)).thenReturn(enabled);
+    when(dhisConfigurationProvider.isEnabled(LOGGING_SESSION_ID)).thenReturn(enabled);
     subject = new SessionIdFilter(dhisConfigurationProvider);
   }
 }

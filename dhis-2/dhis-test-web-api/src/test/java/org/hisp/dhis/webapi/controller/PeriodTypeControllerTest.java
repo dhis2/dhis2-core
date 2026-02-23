@@ -107,6 +107,7 @@ class PeriodTypeControllerTest extends H2ControllerIntegrationTestBase {
     JsonObject response = GET("/periodTypes").content();
 
     assertThat(response.get("periodTypes").toString(), containsString("Daily-test"));
+    assertThat(response.get("periodTypes").toString(), containsString("Daily"));
   }
 
   @Test
