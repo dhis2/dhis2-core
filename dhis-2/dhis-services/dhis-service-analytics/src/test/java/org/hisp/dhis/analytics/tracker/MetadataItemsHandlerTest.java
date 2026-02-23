@@ -62,17 +62,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.OrganisationUnitResolver;
+import org.hisp.dhis.common.AnalyticsCustomHeader;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.MetadataItem;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.Legend;
@@ -80,7 +86,9 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
@@ -282,6 +290,274 @@ class MetadataItemsHandlerTest {
       assertNotNull(dimensions);
       assertTrue(dimensions.containsKey(PERIOD_DIM_ID));
       assertEquals(2, dimensions.get(PERIOD_DIM_ID).size());
+    }
+
+    @Test
+    @DisplayName("should emit enrollment date periods under enrollmentdate key and pe")
+    void shouldEmitEnrollmentDatePeriodsUnderSeparateKey() {
+      // Given
+      Grid grid = new ListGrid();
+
+      // Create periods with ENROLLMENT_DATE dateField (simulating what
+      // normalizeStaticDateDimension produces when dimension=ENROLLMENT_DATE:2023Q1)
+      List<PeriodDimension> enrollmentPeriods =
+          createPeriodDimensions("2023Q1").stream()
+              .map(pd -> pd.setDateField("ENROLLMENT_DATE"))
+              .toList();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(enrollmentPeriods, "quarterly")
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertNotNull(dimensions);
+
+      // Enrollment date periods should be under "enrollmentdate" key
+      assertTrue(
+          dimensions.containsKey("enrollmentdate"),
+          "Dimensions should contain 'enrollmentdate' key for ENROLLMENT_DATE periods");
+      assertEquals(1, dimensions.get("enrollmentdate").size());
+
+      // pe should remain populated for backwards-compatible clients
+      List<String> pePeriods = dimensions.getOrDefault(PERIOD_DIM_ID, List.of());
+      assertEquals(1, pePeriods.size(), "pe dimension should contain ENROLLMENT_DATE periods");
+
+      // Metadata items should contain an entry for "enrollmentdate"
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+      assertTrue(
+          items.containsKey("enrollmentdate"),
+          "Items should contain 'enrollmentdate' metadata entry");
+      MetadataItem enrollmentDateItem = (MetadataItem) items.get("enrollmentdate");
+      assertEquals("DateOfEnrollmentDescription", enrollmentDateItem.getName());
+    }
+
+    @Test
+    @DisplayName("should use program custom enrollment date label in enrollmentdate metadata item")
+    void shouldUseCustomEnrollmentDateLabel() {
+      // Given
+      Grid grid = new ListGrid();
+
+      Program programWithCustomLabel = createProgram('C', null, orgUnitA);
+      programWithCustomLabel.setEnrollmentDateLabel("Date of Registration");
+
+      List<PeriodDimension> enrollmentPeriods =
+          createPeriodDimensions("2023Q1").stream()
+              .map(pd -> pd.setDateField("ENROLLMENT_DATE"))
+              .toList();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programWithCustomLabel)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(enrollmentPeriods, "quarterly")
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+      assertTrue(items.containsKey("enrollmentdate"));
+      MetadataItem enrollmentDateItem = (MetadataItem) items.get("enrollmentdate");
+      assertEquals("Date of Registration", enrollmentDateItem.getName());
+    }
+
+    @Test
+    @DisplayName("should use program custom incident date label in incidentdate metadata item")
+    void shouldUseCustomIncidentDateLabel() {
+      // Given
+      Grid grid = new ListGrid();
+
+      Program programWithCustomLabel = createProgram('D', null, orgUnitA);
+      programWithCustomLabel.setIncidentDateLabel("Date of Symptom Onset");
+
+      List<PeriodDimension> incidentPeriods =
+          createPeriodDimensions("2023Q1").stream()
+              .map(pd -> pd.setDateField("INCIDENT_DATE"))
+              .toList();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programWithCustomLabel)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(incidentPeriods, "quarterly")
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+      assertTrue(items.containsKey("incidentdate"));
+      MetadataItem incidentDateItem = (MetadataItem) items.get("incidentdate");
+      assertEquals("Date of Symptom Onset", incidentDateItem.getName());
+    }
+
+    @Test
+    @DisplayName(
+        "should emit enrollmentdate in items and dimensions after periods consumed and re-added")
+    void shouldEmitEnrollmentDateMetadataAfterPeriodsConsumedAndReAdded() {
+      // Given - simulate the query path where withStartEndDatesForPeriods() converts
+      // period dimensions into timeDateRanges and removes the period dimension,
+      // then periods are re-added for metadata generation
+      Grid grid = new ListGrid();
+
+      List<PeriodDimension> enrollmentPeriods =
+          createPeriodDimensions("2023Q1").stream()
+              .map(pd -> pd.setDateField("ENROLLMENT_DATE"))
+              .toList();
+
+      // Build with periods, consume them via withStartEndDatesForPeriods(),
+      // then re-add periods (simulating the retain-and-re-add pattern)
+      EventQueryParams initialParams =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(QUERY)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(enrollmentPeriods, "quarterly")
+              .build();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder(initialParams)
+              .withStartEndDatesForPeriods()
+              .withPeriods(enrollmentPeriods, "")
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then - enrollmentdate should appear in items
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+      assertTrue(
+          items.containsKey("enrollmentdate"),
+          "Items should contain 'enrollmentdate' metadata entry");
+      MetadataItem enrollmentDateItem = (MetadataItem) items.get("enrollmentdate");
+      assertEquals("DateOfEnrollmentDescription", enrollmentDateItem.getName());
+
+      // Dimensions should contain enrollmentdate with period UIDs
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertNotNull(dimensions);
+      assertTrue(
+          dimensions.containsKey("enrollmentdate"),
+          "Dimensions should contain 'enrollmentdate' key");
+      assertEquals(1, dimensions.get("enrollmentdate").size());
+      assertTrue(
+          dimensions.getOrDefault(PERIOD_DIM_ID, List.of()).isEmpty(),
+          "Query path should keep legacy behavior with empty pe dimension");
+    }
+
+    @Test
+    @DisplayName("should emit incident date periods under incidentdate key and pe")
+    void shouldEmitIncidentDatePeriodsUnderSeparateKey() {
+      // Given
+      Grid grid = new ListGrid();
+
+      List<PeriodDimension> incidentPeriods =
+          createPeriodDimensions("2023Q1").stream()
+              .map(pd -> pd.setDateField("INCIDENT_DATE"))
+              .toList();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(incidentPeriods, "quarterly")
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertNotNull(dimensions);
+
+      assertTrue(
+          dimensions.containsKey("incidentdate"),
+          "Dimensions should contain 'incidentdate' key for INCIDENT_DATE periods");
+      assertEquals(1, dimensions.get("incidentdate").size());
+
+      List<String> pePeriods = dimensions.getOrDefault(PERIOD_DIM_ID, List.of());
+      assertEquals(1, pePeriods.size(), "pe dimension should contain INCIDENT_DATE periods");
+    }
+
+    @Test
+    @DisplayName("should separate mixed periods into pe and date-specific keys")
+    void shouldSeparateMixedPeriodsIntoPeAndDateSpecificKeys() {
+      // Given
+      Grid grid = new ListGrid();
+
+      // Mix of regular period and enrollment date period
+      PeriodDimension regularPeriod = createPeriodDimensions("2023Q1").get(0);
+      PeriodDimension enrollmentPeriod =
+          createPeriodDimensions("2023Q2").get(0).setDateField("ENROLLMENT_DATE");
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(List.of(regularPeriod, enrollmentPeriod), "quarterly")
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertNotNull(dimensions);
+
+      // pe contains all periods
+      assertTrue(dimensions.containsKey(PERIOD_DIM_ID));
+      assertEquals(2, dimensions.get(PERIOD_DIM_ID).size());
+
+      // Enrollment date period under enrollmentdate
+      assertTrue(dimensions.containsKey("enrollmentdate"));
+      assertEquals(1, dimensions.get("enrollmentdate").size());
     }
 
     @Test
@@ -618,6 +894,64 @@ class MetadataItemsHandlerTest {
       assertNotNull(items);
       assertTrue(items.containsKey("kO3z4Dhc038.C31vHZqu0qU"));
       assertFalse(items.containsKey("LFsZ8v5v7rq"));
+    }
+
+    @Test
+    @DisplayName("should include resolved org unit item for stage ou aggregate dimension")
+    void shouldIncludeResolvedOrgUnitItemForStageOuAggregateDimension() {
+      // Given
+      Grid grid = new ListGrid();
+
+      ProgramStage programStage = createProgramStage('S', programA);
+      programStage.setUid("A03MvHHogjR");
+      programStage.setName("Birth");
+
+      QueryItem stageOuItem =
+          new QueryItem(
+                  new BaseDimensionalItemObject("ou"),
+                  programA,
+                  null,
+                  ValueType.ORGANISATION_UNIT,
+                  AggregationType.NONE,
+                  null)
+              .withCustomHeader(AnalyticsCustomHeader.forOrgUnit(programStage));
+      stageOuItem.setProgramStage(programStage);
+      stageOuItem.addFilter(new QueryFilter(QueryOperator.IN, "USER_ORGUNIT"));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withUserOrgUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItem(stageOuItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+      when(organisationUnitResolver.resolveOrgUnits(
+              any(EventQueryParams.class), any(QueryItem.class)))
+          .thenReturn(List.of(orgUnitA.getUid()));
+      when(organisationUnitResolver.resolveOrgUnitsForMetadata(
+              any(EventQueryParams.class), any(QueryItem.class)))
+          .thenReturn(List.of(orgUnitA.getUid()));
+      when(organisationUnitResolver.loadOrgUnitDimensionalItem(orgUnitA.getUid(), IdScheme.UID))
+          .thenReturn(orgUnitA);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+
+      assertTrue(items.containsKey("A03MvHHogjR.ou"));
+      assertTrue(items.containsKey(orgUnitA.getUid()));
+
+      MetadataItem orgUnitItem = (MetadataItem) items.get(orgUnitA.getUid());
+      assertEquals(orgUnitA.getDisplayName(), orgUnitItem.getName());
     }
   }
 
@@ -1288,6 +1622,46 @@ class MetadataItemsHandlerTest {
       Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
       assertNotNull(items);
       assertFalse(items.containsKey("202205"));
+    }
+  }
+
+  @Nested
+  @DisplayName("Enrollment OU Dimension Tests")
+  class EnrollmentOuDimensionTests {
+
+    @Test
+    @DisplayName("should include enrollment OU dimension items and metadata")
+    void shouldIncludeEnrollmentOuDimensionItemsAndMetadata() {
+      Grid grid = new ListGrid();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .withEnrollmentOuDimension(List.of(orgUnitA, orgUnitB))
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertNotNull(dimensions);
+      assertTrue(dimensions.containsKey("enrollmentou"));
+      assertEquals(2, dimensions.get("enrollmentou").size());
+      assertTrue(dimensions.get("enrollmentou").contains(orgUnitA.getUid()));
+      assertTrue(dimensions.get("enrollmentou").contains(orgUnitB.getUid()));
+
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+      assertTrue(items.containsKey(orgUnitA.getUid()));
+      assertTrue(items.containsKey(orgUnitB.getUid()));
     }
   }
 

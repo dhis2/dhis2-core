@@ -59,7 +59,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.FilterJdbcPredicate;
 import org.hisp.dhis.tracker.export.Order;
-import org.hisp.dhis.tracker.export.SearchScope;
+import org.hisp.dhis.tracker.export.QuerySearchScope;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 
 /**
@@ -98,7 +98,7 @@ class TrackerEventQueryParams {
 
   @Getter private OrganisationUnitSelectionMode orgUnitMode;
 
-  @Getter private SearchScope searchScope;
+  @Getter private QuerySearchScope querySearchScope;
 
   @Getter private TrackedEntity trackedEntity;
 
@@ -401,8 +401,8 @@ class TrackerEventQueryParams {
     return this;
   }
 
-  public TrackerEventQueryParams setSearchScope(SearchScope searchScope) {
-    this.searchScope = searchScope;
+  public TrackerEventQueryParams setQuerySearchScope(QuerySearchScope querySearchScope) {
+    this.querySearchScope = querySearchScope;
     return this;
   }
 }

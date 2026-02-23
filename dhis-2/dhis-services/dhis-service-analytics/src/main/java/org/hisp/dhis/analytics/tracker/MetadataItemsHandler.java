@@ -48,7 +48,6 @@ import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
@@ -66,7 +65,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.LabelMapper;
 import org.hisp.dhis.analytics.event.data.OrganisationUnitResolver;
 import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
@@ -85,6 +86,7 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -241,6 +243,8 @@ public class MetadataItemsHandler {
 
     removeSyntheticDimensionMetadataKeys(metadataItemMap, params);
     addPeriodDimensionValueMetadata(metadataItemMap, params, includeDetails);
+    addDateFieldDimensionMetadata(metadataItemMap, params);
+    addEnrollmentOuMetadata(metadataItemMap, params, includeDetails);
 
     return metadataItemMap;
   }
@@ -392,7 +396,38 @@ public class MetadataItemsHandler {
                 metadataItemMap.put(
                     key, new MetadataItem(name, includeDetails ? item.getItem() : null));
               }
+
+              addResolvedOrgUnitMetadata(metadataItemMap, params, includeDetails, item);
             });
+  }
+
+  /**
+   * Adds metadata entries for organisation units resolved from query item filters (including
+   * keywords like USER_ORGUNIT). This is needed for aggregate endpoints where query items are used
+   * as dimensions (e.g. stage.ou).
+   */
+  private void addResolvedOrgUnitMetadata(
+      Map<String, MetadataItem> metadataItemMap,
+      EventQueryParams params,
+      boolean includeDetails,
+      QueryItem item) {
+    if (item.getValueType() != ORGANISATION_UNIT) {
+      return;
+    }
+
+    List<String> resolvedOrgUnits =
+        organisationUnitResolver.resolveOrgUnitsForMetadata(params, item);
+    for (String uid : resolvedOrgUnits) {
+      DimensionalItemObject itemObject =
+          organisationUnitResolver.loadOrgUnitDimensionalItem(uid, IdScheme.UID);
+      if (itemObject != null) {
+        addItemToMetadata(
+            metadataItemMap,
+            new QueryItem(itemObject),
+            includeDetails,
+            params.getDisplayProperty());
+      }
+    }
   }
 
   /**
@@ -466,6 +501,86 @@ public class MetadataItemsHandler {
   }
 
   /**
+   * Adds metadata items for date-field-specific period dimension keys. For example, when periods
+   * have dateField="ENROLLMENT_DATE", adds an "enrollmentdate" entry with display name "Enrollment
+   * date".
+   *
+   * @param metadataItemMap the metadata item map.
+   * @param params the {@link EventQueryParams}.
+   */
+  private void addDateFieldDimensionMetadata(
+      Map<String, MetadataItem> metadataItemMap, EventQueryParams params) {
+    List<DimensionalItemObject> periodItems = params.getDimensionOrFilterItems(PERIOD_DIM_ID);
+
+    // Source 1: period dimension items (available in aggregate path where periods are re-added)
+    periodItems.stream()
+        .filter(PeriodDimension.class::isInstance)
+        .map(PeriodDimension.class::cast)
+        .filter(pd -> pd.getDateField() != null)
+        .map(PeriodDimension::getDateField)
+        .distinct()
+        .forEach(dateField -> addDateFieldMetadataEntry(metadataItemMap, dateField, params));
+
+    // Source 2: timeDateRanges (available in query path where replacePeriodsWithDates()
+    // consumes periods and moves date field info to timeDateRanges)
+    params.getTimeDateRanges().keySet().stream()
+        .map(TimeField::name)
+        .forEach(dateField -> addDateFieldMetadataEntry(metadataItemMap, dateField, params));
+  }
+
+  private void addDateFieldMetadataEntry(
+      Map<String, MetadataItem> metadataItemMap, String dateField, EventQueryParams params) {
+    String key = toDateFieldKey(dateField);
+    if (!metadataItemMap.containsKey(key)) {
+      metadataItemMap.put(key, new MetadataItem(getDateFieldLabel(dateField, params.getProgram())));
+    }
+  }
+
+  /**
+   * Returns the display label for a date field, using the program's custom label if available, or
+   * falling back to the default display name.
+   */
+  private static String getDateFieldLabel(String dateField, Program program) {
+    return switch (dateField) {
+      case "ENROLLMENT_DATE" ->
+          LabelMapper.getEnrollmentDateLabel(program, toDateFieldDisplayName(dateField));
+      case "INCIDENT_DATE" ->
+          LabelMapper.getIncidentDateLabel(program, toDateFieldDisplayName(dateField));
+      default -> toDateFieldDisplayName(dateField);
+    };
+  }
+
+  /**
+   * Converts a dateField name (e.g. "ENROLLMENT_DATE") to a display name (e.g. "Enrollment date").
+   */
+  static String toDateFieldDisplayName(String dateField) {
+    String[] parts = dateField.toLowerCase().split("_");
+    if (parts.length == 0) {
+      return dateField;
+    }
+    parts[0] = parts[0].substring(0, 1).toUpperCase() + parts[0].substring(1);
+    return String.join(" ", parts);
+  }
+
+  /**
+   * Adds metadata entries for enrollment org unit dimension items. Each item gets a MetadataItem
+   * with its display name.
+   */
+  private void addEnrollmentOuMetadata(
+      Map<String, MetadataItem> metadataItemMap, EventQueryParams params, boolean includeDetails) {
+    if (!params.hasEnrollmentOuDimension()) {
+      return;
+    }
+
+    for (DimensionalItemObject item : params.getEnrollmentOuDimensionItems()) {
+      metadataItemMap.put(
+          item.getUid(),
+          new MetadataItem(
+              item.getDisplayProperty(params.getDisplayProperty()), includeDetails ? item : null));
+    }
+  }
+
+  /**
    * Adds the given item to the given metadata item map.
    *
    * @param metadataItemMap the metadata item map.
@@ -506,30 +621,66 @@ public class MetadataItemsHandler {
       EventQueryParams params, Optional<Map<String, List<Option>>> itemOptions) {
     Map<String, List<String>> dimensionItems = new HashMap<>();
 
-    dimensionItems.put(PERIOD_DIM_ID, resolvePeriodUids(params));
+    addPeriodDimensionItems(dimensionItems, params);
 
     addDimensionsAndFilters(dimensionItems, params);
     addQueryItemDimensions(dimensionItems, params, itemOptions);
     addItemFiltersToDimensionItems(params.getItemFilters(), dimensionItems);
+    addEnrollmentOuDimensionItems(dimensionItems, params);
 
     return dimensionItems;
   }
 
   /**
-   * Resolves period UIDs based on calendar type.
+   * Separates period dimension items by dateField. Periods with a dateField (e.g. ENROLLMENT_DATE,
+   * INCIDENT_DATE) are placed under a key derived from the dateField name (e.g. "enrollmentdate",
+   * "incidentdate"). Periods without a dateField are placed under the standard "pe" key.
    *
+   * @param dimensionItems the dimension items map.
    * @param params the {@link EventQueryParams}.
-   * @return a list of period UIDs.
    */
-  private List<String> resolvePeriodUids(EventQueryParams params) {
+  private void addPeriodDimensionItems(
+      Map<String, List<String>> dimensionItems, EventQueryParams params) {
     Calendar calendar = PeriodType.getCalendar();
-    return calendar.isIso8601()
-        ? getUids(params.getDimensionOrFilterItems(PERIOD_DIM_ID))
-        : getLocalPeriodIdentifiers(params.getDimensionOrFilterItems(PERIOD_DIM_ID), calendar);
+    List<DimensionalItemObject> periodItems = params.getDimensionOrFilterItems(PERIOD_DIM_ID);
+
+    Map<String, List<String>> periodsByKey = new HashMap<>();
+    List<String> allPeriods = new ArrayList<>();
+
+    for (DimensionalItemObject item : periodItems) {
+      PeriodDimension period = (PeriodDimension) item;
+      String key =
+          period.getDateField() != null ? toDateFieldKey(period.getDateField()) : PERIOD_DIM_ID;
+
+      String uid =
+          calendar.isIso8601()
+              ? period.getUid()
+              : getLocalPeriodIdentifiers(List.of(period), calendar).get(0);
+
+      allPeriods.add(uid);
+      periodsByKey.computeIfAbsent(key, k -> new ArrayList<>()).add(uid);
+    }
+
+    // Query endpoint compatibility: historically periods were consumed before metadata generation,
+    // so `metadata.dimensions.pe` ended up empty. Keep that legacy shape for query responses to
+    // avoid broad e2e/front-end expectation changes, while aggregate responses expose all periods.
+    periodsByKey.put(PERIOD_DIM_ID, params.isComingFromQuery() ? List.of() : allPeriods);
+    dimensionItems.putAll(periodsByKey);
+    dimensionItems.putIfAbsent(PERIOD_DIM_ID, List.of());
   }
 
   /**
-   * Adds dimensions and filters to the dimension items map.
+   * Converts a dateField name (e.g. "ENROLLMENT_DATE") to its metadata dimension key (e.g.
+   * "enrollmentdate").
+   */
+  static String toDateFieldKey(String dateField) {
+    return dateField.toLowerCase().replace("_", "");
+  }
+
+  /**
+   * Adds dimensions and filters to the dimension items map. The period dimension is skipped because
+   * it is handled separately in {@link #addPeriodDimensionItems} to support date-field specific
+   * keys.
    *
    * @param dimensionItems the dimension items map.
    * @param params the {@link EventQueryParams}.
@@ -541,7 +692,20 @@ public class MetadataItemsHandler {
         continue;
       }
 
+      // Period dimension is handled by addPeriodDimensionItems
+      if (PERIOD_DIM_ID.equals(dim.getDimension())) {
+        continue;
+      }
+
       dimensionItems.put(dim.getDimension(), getDimensionalItemIds(dim.getItems()));
+    }
+  }
+
+  private void addEnrollmentOuDimensionItems(
+      Map<String, List<String>> dimensionItems, EventQueryParams params) {
+    if (params.hasEnrollmentOuDimension()) {
+      dimensionItems.put(
+          "enrollmentou", getDimensionalItemIds(params.getEnrollmentOuDimensionItems()));
     }
   }
 

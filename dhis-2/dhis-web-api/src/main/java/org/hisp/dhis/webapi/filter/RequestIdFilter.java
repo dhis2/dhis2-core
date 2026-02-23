@@ -41,7 +41,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
  * Filter that captures the X-Request-ID header and adds it to the Mapped Diagnostic Context (MDC)
- * for logging. Access via {@code %X{xRequestID}} in log4j2 pattern layouts.
+ * for logging. Access via {@code %X{requestId}} in log4j2 pattern layouts.
  *
  * @see <a href="https://logback.qos.ch/manual/mdc.html">MDC Documentation</a>
  * @see <a
@@ -51,7 +51,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component("requestIdFilter")
 public class RequestIdFilter extends OncePerRequestFilter {
 
-  /** MDC key for the X-Request-ID header value. Use {@code %X{xRequestID}} in log patterns. */
+  /** MDC key for the X-Request-ID header value. Use {@code %X{requestId}} in log patterns. */
+  private static final String REQUEST_ID = "requestId";
+
+  /**
+   * Kept for backward compatibility with custom log4j2.xml configs. Remove in next major version.
+   */
   private static final String X_REQUEST_ID = "xRequestID";
 
   /** Pattern for valid request IDs: alphanumeric, dash, and underscore, 1-36 characters. */
@@ -62,28 +67,31 @@ public class RequestIdFilter extends OncePerRequestFilter {
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
     try {
-      String xRequestID = request.getHeader("X-Request-ID");
-      if (xRequestID != null) {
-        MDC.put(X_REQUEST_ID, sanitizeXRequestID(xRequestID));
+      String headerValue = request.getHeader("X-Request-ID");
+      if (headerValue != null) {
+        String sanitized = sanitizeRequestId(headerValue);
+        MDC.put(REQUEST_ID, sanitized);
+        MDC.put(X_REQUEST_ID, sanitized);
       }
       filterChain.doFilter(request, response);
     } finally {
+      MDC.remove(REQUEST_ID);
       MDC.remove(X_REQUEST_ID);
     }
   }
 
   /**
-   * Since the xRequestID is a user provided input that will be used in logs and potentially other
+   * Since the request ID is a user provided input that will be used in logs and potentially other
    * places we need to make sure it is secure to be used. Therefore, it is limited to unique
    * identifier patterns such as UUID strings or the UIDs used by DHIS2.
    *
    * <p>A valid ID is alphanumeric (with dash and underscore being allowed too) and has a length
    * between 1 and 36.
    *
-   * @param xRequestID the ID to sanitize
+   * @param requestId the ID to sanitize
    * @return the sanitized ID or "(illegal)" if the provided ID is invalid
    */
-  private static String sanitizeXRequestID(String xRequestID) {
-    return VALID_REQUEST_ID_PATTERN.matcher(xRequestID).matches() ? xRequestID : "(illegal)";
+  private static String sanitizeRequestId(String requestId) {
+    return VALID_REQUEST_ID_PATTERN.matcher(requestId).matches() ? requestId : "(illegal)";
   }
 }

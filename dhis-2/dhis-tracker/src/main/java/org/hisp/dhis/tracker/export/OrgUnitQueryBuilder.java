@@ -37,6 +37,7 @@ import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.Set;
 import java.util.function.Supplier;
+import javax.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -98,6 +99,28 @@ public class OrgUnitQueryBuilder {
   }
 
   /**
+   * Appends an SQL clause to enforce access level restrictions based on the user scopes and org
+   * unit mode. The program's access level is resolved at query execution time via the given program
+   * table alias.
+   */
+  public static void buildAccessLevelClauseForSingleEvents(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParameters,
+      OrganisationUnitSelectionMode orgUnitMode,
+      String programTableAlias,
+      String orgUnitTableAlias,
+      Supplier<String> clauseSupplier) {
+    buildOwnershipClause(
+        sql,
+        sqlParameters,
+        orgUnitMode,
+        programTableAlias,
+        orgUnitTableAlias,
+        null,
+        clauseSupplier);
+  }
+
+  /**
    * Appends an SQL clause to enforce program ownership and access level restrictions based on the
    * user scopes and org unit mode. The program's access level is resolved at query execution time
    * via the given program table alias.
@@ -108,7 +131,7 @@ public class OrgUnitQueryBuilder {
       OrganisationUnitSelectionMode orgUnitMode,
       String programTableAlias,
       String orgUnitTableAlias,
-      String trackedEntityTableAlias,
+      @Nullable String trackedEntityTableAlias,
       Supplier<String> clauseSupplier) {
     UserDetails userDetails = getCurrentUserDetails();
 
@@ -129,29 +152,54 @@ public class OrgUnitQueryBuilder {
     addCaptureScopePathPredicate(sql, sqlParameters, orgUnitTableAlias, userDetails);
     sql.append(")");
 
-    sql.append(" or (").append(programTableAlias).append(".accesslevel = 'PROTECTED' and ");
-    addTempOwnerPredicate(
-        sql, trackedEntityTableAlias, programTableAlias + ".programid", userDetails.getId());
-    sql.append("))");
+    if (trackedEntityTableAlias != null) {
+      sql.append(" or (").append(programTableAlias).append(".accesslevel = 'PROTECTED' and ");
+      addTempOwnerPredicate(
+          sql, trackedEntityTableAlias, programTableAlias + ".programid", userDetails.getId());
+      sql.append(")");
+    }
+    sql.append(")");
+  }
+
+  /**
+   * Appends an SQL clause to enforce access level restrictions based on the user scopes and org
+   * unit mode when the program is known at query build time. This eliminates the need to join the
+   * program table. Only the branches relevant to the program's access level are emitted. Uses
+   * literal path prefixes resolved from the given {@link QuerySearchScope} for index-friendly LIKE
+   * predicates.
+   *
+   * <p>Does nothing when the given scope is {@linkplain QuerySearchScope#restricted()
+   * unrestricted}.
+   */
+  public static void buildAccessLevelClauseForSingleEvents(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParameters,
+      Program program,
+      QuerySearchScope querySearchScope,
+      String orgUnitTableAlias,
+      Supplier<String> clauseSupplier) {
+    buildOwnershipClause(
+        sql, sqlParameters, program, querySearchScope, orgUnitTableAlias, null, clauseSupplier);
   }
 
   /**
    * Appends an SQL clause to enforce program ownership and access level restrictions when the
    * program is known at query build time. This eliminates the need to join the program table. Only
    * the branches relevant to the program's access level are emitted. Uses literal path prefixes
-   * resolved from the given {@link SearchScope} for index-friendly LIKE predicates.
+   * resolved from the given {@link QuerySearchScope} for index-friendly LIKE predicates.
    *
-   * <p>Does nothing when the given scope is {@linkplain SearchScope#restricted() unrestricted}.
+   * <p>Does nothing when the given scope is {@linkplain QuerySearchScope#restricted()
+   * unrestricted}.
    */
   public static void buildOwnershipClause(
       StringBuilder sql,
       MapSqlParameterSource sqlParameters,
       Program program,
-      SearchScope searchScope,
+      QuerySearchScope querySearchScope,
       String orgUnitTableAlias,
       String trackedEntityTableAlias,
       Supplier<String> clauseSupplier) {
-    if (!searchScope.restricted()) {
+    if (!querySearchScope.restricted()) {
       return;
     }
 
@@ -159,12 +207,16 @@ public class OrgUnitQueryBuilder {
 
     sql.append(clauseSupplier.get()).append("(");
     addPathPrefixPredicate(
-        sql, sqlParameters, searchScope.forAccessLevel(accessLevel), orgUnitTableAlias, "scope");
+        sql,
+        sqlParameters,
+        querySearchScope.forAccessLevel(accessLevel),
+        orgUnitTableAlias,
+        "scope");
 
-    if (accessLevel == AccessLevel.PROTECTED) {
+    if (trackedEntityTableAlias != null && accessLevel == AccessLevel.PROTECTED) {
       sql.append(" or ");
       addTempOwnerPredicate(
-          sql, trackedEntityTableAlias, String.valueOf(program.getId()), searchScope.userId());
+          sql, trackedEntityTableAlias, String.valueOf(program.getId()), querySearchScope.userId());
     }
 
     sql.append(")");

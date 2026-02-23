@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.describedAs;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItem;
@@ -140,17 +141,31 @@ public class ValidationHelper {
     int expectedWidth = expectedSize;
 
     // When "rows" size is ZERO, "width" is always ZERO.
-    if (rows.size() == 0) {
+    if (rows.isEmpty()) {
       expectedWidth = 0;
     }
 
     response
         .validate()
         .statusCode(200)
-        .body("rows", hasSize(expectedRowCount))
-        .body("height", equalTo(expectedRowCount))
-        .body("width", equalTo(expectedWidth))
-        .body("headerWidth", equalTo(expectedSize));
+        .body(
+            "rows",
+            describedAs(
+                "Row count mismatch (expected %0, rows: %1)",
+                hasSize(expectedRowCount), expectedRowCount, rows))
+        .body(
+            "height",
+            describedAs(
+                "Height mismatch (expected %0, got height from response)",
+                equalTo(expectedRowCount), expectedRowCount))
+        .body(
+            "width",
+            describedAs("Width mismatch (expected %0)", equalTo(expectedWidth), expectedWidth))
+        .body(
+            "headerWidth",
+            describedAs(
+                "HeaderWidth mismatch (expected %0, headers: %1)",
+                equalTo(expectedSize), expectedSize, currentHeaders));
   }
 
   /**

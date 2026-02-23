@@ -48,7 +48,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.Page;
@@ -62,7 +61,6 @@ import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.tracker.model.Enrollment;
-import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.springframework.stereotype.Service;
@@ -186,61 +184,33 @@ class DefaultEnrollmentService implements EnrollmentService {
     }
   }
 
-  private Enrollment getEnrollment(
+  private Enrollment addRequestedFields(
       @Nonnull Enrollment enrollment,
       @Nonnull EnrollmentFields fields,
       boolean includeDeleted,
       Map<Program, Set<String>> readableAttributesByProgram,
       Map<String, Set<TrackerEvent>> eventsByEnrollment) {
-    Enrollment result = new Enrollment();
-    result.setUid(enrollment.getUid());
 
-    if (enrollment.getTrackedEntity() != null) {
-      TrackedEntity trackedEntity = new TrackedEntity();
-      trackedEntity.setUid(enrollment.getTrackedEntity().getUid());
-      trackedEntity.setTrackedEntityType(enrollment.getTrackedEntity().getTrackedEntityType());
-      result.setTrackedEntity(trackedEntity);
-    }
-    OrganisationUnit organisationUnit = new OrganisationUnit();
-    organisationUnit.setUid(enrollment.getOrganisationUnit().getUid());
-    result.setOrganisationUnit(organisationUnit);
-    result.setGeometry(enrollment.getGeometry());
-    result.setCreated(enrollment.getCreated());
-    result.setCreatedAtClient(enrollment.getCreatedAtClient());
-    result.setLastUpdated(enrollment.getLastUpdated());
-    result.setLastUpdatedAtClient(enrollment.getLastUpdatedAtClient());
-    result.setProgram(enrollment.getProgram());
-    result.setStatus(enrollment.getStatus());
-    result.setEnrollmentDate(enrollment.getEnrollmentDate());
-    result.setOccurredDate(enrollment.getOccurredDate());
-    result.setFollowup(enrollment.getFollowup());
-    result.setCompletedDate(enrollment.getCompletedDate());
-    result.setCompletedBy(enrollment.getCompletedBy());
-    result.setStoredBy(enrollment.getStoredBy());
-    result.setCreatedByUserInfo(enrollment.getCreatedByUserInfo());
-    result.setLastUpdatedByUserInfo(enrollment.getLastUpdatedByUserInfo());
-    result.setDeleted(enrollment.isDeleted());
-    result.setNotes(enrollment.getNotes());
     if (fields.isIncludesEvents()) {
-      result.setEvents(eventsByEnrollment.getOrDefault(enrollment.getUid(), Set.of()));
+      enrollment.setEvents(eventsByEnrollment.getOrDefault(enrollment.getUid(), Set.of()));
     }
     if (fields.isIncludesRelationships()) {
-      result.setRelationshipItems(
+      enrollment.setRelationshipItems(
           relationshipService.findRelationshipItems(
               TrackerType.ENROLLMENT,
-              result.getUID(),
+              enrollment.getUID(),
               fields.getRelationshipFields(),
               includeDeleted));
     }
     if (fields.isIncludesAttributes()) {
       Set<String> readableAttributes =
           readableAttributesByProgram.getOrDefault(enrollment.getProgram(), Set.of());
-      result
+      enrollment
           .getTrackedEntity()
           .setTrackedEntityAttributeValues(filterAttributeValues(enrollment, readableAttributes));
     }
 
-    return result;
+    return enrollment;
   }
 
   private Set<TrackedEntityAttributeValue> filterAttributeValues(
@@ -268,7 +238,7 @@ class DefaultEnrollmentService implements EnrollmentService {
     return enrollments.stream()
         .map(
             e ->
-                getEnrollment(
+                addRequestedFields(
                     e, fields, includeDeleted, readableAttributesByProgram, eventsByEnrollment))
         .toList();
   }

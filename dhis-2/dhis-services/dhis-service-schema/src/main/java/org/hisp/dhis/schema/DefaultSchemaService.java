@@ -37,6 +37,7 @@ import com.google.common.base.CaseFormat;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import jakarta.persistence.EntityManagerFactory;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -182,6 +183,7 @@ import org.hisp.dhis.schema.descriptors.ValidationRuleSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.VisualizationSchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.system.util.AnnotationUtils;
+import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
@@ -195,7 +197,7 @@ import org.springframework.stereotype.Service;
 @Service("org.hisp.dhis.schema.SchemaService")
 public class DefaultSchemaService implements SchemaService {
   // Simple alias map for our concrete implementations of the core interfaces
-  private static final Map<Class<?>, Class<?>> BASE_ALIAS_MAP =
+  public static final Map<Class<?>, Class<?>> BASE_ALIAS_MAP =
       Map.of(
           IdentifiableObject.class, BaseIdentifiableObject.class,
           NameableObject.class, BaseNameableObject.class,
@@ -570,6 +572,35 @@ public class DefaultSchemaService implements SchemaService {
       }
     }
     return new PropertyPath(curProperty, persisted, alias.toArray(new String[] {}));
+  }
+
+  public static Class<?> getInterfaceOfBaseClass(Class<?> klass) {
+    for (Class<?> iface : BASE_ALIAS_MAP.keySet()) {
+      if (BASE_ALIAS_MAP.get(iface).equals(klass)) {
+        return iface;
+      }
+    }
+    return null;
+  }
+
+  public static <T> T safeInvoke(Object object, Method method) {
+    try {
+      return ReflectionUtils.invokeMethod(object, method);
+    } catch (Exception e) {
+      Class<?> interfaceClass =
+          DefaultSchemaService.getInterfaceOfBaseClass(method.getDeclaringClass());
+      if (interfaceClass != null) {
+        try {
+          Method fallback = interfaceClass.getMethod(method.getName());
+          return ReflectionUtils.invokeMethod(object, fallback);
+        } catch (Exception ex) {
+          throw new RuntimeException(
+              "Failed to invoke fallback method for " + method.getName(), ex);
+        }
+      } else {
+        throw new RuntimeException("Failed to invoke method " + method.getName(), e);
+      }
+    }
   }
 
   private boolean isFilterByAttributeId(Property curProperty, String propertyName) {

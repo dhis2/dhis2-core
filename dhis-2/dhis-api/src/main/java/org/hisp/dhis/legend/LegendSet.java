@@ -62,8 +62,10 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.legend.comparator.LegendValueComparator;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -243,11 +245,16 @@ public class LegendSet extends BaseMetadataObject implements IdentifiableObject,
   }
 
   @Override
+  @Sortable(whenPersisted = false)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "name", key = "NAME")
   public String getDisplayName() {
     return translations.getTranslation("NAME", getName());
   }
 
   @Override
+  @JsonProperty
   public Set<Translation> getTranslations() {
     return translations != null ? translations.getTranslations() : Set.of();
   }

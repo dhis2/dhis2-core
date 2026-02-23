@@ -30,7 +30,6 @@
 package org.hisp.dhis.trackedentity.hibernate;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.math.BigInteger;
 import java.util.HashSet;
@@ -39,11 +38,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -87,21 +84,6 @@ public class HibernateTrackedEntityAttributeStore
         builder,
         newJpaParameters()
             .addPredicate(root -> builder.equal(root.get("displayInListNoProgram"), true)));
-  }
-
-  @Override
-  public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes() {
-    TypedQuery<TrackedEntityTypeAttribute> query =
-        entityManager.createQuery(
-            "select distinct tea from TrackedEntityType tet inner join tet.trackedEntityTypeAttributes tea",
-            TrackedEntityTypeAttribute.class);
-
-    Set<TrackedEntityTypeAttribute> trackedEntityTypeAttributes =
-        new HashSet<>(query.getResultList());
-
-    return trackedEntityTypeAttributes.stream()
-        .map(TrackedEntityTypeAttribute::getTrackedEntityAttribute)
-        .collect(Collectors.toSet());
   }
 
   @Override
@@ -150,16 +132,5 @@ public class HibernateTrackedEntityAttributeStore
             .getResultList();
 
     return result.stream().map(UID::of).collect(Collectors.toSet());
-  }
-
-  @Override
-  public Set<String> getTrackedEntityAttributesInProgram(Program program) {
-    TypedQuery<String> query =
-        entityManager.createQuery(
-            "select distinct pa.attribute.uid from Program p inner join p.programAttributes pa where p.uid = :program",
-            String.class);
-    query.setParameter("program", program.getUid());
-
-    return new HashSet<>(query.getResultList());
   }
 }

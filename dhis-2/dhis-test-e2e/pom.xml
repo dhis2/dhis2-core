@@ -13,7 +13,7 @@
     <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
     <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
     <maven-surefire-junit5-tree-reporter.version>1.5.1</maven-surefire-junit5-tree-reporter.version>
-    <junit.version>6.0.2</junit.version>
+    <junit.version>6.0.3</junit.version>
     <gson.version>2.13.2</gson.version>
     <log4j.version>2.25.3</log4j.version>
     <rest-assured.version>5.5.6</rest-assured.version>
@@ -36,10 +36,10 @@
     <fluent-hc.version>4.5.14</fluent-hc.version>
     <httpclient5.version>5.6</httpclient5.version>
     <commons-io.version>2.21.0</commons-io.version>
-    <spring.version>7.0.3</spring.version>
+    <spring.version>7.0.5</spring.version>
     <subethasmtp-wiser.version>1.2</subethasmtp-wiser.version>
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
-    <nimbus-jose-jwt.version>10.7</nimbus-jose-jwt.version>
+    <nimbus-jose-jwt.version>10.8</nimbus-jose-jwt.version>
     <jsr305.version>3.0.2</jsr305.version>
   </properties>
 
