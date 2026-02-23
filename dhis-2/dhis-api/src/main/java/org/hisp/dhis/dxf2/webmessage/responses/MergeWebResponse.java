@@ -62,7 +62,7 @@ public class MergeWebResponse implements WebMessageResponse {
             ? "%s merge has errors".formatted(mergeType.getName())
             : "%s merge complete".formatted(mergeType.getName()));
 
-    if (mergeType == MergeType.CATEGORY_COMBO) {
+    if (mergeType == MergeType.CATEGORY_COMBO && !mergeReport.hasErrorMessages()) {
       message.append(
           ". There will be duplicate CategoryOptionCombos as a result of the merge. These should be merged immediately to help keep system integrity. Duplicates can be found using the data integrity check `category_option_combos_have_duplicates`");
     }

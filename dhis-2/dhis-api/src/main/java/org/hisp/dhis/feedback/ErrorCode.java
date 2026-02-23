@@ -140,7 +140,7 @@ public enum ErrorCode {
   E1547(
       "CategoryOptionCombo has CategoryOptions that are not valid for the CategoryCombo categories: {0}"),
   E1548(
-      "Duplicate CategoryOptionCombo `{0}` found for CategoryCombo `{1}`. Fix this before continuing with the merge."),
+      "Duplicate CategoryOptionCombo `{0}` found for CategoryCombo `{1}`. Fix this before attempting the merge."),
 
   /* DataElement merge */
   E1550("All source ValueTypes must match target ValueType: `{0}`. Other ValueTypes found: `{1}`"),

@@ -262,7 +262,7 @@ class CategoryComboMergeServiceTest {
     assertTrue(mergeReport.hasErrorMessages());
     assertEquals(2, mergeReport.getMergeErrors().size());
     assertEquals(
-        "Duplicate CategoryOptionCombo `co1, co2` found for CategoryCombo `cc1`. Fix this before continuing with the merge.",
+        "Duplicate CategoryOptionCombo `co1, co2` found for CategoryCombo `cc1`. Fix this before attempting the merge.",
         mergeReport.getMergeErrors().get(0).getMessage());
   }
 
