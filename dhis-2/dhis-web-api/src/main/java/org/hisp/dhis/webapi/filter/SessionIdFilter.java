@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.webapi.filter;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_ENABLED;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_SESSION_ID;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -53,7 +53,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * via {@code %X{sessionId}} in log4j2 pattern layouts.
  *
  * <p>The session ID is hashed using SHA-256 and base64-encoded for security. Only enabled when
- * {@code logging.request_id.enabled} is true.
+ * {@code logging.session_id} is true.
  *
  * @author Luciano Fiandesio
  * @see <a href="https://logback.qos.ch/manual/mdc.html">MDC Documentation</a>
@@ -74,7 +74,7 @@ public class SessionIdFilter extends OncePerRequestFilter {
   private final boolean enabled;
 
   public SessionIdFilter(DhisConfigurationProvider dhisConfig) {
-    this.enabled = dhisConfig.isEnabled(LOGGING_REQUEST_ID_ENABLED);
+    this.enabled = dhisConfig.isEnabled(LOGGING_SESSION_ID);
   }
 
   @Override

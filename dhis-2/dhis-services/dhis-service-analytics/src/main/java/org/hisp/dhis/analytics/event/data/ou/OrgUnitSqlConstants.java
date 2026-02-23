@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,32 +27,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.analytics.event.data.ou;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.AnalyticsConstants.ORG_UNIT_STRUCT_ALIAS;
 
-import org.junit.jupiter.api.Test;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.analytics.common.ColumnHeader;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 
-class AnalyticsDateFilterTest {
-  @Test
-  void createdAndCompletedDoNotApplyToCriteriaExtractors() {
-    assertFalse(AnalyticsDateFilter.CREATED.appliesToEvents());
-    assertFalse(AnalyticsDateFilter.CREATED.appliesToEnrollments());
+/** Shared SQL identifiers for ENROLLMENT_OU query and aggregate handling. */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class OrgUnitSqlConstants {
 
-    assertFalse(AnalyticsDateFilter.COMPLETED.appliesToEvents());
-    assertFalse(AnalyticsDateFilter.COMPLETED.appliesToEnrollments());
-  }
-
-  @Test
-  void createdAndCompletedRemainResolvableAsDateFilters() {
-    assertTrue(AnalyticsDateFilter.of("CREATED").isPresent());
-    assertTrue(AnalyticsDateFilter.of("COMPLETED").isPresent());
-  }
-
-  @Test
-  void createdDateAndCompletedDateAreNoLongerResolvableAsDateFilters() {
-    assertTrue(AnalyticsDateFilter.of("CREATED_DATE").isEmpty());
-    assertTrue(AnalyticsDateFilter.of("COMPLETED_DATE").isEmpty());
-  }
+  public static final String ORG_UNIT_STRUCTURE_TABLE = "analytics_rs_orgunitstructure";
+  public static final String EVENT_TABLE_ALIAS = ANALYTICS_TBL_ALIAS;
+  public static final String ORG_UNIT_STRUCTURE_ALIAS = ORG_UNIT_STRUCT_ALIAS;
+  public static final String EVENT_ENROLLMENT_OU_COLUMN =
+      EventAnalyticsColumnName.ENROLLMENT_OU_COLUMN_NAME;
+  public static final String ORG_UNIT_UID_COLUMN = "organisationunituid";
+  public static final String ORG_UNIT_NAME_COLUMN = "name";
+  public static final String ORG_UNIT_LEVEL_COLUMN = "level";
+  public static final String ENROLLMENT_OU_RESULT_ALIAS = ColumnHeader.ENROLLMENT_OU.getItem();
+  public static final String ENROLLMENT_OU_NAME_RESULT_ALIAS =
+      ColumnHeader.ENROLLMENT_OU_NAME.getItem();
 }

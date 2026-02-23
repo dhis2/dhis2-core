@@ -132,6 +132,27 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "enrollmentDate",
+      "query": "/api/analytics/events/aggregate/ur1Edk5Oe2n.json?dimension=ENROLLMENT_DATE:2021&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "incidentDate",
+      "query": "/api/analytics/events/aggregate/ur1Edk5Oe2n.json?dimension=INCIDENT_DATE:2021&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "enrollmentOuWithMultipleOus",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ENROLLMENT_OU:BXd3TqaAxkK;VpYAl8dXs6m;uFp0ztDOFbI,pe:2021&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

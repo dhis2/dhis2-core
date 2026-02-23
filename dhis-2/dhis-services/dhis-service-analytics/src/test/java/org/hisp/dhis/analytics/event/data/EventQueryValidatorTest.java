@@ -150,6 +150,33 @@ class EventQueryValidatorTest extends TestBase {
   }
 
   @Test
+  void validateSuccessWithEnrollmentOuOnly() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withEnrollmentOuFilter(List.of(ouA))
+            .build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
+  }
+
+  @Test
+  void validateFailsWithoutOuAndWithoutEnrollmentOu() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .build();
+
+    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
+
+    assertEquals(ErrorCode.E7200, error.getErrorCode());
+  }
+
+  @Test
   void validateSingleDataElementMultipleProgramsQueryItemSuccess() {
     EventQueryParams params =
         new EventQueryParams.Builder()
