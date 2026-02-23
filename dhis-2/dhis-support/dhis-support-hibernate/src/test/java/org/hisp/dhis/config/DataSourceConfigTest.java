@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -68,8 +68,7 @@ class DataSourceConfigTest {
     LinkedHashMap<String, String> keyMap = DataSourceConfig.buildKeyMap(config);
 
     assertEquals(
-        List.of("controller", "method", "request_id", "session_id"),
-        List.copyOf(keyMap.values()));
+        List.of("controller", "method", "request_id", "session_id"), List.copyOf(keyMap.values()));
   }
 
   @Test
@@ -116,8 +115,7 @@ class DataSourceConfigTest {
     TransformInfo info = new TransformInfo(PreparedStatement.class, "ds", "select 1", false, 0);
 
     assertEquals(
-        "/* controller='UserController' */ select 1",
-        DataSourceConfig.addMdcComment(info, keyMap));
+        "/* controller='UserController' */ select 1", DataSourceConfig.addMdcComment(info, keyMap));
   }
 
   @Test
