@@ -64,8 +64,11 @@ public class SessionTimeoutHeaderFilter extends OncePerRequestFilter {
       long expiresEpochSecond = Instant.now().plusSeconds(maxInactiveInterval).getEpochSecond();
       SessionCookieConfig sessionCookieConfig =
           request.getServletContext().getSessionCookieConfig();
+      String cookieValue =
+          String.format(
+              "server_time=%s&expiry_time=%s", Instant.now().getEpochSecond(), expiresEpochSecond);
       ResponseCookie cookie =
-          ResponseCookie.from(COOKIE_NAME, String.valueOf(expiresEpochSecond))
+          ResponseCookie.from(COOKIE_NAME, cookieValue)
               .maxAge(maxInactiveInterval)
               .path("/")
               .httpOnly(false)
