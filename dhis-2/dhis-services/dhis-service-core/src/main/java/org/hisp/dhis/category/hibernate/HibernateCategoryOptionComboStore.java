@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.category.hibernate;
 
-
 import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
