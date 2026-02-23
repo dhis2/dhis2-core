@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
@@ -98,6 +99,23 @@ public class HeaderHelper {
                   null));
         }
       }
+    }
+
+    if (params.hasEnrollmentOuDimension()) {
+      grid.addHeader(
+          new GridHeader(
+              ColumnHeader.ENROLLMENT_OU.getItem(),
+              ColumnHeader.ENROLLMENT_OU.getName(),
+              TEXT,
+              false,
+              true));
+      grid.addHeader(
+          new GridHeader(
+              ColumnHeader.ENROLLMENT_OU_NAME.getItem(),
+              ColumnHeader.ENROLLMENT_OU_NAME.getName(),
+              TEXT,
+              false,
+              true));
     }
   }
 
