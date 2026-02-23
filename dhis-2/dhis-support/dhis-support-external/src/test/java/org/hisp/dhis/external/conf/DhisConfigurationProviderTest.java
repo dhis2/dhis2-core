@@ -73,6 +73,9 @@ class DhisConfigurationProviderTest {
   @Test
   void getDefault() {
     assertEquals("hikari", configProvider.getProperty(ConfigurationKey.DB_POOL_TYPE));
+    assertEquals(
+        "controller,method",
+        configProvider.getProperty(ConfigurationKey.MONITORING_SQL_CONTEXT_KEYS));
   }
 
   @Test

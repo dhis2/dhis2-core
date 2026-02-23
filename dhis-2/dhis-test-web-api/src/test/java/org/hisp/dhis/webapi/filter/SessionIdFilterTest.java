@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.filter;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_SESSION_ID;
+import static org.hisp.dhis.log.MdcKeys.MDC_SESSION_ID;
 import static org.hisp.dhis.webapi.filter.SessionIdFilter.hashToBase64;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -74,7 +75,7 @@ class SessionIdFilterTest {
     init(false);
     doFilter(request -> {});
 
-    assertNull(MDC.get("sessionId"));
+    assertNull(MDC.get(MDC_SESSION_ID));
   }
 
   @Test
@@ -96,7 +97,7 @@ class SessionIdFilterTest {
           when(session.getId()).thenReturn("ABCDEFGHILMNO");
         });
 
-    assertEquals("ID" + hashToBase64("ABCDEFGHILMNO"), MDC.get("sessionId"));
+    assertEquals("ID" + hashToBase64("ABCDEFGHILMNO"), MDC.get(MDC_SESSION_ID));
   }
 
   private void doFilter(Consumer<HttpServletRequest> withRequest) throws Exception {
