@@ -53,7 +53,7 @@ public class TrackedEntityQuery10AutoTest extends AnalyticsApiTest {
   @DisplayName(
       "Should return correct headers and values when using stage-specific dimension with header")
   @Test
-  public void stageDimensionCheckHeader() throws JSONException {
+  public void stageDimensionCheckMetadataItem() throws JSONException {
 
     // Given
     QueryParamsBuilder params =
