@@ -75,7 +75,7 @@ class Dhis2InternalOidcProviderTest {
         "http://example.com:8080/oauth2/authorize", cr.getProviderDetails().getAuthorizationUri());
     assertEquals("http://example.com:8080/oauth2/token", cr.getProviderDetails().getTokenUri());
     assertEquals("http://example.com:8080/oauth2/jwks", cr.getProviderDetails().getJwkSetUri());
-    assertEquals("http://example.com:8080", cr.getProviderDetails().getIssuerUri());
+    assertEquals("http://example.com:8080/", cr.getProviderDetails().getIssuerUri());
   }
 
   @Test
@@ -96,7 +96,7 @@ class Dhis2InternalOidcProviderTest {
     assertEquals(
         "http://custom-server:9090/oauth2/authorize",
         cr.getProviderDetails().getAuthorizationUri());
-    assertEquals("http://custom-server:9090", cr.getProviderDetails().getIssuerUri());
+    assertEquals("http://custom-server:9090/", cr.getProviderDetails().getIssuerUri());
   }
 
   @Test
@@ -117,7 +117,7 @@ class Dhis2InternalOidcProviderTest {
     ClientRegistration cr = registration.getClientRegistration();
     assertEquals(
         "http://example.com:8080/oauth2/authorize", cr.getProviderDetails().getAuthorizationUri());
-    assertEquals("http://example.com:8080", cr.getProviderDetails().getIssuerUri());
+    assertEquals("http://example.com:8080/", cr.getProviderDetails().getIssuerUri());
   }
 
   @Test
