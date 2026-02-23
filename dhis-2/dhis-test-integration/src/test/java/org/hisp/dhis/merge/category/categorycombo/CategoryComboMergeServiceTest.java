@@ -179,6 +179,7 @@ class CategoryComboMergeServiceTest extends PostgresIntegrationTestBase {
     de2.setCategoryCombo(ccSource2);
     manager.save(de1);
     manager.save(de2);
+    dbmsManager.clearSession();
 
     // when
     MergeParams mergeParams = getMergeParams(List.of(ccSource1, ccSource2), ccTarget);
@@ -208,6 +209,7 @@ class CategoryComboMergeServiceTest extends PostgresIntegrationTestBase {
     ds2.setCategoryCombo(ccSource2);
     manager.save(ds1);
     manager.save(ds2);
+    dbmsManager.clearSession();
 
     // when
     MergeParams mergeParams = getMergeParams(List.of(ccSource1, ccSource2), ccTarget);
@@ -269,6 +271,7 @@ class CategoryComboMergeServiceTest extends PostgresIntegrationTestBase {
     p2.setCategoryCombo(ccSource2);
     manager.save(p1);
     manager.save(p2);
+    dbmsManager.clearSession();
 
     // when
     MergeParams mergeParams = getMergeParams(List.of(ccSource1, ccSource2), ccTarget);
@@ -298,6 +301,7 @@ class CategoryComboMergeServiceTest extends PostgresIntegrationTestBase {
     p2.setEnrollmentCategoryCombo(ccSource2);
     manager.save(p1);
     manager.save(p2);
+    dbmsManager.clearSession();
 
     // when
     MergeParams mergeParams = getMergeParams(List.of(ccSource1, ccSource2), ccTarget);

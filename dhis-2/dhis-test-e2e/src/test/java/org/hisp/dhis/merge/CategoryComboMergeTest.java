@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -84,17 +84,14 @@ class CategoryComboMergeTest extends ApiTest {
     loginActions.loginAsSuperUser();
 
     // add user with required merge auth
-    String userId =
-        userActions.addUserFull(
-            "user",
-            "auth",
-            "userWithCcMergeAuth",
-            "Test1234!",
-            "F_CATEGORY_COMBO_MERGE",
-            "F_CATEGORY_COMBO_DELETE",
-            "F_CATEGORY_COMBO_PUBLIC_ADD");
-
-    //    userActions.grantUserAccessToOrgUnit(userId, "OrgUnitUID1");
+    userActions.addUserFull(
+        "user",
+        "auth",
+        "userWithCcMergeAuth",
+        "Test1234!",
+        "F_CATEGORY_COMBO_MERGE",
+        "F_CATEGORY_COMBO_DELETE",
+        "F_CATEGORY_COMBO_PUBLIC_ADD");
   }
 
   @BeforeEach
