@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -29,11 +29,11 @@
  */
 package org.hisp.dhis.webapi.security.csp;
 
+import static org.hisp.dhis.security.utils.CspConstants.DEFAULT_CSP_POLICY;
+import static org.hisp.dhis.security.utils.CspConstants.USER_UPLOADED_CONTENT_CSP_POLICY;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import static org.hisp.dhis.security.utils.CspConstants.DEFAULT_CSP_POLICY;
-import static org.hisp.dhis.security.utils.CspConstants.USER_UPLOADED_CONTENT_CSP_POLICY;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -50,9 +50,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 
-/**
- * Unit tests for {@link CspPolicyService}.
- */
+/** Unit tests for {@link CspPolicyService}. */
 @ExtendWith(MockitoExtension.class)
 class CspPolicyServiceTest {
 
@@ -125,7 +123,9 @@ class CspPolicyServiceTest {
     String result = cspPolicyService.constructCustomCspPolicy(customPolicy);
 
     assertNotNull(result);
-    assertEquals("script-src 'self'; frame-ancestors 'self' https://example.com https://trusted.org;", result);
+    assertEquals(
+        "script-src 'self'; frame-ancestors 'self' https://example.com https://trusted.org;",
+        result);
   }
 
   @Test

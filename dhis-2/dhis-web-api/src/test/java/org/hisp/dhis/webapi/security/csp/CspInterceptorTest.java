@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -45,9 +45,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.method.HandlerMethod;
 
-/**
- * Unit tests for {@link CspInterceptor}.
- */
+/** Unit tests for {@link CspInterceptor}. */
 @ExtendWith(MockitoExtension.class)
 class CspInterceptorTest {
 
@@ -155,7 +153,8 @@ class CspInterceptorTest {
     boolean result = cspInterceptor.preHandle(request, response, handlerMethod);
 
     assertTrue(result);
-    verify(cspPolicyService, times(1)).constructCustomCspPolicy("script-src 'self' cdn.example.com");
+    verify(cspPolicyService, times(1))
+        .constructCustomCspPolicy("script-src 'self' cdn.example.com");
   }
 
   @Test
@@ -248,9 +247,7 @@ class CspInterceptorTest {
     public void methodWithBothAnnotations() {}
   }
 
-  /**
-   * Helper method to create a HandlerMethod for a method without annotations.
-   */
+  /** Helper method to create a HandlerMethod for a method without annotations. */
   private HandlerMethod createHandlerMethod(String methodName) throws Exception {
     TestControllerPlain controller = new TestControllerPlain();
     Method method = controller.getClass().getMethod(methodName);

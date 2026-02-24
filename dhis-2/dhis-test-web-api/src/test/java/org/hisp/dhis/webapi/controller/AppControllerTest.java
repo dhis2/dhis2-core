@@ -478,8 +478,7 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
 
     // Verify key directives from the @CustomCsp policy are included
     assertTrue(
-        cspHeader.contains("default-src 'self'"),
-        "CSP policy should contain default-src 'self'");
+        cspHeader.contains("default-src 'self'"), "CSP policy should contain default-src 'self'");
     assertTrue(
         cspHeader.contains("style-src 'self' 'unsafe-inline'"),
         "CSP policy should contain style-src 'self' 'unsafe-inline'");
@@ -487,10 +486,10 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
         cspHeader.contains("child-src 'self' blob:"),
         "CSP policy should contain child-src 'self' blob:");
     assertTrue(cspHeader.contains("img-src * data:"), "CSP policy should contain img-src * data:");
+    assertTrue(cspHeader.contains("connect-src *"), "CSP policy should contain connect-src *");
     assertTrue(
-        cspHeader.contains("connect-src *"), "CSP policy should contain connect-src *");
-    assertTrue(
-        cspHeader.contains("frame-ancestors"), "CSP policy should contain frame-ancestors directive");
+        cspHeader.contains("frame-ancestors"),
+        "CSP policy should contain frame-ancestors directive");
   }
 
   @Test
