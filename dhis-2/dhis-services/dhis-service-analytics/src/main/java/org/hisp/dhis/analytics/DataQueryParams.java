@@ -2456,6 +2456,21 @@ public class DataQueryParams {
   }
 
   /**
+   * @return The period dimension items as {@link Period}
+   */
+  public List<String> getPeriodsIds() {
+    return getDimensionOptions(PERIOD_DIM_ID).stream()
+        .map(DimensionalItemObject::getDimensionItem)
+        .toList();
+  }
+
+  public List<String> getOrgUnitIds() {
+    return getDimensionOptions(ORGUNIT_DIM_ID).stream()
+        .map(DimensionalItemObject::getDimensionItem)
+        .toList();
+  }
+
+  /**
    * Returns a Period object based on the current "startDate" and "endDate" dates. It will not check
    * if the dates are null.
    *

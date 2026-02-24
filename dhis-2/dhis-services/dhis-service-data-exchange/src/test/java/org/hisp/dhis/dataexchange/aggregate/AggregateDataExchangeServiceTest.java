@@ -127,7 +127,7 @@ class AggregateDataExchangeServiceTest {
             .setOutputDataItemIdScheme(IdProperty.NAME)
             .setOutputIdScheme(IdProperty.CODE);
 
-    DataQueryParams query = service.toDataQueryParams(sourceRequest, new SourceDataQueryParams());
+    DataQueryParams query = service.toDataQueryParams(sourceRequest, null);
 
     assertTrue(query.hasDimension(DATA_X_DIM_ID));
     assertTrue(query.hasDimension(PERIOD_DIM_ID));
@@ -140,9 +140,7 @@ class AggregateDataExchangeServiceTest {
     assertEquals(IdScheme.NAME, query.getOutputDataItemIdScheme());
     assertEquals(IdScheme.CODE, query.getOutputIdScheme());
 
-    SourceDataQueryParams params = new SourceDataQueryParams().setOutputIdScheme(IdProperty.CODE);
-
-    query = service.toDataQueryParams(sourceRequest, params);
+    query = service.toDataQueryParams(sourceRequest, IdProperty.CODE);
 
     assertEquals(IdScheme.CODE, query.getOutputDataElementIdScheme());
     assertEquals(IdScheme.CODE, query.getOutputOrgUnitIdScheme());
