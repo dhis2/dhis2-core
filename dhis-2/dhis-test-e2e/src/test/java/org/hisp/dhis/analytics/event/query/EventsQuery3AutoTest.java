@@ -43,6 +43,7 @@ import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 public class EventsQuery3AutoTest extends AnalyticsApiTest {
@@ -84,6 +85,131 @@ public class EventsQuery3AutoTest extends AnalyticsApiTest {
     String expectedMetaData =
         "{\"items\":{\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"name\":\"Organisation unit\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"LAST_MONTH\":{\"name\":\"Last month\"},\"THIS_MONTH\":{\"name\":\"This month\"},\"cejWyOfXge6\":{\"name\":\"Gender\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"LAST_10_YEARS\":{\"name\":\"Last 10 years\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"A03MvHHogjR.UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"},\"pC3N9N77UmT\":{\"uid\":\"pC3N9N77UmT\",\"name\":\"Gender\",\"options\":[{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\"}]},\"p2Zxg0wcPQ3\":{\"name\":\"BCG doses\"},\"UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"A03MvHHogjR.UXz7xuGCEhU\":[],\"p2Zxg0wcPQ3\":[],\"cejWyOfXge6\":[\"Mnp3oXrpAbK\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(
+        response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        1,
+        "A03MvHHogjR.UXz7xuGCEhU",
+        "MCH Weight (g)",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        true);
+    validateHeader(
+        response,
+        2,
+        "enrollmentdate",
+        "Date of enrollment",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeader(
+        response,
+        3,
+        "scheduleddate",
+        "Scheduled date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeader(
+        response,
+        4,
+        "incidentdate",
+        "Date of birth",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeader(
+        response, 5, "programstatus", "Program status", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response,
+        6,
+        "eventdate",
+        "Report date",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeader(
+        response, 7, "eventstatus", "Event status", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response, 8, "p2Zxg0wcPQ3", "BCG doses", "NUMBER", "java.lang.Double", false, true);
+    validateHeader(
+        response,
+        9,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeader(response, 10, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
+
+    // Assert rows.
+    validateRow(
+        response,
+        0,
+        List.of(
+            "Ngelehun CHC",
+            "1231",
+            "2022-07-02 02:00:00.0",
+            "2021-07-23 12:46:11.472",
+            "2022-07-08 02:00:00.0",
+            "ACTIVE",
+            "2021-07-03 00:00:00.0",
+            "SCHEDULE",
+            "0",
+            "2017-07-23 12:46:11.472",
+            "Female"));
+  }
+
+  @Test
+  @DisplayName(
+      "Same test as multiPeriodMultiProgramStatusPagingFalse but using dimension for program status")
+  public void multiPeriodMultiProgramStatusPagingFalseWithDimension() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("lastUpdated=LAST_12_MONTHS,LAST_5_YEARS,LAST_10_YEARS")
+            .add(
+                "headers=ouname,A03MvHHogjR.UXz7xuGCEhU,enrollmentdate,scheduleddate,incidentdate,programstatus,eventdate,eventstatus,p2Zxg0wcPQ3,lastupdated,cejWyOfXge6")
+            .add("stage=A03MvHHogjR")
+            .add("outputIdScheme=CODE")
+            .add("eventStatus=SCHEDULE")
+            .add("enrollmentDate=THIS_MONTH")
+            .add("outputType=EVENT")
+            .add("paging=false")
+            .add(
+                "dimension=ou:USER_ORGUNIT,A03MvHHogjR.UXz7xuGCEhU,p2Zxg0wcPQ3,cejWyOfXge6,PROGRAM_STATUS:ACTIVE;COMPLETED")
+            .add("eventDate=LAST_MONTH,LAST_12_MONTHS")
+            .add("relativePeriodDate=2022-07-01");
+
+    // When
+    ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(11)))
+        .body("rows", hasSize(equalTo(1)))
+        .body("height", equalTo(1))
+        .body("width", equalTo(11))
+        .body("headerWidth", equalTo(11));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"name\":\"Organisation unit\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"LAST_MONTH\":{\"name\":\"Last month\"},\"THIS_MONTH\":{\"name\":\"This month\"},\"cejWyOfXge6\":{\"name\":\"Gender\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"LAST_10_YEARS\":{\"name\":\"Last 10 years\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"A03MvHHogjR.UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"},\"pC3N9N77UmT\":{\"uid\":\"pC3N9N77UmT\",\"name\":\"Gender\",\"options\":[{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\"}]},\"p2Zxg0wcPQ3\":{\"name\":\"BCG doses\"},\"UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"A03MvHHogjR.UXz7xuGCEhU\":[],\"p2Zxg0wcPQ3\":[],\"cejWyOfXge6\":[\"Mnp3oXrpAbK\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    System.out.println(expectedMetaData);
+    System.out.println(actualMetaData);
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // Assert headers.
