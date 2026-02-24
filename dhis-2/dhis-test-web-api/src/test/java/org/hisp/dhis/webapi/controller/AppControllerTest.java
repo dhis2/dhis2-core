@@ -33,6 +33,7 @@ import static java.nio.file.Files.createTempDirectory;
 import static org.hisp.dhis.util.ZipFileUtils.MAX_ENTRIES;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -461,5 +462,52 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
       }
     }
     return tempFile;
+  }
+
+  @Test
+  @DisplayName("CSP policy is applied to app resource response")
+  void testCspPolicyAppliedToAppResponse() throws IOException {
+    appManager.installApp(new ClassPathResource("app/test-app-with-index-html.zip").getFile());
+
+    HttpResponse response = GET("/apps/myapp/index.html");
+    assertEquals(HttpStatus.OK, response.status());
+
+    // Verify that the custom CSP policy from @CustomCsp annotation is in the response headers
+    String cspHeader = response.headers("Content-Security-Policy");
+    assertNotNull(cspHeader, "Content-Security-Policy header should be present");
+
+    // Verify key directives from the @CustomCsp policy are included
+    assertTrue(
+        cspHeader.contains("default-src 'self'"),
+        "CSP policy should contain default-src 'self'");
+    assertTrue(
+        cspHeader.contains("style-src 'self' 'unsafe-inline'"),
+        "CSP policy should contain style-src 'self' 'unsafe-inline'");
+    assertTrue(
+        cspHeader.contains("child-src 'self' blob:"),
+        "CSP policy should contain child-src 'self' blob:");
+    assertTrue(cspHeader.contains("img-src * data:"), "CSP policy should contain img-src * data:");
+    assertTrue(
+        cspHeader.contains("connect-src *"), "CSP policy should contain connect-src *");
+    assertTrue(
+        cspHeader.contains("frame-ancestors"), "CSP policy should contain frame-ancestors directive");
+  }
+
+  @Test
+  @DisplayName("Standard security headers are applied to app response")
+  void testSecurityHeadersAppliedToAppResponse() throws IOException {
+    appManager.installApp(new ClassPathResource("app/test-app-with-index-html.zip").getFile());
+
+    HttpResponse response = GET("/apps/myapp/index.html");
+    assertEquals(HttpStatus.OK, response.status());
+
+    // Verify standard security headers are present
+    String xContentTypeOptions = response.headers("X-Content-Type-Options");
+    assertNotNull(xContentTypeOptions, "X-Content-Type-Options header should be present");
+    assertEquals("nosniff", xContentTypeOptions, "X-Content-Type-Options should be 'nosniff'");
+
+    String xFrameOptions = response.headers("X-Frame-Options");
+    assertNotNull(xFrameOptions, "X-Frame-Options header should be present");
+    assertEquals("SAMEORIGIN", xFrameOptions, "X-Frame-Options should be 'SAMEORIGIN'");
   }
 }
