@@ -36,17 +36,23 @@ import org.junit.jupiter.api.Test;
 
 class AnalyticsDateFilterTest {
   @Test
-  void createdDateAndCompletedDateDoNotApplyToCriteriaExtractors() {
-    assertFalse(AnalyticsDateFilter.CREATED_DATE.appliesToEvents());
-    assertFalse(AnalyticsDateFilter.CREATED_DATE.appliesToEnrollments());
+  void createdAndCompletedDoNotApplyToCriteriaExtractors() {
+    assertFalse(AnalyticsDateFilter.CREATED.appliesToEvents());
+    assertFalse(AnalyticsDateFilter.CREATED.appliesToEnrollments());
 
-    assertFalse(AnalyticsDateFilter.COMPLETED_DATE.appliesToEvents());
-    assertFalse(AnalyticsDateFilter.COMPLETED_DATE.appliesToEnrollments());
+    assertFalse(AnalyticsDateFilter.COMPLETED.appliesToEvents());
+    assertFalse(AnalyticsDateFilter.COMPLETED.appliesToEnrollments());
   }
 
   @Test
-  void createdDateAndCompletedDateRemainResolvableAsDateFilters() {
-    assertTrue(AnalyticsDateFilter.of("CREATED_DATE").isPresent());
-    assertTrue(AnalyticsDateFilter.of("COMPLETED_DATE").isPresent());
+  void createdAndCompletedRemainResolvableAsDateFilters() {
+    assertTrue(AnalyticsDateFilter.of("CREATED").isPresent());
+    assertTrue(AnalyticsDateFilter.of("COMPLETED").isPresent());
+  }
+
+  @Test
+  void createdDateAndCompletedDateAreNoLongerResolvableAsDateFilters() {
+    assertTrue(AnalyticsDateFilter.of("CREATED_DATE").isEmpty());
+    assertTrue(AnalyticsDateFilter.of("COMPLETED_DATE").isEmpty());
   }
 }

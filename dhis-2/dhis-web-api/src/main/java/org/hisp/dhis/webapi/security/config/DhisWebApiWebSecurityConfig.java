@@ -493,7 +493,8 @@ public class DhisWebApiWebSecurityConfig {
    * @param http HttpSecurity config
    */
   private void configureOAuthTokenFilters(HttpSecurity http) {
-    if (dhisConfig.isEnabled(ConfigurationKey.ENABLE_JWT_OIDC_TOKEN_AUTHENTICATION)) {
+    if (dhisConfig.isEnabled(ConfigurationKey.ENABLE_JWT_OIDC_TOKEN_AUTHENTICATION)
+        || dhisConfig.isEnabled(ConfigurationKey.OAUTH2_SERVER_ENABLED)) {
       http.addFilterAfter(getJwtBearerTokenAuthenticationFilter(), BasicAuthenticationFilter.class);
     }
   }

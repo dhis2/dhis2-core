@@ -39,6 +39,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.IdProperty;
+import org.hisp.dhis.common.UID;
 
 @Getter
 @Setter
@@ -49,7 +50,7 @@ public class SourceRequest implements Serializable {
   @JsonProperty private String name;
 
   /** Optional UID reference to a visualization. */
-  @JsonProperty private String visualization;
+  @JsonProperty private UID visualization;
 
   /** Data dimension item identifiers. */
   @JsonProperty private List<String> dx = new ArrayList<>();

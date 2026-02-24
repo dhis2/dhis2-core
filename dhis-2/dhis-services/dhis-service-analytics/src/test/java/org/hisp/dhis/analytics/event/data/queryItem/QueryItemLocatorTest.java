@@ -560,9 +560,9 @@ class QueryItemLocatorTest {
   }
 
   @Test
-  void verifyCreatedDateDimensionReturnsEventColumnForEventOutput() {
+  void verifyCreatedDimensionReturnsEventColumnForEventOutput() {
     QueryItem queryItem =
-        subject.getQueryItemFromDimension("CREATED_DATE", programA, EventOutputType.EVENT);
+        subject.getQueryItemFromDimension("CREATED", programA, EventOutputType.EVENT);
 
     assertThat(queryItem, is(notNullValue()));
     assertThat(queryItem.getItemId(), is(EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME));
@@ -571,9 +571,9 @@ class QueryItemLocatorTest {
   }
 
   @Test
-  void verifyCompletedDateDimensionReturnsEventColumnForEventOutput() {
+  void verifyCompletedDimensionReturnsEventColumnForEventOutput() {
     QueryItem queryItem =
-        subject.getQueryItemFromDimension("COMPLETED_DATE", programA, EventOutputType.EVENT);
+        subject.getQueryItemFromDimension("COMPLETED", programA, EventOutputType.EVENT);
 
     assertThat(queryItem, is(notNullValue()));
     assertThat(queryItem.getItemId(), is(EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME));
@@ -616,23 +616,35 @@ class QueryItemLocatorTest {
   }
 
   @Test
-  void verifyCreatedDateDimensionIsNotSupportedForEnrollmentOutput() {
+  void verifyCreatedDimensionIsNotSupportedForEnrollmentOutput() {
     assertThrows(
         IllegalQueryException.class,
-        () ->
-            subject.getQueryItemFromDimension(
-                "CREATED_DATE", programA, EventOutputType.ENROLLMENT));
+        () -> subject.getQueryItemFromDimension("CREATED", programA, EventOutputType.ENROLLMENT));
   }
 
   @Test
-  void verifyCompletedDateDimensionReturnsEnrollmentColumnForEnrollmentOutput() {
+  void verifyCompletedDimensionReturnsEnrollmentColumnForEnrollmentOutput() {
     QueryItem queryItem =
-        subject.getQueryItemFromDimension("COMPLETED_DATE", programA, EventOutputType.ENROLLMENT);
+        subject.getQueryItemFromDimension("COMPLETED", programA, EventOutputType.ENROLLMENT);
 
     assertThat(queryItem, is(notNullValue()));
     assertThat(queryItem.getItemId(), is(EnrollmentAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME));
     assertThat(queryItem.getValueType(), is(ValueType.DATE));
     assertThat(queryItem.getProgramStage(), is(nullValue()));
+  }
+
+  @Test
+  void verifyOldCreatedDateDimensionIsRejected() {
+    assertThrows(
+        IllegalQueryException.class,
+        () -> subject.getQueryItemFromDimension("CREATED_DATE", programA, EventOutputType.EVENT));
+  }
+
+  @Test
+  void verifyOldCompletedDateDimensionIsRejected() {
+    assertThrows(
+        IllegalQueryException.class,
+        () -> subject.getQueryItemFromDimension("COMPLETED_DATE", programA, EventOutputType.EVENT));
   }
 
   @Test

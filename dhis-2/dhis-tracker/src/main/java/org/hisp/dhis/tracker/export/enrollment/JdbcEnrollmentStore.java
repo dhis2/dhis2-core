@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.export.enrollment;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -46,11 +47,13 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
@@ -61,6 +64,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.query.JpaQueryUtils;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.Page;
@@ -72,6 +77,7 @@ import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.jdbc.core.RowMapper;
@@ -108,13 +114,48 @@ class JdbcEnrollmentStore {
     MapSqlParameterSource sqlParams = new MapSqlParameterSource();
     String sql = getQuery(enrollmentParams, sqlParams);
     return jdbcTemplate.query(
-        sql, sqlParams, new EnrollmentRowMapper(enrollmentParams.isIncludeAttributes()));
+        sql,
+        sqlParams,
+        new EnrollmentRowMapper(
+            enrollmentParams.isIncludeAttributes(),
+            enrollmentParams.getEnrolledInTrackerProgram()));
   }
 
+  /**
+   * Builds the enrollment query:
+   *
+   * <pre>
+   * select ...
+   * from enrollment e
+   *   inner join program ...
+   *   inner join trackedentity ...
+   *   inner join trackedentitytype ...
+   *   inner join trackedentityprogramowner ...
+   *   inner join organisationunit ou ...
+   *   inner join organisationunit en_ou ...
+   *   inner join (...) as coc ...
+   *   left join lateral (...) notes on true
+   *   left join lateral (...) attrs on true   -- if includeAttributes
+   * where ...
+   * order by ...
+   * </pre>
+   */
   private String getQuery(EnrollmentQueryParams enrollmentParams, MapSqlParameterSource sqlParams) {
     StringBuilder sql = new StringBuilder();
     addSelect(sql, enrollmentParams);
-    addEnrollmentFromItem(sql, enrollmentParams, sqlParams);
+    sql.append(" from enrollment e ");
+    addJoinOnTrackedEntity(sql);
+    if (!enrollmentParams.hasEnrolledInTrackerProgram()) {
+      addJoinOnProgram(sql);
+      addJoinOnTrackedEntityType(sql);
+    }
+    addJoinOnProgramOwner(sql);
+    addJoinOnOwnerOrgUnit(sql);
+    addJoinOnEnrollmentOrgUnit(sql);
+    addJoinOnCategoryOptionCombo(sql);
+    addLeftJoinOnNotes(sql);
+    addLeftJoinOnAttributes(sql, enrollmentParams);
+    addWhereConditions(sql, sqlParams, enrollmentParams);
     addOrderBy(sql, enrollmentParams);
 
     return sql.toString();
@@ -127,13 +168,30 @@ class JdbcEnrollmentStore {
             e.lastupdated, e.lastupdatedatclient, e.lastupdatedbyuserinfo, e.occurreddate,
             e.enrollmentdate, e.completeddate, e.followup, e.completedby, e.storedby, e.deleted, e.status,
             ST_AsBinary(e.geometry) as geometry,
+        """);
+
+    if (params.hasEnrolledInTrackerProgram()) {
+      // program and trackedentitytype columns are not needed; the RowMapper
+      // reuses the already loaded Program entity instead
+      sql.append(
+          """
+            te.uid as tracked_entity_uid, te.code as tracked_entity_code,
+            en_ou.uid as en_org_unit_uid,
+            notes.jsonnotes as notes,
+            coc.uid as coc_uid
+          """);
+    } else {
+      sql.append(
+          """
             p.programid as program_id, p.uid as program_uid, p.name as program_name, p.code as program_code, p.sharing as program_sharing,
             p.description as program_description, p.created as program_created, p.lastupdated as program_lastupdated,
             p.shortname as program_short_name, p.type as program_type, p.accesslevel as program_accesslevel,
             te.uid as tracked_entity_uid, te.code as tracked_entity_code,
             en_ou.uid as en_org_unit_uid,
-            tet.uid as tet_uid, tet.allowauditlog as tet_allowauditlog, tet.enablechangelog as tet_enablechangelog, tet.sharing as tet_sharing, notes.jsonnotes as notes
-        """);
+            tet.uid as tet_uid, tet.allowauditlog as tet_allowauditlog, tet.enablechangelog as tet_enablechangelog, tet.sharing as tet_sharing, notes.jsonnotes as notes,
+            coc.uid as coc_uid
+          """);
+    }
 
     if (params.isIncludeAttributes()) {
       sql.append(
@@ -143,34 +201,91 @@ class JdbcEnrollmentStore {
     }
   }
 
-  private void addEnrollmentFromItem(
-      StringBuilder sql, EnrollmentQueryParams enrollmentParams, MapSqlParameterSource sqlParams) {
-    sql.append(" from enrollment e ");
-    addInnerJoins(sql);
-    addLeftLateralNoteJoin(sql);
-    addLeftLateralAttributeJoin(sql, enrollmentParams);
-
+  private void addWhereConditions(
+      StringBuilder sql, MapSqlParameterSource sqlParams, EnrollmentQueryParams params) {
     SqlHelper hlp = new SqlHelper(true);
-    addLastUpdatedConditions(sql, enrollmentParams, sqlParams, hlp);
-    addOrgUnitConditions(sql, enrollmentParams, sqlParams, hlp);
-    addProgramConditions(sql, enrollmentParams, sqlParams, hlp);
-    addEnrollmentConditions(sql, enrollmentParams, sqlParams, hlp);
-    addTrackedEntityConditions(sql, enrollmentParams, sqlParams, hlp);
+    addLastUpdatedConditions(sql, sqlParams, params, hlp);
+    addOrgUnitConditions(sql, sqlParams, params, hlp);
+    addProgramConditions(sql, sqlParams, params, hlp);
+    addEnrollmentConditions(sql, sqlParams, params, hlp);
+    addTrackedEntityConditions(sql, sqlParams, params, hlp);
+    addAttributeOptionComboConditions(sql, sqlParams, params, hlp);
   }
 
-  private void addInnerJoins(StringBuilder sql) {
+  private void addJoinOnProgram(StringBuilder sql) {
     sql.append(
         """
       inner join program p on p.programid = e.programid
+      """);
+  }
+
+  private void addJoinOnTrackedEntity(StringBuilder sql) {
+    sql.append(
+        """
       inner join trackedentity te on te.trackedentityid = e.trackedentityid
+      """);
+  }
+
+  private void addJoinOnTrackedEntityType(StringBuilder sql) {
+    sql.append(
+        """
       inner join trackedentitytype tet on tet.trackedentitytypeid = te.trackedentitytypeid
-      inner join trackedentityprogramowner po on po.programid = e.programid and po.trackedentityid = te.trackedentityid and p.programid = po.programid
+      """);
+  }
+
+  private void addJoinOnProgramOwner(StringBuilder sql) {
+    sql.append(
+        """
+      inner join trackedentityprogramowner po \
+      on po.trackedentityid = e.trackedentityid and po.programid = e.programid
+      """);
+  }
+
+  private void addJoinOnOwnerOrgUnit(StringBuilder sql) {
+    sql.append(
+        """
       inner join organisationunit ou on ou.organisationunitid = po.organisationunitid
+      """);
+  }
+
+  private void addJoinOnEnrollmentOrgUnit(StringBuilder sql) {
+    sql.append(
+        """
       inner join organisationunit en_ou on en_ou.organisationunitid = e.organisationunitid
       """);
   }
 
-  private void addLeftLateralNoteJoin(StringBuilder sql) {
+  private void addJoinOnCategoryOptionCombo(StringBuilder sql) {
+    sql.append(
+        """
+        inner join (
+          select coc.categoryoptioncomboid as id, coc.uid
+          from categoryoptioncombo coc
+        """);
+
+    if (isNotSuperUser(getCurrentUserDetails())) {
+      sql.append(
+          """
+            inner join categoryoptioncombos_categoryoptions cocco \
+          on coc.categoryoptioncomboid = cocco.categoryoptioncomboid \
+          inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid \
+          group by coc.categoryoptioncomboid \
+          having bool_and(case when \
+          """);
+      sql.append(
+          JpaQueryUtils.generateSQlQueryForSharingCheck(
+              "co.sharing", getCurrentUserDetails(), AclService.LIKE_READ_DATA));
+      sql.append(" then true else false end) = true ");
+    }
+
+    sql.append(") as coc on coc.id = e.attributeoptioncomboid ");
+  }
+
+  private static boolean isNotSuperUser(UserDetails user) {
+    return !user.isSuper();
+  }
+
+  private void addLeftJoinOnNotes(StringBuilder sql) {
     sql.append(
         """
       left join lateral (
@@ -186,7 +301,7 @@ class JdbcEnrollmentStore {
     """);
   }
 
-  private void addLeftLateralAttributeJoin(StringBuilder sql, EnrollmentQueryParams params) {
+  private void addLeftJoinOnAttributes(StringBuilder sql, EnrollmentQueryParams params) {
     if (params.isIncludeAttributes()) {
       sql.append(
           """
@@ -205,8 +320,8 @@ class JdbcEnrollmentStore {
 
   private void addLastUpdatedConditions(
       StringBuilder sql,
-      EnrollmentQueryParams enrollmentParams,
       MapSqlParameterSource sqlParams,
+      EnrollmentQueryParams enrollmentParams,
       SqlHelper hlp) {
     if (enrollmentParams.hasLastUpdatedDuration()) {
       sql.append(hlp.whereAnd()).append("e.lastupdated >= :lastupdated");
@@ -221,9 +336,18 @@ class JdbcEnrollmentStore {
 
   private void addOrgUnitConditions(
       StringBuilder sql,
-      EnrollmentQueryParams params,
       MapSqlParameterSource sqlParams,
+      EnrollmentQueryParams params,
       SqlHelper hlp) {
+    addOrgUnitConditions(sql, sqlParams, params, hlp, "te");
+  }
+
+  private void addOrgUnitConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      EnrollmentQueryParams params,
+      SqlHelper hlp,
+      @Nullable String trackedEntityTableAlias) {
     if (params.hasOrganisationUnits()) {
       buildOrgUnitModeClause(
           sql,
@@ -234,22 +358,32 @@ class JdbcEnrollmentStore {
           hlp.whereAnd());
     }
 
-    buildOwnershipClause(
-        sql, sqlParams, params.getOrganisationUnitMode(), "p", "ou", "te", () -> hlp.whereAnd());
+    if (params.hasEnrolledInTrackerProgram()) {
+      buildOwnershipClause(
+          sql,
+          sqlParams,
+          params.getEnrolledInTrackerProgram(),
+          params.getQuerySearchScope(),
+          "ou",
+          trackedEntityTableAlias,
+          hlp::whereAnd);
+    } else {
+      buildOwnershipClause(
+          sql, sqlParams, params.getOrganisationUnitMode(), "p", "ou", "te", hlp::whereAnd);
+    }
   }
 
   private void addProgramConditions(
       StringBuilder sql,
-      EnrollmentQueryParams params,
       MapSqlParameterSource sqlParams,
+      EnrollmentQueryParams params,
       SqlHelper hlp) {
-    sql.append(hlp.whereAnd()).append("p.type = :programType");
-    sqlParams.addValue("programType", ProgramType.WITH_REGISTRATION.name());
-
     if (params.hasEnrolledInTrackerProgram()) {
-      sql.append(hlp.whereAnd()).append("p.uid = :programUid");
-      sqlParams.addValue("programUid", params.getEnrolledInTrackerProgram().getUid());
+      sql.append(hlp.whereAnd()).append("e.programid = :programId");
+      sqlParams.addValue("programId", params.getEnrolledInTrackerProgram().getId());
     } else {
+      sql.append(hlp.whereAnd()).append("p.type = :programType");
+      sqlParams.addValue("programType", ProgramType.WITH_REGISTRATION.name());
       sql.append(" and p.programid in (:accessiblePrograms)");
       sqlParams.addValue(
           "accessiblePrograms", getIdentifiers(params.getAccessibleTrackerPrograms()));
@@ -268,8 +402,8 @@ class JdbcEnrollmentStore {
 
   private void addEnrollmentConditions(
       StringBuilder sql,
-      EnrollmentQueryParams params,
       MapSqlParameterSource sqlParams,
+      EnrollmentQueryParams params,
       SqlHelper hlp) {
     if (params.hasEnrollmentUids()) {
       sql.append(hlp.whereAnd()).append("e.uid in (:enrollmentUids)");
@@ -293,13 +427,29 @@ class JdbcEnrollmentStore {
 
   private void addTrackedEntityConditions(
       StringBuilder sql,
-      EnrollmentQueryParams params,
       MapSqlParameterSource sqlParams,
+      EnrollmentQueryParams params,
       SqlHelper hlp) {
     if (params.hasTrackedEntities()) {
       sql.append(hlp.whereAnd()).append("te.uid in (:trackedEntityUids)");
       sqlParams.addValue(
           "trackedEntityUids", params.getTrackedEntities().stream().map(UID::getValue).toList());
+    }
+  }
+
+  private void addAttributeOptionComboConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      EnrollmentQueryParams enrollmentParams,
+      SqlHelper hlp) {
+    if (enrollmentParams.getAttributeOptionCombo() != null) {
+      sqlParams.addValue(
+          "attributeoptioncomboid", enrollmentParams.getAttributeOptionCombo().getId());
+
+      sql.append(hlp.whereAnd())
+          .append(" e.attributeoptioncomboid = ")
+          .append(":attributeoptioncomboid")
+          .append(" ");
     }
   }
 
@@ -325,7 +475,11 @@ class JdbcEnrollmentStore {
 
     List<Enrollment> enrollments =
         jdbcTemplate.query(
-            sql, sqlParams, new EnrollmentRowMapper(enrollmentParams.isIncludeAttributes()));
+            sql,
+            sqlParams,
+            new EnrollmentRowMapper(
+                enrollmentParams.isIncludeAttributes(),
+                enrollmentParams.getEnrolledInTrackerProgram()));
     return new Page<>(enrollments, pageParams, () -> countEnrollments(enrollmentParams));
   }
 
@@ -336,17 +490,102 @@ class JdbcEnrollmentStore {
     return count != null ? count : 0L;
   }
 
+  /**
+   * Builds the count query. Only includes joins needed for filtering:
+   *
+   * <ul>
+   *   <li>{@code program} - only when no specific program is given (needed for {@code
+   *       p.accesslevel} and {@code p.programid in (...)}). When a program is known, its conditions
+   *       are resolved in Java and the join is skipped.
+   *   <li>{@code trackedentity} - only when the program is unknown (ownership clause needs {@code
+   *       te.trackedentityid} for the PROTECTED temp owner check resolved at query time) or when
+   *       the program is PROTECTED. Skipped for OPEN/AUDITED programs. Tracked entity UID filters
+   *       use a subquery instead of a join when the table is absent.
+   *   <li>{@code trackedentityprogramowner} + {@code organisationunit} - ownership and org unit
+   *       filtering
+   *   <li>{@code categoryoptioncombo} - attribute option combo access control
+   * </ul>
+   *
+   * <p>Skips joins only needed for SELECT columns: {@code trackedentitytype}, enrollment {@code
+   * organisationunit}, notes and attributes lateral joins.
+   *
+   * <p>Uses {@code count(*)} instead of {@code count(distinct e.uid)} because all remaining joins
+   * are many-to-one from {@code enrollment}, so no duplicate rows are possible.
+   */
   private String getCountQuery(
       EnrollmentQueryParams enrollmentParams, MapSqlParameterSource sqlParams) {
+    boolean needsTrackedEntityJoin = needsTrackedEntityJoinForCount(enrollmentParams);
+
     StringBuilder sql = new StringBuilder();
-    addCountSelect(sql);
-    addEnrollmentFromItem(sql, enrollmentParams, sqlParams);
+    sql.append("select count(*) from enrollment e ");
+    if (!enrollmentParams.hasEnrolledInTrackerProgram()) {
+      addJoinOnProgram(sql);
+    }
+    if (needsTrackedEntityJoin) {
+      addJoinOnTrackedEntity(sql);
+    }
+    addJoinOnProgramOwner(sql);
+    addJoinOnOwnerOrgUnit(sql);
+    addJoinOnCategoryOptionCombo(sql);
+    addCountWhereConditions(sql, sqlParams, enrollmentParams, needsTrackedEntityJoin);
 
     return sql.toString();
   }
 
-  private void addCountSelect(StringBuilder sql) {
-    sql.append(" select count(distinct e.uid) ");
+  /**
+   * The {@code trackedentity} join is needed in the count query only when no specific program is
+   * given (the ownership clause resolves access level at query time via the program table and needs
+   * {@code te.trackedentityid} for the PROTECTED temp owner check). When a program is known, the
+   * temp owner check uses {@code e.trackedentityid} instead, so the join can be skipped. Tracked
+   * entity UID filters use a subquery instead when the table is absent.
+   */
+  private static boolean needsTrackedEntityJoinForCount(EnrollmentQueryParams params) {
+    return !params.hasEnrolledInTrackerProgram();
+  }
+
+  private void addCountWhereConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      EnrollmentQueryParams params,
+      boolean hasTrackedEntityJoin) {
+    SqlHelper hlp = new SqlHelper(true);
+    addLastUpdatedConditions(sql, sqlParams, params, hlp);
+    addCountOrgUnitConditions(sql, sqlParams, params, hlp, hasTrackedEntityJoin);
+    addProgramConditions(sql, sqlParams, params, hlp);
+    addEnrollmentConditions(sql, sqlParams, params, hlp);
+    if (hasTrackedEntityJoin) {
+      addTrackedEntityConditions(sql, sqlParams, params, hlp);
+    } else {
+      addTrackedEntitySubqueryConditions(sql, sqlParams, params, hlp);
+    }
+    addAttributeOptionComboConditions(sql, sqlParams, params, hlp);
+  }
+
+  private void addCountOrgUnitConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      EnrollmentQueryParams params,
+      SqlHelper hlp,
+      boolean hasTrackedEntityJoin) {
+    addOrgUnitConditions(sql, sqlParams, params, hlp, hasTrackedEntityJoin ? "te" : "e");
+  }
+
+  /**
+   * Filters by tracked entity UIDs using a subquery when the {@code trackedentity} table is not
+   * joined.
+   */
+  private void addTrackedEntitySubqueryConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      EnrollmentQueryParams params,
+      SqlHelper hlp) {
+    if (params.hasTrackedEntities()) {
+      sql.append(hlp.whereAnd())
+          .append(
+              "e.trackedentityid in (select trackedentityid from trackedentity where uid in (:trackedEntityUids))");
+      sqlParams.addValue(
+          "trackedEntityUids", params.getTrackedEntities().stream().map(UID::getValue).toList());
+    }
   }
 
   private static String orderBy(List<Order> orders) {
@@ -367,9 +606,11 @@ class JdbcEnrollmentStore {
 
   private static class EnrollmentRowMapper implements RowMapper<Enrollment> {
     private final boolean isIncludeAttributes;
+    private final Program program;
 
-    EnrollmentRowMapper(boolean isIncludeAttributes) {
+    EnrollmentRowMapper(boolean isIncludeAttributes, @Nullable Program program) {
       this.isIncludeAttributes = isIncludeAttributes;
+      this.program = program;
     }
 
     @Override
@@ -395,26 +636,34 @@ class JdbcEnrollmentStore {
       enrollment.setStatus(EnrollmentStatus.valueOf(rs.getString("status")));
       enrollment.setGeometry(Geometries.fromWkb(rs.getBytes("geometry")));
 
-      TrackedEntityType trackedEntityType = new TrackedEntityType();
-      trackedEntityType.setUid(rs.getString("tet_uid"));
-      trackedEntityType.setAllowAuditLog(rs.getBoolean("tet_allowauditlog"));
-      trackedEntityType.setEnableChangeLog(rs.getBoolean("tet_enablechangelog"));
-      trackedEntityType.setSharing(mapSharingJsonIntoSharingObject(rs.getString("tet_sharing")));
+      Program enrollmentProgram;
+      TrackedEntityType trackedEntityType;
+      if (program != null) {
+        enrollmentProgram = program;
+        trackedEntityType = program.getTrackedEntityType();
+      } else {
+        trackedEntityType = new TrackedEntityType();
+        trackedEntityType.setUid(rs.getString("tet_uid"));
+        trackedEntityType.setAllowAuditLog(rs.getBoolean("tet_allowauditlog"));
+        trackedEntityType.setEnableChangeLog(rs.getBoolean("tet_enablechangelog"));
+        trackedEntityType.setSharing(mapSharingJsonIntoSharingObject(rs.getString("tet_sharing")));
 
-      Program program = new Program();
-      program.setId(rs.getLong("program_id"));
-      program.setUid(rs.getString("program_uid"));
-      program.setName(rs.getString("program_name"));
-      program.setShortName(rs.getString("program_short_name"));
-      program.setCode(rs.getString("program_code"));
-      program.setDescription(rs.getString("program_description"));
-      program.setCreated(formatDate(rs.getTimestamp("program_created")));
-      program.setLastUpdated(formatDate(rs.getTimestamp("program_lastupdated")));
-      program.setTrackedEntityType(trackedEntityType);
-      program.setProgramType(ProgramType.valueOf(rs.getString("program_type")));
-      program.setAccessLevel(AccessLevel.valueOf(rs.getString("program_accesslevel")));
-      program.setSharing(mapSharingJsonIntoSharingObject(rs.getString("program_sharing")));
-      enrollment.setProgram(program);
+        enrollmentProgram = new Program();
+        enrollmentProgram.setId(rs.getLong("program_id"));
+        enrollmentProgram.setUid(rs.getString("program_uid"));
+        enrollmentProgram.setName(rs.getString("program_name"));
+        enrollmentProgram.setShortName(rs.getString("program_short_name"));
+        enrollmentProgram.setCode(rs.getString("program_code"));
+        enrollmentProgram.setDescription(rs.getString("program_description"));
+        enrollmentProgram.setCreated(formatDate(rs.getTimestamp("program_created")));
+        enrollmentProgram.setLastUpdated(formatDate(rs.getTimestamp("program_lastupdated")));
+        enrollmentProgram.setTrackedEntityType(trackedEntityType);
+        enrollmentProgram.setProgramType(ProgramType.valueOf(rs.getString("program_type")));
+        enrollmentProgram.setAccessLevel(AccessLevel.valueOf(rs.getString("program_accesslevel")));
+        enrollmentProgram.setSharing(
+            mapSharingJsonIntoSharingObject(rs.getString("program_sharing")));
+      }
+      enrollment.setProgram(enrollmentProgram);
 
       TrackedEntity trackedEntity = new TrackedEntity();
       trackedEntity.setUid(rs.getString("tracked_entity_uid"));
@@ -440,6 +689,10 @@ class JdbcEnrollmentStore {
                   mapTrackedEntityAttributeValues(jsonAttributes, trackedEntity));
         }
       }
+
+      CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
+      categoryOptionCombo.setUid(rs.getString("coc_uid"));
+      enrollment.setAttributeOptionCombo(categoryOptionCombo);
 
       return enrollment;
     }

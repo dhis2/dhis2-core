@@ -181,6 +181,30 @@ class BaseNotificationMessageRendererTest {
     assertEquals(BaseNotificationMessageRenderer.EMAIL_CHAR_LIMIT, message.getMessage().length());
   }
 
+  @Test
+  void testRenderUsesDisplaySubjectTemplate() {
+    Entity e = entity();
+    NotificationTemplate template = Mockito.spy(template("V{a}", "V{a}"));
+    Mockito.when(template.getDisplaySubjectTemplate()).thenReturn("Translated V{b}");
+
+    NotificationMessage message = renderer.render(e, template);
+
+    assertNotNull(message);
+    assertEquals("Translated B", message.getSubject());
+  }
+
+  @Test
+  void testRenderUsesDisplayMessageTemplate() {
+    Entity e = entity();
+    NotificationTemplate template = Mockito.spy(template("V{a}", "V{a}"));
+    Mockito.when(template.getDisplayMessageTemplate()).thenReturn("Translated V{b}");
+
+    NotificationMessage message = renderer.render(e, template);
+
+    assertNotNull(message);
+    assertEquals("Translated B", message.getMessage());
+  }
+
   // -------------------------------------------------------------------------
   // Factory methods
   // -------------------------------------------------------------------------
@@ -296,7 +320,7 @@ class BaseNotificationMessageRendererTest {
 
     @Override
     public String getDisplaySubjectTemplate() {
-      return null;
+      return getSubjectTemplate();
     }
 
     @Override
@@ -306,7 +330,7 @@ class BaseNotificationMessageRendererTest {
 
     @Override
     public String getDisplayMessageTemplate() {
-      return null;
+      return getMessageTemplate();
     }
 
     @Override

@@ -81,6 +81,7 @@ import org.hisp.dhis.analytics.event.data.aggregate.AggregatedEnrollmentHeaderCo
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.event.data.stage.StageHeaderClassifier;
+import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
@@ -158,7 +159,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       AnalyticsSqlBuilder sqlBuilder,
       OrganisationUnitResolver organisationUnitResolver,
       ColumnMapper columnMapper,
-      QueryItemFilterBuilder filterBuilder) {
+      QueryItemFilterBuilder filterBuilder,
+      StageQuerySqlFacade stageQuerySqlFacade) {
     super(
         jdbcTemplate,
         programIndicatorService,
@@ -171,7 +173,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         config,
         organisationUnitResolver,
         columnMapper,
-        filterBuilder);
+        filterBuilder,
+        stageQuerySqlFacade);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
@@ -932,7 +935,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     List<String> columns = new ArrayList<>();
 
     // Add base column
-    addDimensionSelectColumns(columns, params, true);
+    addDimensionSelectColumns(columns, params, true, true);
 
     SelectBuilder sb = new SelectBuilder();
     sb.addColumn(ENROLLMENT_COL, "ax");

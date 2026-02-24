@@ -29,7 +29,8 @@
  */
 package org.hisp.dhis.webapi.filter;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_REQUEST_ID_ENABLED;
+import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_SESSION_ID;
+import static org.hisp.dhis.log.MdcKeys.MDC_SESSION_ID;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -53,7 +54,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * via {@code %X{sessionId}} in log4j2 pattern layouts.
  *
  * <p>The session ID is hashed using SHA-256 and base64-encoded for security. Only enabled when
- * {@code logging.request_id.enabled} is true.
+ * {@code logging.session_id} is true.
  *
  * @author Luciano Fiandesio
  * @see <a href="https://logback.qos.ch/manual/mdc.html">MDC Documentation</a>
@@ -64,8 +65,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Slf4j
 @Component
 public class SessionIdFilter extends OncePerRequestFilter {
-  private static final String SESSION_ID_KEY = "sessionId";
-
   /** The hash algorithm to use. */
   private static final String HASH_ALGO = "SHA-256";
 
@@ -74,7 +73,7 @@ public class SessionIdFilter extends OncePerRequestFilter {
   private final boolean enabled;
 
   public SessionIdFilter(DhisConfigurationProvider dhisConfig) {
-    this.enabled = dhisConfig.isEnabled(LOGGING_REQUEST_ID_ENABLED);
+    this.enabled = dhisConfig.isEnabled(LOGGING_SESSION_ID);
   }
 
   @Override
@@ -88,7 +87,7 @@ public class SessionIdFilter extends OncePerRequestFilter {
             && authentication.isAuthenticated()
             && !authentication.getPrincipal().equals("anonymousUser")) {
 
-          MDC.put(SESSION_ID_KEY, IDENTIFIER_PREFIX + hashToBase64(req.getSession().getId()));
+          MDC.put(MDC_SESSION_ID, IDENTIFIER_PREFIX + hashToBase64(req.getSession().getId()));
         }
       } catch (NoSuchAlgorithmException e) {
         log.error(String.format("Invalid Hash algorithm provided (%s)", HASH_ALGO), e);

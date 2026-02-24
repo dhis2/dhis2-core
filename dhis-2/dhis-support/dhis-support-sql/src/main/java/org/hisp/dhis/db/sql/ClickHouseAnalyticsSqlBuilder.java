@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.db.sql;
 
+import java.util.Optional;
+
 public class ClickHouseAnalyticsSqlBuilder extends ClickHouseSqlBuilder
     implements AnalyticsSqlBuilder {
 
@@ -44,5 +46,25 @@ public class ClickHouseAnalyticsSqlBuilder extends ClickHouseSqlBuilder
   @Override
   public String renderTimestamp(String timestampAsString) {
     return timestampAsString;
+  }
+
+  @Override
+  public Optional<String> renderStageDatePeriodBucket(
+      String stageDateColumn, String periodBucketColumn) {
+    String dateExpr = "toDate(" + stageDateColumn + ")";
+
+    return Optional.ofNullable(
+        switch (periodBucketColumn) {
+          case "yearly" -> "formatDateTime(" + dateExpr + ", '%Y')";
+          case "monthly" -> "formatDateTime(" + dateExpr + ", '%Y%m')";
+          case "daily" -> "formatDateTime(" + dateExpr + ", '%Y%m%d')";
+          case "quarterly" ->
+              "concat(formatDateTime("
+                  + dateExpr
+                  + ", '%Y'), 'Q', toString(toQuarter("
+                  + dateExpr
+                  + ")))";
+          default -> null;
+        });
   }
 }

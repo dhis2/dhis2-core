@@ -73,14 +73,17 @@ class DhisConfigurationProviderTest {
   @Test
   void getDefault() {
     assertEquals("hikari", configProvider.getProperty(ConfigurationKey.DB_POOL_TYPE));
+    assertEquals(
+        "controller,method",
+        configProvider.getProperty(ConfigurationKey.MONITORING_SQL_CONTEXT_KEYS));
   }
 
   @Test
   void isEnabled() {
     assertFalse(configProvider.isEnabled(ConfigurationKey.REDIS_ENABLED));
     assertFalse(configProvider.isEnabled(ConfigurationKey.MONITORING_API_ENABLED));
-    assertTrue(configProvider.isEnabled(ConfigurationKey.ENABLE_QUERY_LOGGING));
-    assertFalse(configProvider.isEnabled(ConfigurationKey.METHOD_QUERY_LOGGING_ENABLED));
+    assertTrue(configProvider.isEnabled(ConfigurationKey.LOGGING_QUERY));
+    assertFalse(configProvider.isEnabled(ConfigurationKey.LOGGING_QUERY_METHOD));
   }
 
   @Test
