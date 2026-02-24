@@ -709,9 +709,7 @@ class LastUpdateImportTest extends TrackerTest {
         .ifPresent(attr -> attr.setValue(attributeValue));
 
     TrackerImportParams params =
-        TrackerImportParams.builder()
-            .trackedEntities(importParams.getTrackedEntities())
-            .build(); // or your custom params
+        TrackerImportParams.builder().trackedEntities(importParams.getTrackedEntities()).build();
     ImportReport report = trackerImportService.importTracker(params);
 
     assertNoErrors(report);
