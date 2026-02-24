@@ -136,6 +136,27 @@ class StaticCacheControlServiceTest {
   }
 
   @Test
+  @DisplayName("Vite/Rollup-style hashed filename gets immutable treatment")
+  void viteHashedFilename_getsImmutable() {
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    service.setHeaders(response, "/dhis-web-messaging/assets/main-Dhu2pmiS.js", null);
+
+    String cc = response.getHeader("Cache-Control");
+    assertThat(cc, containsString("max-age=31536000"));
+    assertThat(cc, containsString("public"));
+  }
+
+  @Test
+  @DisplayName("Dash-separated filename without digits is NOT treated as hashed")
+  void dashSeparatedNonHash_getsDefaultMaxAge() {
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    service.setHeaders(response, "/apps/dashboard/main-component.js", null);
+
+    String cc = response.getHeader("Cache-Control");
+    assertThat(cc, containsString("max-age=3600"));
+  }
+
+  @Test
   @DisplayName("App cache config rule overrides default max-age")
   void appCacheConfig_overridesMaxAge() {
     App app = new App();

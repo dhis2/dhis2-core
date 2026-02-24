@@ -58,7 +58,10 @@ import org.springframework.util.AntPathMatcher;
 public class StaticCacheControlService {
 
   private static final AntPathMatcher ANT = new AntPathMatcher();
-  private static final Pattern HASHED_FILENAME = Pattern.compile("\\.[0-9a-f]{8,}\\.");
+  private static final Pattern HASHED_FILENAME =
+      Pattern.compile(
+          "\\.[0-9a-f]{8,}\\." // Webpack: name.abc12345.ext
+              + "|-(?=[a-zA-Z0-9]*[0-9])[a-zA-Z0-9]{7,}\\."); // Vite/Rollup: name-Dhu2pmiS.ext
 
   private final DhisConfigurationProvider config;
   private final AppManager appManager;
