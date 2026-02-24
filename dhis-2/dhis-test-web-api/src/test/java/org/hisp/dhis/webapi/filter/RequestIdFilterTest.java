@@ -30,6 +30,8 @@
 package org.hisp.dhis.webapi.filter;
 
 import static org.hisp.dhis.http.HttpClientAdapter.Header;
+import static org.hisp.dhis.log.MdcKeys.MDC_REQUEST_ID;
+import static org.hisp.dhis.log.MdcKeys.MDC_X_REQUEST_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -116,8 +118,8 @@ class RequestIdFilterTest extends H2ControllerIntegrationTestBase {
     @GetMapping("/api/test/requestId")
     @ResponseBody
     public String getRequestInfo() {
-      String requestId = MDC.get("requestId");
-      String xRequestID = MDC.get("xRequestID");
+      String requestId = MDC.get(MDC_REQUEST_ID);
+      String xRequestID = MDC.get(MDC_X_REQUEST_ID);
 
       return """
           {
