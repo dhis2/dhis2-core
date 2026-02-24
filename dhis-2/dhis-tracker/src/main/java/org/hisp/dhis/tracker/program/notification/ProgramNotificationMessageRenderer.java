@@ -35,15 +35,12 @@ import com.google.common.collect.Maps;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.notification.BaseNotificationMessageRenderer;
 import org.hisp.dhis.notification.TemplateVariable;
-import org.hisp.dhis.option.Option;
-import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.notification.ProgramTemplateVariable;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
@@ -56,8 +53,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ProgramNotificationMessageRenderer
     extends BaseNotificationMessageRenderer<Enrollment> {
-
-  private final OptionService optionService;
 
   public static final ImmutableMap<TemplateVariable, Function<Enrollment, String>>
       VARIABLE_RESOLVERS =
@@ -107,7 +102,7 @@ public class ProgramNotificationMessageRenderer
 
     return entity.getTrackedEntity().getTrackedEntityAttributeValues().stream()
         .filter(av -> attributeKeys.contains(av.getAttribute().getUid()))
-        .collect(Collectors.toMap(av -> av.getAttribute().getUid(), this::filterValue));
+        .collect(Collectors.toMap(av -> av.getAttribute().getUid(), this::renderAttributeValue));
   }
 
   @Override
@@ -131,21 +126,15 @@ public class ProgramNotificationMessageRenderer
   // Internal methods
   // -------------------------------------------------------------------------
 
-  private String filterValue(TrackedEntityAttributeValue av) {
+  private String renderAttributeValue(TrackedEntityAttributeValue av) {
     String value = av.getPlainValue();
 
     if (value == null) {
       return CONFIDENTIAL_VALUE_REPLACEMENT;
     }
 
-    // If the AV has an OptionSet -> substitute value with the name of the
-    // Option
-    if (av.getAttribute().hasOptionSet()) {
-      Optional<Option> option =
-          optionService.findOptionByCode(av.getAttribute().getOptionSet().getUid(), value);
-      if (option.isPresent()) value = option.get().getName();
-    }
-
-    return value != null ? value : MISSING_VALUE_REPLACEMENT;
+    return av.getAttribute().hasOptionSet()
+        ? getOptionName(av.getAttribute().getOptionSet(), value)
+        : value;
   }
 }

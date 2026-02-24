@@ -396,7 +396,7 @@ public class DashboardItem implements IdentifiableObject, EmbeddedObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Translatable(propertyName = "text")
+  @Translatable(propertyName = "text", key = "TEXT")
   public String getDisplayText() {
     return translations.getTranslation("TEXT", getText());
   }

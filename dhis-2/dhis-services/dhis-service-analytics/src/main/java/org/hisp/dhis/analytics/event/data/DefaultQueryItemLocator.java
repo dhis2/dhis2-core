@@ -34,8 +34,13 @@ import static org.hisp.dhis.analytics.TimeField.EVENT_DATE;
 import static org.hisp.dhis.analytics.TimeField.SCHEDULED_DATE;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.common.DimensionConstants.COMPLETED;
+import static org.hisp.dhis.common.DimensionConstants.CREATED;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
+import static org.hisp.dhis.common.DimensionConstants.ENROLLMENT_DATE;
+import static org.hisp.dhis.common.DimensionConstants.INCIDENT_DATE;
 import static org.hisp.dhis.common.DimensionConstants.ITEM_SEP;
+import static org.hisp.dhis.common.DimensionConstants.LAST_UPDATED;
 import static org.hisp.dhis.feedback.ErrorCode.E7224;
 
 import java.util.Collections;
@@ -214,19 +219,19 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
 
     String dim = getFirstElement(dimension);
 
-    if ("ENROLLMENT_DATE".equals(dim)) {
+    if (ENROLLMENT_DATE.equals(dim)) {
       return Optional.of(newDateQueryItem(program, legendSet, getEnrollmentDateColumn(type)));
     }
 
-    if ("INCIDENT_DATE".equals(dim)) {
+    if (INCIDENT_DATE.equals(dim)) {
       return Optional.of(newDateQueryItem(program, legendSet, getIncidentDateColumn(type)));
     }
 
-    if ("LAST_UPDATED".equals(dim)) {
+    if (LAST_UPDATED.equals(dim)) {
       return Optional.of(newDateQueryItem(program, legendSet, getLastUpdatedColumn(type)));
     }
 
-    if ("CREATED_DATE".equals(dim)) {
+    if (CREATED.equals(dim)) {
       if (EventOutputType.ENROLLMENT == type) {
         return Optional.empty();
       }
@@ -234,7 +239,7 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
           newDateQueryItem(program, legendSet, EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME));
     }
 
-    if ("COMPLETED_DATE".equals(dim)) {
+    if (COMPLETED.equals(dim)) {
       return Optional.of(newDateQueryItem(program, legendSet, getCompletedDateColumn(type)));
     }
 
