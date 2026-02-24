@@ -43,4 +43,10 @@ public class CspConstants {
    */
   public static final String DEFAULT_CSP_POLICY =
       "default-src 'self'; style-src 'self' 'unsafe-inline';";
+
+  /**
+   * CSP policy for endpoints serving user-uploaded content. This policy disables all unsafe sources
+   * to prevent injection attacks on potentially untrusted content.
+   */
+  public static final String USER_UPLOADED_CONTENT_CSP_POLICY = "default-src 'none';";
 }

@@ -36,7 +36,9 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.FileResourceStream.Content;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
+import org.hisp.dhis.webapi.security.csp.CspPolicyService;
 import org.hisp.dhis.webapi.utils.ResponseEntityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
@@ -55,6 +57,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class RequestHandler {
+  @Autowired private final CspPolicyService cspPolicyService;
   private static final CacheControl CACHE_CONTROL_DIRECTIVES =
       CacheControl.noCache().cachePrivate();
 
@@ -63,9 +66,12 @@ public class RequestHandler {
       throws ConflictException, BadRequestException {
     final String etag = file.uid();
 
+    HttpHeaders securityHeaders = cspPolicyService.getSecurityHeaders(cspPolicyService.constructUserUploadedContentCspPolicy());
+
     if (ResponseEntityUtils.checkNotModified(etag, request)) {
       return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
           .cacheControl(CACHE_CONTROL_DIRECTIVES)
+          .headers(securityHeaders)
           .eTag(etag)
           .build();
     }
@@ -73,6 +79,7 @@ public class RequestHandler {
     Content content = file.contentSupplier().get();
     return ResponseEntity.ok()
         .cacheControl(CACHE_CONTROL_DIRECTIVES)
+        .headers(securityHeaders)
         .eTag(etag)
         .contentType(MediaType.valueOf(file.contentType()))
         .header(
