@@ -721,7 +721,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
         .findFirst()
         .ifPresent(attr -> attr.setValue(attributeValue));
 
-    TrackerImportParams params = TrackerImportParams.builder().build(); // or your custom params
+    TrackerImportParams params = TrackerImportParams.builder().build();
     ImportReport report = trackerImportService.importTracker(params, trackerObjects);
 
     assertNoErrors(report);
