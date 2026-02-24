@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
-import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -47,7 +46,6 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerIdScheme;
@@ -60,6 +58,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -134,11 +133,12 @@ class LastUpdateImportTest extends TrackerTest {
 
   @Test
   void shouldUpdateTEALastUpdatedWhenTEAIsUpdated() throws IOException {
-    TrackerImportParams params =
-        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
-    testSetup.importTrackerData("tracker/one_te_with_one_attribute.json", params);
+    TrackerObjects trackerObjects = fromJson("tracker/one_te_with_one_attribute.json");
+    TrackerImportParams trackerImportParams = new TrackerImportParams();
+    trackerImportParams.setImportStrategy(TrackerImportStrategy.UPDATE);
+    assertNoErrors(trackerImportService.importTracker(trackerImportParams, trackerObjects));
     Set<TrackedEntityAttributeValue> values = getTrackedEntity().getTrackedEntityAttributeValues();
-    assertHasSize(1, values);
+    Assertions.assertEquals(1, values.size());
     TrackedEntityAttributeValue attributeValue = values.iterator().next();
     Date lastUpdatedBefore = attributeValue.getLastUpdated();
     String attributeUid = attributeValue.getAttribute().getUid();
@@ -696,15 +696,14 @@ class LastUpdateImportTest extends TrackerTest {
   }
 
   private void updateAttributeValue(String attribute, String attributeValue) throws IOException {
-    TrackerObjects trackerObjects = testSetup.fromJson("tracker/one_te_with_one_attribute.json");
+    TrackerObjects trackerObjects = fromJson("tracker/one_te_with_one_attribute.json");
     trackerObjects.getTrackedEntities().get(0).getAttributes().stream()
         .filter(attr -> attribute.equals(attr.getAttribute().getIdentifier()))
         .findFirst()
         .ifPresent(attr -> attr.setValue(attributeValue));
 
-    TrackerImportParams params = TrackerImportParams.builder().build(); // or your custom params
-    ImportReport report = trackerImportService.importTracker(params, trackerObjects);
-
-    assertNoErrors(report);
+    TrackerImportParams trackerImportParams = new TrackerImportParams();
+    trackerImportParams.setImportStrategy(TrackerImportStrategy.UPDATE);
+    assertNoErrors(trackerImportService.importTracker(trackerImportParams, trackerObjects));
   }
 }
