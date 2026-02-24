@@ -557,6 +557,18 @@ public enum ConfigurationKey {
   /** Enable secure settings if system is deployed on HTTPS, can be 'off', 'on'. */
   SERVER_HTTPS("server.https", Constants.OFF),
 
+  /** Prepends SQL comments with MDC context (controller, method, request_id, session_id). */
+  MONITORING_SQL_CONTEXT("monitoring.sql.context", Constants.OFF, false),
+
+  /**
+   * Comma-separated MDC keys to include in SQL comments. Uses the same key names as log4j2 {@code
+   * %X{key}} patterns. Supported keys: {@code controller}, {@code method}, {@code requestId},
+   * {@code sessionId}. Adding {@code requestId} or {@code sessionId} produces unique SQL per
+   * request, which prevents PgJDBC from promoting queries to server-side prepared statements.
+   * Invalid keys cause a startup failure.
+   */
+  MONITORING_SQL_CONTEXT_KEYS("monitoring.sql.context.keys", "controller,method", false),
+
   /** DHIS2 API monitoring. */
   MONITORING_API_ENABLED("monitoring.api.enabled", Constants.OFF, false),
 
@@ -807,7 +819,7 @@ public enum ConfigurationKey {
   OIDC_DHIS2_INTERNAL_CLIENT_ID("oidc.provider.dhis2.client_id", "dhis2-internal", false),
   OIDC_DHIS2_INTERNAL_CLIENT_SECRET("oidc.provider.dhis2.client_secret", "secret", false),
   OIDC_DHIS2_INTERNAL_MAPPING_CLAIM("oidc.provider.dhis2.mapping_claim", "username", false),
-  OIDC_DHIS2_INTERNAL_SERVER_URL("oidc.provider.dhis2.server_url", "http://localhost:8080", false);
+  OIDC_DHIS2_INTERNAL_SERVER_URL("oidc.provider.dhis2.server_url", "", false);
 
   private final String key;
 
