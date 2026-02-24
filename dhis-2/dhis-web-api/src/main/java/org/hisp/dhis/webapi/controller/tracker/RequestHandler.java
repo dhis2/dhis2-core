@@ -66,7 +66,9 @@ public class RequestHandler {
       throws ConflictException, BadRequestException {
     final String etag = file.uid();
 
-    HttpHeaders securityHeaders = cspPolicyService.getSecurityHeaders(cspPolicyService.constructUserUploadedContentCspPolicy());
+    HttpHeaders securityHeaders =
+        cspPolicyService.getSecurityHeaders(
+            cspPolicyService.constructUserUploadedContentCspPolicy());
 
     if (ResponseEntityUtils.checkNotModified(etag, request)) {
       return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
