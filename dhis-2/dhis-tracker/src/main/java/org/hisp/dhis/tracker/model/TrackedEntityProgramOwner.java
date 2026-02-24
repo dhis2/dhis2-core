@@ -87,7 +87,7 @@ public class TrackedEntityProgramOwner implements Serializable {
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   public Program getProgram() {
     return program;
   }

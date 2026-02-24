@@ -1097,7 +1097,7 @@ public class Program extends BaseMetadataObject
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Program getRelatedProgram() {
     return relatedProgram;
