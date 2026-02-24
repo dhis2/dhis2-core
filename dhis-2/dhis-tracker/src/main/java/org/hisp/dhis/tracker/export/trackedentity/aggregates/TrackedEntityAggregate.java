@@ -53,6 +53,7 @@ import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
 import org.hisp.dhis.user.CurrentUserUtil;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -86,23 +87,27 @@ public class TrackedEntityAggregate {
             : null;
 
     List<Long> ids = identifiers.stream().map(TrackedEntityIdentifiers::id).toList();
+    Map<String, String> mdc = MDC.getCopyOfContextMap();
     final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync =
         conditionalAsyncFetch(
             fields.isIncludesEnrollments(),
             () -> enrollmentAggregate.findByTrackedEntityIds(identifiers, ctx),
-            getPool());
+            getPool(),
+            mdc);
     final CompletableFuture<Multimap<String, TrackedEntityProgramOwner>> programOwnersAsync =
         conditionalAsyncFetch(
             fields.isIncludesProgramOwners(),
             () -> trackedEntityStore.getProgramOwners(ids),
-            getPool());
+            getPool(),
+            mdc);
     final CompletableFuture<Map<String, TrackedEntity>> trackedEntitiesAsync =
-        supplyAsync(() -> trackedEntityStore.getTrackedEntities(ids), getPool());
+        supplyAsync(withMdc(mdc, () -> trackedEntityStore.getTrackedEntities(ids)), getPool());
     final CompletableFuture<Multimap<String, TrackedEntityAttributeValue>> attributesAsync =
         conditionalAsyncFetch(
             fields.isIncludesAttributes(),
             () -> trackedEntityStore.getAttributes(ids, programId),
-            getPool());
+            getPool(),
+            mdc);
 
     allOf(trackedEntitiesAsync, attributesAsync, enrollmentsAsync, programOwnersAsync).join();
 
@@ -124,9 +129,31 @@ public class TrackedEntityAggregate {
   }
 
   private static <T> CompletableFuture<Multimap<String, T>> conditionalAsyncFetch(
-      boolean condition, Supplier<Multimap<String, T>> supplier, Executor executor) {
+      boolean condition,
+      Supplier<Multimap<String, T>> supplier,
+      Executor executor,
+      Map<String, String> mdc) {
     return condition
-        ? supplyAsync(supplier, executor)
+        ? supplyAsync(withMdc(mdc, supplier), executor)
         : supplyAsync(ArrayListMultimap::create, executor);
+  }
+
+  /** Wraps a supplier so that the given MDC context is set on the async thread. */
+  private static <T> Supplier<T> withMdc(Map<String, String> mdc, Supplier<T> supplier) {
+    return () -> {
+      Map<String, String> previous = MDC.getCopyOfContextMap();
+      if (mdc != null) {
+        MDC.setContextMap(mdc);
+      }
+      try {
+        return supplier.get();
+      } finally {
+        if (previous != null) {
+          MDC.setContextMap(previous);
+        } else {
+          MDC.clear();
+        }
+      }
+    };
   }
 }
