@@ -356,7 +356,8 @@ public abstract class AbstractTrackerPersister<
                                         preheat, attribute.getAttribute()))
                                 .setTrackedEntity(trackedEntity))
                     .setStoredBy(attribute.getStoredBy())
-                    .setValue(attribute.getValue());
+                    .setValue(attribute.getValue())
+                    .setLastUpdated(new Date());
 
             saveOrUpdate(
                 entityManager,
@@ -411,7 +412,6 @@ public abstract class AbstractTrackerPersister<
       trackedEntity.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
       changeLogType = ChangeLogType.CREATE;
     } else {
-      trackedEntityAttributeValue.setLastUpdated(new Date());
       entityManager.merge(trackedEntityAttributeValue);
 
       if (isUpdated) {
