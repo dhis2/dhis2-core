@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
+
 import java.util.Collection;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
@@ -66,8 +68,7 @@ public class EmbeddedObjectObjectBundleHook extends AbstractObjectBundleHook<Ide
         .forEach(
             propertyName -> {
               Property property = schema.getEmbeddedObjectProperties().get(propertyName);
-              Object propertyObject =
-                  ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+              Object propertyObject = safeInvoke(object, property.getGetterMethod());
 
               if (property.getPropertyType().equals(PropertyType.COMPLEX)) {
                 schemaValidator
@@ -131,7 +132,7 @@ public class EmbeddedObjectObjectBundleHook extends AbstractObjectBundleHook<Ide
         if (ReflectionUtils.isSharingProperty(property) && bundle.isSkipSharing()) {
           continue;
         }
-        Collection<?> collection = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+        Collection<?> collection = safeInvoke(object, property.getGetterMethod());
         if (collection != null) collection.clear();
       } else {
         ReflectionUtils.invokeMethod(object, property.getSetterMethod(), (Object) null);
@@ -142,7 +143,7 @@ public class EmbeddedObjectObjectBundleHook extends AbstractObjectBundleHook<Ide
   private void handleEmbeddedObjects(
       IdentifiableObject object, ObjectBundle bundle, Collection<Property> properties) {
     for (Property property : properties) {
-      Object propertyObject = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+      Object propertyObject = safeInvoke(object, property.getGetterMethod());
 
       if (property.isCollection()) {
         Collection<?> objects = (Collection<?>) propertyObject;

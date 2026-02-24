@@ -74,9 +74,9 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
     userA = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(userA);
 
-    testSetup.importTrackerData("tracker/single_te.json");
-    testSetup.importTrackerData("tracker/single_enrollment.json");
-    testSetup.importTrackerData("tracker/single_event.json");
+    testSetup.importTrackerData("tracker/one_te.json");
+    testSetup.importTrackerData("tracker/one_enrollment.json");
+    testSetup.importTrackerData("tracker/one_tracker_event.json");
     manager.flush();
   }
 

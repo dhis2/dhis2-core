@@ -113,6 +113,19 @@ public final class DimensionConstants {
 
   // Dynamic dimensions
 
+  public static final String ENROLLMENT_DATE = "ENROLLMENT_DATE";
+  public static final String INCIDENT_DATE = "INCIDENT_DATE";
+  public static final String LAST_UPDATED = "LAST_UPDATED";
+  public static final String CREATED = "CREATED";
+  public static final String COMPLETED = "COMPLETED";
+
+  /**
+   * Static date dimension identifiers usable as period-equivalent dimensions in event/enrollment
+   * aggregate analytics queries.
+   */
+  public static final Set<String> STATIC_DATE_DIMENSIONS =
+      Set.of(ENROLLMENT_DATE, INCIDENT_DATE, LAST_UPDATED, CREATED, COMPLETED);
+
   /** Classes which represent dynamic dimensions. */
   public static final Set<Class<? extends DimensionalObject>> DYNAMIC_DIMENSION_CLASSES =
       Set.of(

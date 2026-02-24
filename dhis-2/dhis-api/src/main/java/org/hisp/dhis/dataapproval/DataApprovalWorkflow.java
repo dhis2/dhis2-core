@@ -29,29 +29,50 @@
  */
 package org.hisp.dhis.dataapproval;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.hibernate.annotations.Type;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
 
 /**
  * Identifies types of data to be approved, and the set of approval levels by which it is approved.
@@ -61,19 +82,50 @@ import org.hisp.dhis.schema.annotation.Property;
  *
  * @author Jim Grace
  */
+@Entity
+@Table(name = "dataapprovalworkflow")
 @JacksonXmlRootElement(localName = "dataApprovalWorkflow", namespace = DxfNamespaces.DXF_2_0)
-public class DataApprovalWorkflow extends BaseIdentifiableObject implements MetadataObject {
+public class DataApprovalWorkflow extends BaseMetadataObject
+    implements IdentifiableObject, MetadataObject {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "workflowid")
+  private long id;
+
+  @Column(name = "code", unique = true, length = 50)
+  private String code;
+
+  @Column(name = "name", nullable = false, unique = true, length = 230)
+  private String name;
+
+  @Embedded private TranslationProperty translations = new TranslationProperty();
+
   /** The period type for approving data with this workflow. */
+  @ManyToOne
+  @JoinColumn(name = "periodtypeid", nullable = false)
   private PeriodType periodType;
 
   /** The category combination for approving data with this workflow. */
+  @ManyToOne
+  @JoinColumn(name = "categorycomboid", nullable = false)
   private CategoryCombo categoryCombo;
 
   /** The data approval levels used in this workflow. */
+  @ManyToMany
+  @JoinTable(
+      name = "dataapprovalworkflowlevels",
+      joinColumns = @JoinColumn(name = "workflowid"),
+      inverseJoinColumns = @JoinColumn(name = "dataapprovallevelid"))
   private Set<DataApprovalLevel> levels = new HashSet<>();
 
   /** The data sets part of this workflow. Inverse side. */
+  @OneToMany(mappedBy = "workflow")
   private Set<DataSet> dataSets = new HashSet<>();
+
+  @Type(type = "jsbObjectSharing")
+  @Column(name = "sharing")
+  private Sharing sharing = new Sharing();
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -192,7 +244,7 @@ public class DataApprovalWorkflow extends BaseIdentifiableObject implements Meta
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "dataSets", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "dataSet", namespace = DxfNamespaces.DXF_2_0)
   public Set<DataSet> getDataSets() {
@@ -201,5 +253,159 @@ public class DataApprovalWorkflow extends BaseIdentifiableObject implements Meta
 
   public void setDataSets(Set<DataSet> dataSets) {
     this.dataSets = dataSets;
+  }
+
+  // -------------------------------------------------------------------------
+  // IdentifiableObject implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  @JsonIgnore
+  public long getId() {
+    return id;
+  }
+
+  @Override
+  public void setId(long id) {
+    this.id = id;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getCode() {
+    return code;
+  }
+
+  @Override
+  public void setCode(String code) {
+    this.code = code;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  public void setName(String name) {
+    this.name = name;
+  }
+
+  @Override
+  public String getDisplayName() {
+    return getName();
+  }
+
+  @Override
+  public Set<Translation> getTranslations() {
+    return translations != null ? translations.getTranslations() : new HashSet<>();
+  }
+
+  @Override
+  public void setTranslations(Set<Translation> translations) {
+    if (this.translations == null) {
+      this.translations = new TranslationProperty();
+    }
+    this.translations.setTranslations(translations);
+  }
+
+  @Override
+  public Sharing getSharing() {
+    if (sharing == null) {
+      sharing = new Sharing();
+    }
+    return sharing;
+  }
+
+  @Override
+  public void setSharing(Sharing sharing) {
+    this.sharing = sharing;
+  }
+
+  // -------------------------------------------------------------------------
+  // Unsupported IdentifiableObject methods
+  // -------------------------------------------------------------------------
+
+  /** This entity does not support attribute values. */
+  @Override
+  @Deprecated
+  public AttributeValues getAttributeValues() {
+    return AttributeValues.empty();
+  }
+
+  /** This entity does not support attribute values. */
+  @Override
+  @Deprecated
+  public void setAttributeValues(AttributeValues attributeValues) {
+    // Not supported
+  }
+
+  /** This entity does not support attribute values. */
+  @Override
+  @Deprecated
+  public void addAttributeValue(String attributeUid, String value) {
+    // Not supported
+  }
+
+  /** This entity does not support attribute values. */
+  @Override
+  @Deprecated
+  public void removeAttributeValue(String attributeId) {
+    // Not supported
+  }
+
+  /**
+   * @deprecated This method is replaced by {@link #getCreatedBy()}
+   */
+  @Override
+  @Deprecated
+  public User getUser() {
+    return getCreatedBy();
+  }
+
+  /**
+   * @deprecated This method is replaced by {@link #setCreatedBy(User)}
+   */
+  @Override
+  @Deprecated
+  public void setUser(User user) {
+    setCreatedBy(user);
+  }
+
+  @Override
+  @Deprecated
+  public void setOwner(String owner) {
+    // Not supported
+  }
+
+  @Override
+  public String getPropertyValue(IdScheme idScheme) {
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return getUid();
+    }
+    if (idScheme.is(IdentifiableProperty.CODE)) {
+      return getCode();
+    }
+    if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getName();
+    }
+    return null;
+  }
+
+  @Override
+  public String getDisplayPropertyValue(IdScheme idScheme) {
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return getDisplayName();
+    }
+    if (idScheme.is(IdentifiableProperty.CODE)) {
+      return getCode();
+    }
+    if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getDisplayName();
+    }
+    return null;
   }
 }

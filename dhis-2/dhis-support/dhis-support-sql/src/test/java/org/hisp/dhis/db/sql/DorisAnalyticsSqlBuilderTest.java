@@ -32,10 +32,8 @@ package org.hisp.dhis.db.sql;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.time.format.DateTimeParseException;
 import org.junit.jupiter.api.Test;
 
 class DorisAnalyticsSqlBuilderTest {
@@ -82,11 +80,24 @@ class DorisAnalyticsSqlBuilderTest {
     assertNull(sqlBuilder.renderTimestamp("   "));
   }
 
-  /** Tests that invalid timestamp format throws appropriate exception */
+  /** Tests that invalid timestamp format is returned as-is */
   @Test
-  void renderTimestampInvalidFormatShouldThrowException() {
+  void renderTimestampInvalidFormatShouldReturnInput() {
     String invalidInput = "2023-13-45 25:65:99"; // Invalid date/time values
-    assertThrows(DateTimeParseException.class, () -> sqlBuilder.renderTimestamp(invalidInput));
+    assertEquals(invalidInput, sqlBuilder.renderTimestamp(invalidInput));
+  }
+
+  @Test
+  void renderTimestampSqlStyleTimestampShouldFormatCorrectly() {
+    String input = "2023-10-20 15:30:45.120";
+    String expected = "2023-10-20 15:30:45.12";
+    assertEquals(expected, sqlBuilder.renderTimestamp(input));
+  }
+
+  @Test
+  void renderTimestampPeriodBucketShouldReturnInput() {
+    String input = "202104";
+    assertEquals(input, sqlBuilder.renderTimestamp(input));
   }
 
   @Test

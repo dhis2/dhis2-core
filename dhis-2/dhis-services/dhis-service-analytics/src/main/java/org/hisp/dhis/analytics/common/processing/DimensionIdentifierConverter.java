@@ -126,15 +126,18 @@ public class DimensionIdentifierConverter {
       return handleProgramScoped(allowedPrograms, programOpt.get(), firstElement, dimension);
     }
 
-    // If first element is a stage UID with event-level dimension, handle as stage-scoped
+    // Event-level static dimensions always follow stage-scoped handling.
     if (isEventLevelStaticDimension(dimension.getUid())) {
       return handleStageScoped(allowedPrograms, firstElement, dimension);
     }
 
-    // If first element is a stage UID with non-event-level static dimension, throw specific error
-    if (isProgramStageUid(allowedPrograms, firstUid)
-        && isNonEventLevelStaticDimension(dimension.getUid())) {
-      throw unsupportedStageDimensionError(dimension.getUid(), firstUid);
+    // If first element is a stage UID, infer the program from the stage.
+    // Non-event-level static dimensions remain unsupported for stage-specific scoping.
+    if (isProgramStageUid(allowedPrograms, firstUid)) {
+      if (isNonEventLevelStaticDimension(dimension.getUid())) {
+        throw unsupportedStageDimensionError(dimension.getUid(), firstUid);
+      }
+      return handleStageScoped(allowedPrograms, firstElement, dimension);
     }
 
     // Otherwise, program doesn't exist

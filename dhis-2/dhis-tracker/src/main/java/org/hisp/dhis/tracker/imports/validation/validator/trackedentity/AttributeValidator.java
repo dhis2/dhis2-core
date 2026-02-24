@@ -93,7 +93,7 @@ class AttributeValidator
       TrackedEntityType trackedEntityType) {
 
     Set<MetadataIdentifier> trackedEntityAttributes =
-        getTrackedEntityAttributes(bundle, trackedEntity.getUid());
+        getTrackedEntityAttributes(bundle, trackedEntity.getUID());
 
     TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
     trackedEntityType.getTrackedEntityTypeAttributes().stream()

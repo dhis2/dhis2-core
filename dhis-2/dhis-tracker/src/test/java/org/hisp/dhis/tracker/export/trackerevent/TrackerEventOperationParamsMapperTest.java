@@ -162,7 +162,7 @@ class TrackerEventOperationParamsMapperTest {
 
     program = new Program();
     program.setUid("PlZSBEN7iZP");
-    eventBuilder = TrackerEventOperationParams.builderForProgram(UID.of(program));
+    eventBuilder = TrackerEventOperationParams.builderForProgram(program.getUID());
 
     userMap.put("admin", createUserWithAuthority(F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS));
     userMap.put("superuser", createUserWithAuthority(Authorities.ALL));
@@ -199,30 +199,6 @@ class TrackerEventOperationParamsMapperTest {
   }
 
   @Test
-  void
-      shouldFailWithForbiddenExceptionWhenUserHasNoAccessToCategoryComboGivenAttributeCategoryOptions() {
-    TrackerEventOperationParams operationParams =
-        eventBuilder
-            .attributeCategoryCombo(UID.of("NeU85luyD4w"))
-            .attributeCategoryOptions(UID.of("tqrzUqNMHib", "bT6OSf4qnnk"))
-            .build();
-    CategoryOptionCombo combo = new CategoryOptionCombo();
-    combo.setUid("uid");
-    when(categoryOptionComboService.getAttributeOptionCombo(
-            "NeU85luyD4w", Set.of("tqrzUqNMHib", "bT6OSf4qnnk"), true))
-        .thenReturn(combo);
-    when(aclService.canDataRead(any(UserDetails.class), any(CategoryOptionCombo.class)))
-        .thenReturn(false);
-
-    Exception exception =
-        assertThrows(ForbiddenException.class, () -> mapper.map(operationParams, user));
-
-    assertEquals(
-        "User has no access to attribute category option combo: " + combo.getUid(),
-        exception.getMessage());
-  }
-
-  @Test
   void shouldMapGivenAttributeCategoryOptionsWhenUserHasAccessToCategoryCombo()
       throws BadRequestException, ForbiddenException {
     TrackerEventOperationParams operationParams =
@@ -235,8 +211,7 @@ class TrackerEventOperationParamsMapperTest {
     when(categoryOptionComboService.getAttributeOptionCombo(
             "NeU85luyD4w", Set.of("tqrzUqNMHib", "bT6OSf4qnnk"), true))
         .thenReturn(combo);
-    when(aclService.canDataRead(any(UserDetails.class), any(CategoryOptionCombo.class)))
-        .thenReturn(true);
+    when(organisationUnitService.getOrganisationUnitsByUid(any())).thenReturn(List.of());
 
     TrackerEventQueryParams queryParams = mapper.map(operationParams, user);
 
@@ -245,6 +220,7 @@ class TrackerEventOperationParamsMapperTest {
 
   @Test
   void testMappingAssignedUser() throws BadRequestException, ForbiddenException {
+    when(organisationUnitService.getOrganisationUnitsByUid(any())).thenReturn(List.of());
     TrackerEventOperationParams operationParams =
         eventBuilder
             .assignedUsers(UID.of("IsdLBTOBzMi", "l5ab8q5skbB"))
@@ -262,6 +238,7 @@ class TrackerEventOperationParamsMapperTest {
 
   @Test
   void shouldMapAttributeFilters() throws BadRequestException, ForbiddenException {
+    when(organisationUnitService.getOrganisationUnitsByUid(any())).thenReturn(List.of());
     TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
     tea2.setUid(TEA_2_UID);
     tea2.setValueType(ValueType.TEXT);
@@ -311,6 +288,7 @@ class TrackerEventOperationParamsMapperTest {
 
   @Test
   void shouldMapOrderInGivenOrder() throws BadRequestException, ForbiddenException {
+    when(organisationUnitService.getOrganisationUnitsByUid(any())).thenReturn(List.of());
     DataElement de1 = new DataElement();
     de1.setUid(DE_1_UID);
     when(dataElementService.getDataElement(DE_1_UID)).thenReturn(de1);
@@ -371,6 +349,7 @@ class TrackerEventOperationParamsMapperTest {
 
   @Test
   void shouldMapDataElementFilters() throws BadRequestException, ForbiddenException {
+    when(organisationUnitService.getOrganisationUnitsByUid(any())).thenReturn(List.of());
     DataElement de1 = new DataElement();
     de1.setUid(DE_1_UID);
     de1.setValueType(ValueType.INTEGER);
@@ -460,6 +439,7 @@ class TrackerEventOperationParamsMapperTest {
 
     when(organisationUnitService.getOrganisationUnit(searchScopeChildOrgUnit.getUid()))
         .thenReturn(searchScopeChildOrgUnit);
+    when(organisationUnitService.getOrganisationUnitsByUid(any())).thenReturn(List.of());
 
     TrackerEventOperationParams operationParams =
         eventBuilder
@@ -537,13 +517,14 @@ class TrackerEventOperationParamsMapperTest {
   @Test
   void shouldMapAttributeFiltersWhenOperatorsAreNotBlocked()
       throws ForbiddenException, BadRequestException {
+    when(organisationUnitService.getOrganisationUnitsByUid(any())).thenReturn(List.of());
     TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
     tea2.setUid(TEA_2_UID);
     tea2.setValueType(ValueType.TEXT);
     when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_2_UID)).thenReturn(tea2);
 
     TrackerEventOperationParams trackerEventOperationParams =
-        TrackerEventOperationParams.builderForProgram(UID.of(program.getUid()))
+        TrackerEventOperationParams.builderForProgram(program.getUID())
             .filterByAttribute(
                 UID.of(TEA_2_UID),
                 List.of(
@@ -565,7 +546,7 @@ class TrackerEventOperationParamsMapperTest {
     when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_2_UID)).thenReturn(tea2);
 
     TrackerEventOperationParams trackerEventOperationParams =
-        TrackerEventOperationParams.builderForProgram(UID.of(program.getUid()))
+        TrackerEventOperationParams.builderForProgram(program.getUID())
             .filterByAttribute(
                 UID.of(TEA_2_UID), List.of(new QueryFilter(LIKE, "12"), new QueryFilter(EQ, "0")))
             .build();
@@ -583,7 +564,7 @@ class TrackerEventOperationParamsMapperTest {
     when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
 
     TrackerEventOperationParams trackerEventOperationParams =
-        TrackerEventOperationParams.builderForProgram(UID.of(program.getUid()))
+        TrackerEventOperationParams.builderForProgram(program.getUID())
             .filterByAttribute(UID.of(TEA_1_UID), List.of(new QueryFilter(EQ, "1")))
             .build();
 
@@ -602,7 +583,7 @@ class TrackerEventOperationParamsMapperTest {
     when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
 
     TrackerEventOperationParams trackerEventOperationParams =
-        TrackerEventOperationParams.builderForProgram(UID.of(program.getUid()))
+        TrackerEventOperationParams.builderForProgram(program.getUID())
             .filterByAttribute(
                 UID.of(TEA_1_UID), List.of(new QueryFilter(EQ, "12"), new QueryFilter(LIKE, "1")))
             .build();
@@ -619,11 +600,12 @@ class TrackerEventOperationParamsMapperTest {
   @Test
   void shouldMapTeaWhenTeaMinCharactersSetButOperatorIsUnary()
       throws ForbiddenException, BadRequestException {
+    when(organisationUnitService.getOrganisationUnitsByUid(any())).thenReturn(List.of());
     tea1.setMinCharactersToSearch(1);
     when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
 
     TrackerEventOperationParams trackerEventOperationParams =
-        TrackerEventOperationParams.builderForProgram(UID.of(program.getUid()))
+        TrackerEventOperationParams.builderForProgram(program.getUID())
             .filterByAttribute(UID.of(TEA_1_UID), List.of(new QueryFilter(NULL)))
             .build();
 
@@ -634,11 +616,12 @@ class TrackerEventOperationParamsMapperTest {
   @Test
   void shouldMapTeaWhenTeaMinCharactersSetAndReached()
       throws ForbiddenException, BadRequestException {
+    when(organisationUnitService.getOrganisationUnitsByUid(any())).thenReturn(List.of());
     tea1.setMinCharactersToSearch(2);
     when(trackedEntityAttributeService.getTrackedEntityAttribute(TEA_1_UID)).thenReturn(tea1);
 
     TrackerEventOperationParams trackerEventOperationParams =
-        TrackerEventOperationParams.builderForProgram(UID.of(program.getUid()))
+        TrackerEventOperationParams.builderForProgram(program.getUID())
             .filterByAttribute(UID.of(TEA_1_UID), List.of(new QueryFilter(EQ, "12")))
             .build();
 

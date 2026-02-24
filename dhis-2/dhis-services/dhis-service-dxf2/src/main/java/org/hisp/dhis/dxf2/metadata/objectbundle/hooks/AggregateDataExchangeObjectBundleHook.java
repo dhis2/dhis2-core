@@ -36,7 +36,6 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.Api;
 import org.hisp.dhis.dataexchange.aggregate.SourceRequest;
@@ -107,16 +106,6 @@ public class AggregateDataExchangeObjectBundleHook
                 "source.name",
                 SOURCE_REQUEST_NAME_MAX_LENGTH,
                 request.getName().length()));
-      }
-
-      if (request.getVisualization() != null
-          && !CodeGenerator.isValidUid(request.getVisualization())) {
-        addReports.accept(
-            new ErrorReport(
-                AggregateDataExchange.class,
-                ErrorCode.E4014,
-                "source.visualization",
-                request.getVisualization()));
       }
 
       if (isEmpty(request.getDx()) || isEmpty(request.getPe()) || isEmpty(request.getOu())) {

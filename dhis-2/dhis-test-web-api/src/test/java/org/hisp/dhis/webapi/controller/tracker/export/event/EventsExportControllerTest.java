@@ -37,6 +37,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
@@ -1093,8 +1094,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   private Enrollment enrollment(TrackedEntity te) {
-    Enrollment result = new Enrollment(program, te, te.getOrganisationUnit());
-    result.setAutoFields();
+    Enrollment result = createEnrollment(program, te, te.getOrganisationUnit());
     result.setEnrollmentDate(new Date());
     result.setOccurredDate(new Date());
     result.setStatus(EnrollmentStatus.COMPLETED);

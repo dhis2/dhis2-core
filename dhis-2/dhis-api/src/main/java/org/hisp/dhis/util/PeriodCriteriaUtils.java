@@ -32,7 +32,10 @@ package org.hisp.dhis.util;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.STATIC_DATE_DIMENSIONS;
 
+import java.util.Set;
+import java.util.stream.Stream;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
@@ -41,6 +44,12 @@ import org.hisp.dhis.period.RelativePeriodEnum;
 /** Helper class that provides supportive methods to deal with query criteria and periods. */
 @NoArgsConstructor(access = PRIVATE)
 public class PeriodCriteriaUtils {
+
+  private static boolean hasStaticDateDimension(Set<String> dims) {
+    return dims.stream()
+        .anyMatch(d -> STATIC_DATE_DIMENSIONS.stream().anyMatch(sd -> d.startsWith(sd + ":")));
+  }
+
   /**
    * Add a default period for the given criteria, if none is present.
    *
@@ -81,6 +90,8 @@ public class PeriodCriteriaUtils {
         || criteria.getFilter().stream().anyMatch(d -> d.contains(".EVENT_DATE:"))
         || criteria.getDimension().stream().anyMatch(d -> d.contains(".SCHEDULED_DATE:"))
         || criteria.getFilter().stream().anyMatch(d -> d.contains(".SCHEDULED_DATE:"))
+        || hasStaticDateDimension(criteria.getDimension())
+        || hasStaticDateDimension(criteria.getFilter())
         || !isBlank(criteria.getEventDate())
         || !isBlank(criteria.getOccurredDate())
         || !isBlank(criteria.getEnrollmentDate())
@@ -89,9 +100,9 @@ public class PeriodCriteriaUtils {
         || !isBlank(criteria.getEnrollmentOccurredDate())
         || !isBlank(criteria.getLastUpdated())
         || !isBlank(criteria.getScheduledDate())
-        || !isBlank(criteria.getCreatedDate())
-        || !isBlank(criteria.getCompletedDate())
-        || criteria.getRelativePeriodDate() != null;
+        || criteria.getRelativePeriodDate() != null
+        || Stream.concat(criteria.getDimension().stream(), criteria.getFilter().stream())
+            .anyMatch(d -> STATIC_DATE_DIMENSIONS.contains(d.split(":")[0]));
   }
 
   /**
@@ -104,13 +115,15 @@ public class PeriodCriteriaUtils {
   public static boolean hasPeriod(EnrollmentAnalyticsQueryCriteria criteria) {
     return criteria.getDimension().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID))
         || (criteria.getFilter().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID)))
+        || hasStaticDateDimension(criteria.getDimension())
+        || hasStaticDateDimension(criteria.getFilter())
         || !isBlank(criteria.getEnrollmentDate())
         || (criteria.getStartDate() != null && criteria.getEndDate() != null)
         || !isBlank(criteria.getIncidentDate())
         || !isBlank(criteria.getOccurredDate())
         || !isBlank(criteria.getLastUpdated())
-        || !isBlank(criteria.getCreatedDate())
-        || !isBlank(criteria.getCompletedDate())
-        || criteria.getRelativePeriodDate() != null;
+        || criteria.getRelativePeriodDate() != null
+        || Stream.concat(criteria.getDimension().stream(), criteria.getFilter().stream())
+            .anyMatch(d -> STATIC_DATE_DIMENSIONS.contains(d.split(":")[0]));
   }
 }

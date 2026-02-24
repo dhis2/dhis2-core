@@ -34,8 +34,13 @@ import static org.hisp.dhis.analytics.TimeField.EVENT_DATE;
 import static org.hisp.dhis.analytics.TimeField.SCHEDULED_DATE;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.common.DimensionConstants.COMPLETED;
+import static org.hisp.dhis.common.DimensionConstants.CREATED;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
+import static org.hisp.dhis.common.DimensionConstants.ENROLLMENT_DATE;
+import static org.hisp.dhis.common.DimensionConstants.INCIDENT_DATE;
 import static org.hisp.dhis.common.DimensionConstants.ITEM_SEP;
+import static org.hisp.dhis.common.DimensionConstants.LAST_UPDATED;
 import static org.hisp.dhis.feedback.ErrorCode.E7224;
 
 import java.util.Collections;
@@ -52,6 +57,7 @@ import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
+import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.util.RepeatableStageParamsHelper;
 import org.hisp.dhis.common.AnalyticsCustomHeader;
@@ -115,6 +121,7 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
             () -> getScheduledDate(dimension, program, legendSet),
             () -> getEventStatus(dimension, program, legendSet),
             () -> getProgramStageOrgUnit(dimension, program, legendSet),
+            () -> getStaticDateDimension(dimension, program, legendSet, type),
             () -> getDynamicDimension(dimension));
 
     for (Supplier<Optional<QueryItem>> resolver : resolvers) {
@@ -201,6 +208,41 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
         return Optional.of(qi);
       }
     }
+    return Optional.empty();
+  }
+
+  private Optional<QueryItem> getStaticDateDimension(
+      String dimension, Program program, LegendSet legendSet, EventOutputType type) {
+    if (hasProgramStageScope(dimension)) {
+      return Optional.empty();
+    }
+
+    String dim = getFirstElement(dimension);
+
+    if (ENROLLMENT_DATE.equals(dim)) {
+      return Optional.of(newDateQueryItem(program, legendSet, getEnrollmentDateColumn(type)));
+    }
+
+    if (INCIDENT_DATE.equals(dim)) {
+      return Optional.of(newDateQueryItem(program, legendSet, getIncidentDateColumn(type)));
+    }
+
+    if (LAST_UPDATED.equals(dim)) {
+      return Optional.of(newDateQueryItem(program, legendSet, getLastUpdatedColumn(type)));
+    }
+
+    if (CREATED.equals(dim)) {
+      if (EventOutputType.ENROLLMENT == type) {
+        return Optional.empty();
+      }
+      return Optional.of(
+          newDateQueryItem(program, legendSet, EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME));
+    }
+
+    if (COMPLETED.equals(dim)) {
+      return Optional.of(newDateQueryItem(program, legendSet, getCompletedDateColumn(type)));
+    }
+
     return Optional.empty();
   }
 
@@ -395,5 +437,47 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
     }
 
     return found.orElse(null);
+  }
+
+  private QueryItem newDateQueryItem(Program program, LegendSet legendSet, String columnName) {
+    return new QueryItem(
+        new BaseDimensionalItemObject(columnName),
+        program,
+        legendSet,
+        ValueType.DATE,
+        AggregationType.NONE,
+        null);
+  }
+
+  private boolean hasProgramStageScope(String dimension) {
+    return dimension.split("\\" + DIMENSION_IDENTIFIER_SEP).length > 1;
+  }
+
+  private String getEnrollmentDateColumn(EventOutputType type) {
+    if (EventOutputType.ENROLLMENT == type) {
+      return EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME;
+    }
+    return EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME;
+  }
+
+  private String getIncidentDateColumn(EventOutputType type) {
+    if (EventOutputType.ENROLLMENT == type) {
+      return EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
+    }
+    return EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME;
+  }
+
+  private String getLastUpdatedColumn(EventOutputType type) {
+    if (EventOutputType.ENROLLMENT == type) {
+      return EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME;
+    }
+    return EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME;
+  }
+
+  private String getCompletedDateColumn(EventOutputType type) {
+    if (EventOutputType.ENROLLMENT == type) {
+      return EnrollmentAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME;
+    }
+    return EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME;
   }
 }

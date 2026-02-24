@@ -50,6 +50,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.organisationunit.FeatureType;
@@ -71,7 +72,6 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.locationtech.jts.geom.Geometry;
 
 /**
@@ -149,13 +149,28 @@ public class ValidationUtils {
   private static Set<MetadataIdentifier> getEventDataValues(TrackerBundle bundle, Event event) {
     Stream<MetadataIdentifier> payloadDataValues =
         event.getDataValues().stream().map(DataValue::getDataElement);
-    Stream<MetadataIdentifier> savedDataValues =
-        Optional.ofNullable(bundle.getPreheat().getTrackerEvent(event.getUid()))
-            .map(TrackerEvent::getEventDataValues)
-            .orElse(Set.of())
-            .stream()
-            .map(dv -> MetadataIdentifier.ofUid(dv.getDataElement()));
+
+    Stream<MetadataIdentifier> savedDataValues = getSavedDataValues(bundle, event);
+
     return Stream.concat(payloadDataValues, savedDataValues).collect(Collectors.toSet());
+  }
+
+  private static Stream<MetadataIdentifier> getSavedDataValues(TrackerBundle bundle, Event event) {
+    Set<EventDataValue> savedDataValues;
+
+    if (isTrackerEvent(event)) {
+      var trackerEvent = bundle.getPreheat().getTrackerEvent(event.getUID());
+      savedDataValues = trackerEvent != null ? trackerEvent.getEventDataValues() : Set.of();
+    } else {
+      var singleEvent = bundle.getPreheat().getSingleEvent(event.getUID());
+      savedDataValues = singleEvent != null ? singleEvent.getEventDataValues() : Set.of();
+    }
+
+    return savedDataValues.stream().map(dv -> MetadataIdentifier.ofUid(dv.getDataElement()));
+  }
+
+  private static boolean isTrackerEvent(Event event) {
+    return event instanceof org.hisp.dhis.tracker.imports.domain.TrackerEvent;
   }
 
   public static boolean needsToValidateDataValues(Event event, @Nonnull ProgramStage programStage) {
@@ -331,7 +346,7 @@ public class ValidationUtils {
           () ->
               fileResource != null
                   && fileResource.getFileResourceOwner() != null
-                  && !fileResource.getFileResourceOwner().equals(trackerDto.getUid().getValue()),
+                  && !fileResource.getFileResourceOwner().equals(trackerDto.getUID().getValue()),
           trackerDto,
           E1009,
           value);
