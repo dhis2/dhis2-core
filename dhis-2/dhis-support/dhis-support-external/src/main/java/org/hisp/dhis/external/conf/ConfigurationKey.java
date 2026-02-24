@@ -527,10 +527,23 @@ public enum ConfigurationKey {
   LOGGING_FILE_MAX_ARCHIVES("logging.file.max_archives", "1"),
 
   /**
-   * Adds a hashed (SHA-256) session_id to each log line. Useful for tracking which user is
-   * responsible for the logging line.
+   * Adds a hashed (SHA-256) session ID to the MDC ({@code sessionId} key). Include it in log output
+   * via {@code %X{sessionId}} in the log4j2 pattern layout.
    */
-  LOGGING_REQUEST_ID_ENABLED("logging.request_id.enabled", Constants.ON, false),
+  LOGGING_SESSION_ID("logging.session_id", Constants.ON, false),
+
+  /**
+   * Enables SQL query logging via a datasource proxy. All {@code logging.query.*} keys below
+   * require this to be enabled.
+   */
+  LOGGING_QUERY("logging.query", Constants.OFF, false),
+
+  /** Threshold in milliseconds for logging slow queries at WARN level. */
+  LOGGING_QUERY_SLOW_THRESHOLD(
+      "logging.query.slow_threshold", String.valueOf(SECONDS.toMillis(1)), false),
+
+  /** Logs the calling method and class for each query. */
+  LOGGING_QUERY_METHOD("logging.query.method", Constants.OFF, false),
 
   /** Adds a hashed session identifier to the X-Session-ID response header. (default: off). */
   LOGGING_SESSION_ID_HEADER_ENABLED("logging.session_id_header.enabled", Constants.OFF, false),
@@ -552,6 +565,18 @@ public enum ConfigurationKey {
 
   /** Enable secure settings if system is deployed on HTTPS, can be 'off', 'on'. */
   SERVER_HTTPS("server.https", Constants.OFF),
+
+  /** Prepends SQL comments with MDC context (controller, method, request_id, session_id). */
+  MONITORING_SQL_CONTEXT("monitoring.sql.context", Constants.OFF, false),
+
+  /**
+   * Comma-separated MDC keys to include in SQL comments. Uses the same key names as log4j2 {@code
+   * %X{key}} patterns. Supported keys: {@code controller}, {@code method}, {@code requestId},
+   * {@code sessionId}. Adding {@code requestId} or {@code sessionId} produces unique SQL per
+   * request, which prevents PgJDBC from promoting queries to server-side prepared statements.
+   * Invalid keys cause a startup failure.
+   */
+  MONITORING_SQL_CONTEXT_KEYS("monitoring.sql.context.keys", "controller,method", false),
 
   /** DHIS2 API monitoring. */
   MONITORING_API_ENABLED("monitoring.api.enabled", Constants.OFF, false),
@@ -668,19 +693,6 @@ public enum ConfigurationKey {
 
   /** WSO2 IdP specific parameters. Enable logout */
   OIDC_PROVIDER_WSO2_ENABLE_LOGOUT("oidc.provider.wso2.enable_logout", Constants.ON, false),
-
-  /** Database debugging feature. Defines threshold for logging of slow queries in the log. */
-  SLOW_QUERY_LOGGING_THRESHOLD_TIME_MS(
-      "slow.query.logging.threshold.time", String.valueOf(SECONDS.toMillis(1)), false),
-
-  /** Database debugging feature. Enables logging of all SQL queries to the log. */
-  ENABLE_QUERY_LOGGING("enable.query.logging", Constants.OFF, false),
-
-  /** Database debugging feature. Defines database logging before/after methods */
-  METHOD_QUERY_LOGGING_ENABLED("method.query.logging.enabled", Constants.OFF, false),
-
-  /** Database debugging feature. Enable time query logging. */
-  ELAPSED_TIME_QUERY_LOGGING_ENABLED("elapsed.time.query.logging.enabled", Constants.OFF, false),
 
   /**
    * Database datasource pool type. Supported pool types are: hikari (default), c3p0 (deprecated),
@@ -816,7 +828,7 @@ public enum ConfigurationKey {
   OIDC_DHIS2_INTERNAL_CLIENT_ID("oidc.provider.dhis2.client_id", "dhis2-internal", false),
   OIDC_DHIS2_INTERNAL_CLIENT_SECRET("oidc.provider.dhis2.client_secret", "secret", false),
   OIDC_DHIS2_INTERNAL_MAPPING_CLAIM("oidc.provider.dhis2.mapping_claim", "username", false),
-  OIDC_DHIS2_INTERNAL_SERVER_URL("oidc.provider.dhis2.server_url", "http://localhost:8080", false);
+  OIDC_DHIS2_INTERNAL_SERVER_URL("oidc.provider.dhis2.server_url", "", false);
 
   private final String key;
 

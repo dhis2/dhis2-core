@@ -98,7 +98,7 @@ public class RelationshipUtils {
   }
 
   private static UID getUidOrNull(IdentifiableObject baseIdentifiableObject) {
-    return Objects.isNull(baseIdentifiableObject) ? null : UID.of(baseIdentifiableObject);
+    return Objects.isNull(baseIdentifiableObject) ? null : baseIdentifiableObject.getUID();
   }
 
   private static RelationshipKey getRelationshipKey(Relationship relationship) {

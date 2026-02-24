@@ -379,7 +379,6 @@ public class DefaultAclService implements AclService {
 
   @Override
   public boolean canDataRead(User user, IdentifiableObject object) {
-    // TODO: MAS UserDetails.fromUser(user) needs further refactoring
     return canDataRead(UserDetails.fromUserDontLoadOrgUnits(user), object);
   }
 
@@ -552,11 +551,6 @@ public class DefaultAclService implements AclService {
     sharing.setPublicAccess(AccessStringHelper.DEFAULT);
     sharing.resetUserAccesses();
     sharing.resetUserGroupAccesses();
-  }
-
-  @Override
-  public <T extends IdentifiableObject> List<ErrorReport> verifySharing(T object, User user) {
-    return verifySharing(object, UserDetails.fromUser(user));
   }
 
   @Override

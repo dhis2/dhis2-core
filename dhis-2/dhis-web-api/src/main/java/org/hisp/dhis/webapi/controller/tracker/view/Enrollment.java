@@ -95,6 +95,8 @@ public class Enrollment {
 
   @JsonProperty private Geometry geometry;
 
+  @JsonProperty private String attributeOptionCombo;
+
   @JsonProperty @Builder.Default private List<Event> events = new ArrayList<>();
 
   @JsonProperty @Builder.Default private List<Relationship> relationships = new ArrayList<>();

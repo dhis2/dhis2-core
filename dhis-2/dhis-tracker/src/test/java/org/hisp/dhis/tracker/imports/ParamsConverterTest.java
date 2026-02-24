@@ -173,10 +173,10 @@ class ParamsConverterTest extends TrackerTestBase {
         ParamsConverter.convert(params, trackerObjects, user, trackerPreheat);
 
     assertContainsOnly(
-        trackerBundle.getTrackerEvents().stream().map(TrackerDto::getUid).toList(),
+        trackerBundle.getTrackerEvents().stream().map(TrackerDto::getUID).toList(),
         List.of(TRACKER_EVENT_UID));
     assertContainsOnly(
-        trackerBundle.getSingleEvents().stream().map(TrackerDto::getUid).toList(),
+        trackerBundle.getSingleEvents().stream().map(TrackerDto::getUID).toList(),
         List.of(SINGLE_EVENT_UID));
   }
 
@@ -192,10 +192,10 @@ class ParamsConverterTest extends TrackerTestBase {
         ParamsConverter.convert(params, trackerObjects, user, trackerPreheat);
 
     assertContainsOnly(
-        trackerBundle.getTrackerEvents().stream().map(TrackerDto::getUid).toList(),
+        trackerBundle.getTrackerEvents().stream().map(TrackerDto::getUID).toList(),
         List.of(TRACKER_EVENT_UID));
     assertContainsOnly(
-        trackerBundle.getSingleEvents().stream().map(TrackerDto::getUid).toList(),
+        trackerBundle.getSingleEvents().stream().map(TrackerDto::getUID).toList(),
         List.of(SINGLE_EVENT_UID));
   }
 
@@ -210,7 +210,7 @@ class ParamsConverterTest extends TrackerTestBase {
         ParamsConverter.convert(params, trackerObjects, user, trackerPreheat);
 
     assertContainsOnly(
-        trackerBundle.getTrackerEvents().stream().map(TrackerDto::getUid).toList(),
+        trackerBundle.getTrackerEvents().stream().map(TrackerDto::getUID).toList(),
         List.of(TRACKER_EVENT_UID, SINGLE_EVENT_UID));
     assertIsEmpty(trackerBundle.getSingleEvents());
   }
@@ -235,10 +235,10 @@ class ParamsConverterTest extends TrackerTestBase {
 
     assertContainsOnly(
         List.of(TRACKER_EVENT_UID),
-        trackerBundle.getTrackerEvents().stream().map(TrackerDto::getUid).toList());
+        trackerBundle.getTrackerEvents().stream().map(TrackerDto::getUID).toList());
     assertContainsOnly(
         List.of(SINGLE_EVENT_UID),
-        trackerBundle.getSingleEvents().stream().map(TrackerDto::getUid).toList());
+        trackerBundle.getSingleEvents().stream().map(TrackerDto::getUID).toList());
   }
 
   @ParameterizedTest
@@ -258,7 +258,7 @@ class ParamsConverterTest extends TrackerTestBase {
         ParamsConverter.convert(params, trackerObjects, user, trackerPreheat);
 
     assertContainsOnly(
-        trackerBundle.getTrackerEvents().stream().map(TrackerDto::getUid).toList(),
+        trackerBundle.getTrackerEvents().stream().map(TrackerDto::getUID).toList(),
         List.of(TRACKER_EVENT_UID, SINGLE_EVENT_UID));
     assertIsEmpty(trackerBundle.getSingleEvents());
   }

@@ -77,6 +77,18 @@ class QueryItemFilterHandlerRegistryTest {
   }
 
   @Test
+  void handlerFor_withEnrollmentDateQueryItem_returnsDateFilterHandler() {
+    QueryItem queryItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME));
+    queryItem.setValueType(ValueType.DATE);
+
+    QueryItemFilterHandler handler = registry.handlerFor(queryItem);
+
+    assertInstanceOf(DateFilterHandler.class, handler);
+  }
+
+  @Test
   void handlerFor_withEventStatusAndProgramStage_returnsEventStatusFilterHandler() {
     ProgramStage programStage = TestBase.createProgramStage('A', (Program) null);
     QueryItem queryItem =
