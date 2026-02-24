@@ -51,7 +51,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 /**
  * Filter that adds a hashed version of the Session ID to the Mapped Diagnostic Context (MDC) for
  * authenticated users. This allows correlating multiple requests from the same user session. Access
- * via {@code %X{sessionId}} in log4j2 pattern layouts.
+ * via {@code %X{sessionId}} in log4j2 pattern layouts. Optionally emits the same value as the
+ * {@code X-Session-ID} response header.
  *
  * <p>The session ID is hashed using SHA-256 and base64-encoded for security. Only enabled when
  * {@code logging.session_id} is true.
@@ -70,7 +71,8 @@ public class SessionIdFilter extends OncePerRequestFilter {
 
   private static final String IDENTIFIER_PREFIX = "ID";
 
-  private final boolean enabled;
+  private final boolean mdcEnabled;
+  private final boolean headerEnabled;
 
   public SessionIdFilter(DhisConfigurationProvider dhisConfig) {
     this.enabled = dhisConfig.isEnabled(LOGGING_SESSION_ID);
@@ -80,7 +82,7 @@ public class SessionIdFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest req, HttpServletResponse res, FilterChain chain)
       throws ServletException, IOException {
-    if (enabled) {
+    if (mdcEnabled || headerEnabled) {
       try {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null
