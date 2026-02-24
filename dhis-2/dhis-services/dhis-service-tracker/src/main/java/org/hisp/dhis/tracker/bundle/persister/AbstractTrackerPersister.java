@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.bundle.persister;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -407,6 +408,7 @@ public abstract class AbstractTrackerPersister<
       trackedEntityInstance.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
       auditType = AuditType.CREATE;
     } else {
+      trackedEntityAttributeValue.setLastUpdated(new Date());
       session.merge(trackedEntityAttributeValue);
 
       if (isUpdated) {
