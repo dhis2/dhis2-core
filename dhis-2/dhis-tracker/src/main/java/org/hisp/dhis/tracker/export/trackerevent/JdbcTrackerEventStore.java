@@ -514,7 +514,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     addJoinOnEventOrgUnit(sql);
     addJoinOnTrackedEntityOrgUnit(sql);
     addLeftJoinOnAssignedUser(sql);
-    addLeftJoinOnAttributes(sql, params);
+    addJoinOnAttributes(sql, params);
     addJoinOnCategoryOptionCombo(sql, user);
     addWhereConditions(sql, sqlParams, params);
     return sql.toString();
@@ -769,23 +769,33 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   /**
-   * Generates the LEFT JOIN based on the attributes we are ordering and filtering by, if any. We
-   * use LEFT JOIN to avoid removing any rows if there is no value for a given attribute and te. The
-   * result of this LEFT JOIN is used in the sub-query projection, and ordering in the sub-query and
-   * main query.
+   * Adds joins on tracked entity attribute values for filtering and sorting. Attributes with
+   * non-empty filters use INNER JOIN (the WHERE clause eliminates NULLs anyway), which lets the
+   * planner use the join as a filter. Order-only attributes use LEFT JOIN to preserve rows without
+   * a value.
    */
-  private void addLeftJoinOnAttributes(StringBuilder sql, TrackerEventQueryParams params) {
-    for (TrackedEntityAttribute attribute : params.leftJoinAttributes()) {
-      sql.append(" left join trackedentityattributevalue as ")
-          .append(quote(attribute.getUid()))
-          .append(" on ")
-          .append(quote(attribute.getUid()))
-          .append(".trackedentityid = TE.trackedentityid and ")
-          .append(quote(attribute.getUid()))
-          .append(".trackedentityattributeid = ")
-          .append(attribute.getId())
-          .append(" ");
+  private void addJoinOnAttributes(StringBuilder sql, TrackerEventQueryParams params) {
+    for (TrackedEntityAttribute attribute : params.getInnerJoinAttributes()) {
+      addAttributeJoin(sql, "inner", attribute);
     }
+    for (TrackedEntityAttribute attribute : params.getLeftJoinAttributes()) {
+      addAttributeJoin(sql, "left", attribute);
+    }
+  }
+
+  private void addAttributeJoin(
+      StringBuilder sql, String joinType, TrackedEntityAttribute attribute) {
+    sql.append(" ")
+        .append(joinType)
+        .append(" join trackedentityattributevalue as ")
+        .append(quote(attribute.getUid()))
+        .append(" on ")
+        .append(quote(attribute.getUid()))
+        .append(".trackedentityid = TE.trackedentityid and ")
+        .append(quote(attribute.getUid()))
+        .append(".trackedentityattributeid = ")
+        .append(attribute.getId())
+        .append(" ");
   }
 
   /**
@@ -878,17 +888,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       return;
     }
 
-    sql.append(hlp.whereAnd())
-        .append(
-            " TE.trackedentityid is not null "); // filtering by attribute means we need to look for
-    // a TE in a tracker program, so we can filter out
-    // event programs
-
-    if (!params.getAttributes().isEmpty()) {
-      sql.append(" and ");
-      addPredicates(sql, sqlParams, params.getAttributes());
-      sql.append(" ");
-    }
+    sql.append(hlp.whereAnd());
+    addPredicates(sql, sqlParams, params.getAttributes());
+    sql.append(" ");
   }
 
   private void addTrackedEntityConditions(
