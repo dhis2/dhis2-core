@@ -57,6 +57,8 @@ class LabelMapperTest {
 
   private static final String ENROLLMENT = "Enrollment";
 
+  private static final String ENROLLMENTS = "Enrollments";
+
   private static final String EVENT = "Event";
 
   @Test
@@ -75,6 +77,15 @@ class LabelMapperTest {
     String actualName = LabelMapper.getEnrollmentLabel(aMockedProgramWithLabels, ENROLLMENT);
 
     assertThat(actualName, is(aMockedProgramWithLabels.getDisplayEnrollmentLabel()));
+  }
+
+  @Test
+  void testGetHeaderNameFor_ENROLLMENTS() {
+    Program aMockedProgramWithLabels = mockProgramWithLabels();
+
+    String actualName = LabelMapper.getEnrollmentsLabel(aMockedProgramWithLabels, ENROLLMENTS);
+
+    assertThat(actualName, is(aMockedProgramWithLabels.getDisplayEnrollmentsLabel()));
   }
 
   @Test
@@ -205,6 +216,7 @@ class LabelMapperTest {
     program.setEnrollmentDateLabel("enrollment date label");
     program.setIncidentDateLabel("incident date label");
     program.setEnrollmentLabel("enrollment label");
+    program.setEnrollmentsLabel("enrollments label");
     program.setOrgUnitLabel("org. unit label");
 
     return program;
@@ -226,6 +238,7 @@ class LabelMapperTest {
     program.setEnrollmentDateLabel("enrollment date label");
     program.setIncidentDateLabel("incident date label");
     program.setEnrollmentLabel("enrollment label");
+    program.setEnrollmentsLabel("enrollments label");
     program.setOrgUnitLabel("org. unit label");
     programStage.setProgram(program);
     return programStage;

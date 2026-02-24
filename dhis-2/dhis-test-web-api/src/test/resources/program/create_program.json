@@ -69,6 +69,7 @@
       ],
       "enrollmentDateLabel": "Label for Enrollment Date",
       "enrollmentLabel": "Label for Enrollment",
+      "enrollmentsLabel": "Label for Enrollments",
       "followUpLabel": "Label for Follow Up",
       "orgUnitLabel": "Label for Org Unit",
       "relationshipLabel": "Label for Relationship",

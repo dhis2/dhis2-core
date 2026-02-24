@@ -139,6 +139,7 @@ class ProgramTest {
     assertEquals(original.getTrackedEntityType(), copy.getTrackedEntityType());
     assertEquals(original.getTranslations(), copy.getTranslations());
     assertEquals(original.getDisplayEnrollmentLabel(), copy.getDisplayEnrollmentLabel());
+    assertEquals(original.getDisplayEnrollmentsLabel(), copy.getDisplayEnrollmentsLabel());
     assertEquals(original.getDisplayFollowUpLabel(), copy.getDisplayFollowUpLabel());
     assertEquals(original.getDisplayNoteLabel(), copy.getDisplayNoteLabel());
     assertEquals(original.getDisplayOrgUnitLabel(), copy.getDisplayOrgUnitLabel());
@@ -233,7 +234,7 @@ class ProgramTest {
   @Test
   void testExpectedFieldCount() {
     Field[] allClassFieldsIncludingInherited = getAllFields(Program.class);
-    assertEquals(65, allClassFieldsIncludingInherited.length);
+    assertEquals(66, allClassFieldsIncludingInherited.length);
   }
 
   public static boolean notEqualsOrBothNull(String original, String copy) {
@@ -287,6 +288,7 @@ class ProgramTest {
     p.setUseFirstStageDuringRegistration(false);
     p.setUserRoles(Collections.emptySet());
     p.setEnrollmentLabel("Enrollment label");
+    p.setEnrollmentsLabel("Enrollments label");
     p.setNoteLabel("Note label");
     p.setFollowUpLabel("Follow Up Label");
     p.setOrgUnitLabel("Org Unit Label");

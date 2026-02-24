@@ -94,6 +94,8 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   private String enrollmentLabel;
 
+  private String enrollmentsLabel;
+
   private String followUpLabel;
 
   private String orgUnitLabel;
@@ -488,6 +490,24 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   public void setEnrollmentLabel(String enrollmentLabel) {
     this.enrollmentLabel = enrollmentLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getEnrollmentsLabel() {
+    return enrollmentsLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "enrollmentsLabel", key = "ENROLLMENTS_LABEL")
+  public String getDisplayEnrollmentsLabel() {
+    return getTranslation("ENROLLMENTS_LABEL", getEnrollmentsLabel());
+  }
+
+  public void setEnrollmentsLabel(String enrollmentsLabel) {
+    this.enrollmentsLabel = enrollmentsLabel;
   }
 
   @JsonProperty
@@ -1040,6 +1060,7 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
     copy.setUseFirstStageDuringRegistration(original.getUseFirstStageDuringRegistration());
     copy.setUserRoles(copyOf(original.getUserRoles()));
     copy.setEnrollmentLabel(original.getEnrollmentLabel());
+    copy.setEnrollmentsLabel(original.getEnrollmentsLabel());
     copy.setNoteLabel(original.getNoteLabel());
     copy.setFollowUpLabel(original.getFollowUpLabel());
     copy.setOrgUnitLabel(original.getOrgUnitLabel());

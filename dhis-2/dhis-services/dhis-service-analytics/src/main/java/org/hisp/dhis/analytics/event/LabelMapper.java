@@ -148,6 +148,20 @@ public class LabelMapper {
   }
 
   /**
+   * Returns a custom label for enrollments if one exists, otherwise the given default label.
+   *
+   * @param program the {@link Program}.
+   * @return the custom label, otherwise the default label.
+   */
+  public static String getEnrollmentsLabel(Program program, String defaultLabel) {
+    if (program != null && isNotBlank(program.getDisplayEnrollmentsLabel())) {
+      return program.getDisplayEnrollmentsLabel();
+    }
+
+    return defaultLabel;
+  }
+
+  /**
    * Returns a custom label for org. unit if one exists, otherwise the given default label.
    *
    * @param program the {@link Program}.

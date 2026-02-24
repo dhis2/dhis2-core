@@ -102,6 +102,7 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals("Label for Enrollment Date", program.getEnrollmentDateLabel().string());
     assertEquals("Label for Enrollment", program.getEnrollmentLabel().string());
+    assertEquals("Label for Enrollments", program.getEnrollmentsLabel().string());
     assertEquals("Label for Follow Up", program.getFollowUpLabel().string());
     assertEquals("Label for Org Unit", program.getOrUnitLabel().string());
     assertEquals("Label for Relationship", program.getRelationshipLabel().string());

@@ -31,6 +31,8 @@
 
         <property name="enrollmentLabel" column="enrollmentlabel" type="text"/>
 
+        <property name="enrollmentsLabel" column="enrollmentslabel" type="text"/>
+
         <property name="followUpLabel" column="followuplabel" type="text"/>
 
         <property name="orgUnitLabel" column="orgunitlabel" type="text"/>
