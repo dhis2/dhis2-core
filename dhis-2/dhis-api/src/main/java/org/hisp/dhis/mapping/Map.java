@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.mapping;
 
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -40,7 +42,6 @@ import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.InterpretableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.SubscribableObject;
@@ -53,7 +54,7 @@ import org.hisp.dhis.user.UserDetails;
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement(localName = "map", namespace = DxfNamespaces.DXF_2_0)
+@JacksonXmlRootElement(localName = "map", namespace = DXF_2_0)
 public class Map extends BaseNameableObject
     implements InterpretableObject, SubscribableObject, MetadataObject {
   private Double longitude;
@@ -62,7 +63,13 @@ public class Map extends BaseNameableObject
 
   private Integer zoom;
 
+  @Deprecated(forRemoval = true, since = "43")
+  /**
+   * @deprecated use "basemaps", instead.
+   */
   private String basemap;
+
+  private List<Basemap> basemaps = new ArrayList<>();
 
   private String title;
 
@@ -91,7 +98,7 @@ public class Map extends BaseNameableObject
   // -------------------------------------------------------------------------
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   @PropertyRange(min = -180, max = 180)
   public Double getLongitude() {
     return longitude;
@@ -102,7 +109,7 @@ public class Map extends BaseNameableObject
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   @PropertyRange(min = -90, max = 90)
   public Double getLatitude() {
     return latitude;
@@ -113,7 +120,7 @@ public class Map extends BaseNameableObject
   }
 
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public Integer getZoom() {
     return zoom;
   }
@@ -122,8 +129,9 @@ public class Map extends BaseNameableObject
     this.zoom = zoom;
   }
 
+  @Deprecated(forRemoval = true, since = "43")
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public String getBasemap() {
     return basemap;
   }
@@ -132,8 +140,19 @@ public class Map extends BaseNameableObject
     this.basemap = basemap;
   }
 
+  @JsonProperty("basemaps")
+  @JacksonXmlElementWrapper(localName = "basemaps", namespace = DXF_2_0)
+  @JacksonXmlProperty(localName = "basemaps", namespace = DXF_2_0)
+  public List<Basemap> getBasemaps() {
+    return basemaps;
+  }
+
+  public void setBasemaps(List<Basemap> basemaps) {
+    this.basemaps = basemaps;
+  }
+
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public String getTitle() {
     return title;
   }
@@ -143,8 +162,8 @@ public class Map extends BaseNameableObject
   }
 
   @JsonProperty
-  @JacksonXmlElementWrapper(localName = "mapViews", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "mapView", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlElementWrapper(localName = "mapViews", namespace = DXF_2_0)
+  @JacksonXmlProperty(localName = "mapView", namespace = DXF_2_0)
   public List<MapView> getMapViews() {
     return mapViews;
   }
@@ -155,8 +174,8 @@ public class Map extends BaseNameableObject
 
   @JsonProperty
   @JsonSerialize(contentAs = BaseIdentifiableObject.class)
-  @JacksonXmlElementWrapper(localName = "interpretations", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "interpretation", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlElementWrapper(localName = "interpretations", namespace = DXF_2_0)
+  @JacksonXmlProperty(localName = "interpretation", namespace = DXF_2_0)
   public Set<Interpretation> getInterpretations() {
     return interpretations;
   }
@@ -167,8 +186,8 @@ public class Map extends BaseNameableObject
 
   @Override
   @JsonProperty
-  @JacksonXmlElementWrapper(localName = "subscribers", namespace = DxfNamespaces.DXF_2_0)
-  @JacksonXmlProperty(localName = "subscriber", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlElementWrapper(localName = "subscribers", namespace = DXF_2_0)
+  @JacksonXmlProperty(localName = "subscriber", namespace = DXF_2_0)
   public Set<String> getSubscribers() {
     return subscribers;
   }
@@ -179,7 +198,7 @@ public class Map extends BaseNameableObject
 
   @Override
   @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(namespace = DXF_2_0)
   public boolean isSubscribed() {
     UserDetails user = CurrentUserUtil.getCurrentUserDetails();
     return user != null && subscribers != null && subscribers.contains(user.getUid());

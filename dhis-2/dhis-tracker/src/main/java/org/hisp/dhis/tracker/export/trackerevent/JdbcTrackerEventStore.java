@@ -38,7 +38,6 @@ import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeC
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -81,8 +80,9 @@ import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
-import org.hisp.dhis.tracker.export.EventUtils;
+import org.hisp.dhis.tracker.export.Geometries;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.UserInfoSnapshots;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackerEvent;
@@ -90,10 +90,6 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKTReader;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -214,9 +210,6 @@ class JdbcTrackerEventStore {
       JsonBinaryType.MAPPER.readerFor(new TypeReference<Map<String, EventDataValue>>() {});
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
-
-  @Qualifier("dataValueJsonMapper")
-  private final ObjectMapper jsonMapper;
 
   public List<TrackerEvent> getEvents(TrackerEventQueryParams queryParams) {
     return fetchEvents(queryParams, null);
@@ -346,27 +339,17 @@ class JdbcTrackerEventStore {
               event.setCreated(resultSet.getTimestamp(COLUMN_EVENT_CREATED));
               event.setCreatedAtClient(resultSet.getTimestamp(COLUMN_EVENT_CREATED_AT_CLIENT));
               event.setCreatedByUserInfo(
-                  EventUtils.jsonToUserInfo(
-                      resultSet.getString(COLUMN_EVENT_CREATED_BY), jsonMapper));
+                  UserInfoSnapshots.fromJson(resultSet.getString(COLUMN_EVENT_CREATED_BY)));
               event.setLastUpdated(resultSet.getTimestamp(COLUMN_EVENT_LAST_UPDATED));
               event.setLastUpdatedAtClient(
                   resultSet.getTimestamp(COLUMN_EVENT_LAST_UPDATED_AT_CLIENT));
               event.setLastUpdatedByUserInfo(
-                  EventUtils.jsonToUserInfo(
-                      resultSet.getString(COLUMN_EVENT_LAST_UPDATED_BY), jsonMapper));
+                  UserInfoSnapshots.fromJson(resultSet.getString(COLUMN_EVENT_LAST_UPDATED_BY)));
 
               event.setCompletedBy(resultSet.getString(COLUMN_EVENT_COMPLETED_BY));
               event.setCompletedDate(resultSet.getTimestamp(COLUMN_EVENT_COMPLETED_DATE));
 
-              if (resultSet.getObject("ev_geometry") != null) {
-                try {
-                  Geometry geom = new WKTReader().read(resultSet.getString("ev_geometry"));
-
-                  event.setGeometry(geom);
-                } catch (ParseException e) {
-                  log.error("Unable to read geometry for event: '{}'", event.getUid(), e);
-                }
-              }
+              event.setGeometry(Geometries.fromWkb(resultSet.getBytes("ev_geometry")));
 
               if (resultSet.getObject("user_assigned") != null) {
                 User eventUser = new User();
@@ -457,16 +440,14 @@ class JdbcTrackerEventStore {
     eventDataValue.setCreated(DateUtils.parseDate(dataValueJson.getString("created").string("")));
     if (dataValueJson.has("createdByUserInfo")) {
       eventDataValue.setCreatedByUserInfo(
-          EventUtils.jsonToUserInfo(
-              dataValueJson.getObject("createdByUserInfo").toJson(), jsonMapper));
+          UserInfoSnapshots.from(dataValueJson.getObject("createdByUserInfo")));
     }
 
     eventDataValue.setLastUpdated(
         DateUtils.parseDate(dataValueJson.getString("lastUpdated").string("")));
     if (dataValueJson.has("lastUpdatedByUserInfo")) {
       eventDataValue.setLastUpdatedByUserInfo(
-          EventUtils.jsonToUserInfo(
-              dataValueJson.getObject("lastUpdatedByUserInfo").toJson(), jsonMapper));
+          UserInfoSnapshots.from(dataValueJson.getObject("lastUpdatedByUserInfo")));
     }
 
     return eventDataValue;
@@ -702,7 +683,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             .append(", ev.deleted as ")
             .append(COLUMN_EVENT_DELETED)
             .append(
-                ", ST_AsText( ev.geometry ) as ev_geometry, au.uid as user_assigned, (au.firstName"
+                ", ST_AsBinary( ev.geometry ) as ev_geometry, au.uid as user_assigned, (au.firstName"
                     + " || ' ' || au.surName) as ")
             .append(COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME)
             .append(",")
@@ -942,26 +923,31 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
     fromBuilder.append(eventStatusSql(params, sqlParameters, hlp));
 
-    if (params.getEvents() != null
-        && !params.getEvents().isEmpty()
-        && !params.hasDataElementFilter()) {
-      sqlParameters.addValue(COLUMN_EVENT_UID, UID.toValueSet(params.getEvents()));
-      fromBuilder.append(hlp.whereAnd()).append(" ev.uid in (").append(":ev_uid").append(") ");
+    if (!params.getEvents().isEmpty()) {
+      sqlParameters.addValue("ev_uid", UID.toValueSet(params.getEvents()));
+      fromBuilder.append(hlp.whereAnd()).append(" (ev.uid in (").append(":ev_uid").append(")) ");
     }
 
     if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
-      sqlParameters.addValue(
-          "au_uid", UID.toValueSet(params.getAssignedUserQueryParam().getAssignedUsers()));
-
-      fromBuilder.append(hlp.whereAnd()).append(" (au.uid in (").append(":au_uid").append(")) ");
+      Set<UID> assignedUsers = params.getAssignedUserQueryParam().getAssignedUsers();
+      fromBuilder.append(hlp.whereAnd());
+      if (assignedUsers.size() == 1) {
+        sqlParameters.addValue("au_uid", assignedUsers.iterator().next().getValue());
+        fromBuilder.append(
+            " ev.assigneduserid = (select userinfoid from userinfo where uid = :au_uid) ");
+      } else {
+        sqlParameters.addValue("au_uid", UID.toValueSet(assignedUsers));
+        fromBuilder.append(
+            " ev.assigneduserid in (select userinfoid from userinfo where uid in (:au_uid)) ");
+      }
     }
 
     if (AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode()) {
-      fromBuilder.append(hlp.whereAnd()).append(" (au.uid is null) ");
+      fromBuilder.append(hlp.whereAnd()).append(" (ev.assigneduserid is null) ");
     }
 
     if (AssignedUserSelectionMode.ANY == params.getAssignedUserQueryParam().getMode()) {
-      fromBuilder.append(hlp.whereAnd()).append(" (au.uid is not null) ");
+      fromBuilder.append(hlp.whereAnd()).append(" (ev.assigneduserid is not null) ");
     }
 
     if (!params.isIncludeDeleted()) {
@@ -991,14 +977,19 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           hlp.whereAnd());
     }
 
-    buildOwnershipClause(
-        orgUnitBuilder,
-        sqlParameters,
-        params.getOrgUnitMode(),
-        "p",
-        "ou",
-        "te",
-        () -> hlp.whereAnd());
+    if (params.hasEnrolledInTrackerProgram()) {
+      buildOwnershipClause(
+          orgUnitBuilder,
+          sqlParameters,
+          params.getEnrolledInTrackerProgram(),
+          params.getQuerySearchScope(),
+          "ou",
+          "te",
+          hlp::whereAnd);
+    } else {
+      buildOwnershipClause(
+          orgUnitBuilder, sqlParameters, params.getOrgUnitMode(), "p", "ou", "te", hlp::whereAnd);
+    }
 
     return orgUnitBuilder.toString();
   }

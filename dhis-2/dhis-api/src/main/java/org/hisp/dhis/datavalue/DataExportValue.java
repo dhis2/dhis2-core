@@ -37,6 +37,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.period.Period;
 
 /**
  * A flat data value using UIDs and ISO period values for the keys.
@@ -48,7 +49,7 @@ import org.hisp.dhis.common.ValueType;
  */
 public record DataExportValue(
     @Nonnull UID dataElement,
-    @Nonnull String period,
+    @Nonnull Period period,
     @Nonnull UID orgUnit,
     @Nonnull UID categoryOptionCombo,
     @Nonnull UID attributeOptionCombo,
@@ -80,7 +81,7 @@ public record DataExportValue(
   public static DataExportValue of(Object[] row) {
     return new DataExportValue(
         UID.of((String) row[0]),
-        (String) row[1],
+        Period.of((String) row[1]),
         UID.of((String) row[2]),
         UID.of((String) row[3]),
         UID.of((String) row[4]),
@@ -121,8 +122,8 @@ public record DataExportValue(
       @CheckForNull String comment,
       @CheckForNull Boolean followUp,
       @CheckForNull String storedBy,
-      @CheckForNull Date created,
-      @CheckForNull Date lastUpdated,
+      @CheckForNull String created,
+      @CheckForNull String lastUpdated,
       boolean deleted) {
 
     public Output {

@@ -199,6 +199,8 @@ class TrackedEntityOperationParamsMapperTest {
 
     when(attributeService.getTrackedEntityAttribute(TEA_1_UID.getValue())).thenReturn(tea1);
     when(attributeService.getTrackedEntityAttribute(TEA_2_UID.getValue())).thenReturn(tea2);
+
+    when(organisationUnitService.getOrganisationUnitsByUid(any())).thenReturn(List.of());
   }
 
   @Test

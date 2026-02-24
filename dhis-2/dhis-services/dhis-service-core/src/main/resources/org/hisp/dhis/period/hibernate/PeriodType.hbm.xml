@@ -14,10 +14,13 @@
 
     <discriminator column="name" type="string" length="50" not-null="true" />
 
+    <property name="label" not-null="false" type="string" length="230" />
+
     <subclass name="org.hisp.dhis.period.DailyPeriodType" discriminator-value="Daily" />
     <subclass name="org.hisp.dhis.period.WeeklyPeriodType" discriminator-value="Weekly" />
     <subclass name="org.hisp.dhis.period.WeeklyWednesdayPeriodType" discriminator-value="WeeklyWednesday" />
     <subclass name="org.hisp.dhis.period.WeeklyThursdayPeriodType" discriminator-value="WeeklyThursday" />
+    <subclass name="org.hisp.dhis.period.WeeklyFridayPeriodType" discriminator-value="WeeklyFriday" />
     <subclass name="org.hisp.dhis.period.WeeklySaturdayPeriodType" discriminator-value="WeeklySaturday" />
     <subclass name="org.hisp.dhis.period.WeeklySundayPeriodType" discriminator-value="WeeklySunday" />
     <subclass name="org.hisp.dhis.period.BiWeeklyPeriodType" discriminator-value="BiWeekly" />
@@ -30,8 +33,10 @@
     <subclass name="org.hisp.dhis.period.SixMonthlyNovemberPeriodType" discriminator-value="SixMonthlyNov" />
     <subclass name="org.hisp.dhis.period.YearlyPeriodType" discriminator-value="Yearly" />
     <subclass name="org.hisp.dhis.period.TwoYearlyPeriodType" discriminator-value="TwoYearly" />
+    <subclass name="org.hisp.dhis.period.FinancialFebruaryPeriodType" discriminator-value="FinancialFeb" />
     <subclass name="org.hisp.dhis.period.FinancialAprilPeriodType" discriminator-value="FinancialApril" />
     <subclass name="org.hisp.dhis.period.FinancialJulyPeriodType" discriminator-value="FinancialJuly" />
+    <subclass name="org.hisp.dhis.period.FinancialAugustPeriodType" discriminator-value="FinancialAug" />
     <subclass name="org.hisp.dhis.period.FinancialSeptemberPeriodType" discriminator-value="FinancialSep" />
     <subclass name="org.hisp.dhis.period.FinancialOctoberPeriodType" discriminator-value="FinancialOct" />
     <subclass name="org.hisp.dhis.period.FinancialNovemberPeriodType" discriminator-value="FinancialNov" />

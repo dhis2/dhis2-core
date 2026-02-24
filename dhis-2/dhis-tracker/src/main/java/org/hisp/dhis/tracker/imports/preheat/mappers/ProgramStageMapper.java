@@ -75,6 +75,7 @@ public interface ProgramStageMapper extends PreheatMapper<ProgramStage> {
   @Mapping(target = "trackedEntityType")
   @Mapping(target = "programType")
   @Mapping(target = "categoryCombo")
+  @Mapping(target = "enrollmentCategoryCombo")
   @Mapping(target = "sharing")
   @Mapping(target = "accessLevel")
   @Mapping(target = "enableChangeLog")

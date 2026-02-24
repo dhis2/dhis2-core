@@ -266,6 +266,18 @@ public class EventQueryParams extends DataQueryParams {
 
   @Getter protected List<OrganisationUnit> userOrgUnits = new ArrayList<>();
 
+  /** Items when ENROLLMENT_OU is used as a dimension. */
+  private List<DimensionalItemObject> enrollmentOuDimensionItems = new ArrayList<>();
+
+  /** Items when ENROLLMENT_OU is used as a filter. */
+  private List<DimensionalItemObject> enrollmentOuFilterItems = new ArrayList<>();
+
+  /** Level constraints when ENROLLMENT_OU is used as a dimension. */
+  private Set<Integer> enrollmentOuDimensionLevels = new LinkedHashSet<>();
+
+  /** Level constraints when ENROLLMENT_OU is used as a filter. */
+  private Set<Integer> enrollmentOuFilterLevels = new LinkedHashSet<>();
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -341,6 +353,10 @@ public class EventQueryParams extends DataQueryParams {
     params.userOrgUnits = this.userOrgUnits;
     params.outputFormat = this.outputFormat;
     params.piDisagInfo = this.piDisagInfo;
+    params.enrollmentOuDimensionItems = new ArrayList<>(this.enrollmentOuDimensionItems);
+    params.enrollmentOuFilterItems = new ArrayList<>(this.enrollmentOuFilterItems);
+    params.enrollmentOuDimensionLevels = new LinkedHashSet<>(this.enrollmentOuDimensionLevels);
+    params.enrollmentOuFilterLevels = new LinkedHashSet<>(this.enrollmentOuFilterLevels);
     return params;
   }
 
@@ -1249,6 +1265,53 @@ public class EventQueryParams extends DataQueryParams {
     return dataIdScheme != null;
   }
 
+  public boolean hasEnrollmentOuDimension() {
+    return isNotEmpty(enrollmentOuDimensionItems) || !enrollmentOuDimensionLevels.isEmpty();
+  }
+
+  public boolean hasEnrollmentOuFilter() {
+    return isNotEmpty(enrollmentOuFilterItems) || !enrollmentOuFilterLevels.isEmpty();
+  }
+
+  public boolean hasEnrollmentOu() {
+    return hasEnrollmentOuDimension() || hasEnrollmentOuFilter();
+  }
+
+  public List<DimensionalItemObject> getEnrollmentOuDimensionItems() {
+    return enrollmentOuDimensionItems;
+  }
+
+  public List<DimensionalItemObject> getEnrollmentOuFilterItems() {
+    return enrollmentOuFilterItems;
+  }
+
+  /** Returns all enrollment OU items from both dimension and filter. */
+  public List<DimensionalItemObject> getAllEnrollmentOuItems() {
+    return ListUtils.union(enrollmentOuDimensionItems, enrollmentOuFilterItems);
+  }
+
+  public Set<Integer> getEnrollmentOuDimensionLevels() {
+    return enrollmentOuDimensionLevels;
+  }
+
+  public Set<Integer> getEnrollmentOuFilterLevels() {
+    return enrollmentOuFilterLevels;
+  }
+
+  public boolean hasEnrollmentOuLevelConstraint() {
+    return !enrollmentOuDimensionLevels.isEmpty() || !enrollmentOuFilterLevels.isEmpty();
+  }
+
+  public Set<Integer> getAllEnrollmentOuLevelsForSql() {
+    Set<Integer> levels = new LinkedHashSet<>(enrollmentOuDimensionLevels);
+    levels.addAll(enrollmentOuFilterLevels);
+    return levels;
+  }
+
+  public List<DimensionalItemObject> getAllEnrollmentOuItemsForSql() {
+    return getAllEnrollmentOuItems();
+  }
+
   /**
    * Returns a negative integer in case of ascending sort order, a positive in case of descending
    * sort order and 0 in case of no sort order.
@@ -1799,6 +1862,26 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withPiDisagInfo(PiDisagInfo piDisagInfo) {
       this.params.piDisagInfo = piDisagInfo;
+      return this;
+    }
+
+    public Builder withEnrollmentOuDimension(List<DimensionalItemObject> items) {
+      this.params.enrollmentOuDimensionItems = items;
+      return this;
+    }
+
+    public Builder withEnrollmentOuFilter(List<DimensionalItemObject> items) {
+      this.params.enrollmentOuFilterItems = items;
+      return this;
+    }
+
+    public Builder withEnrollmentOuDimensionLevels(Set<Integer> levels) {
+      this.params.enrollmentOuDimensionLevels = new LinkedHashSet<>(levels);
+      return this;
+    }
+
+    public Builder withEnrollmentOuFilterLevels(Set<Integer> levels) {
+      this.params.enrollmentOuFilterLevels = new LinkedHashSet<>(levels);
       return this;
     }
 

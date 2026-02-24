@@ -59,9 +59,10 @@ class PeriodStoreTest extends PostgresIntegrationTestBase {
     Iterator<PeriodType> it = periodTypes.iterator();
     PeriodType periodTypeA = it.next();
     PeriodType periodTypeB = it.next();
+    PeriodType periodTypeC = it.next();
     Period periodA = new Period(periodTypeA, getDay(1), getDay(2));
-    Period periodB = new Period(periodTypeA, getDay(2), getDay(3));
-    Period periodC = new Period(periodTypeB, getDay(2), getDay(3));
+    Period periodB = new Period(periodTypeB, getDay(2), getDay(3));
+    Period periodC = new Period(periodTypeC, getDay(2), getDay(3));
     periodStore.addPeriod(periodA);
     long idA = periodA.getId();
     periodStore.addPeriod(periodB);
@@ -77,27 +78,33 @@ class PeriodStoreTest extends PostgresIntegrationTestBase {
     periodB = periodStore.get(idB);
     assertNotNull(periodB);
     assertEquals(idB, periodB.getId());
-    assertEquals(periodTypeA, periodB.getPeriodType());
+    assertEquals(periodTypeB, periodB.getPeriodType());
     assertEquals(getDay(2), periodB.getStartDate());
     assertEquals(getDay(3), periodB.getEndDate());
     periodC = periodStore.get(idC);
     assertNotNull(periodC);
     assertEquals(idC, periodC.getId());
-    assertEquals(periodTypeB, periodC.getPeriodType());
+    assertEquals(periodTypeC, periodC.getPeriodType());
     assertEquals(getDay(2), periodC.getStartDate());
     assertEquals(getDay(3), periodC.getEndDate());
   }
 
   @Test
   void testGetAllPeriods() {
-    PeriodType periodType = periodStore.getAllPeriodTypes().iterator().next();
-    Period periodA = new Period(periodType, getDay(1), getDay(1));
-    Period periodB = new Period(periodType, getDay(2), getDay(2));
-    Period periodC = new Period(periodType, getDay(3), getDay(3));
+    List<PeriodType> periodTypes = periodStore.getAllPeriodTypes();
+    Iterator<PeriodType> it = periodTypes.iterator();
+    PeriodType periodTypeA = it.next();
+    PeriodType periodTypeB = it.next();
+    PeriodType periodTypeC = it.next();
+    Period periodA = new Period(periodTypeA, getDay(1), getDay(1));
+    Period periodB = new Period(periodTypeB, getDay(8), getDay(8));
+    Period periodC = new Period(periodTypeC, getDay(10), getDay(10));
     periodStore.addPeriod(periodA);
     periodStore.addPeriod(periodB);
     periodStore.addPeriod(periodC);
+
     List<Period> periods = periodStore.getAll();
+
     assertNotNull(periods);
     assertEquals(3, periods.size());
     assertTrue(periods.contains(periodA));

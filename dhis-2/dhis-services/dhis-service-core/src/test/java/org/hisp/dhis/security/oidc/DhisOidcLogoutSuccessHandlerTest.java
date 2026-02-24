@@ -29,26 +29,28 @@
  */
 package org.hisp.dhis.security.oidc;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.HTTP_CLEAR_SITE_DATA;
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_OAUTH2_LOGIN_ENABLED;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
 
 /**
- * @author Jason P. Pickering
+ * Unit tests for {@link DhisOidcLogoutSuccessHandler} verifying that the redirect_uri parameter is
+ * validated against the device enrollment redirect allowlist from system settings.
  */
 @ExtendWith(MockitoExtension.class)
 class DhisOidcLogoutSuccessHandlerTest {
@@ -56,42 +58,100 @@ class DhisOidcLogoutSuccessHandlerTest {
   @Mock private DhisConfigurationProvider config;
   @Mock private DhisOidcProviderRepository dhisOidcProviderRepository;
   @Mock private UserService userService;
+  @Mock private SystemSettingsService systemSettingsService;
+  @Mock private SystemSettings systemSettings;
+
   @Mock private HttpServletRequest request;
   @Mock private HttpServletResponse response;
+  @Mock private Authentication authentication;
 
   private DhisOidcLogoutSuccessHandler handler;
 
   @BeforeEach
   void setUp() {
-    handler = new DhisOidcLogoutSuccessHandler(config, dhisOidcProviderRepository, userService);
-    when(config.isEnabled(OIDC_OAUTH2_LOGIN_ENABLED)).thenReturn(false);
+    handler =
+        new DhisOidcLogoutSuccessHandler(
+            config, dhisOidcProviderRepository, userService, systemSettingsService);
     handler.init();
   }
 
-  @Test
-  void setsClearSiteDataHeaderWhenOn() throws Exception {
-    when(config.getProperty(HTTP_CLEAR_SITE_DATA)).thenReturn("on");
-
-    handler.onLogoutSuccess(request, response, null);
-
-    verify(response).setHeader("Clear-Site-Data", "\"cache\", \"storage\"");
+  private void stubAllowlist(String allowlist) {
+    when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
+    when(systemSettings.getDeviceEnrollmentRedirectAllowlist()).thenReturn(allowlist);
   }
 
   @Test
-  void setsClearSiteDataHeaderFromExplicitValue() throws Exception {
-    when(config.getProperty(HTTP_CLEAR_SITE_DATA)).thenReturn("\"cookies\"");
+  @DisplayName("Allowed redirect URI results in redirect to that URI")
+  void testAllowedRedirectUri() throws Exception {
+    when(request.getParameter("redirect_uri")).thenReturn("dhis2oauth://oauth");
+    stubAllowlist("dhis2oauth://oauth");
 
-    handler.onLogoutSuccess(request, response, null);
+    handler.onLogoutSuccess(request, response, authentication);
 
-    verify(response).setHeader("Clear-Site-Data", "\"cookies\"");
+    verify(response).sendRedirect("dhis2oauth://oauth");
   }
 
   @Test
-  void doesNotSetClearSiteDataHeaderWhenMissing() throws Exception {
-    when(config.getProperty(HTTP_CLEAR_SITE_DATA)).thenReturn("");
+  @DisplayName("Allowed redirect URI with wildcard glob pattern matches")
+  void testAllowedRedirectUriWithGlob() throws Exception {
+    when(request.getParameter("redirect_uri")).thenReturn("dhis2oauth://oauth/callback");
+    stubAllowlist("dhis2oauth://oauth/*");
 
-    handler.onLogoutSuccess(request, response, null);
+    handler.onLogoutSuccess(request, response, authentication);
 
-    verify(response, never()).setHeader(eq("Clear-Site-Data"), anyString());
+    verify(response).sendRedirect("dhis2oauth://oauth/callback");
+  }
+
+  @Test
+  @DisplayName("Disallowed redirect URI does not redirect to that URI")
+  void testDisallowedRedirectUri() throws Exception {
+    when(request.getParameter("redirect_uri")).thenReturn("https://evil.com");
+    stubAllowlist("dhis2oauth://oauth");
+
+    handler.onLogoutSuccess(request, response, authentication);
+
+    verify(response, never()).sendRedirect("https://evil.com");
+  }
+
+  @Test
+  @DisplayName("No redirect_uri parameter does not consult allowlist")
+  void testNoRedirectUriParameter() throws Exception {
+    when(request.getParameter("redirect_uri")).thenReturn(null);
+
+    handler.onLogoutSuccess(request, response, authentication);
+
+    verifyNoInteractions(systemSettingsService);
+  }
+
+  @Test
+  @DisplayName("Empty redirect_uri parameter does not consult allowlist")
+  void testBlankRedirectUriParameter() throws Exception {
+    when(request.getParameter("redirect_uri")).thenReturn("");
+
+    handler.onLogoutSuccess(request, response, authentication);
+
+    verifyNoInteractions(systemSettingsService);
+  }
+
+  @Test
+  @DisplayName("Multiple allowlist entries - matching second entry succeeds")
+  void testMultipleAllowlistEntries() throws Exception {
+    when(request.getParameter("redirect_uri")).thenReturn("myapp://callback");
+    stubAllowlist("dhis2oauth://oauth, myapp://callback");
+
+    handler.onLogoutSuccess(request, response, authentication);
+
+    verify(response).sendRedirect("myapp://callback");
+  }
+
+  @Test
+  @DisplayName("Redirect URI not matching any allowlist entry is rejected")
+  void testRedirectUriNotMatchingAnyEntry() throws Exception {
+    when(request.getParameter("redirect_uri")).thenReturn("https://attacker.com/steal");
+    stubAllowlist("dhis2oauth://oauth, myapp://callback");
+
+    handler.onLogoutSuccess(request, response, authentication);
+
+    verify(response, never()).sendRedirect("https://attacker.com/steal");
   }
 }

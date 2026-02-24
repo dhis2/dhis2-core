@@ -60,6 +60,7 @@ import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.CategoryOptionComboService;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.QuerySearchScope;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
@@ -112,7 +113,7 @@ class TrackerEventOperationParamsMapper {
             UID.toValueSet(operationParams.getAttributeCategoryOptions()),
             true);
 
-    validateAttributeOptionCombo(attributeOptionCombo, user);
+    paramsValidator.validateAttributeOptionCombo(attributeOptionCombo, user);
 
     TrackerEventQueryParams queryParams = new TrackerEventQueryParams();
 
@@ -134,6 +135,11 @@ class TrackerEventOperationParamsMapper {
         .setEnrollmentStatus(operationParams.getEnrollmentStatus())
         .setFollowUp(operationParams.getFollowUp())
         .setOrgUnitMode(operationParams.getOrgUnitMode())
+        .setQuerySearchScope(
+            QuerySearchScope.of(
+                user,
+                operationParams.getOrgUnitMode(),
+                organisationUnitService::getOrganisationUnitsByUid))
         .setAssignedUserQueryParam(
             new AssignedUserQueryParam(
                 operationParams.getAssignedUserMode(),
@@ -211,17 +217,6 @@ class TrackerEventOperationParamsMapper {
     }
 
     return orgUnit;
-  }
-
-  private void validateAttributeOptionCombo(
-      CategoryOptionCombo attributeOptionCombo, UserDetails user) throws ForbiddenException {
-    if (attributeOptionCombo != null
-        && !user.isSuper()
-        && !aclService.canDataRead(user, attributeOptionCombo)) {
-      throw new ForbiddenException(
-          "User has no access to attribute category option combo: "
-              + attributeOptionCombo.getUid());
-    }
   }
 
   private void mapDataElementFilters(

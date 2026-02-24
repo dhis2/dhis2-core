@@ -554,6 +554,30 @@
       "formName": "Height in mm",
       "url": "",
       "valueType": "NUMBER"
+    },
+    {
+      "id": "FieVkTxp4HE",
+      "attributeValues": [
+        {
+          "attribute": {
+            "id": "j45AR9cBQKc"
+          },
+          "value": "mandatory dataElement FieVkTxp4HE"
+        }
+      ],
+      "aggregationType": "AVERAGE",
+      "categoryCombo": {
+        "id": "O4VaNks6tta"
+      },
+      "code": "DE_240795",
+      "created": "2015-03-31T10:27:46.069",
+      "domainType": "TRACKER",
+      "lastUpdated": "2015-03-31T11:22:51.642",
+      "name": "Mandatory random number",
+      "shortName": "Mandatory random number",
+      "formName": "Mandatory random number",
+      "url": "",
+      "valueType": "NUMBER"
     }
   ],
   "optionSets": [
@@ -1406,6 +1430,46 @@
         "id": "FIgVWzUCkpw"
       },
       "validationStrategy": "ON_COMPLETE"
+    },
+    {
+      "id": "rLZC0lvvxQY",
+      "autoGenerateEvent": true,
+      "enableUserAssignment": true,
+      "code": "mandatory data value",
+      "created": "2022-04-22T05:57:48.383",
+      "displayGenerateEventBox": true,
+      "lastUpdated": "2022-04-22T05:57:59.849",
+      "minDaysFromStart": 0,
+      "name": "Program stage with mandatory data value",
+      "program": {
+        "id": "cS7eutanDrT"
+      },
+      "programStageDataElements": [
+        {
+          "id": "r4Fr954HH6H",
+          "access": {
+            "delete": true,
+            "manage": true,
+            "read": true,
+            "update": true,
+            "write": true
+          },
+          "created": "2022-04-22T05:57:48.383",
+          "dataElement": {
+            "id": "FieVkTxp4HE"
+          },
+          "lastUpdated": "2022-04-22T05:57:59.783",
+          "skipSynchronization" : true,
+          "programStage": {
+            "id": "rLZC0lvvxQY"
+          },
+          "sharing": {},
+          "sortOrder": 1,
+          "compulsory": true
+        }
+      ],
+      "validationStrategy": "ON_UPDATE_AND_INSERT",
+      "featureType": "POINT"
     }
   ],
   "programs": [
@@ -1421,6 +1485,9 @@
         }
       ],
       "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "enrollmentCategoryCombo": {
         "id": "bjDvmb4bfuf"
       },
       "completeEventsExpiryDays": 0,
@@ -1548,6 +1615,9 @@
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
+      "enrollmentCategoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
       "completeEventsExpiryDays": 0,
       "created": "2019-01-28T11:23:20.906",
       "displayIncidentDate": true,
@@ -1580,6 +1650,9 @@
       "id": "BFcipDERJng",
       "accessLevel": "OPEN",
       "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "enrollmentCategoryCombo": {
         "id": "bjDvmb4bfuf"
       },
       "completeEventsExpiryDays": 0,
@@ -1624,6 +1697,9 @@
       "categoryCombo": {
         "id": "O4VaNks6tta"
       },
+      "enrollmentCategoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
       "code": "iS7eutanDry code",
       "completeEventsExpiryDays": 0,
       "created": "2022-04-22T05:57:48.409",
@@ -1653,6 +1729,9 @@
       "accessLevel": "OPEN",
       "categoryCombo": {
         "id": "O4VaNks6tta"
+      },
+      "enrollmentCategoryCombo": {
+        "id": "bjDvmb4bfuf"
       },
       "completeEventsExpiryDays": 0,
       "created": "2020-05-31T09:02:52.718",
@@ -1691,6 +1770,9 @@
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
+      "enrollmentCategoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
       "completeEventsExpiryDays": 0,
       "created": "2020-05-31T09:02:52.718",
       "displayIncidentDate": true,
@@ -1726,6 +1808,9 @@
       "id": "UWRnoyBjvqi",
       "accessLevel": "CLOSED",
       "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "enrollmentCategoryCombo": {
         "id": "bjDvmb4bfuf"
       },
       "completeEventsExpiryDays": 0,
@@ -1771,6 +1856,9 @@
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
+      "enrollmentCategoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
       "completeEventsExpiryDays": 0,
       "created": "2020-05-31T09:02:52.718",
       "displayIncidentDate": true,
@@ -1806,6 +1894,9 @@
       "id": "SeeUNWLQmZk",
       "accessLevel": "OPEN",
       "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "enrollmentCategoryCombo": {
         "id": "bjDvmb4bfuf"
       },
       "completeEventsExpiryDays": 0,
@@ -1845,6 +1936,9 @@
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
       },
+      "enrollmentCategoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
       "completeEventsExpiryDays": 0,
       "created": "2020-05-31T09:02:52.718",
       "displayIncidentDate": true,
@@ -1882,6 +1976,9 @@
       "accessLevel": "OPEN",
       "categoryCombo": {
         "id": "O4VaNks6tta"
+      },
+      "enrollmentCategoryCombo": {
+        "id": "bjDvmb4bfuf"
       },
       "completeEventsExpiryDays": 0,
       "created": "2020-05-31T09:02:52.718",
@@ -1939,6 +2036,39 @@
         "id": "FIgVWzUCkpw"
       },
       "version": 2
+    },
+    {
+      "id": "cS7eutanDrT",
+      "accessLevel": "OPEN",
+      "categoryCombo": {
+        "id": "O4VaNks6tta"
+      },
+      "enrollmentCategoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "code": "cS7eutanDrT code",
+      "completeEventsExpiryDays": 0,
+      "created": "2022-04-22T05:57:48.409",
+      "displayIncidentDate": true,
+      "expiryDays": 0,
+      "lastUpdated": "2022-04-22T05:57:59.829",
+      "maxTeiCountToReturn": 0,
+      "minAttributesRequiredToSearch": 1,
+      "name": "Program with mandatory data value on program stage",
+      "organisationUnits": [
+        {
+          "id": "DiszpKrYNg8"
+        }
+      ],
+      "programStages": [
+        {
+          "id": "rLZC0lvvxQY"
+        }
+      ],
+      "programType": "WITHOUT_REGISTRATION",
+      "shortName": "Program with mandatory data value on program stage",
+      "enableChangeLog": true,
+      "version": 1
     }
   ],
   "relationshipTypes": [
