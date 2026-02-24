@@ -2455,9 +2455,6 @@ public class DataQueryParams {
     return ImmutableList.copyOf(getDimensionOptions(PERIOD_DIM_ID));
   }
 
-  /**
-   * @return The period dimension items as {@link Period}
-   */
   public List<String> getPeriodsIds() {
     return getDimensionOptions(PERIOD_DIM_ID).stream()
         .map(DimensionalItemObject::getDimensionItem)
