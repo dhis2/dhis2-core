@@ -353,7 +353,8 @@ public abstract class AbstractTrackerPersister<
                                         preheat, attribute.getAttribute()))
                                 .setEntityInstance(trackedEntityInstance))
                     .setStoredBy(attribute.getStoredBy())
-                    .setValue(attribute.getValue());
+                    .setValue(attribute.getValue())
+                    .setLastUpdated(new Date());
 
             saveOrUpdate(
                 session,
@@ -408,7 +409,6 @@ public abstract class AbstractTrackerPersister<
       trackedEntityInstance.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
       auditType = AuditType.CREATE;
     } else {
-      trackedEntityAttributeValue.setLastUpdated(new Date());
       session.merge(trackedEntityAttributeValue);
 
       if (isUpdated) {
