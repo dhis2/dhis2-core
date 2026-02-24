@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.filter;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.LOGGING_SESSION_ID;
+import static org.hisp.dhis.log.MdcKeys.MDC_SESSION_ID;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -64,8 +65,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Slf4j
 @Component
 public class SessionIdFilter extends OncePerRequestFilter {
-  private static final String SESSION_ID_KEY = "sessionId";
-
   /** The hash algorithm to use. */
   private static final String HASH_ALGO = "SHA-256";
 
@@ -88,7 +87,7 @@ public class SessionIdFilter extends OncePerRequestFilter {
             && authentication.isAuthenticated()
             && !authentication.getPrincipal().equals("anonymousUser")) {
 
-          MDC.put(SESSION_ID_KEY, IDENTIFIER_PREFIX + hashToBase64(req.getSession().getId()));
+          MDC.put(MDC_SESSION_ID, IDENTIFIER_PREFIX + hashToBase64(req.getSession().getId()));
         }
       } catch (NoSuchAlgorithmException e) {
         log.error(String.format("Invalid Hash algorithm provided (%s)", HASH_ALGO), e);
