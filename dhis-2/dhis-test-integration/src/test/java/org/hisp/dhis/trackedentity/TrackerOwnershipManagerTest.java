@@ -43,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -747,6 +748,27 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     injectSecurityContext(userDetailsA);
 
     assertIsEmpty(getTrackedEntities(operationParams));
+  }
+
+  @Test
+  void shouldUpdateTrackedEntityLastUpdatedWhenGrantingTemporaryOwnership()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    userB.setTeiSearchOrganisationUnits(Set.of(organisationUnitA));
+    userService.updateUser(userB);
+    Date lastUpdatedBefore = entityInstanceA1.getLastUpdated();
+
+    trackerOwnershipAccessManager.grantTemporaryOwnership(
+        entityInstanceA1, programA, userB, "test protected program");
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            entityInstanceA1.getUid(), null, TrackedEntityParams.FALSE, false);
+    assertTrue(
+        trackedEntity.getLastUpdated().after(lastUpdatedBefore),
+        () ->
+            String.format(
+                "The field lastUpdated for TrackedEntity %s should be updated after temporary access granted. ",
+                trackedEntity.getUid()));
   }
 
   private void transferOwnership(
