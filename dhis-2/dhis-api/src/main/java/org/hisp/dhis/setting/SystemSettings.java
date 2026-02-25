@@ -846,4 +846,22 @@ public non-sealed interface SystemSettings extends Settings {
   default int getDeviceEnrollmentIATTtlSeconds() {
     return asInt("deviceEnrollmentIATTtlSeconds", 60);
   }
+
+  /**
+   * since 2.43
+   *
+   * @return custom color to use as the background for DHIS2 header bar
+   */
+  default String getUiCustomColor() {
+    return asString("keyUiCustomColor", "");
+  }
+
+  /**
+   * since 2.43
+   *
+   * @return custom color to use as the background for DHIS2 header bar for Android
+   */
+  default String getUiCustomColorMobile() {
+    return asString("keyUiCustomColorMobile", "");
+  }
 }
