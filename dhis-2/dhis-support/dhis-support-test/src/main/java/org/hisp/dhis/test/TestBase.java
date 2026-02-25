@@ -460,7 +460,7 @@ public abstract class TestBase {
     SourceRequest sourceRequest =
         new SourceRequest()
             .setName("RequestA")
-            .setVisualization("JHKuBWP20RO")
+            .setVisualization(UID.of("JHKuBWP20RO"))
             .setDx(newArrayList("LrDpG50RAU9", "uR5HCiJhQ1w"))
             .setPe(newArrayList("202201", "202202"))
             .setOu(newArrayList("G9BuXqtNeeb", "jDgiLmYwPDm"))

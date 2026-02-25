@@ -297,6 +297,14 @@ public interface CategoryService {
   CategoryCombo getCategoryCombo(String uid);
 
   /**
+   * Retrieves a CategoryCombo with the given UID.
+   *
+   * @param uid the identifier of the CategoryCombo to retrieve.
+   * @return the CategoryCombo.
+   */
+  CategoryCombo getCategoryCombo(UID uid);
+
+  /**
    * Retrieves the CategoryCombo with the given name.
    *
    * @param name the name of the CategoryCombo to retrieve.

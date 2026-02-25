@@ -566,6 +566,21 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
   }
 
   @Test
+  @DisplayName("Should return conflict when source request visualization is not a valid UID")
+  void testSourceRequestVisualizationInvalidUid() {
+    JsonWebMessage message =
+        assertWebMessage(
+            HttpStatus.CONFLICT,
+            POST(
+                "/metadata/",
+                "{'aggregateDataExchanges': [{'id': 'iFOyIpQciyk', 'name': 'Test exchange',"
+                    + "'source': {'requests': [{'name': 'R1', 'visualization': '1nvalidUid',"
+                    + "'dx': ['fbfJHSPpUQD'], 'pe': ['202201'], 'ou': ['ImspTQPwCqd']}]},"
+                    + "'target': {'type': 'INTERNAL'}}]}"));
+    assertTrue(message.getMessage().contains("1nvalidUid"));
+  }
+
+  @Test
   @DisplayName(
       "Should return error E6305 if create a new AggregateDataExchange without authentication"
           + " details")
