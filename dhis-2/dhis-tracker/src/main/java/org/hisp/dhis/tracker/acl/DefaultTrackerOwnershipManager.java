@@ -196,6 +196,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
           new ProgramTempOwnershipAudit(program, trackedEntity, reason, user.getUsername()));
     }
 
+    trackedEntity.setLastUpdated(new Date());
     ProgramTempOwner programTempOwner =
         new ProgramTempOwner(
             program,
@@ -206,9 +207,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     programTempOwnerStore.addProgramTempOwner(programTempOwner);
     tempOwnerCache.invalidate(
         getTempOwnershipCacheKey(trackedEntity.getUid(), program.getUid(), user.getUid()));
-
-    trackedEntity.setLastUpdated(new Date());
-    manager.update(trackedEntity);
   }
 
   private void validateTrackedEntity(TrackedEntity trackedEntity, UserDetails user)
