@@ -380,7 +380,8 @@ public class CspHeadersE2ETest extends BaseE2ETest {
    * Verifies that security headers are present in the response.
    */
   private void verifySecurityHeadersPresent(ResponseEntity<String> response) {
-    HttpHeaders headers = response.getHeaders();
+    HttpHeaders headers = 
+        response.getHeaders();
 
     assertNotNull(
         headers.getFirst(X_CONTENT_TYPE_OPTIONS_HEADER),
