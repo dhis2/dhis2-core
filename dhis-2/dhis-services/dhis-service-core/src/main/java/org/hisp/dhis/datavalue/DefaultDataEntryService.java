@@ -631,7 +631,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     Set<String> aocOuRestricted =
         Set.copyOf(store.getAocWithOrgUnitHierarchy(source.attributeOptionCombos()));
     if (!aocOuRestricted.isEmpty()) {
-      Iterator<UID> aocIter = source.attributeOptionCombos().iterator();
+      Iterator<UID> aocIter = source.attributeOptionCombos().filter(Objects::nonNull).iterator();
       while (aocIter.hasNext()) {
         UID aoc = aocIter.next();
         if (!aocOuRestricted.contains(aoc.getValue())) continue;
@@ -855,7 +855,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     // - require: DS not already approved (data approval)
     Set<String> aocInApproval = Set.copyOf(store.getDataSetAocInApproval(ds));
     if (!aocInApproval.isEmpty()) {
-      Iterator<UID> iterAoc = source.attributeOptionCombos().iterator();
+      Iterator<UID> iterAoc = source.attributeOptionCombos().filter(Objects::nonNull).iterator();
       while (iterAoc.hasNext()) {
         UID aoc = iterAoc.next();
         if (!aocInApproval.contains(aoc.getValue())) continue;
@@ -954,8 +954,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     Stream<UID> optionCombos();
 
     /**
-     * @return all attribute option combos in the source (nulls allowed; not necessarily distinct
-     *     yet)
+     * @return all attribute option combos in the source (must maintain nulls; not necessarily
+     *     distinct yet)
      */
     Stream<UID> attributeOptionCombos();
 
