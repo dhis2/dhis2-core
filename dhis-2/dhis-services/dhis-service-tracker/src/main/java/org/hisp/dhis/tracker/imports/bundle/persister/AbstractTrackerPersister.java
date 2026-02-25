@@ -36,6 +36,7 @@ import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -372,7 +373,8 @@ public abstract class AbstractTrackerPersister<
                                         preheat, attribute.getAttribute()))
                                 .setTrackedEntity(trackedEntity))
                     .setStoredBy(attribute.getStoredBy())
-                    .setValue(attribute.getValue());
+                    .setValue(attribute.getValue())
+                    .setLastUpdated(new Date());
 
             saveOrUpdate(
                 entityManager,
