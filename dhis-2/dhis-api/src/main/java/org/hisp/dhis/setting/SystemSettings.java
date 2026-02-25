@@ -480,10 +480,6 @@ public non-sealed interface SystemSettings extends Settings {
     return asString("keyDateFormat", "yyyy-MM-dd");
   }
 
-  default String getStyle() {
-    return asString("keyStyle", "light_blue/light_blue.css");
-  }
-
   default String getRemoteInstanceUrl() {
     return asString("keyRemoteInstanceUrl", "");
   }
