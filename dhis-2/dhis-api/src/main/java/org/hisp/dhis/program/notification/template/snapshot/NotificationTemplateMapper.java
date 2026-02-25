@@ -83,7 +83,7 @@ public class NotificationTemplateMapper {
         template,
         ProgramNotificationTemplateSnapshot::new,
         List.of(
-            t -> t.setMessageTemplate(template.getMessageTemplate()),
+            t -> t.setMessageTemplate(template.getDisplayMessageTemplate()),
             t -> t.setNotificationRecipient(template.getNotificationRecipient()),
             t ->
                 t.setRecipientProgramAttribute(
@@ -92,7 +92,7 @@ public class NotificationTemplateMapper {
                         IdentifiableObjectSnapshot::new,
                         Collections.emptyList())),
             t -> t.setNotificationTrigger(template.getNotificationTrigger()),
-            t -> t.setSubjectTemplate(template.getSubjectTemplate()),
+            t -> t.setSubjectTemplate(template.getDisplaySubjectTemplate()),
             t -> t.setDeliveryChannels(template.getDeliveryChannels()),
             t ->
                 t.setNotifyParentOrganisationUnitOnly(
