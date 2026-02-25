@@ -978,7 +978,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
     /**
      * @param de filter
-     * @return all COCs used in combination with the given DE (no nulls, no duplicates)
+     * @return all COCs used in combination with the given DE (must maintain nulls, no duplicates)
      */
     Stream<UID> categoryOptionCombosForDataElement(UID de);
 
@@ -1101,7 +1101,6 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       return scope.elements().stream()
           .filter(e -> e.dataElement().equals(de))
           .map(DataEntryGroup.Scope.Element::categoryOptionCombo)
-          .filter(Objects::nonNull)
           .distinct();
     }
 

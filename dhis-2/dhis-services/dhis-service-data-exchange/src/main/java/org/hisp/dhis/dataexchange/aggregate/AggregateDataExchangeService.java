@@ -54,7 +54,6 @@ import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DataDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -599,9 +598,7 @@ public class AggregateDataExchangeService {
     List<T> res = new ArrayList<>();
     for (DimensionalItemObject item : params.getDimensionOptions(DATA_X_DIM_ID)) {
       if (item instanceof DataElement de) {
-        for (CategoryOptionCombo coc : de.getCategoryCombo().getOptionCombos()) {
-          res.add(factory.createElement(de.getUid(), coc.getUid(), null));
-        }
+        res.add(factory.createElement(de.getUid(), null, null));
       } else if (item instanceof DataElementOperand deo) {
         String cocUid =
             deo.getCategoryOptionCombo() != null ? deo.getCategoryOptionCombo().getUid() : null;
