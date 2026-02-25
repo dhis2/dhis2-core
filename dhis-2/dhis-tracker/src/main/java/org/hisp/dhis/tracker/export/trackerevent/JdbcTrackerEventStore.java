@@ -228,14 +228,22 @@ class JdbcTrackerEventStore {
               te.setOrganisationUnit(teOrgUnit);
               event.setStatus(EventStatus.valueOf(resultSet.getString("ev_status")));
 
-              ProgramType programType = ProgramType.fromValue(resultSet.getString("p_type"));
               Program program = new Program();
-              program.setUid(resultSet.getString("p_uid"));
-              program.setCode(resultSet.getString("p_code"));
-              program.setName(resultSet.getString("p_name"));
-              program.setAttributeValues(
-                  AttributeValues.of(resultSet.getString("p_attributevalues")));
-              program.setProgramType(programType);
+              if (queryParams.hasEnrolledInTrackerProgram()) {
+                Program p = queryParams.getEnrolledInTrackerProgram();
+                program.setUid(p.getUid());
+                program.setCode(p.getCode());
+                program.setName(p.getName());
+                program.setAttributeValues(p.getAttributeValues());
+                program.setProgramType(p.getProgramType());
+              } else {
+                program.setUid(resultSet.getString("p_uid"));
+                program.setCode(resultSet.getString("p_code"));
+                program.setName(resultSet.getString("p_name"));
+                program.setAttributeValues(
+                    AttributeValues.of(resultSet.getString("p_attributevalues")));
+                program.setProgramType(ProgramType.fromValue(resultSet.getString("p_type")));
+              }
 
               Enrollment enrollment = new Enrollment();
               enrollment.setUid(resultSet.getString("en_uid"));
@@ -244,10 +252,19 @@ class JdbcTrackerEventStore {
               event.setOrganisationUnit(orgUnit);
 
               ProgramStage ps = new ProgramStage();
-              ps.setUid(resultSet.getString("ps_uid"));
-              ps.setCode(resultSet.getString("ps_code"));
-              ps.setName(resultSet.getString("ps_name"));
-              ps.setAttributeValues(AttributeValues.of(resultSet.getString("ps_attributevalues")));
+              if (queryParams.hasProgramStage()) {
+                ProgramStage qps = queryParams.getProgramStage();
+                ps.setUid(qps.getUid());
+                ps.setCode(qps.getCode());
+                ps.setName(qps.getName());
+                ps.setAttributeValues(qps.getAttributeValues());
+              } else {
+                ps.setUid(resultSet.getString("ps_uid"));
+                ps.setCode(resultSet.getString("ps_code"));
+                ps.setName(resultSet.getString("ps_name"));
+                ps.setAttributeValues(
+                    AttributeValues.of(resultSet.getString("ps_attributevalues")));
+              }
               ps.setProgram(program);
               event.setDeleted(resultSet.getBoolean("ev_deleted"));
 
@@ -487,8 +504,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    * select ...
    * from trackerevent ev
    *   inner join enrollment en on ...
-   *   inner join program p on ...
-   *   inner join programstage ps on ...
+   *   inner join program p on ...            -- conditional
+   *   inner join programstage ps on ...      -- conditional
    *   inner join trackedentity te on ...
    *   inner join trackedentityprogramowner po on ...
    *   inner join organisationunit ou on ...
@@ -506,8 +523,12 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     addSelect(sql, params);
     sql.append(" from trackerevent ev ");
     addJoinOnEnrollment(sql);
-    addJoinOnProgram(sql);
-    addJoinOnProgramStage(sql);
+    if (!params.hasEnrolledInTrackerProgram()) {
+      addJoinOnProgram(sql);
+    }
+    if (!params.hasProgramStage()) {
+      addJoinOnProgramStage(sql);
+    }
     addJoinOnTrackedEntity(sql);
     addJoinOnProgramOwner(sql);
     addJoinOnOwnerOrgUnit(sql);
@@ -676,11 +697,24 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
         """
             select ev.uid as ev_uid,
             evou.uid as orgunit_uid, evou.code as orgunit_code, evou.name as orgunit_name,
-            evou.attributevalues as orgunit_attributevalues,
+            evou.attributevalues as orgunit_attributevalues,\s""");
+
+    if (!params.hasEnrolledInTrackerProgram()) {
+      sql.append(
+          """
             p.uid as p_uid, p.code as p_code, p.name as p_name,
-            p.attributevalues as p_attributevalues,
+            p.attributevalues as p_attributevalues,\s""");
+    }
+
+    if (!params.hasProgramStage()) {
+      sql.append(
+          """
             ps.uid as ps_uid, ps.code as ps_code, ps.name as ps_name,
-            ps.attributevalues as ps_attributevalues,
+            ps.attributevalues as ps_attributevalues,\s""");
+    }
+
+    sql.append(
+        """
             ev.eventid as ev_id, ev.status as ev_status,
             ev.occurreddate as ev_occurreddate, ev.scheduleddate as ev_scheduleddate,
             ev.eventdatavalues as ev_eventdatavalues,
@@ -702,8 +736,14 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     sql.append(
         """
             en.uid as en_uid, en.status as en_status, en.followup as en_followup,
-            en.enrollmentdate as en_enrollmentdate, en.occurreddate as en_occurreddate,
-            p.type as p_type,
+            en.enrollmentdate as en_enrollmentdate, en.occurreddate as en_occurreddate,\s""");
+
+    if (!params.hasEnrolledInTrackerProgram()) {
+      sql.append(" p.type as p_type, ");
+    }
+
+    sql.append(
+        """
             te.trackedentityid as te_id, te.uid as te_uid,
             teou.uid as te_org_unit_uid""");
   }
@@ -911,7 +951,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       SqlHelper hlp) {
     if (params.hasEnrolledInTrackerProgram()) {
       sqlParams.addValue("programid", params.getEnrolledInTrackerProgram().getId());
-      sql.append(hlp.whereAnd()).append(" p.programid = ").append(":programid ");
+      sql.append(hlp.whereAnd()).append(" en.programid = :programid ");
     } else {
       sqlParams.addValue(
           "programid",
@@ -929,17 +969,14 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       SqlHelper hlp) {
     if (params.hasProgramStage()) {
       sqlParams.addValue("programstageid", params.getProgramStage().getId());
-      sql.append(hlp.whereAnd()).append(" ps.programstageid = ").append(":programstageid ");
+      sql.append(hlp.whereAnd()).append(" ev.programstageid = :programstageid ");
     } else {
       sqlParams.addValue(
           "programstageid",
           params.getAccessibleTrackerProgramStages().isEmpty()
               ? null
               : getIdentifiers(params.getAccessibleTrackerProgramStages()));
-      sql.append(hlp.whereAnd())
-          .append(" ps.programstageid in (")
-          .append(":programstageid")
-          .append(") ");
+      sql.append(hlp.whereAnd()).append(" ev.programstageid in (:programstageid) ");
     }
   }
 
