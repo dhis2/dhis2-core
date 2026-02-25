@@ -124,7 +124,7 @@ jobs:
 
     # run-simulation.sh should cleanup after itself, this is to ensure the self-hosted runner is clean in case it did not.
     - name: Cleanup containers
-      run: docker compose --file docker-compose.yml --file docker-compose.profile.yml down --volumes
+      run: docker compose --file docker-compose.yml --file docker-compose.profile.yml down --volumes --remove-orphans
 
     - name: Clean target directory
       run: mvn clean
@@ -208,6 +208,10 @@ jobs:
         export REPORT_SUFFIX="candidate"
 
         ./run-simulation.sh
+
+    - name: Cleanup containers on cancellation
+      if: cancelled()
+      run: docker compose --file docker-compose.yml --file docker-compose.profile.yml down --volumes --remove-orphans
 
     - name: Upload Gatling report
       if: always()
