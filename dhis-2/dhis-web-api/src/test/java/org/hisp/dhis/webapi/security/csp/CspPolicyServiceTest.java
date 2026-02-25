@@ -56,7 +56,7 @@ class CspPolicyServiceTest {
 
   @Mock private DhisConfigurationProvider dhisConfig;
 
-  @Mock private ConfigurationService configurationService;
+  @Mock(lenient = true) private ConfigurationService configurationService;
 
   @Mock private CacheProvider cacheProvider;
 
