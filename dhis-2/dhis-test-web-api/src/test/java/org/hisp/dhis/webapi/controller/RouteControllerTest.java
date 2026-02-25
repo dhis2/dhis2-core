@@ -154,6 +154,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
                         ImmutableMap.<String, Object>builder()
                             .put("name", "John Doe")
                             .put("headers", headers)
+                            .put("requestUri", ((MockHttpServletRequest) request).getRequestURI())
                             .put("queryString", queryString != null ? queryString : "")
                             .put("contentType", request.getContentType());
 
@@ -783,6 +784,130 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals(
         "fields=code%2Ccreated&clientQuery=[code%2Ccreated]",
         responseBody.get("queryString").as(JsonString.class).string());
+  }
+
+  @Test
+  void testRunRouteGivenPlaceholderValueAndCorrespondingPlaceholderInRouteUrl()
+      throws JsonProcessingException, UnsupportedEncodingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub?fields={fields}");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    MvcResult mvcResult =
+        webRequestWithAsyncMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run?_fields=code",
+                new ArrayList<>(),
+                "application/json",
+                null));
+
+    assertEquals(200, mvcResult.getResponse().getStatus());
+    JsonObject responseBody = JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+    assertEquals("fields=code", responseBody.get("queryString").as(JsonString.class).string());
+  }
+
+  @Test
+  void testRunRouteGivenPlaceholderValueContainingReservedUriCharacter()
+      throws JsonProcessingException, UnsupportedEncodingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub/{id}/public");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    MvcResult mvcResult =
+        webRequestWithAsyncMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run?_id=1/any",
+                new ArrayList<>(),
+                "application/json",
+                null));
+
+    assertEquals(200, mvcResult.getResponse().getStatus());
+    JsonObject responseBody = JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+    assertEquals("/1%2Fany/public", responseBody.get("requestUri").as(JsonString.class).string());
+  }
+
+  @Test
+  void testRunRouteGivenBlankPlaceholderValueAndCorrespondingPlaceholderInRouteUrl()
+      throws JsonProcessingException, UnsupportedEncodingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub?fields={fields}");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    MvcResult mvcResult =
+        webRequestWithMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run?_fields=",
+                new ArrayList<>(),
+                "application/json",
+                null));
+
+    assertEquals(502, mvcResult.getResponse().getStatus());
+    JsonObject responseBody = JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+    assertEquals(
+        "Missing or blank value for placeholder: fields",
+        responseBody.get("message").as(JsonString.class).string());
+  }
+
+  @Test
+  void testRunRouteGivenPlaceholderInRouteUrlButNoCorrespondingPlaceholderValue()
+      throws JsonProcessingException, UnsupportedEncodingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub?fields={fields}");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    MvcResult mvcResult =
+        webRequestWithMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run",
+                new ArrayList<>(),
+                "application/json",
+                null));
+
+    assertEquals(502, mvcResult.getResponse().getStatus());
+    JsonObject responseBody = JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+    assertEquals(
+        "Missing or blank value for placeholder: fields",
+        responseBody.get("message").as(JsonString.class).string());
+  }
+
+  @Test
+  void testRunRouteGivenPlaceholderValueButNoCorrespondingPlaceholderInRouteUrl()
+      throws JsonProcessingException, UnsupportedEncodingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+    MvcResult mvcResult =
+        webRequestWithAsyncMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run?_fields=code",
+                new ArrayList<>(),
+                "application/json",
+                null));
+
+    assertEquals(200, mvcResult.getResponse().getStatus());
+    JsonObject responseBody = JsonValue.of(mvcResult.getResponse().getContentAsString()).asObject();
+    assertEquals("_fields=code", responseBody.get("queryString").as(JsonString.class).string());
   }
 
   @Test
