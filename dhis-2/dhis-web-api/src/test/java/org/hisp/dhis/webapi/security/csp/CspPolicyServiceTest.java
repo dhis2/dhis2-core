@@ -175,7 +175,9 @@ class CspPolicyServiceTest {
 
     assertNotNull(headers);
     assertTrue(headers.containsKey("Content-Security-Policy"));
-    assertEquals(DEFAULT_CSP_POLICY + " frame-ancestors 'self';", headers.getFirst("Content-Security-Policy"));
+    assertEquals(
+        DEFAULT_CSP_POLICY + " frame-ancestors 'self';",
+        headers.getFirst("Content-Security-Policy"));
   }
 
   @Test
@@ -184,7 +186,9 @@ class CspPolicyServiceTest {
 
     assertNotNull(headers);
     assertTrue(headers.containsKey("Content-Security-Policy"));
-    assertEquals(DEFAULT_CSP_POLICY + " frame-ancestors 'self';", headers.getFirst("Content-Security-Policy"));
+    assertEquals(
+        DEFAULT_CSP_POLICY + " frame-ancestors 'self';",
+        headers.getFirst("Content-Security-Policy"));
   }
 
   @Test
