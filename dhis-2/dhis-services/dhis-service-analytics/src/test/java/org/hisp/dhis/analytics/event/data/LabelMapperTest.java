@@ -35,6 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import org.hisp.dhis.analytics.event.LabelMapper;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -64,6 +65,8 @@ class LabelMapperTest {
   private static final String PROGRAM_STAGES = "Program stages";
 
   private static final String EVENT = "Event";
+
+  private static final String TRACKED_ENTITY_TYPE = "Tracked entity type";
 
   @Test
   void testGetHeaderNameFor_EVENT() {
@@ -194,6 +197,17 @@ class LabelMapperTest {
     String actualName = LabelMapper.getIncidentDateLabel(aMockedProgramWithLabels, INCIDENT_DATE);
 
     assertThat(actualName, is(aMockedProgramWithLabels.getDisplayIncidentDateLabel()));
+  }
+
+  @Test
+  void testGetHeaderNameFor_TRACKED_ENTITY_TYPE() {
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    trackedEntityType.setTrackedEntityTypesLabel("tracked entity types label");
+
+    String actualName =
+        LabelMapper.getTrackedEntityTypesLabel(trackedEntityType, TRACKED_ENTITY_TYPE);
+
+    assertThat(actualName, is(trackedEntityType.getDisplayTrackedEntityTypesLabel()));
   }
 
   @Test

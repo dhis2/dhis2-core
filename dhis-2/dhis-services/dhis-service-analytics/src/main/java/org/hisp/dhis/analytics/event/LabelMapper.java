@@ -33,6 +33,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 /**
  * Specific component responsible mapping custom labels for specific cases where the user is able to
@@ -214,6 +215,24 @@ public class LabelMapper {
   public static String getEventsLabel(Program program, String defaultLabel) {
     if (program != null && isNotBlank(program.getDisplayEventsLabel())) {
       return program.getDisplayEventsLabel();
+    }
+
+    return defaultLabel;
+  }
+
+  /**
+   * Returns a custom label for tracked entity types if one exists, otherwise the given default
+   * label.
+   *
+   * @param trackedEntityType the {@link TrackedEntityType}.
+   * @param defaultLabel the default label.
+   * @return the custom label, otherwise the default label.
+   */
+  public static String getTrackedEntityTypesLabel(
+      TrackedEntityType trackedEntityType, String defaultLabel) {
+    if (trackedEntityType != null
+        && isNotBlank(trackedEntityType.getDisplayTrackedEntityTypesLabel())) {
+      return trackedEntityType.getDisplayTrackedEntityTypesLabel();
     }
 
     return defaultLabel;
