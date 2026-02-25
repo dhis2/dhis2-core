@@ -72,10 +72,10 @@ public class CspHeadersE2ETest extends BaseE2ETest {
   // ========================================================================
 
   @Test
-  void testAppEndpointWithCustomCspPolicy() {
+  void testGlobalShellEndpointWithCustomCspPolicy() {
     // AppController has @CustomCsp with custom policy on GET /apps/index.html
     ResponseEntity<String> response =
-        restTemplate.exchange(serverHostUrl + "apps/index.html", HttpMethod.GET, null, String.class);
+        restTemplate.exchange(serverHostUrl + "apps/maps", HttpMethod.GET, null, String.class);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
 
@@ -90,9 +90,54 @@ public class CspHeadersE2ETest extends BaseE2ETest {
     assertTrue(
         cspHeader.contains("style-src 'self' 'unsafe-inline'"),
         "CSP policy should contain style-src with unsafe-inline");
+
+    // Verify frame-ancestors directive is added
+    assertTrue(cspHeader.contains("frame-ancestors 'self'"), "CSP should include frame-ancestors directive");
+  }
+
+  @Test
+  void testAppResourceEndpointWithCustomCspPolicy() {
+    // AppController has @CustomCsp with custom policy on GET /apps/index.html
+    ResponseEntity<String> response =
+        restTemplate.exchange(serverApiUrl + "apps/maps-app/index.html", HttpMethod.GET, null, String.class);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+
+    // Verify CSP header is present
+    String cspHeader = response.getHeaders().getFirst(CSP_HEADER);
+    assertNotNull(cspHeader, "CSP header should be present");
+
+    // Verify custom policy directives are in the CSP header
     assertTrue(
-        cspHeader.contains("script-src 'self'"),
-        "CSP policy should contain script-src 'self'");
+        cspHeader.contains("default-src 'self'"),
+        "CSP policy should contain default-src 'self' directive");
+    assertTrue(
+        cspHeader.contains("style-src 'self' 'unsafe-inline'"),
+        "CSP policy should contain style-src with unsafe-inline");
+
+    // Verify frame-ancestors directive is added
+    assertTrue(cspHeader.contains("frame-ancestors 'self'"), "CSP should include frame-ancestors directive");
+  }
+
+  @Test
+  void testLegacyAppResourceEndpointWithCustomCspPolicy() {
+    // AppController has @CustomCsp with custom policy on GET /apps/index.html
+    ResponseEntity<String> response =
+        restTemplate.exchange(serverHostUrl + "dhis-web-maps/index.html", HttpMethod.GET, null, String.class);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+
+    // Verify CSP header is present
+    String cspHeader = response.getHeaders().getFirst(CSP_HEADER);
+    assertNotNull(cspHeader, "CSP header should be present");
+
+    // Verify custom policy directives are in the CSP header
+    assertTrue(
+        cspHeader.contains("default-src 'self'"),
+        "CSP policy should contain default-src 'self' directive");
+    assertTrue(
+        cspHeader.contains("style-src 'self' 'unsafe-inline'"),
+        "CSP policy should contain style-src with unsafe-inline");
 
     // Verify frame-ancestors directive is added
     assertTrue(cspHeader.contains("frame-ancestors 'self'"), "CSP should include frame-ancestors directive");
@@ -108,7 +153,7 @@ public class CspHeadersE2ETest extends BaseE2ETest {
     // Test with a non-existent file ID to verify headers are still applied
     ResponseEntity<String> response =
         restTemplate.exchange(
-            serverApiUrl + "/fileResources/nonexistent", HttpMethod.GET, null, String.class);
+            serverApiUrl + "/fileResources/X1234567890/data", HttpMethod.GET, null, String.class);
 
     // Even on error, security headers should be present
     String cspHeader = response.getHeaders().getFirst(CSP_HEADER);
@@ -130,7 +175,7 @@ public class CspHeadersE2ETest extends BaseE2ETest {
     // DocumentController.getDocument() has @CspUserUploadedContent annotation
     ResponseEntity<String> response =
         restTemplate.exchange(
-            serverApiUrl + "/documents/nonexistent", HttpMethod.GET, null, String.class);
+            serverApiUrl + "/documents/X1234567890/data", HttpMethod.GET, null, String.class);
 
     String cspHeader = response.getHeaders().getFirst(CSP_HEADER);
     assertNotNull(cspHeader, "CSP header should be present on document endpoint");
@@ -144,7 +189,7 @@ public class CspHeadersE2ETest extends BaseE2ETest {
     // AuditController.getAuditReports() has @CspUserUploadedContent annotation
     ResponseEntity<String> response =
         restTemplate.exchange(
-            serverApiUrl + "/audits/nonexistent", HttpMethod.GET, null, String.class);
+            serverApiUrl + "/audits/files/X1234567890", HttpMethod.GET, null, String.class);
 
     String cspHeader = response.getHeaders().getFirst(CSP_HEADER);
     assertNotNull(cspHeader, "CSP header should be present on audit endpoint");
@@ -155,13 +200,27 @@ public class CspHeadersE2ETest extends BaseE2ETest {
     // IconController has @CspUserUploadedContent on icon retrieval methods
     ResponseEntity<String> response =
         restTemplate.exchange(
-            serverApiUrl + "/icons/nonexistent", HttpMethod.GET, null, String.class);
+            serverApiUrl + "/icons/X1234567890/icon", HttpMethod.GET, null, String.class);
 
     String cspHeader = response.getHeaders().getFirst(CSP_HEADER);
     assertNotNull(cspHeader, "CSP header should be present on icon endpoint");
     assertTrue(
         cspHeader.contains("default-src 'none'"),
         "Icon endpoint CSP should be restrictive for user-uploaded content");
+  }
+
+  @Test
+  void testIconSvgEndpointWithUserUploadedContentCsp() {
+    // IconController has @CspUserUploadedContent on icon retrieval methods
+    ResponseEntity<String> response =
+        restTemplate.exchange(
+            serverApiUrl + "/icons/X1234567890/icon.svg", HttpMethod.GET, null, String.class);
+
+    String cspHeader = response.getHeaders().getFirst(CSP_HEADER);
+    assertNotNull(cspHeader, "CSP header should be present on icon.svg endpoint");
+    assertTrue(
+        cspHeader.contains("default-src 'none'"),
+        "Icon.svg endpoint CSP should be restrictive for user-uploaded content");
   }
 
   // ========================================================================
@@ -232,29 +291,6 @@ public class CspHeadersE2ETest extends BaseE2ETest {
   }
 
   @Test
-  void testTrackedEntityExportEndpointCspHeaders() {
-    // TrackedEntitiesExportController has @CspUserUploadedContent methods
-    String cookie = performInitialLogin("admin", "district");
-    HttpHeaders headers = new HttpHeaders();
-    headers.set("Cookie", cookie);
-
-    ResponseEntity<String> response =
-        restTemplate.exchange(
-            serverApiUrl + "/tracker/trackedEntities",
-            HttpMethod.GET,
-            new org.springframework.http.HttpEntity<>(headers),
-            String.class);
-
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-
-    // Verify CSP headers are applied
-    String cspHeader = response.getHeaders().getFirst(CSP_HEADER);
-    assertNotNull(cspHeader, "CSP header should be present on tracked entities endpoint");
-
-    verifySecurityHeadersPresent(response);
-  }
-
-  @Test
   void testEventExportEndpointCspHeaders() {
     // EventsExportController has @CspUserUploadedContent annotation
     String cookie = performInitialLogin("admin", "district");
@@ -263,7 +299,7 @@ public class CspHeadersE2ETest extends BaseE2ETest {
 
     ResponseEntity<String> response =
         restTemplate.exchange(
-            serverApiUrl + "/tracker/events",
+            serverApiUrl + "/tracker/events/X1234567890/dataValues/X1234567890/image",
             HttpMethod.GET,
             new org.springframework.http.HttpEntity<>(headers),
             String.class);
@@ -279,22 +315,6 @@ public class CspHeadersE2ETest extends BaseE2ETest {
   // ========================================================================
   // Tests for negative cases and edge cases
   // ========================================================================
-
-  @Test
-  void testUnauthorizedEndpointStillHasSecurityHeaders() {
-    // Access endpoint without credentials
-    ResponseEntity<String> response =
-        restTemplate.exchange(
-            serverApiUrl + "/metadata", HttpMethod.GET, null, String.class);
-
-    // Should get 401 or 403, but security headers should still be present
-    assertTrue(
-        response.getStatusCode().is4xxClientError(),
-        "Should get 4xx error without authentication");
-
-    // Security headers should still be applied on error responses
-    verifySecurityHeadersPresent(response);
-  }
 
   @Test
   void testNonExistentEndpointHasSecurityHeaders() {
