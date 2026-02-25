@@ -30,7 +30,7 @@
 package org.hisp.dhis.program;
 
 import java.util.List;
-import java.util.Set;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -76,13 +76,10 @@ public interface ProgramStore extends IdentifiableObjectStore<Program> {
   boolean hasOrgUnit(Program program, OrganisationUnit organisationUnit);
 
   /**
-   * Update all source CategoryCombo ids to the target CategoryCombo id for Program.categoryCombo &
-   * Program.enrollmentCategoryCombo.
-   *
-   * @param sourceCategoryComboIds source category combo ids
-   * @param targetCategoryComboId target category combo id
-   * @return number of updated rows
+   * Get all Programs that have any of the supplied CategoryCombos as a: <br>
+   * - categoryCombo <br>
+   * - enrollmentCategoryCombo
    */
-  int updateCategoryComboAndEnrollmentCategoryComboRefs(
-      Set<Long> sourceCategoryComboIds, long targetCategoryComboId);
+  List<Program> getAllWithCategoryComboOrEnrollmentCategoryCombo(
+      List<CategoryCombo> categoryCombos);
 }

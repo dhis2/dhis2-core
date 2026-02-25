@@ -36,7 +36,6 @@ import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 import org.hibernate.LockOptions;
 import org.hisp.dhis.category.CategoryCombo;
@@ -48,6 +47,7 @@ import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.User;
+import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -136,20 +136,17 @@ public class HibernateDataElementStore extends HibernateIdentifiableObjectStore<
     return getSingleResult(builder, param);
   }
 
-  @Override
-  public int updateCategoryComboRefs(Set<Long> sourceCategoryComboIds, long targetCategoryComboId) {
-    if (sourceCategoryComboIds == null || sourceCategoryComboIds.isEmpty()) return 0;
-    String sql =
+  public List<DataElement> getByCategoryCombo(List<CategoryCombo> categoryCombos) {
+    if (categoryCombos == null || categoryCombos.isEmpty()) return List.of();
+    @Language("hql")
+    String hql =
         """
-        update dataelement
-        set categorycomboid = :targetCategoryComboId
-        where categorycomboid in :sourceCategoryComboIds
+        select de from DataElement de
+        where de.categoryCombo in (:categoryCombos)
         """;
-    return getSession()
-        .createNativeQuery(sql)
-        .setParameter("targetCategoryComboId", targetCategoryComboId)
-        .setParameter("sourceCategoryComboIds", sourceCategoryComboIds)
+    return getQuery(hql)
+        .setParameter("categoryCombos", categoryCombos)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
-        .executeUpdate();
+        .list();
   }
 }

@@ -35,9 +35,9 @@ import com.google.common.collect.Lists;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.List;
-import java.util.Set;
 import org.hibernate.LockOptions;
 import org.hibernate.query.NativeQuery;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -46,6 +46,7 @@ import org.hisp.dhis.program.ProgramStore;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -123,32 +124,20 @@ public class HibernateProgramStore extends HibernateIdentifiableObjectStore<Prog
   }
 
   @Override
-  public int updateCategoryComboAndEnrollmentCategoryComboRefs(
-      Set<Long> sourceCategoryComboIds, long targetCategoryComboId) {
-    if (sourceCategoryComboIds == null || sourceCategoryComboIds.isEmpty()) return 0;
+  public List<Program> getAllWithCategoryComboOrEnrollmentCategoryCombo(
+      List<CategoryCombo> categoryCombos) {
+    if (categoryCombos == null || categoryCombos.isEmpty()) return List.of();
+
+    @Language("hql")
     String sql =
         """
-        UPDATE program
-        SET
-            categorycomboid = CASE
-                WHEN categorycomboid IN (:sourceCategoryComboIds)
-                THEN :targetCategoryComboId
-                ELSE categorycomboid
-            END,
-            enrollmentcategorycomboid = CASE
-                WHEN enrollmentcategorycomboid IN (:sourceCategoryComboIds)
-                THEN :targetCategoryComboId
-                ELSE enrollmentcategorycomboid
-            END
-        WHERE
-            categorycomboid IN (:sourceCategoryComboIds)
-            OR enrollmentcategorycomboid IN (:sourceCategoryComboIds);
+        select p from Program p
+        where p.categoryCombo in (:categoryCombos)
+            or p.enrollmentCategoryCombo in (:categoryCombos)
         """;
-    return getSession()
-        .createNativeQuery(sql)
-        .setParameter("targetCategoryComboId", targetCategoryComboId)
-        .setParameter("sourceCategoryComboIds", sourceCategoryComboIds)
+    return getQuery(sql)
+        .setParameter("categoryCombos", categoryCombos)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
-        .executeUpdate();
+        .list();
   }
 }

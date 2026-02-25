@@ -41,8 +41,11 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflowStore;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementStore;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetStore;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicatorStore;
 import org.hisp.dhis.program.ProgramStore;
 import org.springframework.stereotype.Component;
@@ -112,10 +115,12 @@ public class CategoryComboMergeHandler {
    * @param target target CategoryCombo
    */
   public void handleDataElements(List<CategoryCombo> sources, CategoryCombo target) {
-    Set<Long> sourceIds =
-        sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet());
-    int updated = dataElementStore.updateCategoryComboRefs(sourceIds, target.getId());
-    log.info("{} DataElements updated with target CategoryCombo ref", updated);
+    List<DataElement> dataElements = dataElementStore.getByCategoryCombo(sources);
+    for (DataElement de : dataElements) {
+      de.setCategoryCombo(target);
+    }
+
+    log.info("{} DataElements updated with target CategoryCombo ref", dataElements.size());
   }
 
   /**
@@ -125,10 +130,11 @@ public class CategoryComboMergeHandler {
    * @param target target CategoryCombo
    */
   public void handleDataSets(List<CategoryCombo> sources, CategoryCombo target) {
-    Set<Long> sourceIds =
-        sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet());
-    int updated = dataSetStore.updateCategoryComboRefs(sourceIds, target.getId());
-    log.info("{} DataSets updated with target CategoryCombo ref", updated);
+    List<DataSet> dataSets = dataSetStore.getByCategoryCombo(sources);
+    for (DataSet ds : dataSets) {
+      ds.setCategoryCombo(target);
+    }
+    log.info("{} DataSets updated with target CategoryCombo ref", dataSets.size());
   }
 
   /**
@@ -152,13 +158,20 @@ public class CategoryComboMergeHandler {
    * @param target target CategoryCombo
    */
   public void handlePrograms(List<CategoryCombo> sources, CategoryCombo target) {
-    Set<Long> sourceIds =
-        sources.stream().map(IdentifiableObject::getId).collect(Collectors.toSet());
-    int updated =
-        programStore.updateCategoryComboAndEnrollmentCategoryComboRefs(sourceIds, target.getId());
+    List<Program> programs = programStore.getAllWithCategoryComboOrEnrollmentCategoryCombo(sources);
+
+    for (Program program : programs) {
+      if (program.getCategoryCombo() != null && sources.contains(program.getCategoryCombo())) {
+        program.setCategoryCombo(target);
+      }
+      if (program.getEnrollmentCategoryCombo() != null
+          && sources.contains(program.getEnrollmentCategoryCombo())) {
+        program.setEnrollmentCategoryCombo(target);
+      }
+    }
     log.info(
         "{} Programs (categorycombo and/or enrollment categorycombo) updated with target CategoryCombo ref",
-        updated);
+        programs.size());
   }
 
   /**

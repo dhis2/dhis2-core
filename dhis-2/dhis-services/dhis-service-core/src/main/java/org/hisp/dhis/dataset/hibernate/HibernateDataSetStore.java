@@ -40,6 +40,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hibernate.LockOptions;
 import org.hibernate.query.Query;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -49,6 +50,7 @@ import org.hisp.dhis.dataset.DataSetStore;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
+import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -126,20 +128,18 @@ public class HibernateDataSetStore extends HibernateIdentifiableObjectStore<Data
   }
 
   @Override
-  public int updateCategoryComboRefs(Set<Long> sourceCategoryComboIds, long targetCategoryComboId) {
-    if (sourceCategoryComboIds == null || sourceCategoryComboIds.isEmpty()) return 0;
-    String sql =
+  public List<DataSet> getByCategoryCombo(List<CategoryCombo> categoryCombos) {
+    if (categoryCombos == null || categoryCombos.isEmpty()) return List.of();
+    @Language("hql")
+    String hql =
         """
-        update dataset
-        set categorycomboid = :targetCategoryComboId
-        where categorycomboid in :sourceCategoryComboIds
+        select ds from DataSet ds
+        where ds.categoryCombo in (:categoryCombos)
         """;
-    return getSession()
-        .createNativeQuery(sql)
-        .setParameter("targetCategoryComboId", targetCategoryComboId)
-        .setParameter("sourceCategoryComboIds", sourceCategoryComboIds)
+    return getQuery(hql)
+        .setParameter("categoryCombos", categoryCombos)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
-        .executeUpdate();
+        .list();
   }
 
   @Override
