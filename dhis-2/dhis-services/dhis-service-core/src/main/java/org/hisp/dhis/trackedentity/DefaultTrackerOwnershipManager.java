@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentity;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.LongSupplier;
@@ -236,6 +237,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
           new ProgramTempOwnershipAudit(program, entityInstance, reason, user.getUsername()));
     }
 
+    entityInstance.setLastUpdated(new Date());
+    trackedEntityInstanceService.updateTrackedEntityInstance(entityInstance);
     ProgramTempOwner programTempOwner =
         new ProgramTempOwner(
             program, entityInstance, reason, user, TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS);
