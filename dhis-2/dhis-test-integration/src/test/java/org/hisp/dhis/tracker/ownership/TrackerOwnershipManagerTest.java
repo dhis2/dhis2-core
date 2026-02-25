@@ -737,7 +737,7 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
 
   @Test
   void shouldUpdateTrackedEntityLastUpdatedWhenGrantingTemporaryOwnership()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+      throws ForbiddenException, NotFoundException {
     userB.setTeiSearchOrganisationUnits(Set.of(organisationUnitA));
     userService.updateUser(userB);
     userDetailsB = UserDetails.fromUser(userB);
