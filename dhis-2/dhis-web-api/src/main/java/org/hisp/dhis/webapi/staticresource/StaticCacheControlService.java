@@ -33,6 +33,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
@@ -58,10 +59,10 @@ import org.springframework.util.AntPathMatcher;
 public class StaticCacheControlService {
 
   private static final AntPathMatcher ANT = new AntPathMatcher();
-  private static final Pattern HASHED_FILENAME =
-      Pattern.compile(
-          "\\.[0-9a-f]{8,}\\." // Webpack: name.abc12345.ext
-              + "|-(?=[a-zA-Z0-9]*[0-9])[a-zA-Z0-9]{7,}\\."); // Vite/Rollup: name-Dhu2pmiS.ext
+  private static final Pattern WEBPACK_HASH = Pattern.compile("\\.[0-9a-f]{8,}\\.");
+
+  private static final Pattern VITE_HASH =
+      Pattern.compile("[-_]([a-zA-Z0-9_-]{7,12})\\.[a-z0-9]{2,5}$");
 
   private final DhisConfigurationProvider config;
   private final AppManager appManager;
@@ -154,7 +155,7 @@ public class StaticCacheControlService {
                       Boolean.TRUE.equals(r.getImmutable()) && matchesPattern(r.getPattern(), uri));
       if (ruleMatch) return true;
     }
-    return HASHED_FILENAME.matcher(uri).find();
+    return looksLikeHashedFilename(uri);
   }
 
   private Duration resolveMaxAge(String uri, @CheckForNull AppCacheConfig config) {
@@ -190,6 +191,24 @@ public class StaticCacheControlService {
   private static boolean matchesPattern(String pattern, String uri) {
     if (ANT.match(pattern, uri)) return true;
     if (uri.startsWith("/")) return ANT.match(pattern, uri.substring(1));
+    return false;
+  }
+
+  /**
+   * Detects hashed filenames produced by common bundlers. Webpack uses dot-separated lowercase hex
+   * ({@code main.abc12345.js}). Vite/Rollup uses dash-separated base64url ({@code
+   * main-Dhu2pmiS.js}, {@code main-D-tfNpnx.js}). The Vite pattern requires at least one uppercase
+   * letter to distinguish hashes from normal dash-separated filenames like {@code
+   * main-component.js}.
+   */
+  private static boolean looksLikeHashedFilename(String uri) {
+    if (WEBPACK_HASH.matcher(uri).find()) return true;
+
+    Matcher m = VITE_HASH.matcher(uri);
+    if (m.find()) {
+      String candidate = m.group(1);
+      return candidate.chars().anyMatch(Character::isUpperCase);
+    }
     return false;
   }
 

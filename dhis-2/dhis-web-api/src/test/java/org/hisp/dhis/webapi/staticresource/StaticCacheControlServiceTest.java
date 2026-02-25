@@ -136,24 +136,66 @@ class StaticCacheControlServiceTest {
   }
 
   @Test
-  @DisplayName("Vite/Rollup-style hashed filename gets immutable treatment")
-  void viteHashedFilename_getsImmutable() {
+  @DisplayName("Vite hash with mixed case and digits gets immutable")
+  void viteHash_mixedCaseDigits() {
     MockHttpServletResponse response = new MockHttpServletResponse();
     service.setHeaders(response, "/dhis-web-messaging/assets/main-Dhu2pmiS.js", null);
 
-    String cc = response.getHeader("Cache-Control");
-    assertThat(cc, containsString("max-age=31536000"));
-    assertThat(cc, containsString("public"));
+    assertThat(response.getHeader("Cache-Control"), containsString("max-age=31536000"));
   }
 
   @Test
-  @DisplayName("Dash-separated filename without digits is NOT treated as hashed")
-  void dashSeparatedNonHash_getsDefaultMaxAge() {
+  @DisplayName("Vite hash with all-letter mixed case gets immutable")
+  void viteHash_allLetterMixedCase() {
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    service.setHeaders(response, "/dhis-web-dashboard/assets/main-DHOiLmwl.js", null);
+
+    assertThat(response.getHeader("Cache-Control"), containsString("max-age=31536000"));
+  }
+
+  @Test
+  @DisplayName("Vite hash containing a dash (base64url) gets immutable")
+  void viteHash_containsDash() {
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    service.setHeaders(response, "/dhis-web-dashboard/assets/main-D-tfNpnx.js", null);
+
+    assertThat(response.getHeader("Cache-Control"), containsString("max-age=31536000"));
+  }
+
+  @Test
+  @DisplayName("Vite hash containing underscore gets immutable")
+  void viteHash_containsUnderscore() {
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    service.setHeaders(response, "/apps/dashboard/assets/App-B6NG_BIY.js", null);
+
+    assertThat(response.getHeader("Cache-Control"), containsString("max-age=31536000"));
+  }
+
+  @Test
+  @DisplayName("Vite hash with woff2 extension gets immutable")
+  void viteHash_woff2Extension() {
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    service.setHeaders(response, "/apps/assets/fonts/roboto-latin-500-DRg8azjQ.woff2", null);
+
+    assertThat(response.getHeader("Cache-Control"), containsString("max-age=31536000"));
+  }
+
+  @Test
+  @DisplayName("Normal dash-separated filename (all lowercase) is NOT treated as hashed")
+  void dashSeparated_allLowercase_notHashed() {
     MockHttpServletResponse response = new MockHttpServletResponse();
     service.setHeaders(response, "/apps/dashboard/main-component.js", null);
 
-    String cc = response.getHeader("Cache-Control");
-    assertThat(cc, containsString("max-age=3600"));
+    assertThat(response.getHeader("Cache-Control"), containsString("max-age=3600"));
+  }
+
+  @Test
+  @DisplayName("Normal multi-dash filename is NOT treated as hashed")
+  void multiDash_normalFilename_notHashed() {
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    service.setHeaders(response, "/apps/dashboard/app-dashboard-plugin.js", null);
+
+    assertThat(response.getHeader("Cache-Control"), containsString("max-age=3600"));
   }
 
   @Test
