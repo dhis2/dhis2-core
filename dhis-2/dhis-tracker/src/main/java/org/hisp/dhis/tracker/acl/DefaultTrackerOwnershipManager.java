@@ -33,7 +33,6 @@ import static org.hisp.dhis.tracker.acl.OwnershipCacheUtils.getOwnershipCacheKey
 import static org.hisp.dhis.tracker.acl.OwnershipCacheUtils.getTempOwnershipCacheKey;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
-import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -173,9 +172,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
         hibernateTrackedEntity, program, orgUnit);
-
-    hibernateTrackedEntity.setLastUpdated(new Date());
-    manager.update(hibernateTrackedEntity);
   }
 
   @Override

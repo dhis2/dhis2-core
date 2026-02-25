@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.acl;
 
+import java.util.Date;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -103,6 +104,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     }
     updateTrackedEntityProgramOwner(teProgramOwner, orgUnit);
     trackedEntityProgramOwnerStore.update(teProgramOwner);
+    trackedEntity.setLastUpdated(new Date());
   }
 
   private void updateTrackedEntityProgramOwner(
