@@ -43,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -747,6 +748,28 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     injectSecurityContext(userDetailsA);
 
     assertIsEmpty(getTrackedEntities(operationParams));
+  }
+
+  @Test
+  void shouldUpdateTrackedEntityLastUpdatedWhenOwnershipIsTransferred()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    userA.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
+    userService.updateUser(userA);
+    Date lastUpdatedBefore = entityInstanceA1.getLastUpdated();
+
+    assignOwnership(entityInstanceA1, programA, organisationUnitA);
+    transferOwnership(entityInstanceA1, programA, organisationUnitB);
+
+    injectSecurityContextUser(userB);
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            entityInstanceA1.getUid(), null, TrackedEntityParams.FALSE, false);
+    assertTrue(
+        trackedEntity.getLastUpdated().after(lastUpdatedBefore),
+        () ->
+            String.format(
+                "The field lastUpdated for TrackedEntity %s should be updated after ownership transfer. ",
+                entityInstanceA1.getUid()));
   }
 
   private void transferOwnership(
