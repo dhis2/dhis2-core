@@ -542,9 +542,6 @@ public enum ConfigurationKey {
   LOGGING_QUERY_SLOW_THRESHOLD(
       "logging.query.slow_threshold", String.valueOf(SECONDS.toMillis(1)), false),
 
-  /** Logs the calling method and class for each query. */
-  LOGGING_QUERY_METHOD("logging.query.method", Constants.OFF, false),
-
   /** Base URL to the DHIS 2 instance. */
   SERVER_BASE_URL("server.base.url", "", false),
 
