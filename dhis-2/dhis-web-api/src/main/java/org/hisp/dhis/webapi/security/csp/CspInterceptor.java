@@ -66,19 +66,19 @@ public class CspInterceptor implements HandlerInterceptor {
     CustomCsp methodAnnotation = method.getAnnotation(CustomCsp.class);
     if (methodAnnotation != null) {
       cspPolicy = cspPolicyService.constructCustomCspPolicy(methodAnnotation.value());
-      log.info("Setting custom CSP policy for method {} to: {}", method.getName(), cspPolicy);
+      log.debug("Setting custom CSP policy for method {} to: {}", method.getName(), cspPolicy);
     } else if (method.getAnnotation(CspUserUploadedContent.class) != null) {
       cspPolicy = cspPolicyService.constructUserUploadedContentCspPolicy();
-      log.info("Setting user-uploaded-content CSP policy for method {}", method.getName());
+      log.debug("Setting user-uploaded-content CSP policy for method {}", method.getName());
     } else {
       CustomCsp classAnnotation = controllerClass.getAnnotation(CustomCsp.class);
       if (classAnnotation != null) {
         cspPolicy = cspPolicyService.constructCustomCspPolicy(classAnnotation.value());
-        log.info(
+        log.debug(
             "Setting custom CSP policy for class {} to: {}", controllerClass.getName(), cspPolicy);
       } else if (controllerClass.getAnnotation(CspUserUploadedContent.class) != null) {
         cspPolicy = cspPolicyService.constructUserUploadedContentCspPolicy();
-        log.info(
+        log.debug(
             "Setting user-uploaded-content CSP policy for class {}", controllerClass.getName());
       }
     }

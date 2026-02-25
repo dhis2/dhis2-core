@@ -116,7 +116,7 @@ public class CspPolicyService {
     headers.set("X-Content-Type-Options", "nosniff");
     headers.set("X-Frame-Options", "SAMEORIGIN");
 
-    log.info("Applied CSP policy " + cspPolicy + " and standard security headers for response");
+    log.debug("Applied CSP policy " + cspPolicy + " and standard security headers for response");
     return headers;
   }
 
