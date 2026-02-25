@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.acl.OwnershipCacheUtils.getOwnershipCacheKey
 import static org.hisp.dhis.tracker.acl.OwnershipCacheUtils.getTempOwnershipCacheKey;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
+import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -205,6 +206,9 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     programTempOwnerStore.addProgramTempOwner(programTempOwner);
     tempOwnerCache.invalidate(
         getTempOwnershipCacheKey(trackedEntity.getUid(), program.getUid(), user.getUid()));
+
+    trackedEntity.setLastUpdated(new Date());
+    manager.update(trackedEntity);
   }
 
   private void validateTrackedEntity(TrackedEntity trackedEntity, UserDetails user)
