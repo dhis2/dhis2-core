@@ -1101,12 +1101,12 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
     copy.setUserRoles(copyOf(original.getUserRoles()));
     copy.setEnrollmentLabel(original.getEnrollmentLabel());
     copy.setEnrollmentsLabel(original.getEnrollmentsLabel());
-    copy.setProgramStagesLabel(original.getProgramStagesLabel());
     copy.setNoteLabel(original.getNoteLabel());
     copy.setFollowUpLabel(original.getFollowUpLabel());
     copy.setOrgUnitLabel(original.getOrgUnitLabel());
     copy.setTrackedEntityAttributeLabel(original.getTrackedEntityAttributeLabel());
     copy.setProgramStageLabel(original.getProgramStageLabel());
+    copy.setProgramStagesLabel(original.getProgramStagesLabel());
     copy.setEventLabel(original.getEventLabel());
     copy.setEventsLabel(original.getEventsLabel());
     copy.setRelationshipLabel(original.getRelationshipLabel());
