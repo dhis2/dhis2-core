@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.bundle.persister;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -352,7 +353,8 @@ public abstract class AbstractTrackerPersister<
                                         preheat, attribute.getAttribute()))
                                 .setEntityInstance(trackedEntityInstance))
                     .setStoredBy(attribute.getStoredBy())
-                    .setValue(attribute.getValue());
+                    .setValue(attribute.getValue())
+                    .setLastUpdated(new Date());
 
             saveOrUpdate(
                 session,
