@@ -74,8 +74,6 @@ class CspInterceptorTest {
   @Test
   void testPreHandle_WithHandlerMethod_NoAnnotations() throws Exception {
     HandlerMethod handlerMethod = createHandlerMethod("methodWithoutAnnotations");
-    when(cspPolicyService.constructCustomCspPolicy(null))
-        .thenReturn("script-src 'self'; frame-ancestors 'self';");
     HttpHeaders headers = new HttpHeaders();
     headers.set("Content-Security-Policy", "script-src 'self'; frame-ancestors 'self';");
     headers.set("X-Content-Type-Options", "nosniff");
@@ -99,8 +97,6 @@ class CspInterceptorTest {
     headers.set("Content-Security-Policy", "script-src 'unsafe-inline'; frame-ancestors 'self';");
     headers.set("X-Content-Type-Options", "nosniff");
     headers.set("X-Frame-Options", "SAMEORIGIN");
-    when(cspPolicyService.constructCustomCspPolicy("script-src 'unsafe-inline'"))
-        .thenReturn("script-src 'unsafe-inline'; frame-ancestors 'self';");
     when(cspPolicyService.getSecurityHeaders(any())).thenReturn(headers);
 
     boolean result = cspInterceptor.preHandle(request, response, handlerMethod);
@@ -120,8 +116,6 @@ class CspInterceptorTest {
     headers.set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'self';");
     headers.set("X-Content-Type-Options", "nosniff");
     headers.set("X-Frame-Options", "SAMEORIGIN");
-    when(cspPolicyService.constructUserUploadedContentCspPolicy())
-        .thenReturn("default-src 'none'; frame-ancestors 'self';");
     when(cspPolicyService.getSecurityHeaders(any())).thenReturn(headers);
 
     boolean result = cspInterceptor.preHandle(request, response, handlerMethod);
@@ -141,8 +135,6 @@ class CspInterceptorTest {
     headers.set("Content-Security-Policy", "script-src 'self' cdn.example.com;");
     headers.set("X-Content-Type-Options", "nosniff");
     headers.set("X-Frame-Options", "SAMEORIGIN");
-    when(cspPolicyService.constructCustomCspPolicy("script-src 'self' cdn.example.com"))
-        .thenReturn("script-src 'self' cdn.example.com; frame-ancestors 'self';");
     when(cspPolicyService.getSecurityHeaders(any())).thenReturn(headers);
 
     boolean result = cspInterceptor.preHandle(request, response, handlerMethod);
@@ -162,8 +154,6 @@ class CspInterceptorTest {
     headers.set("Content-Security-Policy", "script-src 'unsafe-eval';");
     headers.set("X-Content-Type-Options", "nosniff");
     headers.set("X-Frame-Options", "SAMEORIGIN");
-    when(cspPolicyService.constructCustomCspPolicy("script-src 'unsafe-eval'"))
-        .thenReturn("script-src 'unsafe-eval'; frame-ancestors 'self';");
     when(cspPolicyService.getSecurityHeaders(any())).thenReturn(headers);
 
     boolean result = cspInterceptor.preHandle(request, response, handlerMethod);
@@ -183,8 +173,6 @@ class CspInterceptorTest {
 
     HttpHeaders headers = new HttpHeaders();
     headers.set("Content-Security-Policy", "style-src 'nonce-abc123';");
-    when(cspPolicyService.constructCustomCspPolicy("style-src 'nonce-abc123'"))
-        .thenReturn("style-src 'nonce-abc123'; frame-ancestors 'self';");
     when(cspPolicyService.getSecurityHeaders(any())).thenReturn(headers);
 
     boolean result = cspInterceptor.preHandle(request, response, handlerMethod);
@@ -204,8 +192,6 @@ class CspInterceptorTest {
     headers.set("Content-Security-Policy", "script-src 'unsafe-inline'; frame-ancestors 'self';");
     headers.set("X-Content-Type-Options", "nosniff");
     headers.set("X-Frame-Options", "SAMEORIGIN");
-    when(cspPolicyService.constructCustomCspPolicy("script-src 'unsafe-inline'"))
-        .thenReturn("script-src 'unsafe-inline'; frame-ancestors 'self';");
     when(cspPolicyService.getSecurityHeaders(any())).thenReturn(headers);
 
     boolean result = cspInterceptor.preHandle(request, response, handlerMethod);

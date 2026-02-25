@@ -96,7 +96,7 @@ class CspPolicyServiceTest {
     String result = cspPolicyService.constructCustomCspPolicy(null);
 
     assertNotNull(result);
-    assertEquals("frame-ancestors 'self'", result);
+    assertEquals("frame-ancestors 'self';", result);
   }
 
   @Test
