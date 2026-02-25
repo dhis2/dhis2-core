@@ -95,6 +95,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -2461,9 +2462,10 @@ public class DataQueryParams {
         .toList();
   }
 
-  public List<String> getOrgUnitIds() {
+  public List<String> getOrgUnitIds(IdProperty orgUnits) {
+    IdScheme scheme = IdScheme.of(orgUnits);
     return getDimensionOptions(ORGUNIT_DIM_ID).stream()
-        .map(DimensionalItemObject::getDimensionItem)
+        .map(obj -> obj.getDimensionItem(scheme))
         .toList();
   }
 

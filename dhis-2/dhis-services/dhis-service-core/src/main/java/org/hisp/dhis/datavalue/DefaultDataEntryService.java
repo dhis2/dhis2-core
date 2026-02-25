@@ -761,7 +761,9 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
   private static String normalizeValue(DataEntryValue e, ValueType type) {
     String val = e.value();
-    if (val == null || type == null || !type.isBoolean()) return val;
+    if (val == null || type == null) return val;
+    if (type.isInteger() && val.endsWith(".0")) return val.substring(0, val.length() - 2);
+    if (!type.isBoolean()) return val;
     int len = val.length();
     if (len > 5) return val;
     String lower = val.toLowerCase();

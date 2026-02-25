@@ -25,7 +25,7 @@
       "id": "H91km2xaqGN",
       "organisationUnits": [
         {
-          "id": "ImspTQPwCqd"
+          "id": "fdc6uOvgoji"
         }
       ]
     }
@@ -88,8 +88,7 @@
               "LAST_12_MONTHS"
             ],
             "ou": [
-              "fdc6uOvgoji",
-              "LEVEL-m9lBJogzE95"
+              "fdc6uOvgoji"
             ],
             "inputIdScheme": "UID",
             "outputDataElementIdScheme": "CODE",

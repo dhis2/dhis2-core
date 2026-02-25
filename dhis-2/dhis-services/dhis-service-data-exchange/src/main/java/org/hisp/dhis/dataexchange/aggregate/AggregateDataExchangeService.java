@@ -275,13 +275,16 @@ public class AggregateDataExchangeService {
     DataEntryGroup.Input group = toDataEntryGroup(dataValues);
     DataEntryGroup.Ids ids = request.getEntryIds();
     group = group.withIds(ids);
+    List<DataEntryGroup.Input.Scope.Element> elements =
+        createScopeElements(
+            params,
+            ids.dataElements(),
+            ids.categoryOptionCombos(),
+            DataEntryGroup.Input.Scope.Element::new);
     group =
         group.withDeletion(
             new DataEntryGroup.Input.Scope(
-                params.getOrgUnitIds(),
-                params.getPeriodsIds(),
-                createScopeElements(
-                    params, ids.dataElements(), DataEntryGroup.Input.Scope.Element::new)));
+                params.getOrgUnitIds(ids.orgUnits()), params.getPeriodsIds(), elements));
 
     DataEntryGroup.Options options =
         new DataEntryGroup.Options(Boolean.TRUE.equals(request.getDryRun()), false, false);
@@ -299,13 +302,16 @@ public class AggregateDataExchangeService {
     TargetRequest request = exchange.getTarget().getRequest();
     DataExportGroup.Ids ids = request.getExportIds();
     group = group.withIds(ids);
+    List<DataExportGroup.Scope.Element> elements =
+        createScopeElements(
+            params,
+            ids.dataElements(),
+            ids.categoryOptionCombos(),
+            DataExportGroup.Scope.Element::new);
     group =
         group.withDeletion(
             new DataExportGroup.Scope(
-                params.getOrgUnitIds(),
-                params.getPeriodsIds(),
-                createScopeElements(
-                    params, ids.dataElements(), DataExportGroup.Scope.Element::new)));
+                params.getOrgUnitIds(ids.orgUnits()), params.getPeriodsIds(), elements));
 
     Dhis2Client client = getDhis2Client(exchange);
 
@@ -593,33 +599,35 @@ public class AggregateDataExchangeService {
   }
 
   private static <T> List<T> createScopeElements(
-      DataQueryParams params, IdProperty dataElements, ElementFactory<T> factory) {
+      DataQueryParams params,
+      IdProperty dataElements,
+      IdProperty categoryOptionCombos,
+      ElementFactory<T> factory) {
     IdScheme dxScheme = IdScheme.of(dataElements);
+    IdScheme cocScheme = IdScheme.of(categoryOptionCombos);
     List<T> res = new ArrayList<>();
     for (DimensionalItemObject item : params.getDimensionOptions(DATA_X_DIM_ID)) {
       if (item instanceof DataElement de) {
-        res.add(factory.createElement(de.getUid(), null, null));
+        res.add(factory.createElement(de.getDimensionItem(dxScheme), null, null));
       } else if (item instanceof DataElementOperand deo) {
-        String cocUid =
-            deo.getCategoryOptionCombo() != null ? deo.getCategoryOptionCombo().getUid() : null;
-        res.add(factory.createElement(deo.getDataElement().getUid(), cocUid, null));
+        String coc = null;
+        if (deo.getCategoryOptionCombo() != null)
+          coc = deo.getCategoryOptionCombo().getDimensionItem(cocScheme);
+        String de = deo.getDataElement().getDimensionItem(dxScheme);
+        res.add(factory.createElement(de, coc, null));
       } else if (item instanceof ProgramIndicator pi) {
-        String deId =
+        String de =
             pi.hasAggregateExportDataElement()
                 ? pi.getAggregateExportDataElement()
                 : pi.getDimensionItem(dxScheme);
-        res.add(
-            factory.createElement(
-                deId,
-                pi.getAggregateExportCategoryOptionCombo(),
-                pi.getAggregateExportAttributeOptionCombo()));
+        String coc = pi.getAggregateExportCategoryOptionCombo();
+        String aoc = pi.getAggregateExportAttributeOptionCombo();
+        res.add(factory.createElement(de, coc, aoc));
       } else if (item instanceof DataDimensionalItemObject dataItem) {
-        String deId = item.getDimensionItem(dxScheme);
-        res.add(
-            factory.createElement(
-                deId,
-                dataItem.getAggregateExportCategoryOptionCombo(),
-                dataItem.getAggregateExportAttributeOptionCombo()));
+        String de = item.getDimensionItem(dxScheme);
+        String coc = dataItem.getAggregateExportCategoryOptionCombo();
+        String aoc = dataItem.getAggregateExportAttributeOptionCombo();
+        res.add(factory.createElement(de, coc, aoc));
       }
     }
     return res;
