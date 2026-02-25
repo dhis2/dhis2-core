@@ -31,6 +31,8 @@ package org.hisp.dhis.dataset;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -50,4 +52,17 @@ public interface DataSetStore
   List<DataSet> getDataSetsByDataEntryForm(DataEntryForm dataEntryForm);
 
   List<DataSetElement> getDataSetElementsByDataElement(Collection<DataElement> dataElements);
+
+  /** Get all DatSets that have any of the CategoryCombos. */
+  List<DataSet> getByCategoryCombo(List<CategoryCombo> sources);
+
+  /**
+   * Update all source CategoryCombo ids to the target CategoryCombo id for DataSetElements.
+   *
+   * @param sourceCategoryComboIds source category combo ids
+   * @param targetCategoryComboId target category combo id
+   * @return number of updated rows
+   */
+  int updateDataSetElementCategoryComboRefs(
+      Set<Long> sourceCategoryComboIds, long targetCategoryComboId);
 }
