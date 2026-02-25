@@ -47,7 +47,12 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.apache.commons.lang3.math.NumberUtils.createDouble;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
+import static org.hisp.dhis.analytics.AggregationType.MAX;
+import static org.hisp.dhis.analytics.AggregationType.MAX_SUM_ORG_UNIT;
+import static org.hisp.dhis.analytics.AggregationType.MIN;
+import static org.hisp.dhis.analytics.AggregationType.MIN_SUM_ORG_UNIT;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.AnalyticsConstants.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.AnalyticsConstants.NULL;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
@@ -125,6 +130,7 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.SortOrder;
@@ -926,11 +932,20 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     EventOutputType outputType = params.getOutputType();
-
     AggregationType aggregationType = params.getAggregationTypeFallback().getAggregationType();
-
     String function =
         (aggregationType == NONE || aggregationType == CUSTOM) ? "" : aggregationType.getValue();
+
+    // AnalyticsAggregationType analyticsAggregationType =
+    //  fromAggregationType(params.getProgramIndicator().getAggregationTypeFallback());
+
+    /*
+        aggregationType =
+            getOrgUnitAggregationIfAny(
+                params.getAllOrganisationUnits(),
+                aggregationType,
+                analyticsAggregationType);
+    */
 
     if (!params.isAggregation()) {
       String sql = quoteAlias(params.getValue().getUid());
@@ -940,6 +955,18 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       String sql = function + "(value)";
       return AggregateClause.of(sql, aggregationType, "value");
     } else if (params.hasNumericValueDimension() || params.hasBooleanValueDimension()) {
+      if (params.getValue() != null && params.getValue().hasAggregationType()) {
+        AnalyticsAggregationType analyticsAggregationType = fromAggregationType(aggregationType);
+
+        analyticsAggregationType =
+            getOrgUnitAggregationIfAny(
+                params.getAllOrganisationUnits(),
+                params.getValue().getAggregationType(),
+                analyticsAggregationType);
+
+        function = analyticsAggregationType.getAggregationType().getValue();
+      }
+
       String expression = quoteAlias(params.getValue().getUid());
       String sql = function + "(" + expression + ")";
       return AggregateClause.of(sql, aggregationType, expression);
@@ -951,6 +978,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
               params.getProgramIndicator(),
               params.getEarliestStartDate(),
               params.getLatestEndDate());
+
+      aggregationType = params.getProgramIndicator().getAggregationType();
+
+      AnalyticsAggregationType analyticsAggregationType = fromAggregationType(aggregationType);
+
+      analyticsAggregationType =
+          getOrgUnitAggregationIfAny(
+              params.getAllOrganisationUnits(), aggregationType, analyticsAggregationType);
+
+      function = analyticsAggregationType.getAggregationType().getValue();
+
       String sql = function + "(" + expression + ")";
       return AggregateClause.of(sql, aggregationType, expression);
     } else {
@@ -981,6 +1019,31 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         }
       }
     }
+  }
+
+  private AnalyticsAggregationType getOrgUnitAggregationIfAny(
+      List<DimensionalItemObject> allOrgUnits,
+      AggregationType aggregationType,
+      AnalyticsAggregationType analyticsAggregationType) {
+
+    boolean hasAnyChild = false;
+    for (DimensionalItemObject dimensionalItemObject : allOrgUnits) {
+      OrganisationUnit organisationUnit = (OrganisationUnit) dimensionalItemObject;
+      hasAnyChild = organisationUnit.hasChild();
+    }
+
+    boolean isMaxOrgUnit = aggregationType == MAX_SUM_ORG_UNIT;
+    boolean isMinOrgUnit = aggregationType == MIN_SUM_ORG_UNIT;
+
+    if (isMaxOrgUnit && !hasAnyChild) {
+      analyticsAggregationType = new AnalyticsAggregationType(MAX, MAX);
+    }
+
+    if (isMinOrgUnit && !hasAnyChild) {
+      analyticsAggregationType = new AnalyticsAggregationType(MIN, MIN);
+    }
+
+    return analyticsAggregationType;
   }
 
   /**
