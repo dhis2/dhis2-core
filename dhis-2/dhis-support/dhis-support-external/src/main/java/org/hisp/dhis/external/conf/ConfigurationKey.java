@@ -199,15 +199,15 @@ public enum ConfigurationKey {
 
   /**
    * Seconds a Connection can remain pooled but unused before being discarded. Zero means idle
-   * connections never expire (default: 7200).
+   * connections never expire (default: 600).
    */
-  CONNECTION_POOL_MAX_IDLE_TIME("connection.pool.max_idle_time", "7200", false),
+  CONNECTION_POOL_MAX_IDLE_TIME("connection.pool.max_idle_time", "600", false),
 
   /**
    * Seconds a Connection can remain pooled but unused before being discarded. Zero means idle
-   * connections never expire (default: 7200).
+   * connections never expire (default: 600).
    */
-  ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME("analytics.connection.pool.max_idle_time", "7200", false),
+  ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME("analytics.connection.pool.max_idle_time", "600", false),
 
   /** Minimum number of idle connections to maintain (default: 10). */
   CONNECTION_POOL_MIN_IDLE("connection.pool.min_idle", "10", false),
@@ -542,9 +542,6 @@ public enum ConfigurationKey {
   LOGGING_QUERY_SLOW_THRESHOLD(
       "logging.query.slow_threshold", String.valueOf(SECONDS.toMillis(1)), false),
 
-  /** Logs the calling method and class for each query. */
-  LOGGING_QUERY_METHOD("logging.query.method", Constants.OFF, false),
-
   /** Base URL to the DHIS 2 instance. */
   SERVER_BASE_URL("server.base.url", "", false),
 
@@ -819,7 +816,7 @@ public enum ConfigurationKey {
   OIDC_DHIS2_INTERNAL_CLIENT_ID("oidc.provider.dhis2.client_id", "dhis2-internal", false),
   OIDC_DHIS2_INTERNAL_CLIENT_SECRET("oidc.provider.dhis2.client_secret", "secret", false),
   OIDC_DHIS2_INTERNAL_MAPPING_CLAIM("oidc.provider.dhis2.mapping_claim", "username", false),
-  OIDC_DHIS2_INTERNAL_SERVER_URL("oidc.provider.dhis2.server_url", "http://localhost:8080", false);
+  OIDC_DHIS2_INTERNAL_SERVER_URL("oidc.provider.dhis2.server_url", "", false);
 
   private final String key;
 
