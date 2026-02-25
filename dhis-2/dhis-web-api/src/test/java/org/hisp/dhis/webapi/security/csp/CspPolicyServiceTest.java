@@ -54,7 +54,8 @@ import org.springframework.http.HttpHeaders;
 @ExtendWith(MockitoExtension.class)
 class CspPolicyServiceTest {
 
-  @Mock private DhisConfigurationProvider dhisConfig;
+  @Mock(lenient = true)
+  private DhisConfigurationProvider dhisConfig;
 
   @Mock(lenient = true)
   private ConfigurationService configurationService;
@@ -122,7 +123,7 @@ class CspPolicyServiceTest {
 
     assertNotNull(result);
     assertEquals(
-        "script-src 'self'; frame-ancestors 'self' https://example.com https://trusted.org;",
+        "script-src 'self'; frame-ancestors 'self' https://trusted.org https://example.com;",
         result);
   }
 
@@ -173,7 +174,8 @@ class CspPolicyServiceTest {
     HttpHeaders headers = cspPolicyService.getSecurityHeaders(null);
 
     assertNotNull(headers);
-    assertFalse(headers.containsKey("Content-Security-Policy"));
+    assertTrue(headers.containsKey("Content-Security-Policy"));
+    assertEquals(DEFAULT_CSP_POLICY + " frame-ancestors 'self';", headers.getFirst("Content-Security-Policy"));
   }
 
   @Test
@@ -181,7 +183,8 @@ class CspPolicyServiceTest {
     HttpHeaders headers = cspPolicyService.getSecurityHeaders("   ");
 
     assertNotNull(headers);
-    assertFalse(headers.containsKey("Content-Security-Policy"));
+    assertTrue(headers.containsKey("Content-Security-Policy"));
+    assertEquals(DEFAULT_CSP_POLICY + " frame-ancestors 'self';", headers.getFirst("Content-Security-Policy"));
   }
 
   @Test
@@ -199,7 +202,7 @@ class CspPolicyServiceTest {
     String result = cspPolicyService.constructCustomCspPolicy("   ");
 
     assertNotNull(result);
-    assertEquals("frame-ancestors 'self'", result);
+    assertEquals("frame-ancestors 'self';", result);
   }
 
   @Test
