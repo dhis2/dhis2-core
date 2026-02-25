@@ -29,7 +29,11 @@
  */
 package org.hisp.dhis.dataapproval.hibernate;
 
+import static org.hibernate.LockMode.PESSIMISTIC_WRITE;
+
 import jakarta.persistence.EntityManager;
+import java.util.Set;
+import org.hibernate.LockOptions;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflowStore;
@@ -51,5 +55,22 @@ public class HibernateDataApprovalWorkflowStore
       ApplicationEventPublisher publisher,
       AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, DataApprovalWorkflow.class, aclService, true);
+  }
+
+  @Override
+  public int updateCategoryComboRefs(Set<Long> sourceCategoryComboIds, long targetCategoryComboId) {
+    if (sourceCategoryComboIds == null || sourceCategoryComboIds.isEmpty()) return 0;
+    String sql =
+        """
+        update dataapprovalworkflow
+        set categorycomboid = :targetCategoryComboId
+        where categorycomboid in :sourceCategoryComboIds
+        """;
+    return getSession()
+        .createNativeQuery(sql)
+        .setParameter("targetCategoryComboId", targetCategoryComboId)
+        .setParameter("sourceCategoryComboIds", sourceCategoryComboIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .executeUpdate();
   }
 }

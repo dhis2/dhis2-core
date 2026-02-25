@@ -30,6 +30,7 @@
 package org.hisp.dhis.program;
 
 import java.util.List;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -73,4 +74,12 @@ public interface ProgramStore extends IdentifiableObjectStore<Program> {
 
   /** Checks whether the given {@link OrganisationUnit} belongs to the specified {@link Program} */
   boolean hasOrgUnit(Program program, OrganisationUnit organisationUnit);
+
+  /**
+   * Get all Programs that have any of the supplied CategoryCombos as a: <br>
+   * - categoryCombo <br>
+   * - enrollmentCategoryCombo
+   */
+  List<Program> getAllWithCategoryComboOrEnrollmentCategoryCombo(
+      List<CategoryCombo> categoryCombos);
 }
