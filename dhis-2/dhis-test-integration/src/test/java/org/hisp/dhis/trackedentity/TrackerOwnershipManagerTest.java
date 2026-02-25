@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.trackedentity;
 
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 import static org.hisp.dhis.common.AccessLevel.AUDITED;
 import static org.hisp.dhis.common.AccessLevel.CLOSED;
 import static org.hisp.dhis.common.AccessLevel.OPEN;
@@ -45,6 +46,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -617,6 +620,26 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
         exception.getMessage());
   }
 
+  @Test
+  void shouldUpdateTrackedEntityLastUpdatedWhenOwnershipIsTransferred() throws ForbiddenException {
+    userA.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
+    userService.updateUser(userA);
+    Date lastUpdatedBefore = entityInstanceA1.getLastUpdated();
+
+    assignOwnership(entityInstanceA1, programA, organisationUnitA);
+    transferOwnership(entityInstanceA1, programA, organisationUnitB);
+
+    injectSecurityContext(userB);
+    org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance trackedEntity =
+        trackedEntityInstanceService.getTrackedEntityInstance(entityInstanceA1.getUid());
+    assertTrue(
+        StringToDate(trackedEntity.getLastUpdated()).after(lastUpdatedBefore),
+        () ->
+            String.format(
+                "The field lastUpdated for TrackedEntity %s should be updated after ownership transfer. ",
+                entityInstanceA1.getUid()));
+  }
+
   private void transferOwnership(
       TrackedEntityInstance trackedEntity, Program program, OrganisationUnit orgUnit)
       throws ForbiddenException {
@@ -659,5 +682,11 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     program.setAccessLevel(accessLevel);
 
     return program;
+  }
+
+  private Date StringToDate(String stringDate) {
+    LocalDateTime dateTime = LocalDateTime.parse(stringDate, ISO_LOCAL_DATE_TIME);
+
+    return Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
   }
 }
