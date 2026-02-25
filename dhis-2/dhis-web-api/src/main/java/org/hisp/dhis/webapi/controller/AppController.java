@@ -262,7 +262,7 @@ public class AppController {
       inputStream =
           htmlCacheBustingService.rewriteIfNeeded(
               resourceResult.resource().getInputStream(), app, requestUri);
-      contentLength = -1;
+      contentLength = inputStream.available();
     } else {
       inputStream = resourceResult.resource().getInputStream();
       contentLength = appManager.getUriContentLength(resourceResult.resource());
