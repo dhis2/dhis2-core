@@ -58,7 +58,6 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -75,8 +74,6 @@ class DefaultTrackerEventService implements TrackerEventService {
   private final JdbcTrackerEventStore eventStore;
 
   private final IdentifiableObjectManager manager;
-
-  private final TrackerAccessManager trackerAccessManager;
 
   private final DataElementService dataElementService;
 
@@ -135,11 +132,6 @@ class DefaultTrackerEventService implements TrackerEventService {
               + " could not be found.");
     }
     TrackerEvent event = events.getItems().get(0);
-
-    List<String> errors = trackerAccessManager.canRead(getCurrentUserDetails(), event, dataElement);
-    if (!errors.isEmpty()) {
-      throw new NotFoundException(DataElement.class, dataElementUid.getValue());
-    }
 
     String fileResourceUid = null;
     for (EventDataValue eventDataValue : event.getEventDataValues()) {

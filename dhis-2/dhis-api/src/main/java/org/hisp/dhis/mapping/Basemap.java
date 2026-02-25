@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,57 +27,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataexchange.aggregate;
+package org.hisp.dhis.mapping;
+
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-import lombok.Getter;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.UID;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
-@Accessors(chain = true)
-public class SourceRequest implements Serializable {
-  /** Name of source request, max 50 characters. */
-  @JsonProperty private String name;
+@EqualsAndHashCode
+public class Basemap {
 
-  /** Optional UID reference to a visualization. */
-  @JsonProperty private UID visualization;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private String id;
 
-  /** Data dimension item identifiers. */
-  @JsonProperty private List<String> dx = new ArrayList<>();
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private Double opacity;
 
-  /** ISO period identifiers. */
-  @JsonProperty private List<String> pe = new ArrayList<>();
-
-  /** Org unit identifiers. */
-  @JsonProperty private List<String> ou = new ArrayList<>();
-
-  /** Request filters. */
-  @JsonProperty private List<Filter> filters = new ArrayList<>();
-
-  /** Aggregation type. */
-  @JsonProperty private AggregationType aggregationType;
-
-  /** Input identifier scheme. */
-  @JsonProperty private String inputIdScheme;
-
-  /** Output data element identifier scheme. */
-  @JsonProperty private String outputDataElementIdScheme;
-
-  /** Output org unit identifier scheme. */
-  @JsonProperty private String outputOrgUnitIdScheme;
-
-  /** Output data item identifier scheme. */
-  @JsonProperty private String outputDataItemIdScheme;
-
-  /** Output identifier scheme. */
-  @JsonProperty private String outputIdScheme;
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private boolean hidden;
 }
