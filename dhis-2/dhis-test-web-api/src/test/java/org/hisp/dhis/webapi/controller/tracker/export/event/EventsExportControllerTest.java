@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.http.HttpClientAdapter.Header;
 import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
-import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
