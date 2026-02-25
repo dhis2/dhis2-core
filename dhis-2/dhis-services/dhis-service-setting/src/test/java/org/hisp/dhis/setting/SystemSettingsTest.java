@@ -102,7 +102,7 @@ class SystemSettingsTest {
   @Test
   void testKeysWithDefaults() {
     Set<String> keys = SystemSettings.keysWithDefaults();
-    assertEquals(149, keys.size());
+    assertEquals(148, keys.size());
     assertTrue(keys.contains(("keyUiCustomColor")));
     assertTrue(keys.contains(("keyUiCustomColorMobile")));
     // just check some at random

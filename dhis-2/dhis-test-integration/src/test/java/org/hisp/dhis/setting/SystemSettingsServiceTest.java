@@ -115,10 +115,10 @@ class SystemSettingsServiceTest extends PostgresIntegrationTestBase {
         Map.ofEntries(
             Map.entry("keyCustomJs", "JS"),
             Map.entry("keyCustomCss", "CSS"),
-            Map.entry("keyStyle", "style"));
+            Map.entry("keyUiCustomColorMobile", "style"));
     settingsService.putAll(allSettings);
 
-    Set<String> deletedKeys = Set.of("keyCustomJs", "keyStyle");
+    Set<String> deletedKeys = Set.of("keyCustomJs", "keyUiCustomColorMobile");
     settingsService.deleteAll(deletedKeys);
 
     SystemSettings settings = settingsService.getCurrentSettings();
