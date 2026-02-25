@@ -32,7 +32,6 @@ package org.hisp.dhis.security;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.BaseE2ETest;
 import org.hisp.dhis.test.e2e.helpers.config.TestConfiguration;
@@ -47,11 +46,10 @@ import org.springframework.http.ResponseEntity;
 /**
  * E2E tests for CSP (Content Security Policy) headers validation.
  *
- * <p>This test suite verifies that:
- * 1. Default CSP headers are applied to regular API endpoints
- * 2. Endpoints with @CustomCsp annotation have the appropriate custom CSP policy
- * 3. Endpoints with @CspUserUploadedContent annotation have user-uploaded-content-safe CSP
- * 4. Security headers (X-Content-Type-Options, X-Frame-Options) are consistently applied
+ * <p>This test suite verifies that: 1. Default CSP headers are applied to regular API endpoints 2.
+ * Endpoints with @CustomCsp annotation have the appropriate custom CSP policy 3. Endpoints
+ * with @CspUserUploadedContent annotation have user-uploaded-content-safe CSP 4. Security headers
+ * (X-Content-Type-Options, X-Frame-Options) are consistently applied
  */
 @Tag("csptests")
 @Slf4j
@@ -92,14 +90,17 @@ public class CspHeadersE2ETest extends BaseE2ETest {
         "CSP policy should contain style-src with unsafe-inline");
 
     // Verify frame-ancestors directive is added
-    assertTrue(cspHeader.contains("frame-ancestors 'self'"), "CSP should include frame-ancestors directive");
+    assertTrue(
+        cspHeader.contains("frame-ancestors 'self'"),
+        "CSP should include frame-ancestors directive");
   }
 
   @Test
   void testAppResourceEndpointWithCustomCspPolicy() {
     // AppController has @CustomCsp with custom policy on GET /apps/index.html
     ResponseEntity<String> response =
-        restTemplate.exchange(serverApiUrl + "apps/maps-app/index.html", HttpMethod.GET, null, String.class);
+        restTemplate.exchange(
+            serverApiUrl + "apps/maps-app/index.html", HttpMethod.GET, null, String.class);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
 
@@ -116,14 +117,17 @@ public class CspHeadersE2ETest extends BaseE2ETest {
         "CSP policy should contain style-src with unsafe-inline");
 
     // Verify frame-ancestors directive is added
-    assertTrue(cspHeader.contains("frame-ancestors 'self'"), "CSP should include frame-ancestors directive");
+    assertTrue(
+        cspHeader.contains("frame-ancestors 'self'"),
+        "CSP should include frame-ancestors directive");
   }
 
   @Test
   void testLegacyAppResourceEndpointWithCustomCspPolicy() {
     // AppController has @CustomCsp with custom policy on GET /apps/index.html
     ResponseEntity<String> response =
-        restTemplate.exchange(serverHostUrl + "dhis-web-maps/index.html", HttpMethod.GET, null, String.class);
+        restTemplate.exchange(
+            serverHostUrl + "dhis-web-maps/index.html", HttpMethod.GET, null, String.class);
 
     assertEquals(HttpStatus.OK, response.getStatusCode());
 
@@ -140,7 +144,9 @@ public class CspHeadersE2ETest extends BaseE2ETest {
         "CSP policy should contain style-src with unsafe-inline");
 
     // Verify frame-ancestors directive is added
-    assertTrue(cspHeader.contains("frame-ancestors 'self'"), "CSP should include frame-ancestors directive");
+    assertTrue(
+        cspHeader.contains("frame-ancestors 'self'"),
+        "CSP should include frame-ancestors directive");
   }
 
   // ========================================================================
@@ -321,10 +327,7 @@ public class CspHeadersE2ETest extends BaseE2ETest {
     // Access non-existent endpoint
     ResponseEntity<String> response =
         restTemplate.exchange(
-            serverApiUrl + "/nonexistent/endpoint/path",
-            HttpMethod.GET,
-            null,
-            String.class);
+            serverApiUrl + "/nonexistent/endpoint/path", HttpMethod.GET, null, String.class);
 
     // Should get 404
     assertEquals(
@@ -356,39 +359,27 @@ public class CspHeadersE2ETest extends BaseE2ETest {
   // Helper methods for assertions
   // ========================================================================
 
-  /**
-   * Verifies that all standard security headers are present and have correct values.
-   */
+  /** Verifies that all standard security headers are present and have correct values. */
   private void verifyStandardSecurityHeaders(ResponseEntity<String> response) {
     verifySecurityHeadersPresent(response);
 
     // Verify specific values
     String xContentTypeOptions = response.getHeaders().getFirst(X_CONTENT_TYPE_OPTIONS_HEADER);
-    assertEquals(
-        "nosniff",
-        xContentTypeOptions,
-        "X-Content-Type-Options should be 'nosniff'");
+    assertEquals("nosniff", xContentTypeOptions, "X-Content-Type-Options should be 'nosniff'");
 
     String xFrameOptions = response.getHeaders().getFirst(X_FRAME_OPTIONS_HEADER);
-    assertEquals(
-        "SAMEORIGIN",
-        xFrameOptions,
-        "X-Frame-Options should be 'SAMEORIGIN'");
+    assertEquals("SAMEORIGIN", xFrameOptions, "X-Frame-Options should be 'SAMEORIGIN'");
   }
 
-  /**
-   * Verifies that security headers are present in the response.
-   */
+  /** Verifies that security headers are present in the response. */
   private void verifySecurityHeadersPresent(ResponseEntity<String> response) {
-    HttpHeaders headers = 
-        response.getHeaders();
+    HttpHeaders headers = response.getHeaders();
 
     assertNotNull(
         headers.getFirst(X_CONTENT_TYPE_OPTIONS_HEADER),
         "X-Content-Type-Options header should be present");
     assertNotNull(
-        headers.getFirst(X_FRAME_OPTIONS_HEADER),
-        "X-Frame-Options header should be present");
+        headers.getFirst(X_FRAME_OPTIONS_HEADER), "X-Frame-Options header should be present");
 
     // CSP header may not be present on all endpoints when CSP is globally disabled,
     // but it should at least be set when CSP is enabled
