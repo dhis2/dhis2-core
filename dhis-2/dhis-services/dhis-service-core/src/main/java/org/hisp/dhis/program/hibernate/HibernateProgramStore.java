@@ -29,11 +29,15 @@
  */
 package org.hisp.dhis.program.hibernate;
 
+import static org.hibernate.LockMode.PESSIMISTIC_WRITE;
+
 import com.google.common.collect.Lists;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import java.util.List;
+import org.hibernate.LockOptions;
 import org.hibernate.query.NativeQuery;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -42,6 +46,7 @@ import org.hisp.dhis.program.ProgramStore;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -116,5 +121,23 @@ public class HibernateProgramStore extends HibernateIdentifiableObjectStore<Prog
     query.setParameter("ouid", organisationUnit.getId());
 
     return !query.getResultList().isEmpty();
+  }
+
+  @Override
+  public List<Program> getAllWithCategoryComboOrEnrollmentCategoryCombo(
+      List<CategoryCombo> categoryCombos) {
+    if (categoryCombos == null || categoryCombos.isEmpty()) return List.of();
+
+    @Language("hql")
+    String sql =
+        """
+        select p from Program p
+        where p.categoryCombo in (:categoryCombos)
+            or p.enrollmentCategoryCombo in (:categoryCombos)
+        """;
+    return getQuery(sql)
+        .setParameter("categoryCombos", categoryCombos)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .list();
   }
 }
