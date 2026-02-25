@@ -142,6 +142,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
               program.getUid(), orgUnit.getUid()));
     }
 
+    TrackedEntity hibernateTrackedEntity = manager.get(TrackedEntity.class, trackedEntity.getUid());
     TrackedEntityProgramOwner teProgramOwner =
         trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(trackedEntity, program);
     // TODO(tracker) As soon as we use the trackedEntityService in this method, remove this
@@ -164,17 +165,17 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     ProgramOwnershipHistory programOwnershipHistory =
         new ProgramOwnershipHistory(
             program,
-            trackedEntity,
+            hibernateTrackedEntity,
             teProgramOwner.getOrganisationUnit(),
             teProgramOwner.getLastUpdated(),
             teProgramOwner.getCreatedBy());
     programOwnershipHistoryService.addProgramOwnershipHistory(programOwnershipHistory);
 
     trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
-        trackedEntity, program, orgUnit);
+        hibernateTrackedEntity, program, orgUnit);
 
-    trackedEntity.setLastUpdated(new Date());
-    manager.update(trackedEntity);
+    hibernateTrackedEntity.setLastUpdated(new Date());
+    manager.update(hibernateTrackedEntity);
   }
 
   @Override
