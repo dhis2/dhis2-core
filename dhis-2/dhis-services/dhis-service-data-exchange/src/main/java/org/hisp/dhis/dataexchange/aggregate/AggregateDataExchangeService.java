@@ -40,6 +40,7 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
 import static org.hisp.dhis.util.ObjectUtils.notNull;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.annotation.Nonnull;
@@ -51,10 +52,15 @@ import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.DataDimensionalItemObject;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
 import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataEntryPipeline;
@@ -62,11 +68,13 @@ import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobProgress.FailurePolicy;
 import org.hisp.dhis.security.acl.AclService;
@@ -166,6 +174,135 @@ public class AggregateDataExchangeService {
   }
 
   /**
+   * Resets (soft-deletes) data for all source requests in the given exchange. Only internal targets
+   * are supported.
+   *
+   * @param userDetails the current user.
+   * @param exchange the {@link AggregateDataExchange}.
+   * @return an {@link ImportSummary} describing the outcome.
+   */
+  @Transactional
+  public ImportSummary resetData(UserDetails userDetails, AggregateDataExchange exchange) {
+    if (!aclService.canDataWrite(userDetails, exchange)) {
+      return new ImportSummary(
+          ImportStatus.ERROR,
+          format(
+              "User has no data write access for AggregateDataExchange: %s",
+              exchange.getDisplayName()));
+    }
+
+    ImportSummary combined = new ImportSummary(ImportStatus.SUCCESS);
+    ImportCount totalCount = new ImportCount(0, 0, 0, 0);
+
+    for (SourceRequest request : exchange.getSource().getRequests()) {
+      ImportSummary summary = resetTargetData(exchange, request);
+      if (summary.getStatus() == ImportStatus.ERROR) {
+        return summary;
+      }
+      totalCount.incrementDeleted(summary.getImportCount().getDeleted());
+    }
+
+    combined.setImportCount(totalCount);
+    return combined;
+  }
+
+  /**
+   * Resets (soft-deletes) data for a single source request. Builds a deletion scope from the
+   * exchange dimensions and submits it through the data entry pipeline.
+   *
+   * @param exchange the {@link AggregateDataExchange}.
+   * @param request the {@link SourceRequest}.
+   * @return an {@link ImportSummary} describing the outcome.
+   */
+  ImportSummary resetTargetData(AggregateDataExchange exchange, SourceRequest request) {
+    if (exchange.getTarget().getType() == TargetType.EXTERNAL) {
+      return new ImportSummary(
+          ImportStatus.ERROR, "Reset is not supported for external target types");
+    }
+
+    DataEntryGroup.Input.Scope scope = buildResetScope(exchange, request);
+
+    if (scope.elements().isEmpty()) {
+      return new ImportSummary(
+          ImportStatus.WARNING, "No resolvable data elements found in source request dimensions");
+    }
+
+    DataEntryGroup.Input group =
+        new DataEntryGroup.Input(null, null, null, null, null, null, null, null, scope, List.of());
+
+    return dataEntryPipeline.importInputGroups(
+        List.of(group), toImportOptions(exchange), transitory());
+  }
+
+  /**
+   * Builds a {@link DataEntryGroup.Input.Scope} from the exchange source request dimensions.
+   *
+   * <p>Data elements are expanded to one scope element per category option combo. Data element
+   * operands keep their specified COC. Indicators and program indicators are mapped to their target
+   * data element using the output data item ID scheme, with COC and AOC from the aggregate export
+   * properties.
+   *
+   * @param exchange the {@link AggregateDataExchange}.
+   * @param request the {@link SourceRequest}.
+   * @return the deletion scope.
+   */
+  DataEntryGroup.Input.Scope buildResetScope(
+      AggregateDataExchange exchange, SourceRequest request) {
+    IdScheme inputIdScheme = toIdSchemeOrDefault(request.getInputIdScheme());
+
+    DimensionalObject dxDimension =
+        toDimensionalObject(DATA_X_DIM_ID, request.getDx(), inputIdScheme);
+    DimensionalObject peDimension =
+        toDimensionalObject(PERIOD_DIM_ID, request.getPe(), inputIdScheme);
+    DimensionalObject ouDimension =
+        toDimensionalObject(ORGUNIT_DIM_ID, request.getOu(), inputIdScheme);
+
+    List<String> orgUnits =
+        mapToList(ouDimension.getItems(), DimensionalItemObject::getDimensionItem);
+    List<String> periods =
+        mapToList(peDimension.getItems(), DimensionalItemObject::getDimensionItem);
+
+    IdScheme outputDataItemScheme =
+        ObjectUtils.firstNonNull(
+            toIdScheme(request.getOutputDataItemIdScheme(), request.getOutputIdScheme()),
+            IdScheme.UID);
+
+    List<DataEntryGroup.Input.Scope.Element> elements = new ArrayList<>();
+
+    for (DimensionalItemObject item : dxDimension.getItems()) {
+      if (item instanceof DataElement de) {
+        for (CategoryOptionCombo coc : de.getCategoryCombo().getOptionCombos()) {
+          elements.add(new DataEntryGroup.Input.Scope.Element(de.getUid(), coc.getUid(), null));
+        }
+      } else if (item instanceof DataElementOperand deo) {
+        String cocUid =
+            deo.getCategoryOptionCombo() != null ? deo.getCategoryOptionCombo().getUid() : null;
+        elements.add(
+            new DataEntryGroup.Input.Scope.Element(deo.getDataElement().getUid(), cocUid, null));
+      } else if (item instanceof ProgramIndicator pi) {
+        String deId =
+            pi.hasAggregateExportDataElement()
+                ? pi.getAggregateExportDataElement()
+                : pi.getDimensionItem(outputDataItemScheme);
+        elements.add(
+            new DataEntryGroup.Input.Scope.Element(
+                deId,
+                pi.getAggregateExportCategoryOptionCombo(),
+                pi.getAggregateExportAttributeOptionCombo()));
+      } else if (item instanceof DataDimensionalItemObject dataItem) {
+        String deId = item.getDimensionItem(outputDataItemScheme);
+        elements.add(
+            new DataEntryGroup.Input.Scope.Element(
+                deId,
+                dataItem.getAggregateExportCategoryOptionCombo(),
+                dataItem.getAggregateExportAttributeOptionCombo()));
+      }
+    }
+
+    return new DataEntryGroup.Input.Scope(orgUnits, periods, elements);
+  }
+
+  /**
    * Returns the source data for the analytics data exchange with the given identifier.
    *
    * @param uid the {@link AggregateDataExchange} identifier.
@@ -216,6 +353,15 @@ public class AggregateDataExchangeService {
    */
   private ImportSummary exchangeData(AggregateDataExchange exchange, SourceRequest request) {
     try {
+      TargetRequest targetRequest = exchange.getTarget().getRequest();
+
+      if (targetRequest.isResetBeforeExchangeOrDefault()) {
+        ImportSummary resetSummary = resetTargetData(exchange, request);
+        if (resetSummary.getStatus() == ImportStatus.ERROR) {
+          return resetSummary;
+        }
+      }
+
       DataValueSet dataValueSet =
           analyticsService.getAggregatedDataValueSet(
               toDataQueryParams(request, new SourceDataQueryParams()));

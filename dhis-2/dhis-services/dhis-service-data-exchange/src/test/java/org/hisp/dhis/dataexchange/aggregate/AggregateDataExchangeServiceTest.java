@@ -46,21 +46,32 @@ import static org.mockito.Mockito.when;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
+import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -314,5 +325,278 @@ class AggregateDataExchangeServiceTest {
         () ->
             service.getSourceDataValueSets(
                 UserDetails.fromUser(new User()), "uid", new SourceDataQueryParams()));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void testBuildResetScope_expandsDataElementCocs() {
+    CategoryOption coA = new CategoryOption("OptionA");
+    coA.setUid("coAuid000001");
+    CategoryOption coB = new CategoryOption("OptionB");
+    coB.setUid("coBuid000002");
+    CategoryOption coC = new CategoryOption("OptionC");
+    coC.setUid("coCuid000003");
+
+    CategoryCombo cc = new CategoryCombo();
+
+    CategoryOptionCombo cocA = new CategoryOptionCombo();
+    cocA.setUid("cocAuid00001");
+    cocA.setCategoryCombo(cc);
+    cocA.getCategoryOptions().add(coA);
+
+    CategoryOptionCombo cocB = new CategoryOptionCombo();
+    cocB.setUid("cocBuid00002");
+    cocB.setCategoryCombo(cc);
+    cocB.getCategoryOptions().add(coB);
+
+    CategoryOptionCombo cocC = new CategoryOptionCombo();
+    cocC.setUid("cocCuid00003");
+    cocC.setCategoryCombo(cc);
+    cocC.getCategoryOptions().add(coC);
+
+    cc.getOptionCombos().add(cocA);
+    cc.getOptionCombos().add(cocB);
+    cc.getOptionCombos().add(cocC);
+
+    DataElement deA = new DataElement("DataElementA");
+    deA.setUid("deAuid000001");
+    deA.setCategoryCombo(cc);
+
+    when(dataQueryService.getDimension(
+            eq(DATA_X_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, List.of(deA)));
+    when(dataQueryService.getDimension(
+            eq(PERIOD_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, List.of()));
+    when(dataQueryService.getDimension(
+            eq(ORGUNIT_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(
+            new BaseDimensionalObject(ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of()));
+
+    AggregateDataExchange exchange = createInternalExchange();
+    SourceRequest request =
+        new SourceRequest()
+            .setDx(List.of("deAuid000001"))
+            .setPe(List.of("202301"))
+            .setOu(List.of("ouUid0000001"));
+
+    DataEntryGroup.Input.Scope scope = service.buildResetScope(exchange, request);
+
+    assertEquals(3, scope.elements().size());
+    assertTrue(scope.elements().stream().allMatch(e -> e.dataElement().equals("deAuid000001")));
+    assertEquals(
+        Set.of("cocAuid00001", "cocBuid00002", "cocCuid00003"),
+        Set.copyOf(
+            scope.elements().stream()
+                .map(DataEntryGroup.Input.Scope.Element::categoryOptionCombo)
+                .toList()));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void testBuildResetScope_dataElementOperandUsesSpecifiedCoc() {
+    CategoryOptionCombo coc = new CategoryOptionCombo();
+    coc.setUid("cocSpecific01");
+
+    DataElement de = new DataElement("DataElementA");
+    de.setUid("deAuid000001");
+
+    DataElementOperand deo = new DataElementOperand(de, coc);
+
+    when(dataQueryService.getDimension(
+            eq(DATA_X_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, List.of(deo)));
+    when(dataQueryService.getDimension(
+            eq(PERIOD_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, List.of()));
+    when(dataQueryService.getDimension(
+            eq(ORGUNIT_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(
+            new BaseDimensionalObject(ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of()));
+
+    AggregateDataExchange exchange = createInternalExchange();
+    SourceRequest request =
+        new SourceRequest()
+            .setDx(List.of("deAuid000001.cocSpecific01"))
+            .setPe(List.of("202301"))
+            .setOu(List.of("ouUid0000001"));
+
+    DataEntryGroup.Input.Scope scope = service.buildResetScope(exchange, request);
+
+    assertEquals(1, scope.elements().size());
+    assertEquals("deAuid000001", scope.elements().get(0).dataElement());
+    assertEquals("cocSpecific01", scope.elements().get(0).categoryOptionCombo());
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void testBuildResetScope_indicatorUsesOutputSchemeAndExportFields() {
+    Indicator indicator = new Indicator();
+    indicator.setUid("indUid000001");
+    indicator.setName("IndicatorA");
+    indicator.setAggregateExportCategoryOptionCombo("cocTarget001");
+    indicator.setAggregateExportAttributeOptionCombo("aocTarget001");
+
+    when(dataQueryService.getDimension(
+            eq(DATA_X_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(
+            new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, List.of(indicator)));
+    when(dataQueryService.getDimension(
+            eq(PERIOD_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, List.of()));
+    when(dataQueryService.getDimension(
+            eq(ORGUNIT_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(
+            new BaseDimensionalObject(ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of()));
+
+    AggregateDataExchange exchange = createInternalExchange();
+    SourceRequest request =
+        new SourceRequest()
+            .setDx(List.of("indUid000001"))
+            .setPe(List.of("202301"))
+            .setOu(List.of("ouUid0000001"));
+
+    DataEntryGroup.Input.Scope scope = service.buildResetScope(exchange, request);
+
+    assertEquals(1, scope.elements().size());
+    DataEntryGroup.Input.Scope.Element el = scope.elements().get(0);
+    assertEquals("indUid000001", el.dataElement());
+    assertEquals("cocTarget001", el.categoryOptionCombo());
+    assertEquals("aocTarget001", el.attributeOptionCombo());
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void testBuildResetScope_programIndicatorUsesAggregateExportDataElement() {
+    ProgramIndicator pi = new ProgramIndicator();
+    pi.setUid("piUid00000001");
+    pi.setName("ProgramIndicatorA");
+    pi.setAggregateExportDataElement("deTargetUid01");
+    pi.setAggregateExportCategoryOptionCombo("cocTarget001");
+    pi.setAggregateExportAttributeOptionCombo("aocTarget001");
+
+    when(dataQueryService.getDimension(
+            eq(DATA_X_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, List.of(pi)));
+    when(dataQueryService.getDimension(
+            eq(PERIOD_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, List.of()));
+    when(dataQueryService.getDimension(
+            eq(ORGUNIT_DIM_ID),
+            any(),
+            any(Date.class),
+            nullable(List.class),
+            anyBoolean(),
+            nullable(DisplayProperty.class),
+            nullable(IdScheme.class)))
+        .thenReturn(
+            new BaseDimensionalObject(ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, List.of()));
+
+    AggregateDataExchange exchange = createInternalExchange();
+    SourceRequest request =
+        new SourceRequest()
+            .setDx(List.of("piUid00000001"))
+            .setPe(List.of("202301"))
+            .setOu(List.of("ouUid0000001"));
+
+    DataEntryGroup.Input.Scope scope = service.buildResetScope(exchange, request);
+
+    assertEquals(1, scope.elements().size());
+    DataEntryGroup.Input.Scope.Element el = scope.elements().get(0);
+    assertEquals("deTargetUid01", el.dataElement());
+    assertEquals("cocTarget001", el.categoryOptionCombo());
+    assertEquals("aocTarget001", el.attributeOptionCombo());
+  }
+
+  @Test
+  void testResetExternalTargetReturnsError() {
+    AggregateDataExchange exchange = new AggregateDataExchange();
+    Target target =
+        new Target().setType(TargetType.EXTERNAL).setApi(new Api()).setRequest(new TargetRequest());
+    exchange.setTarget(target);
+
+    SourceRequest request =
+        new SourceRequest()
+            .setDx(List.of("deAuid000001"))
+            .setPe(List.of("202301"))
+            .setOu(List.of("ouUid0000001"));
+
+    ImportSummary summary = service.resetTargetData(exchange, request);
+
+    assertEquals(ImportStatus.ERROR, summary.getStatus());
+    assertTrue(summary.getDescription().contains("external"));
+  }
+
+  private static AggregateDataExchange createInternalExchange() {
+    AggregateDataExchange exchange = new AggregateDataExchange();
+    Target target = new Target().setType(TargetType.INTERNAL).setRequest(new TargetRequest());
+    exchange.setTarget(target);
+    return exchange;
   }
 }

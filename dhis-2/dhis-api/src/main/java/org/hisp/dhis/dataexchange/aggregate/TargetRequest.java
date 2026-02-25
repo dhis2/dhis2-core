@@ -65,9 +65,18 @@ public class TargetRequest implements Serializable {
   /** Indicates whether to do a dry run. */
   @JsonProperty private Boolean dryRun;
 
+  /** Indicates whether to reset (soft-delete) existing data before exchange. */
+  @JsonProperty private Boolean resetBeforeExchange;
+
   /** Returns whether to skip audit, with fallback to default value if not set. */
   @JsonIgnore
   public boolean isSkipAuditOrDefault() {
     return ObjectUtils.firstNonNull(skipAudit, true);
+  }
+
+  /** Returns whether to reset before exchange, with fallback to default value if not set. */
+  @JsonIgnore
+  public boolean isResetBeforeExchangeOrDefault() {
+    return ObjectUtils.firstNonNull(resetBeforeExchange, false);
   }
 }
