@@ -77,7 +77,8 @@
       "trackedEntityAttributeLabel": "Label for Tracked Entity Attribute",
       "programStageLabel": "Label for Program Stage",
       "programStagesLabel": "Label for Program Stages",
-      "eventLabel": "Label for Event"
+      "eventLabel": "Label for Event",
+      "eventsLabel": "Label for Events"
     }
   ],
   "programStages": [
@@ -87,6 +88,7 @@
       "programStageLabel": "Label for Program Stage PS",
       "programStagesLabel": "Label for Program Stages PS",
       "eventLabel": "Label for Event PS",
+      "eventsLabel": "Label for Events PS",
       "programStageSections": [
         {
           "id": "PSSzMWi7rBa"

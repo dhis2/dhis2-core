@@ -59,6 +59,8 @@ class LabelMapperTest {
 
   private static final String ENROLLMENTS = "Enrollments";
 
+  private static final String EVENTS = "Events";
+
   private static final String PROGRAM_STAGES = "Program stages";
 
   private static final String EVENT = "Event";
@@ -91,6 +93,15 @@ class LabelMapperTest {
   }
 
   @Test
+  void testGetHeaderNameFor_EVENTS() {
+    Program aMockedProgramWithLabels = mockProgramWithLabels();
+
+    String actualName = LabelMapper.getEventsLabel(aMockedProgramWithLabels, EVENTS);
+
+    assertThat(actualName, is(aMockedProgramWithLabels.getDisplayEventsLabel()));
+  }
+
+  @Test
   void testGetHeaderNameFor_PROGRAM_STAGE() {
     ProgramStage aMockedProgramStageWithLabels = mockProgramStageWithLabels();
 
@@ -108,6 +119,15 @@ class LabelMapperTest {
         LabelMapper.getProgramStagesLabel(aMockedProgramStageWithLabels, PROGRAM_STAGES);
 
     assertThat(actualName, is(aMockedProgramStageWithLabels.getProgramStagesLabel()));
+  }
+
+  @Test
+  void testGetHeaderNameFor_EVENTS_PS() {
+    ProgramStage aMockedProgramStageWithLabels = mockProgramStageWithLabels();
+
+    String actualName = LabelMapper.getEventsLabel(aMockedProgramStageWithLabels, EVENTS);
+
+    assertThat(actualName, is(aMockedProgramStageWithLabels.getEventsLabel()));
   }
 
   @Test
@@ -238,6 +258,7 @@ class LabelMapperTest {
     program.setIncidentDateLabel("incident date label");
     program.setEnrollmentLabel("enrollment label");
     program.setEnrollmentsLabel("enrollments label");
+    program.setEventsLabel("events label");
     program.setProgramStagesLabel("program stages label");
     program.setOrgUnitLabel("org. unit label");
 
@@ -256,12 +277,14 @@ class LabelMapperTest {
     programStage.setProgramStageLabel("program stage label");
     programStage.setProgramStagesLabel("program stages label ps");
     programStage.setEventLabel("event label");
+    programStage.setEventsLabel("events label ps");
 
     Program program = new Program();
     program.setEnrollmentDateLabel("enrollment date label");
     program.setIncidentDateLabel("incident date label");
     program.setEnrollmentLabel("enrollment label");
     program.setEnrollmentsLabel("enrollments label");
+    program.setEventsLabel("events label");
     program.setProgramStagesLabel("program stages label");
     program.setOrgUnitLabel("org. unit label");
     programStage.setProgram(program);

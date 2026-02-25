@@ -112,6 +112,7 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("Label for Program Stage", program.getProgramStageLabel().string());
     assertEquals("Label for Program Stages", program.getProgramStagesLabel().string());
     assertEquals("Label for Event", program.getEventLabel().string());
+    assertEquals("Label for Events", program.getEventsLabel().string());
   }
 
   @Test
@@ -122,6 +123,7 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("Label for Program Stage PS", programStage.getProgramStageLabel().string());
     assertEquals("Label for Program Stages PS", programStage.getProgramStagesLabel().string());
     assertEquals("Label for Event PS", programStage.getEventLabel().string());
+    assertEquals("Label for Events PS", programStage.getEventsLabel().string());
   }
 
   @Test

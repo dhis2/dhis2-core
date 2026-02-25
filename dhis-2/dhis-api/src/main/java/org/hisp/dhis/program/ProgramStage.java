@@ -88,6 +88,8 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
 
   private String eventLabel;
 
+  private String eventsLabel;
+
   private Set<ProgramNotificationTemplate> notificationTemplates = new HashSet<>();
 
   private Boolean autoGenerateEvent = true;
@@ -386,6 +388,24 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getEventsLabel() {
+    return eventsLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "eventsLabel", key = "EVENTS_LABEL")
+  public String getDisplayEventsLabel() {
+    return getTranslation("EVENTS_LABEL", getEventsLabel());
+  }
+
+  public void setEventsLabel(String eventsLabel) {
+    this.eventsLabel = eventsLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Boolean getAutoGenerateEvent() {
     return autoGenerateEvent;
   }
@@ -587,6 +607,7 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
     copy.setStyle(original.getStyle());
     copy.setValidationStrategy(original.getValidationStrategy());
     copy.setEventLabel(original.getEventLabel());
+    copy.setEventsLabel(original.getEventsLabel());
     copy.setProgramStageLabel(original.getProgramStageLabel());
     copy.setProgramStagesLabel(original.getProgramStagesLabel());
   }

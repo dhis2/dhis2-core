@@ -112,6 +112,8 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   private String eventLabel;
 
+  private String eventsLabel;
+
   private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
   private Set<ProgramStage> programStages = new HashSet<>();
@@ -660,6 +662,24 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getEventsLabel() {
+    return eventsLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "eventsLabel", key = "EVENTS_LABEL")
+  public String getDisplayEventsLabel() {
+    return getTranslation("EVENTS_LABEL", getEventsLabel());
+  }
+
+  public void setEventsLabel(String eventsLabel) {
+    this.eventsLabel = eventsLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public ProgramType getProgramType() {
     return programType;
   }
@@ -1088,6 +1108,7 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
     copy.setTrackedEntityAttributeLabel(original.getTrackedEntityAttributeLabel());
     copy.setProgramStageLabel(original.getProgramStageLabel());
     copy.setEventLabel(original.getEventLabel());
+    copy.setEventsLabel(original.getEventsLabel());
     copy.setRelationshipLabel(original.getRelationshipLabel());
     copy.setEnableChangeLog(original.isEnableChangeLog());
   }

@@ -101,4 +101,8 @@ public interface JsonProgram extends JsonObject, JsonNameableObject {
   default JsonString getEventLabel() {
     return getString("eventLabel");
   }
+
+  default JsonString getEventsLabel() {
+    return getString("eventsLabel");
+  }
 }
