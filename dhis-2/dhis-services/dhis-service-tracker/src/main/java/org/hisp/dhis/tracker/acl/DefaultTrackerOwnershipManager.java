@@ -32,7 +32,6 @@ package org.hisp.dhis.tracker.acl;
 import static org.hisp.dhis.tracker.acl.OwnershipCacheUtils.getOwnershipCacheKey;
 import static org.hisp.dhis.tracker.acl.OwnershipCacheUtils.getTempOwnershipCacheKey;
 
-import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -150,7 +149,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
         programOwnershipHistoryService.addProgramOwnershipHistory(programOwnershipHistory);
         trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
             hibernateTrackedEntity, program, orgUnit);
-        hibernateTrackedEntity.setLastUpdated(new Date());
       }
     } else {
       log.error("Unauthorized attempt to change ownership");

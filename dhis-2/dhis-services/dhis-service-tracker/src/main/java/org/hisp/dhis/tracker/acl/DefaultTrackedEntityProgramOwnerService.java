@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.acl;
 
+import java.util.Date;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -98,6 +99,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     }
     updateTrackedEntityProgramOwner(teProgramOwner, orgUnit);
     trackedEntityProgramOwnerStore.update(teProgramOwner);
+    trackedEntity.setLastUpdated(new Date());
   }
 
   private void updateTrackedEntityProgramOwner(
