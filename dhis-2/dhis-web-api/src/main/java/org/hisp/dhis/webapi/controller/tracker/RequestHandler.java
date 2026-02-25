@@ -36,7 +36,6 @@ import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.FileResourceStream.Content;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
-import org.hisp.dhis.webapi.security.csp.CspPolicyService;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
