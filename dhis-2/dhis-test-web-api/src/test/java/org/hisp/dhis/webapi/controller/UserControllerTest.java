@@ -1106,6 +1106,129 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("GET /users?ou={uid} returns only users in the current user's org unit")
+  void testGetUsersFilterByOrgUnit() {
+    OrganisationUnit orgA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(orgA);
+    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
+    organisationUnitService.addOrganisationUnit(orgB);
+
+    User alice = createUserWithAuth("alice");
+    alice.addOrganisationUnit(orgA);
+    userService.updateUser(alice);
+
+    User bob = createUserWithAuth("bob");
+    bob.addOrganisationUnit(orgB);
+    userService.updateUser(bob);
+
+    // Switch to a user whose org units are orgA (fresh security context)
+    User viewer = createUserWithAuth("viewer", "ALL");
+    viewer.addOrganisationUnit(orgA);
+    userService.updateUser(viewer);
+    switchToNewUser(viewer);
+
+    JsonList<JsonUser> users =
+        GET("/users?ou=" + orgA.getUid()).content(HttpStatus.OK).getList("users", JsonUser.class);
+
+    List<String> uids = users.stream().map(JsonUser::getId).toList();
+    assertTrue(uids.contains(alice.getUid()));
+    assertTrue(uids.contains(viewer.getUid()));
+    assertFalse(uids.contains(bob.getUid()));
+  }
+
+  @Test
+  @DisplayName("GET /users?ou={uid}&includeChildren=true returns users in org unit subtree")
+  void testGetUsersFilterByOrgUnitWithChildren() {
+    OrganisationUnit orgA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(orgA);
+    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
+    organisationUnitService.addOrganisationUnit(orgB);
+    OrganisationUnit orgC = createOrganisationUnit('C', orgB);
+    organisationUnitService.addOrganisationUnit(orgC);
+
+    User alice = createUserWithAuth("alice");
+    alice.addOrganisationUnit(orgA);
+    userService.updateUser(alice);
+
+    User bob = createUserWithAuth("bob");
+    bob.addOrganisationUnit(orgB);
+    userService.updateUser(bob);
+
+    User charlie = createUserWithAuth("charlie");
+    charlie.addOrganisationUnit(orgC);
+    userService.updateUser(charlie);
+
+    // Switch to a user whose org units are orgA (fresh security context)
+    User viewer = createUserWithAuth("viewer", "ALL");
+    viewer.addOrganisationUnit(orgA);
+    userService.updateUser(viewer);
+    switchToNewUser(viewer);
+
+    JsonList<JsonUser> users =
+        GET("/users?ou=" + orgA.getUid() + "&includeChildren=true")
+            .content(HttpStatus.OK)
+            .getList("users", JsonUser.class);
+
+    List<String> uids = users.stream().map(JsonUser::getId).toList();
+    assertTrue(uids.contains(alice.getUid()));
+    assertTrue(uids.contains(bob.getUid()));
+    assertTrue(uids.contains(charlie.getUid()));
+    assertTrue(uids.contains(viewer.getUid()));
+  }
+
+  @Test
+  @DisplayName("GET /users?query=alice returns only matching users by name/email/username")
+  void testGetUsersFilterByQuery() {
+    User alice = createUserWithAuth("alice");
+    createUserWithAuth("bob");
+
+    JsonList<JsonUser> users =
+        GET("/users?query=alice").content(HttpStatus.OK).getList("users", JsonUser.class);
+
+    assertEquals(1, users.size());
+    assertEquals(alice.getUid(), users.get(0).getId());
+  }
+
+  @Test
+  @DisplayName("GET /users?phoneNumber={value} returns only users with that phone number")
+  void testGetUsersFilterByPhoneNumber() {
+    User alice = createUserWithAuth("alice");
+    alice.setPhoneNumber("+1234567890");
+    userService.updateUser(alice);
+
+    User bob = createUserWithAuth("bob");
+    bob.setPhoneNumber("+0987654321");
+    userService.updateUser(bob);
+
+    JsonList<JsonUser> users =
+        GET("/users?phoneNumber=+1234567890")
+            .content(HttpStatus.OK)
+            .getList("users", JsonUser.class);
+
+    assertEquals(1, users.size());
+    assertEquals(alice.getUid(), users.get(0).getId());
+  }
+
+  @Test
+  @DisplayName("GET /users with disabled filter returns only disabled users")
+  void testGetUsersFilterByDisabled() {
+    User alice = createUserWithAuth("alice");
+    userService.updateUser(alice);
+
+    User bob = createUserWithAuth("bob");
+    bob.setDisabled(true);
+    userService.updateUser(bob);
+
+    JsonList<JsonUser> users =
+        GET("/users?filter=disabled:eq:true")
+            .content(HttpStatus.OK)
+            .getList("users", JsonUser.class);
+
+    assertEquals(1, users.size());
+    assertEquals(bob.getUid(), users.get(0).getId());
+  }
+
+  @Test
   void testGetUserRoleUsersAreTransformed() {
     UserRole role = createUserRole('X');
     User user = makeUser("Y");
