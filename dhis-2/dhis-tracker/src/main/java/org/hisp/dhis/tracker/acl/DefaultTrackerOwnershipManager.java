@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.acl.OwnershipCacheUtils.getOwnershipCacheKey
 import static org.hisp.dhis.tracker.acl.OwnershipCacheUtils.getTempOwnershipCacheKey;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
+import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -113,11 +114,10 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
   @Override
   @Transactional
-  // TODO(tracker) This method should accept a tracked entity UID instead. The problem is, we can't
-  // use the TrackedEntityService as it introduces a cyclic dependency. That's because the ownership
-  // manager is used to filter TEs after hitting the database. As soon as we move those filters into
-  // the store to fix the pagination issue, we should be able to use the TrackedEntityService here,
-  // so we can run all validations in this service instead of the controller.
+  // TODO(tracker) This method should take a tracked entity UID instead.
+  // Currently we can’t use TrackedEntityService due to a cyclic dependency:
+  // OwnershipManager is used by RelationshipService and TrackedEntityAuditService.
+  // Once the cycle is resolved, we could move all validations here instead of in the controller.
   public void transferOwnership(
       @Nonnull TrackedEntity trackedEntity, @Nonnull UID programUid, @Nonnull UID orgUnitUid)
       throws ForbiddenException, BadRequestException, NotFoundException {
@@ -142,8 +142,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
               program.getUid(), orgUnit.getUid()));
     }
 
-    // TODO(tracker) jdbc-hibernate: check the impact on performance
-    TrackedEntity hibernateTrackedEntity = manager.get(TrackedEntity.class, trackedEntity.getUid());
     TrackedEntityProgramOwner teProgramOwner =
         trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(trackedEntity, program);
     // TODO(tracker) As soon as we use the trackedEntityService in this method, remove this
@@ -166,14 +164,17 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     ProgramOwnershipHistory programOwnershipHistory =
         new ProgramOwnershipHistory(
             program,
-            hibernateTrackedEntity,
+            trackedEntity,
             teProgramOwner.getOrganisationUnit(),
             teProgramOwner.getLastUpdated(),
             teProgramOwner.getCreatedBy());
     programOwnershipHistoryService.addProgramOwnershipHistory(programOwnershipHistory);
 
     trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner(
-        hibernateTrackedEntity, program, orgUnit);
+        trackedEntity, program, orgUnit);
+
+    trackedEntity.setLastUpdated(new Date());
+    manager.update(trackedEntity);
   }
 
   @Override
