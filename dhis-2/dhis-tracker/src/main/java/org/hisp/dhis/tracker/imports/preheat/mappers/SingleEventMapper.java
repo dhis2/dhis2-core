@@ -35,13 +35,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(
-    uses = {
-      DebugMapper.class,
-      ProgramStageMapper.class,
-      OrganisationUnitMapper.class,
-      EnrollmentMapper.class
-    })
+@Mapper(uses = {ProgramStageMapper.class, OrganisationUnitMapper.class, EnrollmentMapper.class})
 public interface SingleEventMapper extends PreheatMapper<SingleEvent> {
   SingleEventMapper INSTANCE = Mappers.getMapper(SingleEventMapper.class);
 
