@@ -473,7 +473,7 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(HttpStatus.OK, response.status());
 
     // Verify that the custom CSP policy from @CustomCsp annotation is in the response headers
-    String cspHeader = response.headers("Content-Security-Policy");
+    String cspHeader = response.header("Content-Security-Policy");
     assertNotNull(cspHeader, "Content-Security-Policy header should be present");
 
     // Verify key directives from the @CustomCsp policy are included
@@ -501,11 +501,11 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(HttpStatus.OK, response.status());
 
     // Verify standard security headers are present
-    String xContentTypeOptions = response.headers("X-Content-Type-Options");
+    String xContentTypeOptions = response.header("X-Content-Type-Options");
     assertNotNull(xContentTypeOptions, "X-Content-Type-Options header should be present");
     assertEquals("nosniff", xContentTypeOptions, "X-Content-Type-Options should be 'nosniff'");
 
-    String xFrameOptions = response.headers("X-Frame-Options");
+    String xFrameOptions = response.header("X-Frame-Options");
     assertNotNull(xFrameOptions, "X-Frame-Options header should be present");
     assertEquals("SAMEORIGIN", xFrameOptions, "X-Frame-Options should be 'SAMEORIGIN'");
   }

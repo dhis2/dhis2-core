@@ -72,6 +72,7 @@ class CspPolicyServiceTest {
     when(cacheProvider.createCorsWhitelistCache()).thenReturn((Cache) corsWhitelistCache);
     mockConfiguration = mock(Configuration.class);
     when(configurationService.getConfiguration()).thenReturn(mockConfiguration);
+    this.cspPolicyService = new CspPolicyService(dhisConfig, configurationService, cacheProvider);
   }
 
   @Test
