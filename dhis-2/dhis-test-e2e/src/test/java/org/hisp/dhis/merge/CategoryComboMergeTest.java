@@ -122,9 +122,9 @@ class CategoryComboMergeTest extends ApiTest {
         .post(
             """
             {
-                "dataElement": "DeUID000001",
+                "dataElement": "DeUID0000x1",
                 "period": "202208",
-                "orgUnit": "OrgUnitUID1",
+                "orgUnit": "OrgUn1tUID1",
                 "categoryOptionCombo": "%s",
                 "attributeOptionCombo": "HllvX50cXC0",
                 "value": "test value"
@@ -173,8 +173,8 @@ class CategoryComboMergeTest extends ApiTest {
     dataValueApiActions
         .get(
             new QueryParamsBuilder()
-                .add("de", "DeUID000001")
-                .add("ou", "OrgUnitUID1")
+                .add("de", "DeUID0000x1")
+                .add("ou", "OrgUn1tUID1")
                 .add("pe", "202208")
                 .add("co", srcCoc)
                 .build())
@@ -218,13 +218,13 @@ class CategoryComboMergeTest extends ApiTest {
     assertOptionComboHasCombo(targetCocs, targetUid);
 
     // data elements have the target CC
-    assertDataElementHasCombo("DeUID000001", targetUid);
-    assertDataElementHasCombo("DeUID000002", targetUid);
-    assertDataElementHasCombo("DeUID000003", targetUid);
+    assertDataElementHasCombo("DeUID0000x1", targetUid);
+    assertDataElementHasCombo("DeUID0000x2", targetUid);
+    assertDataElementHasCombo("DeUID0000x3", targetUid);
 
     // data sets have the target CC
-    assertDataSetHasCombo("DsUID000002", targetUid);
-    assertDataSetHasCombo("DsUID000003", targetUid);
+    assertDataSetHasCombo("DsUID0000x2", targetUid);
+    assertDataSetHasCombo("DsUID0000x3", targetUid);
 
     // program CC & enrollment CC have the target CC
     assertProgramHasCc("ProgUID0001", targetUid);
@@ -263,18 +263,18 @@ class CategoryComboMergeTest extends ApiTest {
   }
 
   private void assertPreMergeState() {
-    assertComboHasCategories(sourceUid1, "UIDCatego01", "UIDCatego02");
-    assertComboHasCategories(sourceUid2, "UIDCatego01", "UIDCatego02");
-    assertComboHasCategories(targetUid, "UIDCatego01", "UIDCatego02");
+    assertComboHasCategories(sourceUid1, "UIDCategx01", "UIDCategx02");
+    assertComboHasCategories(sourceUid2, "UIDCategx01", "UIDCategx02");
+    assertComboHasCategories(targetUid, "UIDCategx01", "UIDCategx02");
 
     // data elements
-    assertDataElementHasCombo("DeUID000001", sourceUid1);
-    assertDataElementHasCombo("DeUID000002", sourceUid2);
-    assertDataElementHasCombo("DeUID000003", targetUid);
+    assertDataElementHasCombo("DeUID0000x1", sourceUid1);
+    assertDataElementHasCombo("DeUID0000x2", sourceUid2);
+    assertDataElementHasCombo("DeUID0000x3", targetUid);
 
     // data sets
-    assertDataSetHasCombo("DsUID000002", sourceUid2);
-    assertDataSetHasCombo("DsUID000003", targetUid);
+    assertDataSetHasCombo("DsUID0000x2", sourceUid2);
+    assertDataSetHasCombo("DsUID0000x3", targetUid);
 
     // program CC & enrollment CC
     assertProgramHasCc("ProgUID0001", sourceUid1);
@@ -441,7 +441,7 @@ class CategoryComboMergeTest extends ApiTest {
         "categoryCombos": [
             {
                 "id": "UIDCatComx1",
-                "name": "category combo 1",
+                "name": "category combo x1",
                 "dataDimensionType": "DISAGGREGATION",
                 "categories": [
                     {
@@ -454,7 +454,7 @@ class CategoryComboMergeTest extends ApiTest {
             },
             {
                 "id": "UIDCatComx2",
-                "name": "category combo 2",
+                "name": "category combo x2",
                 "dataDimensionType": "DISAGGREGATION",
                 "categories": [
                     {
@@ -467,7 +467,7 @@ class CategoryComboMergeTest extends ApiTest {
             },
             {
                 "id": "UIDCatComx3",
-                "name": "category combo 3",
+                "name": "category combo x3",
                 "dataDimensionType": "DISAGGREGATION",
                 "categories": [
                     {
@@ -486,27 +486,27 @@ class CategoryComboMergeTest extends ApiTest {
     return """
         "dataSets": [
             {
-                "name": "ds 1",
-                "id": "DsUID000001",
-                "shortName": "ds 1",
+                "name": "ds x1",
+                "id": "DsUID0000x1",
+                "shortName": "ds x1",
                 "periodType": "Monthly",
                 "dataSetElements": [
                     {
                         "dataElement": {
-                            "id": "DeUID000001"
+                            "id": "DeUID0000x1"
                         }
                     }
                 ],
                 "organisationUnits": [
                     {
-                        "id": "OrgUnitUID1"
+                        "id": "OrgUn1tUID1"
                     }
                 ]
             },
             {
-                "name": "ds 2",
-                "id": "DsUID000002",
-                "shortName": "ds 2",
+                "name": "ds x2",
+                "id": "DsUID0000x2",
+                "shortName": "ds x2",
                 "periodType": "Monthly",
                 "categoryCombo": {
                    "id": "%s"
@@ -514,20 +514,20 @@ class CategoryComboMergeTest extends ApiTest {
                 "dataSetElements": [
                     {
                         "dataElement": {
-                            "id": "DeUID000002"
+                            "id": "DeUID0000x2"
                         }
                     }
                 ],
                 "organisationUnits": [
                     {
-                        "id": "OrgUnitUID1"
+                        "id": "OrgUn1tUID1"
                     }
                 ]
             },
             {
-                "name": "ds 3",
-                "id": "DsUID000003",
-                "shortName": "ds 3",
+                "name": "ds x3",
+                "id": "DsUID0000x3",
+                "shortName": "ds x3",
                 "periodType": "Monthly",
                 "categoryCombo": {
                    "id": "%s"
@@ -535,13 +535,13 @@ class CategoryComboMergeTest extends ApiTest {
                 "dataSetElements": [
                     {
                         "dataElement": {
-                            "id": "DeUID000003"
+                            "id": "DeUID0000x3"
                         }
                     }
                 ],
                 "organisationUnits": [
                     {
-                        "id": "OrgUnitUID1"
+                        "id": "OrgUn1tUID1"
                     }
                 ]
             }
@@ -556,20 +556,20 @@ class CategoryComboMergeTest extends ApiTest {
             {
                 "aggregationType": "DEFAULT",
                 "domainType": "AGGREGATE",
-                "name": "test de 1",
-                "shortName": "test de 1",
+                "name": "test de x1",
+                "shortName": "test de x1",
                 "valueType": "TEXT",
-                "id": "DeUID000001",
+                "id": "DeUID0000x1",
                 "categoryCombo": {
                     "id": "UIDCatComx1"
                 },
                 "dataSetElements": [
                     {
                         "dataElement": {
-                            "id": "DeUID000001"
+                            "id": "DeUID0000x1"
                         },
                         "dataSet": {
-                            "id": "DsUID000001"
+                            "id": "DsUID0000x1"
                         }
                     }
                 ]
@@ -577,20 +577,20 @@ class CategoryComboMergeTest extends ApiTest {
             {
                 "aggregationType": "DEFAULT",
                 "domainType": "AGGREGATE",
-                "name": "test de 2",
-                "shortName": "test de 2",
+                "name": "test de x2",
+                "shortName": "test de x2",
                 "valueType": "TEXT",
-                "id": "DeUID000002",
+                "id": "DeUID0000x2",
                 "categoryCombo": {
                     "id": "UIDCatComx2"
                 },
                 "dataSetElements": [
                     {
                         "dataElement": {
-                            "id": "DeUID000002"
+                            "id": "DeUID0000x2"
                         },
                         "dataSet": {
-                            "id": "DsUID000002"
+                            "id": "DsUID0000x2"
                         }
                     }
                 ]
@@ -598,20 +598,20 @@ class CategoryComboMergeTest extends ApiTest {
             {
                 "aggregationType": "DEFAULT",
                 "domainType": "AGGREGATE",
-                "name": "test de 3",
-                "shortName": "test de 3",
+                "name": "test de x3",
+                "shortName": "test de x3",
                 "valueType": "TEXT",
-                "id": "DeUID000003",
+                "id": "DeUID0000x3",
                 "categoryCombo": {
                     "id": "UIDCatComx3"
                 },
                 "dataSetElements": [
                     {
                         "dataElement": {
-                            "id": "DeUID000003"
+                            "id": "DeUID0000x3"
                         },
                         "dataSet": {
-                            "id": "DsUID000003"
+                            "id": "DsUID0000x3"
                         }
                     }
                 ]
@@ -625,13 +625,13 @@ class CategoryComboMergeTest extends ApiTest {
         "organisationUnits": [
             {
                 "name": "ou 1",
-                "id": "OrgUnitUID1",
+                "id": "OrgUn1tUID1",
                 "attributeValues": [],
-                "shortName": "ou 1",
+                "shortName": "ou x1",
                 "openingDate": "2020-12-31",
                 "dataSets": [
                     {
-                        "id": "DsUID000001"
+                        "id": "DsUID0000x1"
                     }
                 ]
             }
