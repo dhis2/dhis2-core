@@ -49,6 +49,8 @@
 
         <property name="programStageLabel" column="programstagelabel"/>
 
+        <property name="programStagesLabel" column="programstageslabel"/>
+
         <property name="eventLabel" column="eventlabel"/>
 
         <set name="notificationTemplates" cascade="all-delete-orphan">

@@ -115,6 +115,16 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void shouldGetProgramStageLabels() {
+    JsonProgramStage programStage =
+        GET("/programStages/PSzMWi7rBga").content(HttpStatus.OK).as(JsonProgramStage.class);
+
+    assertEquals("Label for Program Stage PS", programStage.getProgramStageLabel().string());
+    assertEquals("Label for Program Stages PS", programStage.getProgramStagesLabel().string());
+    assertEquals("Label for Event PS", programStage.getEventLabel().string());
+  }
+
+  @Test
   void testProgramValidation_RelatedProgram() {
     // language=JSON
     String json =

@@ -101,6 +101,16 @@ class LabelMapperTest {
   }
 
   @Test
+  void testGetHeaderNameFor_PROGRAM_STAGES_PS() {
+    ProgramStage aMockedProgramStageWithLabels = mockProgramStageWithLabels();
+
+    String actualName =
+        LabelMapper.getProgramStagesLabel(aMockedProgramStageWithLabels, PROGRAM_STAGES);
+
+    assertThat(actualName, is(aMockedProgramStageWithLabels.getProgramStagesLabel()));
+  }
+
+  @Test
   void testGetHeaderNameFor_PROGRAM_STAGES() {
     Program aMockedProgramWithLabels = mockProgramWithLabels();
 
@@ -244,6 +254,7 @@ class LabelMapperTest {
     programStage.setExecutionDateLabel("execution date label");
     programStage.setDueDateLabel("scheduled date label");
     programStage.setProgramStageLabel("program stage label");
+    programStage.setProgramStagesLabel("program stages label ps");
     programStage.setEventLabel("event label");
 
     Program program = new Program();

@@ -131,7 +131,7 @@ class ProgramStageTest {
   @Test
   void testExpectedFieldCount() {
     Field[] allClassFieldsIncludingInherited = getAllFields(ProgramStage.class);
-    assertEquals(48, allClassFieldsIncludingInherited.length);
+    assertEquals(49, allClassFieldsIncludingInherited.length);
   }
 
   private ProgramStage getNewProgramStageWithNoNulls(Program program) {
@@ -157,6 +157,7 @@ class ProgramStageTest {
     ps.setStandardInterval(11);
     ps.setEventLabel("Event Label");
     ps.setProgramStageLabel("Program Stage Label");
+    ps.setProgramStagesLabel("Program Stages Label");
     return ps;
   }
 
@@ -184,6 +185,7 @@ class ProgramStageTest {
     ps.setProgramStageDataElements(null);
     ps.setEventLabel(null);
     ps.setProgramStageLabel(null);
+    ps.setProgramStagesLabel(null);
 
     return ps;
   }
