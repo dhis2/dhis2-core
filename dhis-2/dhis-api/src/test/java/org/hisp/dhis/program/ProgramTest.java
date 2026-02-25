@@ -234,7 +234,7 @@ class ProgramTest {
   @Test
   void testExpectedFieldCount() {
     Field[] allClassFieldsIncludingInherited = getAllFields(Program.class);
-    assertEquals(66, allClassFieldsIncludingInherited.length);
+    assertEquals(67, allClassFieldsIncludingInherited.length);
   }
 
   public static boolean notEqualsOrBothNull(String original, String copy) {
@@ -289,6 +289,7 @@ class ProgramTest {
     p.setUserRoles(Collections.emptySet());
     p.setEnrollmentLabel("Enrollment label");
     p.setEnrollmentsLabel("Enrollments label");
+    p.setProgramStagesLabel("Program stages label");
     p.setNoteLabel("Note label");
     p.setFollowUpLabel("Follow Up Label");
     p.setOrgUnitLabel("Org Unit Label");

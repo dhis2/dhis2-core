@@ -162,6 +162,20 @@ public class LabelMapper {
   }
 
   /**
+   * Returns a custom label for program stages if one exists, otherwise the given default label.
+   *
+   * @param program the {@link Program}.
+   * @return the custom label, otherwise the default label.
+   */
+  public static String getProgramStagesLabel(Program program, String defaultLabel) {
+    if (program != null && isNotBlank(program.getDisplayProgramStagesLabel())) {
+      return program.getDisplayProgramStagesLabel();
+    }
+
+    return defaultLabel;
+  }
+
+  /**
    * Returns a custom label for org. unit if one exists, otherwise the given default label.
    *
    * @param program the {@link Program}.

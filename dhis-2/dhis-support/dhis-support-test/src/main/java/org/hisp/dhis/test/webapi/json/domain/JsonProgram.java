@@ -70,6 +70,10 @@ public interface JsonProgram extends JsonObject, JsonNameableObject {
     return getString("enrollmentsLabel");
   }
 
+  default JsonString getProgramStagesLabel() {
+    return getString("programStagesLabel");
+  }
+
   default JsonString getFollowUpLabel() {
     return getString("followUpLabel");
   }
