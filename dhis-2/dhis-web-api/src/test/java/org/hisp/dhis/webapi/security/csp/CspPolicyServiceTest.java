@@ -74,7 +74,7 @@ class CspPolicyServiceTest {
     mockConfiguration = mock(Configuration.class);
     when(configurationService.getConfiguration()).thenReturn(mockConfiguration);
     this.cspPolicyService = new CspPolicyService(dhisConfig, configurationService, cacheProvider);
-    
+
     // Common mocks used by all tests
     when(corsWhitelistCache.get(anyString(), any())).thenReturn(new HashSet<>());
     when(dhisConfig.isEnabled(any())).thenReturn(true);
