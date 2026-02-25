@@ -64,9 +64,9 @@ class CategoryComboMergeTest extends ApiTest {
   private MetadataActions metadataActions;
   private UserActions userActions;
   private LoginActions loginActions;
-  private final String sourceUid1 = "UIDCatCom01";
-  private final String sourceUid2 = "UIDCatCom02";
-  private final String targetUid = "UIDCatCom03";
+  private final String sourceUid1 = "UIDCatComx1";
+  private final String sourceUid2 = "UIDCatComx2";
+  private final String targetUid = "UIDCatComx3";
 
   @BeforeAll
   void before() {
@@ -378,24 +378,24 @@ class CategoryComboMergeTest extends ApiTest {
     return """
         "categoryOptions": [
             {
-                "id": "UIDCatOpt1A",
-                "name": "cat option 1A",
-                "shortName": "cat option 1A"
+                "id": "UIDCatOpx1A",
+                "name": "cat optionx 1A",
+                "shortName": "cat optionx 1A"
             },
             {
-                "id": "UIDCatOpt1B",
-                "name": "cat option 1B",
-                "shortName": "cat option 1B"
+                "id": "UIDCatOpx1B",
+                "name": "cat optionx 1B",
+                "shortName": "cat optionx 1B"
             },
             {
-                "id": "UIDCatOpt2A",
-                "name": "cat option 2A",
-                "shortName": "cat option 2A"
+                "id": "UIDCatOpx2A",
+                "name": "cat optionx 2A",
+                "shortName": "cat optionx 2A"
             },
             {
-                "id": "UIDCatOpt2B",
-                "name": "cat option 2B",
-                "shortName": "cat option 2B"
+                "id": "UIDCatOpx2B",
+                "name": "cat optionx 2B",
+                "shortName": "cat optionx 2B"
             }
         ]
         """;
@@ -405,30 +405,30 @@ class CategoryComboMergeTest extends ApiTest {
     return """
         "categories": [
             {
-                "id": "UIDCatego01",
-                "name": "category 1",
-                "shortName": "category 1",
+                "id": "UIDCategx01",
+                "name": "category x1",
+                "shortName": "category x1",
                 "dataDimensionType": "DISAGGREGATION",
                 "categoryOptions": [
                     {
-                        "id": "UIDCatOpt1A"
+                        "id": "UIDCatOpx1A"
                     },
                     {
-                        "id": "UIDCatOpt1B"
+                        "id": "UIDCatOpx1B"
                     }
                 ]
             },
             {
-                "id": "UIDCatego02",
-                "name": "category 2",
-                "shortName": "category 2",
+                "id": "UIDCategx02",
+                "name": "category x2",
+                "shortName": "category x2",
                 "dataDimensionType": "DISAGGREGATION",
                 "categoryOptions": [
                     {
-                        "id": "UIDCatOpt2A"
+                        "id": "UIDCatOpx2A"
                     },
                     {
-                        "id": "UIDCatOpt2B"
+                        "id": "UIDCatOpx2B"
                     }
                 ]
             }
@@ -440,41 +440,41 @@ class CategoryComboMergeTest extends ApiTest {
     return """
         "categoryCombos": [
             {
-                "id": "UIDCatCom01",
+                "id": "UIDCatComx1",
                 "name": "category combo 1",
                 "dataDimensionType": "DISAGGREGATION",
                 "categories": [
                     {
-                        "id": "UIDCatego01"
+                        "id": "UIDCategx01"
                     },
                     {
-                        "id": "UIDCatego02"
+                        "id": "UIDCategx02"
                     }
                 ]
             },
             {
-                "id": "UIDCatCom02",
+                "id": "UIDCatComx2",
                 "name": "category combo 2",
                 "dataDimensionType": "DISAGGREGATION",
                 "categories": [
                     {
-                        "id": "UIDCatego01"
+                        "id": "UIDCategx01"
                     },
                     {
-                        "id": "UIDCatego02"
+                        "id": "UIDCategx02"
                     }
                 ]
             },
             {
-                "id": "UIDCatCom03",
+                "id": "UIDCatComx3",
                 "name": "category combo 3",
                 "dataDimensionType": "DISAGGREGATION",
                 "categories": [
                     {
-                        "id": "UIDCatego01"
+                        "id": "UIDCategx01"
                     },
                     {
-                        "id": "UIDCatego02"
+                        "id": "UIDCategx02"
                     }
                 ]
             }
@@ -561,7 +561,7 @@ class CategoryComboMergeTest extends ApiTest {
                 "valueType": "TEXT",
                 "id": "DeUID000001",
                 "categoryCombo": {
-                    "id": "UIDCatCom01"
+                    "id": "UIDCatComx1"
                 },
                 "dataSetElements": [
                     {
@@ -582,7 +582,7 @@ class CategoryComboMergeTest extends ApiTest {
                 "valueType": "TEXT",
                 "id": "DeUID000002",
                 "categoryCombo": {
-                    "id": "UIDCatCom02"
+                    "id": "UIDCatComx2"
                 },
                 "dataSetElements": [
                     {
@@ -603,7 +603,7 @@ class CategoryComboMergeTest extends ApiTest {
                 "valueType": "TEXT",
                 "id": "DeUID000003",
                 "categoryCombo": {
-                    "id": "UIDCatCom03"
+                    "id": "UIDCatComx3"
                 },
                 "dataSetElements": [
                     {
