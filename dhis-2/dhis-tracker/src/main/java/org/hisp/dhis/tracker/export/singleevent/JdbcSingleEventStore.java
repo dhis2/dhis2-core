@@ -49,7 +49,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -88,7 +87,6 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -115,11 +113,6 @@ class JdbcSingleEventStore {
        inner join note n\
        on evn.noteid = n.noteid\
        left join userinfo on n.lastupdatedby = userinfo.userinfoid\s""";
-
-  private static final Pattern SELECT_TO_FROM = Pattern.compile("select .*? from", Pattern.DOTALL);
-  private static final Pattern ORDER_CLAUSE =
-      Pattern.compile("order .*? (desc|asc)", Pattern.DOTALL);
-  private static final Pattern LIMIT_OFFSET = Pattern.compile("limit \\d+ offset \\d+");
 
   private static final String DEFAULT_ORDER = "ev_id desc";
 
@@ -420,34 +413,77 @@ class JdbcSingleEventStore {
 
   public long getEventCount(SingleEventQueryParams params) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-
-    String sql;
-
-    MapSqlParameterSource sqlParameters = new MapSqlParameterSource();
-
-    sql = getQuery(params, sqlParameters, currentUser);
-
-    sql = SELECT_TO_FROM.matcher(sql).replaceFirst("select count(*) as ev_count from");
-
-    sql = ORDER_CLAUSE.matcher(sql).replaceFirst("");
-
-    sql = LIMIT_OFFSET.matcher(sql).replaceFirst("");
-
-    RowCountHandler rowCountHandler = new RowCountHandler();
-    jdbcTemplate.query(sql, sqlParameters, rowCountHandler);
-    return rowCountHandler.getCount();
+    MapSqlParameterSource sqlParams = new MapSqlParameterSource();
+    String sql = getCountQuery(params, sqlParams, currentUser);
+    Long count = jdbcTemplate.queryForObject(sql, sqlParams, Long.class);
+    return count != null ? count : 0L;
   }
 
-  private static class RowCountHandler implements RowCallbackHandler {
-    private long count;
+  /**
+   * Builds the count query with only the joins needed for filtering:
+   *
+   * <ul>
+   *   <li>{@code organisationunit} - always needed (org unit mode and access level filtering)
+   *   <li>{@code categoryoptioncombo} - always needed (COC access control)
+   *   <li>{@code programstage} + {@code program} - only when no specific program is given (needed
+   *       for {@code p.accesslevel} in the access level clause). When a program is known, its
+   *       conditions use {@code ev.programstageid} directly and both joins are skipped.
+   * </ul>
+   *
+   * <p>Always skips: {@code userinfo} (au) which is only used in SELECT.
+   */
+  private String getCountQuery(
+      SingleEventQueryParams params, MapSqlParameterSource sqlParams, UserDetails user) {
+    boolean needsProgramJoin = params.getProgram() == null;
 
-    @Override
-    public void processRow(ResultSet rs) throws SQLException {
-      count = rs.getLong("ev_count");
+    StringBuilder sql = new StringBuilder();
+    sql.append("select count(*) from singleevent ev ");
+    if (needsProgramJoin) {
+      addJoinOnProgramStage(sql);
+      addJoinOnProgram(sql);
     }
+    addJoinOnOrgUnit(sql);
+    addJoinOnCategoryOptionCombo(sql, user);
+    addCountWhereConditions(sql, sqlParams, params, needsProgramJoin);
 
-    public long getCount() {
-      return count;
+    return sql.toString();
+  }
+
+  private void addCountWhereConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      SingleEventQueryParams params,
+      boolean hasProgramJoin) {
+    SqlHelper hlp = new SqlHelper(true);
+    addDataElementConditions(sql, sqlParams, params);
+    if (hasProgramJoin) {
+      addProgramConditions(sql, sqlParams, params, hlp);
+    } else {
+      addCountProgramConditions(sql, sqlParams, params, hlp);
+    }
+    addLastUpdatedConditions(sql, sqlParams, params, hlp);
+    addCategoryOptionComboConditions(sql, sqlParams, params, hlp);
+    addOrgUnitConditions(sql, sqlParams, params, hlp);
+    addOccurredDateConditions(sql, sqlParams, params, hlp);
+    addSyncConditions(sql, sqlParams, params, hlp);
+    addEventStatusConditions(sql, sqlParams, params, hlp);
+    addEventConditions(sql, sqlParams, params, hlp);
+    addAssignedUserConditions(sql, sqlParams, params, hlp);
+    addDeletedCondition(sql, params, hlp);
+  }
+
+  /**
+   * Program conditions for the count query when the program is known. Uses {@code
+   * ev.programstageid} directly instead of joining the program and programstage tables.
+   */
+  private void addCountProgramConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      SingleEventQueryParams params,
+      SqlHelper hlp) {
+    if (params.getProgram() != null) {
+      sqlParams.addValue("programstageid", params.getProgramStage().getId());
+      sql.append(hlp.whereAnd()).append(" ev.programstageid = :programstageid ");
     }
   }
 
