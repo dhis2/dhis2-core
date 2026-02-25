@@ -65,14 +65,9 @@ public class RequestHandler {
       throws ConflictException, BadRequestException {
     final String etag = file.uid();
 
-    HttpHeaders securityHeaders =
-        cspPolicyService.getSecurityHeaders(
-            cspPolicyService.constructUserUploadedContentCspPolicy());
-
     if (ResponseEntityUtils.checkNotModified(etag, request)) {
       return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
           .cacheControl(CACHE_CONTROL_DIRECTIVES)
-          .headers(securityHeaders)
           .eTag(etag)
           .build();
     }
@@ -80,7 +75,6 @@ public class RequestHandler {
     Content content = file.contentSupplier().get();
     return ResponseEntity.ok()
         .cacheControl(CACHE_CONTROL_DIRECTIVES)
-        .headers(securityHeaders)
         .eTag(etag)
         .contentType(MediaType.valueOf(file.contentType()))
         .header(
