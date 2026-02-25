@@ -74,13 +74,15 @@ class CspPolicyServiceTest {
     mockConfiguration = mock(Configuration.class);
     when(configurationService.getConfiguration()).thenReturn(mockConfiguration);
     this.cspPolicyService = new CspPolicyService(dhisConfig, configurationService, cacheProvider);
+    
+    // Common mocks used by all tests
+    when(corsWhitelistCache.get(anyString(), any())).thenReturn(new HashSet<>());
+    when(dhisConfig.isEnabled(any())).thenReturn(true);
   }
 
   @Test
   void testConstructCustomCspPolicy_WithValidPolicy() {
     String customPolicy = "script-src 'self'";
-    when(corsWhitelistCache.get(anyString(), any())).thenReturn(new HashSet<>());
-    when(dhisConfig.isEnabled(any())).thenReturn(true);
 
     String result = cspPolicyService.constructCustomCspPolicy(customPolicy);
 
@@ -91,9 +93,6 @@ class CspPolicyServiceTest {
 
   @Test
   void testConstructCustomCspPolicy_WithNullPolicy() {
-    when(corsWhitelistCache.get(anyString(), any())).thenReturn(new HashSet<>());
-    when(dhisConfig.isEnabled(any())).thenReturn(true);
-
     String result = cspPolicyService.constructCustomCspPolicy(null);
 
     assertNotNull(result);
@@ -103,8 +102,6 @@ class CspPolicyServiceTest {
   @Test
   void testConstructCustomCspPolicy_WithPolicySemicolon() {
     String customPolicy = "script-src 'self';";
-    when(corsWhitelistCache.get(anyString(), any())).thenReturn(new HashSet<>());
-    when(dhisConfig.isEnabled(any())).thenReturn(true);
 
     String result = cspPolicyService.constructCustomCspPolicy(customPolicy);
 
@@ -120,7 +117,6 @@ class CspPolicyServiceTest {
     corsWhitelist.add("https://trusted.org");
 
     when(corsWhitelistCache.get(anyString(), any())).thenReturn(corsWhitelist);
-    when(dhisConfig.isEnabled(any())).thenReturn(true);
 
     String result = cspPolicyService.constructCustomCspPolicy(customPolicy);
 
@@ -132,9 +128,6 @@ class CspPolicyServiceTest {
 
   @Test
   void testConstructDefaultCspPolicy() {
-    when(corsWhitelistCache.get(anyString(), any())).thenReturn(new HashSet<>());
-    when(dhisConfig.isEnabled(any())).thenReturn(true);
-
     String result = cspPolicyService.constructDefaultCspPolicy();
 
     assertNotNull(result);
@@ -143,9 +136,6 @@ class CspPolicyServiceTest {
 
   @Test
   void testConstructUserUploadedContentCspPolicy() {
-    when(corsWhitelistCache.get(anyString(), any())).thenReturn(new HashSet<>());
-    when(dhisConfig.isEnabled(any())).thenReturn(true);
-
     String result = cspPolicyService.constructUserUploadedContentCspPolicy();
 
     assertNotNull(result);
@@ -154,9 +144,6 @@ class CspPolicyServiceTest {
 
   @Test
   void testGetSecurityHeaders_CspEnabled() {
-    when(corsWhitelistCache.get(anyString(), any())).thenReturn(new HashSet<>());
-    when(dhisConfig.isEnabled(any())).thenReturn(true);
-
     String cspPolicy = "script-src 'self'";
     HttpHeaders headers = cspPolicyService.getSecurityHeaders(cspPolicy);
 
@@ -170,7 +157,6 @@ class CspPolicyServiceTest {
 
   @Test
   void testGetSecurityHeaders_CspDisabled() {
-    when(corsWhitelistCache.get(anyString(), any())).thenReturn(new HashSet<>());
     when(dhisConfig.isEnabled(any())).thenReturn(false);
 
     String cspPolicy = "script-src 'self'";
@@ -184,9 +170,6 @@ class CspPolicyServiceTest {
 
   @Test
   void testGetSecurityHeaders_WithNullPolicy() {
-    when(corsWhitelistCache.get(anyString(), any())).thenReturn(new HashSet<>());
-    when(dhisConfig.isEnabled(any())).thenReturn(true);
-
     HttpHeaders headers = cspPolicyService.getSecurityHeaders(null);
 
     assertNotNull(headers);
@@ -195,9 +178,6 @@ class CspPolicyServiceTest {
 
   @Test
   void testGetSecurityHeaders_WithEmptyPolicy() {
-    when(corsWhitelistCache.get(anyString(), any())).thenReturn(new HashSet<>());
-    when(dhisConfig.isEnabled(any())).thenReturn(true);
-
     HttpHeaders headers = cspPolicyService.getSecurityHeaders("   ");
 
     assertNotNull(headers);
@@ -206,9 +186,6 @@ class CspPolicyServiceTest {
 
   @Test
   void testGetSecurityHeaders_PolicyEndsWithSemicolon() {
-    when(corsWhitelistCache.get(anyString(), any())).thenReturn(new HashSet<>());
-    when(dhisConfig.isEnabled(any())).thenReturn(true);
-
     HttpHeaders headers = cspPolicyService.getSecurityHeaders("script-src 'self';");
 
     assertNotNull(headers);
@@ -219,9 +196,6 @@ class CspPolicyServiceTest {
 
   @Test
   void testConstructCustomCspPolicy_EmptyStringPolicy() {
-    when(corsWhitelistCache.get(anyString(), any())).thenReturn(new HashSet<>());
-    when(dhisConfig.isEnabled(any())).thenReturn(true);
-
     String result = cspPolicyService.constructCustomCspPolicy("   ");
 
     assertNotNull(result);
@@ -237,7 +211,6 @@ class CspPolicyServiceTest {
     corsWhitelist.add("https://partner.io");
 
     when(corsWhitelistCache.get(anyString(), any())).thenReturn(corsWhitelist);
-    when(dhisConfig.isEnabled(any())).thenReturn(true);
 
     String result = cspPolicyService.constructCustomCspPolicy(customPolicy);
 

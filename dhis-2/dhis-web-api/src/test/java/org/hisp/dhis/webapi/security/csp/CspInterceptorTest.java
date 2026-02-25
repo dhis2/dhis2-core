@@ -60,11 +60,6 @@ class CspInterceptorTest {
   @BeforeEach
   void setUp() {
     doNothing().when(response).addHeader(anyString(), anyString());
-    HttpHeaders mockHeaders = new HttpHeaders();
-    mockHeaders.set("Content-Security-Policy", "script-src 'self'; frame-ancestors 'self';");
-    mockHeaders.set("X-Content-Type-Options", "nosniff");
-    mockHeaders.set("X-Frame-Options", "SAMEORIGIN");
-    when(cspPolicyService.getSecurityHeaders(anyString())).thenReturn(mockHeaders);
   }
 
   @Test

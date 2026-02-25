@@ -38,7 +38,6 @@ import org.hisp.dhis.tracker.export.FileResourceStream.Content;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
 import org.hisp.dhis.webapi.security.csp.CspPolicyService;
 import org.hisp.dhis.webapi.utils.ResponseEntityUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
@@ -57,7 +56,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class RequestHandler {
-  @Autowired private final CspPolicyService cspPolicyService;
+  private final CspPolicyService cspPolicyService;
   private static final CacheControl CACHE_CONTROL_DIRECTIVES =
       CacheControl.noCache().cachePrivate();
 
