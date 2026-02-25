@@ -121,7 +121,7 @@ public class CspHeadersE2ETest extends BaseE2ETest {
 
     // Still should have frame-ancestors for security
     assertTrue(
-        cspHeader.contains("frame-ancestors"),
+        cspHeader.contains("frame-ancestors 'self'"),
         "CSP should include frame-ancestors directive even for user-uploaded content");
   }
 
@@ -169,14 +169,14 @@ public class CspHeadersE2ETest extends BaseE2ETest {
   // ========================================================================
 
   @Test
-  void testDefaultMetadataEndpointHasSecurityHeaders() {
+  void testDefaultMeEndpointHasSecurityHeaders() {
     String cookie = performInitialLogin("admin", "district");
     HttpHeaders headers = new HttpHeaders();
     headers.set("Cookie", cookie);
 
     ResponseEntity<String> response =
         restTemplate.exchange(
-            serverApiUrl + "/metadata",
+            serverApiUrl + "/me",
             HttpMethod.GET,
             new org.springframework.http.HttpEntity<>(headers),
             String.class);
@@ -184,7 +184,7 @@ public class CspHeadersE2ETest extends BaseE2ETest {
     assertEquals(
         HttpStatus.OK,
         response.getStatusCode(),
-        "Metadata endpoint should be accessible with valid credentials");
+        "Me endpoint should be accessible with valid credentials");
 
     // Verify default security headers are present
     verifyStandardSecurityHeaders(response);
