@@ -70,13 +70,13 @@
       "enrollmentDateLabel": "Label for Enrollment Date",
       "enrollmentLabel": "Label for Enrollment",
       "enrollmentsLabel": "Label for Enrollments",
-      "programStagesLabel": "Label for Program Stages",
       "followUpLabel": "Label for Follow Up",
       "orgUnitLabel": "Label for Org Unit",
       "relationshipLabel": "Label for Relationship",
       "noteLabel": "Label for Note",
       "trackedEntityAttributeLabel": "Label for Tracked Entity Attribute",
       "programStageLabel": "Label for Program Stage",
+      "programStagesLabel": "Label for Program Stages",
       "eventLabel": "Label for Event"
     }
   ],

@@ -289,12 +289,12 @@ class ProgramTest {
     p.setUserRoles(Collections.emptySet());
     p.setEnrollmentLabel("Enrollment label");
     p.setEnrollmentsLabel("Enrollments label");
-    p.setProgramStagesLabel("Program stages label");
     p.setNoteLabel("Note label");
     p.setFollowUpLabel("Follow Up Label");
     p.setOrgUnitLabel("Org Unit Label");
     p.setTrackedEntityAttributeLabel("Tracked Entity Attribute Label");
     p.setProgramStageLabel("Program Stage Label");
+    p.setProgramStagesLabel("Program stages label");
     p.setEventLabel("Event Label");
     p.setRelationshipLabel("Relationship Label");
 

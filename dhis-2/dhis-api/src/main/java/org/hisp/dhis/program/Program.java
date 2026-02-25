@@ -96,8 +96,6 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   private String enrollmentsLabel;
 
-  private String programStagesLabel;
-
   private String followUpLabel;
 
   private String orgUnitLabel;
@@ -109,6 +107,8 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
   private String trackedEntityAttributeLabel;
 
   private String programStageLabel;
+
+  private String programStagesLabel;
 
   private String eventLabel;
 
@@ -515,24 +515,6 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @PropertyRange(min = 2)
-  public String getProgramStagesLabel() {
-    return programStagesLabel;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Translatable(propertyName = "programStagesLabel", key = "PROGRAM_STAGES_LABEL")
-  public String getDisplayProgramStagesLabel() {
-    return getTranslation("PROGRAM_STAGES_LABEL", getProgramStagesLabel());
-  }
-
-  public void setProgramStagesLabel(String programStagesLabel) {
-    this.programStagesLabel = programStagesLabel;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @PropertyRange(min = 2)
   public String getFollowUpLabel() {
     return followUpLabel;
   }
@@ -638,6 +620,24 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   public void setProgramStageLabel(String programStageLabel) {
     this.programStageLabel = programStageLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getProgramStagesLabel() {
+    return programStagesLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "programStagesLabel", key = "PROGRAM_STAGES_LABEL")
+  public String getDisplayProgramStagesLabel() {
+    return getTranslation("PROGRAM_STAGES_LABEL", getProgramStagesLabel());
+  }
+
+  public void setProgramStagesLabel(String programStagesLabel) {
+    this.programStagesLabel = programStagesLabel;
   }
 
   @JsonProperty

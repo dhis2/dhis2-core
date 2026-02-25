@@ -33,8 +33,6 @@
 
         <property name="enrollmentsLabel" column="enrollmentslabel" type="text"/>
 
-        <property name="programStagesLabel" column="programstageslabel" type="text"/>
-
         <property name="followUpLabel" column="followuplabel" type="text"/>
 
         <property name="orgUnitLabel" column="orgunitlabel" type="text"/>
@@ -46,6 +44,8 @@
         <property name="trackedEntityAttributeLabel" column="trackedentityattributelabel" type="text"/>
 
         <property name="programStageLabel" column="programstagelabel" type="text"/>
+
+        <property name="programStagesLabel" column="programstageslabel" type="text"/>
 
         <property name="eventLabel" column="eventlabel" type="text"/>
 

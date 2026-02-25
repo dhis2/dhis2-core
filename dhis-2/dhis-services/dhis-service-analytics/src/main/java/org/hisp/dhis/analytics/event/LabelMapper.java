@@ -106,6 +106,20 @@ public class LabelMapper {
   }
 
   /**
+   * Returns a custom label for program stages if one exists, otherwise the given default label.
+   *
+   * @param program the {@link Program}.
+   * @return the custom label, otherwise the default label.
+   */
+  public static String getProgramStagesLabel(Program program, String defaultLabel) {
+    if (program != null && isNotBlank(program.getDisplayProgramStagesLabel())) {
+      return program.getDisplayProgramStagesLabel();
+    }
+
+    return defaultLabel;
+  }
+
+  /**
    * Returns a custom label for enrollment date if one exists, otherwise the given default label.
    *
    * @param program the {@link Program}.
@@ -156,20 +170,6 @@ public class LabelMapper {
   public static String getEnrollmentsLabel(Program program, String defaultLabel) {
     if (program != null && isNotBlank(program.getDisplayEnrollmentsLabel())) {
       return program.getDisplayEnrollmentsLabel();
-    }
-
-    return defaultLabel;
-  }
-
-  /**
-   * Returns a custom label for program stages if one exists, otherwise the given default label.
-   *
-   * @param program the {@link Program}.
-   * @return the custom label, otherwise the default label.
-   */
-  public static String getProgramStagesLabel(Program program, String defaultLabel) {
-    if (program != null && isNotBlank(program.getDisplayProgramStagesLabel())) {
-      return program.getDisplayProgramStagesLabel();
     }
 
     return defaultLabel;

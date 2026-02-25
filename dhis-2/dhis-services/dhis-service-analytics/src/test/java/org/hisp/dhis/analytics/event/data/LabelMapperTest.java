@@ -91,15 +91,6 @@ class LabelMapperTest {
   }
 
   @Test
-  void testGetHeaderNameFor_PROGRAM_STAGES() {
-    Program aMockedProgramWithLabels = mockProgramWithLabels();
-
-    String actualName = LabelMapper.getProgramStagesLabel(aMockedProgramWithLabels, PROGRAM_STAGES);
-
-    assertThat(actualName, is(aMockedProgramWithLabels.getDisplayProgramStagesLabel()));
-  }
-
-  @Test
   void testGetHeaderNameFor_PROGRAM_STAGE() {
     ProgramStage aMockedProgramStageWithLabels = mockProgramStageWithLabels();
 
@@ -107,6 +98,15 @@ class LabelMapperTest {
         LabelMapper.getProgramStageLabel(aMockedProgramStageWithLabels, PROGRAM_STAGE);
 
     assertThat(actualName, is(aMockedProgramStageWithLabels.getProgramStageLabel()));
+  }
+
+  @Test
+  void testGetHeaderNameFor_PROGRAM_STAGES() {
+    Program aMockedProgramWithLabels = mockProgramWithLabels();
+
+    String actualName = LabelMapper.getProgramStagesLabel(aMockedProgramWithLabels, PROGRAM_STAGES);
+
+    assertThat(actualName, is(aMockedProgramWithLabels.getDisplayProgramStagesLabel()));
   }
 
   @Test
