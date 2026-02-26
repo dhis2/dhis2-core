@@ -33,7 +33,6 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 
 /**
  * Specific component responsible mapping custom labels for specific cases where the user is able to
@@ -92,21 +91,6 @@ public class LabelMapper {
   }
 
   /**
-   * Returns a custom label for events if it exists, otherwise the given default label.
-   *
-   * @param programStage the {@link ProgramStage}.
-   * @param defaultLabel the default label.
-   * @return the custom label, otherwise the default label.
-   */
-  public static String getEventsLabel(ProgramStage programStage, String defaultLabel) {
-    if (programStage != null && isNotBlank(programStage.getDisplayEventsLabel())) {
-      return programStage.getDisplayEventsLabel();
-    }
-
-    return defaultLabel;
-  }
-
-  /**
    * Returns a custom label for the event date if it exists, otherwise the given default label.
    *
    * @param programStage the {@link ProgramStage}.
@@ -116,35 +100,6 @@ public class LabelMapper {
   public static String getProgramStageLabel(ProgramStage programStage, String defaultLabel) {
     if (programStage != null && isNotBlank(programStage.getDisplayProgramStageLabel())) {
       return programStage.getDisplayProgramStageLabel();
-    }
-
-    return defaultLabel;
-  }
-
-  /**
-   * Returns a custom label for program stages if it exists, otherwise the given default label.
-   *
-   * @param programStage the {@link ProgramStage}.
-   * @param defaultLabel the default label.
-   * @return the custom label, otherwise the default label.
-   */
-  public static String getProgramStagesLabel(ProgramStage programStage, String defaultLabel) {
-    if (programStage != null && isNotBlank(programStage.getDisplayProgramStagesLabel())) {
-      return programStage.getDisplayProgramStagesLabel();
-    }
-
-    return defaultLabel;
-  }
-
-  /**
-   * Returns a custom label for program stages if one exists, otherwise the given default label.
-   *
-   * @param program the {@link Program}.
-   * @return the custom label, otherwise the default label.
-   */
-  public static String getProgramStagesLabel(Program program, String defaultLabel) {
-    if (program != null && isNotBlank(program.getDisplayProgramStagesLabel())) {
-      return program.getDisplayProgramStagesLabel();
     }
 
     return defaultLabel;
@@ -187,52 +142,6 @@ public class LabelMapper {
   public static String getEnrollmentLabel(Program program, String defaultLabel) {
     if (program != null && isNotBlank(program.getDisplayEnrollmentLabel())) {
       return program.getDisplayEnrollmentLabel();
-    }
-
-    return defaultLabel;
-  }
-
-  /**
-   * Returns a custom label for enrollments if one exists, otherwise the given default label.
-   *
-   * @param program the {@link Program}.
-   * @return the custom label, otherwise the default label.
-   */
-  public static String getEnrollmentsLabel(Program program, String defaultLabel) {
-    if (program != null && isNotBlank(program.getDisplayEnrollmentsLabel())) {
-      return program.getDisplayEnrollmentsLabel();
-    }
-
-    return defaultLabel;
-  }
-
-  /**
-   * Returns a custom label for events if one exists, otherwise the given default label.
-   *
-   * @param program the {@link Program}.
-   * @return the custom label, otherwise the default label.
-   */
-  public static String getEventsLabel(Program program, String defaultLabel) {
-    if (program != null && isNotBlank(program.getDisplayEventsLabel())) {
-      return program.getDisplayEventsLabel();
-    }
-
-    return defaultLabel;
-  }
-
-  /**
-   * Returns a custom label for tracked entity types if one exists, otherwise the given default
-   * label.
-   *
-   * @param trackedEntityType the {@link TrackedEntityType}.
-   * @param defaultLabel the default label.
-   * @return the custom label, otherwise the default label.
-   */
-  public static String getTrackedEntityTypesLabel(
-      TrackedEntityType trackedEntityType, String defaultLabel) {
-    if (trackedEntityType != null
-        && isNotBlank(trackedEntityType.getDisplayTrackedEntityTypesLabel())) {
-      return trackedEntityType.getDisplayTrackedEntityTypesLabel();
     }
 
     return defaultLabel;

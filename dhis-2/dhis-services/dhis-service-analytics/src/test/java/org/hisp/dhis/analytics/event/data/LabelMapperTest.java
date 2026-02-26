@@ -35,7 +35,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import org.hisp.dhis.analytics.event.LabelMapper;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -58,25 +57,6 @@ class LabelMapperTest {
 
   private static final String ENROLLMENT = "Enrollment";
 
-  private static final String ENROLLMENTS = "Enrollments";
-
-  private static final String EVENTS = "Events";
-
-  private static final String PROGRAM_STAGES = "Program stages";
-
-  private static final String EVENT = "Event";
-
-  private static final String TRACKED_ENTITY_TYPE = "Tracked entity type";
-
-  @Test
-  void testGetHeaderNameFor_EVENT() {
-    ProgramStage aMockedProgramStageWithLabels = mockProgramStageWithLabels();
-
-    String actualName = LabelMapper.getEventLabel(aMockedProgramStageWithLabels, EVENT);
-
-    assertThat(actualName, is(aMockedProgramStageWithLabels.getEventLabel()));
-  }
-
   @Test
   void testGetHeaderNameFor_ENROLLMENT() {
     Program aMockedProgramWithLabels = mockProgramWithLabels();
@@ -87,24 +67,6 @@ class LabelMapperTest {
   }
 
   @Test
-  void testGetHeaderNameFor_ENROLLMENTS() {
-    Program aMockedProgramWithLabels = mockProgramWithLabels();
-
-    String actualName = LabelMapper.getEnrollmentsLabel(aMockedProgramWithLabels, ENROLLMENTS);
-
-    assertThat(actualName, is(aMockedProgramWithLabels.getDisplayEnrollmentsLabel()));
-  }
-
-  @Test
-  void testGetHeaderNameFor_EVENTS() {
-    Program aMockedProgramWithLabels = mockProgramWithLabels();
-
-    String actualName = LabelMapper.getEventsLabel(aMockedProgramWithLabels, EVENTS);
-
-    assertThat(actualName, is(aMockedProgramWithLabels.getDisplayEventsLabel()));
-  }
-
-  @Test
   void testGetHeaderNameFor_PROGRAM_STAGE() {
     ProgramStage aMockedProgramStageWithLabels = mockProgramStageWithLabels();
 
@@ -112,34 +74,6 @@ class LabelMapperTest {
         LabelMapper.getProgramStageLabel(aMockedProgramStageWithLabels, PROGRAM_STAGE);
 
     assertThat(actualName, is(aMockedProgramStageWithLabels.getProgramStageLabel()));
-  }
-
-  @Test
-  void testGetHeaderNameFor_PROGRAM_STAGES_PS() {
-    ProgramStage aMockedProgramStageWithLabels = mockProgramStageWithLabels();
-
-    String actualName =
-        LabelMapper.getProgramStagesLabel(aMockedProgramStageWithLabels, PROGRAM_STAGES);
-
-    assertThat(actualName, is(aMockedProgramStageWithLabels.getProgramStagesLabel()));
-  }
-
-  @Test
-  void testGetHeaderNameFor_EVENTS_PS() {
-    ProgramStage aMockedProgramStageWithLabels = mockProgramStageWithLabels();
-
-    String actualName = LabelMapper.getEventsLabel(aMockedProgramStageWithLabels, EVENTS);
-
-    assertThat(actualName, is(aMockedProgramStageWithLabels.getEventsLabel()));
-  }
-
-  @Test
-  void testGetHeaderNameFor_PROGRAM_STAGES() {
-    Program aMockedProgramWithLabels = mockProgramWithLabels();
-
-    String actualName = LabelMapper.getProgramStagesLabel(aMockedProgramWithLabels, PROGRAM_STAGES);
-
-    assertThat(actualName, is(aMockedProgramWithLabels.getDisplayProgramStagesLabel()));
   }
 
   @Test
@@ -197,17 +131,6 @@ class LabelMapperTest {
     String actualName = LabelMapper.getIncidentDateLabel(aMockedProgramWithLabels, INCIDENT_DATE);
 
     assertThat(actualName, is(aMockedProgramWithLabels.getDisplayIncidentDateLabel()));
-  }
-
-  @Test
-  void testGetHeaderNameFor_TRACKED_ENTITY_TYPE() {
-    TrackedEntityType trackedEntityType = new TrackedEntityType();
-    trackedEntityType.setTrackedEntityTypesLabel("tracked entity types label");
-
-    String actualName =
-        LabelMapper.getTrackedEntityTypesLabel(trackedEntityType, TRACKED_ENTITY_TYPE);
-
-    assertThat(actualName, is(trackedEntityType.getDisplayTrackedEntityTypesLabel()));
   }
 
   @Test
@@ -271,9 +194,6 @@ class LabelMapperTest {
     program.setEnrollmentDateLabel("enrollment date label");
     program.setIncidentDateLabel("incident date label");
     program.setEnrollmentLabel("enrollment label");
-    program.setEnrollmentsLabel("enrollments label");
-    program.setEventsLabel("events label");
-    program.setProgramStagesLabel("program stages label");
     program.setOrgUnitLabel("org. unit label");
 
     return program;
@@ -289,17 +209,12 @@ class LabelMapperTest {
     programStage.setExecutionDateLabel("execution date label");
     programStage.setDueDateLabel("scheduled date label");
     programStage.setProgramStageLabel("program stage label");
-    programStage.setProgramStagesLabel("program stages label ps");
     programStage.setEventLabel("event label");
-    programStage.setEventsLabel("events label ps");
 
     Program program = new Program();
     program.setEnrollmentDateLabel("enrollment date label");
     program.setIncidentDateLabel("incident date label");
     program.setEnrollmentLabel("enrollment label");
-    program.setEnrollmentsLabel("enrollments label");
-    program.setEventsLabel("events label");
-    program.setProgramStagesLabel("program stages label");
     program.setOrgUnitLabel("org. unit label");
     programStage.setProgram(program);
     return programStage;
