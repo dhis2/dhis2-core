@@ -990,8 +990,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     sqlParameters.addValue("skipSyncDataElements", dataElementUids);
-    return "(SELECT jsonb_object_agg(key, value)"
-        + " FROM jsonb_each(ev.eventdatavalues)"
-        + " WHERE key NOT IN (:skipSyncDataElements))";
+    return """
+        (SELECT jsonb_object_agg(key, value)
+        FROM jsonb_each(ev.eventdatavalues)
+        WHERE key NOT IN (:skipSyncDataElements))""";
   }
 }
