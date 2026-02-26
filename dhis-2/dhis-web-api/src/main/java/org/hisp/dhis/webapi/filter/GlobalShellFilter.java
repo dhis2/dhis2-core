@@ -67,6 +67,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
   public static final String SERVICE_WORKER_JS = "/service-worker.js";
   public static final String REDIRECT_FALSE = "redirect=false";
   public static final String SHELL_FALSE = "shell=false";
+  private static final String PATH_SEP = "/";
 
   private static final Pattern LEGACY_APP_PATH_PATTERN =
       compile(
@@ -107,7 +108,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       return;
     }
 
-    if (serveCanonicalServiceWorkerIfNeeded(request, response, path)) {
+    if (serveCanonicalServiceWorkerIfNeeded(response, path)) {
       return;
     }
 
@@ -184,7 +185,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
         log.debug("redirectLegacyAppPaths: app '{}' not found, not redirecting", appName);
         return false;
       }
-      String targetPath = baseUrl + GLOBAL_SHELL_PATH_PREFIX + appName + "/" + subResource;
+      String targetPath = baseUrl + GLOBAL_SHELL_PATH_PREFIX + appName + PATH_SEP + subResource;
       targetPath = withQueryString(targetPath, queryString);
       response.sendRedirect(targetPath);
       log.debug("302 redirect legacy path to canonical: {}", targetPath);
@@ -214,71 +215,90 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       throws IOException, ServletException {
 
     if (APP_IN_GLOBAL_SHELL_PATTERN.matcher(path).matches()) {
-      if (request.getQueryString() != null && request.getQueryString().contains(SHELL_FALSE)) {
-        log.debug("Redirecting to raw app because global shell was requested with shell=false");
-        redirectDisabledGlobalShell(request, response, path);
-        return;
-      }
-
-      if (path.endsWith("/")) {
-        String targetPath = path.substring(0, path.length() - 1);
-        targetPath = withQueryString(targetPath, request.getQueryString());
-        response.sendRedirect(targetPath);
-        return;
-      }
-      log.debug("Serving global shell index.  Original path: {}", path);
-      boolean canonicalAppPaths = settingsProvider.getCurrentSettings().getCanonicalAppPaths();
-      if (canonicalAppPaths) {
-        serveGlobalShellIndexWithRewrittenPaths(request, response);
-      } else {
-        serveGlobalShellResource(request, response, "index.html");
-      }
+      serveShellEntryPoint(request, response, path);
     } else {
-      String globalShellAppName = settingsProvider.getCurrentSettings().getGlobalShellAppName();
-      boolean canonicalAppPaths = settingsProvider.getCurrentSettings().getCanonicalAppPaths();
-      Matcher subMatcher = APP_SUBRESOURCE_PATTERN.matcher(path);
-
-      if (subMatcher.matches()) {
-        String appName = subMatcher.group(1);
-        String subResource = subMatcher.group(2);
-
-        boolean isAppIndexWithoutRedirect =
-            "index.html".equals(subResource)
-                && (request.getQueryString() == null
-                    || (!request.getQueryString().contains(REDIRECT_FALSE)
-                        && !request.getQueryString().contains(SHELL_FALSE)));
-
-        if (globalShellAppName.equals(appName)) {
-          log.debug("Serving global-shell's own resource: {}", subResource);
-          serveGlobalShellResource(request, response, subResource);
-        } else if (canonicalAppPaths
-            && isAppIndexWithoutRedirect
-            && appManager.getApp(appName) != null) {
-          String targetPath =
-              HttpServletRequestPaths.getContextPath(request) + GLOBAL_SHELL_PATH_PREFIX + appName;
-          log.debug("Redirecting app index to shell entry: {}", targetPath);
-          response.sendRedirect(targetPath);
-        } else if (canonicalAppPaths && appManager.getApp(appName) != null) {
-          log.debug("Canonical: serving actual app {} resource: {}", appName, subResource);
-          serveAppResource(request, response, appName, subResource);
-        } else {
-          String resource = path.substring(GLOBAL_SHELL_PATH_PREFIX.length());
-          log.debug("Falling back to global-shell resource: {}", resource);
-          serveGlobalShellResource(request, response, resource);
-        }
-      } else {
-        String resource = path.substring(GLOBAL_SHELL_PATH_PREFIX.length());
-        if (resource.isEmpty()) {
-          resource = "index.html";
-        }
-
-        log.debug("Serving global shell resource. Path {}, resolved resource {}", path, resource);
-        serveGlobalShellResource(request, response, resource);
-      }
+      serveShellSubresource(request, response, path);
     }
     if (!response.isCommitted()) {
       response.sendError(HttpServletResponse.SC_NOT_FOUND);
     }
+  }
+
+  private void serveShellEntryPoint(
+      HttpServletRequest request, HttpServletResponse response, String path)
+      throws IOException, ServletException {
+    if (request.getQueryString() != null && request.getQueryString().contains(SHELL_FALSE)) {
+      log.debug("Redirecting to raw app because global shell was requested with shell=false");
+      redirectDisabledGlobalShell(request, response, path);
+      return;
+    }
+
+    if (path.endsWith("/")) {
+      String targetPath = path.substring(0, path.length() - 1);
+      targetPath = withQueryString(targetPath, request.getQueryString());
+      response.sendRedirect(targetPath);
+      return;
+    }
+    log.debug("Serving global shell index.  Original path: {}", path);
+    boolean canonicalAppPaths = settingsProvider.getCurrentSettings().getCanonicalAppPaths();
+    if (canonicalAppPaths) {
+      serveGlobalShellIndexWithRewrittenPaths(request, response);
+    } else {
+      serveGlobalShellResource(request, response, "index.html");
+    }
+  }
+
+  private void serveShellSubresource(
+      HttpServletRequest request, HttpServletResponse response, String path)
+      throws IOException, ServletException {
+    Matcher subMatcher = APP_SUBRESOURCE_PATTERN.matcher(path);
+    if (!subMatcher.matches()) {
+      String resource = path.substring(GLOBAL_SHELL_PATH_PREFIX.length());
+      if (resource.isEmpty()) {
+        resource = "index.html";
+      }
+      log.debug("Serving global shell resource. Path {}, resolved resource {}", path, resource);
+      serveGlobalShellResource(request, response, resource);
+      return;
+    }
+
+    String appName = subMatcher.group(1);
+    String subResource = subMatcher.group(2);
+    String globalShellAppName = settingsProvider.getCurrentSettings().getGlobalShellAppName();
+    boolean canonicalAppPaths = settingsProvider.getCurrentSettings().getCanonicalAppPaths();
+
+    if (globalShellAppName.equals(appName)) {
+      log.debug("Serving global-shell's own resource: {}", subResource);
+      serveGlobalShellResource(request, response, subResource);
+    } else if (canonicalAppPaths && isAppIndexWithoutRedirect(subResource, request)) {
+      redirectToShellEntry(request, response, appName);
+    } else if (canonicalAppPaths && appManager.getApp(appName) != null) {
+      log.debug("Canonical: serving actual app {} resource: {}", appName, subResource);
+      serveAppResource(request, response, appName, subResource);
+    } else {
+      String resource = path.substring(GLOBAL_SHELL_PATH_PREFIX.length());
+      log.debug("Falling back to global-shell resource: {}", resource);
+      serveGlobalShellResource(request, response, resource);
+    }
+  }
+
+  private boolean isAppIndexWithoutRedirect(String subResource, HttpServletRequest request) {
+    if (!"index.html".equals(subResource)) {
+      return false;
+    }
+    String qs = request.getQueryString();
+    return qs == null || (!qs.contains(REDIRECT_FALSE) && !qs.contains(SHELL_FALSE));
+  }
+
+  private void redirectToShellEntry(
+      HttpServletRequest request, HttpServletResponse response, String appName) throws IOException {
+    if (appManager.getApp(appName) == null) {
+      return;
+    }
+    String targetPath =
+        HttpServletRequestPaths.getContextPath(request) + GLOBAL_SHELL_PATH_PREFIX + appName;
+    log.debug("Redirecting app index to shell entry: {}", targetPath);
+    response.sendRedirect(targetPath);
   }
 
   private void serveGlobalShellResource(
@@ -310,13 +330,12 @@ public class GlobalShellFilter extends OncePerRequestFilter {
    * issues that can cause hangs when the forward target re-enters the filter chain.
    */
   private void serveGlobalShellIndexWithRewrittenPaths(
-      HttpServletRequest request, HttpServletResponse response)
-      throws IOException, ServletException {
+      HttpServletRequest request, HttpServletResponse response) throws IOException {
 
     String globalShellAppName = settingsProvider.getCurrentSettings().getGlobalShellAppName();
     String contextPath = HttpServletRequestPaths.getContextPath(request);
     String shellBasePath =
-        request.getContextPath() + GLOBAL_SHELL_PATH_PREFIX + globalShellAppName + "/";
+        request.getContextPath() + GLOBAL_SHELL_PATH_PREFIX + globalShellAppName + PATH_SEP;
 
     App globalShellApp = appManager.getApp(globalShellAppName, contextPath);
     if (globalShellApp == null || !appManager.isAccessible(globalShellApp)) {
@@ -351,7 +370,8 @@ public class GlobalShellFilter extends OncePerRequestFilter {
   private void serveAppResource(
       HttpServletRequest request, HttpServletResponse response, String appName, String resource)
       throws IOException, ServletException {
-    String dispatchPath = "/" + AppManager.INSTALLED_APP_PREFIX + appName + "/" + resource;
+    String dispatchPath =
+        PATH_SEP + AppManager.INSTALLED_APP_PREFIX + appName + PATH_SEP + resource;
     log.debug("Dispatching to actual app resource: {}", dispatchPath);
     RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(dispatchPath);
     if (dispatcher != null) {
@@ -373,8 +393,8 @@ public class GlobalShellFilter extends OncePerRequestFilter {
    *   <li>Preserves the message bus for shell-app communication
    * </ul>
    */
-  private boolean serveCanonicalServiceWorkerIfNeeded(
-      HttpServletRequest request, HttpServletResponse response, String path) throws IOException {
+  private boolean serveCanonicalServiceWorkerIfNeeded(HttpServletResponse response, String path)
+      throws IOException {
     if (!path.startsWith(GLOBAL_SHELL_PATH_PREFIX) || !path.endsWith(SERVICE_WORKER_JS)) {
       return false;
     }
