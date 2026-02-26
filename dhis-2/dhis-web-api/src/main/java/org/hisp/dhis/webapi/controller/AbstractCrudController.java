@@ -375,8 +375,7 @@ public abstract class AbstractCrudController<
       includes = {EventVisualization.class, org.hisp.dhis.mapping.Map.class, Visualization.class})
   @PostMapping(value = "/{uid}/subscriber")
   @ResponseBody
-  public WebMessage subscribe(
-      @OpenApi.Param(UID.class) @PathVariable("uid") UID uid, @CurrentUser User currentUser)
+  public WebMessage subscribe(@PathVariable("uid") UID uid, @CurrentUser User currentUser)
       throws ConflictException, NotFoundException {
 
     if (!getSchema().isSubscribable()) {
@@ -754,24 +753,6 @@ public abstract class AbstractCrudController<
   // --------------------------------------------------------------------------
   // Helpers
   // --------------------------------------------------------------------------
-
-  /**
-   * Are we receiving JSON data?
-   *
-   * @param request HttpServletRequest from current session
-   * @return true if JSON compatible
-   */
-  private boolean isJson(HttpServletRequest request) {
-    String type = request.getContentType();
-    type = !StringUtils.isEmpty(type) ? type : APPLICATION_JSON_VALUE;
-
-    // allow type to be overridden by path extension
-    if (request.getPathInfo().endsWith(".json")) {
-      type = APPLICATION_JSON_VALUE;
-    }
-
-    return isCompatibleWith(type, MediaType.APPLICATION_JSON);
-  }
 
   private boolean isCompatibleWith(String type, MediaType mediaType) {
     try {

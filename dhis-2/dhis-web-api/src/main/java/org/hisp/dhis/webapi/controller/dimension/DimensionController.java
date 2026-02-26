@@ -108,7 +108,7 @@ public class DimensionController
 
   @Nonnull
   @Override
-  protected DimensionalObject getEntity(UID uid) throws NotFoundException {
+  protected DimensionalObject getEntity(@Nonnull UID uid) throws NotFoundException {
     return dimensionService.getDimensionalObjectCopy(uid.getValue(), true);
   }
 
