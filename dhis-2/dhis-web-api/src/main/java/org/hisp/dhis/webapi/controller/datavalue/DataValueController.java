@@ -50,12 +50,12 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataEntryGroup;
-import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -299,7 +299,7 @@ public class DataValueController {
         dataEntryService.decodeGroupKeepUnspecified(
             new DataEntryGroup.Input(
                 values.stream().map(DataValueFollowUpRequest::toDataEntryValue).toList()));
-    List<DataEntryKey> nonExisting =
+    List<DataValueKey> nonExisting =
         update.values().stream()
             .filter(dv -> dv.deleted() != Boolean.TRUE && dv.value() == null)
             .map(DataEntryValue::toKey)

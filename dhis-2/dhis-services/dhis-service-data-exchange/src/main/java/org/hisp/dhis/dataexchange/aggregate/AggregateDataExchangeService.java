@@ -31,42 +31,57 @@ package org.hisp.dhis.dataexchange.aggregate;
 
 import static java.lang.String.format;
 import static java.lang.String.join;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.collection.CollectionUtils.mapToList;
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 import static org.hisp.dhis.scheduling.RecordingJobProgress.transitory;
-import static org.hisp.dhis.util.ObjectUtils.notNull;
 
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
+import org.hisp.dhis.common.DataDimensionalItemObject;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
+import org.hisp.dhis.dataexchange.client.response.InternalImportSummaryResponse;
 import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataEntryPipeline;
 import org.hisp.dhis.datavalue.DataEntryValue;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataExportGroup;
+import org.hisp.dhis.datavalue.DataExportPipeline;
+import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobProgress.FailurePolicy;
 import org.hisp.dhis.security.acl.AclService;
@@ -76,6 +91,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * Main service class for aggregate data exchange.
@@ -93,6 +109,7 @@ public class AggregateDataExchangeService {
   private final DataQueryService dataQueryService;
 
   private final DataEntryPipeline dataEntryPipeline;
+  private final DataExportPipeline dataExportPipeline;
 
   private final AclService aclService;
 
@@ -183,7 +200,9 @@ public class AggregateDataExchangeService {
 
     return mapToList(
         exchange.getSource().getRequests(),
-        request -> analyticsService.getAggregatedDataValues(toDataQueryParams(request, params)));
+        request ->
+            analyticsService.getAggregatedDataValues(
+                toDataQueryParams(request, params.getOutputIdScheme())));
   }
 
   /**
@@ -203,7 +222,9 @@ public class AggregateDataExchangeService {
 
     return mapToList(
         exchange.getSource().getRequests(),
-        request -> analyticsService.getAggregatedDataValueSet(toDataQueryParams(request, params)));
+        request ->
+            analyticsService.getAggregatedDataValueSet(
+                toDataQueryParams(request, params.getOutputIdScheme())));
   }
 
   /**
@@ -211,18 +232,17 @@ public class AggregateDataExchangeService {
    * defined by the given {@link AggregateDataExchange}.
    *
    * @param exchange the {@link AggregateDataExchange}.
-   * @param request the {@link SourceRequest}.
+   * @param source the {@link SourceRequest}.
    * @return an {@link ImportSummary} describing the outcome of the exchange.
    */
-  private ImportSummary exchangeData(AggregateDataExchange exchange, SourceRequest request) {
+  private ImportSummary exchangeData(AggregateDataExchange exchange, SourceRequest source) {
     try {
-      DataValueSet dataValueSet =
-          analyticsService.getAggregatedDataValueSet(
-              toDataQueryParams(request, new SourceDataQueryParams()));
-
+      DataQueryParams params = toDataQueryParams(source, null);
+      validatePeriods(params.getPeriodsIds());
+      Grid dataValues = analyticsService.getAggregatedDataValuesGrid(params);
       return exchange.getTarget().getType() == TargetType.INTERNAL
-          ? pushToInternal(exchange, dataValueSet)
-          : pushToExternal(exchange, dataValueSet);
+          ? pushToInternal(exchange, params, dataValues)
+          : pushToExternal(exchange, params, dataValues);
     } catch (HttpClientErrorException ex) {
       String message =
           format("Data import to target instance failed with status: '%s'", ex.getStatusCode());
@@ -235,128 +255,117 @@ public class AggregateDataExchangeService {
     }
   }
 
-  /**
-   * Imports the given {@link DataValueSet} to this instance of DHIS 2.
-   *
-   * @param exchange the {@link AggregateDataExchange}.
-   * @param dataValueSet the {@link DataValueSet}.
-   * @return an {@link ImportSummary} describing the outcome of the exchange.
-   */
-  private ImportSummary pushToInternal(AggregateDataExchange exchange, DataValueSet dataValueSet) {
-
-    return dataEntryPipeline.importInputGroups(
-        List.of(toDataEntryGroup(dataValueSet)), toImportOptions(exchange), transitory());
+  private void validatePeriods(List<String> periods) throws ConflictException {
+    if (periods.size() <= 1) return;
+    List<Period> absPeriods = periods.stream().map(Period::of).toList();
+    Period pe0 = absPeriods.get(0);
+    PeriodType pt0 = pe0.getPeriodType();
+    List<Period> peTypeDiffer =
+        absPeriods.stream()
+            .filter(pe -> !pe.getPeriodType().getName().equals(pt0.getName()))
+            .toList();
+    if (!peTypeDiffer.isEmpty())
+      throw new ConflictException(ErrorCode.E6306, pe0, pt0.getName(), peTypeDiffer);
   }
 
-  private static DataEntryGroup.Input toDataEntryGroup(DataValueSet set) {
-    return new DataEntryGroup.Input(
-        null,
-        set.getDataSet(),
-        null,
-        null,
-        set.getOrgUnit(),
-        set.getPeriod(),
-        set.getAttributeOptionCombo(),
-        null,
-        null,
-        set.getDataValues().stream().map(AggregateDataExchangeService::toDataEntryValue).toList());
-  }
+  /** Imports the given {@link DataValueSet} to this instance of DHIS 2. */
+  private ImportSummary pushToInternal(
+      AggregateDataExchange exchange, DataQueryParams params, Grid dataValues) {
+    TargetRequest request = exchange.getTarget().getRequest();
+    DataEntryGroup.Input group = toDataEntryGroup(dataValues);
+    DataEntryGroup.Ids ids = request.getEntryIds();
+    group = group.withIds(ids);
+    List<DataEntryGroup.Input.Scope.Element> elements =
+        createScopeElements(
+            params,
+            ids.dataElements(),
+            ids.categoryOptionCombos(),
+            DataEntryGroup.Input.Scope.Element::new);
+    group =
+        group.withDeletion(
+            new DataEntryGroup.Input.Scope(
+                params.getOrgUnitIds(ids.orgUnits()), params.getPeriodsIds(), elements));
 
-  private static DataEntryValue.Input toDataEntryValue(DataValue v) {
-    return new DataEntryValue.Input(
-        v.getDataElement(),
-        v.getOrgUnit(),
-        v.getCategoryOptionCombo(),
-        null,
-        v.getAttributeOptionCombo(),
-        null,
-        null,
-        v.getPeriod(),
-        v.getValue(),
-        v.getComment(),
-        v.getFollowup(),
-        v.getDeleted());
+    DataEntryGroup.Options options =
+        new DataEntryGroup.Options(Boolean.TRUE.equals(request.getDryRun()), false, false);
+    return dataEntryPipeline.importInputGroups(List.of(group), options, false, transitory());
   }
 
   /**
    * Exchanges the given {@link DataValueSet} to an external instance of DHIS 2. The location and
    * credentials of the target DHIS 2 instance and the import options to use for the data exchange
    * are specified by the target API of the given {@link AggregateDataExchange}.
-   *
-   * @param exchange the {@link AggregateDataExchange}.
-   * @param dataValueSet the {@link DataValueSet}.
-   * @return an {@link ImportSummary} describing the outcome of the exchange.
    */
-  private ImportSummary pushToExternal(AggregateDataExchange exchange, DataValueSet dataValueSet) {
-    return getDhis2Client(exchange).saveDataValueSet(dataValueSet, toImportOptions(exchange));
-  }
-
-  /**
-   * Converts the {@link TargetRequest} of the given {@link AggregateDataExchange} to an {@link
-   * ImportOptions}.
-   *
-   * <p>Note that the data value set service does not using {@code null} values as specific ID
-   * schemes. When it does, this method can be simplified.
-   *
-   * @param exchange the {@link AggregateDataExchange}.
-   * @return an {@link ImportOptions}.
-   */
-  ImportOptions toImportOptions(AggregateDataExchange exchange) {
+  private ImportSummary pushToExternal(
+      AggregateDataExchange exchange, DataQueryParams params, Grid dataValues) {
+    DataExportGroup.Output group = toDataExportGroup(dataValues);
     TargetRequest request = exchange.getTarget().getRequest();
+    DataExportGroup.Ids ids = request.getExportIds();
+    group = group.withIds(ids);
+    List<DataExportGroup.Scope.Element> elements =
+        createScopeElements(
+            params,
+            ids.dataElements(),
+            ids.categoryOptionCombos(),
+            DataExportGroup.Scope.Element::new);
+    group =
+        group.withDeletion(
+            new DataExportGroup.Scope(
+                params.getOrgUnitIds(ids.orgUnits()), params.getPeriodsIds(), elements));
 
-    ImportOptions options = new ImportOptions();
+    Dhis2Client client = getDhis2Client(exchange);
 
-    if (isNotBlank(request.getDataElementIdScheme())) {
-      options.setDataElementIdScheme(request.getDataElementIdScheme());
-    }
+    UriComponentsBuilder uri = client.getResolvedUriBuilder("dataValueSets");
+    if (ids.dataElements().isNotUID()) uri.queryParam("dataElementIdScheme", ids.dataElements());
+    if (ids.orgUnits().isNotUID()) uri.queryParam("orgUnitIdScheme", ids.orgUnits());
+    if (ids.categoryOptionCombos().isNotUID())
+      uri.queryParam("categoryOptionComboIdScheme", ids.categoryOptionCombos());
+    if (ids.attributeOptionCombos().isNotUID())
+      uri.queryParam("attributeOptionComboIdScheme", ids.attributeOptionCombos());
 
-    if (isNotBlank(request.getOrgUnitIdScheme())) {
-      options.setOrgUnitIdScheme(request.getOrgUnitIdScheme());
-    }
+    uri.queryParam("importStrategy", request.getImportStrategy());
+    uri.queryParam("skipAudit", request.isSkipAuditOrDefault());
+    uri.queryParam("dryRun", Boolean.TRUE.equals(request.getDryRun()));
 
-    if (isNotBlank(request.getCategoryOptionComboIdScheme())) {
-      options.setCategoryOptionComboIdScheme(request.getCategoryOptionComboIdScheme());
-    }
-
-    if (isNotBlank(request.getIdScheme())) {
-      options.setIdScheme(request.getIdScheme());
-    }
-
-    if (notNull(request.getImportStrategy())) {
-      options.setImportStrategy(request.getImportStrategy());
-    }
-
-    options.setSkipAudit(request.isSkipAuditOrDefault());
-
-    if (notNull(request.getDryRun())) {
-      options.setDryRun(request.getDryRun());
-    }
-
-    return options;
+    ByteArrayOutputStream json = new ByteArrayOutputStream();
+    dataExportPipeline.exportAsJson(group, json);
+    return client
+        .executeJsonPostRequest(
+            uri.build().toUri(), json.toString(), InternalImportSummaryResponse.class)
+        .getBody()
+        .getImportSummary();
   }
 
   /**
    * Retrieves and creates a {@link DataQueryParams} based on the given {@link SourceRequest}.
    *
    * @param request the {@link SourceRequest}.
-   * @param params the {@link SourceDataQueryParams}.
+   * @param outputIdSchemeOverride optional override for all output schemes (view only)
    * @return the {@link DataQueryParams}.
    */
-  DataQueryParams toDataQueryParams(SourceRequest request, SourceDataQueryParams params) {
-    String queryOutputIdScheme = params.getOutputIdScheme();
+  DataQueryParams toDataQueryParams(
+      SourceRequest request, @CheckForNull IdProperty outputIdSchemeOverride) {
+    IdScheme inputIdScheme = IdScheme.of(request.getInputIdScheme());
+    if (inputIdScheme == null) inputIdScheme = IdScheme.UID;
 
-    IdScheme inputIdScheme = toIdSchemeOrDefault(request.getInputIdScheme());
+    IdScheme outputIdScheme = IdScheme.of(request.getOutputIdScheme());
+    if (outputIdScheme == null) outputIdScheme = IdScheme.UID;
+    IdScheme outputDataElementIdScheme = IdScheme.of(request.getOutputDataElementIdScheme());
+    if (outputDataElementIdScheme == null) outputDataElementIdScheme = outputIdScheme;
+    IdScheme outputOrgUnitIdScheme = IdScheme.of(request.getOutputOrgUnitIdScheme());
+    if (outputOrgUnitIdScheme == null) outputOrgUnitIdScheme = outputIdScheme;
+    IdScheme outputDataItemIdScheme = IdScheme.of(request.getOutputDataItemIdScheme());
+    if (outputDataItemIdScheme == null) outputDataItemIdScheme = outputIdScheme;
+    if (outputIdSchemeOverride != null) {
+      outputIdScheme = IdScheme.of(outputIdSchemeOverride);
+      outputDataElementIdScheme = outputIdScheme;
+      outputOrgUnitIdScheme = outputIdScheme;
+      outputDataItemIdScheme = outputIdScheme;
+    }
 
-    IdScheme outputDataElementIdScheme =
-        toIdScheme(queryOutputIdScheme, request.getOutputDataElementIdScheme());
-    IdScheme outputOrgUnitIdScheme =
-        toIdScheme(queryOutputIdScheme, request.getOutputOrgUnitIdScheme());
-    IdScheme outputDataItemIdScheme =
-        toIdScheme(queryOutputIdScheme, request.getOutputDataItemIdScheme());
-    IdScheme outputIdScheme = toIdScheme(queryOutputIdScheme, request.getOutputIdScheme());
-
+    IdScheme iis = inputIdScheme;
     List<DimensionalObject> filters =
-        mapToList(request.getFilters(), f -> toDimensionalObject(f, inputIdScheme));
+        request.getFilters().stream().map(f -> toDimensionalObject(f, iis)).toList();
 
     return DataQueryParams.newBuilder()
         .addDimension(toDimensionalObject(DATA_X_DIM_ID, request.getDx(), inputIdScheme))
@@ -407,29 +416,6 @@ public class AggregateDataExchangeService {
     return aggregationType != null
         ? AnalyticsAggregationType.fromAggregationType(aggregationType)
         : null;
-  }
-
-  /**
-   * Returns the {@link IdScheme} based on the given ID scheme strings. The first non-null value
-   * will be used. Returns null if all of the given ID scheme strings are null.
-   *
-   * @param idSchemes the ID scheme strings.
-   * @return the given ID scheme, or null.
-   */
-  IdScheme toIdScheme(String... idSchemes) {
-    String idScheme = ObjectUtils.firstNonNull(idSchemes);
-    return idScheme != null ? IdScheme.from(idScheme) : null;
-  }
-
-  /**
-   * Returns the {@link IdScheme} based on the given ID scheme string, or the default ID scheme if
-   * the given ID scheme string is null.
-   *
-   * @param idScheme the ID scheme string.
-   * @return the given ID scheme, or the default ID scheme if null.
-   */
-  IdScheme toIdSchemeOrDefault(String idScheme) {
-    return idScheme != null ? IdScheme.from(idScheme) : IdScheme.UID;
   }
 
   /**
@@ -537,5 +523,113 @@ public class AggregateDataExchangeService {
    */
   boolean isPersisted(AggregateDataExchange exchange) {
     return exchange != null && exchange.getId() > 0;
+  }
+
+  public static DataEntryGroup.Input toDataEntryGroup(Grid grid) {
+
+    int dxInx = grid.getIndexOfHeader(DATA_X_DIM_ID);
+    int peInx = grid.getIndexOfHeader(PERIOD_DIM_ID);
+    int ouInx = grid.getIndexOfHeader(ORGUNIT_DIM_ID);
+    int coInx = grid.getIndexOfHeader(CATEGORYOPTIONCOMBO_DIM_ID);
+    int aoInx = grid.getIndexOfHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID);
+    int vlInx = grid.getHeaderWidth() - 1;
+
+    List<List<Object>> rows = grid.getRows();
+    List<DataEntryValue.Input> values = new ArrayList<>(rows.size());
+    for (List<Object> row : rows) {
+      Object coc = row.get(coInx);
+      Object aoc = row.get(aoInx);
+
+      DataEntryValue.Input dv =
+          new DataEntryValue.Input(
+              String.valueOf(row.get(dxInx)),
+              String.valueOf(row.get(ouInx)),
+              coc != null ? String.valueOf(coc) : null,
+              aoc != null ? String.valueOf(aoc) : null,
+              String.valueOf(row.get(peInx)),
+              String.valueOf(row.get(vlInx)),
+              "[aggregated]");
+
+      values.add(dv);
+    }
+
+    return new DataEntryGroup.Input(values);
+  }
+
+  public static DataExportGroup.Output toDataExportGroup(Grid grid) {
+
+    int dxInx = grid.getIndexOfHeader(DATA_X_DIM_ID);
+    int peInx = grid.getIndexOfHeader(PERIOD_DIM_ID);
+    int ouInx = grid.getIndexOfHeader(ORGUNIT_DIM_ID);
+    int coInx = grid.getIndexOfHeader(CATEGORYOPTIONCOMBO_DIM_ID);
+    int aoInx = grid.getIndexOfHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID);
+    int vlInx = grid.getHeaderWidth() - 1;
+
+    // by using streams we make sure to directly write to JSON later
+    // without materializing the entire list in memory at once
+    Stream<DataExportValue.Output> values =
+        grid.getRows().stream()
+            .map(
+                row -> {
+                  Object coc = row.get(coInx);
+                  Object aoc = row.get(aoInx);
+
+                  return new DataExportValue.Output(
+                      String.valueOf(row.get(dxInx)),
+                      String.valueOf(row.get(ouInx)),
+                      coc != null ? String.valueOf(coc) : null,
+                      aoc != null ? String.valueOf(aoc) : null,
+                      String.valueOf(row.get(peInx)),
+                      // unknown, but JSON serialisation does not care so anything is fine
+                      ValueType.INTEGER,
+                      String.valueOf(row.get(vlInx)),
+                      "[aggregated]");
+                });
+
+    DataExportGroup.Ids ids = new DataExportGroup.Ids();
+    return new DataExportGroup.Output(ids, null, null, null, null, null, null, values);
+  }
+
+  private interface ElementFactory<T> {
+
+    T createElement(
+        @Nonnull String dataElement,
+        @CheckForNull String categoryOptionCombo,
+        @CheckForNull String attributeOptionCombo);
+  }
+
+  private static <T> List<T> createScopeElements(
+      DataQueryParams params,
+      IdProperty dataElements,
+      IdProperty categoryOptionCombos,
+      ElementFactory<T> factory) {
+    IdScheme dxScheme = IdScheme.of(dataElements);
+    IdScheme cocScheme = IdScheme.of(categoryOptionCombos);
+    List<T> res = new ArrayList<>();
+    for (DimensionalItemObject item : params.getDimensionOptions(DATA_X_DIM_ID)) {
+      if (item instanceof DataElement de) {
+        res.add(factory.createElement(de.getDimensionItem(dxScheme), null, null));
+      } else if (item instanceof DataElementOperand deo) {
+        String coc = null;
+        if (deo.getCategoryOptionCombo() != null)
+          coc = deo.getCategoryOptionCombo().getDimensionItem(cocScheme);
+        String de = deo.getDataElement().getDimensionItem(dxScheme);
+        res.add(factory.createElement(de, coc, null));
+      } else if (item instanceof ProgramIndicator pi) {
+        String de =
+            pi.hasAggregateExportDataElement()
+                ? pi.getAggregateExportDataElement()
+                : pi.getDimensionItem(dxScheme);
+        String coc = pi.getAggregateExportCategoryOptionCombo();
+        String aoc = pi.getAggregateExportAttributeOptionCombo();
+        res.add(factory.createElement(de, coc, aoc));
+      } else if (item instanceof DataDimensionalItemObject dataItem) {
+        String de = item.getDimensionItem(dxScheme);
+        String coc = dataItem.getAggregateExportCategoryOptionCombo();
+        String aoc = dataItem.getAggregateExportAttributeOptionCombo();
+        res.add(factory.createElement(de, coc, aoc));
+      }
+    }
+    return res;
   }
 }
