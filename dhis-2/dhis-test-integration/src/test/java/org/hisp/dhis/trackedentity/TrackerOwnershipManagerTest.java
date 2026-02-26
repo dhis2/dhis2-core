@@ -751,6 +751,28 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
+  void shouldUpdateTrackedEntityLastUpdatedWhenOwnershipIsTransferred()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    userA.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
+    userService.updateUser(userA);
+    Date lastUpdatedBefore = entityInstanceA1.getLastUpdated();
+
+    assignOwnership(entityInstanceA1, programA, organisationUnitA);
+    transferOwnership(entityInstanceA1, programA, organisationUnitB);
+
+    injectSecurityContextUser(userB);
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(
+            entityInstanceA1.getUid(), null, TrackedEntityParams.FALSE, false);
+    assertTrue(
+        trackedEntity.getLastUpdated().after(lastUpdatedBefore),
+        () ->
+            String.format(
+                "The field lastUpdated for TrackedEntity %s should be updated after ownership transfer. ",
+                entityInstanceA1.getUid()));
+  }
+
+  @Test
   void shouldUpdateTrackedEntityLastUpdatedWhenGrantingTemporaryOwnership()
       throws ForbiddenException, NotFoundException, BadRequestException {
     userB.setTeiSearchOrganisationUnits(Set.of(organisationUnitA));
