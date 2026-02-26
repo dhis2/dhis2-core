@@ -29,18 +29,22 @@
  */
 package org.hisp.dhis.analytics.event.data.ou;
 
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 
 /** Orchestrates ENROLLMENT_OU SQL clauses for query and aggregate paths. */
@@ -59,9 +63,11 @@ public final class OrgUnitSqlCoordinator {
       return;
     }
 
+    String enrollmentTableName = enrollmentTableName(params);
+
     sb.innerJoin(
-        OrgUnitSqlConstants.ORG_UNIT_STRUCTURE_TABLE,
-        OrgUnitSqlConstants.ORG_UNIT_STRUCTURE_ALIAS,
+        enrollmentTableName,
+        OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS,
         OrgUnitSqlFragments::joinCondition);
   }
 
@@ -73,7 +79,7 @@ public final class OrgUnitSqlCoordinator {
    */
   public static void appendLegacyJoin(StringBuilder sql, EventQueryParams params) {
     if (params.hasEnrollmentOu()) {
-      sql.append(OrgUnitSqlFragments.innerJoinClause());
+      sql.append(OrgUnitSqlFragments.innerJoinClause(enrollmentTableName(params)));
     }
   }
 
@@ -116,7 +122,9 @@ public final class OrgUnitSqlCoordinator {
   }
 
   /**
-   * Appends ENROLLMENT_OU where conditions, combining UID and level predicates with OR semantics.
+   * Appends ENROLLMENT_OU where conditions. UID items are grouped by org unit level and produce
+   * {@code enrl."uidlevel{N}" in (...)} conditions joined with AND. Level constraints produce
+   * {@code enrl."oulevel" in (...)} conditions. The two groups are combined with OR semantics.
    *
    * @param sql SQL buffer being assembled
    * @param hlp helper used to add {@code where/and} prefixes
@@ -133,9 +141,8 @@ public final class OrgUnitSqlCoordinator {
     List<DimensionalItemObject> enrollmentOuItems = params.getAllEnrollmentOuItemsForSql();
 
     if (!enrollmentOuItems.isEmpty()) {
-      predicates.add(
-          OrgUnitSqlFragments.predicateByUids(
-              sqlBuilder.singleQuotedCommaDelimited(getUids(enrollmentOuItems))));
+      String uidLevelClause = buildUidLevelClause(enrollmentOuItems, sqlBuilder);
+      predicates.add(" " + uidLevelClause + " ");
     }
 
     if (!params.getAllEnrollmentOuLevelsForSql().isEmpty()) {
@@ -149,5 +156,35 @@ public final class OrgUnitSqlCoordinator {
     if (!predicates.isEmpty()) {
       sql.append(hlp.whereAnd()).append(" (").append(String.join(" or ", predicates)).append(") ");
     }
+  }
+
+  /**
+   * Groups org unit items by level and produces uidlevel-based IN conditions joined with AND.
+   *
+   * @param items org unit items (must be OrganisationUnit instances)
+   * @param sqlBuilder SQL dialect helper for quoting
+   * @return combined uidlevel predicates joined with " and "
+   */
+  private static String buildUidLevelClause(
+      List<DimensionalItemObject> items, AnalyticsSqlBuilder sqlBuilder) {
+    Map<Integer, List<OrganisationUnit>> byLevel =
+        items.stream()
+            .map(item -> (OrganisationUnit) item)
+            .collect(groupingBy(OrganisationUnit::getLevel));
+
+    return byLevel.entrySet().stream()
+        .map(
+            entry -> {
+              String uids =
+                  entry.getValue().stream()
+                      .map(ou -> "'" + ou.getUid() + "'")
+                      .collect(joining(","));
+              return OrgUnitSqlFragments.predicateByUidLevel(entry.getKey(), uids);
+            })
+        .collect(joining(" and "));
+  }
+
+  private static String enrollmentTableName(EventQueryParams params) {
+    return AnalyticsTable.getTableName(AnalyticsTableType.ENROLLMENT, params.getProgram());
   }
 }

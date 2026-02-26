@@ -3160,6 +3160,27 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
   }
 
   @Test
+  public void enrollmentOuWithUserOrg() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+            new QueryParamsBuilder()
+                    .add("asc=eventdate")
+                    .add("headers=oucode,enrollmentou,enrollmentouname")
+                    .add("displayProperty=NAME")
+                    .add("pageSize=10")
+                    .add("page=1")
+                    .add("dimension=ENROLLMENT_OU:USER_ORGUNIT,pe:2021")
+                    .add("desc=eventdate,lastupdated");
+
+    // When
+    ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
+  }
+
+
+    @Test
   public void enrollmentOuWithMultipleOus() throws JSONException {
     // Read the 'expect.postgis' system property at runtime to adapt assertions.
     boolean expectPostgis = isPostgres();
