@@ -59,8 +59,7 @@ public class PrefixedDimensions {
   }
 
   public static Collection<PrefixedDimension> ofDataElements(ProgramStage programStage) {
-    return programStage.getProgramStageDataElements().stream()
-        .filter(programStageDataElement -> !programStageDataElement.getSkipAnalytics())
+    return programStage.getNonSkippedDataElements().stream()
         .map(
             dataElement ->
                 PrefixedDimension.builder()
