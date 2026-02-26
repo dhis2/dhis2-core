@@ -38,7 +38,6 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.sync.SyncEndpoint;
 import org.hisp.dhis.dxf2.sync.SyncUtils;
-import org.hisp.dhis.dxf2.sync.SynchronizationResult;
 import org.hisp.dhis.dxf2.sync.SystemInstance;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -70,7 +69,6 @@ public class SingleEventDataSynchronizationService
   private static final EventMapper EVENT_MAPPER = Mappers.getMapper(EventMapper.class);
 
   private final SingleEventService singleEventService;
-  private final SystemSettingsService systemSettingsService;
   private final ProgramStageDataElementService programStageDataElementService;
 
   public SingleEventDataSynchronizationService(
@@ -79,34 +77,9 @@ public class SingleEventDataSynchronizationService
       ProgramStageDataElementService programStageDataElementService,
       RestTemplate restTemplate,
       RenderService renderService) {
-    super(renderService, restTemplate);
+    super(renderService, restTemplate, systemSettingsService);
     this.singleEventService = singleEventService;
-    this.systemSettingsService = systemSettingsService;
     this.programStageDataElementService = programStageDataElementService;
-  }
-
-  @Override
-  public SynchronizationResult synchronizeData(int pageSize, JobProgress progress) {
-    progress.startingProcess(PROCESS_NAME);
-
-    SystemSettings settings = systemSettingsService.getCurrentSettings();
-
-    SynchronizationResult validationResult = validatePreconditions(settings, progress);
-    if (validationResult != null) {
-      return validationResult;
-    }
-
-    TrackerSynchronizationContext context = initializeContext(pageSize, progress, settings);
-
-    if (context.hasNoObjectsToSynchronize()) {
-      return endProcess(progress, "No events to synchronize");
-    }
-
-    boolean success = executeSynchronizationWithPaging(context, progress, settings);
-
-    return success
-        ? endProcess(progress, "Completed successfully")
-        : failProcess(progress, "Page-level synchronization failed");
   }
 
   @Override
@@ -170,20 +143,8 @@ public class SingleEventDataSynchronizationService
     return minimalEvent;
   }
 
-  private Map<String, Set<String>> getSkipSyncProgramStageDataElements() {
-    return programStageDataElementService
-        .getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
-  }
-
-  private TrackerSynchronizationContext initializeContext(
-      int pageSize, JobProgress progress, SystemSettings settings) {
-    return progress.runStage(
-        TrackerSynchronizationContext.emptyContext(null, pageSize),
-        ctx -> format("Single events changed before %s will not sync", ctx.getSkipChangedBefore()),
-        () -> createContext(pageSize, settings));
-  }
-
-  private TrackerSynchronizationContext createContext(int pageSize, SystemSettings settings)
+  @Override
+  public TrackerSynchronizationContext createContext(int pageSize, SystemSettings settings)
       throws ForbiddenException, BadRequestException {
     Date skipChangedBefore = settings.getSyncSkipSyncForDataChangedBefore();
 
@@ -199,5 +160,18 @@ public class SingleEventDataSynchronizationService
 
     return TrackerSynchronizationContext.forEvents(
         skipChangedBefore, eventCount, instance, pageSize, skipSyncProgramStageDataElements);
+  }
+
+  private Map<String, Set<String>> getSkipSyncProgramStageDataElements() {
+    return programStageDataElementService
+        .getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
+  }
+
+  private TrackerSynchronizationContext initializeContext(
+      int pageSize, JobProgress progress, SystemSettings settings) {
+    return progress.runStage(
+        TrackerSynchronizationContext.emptyContext(null, pageSize),
+        ctx -> format("Single events changed before %s will not sync", ctx.getSkipChangedBefore()),
+        () -> createContext(pageSize, settings));
   }
 }

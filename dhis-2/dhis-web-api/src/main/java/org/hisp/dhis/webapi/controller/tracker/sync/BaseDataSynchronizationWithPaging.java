@@ -58,6 +58,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.CodecUtils;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -90,26 +91,78 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
 
   private final RenderService renderService;
   private final RestTemplate restTemplate;
+  private final SystemSettingsService systemSettingsService;
 
   protected BaseDataSynchronizationWithPaging(
-      RenderService renderService, RestTemplate restTemplate) {
+      RenderService renderService,
+      RestTemplate restTemplate,
+      SystemSettingsService systemSettingsService) {
     this.renderService = renderService;
     this.restTemplate = restTemplate;
+    this.systemSettingsService = systemSettingsService;
   }
 
-  public SynchronizationResult endProcess(JobProgress progress, String message) {
+  @Override
+  public SynchronizationResult synchronizeData(int pageSize, JobProgress progress) {
+    progress.startingProcess(getProcessName());
+
+    SystemSettings settings = systemSettingsService.getCurrentSettings();
+
+    SynchronizationResult validationResult = validatePreconditions(settings, progress);
+    if (validationResult != null) {
+      return validationResult;
+    }
+
+    TrackerSynchronizationContext context = initializeContext(pageSize, progress, settings);
+
+    if (context.hasNoObjectsToSynchronize()) {
+      return endProcess(progress, "No %s to synchronize".formatted(getEntityName()));
+    }
+
+    boolean success = executeSynchronizationWithPaging(context, progress, settings);
+
+    return success
+        ? endProcess(progress, "Completed successfully")
+        : failProcess(progress, "Page-level synchronization failed");
+  }
+
+  public abstract V toMinimalEntity(D entity);
+
+  public abstract String getJsonRootName();
+
+  public abstract String getEntityName();
+
+  public abstract String getProcessName();
+
+  public abstract void updateEntitySyncTimeStamp(List<V> entities, Date syncTime);
+
+  public abstract boolean isDeleted(D entity);
+
+  public abstract V getMappedEntities(
+      D ev, TrackerIdSchemeParams idSchemeParam, MappingErrors errors);
+
+  public abstract long countEntitiesForSynchronization(Date skipChangedBefore)
+      throws ForbiddenException, BadRequestException;
+
+  public abstract List<D> fetchEntitiesForPage(int page, TrackerSynchronizationContext context)
+      throws BadRequestException, ForbiddenException, NotFoundException;
+
+  public abstract TrackerSynchronizationContext createContext(int pageSize, SystemSettings settings)
+      throws ForbiddenException, BadRequestException;
+
+  private SynchronizationResult endProcess(JobProgress progress, String message) {
     String fullMessage = format("%s %s", getProcessName(), message);
     progress.completedProcess(fullMessage);
     return SynchronizationResult.success(fullMessage);
   }
 
-  public SynchronizationResult failProcess(JobProgress progress, String reason) {
+  private SynchronizationResult failProcess(JobProgress progress, String reason) {
     String fullMessage = format("%s failed. %s", getProcessName(), reason);
     progress.failedProcess(fullMessage);
     return SynchronizationResult.failure(fullMessage);
   }
 
-  public SynchronizationResult validatePreconditions(
+  private SynchronizationResult validatePreconditions(
       SystemSettings settings, JobProgress progress) {
     if (!testServerAvailability(settings, restTemplate).isAvailable()) {
       return failProcess(progress, "Remote server unavailable");
@@ -118,7 +171,7 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
     return null;
   }
 
-  public void synchronizePage(
+  private void synchronizePage(
       int page, TrackerSynchronizationContext context, SystemSettings settings)
       throws ForbiddenException, BadRequestException, NotFoundException, WebMessageException {
     List<D> entities = fetchEntitiesForPage(page, context);
@@ -130,7 +183,7 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
     syncEntitiesByDeletionStatus(activeTrackedEntities, deletedTrackedEntities, context, settings);
   }
 
-  public ImportSummary sendHttpRequest(
+  private ImportSummary sendHttpRequest(
       List<V> entities, SystemInstance instance, SystemSettings settings, String url) {
     RequestCallback requestCallback =
         request -> {
@@ -155,7 +208,7 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
     return response.map(ImportSummary.class::cast).orElse(null);
   }
 
-  public void syncAndUpdateEntities(
+  private void syncAndUpdateEntities(
       List<V> entities,
       SystemInstance instance,
       SystemSettings settings,
@@ -179,7 +232,7 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
     updateEntitySyncTimeStamp(entities, syncTime);
   }
 
-  public boolean executeSynchronizationWithPaging(
+  private boolean executeSynchronizationWithPaging(
       TrackerSynchronizationContext context, JobProgress progress, SystemSettings settings) {
 
     final int pages = context.getPages();
@@ -202,7 +255,7 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
     return !progress.isSkipCurrentStage();
   }
 
-  public void syncEntitiesByDeletionStatus(
+  private void syncEntitiesByDeletionStatus(
       List<D> activeEntities,
       List<D> deletedEntities,
       TrackerSynchronizationContext context,
@@ -230,27 +283,6 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
     }
   }
 
-  public abstract V toMinimalEntity(D entity);
-
-  public abstract String getJsonRootName();
-
-  public abstract String getEntityName();
-
-  public abstract String getProcessName();
-
-  public abstract void updateEntitySyncTimeStamp(List<V> entities, Date syncTime);
-
-  public abstract boolean isDeleted(D entity);
-
-  public abstract V getMappedEntities(
-      D ev, TrackerIdSchemeParams idSchemeParam, MappingErrors errors);
-
-  public abstract long countEntitiesForSynchronization(Date skipChangedBefore)
-      throws ForbiddenException, BadRequestException;
-
-  public abstract List<D> fetchEntitiesForPage(int page, TrackerSynchronizationContext context)
-      throws BadRequestException, ForbiddenException, NotFoundException;
-
   private void synchronizePageSafely(
       int page, TrackerSynchronizationContext context, SystemSettings settings) {
     try {
@@ -260,6 +292,16 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
       throw new RuntimeException(
           format("Page %d synchronization failed: %s", page, ex.getMessage()), ex);
     }
+  }
+
+  private TrackerSynchronizationContext initializeContext(
+      int pageSize, JobProgress progress, SystemSettings settings) {
+    return progress.runStage(
+        TrackerSynchronizationContext.emptyContext(null, pageSize),
+        ctx ->
+            format(
+                "%s changed before %s will not sync", getEntityName(), ctx.getSkipChangedBefore()),
+        () -> createContext(pageSize, settings));
   }
 
   private Map<Boolean, List<D>> partitionEntitiesByDeletionStatus(List<D> entities) {

@@ -29,21 +29,17 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.sync;
 
-import static java.lang.String.format;
-
 import java.util.Date;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.sync.SyncEndpoint;
 import org.hisp.dhis.dxf2.sync.SyncUtils;
-import org.hisp.dhis.dxf2.sync.SynchronizationResult;
 import org.hisp.dhis.dxf2.sync.SystemInstance;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.tracker.PageParams;
@@ -70,40 +66,14 @@ public class TrackerDataSynchronizationService
       Mappers.getMapper(TrackedEntityMapper.class);
 
   private final TrackedEntityService trackedEntityService;
-  private final SystemSettingsService systemSettingsService;
 
   public TrackerDataSynchronizationService(
       TrackedEntityService trackedEntityService,
       SystemSettingsService systemSettingsService,
       RestTemplate restTemplate,
       RenderService renderService) {
-    super(renderService, restTemplate);
+    super(renderService, restTemplate, systemSettingsService);
     this.trackedEntityService = trackedEntityService;
-    this.systemSettingsService = systemSettingsService;
-  }
-
-  @Override
-  public SynchronizationResult synchronizeData(int pageSize, JobProgress progress) {
-    progress.startingProcess(PROCESS_NAME);
-
-    SystemSettings settings = systemSettingsService.getCurrentSettings();
-
-    SynchronizationResult validationResult = validatePreconditions(settings, progress);
-    if (validationResult != null) {
-      return validationResult;
-    }
-
-    TrackerSynchronizationContext context = initializeContext(pageSize, progress, settings);
-
-    if (context.hasNoObjectsToSynchronize()) {
-      return endProcess(progress, "No tracked entities to synchronize");
-    }
-
-    boolean success = executeSynchronizationWithPaging(context, progress, settings);
-
-    return success
-        ? endProcess(progress, "Completed successfully")
-        : failProcess(progress, "Page-level synchronization failed");
   }
 
   @Override
@@ -169,16 +139,8 @@ public class TrackerDataSynchronizationService
     return minimalTrackedEntity;
   }
 
-  private TrackerSynchronizationContext initializeContext(
-      int pageSize, JobProgress progress, SystemSettings settings) {
-    return progress.runStage(
-        TrackerSynchronizationContext.emptyContext(null, pageSize),
-        ctx ->
-            format("Tracked entities changed before %s will not sync", ctx.getSkipChangedBefore()),
-        () -> createContext(pageSize, settings));
-  }
-
-  private TrackerSynchronizationContext createContext(int pageSize, SystemSettings settings)
+  @Override
+  public TrackerSynchronizationContext createContext(int pageSize, SystemSettings settings)
       throws ForbiddenException, BadRequestException {
     Date skipChangedBefore = settings.getSyncSkipSyncForDataChangedBefore();
 
