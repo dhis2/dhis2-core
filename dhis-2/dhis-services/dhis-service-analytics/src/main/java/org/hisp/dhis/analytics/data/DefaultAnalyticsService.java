@@ -35,6 +35,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDataValueSet;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getDataValueSetAsGrid;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.isTableLayout;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.analytics.util.AnalyticsUtils.validateGridForDataValueSet;
 import static org.hisp.dhis.commons.collection.ListUtils.removeEmptys;
 import static org.hisp.dhis.feedback.ErrorCode.E7147;
 import static org.hisp.dhis.feedback.ErrorCode.E7151;
@@ -137,12 +138,16 @@ public class DefaultAnalyticsService implements AnalyticsService {
 
   @Override
   @Transactional(readOnly = true)
+  public Grid getAggregatedDataValuesGrid(DataQueryParams params) {
+    Grid grid = getAggregatedDataValueSetGrid(checkSecurityConstraints(params));
+    validateGridForDataValueSet(grid);
+    return grid;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public DataValueSet getAggregatedDataValueSet(DataQueryParams params) {
-    params = checkSecurityConstraints(params);
-
-    Grid grid = getAggregatedDataValueSetGrid(params);
-
-    return getDataValueSet(params, grid);
+    return getDataValueSet(params, getAggregatedDataValuesGrid(params));
   }
 
   @Override

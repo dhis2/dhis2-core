@@ -38,12 +38,7 @@ import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(
-    uses = {
-      DebugMapper.class,
-      TrackedEntityMapper.class,
-      OrganisationUnitMapper.class,
-      AttributeValuesMapper.class
-    })
+    uses = {TrackedEntityMapper.class, OrganisationUnitMapper.class, AttributeValuesMapper.class})
 public interface EnrollmentMapper extends PreheatMapper<Enrollment> {
   EnrollmentMapper INSTANCE = Mappers.getMapper(EnrollmentMapper.class);
 

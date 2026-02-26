@@ -652,6 +652,23 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldUpdateTrackedEntityLastUpdatedWhenOwnershipIsTransferred()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    Date lastUpdatedBefore = trackedEntityA1.getLastUpdated();
+
+    transferOwnership(trackedEntityA1, programA, organisationUnitB);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(UID.of(trackedEntityA1.getUid()));
+    assertTrue(
+        trackedEntity.getLastUpdated().after(lastUpdatedBefore),
+        () ->
+            String.format(
+                "The field lastUpdated for TrackedEntity %s should be updated after ownership transfer. ",
+                trackedEntityA1.getUid()));
+  }
+
+  @Test
   void shouldUpdateTrackedEntityLastUpdatedWhenGrantingTemporaryOwnership()
       throws ForbiddenException, BadRequestException, NotFoundException {
     userB.setTeiSearchOrganisationUnits(Set.of(organisationUnitA));

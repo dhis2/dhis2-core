@@ -352,8 +352,8 @@ public class DataValue implements Serializable {
   }
 
   @UsageTestOnly
-  public DataEntryKey toKey() {
-    return new DataEntryKey(
+  public DataValueKey toKey() {
+    return new DataValueKey(
         UID.of(dataElement),
         UID.of(source),
         UID.of(categoryOptionCombo),
