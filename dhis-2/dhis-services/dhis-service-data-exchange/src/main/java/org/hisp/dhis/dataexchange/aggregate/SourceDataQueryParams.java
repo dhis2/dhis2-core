@@ -33,11 +33,12 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.hisp.dhis.common.IdProperty;
 
 @Getter
 @Setter
 @Accessors(chain = true)
 @NoArgsConstructor
 public class SourceDataQueryParams {
-  private String outputIdScheme;
+  private IdProperty outputIdScheme;
 }
