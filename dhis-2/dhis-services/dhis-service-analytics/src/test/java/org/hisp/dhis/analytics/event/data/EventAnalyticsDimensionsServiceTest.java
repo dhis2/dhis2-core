@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allSkippedValueTypeTEAs;
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeDataElements;
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeTEAs;
 import static org.hisp.dhis.analytics.common.DimensionServiceCommonTest.aggregateAllowedValueTypesPredicate;
@@ -96,7 +98,25 @@ class EventAnalyticsDimensionsServiceTest {
   }
 
   @Test
-  void testQueryDoesntContainDisallowedValueTypes() {
+  void testQueryDoesNotContainSkippedDimensions() {
+    List<BaseIdentifiableObject> analyticsDimensions =
+        eventAnalyticsDimensionsService
+            .getQueryDimensionsByProgramStageId(PROGRAM_UID, "anUid")
+            .stream()
+            .map(PrefixedDimension::getItem)
+            .toList();
+
+    when(program.getTrackedEntityAttributes()).thenReturn(allSkippedValueTypeTEAs());
+
+    assertTrue(
+        analyticsDimensions.stream()
+            .filter(b -> b instanceof TrackedEntityAttribute)
+            .collect(toSet())
+            .isEmpty());
+  }
+
+  @Test
+  void testQueryDoesNotContainDisallowedValueTypes() {
     List<BaseIdentifiableObject> analyticsDimensions =
         eventAnalyticsDimensionsService
             .getQueryDimensionsByProgramStageId(PROGRAM_UID, "anUid")

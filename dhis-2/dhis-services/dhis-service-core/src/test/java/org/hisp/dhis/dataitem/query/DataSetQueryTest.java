@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,46 +29,49 @@
  */
 package org.hisp.dhis.dataitem.query;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
-/**
- * Unit tests for {@link ExpressionDimensionItemQuery} class.
- *
- * @author maikel arabori
- */
-class ExpressionDimensionItemQueryTest {
+class DataSetQueryTest {
+
   @Test
-  void testGetStatementContainsOwnerCheck() {
-    ExpressionDimensionItemQuery query = new ExpressionDimensionItemQuery();
+  void getStatement() {
+    DataSetQuery query = new DataSetQuery();
     MapSqlParameterSource parameterSource = new MapSqlParameterSource(Map.of());
     String expectation =
-        " (  select * from  (  select cast (null as text) as program_name, "
+        "( select * from ( select cast (null as text) as program_name, "
             + "cast (null as text) as program_uid, "
             + "cast (null as text) as program_shortname, "
-            + "expressiondimensionitem.uid as item_uid, "
-            + "expressiondimensionitem.name as item_name, "
-            + "expressiondimensionitem.shortname as item_shortname, "
+            + "dataset.uid as item_uid, "
+            + "dataset.name as item_name, "
+            + "dataset.shortname as item_shortname, "
             + "cast (null as text) as item_valuetype, "
-            + "expressiondimensionitem.code as item_code, "
-            + "expressiondimensionitem.sharing as item_sharing, "
+            + "dataset.code as item_code, "
+            + "dataset.sharing as item_sharing, "
             + "cast (null as text) as item_domaintype, "
-            + "cast ('EXPRESSION_DIMENSION_ITEM' as text) as item_type, "
-            + "expressiondimensionitem.expression as expression, "
+            + "cast ('REPORTING_RATE' as text) as item_type, "
+            + "cast (null as text) as expression, "
             + "cast (null as text) as optionset_uid, "
             + "cast (null as text) as optionvalue_uid, "
             + "cast (null as text) as optionvalue_name, "
             + "cast (null as text) as optionvalue_code, "
             + "cast (null as bool) as item_skipanalytics, "
-            + "expressiondimensionitem.name as i18n_first_name, "
+            + "dataset.name as i18n_first_name, "
             + "cast (null as text) as i18n_second_name, "
-            + "expressiondimensionitem.shortname as i18n_first_shortname, "
-            + "cast (null as text) as i18n_second_shortname from expressiondimensionitem  "
-            + "group by item_name, item_uid, item_code, item_sharing, item_shortname, i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname, expression )  t "
-            + "where (jsonb_extract_path_text(t.item_sharing, 'owner') = :userUid) ) ";
+            + "dataset.shortname as i18n_first_shortname, "
+            + "cast (null as text) as i18n_second_shortname "
+            + "from dataset  group by item_name, item_uid, item_code, item_sharing, item_shortname, i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname ) t "
+            + "where  ( ( (jsonb_extract_path_text(t.item_sharing, 'public') is null "
+            + "or jsonb_extract_path_text(t.item_sharing, 'public') = 'null' "
+            + "or jsonb_extract_path_text(t.item_sharing, 'public') like 'r%') "
+            + "or (jsonb_extract_path_text(t.item_sharing, 'owner') is null "
+            + "or jsonb_extract_path_text(t.item_sharing, 'owner') = 'null' "
+            + "or jsonb_extract_path_text(t.item_sharing, 'owner') = :userUid) "
+            + "or (jsonb_has_user_id(t.item_sharing, :userUid) = true  "
+            + "and jsonb_check_user_access(t.item_sharing, :userUid, 'r%') = true) ) ))";
 
     String sql = query.getStatement(parameterSource);
 
