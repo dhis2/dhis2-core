@@ -382,10 +382,21 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       return false;
     }
 
-    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-    response.setHeader("Cache-Control", "no-store");
-    log.debug("Blocked service worker registration for canonical paths at: {}", path);
-    return true;
+    try (InputStream swStream =
+        getClass().getClassLoader().getResourceAsStream(CANONICAL_SW_RESOURCE)) {
+      if (swStream == null) {
+        log.warn("Canonical service worker resource not found: {}", CANONICAL_SW_RESOURCE);
+        return false;
+      }
+      byte[] bytes = swStream.readAllBytes();
+      response.setContentType("application/javascript");
+      response.setContentLength(bytes.length);
+      response.setHeader("Cache-Control", "no-store");
+      response.setHeader("Service-Worker-Allowed", "/");
+      response.getOutputStream().write(bytes);
+      log.debug("Served canonical service worker at: {}", path);
+      return true;
+    }
   }
 
   private String withQueryString(@Nonnull String path, String queryString) {
