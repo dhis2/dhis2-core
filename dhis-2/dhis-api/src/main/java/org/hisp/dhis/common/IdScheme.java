@@ -35,8 +35,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.common.collect.ImmutableMap;
 import java.io.Serializable;
+import java.util.Map;
+import javax.annotation.CheckForNull;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -66,14 +67,13 @@ public class IdScheme implements Serializable {
 
   public static final IdScheme NAME = new IdScheme(IdentifiableProperty.NAME);
 
-  public static final ImmutableMap<IdentifiableProperty, IdScheme> IDPROPERTY_IDSCHEME_MAP =
-      ImmutableMap.<IdentifiableProperty, IdScheme>builder()
-          .put(IdentifiableProperty.ID, IdScheme.ID)
-          .put(IdentifiableProperty.UID, IdScheme.UID)
-          .put(IdentifiableProperty.UUID, IdScheme.UUID)
-          .put(IdentifiableProperty.CODE, IdScheme.CODE)
-          .put(IdentifiableProperty.NAME, IdScheme.NAME)
-          .build();
+  private static final Map<IdentifiableProperty, IdScheme> IDPROPERTY_IDSCHEME_MAP =
+      Map.ofEntries(
+          Map.entry(IdentifiableProperty.ID, IdScheme.ID),
+          Map.entry(IdentifiableProperty.UID, IdScheme.UID),
+          Map.entry(IdentifiableProperty.UUID, IdScheme.UUID),
+          Map.entry(IdentifiableProperty.CODE, IdScheme.CODE),
+          Map.entry(IdentifiableProperty.NAME, IdScheme.NAME));
 
   public static final String ATTR_ID_SCHEME_PREFIX = "ATTRIBUTE:";
 
@@ -82,31 +82,24 @@ public class IdScheme implements Serializable {
 
   @JsonProperty private String attribute;
 
-  public static IdScheme from(IdScheme idScheme) {
-    if (idScheme == null) {
-      return IdScheme.NULL;
-    }
+  @CheckForNull
+  public static IdScheme of(@CheckForNull IdProperty idProperty) {
+    return idProperty == null ? null : from(idProperty.toString());
+  }
 
-    return idScheme;
+  public static IdScheme from(IdScheme idScheme) {
+    return idScheme == null ? IdScheme.NULL : idScheme;
   }
 
   public static IdScheme from(String scheme) {
-    if (scheme == null) {
-      return IdScheme.NULL;
-    }
-
-    if (IdScheme.isAttribute(scheme)) {
+    if (scheme == null) return IdScheme.NULL;
+    if (IdScheme.isAttribute(scheme))
       return new IdScheme(IdentifiableProperty.ATTRIBUTE, scheme.substring(10));
-    }
-
     return IdScheme.from(IdentifiableProperty.valueOf(scheme.toUpperCase()));
   }
 
   public static IdScheme from(IdentifiableProperty property) {
-    if (property == null) {
-      return IdScheme.NULL;
-    }
-
+    if (property == null) return IdScheme.NULL;
     return IDPROPERTY_IDSCHEME_MAP.containsKey(property)
         ? IDPROPERTY_IDSCHEME_MAP.get(property)
         : new IdScheme(property);

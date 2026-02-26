@@ -29,8 +29,10 @@
  */
 package org.hisp.dhis.tracker.acl;
 
+import java.util.Date;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -47,6 +49,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService")
 public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityProgramOwnerService {
   private final TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore;
+  private final IdentifiableObjectStore<TrackedEntity> trackedEntityStore;
 
   @Override
   @Transactional
@@ -103,6 +106,8 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     }
     updateTrackedEntityProgramOwner(teProgramOwner, orgUnit);
     trackedEntityProgramOwnerStore.update(teProgramOwner);
+    trackedEntity.setLastUpdated(new Date());
+    trackedEntityStore.update(trackedEntity);
   }
 
   private void updateTrackedEntityProgramOwner(

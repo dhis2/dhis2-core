@@ -34,15 +34,19 @@ import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SlimPager;
@@ -61,8 +65,29 @@ public class ResponseHelper {
    */
   public static void applyHeaders(Grid grid, EventQueryParams params) {
     if (params.hasHeaders()) {
-      grid.retainColumns(params.getHeaders());
+      Set<String> normalizedHeaders = new LinkedHashSet<>();
+      for (String header : params.getHeaders()) {
+        normalizedHeaders.add(normalizeHeaderForGrid(header, grid));
+      }
+      grid.retainColumns(normalizedHeaders);
     }
+  }
+
+  private static String normalizeHeaderForGrid(String header, Grid grid) {
+    for (GridHeader gridHeader : grid.getHeaders()) {
+      if (gridHeader.getName().equalsIgnoreCase(header)) {
+        return gridHeader.getName();
+      }
+    }
+
+    for (ColumnHeader candidate : ColumnHeader.values()) {
+      if (candidate.name().equalsIgnoreCase(header)
+          || candidate.getItem().equalsIgnoreCase(header)) {
+        return candidate.getItem();
+      }
+    }
+
+    return header;
   }
 
   /**
