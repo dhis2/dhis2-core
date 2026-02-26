@@ -55,7 +55,6 @@ class UserAccountServiceTest {
 
   private UserAccountService userAccountService;
   @Mock private UserService userService;
-  @Mock private UserRoleStore userRoleStore;
   @Mock private ConfigurationService configService;
   @Mock private TwoFactorAuthenticationProvider twoFactorAuthProvider;
   @Mock private SystemSettingsService settingsService;
@@ -66,7 +65,6 @@ class UserAccountServiceTest {
     userAccountService =
         new DefaultUserAccountService(
             userService,
-            userRoleStore,
             configService,
             twoFactorAuthProvider,
             settingsService,
