@@ -303,8 +303,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "User with id notanid could not be found.",
-        PUT("/users/notanid/translations", translations).content(HttpStatus.NOT_FOUND));
+        "User with id notanid0001 could not be found.",
+        PUT("/users/notanid0001/translations", translations).content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -493,8 +493,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "Map with id xyz could not be found.",
-        POST("/maps/xyz/favorite").content(HttpStatus.NOT_FOUND));
+        "Map with id m1234567890 could not be found.",
+        POST("/maps/m1234567890/favorite").content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -529,8 +529,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "Map with id xyz could not be found.",
-        DELETE("/maps/xyz/favorite").content(HttpStatus.NOT_FOUND));
+        "Map with id m1234567890 could not be found.",
+        DELETE("/maps/m1234567890/favorite").content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -563,8 +563,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "Map with id xyz could not be found.",
-        POST("/maps/xyz/subscriber").content(HttpStatus.NOT_FOUND));
+        "Map with id m1234567890 could not be found.",
+        POST("/maps/m1234567890/subscriber").content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -587,8 +587,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "Map with id xyz could not be found.",
-        DELETE("/maps/xyz/subscriber").content(HttpStatus.NOT_FOUND));
+        "Map with id m1234567890 could not be found.",
+        DELETE("/maps/m1234567890/subscriber").content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -598,7 +598,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         409,
         "ERROR",
         "Objects of this class cannot be subscribed to",
-        DELETE("/users/xyz/subscriber").content(HttpStatus.CONFLICT));
+        DELETE("/users/u1234567890/subscriber").content(HttpStatus.CONFLICT));
   }
 
   @Test
@@ -607,9 +607,9 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "OrganisationUnit with id xyz could not be found.",
+        "OrganisationUnit with id ou123456789 could not be found.",
         PUT(
-                "/organisationUnits/xyz",
+                "/organisationUnits/ou123456789",
                 "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}")
             .content(HttpStatus.NOT_FOUND));
   }
@@ -730,8 +730,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "OrganisationUnit with id xyz could not be found.",
-        DELETE("/organisationUnits/xyz").content(HttpStatus.NOT_FOUND));
+        "OrganisationUnit with id ou123456789 could not be found.",
+        DELETE("/organisationUnits/ou123456789").content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -1015,8 +1015,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "Program with id doesNotExist could not be found.",
-        PUT("/programs/doesNotExist/sharing", "{}").content(HttpStatus.NOT_FOUND));
+        "Program with id doesNotExt1 could not be found.",
+        PUT("/programs/doesNotExt1/sharing", "{}").content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -1085,16 +1085,16 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
   void testUpdateObjectWithInvalidUid() {
     DataSet dataSet = createDataSet('A');
     dataSet.setPeriodType(PeriodType.getPeriodTypeByName("Monthly"));
-    dataSet.setUid("11111111111");
+    dataSet.setUid("ds123456789");
     manager.save(dataSet);
 
     PUT(
-            "/dataSets/11111111111",
-            "{'id':'11111111111','name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}")
+            "/dataSets/ds123456789",
+            "{'id':'ds123456789','name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}")
         .content(HttpStatus.OK);
 
     JsonIdentifiableObject response =
-        GET("/dataSets/11111111111").content().as(JsonIdentifiableObject.class);
+        GET("/dataSets/ds123456789").content().as(JsonIdentifiableObject.class);
     assertEquals("My data set", response.getName());
   }
 
