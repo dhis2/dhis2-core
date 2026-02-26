@@ -43,6 +43,7 @@ import org.hibernate.Hibernate;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -71,6 +72,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
   private final HibernateProgramTempOwnershipAuditStore programTempOwnershipAuditStore;
   private final HibernateProgramTempOwnerStore programTempOwnerStore;
+  private final IdentifiableObjectStore<TrackedEntity> trackedEntityStore;
   private final TrackerProgramService trackerProgramService;
   private final OrganisationUnitService organisationUnitService;
   private final ProgramOwnershipHistoryService programOwnershipHistoryService;
@@ -85,6 +87,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       CacheProvider cacheProvider,
       HibernateProgramTempOwnershipAuditStore programTempOwnershipAuditStore,
       HibernateProgramTempOwnerStore programTempOwnerStore,
+      IdentifiableObjectStore<TrackedEntity> trackedEntityStore,
       ProgramOwnershipHistoryService programOwnershipHistoryService,
       ProgramService programService,
       TrackerProgramService trackerProgramService,
@@ -97,6 +100,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     this.programTempOwnershipAuditStore = programTempOwnershipAuditStore;
     this.programOwnershipHistoryService = programOwnershipHistoryService;
     this.programTempOwnerStore = programTempOwnerStore;
+    this.trackedEntityStore = trackedEntityStore;
     this.programService = programService;
     this.trackerProgramService = trackerProgramService;
     this.organisationUnitService = organisationUnitService;
@@ -197,6 +201,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     }
 
     trackedEntity.setLastUpdated(new Date());
+    trackedEntityStore.update(trackedEntity);
     ProgramTempOwner programTempOwner =
         new ProgramTempOwner(
             program,
