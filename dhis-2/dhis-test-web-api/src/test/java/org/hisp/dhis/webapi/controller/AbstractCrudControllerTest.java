@@ -520,7 +520,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         409,
         "ERROR",
         "Objects of this class cannot be set as favorite",
-        DELETE("/users/xyz/favorite").content(HttpStatus.CONFLICT));
+        DELETE("/users/u1234567890/favorite").content(HttpStatus.CONFLICT));
   }
 
   @Test
