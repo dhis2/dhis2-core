@@ -84,5 +84,6 @@ public interface EnrollmentMapper {
   @Mapping(target = "relationships", source = "relationshipItems")
   @Mapping(target = "attributes", source = "trackedEntity.trackedEntityAttributeValues")
   @Mapping(target = "notes", source = "notes")
+  @Mapping(target = "attributeOptionCombo", source = "attributeOptionCombo.uid")
   org.hisp.dhis.webapi.controller.tracker.view.Enrollment map(Enrollment enrollment);
 }

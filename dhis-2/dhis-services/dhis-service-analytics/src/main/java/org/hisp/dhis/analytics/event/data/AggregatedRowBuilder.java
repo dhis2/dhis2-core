@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.ou.OrgUnitRowAccess;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.QueryItem;
@@ -192,6 +193,10 @@ class AggregatedRowBuilder {
       String dimensionValue =
           extractStringValue(dimension.getDimensionName(), dimension.getValueType());
       row.add(dimensionValue);
+    }
+
+    if (params.hasEnrollmentOuDimension()) {
+      row.add(extractStringValue(OrgUnitRowAccess.enrollmentOuResultColumn(), ValueType.TEXT));
     }
   }
 

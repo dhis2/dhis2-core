@@ -42,6 +42,8 @@ import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
 import org.hisp.dhis.test.e2e.actions.RestApiActions;
 import org.hisp.dhis.test.e2e.actions.metadata.MetadataActions;
+import org.hisp.dhis.test.e2e.dto.ApiResponse;
+import org.hisp.dhis.test.e2e.dto.ImportSummary;
 import org.hisp.dhis.test.e2e.helpers.JsonParserUtils;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.AfterAll;
@@ -82,6 +84,27 @@ class DataValueSetTest extends ApiTest {
         .post(dataValueSetImport(), getDataValueQueryParams("DELETE"))
         .validateStatus(200)
         .validate();
+  }
+
+  @Test
+  void dataValuesCanBeDeletedWithScope() {
+    String json =
+        """
+        {
+          "dataSet": "DataSetUID8",
+          "deletion": {
+            "orgUnits": ["OrgUnitUid7"],
+            "periods": ["202405"],
+            "elements": [
+              {"dataElement": "DataElUID08"}
+            ]
+          }
+        }
+        """;
+    ApiResponse response = dataValueSetActions.post(json);
+    ImportSummary summary = response.getImportSummaries().get(0);
+    assertEquals("SUCCESS", summary.getStatus());
+    assertEquals(1, summary.getImportCount().getDeleted());
   }
 
   @Test

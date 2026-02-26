@@ -35,17 +35,19 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.tracker.TestSetup;
+import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
@@ -65,6 +67,8 @@ class EventImportTest extends PostgresIntegrationTestBase {
 
   @Autowired private TrackerEventService trackerEventService;
 
+  @Autowired private SingleEventService singleEventService;
+
   @Autowired private IdentifiableObjectManager manager;
 
   private User importUser;
@@ -78,8 +82,8 @@ class EventImportTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldPopulateCompletedDataWhenCreatingAnEventWithStatusCompleted()
-      throws IOException, ForbiddenException, NotFoundException {
+  void shouldPopulateCompletedDataWhenCreatingTrackerEventWithStatusCompleted()
+      throws IOException, NotFoundException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/te_enrollment_event.json");
     trackerObjects.getEvents().get(0).setStatus(EventStatus.COMPLETED);
@@ -94,8 +98,8 @@ class EventImportTest extends PostgresIntegrationTestBase {
 
   @ParameterizedTest
   @MethodSource("notCompletedStatus")
-  void shouldNotPopulateCompletedDataWhenCreatingAnEventWithNotCompletedStatus(EventStatus status)
-      throws IOException, ForbiddenException, NotFoundException {
+  void shouldNotPopulateCompletedDataWhenCreatingTrackerEventWithNotCompletedStatus(
+      EventStatus status) throws IOException, NotFoundException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/te_enrollment_event.json");
     trackerObjects.getEvents().get(0).setStatus(status);
@@ -109,7 +113,7 @@ class EventImportTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldDeleteCompletedDataWhenUpdatingAnEventWithStatusActive()
+  void shouldDeleteCompletedDataWhenUpdatingTrackerEventWithStatusActive()
       throws IOException, NotFoundException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/te_enrollment_event.json");
@@ -129,8 +133,8 @@ class EventImportTest extends PostgresIntegrationTestBase {
 
   @ParameterizedTest
   @MethodSource("notCompletedStatus")
-  void shouldPopulateCompletedDataWhenUpdatingAnEventWithStatusCompleted(EventStatus status)
-      throws IOException, ForbiddenException, NotFoundException {
+  void shouldPopulateCompletedDataWhenUpdatingTrackerEventWithStatusCompleted(EventStatus status)
+      throws IOException, NotFoundException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/te_enrollment_event.json");
     trackerObjects.getEvents().get(0).setStatus(status);
@@ -145,6 +149,24 @@ class EventImportTest extends PostgresIntegrationTestBase {
 
     assertEquals(importUser.getUsername(), event.getCompletedBy());
     assertNotNull(event.getCompletedDate());
+  }
+
+  @Test
+  void shouldPopulateCompletedDataWhenUpdatingSingleEventWithEmptyMandatoryDataValue()
+      throws IOException, NotFoundException {
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
+
+    TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/one_single_event.json");
+    trackerObjects.getEvents().get(0).setStatus(EventStatus.COMPLETED);
+    trackerObjects.getEvents().get(0).setDataValues(Set.of());
+    importTracker(TrackerImportParams.builder().build(), trackerObjects);
+
+    SingleEvent singleEvent =
+        singleEventService.getEvent(trackerObjects.getEvents().get(0).getUID());
+
+    assertEquals(importUser.getUsername(), singleEvent.getCompletedBy());
+    assertNotNull(singleEvent.getCompletedDate());
   }
 
   private void importTracker(TrackerImportParams params, TrackerObjects trackerObjects) {

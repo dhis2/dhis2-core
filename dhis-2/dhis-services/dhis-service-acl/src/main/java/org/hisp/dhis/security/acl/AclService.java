@@ -360,6 +360,4 @@ public interface AclService {
    * @return List of error reports (if any)
    */
   <T extends IdentifiableObject> List<ErrorReport> verifySharing(T object, UserDetails userDetails);
-
-  <T extends IdentifiableObject> List<ErrorReport> verifySharing(T object, User user);
 }

@@ -76,12 +76,29 @@ public abstract class PeriodType implements Serializable {
           .withMaximumSize(30000)
           .build();
 
+  protected String label;
+
+  protected transient String displayLabel;
+
   private String getCacheKey(Date date) {
     return getCalendar().name() + getName() + date.getTime();
   }
 
   private String getCacheKey(org.hisp.dhis.calendar.Calendar calendar, Date date) {
     return calendar.name() + getName() + date.getTime();
+  }
+
+  public String getLabel() {
+    return label;
+  }
+
+  public void setLabel(String label) {
+    this.label = label;
+  }
+
+  public String getDisplayLabel() {
+    // TODO: Return actual displayLabel.
+    return label;
   }
 
   /**
@@ -121,6 +138,7 @@ public abstract class PeriodType implements Serializable {
           new WeeklyPeriodType(),
           new WeeklyWednesdayPeriodType(),
           new WeeklyThursdayPeriodType(),
+          new WeeklyFridayPeriodType(),
           new WeeklySaturdayPeriodType(),
           new WeeklySundayPeriodType(),
           new BiWeeklyPeriodType(),
@@ -132,8 +150,10 @@ public abstract class PeriodType implements Serializable {
           new SixMonthlyAprilPeriodType(),
           new SixMonthlyNovemberPeriodType(),
           new YearlyPeriodType(),
+          new FinancialFebruaryPeriodType(),
           new FinancialAprilPeriodType(),
           new FinancialJulyPeriodType(),
+          new FinancialAugustPeriodType(),
           new FinancialSeptemberPeriodType(),
           new FinancialOctoberPeriodType(),
           new FinancialNovemberPeriodType());
@@ -143,6 +163,7 @@ public abstract class PeriodType implements Serializable {
           PeriodTypeEnum.WEEKLY_WEDNESDAY.getName(), DayOfWeek.WEDNESDAY,
           PeriodTypeEnum.WEEKLY_THURSDAY.getName(), DayOfWeek.THURSDAY,
           PeriodTypeEnum.WEEKLY_SATURDAY.getName(), DayOfWeek.SATURDAY,
+          PeriodTypeEnum.WEEKLY_FRIDAY.getName(), DayOfWeek.FRIDAY,
           PeriodTypeEnum.WEEKLY_SUNDAY.getName(), DayOfWeek.SUNDAY,
           PeriodTypeEnum.WEEKLY.getName(), DayOfWeek.MONDAY);
 

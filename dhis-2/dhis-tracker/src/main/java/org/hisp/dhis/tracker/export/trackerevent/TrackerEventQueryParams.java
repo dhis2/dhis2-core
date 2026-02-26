@@ -40,7 +40,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.Getter;
-import org.apache.commons.collections4.SetUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -59,6 +58,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.export.FilterJdbcPredicate;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.QuerySearchScope;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 
 /**
@@ -96,6 +96,8 @@ class TrackerEventQueryParams {
   @Getter private OrganisationUnit orgUnit;
 
   @Getter private OrganisationUnitSelectionMode orgUnitMode;
+
+  @Getter private QuerySearchScope querySearchScope;
 
   @Getter private TrackedEntity trackedEntity;
 
@@ -145,6 +147,9 @@ class TrackerEventQueryParams {
   @Getter
   private final Map<TrackedEntityAttribute, List<FilterJdbcPredicate>> attributes = new HashMap<>();
 
+  /** Attributes that have a {@link QueryOperator#NULL} filter and therefore require a LEFT JOIN. */
+  private final Set<TrackedEntityAttribute> nullFilteredAttributes = new HashSet<>();
+
   /**
    * Each data element will affect the final SQL query. Some data elements are filtered on, while
    * data elements added via {@link #orderBy(DataElement, SortDirection)} will be ordered by.
@@ -154,10 +159,6 @@ class TrackerEventQueryParams {
   private boolean hasDataElementFilter;
 
   @Getter private boolean includeDeleted;
-
-  @Getter private Set<UID> accessiblePrograms;
-
-  @Getter private Set<UID> accessibleProgramStages;
 
   @Getter private Set<UID> enrollments;
 
@@ -321,11 +322,11 @@ class TrackerEventQueryParams {
     return Collections.unmodifiableList(this.order);
   }
 
-  private Map<TrackedEntityAttribute, List<FilterJdbcPredicate>> getOrderAttributes() {
+  private Set<TrackedEntityAttribute> getOrderAttributes() {
     return order.stream()
         .filter(o -> o.getField() instanceof TrackedEntityAttribute)
         .map(o -> (TrackedEntityAttribute) o.getField())
-        .collect(Collectors.toMap(tea -> tea, tea -> List.of()));
+        .collect(Collectors.toSet());
   }
 
   /** Order by an event field of the given {@code field} name in given sort {@code direction}. */
@@ -356,20 +357,35 @@ class TrackerEventQueryParams {
     return this;
   }
 
-  /** Returns attributes that are only ordered by and not present in any filter. */
-  public Set<TrackedEntityAttribute> leftJoinAttributes() {
-    return SetUtils.union(getOrderAttributes().keySet(), this.attributes.keySet());
+  /**
+   * Returns filter attributes that can use an INNER JOIN. These are attributes with filters that
+   * don't use the {@link QueryOperator#NULL} operator, so NULLs are eliminated by the WHERE clause
+   * anyway.
+   */
+  public Set<TrackedEntityAttribute> getInnerJoinAttributes() {
+    Set<TrackedEntityAttribute> result = new HashSet<>(attributes.keySet());
+    result.removeAll(nullFilteredAttributes);
+    return result;
+  }
+
+  /**
+   * Returns attributes that need a LEFT JOIN: order-only attributes and attributes with a {@link
+   * QueryOperator#NULL} filter (which needs NULLs preserved to match).
+   */
+  public Set<TrackedEntityAttribute> getLeftJoinAttributes() {
+    Set<TrackedEntityAttribute> leftJoined = new HashSet<>(getOrderAttributes());
+    leftJoined.addAll(nullFilteredAttributes);
+    leftJoined.removeAll(getInnerJoinAttributes());
+    return leftJoined;
   }
 
   public TrackerEventQueryParams filterBy(
       @Nonnull TrackedEntityAttribute tea, @Nonnull QueryFilter filter) throws BadRequestException {
     this.attributes.putIfAbsent(tea, new ArrayList<>());
     this.attributes.get(tea).add(FilterJdbcPredicate.of(tea, filter));
-    return this;
-  }
-
-  public TrackerEventQueryParams filterBy(@Nonnull TrackedEntityAttribute tea) {
-    this.attributes.putIfAbsent(tea, new ArrayList<>());
+    if (filter.getOperator() == QueryOperator.NULL) {
+      nullFilteredAttributes.add(tea);
+    }
     return this;
   }
 
@@ -392,20 +408,6 @@ class TrackerEventQueryParams {
     return this;
   }
 
-  public TrackerEventQueryParams setAccessiblePrograms(Set<UID> accessiblePrograms) {
-    this.accessiblePrograms = accessiblePrograms;
-    return this;
-  }
-
-  public TrackerEventQueryParams setAccessibleProgramStages(Set<UID> accessibleProgramStages) {
-    this.accessibleProgramStages = accessibleProgramStages;
-    return this;
-  }
-
-  public boolean hasSecurityFilter() {
-    return accessiblePrograms != null && accessibleProgramStages != null;
-  }
-
   public TrackerEventQueryParams setEnrollments(Set<UID> enrollments) {
     this.enrollments = enrollments;
     return this;
@@ -413,6 +415,11 @@ class TrackerEventQueryParams {
 
   public TrackerEventQueryParams setIdSchemeParams(TrackerIdSchemeParams idSchemeParams) {
     this.idSchemeParams = idSchemeParams;
+    return this;
+  }
+
+  public TrackerEventQueryParams setQuerySearchScope(QuerySearchScope querySearchScope) {
+    this.querySearchScope = querySearchScope;
     return this;
   }
 }

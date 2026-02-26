@@ -41,14 +41,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.SetUtils;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SortDirection;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
@@ -61,6 +60,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.FilterJdbcPredicate;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.QuerySearchScope;
 
 @ToString
 public class TrackedEntityQueryParams {
@@ -68,6 +68,9 @@ public class TrackedEntityQueryParams {
   /** Each attribute will affect the final SQL query. Some attributes are filtered on. */
   @Getter
   private final Map<TrackedEntityAttribute, List<FilterJdbcPredicate>> filters = new HashMap<>();
+
+  /** Attributes that have a {@link QueryOperator#NULL} filter and therefore require a LEFT JOIN. */
+  private final Set<TrackedEntityAttribute> nullFilteredAttributes = new HashSet<>();
 
   /**
    * Organisation units for which instances in the response were registered at. Is related to the
@@ -151,7 +154,7 @@ public class TrackedEntityQueryParams {
 
   @Getter private final List<Order> order = new ArrayList<>();
 
-  @Setter private boolean isSearchOutsideCaptureScope = false;
+  @Getter private QuerySearchScope querySearchScope;
 
   @Getter private Date skipChangedBefore;
 
@@ -291,9 +294,27 @@ public class TrackedEntityQueryParams {
     return false;
   }
 
-  /** Returns attributes that are only ordered by and not present in any filter. */
+  /**
+   * Returns attributes that need a LEFT JOIN: order-only attributes that don't have a non-NULL
+   * filter, and attributes with a {@link QueryOperator#NULL} filter (which needs NULLs preserved to
+   * match).
+   */
   public Set<TrackedEntityAttribute> getLeftJoinAttributes() {
-    return SetUtils.union(getOrderAttributes(), filters.keySet());
+    Set<TrackedEntityAttribute> leftJoined = new HashSet<>(getOrderAttributes());
+    leftJoined.addAll(nullFilteredAttributes);
+    leftJoined.removeAll(getInnerJoinAttributes());
+    return leftJoined;
+  }
+
+  /**
+   * Returns filter attributes that can use an INNER JOIN. These are attributes with filters that
+   * don't use the {@link QueryOperator#NULL} operator, so NULLs are eliminated by the WHERE clause
+   * anyway.
+   */
+  public Set<TrackedEntityAttribute> getInnerJoinAttributes() {
+    Set<TrackedEntityAttribute> result = new HashSet<>(filters.keySet());
+    result.removeAll(nullFilteredAttributes);
+    return result;
   }
 
   public TrackedEntityQueryParams addOrgUnits(Set<OrganisationUnit> orgUnits) {
@@ -418,6 +439,11 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
+  public TrackedEntityQueryParams setQuerySearchScope(QuerySearchScope querySearchScope) {
+    this.querySearchScope = querySearchScope;
+    return this;
+  }
+
   /**
    * Filter the given tracked entity attribute {@code tea} using the specified {@link QueryFilter}
    * that consist of an operator and a value.
@@ -428,6 +454,9 @@ public class TrackedEntityQueryParams {
     for (QueryFilter filter : filters) {
       FilterJdbcPredicate predicate = FilterJdbcPredicate.of(tea, filter);
       this.filters.get(tea).add(predicate);
+      if (filter.getOperator() == QueryOperator.NULL) {
+        nullFilteredAttributes.add(tea);
+      }
     }
 
     return this;
@@ -465,9 +494,5 @@ public class TrackedEntityQueryParams {
       List<TrackedEntityType> trackedEntityTypes) {
     this.trackedEntityTypes = trackedEntityTypes;
     return this;
-  }
-
-  public boolean isSearchOutsideCaptureScope() {
-    return isSearchOutsideCaptureScope;
   }
 }

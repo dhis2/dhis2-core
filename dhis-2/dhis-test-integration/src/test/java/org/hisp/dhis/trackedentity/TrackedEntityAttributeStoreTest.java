@@ -31,15 +31,12 @@ package org.hisp.dhis.trackedentity;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.hisp.dhis.common.ValueType;
@@ -200,20 +197,6 @@ class TrackedEntityAttributeStoreTest extends PostgresIntegrationTestBase {
     attributes = attributeService.getTrackedEntityAttributesByDisplayOnVisitSchedule(false);
     assertEquals(21, attributes.size());
     assertTrue(attributes.contains(attributeZ));
-  }
-
-  @Test
-  void verifyGetTrackedEntityAttributesByTrackedEntityTypes() {
-    Set<TrackedEntityAttribute> trackedEntityAttributes =
-        attributeService.getTrackedEntityAttributesByTrackedEntityTypes();
-    assertThat(trackedEntityAttributes, hasSize(20));
-  }
-
-  @Test
-  void verifyGetTrackedEntityAttributesInProgram() {
-    Set<String> trackedEntityAttributes =
-        attributeService.getTrackedEntityAttributesInProgram(programB);
-    assertThat(trackedEntityAttributes.size(), is(20));
   }
 
   private List<ProgramTrackedEntityAttribute> createProgramAttributes(Program program) {

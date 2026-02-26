@@ -91,7 +91,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.5.0</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.6.0</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.6</dhis-hisp-quick.version>
@@ -179,7 +179,7 @@
     <classgraph.version>4.8.181</classgraph.version>
 
     <!-- SMS/SMPP -->
-    <sms-compression.version>0.2.1.1</sms-compression.version>
+    <sms-compression.version>0.3.2</sms-compression.version>
     <javacsv.version>2.0</javacsv.version>
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <jsmpp.version>3.0.1</jsmpp.version>

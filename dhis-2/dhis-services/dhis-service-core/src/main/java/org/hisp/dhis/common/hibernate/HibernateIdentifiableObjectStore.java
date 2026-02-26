@@ -214,7 +214,7 @@ public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
 
     object.setAutoFields();
 
-    // TODO: MAS: id=0 should not be necessary, only needed for tests
+    // TODO: MAS: id=0 should not be necessary, only needed for some few tests
     // TODO: MAS: Replace all usage of id=0 with use of a SystemUser instance
     // issues with transaction isolation
     if (userDetails.getId() != 0L && !(userDetails instanceof SystemUser)) {

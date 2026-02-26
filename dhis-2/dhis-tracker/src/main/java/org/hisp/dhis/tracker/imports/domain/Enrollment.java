@@ -78,6 +78,8 @@ public class Enrollment implements TrackerDto, Serializable {
 
   @JsonProperty private Geometry geometry;
 
+  @JsonProperty private MetadataIdentifier attributeOptionCombo;
+
   @JsonProperty @Builder.Default private List<Attribute> attributes = new ArrayList<>();
 
   @JsonProperty @Builder.Default private List<Note> notes = new ArrayList<>();

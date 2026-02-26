@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
+import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.SoftDeletableEntity;
@@ -58,6 +60,7 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
@@ -93,7 +96,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
     importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
 
-    TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/single_te.json");
+    TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/one_te.json");
 
     trackedEntity = trackerObjects.getTrackedEntities().get(0);
 
@@ -101,11 +104,11 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
     anotherTrackedEntity = trackerObjects.getTrackedEntities().get(0);
 
-    trackerObjects = testSetup.importTrackerData("tracker/single_enrollment.json");
+    trackerObjects = testSetup.importTrackerData("tracker/one_enrollment.json");
 
     enrollment = trackerObjects.getEnrollments().get(0);
 
-    trackerObjects = testSetup.importTrackerData("tracker/single_event.json");
+    trackerObjects = testSetup.importTrackerData("tracker/one_tracker_event.json");
 
     event = trackerObjects.getEvents().get(0);
 
@@ -126,16 +129,41 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
     TrackerImportParams params =
         TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
-    testSetup.importTrackerData("tracker/single_te.json", params);
+    testSetup.importTrackerData("tracker/one_te.json", params);
 
     Date lastUpdateAfter = getTrackedEntity().getLastUpdated();
 
     assertTrue(
         lastUpdateAfter.getTime() > entityBeforeUpdate.getLastUpdated().getTime(),
         String.format(
-            "Data integrity error for tracked entity %s. The lastUpdated date has not been updated"
+            "Data integrity error for tracked entity %s. The tracked entity lastUpdated date has not been updated"
                 + " after the import",
             trackedEntity.getUID()));
+  }
+
+  @Test
+  void shouldUpdateTEALastUpdatedWhenTEAIsUpdated() throws IOException {
+    TrackerImportParams params =
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
+    testSetup.importTrackerData("tracker/one_te_with_one_attribute.json", params);
+    Set<TrackedEntityAttributeValue> values = getTrackedEntity().getTrackedEntityAttributeValues();
+    assertHasSize(1, values);
+    TrackedEntityAttributeValue attributeValue = values.iterator().next();
+    Date lastUpdatedBefore = attributeValue.getLastUpdated();
+    String attributeUid = attributeValue.getAttribute().getUid();
+
+    updateAttributeValue(attributeUid, "updated value");
+    TrackedEntityAttributeValue updatedValue =
+        getTrackedEntity().getTrackedEntityAttributeValues().iterator().next();
+
+    Date lastUpdatedAfter = updatedValue.getLastUpdated();
+    assertTrue(
+        lastUpdatedAfter.after(lastUpdatedBefore),
+        () ->
+            String.format(
+                "Data integrity error for tracked entity attribute %s. "
+                    + "The attribute lastUpdated date has not been updated after the import",
+                attributeUid));
   }
 
   @Test
@@ -616,7 +644,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
 
   private org.hisp.dhis.tracker.imports.domain.TrackerEvent importEventProgram()
       throws IOException {
-    TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/single_event.json");
+    TrackerObjects trackerObjects = testSetup.importTrackerData("tracker/one_tracker_event.json");
     org.hisp.dhis.tracker.imports.domain.TrackerEvent ev = trackerObjects.getEvents().get(0);
     ev.setEvent(UID.generate());
     ev.setProgramStage(MetadataIdentifier.of(TrackerIdScheme.UID, "NpsdDv6kKSe", null));
@@ -684,5 +712,18 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
             .createQuery("SELECT e FROM " + entity + " e WHERE e.uid = :uid")
             .setParameter("uid", uid)
             .getSingleResult();
+  }
+
+  private void updateAttributeValue(String attribute, String attributeValue) throws IOException {
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/one_te_with_one_attribute.json");
+    trackerObjects.getTrackedEntities().get(0).getAttributes().stream()
+        .filter(attr -> attribute.equals(attr.getAttribute().getIdentifier()))
+        .findFirst()
+        .ifPresent(attr -> attr.setValue(attributeValue));
+
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    ImportReport report = trackerImportService.importTracker(params, trackerObjects);
+
+    assertNoErrors(report);
   }
 }

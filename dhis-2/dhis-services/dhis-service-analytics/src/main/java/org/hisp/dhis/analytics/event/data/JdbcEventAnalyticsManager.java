@@ -77,8 +77,10 @@ import org.hisp.dhis.analytics.common.EndpointItem;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlCoordinator;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
+import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
@@ -145,7 +147,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       AnalyticsSqlBuilder sqlBuilder,
       OrganisationUnitResolver organisationUnitResolver,
       ColumnMapper columnMapper,
-      QueryItemFilterBuilder filterBuilder) {
+      QueryItemFilterBuilder filterBuilder,
+      StageQuerySqlFacade stageQuerySqlFacade) {
     super(
         jdbcTemplate,
         programIndicatorService,
@@ -158,7 +161,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         config,
         organisationUnitResolver,
         columnMapper,
-        filterBuilder);
+        filterBuilder,
+        stageQuerySqlFacade);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
@@ -372,7 +376,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   }
 
   @Override
-  protected String getColumnWithCte(QueryItem item, CteContext cteContext) {
+  protected String getColumnWithCte(
+      QueryItem item, CteContext cteContext, EventQueryParams params) {
     Set<String> columns = new LinkedHashSet<>();
 
     // Get the CTE definition for the item
@@ -387,21 +392,25 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         getAlias(item).orElse("%s.%s".formatted(item.getProgramStage().getUid(), item.getItemId()));
     columns.add("%s.value as %s".formatted(cteDef.getAlias(programStageOffset), quote(alias)));
 
-    // For stage.ou dimensions, also select the ev_ouname and ev_oucode columns
-    if (isStageOuDimension(item)) {
+    // For stage.ou dimensions, conditionally select ouname/oucode columns
+    if (isStageOuDimension(item) && params.hasHeaders()) {
       String stageUid = item.getProgramStage().getUid();
-      columns.add(
-          "%s.%s as %s"
-              .formatted(
-                  cteDef.getAlias(programStageOffset),
-                  STAGE_OU_NAME_COLUMN,
-                  quote(stageUid + ".ouname")));
-      columns.add(
-          "%s.%s as %s"
-              .formatted(
-                  cteDef.getAlias(programStageOffset),
-                  STAGE_OU_CODE_COLUMN,
-                  quote(stageUid + ".oucode")));
+      if (params.getHeaders().contains(stageUid + ".ouname")) {
+        columns.add(
+            "%s.%s as %s"
+                .formatted(
+                    cteDef.getAlias(programStageOffset),
+                    STAGE_OU_NAME_COLUMN,
+                    quote(stageUid + ".ouname")));
+      }
+      if (params.getHeaders().contains(stageUid + ".oucode")) {
+        columns.add(
+            "%s.%s as %s"
+                .formatted(
+                    cteDef.getAlias(programStageOffset),
+                    STAGE_OU_CODE_COLUMN,
+                    quote(stageUid + ".oucode")));
+      }
     }
 
     if (cteDef.isRowContext()) {
@@ -421,9 +430,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
   @Override
   void addFromClause(SelectBuilder sb, EventQueryParams params) {
-
-    // FIXME: use same logic from `getFromClause` method
-    sb.from(params.getTableName(), "ax");
+    sb.from(params.getTableName(), ANALYTICS_TBL_ALIAS);
+    OrgUnitSqlCoordinator.addJoinIfNeeded(sb, params);
   }
 
   /**
@@ -506,31 +514,32 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
    */
   @Override
   protected String getFromClause(EventQueryParams params) {
-    String sql = " from ";
+    StringBuilder sql = new StringBuilder(" from ");
 
     if (params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
-      sql += getFirstOrLastValueSubquerySql(params);
+      sql.append(getFirstOrLastValueSubquerySql(params));
     } else {
-      sql += params.getTableName();
+      sql.append(params.getTableName());
     }
 
-    sql += " as " + ANALYTICS_TBL_ALIAS + " ";
+    sql.append(" as ").append(ANALYTICS_TBL_ALIAS).append(" ");
 
     if (params.hasTimeField()) {
       String joinCol = quoteAlias(params.getTimeFieldAsField(AnalyticsType.EVENT));
-      sql +=
-          "left join analytics_rs_dateperiodstructure as "
-              + DATE_PERIOD_STRUCT_ALIAS
-              + " on cast("
-              + joinCol
-              + " as date) = "
-              + DATE_PERIOD_STRUCT_ALIAS
-              + "."
-              + quote("dateperiod")
-              + " ";
+      sql.append("left join analytics_rs_dateperiodstructure as ")
+          .append(DATE_PERIOD_STRUCT_ALIAS)
+          .append(" on cast(")
+          .append(joinCol)
+          .append(" as date) = ")
+          .append(DATE_PERIOD_STRUCT_ALIAS)
+          .append(".")
+          .append(quote("dateperiod"))
+          .append(" ");
     }
 
-    return sql + joinOrgUnitTables(params, getAnalyticsType());
+    OrgUnitSqlCoordinator.appendLegacyJoin(sql, params);
+
+    return sql.append(joinOrgUnitTables(params, getAnalyticsType())).toString();
   }
 
   /**
@@ -753,6 +762,10 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (params.isCompletedOnly()) {
       sql += hlp.whereAnd() + " completeddate is not null ";
     }
+
+    StringBuilder enrollmentOuSql = new StringBuilder();
+    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(enrollmentOuSql, hlp, params, sqlBuilder);
+    sql += enrollmentOuSql;
 
     if (params.hasBbox()) {
       sql +=
@@ -1053,7 +1066,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   void addSelectClause(SelectBuilder sb, EventQueryParams params, CteContext cteContext) {
 
     List<String> columns = new ArrayList<>(getStandardColumns(params));
-    addDimensionSelectColumns(columns, params, false);
+    addDimensionSelectColumns(columns, params, false, false);
+    OrgUnitSqlCoordinator.addQuerySelectColumns(columns, params);
     addEventsItemSelectColumns(columns, params, cteContext);
 
     columns.forEach(
@@ -1082,16 +1096,21 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         OrganisationUnitResolver.StageOuCteContext stageOuContext =
             organisationUnitResolver.buildStageOuCteContext(queryItem, params);
         columns.add(stageOuContext.valueColumn() + " as " + quote(stageUid + ".ou"));
-        // Additional columns: ouname and oucode
-        columns.add(
-            quote(EventAnalyticsColumnName.OU_NAME_COLUMN_NAME)
-                + " as "
-                + quote(stageUid + ".ouname"));
-        columns.add(
-            quote(EventAnalyticsColumnName.OU_CODE_COLUMN_NAME)
-                + " as "
-                + quote(stageUid + ".oucode"));
-        // No row context for stage.ou dimensions in event analytics
+        // Conditionally add ouname/oucode columns
+        if (params.hasHeaders()) {
+          if (params.getHeaders().contains(stageUid + ".ouname")) {
+            columns.add(
+                quote(EventAnalyticsColumnName.OU_NAME_COLUMN_NAME)
+                    + " as "
+                    + quote(stageUid + ".ouname"));
+          }
+          if (params.getHeaders().contains(stageUid + ".oucode")) {
+            columns.add(
+                quote(EventAnalyticsColumnName.OU_CODE_COLUMN_NAME)
+                    + " as "
+                    + quote(stageUid + ".oucode"));
+          }
+        }
       } else {
         ColumnAndAlias columnAndAlias = getColumnAndAlias(queryItem, params, false, false);
 

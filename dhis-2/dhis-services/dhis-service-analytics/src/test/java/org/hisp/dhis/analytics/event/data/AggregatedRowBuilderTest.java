@@ -36,6 +36,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramIndicator;
 import static org.mockito.Mockito.verify;
@@ -46,6 +47,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.ou.OrgUnitRowAccess;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.IdScheme;
@@ -451,5 +453,26 @@ class AggregatedRowBuilderTest {
     // which returns the original value if no option/legend match
     assertThat(row, hasSize(2));
     assertThat(row.get(0), is("someValue"));
+  }
+
+  @Test
+  void testBuildRowWithEnrollmentOuDimensionUsesCentralizedColumnName() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withEnrollmentOuDimension(List.of(createOrganisationUnit('A')))
+            .build();
+
+    when(rowSet.getString(OrgUnitRowAccess.enrollmentOuResultColumn())).thenReturn("ouUid");
+    when(rowSet.getInt("value")).thenReturn(5);
+
+    List<Object> row =
+        AggregatedRowBuilder.create(params, rowSet, sqlBuilder, columnAliasResolver, itemIdProvider)
+            .build();
+
+    verify(rowSet).getString(OrgUnitRowAccess.enrollmentOuResultColumn());
+    assertThat(row, hasSize(2));
+    assertThat(row.get(0), is("ouUid"));
+    assertThat(row.get(1), is(5));
   }
 }

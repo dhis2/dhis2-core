@@ -347,15 +347,20 @@ post_process_profiler_data() {
 
   local title="$SIMULATION_CLASS on $DHIS2_IMAGE (async-profiler $PROF_ARGS)"
   # generate flamegraph and collapsed stack traces using jfrconv from async-profiler
+  # jfrconv is a polyglot shell script + JAR. The DHIS2 image is distroless (no /bin/sh), so we
+  # invoke it directly as a JAR. -Xss2M matches jfrconv's own JAVA_OPTS.
   # clear JAVA_TOOL_OPTIONS to prevent jfrconv from inheriting debug agent settings from DHIS2
+  local jfrconv="java -Xss2M -jar /opt/async-profiler/bin/jfrconv"
+  local jfrconv_output
   # shellcheck disable=SC2086
-  if ! docker compose exec -e JAVA_TOOL_OPTIONS= --workdir /profiler-output web /opt/async-profiler/bin/jfrconv $jfrconv_flags --dot --title "$title" profile.jfr profile.html >/dev/null 2>&1; then
+  if ! jfrconv_output=$(docker compose exec -e JAVA_TOOL_OPTIONS= --workdir /profiler-output web $jfrconv $jfrconv_flags --dot --title "$title" profile.jfr profile.html 2>&1); then
     echo "failed"
     echo "Warning: Failed to generate flamegraph"
+    echo "$jfrconv_output"
     return 1
   fi
   # shellcheck disable=SC2086
-  docker compose exec -e JAVA_TOOL_OPTIONS= --workdir /profiler-output web /opt/async-profiler/bin/jfrconv $jfrconv_flags --dot profile.jfr profile.collapsed >/dev/null 2>&1 || true
+  docker compose exec -e JAVA_TOOL_OPTIONS= --workdir /profiler-output web $jfrconv $jfrconv_flags --dot profile.jfr profile.collapsed >/dev/null 2>&1 || true
 
   if ! docker compose cp web:/profiler-output/. "$gatling_dir/" 2>/dev/null; then
     echo "failed"
