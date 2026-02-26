@@ -614,19 +614,6 @@ class JdbcEventAnalyticsTableManagerTest {
     String aliasD1 =
         """
         eventdatavalues #>> '{deabcdefghZ, value}' as "deabcdefghZ\"""";
-    String aliasTeaUid = "%s.value";
-
-    String ouGeometryQuery =
-        String.format(
-            """
-            (select ou.geometry from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
-            quote(tea1.getUid()));
-
-    String ouNameQuery =
-        String.format(
-            """
-            (select ou.name from "organisationunit" ou where ou.uid = %1$s.value) as %1$s""",
-            quote(tea1.getUid()));
 
     AnalyticsTableUpdateParams params =
         AnalyticsTableUpdateParams.newBuilder()

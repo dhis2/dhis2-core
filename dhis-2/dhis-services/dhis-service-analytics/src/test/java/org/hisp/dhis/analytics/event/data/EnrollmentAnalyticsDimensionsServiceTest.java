@@ -98,12 +98,12 @@ class EnrollmentAnalyticsDimensionsServiceTest {
 
     assertTrue(
         analyticsDimensions.stream()
-            .filter(b -> b instanceof ProgramStageDataElement)
+            .filter(ProgramStageDataElement.class::isInstance)
             .collect(toSet())
             .isEmpty());
     assertTrue(
         analyticsDimensions.stream()
-            .filter(b -> b instanceof TrackedEntityAttribute)
+            .filter(TrackedEntityAttribute.class::isInstance)
             .collect(toSet())
             .isEmpty());
   }
@@ -166,12 +166,12 @@ class EnrollmentAnalyticsDimensionsServiceTest {
     // MULTI_TEXT, REFERENCE) are NOT returned
     assertTrue(
         analyticsDimensions.stream()
-            .filter(b -> b instanceof ProgramStageDataElement)
+            .filter(ProgramStageDataElement.class::isInstance)
             .map(psde -> ((ProgramStageDataElement) psde).getDataElement().getValueType())
             .noneMatch(enrollmentAggregateDisallowedValueTypesPredicate()));
     assertTrue(
         analyticsDimensions.stream()
-            .filter(b -> b instanceof TrackedEntityAttribute)
+            .filter(TrackedEntityAttribute.class::isInstance)
             .map(tea -> ((TrackedEntityAttribute) tea).getValueType())
             .noneMatch(enrollmentAggregateDisallowedValueTypesPredicate()));
   }

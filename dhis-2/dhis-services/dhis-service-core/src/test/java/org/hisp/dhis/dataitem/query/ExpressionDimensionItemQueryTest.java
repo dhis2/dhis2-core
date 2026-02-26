@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.dataitem.query;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -72,6 +72,6 @@ class ExpressionDimensionItemQueryTest {
 
     String sql = query.getStatement(parameterSource);
 
-    assertTrue(sql.equals(expectation));
+    assertEquals(expectation, sql);
   }
 }

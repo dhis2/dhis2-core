@@ -77,6 +77,6 @@ class DataElementQueryTest {
 
     String sql = query.getStatement(parameterSource);
 
-    assertTrue(sql.equals(expectation));
+    assertEquals(expectation, sql);
   }
 }
