@@ -113,11 +113,10 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
   @Override
   @Transactional
-  // TODO(tracker) This method should accept a tracked entity UID instead. The problem is, we can't
-  // use the TrackedEntityService as it introduces a cyclic dependency. That's because the ownership
-  // manager is used to filter TEs after hitting the database. As soon as we move those filters into
-  // the store to fix the pagination issue, we should be able to use the TrackedEntityService here,
-  // so we can run all validations in this service instead of the controller.
+  // TODO(tracker) This method should take a tracked entity UID instead.
+  // Currently we can’t use TrackedEntityService due to a cyclic dependency:
+  // OwnershipManager is used by RelationshipService and TrackedEntityAuditService.
+  // Once the cycle is resolved, we could move all validations here instead of in the controller.
   public void transferOwnership(
       @Nonnull TrackedEntity trackedEntity, @Nonnull UID programUid, @Nonnull UID orgUnitUid)
       throws ForbiddenException, BadRequestException, NotFoundException {
@@ -142,7 +141,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
               program.getUid(), orgUnit.getUid()));
     }
 
-    // TODO(tracker) jdbc-hibernate: check the impact on performance
     TrackedEntity hibernateTrackedEntity = manager.get(TrackedEntity.class, trackedEntity.getUid());
     TrackedEntityProgramOwner teProgramOwner =
         trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(trackedEntity, program);
