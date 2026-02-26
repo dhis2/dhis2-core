@@ -136,9 +136,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       // TODO(tracker) jdbc-hibernate: check the impact on performance
       TrackedEntity hibernateTrackedEntity =
           manager.get(TrackedEntity.class, trackedEntity.getUid());
-      if (teProgramOwner != null
-          && !teProgramOwner.getOrganisationUnit().equals(orgUnit)
-          && hibernateTrackedEntity != null) {
+      if (teProgramOwner != null && !teProgramOwner.getOrganisationUnit().equals(orgUnit)) {
         ProgramOwnershipHistory programOwnershipHistory =
             new ProgramOwnershipHistory(
                 program,
