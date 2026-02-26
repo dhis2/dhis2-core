@@ -160,6 +160,9 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
       if (teProgramOwner != null) {
         if (!teProgramOwner.getOrganisationUnit().equals(orgUnit)) {
+          entityInstance.setLastUpdated(new Date());
+          trackedEntityInstanceService.updateTrackedEntityInstance(entityInstance);
+
           ProgramOwnershipHistory programOwnershipHistory =
               new ProgramOwnershipHistory(
                   program,
