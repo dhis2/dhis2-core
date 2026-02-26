@@ -188,7 +188,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
         () ->
             String.format(
                 "Data integrity error for tracked entity attribute %s. "
-                    + "The attribute lastUpdated date has not been updated after the import",
+                    + "The attribute lastUpdated date has been updated after the import",
                 attributeUid));
   }
 
