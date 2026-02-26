@@ -95,6 +95,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -2453,6 +2454,19 @@ public class DataQueryParams {
   /** Returns all periods part of the period dimension. */
   public List<DimensionalItemObject> getPeriods() {
     return ImmutableList.copyOf(getDimensionOptions(PERIOD_DIM_ID));
+  }
+
+  public List<String> getPeriodsIds() {
+    return getDimensionOptions(PERIOD_DIM_ID).stream()
+        .map(DimensionalItemObject::getDimensionItem)
+        .toList();
+  }
+
+  public List<String> getOrgUnitIds(IdProperty orgUnits) {
+    IdScheme scheme = IdScheme.of(orgUnits);
+    return getDimensionOptions(ORGUNIT_DIM_ID).stream()
+        .map(obj -> obj.getDimensionItem(scheme))
+        .toList();
   }
 
   /**

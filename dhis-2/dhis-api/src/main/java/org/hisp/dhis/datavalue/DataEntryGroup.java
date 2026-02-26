@@ -161,10 +161,10 @@ public record DataEntryGroup(
       @CheckForNull
           @OpenApi.Description(
               """
-            Alternative to the `attributeOptionCombo` the defining which category option (value) is chosen for which category (key)
-            for the category combo of the `dataSet`. Can only be used when `dataSet` is provided as well.
-            Will only be considered if `attributeOptionCombo` is not present.
-            """)
+        Alternative to the `attributeOptionCombo` the defining which category option (value) is chosen for which category (key)
+        for the category combo of the `dataSet`. Can only be used when `dataSet` is provided as well.
+        Will only be considered if `attributeOptionCombo` is not present.
+        """)
           Map<String, String> attributeOptions,
       @CheckForNull Scope deletion,
       @Nonnull List<DataEntryValue.Input> values) {
@@ -242,17 +242,37 @@ public record DataEntryGroup(
       if (!Objects.equals(de, other.dataElement)) de = null;
       if (!Objects.equals(ou, other.orgUnit)) ou = null;
       if (!Objects.equals(pe, other.period)) pe = null;
+      String aoc = attributeOptionCombo;
+      Map<String, String> aox = attributeOptions;
+      return new Input(ids, dataSet, completionDate, de, ou, pe, aoc, aox, deletion, merged);
+    }
+
+    public Input withIds(@CheckForNull Ids ids) {
       return new Input(
           ids,
           dataSet,
           completionDate,
-          de,
-          ou,
-          pe,
+          dataElement,
+          orgUnit,
+          period,
           attributeOptionCombo,
           attributeOptions,
           deletion,
-          merged);
+          values);
+    }
+
+    public Input withDeletion(@CheckForNull DataEntryGroup.Input.Scope deletion) {
+      return new Input(
+          ids,
+          dataSet,
+          completionDate,
+          dataElement,
+          orgUnit,
+          period,
+          attributeOptionCombo,
+          attributeOptions,
+          deletion,
+          values);
     }
   }
 
@@ -284,6 +304,16 @@ public record DataEntryGroup(
       @Nonnull IdProperty categoryOptions,
       @Nonnull IdProperty categories) {
 
+    public Ids {
+      requireNonNull(dataSets);
+      requireNonNull(dataElements);
+      requireNonNull(orgUnits);
+      requireNonNull(categoryOptionCombos);
+      requireNonNull(attributeOptionCombos);
+      requireNonNull(categoryOptions);
+      requireNonNull(categories);
+    }
+
     public Ids() {
       this(
           IdProperty.UID,
@@ -308,26 +338,24 @@ public record DataEntryGroup(
               IdProperty.of(schemes.getCategoryIdScheme()));
     }
 
-    public Ids dataElements(IdProperty dataElements) {
+    public static Ids of(
+        @CheckForNull IdProperty fallback,
+        @CheckForNull IdProperty dataSets,
+        @CheckForNull IdProperty dataElements,
+        @CheckForNull IdProperty orgUnits,
+        @CheckForNull IdProperty categoryOptionCombos,
+        @CheckForNull IdProperty attributeOptionCombos,
+        @CheckForNull IdProperty categoryOptions,
+        @CheckForNull IdProperty categories) {
+      IdProperty nullValue = fallback == null ? IdProperty.UID : fallback;
       return new Ids(
-          dataSets,
-          dataElements,
-          orgUnits,
-          categoryOptionCombos,
-          attributeOptionCombos,
-          categoryOptions,
-          categories);
-    }
-
-    public Ids orgUnits(IdProperty orgUnits) {
-      return new Ids(
-          dataSets,
-          dataElements,
-          orgUnits,
-          categoryOptionCombos,
-          attributeOptionCombos,
-          categoryOptions,
-          categories);
+          dataSets == null ? nullValue : dataSets,
+          dataElements == null ? nullValue : dataElements,
+          orgUnits == null ? nullValue : orgUnits,
+          categoryOptionCombos == null ? nullValue : categoryOptionCombos,
+          attributeOptionCombos == null ? nullValue : attributeOptionCombos,
+          categoryOptions == null ? nullValue : categoryOptions,
+          categories == null ? nullValue : categories);
     }
   }
 }
