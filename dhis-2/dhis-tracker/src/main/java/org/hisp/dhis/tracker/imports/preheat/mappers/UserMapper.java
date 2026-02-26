@@ -37,7 +37,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {DebugMapper.class, UserRoleMapper.class})
+@Mapper(uses = {UserRoleMapper.class})
 public interface UserMapper extends PreheatMapper<User> {
   UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
 

@@ -66,7 +66,6 @@ import org.hisp.dhis.message.MessageType;
 import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
@@ -840,11 +839,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
       return;
     }
 
-    log.debug(format("Dispatching %d ProgramMessages", messages.size()));
-
-    BatchResponseStatus status = programMessageService.sendMessages(Lists.newArrayList(messages));
-
-    log.debug(format("Resulting status from ProgramMessageService:%n %s", status.toString()));
+    programMessageService.sendMessages(Lists.newArrayList(messages));
   }
 
   private void sendAll(MessageBatch messageBatch) {
