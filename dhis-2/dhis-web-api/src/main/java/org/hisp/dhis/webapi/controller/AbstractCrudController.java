@@ -46,7 +46,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.FavoritableObject;
@@ -101,7 +100,6 @@ import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -748,19 +746,5 @@ public abstract class AbstractCrudController<
     if (!aclService.canUpdate(currentUser, persistedObject)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
-  }
-
-  // --------------------------------------------------------------------------
-  // Helpers
-  // --------------------------------------------------------------------------
-
-  private boolean isCompatibleWith(String type, MediaType mediaType) {
-    try {
-      return !StringUtils.isEmpty(type)
-          && MediaType.parseMediaType(type).isCompatibleWith(mediaType);
-    } catch (Exception ignored) {
-    }
-
-    return false;
   }
 }
