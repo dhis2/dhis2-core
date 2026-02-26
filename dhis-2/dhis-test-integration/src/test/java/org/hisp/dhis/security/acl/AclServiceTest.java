@@ -901,6 +901,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     manager.save(userRole);
     User userB = makeUser("B");
     userB.getUserRoles().add(userRole);
+    userRole.getMembers().add(userB);
     manager.save(userB);
     visualization.getSharing().addUserAccess(new UserAccess(userB, AccessStringHelper.FULL));
     manager.update(visualization);
@@ -932,6 +933,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     manager.save(userRole);
     User userB = makeUser("B");
     userB.getUserRoles().add(userRole);
+    userRole.getMembers().add(userB);
     manager.save(userB);
     eventVisualization.getSharing().addUserAccess(new UserAccess(userB, AccessStringHelper.FULL));
     manager.update(eventVisualization);
@@ -958,6 +960,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     manager.save(userRole);
     User userB = makeUser("B");
     userB.getUserRoles().add(userRole);
+    userRole.getMembers().add(userB);
     manager.save(userB);
     manager.update(visualization);
     assertFalse(aclService.canUpdate(userB, visualization));
@@ -988,6 +991,7 @@ class AclServiceTest extends PostgresIntegrationTestBase {
     manager.save(userRole);
     User userB = makeUser("B");
     userB.getUserRoles().add(userRole);
+    userRole.getMembers().add(userB);
     manager.save(userB);
     manager.update(eventVisualization);
     assertFalse(aclService.canUpdate(userB, eventVisualization));

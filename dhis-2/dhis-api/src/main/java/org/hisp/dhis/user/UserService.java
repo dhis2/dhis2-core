@@ -375,6 +375,15 @@ public interface UserService {
   void updateUserRole(UserRole userRole);
 
   /**
+   * Adds a user to a role directly via SQL, bypassing Hibernate collection management. This is the
+   * correct way to persist user-role memberships since User.userRoles is mapped as inverse.
+   *
+   * @param roleUid the UID of the user role
+   * @param userUid the UID of the user
+   */
+  void addUserToRole(UID roleUid, UID userUid);
+
+  /**
    * Updates a UserRole.
    *
    * @param userRole the UserRole.

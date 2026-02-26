@@ -39,6 +39,8 @@ import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
+import static org.hisp.dhis.program.EnrollmentStatus.ACTIVE;
+import static org.hisp.dhis.program.EnrollmentStatus.COMPLETED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -353,6 +355,23 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
     // The filter CTE should use the ev_occurreddate alias for the date column
     assertThat(generatedSql, containsString("ev_occurreddate"));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentIncludesProgramStatusFilterInSql() {
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.withEndpointAction(AGGREGATE);
+    params.withEnrollmentStatuses(
+        new java.util.LinkedHashSet<>(java.util.List.of(ACTIVE, COMPLETED)));
+
+    subject.getEnrollments(params.build(), new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+
+    assertThat(generatedSql, containsString("enrollmentstatus in ("));
+    assertThat(generatedSql, containsString("'ACTIVE'"));
+    assertThat(generatedSql, containsString("'COMPLETED'"));
   }
 
   private EventQueryParams createAggregateEnrollmentWithStageDateParams() {
