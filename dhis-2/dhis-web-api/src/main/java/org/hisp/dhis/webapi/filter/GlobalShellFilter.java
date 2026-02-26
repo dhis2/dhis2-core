@@ -107,7 +107,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       return;
     }
 
-    if (serveNoOpServiceWorkerIfNeeded(request, response, path)) {
+    if (serveCanonicalServiceWorkerIfNeeded(request, response, path)) {
       return;
     }
 
@@ -242,9 +242,22 @@ public class GlobalShellFilter extends OncePerRequestFilter {
         String appName = subMatcher.group(1);
         String subResource = subMatcher.group(2);
 
+        boolean isAppIndexWithoutRedirect =
+            "index.html".equals(subResource)
+                && (request.getQueryString() == null
+                    || (!request.getQueryString().contains(REDIRECT_FALSE)
+                        && !request.getQueryString().contains(SHELL_FALSE)));
+
         if (globalShellAppName.equals(appName)) {
           log.debug("Serving global-shell's own resource: {}", subResource);
           serveGlobalShellResource(request, response, subResource);
+        } else if (canonicalAppPaths
+            && isAppIndexWithoutRedirect
+            && appManager.getApp(appName) != null) {
+          String targetPath =
+              HttpServletRequestPaths.getContextPath(request) + GLOBAL_SHELL_PATH_PREFIX + appName;
+          log.debug("Redirecting app index to shell entry: {}", targetPath);
+          response.sendRedirect(targetPath);
         } else if (canonicalAppPaths && appManager.getApp(appName) != null) {
           log.debug("Canonical: serving actual app {} resource: {}", appName, subResource);
           serveAppResource(request, response, appName, subResource);
@@ -346,39 +359,32 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     }
   }
 
+  private static final String CANONICAL_SW_RESOURCE = "canonical-service-worker.js";
+
   /**
-   * When canonical app paths are enabled, the global shell's service worker interferes with the new
-   * URL scheme -- it caches and serves stale HTML for navigation requests, causing redirect loops
-   * and 404s. This method intercepts any {@code service-worker.js} request under {@code /apps/} and
-   * returns a no-op worker that unregisters itself, effectively neutralizing the SW until the
-   * global-shell-app is updated to be aware of canonical paths.
+   * When canonical app paths are enabled, the global shell's standard service worker (from
+   * {@code @dhis2/pwa}) conflicts with the new URL scheme. This method intercepts any {@code
+   * service-worker.js} request under {@code /apps/} and serves a canonical-aware replacement that:
+   *
+   * <ul>
+   *   <li>Only caches shell HTML for exact {@code /apps/{name}} navigations
+   *   <li>Lets {@code /apps/{name}/{resource}} pass through for actual app serving
+   *   <li>Cleans up stale Workbox caches from the previous worker
+   *   <li>Preserves the message bus for shell-app communication
+   * </ul>
    */
-  private boolean serveNoOpServiceWorkerIfNeeded(
+  private boolean serveCanonicalServiceWorkerIfNeeded(
       HttpServletRequest request, HttpServletResponse response, String path) throws IOException {
     if (!path.startsWith(GLOBAL_SHELL_PATH_PREFIX) || !path.endsWith(SERVICE_WORKER_JS)) {
       return false;
     }
-    boolean canonicalAppPaths = settingsProvider.getCurrentSettings().getCanonicalAppPaths();
-    if (!canonicalAppPaths) {
+    if (!settingsProvider.getCurrentSettings().getCanonicalAppPaths()) {
       return false;
     }
 
-    String noOpWorker =
-        "self.addEventListener('install', () => self.skipWaiting());\n"
-            + "self.addEventListener('activate', (event) => {\n"
-            + "  event.waitUntil(\n"
-            + "    self.registration.unregister().then(() => self.clients.matchAll())\n"
-            + "      .then((clients) => clients.forEach((c) => c.navigate(c.url)))\n"
-            + "  );\n"
-            + "});\n";
-
-    byte[] bytes = noOpWorker.getBytes(StandardCharsets.UTF_8);
-    response.setContentType("application/javascript");
-    response.setContentLength(bytes.length);
+    response.setStatus(HttpServletResponse.SC_NOT_FOUND);
     response.setHeader("Cache-Control", "no-store");
-    response.setHeader("Service-Worker-Allowed", "/");
-    response.getOutputStream().write(bytes);
-    log.debug("Served no-op service worker for canonical paths at: {}", path);
+    log.debug("Blocked service worker registration for canonical paths at: {}", path);
     return true;
   }
 
