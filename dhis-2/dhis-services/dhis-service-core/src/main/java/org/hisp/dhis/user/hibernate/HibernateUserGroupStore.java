@@ -58,7 +58,8 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
   }
 
   @Override
-  public boolean addMember(@Nonnull UID userGroupUid, @Nonnull UID userUid) {
+  public boolean addMember(
+      @Nonnull UID userGroupUid, @Nonnull UID userUid, @Nonnull UID lastUpdatedByUid) {
     String sql =
         """
         INSERT INTO usergroupmembers (usergroupid, userid)
@@ -70,18 +71,23 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
           WHERE ugm.usergroupid = ug.usergroupid AND ugm.userid = u.userinfoid
         )
         """;
-    return jdbcTemplate.update(sql, userGroupUid.getValue(), userUid.getValue()) > 0;
+    boolean changed = jdbcTemplate.update(sql, userGroupUid.getValue(), userUid.getValue()) > 0;
+    if (changed) updateLastUpdated(userGroupUid, lastUpdatedByUid);
+    return changed;
   }
 
   @Override
-  public boolean removeMember(@Nonnull UID userGroupUid, @Nonnull UID userUid) {
+  public boolean removeMember(
+      @Nonnull UID userGroupUid, @Nonnull UID userUid, @Nonnull UID lastUpdatedByUid) {
     String sql =
         """
         DELETE FROM usergroupmembers
         WHERE usergroupid = (SELECT usergroupid FROM usergroup WHERE uid = ?)
         AND userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
         """;
-    return jdbcTemplate.update(sql, userGroupUid.getValue(), userUid.getValue()) > 0;
+    boolean changed = jdbcTemplate.update(sql, userGroupUid.getValue(), userUid.getValue()) > 0;
+    if (changed) updateLastUpdated(userGroupUid, lastUpdatedByUid);
+    return changed;
   }
 
   @Override
@@ -93,12 +99,21 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
         WHERE uid = ?
         """;
     jdbcTemplate.update(sql, lastUpdatedByUid.getValue(), userGroupUid.getValue());
-    // Evict from both L1 (session) and L2 caches since we bypassed Hibernate
+    // Evict from L1 (session) and L2 caches since we bypassed Hibernate's event system.
+    // UserGroup and its members collection are both L2-cached via UserGroup.hbm.xml.
+    // NOTE: No Redis pub/sub message is published here, so other cluster nodes will retain stale
+    // UserGroup entity and members collection data until their L2 TTL expires. A full fix would
+    // require publishing via CacheInvalidationMessagePublisher, since PostCacheEventPublisher only
+    // fires on Hibernate-managed operations.
     Long id =
         jdbcTemplate.queryForObject(
             "SELECT usergroupid FROM usergroup WHERE uid = ?", Long.class, userGroupUid.getValue());
     getSession().evict(getSession().getReference(UserGroup.class, id));
     getSession().getSessionFactory().getCache().evictEntityData(UserGroup.class, id);
+    getSession()
+        .getSessionFactory()
+        .getCache()
+        .evictCollectionData("org.hisp.dhis.user.UserGroup.members", id);
   }
 
   @Override
@@ -128,13 +143,4 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
       updateLastUpdated(UID.of(groupUid), lastUpdatedByUid);
     }
   }
-
-  //  @Override
-  // TODO: MAS: send event to invalidate sessions for users in this group
-  //  public void update(@Nonnull UserGroup object, User user) {
-  //    super.update(object, user);
-  //    //    object
-  //    //        .getMembers()
-  //    //        .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
-  //  }
 }

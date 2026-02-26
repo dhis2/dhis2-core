@@ -38,24 +38,29 @@ public interface UserGroupStore extends IdentifiableObjectStore<UserGroup> {
   String ID = UserGroupStore.class.getName();
 
   /**
-   * Adds a user to a user group directly via SQL, without loading the members collection. This
-   * avoids N+1 query problems when adding users to groups with many members.
+   * Adds a user to a user group directly via SQL, without loading the members collection. Also
+   * updates the group's lastUpdated timestamp if the membership was added. This avoids N+1 query
+   * problems when adding users to groups with many members.
    *
    * @param userGroupUid the UID of the user group
    * @param userUid the UID of the user to add
+   * @param lastUpdatedByUid the UID of the user performing the operation
    * @return true if the membership was added, false if user was already a member
    */
-  boolean addMember(@Nonnull UID userGroupUid, @Nonnull UID userUid);
+  boolean addMember(@Nonnull UID userGroupUid, @Nonnull UID userUid, @Nonnull UID lastUpdatedByUid);
 
   /**
-   * Removes a user from a user group directly via SQL, without loading the members collection. This
-   * avoids N+1 query problems when removing users from groups with many members.
+   * Removes a user from a user group directly via SQL, without loading the members collection. Also
+   * updates the group's lastUpdated timestamp if the membership was removed. This avoids N+1 query
+   * problems when removing users from groups with many members.
    *
    * @param userGroupUid the UID of the user group
    * @param userUid the UID of the user to remove
+   * @param lastUpdatedByUid the UID of the user performing the operation
    * @return true if the membership was removed, false if user was not a member
    */
-  boolean removeMember(@Nonnull UID userGroupUid, @Nonnull UID userUid);
+  boolean removeMember(
+      @Nonnull UID userGroupUid, @Nonnull UID userUid, @Nonnull UID lastUpdatedByUid);
 
   /**
    * Updates the lastUpdated timestamp and lastUpdatedBy user for a <em>single</em> user group
