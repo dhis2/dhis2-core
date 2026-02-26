@@ -58,8 +58,11 @@ import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataexchange.client.Dhis2Client;
+import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -221,5 +224,62 @@ class AggregateDataExchangeServiceTest {
         () ->
             service.getSourceDataValueSets(
                 UserDetails.fromUser(new User()), "uid", new SourceDataQueryParams()));
+  }
+
+  @Test
+  void testCreateScopeElements_indicatorUsesOutputDataItemIdScheme() {
+    Indicator indicator = new Indicator();
+    indicator.setUid("indUid000001");
+    indicator.setCode("IND_CODE_A");
+    indicator.setName("IndicatorA");
+    indicator.setAggregateExportCategoryOptionCombo("cocTarget001");
+    indicator.setAggregateExportAttributeOptionCombo("aocTarget001");
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, List.of(indicator)))
+            .withOutputDataElementIdScheme(IdScheme.CODE)
+            .withOutputDataItemIdScheme(IdScheme.NAME)
+            .build();
+
+    List<DataEntryGroup.Input.Scope.Element> elements =
+        AggregateDataExchangeService.createScopeElements(
+            params, DataEntryGroup.Input.Scope.Element::new);
+
+    assertEquals(1, elements.size());
+    DataEntryGroup.Input.Scope.Element el = elements.get(0);
+    assertEquals("IndicatorA", el.dataElement());
+    assertEquals("cocTarget001", el.categoryOptionCombo());
+    assertEquals("aocTarget001", el.attributeOptionCombo());
+  }
+
+  @Test
+  void testCreateScopeElements_programIndicatorUsesAggregateExportDataElement() {
+    ProgramIndicator pi = new ProgramIndicator();
+    pi.setUid("piUid00000001");
+    pi.setCode("PI_CODE_A");
+    pi.setName("ProgramIndicatorA");
+    pi.setAggregateExportDataElement("deTargetUid01");
+    pi.setAggregateExportCategoryOptionCombo("cocTarget001");
+    pi.setAggregateExportAttributeOptionCombo("aocTarget001");
+
+    DataQueryParams params =
+        DataQueryParams.newBuilder()
+            .addDimension(
+                new BaseDimensionalObject(DATA_X_DIM_ID, DimensionType.DATA_X, List.of(pi)))
+            .withOutputDataElementIdScheme(IdScheme.CODE)
+            .withOutputDataItemIdScheme(IdScheme.NAME)
+            .build();
+
+    List<DataEntryGroup.Input.Scope.Element> elements =
+        AggregateDataExchangeService.createScopeElements(
+            params, DataEntryGroup.Input.Scope.Element::new);
+
+    assertEquals(1, elements.size());
+    DataEntryGroup.Input.Scope.Element el = elements.get(0);
+    assertEquals("deTargetUid01", el.dataElement());
+    assertEquals("cocTarget001", el.categoryOptionCombo());
+    assertEquals("aocTarget001", el.attributeOptionCombo());
   }
 }
