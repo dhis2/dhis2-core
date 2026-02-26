@@ -29,13 +29,20 @@
  */
 package org.hisp.dhis.analytics.event.data.queryitem;
 
+import static org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
-import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
-import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -70,17 +77,13 @@ public class DateFilterHandler implements QueryItemFilterHandler {
   @Override
   public boolean supports(QueryItem queryItem) {
     String itemId = queryItem.getItemId();
-    return (EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(itemId)
-            || EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME.equals(itemId)
-            || EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME.equals(itemId)
-            || EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME.equals(itemId)
-            || EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME.equals(itemId)
-            || EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME.equals(itemId)
-            || EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME.equals(itemId)
-            || EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME.equals(itemId)
-            || EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(itemId)
-            || EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME.equals(itemId)
-            || EnrollmentAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME.equals(itemId))
+    return (SCHEDULED_DATE_COLUMN_NAME.equals(itemId)
+            || ENROLLMENT_OCCURRED_DATE_COLUMN_NAME.equals(itemId)
+            || CREATED_DATE_COLUMN_NAME.equals(itemId)
+            || ENROLLMENT_DATE_COLUMN_NAME.equals(itemId)
+            || OCCURRED_DATE_COLUMN_NAME.equals(itemId)
+            || LAST_UPDATED_COLUMN_NAME.equals(itemId)
+            || COMPLETED_DATE_COLUMN_NAME.equals(itemId))
         && queryItem.getValueType() == ValueType.DATE;
   }
 
@@ -99,6 +102,49 @@ public class DateFilterHandler implements QueryItemFilterHandler {
   }
 
   private void parseAndAddDateFilters(
+      QueryItem queryItem, String filterString, Date relativePeriodDate) {
+    String[] parts = filterString.split(OPTION_SEP);
+
+    if (parts.length == 1) {
+      parseSingleDateFilter(queryItem, filterString, relativePeriodDate);
+      return;
+    }
+
+    // Process each semicolon-separated part, collecting start/end dates and dimension values
+    Date earliestStart = null;
+    Date latestEnd = null;
+    List<String> allDimensionValues = new ArrayList<>();
+
+    for (String part : parts) {
+      QueryItem tempItem = new QueryItem(queryItem.getItem());
+      tempItem.setValueType(queryItem.getValueType());
+      parseSingleDateFilter(tempItem, part.trim(), relativePeriodDate);
+
+      for (QueryFilter filter : tempItem.getFilters()) {
+        Date filterDate = DateUtils.parseDate(filter.getFilter());
+        if (filter.getOperator() == QueryOperator.GE) {
+          if (earliestStart == null || filterDate.before(earliestStart)) {
+            earliestStart = filterDate;
+          }
+        } else if (filter.getOperator() == QueryOperator.LE) {
+          if (latestEnd == null || filterDate.after(latestEnd)) {
+            latestEnd = filterDate;
+          }
+        }
+      }
+      allDimensionValues.addAll(tempItem.getDimensionValues());
+    }
+
+    if (earliestStart != null) {
+      queryItem.addFilter(new QueryFilter(QueryOperator.GE, DateUtils.toMediumDate(earliestStart)));
+    }
+    if (latestEnd != null) {
+      queryItem.addFilter(new QueryFilter(QueryOperator.LE, DateUtils.toMediumDate(latestEnd)));
+    }
+    allDimensionValues.forEach(queryItem::addDimensionValue);
+  }
+
+  private void parseSingleDateFilter(
       QueryItem queryItem, String filterString, Date relativePeriodDate) {
     // Use relativePeriodDate if provided, otherwise fall back to current date
     Date referenceDate = relativePeriodDate != null ? relativePeriodDate : new Date();
@@ -154,10 +200,10 @@ public class DateFilterHandler implements QueryItemFilterHandler {
     }
 
     // Fallback to explicit operator:value parsing (e.g., GT:2025-01-01)
-    String[] parts = filterString.split(":");
-    if (parts.length == 2) {
-      QueryOperator operator = QueryOperator.fromString(parts[0]);
-      QueryFilter filter = new QueryFilter(operator, parts[1]);
+    String[] opParts = filterString.split(":");
+    if (opParts.length == 2) {
+      QueryOperator operator = QueryOperator.fromString(opParts[0]);
+      QueryFilter filter = new QueryFilter(operator, opParts[1]);
       queryItem.addFilter(filter);
       return;
     }
