@@ -131,7 +131,7 @@ public abstract class BaseNotificationMessageRenderer<T> implements Notification
   @Override
   public NotificationMessage render(T entity, NotificationTemplate template) {
     final String collatedTemplate =
-        template.getSubjectTemplate() + " " + template.getMessageTemplate();
+        template.getDisplaySubjectTemplate() + " " + template.getDisplayMessageTemplate();
 
     Map<String, String> expressionToValueMap =
         extractExpressionsByType(collatedTemplate).entrySet().stream()
@@ -231,12 +231,12 @@ public abstract class BaseNotificationMessageRenderer<T> implements Notification
 
   private NotificationMessage createNotificationMessage(
       NotificationTemplate template, Map<String, String> expressionToValueMap) {
-    String subject = replaceExpressions(template.getSubjectTemplate(), expressionToValueMap);
+    String subject = replaceExpressions(template.getDisplaySubjectTemplate(), expressionToValueMap);
     subject = chop(subject, SUBJECT_CHAR_LIMIT);
 
     boolean hasSmsRecipients = template.getDeliveryChannels().contains(DeliveryChannel.SMS);
 
-    String message = replaceExpressions(template.getMessageTemplate(), expressionToValueMap);
+    String message = replaceExpressions(template.getDisplayMessageTemplate(), expressionToValueMap);
     message = chop(message, hasSmsRecipients ? SMS_CHAR_LIMIT : EMAIL_CHAR_LIMIT);
 
     return new NotificationMessage(subject, message);
