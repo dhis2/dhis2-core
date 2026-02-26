@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.sync;
 
-import static java.lang.String.format;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +41,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.tracker.PageParams;
@@ -165,13 +162,5 @@ public class SingleEventDataSynchronizationService
   private Map<String, Set<String>> getSkipSyncProgramStageDataElements() {
     return programStageDataElementService
         .getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
-  }
-
-  private TrackerSynchronizationContext initializeContext(
-      int pageSize, JobProgress progress, SystemSettings settings) {
-    return progress.runStage(
-        TrackerSynchronizationContext.emptyContext(null, pageSize),
-        ctx -> format("Single events changed before %s will not sync", ctx.getSkipChangedBefore()),
-        () -> createContext(pageSize, settings));
   }
 }

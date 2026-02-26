@@ -105,7 +105,6 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
   @Override
   public SynchronizationResult synchronizeData(int pageSize, JobProgress progress) {
     progress.startingProcess(getProcessName());
-
     SystemSettings settings = systemSettingsService.getCurrentSettings();
 
     SynchronizationResult validationResult = validatePreconditions(settings, progress);
@@ -234,7 +233,6 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
 
   private boolean executeSynchronizationWithPaging(
       TrackerSynchronizationContext context, JobProgress progress, SystemSettings settings) {
-
     final int pages = context.getPages();
     final int pageSize = context.getPageSize();
     final String entityName = getJsonRootName();
