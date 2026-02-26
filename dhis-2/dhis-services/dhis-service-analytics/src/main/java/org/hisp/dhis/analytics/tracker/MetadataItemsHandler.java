@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
+import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.isStageOuDimension;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptions;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptionsAsFilter;
@@ -86,6 +87,7 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
@@ -245,6 +247,7 @@ public class MetadataItemsHandler {
     addPeriodDimensionValueMetadata(metadataItemMap, params, includeDetails);
     addDateFieldDimensionMetadata(metadataItemMap, params);
     addEnrollmentOuMetadata(metadataItemMap, params, includeDetails);
+    addProgramStatusMetadata(metadataItemMap, params);
 
     return metadataItemMap;
   }
@@ -580,6 +583,29 @@ public class MetadataItemsHandler {
     }
   }
 
+  private void addProgramStatusMetadata(
+      Map<String, MetadataItem> metadataItemMap, EventQueryParams params) {
+    if (!params.hasEnrollmentStatuses()) {
+      return;
+    }
+
+    metadataItemMap.putIfAbsent(
+        PROGRAM_STATUS.getItem(), new MetadataItem(PROGRAM_STATUS.getName()));
+
+    for (EnrollmentStatus status : params.getEnrollmentStatus()) {
+      metadataItemMap.putIfAbsent(
+          status.name(), new MetadataItem(getEnrollmentStatusDisplayName(status)));
+    }
+  }
+
+  private String getEnrollmentStatusDisplayName(EnrollmentStatus status) {
+    return switch (status) {
+      case ACTIVE -> "Active";
+      case COMPLETED -> "Completed";
+      case CANCELLED -> "Cancelled";
+    };
+  }
+
   /**
    * Adds the given item to the given metadata item map.
    *
@@ -627,6 +653,7 @@ public class MetadataItemsHandler {
     addQueryItemDimensions(dimensionItems, params, itemOptions);
     addItemFiltersToDimensionItems(params.getItemFilters(), dimensionItems);
     addEnrollmentOuDimensionItems(dimensionItems, params);
+    addProgramStatusDimensionItems(dimensionItems, params);
 
     return dimensionItems;
   }
@@ -706,6 +733,15 @@ public class MetadataItemsHandler {
     if (params.hasEnrollmentOuDimension()) {
       dimensionItems.put(
           "enrollmentou", getDimensionalItemIds(params.getEnrollmentOuDimensionItems()));
+    }
+  }
+
+  private void addProgramStatusDimensionItems(
+      Map<String, List<String>> dimensionItems, EventQueryParams params) {
+    if (params.hasEnrollmentStatuses()) {
+      dimensionItems.put(
+          PROGRAM_STATUS.getItem(),
+          params.getEnrollmentStatus().stream().map(EnrollmentStatus::name).toList());
     }
   }
 

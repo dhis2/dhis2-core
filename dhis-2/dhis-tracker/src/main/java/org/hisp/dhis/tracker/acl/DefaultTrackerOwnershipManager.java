@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.acl.OwnershipCacheUtils.getOwnershipCacheKey
 import static org.hisp.dhis.tracker.acl.OwnershipCacheUtils.getTempOwnershipCacheKey;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
+import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -42,6 +43,7 @@ import org.hibernate.Hibernate;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -70,6 +72,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
   private final HibernateProgramTempOwnershipAuditStore programTempOwnershipAuditStore;
   private final HibernateProgramTempOwnerStore programTempOwnerStore;
+  private final IdentifiableObjectStore<TrackedEntity> trackedEntityStore;
   private final TrackerProgramService trackerProgramService;
   private final OrganisationUnitService organisationUnitService;
   private final ProgramOwnershipHistoryService programOwnershipHistoryService;
@@ -84,6 +87,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       CacheProvider cacheProvider,
       HibernateProgramTempOwnershipAuditStore programTempOwnershipAuditStore,
       HibernateProgramTempOwnerStore programTempOwnerStore,
+      IdentifiableObjectStore<TrackedEntity> trackedEntityStore,
       ProgramOwnershipHistoryService programOwnershipHistoryService,
       ProgramService programService,
       TrackerProgramService trackerProgramService,
@@ -96,6 +100,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     this.programTempOwnershipAuditStore = programTempOwnershipAuditStore;
     this.programOwnershipHistoryService = programOwnershipHistoryService;
     this.programTempOwnerStore = programTempOwnerStore;
+    this.trackedEntityStore = trackedEntityStore;
     this.programService = programService;
     this.trackerProgramService = trackerProgramService;
     this.organisationUnitService = organisationUnitService;
@@ -113,11 +118,10 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
   @Override
   @Transactional
-  // TODO(tracker) This method should accept a tracked entity UID instead. The problem is, we can't
-  // use the TrackedEntityService as it introduces a cyclic dependency. That's because the ownership
-  // manager is used to filter TEs after hitting the database. As soon as we move those filters into
-  // the store to fix the pagination issue, we should be able to use the TrackedEntityService here,
-  // so we can run all validations in this service instead of the controller.
+  // TODO(tracker) This method should take a tracked entity UID instead.
+  // Currently we can’t use TrackedEntityService due to a cyclic dependency:
+  // OwnershipManager is used by RelationshipService and TrackedEntityAuditService.
+  // Once the cycle is resolved, we could move all validations here instead of in the controller.
   public void transferOwnership(
       @Nonnull TrackedEntity trackedEntity, @Nonnull UID programUid, @Nonnull UID orgUnitUid)
       throws ForbiddenException, BadRequestException, NotFoundException {
@@ -142,7 +146,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
               program.getUid(), orgUnit.getUid()));
     }
 
-    // TODO(tracker) jdbc-hibernate: check the impact on performance
     TrackedEntity hibernateTrackedEntity = manager.get(TrackedEntity.class, trackedEntity.getUid());
     TrackedEntityProgramOwner teProgramOwner =
         trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(trackedEntity, program);
@@ -195,6 +198,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
           new ProgramTempOwnershipAudit(program, trackedEntity, reason, user.getUsername()));
     }
 
+    trackedEntity.setLastUpdated(new Date());
+    trackedEntityStore.update(trackedEntity);
     ProgramTempOwner programTempOwner =
         new ProgramTempOwner(
             program,

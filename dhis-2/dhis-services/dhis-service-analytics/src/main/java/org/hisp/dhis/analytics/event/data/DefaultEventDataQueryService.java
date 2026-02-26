@@ -53,6 +53,7 @@ import static org.hisp.dhis.common.EventDataQueryRequest.getStageInValue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -93,6 +94,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -162,9 +164,14 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     List<String> coordinateFields = getCoordinateFields(request);
 
-    addDimensionsToParams(params, request, userOrgUnits, pr, idScheme);
+    Set<EnrollmentStatus> enrollmentStatuses = new LinkedHashSet<>();
+    if (request.getEnrollmentStatus() != null) {
+      enrollmentStatuses.addAll(request.getEnrollmentStatus());
+    }
 
-    addFiltersToParams(params, request, userOrgUnits, pr, idScheme);
+    addDimensionsToParams(params, request, userOrgUnits, pr, idScheme, enrollmentStatuses);
+
+    addFiltersToParams(params, request, userOrgUnits, pr, idScheme, enrollmentStatuses);
 
     addSortToParams(params, request, pr);
 
@@ -207,7 +214,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
             .withPageSize(request.getPageSize())
             .withPaging(request.isPaging())
             .withTotalPages(request.isTotalPages())
-            .withEnrollmentStatuses(request.getEnrollmentStatus())
+            .withEnrollmentStatuses(enrollmentStatuses)
             .withLocale(locale)
             .withEnhancedConditions(request.isEnhancedConditions())
             .withEndpointItem(request.getEndpointItem())
@@ -405,12 +412,17 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       EventDataQueryRequest request,
       List<OrganisationUnit> userOrgUnits,
       Program pr,
-      IdScheme idScheme) {
+      IdScheme idScheme,
+      Set<EnrollmentStatus> enrollmentStatuses) {
     if (request.getFilter() != null) {
       for (NormalizedDimensionInput input :
           normalizeDimensionInputs(request.getFilter(), request)) {
         if (ENROLLMENT_OU_DIMENSION.equals(input.dimensionId())) {
           resolveEnrollmentOuFilter(params, request, userOrgUnits, input.items(), idScheme);
+          continue;
+        }
+        if (isProgramStatusDimension(input.dimensionId())) {
+          enrollmentStatuses.addAll(parseEnrollmentStatuses(input.items(), input.rawDimension()));
           continue;
         }
 
@@ -446,12 +458,17 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       EventDataQueryRequest request,
       List<OrganisationUnit> userOrgUnits,
       Program pr,
-      IdScheme idScheme) {
+      IdScheme idScheme,
+      Set<EnrollmentStatus> enrollmentStatuses) {
     if (request.getDimension() != null) {
       for (NormalizedDimensionInput input :
           normalizeDimensionInputs(request.getDimension(), request)) {
         if (ENROLLMENT_OU_DIMENSION.equals(input.dimensionId())) {
           resolveEnrollmentOuDimension(params, request, userOrgUnits, input.items(), idScheme);
+          continue;
+        }
+        if (isProgramStatusDimension(input.dimensionId())) {
+          enrollmentStatuses.addAll(parseEnrollmentStatuses(input.items(), input.rawDimension()));
           continue;
         }
 
@@ -734,6 +751,34 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   private boolean isEventAggregateRequest(EventDataQueryRequest request) {
     return EndpointAction.AGGREGATE.equals(request.getEndpointAction())
         && EndpointItem.EVENT.equals(request.getEndpointItem());
+  }
+
+  private boolean isProgramStatusDimension(String dimensionId) {
+    return ColumnHeader.PROGRAM_STATUS.name().equalsIgnoreCase(dimensionId)
+        || ColumnHeader.PROGRAM_STATUS.getItem().equalsIgnoreCase(dimensionId);
+  }
+
+  private Set<EnrollmentStatus> parseEnrollmentStatuses(
+      List<String> statusItems, String dimensionString) {
+    if (statusItems == null || statusItems.isEmpty()) {
+      throwIllegalQueryEx(ErrorCode.E7222, dimensionString);
+    }
+
+    Set<EnrollmentStatus> statuses = new LinkedHashSet<>();
+
+    for (String statusItem : statusItems) {
+      if (StringUtils.isBlank(statusItem)) {
+        throwIllegalQueryEx(ErrorCode.E7222, dimensionString);
+      }
+
+      try {
+        statuses.add(EnrollmentStatus.valueOf(statusItem.trim().toUpperCase()));
+      } catch (IllegalArgumentException ex) {
+        throwIllegalQueryEx(ErrorCode.E7222, dimensionString);
+      }
+    }
+
+    return statuses;
   }
 
   /**

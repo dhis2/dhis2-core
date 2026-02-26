@@ -49,7 +49,7 @@ import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataelement.DataElement;
@@ -292,7 +292,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .orgUnit(singleton(ouA.getCode()))
             .inputOrgUnitIdScheme(IdentifiableProperty.CODE)
             .period(singleton(peAIso))
-            .idScheme(IdentifiableProperty.CODE.name())
+            .idScheme(IdProperty.CODE)
             .build();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     dataExportPipeline.exportAsJson(params, out);
@@ -315,8 +315,8 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .orgUnit(singleton(ouA.getCode()))
             .inputDataSetIdScheme(IdentifiableProperty.CODE)
             .period(singleton(peAIso))
-            .dataSetIdScheme(IdentifiableProperty.CODE.name())
-            .orgUnitIdScheme(IdentifiableProperty.CODE.name())
+            .dataSetIdScheme(IdProperty.CODE)
+            .orgUnitIdScheme(IdProperty.CODE)
             .build();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     dataExportPipeline.exportAsJson(params, out);
@@ -359,9 +359,9 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .period(singleton(peAIso))
             .attributeOptionCombo(singleton(cocA.getCode()))
             .inputIdScheme(IdentifiableProperty.CODE)
-            .dataSetIdScheme(IdentifiableProperty.CODE.name())
-            .orgUnitIdScheme(IdentifiableProperty.CODE.name())
-            .attributeOptionComboIdScheme(IdentifiableProperty.CODE.name())
+            .dataSetIdScheme(IdProperty.CODE)
+            .orgUnitIdScheme(IdProperty.CODE)
+            .attributeOptionComboIdScheme(IdProperty.CODE)
             .build();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     dataExportPipeline.exportAsJson(params, out);
@@ -400,9 +400,9 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
             .dataSet(Set.of(dsB.getUid()))
             .orgUnit(Set.of(ouA.getUid()))
             .period(Set.of(peB.getIsoDate()))
-            .orgUnitIdScheme(IdentifiableProperty.CODE.name())
-            .dataElementIdScheme(IdentifiableProperty.CODE.name())
-            .dataSetIdScheme(IdentifiableProperty.CODE.name())
+            .orgUnitIdScheme(IdProperty.CODE)
+            .dataElementIdScheme(IdProperty.CODE)
+            .dataSetIdScheme(IdProperty.CODE)
             .build();
     dataExportPipeline.exportAsJson(params, out);
     DataValueSet dvs = jsonMapper.readValue(out.toByteArray(), DataValueSet.class);
@@ -422,9 +422,9 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
   void testExportOutputSingleDataValueSetIdSchemeCode_FromUrlParamsWithCodes() throws Exception {
     DataExportParams.Input params =
         DataExportParams.Input.builder()
-            .orgUnitIdScheme(IdentifiableProperty.CODE.name())
-            .dataElementIdScheme(IdentifiableProperty.CODE.name())
-            .dataSetIdScheme(IdentifiableProperty.CODE.name())
+            .orgUnitIdScheme(IdProperty.CODE)
+            .dataElementIdScheme(IdProperty.CODE)
+            .dataSetIdScheme(IdProperty.CODE)
             . //
             dataSet(singleton(dsB.getCode()))
             .orgUnit(singleton(ouA.getCode()))
@@ -449,7 +449,7 @@ class DataExportServiceExportTest extends PostgresIntegrationTestBase {
   @Test
   void testExportOutputIdSchemeAttribute() throws Exception {
     ByteArrayOutputStream out = new ByteArrayOutputStream();
-    String attributeIdScheme = IdScheme.ATTR_ID_SCHEME_PREFIX + atA.getUid();
+    IdProperty attributeIdScheme = IdProperty.of(atA.getUID());
     DataExportParams.Input params =
         DataExportParams.Input.builder()
             .dataSet(Set.of(dsB.getUid()))

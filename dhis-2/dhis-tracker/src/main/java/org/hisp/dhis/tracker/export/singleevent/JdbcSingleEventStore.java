@@ -203,15 +203,6 @@ class JdbcSingleEventStore {
 
               event.setStatus(EventStatus.valueOf(resultSet.getString("ev_status")));
 
-              ProgramType programType = ProgramType.fromValue(resultSet.getString("p_type"));
-              Program program = new Program();
-              program.setUid(resultSet.getString("p_uid"));
-              program.setCode(resultSet.getString("p_code"));
-              program.setName(resultSet.getString("p_name"));
-              program.setAttributeValues(
-                  AttributeValues.of(resultSet.getString("p_attributevalues")));
-              program.setProgramType(programType);
-
               OrganisationUnit orgUnit = new OrganisationUnit();
               orgUnit.setUid(resultSet.getString("orgunit_uid"));
               orgUnit.setCode(resultSet.getString("orgunit_code"));
@@ -220,15 +211,46 @@ class JdbcSingleEventStore {
                   AttributeValues.of(resultSet.getString("orgunit_attributevalues")));
               event.setOrganisationUnit(orgUnit);
 
-              ProgramStage ps = new ProgramStage();
-              ps.setUid(resultSet.getString("ps_uid"));
-              ps.setCode(resultSet.getString("ps_code"));
-              ps.setName(resultSet.getString("ps_name"));
-              ps.setAttributeValues(AttributeValues.of(resultSet.getString("ps_attributevalues")));
-              ps.setProgram(program);
-              event.setDeleted(resultSet.getBoolean("ev_deleted"));
+              if (queryParams.getProgram() != null) {
+                Program program = new Program();
+                Program queryProgram = queryParams.getProgram();
+                program.setUid(queryProgram.getUid());
+                program.setCode(queryProgram.getCode());
+                program.setName(queryProgram.getName());
+                program.setAttributeValues(queryProgram.getAttributeValues());
+                program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
 
-              event.setProgramStage(ps);
+                ProgramStage ps = new ProgramStage();
+                ProgramStage queryProgramStage = queryParams.getProgramStage();
+                ps.setUid(queryProgramStage.getUid());
+                ps.setCode(queryProgramStage.getCode());
+                ps.setName(queryProgramStage.getName());
+                ps.setAttributeValues(queryProgramStage.getAttributeValues());
+                ps.setProgram(program);
+
+                event.setProgramStage(ps);
+              } else {
+                ProgramType programType = ProgramType.fromValue(resultSet.getString("p_type"));
+                Program program = new Program();
+                program.setUid(resultSet.getString("p_uid"));
+                program.setCode(resultSet.getString("p_code"));
+                program.setName(resultSet.getString("p_name"));
+                program.setAttributeValues(
+                    AttributeValues.of(resultSet.getString("p_attributevalues")));
+                program.setProgramType(programType);
+
+                ProgramStage ps = new ProgramStage();
+                ps.setUid(resultSet.getString("ps_uid"));
+                ps.setCode(resultSet.getString("ps_code"));
+                ps.setName(resultSet.getString("ps_name"));
+                ps.setAttributeValues(
+                    AttributeValues.of(resultSet.getString("ps_attributevalues")));
+                ps.setProgram(program);
+
+                event.setProgramStage(ps);
+              }
+
+              event.setDeleted(resultSet.getBoolean("ev_deleted"));
 
               CategoryOptionCombo coc = new CategoryOptionCombo();
               coc.setUid(resultSet.getString("coc_uid"));
@@ -541,8 +563,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    * <pre>
    * select ...
    * from singleevent ev
-   *   inner join programstage ps on ...
-   *   inner join program p on ...
+   *   inner join programstage ps on ...    -- conditional
+   *   inner join program p on ...          -- conditional
    *   inner join organisationunit ou on ...
    *   left join userinfo au on ...
    *   inner join (...) coc_agg on ...
@@ -554,8 +576,10 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     StringBuilder sql = new StringBuilder();
     addSelect(sql, params, sqlParams);
     sql.append(" from singleevent ev ");
-    addJoinOnProgramStage(sql);
-    addJoinOnProgram(sql);
+    if (params.getProgram() == null) {
+      addJoinOnProgramStage(sql);
+      addJoinOnProgram(sql);
+    }
     addJoinOnOrgUnit(sql);
     addLeftJoinOnAssignedUser(sql);
     addJoinOnCategoryOptionCombo(sql, user);
@@ -565,17 +589,29 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
   private void addSelect(
       StringBuilder sql, SingleEventQueryParams params, MapSqlParameterSource sqlParams) {
-    sql.append(
-        """
+    if (params.getProgram() != null) {
+      // program and programstage columns are not needed; the RowMapper
+      // reuses the already loaded Program and ProgramStage entities instead
+      sql.append(
+          """
+            select ev.uid as ev_uid,
+            ou.uid as orgunit_uid, ou.code as orgunit_code, ou.name as orgunit_name,
+            ou.attributevalues as orgunit_attributevalues,
+            ev.eventid as ev_id, ev.status as ev_status,
+            ev.occurreddate as ev_occurreddate,\s""");
+    } else {
+      sql.append(
+          """
             select ev.uid as ev_uid,
             ou.uid as orgunit_uid, ou.code as orgunit_code, ou.name as orgunit_name,
             ou.attributevalues as orgunit_attributevalues,
             p.uid as p_uid, p.code as p_code, p.name as p_name,
-            p.attributevalues as p_attributevalues,
+            p.attributevalues as p_attributevalues, p.type as p_type,
             ps.uid as ps_uid, ps.code as ps_code, ps.name as ps_name,
             ps.attributevalues as ps_attributevalues,
             ev.eventid as ev_id, ev.status as ev_status,
             ev.occurreddate as ev_occurreddate,\s""");
+    }
     sql.append(getEventDataValuesProjectionForSelectClause(params, sqlParams));
     sql.append(
         """
@@ -590,12 +626,13 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             au.uid as user_assigned,
             (au.firstName || ' ' || au.surName) as user_assigned_name,
             au.firstName as user_assigned_first_name, au.surName as user_assigned_surname,
-            au.username as user_assigned_username,
-            coc_agg.uid as coc_uid, coc_agg.code as coc_code, coc_agg.name as coc_name,
-            coc_agg.attributevalues as coc_attributevalues,
-            coc_agg.co_values as co_values, coc_agg.co_count as option_size,\s""");
+            au.username as user_assigned_username, \s""");
     addOrderFieldsToSelect(sql, params.getOrder());
-    sql.append("p.type as p_type ");
+    sql.append(
+        """
+            coc_agg.uid as coc_uid, coc_agg.code as coc_code, coc_agg.name as coc_name,
+                        coc_agg.attributevalues as coc_attributevalues,
+                        coc_agg.co_values as co_values, coc_agg.co_count as option_size""");
   }
 
   private void addOrderFieldsToSelect(StringBuilder sql, List<Order> orders) {
@@ -712,9 +749,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       SingleEventQueryParams params,
       SqlHelper hlp) {
     if (params.getProgram() != null) {
-      sqlParams.addValue("programid", params.getProgram().getId());
-      sql.append(hlp.whereAnd()).append(" p.programid = ").append(":programid ");
-
       sqlParams.addValue("programstageid", params.getProgramStage().getId());
       sql.append(hlp.whereAnd()).append(" ev.programstageid = :programstageid ");
     }
@@ -934,41 +968,31 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    * synchronization" configuration of the ProgramStageDataElements. This logic applies only during
    * single event synchronization.
    */
+  /**
+   * Returns the event data values projection for the SELECT clause. During synchronization, data
+   * elements marked as "skip sync" are filtered out. Since the program stage is always known for
+   * sync queries, the skip-sync data elements are looked up directly without a CASE expression.
+   */
   private String getEventDataValuesProjectionForSelectClause(
       SingleEventQueryParams params, MapSqlParameterSource sqlParameters) {
     if (!params.isSynchronizationQuery()
         || params.getSkipSyncDataElementsByProgramStage() == null
         || params.getSkipSyncDataElementsByProgramStage().isEmpty()) {
-
       return "ev.eventdatavalues";
     }
 
-    StringBuilder caseStatement = new StringBuilder("case ");
+    String programStageUid = params.getProgramStage().getUid();
+    Set<String> dataElementUids =
+        params.getSkipSyncDataElementsByProgramStage().get(programStageUid);
 
-    int caseCounter = 0;
-    for (Map.Entry<String, Set<String>> entry :
-        params.getSkipSyncDataElementsByProgramStage().entrySet()) {
-      String programStageUid = entry.getKey();
-      Set<String> dataElementUids = entry.getValue();
-
-      if (!dataElementUids.isEmpty()) {
-        String paramName = "filter_de_" + caseCounter++;
-        sqlParameters.addValue(paramName, dataElementUids);
-
-        caseStatement
-            .append("when ps.uid = '")
-            .append(programStageUid)
-            .append("' then ")
-            .append("(select jsonb_object_agg(key, value) ")
-            .append("from jsonb_each(ev.eventdatavalues) ")
-            .append("where key not in (:")
-            .append(paramName)
-            .append(")) ");
-      }
+    if (dataElementUids == null || dataElementUids.isEmpty()) {
+      return "ev.eventdatavalues";
     }
 
-    caseStatement.append("else ev.eventdatavalues end");
-
-    return caseStatement.toString();
+    sqlParameters.addValue("skipSyncDataElements", dataElementUids);
+    return """
+        (SELECT jsonb_object_agg(key, value)
+        FROM jsonb_each(ev.eventdatavalues)
+        WHERE key NOT IN (:skipSyncDataElements))""";
   }
 }
