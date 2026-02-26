@@ -29,7 +29,9 @@
  */
 package org.hisp.dhis.user;
 
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.DataSet;
 
 /**
@@ -43,4 +45,61 @@ public interface UserRoleStore extends IdentifiableObjectStore<UserRole> {
    * @return number of UserRoles.
    */
   int countDataSetUserRoles(DataSet dataSet);
+
+  /**
+   * Adds a user to a user role directly via SQL, without loading the members collection. This
+   * avoids loading all members (potentially 100K+) just to add one user.
+   *
+   * @param userRoleUid the UID of the user role
+   * @param userUid the UID of the user to add
+   * @return true if the membership was added, false if user was already a member
+   */
+  boolean addMember(@Nonnull UID userRoleUid, @Nonnull UID userUid);
+
+  /**
+   * Removes a user from a user role directly via SQL, without loading the members collection. This
+   * avoids loading all members (potentially 100K+) just to remove one user.
+   *
+   * @param userRoleUid the UID of the user role
+   * @param userUid the UID of the user to remove
+   */
+  boolean removeMember(@Nonnull UID userRoleUid, @Nonnull UID userUid);
+
+  /**
+   * Removes all user role memberships for a user directly via SQL. This avoids loading UserRole
+   * entities and their members collections (potentially 100K+ users each).
+   *
+   * @param userUid the UID of the user whose role memberships should be removed
+   */
+  void removeAllMemberships(@Nonnull UID userUid);
+
+  /**
+   * Removes all user memberships for a user role directly via SQL. Used when deleting a user role
+   * to avoid loading all member User entities.
+   *
+   * @param userRoleUid the UID of the user role whose memberships should be removed
+   */
+  void removeAllMembershipsForRole(@Nonnull UID userRoleUid);
+
+  /**
+   * Updates the lastUpdated timestamp and lastUpdatedBy user for a <em>single</em> user role
+   * identified by its own UID, directly via SQL. This avoids loading the entity through Hibernate
+   * which can trigger lazy initialization of the members collection.
+   *
+   * @param userRoleUid the UID of the user role to update
+   * @param lastUpdatedByUid the UID of the user performing the update
+   * @see #updateLastUpdatedForMembershipsOf(UID, UID)
+   */
+  void updateLastUpdated(@Nonnull UID userRoleUid, @Nonnull UID lastUpdatedByUid);
+
+  /**
+   * Updates the lastUpdated timestamp and lastUpdatedBy user for <em>all</em> user roles that the
+   * given user is a member of, directly via SQL. The first argument is a <em>user</em> UID, not a
+   * role UID — contrast with {@link #updateLastUpdated(UID, UID)} which targets a single role by
+   * its own UID.
+   *
+   * @param userUid the UID of the user whose role memberships should be touched
+   * @param lastUpdatedByUid the UID of the user performing the update
+   */
+  void updateLastUpdatedForMembershipsOf(@Nonnull UID userUid, @Nonnull UID lastUpdatedByUid);
 }
