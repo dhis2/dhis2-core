@@ -2444,8 +2444,6 @@ public abstract class TestBase {
 
     userService.addUser(user);
 
-    userService.addUserToRole(UID.of(group.getUid()), UID.of(user.getUid()));
-
     injectSecurityContextUser(user);
 
     return user;
@@ -2494,8 +2492,6 @@ public abstract class TestBase {
 
     userService.addUser(user);
 
-    userService.addUserToRole(UID.of(userRole.getUid()), UID.of(user.getUid()));
-
     return user;
   }
 
@@ -2536,8 +2532,6 @@ public abstract class TestBase {
     userService.updateUser(user);
 
     userService.addUserRole(role);
-
-    userService.addUserToRole(UID.of(role.getUid()), UID.of(user.getUid()));
 
     return user;
   }
@@ -2669,11 +2663,7 @@ public abstract class TestBase {
   }
 
   protected final User addUser(String uniqueCharacter, UserRole... roles) {
-    User user = addUser(uniqueCharacter, u -> u.getUserRoles().addAll(asList(roles)));
-    for (UserRole role : roles) {
-      userService.addUserToRole(UID.of(role.getUid()), UID.of(user.getUid()));
-    }
-    return user;
+    return addUser(uniqueCharacter, user -> user.getUserRoles().addAll(asList(roles)));
   }
 
   protected final User addUser(String uniqueCharacter, Consumer<User> consumer) {
@@ -2705,10 +2695,6 @@ public abstract class TestBase {
     }
 
     userService.addUser(user);
-
-    for (UserRole role : user.getUserRoles()) {
-      userService.addUserToRole(UID.of(role.getUid()), UID.of(user.getUid()));
-    }
 
     return user;
   }
@@ -2850,10 +2836,6 @@ public abstract class TestBase {
 
     user.getUserRoles().forEach(userRole -> userService.addUserRole(userRole));
 
-    for (UserRole userRole : user.getUserRoles()) {
-      userService.addUserToRole(UID.of(userRole.getUid()), UID.of(user.getUid()));
-    }
-
     userService.encodeAndSetPassword(user, user.getPassword());
     userService.updateUser(user);
 
@@ -2945,12 +2927,10 @@ public abstract class TestBase {
     user.setUsername(DEFAULT_USERNAME + "_test_" + CodeGenerator.generateUid());
     user.setPassword(DEFAULT_ADMIN_PASSWORD);
     user.getUserRoles().add(role);
-    role.getMembers().add(user);
     user.setLastUpdated(new Date());
     user.setCreated(new Date());
 
     entityManager.persist(user);
-    entityManager.flush();
 
     return user;
   }

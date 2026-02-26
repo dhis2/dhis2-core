@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.preheat;
 
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasProperty;
@@ -82,20 +83,8 @@ class SchemaToDataFetcherTest extends TestBase {
   }
 
   @Test
-  void verifyNullSchemaReturnsEmpty() {
-    assertThat(subject.fetch(null, List.of()), hasSize(0));
-  }
-
-  @Test
-  void verifyEmptyImportReturnsEmpty() {
-    Schema schema =
-        createSchema(
-            DataElement.class,
-            "dataElement",
-            Stream.of(createUniqueProperty(String.class, "code", true, true)).toList());
-
-    assertThat(subject.fetch(schema, List.of()), hasSize(0));
-    verify(entityManager, times(0)).createQuery(anyString());
+  void verifyInput() {
+    assertThat(subject.fetch(null), hasSize(0));
   }
 
   @Test
@@ -111,25 +100,19 @@ class SchemaToDataFetcherTest extends TestBase {
                     createProperty(Date.class, "created", true, true),
                     createProperty(Date.class, "lastUpdated", true, true),
                     createProperty(Integer.class, "int", true, true))
-                .toList());
+                .collect(toList()));
 
-    mockSession();
+    mockSession("SELECT code,id from " + schema.getKlass().getSimpleName());
 
     List<Object[]> l = new ArrayList<>();
+
     l.add(new Object[] {"abc", 123456});
     l.add(new Object[] {"bce", 123888});
     l.add(new Object[] {"def", 123999});
 
     when(query.getResultList()).thenReturn(l);
 
-    DataElement de1 = new DataElement("de1");
-    de1.setCode("abc");
-    DataElement de2 = new DataElement("de2");
-    de2.setCode("bce");
-    DataElement de3 = new DataElement("de3");
-    de3.setCode("def");
-
-    List<DataElement> result = (List<DataElement>) subject.fetch(schema, List.of(de1, de2, de3));
+    List<DataElement> result = (List<DataElement>) subject.fetch(schema);
 
     assertThat(result, hasSize(3));
 
@@ -150,25 +133,19 @@ class SchemaToDataFetcherTest extends TestBase {
             Stream.of(
                     createUniqueProperty(String.class, "url", true, true),
                     createUniqueProperty(String.class, "code", true, true))
-                .toList());
+                .collect(toList()));
 
-    mockSession();
+    mockSession("SELECT code,url from " + schema.getKlass().getSimpleName());
 
     List<Object[]> l = new ArrayList<>();
+
     l.add(new Object[] {"abc", "http://ok"});
     l.add(new Object[] {"bce", "http://-exception"});
     l.add(new Object[] {"def", "http://also-ok"});
 
     when(query.getResultList()).thenReturn(l);
 
-    DummyDataElement d1 = new DummyDataElement();
-    d1.setCode("abc");
-    DummyDataElement d2 = new DummyDataElement();
-    d2.setCode("bce");
-    DummyDataElement d3 = new DummyDataElement();
-    d3.setCode("def");
-
-    List<DataElement> result = (List<DataElement>) subject.fetch(schema, List.of(d1, d2, d3));
+    List<DataElement> result = (List<DataElement>) subject.fetch(schema);
 
     assertThat(result, hasSize(2));
 
@@ -189,25 +166,19 @@ class SchemaToDataFetcherTest extends TestBase {
                     createProperty(String.class, "name", true, true),
                     createUniqueProperty(String.class, "url", true, true),
                     createProperty(String.class, "code", true, true))
-                .toList());
+                .collect(toList()));
 
-    mockSession();
+    mockSession("SELECT url from " + schema.getKlass().getSimpleName());
 
     List<Object> l = new ArrayList<>();
+
     l.add("http://ok");
     l.add("http://is-ok");
     l.add("http://also-ok");
 
     when(query.getResultList()).thenReturn(l);
 
-    DummyDataElement d1 = new DummyDataElement();
-    d1.setUrl("http://ok");
-    DummyDataElement d2 = new DummyDataElement();
-    d2.setUrl("http://is-ok");
-    DummyDataElement d3 = new DummyDataElement();
-    d3.setUrl("http://also-ok");
-
-    List<DataElement> result = (List<DataElement>) subject.fetch(schema, List.of(d1, d2, d3));
+    List<DataElement> result = (List<DataElement>) subject.fetch(schema);
 
     assertThat(result, hasSize(3));
 
@@ -223,7 +194,7 @@ class SchemaToDataFetcherTest extends TestBase {
   void verifyNoSqlWhenUniquePropertiesListIsEmpty() {
     Schema schema = createSchema(SMSCommand.class, "smsCommand", Lists.newArrayList());
 
-    subject.fetch(schema, List.of());
+    subject.fetch(schema);
 
     verify(entityManager, times(0)).createQuery(anyString());
   }
@@ -237,17 +208,16 @@ class SchemaToDataFetcherTest extends TestBase {
             Stream.of(
                     createProperty(String.class, "name", true, true),
                     createProperty(String.class, "id", true, true))
-                .toList());
+                .collect(toList()));
 
-    subject.fetch(schema, List.of());
+    subject.fetch(schema);
 
     verify(entityManager, times(0)).createQuery(anyString());
   }
 
-  private void mockSession() {
-    when(entityManager.createQuery(anyString())).thenReturn(query);
+  private void mockSession(String hql) {
+    when(entityManager.createQuery(hql)).thenReturn(query);
     when(query.setHint(any(), any())).thenReturn(query);
-    when(query.setParameter(anyString(), any())).thenReturn(query);
   }
 
   private Schema createSchema(

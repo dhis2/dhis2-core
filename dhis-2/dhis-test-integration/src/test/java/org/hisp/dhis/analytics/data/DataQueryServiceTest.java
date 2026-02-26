@@ -320,7 +320,6 @@ class DataQueryServiceTest extends PostgresIntegrationTestBase {
     User user = makeUser("A");
     user.addOrganisationUnit(ouA);
     user.getUserRoles().add(role);
-    role.getMembers().add(user);
 
     userService.addUser(user);
 
