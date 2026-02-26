@@ -107,6 +107,10 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       return;
     }
 
+    if (serveNoOpServiceWorkerIfNeeded(request, response, path)) {
+      return;
+    }
+
     if (redirectLegacyAppPaths(request, response, path)) {
       log.debug("GlobalShellFilter.doFilterInternal: redirectLegacyAppPaths = true");
       return;
@@ -340,6 +344,42 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     if (dispatcher != null) {
       dispatcher.forward(request, response);
     }
+  }
+
+  /**
+   * When canonical app paths are enabled, the global shell's service worker interferes with the new
+   * URL scheme -- it caches and serves stale HTML for navigation requests, causing redirect loops
+   * and 404s. This method intercepts any {@code service-worker.js} request under {@code /apps/} and
+   * returns a no-op worker that unregisters itself, effectively neutralizing the SW until the
+   * global-shell-app is updated to be aware of canonical paths.
+   */
+  private boolean serveNoOpServiceWorkerIfNeeded(
+      HttpServletRequest request, HttpServletResponse response, String path) throws IOException {
+    if (!path.startsWith(GLOBAL_SHELL_PATH_PREFIX) || !path.endsWith(SERVICE_WORKER_JS)) {
+      return false;
+    }
+    boolean canonicalAppPaths = settingsProvider.getCurrentSettings().getCanonicalAppPaths();
+    if (!canonicalAppPaths) {
+      return false;
+    }
+
+    String noOpWorker =
+        "self.addEventListener('install', () => self.skipWaiting());\n"
+            + "self.addEventListener('activate', (event) => {\n"
+            + "  event.waitUntil(\n"
+            + "    self.registration.unregister().then(() => self.clients.matchAll())\n"
+            + "      .then((clients) => clients.forEach((c) => c.navigate(c.url)))\n"
+            + "  );\n"
+            + "});\n";
+
+    byte[] bytes = noOpWorker.getBytes(StandardCharsets.UTF_8);
+    response.setContentType("application/javascript");
+    response.setContentLength(bytes.length);
+    response.setHeader("Cache-Control", "no-store");
+    response.setHeader("Service-Worker-Allowed", "/");
+    response.getOutputStream().write(bytes);
+    log.debug("Served no-op service worker for canonical paths at: {}", path);
+    return true;
   }
 
   private String withQueryString(@Nonnull String path, String queryString) {
