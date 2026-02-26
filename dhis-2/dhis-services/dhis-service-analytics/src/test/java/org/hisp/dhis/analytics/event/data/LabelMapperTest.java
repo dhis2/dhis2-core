@@ -57,6 +57,17 @@ class LabelMapperTest {
 
   private static final String ENROLLMENT = "Enrollment";
 
+  private static final String EVENT = "Event";
+
+  @Test
+  void testGetHeaderNameFor_EVENT() {
+    ProgramStage aMockedProgramStageWithLabels = mockProgramStageWithLabels();
+
+    String actualName = LabelMapper.getEventLabel(aMockedProgramStageWithLabels, EVENT);
+
+    assertThat(actualName, is(aMockedProgramStageWithLabels.getEventLabel()));
+  }
+
   @Test
   void testGetHeaderNameFor_ENROLLMENT() {
     Program aMockedProgramWithLabels = mockProgramWithLabels();
