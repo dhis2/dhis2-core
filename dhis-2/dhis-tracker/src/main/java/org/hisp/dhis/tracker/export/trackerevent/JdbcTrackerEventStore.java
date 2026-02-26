@@ -56,6 +56,7 @@ import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -508,7 +509,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    *   inner join programstage ps on ...      -- conditional
    *   inner join trackedentity te on ...
    *   inner join trackedentityprogramowner po on ...
-   *   inner join organisationunit ou on ...
+   *   inner join organisationunit ou on ...  -- skipped for orgUnitMode=SELECTED with program
    *   inner join organisationunit evou on ...
    *   inner join organisationunit teou on ...
    *   left join userinfo au on ...
@@ -531,7 +532,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
     addJoinOnTrackedEntity(sql);
     addJoinOnProgramOwner(sql);
-    addJoinOnOwnerOrgUnit(sql);
+    if (!isSelectedModeWithProgram(params)) {
+      addJoinOnOwnerOrgUnit(sql);
+    }
     addJoinOnEventOrgUnit(sql);
     addJoinOnTrackedEntityOrgUnit(sql);
     addLeftJoinOnAssignedUser(sql);
@@ -552,7 +555,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    *       known, conditions use {@code en.programid} / {@code en.trackedentityid} directly and both
    *       joins are skipped.
    *   <li>{@code trackedentityprogramowner} + {@code organisationunit} - ownership and org unit
-   *       filtering
+   *       filtering. The {@code organisationunit} join is skipped for {@code orgUnitMode=SELECTED}
+   *       with a known program because the org unit filter targets {@code
+   *       trackedentityprogramowner} directly.
    *   <li>{@code categoryoptioncombo} - attribute option combo access control
    * </ul>
    *
@@ -575,7 +580,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       addJoinOnTrackedEntity(sql);
     }
     addJoinOnProgramOwner(sql);
-    addJoinOnOwnerOrgUnit(sql);
+    if (!isSelectedModeWithProgram(params)) {
+      addJoinOnOwnerOrgUnit(sql);
+    }
     addJoinOnCategoryOptionCombo(sql, user);
     addCountWhereConditions(sql, sqlParams, params, needsProgramAndTrackedEntityJoin);
 
@@ -654,6 +661,11 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       TrackerEventQueryParams params,
       SqlHelper hlp,
       boolean hasTrackedEntityJoin) {
+    if (isSelectedModeWithProgram(params)) {
+      addSelectedOrgUnitConditions(sql, sqlParams, params, hlp);
+      return;
+    }
+
     if (params.getOrgUnit() != null) {
       buildOrgUnitModeClause(
           sql,
@@ -1076,6 +1088,11 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       MapSqlParameterSource sqlParams,
       TrackerEventQueryParams params,
       SqlHelper hlp) {
+    if (isSelectedModeWithProgram(params)) {
+      addSelectedOrgUnitConditions(sql, sqlParams, params, hlp);
+      return;
+    }
+
     if (params.getOrgUnit() != null) {
       buildOrgUnitModeClause(
           sql,
@@ -1098,6 +1115,30 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     } else {
       buildOwnershipClause(sql, sqlParams, params.getOrgUnitMode(), "p", "ou", "te", hlp::whereAnd);
     }
+  }
+
+  /**
+   * Adds org unit conditions for {@code orgUnitMode=SELECTED} with a known program. Filters
+   * directly on {@code trackedentityprogramowner.programid} and {@code
+   * trackedentityprogramowner.organisationunitid}, enabling PostgreSQL to use the {@code
+   * (programid, organisationunitid)} composite index as the driving access path. This avoids the
+   * {@code organisationunit} table join which otherwise constrains the optimizer to a backward
+   * event/enrollment PK scan that must probe every row.
+   *
+   * <p>The ownership access control clause ({@code ou.path like ...}) is not emitted because the
+   * mapper validates that the user has appropriate access to the requested org units before they
+   * reach the store.
+   */
+  private void addSelectedOrgUnitConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      TrackerEventQueryParams params,
+      SqlHelper hlp) {
+    sql.append(hlp.whereAnd())
+        .append(
+            "po.programid = :selectedProgramId and po.organisationunitid in (:selectedOrgUnits) ");
+    sqlParams.addValue("selectedProgramId", params.getEnrolledInTrackerProgram().getId());
+    sqlParams.addValue("selectedOrgUnits", getIdentifiers(Set.of(params.getOrgUnit())));
   }
 
   private void addOccurredDateConditions(
@@ -1247,5 +1288,11 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       log.error("Parsing EventDataValues json string failed, string value: '{}'", jsonString);
       throw new IllegalArgumentException(e);
     }
+  }
+
+  private static boolean isSelectedModeWithProgram(TrackerEventQueryParams params) {
+    return params.hasEnrolledInTrackerProgram()
+        && params.getOrgUnit() != null
+        && params.getOrgUnitMode() == OrganisationUnitSelectionMode.SELECTED;
   }
 }
