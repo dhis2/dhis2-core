@@ -121,10 +121,9 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
   public void synchronizePage(
       int page, TrackerSynchronizationContext context, SystemSettings settings)
       throws ForbiddenException, BadRequestException, NotFoundException, WebMessageException {
-    List<D> trackedEntities = fetchEntitiesForPage(page, context);
+    List<D> entities = fetchEntitiesForPage(page, context);
 
-    Map<Boolean, List<D>> partitionedTrackedEntities =
-        partitionEntitiesByDeletionStatus(trackedEntities);
+    Map<Boolean, List<D>> partitionedTrackedEntities = partitionEntitiesByDeletionStatus(entities);
     List<D> deletedTrackedEntities = partitionedTrackedEntities.get(true);
     List<D> activeTrackedEntities = partitionedTrackedEntities.get(false);
 
@@ -168,11 +167,12 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
 
     if (summary == null || summary.getStatus() != ImportStatus.SUCCESS) {
       throw new MetadataSyncServiceException(
-          format("Single Event sync failed for importStrategy=%s", importStrategy));
+          format("%s sync failed for importStrategy=%s", getEntityName(), importStrategy));
     }
 
     log.info(
-        "Single Event sync successful for importStrategy={}. Events count: {}",
+        "{} sync successful for importStrategy={}. Entity count: {}",
+        getEntityName(),
         importStrategy,
         entities.size());
 
@@ -203,8 +203,8 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
   }
 
   public void syncEntitiesByDeletionStatus(
-      List<D> activeEvents,
-      List<D> deletedEvents,
+      List<D> activeEntities,
+      List<D> deletedEntities,
       TrackerSynchronizationContext context,
       SystemSettings settings)
       throws WebMessageException {
@@ -215,16 +215,16 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
         TrackerIdSchemeParams.builder().idScheme(TrackerIdSchemeParam.UID).build();
     MappingErrors errors = new MappingErrors(idSchemeParam);
 
-    if (!activeEvents.isEmpty()) {
+    if (!activeEntities.isEmpty()) {
       List<V> activeEventDtos =
-          activeEvents.stream().map(ev -> getMappedEntities(ev, idSchemeParam, errors)).toList();
+          activeEntities.stream().map(ev -> getMappedEntities(ev, idSchemeParam, errors)).toList();
       ensureNoMappingErrors(errors);
       syncAndUpdateEntities(
           activeEventDtos, instance, settings, syncTime, TrackerImportStrategy.CREATE_AND_UPDATE);
     }
 
-    if (!deletedEvents.isEmpty()) {
-      List<V> deletedEventDtos = deletedEvents.stream().map(this::toMinimalEntity).toList();
+    if (!deletedEntities.isEmpty()) {
+      List<V> deletedEventDtos = deletedEntities.stream().map(this::toMinimalEntity).toList();
       syncAndUpdateEntities(
           deletedEventDtos, instance, settings, syncTime, TrackerImportStrategy.DELETE);
     }
@@ -233,6 +233,8 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
   public abstract V toMinimalEntity(D entity);
 
   public abstract String getJsonRootName();
+
+  public abstract String getEntityName();
 
   public abstract String getProcessName();
 

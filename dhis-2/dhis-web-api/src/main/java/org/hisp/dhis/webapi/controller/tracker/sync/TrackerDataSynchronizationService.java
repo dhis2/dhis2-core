@@ -151,6 +151,11 @@ public class TrackerDataSynchronizationService
   }
 
   @Override
+  public String getEntityName() {
+    return "Tracked Entities";
+  }
+
+  @Override
   public String getProcessName() {
     return PROCESS_NAME;
   }

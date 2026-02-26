@@ -42,7 +42,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class TrackerDataSyncrhonizationJob implements Job {
+public class TrackerDataSynchronizationJob implements Job {
 
   private final TrackerDataSynchronizationService trackerDataSynchronizationService;
 

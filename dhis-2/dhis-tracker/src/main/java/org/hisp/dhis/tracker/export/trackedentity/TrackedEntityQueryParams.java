@@ -332,7 +332,7 @@ public class TrackedEntityQueryParams {
     return this;
   }
 
-  public TrackedEntityQueryParams setSynchronizationQuery(Boolean synchronizationQuery) {
+  public TrackedEntityQueryParams setSynchronizationQuery(boolean synchronizationQuery) {
     this.synchronizationQuery = synchronizationQuery;
     return this;
   }

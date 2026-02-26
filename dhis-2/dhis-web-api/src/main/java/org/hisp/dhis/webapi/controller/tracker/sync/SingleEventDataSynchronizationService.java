@@ -147,6 +147,11 @@ public class SingleEventDataSynchronizationService
   }
 
   @Override
+  public String getEntityName() {
+    return "Single Event";
+  }
+
+  @Override
   public String getProcessName() {
     return PROCESS_NAME;
   }
