@@ -118,7 +118,7 @@ class CacheInvalidationMessagePublisherTest extends PostgresIntegrationTestBase 
 
     List<String> messages = messagePublisher.getMessages();
 
-    assertEquals(4, messages.size());
+    assertEquals(3, messages.size());
 
     String messageA = messages.get(0);
     String[] partsA = messageA.split(":");
@@ -126,21 +126,13 @@ class CacheInvalidationMessagePublisherTest extends PostgresIntegrationTestBase 
     assertEquals("org.hisp.dhis.user.UserRole", partsA[2]);
     assertEquals(peter.getUserRoles().stream().toList().get(0).getId(), Long.parseLong(partsA[3]));
 
-    // UserRole.members is now the owning side, so adding a user to a role
-    // generates a collection change event
-    String messageAA = messages.get(1);
-    String[] partsAA = messageAA.split(":");
-    assertEquals("collection", partsAA[1]);
-    assertEquals("org.hisp.dhis.user.UserRole", partsAA[2]);
-    assertEquals("org.hisp.dhis.user.UserRole.members", partsAA[3]);
-
-    String messageB = messages.get(2);
+    String messageB = messages.get(1);
     String[] partsB = messageB.split(":");
     assertEquals("insert", partsB[1]);
     assertEquals("org.hisp.dhis.user.User", partsB[2]);
     assertEquals(peter.getId(), Long.parseLong(partsB[3]));
 
-    String messageC = messages.get(3);
+    String messageC = messages.get(2);
     String[] partsC = messageC.split(":");
     assertEquals("update", partsC[1]);
     assertEquals("org.hisp.dhis.user.User", partsC[2]);
@@ -149,7 +141,7 @@ class CacheInvalidationMessagePublisherTest extends PostgresIntegrationTestBase 
     OrganisationUnit orgA = createOrganisationUnit("org1");
     manager.save(orgA);
 
-    String messageD = messages.get(4);
+    String messageD = messages.get(3);
     String[] partsD = messageD.split(":");
     assertEquals("insert", partsD[1]);
     assertEquals("org.hisp.dhis.organisationunit.OrganisationUnit", partsD[2]);
@@ -158,7 +150,7 @@ class CacheInvalidationMessagePublisherTest extends PostgresIntegrationTestBase 
     orgA.setCode("orgA_A");
     manager.update(orgA);
 
-    String messageE = messages.get(5);
+    String messageE = messages.get(4);
     String[] partsE = messageE.split(":");
     assertEquals("update", partsE[1]);
     assertEquals("org.hisp.dhis.organisationunit.OrganisationUnit", partsE[2]);
@@ -166,7 +158,7 @@ class CacheInvalidationMessagePublisherTest extends PostgresIntegrationTestBase 
 
     manager.delete(orgA);
 
-    String messageF = messages.get(6);
+    String messageF = messages.get(5);
     String[] partsF = messageF.split(":");
     assertEquals("delete", partsF[1]);
     assertEquals("org.hisp.dhis.organisationunit.OrganisationUnit", partsF[2]);
@@ -175,16 +167,16 @@ class CacheInvalidationMessagePublisherTest extends PostgresIntegrationTestBase 
     peter.getUserRoles().removeAll(peter.getUserRoles());
     userService.updateUser(peter);
 
-    assertEquals(9, messages.size());
+    assertEquals(8, messages.size());
 
-    String messageG = messages.get(7);
+    String messageG = messages.get(6);
     String[] partsG = messageG.split(":");
     assertEquals("collection", partsG[1]);
     assertEquals("org.hisp.dhis.user.User", partsG[2]);
     assertEquals("org.hisp.dhis.user.User.userRoles", partsG[3]);
     assertEquals(peter.getId(), Long.parseLong(partsG[4]));
 
-    String messageH = messages.get(8);
+    String messageH = messages.get(7);
     String[] partsH = messageH.split(":");
     assertEquals("update", partsH[1]);
     assertEquals("org.hisp.dhis.user.User", partsH[2]);

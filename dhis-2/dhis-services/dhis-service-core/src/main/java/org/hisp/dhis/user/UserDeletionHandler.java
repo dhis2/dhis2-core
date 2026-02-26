@@ -50,8 +50,6 @@ public class UserDeletionHandler extends JdbcDeletionHandler {
 
   private final UserStore userStore;
 
-  private final UserRoleStore userRoleStore;
-
   private static final DeletionVeto VETO = new DeletionVeto(User.class);
 
   @Override
@@ -64,7 +62,10 @@ public class UserDeletionHandler extends JdbcDeletionHandler {
   }
 
   private void deleteUserRole(UserRole role) {
-    userRoleStore.removeAllMembershipsForRole(role.getUID());
+    for (User user : role.getMembers()) {
+      user.getUserRoles().remove(role);
+      idObjectManager.updateNoAcl(user);
+    }
   }
 
   private void deleteOrganisationUnit(OrganisationUnit unit) {

@@ -43,7 +43,6 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.user.UserRoleStore;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
@@ -65,7 +64,6 @@ public class UserRoleController
     extends AbstractCrudController<UserRole, UserRoleController.GetUserRoleObjectListParams> {
 
   private final UserService userService;
-  private final UserRoleStore userRoleStore;
 
   @Data
   @EqualsAndHashCode(callSuper = true)
@@ -110,7 +108,10 @@ public class UserRoleController
       throw new ForbiddenException("You don't have the proper permissions to update this object.");
     }
 
-    userRoleStore.addMember(UID.of(pvId), UID.of(pvUserId));
+    if (!user.getUserRoles().contains(userRole)) {
+      user.getUserRoles().add(userRole);
+      userService.updateUser(user);
+    }
   }
 
   @DeleteMapping("/{id}/users/{userId}")
@@ -137,6 +138,9 @@ public class UserRoleController
       throw new ForbiddenException("You don't have the proper permissions to delete this object.");
     }
 
-    userRoleStore.removeMember(UID.of(pvId), UID.of(pvUserId));
+    if (user.getUserRoles().contains(userRole)) {
+      user.getUserRoles().remove(userRole);
+      userService.updateUser(user);
+    }
   }
 }
