@@ -276,11 +276,7 @@ public class AggregateDataExchangeService {
     DataEntryGroup.Ids ids = request.getEntryIds();
     group = group.withIds(ids);
     List<DataEntryGroup.Input.Scope.Element> elements =
-        createScopeElements(
-            params,
-            ids.dataElements(),
-            ids.categoryOptionCombos(),
-            DataEntryGroup.Input.Scope.Element::new);
+        createScopeElements(params, DataEntryGroup.Input.Scope.Element::new);
     group =
         group.withDeletion(
             new DataEntryGroup.Input.Scope(
@@ -303,11 +299,7 @@ public class AggregateDataExchangeService {
     DataExportGroup.Ids ids = request.getExportIds();
     group = group.withIds(ids);
     List<DataExportGroup.Scope.Element> elements =
-        createScopeElements(
-            params,
-            ids.dataElements(),
-            ids.categoryOptionCombos(),
-            DataExportGroup.Scope.Element::new);
+        createScopeElements(params, DataExportGroup.Scope.Element::new);
     group =
         group.withDeletion(
             new DataExportGroup.Scope(
@@ -598,13 +590,9 @@ public class AggregateDataExchangeService {
         @CheckForNull String attributeOptionCombo);
   }
 
-  private static <T> List<T> createScopeElements(
-      DataQueryParams params,
-      IdProperty dataElements,
-      IdProperty categoryOptionCombos,
-      ElementFactory<T> factory) {
-    IdScheme dxScheme = IdScheme.of(dataElements);
-    IdScheme cocScheme = IdScheme.of(categoryOptionCombos);
+  static <T> List<T> createScopeElements(DataQueryParams params, ElementFactory<T> factory) {
+    IdScheme dxScheme = params.getOutputDataElementIdScheme();
+    IdScheme cocScheme = params.getOutputIdScheme();
     List<T> res = new ArrayList<>();
     for (DimensionalItemObject item : params.getDimensionOptions(DATA_X_DIM_ID)) {
       if (item instanceof DataElement de) {
@@ -624,7 +612,7 @@ public class AggregateDataExchangeService {
         String aoc = pi.getAggregateExportAttributeOptionCombo();
         res.add(factory.createElement(de, coc, aoc));
       } else if (item instanceof DataDimensionalItemObject dataItem) {
-        String de = item.getDimensionItem(dxScheme);
+        String de = item.getDimensionItem(params.getOutputDataItemIdScheme());
         String coc = dataItem.getAggregateExportCategoryOptionCombo();
         String aoc = dataItem.getAggregateExportAttributeOptionCombo();
         res.add(factory.createElement(de, coc, aoc));
