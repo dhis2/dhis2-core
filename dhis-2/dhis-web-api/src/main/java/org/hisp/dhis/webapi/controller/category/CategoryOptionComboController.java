@@ -46,6 +46,7 @@ import org.hisp.dhis.category.CategoryOptionComboService;
 import org.hisp.dhis.category.CategoryOptionComboUpdateDto;
 import org.hisp.dhis.common.Maturity.Beta;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -153,7 +154,7 @@ public class CategoryOptionComboController
   @Override
   @PutMapping(value = "/{uid}", produces = APPLICATION_JSON_VALUE)
   public WebMessage putJsonObject(
-      @PathVariable String uid, UserDetails currentUser, HttpServletRequest request)
+      @PathVariable UID uid, UserDetails currentUser, HttpServletRequest request)
       throws NotFoundException, ForbiddenException, ConflictException, IOException {
     CategoryOptionCombo persisted = getEntity(uid);
     updatePermissionCheck(currentUser, persisted);
@@ -186,7 +187,7 @@ public class CategoryOptionComboController
   @Override
   @PatchMapping(value = "/{uid}", produces = APPLICATION_JSON_VALUE)
   public WebMessage patchObject(
-      @PathVariable String uid,
+      @PathVariable UID uid,
       Map<String, String> rpParameters,
       UserDetails currentUser,
       HttpServletRequest request)

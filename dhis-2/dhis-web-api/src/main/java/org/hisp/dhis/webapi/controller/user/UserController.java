@@ -296,8 +296,8 @@ public class UserController
 
   @Override
   @Nonnull
-  protected User getEntity(String uid) throws NotFoundException {
-    User user = userService.getUser(uid);
+  protected User getEntity(@Nonnull UID uid) throws NotFoundException {
+    User user = userService.getUser(uid.getValue());
     if (user == null) {
       throw new NotFoundException(User.class, uid);
     }
@@ -308,25 +308,25 @@ public class UserController
   @GetMapping("/{uid}/{property}")
   @OpenApi.Document(group = OpenApi.Document.GROUP_QUERY)
   public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @OpenApi.Param(OpenApi.PropertyNames.class) @PathVariable("property") String pvProperty,
+      @OpenApi.Param({UID.class, User.class}) @PathVariable("uid") UID uid,
+      @OpenApi.Param(OpenApi.PropertyNames.class) @PathVariable("property") String property,
       @RequestParam(required = false) List<String> fields,
       @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
 
-    if ("dataApprovalWorkflows".equals(pvProperty)) {
-      return getDataApprovalWorkflows(pvUid, currentUser);
+    if ("dataApprovalWorkflows".equals(property)) {
+      return getDataApprovalWorkflows(uid, currentUser);
     } else {
-      return super.getObjectProperty(pvUid, pvProperty, fields, currentUser, response);
+      return super.getObjectProperty(uid, property, fields, currentUser, response);
     }
   }
 
-  private ResponseEntity<ObjectNode> getDataApprovalWorkflows(String pvUid, UserDetails currentUser)
+  private ResponseEntity<ObjectNode> getDataApprovalWorkflows(UID id, UserDetails currentUser)
       throws NotFoundException, ForbiddenException {
-    User user = userService.getUser(pvUid);
+    User user = userService.getUser(id.getValue());
     if (user == null) {
-      throw new NotFoundException("User not found: " + pvUid);
+      throw new NotFoundException("User not found: " + id);
     }
     if (!aclService.canRead(currentUser, user)) {
       throw new ForbiddenException("You don't have the proper permissions to access this user.");
@@ -579,15 +579,15 @@ public class UserController
       produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public WebMessage putJsonObject(
-      @PathVariable("uid") String pvUid,
+      @PathVariable("uid") UID uid,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
       throws IOException, ConflictException, ForbiddenException, NotFoundException {
     User inputUser = renderService.fromJson(request.getInputStream(), getEntityClass());
-    return importReport(updateUser(pvUid, inputUser));
+    return importReport(updateUser(uid, inputUser));
   }
 
-  protected ImportReport updateUser(String userUid, User inputUser)
+  protected ImportReport updateUser(UID userUid, User inputUser)
       throws ConflictException, ForbiddenException, NotFoundException {
     User user = getEntity(userUid);
 
@@ -603,7 +603,7 @@ public class UserController
     currentUser.getAllAuthorities();
 
     inputUser.setId(user.getId());
-    inputUser.setUid(userUid);
+    inputUser.setUid(userUid.getValue());
     mergeLastLoginAttribute(user, inputUser);
 
     boolean isPasswordChangeAttempt = inputUser.getPassword() != null;
@@ -627,7 +627,7 @@ public class UserController
 
     // import was successful
     if (importReport.getStatus() == Status.OK && importReport.getStats().updated() == 1) {
-      updateUserGroups(userUid, inputUser, currentUser);
+      updateUserGroups(userUid.getValue(), inputUser, currentUser);
 
       // If it was a pw change attempt (input.pw != null) and update was
       // success we assume password has changed...

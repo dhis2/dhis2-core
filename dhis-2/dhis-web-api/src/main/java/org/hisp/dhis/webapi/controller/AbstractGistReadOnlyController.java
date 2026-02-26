@@ -78,9 +78,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
   @OpenApi.Response(value = OpenApi.EntityType.class)
   @GetMapping(value = "/{uid}/gist", produces = "application/json")
   public void getObjectGist(
-      @OpenApi.Param(UID.class) @PathVariable("uid") UID uid,
-      GistObjectParams params,
-      HttpServletResponse response)
+      @PathVariable("uid") UID uid, GistObjectParams params, HttpServletResponse response)
       throws NotFoundException, BadRequestException {
     GistObject.Input input = new GistObject.Input(getEntityClass(), uid, params);
     gistPipeline.exportAsJson(input, lazyOutputStream("application/json", response));
@@ -91,9 +89,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
       value = {"/{uid}/gist", "/{uid}/gist.csv"},
       produces = "text/csv")
   public void getObjectGistAsCsv(
-      @OpenApi.Param(UID.class) @PathVariable("uid") UID uid,
-      GistObjectParams params,
-      HttpServletResponse response)
+      @PathVariable("uid") UID uid, GistObjectParams params, HttpServletResponse response)
       throws BadRequestException, NotFoundException {
     GistObject.Input input = new GistObject.Input(getEntityClass(), uid, params);
     gistPipeline.exportAsCsv(input, lazyOutputStream("text/csv", response));
@@ -135,7 +131,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
   @OpenApi.Response(JsonValue.class)
   @GetMapping(value = "/{uid}/{property}/gist", produces = "application/json")
   public void getObjectPropertyGist(
-      @OpenApi.Param(UID.class) @PathVariable("uid") UID uid,
+      @PathVariable("uid") UID uid,
       @OpenApi.Param(PropertyNames.class) @PathVariable("property") String property,
       GistObjectPropertyParams params,
       HttpServletRequest request,
@@ -152,7 +148,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
       value = {"/{uid}/{property}/gist", "/{uid}/{property}/gist.csv"},
       produces = "text/csv")
   public void getObjectPropertyGistAsCsv(
-      @OpenApi.Param(UID.class) @PathVariable("uid") UID uid,
+      @PathVariable("uid") UID uid,
       @OpenApi.Param(PropertyNames.class) @PathVariable("property") String property,
       GistObjectPropertyParams params,
       HttpServletRequest request,

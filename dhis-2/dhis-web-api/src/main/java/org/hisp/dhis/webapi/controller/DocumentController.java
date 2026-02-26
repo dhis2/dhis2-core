@@ -41,6 +41,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentService;
@@ -132,12 +133,9 @@ public class DocumentController extends AbstractCrudController<Document, GetObje
 
   @Override
   public WebMessage deleteObject(
-      String documentUid,
-      UserDetails currentUser,
-      HttpServletRequest request,
-      HttpServletResponse response)
+      UID uid, UserDetails currentUser, HttpServletRequest request, HttpServletResponse response)
       throws NotFoundException {
-    Document document = getEntity(documentUid);
+    Document document = getEntity(uid);
     ObjectReport objectReport = new ObjectReport(Document.class, 0, document.getUid());
     try {
       documentService.deleteDocument(document);

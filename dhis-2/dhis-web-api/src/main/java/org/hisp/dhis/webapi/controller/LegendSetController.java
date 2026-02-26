@@ -37,6 +37,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -72,7 +73,7 @@ public class LegendSetController extends AbstractCrudController<LegendSet, GetOb
   @Override
   @RequiresAuthority(anyOf = {F_LEGEND_SET_PUBLIC_ADD, F_LEGEND_SET_PRIVATE_ADD})
   public WebMessage putJsonObject(
-      @PathVariable String uid, @CurrentUser UserDetails currentUser, HttpServletRequest request)
+      @PathVariable UID uid, @CurrentUser UserDetails currentUser, HttpServletRequest request)
       throws ForbiddenException,
           ConflictException,
           NotFoundException,
@@ -84,7 +85,7 @@ public class LegendSetController extends AbstractCrudController<LegendSet, GetOb
   @Override
   @RequiresAuthority(anyOf = F_LEGEND_SET_DELETE)
   public WebMessage deleteObject(
-      @PathVariable String uid,
+      @PathVariable UID uid,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
