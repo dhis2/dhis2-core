@@ -640,6 +640,26 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
                 entityInstanceA1.getUid()));
   }
 
+  @Test
+  void shouldUpdateTrackedEntityLastUpdatedWhenGrantingTemporaryOwnership()
+      throws ForbiddenException {
+    userB.setTeiSearchOrganisationUnits(Set.of(organisationUnitA));
+    userService.updateUser(userB);
+    Date lastUpdatedBefore = entityInstanceA1.getLastUpdated();
+
+    trackerOwnershipAccessManager.grantTemporaryOwnership(
+        entityInstanceA1, programA, userB, "test protected program");
+
+    org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance trackedEntity =
+        trackedEntityInstanceService.getTrackedEntityInstance(entityInstanceA1.getUid());
+    assertTrue(
+        StringToDate(trackedEntity.getLastUpdated()).after(lastUpdatedBefore),
+        () ->
+            String.format(
+                "The field lastUpdated for TrackedEntity %s should be updated after temporary access granted. ",
+                entityInstanceA1.getUid()));
+  }
+
   private void transferOwnership(
       TrackedEntityInstance trackedEntity, Program program, OrganisationUnit orgUnit)
       throws ForbiddenException {
