@@ -51,6 +51,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -323,10 +324,10 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
     testExport(
         "adx/exportA.adx.xml",
         getCommonExportParams().toBuilder()
-            .idScheme("CODE")
-            .dataElementIdScheme("NAME")
-            .categoryIdScheme("NAME")
-            .categoryOptionIdScheme("UID")
+            .idScheme(IdProperty.CODE)
+            .dataElementIdScheme(IdProperty.NAME)
+            .categoryIdScheme(IdProperty.NAME)
+            .categoryOptionIdScheme(IdProperty.UID)
             .build());
   }
 
@@ -335,11 +336,11 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
     testExport(
         "adx/exportB.adx.xml",
         getCommonExportParams().toBuilder()
-            .idScheme("CODE")
-            .dataSetIdScheme("NAME")
-            .orgUnitIdScheme("UID")
-            .dataElementIdScheme("UID")
-            .categoryOptionComboIdScheme("NAME")
+            .idScheme(IdProperty.CODE)
+            .dataSetIdScheme(IdProperty.NAME)
+            .orgUnitIdScheme(IdProperty.UID)
+            .dataElementIdScheme(IdProperty.UID)
+            .categoryOptionComboIdScheme(IdProperty.NAME)
             .orgUnitGroup(Set.of(ougA.getUid()))
             .build());
   }
@@ -349,11 +350,11 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
     testExport(
         "adx/exportC.adx.xml",
         getCommonExportParams().toBuilder()
-            .idScheme("CODE")
-            .dataSetIdScheme("UID")
-            .orgUnitIdScheme("NAME")
-            .categoryIdScheme("UID")
-            .categoryOptionIdScheme("NAME")
+            .idScheme(IdProperty.CODE)
+            .dataSetIdScheme(IdProperty.UID)
+            .orgUnitIdScheme(IdProperty.NAME)
+            .categoryIdScheme(IdProperty.UID)
+            .categoryOptionIdScheme(IdProperty.NAME)
             .children(true)
             .build());
   }
@@ -363,11 +364,11 @@ class AdxDataServiceIntegrationTest extends PostgresIntegrationTestBase {
     testExport(
         "adx/exportD.adx.xml",
         getCommonExportParams().toBuilder()
-            .idScheme("CODE")
-            .dataSetIdScheme("UID")
-            .orgUnitIdScheme("NAME")
-            .categoryIdScheme("UID")
-            .categoryOptionIdScheme("NAME")
+            .idScheme(IdProperty.CODE)
+            .dataSetIdScheme(IdProperty.UID)
+            .orgUnitIdScheme(IdProperty.NAME)
+            .categoryIdScheme(IdProperty.UID)
+            .categoryOptionIdScheme(IdProperty.NAME)
             .children(true)
             .attributeOptionCombo(Set.of(cocMcDonalds.getUid()))
             .build());

@@ -35,7 +35,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {DebugMapper.class, DataElementMapper.class})
+@Mapper(uses = {DataElementMapper.class})
 public interface ProgramStageDataElementMapper extends PreheatMapper<ProgramStageDataElement> {
   ProgramStageDataElementMapper INSTANCE = Mappers.getMapper(ProgramStageDataElementMapper.class);
 

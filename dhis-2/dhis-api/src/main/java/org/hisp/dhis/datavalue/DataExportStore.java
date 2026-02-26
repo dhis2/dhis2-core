@@ -55,7 +55,7 @@ public interface DataExportStore {
    */
 
   @CheckForNull
-  DataExportValue exportValue(@Nonnull DataEntryKey key);
+  DataExportValue exportValue(@Nonnull DataValueKey key);
 
   /**
    * Returns data values for the given data export parameters.

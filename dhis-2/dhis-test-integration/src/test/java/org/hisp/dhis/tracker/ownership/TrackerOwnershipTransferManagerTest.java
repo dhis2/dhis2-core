@@ -49,6 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -648,6 +649,23 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
             + " is already "
             + organisationUnitA.getUid(),
         exception.getMessage());
+  }
+
+  @Test
+  void shouldUpdateTrackedEntityLastUpdatedWhenOwnershipIsTransferred()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    Date lastUpdatedBefore = trackedEntityA1.getLastUpdated();
+
+    transferOwnership(trackedEntityA1, programA, organisationUnitB);
+
+    TrackedEntity trackedEntity =
+        trackedEntityService.getTrackedEntity(UID.of(trackedEntityA1.getUid()));
+    assertTrue(
+        trackedEntity.getLastUpdated().after(lastUpdatedBefore),
+        () ->
+            String.format(
+                "The field lastUpdated for TrackedEntity %s should be updated after ownership transfer. ",
+                trackedEntityA1.getUid()));
   }
 
   private void transferOwnership(

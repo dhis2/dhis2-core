@@ -38,13 +38,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(
-    uses = {
-      DebugMapper.class,
-      CategoryOptionMapper.class,
-      CategoryComboMapper.class,
-      AttributeValuesMapper.class
-    })
+@Mapper(uses = {CategoryOptionMapper.class, CategoryComboMapper.class, AttributeValuesMapper.class})
 public interface CategoryOptionComboMapper extends PreheatMapper<CategoryOptionCombo> {
   CategoryOptionComboMapper INSTANCE = Mappers.getMapper(CategoryOptionComboMapper.class);
 
