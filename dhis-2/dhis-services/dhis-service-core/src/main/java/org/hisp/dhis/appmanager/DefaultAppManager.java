@@ -82,6 +82,7 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -111,6 +112,7 @@ public class DefaultAppManager implements AppManager {
   private final DatastoreService datastoreService;
   private final BundledAppManager bundledAppManager;
   private final I18nManager i18nManager;
+  private final SystemSettingsProvider settingsProvider;
 
   /**
    * In-memory storage of installed apps. Initially loaded on startup. Should not be cleared during
@@ -127,7 +129,8 @@ public class DefaultAppManager implements AppManager {
       CacheBuilderProvider cacheBuilderProvider,
       I18nManager i18nManager,
       LocaleManager localeManager,
-      BundledAppManager bundledAppManager) {
+      BundledAppManager bundledAppManager,
+      SystemSettingsProvider settingsProvider) {
 
     checkNotNull(dhisConfigurationProvider);
     checkNotNull(jCloudsAppStorageService);
@@ -136,6 +139,7 @@ public class DefaultAppManager implements AppManager {
     checkNotNull(i18nManager);
     checkNotNull(bundledAppManager);
     checkNotNull(localeManager);
+    checkNotNull(settingsProvider);
 
     this.dhisConfigurationProvider = dhisConfigurationProvider;
     this.appHubService = appHubService;
@@ -145,6 +149,7 @@ public class DefaultAppManager implements AppManager {
     this.i18nManager = i18nManager;
     this.localeManager = localeManager;
     this.bundledAppManager = bundledAppManager;
+    this.settingsProvider = settingsProvider;
   }
 
   /**
@@ -284,11 +289,12 @@ public class DefaultAppManager implements AppManager {
     }
 
     Locale userLocale = localeManager.getCurrentLocale();
+    boolean canonicalPaths = settingsProvider.getCurrentSettings().getCanonicalAppPaths();
 
     return stream
         .map(
             app -> {
-              app.init(contextPath);
+              app.init(contextPath, canonicalPaths);
               try {
                 return app.localise(userLocale);
               } catch (RuntimeException e) {

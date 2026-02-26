@@ -46,6 +46,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.BundledAppManager;
+import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -60,6 +62,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 public class AppOverrideFilter extends OncePerRequestFilter {
 
   private final BundledAppManager bundledAppManager;
+  private final SystemSettingsProvider settingsProvider;
   private Pattern appPathPattern;
 
   @PostConstruct
@@ -84,11 +87,25 @@ public class AppOverrideFilter extends OncePerRequestFilter {
     if (appPathMatcher.find()) {
       String appName = appPathMatcher.group(1);
       String resourcePath = appPathMatcher.group(2);
-      String destinationPath = "/" + AppManager.INSTALLED_APP_PREFIX + appName + resourcePath;
       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
       if (authentication != null
           && authentication.isAuthenticated()
           && !authentication.getPrincipal().equals("anonymousUser")) {
+
+        boolean canonicalAppPaths = settingsProvider.getCurrentSettings().getCanonicalAppPaths();
+        if (canonicalAppPaths) {
+          String canonicalPath =
+              HttpServletRequestPaths.getContextPath(request) + "/apps/" + appName + resourcePath;
+          String queryString = request.getQueryString();
+          if (queryString != null && !queryString.isEmpty()) {
+            canonicalPath += "?" + queryString;
+          }
+          response.sendRedirect(canonicalPath);
+          log.debug("302 redirect legacy app path to canonical: {}", canonicalPath);
+          return;
+        }
+
+        String destinationPath = "/" + AppManager.INSTALLED_APP_PREFIX + appName + resourcePath;
         RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(destinationPath);
         dispatcher.forward(request, response);
         return;

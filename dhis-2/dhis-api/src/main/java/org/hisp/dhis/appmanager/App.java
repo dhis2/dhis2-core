@@ -138,8 +138,23 @@ public class App implements Serializable {
    * @param contextPath the context path of this instance.
    */
   public void init(@CheckForNull String contextPath) {
-    String prefix =
-        this.isBundled() ? AppManager.BUNDLED_APP_PREFIX : AppManager.INSTALLED_APP_PREFIX;
+    init(contextPath, false);
+  }
+
+  /**
+   * Initializes the app. Sets the launchUrl property.
+   *
+   * @param contextPath the context path of this instance.
+   * @param canonicalAppPaths when true, all apps use {@code /apps/{appName}/} as base path instead
+   *     of the legacy {@code /dhis-web-{appName}/} for bundled apps.
+   */
+  public void init(@CheckForNull String contextPath, boolean canonicalAppPaths) {
+    String prefix;
+    if (canonicalAppPaths) {
+      prefix = AppManager.CANONICAL_APP_PREFIX;
+    } else {
+      prefix = this.isBundled() ? AppManager.BUNDLED_APP_PREFIX : AppManager.INSTALLED_APP_PREFIX;
+    }
     this.basePath = ("/" + prefix + getUrlFriendlyName()).replaceAll("/+", "/");
     this.baseUrl = contextPath + basePath;
 
