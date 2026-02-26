@@ -34,8 +34,10 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
+import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildDirectOwnerFilter;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
+import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.canSkipOrgUnitJoin;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -56,7 +58,6 @@ import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
@@ -532,7 +533,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
     addJoinOnTrackedEntity(sql);
     addJoinOnProgramOwner(sql);
-    if (!isSelectedModeWithProgram(params)) {
+    if (!canSkipOrgUnitJoin(orgUnitsOf(params), params.getOrgUnitMode(), params.getEnrolledInTrackerProgram())) {
       addJoinOnOwnerOrgUnit(sql);
     }
     addJoinOnEventOrgUnit(sql);
@@ -580,7 +581,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       addJoinOnTrackedEntity(sql);
     }
     addJoinOnProgramOwner(sql);
-    if (!isSelectedModeWithProgram(params)) {
+    if (!canSkipOrgUnitJoin(orgUnitsOf(params), params.getOrgUnitMode(), params.getEnrolledInTrackerProgram())) {
       addJoinOnOwnerOrgUnit(sql);
     }
     addJoinOnCategoryOptionCombo(sql, user);
@@ -661,19 +662,15 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       TrackerEventQueryParams params,
       SqlHelper hlp,
       boolean hasTrackedEntityJoin) {
-    if (isSelectedModeWithProgram(params)) {
-      addSelectedOrgUnitConditions(sql, sqlParams, params, hlp);
+    Set<OrganisationUnit> orgUnits = orgUnitsOf(params);
+
+    if (canSkipOrgUnitJoin(orgUnits, params.getOrgUnitMode(), params.getEnrolledInTrackerProgram())) {
+      buildDirectOwnerFilter(sql, sqlParams, orgUnits, hlp.whereAnd());
       return;
     }
 
     if (params.getOrgUnit() != null) {
-      buildOrgUnitModeClause(
-          sql,
-          sqlParams,
-          Set.of(params.getOrgUnit()),
-          params.getOrgUnitMode(),
-          "ou",
-          hlp.whereAnd());
+      buildOrgUnitModeClause(sql, sqlParams, orgUnits, params.getOrgUnitMode(), "ou", hlp.whereAnd());
     }
 
     if (params.hasEnrolledInTrackerProgram()) {
@@ -1088,19 +1085,15 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       MapSqlParameterSource sqlParams,
       TrackerEventQueryParams params,
       SqlHelper hlp) {
-    if (isSelectedModeWithProgram(params)) {
-      addSelectedOrgUnitConditions(sql, sqlParams, params, hlp);
+    Set<OrganisationUnit> orgUnits = orgUnitsOf(params);
+
+    if (canSkipOrgUnitJoin(orgUnits, params.getOrgUnitMode(), params.getEnrolledInTrackerProgram())) {
+      buildDirectOwnerFilter(sql, sqlParams, orgUnits, hlp.whereAnd());
       return;
     }
 
     if (params.getOrgUnit() != null) {
-      buildOrgUnitModeClause(
-          sql,
-          sqlParams,
-          Set.of(params.getOrgUnit()),
-          params.getOrgUnitMode(),
-          "ou",
-          hlp.whereAnd());
+      buildOrgUnitModeClause(sql, sqlParams, orgUnits, params.getOrgUnitMode(), "ou", hlp.whereAnd());
     }
 
     if (params.hasEnrolledInTrackerProgram()) {
@@ -1115,30 +1108,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     } else {
       buildOwnershipClause(sql, sqlParams, params.getOrgUnitMode(), "p", "ou", "te", hlp::whereAnd);
     }
-  }
-
-  /**
-   * Adds org unit conditions for {@code orgUnitMode=SELECTED} with a known program. Filters
-   * directly on {@code trackedentityprogramowner.programid} and {@code
-   * trackedentityprogramowner.organisationunitid}, enabling PostgreSQL to use the {@code
-   * (programid, organisationunitid)} composite index as the driving access path. This avoids the
-   * {@code organisationunit} table join which otherwise constrains the optimizer to a backward
-   * event/enrollment PK scan that must probe every row.
-   *
-   * <p>The ownership access control clause ({@code ou.path like ...}) is not emitted because the
-   * mapper validates that the user has appropriate access to the requested org units before they
-   * reach the store.
-   */
-  private void addSelectedOrgUnitConditions(
-      StringBuilder sql,
-      MapSqlParameterSource sqlParams,
-      TrackerEventQueryParams params,
-      SqlHelper hlp) {
-    sql.append(hlp.whereAnd())
-        .append(
-            "po.programid = :selectedProgramId and po.organisationunitid in (:selectedOrgUnits) ");
-    sqlParams.addValue("selectedProgramId", params.getEnrolledInTrackerProgram().getId());
-    sqlParams.addValue("selectedOrgUnits", getIdentifiers(Set.of(params.getOrgUnit())));
   }
 
   private void addOccurredDateConditions(
@@ -1290,9 +1259,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
   }
 
-  private static boolean isSelectedModeWithProgram(TrackerEventQueryParams params) {
-    return params.hasEnrolledInTrackerProgram()
-        && params.getOrgUnit() != null
-        && params.getOrgUnitMode() == OrganisationUnitSelectionMode.SELECTED;
+  private static Set<OrganisationUnit> orgUnitsOf(TrackerEventQueryParams params) {
+    return params.getOrgUnit() != null ? Set.of(params.getOrgUnit()) : Set.of();
   }
 }

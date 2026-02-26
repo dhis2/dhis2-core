@@ -33,6 +33,7 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.Set;
@@ -66,6 +67,45 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 @RequiredArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class OrgUnitQueryBuilder {
+
+  /**
+   * Returns {@code true} when the {@code organisationunit} table join can be skipped entirely.
+   *
+   * <p>This is possible when {@code orgUnitMode=SELECTED} and a specific program is known. In that
+   * case the filter targets {@code trackedentityprogramowner(programid, organisationunitid)}
+   * directly via {@link #buildDirectOwnerFilter}, enabling PostgreSQL to use the composite index as
+   * the driving access path. The {@code organisationunit} table join (used for {@code ou.path like}
+   * access control) is not needed because the mapper validates that the user has appropriate access
+   * to the requested org units before they reach the store.
+   *
+   * <p>Without a program, {@code trackedentityprogramowner} is a LEFT JOIN across all programs and
+   * the owner org unit depends on which program is considered, so the {@code organisationunit}
+   * table is still needed for path-based access control.
+   */
+  public static boolean canSkipOrgUnitJoin(
+      Set<OrganisationUnit> orgUnits,
+      OrganisationUnitSelectionMode orgUnitMode,
+      @Nullable Program program) {
+    return orgUnitMode == SELECTED && program != null && orgUnits != null && !orgUnits.isEmpty();
+  }
+
+  /**
+   * Appends an SQL clause that filters directly on {@code
+   * trackedentityprogramowner.organisationunitid}. This replaces both {@link
+   * #buildOrgUnitModeClause} and {@link #buildOwnershipClause} when {@link #canSkipOrgUnitJoin}
+   * returns {@code true}.
+   *
+   * <p>Only the org unit filter is emitted because {@code trackedentityprogramowner.programid} is
+   * already constrained by the {@code po} join condition in all three stores.
+   */
+  public static void buildDirectOwnerFilter(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParameters,
+      Set<OrganisationUnit> orgUnits,
+      String clause) {
+    sql.append(clause).append("po.organisationunitid in (:selectedOrgUnits) ");
+    sqlParameters.addValue("selectedOrgUnits", getIdentifiers(orgUnits));
+  }
 
   /** Appends an SQL clause to filter by org units based on the given org unit mode. */
   public static void buildOrgUnitModeClause(

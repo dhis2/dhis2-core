@@ -30,8 +30,10 @@
 package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildDirectOwnerFilter;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
+import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.canSkipOrgUnitJoin;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.util.DateUtils.nowMinusDuration;
 
@@ -131,7 +133,7 @@ class JdbcEnrollmentStore {
    *   inner join trackedentity ...
    *   inner join trackedentitytype ...
    *   inner join trackedentityprogramowner ...
-   *   inner join organisationunit ou ...
+   *   inner join organisationunit ou ...     -- skipped for orgUnitMode=SELECTED with program
    *   inner join organisationunit en_ou ...
    *   inner join (...) as coc ...
    *   left join lateral (...) notes on true
@@ -150,7 +152,12 @@ class JdbcEnrollmentStore {
       addJoinOnTrackedEntityType(sql);
     }
     addJoinOnProgramOwner(sql);
-    addJoinOnOwnerOrgUnit(sql);
+    if (!canSkipOrgUnitJoin(
+        enrollmentParams.getOrganisationUnits(),
+        enrollmentParams.getOrganisationUnitMode(),
+        enrollmentParams.getEnrolledInTrackerProgram())) {
+      addJoinOnOwnerOrgUnit(sql);
+    }
     addJoinOnEnrollmentOrgUnit(sql);
     addJoinOnCategoryOptionCombo(sql);
     addLeftJoinOnNotes(sql);
@@ -348,6 +355,14 @@ class JdbcEnrollmentStore {
       EnrollmentQueryParams params,
       SqlHelper hlp,
       @Nullable String trackedEntityTableAlias) {
+    if (canSkipOrgUnitJoin(
+        params.getOrganisationUnits(),
+        params.getOrganisationUnitMode(),
+        params.getEnrolledInTrackerProgram())) {
+      buildDirectOwnerFilter(sql, sqlParams, params.getOrganisationUnits(), hlp.whereAnd());
+      return;
+    }
+
     if (params.hasOrganisationUnits()) {
       buildOrgUnitModeClause(
           sql,
@@ -525,7 +540,12 @@ class JdbcEnrollmentStore {
       addJoinOnTrackedEntity(sql);
     }
     addJoinOnProgramOwner(sql);
-    addJoinOnOwnerOrgUnit(sql);
+    if (!canSkipOrgUnitJoin(
+        enrollmentParams.getOrganisationUnits(),
+        enrollmentParams.getOrganisationUnitMode(),
+        enrollmentParams.getEnrolledInTrackerProgram())) {
+      addJoinOnOwnerOrgUnit(sql);
+    }
     addJoinOnCategoryOptionCombo(sql);
     addCountWhereConditions(sql, sqlParams, enrollmentParams, needsTrackedEntityJoin);
 

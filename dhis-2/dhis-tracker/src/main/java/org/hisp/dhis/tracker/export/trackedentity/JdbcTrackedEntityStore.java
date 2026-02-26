@@ -33,8 +33,10 @@ import static java.util.Map.entry;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
+import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildDirectOwnerFilter;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
+import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.canSkipOrgUnitJoin;
 
 import java.sql.Types;
 import java.util.ArrayList;
@@ -293,9 +295,21 @@ class JdbcTrackedEntityStore {
   private void addSubqueryWhere(
       StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
     SqlHelper sqlHelper = new SqlHelper(true);
+    addOrgUnitConditions(sql, sqlParameters, params, sqlHelper);
     addAttributeFilterConditions(sql, sqlParameters, params, sqlHelper);
     addTrackedEntityConditions(sql, sqlParameters, params, sqlHelper);
     addEnrollmentAndEventExistsCondition(sql, sqlParameters, params, sqlHelper);
+  }
+
+  private void addOrgUnitConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParameters,
+      TrackedEntityQueryParams params,
+      SqlHelper sqlHelper) {
+    if (canSkipOrgUnitJoin(
+        params.getOrgUnits(), params.getOrgUnitMode(), params.getEnrolledInTrackerProgram())) {
+      buildDirectOwnerFilter(sql, sqlParameters, params.getOrgUnits(), sqlHelper.whereAnd());
+    }
   }
 
   /**
@@ -429,6 +443,11 @@ class JdbcTrackedEntityStore {
    */
   private void addJoinOnOrgUnit(
       StringBuilder sql, MapSqlParameterSource sqlParameters, TrackedEntityQueryParams params) {
+    if (canSkipOrgUnitJoin(
+        params.getOrgUnits(), params.getOrgUnitMode(), params.getEnrolledInTrackerProgram())) {
+      return;
+    }
+
     String orgUnitTableAlias = "ou";
 
     sql.append("inner join organisationunit ");
