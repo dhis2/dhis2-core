@@ -31,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.trackedentity.OwnershipCacheUtils.getOwnershipCacheKey;
 import static org.hisp.dhis.trackedentity.OwnershipCacheUtils.getTempOwnershipCacheKey;
 
+import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -160,6 +161,9 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
       if (teProgramOwner != null) {
         if (!teProgramOwner.getOrganisationUnit().equals(orgUnit)) {
+          entityInstance.setLastUpdated(new Date());
+          trackedEntityService.updateTrackedEntity(entityInstance);
+
           ProgramOwnershipHistory programOwnershipHistory =
               new ProgramOwnershipHistory(
                   program,
