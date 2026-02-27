@@ -28,11 +28,20 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
 
+import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
 
 /**
  * Tests the {@link ResourceTableController} using (mocked) REST requests.
