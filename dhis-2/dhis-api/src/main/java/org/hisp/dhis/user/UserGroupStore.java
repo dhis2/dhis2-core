@@ -29,10 +29,9 @@
  */
 package org.hisp.dhis.user;
 
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.UID;
-
-import javax.annotation.Nonnull;
 
 /** Contains functions to manage {@link UserGroup} */
 public interface UserGroupStore extends IdentifiableObjectStore<UserGroup> {
@@ -50,5 +49,5 @@ public interface UserGroupStore extends IdentifiableObjectStore<UserGroup> {
    */
   boolean addMember(@Nonnull UID userGroupUid, @Nonnull UID userUid, @Nonnull UID lastUpdatedByUid);
 
-  void updateLastUpdated( @Nonnull UID userGroupUid, @Nonnull UID lastUpdatedByUid );
+  void updateLastUpdated(@Nonnull UID userGroupUid, @Nonnull UID lastUpdatedByUid);
 }

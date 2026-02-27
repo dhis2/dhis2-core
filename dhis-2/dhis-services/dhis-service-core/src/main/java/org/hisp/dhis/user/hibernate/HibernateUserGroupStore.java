@@ -31,7 +31,6 @@ package org.hisp.dhis.user.hibernate;
 
 import jakarta.persistence.EntityManager;
 import javax.annotation.Nonnull;
-
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -98,7 +97,7 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
   }
 
   @Override
-  public void updateLastUpdated( @Nonnull UID userGroupUid, @Nonnull UID lastUpdatedByUid ) {
+  public void updateLastUpdated(@Nonnull UID userGroupUid, @Nonnull UID lastUpdatedByUid) {
     String sql =
         """
         UPDATE usergroup SET lastupdated = now(),

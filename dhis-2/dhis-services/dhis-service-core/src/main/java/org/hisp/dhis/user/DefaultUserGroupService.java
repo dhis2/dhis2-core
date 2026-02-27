@@ -134,9 +134,8 @@ public class DefaultUserGroupService implements UserGroupService {
 
   @Override
   @Transactional(readOnly = true)
-  public boolean canAddOrRemoveMember(String uid, @Nonnull UserDetails userDetails)
-  {
-    return canAddOrRemoveMember( getUserGroup( uid ), userDetails );
+  public boolean canAddOrRemoveMember(String uid, @Nonnull UserDetails userDetails) {
+    return canAddOrRemoveMember(getUserGroup(uid), userDetails);
   }
 
   @Override
@@ -161,7 +160,7 @@ public class DefaultUserGroupService implements UserGroupService {
       UserGroup userGroup = getUserGroup(uid);
       if (canAddOrRemoveMember(userGroup, currentUser)
           && userGroupStore.addMember(
-          userGroup.getUID(), user.getUID(), UID.of(currentUser.getUid()))) {
+              userGroup.getUID(), user.getUID(), UID.of(currentUser.getUid()))) {
         user.getGroups().add(userGroup);
       }
     }
