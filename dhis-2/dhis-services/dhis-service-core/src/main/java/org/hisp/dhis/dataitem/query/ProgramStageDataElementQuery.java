@@ -89,7 +89,8 @@ public class ProgramStageDataElementQuery implements DataItemQuery {
               Pair.of("optionset_uid", "optionset.uid"),
               Pair.of("optionvalue_uid", CAST_NULL_AS_TEXT),
               Pair.of("optionvalue_name", CAST_NULL_AS_TEXT),
-              Pair.of("optionvalue_code", CAST_NULL_AS_TEXT))
+              Pair.of("optionvalue_code", CAST_NULL_AS_TEXT),
+              Pair.of("item_skipanalytics", "programstagedataelement.skipanalytics"))
           .stream()
           .map(pair -> pair.getRight() + " as " + pair.getLeft())
           .collect(joining(", "));
@@ -122,7 +123,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery {
     }
 
     sql.append(
-        " group by program.name, program.shortname, item_name, "
+        " group by program.name, program.shortname, item_name, item_skipanalytics, "
             + COMMON_UIDS
             + ", item_valuetype, item_code, item_sharing, item_shortname,"
             + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname");
@@ -136,7 +137,9 @@ public class ProgramStageDataElementQuery implements DataItemQuery {
 
     // Mandatory filters. They do not respect the root junction filtering.
     sql.append(always(sharingConditions("t.item_sharing", READ_ACCESS, paramsMap)));
-    sql.append(" and");
+    sql.append(" and ");
+    sql.append(always("t.item_skipanalytics = false"));
+    sql.append(" and ");
     sql.append(ifSet(valueTypeFiltering("t.item_valuetype", paramsMap)));
 
     // Optional filters, based on the current root junction.
