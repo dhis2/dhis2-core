@@ -107,12 +107,18 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
     progress.startingProcess(getProcessName());
     SystemSettings settings = systemSettingsService.getCurrentSettings();
 
-    SynchronizationResult validationResult = validatePreconditions(settings, progress);
-    if (validationResult != null) {
-      return validationResult;
+    if (!testServerAvailability(settings, restTemplate).isAvailable()) {
+      return failProcess(progress, "Remote server unavailable");
     }
 
-    TrackerSynchronizationContext context = initializeContext(pageSize, progress, settings);
+    TrackerSynchronizationContext context =
+        progress.runStage(
+            TrackerSynchronizationContext.emptyContext(null, pageSize),
+            ctx ->
+                format(
+                    "%s changed before %s will not sync",
+                    getEntityName(), ctx.getSkipChangedBefore()),
+            () -> createContext(pageSize, settings));
 
     if (context.hasNoObjectsToSynchronize()) {
       return endProcess(progress, "No %s to synchronize".formatted(getEntityName()));
@@ -163,9 +169,6 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
 
   private SynchronizationResult validatePreconditions(
       SystemSettings settings, JobProgress progress) {
-    if (!testServerAvailability(settings, restTemplate).isAvailable()) {
-      return failProcess(progress, "Remote server unavailable");
-    }
 
     return null;
   }
