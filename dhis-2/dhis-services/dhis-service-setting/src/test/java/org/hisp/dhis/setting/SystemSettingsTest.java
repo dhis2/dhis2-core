@@ -103,8 +103,8 @@ class SystemSettingsTest {
   void testKeysWithDefaults() {
     Set<String> keys = SystemSettings.keysWithDefaults();
     assertEquals(148, keys.size());
-    assertTrue(keys.contains(("keyUiCustomColor")));
-    assertTrue(keys.contains(("keyUiCustomColorMobile")));
+    assertTrue(keys.contains(("keyCustomColor")));
+    assertTrue(keys.contains(("keyCustomColorMobile")));
     // just check some at random
     assertTrue(keys.contains("syncSkipSyncForDataChangedBefore"));
     assertTrue(keys.contains("keyTrackerDashboardLayout"));
