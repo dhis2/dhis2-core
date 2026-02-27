@@ -321,21 +321,27 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   /**
    * Returns non-confidential TrackedEntityAttributes from ProgramTrackedEntityAttributes. Use
-   * getAttributes() to access the persisted attribute list.
+   * getAttributes() to access the persisted attribute list. Skipped attributes are also considered
+   * confidential.
    */
   public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributes() {
     return getTrackedEntityAttributes().stream()
-        .filter(a -> !a.isConfidentialBool())
+        .filter(a -> !a.isConfidentialBool() && !a.isSkipAnalytics())
         .collect(Collectors.toList());
   }
 
   /**
    * Returns TrackedEntityAttributes from ProgramTrackedEntityAttributes which have a legend set and
-   * is of numeric value type.
+   * is of numeric value type. Skipped attributes are also considered confidential.
    */
   public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributesWithLegendSet() {
     return getTrackedEntityAttributes().stream()
-        .filter(a -> !a.isConfidentialBool() && a.hasLegendSet() && a.isNumericType())
+        .filter(
+            a ->
+                !a.isConfidentialBool()
+                    && !a.isSkipAnalytics()
+                    && a.hasLegendSet()
+                    && a.isNumericType())
         .collect(Collectors.toList());
   }
 

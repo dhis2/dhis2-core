@@ -149,6 +149,15 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
         .collect(Collectors.toSet());
   }
 
+  /** Returns all non-skipped data elements part of this program stage. */
+  public Set<DataElement> getNonSkippedDataElements() {
+    return programStageDataElements.stream()
+        .filter(programStageDataElement -> !programStageDataElement.getSkipAnalytics())
+        .map(ProgramStageDataElement::getDataElement)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+  }
+
   public boolean addDataElement(DataElement dataElement, Integer sortOrder) {
     ProgramStageDataElement element =
         new ProgramStageDataElement(this, dataElement, false, sortOrder);

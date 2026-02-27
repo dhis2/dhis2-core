@@ -521,6 +521,7 @@ class JdbcEventAnalyticsTableManagerTest {
 
     TrackedEntityAttribute tea1 = rnd.nextObject(TrackedEntityAttribute.class);
     tea1.setValueType(ValueType.ORGANISATION_UNIT);
+    tea1.setSkipAnalytics(false);
 
     ProgramTrackedEntityAttribute tea = new ProgramTrackedEntityAttribute(program, tea1);
 
@@ -584,6 +585,63 @@ class JdbcEventAnalyticsTableManagerTest {
         .addColumn(tea1.getUid() + "_geom", GEOMETRY, ouGeometryQuery, IndexType.GIST)
         // Org unit name column
         .addColumn(tea1.getUid() + "_name", TEXT, ouNameQuery, Skip.SKIP)
+        .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder, false, true))
+        .build()
+        .verify();
+  }
+
+  @Test
+  void verifyGetTableWithSkippedTrackedEntityAttribute() {
+    Program program = createProgram('A');
+
+    TrackedEntityAttribute tea1 = rnd.nextObject(TrackedEntityAttribute.class);
+    tea1.setValueType(ValueType.ORGANISATION_UNIT);
+    tea1.setSkipAnalytics(true);
+
+    ProgramTrackedEntityAttribute tea = new ProgramTrackedEntityAttribute(program, tea1);
+
+    program.setProgramAttributes(List.of(tea));
+
+    DataElement d1 = createDataElement('Z', ValueType.TEXT, AggregationType.SUM);
+
+    ProgramStage ps1 = createProgramStage('A', Set.of(d1));
+
+    program.setProgramStages(Set.of(ps1));
+
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
+    whenConfigurationPeriodSettings();
+
+    String aliasD1 =
+        """
+        eventdatavalues #>> '{deabcdefghZ, value}' as "deabcdefghZ\"""";
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
+            .build();
+
+    mockPeriodYears(List.of(2018, 2019, now().getYear()));
+
+    List<Integer> availableDataYears = periodDataProvider.getAvailableYears(DATABASE);
+
+    when(jdbcTemplate.queryForList(
+            getYearQueryForCurrentYearProgramWithRegistration(program, true, availableDataYears),
+            Integer.class))
+        .thenReturn(List.of(2018, 2019));
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertThat(tables, hasSize(1));
+
+    new AnalyticsTableAsserter.Builder(tables.get(0))
+        .withName(TABLE_PREFIX + program.getUid().toLowerCase() + STAGING_TABLE_SUFFIX)
+        .withMainName(TABLE_PREFIX + program.getUid().toLowerCase())
+        .withTableType(AnalyticsTableType.EVENT)
+        .withColumnSize(59 + OU_NAME_HIERARCHY_COUNT)
+        .addColumns(periodColumns)
+        .addColumn(d1.getUid(), TEXT, toSelectExpression(aliasD1, d1.getUid()), Skip.SKIP)
         .withDefaultColumns(EventAnalyticsColumn.getColumns(sqlBuilder, false, true))
         .build()
         .verify();
