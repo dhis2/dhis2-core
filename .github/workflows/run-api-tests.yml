@@ -63,7 +63,7 @@ jobs:
           cd dhis-2/dhis-test-e2e
           docker compose logs web > ~/logs.txt
 
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: "tomcat_logs"
