@@ -271,7 +271,6 @@ public class JdbcTrackedEntityEventsAnalyticsTableManager extends AbstractJdbcTa
   }
 
   private List<AnalyticsTableColumn> getGeospatialCols() {
-
     return List.of(
         AnalyticsTableColumn.builder()
             .name("eventgeometry")

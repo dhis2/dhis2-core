@@ -99,7 +99,6 @@ class PrefixedDimensionsTest {
 
   @Test
   void testOfDataElements() {
-
     ProgramStage programStage = buildBaseIdentifiableObject("programStageUid", ProgramStage.class);
     Program program = buildBaseIdentifiableObject("programUid", Program.class);
 
