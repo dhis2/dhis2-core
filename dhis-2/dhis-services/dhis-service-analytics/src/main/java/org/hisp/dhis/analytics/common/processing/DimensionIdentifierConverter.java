@@ -239,6 +239,7 @@ public class DimensionIdentifierConverter {
                 sd == StaticDimension.EVENT_DATE
                     || sd == StaticDimension.SCHEDULED_DATE
                     || sd == StaticDimension.EVENT_STATUS
+                    || sd == StaticDimension.OUNAME
                     || sd == StaticDimension.OU)
         .orElse(false);
   }

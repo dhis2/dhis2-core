@@ -429,6 +429,16 @@ public class CommonRequestParamsParser implements Parser<CommonRequestParams, Co
     Optional<StaticDimension> staticDimension =
         StaticDimension.of(stringDimensionIdentifier.getDimension().getUid());
 
+    // stageUid.ouname is a header-only syntax for stage-specific OU display name.
+    // It must not be accepted as a query dimension/filter/sort field.
+    if (isStageScopedOuNameInNonHeader(
+        dimensionParamType, stringDimensionIdentifier, staticDimension)) {
+      throw new IllegalQueryException(
+          E7253,
+          stringDimensionIdentifier.getDimension().getUid(),
+          stringDimensionIdentifier.getProgramStage().getElement().getUid());
+    }
+
     // Then we check if it's a static dimension.
     // OU dimensions with items (USER_ORGUNIT, LEVEL-X, OU_GROUP-X, or specific UIDs) need
     // to go through DimensionalObject resolution to resolve those items to actual org units.
@@ -511,6 +521,15 @@ public class CommonRequestParamsParser implements Parser<CommonRequestParams, Co
     }
 
     return dimensionIdentifier;
+  }
+
+  private static boolean isStageScopedOuNameInNonHeader(
+      DimensionParamType dimensionParamType,
+      DimensionIdentifier<StringUid> stringDimensionIdentifier,
+      Optional<StaticDimension> staticDimension) {
+    return dimensionParamType != HEADERS
+        && stringDimensionIdentifier.hasProgramStage()
+        && staticDimension.filter(sd -> sd == StaticDimension.OUNAME).isPresent();
   }
 
   /**
