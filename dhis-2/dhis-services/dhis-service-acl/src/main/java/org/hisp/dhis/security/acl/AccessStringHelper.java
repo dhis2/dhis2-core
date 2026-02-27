@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.security.acl;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.springframework.util.Assert;
 
 /**
@@ -205,7 +205,7 @@ public class AccessStringHelper {
         || AccessStringHelper.isEnabled(access, AccessStringHelper.Permission.DATA_WRITE);
   }
 
-  public static <T extends BaseIdentifiableObject> void copySharing(T source, T target) {
+  public static <T extends IdentifiableObject> void copySharing(T source, T target) {
     target.setSharing(source.getSharing().copy());
   }
 

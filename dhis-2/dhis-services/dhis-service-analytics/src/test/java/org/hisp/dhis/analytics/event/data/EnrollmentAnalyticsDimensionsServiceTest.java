@@ -40,7 +40,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -88,7 +88,7 @@ class EnrollmentAnalyticsDimensionsServiceTest {
     when(program.getProgramStages()).thenReturn(java.util.Set.of(stage));
     when(program.getTrackedEntityAttributes()).thenReturn(allValueTypeTEAs());
 
-    List<BaseIdentifiableObject> analyticsDimensions =
+    List<IdentifiableObject> analyticsDimensions =
         enrollmentAnalyticsDimensionsService.getQueryDimensionsByProgramId("anUid").stream()
             .map(PrefixedDimension::getItem)
             .toList();
@@ -120,7 +120,7 @@ class EnrollmentAnalyticsDimensionsServiceTest {
     when(program.getProgramStages()).thenReturn(java.util.Set.of(stage));
     when(program.getTrackedEntityAttributes()).thenReturn(allValueTypeTEAs());
 
-    List<BaseIdentifiableObject> analyticsDimensions =
+    List<IdentifiableObject> analyticsDimensions =
         enrollmentAnalyticsDimensionsService.getAggregateDimensionsByProgramId("anUid").stream()
             .map(PrefixedDimension::getItem)
             .toList();

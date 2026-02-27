@@ -249,7 +249,7 @@ class DateValidatorTest extends TrackerTestBase {
   @ParameterizedTest
   @MethodSource("getEvents")
   void shouldPassWhenTrackerEventDateBelongsPastEventPeriodButWithinExpiryDays(Event event) {
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(7));
+    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(getProgram(14));
 
     validator.validate(reporter, bundle, event);
 

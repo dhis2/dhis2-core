@@ -41,7 +41,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -127,7 +127,7 @@ class DimensionMapperServiceTest {
   private enum DimType {
     PROGRAM_ATTRIBUTE(TrackedEntityAttribute::new),
     DATA_ELEMENT(ProgramStageDataElement::new);
-    private final Supplier<BaseIdentifiableObject> instanceSupplier;
+    private final Supplier<IdentifiableObject> instanceSupplier;
   }
 
   private Collection<PrefixedDimension> mockDimensions(DimType dimType) {
@@ -146,8 +146,8 @@ class DimensionMapperServiceTest {
         .build();
   }
 
-  private BaseIdentifiableObject buildItem(String uid, Supplier<BaseIdentifiableObject> supplier) {
-    BaseIdentifiableObject item = supplier.get();
+  private IdentifiableObject buildItem(String uid, Supplier<IdentifiableObject> supplier) {
+    IdentifiableObject item = supplier.get();
     item.setUid(uid);
     return item;
   }

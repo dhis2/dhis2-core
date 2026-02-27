@@ -967,7 +967,7 @@ public class OrganisationUnit extends BaseDimensionalItemObject
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "programs", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "program", namespace = DxfNamespaces.DXF_2_0)
   public Set<Program> getPrograms() {
