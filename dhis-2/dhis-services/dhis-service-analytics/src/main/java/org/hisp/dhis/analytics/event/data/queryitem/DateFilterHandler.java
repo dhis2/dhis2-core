@@ -105,43 +105,91 @@ public class DateFilterHandler implements QueryItemFilterHandler {
       QueryItem queryItem, String filterString, Date relativePeriodDate) {
     String[] parts = filterString.split(OPTION_SEP);
 
-    if (parts.length == 1) {
+    if (isSinglePartFilter(parts)) {
       parseSingleDateFilter(queryItem, filterString, relativePeriodDate);
       return;
     }
 
-    // Process each semicolon-separated part, collecting start/end dates and dimension values
-    Date earliestStart = null;
-    Date latestEnd = null;
-    List<String> allDimensionValues = new ArrayList<>();
+    DateFilterAggregate aggregate =
+        parseAndCollectDateFilters(queryItem, parts, relativePeriodDate);
+    applyAggregate(queryItem, aggregate);
+  }
+
+  private boolean isSinglePartFilter(String[] parts) {
+    return parts.length == 1;
+  }
+
+  private DateFilterAggregate parseAndCollectDateFilters(
+      QueryItem queryItem, String[] parts, Date relativePeriodDate) {
+    DateFilterAggregate aggregate = DateFilterAggregate.empty();
 
     for (String part : parts) {
-      QueryItem tempItem = new QueryItem(queryItem.getItem());
-      tempItem.setValueType(queryItem.getValueType());
+      QueryItem tempItem = createTempItem(queryItem);
       parseSingleDateFilter(tempItem, part.trim(), relativePeriodDate);
+      aggregate = mergeTempItemIntoAggregate(tempItem, aggregate);
+    }
 
-      for (QueryFilter filter : tempItem.getFilters()) {
-        Date filterDate = DateUtils.parseDate(filter.getFilter());
-        if (filter.getOperator() == QueryOperator.GE) {
-          if (earliestStart == null || filterDate.before(earliestStart)) {
-            earliestStart = filterDate;
-          }
-        } else if (filter.getOperator() == QueryOperator.LE) {
-          if (latestEnd == null || filterDate.after(latestEnd)) {
-            latestEnd = filterDate;
-          }
-        }
+    return aggregate;
+  }
+
+  private QueryItem createTempItem(QueryItem source) {
+    QueryItem tempItem = new QueryItem(source.getItem());
+    tempItem.setValueType(source.getValueType());
+    return tempItem;
+  }
+
+  private DateFilterAggregate mergeTempItemIntoAggregate(
+      QueryItem tempItem, DateFilterAggregate aggregate) {
+    Date earliestStart = aggregate.earliestStart();
+    Date latestEnd = aggregate.latestEnd();
+
+    for (QueryFilter filter : tempItem.getFilters()) {
+      Date[] bounds = updateBounds(filter, earliestStart, latestEnd);
+      earliestStart = bounds[0];
+      latestEnd = bounds[1];
+    }
+
+    List<String> allDimensionValues = new ArrayList<>(aggregate.allDimensionValues());
+    allDimensionValues.addAll(tempItem.getDimensionValues());
+
+    return new DateFilterAggregate(earliestStart, latestEnd, allDimensionValues);
+  }
+
+  private Date[] updateBounds(QueryFilter filter, Date earliestStart, Date latestEnd) {
+    Date filterDate = DateUtils.parseDate(filter.getFilter());
+
+    if (filter.getOperator() == QueryOperator.GE) {
+      if (earliestStart == null || filterDate.before(earliestStart)) {
+        earliestStart = filterDate;
       }
-      allDimensionValues.addAll(tempItem.getDimensionValues());
+      return new Date[] {earliestStart, latestEnd};
     }
 
-    if (earliestStart != null) {
-      queryItem.addFilter(new QueryFilter(QueryOperator.GE, DateUtils.toMediumDate(earliestStart)));
+    if (filter.getOperator() == QueryOperator.LE
+        && (latestEnd == null || filterDate.after(latestEnd))) {
+      latestEnd = filterDate;
     }
-    if (latestEnd != null) {
-      queryItem.addFilter(new QueryFilter(QueryOperator.LE, DateUtils.toMediumDate(latestEnd)));
+
+    return new Date[] {earliestStart, latestEnd};
+  }
+
+  private void applyAggregate(QueryItem queryItem, DateFilterAggregate aggregate) {
+    if (aggregate.earliestStart() != null) {
+      queryItem.addFilter(
+          new QueryFilter(QueryOperator.GE, DateUtils.toMediumDate(aggregate.earliestStart())));
     }
-    allDimensionValues.forEach(queryItem::addDimensionValue);
+    if (aggregate.latestEnd() != null) {
+      queryItem.addFilter(
+          new QueryFilter(QueryOperator.LE, DateUtils.toMediumDate(aggregate.latestEnd())));
+    }
+    aggregate.allDimensionValues().forEach(queryItem::addDimensionValue);
+  }
+
+  private record DateFilterAggregate(
+      Date earliestStart, Date latestEnd, List<String> allDimensionValues) {
+    private static DateFilterAggregate empty() {
+      return new DateFilterAggregate(null, null, new ArrayList<>());
+    }
   }
 
   private void parseSingleDateFilter(

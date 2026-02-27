@@ -339,6 +339,39 @@ class DateFilterHandlerTest {
     assertThat(filters.get(1).getFilter(), is("2025-09-30"));
   }
 
+  @Test
+  void applyFilters_withSemicolonSeparatedDateRanges_mergesEarliestStartAndLatestEnd() {
+    QueryItem queryItem = createDateQueryItem();
+    String[] filterParts = {"EVENT_DATE", "2025-03-01_2025-03-31;2025-01-01_2025-01-31"};
+
+    handler.applyFilters(
+        queryItem, filterParts, "EVENT_DATE:2025-03-01_2025-03-31;2025-01-01_2025-01-31", null);
+
+    List<QueryFilter> filters = queryItem.getFilters();
+    assertThat(filters, hasSize(2));
+    assertThat(filters.get(0).getOperator(), is(QueryOperator.GE));
+    assertThat(filters.get(0).getFilter(), is("2025-01-01"));
+    assertThat(filters.get(1).getOperator(), is(QueryOperator.LE));
+    assertThat(filters.get(1).getFilter(), is("2025-03-31"));
+    assertThat(queryItem.getDimensionValues(), hasSize(0));
+  }
+
+  @Test
+  void applyFilters_withSemicolonSeparatedFiltersWithSpaces_trimsAndParsesAllParts() {
+    QueryItem queryItem = createDateQueryItem();
+    String[] filterParts = {"EVENT_DATE", " 2025Q1 ; 2025Q2 "};
+
+    handler.applyFilters(queryItem, filterParts, "EVENT_DATE: 2025Q1 ; 2025Q2 ", null);
+
+    List<QueryFilter> filters = queryItem.getFilters();
+    assertThat(filters, hasSize(2));
+    assertThat(filters.get(0).getOperator(), is(QueryOperator.GE));
+    assertThat(filters.get(0).getFilter(), is("2025-01-01"));
+    assertThat(filters.get(1).getOperator(), is(QueryOperator.LE));
+    assertThat(filters.get(1).getFilter(), is("2025-06-30"));
+    assertThat(queryItem.getDimensionValues(), hasSize(2));
+  }
+
   private QueryItem createDateQueryItem() {
     QueryItem queryItem =
         new QueryItem(
