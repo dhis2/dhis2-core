@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -61,16 +61,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class UserCreationPerformanceTest extends Simulation {
 
-    private static final String BASE_URL = System.getProperty("baseUrl", "https://emisdev.dhis2nigeria.org.ng/dhis");
-    private static final String USERNAME = System.getProperty("username", "Jason");
-    private static final String PASSWORD = System.getProperty("password", "P@$$w0rd2");
-    private static final String USER_ROLE_UID =
-        System.getProperty("userRoleUid", "cerkKBlupU5");
-    private static final String ORG_UNIT_UID =
-        System.getProperty("orgUnitUid", "FHlOerryBjk");
-    private static final String USER_GROUP_UID =
-        System.getProperty("userGroupUid", "Lk3MZabyfLW");
-    private static final int ITERATIONS = Integer.parseInt(System.getProperty("iterations", "3"));
+  private static final String BASE_URL =
+      System.getProperty("baseUrl", "https://emisdev.dhis2nigeria.org.ng/dhis");
+  private static final String USERNAME = System.getProperty("username", "Jason");
+  private static final String PASSWORD = System.getProperty("password", "P@$$w0rd2");
+  private static final String USER_ROLE_UID = System.getProperty("userRoleUid", "cerkKBlupU5");
+  private static final String ORG_UNIT_UID = System.getProperty("orgUnitUid", "FHlOerryBjk");
+  private static final String USER_GROUP_UID = System.getProperty("userGroupUid", "Lk3MZabyfLW");
+  private static final int ITERATIONS = Integer.parseInt(System.getProperty("iterations", "3"));
 
   private static final AtomicInteger COUNTER =
       new AtomicInteger((int) (System.currentTimeMillis() % 10_000_000));
@@ -87,8 +85,7 @@ public class UserCreationPerformanceTest extends Simulation {
             .exec(flushCookieJar())
             .repeat(ITERATIONS)
             .on(
-                exec(
-                    session -> {
+                exec(session -> {
                       int num = COUNTER.getAndIncrement();
                       String groups =
                           USER_GROUP_UID.isBlank()
