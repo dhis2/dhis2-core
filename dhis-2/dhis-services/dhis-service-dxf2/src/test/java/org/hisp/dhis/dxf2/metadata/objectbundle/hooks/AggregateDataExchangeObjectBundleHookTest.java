@@ -113,14 +113,6 @@ class AggregateDataExchangeObjectBundleHookTest {
   }
 
   @Test
-  void testSourceRequestVisualizationInvalidUid() {
-    AggregateDataExchange exchange = getAggregateDataExchange('A');
-    exchange.getSource().getRequests().get(0).setVisualization("1nvalidUid");
-
-    assertErrorCode(ErrorCode.E4014, objectBundleHook.validate(exchange, objectBundle));
-  }
-
-  @Test
   void testMissingSourceDxItems() {
     AggregateDataExchange exchange = getAggregateDataExchange('A');
     exchange.getSource().getRequests().get(0).setDx(new ArrayList<>());

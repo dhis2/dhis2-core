@@ -63,9 +63,9 @@ import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.NumericSortWrapper;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportValue;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.indicator.Indicator;
@@ -329,7 +329,7 @@ public class DefaultChartService implements ChartService {
 
       DataExportValue dataValue =
           dataExportService.exportValue(
-              new DataEntryKey(
+              new DataValueKey(
                   dataElement,
                   period,
                   organisationUnit,

@@ -54,13 +54,13 @@ import org.hisp.dhis.common.IdCoder;
 import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataExportGroup;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataExportParams.Order;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportValue;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.period.Period;
@@ -85,7 +85,7 @@ public class DefaultDataExportService implements DataExportService {
   @CheckForNull
   @Override
   @Transactional(readOnly = true)
-  public DataExportValue exportValue(@Nonnull DataEntryKey key) throws ConflictException {
+  public DataExportValue exportValue(@Nonnull DataValueKey key) throws ConflictException {
     validateAccess(key);
     return store.exportValue(key);
   }
@@ -120,7 +120,7 @@ public class DefaultDataExportService implements DataExportService {
       validateFilters(params);
       validateAccess(params);
     }
-    DataExportGroup.Ids encodeTo = DataExportGroup.Ids.of(parameters.getOutputIdSchemes());
+    DataExportGroup.Ids encodeTo = parameters.getOutputIdSchemes();
     UID ds = getUnique(params.getDataSets());
     Period pe = getUnique(params.getPeriods());
     UID ou = getUnique(params.getOrganisationUnits());
@@ -187,7 +187,7 @@ public class DefaultDataExportService implements DataExportService {
         groups.add(new DataExportGroup(ds, peG, ouG, aocG, valuesG.stream()));
     }
 
-    DataExportGroup.Ids encodeTo = DataExportGroup.Ids.of(parameters.getOutputIdSchemes());
+    DataExportGroup.Ids encodeTo = parameters.getOutputIdSchemes();
     List<DataExportGroup.Output> res = new ArrayList<>(groups.size());
     DataExportParams.EncodingParams encoding = parameters.geEncodingParams();
     for (DataExportGroup g : groups) res.add(encodeGroup(g, encodeTo, encoding));
@@ -437,7 +437,7 @@ public class DefaultDataExportService implements DataExportService {
     if (params.isLimitOutOfBounds()) throw new ConflictException(ErrorCode.E2009);
   }
 
-  private void validateAccess(DataEntryKey key) throws ConflictException {
+  private void validateAccess(DataValueKey key) throws ConflictException {
     UID aoc = key.attributeOptionCombo();
     validateAccess(List.of(), aoc == null ? List.of() : List.of(aoc), List.of(key.orgUnit()));
   }

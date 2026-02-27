@@ -265,7 +265,21 @@ public final class DatabasePoolUtils {
     hc.setJdbcUrl(jdbcUrl);
     hc.setUsername(username);
     hc.setPassword(password);
-    hc.setConnectionTestQuery(connectionTestQuery);
+
+    // Skip unless explicitly configured; HikariCP defaults to Connection.isValid() which uses
+    // the PG driver's lightweight protocol-level ping instead of executing a SQL query.
+    if (connectionTestQuery != null && !connectionTestQuery.isBlank()) {
+      hc.setConnectionTestQuery(connectionTestQuery);
+    }
+
+    hc.setConnectionTimeout(connectionTimeout);
+    hc.setValidationTimeout(validationTimeout);
+    hc.setMaximumPoolSize(maxPoolSize);
+    hc.setMinimumIdle(minIdleConnections);
+    hc.setKeepaliveTime(SECONDS.toMillis(keepAliveTimeSeconds));
+    hc.setIdleTimeout(SECONDS.toMillis(maxIdleTime));
+    hc.setMaxLifetime(SECONDS.toMillis(maxLifeTimeSeconds));
+
     final String leakThresholdStr =
         dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_WARN_MAX_AGE));
 
@@ -296,16 +310,7 @@ public final class DatabasePoolUtils {
       hc.setMetricsTrackerFactory(new MicrometerMetricsTrackerFactory(meterRegistry));
     }
 
-    HikariDataSource ds = new HikariDataSource(hc);
-    ds.setConnectionTimeout(connectionTimeout);
-    ds.setValidationTimeout(validationTimeout);
-    ds.setMaximumPoolSize(maxPoolSize);
-    ds.setMinimumIdle(minIdleConnections);
-    ds.setKeepaliveTime(SECONDS.toMillis(keepAliveTimeSeconds));
-    ds.setIdleTimeout(SECONDS.toMillis(maxIdleTime));
-    ds.setMaxLifetime(SECONDS.toMillis(maxLifeTimeSeconds));
-
-    return ds;
+    return new HikariDataSource(hc);
   }
 
   /** Create a data source based on a C3p0 connection pool. */

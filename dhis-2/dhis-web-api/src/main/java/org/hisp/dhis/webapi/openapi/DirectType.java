@@ -55,6 +55,7 @@ import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.experimental.Accessors;
+import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -188,6 +189,9 @@ class DirectType {
   private static final String REGEX_LOCALE_SUB =
       "^(?i)(?<lang>[a-z]{2,3})(?<country>_[A-Z]{2}|[0-9]{3}(?<script>_#?[A-Z][a-z]{3})?)?$";
 
+  @Language("RegExp")
+  private static final String REGEX_ID_PROPERTY = "ID|UID|CODE|NAME|ATTRIBUTE:" + UID_REGEXP;
+
   static {
     oneOf(byte.class, schema -> schema.type("integer").format("int8").nullable(false));
     oneOf(byte[].class, schema -> schema.type("string").format("binary").nullable(false));
@@ -237,6 +241,7 @@ class DirectType {
     oneOf(Serializable.class, schema -> schema.type("string"));
     oneOf(Serializable.class, schema -> schema.type("number"));
     oneOf(Serializable.class, schema -> schema.type("boolean"));
+    oneOf(IdProperty.class, schema -> schema.type("string").pattern(REGEX_ID_PROPERTY));
 
     oneOf(
         Period.class,

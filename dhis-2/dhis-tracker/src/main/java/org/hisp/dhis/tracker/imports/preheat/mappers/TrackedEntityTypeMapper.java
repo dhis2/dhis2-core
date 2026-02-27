@@ -37,8 +37,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(
-    uses = {DebugMapper.class, TrackedEntityTypeAttributeMapper.class, AttributeValuesMapper.class})
+@Mapper(uses = {TrackedEntityTypeAttributeMapper.class, AttributeValuesMapper.class})
 public interface TrackedEntityTypeMapper extends PreheatMapper<TrackedEntityType> {
   TrackedEntityTypeMapper INSTANCE = Mappers.getMapper(TrackedEntityTypeMapper.class);
 
