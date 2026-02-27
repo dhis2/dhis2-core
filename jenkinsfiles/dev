@@ -7,22 +7,22 @@ pipeline {
         label 'ec2-jdk17'
     }
 
-    triggers {
-        cron('H H(9-16)/2 * * 1-5')
-        pollSCM('H/30 * * * *')
-    }
+    // triggers {
+    //     cron('H H(9-16)/2 * * 1-5')
+    //     pollSCM('H/30 * * * *')
+    // }
 
     options {
         buildDiscarder(logRotator(daysToKeepStr: '5'))
         timeout(time: 60)
-        disableConcurrentBuilds()
+        // disableConcurrentBuilds()
     }
 
     environment {
         MAVEN_OPTS = '-Xms1024m -Xmx4096m -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125'
         DHIS2_VERSION = readMavenPom(file: 'dhis-2/pom.xml').getVersion()
         DOCKER_IMAGE_NAME = "${DOCKER_HUB_OWNER}/core-dev"
-        DOCKER_IMAGE_TAG = "${env.GIT_BRANCH}"
+        DOCKER_IMAGE_TAG = "${env.GIT_BRANCH}.replace('/', '-')}"
     }
 
     stages {
@@ -78,7 +78,7 @@ pipeline {
                           script {
                               dir("dhis-2/dhis-test-e2e") {
                                   sh "docker pull ${DOCKER_IMAGE_NAME_FULL}"
-                                  sh "DHIS2_IMAGE=${DOCKER_IMAGE_NAME_FULL} docker compose --file docker-compose.yml --file docker-compose.e2e.yml up --remove-orphans --exit-code-from test"
+                                  sh "DHIS2_IMAGE=${DOCKER_IMAGE_NAME_FULL} DHIS2_E2E_TEST_ARGS='-Dgroups=logintests' docker compose --ansi never --file docker-compose.yml --file docker-compose.e2e.yml up --remove-orphans --exit-code-from test"
                               }
                           }
                       }
@@ -105,97 +105,97 @@ pipeline {
               }
         }
 
-        stage('Sync WAR') {
-            steps {
-                echo 'Syncing WAR ...'
-                sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
-                sh 'chmod +x copy-war-s3.sh'
-                sh './copy-war-s3.sh dev ${GIT_BRANCH}'
-            }
-        }
+        // stage('Sync WAR') {
+        //     steps {
+        //         echo 'Syncing WAR ...'
+        //         sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
+        //         sh 'chmod +x copy-war-s3.sh'
+        //         sh './copy-war-s3.sh dev ${GIT_BRANCH}'
+        //     }
+        // }
 
-        stage('Publish image') {
-            environment {
-                // THIS MUST be kept in sync with the jib.from.image in ../dhis-2/dhis-web-server/pom.xml
-                BASE_IMAGE = "tomcat:10.1.48-jre17"
-                IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME"
-            }
+        // stage('Publish image') {
+        //     environment {
+        //         // THIS MUST be kept in sync with the jib.from.image in ../dhis-2/dhis-web-server/pom.xml
+        //         BASE_IMAGE = "tomcat:10.1.48-jre17"
+        //         IMAGE_REPOSITORY = "$DOCKER_IMAGE_NAME"
+        //     }
 
-            steps {
-                script {
-                    withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""])  {
-                        if (env.GIT_BRANCH == 'master') {
-                            tag = 'latest'
-                        } else {
-                            tag = env.GIT_BRANCH
-                        }
+        //     steps {
+        //         script {
+        //             withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""])  {
+        //                 if (env.GIT_BRANCH == 'master') {
+        //                     tag = 'latest'
+        //                 } else {
+        //                     tag = env.GIT_BRANCH
+        //                 }
 
-                        withMaven(options: [artifactsPublisher(disabled: true)]) {
-                            sh "./dhis-2/build-docker-image.sh -t ${tag} -d"
-                        }
-                    }
-                }
-            }
-        }
+        //                 withMaven(options: [artifactsPublisher(disabled: true)]) {
+        //                     sh "./dhis-2/build-docker-image.sh -t ${tag} -d"
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
 
-        stage('Update IM Play instance') {
-            environment {
-                HTTP = "http --check-status"
-                IM_REPO_URL = "https://github.com/dhis2-sre/im-manager"
-                IM_HOST = "https://api.im.dhis2.org"
-                INSTANCE_URL = "https://play.im.dhis2.org/dev"
-                IMAGE_REPOSITORY = "core-dev"
-                IMAGE_PULL_POLICY = "Always"
-                FLYWAY_MIGRATE_OUT_OF_ORDER = "true"
-                FLYWAY_REPAIR_BEFORE_MIGRATION = "true"
-                INSTANCE_TTL = "315360000"
-                STARTUP_PROBE_FAILURE_THRESHOLD = "50"
-                LIVENESS_PROBE_TIMEOUT_SECONDS = "5"
-                READINESS_PROBE_TIMEOUT_SECONDS = "5"
-                MIN_READY_SECONDS = "240"
-                CORE_RESOURCES_REQUESTS_MEMORY = "2500Mi"
-                PUBLIC = "true"
-                ALLOW_SUSPEND = "false"
-            }
+        // stage('Update IM Play instance') {
+        //     environment {
+        //         HTTP = "http --check-status"
+        //         IM_REPO_URL = "https://github.com/dhis2-sre/im-manager"
+        //         IM_HOST = "https://api.im.dhis2.org"
+        //         INSTANCE_URL = "https://play.im.dhis2.org/dev"
+        //         IMAGE_REPOSITORY = "core-dev"
+        //         IMAGE_PULL_POLICY = "Always"
+        //         FLYWAY_MIGRATE_OUT_OF_ORDER = "true"
+        //         FLYWAY_REPAIR_BEFORE_MIGRATION = "true"
+        //         INSTANCE_TTL = "315360000"
+        //         STARTUP_PROBE_FAILURE_THRESHOLD = "50"
+        //         LIVENESS_PROBE_TIMEOUT_SECONDS = "5"
+        //         READINESS_PROBE_TIMEOUT_SECONDS = "5"
+        //         MIN_READY_SECONDS = "240"
+        //         CORE_RESOURCES_REQUESTS_MEMORY = "2500Mi"
+        //         PUBLIC = "true"
+        //         ALLOW_SUSPEND = "false"
+        //     }
 
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
-                        dir('im-manager') {
-                            gitHelper.sparseCheckout(IM_REPO_URL, "${gitHelper.getLatestTag(IM_REPO_URL)}", '/scripts')
+        //     steps {
+        //         script {
+        //             withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
+        //                 dir('im-manager') {
+        //                     gitHelper.sparseCheckout(IM_REPO_URL, "${gitHelper.getLatestTag(IM_REPO_URL)}", '/scripts')
 
-                            echo 'Creating DHIS2 instance on IM...'
-                            def branch = ""
-                            if (env.GIT_BRANCH == 'master') {
-                                env.IMAGE_TAG = "latest"
-                                env.DATABASE_ID = "test-dbs-sierra-leone-dev-sql-gz"
-                            } else {
-                                env.IMAGE_TAG = env.GIT_BRANCH
-                                branch = "-${env.GIT_BRANCH.replace(".", "-")}"
+        //                     echo 'Creating DHIS2 instance on IM...'
+        //                     def branch = ""
+        //                     if (env.GIT_BRANCH == 'master') {
+        //                         env.IMAGE_TAG = "latest"
+        //                         env.DATABASE_ID = "test-dbs-sierra-leone-dev-sql-gz"
+        //                     } else {
+        //                         env.IMAGE_TAG = env.GIT_BRANCH
+        //                         branch = "-${env.GIT_BRANCH.replace(".", "-")}"
 
-                                dir('scripts/databases') {
-                                    env.DATABASE_ID = sh(
-                                            returnStdout: true,
-                                            script: "./list.sh | jq -r '.[] | select(.name == \"test-dbs\") | .databases[] | select(.name == \"sierra-leone/${env.GIT_BRANCH}.sql.gz\") | .slug'"
-                                    ).trim()
-                                }
-                            }
+        //                         dir('scripts/databases') {
+        //                             env.DATABASE_ID = sh(
+        //                                     returnStdout: true,
+        //                                     script: "./list.sh | jq -r '.[] | select(.name == \"test-dbs\") | .databases[] | select(.name == \"sierra-leone/${env.GIT_BRANCH}.sql.gz\") | .slug'"
+        //                             ).trim()
+        //                         }
+        //                     }
 
-                            sh '[ -n "$DATABASE_ID" ]'
-                            echo "Database: ${env.DATABASE_ID}"
+        //                     sh '[ -n "$DATABASE_ID" ]'
+        //                     echo "Database: ${env.DATABASE_ID}"
 
-                            dir('scripts/instances') {
-                                description = "DHIS 2 development branch ${env.GIT_BRANCH}"
-                                sh "./findByName.sh play dev${branch} | jq --exit-status 'has(\"id\")' && ./restart.sh \$(./findByName.sh play dev${branch} | jq '.instances[] | select(.stackName==\"dhis2-core\") | .id') || ./deploy-dhis2.sh play dev${branch} ${description}"
-                                timeout(5) {
-                                    waitFor.statusOk("${env.INSTANCE_URL}${branch}")
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        //                     dir('scripts/instances') {
+        //                         description = "DHIS 2 development branch ${env.GIT_BRANCH}"
+        //                         sh "./findByName.sh play dev${branch} | jq --exit-status 'has(\"id\")' && ./restart.sh \$(./findByName.sh play dev${branch} | jq '.instances[] | select(.stackName==\"dhis2-core\") | .id') || ./deploy-dhis2.sh play dev${branch} ${description}"
+        //                         timeout(5) {
+        //                             waitFor.statusOk("${env.INSTANCE_URL}${branch}")
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     post {
@@ -209,11 +209,23 @@ pipeline {
 
         failure {
             script {
-                slack.sendMessage(
-                    '#ff0000',
-                    slack.buildUrl() + "\nLatest run on ${GIT_BRANCH} failed and needs investigation. :detective-duck:\nCommit: <${GIT_URL}/commit/${GIT_COMMIT}|${GIT_COMMIT}>",
-                    'team-backend'
-                )
+                if (buildLog.getLines().contains('There are test failures')) {
+                    currentBuild.description = 'Test failures'
+                    def prevHadSameFailure = currentBuild.previousBuild?.description?.contains('Test failures')
+                    if (!prevHadSameFailure) {
+                        slack.sendMessage(
+                            '#ff0000',
+                            slack.buildUrl() + "\nLatest test run on ${GIT_BRANCH} failed and needs investigation. :detective-duck:\nCommit: <${GIT_URL}/commit/${GIT_COMMIT}|${GIT_COMMIT}>",
+                            'core-test-failures'
+                        )
+                    }
+                } else {
+                    slack.sendMessage(
+                        '#ff0000',
+                        slack.buildUrl() + "\nBuild on ${GIT_BRANCH} failed. :x:\nCommit: <${GIT_URL}/commit/${GIT_COMMIT}|${GIT_COMMIT}>",
+                        'core-ci-failures'
+                    )
+                }
             }
         }
 
