@@ -29,13 +29,20 @@
  */
 package org.hisp.dhis.analytics.event.data.queryitem;
 
+import static org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
+import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
-import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
-import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -70,17 +77,13 @@ public class DateFilterHandler implements QueryItemFilterHandler {
   @Override
   public boolean supports(QueryItem queryItem) {
     String itemId = queryItem.getItemId();
-    return (EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(itemId)
-            || EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME.equals(itemId)
-            || EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME.equals(itemId)
-            || EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME.equals(itemId)
-            || EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME.equals(itemId)
-            || EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME.equals(itemId)
-            || EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME.equals(itemId)
-            || EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME.equals(itemId)
-            || EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(itemId)
-            || EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME.equals(itemId)
-            || EnrollmentAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME.equals(itemId))
+    return (SCHEDULED_DATE_COLUMN_NAME.equals(itemId)
+            || ENROLLMENT_OCCURRED_DATE_COLUMN_NAME.equals(itemId)
+            || CREATED_DATE_COLUMN_NAME.equals(itemId)
+            || ENROLLMENT_DATE_COLUMN_NAME.equals(itemId)
+            || OCCURRED_DATE_COLUMN_NAME.equals(itemId)
+            || LAST_UPDATED_COLUMN_NAME.equals(itemId)
+            || COMPLETED_DATE_COLUMN_NAME.equals(itemId))
         && queryItem.getValueType() == ValueType.DATE;
   }
 
@@ -99,6 +102,97 @@ public class DateFilterHandler implements QueryItemFilterHandler {
   }
 
   private void parseAndAddDateFilters(
+      QueryItem queryItem, String filterString, Date relativePeriodDate) {
+    String[] parts = filterString.split(OPTION_SEP);
+
+    if (isSinglePartFilter(parts)) {
+      parseSingleDateFilter(queryItem, filterString, relativePeriodDate);
+      return;
+    }
+
+    DateFilterAggregate aggregate =
+        parseAndCollectDateFilters(queryItem, parts, relativePeriodDate);
+    applyAggregate(queryItem, aggregate);
+  }
+
+  private boolean isSinglePartFilter(String[] parts) {
+    return parts.length == 1;
+  }
+
+  private DateFilterAggregate parseAndCollectDateFilters(
+      QueryItem queryItem, String[] parts, Date relativePeriodDate) {
+    DateFilterAggregate aggregate = DateFilterAggregate.empty();
+
+    for (String part : parts) {
+      QueryItem tempItem = createTempItem(queryItem);
+      parseSingleDateFilter(tempItem, part.trim(), relativePeriodDate);
+      aggregate = mergeTempItemIntoAggregate(tempItem, aggregate);
+    }
+
+    return aggregate;
+  }
+
+  private QueryItem createTempItem(QueryItem source) {
+    QueryItem tempItem = new QueryItem(source.getItem());
+    tempItem.setValueType(source.getValueType());
+    return tempItem;
+  }
+
+  private DateFilterAggregate mergeTempItemIntoAggregate(
+      QueryItem tempItem, DateFilterAggregate aggregate) {
+    Date earliestStart = aggregate.earliestStart();
+    Date latestEnd = aggregate.latestEnd();
+
+    for (QueryFilter filter : tempItem.getFilters()) {
+      Date[] bounds = updateBounds(filter, earliestStart, latestEnd);
+      earliestStart = bounds[0];
+      latestEnd = bounds[1];
+    }
+
+    List<String> allDimensionValues = new ArrayList<>(aggregate.allDimensionValues());
+    allDimensionValues.addAll(tempItem.getDimensionValues());
+
+    return new DateFilterAggregate(earliestStart, latestEnd, allDimensionValues);
+  }
+
+  private Date[] updateBounds(QueryFilter filter, Date earliestStart, Date latestEnd) {
+    Date filterDate = DateUtils.parseDate(filter.getFilter());
+
+    if (filter.getOperator() == QueryOperator.GE) {
+      if (earliestStart == null || filterDate.before(earliestStart)) {
+        earliestStart = filterDate;
+      }
+      return new Date[] {earliestStart, latestEnd};
+    }
+
+    if (filter.getOperator() == QueryOperator.LE
+        && (latestEnd == null || filterDate.after(latestEnd))) {
+      latestEnd = filterDate;
+    }
+
+    return new Date[] {earliestStart, latestEnd};
+  }
+
+  private void applyAggregate(QueryItem queryItem, DateFilterAggregate aggregate) {
+    if (aggregate.earliestStart() != null) {
+      queryItem.addFilter(
+          new QueryFilter(QueryOperator.GE, DateUtils.toMediumDate(aggregate.earliestStart())));
+    }
+    if (aggregate.latestEnd() != null) {
+      queryItem.addFilter(
+          new QueryFilter(QueryOperator.LE, DateUtils.toMediumDate(aggregate.latestEnd())));
+    }
+    aggregate.allDimensionValues().forEach(queryItem::addDimensionValue);
+  }
+
+  private record DateFilterAggregate(
+      Date earliestStart, Date latestEnd, List<String> allDimensionValues) {
+    private static DateFilterAggregate empty() {
+      return new DateFilterAggregate(null, null, new ArrayList<>());
+    }
+  }
+
+  private void parseSingleDateFilter(
       QueryItem queryItem, String filterString, Date relativePeriodDate) {
     // Use relativePeriodDate if provided, otherwise fall back to current date
     Date referenceDate = relativePeriodDate != null ? relativePeriodDate : new Date();
@@ -154,10 +248,10 @@ public class DateFilterHandler implements QueryItemFilterHandler {
     }
 
     // Fallback to explicit operator:value parsing (e.g., GT:2025-01-01)
-    String[] parts = filterString.split(":");
-    if (parts.length == 2) {
-      QueryOperator operator = QueryOperator.fromString(parts[0]);
-      QueryFilter filter = new QueryFilter(operator, parts[1]);
+    String[] opParts = filterString.split(":");
+    if (opParts.length == 2) {
+      QueryOperator operator = QueryOperator.fromString(opParts[0]);
+      QueryFilter filter = new QueryFilter(operator, opParts[1]);
       queryItem.addFilter(filter);
       return;
     }

@@ -85,6 +85,13 @@
       }
     },
     {
+      "name": "stageAndEventDateThisYearAndLastYear",
+      "query": "/api/analytics/events/query/eBAyeGv0exc.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=Zj7UnCAulEk.EVENT_DATE:THIS_YEAR;LAST_YEAR&desc=eventdate,lastupdated&relativePeriodDate=2022-12-31",
+      "version": {
+        "min": 43
+      }
+    },
+    {
       "name": "stageAndEventDateSpecificYear",
       "query": "/api/analytics/events/query/eBAyeGv0exc.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=Zj7UnCAulEk.EVENT_DATE:2021&desc=eventdate,lastupdated",
       "version": {
