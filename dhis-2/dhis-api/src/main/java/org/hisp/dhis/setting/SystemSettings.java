@@ -848,8 +848,8 @@ public non-sealed interface SystemSettings extends Settings {
    *
    * @return custom color to use as the background for DHIS2 header bar
    */
-  default String getUiCustomColor() {
-    return asString("keyUiCustomColor", "");
+  default String getCustomColor() {
+    return asString("keyCustomColor", "");
   }
 
   /**
@@ -857,7 +857,7 @@ public non-sealed interface SystemSettings extends Settings {
    *
    * @return custom color to use as the background for DHIS2 header bar for Android
    */
-  default String getUiCustomColorMobile() {
-    return asString("keyUiCustomColorMobile", "");
+  default String getCustomColorMobile() {
+    return asString("keyCustomColorMobile", "");
   }
 }
