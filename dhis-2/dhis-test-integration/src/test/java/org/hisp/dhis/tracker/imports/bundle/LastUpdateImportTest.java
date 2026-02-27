@@ -166,6 +166,32 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldNotUpdateTEALastUpdatedWhenTEAIsNotUpdated() throws IOException {
+    TrackerImportParams params =
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
+    testSetup.importTrackerData("tracker/one_te_with_one_attribute.json", params);
+    Set<TrackedEntityAttributeValue> values = getTrackedEntity().getTrackedEntityAttributeValues();
+    assertHasSize(1, values);
+    TrackedEntityAttributeValue attributeValue = values.iterator().next();
+    Date lastUpdatedBefore = attributeValue.getLastUpdated();
+    String attributeUid = attributeValue.getAttribute().getUid();
+
+    updateAttributeValue(attributeUid, "original value");
+    TrackedEntityAttributeValue updatedValue =
+        getTrackedEntity().getTrackedEntityAttributeValues().iterator().next();
+
+    Date lastUpdatedAfter = updatedValue.getLastUpdated();
+    assertEquals(
+        lastUpdatedAfter,
+        lastUpdatedBefore,
+        () ->
+            String.format(
+                "Data integrity error for tracked entity attribute %s. "
+                    + "The attribute lastUpdated date has been updated after the import",
+                attributeUid));
+  }
+
+  @Test
   void shouldUpdateOnlyFromTrackedEntityWhenUnidirectionalRelationshipIsCreated()
       throws IOException {
     RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
