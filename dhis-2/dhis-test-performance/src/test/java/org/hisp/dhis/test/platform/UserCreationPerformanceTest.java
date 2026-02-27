@@ -61,8 +61,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class UserCreationPerformanceTest extends Simulation {
 
-  private static final String BASE_URL =
-      System.getProperty("baseUrl", "http://localhost:8080");
+  private static final String BASE_URL = System.getProperty("baseUrl", "http://localhost:8080");
   private static final String USERNAME = System.getProperty("username", "admin");
   private static final String PASSWORD = System.getProperty("password", "distrct");
   private static final String USER_ROLE_UID = System.getProperty("userRoleUid", "cerkKBlupU5");
