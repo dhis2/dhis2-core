@@ -44,6 +44,8 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.Translatable;
 
 /**
  * @author Chau Thu Tran
@@ -58,6 +60,8 @@ public class TrackedEntityType extends BaseNameableObject implements MetadataObj
   private ObjectStyle style;
 
   private String formName;
+
+  private String trackedEntityTypesLabel;
 
   /**
    * Property indicating minimum number of attributes required to fill before search is triggered
@@ -116,6 +120,24 @@ public class TrackedEntityType extends BaseNameableObject implements MetadataObj
   public void setTrackedEntityTypeAttributes(
       List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes) {
     this.trackedEntityTypeAttributes = trackedEntityTypeAttributes;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getTrackedEntityTypesLabel() {
+    return trackedEntityTypesLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "trackedEntityTypesLabel", key = "TRACKED_ENTITY_TYPES_LABEL")
+  public String getDisplayTrackedEntityTypesLabel() {
+    return getTranslation("TRACKED_ENTITY_TYPES_LABEL", getTrackedEntityTypesLabel());
+  }
+
+  public void setTrackedEntityTypesLabel(String trackedEntityTypesLabel) {
+    this.trackedEntityTypesLabel = trackedEntityTypesLabel;
   }
 
   @JsonProperty
