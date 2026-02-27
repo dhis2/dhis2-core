@@ -807,6 +807,20 @@ public enum ConfigurationKey {
 
   CACHE_EHCACHE_CONFIG_FILE("cache.ehcache.config.file", "classpath:ehcache.xml", false),
 
+  /**
+   * Enable conditional ETag caching with Redis pub/sub for cache invalidation. This provides
+   * efficient HTTP caching where ETags are validated BEFORE heavy computations. Requires Redis to
+   * be enabled. (default: off)
+   */
+  ETAG_CACHE_ENABLED("etag.cache.enabled", Constants.OFF, false),
+
+  /**
+   * TTL window in minutes for conditional ETag caching. This is the maximum time a cached response
+   * can be considered valid without checking for data changes. Acts as a safety net to ensure
+   * periodic refresh. (default: 60)
+   */
+  ETAG_CACHE_TTL_MINUTES("etag.cache.ttl_minutes", "60", false),
+
   // Enable saved requests, this will save the URL the user tries to access before they are logged
   // in, and redirect to that URL after they are logged in.
   LOGIN_SAVED_REQUESTS_ENABLE("login.saved.requests.enable", Constants.ON, false),

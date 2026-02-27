@@ -78,11 +78,20 @@ public class ExcludableShallowEtagHeaderFilter extends ShallowEtagHeaderFilter {
   private static final String UID_REGEXP = "[a-zA-Z][a-zA-Z0-9]{10}";
   static final String EXCLUDE_URI_REGEX_VAR_NAME = "excludeUriRegex";
 
+  /**
+   * Endpoints excluded from shallow ETag handling. These either:
+   *
+   * <ul>
+   *   <li>Use the new conditional ETag caching system (organisationUnits, dataEntry/metadata)
+   *   <li>Handle large file uploads/downloads where shallow ETag is inefficient
+   * </ul>
+   */
   static final String ENDPOINTS =
       "/api/(\\d{2}/)?dataValueSets|"
           + "/api/(\\d{2}/)?dataValues|"
           + "/api/(\\d{2}/)?fileResources|"
           + "/api/(\\d{2}/)?dataEntry/metadata|"
+          + "/api/(\\d{2}/)?organisationUnits|" // uses new conditional ETag caching
           + "/api/(\\d{2}/)?tracker/events/"
           + UID_REGEXP
           + "/dataValues/"

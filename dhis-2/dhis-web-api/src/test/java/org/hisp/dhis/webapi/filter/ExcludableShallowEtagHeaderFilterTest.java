@@ -81,7 +81,12 @@ class ExcludableShallowEtagHeaderFilterTest {
         "/api/tracker/trackedEntities/vOxUH373fy5/attributes/nDlikr3TUS6/file",
         "/api/41/tracker/trackedEntities/vOxUH373fy5/attributes/nDlikr3TUS6/file",
         "/api/tracker/trackedEntities/vOxUH373fy5/attributes/nDlikr3TUS6/image",
-        "/api/41/tracker/trackedEntities/vOxUH373fy5/attributes/nDlikr3TUS6/image"
+        "/api/41/tracker/trackedEntities/vOxUH373fy5/attributes/nDlikr3TUS6/image",
+        // Organisation units use conditional ETag caching
+        "/api/organisationUnits",
+        "/api/41/organisationUnits",
+        "/api/organisationUnits/a1b2c3d4e5f",
+        "/api/41/organisationUnits/a1b2c3d4e5f"
       })
   void shouldNotAddEtagHeader(String URI) throws Exception {
     final MockHttpServletRequest request = new MockHttpServletRequest("GET", URI);

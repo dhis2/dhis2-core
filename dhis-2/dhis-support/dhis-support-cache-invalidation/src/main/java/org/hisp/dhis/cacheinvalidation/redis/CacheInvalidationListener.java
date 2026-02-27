@@ -35,6 +35,7 @@ import java.lang.reflect.Field;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.cache.ETagVersionService;
 import org.hisp.dhis.cache.PaginationCacheManager;
 import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.cacheinvalidation.BaseCacheEvictionService;
@@ -67,6 +68,7 @@ import org.springframework.stereotype.Component;
 public class CacheInvalidationListener extends BaseCacheEvictionService
     implements RedisPubSubListener<String, String> {
   protected String serverInstanceId;
+  protected ETagVersionService eTagVersionService;
 
   public CacheInvalidationListener(
       SessionFactory sessionFactory,
@@ -75,6 +77,7 @@ public class CacheInvalidationListener extends BaseCacheEvictionService
       IdentifiableObjectManager idObjectManager,
       TrackedEntityAttributeService trackedEntityAttributeService,
       PeriodService periodService,
+      ETagVersionService eTagVersionService,
       @Qualifier("cacheInvalidationServerId") String serverInstanceId) {
     super(
         sessionFactory,
@@ -85,6 +88,7 @@ public class CacheInvalidationListener extends BaseCacheEvictionService
         periodService);
 
     this.serverInstanceId = serverInstanceId;
+    this.eTagVersionService = eTagVersionService;
   }
 
   @Override
@@ -126,6 +130,16 @@ public class CacheInvalidationListener extends BaseCacheEvictionService
 
     Class<?> entityClass = Class.forName(parts[2]);
     Objects.requireNonNull(entityClass, "Entity class can't be null");
+
+    // Bump entity-type-specific ETag version when data changes are detected from other servers.
+    // This provides granular cache invalidation - only caches for this entity type are invalidated.
+    if (eTagVersionService != null && eTagVersionService.isEnabled()) {
+      eTagVersionService.incrementEntityTypeVersion(entityClass);
+      log.debug(
+          "Incremented ETag version for entity type {} due to cache invalidation from server: {}",
+          entityClass.getSimpleName(),
+          uid);
+    }
 
     if (CacheEventOperation.INSERT == operationType) {
       // Make sure queries will refetch to capture the new object.
