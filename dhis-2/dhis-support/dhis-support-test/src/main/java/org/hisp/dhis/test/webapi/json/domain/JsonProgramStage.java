@@ -50,10 +50,6 @@ public interface JsonProgramStage extends JsonObject, JsonIdentifiableObject {
     return getString("programStageLabel");
   }
 
-  default JsonString getProgramStagesLabel() {
-    return getString("programStagesLabel");
-  }
-
   default JsonString getEventLabel() {
     return getString("eventLabel");
   }

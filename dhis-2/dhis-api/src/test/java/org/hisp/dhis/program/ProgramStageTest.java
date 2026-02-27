@@ -158,7 +158,6 @@ class ProgramStageTest {
     ps.setEventLabel("Event Label");
     ps.setEventsLabel("Events Label");
     ps.setProgramStageLabel("Program Stage Label");
-    ps.setProgramStagesLabel("Program Stages Label");
     return ps;
   }
 
@@ -187,8 +186,6 @@ class ProgramStageTest {
     ps.setEventLabel(null);
     ps.setEventsLabel(null);
     ps.setProgramStageLabel(null);
-    ps.setProgramStagesLabel(null);
-
     return ps;
   }
 

@@ -84,8 +84,6 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
 
   private String programStageLabel;
 
-  private String programStagesLabel;
-
   private String eventLabel;
 
   private String eventsLabel;
@@ -353,24 +351,6 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @PropertyRange(min = 2)
-  public String getProgramStagesLabel() {
-    return programStagesLabel;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Translatable(propertyName = "programStagesLabel", key = "PROGRAM_STAGES_LABEL")
-  public String getDisplayProgramStagesLabel() {
-    return getTranslation("PROGRAM_STAGES_LABEL", getProgramStagesLabel());
-  }
-
-  public void setProgramStagesLabel(String programStagesLabel) {
-    this.programStagesLabel = programStagesLabel;
-  }
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @PropertyRange(min = 2)
   public String getEventLabel() {
     return eventLabel;
   }
@@ -609,6 +589,5 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
     copy.setEventLabel(original.getEventLabel());
     copy.setEventsLabel(original.getEventsLabel());
     copy.setProgramStageLabel(original.getProgramStageLabel());
-    copy.setProgramStagesLabel(original.getProgramStagesLabel());
   }
 }
