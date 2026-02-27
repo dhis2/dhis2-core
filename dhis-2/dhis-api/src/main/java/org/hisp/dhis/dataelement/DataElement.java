@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -35,13 +35,34 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.common.DimensionConstants.TEXTVALUE_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionConstants.VALUE_COLUMN_NAME;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderColumn;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -49,17 +70,36 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.Setter;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
+import org.hibernate.annotations.Type;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.attribute.AttributeValuesDeserializer;
+import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseIdentifiableObject.AttributeValue;
+import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.QueryModifiers;
+import org.hisp.dhis.common.Sortable;
+import org.hisp.dhis.common.TotalAggregationType;
+import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypeOptions;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
@@ -67,66 +107,172 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.dataset.comparator.DataSetApprovalFrequencyComparator;
 import org.hisp.dhis.dataset.comparator.DataSetFrequencyComparator;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.Translatable;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 
 /**
  * @author Kristian Nordal
  */
+@Setter
+@Entity
+@Table(name = "dataelement")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @JacksonXmlRootElement(localName = "dataElement", namespace = DxfNamespaces.DXF_2_0)
-public class DataElement extends BaseDimensionalItemObject
-    implements MetadataObject, ValueTypedDimensionalItemObject {
+public class DataElement extends BaseMetadataObject
+    implements DimensionalItemObject, NameableObject, MetadataObject, ValueTypedDimensionalItemObject {
+
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "dataelementid")
+  private long id;
+
+  @Column(name = "code", unique = true, length = 50)
+  private String code;
+
+  @Column(name = "name", nullable = false, unique = true, length = 230)
+  private String name;
+
+  @Column(name = "shortname", nullable = false, unique = true, length = 50)
+  private String shortName;
+
+  @Column(name = "description", columnDefinition = "text")
+  private String description;
+
+  @Column(name = "formname", length = 230)
+  private String formName;
+
+  @Embedded
+  private TranslationProperty translations = new TranslationProperty();
+
+  @Type(type = "jbObjectStyle")
+  private ObjectStyle style;
+
+  @Column(name = "fieldmask")
+  private String fieldMask;
+
   /** Data element value type (int, boolean, etc) */
+  @Enumerated(EnumType.STRING)
+  @Column(name = "valueType", length = 50, nullable = false)
   private ValueType valueType;
 
   /** Abstract class representing options for value types. */
+  @Type(type = "jbValueTypeOptions")
   private ValueTypeOptions valueTypeOptions;
 
   /**
    * The domain of this DataElement; e.g. DataElementDomainType.AGGREGATE or
    * DataElementDomainType.TRACKER.
    */
+  @Enumerated(EnumType.STRING)
+  @Column(name = "domainType", nullable = false)
   private DataElementDomain domainType;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "aggregationtype", length = 50, nullable = false)
+  private AggregationType aggregationType;
 
   /**
    * A combination of categories to capture data for this data element. Note that this category
    * combination could be overridden by data set elements which this data element is part of, see
    * {@link DataSetElement}.
    */
+  @ManyToOne
+  @JoinColumn(
+      name = "categorycomboid",
+      nullable = false,
+      foreignKey = @ForeignKey(name = "fk_dataelement_categorycomboid"))
   private CategoryCombo categoryCombo;
 
   /** URL for lookup of additional information on the web. */
+  @Column(name = "url")
   private String url;
 
   /** The data element groups which this data element is a member of. */
+  @ManyToMany(mappedBy = "members")
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private Set<DataElementGroup> groups = new HashSet<>();
 
   /** The data sets which this data element is a member of. */
+  @OneToMany(mappedBy = "dataElement")
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private Set<DataSetElement> dataSetElements = new HashSet<>();
 
   /** The lower organisation unit levels for aggregation. */
+  @ElementCollection
+  @CollectionTable(
+      name = "dataelementaggregationlevels",
+      joinColumns = @JoinColumn(name = "dataelementid"),
+      foreignKey = @ForeignKey(name = "fk_dataelementaggregationlevels_dataelementid"))
+  @Column(name = "aggregationlevel")
+  @OrderColumn(name = "sort_order")
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private List<Integer> aggregationLevels = new ArrayList<>();
 
   /** Indicates whether to store zero data values. */
+  @Column(name = "zeroissignificant", nullable = false)
   private boolean zeroIsSignificant;
 
   /** The option set for data values linked to this data element, can be null. */
-  @AuditAttribute private OptionSet optionSet;
+  @AuditAttribute
+  @ManyToOne
+  @JoinColumn(
+      name = "optionsetid",
+      foreignKey = @ForeignKey(name = "fk_dataelement_optionsetid"))
+  private OptionSet optionSet;
 
   /** The option set for comments linked to this data element, can be null. */
+  @ManyToOne
+  @JoinColumn(
+      name = "commentoptionsetid",
+      foreignKey = @ForeignKey(name = "fk_dataelement_commentoptionsetid"))
   private OptionSet commentOptionSet;
 
+  @ManyToMany
+  @JoinTable(
+      name = "dataelementlegendsets",
+      joinColumns = @JoinColumn(name = "dataelementid"),
+      inverseJoinColumns =
+          @JoinColumn(
+              name = "legendsetid",
+              foreignKey = @ForeignKey(name = "fk_dataelement_legendsetid")))
+  @OrderColumn(name = "sort_order")
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+  private List<LegendSet> legendSets = new ArrayList<>();
+
+  @AuditAttribute
+  @Type(type = "jsbAttributeValues")
+  private AttributeValues attributeValues = AttributeValues.empty();
+
+  @Type(type = "jsbObjectSharing")
+  private Sharing sharing = new Sharing();
+
   /** The style defines how the DataElement should be represented on clients */
-  private ObjectStyle style;
+  // style field declared above
 
   /**
    * Field mask represent how the value should be formatted during input. This string will be
    * validated as a TextPatternSegment of type TEXT.
    */
-  private String fieldMask;
+  // fieldMask field declared above
+
+  // -------------------------------------------------------------------------
+  // Transient fields
+  // -------------------------------------------------------------------------
+
+  @Transient private transient QueryModifiers queryMods;
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -137,6 +283,30 @@ public class DataElement extends BaseDimensionalItemObject
   public DataElement(String name) {
     this();
     this.name = name;
+  }
+
+  // -------------------------------------------------------------------------
+  // hashCode and equals
+  // -------------------------------------------------------------------------
+
+  @Override
+  public boolean equals(Object obj) {
+    return this == obj
+        || obj instanceof DataElement other
+            && HibernateProxyUtils.getRealClass(this) == HibernateProxyUtils.getRealClass(obj)
+            && Objects.equals(getUid(), other.getUid())
+            && Objects.equals(getCode(), other.getCode())
+            && Objects.equals(getName(), other.getName())
+            && Objects.equals(queryMods, other.queryMods);
+  }
+
+  @Override
+  public int hashCode() {
+    int result = getUid() != null ? getUid().hashCode() : 0;
+    result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
+    result = 31 * result + (getName() != null ? getName().hashCode() : 0);
+    result = 31 * result + (queryMods != null ? queryMods.hashCode() : 0);
+    return result;
   }
 
   // -------------------------------------------------------------------------
@@ -315,7 +485,6 @@ public class DataElement extends BaseDimensionalItemObject
    * @return true if this data element has a description.
    */
   public boolean hasDescription() {
-
     return isNotEmpty(description);
   }
 
@@ -339,7 +508,7 @@ public class DataElement extends BaseDimensionalItemObject
   }
 
   // -------------------------------------------------------------------------
-  // DimensionalItemObject
+  // DimensionalItemObject implementation
   // -------------------------------------------------------------------------
 
   // TODO can also be dimension
@@ -347,6 +516,240 @@ public class DataElement extends BaseDimensionalItemObject
   @Override
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.DATA_ELEMENT;
+  }
+
+  @Override
+  public String getDimensionItem() {
+    return getUid();
+  }
+
+  @Override
+  public String getDimensionItem(IdScheme idScheme) {
+    return getPropertyValue(idScheme);
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public AggregationType getAggregationType() {
+    return (queryMods != null && queryMods.getAggregationType() != null)
+        ? queryMods.getAggregationType()
+        : aggregationType;
+  }
+
+  @Override
+  public boolean hasAggregationType() {
+    return aggregationType != null;
+  }
+
+  @Override
+  public TotalAggregationType getTotalAggregationType() {
+    return getAggregationType() == AggregationType.NONE
+        ? TotalAggregationType.NONE
+        : TotalAggregationType.SUM;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "legendSets", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "legendSets", namespace = DxfNamespaces.DXF_2_0)
+  public List<LegendSet> getLegendSets() {
+    return legendSets;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public LegendSet getLegendSet() {
+    return legendSets.isEmpty() ? null : legendSets.get(0);
+  }
+
+  @Override
+  public boolean hasLegendSet() {
+    return !legendSets.isEmpty();
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public QueryModifiers getQueryMods() {
+    return queryMods;
+  }
+
+  // -------------------------------------------------------------------------
+  // IdentifiableObject implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  @JsonIgnore
+  public long getId() {
+    return id;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @Property(PropertyType.IDENTIFIER)
+  public String getCode() {
+    return code;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @PropertyRange(min = 1)
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  @Sortable(whenPersisted = false)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "name", key = "NAME")
+  public String getDisplayName() {
+    return translations.getTranslation("NAME", name);
+  }
+
+  @JsonProperty
+  @Sortable(whenPersisted = false)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "formName", key = "FORM_NAME")
+  public String getDisplayFormName() {
+    return translations.getTranslation(
+        "FORM_NAME", getFormName() != null ? getFormName() : getDisplayName());
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
+  public Set<Translation> getTranslations() {
+    return translations.getTranslations();
+  }
+
+  @Override
+  public void setTranslations(Set<Translation> translations) {
+    this.translations.setTranslations(translations);
+  }
+
+  @Override
+  public void setUser(User user) {
+    setCreatedBy(createdBy == null ? user : createdBy);
+    setOwner(user != null ? user.getUid() : null);
+  }
+
+  @Override
+  @Sortable(value = false)
+  @Gist(included = Include.FALSE)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Sharing getSharing() {
+    return sharing;
+  }
+
+  @Override
+  @JsonIgnore
+  public String getPropertyValue(IdScheme idScheme) {
+    if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
+      return uid;
+    } else if (idScheme.is(IdentifiableProperty.CODE)) {
+      return code;
+    } else if (idScheme.is(IdentifiableProperty.ID)) {
+      return id > 0 ? String.valueOf(id) : null;
+    } else if (idScheme.is(IdentifiableProperty.NAME)) {
+      return name;
+    } else if (idScheme.is(IdentifiableProperty.ATTRIBUTE)) {
+      return attributeValues.get(idScheme.getAttribute());
+    }
+    return null;
+  }
+
+  @Override
+  @JsonIgnore
+  public String getDisplayPropertyValue(IdScheme idScheme) {
+    if (idScheme.is(IdentifiableProperty.NAME)) {
+      return getDisplayName();
+    } else {
+      return getPropertyValue(idScheme);
+    }
+  }
+
+  @Override
+  public void setOwner(String owner) {
+    getSharing().setOwner(owner);
+  }
+
+  // -------------------------------------------------------------------------
+  // AttributeValues
+  // -------------------------------------------------------------------------
+
+  @Override
+  @OpenApi.Property(AttributeValue[].class)
+  @JsonProperty("attributeValues")
+  @JsonDeserialize(using = AttributeValuesDeserializer.class)
+  @JsonSerialize(using = AttributeValuesSerializer.class)
+  public AttributeValues getAttributeValues() {
+    return attributeValues;
+  }
+
+  @Override
+  public void setAttributeValues(AttributeValues attributeValues) {
+    this.attributeValues = attributeValues == null ? AttributeValues.empty() : attributeValues;
+  }
+
+  @Override
+  public void addAttributeValue(String attributeId, String value) {
+    this.attributeValues = attributeValues.added(attributeId, value);
+  }
+
+  @Override
+  public void removeAttributeValue(String attributeId) {
+    this.attributeValues = attributeValues.removed(attributeId);
+  }
+
+  // -------------------------------------------------------------------------
+  // NameableObject implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getShortName() {
+    return shortName;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "shortName", key = "SHORTNAME")
+  public String getDisplayShortName() {
+    return translations.getTranslation("SHORTNAME", shortName);
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getDescription() {
+    return description;
+  }
+
+  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "description", key = "DESCRIPTION")
+  public String getDisplayDescription() {
+    return translations.getTranslation("DESCRIPTION", description);
+  }
+
+  @Override
+  @JsonIgnore
+  public String getDisplayProperty(DisplayProperty property) {
+    if (DisplayProperty.SHORTNAME == property && getDisplayShortName() != null) {
+      return getDisplayShortName();
+    } else {
+      return getDisplayName();
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -373,21 +776,12 @@ public class DataElement extends BaseDimensionalItemObject
         : valueType;
   }
 
-  public void setValueType(ValueType valueType) {
-    this.valueType = valueType;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public ValueTypeOptions getValueTypeOptions() {
     return valueTypeOptions;
   }
 
-  public void setValueTypeOptions(ValueTypeOptions valueTypeOptions) {
-    this.valueTypeOptions = valueTypeOptions;
-  }
-
-  @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @PropertyRange(min = 2)
@@ -395,19 +789,15 @@ public class DataElement extends BaseDimensionalItemObject
     return formName;
   }
 
-  @Override
-  public void setFormName(String formName) {
-    this.formName = formName;
+  /** Returns the form name, or the display name if it does not exist. */
+  public String getFormNameFallback() {
+    return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
   }
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DataElementDomain getDomainType() {
     return domainType;
-  }
-
-  public void setDomainType(DataElementDomain domainType) {
-    this.domainType = domainType;
   }
 
   @JsonProperty(value = "categoryCombo")
@@ -417,19 +807,11 @@ public class DataElement extends BaseDimensionalItemObject
     return categoryCombo;
   }
 
-  public void setCategoryCombo(CategoryCombo categoryCombo) {
-    this.categoryCombo = categoryCombo;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Property(PropertyType.URL)
   public String getUrl() {
     return url;
-  }
-
-  public void setUrl(String url) {
-    this.url = url;
   }
 
   @JsonProperty("dataElementGroups")
@@ -440,19 +822,11 @@ public class DataElement extends BaseDimensionalItemObject
     return groups;
   }
 
-  public void setGroups(Set<DataElementGroup> groups) {
-    this.groups = groups;
-  }
-
   @JsonProperty
   @JacksonXmlElementWrapper(localName = "dataSetElements", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "dataSetElements", namespace = DxfNamespaces.DXF_2_0)
   public Set<DataSetElement> getDataSetElements() {
     return dataSetElements;
-  }
-
-  public void setDataSetElements(Set<DataSetElement> dataSetElements) {
-    this.dataSetElements = dataSetElements;
   }
 
   @JsonProperty
@@ -461,18 +835,10 @@ public class DataElement extends BaseDimensionalItemObject
     return aggregationLevels;
   }
 
-  public void setAggregationLevels(List<Integer> aggregationLevels) {
-    this.aggregationLevels = aggregationLevels;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isZeroIsSignificant() {
     return zeroIsSignificant;
-  }
-
-  public void setZeroIsSignificant(boolean zeroIsSignificant) {
-    this.zeroIsSignificant = zeroIsSignificant;
   }
 
   @Override
@@ -482,18 +848,10 @@ public class DataElement extends BaseDimensionalItemObject
     return optionSet;
   }
 
-  public void setOptionSet(OptionSet optionSet) {
-    this.optionSet = optionSet;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public OptionSet getCommentOptionSet() {
     return commentOptionSet;
-  }
-
-  public void setCommentOptionSet(OptionSet commentOptionSet) {
-    this.commentOptionSet = commentOptionSet;
   }
 
   @JsonProperty
@@ -502,17 +860,34 @@ public class DataElement extends BaseDimensionalItemObject
     return style;
   }
 
-  public void setStyle(ObjectStyle style) {
-    this.style = style;
-  }
-
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getFieldMask() {
     return fieldMask;
   }
 
-  public void setFieldMask(String fieldMask) {
-    this.fieldMask = fieldMask;
+  // -------------------------------------------------------------------------
+  // Sharing helpers
+  // -------------------------------------------------------------------------
+
+  public void setPublicAccess(String access) {
+    getSharing().setPublicAccess(access);
+  }
+
+  public String getPublicAccess() {
+    return getSharing().getPublicAccess();
+  }
+
+  public Collection<UserAccess> getUserAccesses() {
+    return getSharing().getUsers().values();
+  }
+
+  public Collection<UserGroupAccess> getUserGroupAccesses() {
+    return getSharing().getUserGroups().values();
+  }
+
+  @JsonIgnore
+  public String getAttributeValue(String attributeUid) {
+    return attributeValues.get(attributeUid);
   }
 }

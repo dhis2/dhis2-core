@@ -32,13 +32,14 @@ package org.hisp.dhis.tracker.imports.preheat.mappers;
 import java.util.Map;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 
 class AttributeCreator {
   static AttributeValues attributeValues(String uid, String value) {
     return AttributeValues.of(Map.of(uid, value));
   }
 
-  static <T extends BaseIdentifiableObject> T setIdSchemeFields(
+  static <T extends IdentifiableObject> T setIdSchemeFields(
       T identifiable, String uid, String name, String code, AttributeValues attributeValues) {
     identifiable.setUid(uid);
     identifiable.setName(name);

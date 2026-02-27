@@ -186,7 +186,7 @@ public class NotificationTemplateMapper {
     return optionalInstance.orElse(null);
   }
 
-  private static <T extends BaseIdentifiableObject> T toBaseIdentifiableObject(
+  private static <T extends IdentifiableObject> T toBaseIdentifiableObject(
       IdentifiableObjectSnapshot from,
       Supplier<T> instanceSupplier,
       Collection<Consumer<T>> instanceTransformers) {

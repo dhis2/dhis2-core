@@ -32,6 +32,7 @@ package org.hisp.dhis.merge;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -61,7 +62,7 @@ public class CommonMergeHandler {
    * @param sources to be replaced
    * @param target to replace each source
    */
-  public <T extends BaseIdentifiableObject> void handleRefsInIndicatorExpression(
+  public <T extends IdentifiableObject> void handleRefsInIndicatorExpression(
       List<T> sources, T target) {
     for (T source : sources) {
       // numerators
@@ -92,7 +93,7 @@ public class CommonMergeHandler {
    * @param sources to be replaced
    * @param target to replace each source
    */
-  public <T extends BaseIdentifiableObject> void handleRefsInCustomForms(
+  public <T extends IdentifiableObject> void handleRefsInCustomForms(
       List<T> sources, T target) {
     for (T source : sources) {
       List<DataEntryForm> forms =

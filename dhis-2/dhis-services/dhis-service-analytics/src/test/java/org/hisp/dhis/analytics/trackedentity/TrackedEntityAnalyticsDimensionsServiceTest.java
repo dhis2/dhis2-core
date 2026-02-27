@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collection;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramService;
@@ -65,7 +66,7 @@ class TrackedEntityAnalyticsDimensionsServiceTest {
 
   @Test
   void testQueryDoesNotContainDisallowedValueTypes() {
-    Collection<BaseIdentifiableObject> analyticsDimensions =
+    Collection<IdentifiableObject> analyticsDimensions =
         service.getQueryDimensionsByTrackedEntityTypeId("aTeiId", emptySet()).stream()
             .map(PrefixedDimension::getItem)
             .toList();
