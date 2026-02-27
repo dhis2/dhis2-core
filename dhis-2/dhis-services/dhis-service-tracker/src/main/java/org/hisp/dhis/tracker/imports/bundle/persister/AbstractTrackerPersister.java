@@ -336,59 +336,58 @@ public abstract class AbstractTrackerPersister<
 
     payloadAttributes.forEach(
         attribute -> {
-
           // We cannot get the value from attributeToStore because it uses
           // encryption logic, so we need to use the one from payload
           boolean isDelete = StringUtils.isEmpty(attribute.getValue());
 
-          TrackedEntityAttributeValue trackedEntityAttributeValue =
+          TrackedEntityAttributeValue currentValue =
               attributeValueById.get(attribute.getAttribute());
 
-          boolean isUpdated = false;
+          boolean isNew = Objects.isNull(currentValue);
+          String previousValue = isNew ? null : currentValue.getPlainValue();
+          boolean valueChanged = isNew || !Objects.equals(previousValue, attribute.getValue());
 
-          boolean isNew = Objects.isNull(trackedEntityAttributeValue);
-
-          if (isDelete && isNew) {
-            return;
-          }
-
-          if (isDelete) {
-            delete(entityManager, preheat, trackedEntityAttributeValue, trackedEntity, user);
-          } else {
-            if (!isNew) {
-              isUpdated = !trackedEntityAttributeValue.getPlainValue().equals(attribute.getValue());
-            }
-
-            String previousValue =
-                trackedEntityAttributeValue == null
-                    ? null
-                    : trackedEntityAttributeValue.getPlainValue();
-            trackedEntityAttributeValue =
-                Optional.ofNullable(trackedEntityAttributeValue)
-                    .orElseGet(
-                        () ->
-                            new TrackedEntityAttributeValue()
-                                .setAttribute(
-                                    getTrackedEntityAttributeFromPreheat(
-                                        preheat, attribute.getAttribute()))
-                                .setTrackedEntity(trackedEntity))
-                    .setStoredBy(attribute.getStoredBy())
-                    .setValue(attribute.getValue())
-                    .setLastUpdated(new Date());
-
-            saveOrUpdate(
+          if (isDelete && !isNew) {
+            delete(entityManager, preheat, currentValue, trackedEntity, user);
+          } else if (valueChanged) {
+            saveOrUpdateAttributeValue(
                 entityManager,
                 preheat,
-                isNew,
                 trackedEntity,
-                trackedEntityAttributeValue,
+                attribute,
+                currentValue,
+                isNew,
                 previousValue,
-                isUpdated,
                 user);
           }
-
-          handleReservedValue(trackedEntityAttributeValue);
         });
+  }
+
+  private void saveOrUpdateAttributeValue(
+      EntityManager entityManager,
+      TrackerPreheat preheat,
+      TrackedEntity trackedEntity,
+      Attribute attribute,
+      TrackedEntityAttributeValue currentValue,
+      boolean isNew,
+      String previousValue,
+      UserDetails user) {
+    TrackedEntityAttributeValue attributeToPersist =
+        Optional.ofNullable(currentValue)
+            .orElseGet(
+                () ->
+                    new TrackedEntityAttributeValue()
+                        .setAttribute(
+                            getTrackedEntityAttributeFromPreheat(preheat, attribute.getAttribute()))
+                        .setTrackedEntity(trackedEntity))
+            .setStoredBy(attribute.getStoredBy())
+            .setValue(attribute.getValue())
+            .setLastUpdated(new Date());
+
+    saveOrUpdate(
+        entityManager, preheat, isNew, trackedEntity, attributeToPersist, previousValue, user);
+
+    handleReservedValue(attributeToPersist);
   }
 
   private void delete(
@@ -407,13 +406,13 @@ public abstract class AbstractTrackerPersister<
             ? trackedEntityAttributeValue
             : entityManager.merge(trackedEntityAttributeValue));
 
-    addTrackedEntityChangeLog(
-        user.getUsername(),
-        trackedEntityAttributeValue,
+    trackedEntityChangeLogService.addTrackedEntityChangeLog(
+        trackedEntity,
+        trackedEntityAttributeValue.getAttribute(),
         trackedEntityAttributeValue.getPlainValue(),
         null,
-        trackedEntity,
-        DELETE);
+        DELETE,
+        user.getUsername());
   }
 
   private void saveOrUpdate(
@@ -423,15 +422,13 @@ public abstract class AbstractTrackerPersister<
       TrackedEntity trackedEntity,
       TrackedEntityAttributeValue trackedEntityAttributeValue,
       String previousValue,
-      boolean isUpdated,
       UserDetails user) {
     if (isFileResource(trackedEntityAttributeValue)) {
       assignFileResource(
           entityManager, preheat, trackedEntity.getUid(), trackedEntityAttributeValue.getValue());
     }
 
-    ChangeLogType changeLogType = null;
-
+    ChangeLogType changeLogType;
     if (isNew) {
       entityManager.persist(trackedEntityAttributeValue);
       // In case it's a newly created attribute we'll add it back to TE,
@@ -440,19 +437,16 @@ public abstract class AbstractTrackerPersister<
       changeLogType = CREATE;
     } else {
       entityManager.merge(trackedEntityAttributeValue);
-
-      if (isUpdated) {
-        changeLogType = UPDATE;
-      }
+      changeLogType = UPDATE;
     }
 
-    addTrackedEntityChangeLog(
-        user.getUsername(),
-        trackedEntityAttributeValue,
+    trackedEntityChangeLogService.addTrackedEntityChangeLog(
+        trackedEntity,
+        trackedEntityAttributeValue.getAttribute(),
         previousValue,
         trackedEntityAttributeValue.getPlainValue(),
-        trackedEntity,
-        changeLogType);
+        changeLogType,
+        user.getUsername());
   }
 
   private static boolean isFileResource(TrackedEntityAttributeValue trackedEntityAttributeValue) {
@@ -477,25 +471,6 @@ public abstract class AbstractTrackerPersister<
         && attributeValue.getAttribute().getTextPattern() != null) {
       reservedValueService.useReservedValue(
           attributeValue.getAttribute().getTextPattern(), attributeValue.getValue());
-    }
-  }
-
-  private void addTrackedEntityChangeLog(
-      String userName,
-      TrackedEntityAttributeValue attributeValue,
-      String previousValue,
-      String currentValue,
-      TrackedEntity trackedEntity,
-      ChangeLogType changeLogType) {
-
-    if (changeLogType != null) {
-      trackedEntityChangeLogService.addTrackedEntityChangeLog(
-          trackedEntity,
-          attributeValue.getAttribute(),
-          previousValue,
-          currentValue,
-          changeLogType,
-          userName);
     }
   }
 }
