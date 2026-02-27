@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.auth.RegistrationParams;
 import org.hisp.dhis.common.auth.UserInviteParams;
 import org.hisp.dhis.common.auth.UserRegistrationParams;
@@ -64,7 +63,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultUserAccountService implements UserAccountService {
 
   private final UserService userService;
-  private final UserRoleStore userRoleStore;
   private final ConfigurationService configService;
   private final TwoFactorAuthenticationProvider twoFactorAuthProvider;
   private final SystemSettingsProvider settingsProvider;
@@ -108,8 +106,6 @@ public class DefaultUserAccountService implements UserAccountService {
     user.getUserRoles().add(userRole);
 
     userService.addUser(user, new SystemUser());
-
-    userRoleStore.addMember(UID.of(userRole.getUid()), UID.of(user.getUid()));
     log.info("Created new user");
 
     authenticate(user.getUsername(), params.getPassword(), user.getAuthorities(), request);
