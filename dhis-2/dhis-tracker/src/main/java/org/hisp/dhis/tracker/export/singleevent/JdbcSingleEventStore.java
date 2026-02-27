@@ -968,31 +968,41 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    * synchronization" configuration of the ProgramStageDataElements. This logic applies only during
    * single event synchronization.
    */
-  /**
-   * Returns the event data values projection for the SELECT clause. During synchronization, data
-   * elements marked as "skip sync" are filtered out. Since the program stage is always known for
-   * sync queries, the skip-sync data elements are looked up directly without a CASE expression.
-   */
   private String getEventDataValuesProjectionForSelectClause(
       SingleEventQueryParams params, MapSqlParameterSource sqlParameters) {
     if (!params.isSynchronizationQuery()
         || params.getSkipSyncDataElementsByProgramStage() == null
         || params.getSkipSyncDataElementsByProgramStage().isEmpty()) {
+
       return "ev.eventdatavalues";
     }
 
-    String programStageUid = params.getProgramStage().getUid();
-    Set<String> dataElementUids =
-        params.getSkipSyncDataElementsByProgramStage().get(programStageUid);
+    StringBuilder caseStatement = new StringBuilder("case ");
 
-    if (dataElementUids == null || dataElementUids.isEmpty()) {
-      return "ev.eventdatavalues";
+    int caseCounter = 0;
+    for (Map.Entry<String, Set<String>> entry :
+        params.getSkipSyncDataElementsByProgramStage().entrySet()) {
+      String programStageUid = entry.getKey();
+      Set<String> dataElementUids = entry.getValue();
+
+      if (!dataElementUids.isEmpty()) {
+        String paramName = "filter_de_" + caseCounter++;
+        sqlParameters.addValue(paramName, dataElementUids);
+
+        caseStatement
+            .append("when ps.uid = '")
+            .append(programStageUid)
+            .append("' then ")
+            .append("(select jsonb_object_agg(key, value) ")
+            .append("from jsonb_each(ev.eventdatavalues) ")
+            .append("where key not in (:")
+            .append(paramName)
+            .append(")) ");
+      }
     }
 
-    sqlParameters.addValue("skipSyncDataElements", dataElementUids);
-    return """
-        (SELECT jsonb_object_agg(key, value)
-        FROM jsonb_each(ev.eventdatavalues)
-        WHERE key NOT IN (:skipSyncDataElements))""";
+    caseStatement.append("else ev.eventdatavalues end");
+
+    return caseStatement.toString();
   }
 }
