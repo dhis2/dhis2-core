@@ -19,13 +19,15 @@ create index in_trackedentity_type_created
 -- data is unevenly distributed across programs.
 create index in_enrollment_program_created
     on enrollment (programid, created desc, enrollmentid desc);
-
--- enrollment: order=enrolledAt is the second most common order from clients.
 create index in_enrollment_program_enrollmentdate
     on enrollment (programid, enrollmentdate desc, enrollmentid desc);
 
--- singleevent: supports the new default order (created desc, eventid desc).
--- The existing in_singleevent_programstageid_occurreddate (V2_43_50)
--- covers order=occurredDate and stays as-is.
+-- trackerevent: the query filters ev.programstageid in (...) with the
+-- program's stages, so programstageid works as leading column.
+create index in_trackerevent_programstageid_created
+    on trackerevent (programstageid, created desc, eventid desc);
+
+-- singleevent: the existing in_singleevent_programstageid_occurreddate
+-- (V2_43_50) covers order=occurredDate and stays as-is.
 create index in_singleevent_programstageid_created
     on singleevent (programstageid, created desc, eventid desc);
