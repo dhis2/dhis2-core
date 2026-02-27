@@ -326,7 +326,9 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
                 get(TrackedEntity.class, "QesgJkTyTCk"),
                 get(TrackedEntity.class, "dUE514NMOlo"),
                 get(TrackedEntity.class, "mHWCacsGYYn"))
-            .sorted(Comparator.comparing(TrackedEntity::getId).reversed()) // reversed = desc
+            .sorted(
+                Comparator.comparing(
+                    TrackedEntity::getId)) // asc (tiebreaker follows first order direction)
             .map(TrackedEntity::getUid)
             .toList();
 
@@ -1107,7 +1109,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
 
     List<String> events = getTrackerEvents(params);
 
-    assertEquals(List.of("D9PbzJY8bJM", "pTzf9KYMk72"), events);
+    assertEquals(List.of("pTzf9KYMk72", "D9PbzJY8bJM"), events);
   }
 
   @Test

@@ -71,7 +71,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Geometries;
-import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.OrderJdbcClause;
+import org.hisp.dhis.tracker.export.OrderJdbcClause.SqlOrder;
 import org.hisp.dhis.tracker.export.UserInfoSnapshots;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
@@ -90,7 +91,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 class JdbcEnrollmentStore {
 
-  private static final String DEFAULT_ORDER = "e.enrollmentid desc";
+  private static final String DEFAULT_ORDER = "e.created desc, e.enrollmentid desc";
+  private static final String PK_COLUMN = "e.enrollmentid";
   private static final Set<String> ORDERABLE_FIELDS =
       Set.of(
           "completedDate",
@@ -453,9 +455,10 @@ class JdbcEnrollmentStore {
     }
   }
 
-  private void addOrderBy(StringBuilder sql, EnrollmentQueryParams params) {
-    sql.append(" order by ");
-    sql.append(orderBy(params.getOrder()));
+  private static void addOrderBy(StringBuilder sql, EnrollmentQueryParams params) {
+    List<SqlOrder> sqlOrders =
+        params.getOrder().stream().map(o -> SqlOrder.of("e." + o.getField(), o)).toList();
+    sql.append(OrderJdbcClause.of(sqlOrders, DEFAULT_ORDER, PK_COLUMN));
   }
 
   public Page<Enrollment> getEnrollments(
@@ -586,22 +589,6 @@ class JdbcEnrollmentStore {
       sqlParams.addValue(
           "trackedEntityUids", params.getTrackedEntities().stream().map(UID::getValue).toList());
     }
-  }
-
-  private static String orderBy(List<Order> orders) {
-    if (orders == null || orders.isEmpty()) {
-      return DEFAULT_ORDER;
-    }
-
-    StringBuilder orderBy = new StringBuilder();
-    for (Order order : orders) {
-      if (!orderBy.isEmpty()) {
-        orderBy.append(", ");
-      }
-      orderBy.append("e.").append(order.getField()).append(" ").append(order.getDirection());
-    }
-
-    return orderBy + ", " + DEFAULT_ORDER;
   }
 
   private static class EnrollmentRowMapper implements RowMapper<Enrollment> {
