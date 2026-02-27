@@ -1392,7 +1392,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
-  void testAggregatedLegacySelectColumnsDoesNotIncludeEnrollmentOuColumn() {
+  void testAggregatedLegacySelectColumnsIncludesEnrollmentOuColumn() {
     OrganisationUnit ouA = createOrganisationUnit('A');
 
     EventQueryParams params =
@@ -1405,11 +1405,11 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     List<String> columns = eventSubject.getSelectColumns(params, true);
 
-    assertTrue(columns.stream().noneMatch(c -> c.contains("enrollmentou")));
+    assertTrue(columns.stream().anyMatch(c -> c.contains("as enrollmentou")));
   }
 
   @Test
-  void testAggregatedLegacyGroupByColumnsDoesNotIncludeEnrollmentOuColumn() {
+  void testAggregatedLegacyGroupByColumnsIncludesEnrollmentOuColumn() {
     OrganisationUnit ouA = createOrganisationUnit('A');
 
     EventQueryParams params =
@@ -1422,7 +1422,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     List<String> columns = eventSubject.getGroupByColumnNames(params, true);
 
-    assertTrue(columns.stream().noneMatch(c -> c.contains("enrl.\"ou\"")));
+    assertTrue(columns.stream().anyMatch(c -> c.contains("enrl.\"ou\"")));
   }
 
   @Test

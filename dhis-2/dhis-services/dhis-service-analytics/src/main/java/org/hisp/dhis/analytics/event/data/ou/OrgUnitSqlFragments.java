@@ -93,6 +93,17 @@ public final class OrgUnitSqlFragments {
   }
 
   /**
+   * Builds a literal enrollment OU UID projection for hierarchical mode. Produces a constant value
+   * aliased as the enrollment OU column, collapsing all rows to one aggregated row.
+   *
+   * @param uid the org unit UID to use as a literal value
+   * @return SQL fragment like {@code 'uid' as enrollmentou}
+   */
+  public static String selectLiteralEnrollmentOuUid(String uid) {
+    return "'" + uid + "' as " + OrgUnitSqlConstants.ENROLLMENT_OU_RESULT_ALIAS;
+  }
+
+  /**
    * Builds a UID-membership predicate for enrollment OU.
    *
    * @param quotedUidList comma-delimited and quoted UID values

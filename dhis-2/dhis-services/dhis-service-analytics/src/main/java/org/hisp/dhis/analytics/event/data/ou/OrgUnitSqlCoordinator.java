@@ -43,7 +43,6 @@ import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 
@@ -84,10 +83,9 @@ public final class OrgUnitSqlCoordinator {
   }
 
   /**
-   * Adds ENROLLMENT_OU aggregate select/group-by columns when required.
-   *
-   * <p>This is only applicable for event analytics aggregate queries where ENROLLMENT_OU is a
-   * dimension.
+   * Adds ENROLLMENT_OU select/group-by column for aggregate event queries when ENROLLMENT_OU is a
+   * dimension. This produces disaggregation by enrollment org unit, matching the standard OU
+   * dimension behavior.
    *
    * @param columns mutable output column list
    * @param params query parameters
@@ -101,9 +99,18 @@ public final class OrgUnitSqlCoordinator {
       boolean isGroupBy,
       boolean isAggregated,
       AnalyticsType analyticsType) {
-    // Enrollment OU is filter-only in aggregate queries: it contributes to the WHERE clause
-    // (via appendWherePredicateIfNeeded) but must not appear in SELECT/GROUP BY, because
-    // aggregate queries sum across all matching enrollment org units.
+    if (isAggregated && params.hasEnrollmentOuDimension() && analyticsType == AnalyticsType.EVENT) {
+      if (params.isEnrollmentOuDimensionHierarchical()) {
+        // Hierarchical mode: produce a literal OU uid (no group by needed).
+        if (!isGroupBy) {
+          List<DimensionalItemObject> items = params.getEnrollmentOuDimensionItems();
+          String uid = items.isEmpty() ? "" : items.get(0).getUid();
+          columns.add(OrgUnitSqlFragments.selectLiteralEnrollmentOuUid(uid));
+        }
+      } else {
+        columns.add(OrgUnitSqlFragments.selectEnrollmentOuUid(isGroupBy));
+      }
+    }
   }
 
   /**
@@ -129,27 +136,38 @@ public final class OrgUnitSqlCoordinator {
    * @param sql SQL buffer being assembled
    * @param hlp helper used to add {@code where/and} prefixes
    * @param params query parameters
-   * @param sqlBuilder SQL dialect helper used for quoting UID lists
    */
   public static void appendWherePredicateIfNeeded(
-      StringBuilder sql, SqlHelper hlp, EventQueryParams params, AnalyticsSqlBuilder sqlBuilder) {
+      StringBuilder sql, SqlHelper hlp, EventQueryParams params) {
     if (!params.hasEnrollmentOu()) {
       return;
     }
 
     List<String> predicates = new ArrayList<>();
-    List<DimensionalItemObject> enrollmentOuItems = params.getAllEnrollmentOuItemsForSql();
 
-    if (!enrollmentOuItems.isEmpty()) {
-      String uidLevelClause = buildUidLevelClause(enrollmentOuItems);
+    // Dimension items: hierarchical mode uses uidlevel filtering, direct mode uses enrl."ou" match.
+    List<DimensionalItemObject> dimensionItems = params.getEnrollmentOuDimensionItems();
+    if (!dimensionItems.isEmpty()) {
+      if (params.isEnrollmentOuDimensionHierarchical()) {
+        String uidLevelClause = buildUidLevelClause(dimensionItems);
+        predicates.add(" " + uidLevelClause + " ");
+      } else {
+        String uids =
+            dimensionItems.stream().map(item -> "'" + item.getUid() + "'").collect(joining(","));
+        predicates.add(OrgUnitSqlFragments.predicateByUids(uids));
+      }
+    }
+
+    // Filter items use hierarchical uidlevel filtering.
+    List<DimensionalItemObject> filterItems = params.getEnrollmentOuFilterItems();
+    if (!filterItems.isEmpty()) {
+      String uidLevelClause = buildUidLevelClause(filterItems);
       predicates.add(" " + uidLevelClause + " ");
     }
 
-    if (!params.getAllEnrollmentOuLevelsForSql().isEmpty()) {
+    if (!params.getEnrollmentOuFilterLevels().isEmpty()) {
       String levels =
-          params.getAllEnrollmentOuLevelsForSql().stream()
-              .map(String::valueOf)
-              .collect(joining(","));
+          params.getEnrollmentOuFilterLevels().stream().map(String::valueOf).collect(joining(","));
       predicates.add(OrgUnitSqlFragments.predicateByLevels(levels));
     }
 

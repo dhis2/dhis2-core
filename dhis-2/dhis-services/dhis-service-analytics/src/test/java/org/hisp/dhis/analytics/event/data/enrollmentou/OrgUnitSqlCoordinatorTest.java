@@ -87,7 +87,7 @@ class OrgUnitSqlCoordinatorTest {
   }
 
   @Test
-  void testAddDimensionSelectColumnsNoOpForAggregateEvent() {
+  void testAddDimensionSelectColumnsForAggregateEvent() {
     OrganisationUnit ouA = createOrganisationUnit('A');
     EventQueryParams params =
         new EventQueryParams.Builder()
@@ -99,7 +99,8 @@ class OrgUnitSqlCoordinatorTest {
     OrgUnitSqlCoordinator.addDimensionSelectColumns(
         columns, params, false, true, AnalyticsType.EVENT);
 
-    assertThat(columns, hasSize(0));
+    assertThat(columns, hasSize(1));
+    assertThat(columns.get(0), is("enrl.\"ou\" as enrollmentou"));
   }
 
   @Test
@@ -143,7 +144,7 @@ class OrgUnitSqlCoordinatorTest {
         new EventQueryParams.Builder().withProgram(createProgram('A')).build();
     StringBuilder sql = new StringBuilder();
 
-    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(sql, new SqlHelper(), params, sqlBuilder);
+    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(sql, new SqlHelper(), params);
 
     assertThat(sql.toString(), is(""));
   }
@@ -161,7 +162,7 @@ class OrgUnitSqlCoordinatorTest {
             .build();
 
     StringBuilder sql = new StringBuilder();
-    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(sql, new SqlHelper(), params, sqlBuilder);
+    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(sql, new SqlHelper(), params);
 
     String where = sql.toString();
     assertThat(where, containsString("where ("));
@@ -183,12 +184,89 @@ class OrgUnitSqlCoordinatorTest {
             .build();
 
     StringBuilder sql = new StringBuilder();
-    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(sql, new SqlHelper(), params, sqlBuilder);
+    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(sql, new SqlHelper(), params);
 
     String where = sql.toString();
     assertThat(where, containsString("enrl.\"uidlevel1\" in ("));
     assertThat(where, containsString("'" + ouA.getUid() + "'"));
     assertThat(where, containsString("'" + ouB.getUid() + "'"));
+  }
+
+  @Test
+  void testAppendWherePredicateForDimensionUsesDirectOuMatch() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(createProgram('A'))
+            .withEnrollmentOuDimension(List.of(ouA, ouB))
+            .build();
+
+    StringBuilder sql = new StringBuilder();
+    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(sql, new SqlHelper(), params);
+
+    String where = sql.toString();
+    assertThat(where, containsString("enrl.\"ou\" in ("));
+    assertThat(where, containsString("'" + ouA.getUid() + "'"));
+    assertThat(where, containsString("'" + ouB.getUid() + "'"));
+    assertThat(where, not(containsString("uidlevel")));
+  }
+
+  @Test
+  void testAppendWherePredicateForHierarchicalDimensionUsesUidLevel() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B', ouA);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(createProgram('A'))
+            .withEnrollmentOuDimension(List.of(ouA, ouB))
+            .withEnrollmentOuDimensionHierarchical(true)
+            .build();
+
+    StringBuilder sql = new StringBuilder();
+    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(sql, new SqlHelper(), params);
+
+    String where = sql.toString();
+    assertThat(where, containsString("enrl.\"uidlevel1\" in ('" + ouA.getUid() + "')"));
+    assertThat(where, containsString("enrl.\"uidlevel2\" in ('" + ouB.getUid() + "')"));
+    assertThat(where, not(containsString("enrl.\"ou\" in (")));
+  }
+
+  @Test
+  void testAddDimensionSelectColumnsForHierarchicalDimension() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(createProgram('A'))
+            .withEnrollmentOuDimension(List.of(ouA))
+            .withEnrollmentOuDimensionHierarchical(true)
+            .build();
+
+    List<String> selectColumns = new ArrayList<>();
+    OrgUnitSqlCoordinator.addDimensionSelectColumns(
+        selectColumns, params, false, true, AnalyticsType.EVENT);
+
+    assertThat(selectColumns, hasSize(1));
+    assertThat(selectColumns.get(0), is("'" + ouA.getUid() + "' as enrollmentou"));
+  }
+
+  @Test
+  void testAddDimensionSelectColumnsForHierarchicalDimensionSkipsGroupBy() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(createProgram('A'))
+            .withEnrollmentOuDimension(List.of(ouA))
+            .withEnrollmentOuDimensionHierarchical(true)
+            .build();
+
+    List<String> groupByColumns = new ArrayList<>();
+    OrgUnitSqlCoordinator.addDimensionSelectColumns(
+        groupByColumns, params, true, true, AnalyticsType.EVENT);
+
+    assertThat(groupByColumns, hasSize(0));
   }
 
   @Test

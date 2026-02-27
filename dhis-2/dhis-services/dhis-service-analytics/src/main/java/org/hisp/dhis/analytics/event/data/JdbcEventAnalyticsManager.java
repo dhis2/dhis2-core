@@ -765,7 +765,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     }
 
     StringBuilder enrollmentOuSql = new StringBuilder();
-    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(enrollmentOuSql, hlp, params, sqlBuilder);
+    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(enrollmentOuSql, hlp, params);
     sql += enrollmentOuSql;
 
     if (params.hasBbox()) {
