@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,45 +27,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.filter;
+package org.hisp.dhis.webapi.staticresource;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.http.HttpMethod;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
- * Filter which enforces no cache for HTML pages like index pages to prevent stale versions being
- * rendered in clients.
+ * Spring MVC interceptor that sets {@code Cache-Control} headers for core DHIS2 static resources
+ * served from classpath JARs ({@code /dhis-web-commons/**}, {@code /icons/**}, {@code /images/**},
+ * etc.). These resources are handled by Spring's {@code ResourceHttpRequestHandler} and this
+ * interceptor works in both embedded Tomcat and WAR deployment modes.
  *
- * @author Kai Vandivier
+ * <p>App resources ({@code /apps/**}) are handled directly by {@code AppController} which calls
+ * {@code StaticCacheControlService} itself, so this interceptor does not need to cover those paths.
  */
 @Component
-public class AppHtmlNoCacheFilter extends OncePerRequestFilter {
-  // Match paths with '/dhis-web-' or '/apps' that end with '.html' or '/'
-  // https://regex101.com/r/4QfxgS/1
-  public static final String HTML_PATH_REGEX = "\\/(dhis-web-|apps).*(\\.html|\\/)$";
-  public static final Pattern HTML_PATH_PATTERN = Pattern.compile(HTML_PATH_REGEX);
+@RequiredArgsConstructor
+public class StaticCacheInterceptor implements HandlerInterceptor {
+
+  private final StaticCacheControlService staticCacheControlService;
 
   @Override
-  protected void doFilterInternal(
-      HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-      throws IOException, ServletException {
-
+  public boolean preHandle(
+      HttpServletRequest request, HttpServletResponse response, Object handler) {
     String uri = request.getRequestURI();
-    Matcher m = HTML_PATH_PATTERN.matcher(uri);
-
-    if (m.find() && HttpMethod.GET.matches(request.getMethod())) {
-      ContextUtils.setNoStore(response);
+    if (isCoreStaticPath(uri)) {
+      staticCacheControlService.setHeaders(response, uri, null);
     }
+    return true;
+  }
 
-    chain.doFilter(request, response);
+  private boolean isCoreStaticPath(String uri) {
+    return uri.startsWith("/dhis-web-")
+        || uri.startsWith("/icons/")
+        || uri.startsWith("/images/")
+        || uri.equals("/favicon.ico");
   }
 }

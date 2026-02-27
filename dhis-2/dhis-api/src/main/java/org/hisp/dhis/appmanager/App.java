@@ -124,6 +124,10 @@ public class App implements Serializable {
 
   private boolean isLocalised = false;
 
+  private AppCacheConfig cacheConfig;
+
+  private String cacheBustKey;
+
   // -------------------------------------------------------------------------
   // Logic
   // -------------------------------------------------------------------------
@@ -134,8 +138,23 @@ public class App implements Serializable {
    * @param contextPath the context path of this instance.
    */
   public void init(@CheckForNull String contextPath) {
-    String prefix =
-        this.isBundled() ? AppManager.BUNDLED_APP_PREFIX : AppManager.INSTALLED_APP_PREFIX;
+    init(contextPath, false);
+  }
+
+  /**
+   * Initializes the app. Sets the launchUrl property.
+   *
+   * @param contextPath the context path of this instance.
+   * @param canonicalAppPaths when true, all apps use {@code /apps/{appName}/} as base path instead
+   *     of the legacy {@code /dhis-web-{appName}/} for bundled apps.
+   */
+  public void init(@CheckForNull String contextPath, boolean canonicalAppPaths) {
+    String prefix;
+    if (canonicalAppPaths) {
+      prefix = AppManager.CANONICAL_APP_PREFIX;
+    } else {
+      prefix = this.isBundled() ? AppManager.BUNDLED_APP_PREFIX : AppManager.INSTALLED_APP_PREFIX;
+    }
     this.basePath = ("/" + prefix + getUrlFriendlyName()).replaceAll("/+", "/");
     this.baseUrl = contextPath + basePath;
 
@@ -460,6 +479,26 @@ public class App implements Serializable {
 
   private void setIsLocalised(boolean localised) {
     this.isLocalised = localised;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public AppCacheConfig getCacheConfig() {
+    return cacheConfig;
+  }
+
+  public void setCacheConfig(AppCacheConfig cacheConfig) {
+    this.cacheConfig = cacheConfig;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getCacheBustKey() {
+    return cacheBustKey;
+  }
+
+  public void setCacheBustKey(String cacheBustKey) {
+    this.cacheBustKey = cacheBustKey;
   }
 
   // -------------------------------------------------------------------------

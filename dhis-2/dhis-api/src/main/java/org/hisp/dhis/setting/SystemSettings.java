@@ -727,6 +727,17 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   /**
+   * @return true if apps should be served using canonical {@code /apps/{appName}/} paths instead of
+   *     the legacy {@code /dhis-web-{appName}/} paths. When enabled, legacy paths are
+   *     302-redirected to their canonical equivalents. Automatically returns {@code false} when
+   *     {@code globalShellEnabled} is {@code false}, since canonical paths require the global
+   *     shell.
+   */
+  default boolean getCanonicalAppPaths() {
+    return getGlobalShellEnabled() && asBoolean("canonicalAppPaths", false);
+  }
+
+  /**
    * @return true if email verification is enforced for all users.
    */
   default boolean getEnforceVerifiedEmail() {
