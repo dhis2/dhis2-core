@@ -246,6 +246,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
           new ProgramTempOwnershipAudit(program, entityInstance, reason, user.getUsername()));
     }
 
+    entityInstance.setLastUpdated(new Date());
+    trackedEntityService.updateTrackedEntity(entityInstance);
     ProgramTempOwner programTempOwner =
         new ProgramTempOwner(
             program, entityInstance, reason, user, TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS);
