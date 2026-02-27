@@ -102,6 +102,7 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals("Label for Enrollment Date", program.getEnrollmentDateLabel().string());
     assertEquals("Label for Enrollment", program.getEnrollmentLabel().string());
+    assertEquals("Label for Enrollments", program.getEnrollmentsLabel().string());
     assertEquals("Label for Follow Up", program.getFollowUpLabel().string());
     assertEquals("Label for Org Unit", program.getOrUnitLabel().string());
     assertEquals("Label for Relationship", program.getRelationshipLabel().string());
@@ -109,7 +110,19 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         "Label for Tracked Entity Attribute", program.getTrackedEntityAttributeLabel().string());
     assertEquals("Label for Program Stage", program.getProgramStageLabel().string());
+    assertEquals("Label for Program Stages", program.getProgramStagesLabel().string());
     assertEquals("Label for Event", program.getEventLabel().string());
+    assertEquals("Label for Events", program.getEventsLabel().string());
+  }
+
+  @Test
+  void shouldGetProgramStageLabels() {
+    JsonProgramStage programStage =
+        GET("/programStages/PSzMWi7rBga").content(HttpStatus.OK).as(JsonProgramStage.class);
+
+    assertEquals("Label for Program Stage PS", programStage.getProgramStageLabel().string());
+    assertEquals("Label for Event PS", programStage.getEventLabel().string());
+    assertEquals("Label for Events PS", programStage.getEventsLabel().string());
   }
 
   @Test
