@@ -35,6 +35,7 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupStore;
 import org.springframework.context.ApplicationEventPublisher;
@@ -77,8 +78,23 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
         )
         """;
     boolean changed = jdbcTemplate.update(sql, userGroupUid.getValue(), userUid.getValue()) > 0;
-    if (changed) updateLastUpdated(userGroupUid, lastUpdatedByUid);
+    if (changed) {
+      evictUserGroupsCollectionCache(userUid);
+      updateLastUpdated(userGroupUid, lastUpdatedByUid);
+    }
     return changed;
+  }
+
+  private void evictUserGroupsCollectionCache(@Nonnull UID userUid) {
+    Long userId =
+        jdbcTemplate.queryForObject(
+            "SELECT userinfoid FROM userinfo WHERE uid = ?", Long.class, userUid.getValue());
+    if (userId != null) {
+      getSession()
+          .getSessionFactory()
+          .getCache()
+          .evictCollectionData(User.class.getName() + ".groups", userId);
+    }
   }
 
   @Override
