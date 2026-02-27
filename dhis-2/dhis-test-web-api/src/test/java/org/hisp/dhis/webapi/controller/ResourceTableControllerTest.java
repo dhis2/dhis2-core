@@ -39,12 +39,25 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
+@ContextConfiguration
 class ResourceTableControllerTest extends DhisControllerIntegrationTest {
+
+  @Autowired private AnalyticsTableGenerator analyticsTableGenerator;
+
+  @Configuration
+  static class TestConfig {
+    @Bean
+    @Primary
+    public AnalyticsTableGenerator analyticsTableGenerator() {
+      return org.mockito.Mockito.mock(AnalyticsTableGenerator.class);
+    }
+  }
 
   @Test
   void testResourceTables() {
     JsonWebMessage msg = assertWebMessage(HttpStatus.OK, POST("/resourceTables"));
     assertStartsWith("Initiated RESOURCE_TABLE", msg.getMessage());
+    verify(analyticsTableGenerator, atLeastOnce()).generateResourceTables(any());
   }
 
   @Test
