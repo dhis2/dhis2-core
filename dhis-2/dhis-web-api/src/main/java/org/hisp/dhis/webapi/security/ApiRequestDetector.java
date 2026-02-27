@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,41 +29,24 @@
  */
 package org.hisp.dhis.webapi.security;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
-
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import org.hisp.dhis.render.RenderService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Detects whether an HTTP request originates from an API client (SPA, mobile app, script) as
+ * opposed to a browser navigation. Used by authentication entry points to decide between returning
+ * a 401 JSON response or redirecting to the login page.
  */
-public class Http401LoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
-  @Autowired private RenderService renderService;
+public class ApiRequestDetector {
 
-  public Http401LoginUrlAuthenticationEntryPoint(String loginFormUrl) {
-    super(loginFormUrl);
-  }
+  private ApiRequestDetector() {}
 
-  @Override
-  public void commence(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      AuthenticationException authException)
-      throws IOException, ServletException {
-    if (ApiRequestDetector.isApiRequest(request)) {
-      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-      renderService.toJson(response.getOutputStream(), unauthorized("Unauthorized"));
-      return;
-    }
-
-    super.commence(request, response, authException);
+  /**
+   * Returns {@code true} if the request appears to come from an API client rather than a browser
+   * navigating to a page.
+   *
+   * <p>Currently checks for the {@code X-Requested-With: XMLHttpRequest} header.
+   */
+  public static boolean isApiRequest(HttpServletRequest request) {
+    return "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
   }
 }

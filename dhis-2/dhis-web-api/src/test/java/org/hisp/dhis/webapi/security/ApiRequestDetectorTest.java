@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,41 +29,32 @@
  */
 package org.hisp.dhis.webapi.security;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import org.hisp.dhis.render.RenderService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class Http401LoginUrlAuthenticationEntryPoint extends LoginUrlAuthenticationEntryPoint {
-  @Autowired private RenderService renderService;
+@ExtendWith(MockitoExtension.class)
+class ApiRequestDetectorTest {
 
-  public Http401LoginUrlAuthenticationEntryPoint(String loginFormUrl) {
-    super(loginFormUrl);
+  @Mock private HttpServletRequest request;
+
+  @Test
+  void shouldDetectXmlHttpRequestHeader() {
+    when(request.getHeader("X-Requested-With")).thenReturn("XMLHttpRequest");
+
+    assertTrue(ApiRequestDetector.isApiRequest(request));
   }
 
-  @Override
-  public void commence(
-      HttpServletRequest request,
-      HttpServletResponse response,
-      AuthenticationException authException)
-      throws IOException, ServletException {
-    if (ApiRequestDetector.isApiRequest(request)) {
-      response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-      response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-      renderService.toJson(response.getOutputStream(), unauthorized("Unauthorized"));
-      return;
-    }
+  @Test
+  void shouldNotDetectWhenHeaderAbsent() {
+    when(request.getHeader("X-Requested-With")).thenReturn(null);
 
-    super.commence(request, response, authException);
+    assertFalse(ApiRequestDetector.isApiRequest(request));
   }
 }
