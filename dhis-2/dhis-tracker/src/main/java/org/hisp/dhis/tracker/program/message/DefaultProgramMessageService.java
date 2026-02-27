@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -61,7 +60,6 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@Slf4j
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.tracker.program.message.ProgramMessageService")
 public class DefaultProgramMessageService implements ProgramMessageService {
@@ -210,11 +208,6 @@ public class DefaultProgramMessageService implements ProgramMessageService {
       isAuthorized = aclService.canDataWrite(CurrentUserUtil.getCurrentUserDetails(), object);
 
       if (!isAuthorized) {
-        log.error(
-            String.format(
-                "Sending message failed. User does not have write access for %s.",
-                object.getName()));
-
         return false;
       }
     }

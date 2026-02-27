@@ -65,6 +65,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -118,6 +119,8 @@ import org.slf4j.LoggerFactory;
 public class TrackerTest extends Simulation {
   private static final Logger logger = LoggerFactory.getLogger(TrackerTest.class);
 
+  private static final AtomicLong REQUEST_COUNTER = new AtomicLong();
+
   private static final List<Map<String, Object>> userCredentials = new ArrayList<>();
   private static FeederBuilder<Object> userFeeder;
 
@@ -154,7 +157,7 @@ public class TrackerTest extends Simulation {
   private record Request(
       String url, EnumMap<Profile, Integer> p95Thresholds, String name, String... groups) {
     HttpRequestActionBuilder action() {
-      return http(name).get(url);
+      return http(name).get(url).header("X-Request-ID", session -> nextRequestId(name));
     }
 
     Optional<Assertion> assertion(Profile profile) {
@@ -452,6 +455,7 @@ public class TrackerTest extends Simulation {
     return http("Login")
         .post("/api/auth/login")
         .header("Content-Type", "application/json")
+        .header("X-Request-ID", session -> nextRequestId("Login"))
         .body(StringBody("{\"username\":\"#{username}\",\"password\":\"#{password}\"}"))
         .check(status().is(200));
   }
@@ -756,5 +760,18 @@ public class TrackerTest extends Simulation {
                 .flatMap(scenario -> scenario.requests().stream())
                 .flatMap(r -> r.assertion(profile).stream()))
         .toList();
+  }
+
+  /**
+   * Generates a unique {@code X-Request-ID} header value and logs the mapping to the Gatling
+   * request name. The ID is a simple counter ({@code g-1}, {@code g-2}, ...) valid per {@link
+   * org.hisp.dhis.webapi.filter.RequestIdFilter}. The logged mapping allows correlating SQL queries
+   * (grouped by {@code request_id} in SQL comments) back to the Gatling request that triggered
+   * them.
+   */
+  private static String nextRequestId(String name) {
+    String id = "g-" + REQUEST_COUNTER.incrementAndGet();
+    logger.debug("X-Request-ID: {} -> {}", id, name);
+    return id;
   }
 }

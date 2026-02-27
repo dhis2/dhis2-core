@@ -517,7 +517,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
   @Override
   @Transactional
-  public boolean deleteValue(boolean force, @CheckForNull UID dataSet, @Nonnull DataEntryKey key)
+  public boolean deleteValue(boolean force, @CheckForNull UID dataSet, @Nonnull DataValueKey key)
       throws ConflictException, BadRequestException {
     DataEntryValue value = key.toDeletedValue();
     List<DataEntryError> errors = new ArrayList<>(1);
@@ -529,7 +529,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
   @Override
   @Transactional(readOnly = true)
-  public LockStatus getEntryStatus(UID dataSet, @Nonnull DataEntryKey key)
+  public LockStatus getEntryStatus(UID dataSet, @Nonnull DataValueKey key)
       throws ConflictException {
     DataEntryValue e = key.toDeletedValue();
     ValidationSource source = new ValuesValidationSource(List.of(e));
@@ -631,7 +631,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     Set<String> aocOuRestricted =
         Set.copyOf(store.getAocWithOrgUnitHierarchy(source.attributeOptionCombos()));
     if (!aocOuRestricted.isEmpty()) {
-      Iterator<UID> aocIter = source.attributeOptionCombos().iterator();
+      Iterator<UID> aocIter = source.attributeOptionCombos().filter(Objects::nonNull).iterator();
       while (aocIter.hasNext()) {
         UID aoc = aocIter.next();
         if (!aocOuRestricted.contains(aoc.getValue())) continue;
@@ -683,7 +683,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     if (values.isEmpty()) return values;
 
     // - require: no two values may affect the same data value (=key =row)
-    Map<DataEntryKey, List<DataEntryValue>> valuesByKey =
+    Map<DataValueKey, List<DataEntryValue>> valuesByKey =
         values.stream().collect(groupingBy(DataEntryValue::toKey));
     if (valuesByKey.size() != values.size()) {
       // only report first to keep error message manageable
@@ -761,7 +761,9 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
   private static String normalizeValue(DataEntryValue e, ValueType type) {
     String val = e.value();
-    if (val == null || type == null || !type.isBoolean()) return val;
+    if (val == null || type == null) return val;
+    if (type.isInteger() && val.endsWith(".0")) return val.substring(0, val.length() - 2);
+    if (!type.isBoolean()) return val;
     int len = val.length();
     if (len > 5) return val;
     String lower = val.toLowerCase();
@@ -855,7 +857,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     // - require: DS not already approved (data approval)
     Set<String> aocInApproval = Set.copyOf(store.getDataSetAocInApproval(ds));
     if (!aocInApproval.isEmpty()) {
-      Iterator<UID> iterAoc = source.attributeOptionCombos().iterator();
+      Iterator<UID> iterAoc = source.attributeOptionCombos().filter(Objects::nonNull).iterator();
       while (iterAoc.hasNext()) {
         UID aoc = iterAoc.next();
         if (!aocInApproval.contains(aoc.getValue())) continue;
@@ -954,8 +956,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     Stream<UID> optionCombos();
 
     /**
-     * @return all attribute option combos in the source (nulls allowed; not necessarily distinct
-     *     yet)
+     * @return all attribute option combos in the source (must maintain nulls; not necessarily
+     *     distinct yet)
      */
     Stream<UID> attributeOptionCombos();
 
@@ -978,7 +980,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
     /**
      * @param de filter
-     * @return all COCs used in combination with the given DE (no nulls, no duplicates)
+     * @return all COCs used in combination with the given DE (must maintain nulls, no duplicates)
      */
     Stream<UID> categoryOptionCombosForDataElement(UID de);
 
@@ -1101,7 +1103,6 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       return scope.elements().stream()
           .filter(e -> e.dataElement().equals(de))
           .map(DataEntryGroup.Scope.Element::categoryOptionCombo)
-          .filter(Objects::nonNull)
           .distinct();
     }
 

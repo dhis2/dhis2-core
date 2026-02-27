@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,27 +27,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datavalue;
+package org.hisp.dhis.mapping;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.period.Period;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
-public interface DataEntryId {
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-  @Nonnull
-  UID dataElement();
+@Data
+@NoArgsConstructor
+@EqualsAndHashCode
+public class Basemap {
 
-  @Nonnull
-  UID orgUnit();
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private String id;
 
-  @CheckForNull
-  UID categoryOptionCombo();
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private Double opacity;
 
-  @CheckForNull
-  UID attributeOptionCombo();
-
-  @Nonnull
-  Period period();
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private boolean hidden;
 }

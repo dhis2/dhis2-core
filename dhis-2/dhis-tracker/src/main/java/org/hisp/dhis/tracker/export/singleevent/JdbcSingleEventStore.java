@@ -87,7 +87,6 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -115,50 +114,7 @@ class JdbcSingleEventStore {
        on evn.noteid = n.noteid\
        left join userinfo on n.lastupdatedby = userinfo.userinfoid\s""";
 
-  private static final String EVENT_STATUS_EQ = " ev.status = ";
-
-  private static final String EVENT_LASTUPDATED_GT = " ev.lastupdated >= ";
-
-  private static final String SPACE = " ";
-
-  private static final String AND = " AND ";
-
-  private static final String COLUMN_EVENT_ID = "ev_id";
-  private static final String COLUMN_EVENT_UID = "ev_uid";
-  private static final String COLUMN_PROGRAM_UID = "p_uid";
-  private static final String COLUMN_PROGRAM_CODE = "p_code";
-  private static final String COLUMN_PROGRAM_NAME = "p_name";
-  private static final String COLUMN_PROGRAM_ATTRIBUTE_VALUES = "p_attributevalues";
-  private static final String COLUMN_PROGRAM_STAGE_UID = "ps_uid";
-  private static final String COLUMN_PROGRAM_STAGE_CODE = "ps_code";
-  private static final String COLUMN_PROGRAM_STAGE_NAME = "ps_name";
-  private static final String COLUMN_PROGRAM_STAGE_ATTRIBUTE_VALUES = "ps_attributevalues";
-  private static final String COLUMN_EVENT_LAST_UPDATED_GT = " ev.lastupdated >= ";
-  private static final String COLUMN_ORG_UNIT_UID = "orgunit_uid";
-  private static final String COLUMN_ORG_UNIT_CODE = "orgunit_code";
-  private static final String COLUMN_ORG_UNIT_NAME = "orgunit_name";
-  private static final String COLUMN_ORG_UNIT_ATTRIBUTE_VALUES = "orgunit_attributevalues";
-  private static final String COLUMN_EVENT_OCCURRED_DATE = "ev_occurreddate";
-  private static final String COLUMN_EVENT_STATUS = "ev_status";
-  private static final String COLUMN_EVENT_DATAVALUES = "ev_eventdatavalues";
-  private static final String COLUMN_EVENT_STORED_BY = "ev_storedby";
-  private static final String COLUMN_EVENT_LAST_UPDATED_BY = "ev_lastupdatedbyuserinfo";
-  private static final String COLUMN_EVENT_CREATED_BY = "ev_createdbyuserinfo";
-  private static final String COLUMN_EVENT_CREATED = "ev_created";
-  private static final String COLUMN_EVENT_CREATED_AT_CLIENT = "ev_createdatclient";
-  private static final String COLUMN_EVENT_LAST_UPDATED = "ev_lastupdated";
-  private static final String COLUMN_EVENT_LAST_UPDATED_AT_CLIENT = "ev_lastupdatedatclient";
-  private static final String COLUMN_EVENT_COMPLETED_BY = "ev_completedby";
-  private static final String COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID = "coc_uid";
-  private static final String COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_NAME = "coc_name";
-  private static final String COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_CODE = "coc_code";
-  private static final String COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_ATTRIBUTE_VALUES =
-      "coc_attributevalues";
-  private static final String COLUMN_EVENT_COMPLETED_DATE = "ev_completeddate";
-  private static final String COLUMN_EVENT_DELETED = "ev_deleted";
-  private static final String COLUMN_EVENT_ASSIGNED_USER_USERNAME = "user_assigned_username";
-  private static final String COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME = "user_assigned_name";
-  private static final String DEFAULT_ORDER = COLUMN_EVENT_ID + " desc";
+  private static final String DEFAULT_ORDER = "ev_id desc";
 
   /**
    * Events can be ordered by given fields which correspond to fields on {@link SingleEvent}. Maps
@@ -166,26 +122,26 @@ class JdbcSingleEventStore {
    */
   private static final Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(
-          entry("uid", COLUMN_EVENT_UID),
+          entry("uid", "ev_uid"),
           // Order by program is here for backwards compatibility but program is mandatory in the
           // API
-          entry("enrollment.program.uid", COLUMN_PROGRAM_UID),
-          entry("organisationUnit.uid", COLUMN_ORG_UNIT_UID),
-          entry("occurredDate", COLUMN_EVENT_OCCURRED_DATE),
-          entry("status", COLUMN_EVENT_STATUS),
-          entry("storedBy", COLUMN_EVENT_STORED_BY),
-          entry("lastUpdatedBy", COLUMN_EVENT_LAST_UPDATED_BY),
-          entry("createdBy", COLUMN_EVENT_CREATED_BY),
-          entry("created", COLUMN_EVENT_CREATED),
-          entry("createdAtClient", COLUMN_EVENT_CREATED_AT_CLIENT),
-          entry("lastUpdated", COLUMN_EVENT_LAST_UPDATED),
-          entry("lastUpdatedAtClient", COLUMN_EVENT_LAST_UPDATED_AT_CLIENT),
-          entry("completedBy", COLUMN_EVENT_COMPLETED_BY),
-          entry("attributeOptionCombo.uid", COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID),
-          entry("completedDate", COLUMN_EVENT_COMPLETED_DATE),
-          entry("deleted", COLUMN_EVENT_DELETED),
-          entry("assignedUser", COLUMN_EVENT_ASSIGNED_USER_USERNAME),
-          entry("assignedUser.displayName", COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME));
+          entry("enrollment.program.uid", "p_uid"),
+          entry("organisationUnit.uid", "orgunit_uid"),
+          entry("occurredDate", "ev_occurreddate"),
+          entry("status", "ev_status"),
+          entry("storedBy", "ev_storedby"),
+          entry("lastUpdatedBy", "ev_lastupdatedbyuserinfo"),
+          entry("createdBy", "ev_createdbyuserinfo"),
+          entry("created", "ev_created"),
+          entry("createdAtClient", "ev_createdatclient"),
+          entry("lastUpdated", "ev_lastupdated"),
+          entry("lastUpdatedAtClient", "ev_lastupdatedatclient"),
+          entry("completedBy", "ev_completedby"),
+          entry("attributeOptionCombo.uid", "coc_uid"),
+          entry("completedDate", "ev_completeddate"),
+          entry("deleted", "ev_deleted"),
+          entry("assignedUser", "user_assigned_username"),
+          entry("assignedUser.displayName", "user_assigned_name"));
 
   // Cannot use DefaultRenderService mapper. Does not work properly -
   // DHIS2-6102
@@ -230,11 +186,11 @@ class JdbcSingleEventStore {
           Map<String, Set<String>> dataElementUids = new HashMap<>();
 
           while (resultSet.next()) {
-            if (resultSet.getString(COLUMN_EVENT_UID) == null) {
+            if (resultSet.getString("ev_uid") == null) {
               continue;
             }
 
-            String eventUid = resultSet.getString(COLUMN_EVENT_UID);
+            String eventUid = resultSet.getString("ev_uid");
 
             SingleEvent event;
             if (eventsByUid.containsKey(eventUid)) {
@@ -245,43 +201,63 @@ class JdbcSingleEventStore {
               eventsByUid.put(eventUid, event);
               dataElementUids.put(eventUid, new HashSet<>());
 
-              event.setStatus(EventStatus.valueOf(resultSet.getString(COLUMN_EVENT_STATUS)));
-
-              ProgramType programType = ProgramType.fromValue(resultSet.getString("p_type"));
-              Program program = new Program();
-              program.setUid(resultSet.getString(COLUMN_PROGRAM_UID));
-              program.setCode(resultSet.getString(COLUMN_PROGRAM_CODE));
-              program.setName(resultSet.getString(COLUMN_PROGRAM_NAME));
-              program.setAttributeValues(
-                  AttributeValues.of(resultSet.getString(COLUMN_PROGRAM_ATTRIBUTE_VALUES)));
-              program.setProgramType(programType);
+              event.setStatus(EventStatus.valueOf(resultSet.getString("ev_status")));
 
               OrganisationUnit orgUnit = new OrganisationUnit();
-              orgUnit.setUid(resultSet.getString(COLUMN_ORG_UNIT_UID));
-              orgUnit.setCode(resultSet.getString(COLUMN_ORG_UNIT_CODE));
-              orgUnit.setName(resultSet.getString(COLUMN_ORG_UNIT_NAME));
+              orgUnit.setUid(resultSet.getString("orgunit_uid"));
+              orgUnit.setCode(resultSet.getString("orgunit_code"));
+              orgUnit.setName(resultSet.getString("orgunit_name"));
               orgUnit.setAttributeValues(
-                  AttributeValues.of(resultSet.getString(COLUMN_ORG_UNIT_ATTRIBUTE_VALUES)));
+                  AttributeValues.of(resultSet.getString("orgunit_attributevalues")));
               event.setOrganisationUnit(orgUnit);
 
-              ProgramStage ps = new ProgramStage();
-              ps.setUid(resultSet.getString(COLUMN_PROGRAM_STAGE_UID));
-              ps.setCode(resultSet.getString(COLUMN_PROGRAM_STAGE_CODE));
-              ps.setName(resultSet.getString(COLUMN_PROGRAM_STAGE_NAME));
-              ps.setAttributeValues(
-                  AttributeValues.of(resultSet.getString(COLUMN_PROGRAM_STAGE_ATTRIBUTE_VALUES)));
-              ps.setProgram(program);
-              event.setDeleted(resultSet.getBoolean(COLUMN_EVENT_DELETED));
+              if (queryParams.getProgram() != null) {
+                Program program = new Program();
+                Program queryProgram = queryParams.getProgram();
+                program.setUid(queryProgram.getUid());
+                program.setCode(queryProgram.getCode());
+                program.setName(queryProgram.getName());
+                program.setAttributeValues(queryProgram.getAttributeValues());
+                program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
 
-              event.setProgramStage(ps);
+                ProgramStage ps = new ProgramStage();
+                ProgramStage queryProgramStage = queryParams.getProgramStage();
+                ps.setUid(queryProgramStage.getUid());
+                ps.setCode(queryProgramStage.getCode());
+                ps.setName(queryProgramStage.getName());
+                ps.setAttributeValues(queryProgramStage.getAttributeValues());
+                ps.setProgram(program);
+
+                event.setProgramStage(ps);
+              } else {
+                ProgramType programType = ProgramType.fromValue(resultSet.getString("p_type"));
+                Program program = new Program();
+                program.setUid(resultSet.getString("p_uid"));
+                program.setCode(resultSet.getString("p_code"));
+                program.setName(resultSet.getString("p_name"));
+                program.setAttributeValues(
+                    AttributeValues.of(resultSet.getString("p_attributevalues")));
+                program.setProgramType(programType);
+
+                ProgramStage ps = new ProgramStage();
+                ps.setUid(resultSet.getString("ps_uid"));
+                ps.setCode(resultSet.getString("ps_code"));
+                ps.setName(resultSet.getString("ps_name"));
+                ps.setAttributeValues(
+                    AttributeValues.of(resultSet.getString("ps_attributevalues")));
+                ps.setProgram(program);
+
+                event.setProgramStage(ps);
+              }
+
+              event.setDeleted(resultSet.getBoolean("ev_deleted"));
 
               CategoryOptionCombo coc = new CategoryOptionCombo();
-              coc.setUid(resultSet.getString(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID));
-              coc.setCode(resultSet.getString(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_CODE));
-              coc.setName(resultSet.getString(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_NAME));
+              coc.setUid(resultSet.getString("coc_uid"));
+              coc.setCode(resultSet.getString("coc_code"));
+              coc.setName(resultSet.getString("coc_name"));
               coc.setAttributeValues(
-                  AttributeValues.of(
-                      resultSet.getString(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_ATTRIBUTE_VALUES)));
+                  AttributeValues.of(resultSet.getString("coc_attributevalues")));
 
               String cosString = resultSet.getString("co_values");
               JsonMixed cosJson = JsonMixed.of(cosString);
@@ -300,40 +276,39 @@ class JdbcSingleEventStore {
               coc.setCategoryOptions(options);
               event.setAttributeOptionCombo(coc);
 
-              event.setStoredBy(resultSet.getString(COLUMN_EVENT_STORED_BY));
-              event.setOccurredDate(resultSet.getTimestamp(COLUMN_EVENT_OCCURRED_DATE));
-              event.setCreated(resultSet.getTimestamp(COLUMN_EVENT_CREATED));
-              event.setCreatedAtClient(resultSet.getTimestamp(COLUMN_EVENT_CREATED_AT_CLIENT));
+              event.setStoredBy(resultSet.getString("ev_storedby"));
+              event.setOccurredDate(resultSet.getTimestamp("ev_occurreddate"));
+              event.setCreated(resultSet.getTimestamp("ev_created"));
+              event.setCreatedAtClient(resultSet.getTimestamp("ev_createdatclient"));
               event.setCreatedByUserInfo(
-                  UserInfoSnapshots.fromJson(resultSet.getString(COLUMN_EVENT_CREATED_BY)));
-              event.setLastUpdated(resultSet.getTimestamp(COLUMN_EVENT_LAST_UPDATED));
-              event.setLastUpdatedAtClient(
-                  resultSet.getTimestamp(COLUMN_EVENT_LAST_UPDATED_AT_CLIENT));
+                  UserInfoSnapshots.fromJson(resultSet.getString("ev_createdbyuserinfo")));
+              event.setLastUpdated(resultSet.getTimestamp("ev_lastupdated"));
+              event.setLastUpdatedAtClient(resultSet.getTimestamp("ev_lastupdatedatclient"));
               event.setLastUpdatedByUserInfo(
-                  UserInfoSnapshots.fromJson(resultSet.getString(COLUMN_EVENT_LAST_UPDATED_BY)));
+                  UserInfoSnapshots.fromJson(resultSet.getString("ev_lastupdatedbyuserinfo")));
 
-              event.setCompletedBy(resultSet.getString(COLUMN_EVENT_COMPLETED_BY));
-              event.setCompletedDate(resultSet.getTimestamp(COLUMN_EVENT_COMPLETED_DATE));
+              event.setCompletedBy(resultSet.getString("ev_completedby"));
+              event.setCompletedDate(resultSet.getTimestamp("ev_completeddate"));
 
               event.setGeometry(Geometries.fromWkb(resultSet.getBytes("ev_geometry")));
 
               if (resultSet.getObject("user_assigned") != null) {
                 User eventUser = new User();
                 eventUser.setUid(resultSet.getString("user_assigned"));
-                eventUser.setUsername(resultSet.getString(COLUMN_EVENT_ASSIGNED_USER_USERNAME));
-                eventUser.setName(resultSet.getString(COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME));
+                eventUser.setUsername(resultSet.getString("user_assigned_username"));
+                eventUser.setName(resultSet.getString("user_assigned_name"));
                 eventUser.setFirstName(resultSet.getString("user_assigned_first_name"));
                 eventUser.setSurname(resultSet.getString("user_assigned_surname"));
                 event.setAssignedUser(eventUser);
               }
 
               if (TrackerIdScheme.UID == dataElementIdScheme.getIdScheme()
-                  && !StringUtils.isEmpty(resultSet.getString(COLUMN_EVENT_DATAVALUES))) {
+                  && !StringUtils.isEmpty(resultSet.getString("ev_eventdatavalues"))) {
                 event
                     .getEventDataValues()
                     .addAll(
                         convertEventDataValueJsonIntoSet(
-                            resultSet.getString(COLUMN_EVENT_DATAVALUES)));
+                            resultSet.getString("ev_eventdatavalues")));
               }
 
               events.add(event);
@@ -460,34 +435,77 @@ class JdbcSingleEventStore {
 
   public long getEventCount(SingleEventQueryParams params) {
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-
-    String sql;
-
-    MapSqlParameterSource sqlParameters = new MapSqlParameterSource();
-
-    sql = getEventSelectQuery(params, sqlParameters, currentUser);
-
-    sql = sql.replaceFirst("select .*? from", "select count(*) as ev_count from");
-
-    sql = sql.replaceFirst("order .*? (desc|asc)", "");
-
-    sql = sql.replaceFirst("limit \\d+ offset \\d+", "");
-
-    RowCountHandler rowCountHandler = new RowCountHandler();
-    jdbcTemplate.query(sql, sqlParameters, rowCountHandler);
-    return rowCountHandler.getCount();
+    MapSqlParameterSource sqlParams = new MapSqlParameterSource();
+    String sql = getCountQuery(params, sqlParams, currentUser);
+    Long count = jdbcTemplate.queryForObject(sql, sqlParams, Long.class);
+    return count != null ? count : 0L;
   }
 
-  private static class RowCountHandler implements RowCallbackHandler {
-    private long count;
+  /**
+   * Builds the count query with only the joins needed for filtering:
+   *
+   * <ul>
+   *   <li>{@code organisationunit} - always needed (org unit mode and access level filtering)
+   *   <li>{@code categoryoptioncombo} - always needed (COC access control)
+   *   <li>{@code programstage} + {@code program} - only when no specific program is given (needed
+   *       for {@code p.accesslevel} in the access level clause). When a program is known, its
+   *       conditions use {@code ev.programstageid} directly and both joins are skipped.
+   * </ul>
+   *
+   * <p>Always skips: {@code userinfo} (au) which is only used in SELECT.
+   */
+  private String getCountQuery(
+      SingleEventQueryParams params, MapSqlParameterSource sqlParams, UserDetails user) {
+    boolean needsProgramJoin = params.getProgram() == null;
 
-    @Override
-    public void processRow(ResultSet rs) throws SQLException {
-      count = rs.getLong("ev_count");
+    StringBuilder sql = new StringBuilder();
+    sql.append("select count(*) from singleevent ev ");
+    if (needsProgramJoin) {
+      addJoinOnProgramStage(sql);
+      addJoinOnProgram(sql);
     }
+    addJoinOnOrgUnit(sql);
+    addJoinOnCategoryOptionCombo(sql, user);
+    addCountWhereConditions(sql, sqlParams, params, needsProgramJoin);
 
-    public long getCount() {
-      return count;
+    return sql.toString();
+  }
+
+  private void addCountWhereConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      SingleEventQueryParams params,
+      boolean hasProgramJoin) {
+    SqlHelper hlp = new SqlHelper(true);
+    addDataElementConditions(sql, sqlParams, params);
+    if (hasProgramJoin) {
+      addProgramConditions(sql, sqlParams, params, hlp);
+    } else {
+      addCountProgramConditions(sql, sqlParams, params, hlp);
+    }
+    addLastUpdatedConditions(sql, sqlParams, params, hlp);
+    addCategoryOptionComboConditions(sql, sqlParams, params, hlp);
+    addOrgUnitConditions(sql, sqlParams, params, hlp);
+    addOccurredDateConditions(sql, sqlParams, params, hlp);
+    addSyncConditions(sql, sqlParams, params, hlp);
+    addEventStatusConditions(sql, sqlParams, params, hlp);
+    addEventConditions(sql, sqlParams, params, hlp);
+    addAssignedUserConditions(sql, sqlParams, params, hlp);
+    addDeletedCondition(sql, params, hlp);
+  }
+
+  /**
+   * Program conditions for the count query when the program is known. Uses {@code
+   * ev.programstageid} directly instead of joining the program and programstage tables.
+   */
+  private void addCountProgramConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      SingleEventQueryParams params,
+      SqlHelper hlp) {
+    if (params.getProgram() != null) {
+      sqlParams.addValue("programstageid", params.getProgramStage().getId());
+      sql.append(hlp.whereAnd()).append(" ev.programstageid = :programstageid ");
     }
   }
 
@@ -509,7 +527,7 @@ class JdbcSingleEventStore {
     }
     sqlBuilder.append(" from (");
 
-    sqlBuilder.append(getEventSelectQuery(queryParams, mapSqlParameterSource, user));
+    sqlBuilder.append(getQuery(queryParams, mapSqlParameterSource, user));
 
     sqlBuilder.append(getOrderQuery(queryParams));
 
@@ -519,9 +537,7 @@ class JdbcSingleEventStore {
 
     sqlBuilder.append(") as event left join (");
     sqlBuilder.append(EVENT_NOTE_QUERY);
-    sqlBuilder.append(") as cm on event.");
-    sqlBuilder.append(COLUMN_EVENT_ID);
-    sqlBuilder.append("=cm.evn_id ");
+    sqlBuilder.append(") as cm on event.ev_id=cm.evn_id ");
 
     if (TrackerIdScheme.UID
         != queryParams.getIdSchemeParams().getDataElementIdScheme().getIdScheme()) {
@@ -541,110 +557,94 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     return sqlBuilder.toString();
   }
 
-  private String getEventSelectQuery(
-      SingleEventQueryParams params,
-      MapSqlParameterSource mapSqlParameterSource,
-      UserDetails user) {
-    SqlHelper hlp = new SqlHelper(true);
-
-    StringBuilder selectBuilder =
-        new StringBuilder()
-            .append("select ev.uid as ")
-            .append(COLUMN_EVENT_UID)
-            .append(", ou.uid as ")
-            .append(COLUMN_ORG_UNIT_UID)
-            .append(", ou.code as ")
-            .append(COLUMN_ORG_UNIT_CODE)
-            .append(", ou.name as ")
-            .append(COLUMN_ORG_UNIT_NAME)
-            .append(", ou.attributevalues as ")
-            .append(COLUMN_ORG_UNIT_ATTRIBUTE_VALUES)
-            .append(", p.uid as ")
-            .append(COLUMN_PROGRAM_UID)
-            .append(", p.code as ")
-            .append(COLUMN_PROGRAM_CODE)
-            .append(", p.name as ")
-            .append(COLUMN_PROGRAM_NAME)
-            .append(", p.attributevalues as ")
-            .append(COLUMN_PROGRAM_ATTRIBUTE_VALUES)
-            .append(", ps.uid as ")
-            .append(COLUMN_PROGRAM_STAGE_UID)
-            .append(", ps.code as ")
-            .append(COLUMN_PROGRAM_STAGE_CODE)
-            .append(", ps.name as ")
-            .append(COLUMN_PROGRAM_STAGE_NAME)
-            .append(", ps.attributevalues as ")
-            .append(COLUMN_PROGRAM_STAGE_ATTRIBUTE_VALUES)
-            .append(", ev.eventid as ")
-            .append(COLUMN_EVENT_ID)
-            .append(", ev.status as ")
-            .append(COLUMN_EVENT_STATUS)
-            .append(", ev.occurreddate as ")
-            .append(COLUMN_EVENT_OCCURRED_DATE)
-            .append(", ")
-            .append(getEventDataValuesProjectionForSelectClause(params, mapSqlParameterSource))
-            .append(" as ")
-            .append(COLUMN_EVENT_DATAVALUES)
-            .append(", ev.completedby as ")
-            .append(COLUMN_EVENT_COMPLETED_BY)
-            .append(", ev.storedby as ")
-            .append(COLUMN_EVENT_STORED_BY)
-            .append(", ev.created as ")
-            .append(COLUMN_EVENT_CREATED)
-            .append(", ev.createdatclient as ")
-            .append(COLUMN_EVENT_CREATED_AT_CLIENT)
-            .append(", ev.createdbyuserinfo as ")
-            .append(COLUMN_EVENT_CREATED_BY)
-            .append(", ev.lastupdated as ")
-            .append(COLUMN_EVENT_LAST_UPDATED)
-            .append(", ev.lastupdatedatclient as ")
-            .append(COLUMN_EVENT_LAST_UPDATED_AT_CLIENT)
-            .append(", ev.lastupdatedbyuserinfo as ")
-            .append(COLUMN_EVENT_LAST_UPDATED_BY)
-            .append(", ev.completeddate as ")
-            .append(COLUMN_EVENT_COMPLETED_DATE)
-            .append(", ev.deleted as ")
-            .append(COLUMN_EVENT_DELETED)
-            .append(
-                ", ST_AsBinary(ev.geometry) as ev_geometry, au.uid as user_assigned, (au.firstName"
-                    + " || ' ' || au.surName) as ")
-            .append(COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME)
-            .append(",")
-            .append(
-                "au.firstName as user_assigned_first_name, au.surName as user_assigned_surname, ")
-            .append("au.username as ")
-            .append(COLUMN_EVENT_ASSIGNED_USER_USERNAME)
-            .append(", coc_agg.uid as ")
-            .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_UID)
-            .append(", coc_agg.code as ")
-            .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_CODE)
-            .append(", coc_agg.name as ")
-            .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_NAME)
-            .append(", coc_agg.attributevalues as ")
-            .append(COLUMN_EVENT_ATTRIBUTE_OPTION_COMBO_ATTRIBUTE_VALUES)
-            .append(", coc_agg.co_values AS co_values, coc_agg.co_count AS option_size, ")
-            .append(getOrderFieldsForSelectClause(params.getOrder()));
-
-    return selectBuilder
-        .append("p.type as p_type ")
-        .append(getFromWhereClause(params, mapSqlParameterSource, user, hlp))
-        .toString();
+  /**
+   * Builds the inner event query:
+   *
+   * <pre>
+   * select ...
+   * from singleevent ev
+   *   inner join programstage ps on ...    -- conditional
+   *   inner join program p on ...          -- conditional
+   *   inner join organisationunit ou on ...
+   *   left join userinfo au on ...
+   *   inner join (...) coc_agg on ...
+   * where ...
+   * </pre>
+   */
+  private String getQuery(
+      SingleEventQueryParams params, MapSqlParameterSource sqlParams, UserDetails user) {
+    StringBuilder sql = new StringBuilder();
+    addSelect(sql, params, sqlParams);
+    sql.append(" from singleevent ev ");
+    if (params.getProgram() == null) {
+      addJoinOnProgramStage(sql);
+      addJoinOnProgram(sql);
+    }
+    addJoinOnOrgUnit(sql);
+    addLeftJoinOnAssignedUser(sql);
+    addJoinOnCategoryOptionCombo(sql, user);
+    addWhereConditions(sql, sqlParams, params);
+    return sql.toString();
   }
 
-  private String getOrderFieldsForSelectClause(List<Order> orders) {
-    StringBuilder selectBuilder = new StringBuilder();
+  private void addSelect(
+      StringBuilder sql, SingleEventQueryParams params, MapSqlParameterSource sqlParams) {
+    if (params.getProgram() != null) {
+      // program and programstage columns are not needed; the RowMapper
+      // reuses the already loaded Program and ProgramStage entities instead
+      sql.append(
+          """
+            select ev.uid as ev_uid,
+            ou.uid as orgunit_uid, ou.code as orgunit_code, ou.name as orgunit_name,
+            ou.attributevalues as orgunit_attributevalues,
+            ev.eventid as ev_id, ev.status as ev_status,
+            ev.occurreddate as ev_occurreddate,\s""");
+    } else {
+      sql.append(
+          """
+            select ev.uid as ev_uid,
+            ou.uid as orgunit_uid, ou.code as orgunit_code, ou.name as orgunit_name,
+            ou.attributevalues as orgunit_attributevalues,
+            p.uid as p_uid, p.code as p_code, p.name as p_name,
+            p.attributevalues as p_attributevalues, p.type as p_type,
+            ps.uid as ps_uid, ps.code as ps_code, ps.name as ps_name,
+            ps.attributevalues as ps_attributevalues,
+            ev.eventid as ev_id, ev.status as ev_status,
+            ev.occurreddate as ev_occurreddate,\s""");
+    }
+    sql.append(getEventDataValuesProjectionForSelectClause(params, sqlParams));
+    sql.append(
+        """
+            \s as ev_eventdatavalues,
+            ev.completedby as ev_completedby, ev.storedby as ev_storedby,
+            ev.created as ev_created, ev.createdatclient as ev_createdatclient,
+            ev.createdbyuserinfo as ev_createdbyuserinfo,
+            ev.lastupdated as ev_lastupdated, ev.lastupdatedatclient as ev_lastupdatedatclient,
+            ev.lastupdatedbyuserinfo as ev_lastupdatedbyuserinfo,
+            ev.completeddate as ev_completeddate, ev.deleted as ev_deleted,
+            ST_AsBinary(ev.geometry) as ev_geometry,
+            au.uid as user_assigned,
+            (au.firstName || ' ' || au.surName) as user_assigned_name,
+            au.firstName as user_assigned_first_name, au.surName as user_assigned_surname,
+            au.username as user_assigned_username, \s""");
+    addOrderFieldsToSelect(sql, params.getOrder());
+    sql.append(
+        """
+            coc_agg.uid as coc_uid, coc_agg.code as coc_code, coc_agg.name as coc_name,
+                        coc_agg.attributevalues as coc_attributevalues,
+                        coc_agg.co_values as co_values, coc_agg.co_count as option_size""");
+  }
 
+  private void addOrderFieldsToSelect(StringBuilder sql, List<Order> orders) {
     for (Order order : orders) {
       if (order.getField() instanceof TrackedEntityAttribute tea) {
-        selectBuilder
-            .append(quote(tea.getUid()))
+        sql.append(quote(tea.getUid()))
             .append(".value AS ")
             .append(tea.getUid())
             .append("_value, ");
       } else if (order.getField() instanceof DataElement de) {
         final String dataValueValueSql = "ev.eventdatavalues #>> '{" + de.getUid() + ", value}'";
-        selectBuilder
-            .append(
+        sql.append(
                 de.getValueType().isNumeric()
                     ? SqlUtils.castToNumeric(dataValueValueSql)
                     : lower(dataValueValueSql))
@@ -653,207 +653,22 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             .append(", ");
       }
     }
-
-    return selectBuilder.toString();
   }
 
-  private StringBuilder getFromWhereClause(
-      SingleEventQueryParams params,
-      MapSqlParameterSource sqlParameters,
-      UserDetails user,
-      SqlHelper hlp) {
-    StringBuilder fromBuilder =
-        new StringBuilder(" from singleevent ev ")
-            .append("inner join programstage ps on ps.programstageid=ev.programstageid ")
-            .append("inner join program p on p.programid=ps.programid ");
-
-    fromBuilder.append(
-        "inner join organisationunit ou on (ev.organisationunitid=ou.organisationunitid) ");
-
-    fromBuilder.append("left join userinfo au on (ev.assigneduserid=au.userinfoid) ");
-
-    fromBuilder.append(getCategoryOptionComboQuery(user));
-
-    if (!params.getDataElements().isEmpty()) {
-      fromBuilder.append(AND);
-      addPredicates(fromBuilder, sqlParameters, params.getDataElements());
-    }
-    fromBuilder.append(SPACE);
-
-    if (params.getProgram() != null) {
-      sqlParameters.addValue("programid", params.getProgram().getId());
-      fromBuilder.append(hlp.whereAnd()).append(" p.programid = ").append(":programid").append(" ");
-
-      sqlParameters.addValue("programstageid", params.getProgramStage().getId());
-      fromBuilder.append(hlp.whereAnd()).append(" ev.programstageid = :programstageid ");
-    }
-
-    fromBuilder.append(addLastUpdatedFilters(params, sqlParameters, hlp));
-
-    if (params.getCategoryOptionCombo() != null) {
-      sqlParameters.addValue("attributeoptioncomboid", params.getCategoryOptionCombo().getId());
-
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(" ev.attributeoptioncomboid = ")
-          .append(":attributeoptioncomboid")
-          .append(" ");
-    }
-
-    addOrgUnitSql(fromBuilder, sqlParameters, params, hlp);
-
-    if (params.getOccurredStartDate() != null) {
-      sqlParameters.addValue("startOccurredDate", params.getOccurredStartDate(), Types.TIMESTAMP);
-
-      fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate >= :startOccurredDate ");
-    }
-
-    if (params.getOccurredEndDate() != null) {
-      sqlParameters.addValue("endOccurredDate", params.getOccurredEndDate(), Types.TIMESTAMP);
-
-      fromBuilder.append(hlp.whereAnd()).append(" ev.occurreddate <= :endOccurredDate ");
-    }
-
-    if (params.isSynchronizationQuery()) {
-      fromBuilder.append(hlp.whereAnd()).append(" ev.lastupdated > ev.lastsynchronized ");
-    }
-
-    if (params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0) {
-      sqlParameters.addValue("skipChangedBefore", params.getSkipChangedBefore(), Types.TIMESTAMP);
-
-      fromBuilder
-          .append(hlp.whereAnd())
-          .append(COLUMN_EVENT_LAST_UPDATED_GT)
-          .append(":skipChangedBefore ");
-    }
-
-    fromBuilder.append(eventStatusSql(params, sqlParameters, hlp));
-
-    if (params.getEvents() != null
-        && !params.getEvents().isEmpty()
-        && !params.hasDataElementFilter()) {
-      sqlParameters.addValue(COLUMN_EVENT_UID, UID.toValueSet(params.getEvents()));
-      fromBuilder.append(hlp.whereAnd()).append(" (ev.uid in (").append(":ev_uid").append(")) ");
-    }
-
-    if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
-      sqlParameters.addValue(
-          "au_uid", UID.toValueSet(params.getAssignedUserQueryParam().getAssignedUsers()));
-
-      fromBuilder.append(hlp.whereAnd()).append(" (au.uid in (").append(":au_uid").append(")) ");
-    }
-
-    if (AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode()) {
-      fromBuilder.append(hlp.whereAnd()).append(" (ev.assigneduserid is null) ");
-    }
-
-    if (AssignedUserSelectionMode.ANY == params.getAssignedUserQueryParam().getMode()) {
-      fromBuilder.append(hlp.whereAnd()).append(" (ev.assigneduserid is not null) ");
-    }
-
-    if (!params.isIncludeDeleted()) {
-      fromBuilder.append(hlp.whereAnd()).append(" ev.deleted is false ");
-    }
-
-    return fromBuilder;
+  private void addJoinOnProgramStage(StringBuilder sql) {
+    sql.append(" inner join programstage ps on ps.programstageid = ev.programstageid ");
   }
 
-  private void addOrgUnitSql(
-      StringBuilder sql,
-      MapSqlParameterSource sqlParameters,
-      SingleEventQueryParams params,
-      SqlHelper hlp) {
-    if (params.getOrgUnit() != null) {
-      buildOrgUnitModeClause(
-          sql,
-          sqlParameters,
-          Set.of(params.getOrgUnit()),
-          params.getOrgUnitMode(),
-          "ou",
-          hlp.whereAnd());
-    }
-
-    if (params.getProgram() == null) {
-      buildAccessLevelClauseForSingleEvents(
-          sql, sqlParameters, params.getOrgUnitMode(), "p", "ou", hlp::whereAnd);
-    } else {
-      OrgUnitQueryBuilder.buildAccessLevelClauseForSingleEvents(
-          sql,
-          sqlParameters,
-          params.getProgram(),
-          params.getQuerySearchScope(),
-          "ou",
-          hlp::whereAnd);
-    }
+  private void addJoinOnProgram(StringBuilder sql) {
+    sql.append(" inner join program p on p.programid = ps.programid ");
   }
 
-  private String eventStatusSql(
-      SingleEventQueryParams params, MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp) {
-    StringBuilder stringBuilder = new StringBuilder();
-
-    if (params.getEventStatus() != null) {
-      if (params.getEventStatus() == EventStatus.VISITED) {
-        mapSqlParameterSource.addValue(COLUMN_EVENT_STATUS, EventStatus.ACTIVE.name());
-
-        stringBuilder
-            .append(hlp.whereAnd())
-            .append(EVENT_STATUS_EQ)
-            .append(":" + COLUMN_EVENT_STATUS)
-            .append(" and ev.occurreddate is not null ");
-      } else {
-        mapSqlParameterSource.addValue(COLUMN_EVENT_STATUS, params.getEventStatus().name());
-
-        stringBuilder
-            .append(hlp.whereAnd())
-            .append(EVENT_STATUS_EQ)
-            .append(":" + COLUMN_EVENT_STATUS)
-            .append(" ");
-      }
-    }
-
-    return stringBuilder.toString();
+  private void addJoinOnOrgUnit(StringBuilder sql) {
+    sql.append(" inner join organisationunit ou on ou.organisationunitid = ev.organisationunitid ");
   }
 
-  private String addLastUpdatedFilters(
-      SingleEventQueryParams params, MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp) {
-    StringBuilder sqlBuilder = new StringBuilder();
-
-    if (params.hasUpdatedAtDuration()) {
-      mapSqlParameterSource.addValue(
-          "lastUpdated",
-          DateUtils.offSetDateTimeFrom(DateUtils.nowMinusDuration(params.getUpdatedAtDuration())),
-          Types.TIMESTAMP_WITH_TIMEZONE);
-
-      sqlBuilder
-          .append(hlp.whereAnd())
-          .append(EVENT_LASTUPDATED_GT)
-          .append(":lastUpdated")
-          .append(" ");
-    } else {
-      if (params.hasUpdatedAtStartDate()) {
-        mapSqlParameterSource.addValue(
-            "lastUpdatedStart", params.getUpdatedAtStartDate(), Types.TIMESTAMP);
-
-        sqlBuilder
-            .append(hlp.whereAnd())
-            .append(EVENT_LASTUPDATED_GT)
-            .append(":lastUpdatedStart")
-            .append(" ");
-      }
-
-      if (params.hasUpdatedAtEndDate()) {
-        mapSqlParameterSource.addValue(
-            "lastUpdatedEnd", params.getUpdatedAtEndDate(), Types.TIMESTAMP);
-
-        sqlBuilder
-            .append(hlp.whereAnd())
-            .append(" ev.lastupdated <= ")
-            .append(":lastUpdatedEnd")
-            .append(" ");
-      }
-    }
-
-    return sqlBuilder.toString();
+  private void addLeftJoinOnAssignedUser(StringBuilder sql) {
+    sql.append(" left join userinfo au on au.userinfoid = ev.assigneduserid ");
   }
 
   /**
@@ -874,10 +689,10 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    *   <li>A user must have access to all COs of the events COC to have access to an event.
    * </ul>
    */
-  private String getCategoryOptionComboQuery(UserDetails user) {
-    String joinCondition =
-"""
- inner join (select coc.uid, coc.code, coc.name, coc.attributevalues, coc.categoryoptioncomboid as id,\
+  private void addJoinOnCategoryOptionCombo(StringBuilder sql, UserDetails user) {
+    sql.append(
+        """
+ inner join (select coc.uid, coc.code, coc.name, coc.attributevalues, coc.categoryoptioncomboid as id,
     jsonb_object_agg(
         co.uid,
         jsonb_build_object(
@@ -885,24 +700,213 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             'code', co.code,
             'attributeValues', co.attributevalues
         )
-    ) AS co_values,
- count(co.categoryoptionid) as co_count from\
- categoryoptioncombo coc  inner join categoryoptioncombos_categoryoptions cocco on\
- coc.categoryoptioncomboid = cocco.categoryoptioncomboid inner join categoryoption\
- co on cocco.categoryoptionid = co.categoryoptionid group by\
- coc.categoryoptioncomboid \
-""";
+    ) as co_values,
+ count(co.categoryoptionid) as co_count
+ from categoryoptioncombo coc
+ inner join categoryoptioncombos_categoryoptions cocco on coc.categoryoptioncomboid = cocco.categoryoptioncomboid
+ inner join categoryoption co on cocco.categoryoptionid = co.categoryoptionid
+ group by coc.categoryoptioncomboid\s""");
 
     if (isNotSuperUser(user)) {
-      joinCondition =
-          joinCondition
-              + " having bool_and(case when "
-              + JpaQueryUtils.generateSQlQueryForSharingCheck(
-                  "co.sharing", user, AclService.LIKE_READ_DATA)
-              + " then true else false end) = True ";
+      sql.append(" having bool_and(case when ")
+          .append(
+              JpaQueryUtils.generateSQlQueryForSharingCheck(
+                  "co.sharing", user, AclService.LIKE_READ_DATA))
+          .append(" then true else false end) = true ");
     }
 
-    return joinCondition + ") as coc_agg on coc_agg.id = ev.attributeoptioncomboid ";
+    sql.append(") as coc_agg on coc_agg.id = ev.attributeoptioncomboid ");
+  }
+
+  private void addWhereConditions(
+      StringBuilder sql, MapSqlParameterSource sqlParams, SingleEventQueryParams params) {
+    SqlHelper hlp = new SqlHelper(true);
+    addDataElementConditions(sql, sqlParams, params);
+    addProgramConditions(sql, sqlParams, params, hlp);
+    addLastUpdatedConditions(sql, sqlParams, params, hlp);
+    addCategoryOptionComboConditions(sql, sqlParams, params, hlp);
+    addOrgUnitConditions(sql, sqlParams, params, hlp);
+    addOccurredDateConditions(sql, sqlParams, params, hlp);
+    addSyncConditions(sql, sqlParams, params, hlp);
+    addEventStatusConditions(sql, sqlParams, params, hlp);
+    addEventConditions(sql, sqlParams, params, hlp);
+    addAssignedUserConditions(sql, sqlParams, params, hlp);
+    addDeletedCondition(sql, params, hlp);
+  }
+
+  private void addDataElementConditions(
+      StringBuilder sql, MapSqlParameterSource sqlParams, SingleEventQueryParams params) {
+    if (!params.getDataElements().isEmpty()) {
+      sql.append(" and ");
+      addPredicates(sql, sqlParams, params.getDataElements());
+      sql.append(" ");
+    }
+  }
+
+  private void addProgramConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      SingleEventQueryParams params,
+      SqlHelper hlp) {
+    if (params.getProgram() != null) {
+      sqlParams.addValue("programstageid", params.getProgramStage().getId());
+      sql.append(hlp.whereAnd()).append(" ev.programstageid = :programstageid ");
+    }
+  }
+
+  private void addLastUpdatedConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      SingleEventQueryParams params,
+      SqlHelper hlp) {
+    if (params.hasUpdatedAtDuration()) {
+      sqlParams.addValue(
+          "lastUpdated",
+          DateUtils.offSetDateTimeFrom(DateUtils.nowMinusDuration(params.getUpdatedAtDuration())),
+          Types.TIMESTAMP_WITH_TIMEZONE);
+      sql.append(hlp.whereAnd()).append(" ev.lastupdated >= ").append(":lastUpdated ");
+    } else {
+      if (params.hasUpdatedAtStartDate()) {
+        sqlParams.addValue("lastUpdatedStart", params.getUpdatedAtStartDate(), Types.TIMESTAMP);
+        sql.append(hlp.whereAnd()).append(" ev.lastupdated >= ").append(":lastUpdatedStart ");
+      }
+
+      if (params.hasUpdatedAtEndDate()) {
+        sqlParams.addValue("lastUpdatedEnd", params.getUpdatedAtEndDate(), Types.TIMESTAMP);
+        sql.append(hlp.whereAnd()).append(" ev.lastupdated <= ").append(":lastUpdatedEnd ");
+      }
+    }
+  }
+
+  private void addCategoryOptionComboConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      SingleEventQueryParams params,
+      SqlHelper hlp) {
+    if (params.getCategoryOptionCombo() != null) {
+      sqlParams.addValue("attributeoptioncomboid", params.getCategoryOptionCombo().getId());
+      sql.append(hlp.whereAnd())
+          .append(" ev.attributeoptioncomboid = ")
+          .append(":attributeoptioncomboid ");
+    }
+  }
+
+  private void addOrgUnitConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      SingleEventQueryParams params,
+      SqlHelper hlp) {
+    if (params.getOrgUnit() != null) {
+      buildOrgUnitModeClause(
+          sql,
+          sqlParams,
+          Set.of(params.getOrgUnit()),
+          params.getOrgUnitMode(),
+          "ou",
+          hlp.whereAnd());
+    }
+
+    if (params.getProgram() == null) {
+      buildAccessLevelClauseForSingleEvents(
+          sql, sqlParams, params.getOrgUnitMode(), "p", "ou", hlp::whereAnd);
+    } else {
+      OrgUnitQueryBuilder.buildAccessLevelClauseForSingleEvents(
+          sql, sqlParams, params.getProgram(), params.getQuerySearchScope(), "ou", hlp::whereAnd);
+    }
+  }
+
+  private void addOccurredDateConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      SingleEventQueryParams params,
+      SqlHelper hlp) {
+    if (params.getOccurredStartDate() != null) {
+      sqlParams.addValue("startOccurredDate", params.getOccurredStartDate(), Types.TIMESTAMP);
+      sql.append(hlp.whereAnd()).append(" ev.occurreddate >= :startOccurredDate ");
+    }
+
+    if (params.getOccurredEndDate() != null) {
+      sqlParams.addValue("endOccurredDate", params.getOccurredEndDate(), Types.TIMESTAMP);
+      sql.append(hlp.whereAnd()).append(" ev.occurreddate <= :endOccurredDate ");
+    }
+  }
+
+  private void addSyncConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      SingleEventQueryParams params,
+      SqlHelper hlp) {
+    if (params.isSynchronizationQuery()) {
+      sql.append(hlp.whereAnd()).append(" ev.lastupdated > ev.lastsynchronized ");
+    }
+
+    if (params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0) {
+      sqlParams.addValue("skipChangedBefore", params.getSkipChangedBefore(), Types.TIMESTAMP);
+      sql.append(hlp.whereAnd()).append(" ev.lastupdated >= ").append(":skipChangedBefore ");
+    }
+  }
+
+  private void addEventStatusConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      SingleEventQueryParams params,
+      SqlHelper hlp) {
+    if (params.getEventStatus() != null) {
+      if (params.getEventStatus() == EventStatus.VISITED) {
+        sqlParams.addValue("ev_status", EventStatus.ACTIVE.name());
+        sql.append(hlp.whereAnd())
+            .append(" ev.status = :ev_status")
+            .append(" and ev.occurreddate is not null ");
+      } else {
+        sqlParams.addValue("ev_status", params.getEventStatus().name());
+        sql.append(hlp.whereAnd()).append(" ev.status = ").append(":ev_status ");
+      }
+    }
+  }
+
+  private void addEventConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      SingleEventQueryParams params,
+      SqlHelper hlp) {
+    if (!params.getEvents().isEmpty()) {
+      sqlParams.addValue("ev_uid", UID.toValueSet(params.getEvents()));
+      sql.append(hlp.whereAnd()).append(" (ev.uid in (").append(":ev_uid").append(")) ");
+    }
+  }
+
+  private void addAssignedUserConditions(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParams,
+      SingleEventQueryParams params,
+      SqlHelper hlp) {
+    if (params.getAssignedUserQueryParam().hasAssignedUsers()) {
+      Set<UID> assignedUsers = params.getAssignedUserQueryParam().getAssignedUsers();
+      sql.append(hlp.whereAnd());
+      if (assignedUsers.size() == 1) {
+        sqlParams.addValue("au_uid", assignedUsers.iterator().next().getValue());
+        sql.append(" ev.assigneduserid = (select userinfoid from userinfo where uid = :au_uid) ");
+      } else {
+        sqlParams.addValue("au_uid", UID.toValueSet(assignedUsers));
+        sql.append(
+            " ev.assigneduserid in (select userinfoid from userinfo where uid in (:au_uid)) ");
+      }
+    }
+
+    if (AssignedUserSelectionMode.NONE == params.getAssignedUserQueryParam().getMode()) {
+      sql.append(hlp.whereAnd()).append(" (ev.assigneduserid is null) ");
+    }
+
+    if (AssignedUserSelectionMode.ANY == params.getAssignedUserQueryParam().getMode()) {
+      sql.append(hlp.whereAnd()).append(" (ev.assigneduserid is not null) ");
+    }
+  }
+
+  private void addDeletedCondition(
+      StringBuilder sql, SingleEventQueryParams params, SqlHelper hlp) {
+    if (!params.isIncludeDeleted()) {
+      sql.append(hlp.whereAnd()).append(" ev.deleted is false ");
+    }
   }
 
   private String getLimitAndOffsetClause(final PageParams pageParams) {
@@ -964,41 +968,31 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    * synchronization" configuration of the ProgramStageDataElements. This logic applies only during
    * single event synchronization.
    */
+  /**
+   * Returns the event data values projection for the SELECT clause. During synchronization, data
+   * elements marked as "skip sync" are filtered out. Since the program stage is always known for
+   * sync queries, the skip-sync data elements are looked up directly without a CASE expression.
+   */
   private String getEventDataValuesProjectionForSelectClause(
       SingleEventQueryParams params, MapSqlParameterSource sqlParameters) {
     if (!params.isSynchronizationQuery()
         || params.getSkipSyncDataElementsByProgramStage() == null
         || params.getSkipSyncDataElementsByProgramStage().isEmpty()) {
-
       return "ev.eventdatavalues";
     }
 
-    StringBuilder caseStatement = new StringBuilder("CASE ");
+    String programStageUid = params.getProgramStage().getUid();
+    Set<String> dataElementUids =
+        params.getSkipSyncDataElementsByProgramStage().get(programStageUid);
 
-    int caseCounter = 0;
-    for (Map.Entry<String, Set<String>> entry :
-        params.getSkipSyncDataElementsByProgramStage().entrySet()) {
-      String programStageUid = entry.getKey();
-      Set<String> dataElementUids = entry.getValue();
-
-      if (!dataElementUids.isEmpty()) {
-        String paramName = "filter_de_" + caseCounter++;
-        sqlParameters.addValue(paramName, dataElementUids);
-
-        caseStatement
-            .append("WHEN ps.uid = '")
-            .append(programStageUid)
-            .append("' THEN ")
-            .append("(SELECT jsonb_object_agg(key, value) ")
-            .append("FROM jsonb_each(ev.eventdatavalues) ")
-            .append("WHERE key NOT IN (:")
-            .append(paramName)
-            .append(")) ");
-      }
+    if (dataElementUids == null || dataElementUids.isEmpty()) {
+      return "ev.eventdatavalues";
     }
 
-    caseStatement.append("ELSE ev.eventdatavalues END");
-
-    return caseStatement.toString();
+    sqlParameters.addValue("skipSyncDataElements", dataElementUids);
+    return """
+        (SELECT jsonb_object_agg(key, value)
+        FROM jsonb_each(ev.eventdatavalues)
+        WHERE key NOT IN (:skipSyncDataElements))""";
   }
 }
