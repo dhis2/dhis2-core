@@ -12,22 +12,27 @@ drop index if exists in_programinstance_deleted;
 
 -- trackedentity: leading column lets PG jump to the right type partition when
 -- data is unevenly distributed across tracked entity types.
+drop index if exists in_trackedentity_type_created;
 create index in_trackedentity_type_created
     on trackedentity (trackedentitytypeid, created desc, trackedentityid desc);
 
 -- enrollment: leading column lets PG jump to the right program partition when
 -- data is unevenly distributed across programs.
+drop index if exists in_enrollment_program_created;
 create index in_enrollment_program_created
     on enrollment (programid, created desc, enrollmentid desc);
+drop index if exists in_enrollment_program_enrollmentdate;
 create index in_enrollment_program_enrollmentdate
     on enrollment (programid, enrollmentdate desc, enrollmentid desc);
 
 -- trackerevent: the query filters ev.programstageid in (...) with the
 -- program's stages, so programstageid works as leading column.
+drop index if exists in_trackerevent_programstageid_created;
 create index in_trackerevent_programstageid_created
     on trackerevent (programstageid, created desc, eventid desc);
 
 -- singleevent: the existing in_singleevent_programstageid_occurreddate
 -- (V2_43_50) covers order=occurredDate and stays as-is.
+drop index if exists in_singleevent_programstageid_created;
 create index in_singleevent_programstageid_created
     on singleevent (programstageid, created desc, eventid desc);
