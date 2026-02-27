@@ -47,7 +47,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.BundledAppManager;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -94,8 +93,7 @@ public class AppOverrideFilter extends OncePerRequestFilter {
 
         boolean canonicalAppPaths = settingsProvider.getCurrentSettings().getCanonicalAppPaths();
         if (canonicalAppPaths) {
-          String canonicalPath =
-              HttpServletRequestPaths.getContextPath(request) + "/apps/" + appName + resourcePath;
+          String canonicalPath = request.getContextPath() + "/apps/" + appName + resourcePath;
           String queryString = request.getQueryString();
           if (queryString != null && !queryString.isEmpty()) {
             canonicalPath += "?" + queryString;

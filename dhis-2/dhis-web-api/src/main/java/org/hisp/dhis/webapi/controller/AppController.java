@@ -198,7 +198,7 @@ public class AppController {
 
     log.debug("Rendering resource {} from app {}", resource, application.getKey());
 
-    ResourceResult resourceResult = appManager.getAppResource(application, resource, baseUrl);
+    ResourceResult resourceResult = appManager.getAppResource(application, resource, contextPath);
     if (resourceResult instanceof ResourceFound found) {
       serveResource(request, response, found, application);
     } else if (resourceResult instanceof Redirect redirect) {
