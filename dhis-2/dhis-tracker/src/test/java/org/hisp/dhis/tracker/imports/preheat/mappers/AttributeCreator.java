@@ -31,7 +31,6 @@ package org.hisp.dhis.tracker.imports.preheat.mappers;
 
 import java.util.Map;
 import org.hisp.dhis.attribute.AttributeValues;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 
 class AttributeCreator {
