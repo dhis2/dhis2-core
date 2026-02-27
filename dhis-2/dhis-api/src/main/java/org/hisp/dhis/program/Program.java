@@ -72,10 +72,14 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
+import org.hisp.dhis.attribute.AttributeValuesDeserializer;
+import org.hisp.dhis.attribute.AttributeValuesSerializer;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseMetadataObject;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdScheme;
@@ -96,6 +100,8 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.setting.UserSettings;
@@ -540,6 +546,10 @@ public class Program extends BaseMetadataObject
   }
 
   @Override
+  @Sortable(whenPersisted = false)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "name", key = "NAME")
   public String getDisplayName() {
     return getTranslation("NAME", getName());
   }
@@ -557,6 +567,10 @@ public class Program extends BaseMetadataObject
   }
 
   @Override
+  @Sortable(whenPersisted = false)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "shortName", key = "SHORT_NAME")
   public String getDisplayShortName() {
     return getTranslation("SHORT_NAME", getShortName());
   }
@@ -574,6 +588,10 @@ public class Program extends BaseMetadataObject
   }
 
   @Override
+  @Sortable(value = false)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "description", key = "DESCRIPTION")
   public String getDisplayDescription() {
     return getTranslation("DESCRIPTION", getDescription());
   }
@@ -588,6 +606,11 @@ public class Program extends BaseMetadataObject
   }
 
   @Override
+  @Gist(included = Include.FALSE)
+  @Sortable(value = false)
+  @JsonProperty
+  @JacksonXmlElementWrapper(localName = "translations", namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "translation", namespace = DxfNamespaces.DXF_2_0)
   public Set<Translation> getTranslations() {
     if (translations == null) {
       return new HashSet<>();
@@ -605,6 +628,10 @@ public class Program extends BaseMetadataObject
   }
 
   @Override
+  @Sortable(value = false)
+  @Gist(included = Include.FALSE)
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Sharing getSharing() {
     if (sharing == null) {
       sharing = new Sharing();
@@ -629,6 +656,10 @@ public class Program extends BaseMetadataObject
   }
 
   @Override
+  @OpenApi.Property(BaseIdentifiableObject.AttributeValue[].class)
+  @JsonProperty("attributeValues")
+  @JsonDeserialize(using = AttributeValuesDeserializer.class)
+  @JsonSerialize(using = AttributeValuesSerializer.class)
   public AttributeValues getAttributeValues() {
     return attributeValues;
   }
@@ -650,7 +681,9 @@ public class Program extends BaseMetadataObject
 
   @Override
   public void setUser(User user) {
-    setCreatedBy(user);
+    // TODO remove this after implementing functions for using Owner
+    setCreatedBy(createdBy == null ? user : createdBy);
+    setOwner(user != null ? user.getUid() : null);
   }
 
   @Override
