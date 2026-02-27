@@ -68,7 +68,18 @@ public class HttpServletRequestPaths {
       builder.append(request.getScheme());
     }
 
-    builder.append("://").append(request.getServerName());
+    String host = request.getHeader("X-Forwarded-Host");
+    if (host == null || host.isEmpty()) {
+      host = request.getServerName();
+    } else {
+      // X-Forwarded-Host can be "host:port" - extract hostname for URL building
+      if (host.contains("]:")) {
+        host = host.substring(0, host.indexOf("]:") + 1);
+      } else if (host.contains(":") && !host.startsWith("[")) {
+        host = host.substring(0, host.indexOf(":"));
+      }
+    }
+    builder.append("://").append(host);
 
     int port;
 
