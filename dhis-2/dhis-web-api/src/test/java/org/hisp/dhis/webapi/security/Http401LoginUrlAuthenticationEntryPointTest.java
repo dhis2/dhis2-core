@@ -55,38 +55,11 @@ class Http401LoginUrlAuthenticationEntryPointTest {
   private final AuthenticationException authException = new BadCredentialsException("Unauthorized");
 
   @Test
-  void shouldReturn401ForApiPath() throws Exception {
-    MockHttpServletRequest request = new MockHttpServletRequest();
-    request.setRequestURI("/api/me");
-    request.setContextPath("");
-    MockHttpServletResponse response = new MockHttpServletResponse();
-
-    entryPoint.commence(request, response, authException);
-
-    assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.getStatus());
-    assertEquals("application/json", response.getContentType());
-  }
-
-  @Test
   void shouldReturn401ForXmlHttpRequest() throws Exception {
     MockHttpServletRequest request = new MockHttpServletRequest();
     request.setRequestURI("/some/page");
     request.setContextPath("");
     request.addHeader("X-Requested-With", "XMLHttpRequest");
-    MockHttpServletResponse response = new MockHttpServletResponse();
-
-    entryPoint.commence(request, response, authException);
-
-    assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.getStatus());
-    assertEquals("application/json", response.getContentType());
-  }
-
-  @Test
-  void shouldReturn401ForJsonAcceptHeader() throws Exception {
-    MockHttpServletRequest request = new MockHttpServletRequest();
-    request.setRequestURI("/some/endpoint");
-    request.setContextPath("");
-    request.addHeader("Accept", "application/json");
     MockHttpServletResponse response = new MockHttpServletResponse();
 
     entryPoint.commence(request, response, authException);

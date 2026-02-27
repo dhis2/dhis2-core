@@ -44,39 +44,9 @@ public class ApiRequestDetector {
    * Returns {@code true} if the request appears to come from an API client rather than a browser
    * navigating to a page.
    *
-   * <p>Detection heuristics (any match returns true):
-   *
-   * <ol>
-   *   <li>{@code X-Requested-With: XMLHttpRequest} header (jQuery-era convention, backward compat)
-   *   <li>Request path starts with {@code /api/} or equals {@code /api} (most robust signal)
-   *   <li>{@code Accept} header contains {@code application/json} or {@code application/xml} but
-   *       does NOT contain {@code text/html} (catches non-/api/ JSON consumers without false
-   *       positives from browser navigation which sends {@code Accept: text/html,...})
-   * </ol>
+   * <p>Currently checks for the {@code X-Requested-With: XMLHttpRequest} header.
    */
   public static boolean isApiRequest(HttpServletRequest request) {
-    // 1. Legacy XMLHttpRequest check (backward compat)
-    if ("XMLHttpRequest".equals(request.getHeader("X-Requested-With"))) {
-      return true;
-    }
-
-    // 2. Path-based detection — the most reliable signal for /api/ calls
-    String path = request.getRequestURI().substring(request.getContextPath().length());
-    if (path.equals("/api") || path.startsWith("/api/")) {
-      return true;
-    }
-
-    // 3. Accept header detection — catches non-/api/ JSON/XML consumers
-    String accept = request.getHeader("Accept");
-    if (accept != null) {
-      boolean wantsStructuredData =
-          accept.contains("application/json") || accept.contains("application/xml");
-      boolean wantsHtml = accept.contains("text/html");
-      if (wantsStructuredData && !wantsHtml) {
-        return true;
-      }
-    }
-
-    return false;
+    return "XMLHttpRequest".equals(request.getHeader("X-Requested-With"));
   }
 }
