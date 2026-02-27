@@ -39,6 +39,7 @@ import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramIndicator;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -456,23 +457,21 @@ class AggregatedRowBuilderTest {
   }
 
   @Test
-  void testBuildRowWithEnrollmentOuDimensionUsesCentralizedColumnName() {
+  void testBuildRowWithEnrollmentOuDimensionDoesNotReadEnrollmentOuColumn() {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(programA)
             .withEnrollmentOuDimension(List.of(createOrganisationUnit('A')))
             .build();
 
-    when(rowSet.getString(OrgUnitRowAccess.enrollmentOuResultColumn())).thenReturn("ouUid");
     when(rowSet.getInt("value")).thenReturn(5);
 
     List<Object> row =
         AggregatedRowBuilder.create(params, rowSet, sqlBuilder, columnAliasResolver, itemIdProvider)
             .build();
 
-    verify(rowSet).getString(OrgUnitRowAccess.enrollmentOuResultColumn());
-    assertThat(row, hasSize(2));
-    assertThat(row.get(0), is("ouUid"));
-    assertThat(row.get(1), is(5));
+    verify(rowSet, never()).getString(OrgUnitRowAccess.enrollmentOuResultColumn());
+    assertThat(row, hasSize(1));
+    assertThat(row.get(0), is(5));
   }
 }

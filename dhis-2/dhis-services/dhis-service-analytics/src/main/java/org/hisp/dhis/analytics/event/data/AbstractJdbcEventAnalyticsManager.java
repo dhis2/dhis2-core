@@ -830,7 +830,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // ---------------------------------------------------------------------
     // Grid
     // ---------------------------------------------------------------------
-
+    System.out.println(sql);
     final String finalSqlValue = sql;
     if (params.analyzeOnly()) {
       withExceptionHandling(

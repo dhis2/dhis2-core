@@ -87,7 +87,7 @@ class OrgUnitSqlCoordinatorTest {
   }
 
   @Test
-  void testAddDimensionSelectColumnsAggregateEventOnly() {
+  void testAddDimensionSelectColumnsNoOpForAggregateEvent() {
     OrganisationUnit ouA = createOrganisationUnit('A');
     EventQueryParams params =
         new EventQueryParams.Builder()
@@ -99,8 +99,7 @@ class OrgUnitSqlCoordinatorTest {
     OrgUnitSqlCoordinator.addDimensionSelectColumns(
         columns, params, false, true, AnalyticsType.EVENT);
 
-    assertThat(columns, hasSize(1));
-    assertThat(columns.get(0), is("enrl.\"ou\" as enrollmentou"));
+    assertThat(columns, hasSize(0));
   }
 
   @Test

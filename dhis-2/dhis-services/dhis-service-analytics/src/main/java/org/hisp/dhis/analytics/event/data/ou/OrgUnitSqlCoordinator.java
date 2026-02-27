@@ -101,9 +101,9 @@ public final class OrgUnitSqlCoordinator {
       boolean isGroupBy,
       boolean isAggregated,
       AnalyticsType analyticsType) {
-    if (isAggregated && params.hasEnrollmentOuDimension() && analyticsType == AnalyticsType.EVENT) {
-      columns.add(OrgUnitSqlFragments.selectEnrollmentOuUid(isGroupBy));
-    }
+    // Enrollment OU is filter-only in aggregate queries: it contributes to the WHERE clause
+    // (via appendWherePredicateIfNeeded) but must not appear in SELECT/GROUP BY, because
+    // aggregate queries sum across all matching enrollment org units.
   }
 
   /**
@@ -141,7 +141,7 @@ public final class OrgUnitSqlCoordinator {
     List<DimensionalItemObject> enrollmentOuItems = params.getAllEnrollmentOuItemsForSql();
 
     if (!enrollmentOuItems.isEmpty()) {
-      String uidLevelClause = buildUidLevelClause(enrollmentOuItems, sqlBuilder);
+      String uidLevelClause = buildUidLevelClause(enrollmentOuItems);
       predicates.add(" " + uidLevelClause + " ");
     }
 
@@ -162,11 +162,9 @@ public final class OrgUnitSqlCoordinator {
    * Groups org unit items by level and produces uidlevel-based IN conditions joined with AND.
    *
    * @param items org unit items (must be OrganisationUnit instances)
-   * @param sqlBuilder SQL dialect helper for quoting
    * @return combined uidlevel predicates joined with " and "
    */
-  private static String buildUidLevelClause(
-      List<DimensionalItemObject> items, AnalyticsSqlBuilder sqlBuilder) {
+  private static String buildUidLevelClause(List<DimensionalItemObject> items) {
     Map<Integer, List<OrganisationUnit>> byLevel =
         items.stream()
             .map(item -> (OrganisationUnit) item)
