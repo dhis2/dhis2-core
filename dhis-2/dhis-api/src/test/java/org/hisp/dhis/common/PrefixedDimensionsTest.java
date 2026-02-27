@@ -164,7 +164,7 @@ class PrefixedDimensionsTest {
   }
 
   @SneakyThrows
-  private <T extends BaseIdentifiableObject> T buildBaseIdentifiableObject(
+  private <T extends IdentifiableObject> T buildBaseIdentifiableObject(
       String uid, Class<T> tClass) {
     T t = tClass.getDeclaredConstructor().newInstance();
     t.setUid(uid);
