@@ -64,9 +64,12 @@ public class UserCreationPerformanceTest extends Simulation {
   private static final String BASE_URL = System.getProperty("baseUrl", "http://localhost:8080");
   private static final String USERNAME = System.getProperty("username", "admin");
   private static final String PASSWORD = System.getProperty("password", "district");
-  private static final String USER_ROLE_UID = System.getProperty("userRoleUid", "");
-  private static final String ORG_UNIT_UID = System.getProperty("orgUnitUid", "");
-  private static final String USER_GROUP_UID = System.getProperty("userGroupUid", "");
+  private static final String USER_ROLE_UID =
+      System.getProperty("userRoleUid", "UYXOT4A7JMI");
+  private static final String ORG_UNIT_UID =
+      System.getProperty("orgUnitUid", "O6uvpzGd5pu");
+  private static final String USER_GROUP_UID =
+      System.getProperty("userGroupUid", "wl5cDMuUhmF");
   private static final int ITERATIONS = Integer.parseInt(System.getProperty("iterations", "3"));
 
   private static final AtomicInteger COUNTER =
