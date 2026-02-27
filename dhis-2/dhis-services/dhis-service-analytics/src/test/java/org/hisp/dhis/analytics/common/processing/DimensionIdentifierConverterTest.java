@@ -402,6 +402,35 @@ class DimensionIdentifierConverterTest {
   }
 
   @Test
+  void fromStringWithOuNameDimensionUsingProgramStageUid() {
+    // Given - OUNAME should also support stage-scoped syntax for query headers
+    Program program = new Program("prg-1");
+    program.setUid("lxAQ7Zs9VYR");
+    ProgramStage programStage = new ProgramStage("ps-1", program);
+    programStage.setUid("ZkbAXlQUYJG");
+    program.setProgramStages(Set.of(programStage));
+
+    List<Program> programs = List.of(program);
+    String fullDimensionId = "ZkbAXlQUYJG.ouname";
+
+    // When
+    DimensionIdentifier<StringUid> dimensionIdentifier =
+        converter.fromString(programs, fullDimensionId);
+
+    // Then
+    assertEquals(
+        "ouname", dimensionIdentifier.getDimension().getUid(), "Dimension uid should be ouname");
+    assertEquals(
+        "lxAQ7Zs9VYR",
+        dimensionIdentifier.getProgram().getElement().getUid(),
+        "Program uid should be resolved from program stage");
+    assertEquals(
+        "ZkbAXlQUYJG",
+        dimensionIdentifier.getProgramStage().getElement().getUid(),
+        "Stage uid should be ZkbAXlQUYJG");
+  }
+
+  @Test
   void fromStringWithEventDateDimensionWhenProgramStageDoesNotExist() {
     // Given - program stage UID that doesn't exist in any program
     Program program = new Program("prg-1");
