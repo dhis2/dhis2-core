@@ -158,6 +158,33 @@ class LastUpdateImportTest extends TrackerTest {
   }
 
   @Test
+  void shouldNotUpdateTEALastUpdatedWhenTEAIsNotUpdated() throws IOException {
+    TrackerObjects trackerObjects = fromJson("tracker/one_te_with_one_attribute.json");
+    TrackerImportParams trackerImportParams = new TrackerImportParams();
+    trackerImportParams.setImportStrategy(TrackerImportStrategy.UPDATE);
+    assertNoErrors(trackerImportService.importTracker(trackerImportParams, trackerObjects));
+    Set<TrackedEntityAttributeValue> values = getTrackedEntity().getTrackedEntityAttributeValues();
+    Assertions.assertEquals(1, values.size());
+    TrackedEntityAttributeValue attributeValue = values.iterator().next();
+    Date lastUpdatedBefore = attributeValue.getLastUpdated();
+    String attributeUid = attributeValue.getAttribute().getUid();
+
+    updateAttributeValue(attributeUid, "original value");
+    TrackedEntityAttributeValue updatedValue =
+        getTrackedEntity().getTrackedEntityAttributeValues().iterator().next();
+
+    Date lastUpdatedAfter = updatedValue.getLastUpdated();
+    assertEquals(
+        lastUpdatedAfter,
+        lastUpdatedBefore,
+        () ->
+            String.format(
+                "Data integrity error for tracked entity attribute %s. "
+                    + "The attribute lastUpdated date has been updated after the import",
+                attributeUid));
+  }
+
+  @Test
   void shouldUpdateOnlyFromTrackedEntityWhenUnidirectionalRelationshipIsCreated()
       throws IOException {
     RelationshipType relationshipType = manager.get(RelationshipType.class, "m1575931405");
