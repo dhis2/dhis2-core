@@ -167,22 +167,16 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
     return SynchronizationResult.failure(fullMessage);
   }
 
-  private SynchronizationResult validatePreconditions(
-      SystemSettings settings, JobProgress progress) {
-
-    return null;
-  }
-
   private void synchronizePage(
       int page, TrackerSynchronizationContext context, SystemSettings settings)
       throws ForbiddenException, BadRequestException, NotFoundException, WebMessageException {
     List<D> entities = fetchEntitiesForPage(page, context);
 
-    Map<Boolean, List<D>> partitionedTrackedEntities = partitionEntitiesByDeletionStatus(entities);
-    List<D> deletedTrackedEntities = partitionedTrackedEntities.get(true);
-    List<D> activeTrackedEntities = partitionedTrackedEntities.get(false);
+    Map<Boolean, List<D>> partitionedEntities = partitionEntitiesByDeletionStatus(entities);
+    List<D> deletedEntities = partitionedEntities.get(true);
+    List<D> activeEntities = partitionedEntities.get(false);
 
-    syncEntitiesByDeletionStatus(activeTrackedEntities, deletedTrackedEntities, context, settings);
+    syncEntitiesByDeletionStatus(activeEntities, deletedEntities, context, settings);
   }
 
   private ImportSummary sendHttpRequest(
@@ -270,17 +264,17 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
     MappingErrors errors = new MappingErrors(idSchemeParam);
 
     if (!activeEntities.isEmpty()) {
-      List<V> activeEventDtos =
+      List<V> activeEntityDtos =
           activeEntities.stream().map(ev -> getMappedEntities(ev, idSchemeParam, errors)).toList();
       ensureNoMappingErrors(errors);
       syncAndUpdateEntities(
-          activeEventDtos, instance, settings, syncTime, TrackerImportStrategy.CREATE_AND_UPDATE);
+          activeEntityDtos, instance, settings, syncTime, TrackerImportStrategy.CREATE_AND_UPDATE);
     }
 
     if (!deletedEntities.isEmpty()) {
-      List<V> deletedEventDtos = deletedEntities.stream().map(this::toMinimalEntity).toList();
+      List<V> deletedEntityDtos = deletedEntities.stream().map(this::toMinimalEntity).toList();
       syncAndUpdateEntities(
-          deletedEventDtos, instance, settings, syncTime, TrackerImportStrategy.DELETE);
+          deletedEntityDtos, instance, settings, syncTime, TrackerImportStrategy.DELETE);
     }
   }
 
@@ -293,16 +287,6 @@ abstract class BaseDataSynchronizationWithPaging<V, D extends SoftDeletableEntit
       throw new RuntimeException(
           format("Page %d synchronization failed: %s", page, ex.getMessage()), ex);
     }
-  }
-
-  private TrackerSynchronizationContext initializeContext(
-      int pageSize, JobProgress progress, SystemSettings settings) {
-    return progress.runStage(
-        TrackerSynchronizationContext.emptyContext(null, pageSize),
-        ctx ->
-            format(
-                "%s changed before %s will not sync", getEntityName(), ctx.getSkipChangedBefore()),
-        () -> createContext(pageSize, settings));
   }
 
   private Map<Boolean, List<D>> partitionEntitiesByDeletionStatus(List<D> entities) {
