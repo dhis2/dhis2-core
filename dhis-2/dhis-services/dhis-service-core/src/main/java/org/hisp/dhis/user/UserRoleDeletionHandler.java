@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.user;
 
+import java.util.HashSet;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class UserRoleDeletionHandler extends IdObjectDeletionHandler<UserRole> {
-  private final UserRoleStore userRoleStore;
+  private final UserService userService;
 
   @Override
   protected void registerHandler() {
@@ -48,8 +48,15 @@ public class UserRoleDeletionHandler extends IdObjectDeletionHandler<UserRole> {
   }
 
   private void deleteUser(User user) {
-    UID currentUserUid = CurrentUserUtil.getCurrentUserDetails().getUID();
-    userRoleStore.updateLastUpdatedForMembershipsOf(user.getUID(), currentUserUid);
-    userRoleStore.removeAllMemberships(user.getUID());
+    for (UserRole role : user.getUserRoles()) {
+      role.getMembers().remove(user);
+
+      // Needs to bypass ACL to allow user deletion, without UserRole write access.
+      // We are just updating the membership/mapping here on the user side we have access to.
+      // See: https://dhis2.atlassian.net/browse/DHIS2-19693
+      userService.updateUserRole(role, new SystemUser());
+    }
+
+    user.setUserRoles(new HashSet<>());
   }
 }

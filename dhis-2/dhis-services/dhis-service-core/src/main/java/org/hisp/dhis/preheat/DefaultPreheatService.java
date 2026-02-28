@@ -206,10 +206,8 @@ public class DefaultPreheatService implements PreheatService {
     }
 
     for (Class<? extends IdentifiableObject> klass : klasses) {
-      // Pass the objects being imported to avoid loading ALL records for uniqueness checking
-      List<IdentifiableObject> objectsBeingImported = params.getObjects().get(klass);
       List<? extends IdentifiableObject> objects =
-          schemaToDataFetcher.fetch(schemaService.getDynamicSchema(klass), objectsBeingImported);
+          schemaToDataFetcher.fetch(schemaService.getDynamicSchema(klass));
       if (!objects.isEmpty()) {
         uniqueCollectionMap.put(klass, new ArrayList<>(objects));
       }
@@ -933,7 +931,7 @@ public class DefaultPreheatService implements PreheatService {
     List<Property> uniqueProperties =
         schema.getProperties().stream()
             .filter(p -> p.isPersisted() && p.isOwner() && p.isUnique() && p.isSimple())
-            .toList();
+            .collect(toList());
 
     Map<String, Map<Object, String>> map = new HashMap<>();
 

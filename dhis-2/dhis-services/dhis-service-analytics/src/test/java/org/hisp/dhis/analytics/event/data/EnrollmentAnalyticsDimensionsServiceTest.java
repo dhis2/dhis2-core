@@ -29,8 +29,11 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allSkippedValueTypeTEAs;
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeDataElements;
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeTEAs;
+import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.getSkippedProgramStageDataElement;
 import static org.hisp.dhis.analytics.common.DimensionServiceCommonTest.enrollmentAggregateDisallowedValueTypesPredicate;
 import static org.hisp.dhis.analytics.common.DimensionServiceCommonTest.queryDisallowedValueTypesPredicate;
 import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
@@ -72,7 +75,41 @@ class EnrollmentAnalyticsDimensionsServiceTest {
   }
 
   @Test
-  void testQueryDoesntContainDisallowedValueTypes() {
+  void testQueryDoesNotContainSkippedDimensions() {
+    // Prepare program with a stage and TEAs
+    Program program = mock(Program.class);
+    when(programService.getProgram("anUid")).thenReturn(program);
+    when(program.isRegistration()).thenReturn(true);
+    when(program.getProgramIndicators()).thenReturn(java.util.Collections.emptySet());
+
+    ProgramStage stage = new ProgramStage();
+    stage.setProgram(program);
+    stage.setProgramStageDataElements(
+        allValueTypeDataElements().stream()
+            .map(de -> getSkippedProgramStageDataElement(stage, de))
+            .collect(toSet()));
+    when(program.getProgramStages()).thenReturn(java.util.Set.of(stage));
+    when(program.getTrackedEntityAttributes()).thenReturn(allSkippedValueTypeTEAs());
+
+    List<BaseIdentifiableObject> analyticsDimensions =
+        enrollmentAnalyticsDimensionsService.getQueryDimensionsByProgramId("anUid").stream()
+            .map(PrefixedDimension::getItem)
+            .toList();
+
+    assertTrue(
+        analyticsDimensions.stream()
+            .filter(ProgramStageDataElement.class::isInstance)
+            .collect(toSet())
+            .isEmpty());
+    assertTrue(
+        analyticsDimensions.stream()
+            .filter(TrackedEntityAttribute.class::isInstance)
+            .collect(toSet())
+            .isEmpty());
+  }
+
+  @Test
+  void testQueryDoesNotContainDisallowedValueTypes() {
     // Prepare program with a stage and TEAs
     Program program = mock(Program.class);
     when(programService.getProgram("anUid")).thenReturn(program);
@@ -84,7 +121,7 @@ class EnrollmentAnalyticsDimensionsServiceTest {
     stage.setProgramStageDataElements(
         allValueTypeDataElements().stream()
             .map(de -> new ProgramStageDataElement(stage, de))
-            .collect(java.util.stream.Collectors.toSet()));
+            .collect(toSet()));
     when(program.getProgramStages()).thenReturn(java.util.Set.of(stage));
     when(program.getTrackedEntityAttributes()).thenReturn(allValueTypeTEAs());
 
@@ -116,7 +153,7 @@ class EnrollmentAnalyticsDimensionsServiceTest {
     stage.setProgramStageDataElements(
         allValueTypeDataElements().stream()
             .map(de -> new ProgramStageDataElement(stage, de))
-            .collect(java.util.stream.Collectors.toSet()));
+            .collect(toSet()));
     when(program.getProgramStages()).thenReturn(java.util.Set.of(stage));
     when(program.getTrackedEntityAttributes()).thenReturn(allValueTypeTEAs());
 
@@ -129,12 +166,12 @@ class EnrollmentAnalyticsDimensionsServiceTest {
     // MULTI_TEXT, REFERENCE) are NOT returned
     assertTrue(
         analyticsDimensions.stream()
-            .filter(b -> b instanceof ProgramStageDataElement)
+            .filter(ProgramStageDataElement.class::isInstance)
             .map(psde -> ((ProgramStageDataElement) psde).getDataElement().getValueType())
             .noneMatch(enrollmentAggregateDisallowedValueTypesPredicate()));
     assertTrue(
         analyticsDimensions.stream()
-            .filter(b -> b instanceof TrackedEntityAttribute)
+            .filter(TrackedEntityAttribute.class::isInstance)
             .map(tea -> ((TrackedEntityAttribute) tea).getValueType())
             .noneMatch(enrollmentAggregateDisallowedValueTypesPredicate()));
   }

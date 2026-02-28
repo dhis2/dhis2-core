@@ -48,7 +48,6 @@ import org.hisp.dhis.startup.I18nLocalePopulator;
 import org.hisp.dhis.startup.ModelUpgrader;
 import org.hisp.dhis.startup.SchedulerStart;
 import org.hisp.dhis.startup.SettingUpgrader;
-import org.hisp.dhis.user.UserRoleStore;
 import org.hisp.dhis.user.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -129,9 +128,8 @@ public class StartupConfig {
   }
 
   @Bean("org.hisp.dhis.startup.DefaultAdminUserPopulator")
-  public DefaultAdminUserPopulator defaultAdminUserPopulator(
-      UserService userService, UserRoleStore userRoleStore) {
-    DefaultAdminUserPopulator upgrader = new DefaultAdminUserPopulator(userService, userRoleStore);
+  public DefaultAdminUserPopulator defaultAdminUserPopulator(UserService userService) {
+    DefaultAdminUserPopulator upgrader = new DefaultAdminUserPopulator(userService);
     upgrader.setName("defaultAdminUserPopulator");
     upgrader.setRunlevel(2);
     upgrader.setSkipInTests(true);

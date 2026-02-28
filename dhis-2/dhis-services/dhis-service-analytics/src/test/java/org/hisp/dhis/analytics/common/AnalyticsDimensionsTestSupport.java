@@ -37,6 +37,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
@@ -51,6 +53,18 @@ public class AnalyticsDimensionsTestSupport {
                     new TrackedEntityTypeAttribute(trackedEntityType, trackedEntityAttribute))
             .toList());
     return trackedEntityType;
+  }
+
+  public static List<TrackedEntityAttribute> allSkippedValueTypeTEAs() {
+    return buildWithAllValueTypes(
+            valueType -> {
+              TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+              trackedEntityAttribute.setUid("uid" + valueType.name());
+              trackedEntityAttribute.setValueType(valueType);
+              trackedEntityAttribute.setSkipAnalytics(true);
+              return trackedEntityAttribute;
+            })
+        .toList();
   }
 
   public static List<TrackedEntityAttribute> allValueTypeTEAs() {
@@ -73,6 +87,14 @@ public class AnalyticsDimensionsTestSupport {
               return dataElement;
             })
         .collect(Collectors.toSet());
+  }
+
+  public static ProgramStageDataElement getSkippedProgramStageDataElement(
+      ProgramStage programStage, DataElement dataElement) {
+    ProgramStageDataElement psDe = new ProgramStageDataElement(programStage, dataElement);
+    psDe.setSkipAnalytics(true);
+
+    return psDe;
   }
 
   public static <T> Stream<T> buildWithAllValueTypes(Function<ValueType, T> mapper) {

@@ -21,6 +21,8 @@
 
     <property name="formName" type="text" />
 
+    <property name="trackedEntityTypesLabel" column="trackedentitytypeslabel" type="text" />
+
     <property name="shortName" not-null="true" unique="true"/>
 
     <property name="style" type="jbObjectStyle" column="style" />
