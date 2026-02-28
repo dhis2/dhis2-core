@@ -31,8 +31,10 @@ package org.hisp.dhis.user.hibernate;
 
 import jakarta.persistence.EntityManager;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupStore;
 import org.springframework.context.ApplicationEventPublisher;
@@ -58,6 +60,66 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
     //        object
     //            .getMembers()
     //            .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
+  }
+
+  @Override
+  public boolean addMember(
+      @Nonnull UID userGroupUid, @Nonnull UID userUid, @Nonnull UID lastUpdatedByUid) {
+    String sql =
+        """
+        INSERT INTO usergroupmembers (usergroupid, userid)
+        SELECT ug.usergroupid, u.userinfoid
+        FROM usergroup ug, userinfo u
+        WHERE ug.uid = ? AND u.uid = ?
+        AND NOT EXISTS (
+          SELECT 1 FROM usergroupmembers ugm
+          WHERE ugm.usergroupid = ug.usergroupid AND ugm.userid = u.userinfoid
+        )
+        """;
+    boolean changed = jdbcTemplate.update(sql, userGroupUid.getValue(), userUid.getValue()) > 0;
+    if (changed) {
+      evictUserGroupsCollectionCache(userUid);
+      updateLastUpdated(userGroupUid, lastUpdatedByUid);
+    }
+    return changed;
+  }
+
+  private void evictUserGroupsCollectionCache(@Nonnull UID userUid) {
+    Long userId =
+        jdbcTemplate.queryForObject(
+            "SELECT userinfoid FROM userinfo WHERE uid = ?", Long.class, userUid.getValue());
+    if (userId != null) {
+      getSession()
+          .getSessionFactory()
+          .getCache()
+          .evictCollectionData(User.class.getName() + ".groups", userId);
+    }
+  }
+
+  @Override
+  public void updateLastUpdated(@Nonnull UID userGroupUid, @Nonnull UID lastUpdatedByUid) {
+    String sql =
+        """
+        UPDATE usergroup SET lastupdated = now(),
+        lastupdatedby = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        WHERE uid = ?
+        """;
+    jdbcTemplate.update(sql, lastUpdatedByUid.getValue(), userGroupUid.getValue());
+    // Evict from L1 (session) and L2 caches since we bypassed Hibernate's event system.
+    // UserGroup and its members collection are both L2-cached via UserGroup.hbm.xml.
+    // NOTE: No Redis pub/sub message is published here, so other cluster nodes will retain stale
+    // UserGroup entity and members collection data until their L2 TTL expires. A full fix would
+    // require publishing via CacheInvalidationMessagePublisher, since PostCacheEventPublisher only
+    // fires on Hibernate-managed operations.
+    Long id =
+        jdbcTemplate.queryForObject(
+            "SELECT usergroupid FROM usergroup WHERE uid = ?", Long.class, userGroupUid.getValue());
+    getSession().evict(getSession().getReference(UserGroup.class, id));
+    getSession().getSessionFactory().getCache().evictEntityData(UserGroup.class, id);
+    getSession()
+        .getSessionFactory()
+        .getCache()
+        .evictCollectionData("org.hisp.dhis.user.UserGroup.members", id);
   }
 
   //  @Override
