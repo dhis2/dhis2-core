@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -95,8 +95,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class UsersPerformanceTest extends Simulation {
 
   /**
-   * Loads a {@code .properties} file from the path given by {@code -DconfigFile=...}, or returns
-   * an empty {@code Properties} if no config file was specified.
+   * Loads a {@code .properties} file from the path given by {@code -DconfigFile=...}, or returns an
+   * empty {@code Properties} if no config file was specified.
    */
   private static final Properties CONFIG = loadConfig();
 
@@ -109,7 +109,9 @@ public class UsersPerformanceTest extends Simulation {
         System.out.println("[UsersPerformanceTest] Loaded config from: " + path);
       } catch (IOException e) {
         System.err.println(
-            "[UsersPerformanceTest] Warning: could not load configFile=" + path + ": "
+            "[UsersPerformanceTest] Warning: could not load configFile="
+                + path
+                + ": "
                 + e.getMessage());
       }
     }
@@ -142,8 +144,8 @@ public class UsersPerformanceTest extends Simulation {
   private static final AtomicInteger PRE_CREATE_COUNTER = new AtomicInteger(RUN_OFFSET + 500_000);
 
   /**
-   * Pre-created users for GET/PUT/PATCH scenarios. Stored as [uid, username] pairs. Scenarios
-   * cycle through this list, so it is never exhausted.
+   * Pre-created users for GET/PUT/PATCH scenarios. Stored as [uid, username] pairs. Scenarios cycle
+   * through this list, so it is never exhausted.
    */
   private static final List<String[]> READ_WRITE_USERS = new ArrayList<>();
 
@@ -161,9 +163,7 @@ public class UsersPerformanceTest extends Simulation {
   private static String userBody(String id, String username, String firstName) {
     String idField = id != null ? "\"id\":\"" + id + "\"," : "";
     String groupsField =
-        USER_GROUP_UID.isBlank()
-            ? ""
-            : ",\"userGroups\":[{\"id\":\"" + USER_GROUP_UID + "\"}]";
+        USER_GROUP_UID.isBlank() ? "" : ",\"userGroups\":[{\"id\":\"" + USER_GROUP_UID + "\"}]";
     return "{"
         + idField
         + "\"username\":\""
@@ -283,12 +283,11 @@ public class UsersPerformanceTest extends Simulation {
             .exec(flushCookieJar())
             .repeat(ITERATIONS)
             .on(
-                exec(
-                        session -> {
-                          int num = POST_COUNTER.getAndIncrement();
-                          String username = "perftest_post_" + String.format("%07d", num);
-                          return session.set("postBody", userBody(null, username, "Post"));
-                        })
+                exec(session -> {
+                      int num = POST_COUNTER.getAndIncrement();
+                      String username = "perftest_post_" + String.format("%07d", num);
+                      return session.set("postBody", userBody(null, username, "Post"));
+                    })
                     .exec(
                         http("POST User - create")
                             .post("/api/users")
@@ -302,13 +301,12 @@ public class UsersPerformanceTest extends Simulation {
             .exec(flushCookieJar())
             .repeat(ITERATIONS)
             .on(
-                exec(
-                        session -> {
-                          String[] user =
-                              READ_WRITE_USERS.get(
-                                  GET_INDEX.getAndIncrement() % READ_WRITE_USERS.size());
-                          return session.set("getUid", user[0]);
-                        })
+                exec(session -> {
+                      String[] user =
+                          READ_WRITE_USERS.get(
+                              GET_INDEX.getAndIncrement() % READ_WRITE_USERS.size());
+                      return session.set("getUid", user[0]);
+                    })
                     .exec(
                         http("GET User - by uid")
                             .get("/api/users/#{getUid}")
@@ -320,17 +318,14 @@ public class UsersPerformanceTest extends Simulation {
             .exec(flushCookieJar())
             .repeat(ITERATIONS)
             .on(
-                exec(
-                        session -> {
-                          String[] user =
-                              READ_WRITE_USERS.get(
-                                  PUT_INDEX.getAndIncrement() % READ_WRITE_USERS.size());
-                          return session
-                              .set("putUid", user[0])
-                              .set(
-                                  "putBody",
-                                  userBody(user[0], user[1], "PutUpdated"));
-                        })
+                exec(session -> {
+                      String[] user =
+                          READ_WRITE_USERS.get(
+                              PUT_INDEX.getAndIncrement() % READ_WRITE_USERS.size());
+                      return session
+                          .set("putUid", user[0])
+                          .set("putBody", userBody(user[0], user[1], "PutUpdated"));
+                    })
                     .exec(
                         http("PUT User - full update")
                             .put("/api/users/#{putUid}")
@@ -344,13 +339,12 @@ public class UsersPerformanceTest extends Simulation {
             .exec(flushCookieJar())
             .repeat(ITERATIONS)
             .on(
-                exec(
-                        session -> {
-                          String[] user =
-                              READ_WRITE_USERS.get(
-                                  PATCH_INDEX.getAndIncrement() % READ_WRITE_USERS.size());
-                          return session.set("patchUid", user[0]);
-                        })
+                exec(session -> {
+                      String[] user =
+                          READ_WRITE_USERS.get(
+                              PATCH_INDEX.getAndIncrement() % READ_WRITE_USERS.size());
+                      return session.set("patchUid", user[0]);
+                    })
                     .exec(
                         http("PATCH User - partial update")
                             .patch("/api/users/#{patchUid}")
@@ -367,16 +361,15 @@ public class UsersPerformanceTest extends Simulation {
             .exec(flushCookieJar())
             .repeat(ITERATIONS)
             .on(
-                exec(
-                        session -> {
-                          String uid = DELETE_UID_QUEUE.poll();
-                          if (uid == null) {
-                            System.err.println(
-                                "DELETE_UID_QUEUE exhausted — increase iterations buffer");
-                            return session.markAsFailed();
-                          }
-                          return session.set("deleteUid", uid);
-                        })
+                exec(session -> {
+                      String uid = DELETE_UID_QUEUE.poll();
+                      if (uid == null) {
+                        System.err.println(
+                            "DELETE_UID_QUEUE exhausted — increase iterations buffer");
+                        return session.markAsFailed();
+                      }
+                      return session.set("deleteUid", uid);
+                    })
                     .exitHereIfFailed()
                     .exec(
                         http("DELETE User - delete")
