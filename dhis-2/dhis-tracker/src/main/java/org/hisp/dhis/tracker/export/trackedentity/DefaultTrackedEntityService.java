@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.export.trackedentity;
 import static org.hisp.dhis.audit.AuditOperationType.SEARCH;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -64,6 +65,7 @@ import org.hisp.dhis.tracker.model.TrackedEntityProgramOwner;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service("org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService")
 @RequiredArgsConstructor
@@ -283,5 +285,22 @@ class DefaultTrackedEntityService implements TrackedEntityService {
   @NonTransactional
   public Set<String> getOrderableFields() {
     return trackedEntityStore.getOrderableFields();
+  }
+
+  @Override
+  @Transactional
+  public void updateTrackedEntitiesSyncTimestamp(
+      @Nonnull Set<UID> trackedEntities, @Nonnull Date lastSynchronized) {
+    trackedEntityStore.updateTrackedEntitiesSyncTimestamp(trackedEntities, lastSynchronized);
+  }
+
+  @Override
+  @IndirectTransactional
+  public long getTrackedEntityCount(@Nonnull TrackedEntityOperationParams operationParams)
+      throws ForbiddenException, BadRequestException {
+    UserDetails user = getCurrentUserDetails();
+    TrackedEntityQueryParams queryParams = mapper.map(operationParams, user);
+
+    return trackedEntityStore.getTrackedEntityCount(queryParams);
   }
 }

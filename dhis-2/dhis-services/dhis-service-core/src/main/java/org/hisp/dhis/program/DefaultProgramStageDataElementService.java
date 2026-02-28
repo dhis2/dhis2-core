@@ -32,7 +32,6 @@ package org.hisp.dhis.program;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dataelement.DataElement;
 import org.springframework.stereotype.Service;
@@ -88,9 +87,8 @@ public class DefaultProgramStageDataElementService implements ProgramStageDataEl
 
   @Override
   @Transactional(readOnly = true)
-  public Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue(
-      @Nonnull Program program) {
-    return programStageDataElementStore.getProgramStageDataElementsWithSkipSynchronizationSetToTrue(
-        program);
+  public Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue() {
+    return programStageDataElementStore
+        .getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
   }
 }

@@ -169,7 +169,7 @@ class SingleEventServiceTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, BadRequestException {
     SingleEventOperationParams params =
         SingleEventOperationParams.builderForDataSync(
-                UID.of("iS7eutanDry"), null, Map.of("qLZC0lvvxQH", Set.of("GieVkTxp4HH")))
+                null, Map.of("qLZC0lvvxQH", Set.of("GieVkTxp4HH")))
             .build();
 
     Page<SingleEvent> events = singleEventService.findEvents(params, PageParams.of(1, 10, false));
@@ -181,7 +181,8 @@ class SingleEventServiceTest extends PostgresIntegrationTestBase {
             "ck7DzdxqLqA",
             "OTmjvJDn0Fu",
             "kWjSezkXHVp",
-            "QRYjLTiJTrA"),
+            "QRYjLTiJTrA",
+            "G9PbzJY8bJG"),
         uids(events.getItems()));
 
     events.getItems().stream()

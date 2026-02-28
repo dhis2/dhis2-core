@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,34 +27,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.sync;
+package org.hisp.dhis.scheduling.parameters;
 
-import lombok.AllArgsConstructor;
-import org.hisp.dhis.scheduling.Job;
-import org.hisp.dhis.scheduling.JobEntry;
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.scheduling.parameters.SingleEventDataSynchronizationJobParameters;
-import org.springframework.stereotype.Component;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Optional;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.scheduling.JobParameters;
 
 /**
  * @author Zubair Asghar
  */
-@Component
-@AllArgsConstructor
-public class SingleEventDataSynchronizationJob implements Job {
+@Getter
+@Setter
+@NoArgsConstructor
+public class TrackerDataSynchronizationJobParameters implements JobParameters {
+  static final int PAGE_SIZE_MIN = 5;
 
-  private final SingleEventDataSynchronizationService eventSync;
+  static final int PAGE_SIZE_MAX = 200;
+
+  @JsonProperty private int pageSize = 60;
 
   @Override
-  public JobType getJobType() {
-    return JobType.SINGLE_EVENT_DATA_SYNC;
-  }
+  public Optional<ErrorReport> validate() {
+    if (pageSize < PAGE_SIZE_MIN || pageSize > PAGE_SIZE_MAX) {
+      return Optional.of(
+          new ErrorReport(
+              this.getClass(),
+              ErrorCode.E4008,
+              "pageSize",
+              PAGE_SIZE_MIN,
+              PAGE_SIZE_MAX,
+              pageSize));
+    }
 
-  @Override
-  public void execute(JobEntry config, JobProgress progress) {
-    SingleEventDataSynchronizationJobParameters params =
-        (SingleEventDataSynchronizationJobParameters) config.parameters();
-    eventSync.synchronizeData(params.getPageSize(), progress);
+    return Optional.empty();
   }
 }

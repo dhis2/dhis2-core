@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,26 +31,24 @@ package org.hisp.dhis.webapi.controller.tracker.sync;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.sync.SyncEndpoint;
 import org.hisp.dhis.dxf2.sync.SyncUtils;
 import org.hisp.dhis.dxf2.sync.SystemInstance;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.program.ProgramStageDataElementService;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
-import org.hisp.dhis.tracker.export.singleevent.SingleEventOperationParams;
-import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
-import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
-import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.export.trackedentity.TrackedEntityMapper;
 import org.mapstruct.factory.Mappers;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -60,65 +58,71 @@ import org.springframework.web.client.RestTemplate;
  */
 @Slf4j
 @Component
-public class SingleEventDataSynchronizationService
-    extends BaseDataSynchronizationWithPaging<Event, SingleEvent> {
-  private static final String PROCESS_NAME = "Single Event Data Synchronization";
-  private static final EventMapper EVENT_MAPPER = Mappers.getMapper(EventMapper.class);
+public class TrackerDataSynchronizationService
+    extends BaseDataSynchronizationWithPaging<
+        org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity, TrackedEntity> {
+  private static final String PROCESS_NAME = "Tracker Data Synchronization";
+  private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER =
+      Mappers.getMapper(TrackedEntityMapper.class);
 
-  private final SingleEventService singleEventService;
-  private final ProgramStageDataElementService programStageDataElementService;
+  private final TrackedEntityService trackedEntityService;
 
-  public SingleEventDataSynchronizationService(
-      SingleEventService singleEventService,
+  public TrackerDataSynchronizationService(
+      TrackedEntityService trackedEntityService,
       SystemSettingsService systemSettingsService,
-      ProgramStageDataElementService programStageDataElementService,
       RestTemplate restTemplate,
       RenderService renderService) {
     super(renderService, restTemplate, systemSettingsService);
-    this.singleEventService = singleEventService;
-    this.programStageDataElementService = programStageDataElementService;
+    this.trackedEntityService = trackedEntityService;
   }
 
   @Override
   public void updateEntitySyncTimeStamp(
-      List<org.hisp.dhis.webapi.controller.tracker.view.Event> events, Date syncTime) {
-    List<String> eventUids = events.stream().map(event -> event.getEvent().getValue()).toList();
-    singleEventService.updateEventsSyncTimestamp(eventUids, syncTime);
+      List<org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> trackedEntities,
+      Date syncTime) {
+    List<String> trackedEntityUids =
+        trackedEntities.stream().map(te -> te.getTrackedEntity().getValue()).toList();
+
+    trackedEntityService.updateTrackedEntitiesSyncTimestamp(UID.of(trackedEntityUids), syncTime);
+  }
+
+  @Override
+  public List<TrackedEntity> fetchEntitiesForPage(int page, TrackerSynchronizationContext context)
+      throws BadRequestException, ForbiddenException, NotFoundException {
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.buildForDataSync(context.getSkipChangedBefore()).build();
+    return trackedEntityService
+        .findTrackedEntities(params, PageParams.of(page, context.getPageSize(), false))
+        .getItems();
   }
 
   @Override
   public long countEntitiesForSynchronization(Date skipChangedBefore)
       throws ForbiddenException, BadRequestException {
-    return singleEventService.countEvents(
-        SingleEventOperationParams.builderForDataSync(skipChangedBefore, Map.of()).build());
+    TrackedEntityOperationParams params =
+        TrackedEntityOperationParams.buildForDataSync(skipChangedBefore).build();
+    return trackedEntityService.getTrackedEntityCount(params);
   }
 
   @Override
-  public List<SingleEvent> fetchEntitiesForPage(int page, TrackerSynchronizationContext context)
-      throws ForbiddenException, BadRequestException {
-    return singleEventService
-        .findEvents(
-            SingleEventOperationParams.builderForDataSync(
-                    context.getSkipChangedBefore(), context.getSkipSyncDataElementsByProgramStage())
-                .build(),
-            PageParams.of(page, context.getPageSize(), false))
-        .getItems();
+  public boolean isDeleted(TrackedEntity entity) {
+    return entity.isDeleted();
   }
 
   @Override
-  public Event getMappedEntities(
-      SingleEvent ev, TrackerIdSchemeParams idSchemeParam, MappingErrors errors) {
-    return EVENT_MAPPER.map(idSchemeParam, errors, ev);
+  public org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity getMappedEntities(
+      TrackedEntity ev, TrackerIdSchemeParams idSchemeParam, MappingErrors errors) {
+    return TRACKED_ENTITY_MAPPER.map(idSchemeParam, errors, ev);
   }
 
   @Override
   public String getJsonRootName() {
-    return "events";
+    return "trackedEntities";
   }
 
   @Override
   public String getEntityName() {
-    return "Single Event";
+    return "Tracked Entities";
   }
 
   @Override
@@ -127,17 +131,12 @@ public class SingleEventDataSynchronizationService
   }
 
   @Override
-  public boolean isDeleted(SingleEvent entity) {
-    return entity.isDeleted();
-  }
-
-  @Override
-  public org.hisp.dhis.webapi.controller.tracker.view.Event toMinimalEntity(
-      SingleEvent singleEvent) {
-    org.hisp.dhis.webapi.controller.tracker.view.Event minimalEvent =
-        new org.hisp.dhis.webapi.controller.tracker.view.Event();
-    minimalEvent.setEvent(singleEvent.getUID());
-    return minimalEvent;
+  public org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity toMinimalEntity(
+      TrackedEntity trackedEntity) {
+    org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity minimalTrackedEntity =
+        new org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity();
+    minimalTrackedEntity.setTrackedEntity(UID.of(trackedEntity.getUid()));
+    return minimalTrackedEntity;
   }
 
   @Override
@@ -145,22 +144,15 @@ public class SingleEventDataSynchronizationService
       throws ForbiddenException, BadRequestException {
     Date skipChangedBefore = settings.getSyncSkipSyncForDataChangedBefore();
 
-    long eventCount = countEntitiesForSynchronization(skipChangedBefore);
+    long trackedEntityCount = countEntitiesForSynchronization(skipChangedBefore);
 
-    if (eventCount == 0) {
+    if (trackedEntityCount == 0) {
       return TrackerSynchronizationContext.emptyContext(skipChangedBefore, pageSize);
     }
 
     SystemInstance instance = SyncUtils.getRemoteInstance(settings, SyncEndpoint.TRACKER_IMPORT);
-    Map<String, Set<String>> skipSyncProgramStageDataElements =
-        getSkipSyncProgramStageDataElements();
 
-    return TrackerSynchronizationContext.forEvents(
-        skipChangedBefore, eventCount, instance, pageSize, skipSyncProgramStageDataElements);
-  }
-
-  private Map<String, Set<String>> getSkipSyncProgramStageDataElements() {
-    return programStageDataElementService
-        .getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
+    return TrackerSynchronizationContext.forTrackedEntities(
+        skipChangedBefore, trackedEntityCount, instance, pageSize);
   }
 }

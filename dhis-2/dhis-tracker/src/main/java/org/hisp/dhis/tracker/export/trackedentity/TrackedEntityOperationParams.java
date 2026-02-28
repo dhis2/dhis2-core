@@ -105,6 +105,9 @@ public class TrackedEntityOperationParams {
   /** Tracked entity type to fetch. */
   private UID trackedEntityType;
 
+  /** Indicates a point in the time used to decide the data that should not be synchronized */
+  private Date skipChangedBefore;
+
   @Builder.Default
   private OrganisationUnitSelectionMode orgUnitMode = OrganisationUnitSelectionMode.ACCESSIBLE;
 
@@ -214,6 +217,16 @@ public class TrackedEntityOperationParams {
       return this;
     }
 
+    private TrackedEntityOperationParamsBuilder skipChangedBefore(Date skipChangedBefore) {
+      this.skipChangedBefore = skipChangedBefore;
+      return this;
+    }
+
+    private TrackedEntityOperationParamsBuilder synchronizationQuery(boolean synchronizationQuery) {
+      this.synchronizationQuery = synchronizationQuery;
+      return this;
+    }
+
     public TrackedEntityOperationParamsBuilder trackedEntityType(
         TrackedEntityType trackedEntityType) {
       this.trackedEntityType = UID.of(trackedEntityType);
@@ -264,5 +277,13 @@ public class TrackedEntityOperationParams {
       this.filters.putIfAbsent(attribute, List.of(new QueryFilter(QueryOperator.NNULL)));
       return this;
     }
+  }
+
+  public static TrackedEntityOperationParamsBuilder buildForDataSync(Date skipChangedBefore) {
+    return new TrackedEntityOperationParamsBuilder()
+        .skipChangedBefore(skipChangedBefore)
+        .synchronizationQuery(true)
+        .fields(TrackedEntityFields.all())
+        .includeDeleted(true);
   }
 }
