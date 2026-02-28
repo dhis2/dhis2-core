@@ -75,11 +75,6 @@ public class DefaultStyleManager implements StyleManager {
               entry("india", "india/india.css")));
 
   @Override
-  public void setSystemStyle(String style) {
-    settingsService.put("keyStyle", style);
-  }
-
-  @Override
   public void setUserStyle(String style) {
     try {
       userSettingsService.put("keyStyle", style);
@@ -92,12 +87,15 @@ public class DefaultStyleManager implements StyleManager {
   @Override
   public String getCurrentStyle() {
     if (CurrentUserUtil.hasCurrentUser()) return UserSettings.getCurrentSettings().getUserStyle();
-    return getSystemStyle();
+    // This used to fall back to system setting keyStyle which was removed
+    // so returning the hardcoded default value to it consistent with previous behavior
+    return "light_blue/light_blue.css";
   }
 
-  @Override
   public String getSystemStyle() {
-    return settingsService.getCurrentSettings().getStyle();
+    // The system setting keyStyle was removed from system settings
+    // so returning the hardcoded default value to it consistent with previous behavior
+    return "light_blue/light_blue.css";
   }
 
   @Override

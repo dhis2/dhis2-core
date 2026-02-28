@@ -99,12 +99,13 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testGetCurrentUser_Fields() {
-    JsonMeDto me = GET("/me?fields=name,settings[keyStyle]").content().as(JsonMeDto.class);
+    JsonMeDto me =
+        GET("/me?fields=name,settings[keyCustomColorMobile]").content().as(JsonMeDto.class);
     assertEquals(2, me.size());
     assertEquals(Set.of("name", "settings"), Set.copyOf(me.names()));
     JsonMap<JsonMixed> settings = me.getSettings();
     assertEquals(1, settings.size());
-    assertEquals(List.of("keyStyle"), settings.names());
+    assertEquals(List.of("keyCustomColorMobile"), settings.names());
   }
 
   @Test
@@ -152,10 +153,12 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   void testGetSettings_ByKey() {
     JsonObject settings =
-        GET("/me/settings?key=keyStyle&key=keyAnalysisDisplayProperty").content(HttpStatus.OK);
+        GET("/me/settings?key=keyCustomColorMobile&key=keyAnalysisDisplayProperty")
+            .content(HttpStatus.OK);
     assertTrue(settings.isObject());
     assertEquals(2, settings.size());
-    assertEquals(Set.of("keyStyle", "keyAnalysisDisplayProperty"), Set.copyOf(settings.names()));
+    assertEquals(
+        Set.of("keyCustomColorMobile", "keyAnalysisDisplayProperty"), Set.copyOf(settings.names()));
   }
 
   @Test

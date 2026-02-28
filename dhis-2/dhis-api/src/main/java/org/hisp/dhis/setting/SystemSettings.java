@@ -480,10 +480,6 @@ public non-sealed interface SystemSettings extends Settings {
     return asString("keyDateFormat", "yyyy-MM-dd");
   }
 
-  default String getStyle() {
-    return asString("keyStyle", "light_blue/light_blue.css");
-  }
-
   default String getRemoteInstanceUrl() {
     return asString("keyRemoteInstanceUrl", "");
   }
@@ -845,5 +841,23 @@ public non-sealed interface SystemSettings extends Settings {
    */
   default int getDeviceEnrollmentIATTtlSeconds() {
     return asInt("deviceEnrollmentIATTtlSeconds", 60);
+  }
+
+  /**
+   * since 2.43
+   *
+   * @return custom color to use as the background for DHIS2 header bar
+   */
+  default String getCustomColor() {
+    return asString("keyCustomColor", "");
+  }
+
+  /**
+   * since 2.43
+   *
+   * @return custom color to use as the background for DHIS2 header bar for Android
+   */
+  default String getCustomColorMobile() {
+    return asString("keyCustomColorMobile", "");
   }
 }
