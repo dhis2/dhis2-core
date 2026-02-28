@@ -49,6 +49,7 @@ import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -131,9 +132,9 @@ public class MapController extends AbstractCrudController<Map, GetObjectListPara
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @ResponseBody
   public WebMessage putJsonObject(
-      @PathVariable String uid, @CurrentUser UserDetails currentUser, HttpServletRequest request)
+      @PathVariable UID uid, @CurrentUser UserDetails currentUser, HttpServletRequest request)
       throws IOException {
-    Map map = mappingService.getMap(uid);
+    Map map = mappingService.getMap(uid.getValue());
 
     if (map == null) {
       return notFound("Map does not exist: " + uid);
@@ -143,7 +144,7 @@ public class MapController extends AbstractCrudController<Map, GetObjectListPara
         importService.getParamsFromMap(contextService.getParameterValuesMap());
 
     Map newMap = deserializeJsonEntity(request);
-    newMap.setUid(uid);
+    newMap.setUid(uid.getValue());
 
     metadataMergeService.merge(
         new MetadataMergeParams<>(newMap, map)
