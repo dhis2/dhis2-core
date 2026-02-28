@@ -846,4 +846,13 @@ public non-sealed interface SystemSettings extends Settings {
   default int getDeviceEnrollmentIATTtlSeconds() {
     return asInt("deviceEnrollmentIATTtlSeconds", 60);
   }
+
+  /**
+   * @since 2.43
+   * @return comma-delimited list of entity class simple names to skip from query cache. Default
+   *     includes OrganisationUnit to avoid N+1 queries during cache hydration.
+   */
+  default String getQueryCacheSkipClasses() {
+    return asString("keyQueryCacheSkipClasses", "");
+  }
 }

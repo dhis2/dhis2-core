@@ -1,0 +1,54 @@
+{
+  "userGroups": [
+    {
+      "id": "YyAo1CZmkDm",
+      "name": "Performance Test - All Users",
+      "code": "PERF_ALL_USERS"
+    },
+    {
+      "id": "pbKMMbWCGxJ",
+      "name": "Performance Test - Data Entry",
+      "code": "PERF_DATA_ENTRY"
+    },
+    {
+      "id": "WspuBhs26O5",
+      "name": "Performance Test - Data Viewers",
+      "code": "PERF_DATA_VIEWERS"
+    },
+    {
+      "id": "E2kz5YmxsCO",
+      "name": "Performance Test - District Users",
+      "code": "PERF_DISTRICT_USERS"
+    },
+    {
+      "id": "jwns6A9Dwtc",
+      "name": "Performance Test - Regional Team",
+      "code": "PERF_REGIONAL_TEAM"
+    },
+    {
+      "id": "soe2Fv084uC",
+      "name": "Performance Test - Facility Managers",
+      "code": "PERF_FACILITY_MANAGERS"
+    },
+    {
+      "id": "YwdEQtPUf8J",
+      "name": "Performance Test - Admin Team",
+      "code": "PERF_ADMIN_TEAM"
+    },
+    {
+      "id": "mlqRJhpXwS2",
+      "name": "Performance Test - Pilot Group",
+      "code": "PERF_PILOT_GROUP"
+    },
+    {
+      "id": "vMUip82RbNl",
+      "name": "Performance Test - System Admins",
+      "code": "PERF_SYSTEM_ADMINS"
+    },
+    {
+      "id": "NiCmpZd3y8F",
+      "name": "Performance Test - Super Admins",
+      "code": "PERF_SUPER_ADMINS"
+    }
+  ]
+}

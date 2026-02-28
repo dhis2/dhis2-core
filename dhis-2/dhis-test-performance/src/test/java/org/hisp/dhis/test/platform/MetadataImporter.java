@@ -35,7 +35,12 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.util.Base64;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +48,47 @@ import org.slf4j.LoggerFactory;
 public class MetadataImporter {
 
   private static final Logger logger = LoggerFactory.getLogger(MetadataImporter.class);
-  private static final HttpClient client = HttpClient.newHttpClient();
+  private static final HttpClient client;
+
+  static {
+    // Disable hostname verification for Java HttpClient (for development/testing with self-signed certs)
+    System.setProperty("jdk.internal.httpclient.disableHostnameVerification", "true");
+    client = createTrustAllHttpClient();
+  }
+
+  /** Creates an HttpClient that trusts all certificates (for development/testing with self-signed certs). */
+  private static HttpClient createTrustAllHttpClient() {
+    try {
+      TrustManager[] trustAllCerts = new TrustManager[] {
+        new X509TrustManager() {
+          @Override
+          public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[0];
+          }
+
+          @Override
+          public void checkClientTrusted(X509Certificate[] certs, String authType) {
+            // Trust all client certificates
+          }
+
+          @Override
+          public void checkServerTrusted(X509Certificate[] certs, String authType) {
+            // Trust all server certificates
+          }
+        }
+      };
+
+      SSLContext sslContext = SSLContext.getInstance("TLS");
+      sslContext.init(null, trustAllCerts, new SecureRandom());
+
+      return HttpClient.newBuilder()
+          .sslContext(sslContext)
+          .build();
+    } catch (Exception e) {
+      logger.warn("Failed to create trust-all HttpClient, falling back to default: {}", e.getMessage());
+      return HttpClient.newHttpClient();
+    }
+  }
 
   /**
    * Import metadata from a file on the classpath, using the user credentials passed in. Supplying a
@@ -79,6 +124,63 @@ public class MetadataImporter {
         }
       }
     } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Import metadata from a file on the classpath using idempotent mode. This method uses
+   * atomicMode=NONE and importStrategy=CREATE_AND_UPDATE to tolerate existing data. Suitable for
+   * repeated test runs without needing to clean the database.
+   *
+   * @param fileName the classpath resource file name
+   * @param baseUrl the DHIS2 base URL (e.g., "http://localhost:8080")
+   * @param username the username for authentication
+   * @param password the password for authentication
+   */
+  public static void importJsonFileIdempotent(
+      String fileName, String baseUrl, String username, String password) {
+    try {
+      String auth =
+          Base64.getEncoder()
+              .encodeToString((username + ":" + password).getBytes(StandardCharsets.UTF_8));
+
+      try (InputStream is = MetadataImporter.class.getClassLoader().getResourceAsStream(fileName)) {
+        if (is == null) {
+          throw new RuntimeException("Resource not found: " + fileName);
+        }
+        String json = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+
+        // Use atomicMode=NONE to allow partial success
+        // Use importStrategy=CREATE_AND_UPDATE to create new or update existing
+        String url = baseUrl + "/api/metadata?atomicMode=NONE&importStrategy=CREATE_AND_UPDATE";
+
+        HttpRequest request =
+            HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .header("Content-Type", "application/json")
+                .header("Authorization", "Basic " + auth)
+                .header("Accept", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(json))
+                .build();
+
+        HttpResponse<String> metadataImportResponse =
+            client.send(request, HttpResponse.BodyHandlers.ofString());
+
+        int statusCode = metadataImportResponse.statusCode();
+        if (statusCode == 200 || statusCode == 409) {
+          // 200 = success, 409 = conflict (some already exist) - both are acceptable
+          logger.info("Metadata import completed for {}: HTTP {}", fileName, statusCode);
+        } else {
+          logger.warn(
+              "Metadata import returned unexpected status {} for {}: {}",
+              statusCode,
+              fileName,
+              metadataImportResponse.body());
+        }
+      }
+    } catch (Exception e) {
+      logger.error("Error importing metadata from {}: {}", fileName, e.getMessage());
       throw new RuntimeException(e);
     }
   }
