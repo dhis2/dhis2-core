@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,32 +29,31 @@
  */
 package org.hisp.dhis.eventhook;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import lombok.Builder;
-import lombok.Data;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-/**
- * @author Morten Olav Hansen
- */
-@Data
-@Builder
-public class EventHookContext {
-  @Builder.Default Map<String, List<Handler>> targets = new HashMap<>();
+@Entity
+@Table(name = "eventhookoutboxlog")
+@NoArgsConstructor
+@Getter
+@Setter
+public class EventHookOutboxLog {
 
-  @Builder.Default List<EventHook> eventHooks = new ArrayList<>();
+  @Id
+  @Column(name = "outboxtablename")
+  private String outboxTableName;
 
-  public boolean hasTarget(String uid) {
-    return targets.containsKey(uid) || targets.get(uid).isEmpty();
-  }
+  @Column(name = "nextoutboxmessageid")
+  private long nextOutboxMessageId;
 
-  public List<Handler> getTarget(String uid) {
-    return targets.get(uid);
-  }
-
-  public void closeTargets() {
-    targets.values().forEach(handlers -> handlers.forEach(Handler::close));
-  }
+  @OneToOne
+  @JoinColumn(name = "eventhookid", nullable = false)
+  private EventHook eventHook;
 }

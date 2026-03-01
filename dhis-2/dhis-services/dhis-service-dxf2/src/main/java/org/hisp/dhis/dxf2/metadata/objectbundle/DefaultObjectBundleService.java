@@ -416,7 +416,7 @@ public class DefaultObjectBundleService implements ObjectBundleService {
     progress.runStage(
         () ->
             objects.forEach(
-                object -> eventHookPublisher.publishEvent(metadataDelete(klass, object.getUid()))));
+                object -> eventHookPublisher.publishEvent(metadataDelete(klass, object.getUID()))));
 
     return typeReport;
   }

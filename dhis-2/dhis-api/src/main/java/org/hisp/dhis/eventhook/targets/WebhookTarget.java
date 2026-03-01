@@ -35,7 +35,6 @@ import java.util.Map;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.experimental.Accessors;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.auth.AuthScheme;
 import org.hisp.dhis.eventhook.Target;
@@ -46,7 +45,6 @@ import org.hisp.dhis.eventhook.Target;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
 public class WebhookTarget extends Target {
   public static final String TYPE = "webhook";
 

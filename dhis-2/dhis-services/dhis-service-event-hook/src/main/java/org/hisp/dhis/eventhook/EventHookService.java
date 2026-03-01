@@ -31,27 +31,68 @@ package org.hisp.dhis.eventhook;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nonnull;
+import javax.annotation.PostConstruct;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.eventhook.handlers.WebhookReactiveHandler;
+import org.hisp.dhis.eventhook.targets.WebhookTarget;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.event.EventListener;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * @author Morten Olav Hansen
+ * Principally responsible for:
+ *
+ * <ul>
+ *   <li>creating a corresponding outbox table given an event hook ID and adding the first
+ *       partitions
+ *   <li>refreshing the event hook target cache
+ *   <li>returning all the event hooks from the database
+ * </ul>
  */
 @Service
 @RequiredArgsConstructor
 public class EventHookService {
+  protected static final String OUTBOX_PREFIX_TABLE_NAME = "eventhookoutbox_";
+  protected static final int MIN_PARTITIONS = 2;
+  protected static final int MAX_PARTITIONS = 10;
+
+  @PersistenceContext private final EntityManager entityManager;
+
+  private final JdbcTemplate jdbcTemplate;
+
   private final EventHookStore eventHookStore;
 
   private final ObjectMapper objectMapper;
 
   private final EventHookSecretManager secretManager;
 
+  private final CacheProvider cacheProvider;
+
+  private final ApplicationContext applicationContext;
+
+  private Cache<EventHookTargets> eventHookTargetsCache;
+
+  @Setter @Getter private long partitionRange = 100000;
+
+  @PostConstruct
+  public void postConstruct() throws Exception {
+    eventHookTargetsCache = cacheProvider.createEventHookTargetsCache();
+    reload();
+  }
+
   @Nonnull
-  @Transactional(readOnly = true)
   public List<EventHook> getAll() {
     List<EventHook> eventHooks = new ArrayList<>();
 
@@ -67,5 +108,73 @@ public class EventHookService {
     }
 
     return eventHooks;
+  }
+
+  public List<EventHookTargets> getEventHookTargets() {
+    return eventHookTargetsCache.getAll().toList();
+  }
+
+  @EventListener(OnEventHookChange.class)
+  protected void reload() throws Exception {
+    eventHookTargetsCache.getAll().forEach(EventHookTargets::closeTargets);
+    eventHookTargetsCache.invalidateAll();
+
+    List<EventHook> eventHooks = getAll();
+
+    for (EventHook eh : eventHooks.stream().filter(eh -> !eh.isDisabled()).toList()) {
+      List<ReactiveHandler> handlers = new ArrayList<>();
+      for (Target target : eh.getTargets()) {
+        if (WebhookTarget.TYPE.equals(target.getType())) {
+          handlers.add(new WebhookReactiveHandler(applicationContext, (WebhookTarget) target));
+        }
+      }
+      eventHookTargetsCache.put(
+          eh.getUID().getValue(),
+          EventHookTargets.builder().eventHook(eh).targets(handlers).build());
+    }
+  }
+
+  @Transactional
+  public void createOutbox(UID eventHookUid) {
+    String outboxTableName = OUTBOX_PREFIX_TABLE_NAME + eventHookUid;
+    deleteOutbox(eventHookUid);
+    jdbcTemplate.execute(
+        String.format(
+            "CREATE TABLE \"%s\" (id BIGINT GENERATED ALWAYS AS IDENTITY (CYCLE) PRIMARY KEY, payload JSONB) PARTITION BY RANGE (id);",
+            outboxTableName));
+
+    long lowerBound = 1;
+    long upperBound = partitionRange;
+    for (int i = 1; i <= MIN_PARTITIONS; i++) {
+      addOutboxPartition(eventHookUid, i, lowerBound, upperBound);
+      lowerBound = upperBound;
+      upperBound = lowerBound + partitionRange;
+    }
+
+    EventHookOutboxLog eventHookOutboxLog = new EventHookOutboxLog();
+    eventHookOutboxLog.setOutboxTableName(outboxTableName);
+    eventHookOutboxLog.setNextOutboxMessageId(1);
+    eventHookOutboxLog.setEventHook(eventHookStore.getByUid(eventHookUid));
+
+    entityManager.persist(eventHookOutboxLog);
+  }
+
+  public void deleteOutbox(UID eventHookUid) {
+    jdbcTemplate.execute(
+        String.format("DROP TABLE IF EXISTS \"%s\"", OUTBOX_PREFIX_TABLE_NAME + eventHookUid));
+  }
+
+  public void addOutboxPartition(UID eventHookUid, long index, long lowerBound, long upperBound) {
+    jdbcTemplate.execute(
+        String.format(
+            "CREATE TABLE IF NOT EXISTS \"%s\" PARTITION OF \"%s\" FOR VALUES FROM (%s) TO (%s);",
+            OUTBOX_PREFIX_TABLE_NAME + eventHookUid + "_" + index,
+            OUTBOX_PREFIX_TABLE_NAME + eventHookUid,
+            lowerBound,
+            upperBound));
+  }
+
+  public void removeOutboxPartition(String partitionName) {
+    jdbcTemplate.execute(String.format("DROP TABLE IF EXISTS %s", partitionName));
   }
 }

@@ -219,6 +219,9 @@
     <log4j.version>2.25.3</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
+    <!-- Project Reactor-->
+    <reactor.core>3.7.6</reactor.core>
+
     <!-- Test -->
     <junit.version>5.12.2</junit.version>
     <mockito.version>5.2.0</mockito.version>
@@ -233,6 +236,7 @@
     <h2.version>2.4.240</h2.version>
     <jmh.version>1.37</jmh.version>
     <jakarta.persistence-api.version>3.2.0</jakarta.persistence-api.version>
+    <mockserver.client.java>5.15.0</mockserver.client.java>
 
     <!-- Maven plugin versions -->
     <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
@@ -1605,6 +1609,11 @@
         <artifactId>jsqlparser</artifactId>
         <version>4.6</version>
       </dependency>
+      <dependency>
+        <groupId>io.projectreactor</groupId>
+        <artifactId>reactor-core</artifactId>
+        <version>${reactor.core}</version>
+      </dependency>
       <!-- Test -->
       <dependency>
         <groupId>org.hamcrest</groupId>
@@ -1656,6 +1665,12 @@
         <groupId>org.jeasy</groupId>
         <artifactId>easy-random-core</artifactId>
         <version>${easy-random.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.mock-server</groupId>
+        <artifactId>mockserver-client-java</artifactId>
+        <version>${mockserver.client.java}</version>
         <scope>test</scope>
       </dependency>
       <dependency>

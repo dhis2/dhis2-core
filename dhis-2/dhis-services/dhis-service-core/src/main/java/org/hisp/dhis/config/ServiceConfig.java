@@ -39,6 +39,7 @@ import org.hisp.dhis.outboundmessage.DefaultOutboundMessageBatchService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
 /**
@@ -48,6 +49,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 public class ServiceConfig {
 
   @Bean("taskScheduler")
+  @Primary
   public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
     ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
     threadPoolTaskScheduler.setPoolSize(25);
