@@ -278,6 +278,9 @@ public class EventQueryParams extends DataQueryParams {
   /** Level constraints when ENROLLMENT_OU is used as a filter. */
   private Set<Integer> enrollmentOuFilterLevels = new LinkedHashSet<>();
 
+  /** Whether ENROLLMENT_OU dimension was requested via relative keywords (e.g. USER_ORGUNIT). */
+  private boolean enrollmentOuDimensionHierarchical = false;
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -357,6 +360,7 @@ public class EventQueryParams extends DataQueryParams {
     params.enrollmentOuFilterItems = new ArrayList<>(this.enrollmentOuFilterItems);
     params.enrollmentOuDimensionLevels = new LinkedHashSet<>(this.enrollmentOuDimensionLevels);
     params.enrollmentOuFilterLevels = new LinkedHashSet<>(this.enrollmentOuFilterLevels);
+    params.enrollmentOuDimensionHierarchical = this.enrollmentOuDimensionHierarchical;
     return params;
   }
 
@@ -1298,6 +1302,10 @@ public class EventQueryParams extends DataQueryParams {
     return enrollmentOuFilterLevels;
   }
 
+  public boolean isEnrollmentOuDimensionHierarchical() {
+    return enrollmentOuDimensionHierarchical;
+  }
+
   public boolean hasEnrollmentOuLevelConstraint() {
     return !enrollmentOuDimensionLevels.isEmpty() || !enrollmentOuFilterLevels.isEmpty();
   }
@@ -1882,6 +1890,11 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withEnrollmentOuFilterLevels(Set<Integer> levels) {
       this.params.enrollmentOuFilterLevels = new LinkedHashSet<>(levels);
+      return this;
+    }
+
+    public Builder withEnrollmentOuDimensionHierarchical(boolean hierarchical) {
+      this.params.enrollmentOuDimensionHierarchical = hierarchical;
       return this;
     }
 
