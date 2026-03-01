@@ -810,6 +810,8 @@ public enum ConfigurationKey {
   // Enable saved requests, this will save the URL the user tries to access before they are logged
   // in, and redirect to that URL after they are logged in.
   LOGIN_SAVED_REQUESTS_ENABLE("login.saved.requests.enable", Constants.ON, false),
+  /** Clear-Site-Data response header value set on logout. */
+  HTTP_CLEAR_SITE_DATA("http.clear_site_data", "", false),
 
   // OIDC internal provider configuration for DHIS2 when Authorization Server is enabled, with
   // property: (OAUTH2_SERVER_ENABLED)
