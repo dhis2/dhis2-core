@@ -486,7 +486,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
    * @return a coordinate coalesce select expression.
    */
   private String getEnrollmentCoordinateSelectExpression() {
-    String field = String.format("coalesce(%s)", ENROLLMENT_GEOMETRY.getValue());
+    String qualifiedColumn = ANALYTICS_TBL_ALIAS + "." + ENROLLMENT_GEOMETRY.getValue();
+    String field = String.format("coalesce(%s)", qualifiedColumn);
 
     return String.format("ST_AsGeoJSON(%s, 6) as %s", field, ENROLLMENT_GEOMETRY.getValue());
   }
@@ -764,7 +765,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     }
 
     StringBuilder enrollmentOuSql = new StringBuilder();
-    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(enrollmentOuSql, hlp, params, sqlBuilder);
+    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(enrollmentOuSql, hlp, params);
     sql += enrollmentOuSql;
 
     if (params.hasBbox()) {

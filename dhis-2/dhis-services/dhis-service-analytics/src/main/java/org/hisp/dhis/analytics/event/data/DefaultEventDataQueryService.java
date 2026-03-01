@@ -32,6 +32,9 @@ package org.hisp.dhis.analytics.event.data;
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.substringAfter;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_CHILDREN;
+import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_GRANDCHILDREN;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_ENROLLMENT_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_EVENT_GEOMETRY;
 import static org.hisp.dhis.analytics.event.data.DefaultEventCoordinateService.COL_NAME_GEOMETRY_LIST;
@@ -791,6 +794,15 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       List<OrganisationUnit> userOrgUnits,
       List<String> items,
       IdScheme idScheme) {
+    boolean hierarchical =
+        items.stream()
+            .anyMatch(
+                item ->
+                    KEY_USER_ORGUNIT.equals(item)
+                        || KEY_USER_ORGUNIT_CHILDREN.equals(item)
+                        || KEY_USER_ORGUNIT_GRANDCHILDREN.equals(item)
+                        || (item != null && item.startsWith(LEVEL_PREFIX)));
+
     EnrollmentOuResolution resolution =
         resolveEnrollmentOuItems(items, request, userOrgUnits, idScheme, true);
 
@@ -799,6 +811,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     }
 
     params.withEnrollmentOuDimensionLevels(resolution.levels());
+    params.withEnrollmentOuDimensionHierarchical(hierarchical);
   }
 
   /**
