@@ -90,7 +90,6 @@ class UserPropertyTransformerTest extends PostgresIntegrationTestBase {
     assertEquals("Simple1", simpleFromJson.getName());
     assertNotNull(simple.getUser());
 
-    assertEquals("usernamea", simple.getUser().getUsername());
     assertEquals(user.getUid(), simple.getUser().getUid());
     assertEquals(uuid, simple.getUser().getUuid());
   }
@@ -108,7 +107,6 @@ class UserPropertyTransformerTest extends PostgresIntegrationTestBase {
     assertEquals("Simple1", simpleFromJson.getName());
     assertNotNull(simple.getUser());
 
-    assertEquals("usernamea", simple.getUser().getUsername());
     assertEquals(user.getUid(), simple.getUser().getUid());
     assertEquals(uuid, simple.getUser().getUuid());
   }
@@ -129,10 +127,7 @@ class UserPropertyTransformerTest extends PostgresIntegrationTestBase {
     assertTrue(root.has("user"));
     JsonNode userNode = root.get("user");
     assertTrue(userNode.has("id"));
-    assertTrue(userNode.has("username"));
-    // assertEquals( userNode.get( "id" ).textValue(), uuid.toString() );
     assertEquals(userNode.get("id").textValue(), "userabcdefa");
-    assertEquals(userNode.get("username").textValue(), "usernamea");
   }
 
   @JacksonXmlRootElement(localName = "simple")

@@ -96,8 +96,7 @@ public class UserPropertyTransformer extends AbstractPropertyTransformer<User> {
             .id(user.getUid())
             .code(user.getCode())
             .displayName(user.getDisplayName())
-            .name(user.getName())
-            .username(user.getUsername());
+            .name(user.getName());
 
     return builder.build();
   }
@@ -113,8 +112,6 @@ public class UserPropertyTransformer extends AbstractPropertyTransformer<User> {
     private String name;
 
     private String displayName;
-
-    private String username;
 
     @JsonProperty
     public String getId() {
@@ -135,11 +132,6 @@ public class UserPropertyTransformer extends AbstractPropertyTransformer<User> {
     public String getDisplayName() {
       return displayName;
     }
-
-    @JsonProperty
-    public String getUsername() {
-      return username;
-    }
   }
 
   public static final class JacksonSerialize extends StdSerializer<User> {
@@ -155,8 +147,6 @@ public class UserPropertyTransformer extends AbstractPropertyTransformer<User> {
       gen.writeStringField("code", user.getCode());
       gen.writeStringField("name", user.getName());
       gen.writeStringField("displayName", user.getDisplayName());
-      gen.writeStringField("username", user.getUsername());
-
       gen.writeEndObject();
     }
   }
@@ -184,12 +174,7 @@ public class UserPropertyTransformer extends AbstractPropertyTransformer<User> {
 
       if (node.has("code")) {
         String code = node.get("code").asText();
-
         user.setCode(code);
-      }
-
-      if (node.has("username")) {
-        user.setUsername(node.get("username").asText());
       }
 
       return user;
