@@ -167,6 +167,17 @@ public class AggregateDataExchangeService {
       return summaries;
     }
 
+    if (!hasAllowedDxItemTypes(exchange)) {
+      summaries.addImportSummary(
+          new ImportSummary(
+              ImportStatus.ERROR,
+              String.format(
+                  "Aggregate data exchange '%s' contains source request data items with unsupported types, "
+                      + "allowed types are: %s",
+                  exchange.getDisplayName(), AggregateDataExchange.ALLOWED_DX_ITEM_TYPES)));
+      return summaries;
+    }
+
     progress.startingStage(toStageDescription(exchange), FailurePolicy.SKIP_ITEM);
     progress.runStage(
         exchange.getSource().getRequests().stream(),

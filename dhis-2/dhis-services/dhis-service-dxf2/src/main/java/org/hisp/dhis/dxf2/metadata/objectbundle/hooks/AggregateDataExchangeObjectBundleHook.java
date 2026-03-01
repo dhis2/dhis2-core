@@ -59,6 +59,8 @@ public class AggregateDataExchangeObjectBundleHook
   @Qualifier(AES_128_STRING_ENCRYPTOR)
   private final PooledPBEStringEncryptor encryptor;
 
+  private final DimensionService dimensionService;
+
   @Override
   public void validate(
       AggregateDataExchange exchange, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
@@ -110,6 +112,37 @@ public class AggregateDataExchangeObjectBundleHook
 
       if (isEmpty(request.getDx()) || isEmpty(request.getPe()) || isEmpty(request.getOu())) {
         addReports.accept(new ErrorReport(AggregateDataExchange.class, ErrorCode.E6303));
+      }
+
+      validateSourceDxItemTypes(request, addReports);
+    }
+  }
+
+  /**
+   * Validates that source request data items are of allowed types.
+   *
+   * @param request the {@link SourceRequest}.
+   * @param addReports the list of {@link ErrorReport}.
+   */
+  private void validateSourceDxItemTypes(SourceRequest request, Consumer<ErrorReport> addReports) {
+    IdScheme idScheme =
+        request.getInputIdScheme() != null
+            ? IdScheme.from(request.getInputIdScheme())
+            : IdScheme.UID;
+
+    for (String item : request.getDx()) {
+      DimensionalItemObject dxObject =
+          dimensionService.getDataDimensionalItemObject(idScheme, item);
+
+      if (dxObject != null
+          && !AggregateDataExchange.ALLOWED_DX_ITEM_TYPES.contains(
+              dxObject.getDimensionItemType())) {
+        addReports.accept(
+            new ErrorReport(
+                AggregateDataExchange.class,
+                ErrorCode.E6306,
+                dxObject.getDimensionItemType(),
+                AggregateDataExchange.ALLOWED_DX_ITEM_TYPES));
       }
     }
   }

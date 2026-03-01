@@ -32,10 +32,17 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import static org.hisp.dhis.test.TestBase.getAggregateDataExchange;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.Api;
 import org.hisp.dhis.dataexchange.aggregate.Source;
@@ -56,6 +63,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class AggregateDataExchangeObjectBundleHookTest {
   @Mock private ObjectBundle objectBundle;
+
+  @Mock private DimensionService dimensionService;
 
   @InjectMocks private AggregateDataExchangeObjectBundleHook objectBundleHook;
 
@@ -140,6 +149,48 @@ class AggregateDataExchangeObjectBundleHookTest {
     exchange.setTarget(target);
 
     assertErrorCode(ErrorCode.E4000, objectBundleHook.validate(exchange, objectBundle));
+  }
+
+  @Test
+  void testSourceDxItemDisallowedReportingRate() {
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
+
+    DimensionalItemObject reportingRate = mock(DimensionalItemObject.class);
+    when(reportingRate.getDimensionItemType()).thenReturn(DimensionItemType.REPORTING_RATE);
+    when(dimensionService.getDataDimensionalItemObject(any(), eq("LrDpG50RAU9")))
+        .thenReturn(reportingRate);
+
+    assertErrorCode(ErrorCode.E6306, objectBundleHook.validate(exchange, objectBundle));
+  }
+
+  @Test
+  void testSourceDxItemDisallowedProgramDataElement() {
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
+
+    DimensionalItemObject programDataElement = mock(DimensionalItemObject.class);
+    when(programDataElement.getDimensionItemType())
+        .thenReturn(DimensionItemType.PROGRAM_DATA_ELEMENT);
+    when(dimensionService.getDataDimensionalItemObject(any(), eq("LrDpG50RAU9")))
+        .thenReturn(programDataElement);
+
+    assertErrorCode(ErrorCode.E6306, objectBundleHook.validate(exchange, objectBundle));
+  }
+
+  @Test
+  void testSourceDxItemAllowedTypes() {
+    AggregateDataExchange exchange = getAggregateDataExchange('A');
+
+    DimensionalItemObject dataElement = mock(DimensionalItemObject.class);
+    when(dataElement.getDimensionItemType()).thenReturn(DimensionItemType.DATA_ELEMENT);
+    when(dimensionService.getDataDimensionalItemObject(any(), eq("LrDpG50RAU9")))
+        .thenReturn(dataElement);
+
+    DimensionalItemObject indicator = mock(DimensionalItemObject.class);
+    when(indicator.getDimensionItemType()).thenReturn(DimensionItemType.INDICATOR);
+    when(dimensionService.getDataDimensionalItemObject(any(), eq("uR5HCiJhQ1w")))
+        .thenReturn(indicator);
+
+    assertIsEmpty(objectBundleHook.validate(exchange, objectBundle));
   }
 
   @Test
