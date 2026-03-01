@@ -30,12 +30,14 @@
 package org.hisp.dhis.user.hibernate;
 
 import jakarta.persistence.EntityManager;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserRoleStore;
 import org.springframework.context.ApplicationEventPublisher;
@@ -71,5 +73,41 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
     query.setParameter("dataSet", dataSet);
 
     return query.getSingleResult().intValue();
+  }
+
+  /**
+   * Bypasses the generic JPA Criteria implementation to avoid triggering Hibernate auto-flush,
+   * which would cascade through User.userRoles and load the entire UserRole.members collection
+   * (potentially hundreds of thousands of rows).
+   *
+   * <p>createdBy → column 'userid' in userrole (see UserRole.hbm.xml)<br>
+   * lastUpdatedBy → column 'lastupdatedby' (from identifiableProperties.hbm)
+   */
+  @Override
+  public boolean existsByUser(@Nonnull User user, final Set<String> checkProperties) {
+    boolean checkCreatedBy = checkProperties.contains("createdBy");
+    boolean checkLastUpdatedBy = checkProperties.contains("lastUpdatedBy");
+    if (!checkCreatedBy && !checkLastUpdatedBy) {
+      return false;
+    }
+    long userId = user.getId();
+    if (checkCreatedBy && checkLastUpdatedBy) {
+      return Boolean.TRUE.equals(
+          jdbcTemplate.queryForObject(
+              "SELECT EXISTS(SELECT 1 FROM userrole WHERE userid = ? OR lastupdatedby = ?)",
+              Boolean.class,
+              userId,
+              userId));
+    } else if (checkCreatedBy) {
+      return Boolean.TRUE.equals(
+          jdbcTemplate.queryForObject(
+              "SELECT EXISTS(SELECT 1 FROM userrole WHERE userid = ?)", Boolean.class, userId));
+    } else {
+      return Boolean.TRUE.equals(
+          jdbcTemplate.queryForObject(
+              "SELECT EXISTS(SELECT 1 FROM userrole WHERE lastupdatedby = ?)",
+              Boolean.class,
+              userId));
+    }
   }
 }
