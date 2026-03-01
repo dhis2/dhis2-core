@@ -30,7 +30,9 @@
 package org.hisp.dhis.user.hibernate;
 
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.UserGroup;
@@ -53,19 +55,92 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
   @Override
   public void save(@Nonnull UserGroup object, boolean clearSharing) {
     super.save(object, clearSharing);
-
-    // TODO: MAS: send event to invalidate sessions for users in this group
-    //        object
-    //            .getMembers()
-    //            .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
   }
 
-  //  @Override
-  // TODO: MAS: send event to invalidate sessions for users in this group
-  //  public void update(@Nonnull UserGroup object, User user) {
-  //    super.update(object, user);
-  //    //    object
-  //    //        .getMembers()
-  //    //        .forEach(member -> currentUserService.invalidateUserGroupCache(member.getUid()));
-  //  }
+  @Override
+  public boolean addMember(
+      @Nonnull UID userGroupUid, @Nonnull UID userUid, @Nonnull UID lastUpdatedByUid) {
+    String sql =
+        """
+        INSERT INTO usergroupmembers (usergroupid, userid)
+        SELECT ug.usergroupid, u.userinfoid
+        FROM usergroup ug, userinfo u
+        WHERE ug.uid = ? AND u.uid = ?
+        AND NOT EXISTS (
+          SELECT 1 FROM usergroupmembers ugm
+          WHERE ugm.usergroupid = ug.usergroupid AND ugm.userid = u.userinfoid
+        )
+        """;
+    boolean changed = jdbcTemplate.update(sql, userGroupUid.getValue(), userUid.getValue()) > 0;
+    if (changed) updateLastUpdated(userGroupUid, lastUpdatedByUid);
+    return changed;
+  }
+
+  @Override
+  public boolean removeMember(
+      @Nonnull UID userGroupUid, @Nonnull UID userUid, @Nonnull UID lastUpdatedByUid) {
+    String sql =
+        """
+        DELETE FROM usergroupmembers
+        WHERE usergroupid = (SELECT usergroupid FROM usergroup WHERE uid = ?)
+        AND userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        """;
+    boolean changed = jdbcTemplate.update(sql, userGroupUid.getValue(), userUid.getValue()) > 0;
+    if (changed) updateLastUpdated(userGroupUid, lastUpdatedByUid);
+    return changed;
+  }
+
+  @Override
+  public void updateLastUpdated(@Nonnull UID userGroupUid, @Nonnull UID lastUpdatedByUid) {
+    String sql =
+        """
+        UPDATE usergroup SET lastupdated = now(),
+        lastupdatedby = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        WHERE uid = ?
+        """;
+    jdbcTemplate.update(sql, lastUpdatedByUid.getValue(), userGroupUid.getValue());
+    // Evict from L1 (session) and L2 caches since we bypassed Hibernate's event system.
+    // UserGroup and its members collection are both L2-cached via UserGroup.hbm.xml.
+    // NOTE: No Redis pub/sub message is published here, so other cluster nodes will retain stale
+    // UserGroup entity and members collection data until their L2 TTL expires. A full fix would
+    // require publishing via CacheInvalidationMessagePublisher, since PostCacheEventPublisher only
+    // fires on Hibernate-managed operations.
+    Long id =
+        jdbcTemplate.queryForObject(
+            "SELECT usergroupid FROM usergroup WHERE uid = ?", Long.class, userGroupUid.getValue());
+    getSession().evict(getSession().getReference(UserGroup.class, id));
+    getSession().getSessionFactory().getCache().evictEntityData(UserGroup.class, id);
+    getSession()
+        .getSessionFactory()
+        .getCache()
+        .evictCollectionData("org.hisp.dhis.user.UserGroup.members", id);
+  }
+
+  @Override
+  public void removeAllMemberships(@Nonnull UID userUid) {
+    String sql =
+        """
+        DELETE FROM usergroupmembers
+        WHERE userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        """;
+    jdbcTemplate.update(sql, userUid.getValue());
+  }
+
+  @Override
+  public void updateLastUpdatedForMembershipsOf(
+      @Nonnull UID userUid, @Nonnull UID lastUpdatedByUid) {
+    List<String> groupUids =
+        jdbcTemplate.queryForList(
+            """
+            SELECT ug.uid FROM usergroup ug
+            JOIN usergroupmembers ugm ON ug.usergroupid = ugm.usergroupid
+            WHERE ugm.userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+            """,
+            String.class,
+            userUid.getValue());
+
+    for (String groupUid : groupUids) {
+      updateLastUpdated(UID.of(groupUid), lastUpdatedByUid);
+    }
+  }
 }
