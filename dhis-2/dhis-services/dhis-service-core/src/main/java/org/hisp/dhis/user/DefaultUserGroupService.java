@@ -31,14 +31,10 @@ package org.hisp.dhis.user;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import jakarta.persistence.EntityManager;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import javax.annotation.Nonnull;
-import org.hibernate.Session;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.HibernateCacheManager;
@@ -57,23 +53,19 @@ public class DefaultUserGroupService implements UserGroupService {
   private final AclService aclService;
   private final HibernateCacheManager cacheManager;
   private final Cache<String> userGroupNameCache;
-  private final EntityManager entityManager;
 
   public DefaultUserGroupService(
       UserGroupStore userGroupStore,
       AclService aclService,
       HibernateCacheManager cacheManager,
-      CacheProvider cacheProvider,
-      EntityManager entityManager) {
+      CacheProvider cacheProvider) {
     checkNotNull(userGroupStore);
     checkNotNull(aclService);
     checkNotNull(cacheManager);
-    checkNotNull(entityManager);
 
     this.userGroupStore = userGroupStore;
     this.aclService = aclService;
     this.cacheManager = cacheManager;
-    this.entityManager = entityManager;
 
     userGroupNameCache = cacheProvider.createUserGroupNameCache();
   }
@@ -185,32 +177,23 @@ public class DefaultUserGroupService implements UserGroupService {
   public void updateUserGroups(
       User user, @Nonnull Collection<String> uids, UserDetails currentUser) {
     Collection<UserGroup> updates = getUserGroupsByUid(uids);
+    UID userUid = user.getUID();
+    UID currentUserUid = UID.of(currentUser.getUid());
 
-    Map<UserGroup, Integer> before = new HashMap<>();
-    updates.forEach(userGroup -> before.put(userGroup, userGroup.getMembers().size()));
-
+    // Remove from groups no longer in the new set — use SQL bypass to avoid loading members
     for (UserGroup userGroup : new HashSet<>(user.getGroups())) {
-      if (!updates.contains(userGroup) && canAddOrRemoveMember(userGroup.getUid(), currentUser)) {
-        before.put(userGroup, userGroup.getMembers().size());
-        userGroup.removeUser(user);
+      if (!updates.contains(userGroup) && canAddOrRemoveMember(userGroup, currentUser)) {
+        userGroupStore.removeMember(userGroup.getUID(), userUid, currentUserUid);
       }
     }
 
+    // Add to new groups — use SQL bypass to avoid loading members
     for (UserGroup userGroup : updates) {
-      if (canAddOrRemoveMember(userGroup.getUid(), currentUser)) {
-        userGroup.addUser(user);
+      if (canAddOrRemoveMember(userGroup, currentUser)) {
+        userGroupStore.addMember(userGroup.getUID(), userUid, currentUserUid);
       }
     }
 
-    Session session = entityManager.unwrap(Session.class);
-    // Update user group if members have changed
-    before.forEach(
-        (userGroup, beforeSize) -> {
-          if (beforeSize != userGroup.getMembers().size()) {
-            userGroup.setLastUpdatedBy(session.getReference(User.class, currentUser.getId()));
-            userGroupStore.updateNoAcl(userGroup);
-          }
-        });
     aclService.invalidateCurrentUserGroupInfoCache();
   }
 
