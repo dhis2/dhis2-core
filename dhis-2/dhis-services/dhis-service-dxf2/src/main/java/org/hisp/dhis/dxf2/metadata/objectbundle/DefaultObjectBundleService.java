@@ -42,7 +42,6 @@ import java.util.Map;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.DeleteNotAllowedException;
@@ -138,9 +137,9 @@ public class DefaultObjectBundleService implements ObjectBundleService {
     // Suppress Hibernate auto-flush during DELETE to prevent cascade-loading of large
     // collections (e.g. UserRole.members) via User.userRoles cascade="save-update".
     // Explicit session.flush() calls in commitObjectType and clearSession() are unaffected.
-    FlushMode previousFlushMode = session.getHibernateFlushMode();
+    org.hibernate.FlushMode previousFlushMode = session.getHibernateFlushMode();
     if (bundle.getImportMode().isDelete()) {
-      session.setHibernateFlushMode(FlushMode.MANUAL);
+      session.setHibernateFlushMode(org.hibernate.FlushMode.MANUAL);
     }
 
     List<ObjectBundleHook<?>> commitHooks = objectBundleHooks.getCommitHooks(klasses);

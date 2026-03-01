@@ -75,12 +75,13 @@ public class DefaultMetadataMergeService implements MetadataMergeService {
       if (property.isCollection()) {
         Collection<T> sourceObject =
             ReflectionUtils.invokeMethod(source, property.getGetterMethod());
-        Collection<T> targetObject =
-            ReflectionUtils.invokeMethod(target, property.getGetterMethod());
 
         if (sourceObject == null) {
           continue;
         }
+
+        Collection<T> targetObject =
+            ReflectionUtils.invokeMethod(target, property.getGetterMethod());
 
         // Note this exception for Period is sort of a hack
         // because the collections used for periods might be projection

@@ -33,7 +33,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.query.JpaQueryUtils.generateHqlQueryForSharingCheck;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.FlushModeType;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -940,12 +939,7 @@ public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
       return false;
     }
     query.where(builder.or(predicates.toArray(new Predicate[0])));
-    return !entityManager
-        .createQuery(query)
-        .setMaxResults(1)
-        .setFlushMode(FlushModeType.COMMIT)
-        .getResultList()
-        .isEmpty();
+    return !entityManager.createQuery(query).setMaxResults(1).getResultList().isEmpty();
   }
 
   /**
