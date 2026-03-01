@@ -45,6 +45,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Hibernate;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.category.CategoryDimension;
@@ -717,7 +718,7 @@ public class DefaultPreheatService implements PreheatService {
                     ReflectionUtils.newCollectionInstance(p.getKlass());
                 Collection<IdentifiableObject> references = safeInvoke(object, p.getGetterMethod());
 
-                if (references != null) {
+                if (references != null && Hibernate.isInitialized(references)) {
                   for (IdentifiableObject reference : references) {
                     if (reference == null) {
                       continue;

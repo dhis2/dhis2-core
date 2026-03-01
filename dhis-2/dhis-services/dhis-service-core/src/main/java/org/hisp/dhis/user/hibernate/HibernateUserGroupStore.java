@@ -105,7 +105,9 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
   private void evictUserGroupsCollectionCache(@Nonnull UID userUid) {
     List<Long> ids =
         jdbcTemplate.queryForList(
-            "SELECT userinfoid FROM userinfo WHERE uid = ?", Long.class, userUid.getValue());
+            "SELECT userinfoid FROM userinfo WHERE uid = ? LIMIT 1",
+            Long.class,
+            userUid.getValue());
 
     if (ids.isEmpty()) {
       return;

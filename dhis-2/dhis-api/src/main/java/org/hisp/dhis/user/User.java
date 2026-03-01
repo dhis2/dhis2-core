@@ -52,6 +52,7 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Hibernate;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -1204,23 +1205,34 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     return avatar;
   }
 
-  public void setAvatar(FileResource avatar) {
-    // if new -> new assigned
-    if (this.avatar == null && avatar != null) {
-      avatar.setAssigned(true);
+  public void setAvatar(FileResource newAvatar) {
+    final FileResource oldAvatar = this.avatar;
+    this.avatar = newAvatar;
+
+    // Do not cause proxy initialization during hydration.
+    if ((oldAvatar != null && !Hibernate.isInitialized(oldAvatar))
+        || (newAvatar != null && !Hibernate.isInitialized(newAvatar))) {
+      return;
     }
 
-    // if update -> old unassigned + new assigned
-    if (this.avatar != null && avatar != null && (!this.avatar.getUid().equals(avatar.getUid()))) {
-      this.avatar.setAssigned(false);
-      avatar.setAssigned(true);
+    if (oldAvatar == newAvatar) {
+      return;
     }
 
-    // if delete -> unassigned
-    if (this.avatar != null && avatar == null) {
-      this.avatar.setAssigned(false);
+    if (oldAvatar == null) {
+      newAvatar.setAssigned(true);
+      return;
     }
-    this.avatar = avatar;
+
+    if (newAvatar == null) {
+      oldAvatar.setAssigned(false);
+      return;
+    }
+
+    if (oldAvatar.getId() != newAvatar.getId()) {
+      oldAvatar.setAssigned(false);
+      newAvatar.setAssigned(true);
+    }
   }
 
   @JsonProperty
