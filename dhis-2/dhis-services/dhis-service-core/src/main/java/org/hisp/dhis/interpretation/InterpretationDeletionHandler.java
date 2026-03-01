@@ -57,7 +57,8 @@ public class InterpretationDeletionHandler extends JdbcDeletionHandler {
   private void deleteUser(User user) {
     // SQL bypass avoids loading all interpretations + their createdBy User entities (lazy=false)
     // which would populate N FileResource avatar proxies in L1 cache, each triggering a proxy-init
-    // query when the session is flushed. The column name follows HBM mapping (userid, not createdby).
+    // query when the session is flushed. The column name follows HBM mapping (userid, not
+    // createdby).
     delete(
         "UPDATE interpretation SET userid = NULL WHERE userid = :id",
         java.util.Map.of("id", user.getId()));

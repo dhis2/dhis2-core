@@ -30,6 +30,7 @@
 package org.hisp.dhis.user.hibernate;
 
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -102,15 +103,19 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
   }
 
   private void evictUserGroupsCollectionCache(@Nonnull UID userUid) {
-    Long userId =
-        jdbcTemplate.queryForObject(
+    List<Long> ids =
+        jdbcTemplate.queryForList(
             "SELECT userinfoid FROM userinfo WHERE uid = ?", Long.class, userUid.getValue());
-    if (userId != null) {
-      getSession()
-          .getSessionFactory()
-          .getCache()
-          .evictCollectionData(User.class.getName() + ".groups", userId);
+
+    if (ids.isEmpty()) {
+      return;
     }
+
+    Long userInfoId = ids.get(0);
+    getSession()
+        .getSessionFactory()
+        .getCache()
+        .evictCollectionData(User.class.getName() + ".groups", userInfoId);
   }
 
   @Override
