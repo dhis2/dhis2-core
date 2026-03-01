@@ -89,7 +89,8 @@ public class ProgramIndicatorQuery implements DataItemQuery {
               Pair.of("optionset_uid", CAST_NULL_AS_TEXT),
               Pair.of("optionvalue_uid", CAST_NULL_AS_TEXT),
               Pair.of("optionvalue_name", CAST_NULL_AS_TEXT),
-              Pair.of("optionvalue_code", CAST_NULL_AS_TEXT))
+              Pair.of("optionvalue_code", CAST_NULL_AS_TEXT),
+              Pair.of("item_skipanalytics", CAST_NULL_AS_BOOL))
           .stream()
           .map(pair -> pair.getRight() + " as " + pair.getLeft())
           .collect(joining(", "));
