@@ -421,7 +421,6 @@ public class AppController {
     if (msg != null && (msg.contains("Broken pipe") || msg.contains("Connection reset by peer"))) {
       return true;
     }
-    Throwable cause = e.getCause();
-    return cause instanceof IOException && isClientDisconnect((IOException) cause);
+    return e.getCause() instanceof IOException ioCause && isClientDisconnect(ioCause);
   }
 }
