@@ -719,6 +719,9 @@ public enum ConfigurationKey {
   /** Redis based cache invalidation feature. Enable or disable. */
   REDIS_CACHE_INVALIDATION_ENABLED("redis.cache.invalidation.enabled", Constants.OFF, false),
 
+  /** SQL DML observer for JDBC-level audit and cache invalidation. Enable or disable. */
+  SQL_DML_OBSERVER_ENABLED("sql.dml.observer.enabled", Constants.OFF, false),
+
   /** Content Security Policy feature. Enable or disable the feature. (sensitive) */
   CSP_ENABLED("csp.enabled", Constants.ON, true),
 

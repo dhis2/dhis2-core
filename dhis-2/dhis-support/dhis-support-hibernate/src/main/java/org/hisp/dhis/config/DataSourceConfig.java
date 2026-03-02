@@ -55,12 +55,14 @@ import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
 import net.ttddyy.dsproxy.transform.TransformInfo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.config.sqlobserver.DmlObserverListener;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -76,6 +78,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 public class DataSourceConfig {
 
   private final MeterRegistry meterRegistry;
+
+  @Autowired(required = false)
+  private DmlObserverListener dmlObserverListener;
 
   @Primary
   @Bean
@@ -106,7 +111,7 @@ public class DataSourceConfig {
   @Primary
   @Bean("actualDataSource")
   public DataSource dataSource(DhisConfigurationProvider config) {
-    return createProxyDataSource(config, actualDataSource(config));
+    return createProxyDataSource(config, actualDataSource(config), dmlObserverListener);
   }
 
   private DataSource actualDataSource(DhisConfigurationProvider config) {
@@ -142,12 +147,25 @@ public class DataSourceConfig {
     VALID_KEYS.put(MDC_SESSION_ID, "session_id");
   }
 
+  /** Creates a proxy datasource without DML observer (used by analytics read-only datasource). */
   static DataSource createProxyDataSource(
       DhisConfigurationProvider dhisConfig, DataSource actualDataSource) {
+    return createProxyDataSource(dhisConfig, actualDataSource, null);
+  }
+
+  /**
+   * Creates a proxy datasource with optional DML observer listener for intercepting
+   * INSERT/UPDATE/DELETE at the JDBC level.
+   */
+  static DataSource createProxyDataSource(
+      DhisConfigurationProvider dhisConfig,
+      DataSource actualDataSource,
+      DmlObserverListener dmlObserverListener) {
     boolean queryLogging = dhisConfig.isEnabled(ConfigurationKey.LOGGING_QUERY);
     boolean queryComments = dhisConfig.isEnabled(ConfigurationKey.MONITORING_SQL_CONTEXT);
+    boolean hasDmlObserver = dmlObserverListener != null;
 
-    if (!queryLogging && !queryComments) {
+    if (!queryLogging && !queryComments && !hasDmlObserver) {
       return actualDataSource;
     }
 
@@ -177,6 +195,11 @@ public class DataSourceConfig {
     if (queryComments) {
       LinkedHashMap<String, String> keyMap = buildKeyMap(dhisConfig);
       builder.queryTransformer(info -> addMdcComment(info, keyMap));
+    }
+
+    if (hasDmlObserver) {
+      builder.listener(dmlObserverListener).methodListener(dmlObserverListener);
+      log.info("DML observer listener registered on primary DataSource proxy");
     }
 
     return builder.build();
