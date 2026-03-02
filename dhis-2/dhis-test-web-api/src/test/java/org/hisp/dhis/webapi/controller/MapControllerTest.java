@@ -144,4 +144,42 @@ class MapControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals("openStreetMap", map.getString("basemap").string());
   }
+
+  @Test
+  void testPostMapViewWithEventFallback() {
+    String mapId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/maps/",
+                """
+                    {\"name\":\"My map\",
+                    \"mapViews\":[ {
+                    \"eventCoordinateFieldFallback\": \"teigeometry\",
+                    \"layer\": \"thematic1\",
+                    \"renderingStrategy\": \"SINGLE\" } ]}
+                    """));
+
+    JsonObject map = GET("/maps/{uid}", mapId).content();
+    assertNotNull(map.getArray("mapViews"));
+    assertEquals(1, map.getArray("mapViews").size());
+
+    JsonObject mapView = map.getArray("mapViews").get(0).as(JsonObject.class);
+    assertEquals("teigeometry", mapView.getString("eventCoordinateFieldFallback").string());
+  }
+
+  @Test
+  void testPostMapViewWithEventFallbackError() {
+    assertStatus(
+        HttpStatus.CONFLICT,
+        POST(
+            "/maps/",
+            """
+                    {\"name\":\"My map\",
+                    \"mapViews\":[ {
+                    \"eventCoordinateFieldFallback\": \"teigeometry-123456\",
+                    \"layer\": \"thematic1\",
+                    \"renderingStrategy\": \"SINGLE\" } ]}
+                    """));
+  }
 }

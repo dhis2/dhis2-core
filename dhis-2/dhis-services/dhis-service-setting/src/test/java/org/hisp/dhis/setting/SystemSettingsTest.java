@@ -109,6 +109,8 @@ class SystemSettingsTest {
     assertTrue(keys.contains("experimentalAnalyticsSqlEngineEnabled"));
     assertTrue(keys.contains("notifierGistOverview"));
     assertTrue(keys.contains("keyCustomTranslationsEnabled"));
+    assertTrue(keys.contains(("keyCustomColor")));
+    assertTrue(keys.contains(("keyCustomColorMobile")));
   }
 
   @Test
