@@ -144,8 +144,8 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
   }
 
   private List<PrefixedDimension> dimensions(ProgramStage programStage) {
-
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+
     return Optional.of(programStage)
         .map(ProgramStage::getProgram)
         .map(
@@ -196,10 +196,15 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
         .orElse(List.of())
         .stream()
         .filter(this::isNotConfidential)
+        .filter(this::isNotSkipped)
         .collect(Collectors.toList());
   }
 
   private boolean isNotConfidential(TrackedEntityAttribute trackedEntityAttribute) {
     return !trackedEntityAttribute.isConfidentialBool();
+  }
+
+  private boolean isNotSkipped(TrackedEntityAttribute trackedEntityAttribute) {
+    return !trackedEntityAttribute.isSkipAnalytics();
   }
 }
