@@ -172,11 +172,7 @@ public abstract class AbstractCrudController<
       @RequestParam Map<String, String> rpParameters,
       @CurrentUser UserDetails currentUser,
       @RequestBody JsonPatch patch)
-      throws ForbiddenException,
-          NotFoundException,
-          IOException,
-          JsonPatchException,
-          ConflictException {
+      throws ForbiddenException, NotFoundException, JsonPatchException, ConflictException {
     final T persistedObject = getEntity(uid);
 
     updatePermissionCheck(currentUser, persistedObject);

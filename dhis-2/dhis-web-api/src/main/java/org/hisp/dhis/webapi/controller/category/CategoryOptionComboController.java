@@ -191,11 +191,7 @@ public class CategoryOptionComboController
       Map<String, String> rpParameters,
       UserDetails currentUser,
       @RequestBody JsonPatch patch)
-      throws NotFoundException,
-          ForbiddenException,
-          ConflictException,
-          IOException,
-          JsonPatchException {
+      throws NotFoundException, ForbiddenException, ConflictException, JsonPatchException {
     CategoryOptionCombo persisted = getEntity(uid);
     updatePermissionCheck(currentUser, persisted);
 
