@@ -267,13 +267,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T get(@Nonnull Class<T> type, @Nonnull UID uid) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return null;
-    }
-
-    return store.getByUid(uid.getValue());
+    return get(type, uid.getValue());
   }
 
   @Nonnull
