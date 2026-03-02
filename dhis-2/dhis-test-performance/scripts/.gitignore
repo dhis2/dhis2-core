@@ -1,4 +1,0 @@
-# Instance-specific configs with credentials or environment details — keep local only
-remote-perf.properties
-*-emis.json
-perf-results.md
