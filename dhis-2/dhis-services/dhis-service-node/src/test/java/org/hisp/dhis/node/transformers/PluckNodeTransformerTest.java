@@ -73,27 +73,23 @@ class PluckNodeTransformerTest {
     collectionNode = new CollectionNode("organisationUnits", 2);
     collectionNode.setNamespace("testUrn");
     collectionNode.setProperty(
-        schemaService.getDynamicSchema(CategoryOption.class).getProperty("organisationUnits"));
+        schemaService.getSchema(CategoryOption.class).getProperty("organisationUnits"));
 
     ComplexNode complexNode = new ComplexNode("organisationUnit");
     SimpleNode simpleNode =
-        new SimpleNode(
-            "id", schemaService.getDynamicSchema(Category.class).getProperty("id"), "abc1");
+        new SimpleNode("id", schemaService.getSchema(Category.class).getProperty("id"), "abc1");
     complexNode.addChild(simpleNode);
     simpleNode =
-        new SimpleNode(
-            "name", schemaService.getDynamicSchema(Category.class).getProperty("id"), "OU 1");
+        new SimpleNode("name", schemaService.getSchema(Category.class).getProperty("id"), "OU 1");
     complexNode.addChild(simpleNode);
     collectionNode.addChild(complexNode);
 
     complexNode = new ComplexNode("organisationUnit");
     simpleNode =
-        new SimpleNode(
-            "id", schemaService.getDynamicSchema(Category.class).getProperty("id"), "abc2");
+        new SimpleNode("id", schemaService.getSchema(Category.class).getProperty("id"), "abc2");
     complexNode.addChild(simpleNode);
     simpleNode =
-        new SimpleNode(
-            "name", schemaService.getDynamicSchema(Category.class).getProperty("id"), "OU 2");
+        new SimpleNode("name", schemaService.getSchema(Category.class).getProperty("id"), "OU 2");
     complexNode.addChild(simpleNode);
     collectionNode.addChild(complexNode);
   }
