@@ -51,6 +51,7 @@ import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.webapi.staticresource.HtmlCacheBustingService;
 import org.hisp.dhis.webapi.staticresource.StaticCacheControlService;
+import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -340,7 +341,8 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       return;
     }
 
-    ResourceResult result = appManager.getAppResource(globalShellApp, "index.html", contextPath);
+    String baseUrl = HttpServletRequestPaths.getContextPath(request);
+    ResourceResult result = appManager.getAppResource(globalShellApp, "index.html", baseUrl);
     if (!(result instanceof ResourceFound found)) {
       response.sendError(HttpServletResponse.SC_NOT_FOUND);
       return;
