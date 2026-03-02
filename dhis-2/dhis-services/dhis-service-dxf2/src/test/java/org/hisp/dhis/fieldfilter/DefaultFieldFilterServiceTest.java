@@ -102,12 +102,10 @@ class DefaultFieldFilterServiceTest {
 
     final Schema rootSchema = new Schema(Attribute.class, "attribute", "attributes");
     rootSchema.setPropertyMap(propertyMap);
-    Mockito.when(schemaService.getDynamicSchema(Mockito.eq(Attribute.class)))
-        .thenReturn(rootSchema);
+    Mockito.when(schemaService.getSchema(Mockito.eq(Attribute.class))).thenReturn(rootSchema);
 
     final Schema booleanSchema = new Schema(boolean.class, "boolean", "booleans");
-    Mockito.when(schemaService.getDynamicSchema(Mockito.eq(boolean.class)))
-        .thenReturn(booleanSchema);
+    Mockito.when(schemaService.getSchema(Mockito.eq(boolean.class))).thenReturn(booleanSchema);
 
     final FieldFilterParams params =
         new FieldFilterParams(
@@ -138,12 +136,10 @@ class DefaultFieldFilterServiceTest {
 
     final Schema rootSchema = new Schema(Attribute.class, "attribute", "attributes");
     rootSchema.setPropertyMap(propertyMap);
-    Mockito.when(schemaService.getDynamicSchema(Mockito.eq(Attribute.class)))
-        .thenReturn(rootSchema);
+    Mockito.when(schemaService.getSchema(Mockito.eq(Attribute.class))).thenReturn(rootSchema);
 
     final Schema booleanSchema = new Schema(boolean.class, "boolean", "booleans");
-    Mockito.when(schemaService.getDynamicSchema(Mockito.eq(boolean.class)))
-        .thenReturn(booleanSchema);
+    Mockito.when(schemaService.getSchema(Mockito.eq(boolean.class))).thenReturn(booleanSchema);
 
     final FieldFilterParams params =
         new FieldFilterParams(

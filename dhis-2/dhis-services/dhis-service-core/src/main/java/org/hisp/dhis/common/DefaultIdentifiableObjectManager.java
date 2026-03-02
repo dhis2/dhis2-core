@@ -832,7 +832,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
 
   @Override
   public void resetNonOwnerProperties(@Nonnull Object object) {
-    Schema schema = schemaService.getDynamicSchema(getRealClass(object));
+    Schema schema = schemaService.getSchema(getRealClass(object));
 
     schema.getPersistedProperties().values().stream()
         .filter(
@@ -1025,7 +1025,10 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional
   public void removeUserGroupFromSharing(@Nonnull String userGroupUid) {
     List<Schema> schemas =
-        schemaService.getSchemas().stream().filter(Schema::isShareable).collect(toList());
+        schemaService.getSchemas().stream()
+            .filter(Schema::isShareable)
+            .filter(Schema::isPersisted)
+            .toList();
 
     IdentifiableObjectStore<?> store = getIdentifiableObjectStore(UserGroup.class);
     schemas.forEach(
@@ -1041,7 +1044,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
    * @return true if type is attribute enabled.
    */
   private <T extends IdentifiableObject> boolean hasAttributeValues(@Nonnull Class<T> type) {
-    Schema schema = schemaService.getDynamicSchema(type);
+    Schema schema = schemaService.getSchema(type);
 
     return schema != null && schema.hasAttributeValues();
   }
@@ -1093,7 +1096,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
    */
   private <T extends IdentifiableObject> boolean existsByUser(
       IdentifiableObjectStore<T> store, User user) {
-    Schema schema = schemaService.getDynamicSchema(store.getClazz());
+    Schema schema = schemaService.getSchema(store.getClazz());
     Builder<String> checkProperties = ImmutableSet.builder();
     if (schema.getPersistedProperty(BaseIdentifiableObject_.CREATED_BY) != null) {
       checkProperties.add(BaseIdentifiableObject_.CREATED_BY);
