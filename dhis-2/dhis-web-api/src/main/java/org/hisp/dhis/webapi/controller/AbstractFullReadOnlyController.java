@@ -401,7 +401,7 @@ public abstract class AbstractFullReadOnlyController<
   @OpenApi.Response(OpenApi.EntityType.class)
   @GetMapping("/{uid:[a-zA-Z0-9]{11}}")
   public @ResponseBody ResponseEntity<?> getObject(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
+      @PathVariable("uid") UID uid,
       GetObjectParams params,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
@@ -415,7 +415,7 @@ public abstract class AbstractFullReadOnlyController<
 
     cachePrivate(response);
 
-    T entity = getEntity(pvUid);
+    T entity = getEntity(uid);
 
     GetObjectListParams listParams = params.toListParams();
     addProgrammaticFilters(listParams::addFilter); // temporary workaround
@@ -438,8 +438,8 @@ public abstract class AbstractFullReadOnlyController<
 
   @GetMapping("/{uid:[a-zA-Z0-9]{11}}/{property}")
   public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @OpenApi.Param(PropertyNames.class) @PathVariable("property") String pvProperty,
+      @PathVariable("uid") UID uid,
+      @OpenApi.Param(PropertyNames.class) @PathVariable("property") String property,
       @RequestParam(required = false) List<String> fields,
       @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
@@ -459,13 +459,13 @@ public abstract class AbstractFullReadOnlyController<
     cachePrivate(response);
 
     GetObjectParams params = new GetObjectParams();
-    params.addField(pvProperty + fieldFilter);
-    ObjectNode objectNode = getObjectInternal(pvUid, params, currentUser);
+    params.addField(property + fieldFilter);
+    ObjectNode objectNode = getObjectInternal(uid, params, currentUser);
 
     return ResponseEntity.ok(objectNode);
   }
 
-  private ObjectNode getObjectInternal(String uid, GetObjectParams params, UserDetails currentUser)
+  private ObjectNode getObjectInternal(UID uid, GetObjectParams params, UserDetails currentUser)
       throws NotFoundException {
     T entity = getEntity(uid);
 
@@ -564,13 +564,13 @@ public abstract class AbstractFullReadOnlyController<
   }
 
   @Nonnull
-  protected T getEntity(String uid) throws NotFoundException {
+  protected T getEntity(@Nonnull UID uid) throws NotFoundException {
     return getEntity(uid, getEntityClass())
         .orElseThrow(() -> new NotFoundException(getEntityClass(), uid));
   }
 
   protected final <E extends IdentifiableObject> java.util.Optional<E> getEntity(
-      String uid, Class<E> entityType) {
+      @Nonnull UID uid, Class<E> entityType) {
     return java.util.Optional.ofNullable(manager.get(entityType, uid));
   }
 

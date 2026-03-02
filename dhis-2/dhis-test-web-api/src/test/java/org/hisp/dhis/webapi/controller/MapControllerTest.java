@@ -79,8 +79,8 @@ class MapControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "Map does not exist: xyz",
-        PUT("/maps/xyz", "{'name':'My updated map'}").content(HttpStatus.NOT_FOUND));
+        "Map does not exist: m1234567890",
+        PUT("/maps/m1234567890", "{'name':'My updated map'}").content(HttpStatus.NOT_FOUND));
   }
 
   @Test
