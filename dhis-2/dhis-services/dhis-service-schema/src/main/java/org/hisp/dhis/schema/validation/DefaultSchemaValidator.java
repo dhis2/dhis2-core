@@ -94,7 +94,7 @@ public class DefaultSchemaValidator implements SchemaValidator {
       return emptyList();
     }
 
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
 
     if (schema == null) {
       return emptyList();

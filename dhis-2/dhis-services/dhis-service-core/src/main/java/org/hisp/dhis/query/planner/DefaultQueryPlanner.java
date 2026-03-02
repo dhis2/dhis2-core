@@ -74,7 +74,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
 
   /** Modifies the query based on schema data */
   private void autoFill(Query<?> query) {
-    Schema schema = schemaService.getDynamicSchema(query.getObjectType());
+    Schema schema = schemaService.getSchema(query.getObjectType());
     if (query.isDefaultOrders()) {
       if (schema.hasPersistedProperty("name")) query.addOrder(Order.iasc("name"));
       if (schema.hasPersistedProperty("id")) query.addOrder(Order.asc("id"));
@@ -136,7 +136,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
       memoryQuery.getFilters().addAll(query.getFilters());
     }
 
-    Schema schema = schemaService.getDynamicSchema(query.getObjectType());
+    Schema schema = schemaService.getSchema(query.getObjectType());
     boolean dbOrdering =
         query.getOrders().stream()
             .map(Order::getProperty)
@@ -179,14 +179,14 @@ public class DefaultQueryPlanner implements QueryPlanner {
    * </ul>
    */
   private boolean pathRequiresInMemoryFiltering(Class<?> klass, String[] aliases) {
-    Schema schema = schemaService.getDynamicSchema(klass);
+    Schema schema = schemaService.getSchema(klass);
     for (String alias : aliases) {
       var property = schema.getProperty(alias);
       if (property == null) return true; // Unknown property, fall back to in-memory
       if (property.isCollection()) return true;
       if (property.isEmbeddedObject()) return true;
       // Navigate to next schema for non-collection relationships
-      schema = schemaService.getDynamicSchema(property.getKlass());
+      schema = schemaService.getSchema(property.getKlass());
     }
     return false;
   }
