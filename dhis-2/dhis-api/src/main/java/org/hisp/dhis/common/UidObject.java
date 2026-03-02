@@ -30,6 +30,7 @@
 package org.hisp.dhis.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.annotation.Nonnull;
 
 /**
  * Common interface for objects that have a unique ID used in RESTful APIs but that might not have
@@ -48,6 +49,7 @@ public interface UidObject {
   @JsonProperty(value = "id")
   String getUid();
 
+  @Nonnull
   default UID getUID() {
     return UID.of(getUid());
   }
