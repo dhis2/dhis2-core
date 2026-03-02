@@ -100,6 +100,7 @@ public class UsersPerformanceTest extends Simulation {
    */
   private static final Properties CONFIG = loadConfig();
 
+  // Consider to extract to a helper function if other tests want to follow this pattern
   private static Properties loadConfig() {
     String path = System.getProperty("configFile");
     Properties props = new Properties();
@@ -138,6 +139,13 @@ public class UsersPerformanceTest extends Simulation {
   private static final int ITERATIONS = Integer.parseInt(prop("iterations", "3"));
   private static final String MODE = prop("mode", "parallel");
 
+  // Request names — used in both scenario definitions and assertions
+  private static final String POST_REQUEST = "POST User - create";
+  private static final String GET_REQUEST = "GET User - by uid";
+  private static final String PUT_REQUEST = "PUT User - full update";
+  private static final String PATCH_REQUEST = "PATCH User - partial update";
+  private static final String DELETE_REQUEST = "DELETE User - delete";
+
   // Timestamp-based offset so each run generates unique usernames
   private static final int RUN_OFFSET = (int) (System.currentTimeMillis() % 10_000_000);
   private static final AtomicInteger POST_COUNTER = new AtomicInteger(RUN_OFFSET);
@@ -161,30 +169,21 @@ public class UsersPerformanceTest extends Simulation {
 
   /** Builds a minimal valid user JSON body for POST/PUT. Pass {@code null} for id on creation. */
   private static String userBody(String id, String username, String firstName) {
-    String idField = id != null ? "\"id\":\"" + id + "\"," : "";
+    String idField = id != null ? "\"id\":\"%s\",".formatted(id) : "";
     String groupsField =
-        USER_GROUP_UID.isBlank() ? "" : ",\"userGroups\":[{\"id\":\"" + USER_GROUP_UID + "\"}]";
-    return "{"
-        + idField
-        + "\"username\":\""
-        + username
-        + "\","
-        + "\"firstName\":\""
-        + firstName
-        + "\","
-        + "\"surname\":\"Test\","
-        + "\"password\":\"Test1234@\","
-        + "\"userRoles\":[{\"id\":\""
-        + USER_ROLE_UID
-        + "\"}],"
-        + "\"organisationUnits\":[{\"id\":\""
-        + ORG_UNIT_UID
-        + "\"}],"
-        + "\"dataViewOrganisationUnits\":[{\"id\":\""
-        + ORG_UNIT_UID
-        + "\"}]"
-        + groupsField
-        + "}";
+        USER_GROUP_UID.isBlank()
+            ? ""
+            : """
+                ,"userGroups":[{"id":"%s"}]\
+                """
+                .formatted(USER_GROUP_UID);
+    return """
+        {%s"username":"%s","firstName":"%s","surname":"Test","password":"Test1234@",\
+        "userRoles":[{"id":"%s"}],"organisationUnits":[{"id":"%s"}],\
+        "dataViewOrganisationUnits":[{"id":"%s"}]%s}\
+        """
+        .formatted(
+            idField, username, firstName, USER_ROLE_UID, ORG_UNIT_UID, ORG_UNIT_UID, groupsField);
   }
 
   /**
@@ -230,13 +229,8 @@ public class UsersPerformanceTest extends Simulation {
     int delNeeded = ITERATIONS * 3 + 5;
     String groupLabel = USER_GROUP_UID.isBlank() ? "" : " (group: " + USER_GROUP_UID + ")";
     System.out.println(
-        "Pre-creating "
-            + rwNeeded
-            + " read/write users and "
-            + delNeeded
-            + " delete users"
-            + groupLabel
-            + "...");
+        "Pre-creating %d read/write users and %d delete users%s..."
+            .formatted(rwNeeded, delNeeded, groupLabel));
 
     String auth =
         Base64.getEncoder()
@@ -259,15 +253,8 @@ public class UsersPerformanceTest extends Simulation {
     }
 
     System.out.println(
-        "Pre-created "
-            + READ_WRITE_USERS.size()
-            + "/"
-            + rwNeeded
-            + " read/write users, "
-            + DELETE_UID_QUEUE.size()
-            + "/"
-            + delNeeded
-            + " delete users.");
+        "Pre-created %d/%d read/write users, %d/%d delete users."
+            .formatted(READ_WRITE_USERS.size(), rwNeeded, DELETE_UID_QUEUE.size(), delNeeded));
   }
 
   public UsersPerformanceTest() {
@@ -279,7 +266,7 @@ public class UsersPerformanceTest extends Simulation {
 
     // ── Scenario: POST /api/users ────────────────────────────────────────────
     ScenarioBuilder postScenario =
-        scenario("POST User - create")
+        scenario(POST_REQUEST)
             .exec(flushCookieJar())
             .repeat(ITERATIONS)
             .on(
@@ -289,7 +276,7 @@ public class UsersPerformanceTest extends Simulation {
                       return session.set("postBody", userBody(null, username, "Post"));
                     })
                     .exec(
-                        http("POST User - create")
+                        http(POST_REQUEST)
                             .post("/api/users")
                             .header("Content-Type", "application/json")
                             .body(StringBody("#{postBody}"))
@@ -297,7 +284,7 @@ public class UsersPerformanceTest extends Simulation {
 
     // ── Scenario: GET /api/users/{uid} ──────────────────────────────────────
     ScenarioBuilder getScenario =
-        scenario("GET User - by uid")
+        scenario(GET_REQUEST)
             .exec(flushCookieJar())
             .repeat(ITERATIONS)
             .on(
@@ -307,14 +294,11 @@ public class UsersPerformanceTest extends Simulation {
                               GET_INDEX.getAndIncrement() % READ_WRITE_USERS.size());
                       return session.set("getUid", user[0]);
                     })
-                    .exec(
-                        http("GET User - by uid")
-                            .get("/api/users/#{getUid}")
-                            .check(status().is(200))));
+                    .exec(http(GET_REQUEST).get("/api/users/#{getUid}").check(status().is(200))));
 
     // ── Scenario: PUT /api/users/{uid} ──────────────────────────────────────
     ScenarioBuilder putScenario =
-        scenario("PUT User - full update")
+        scenario(PUT_REQUEST)
             .exec(flushCookieJar())
             .repeat(ITERATIONS)
             .on(
@@ -327,7 +311,7 @@ public class UsersPerformanceTest extends Simulation {
                           .set("putBody", userBody(user[0], user[1], "PutUpdated"));
                     })
                     .exec(
-                        http("PUT User - full update")
+                        http(PUT_REQUEST)
                             .put("/api/users/#{putUid}")
                             .header("Content-Type", "application/json")
                             .body(StringBody("#{putBody}"))
@@ -335,7 +319,7 @@ public class UsersPerformanceTest extends Simulation {
 
     // ── Scenario: PATCH /api/users/{uid} ────────────────────────────────────
     ScenarioBuilder patchScenario =
-        scenario("PATCH User - partial update")
+        scenario(PATCH_REQUEST)
             .exec(flushCookieJar())
             .repeat(ITERATIONS)
             .on(
@@ -346,18 +330,20 @@ public class UsersPerformanceTest extends Simulation {
                       return session.set("patchUid", user[0]);
                     })
                     .exec(
-                        http("PATCH User - partial update")
+                        http(PATCH_REQUEST)
                             .patch("/api/users/#{patchUid}")
                             .header("Content-Type", "application/json-patch+json")
                             .body(
                                 StringBody(
-                                    "[{\"op\":\"replace\",\"path\":\"/firstName\",\"value\":\"PerfPatched\"}]"))
+                                    """
+                                    [{"op":"replace","path":"/firstName","value":"PerfPatched"}]\
+                                    """))
                             .check(status().is(200))));
 
     // ── Scenario: DELETE /api/users/{uid} ───────────────────────────────────
     // Users are pre-created in before(), so this scenario measures only DELETE time.
     ScenarioBuilder deleteScenario =
-        scenario("DELETE User - delete")
+        scenario(DELETE_REQUEST)
             .exec(flushCookieJar())
             .repeat(ITERATIONS)
             .on(
@@ -372,7 +358,7 @@ public class UsersPerformanceTest extends Simulation {
                     })
                     .exitHereIfFailed()
                     .exec(
-                        http("DELETE User - delete")
+                        http(DELETE_REQUEST)
                             .delete("/api/users/#{deleteUid}")
                             .check(status().is(200))));
 
@@ -384,17 +370,33 @@ public class UsersPerformanceTest extends Simulation {
     PopulationBuilder patchPopulation = patchScenario.injectClosed(singleUser);
     PopulationBuilder deletePopulation = deleteScenario.injectClosed(singleUser);
 
-    if ("sequential".equals(MODE)) {
-      setUp(
-              postPopulation
-                  .andThen(getPopulation)
-                  .andThen(putPopulation)
-                  .andThen(patchPopulation)
-                  .andThen(deletePopulation))
-          .protocols(httpProtocol);
-    } else {
-      setUp(postPopulation, getPopulation, putPopulation, patchPopulation, deletePopulation)
-          .protocols(httpProtocol);
-    }
+    var sim =
+        "sequential".equals(MODE)
+            ? setUp(
+                postPopulation
+                    .andThen(getPopulation)
+                    .andThen(putPopulation)
+                    .andThen(patchPopulation)
+                    .andThen(deletePopulation))
+            : setUp(
+                postPopulation, getPopulation, putPopulation, patchPopulation, deletePopulation);
+
+    sim.protocols(httpProtocol)
+        .assertions(
+            details(POST_REQUEST).responseTime().percentile(95).lt(450),
+            details(POST_REQUEST).responseTime().max().lt(600),
+            details(POST_REQUEST).successfulRequests().percent().is(100D),
+            details(GET_REQUEST).responseTime().percentile(95).lt(350),
+            details(GET_REQUEST).responseTime().max().lt(500),
+            details(GET_REQUEST).successfulRequests().percent().is(100D),
+            details(PUT_REQUEST).responseTime().percentile(95).lt(600),
+            details(PUT_REQUEST).responseTime().max().lt(800),
+            details(PUT_REQUEST).successfulRequests().percent().is(100D),
+            details(PATCH_REQUEST).responseTime().percentile(95).lt(550),
+            details(PATCH_REQUEST).responseTime().max().lt(750),
+            details(PATCH_REQUEST).successfulRequests().percent().is(100D),
+            details(DELETE_REQUEST).responseTime().percentile(95).lt(1800),
+            details(DELETE_REQUEST).responseTime().max().lt(2500),
+            details(DELETE_REQUEST).successfulRequests().percent().is(100D));
   }
 }
