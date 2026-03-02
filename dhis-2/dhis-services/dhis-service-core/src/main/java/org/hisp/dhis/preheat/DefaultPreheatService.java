@@ -209,11 +209,7 @@ public class DefaultPreheatService implements PreheatService {
       // Pass the objects being imported to avoid loading ALL records for uniqueness checking
       List<IdentifiableObject> objectsBeingImported = params.getObjects().get(klass);
       List<? extends IdentifiableObject> objects =
-<<<<<<< perf-schema-uniqueness-filter
           schemaToDataFetcher.fetch(schemaService.getDynamicSchema(klass), objectsBeingImported);
-=======
-          schemaToDataFetcher.fetch(schemaService.getSchema(klass));
->>>>>>> master
       if (!objects.isEmpty()) {
         uniqueCollectionMap.put(klass, new ArrayList<>(objects));
       }
