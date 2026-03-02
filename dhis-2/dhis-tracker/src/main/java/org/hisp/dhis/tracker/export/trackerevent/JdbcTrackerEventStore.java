@@ -979,7 +979,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           params.getAccessibleTrackerProgramStages().isEmpty()
               ? null
               : getIdentifiers(params.getAccessibleTrackerProgramStages()));
-      sql.append(hlp.whereAnd()).append(" ev.programstageid in (:programstageid) ");
+      // Filter via the joined programstage table so PG can use it as a driving table,
+      // which enables the in_trackerevent_enrollmentid index instead of a PK backward scan.
+      sql.append(hlp.whereAnd()).append(" ps.programstageid in (:programstageid) ");
     }
   }
 
