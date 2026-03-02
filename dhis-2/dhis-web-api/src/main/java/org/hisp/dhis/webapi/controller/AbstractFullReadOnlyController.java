@@ -135,7 +135,7 @@ public abstract class AbstractFullReadOnlyController<
   private Schema schema;
 
   protected final Schema getSchema() {
-    if (schema == null) schema = schemaService.getDynamicSchema(getEntityClass());
+    if (schema == null) schema = schemaService.getSchema(getEntityClass());
     return schema;
   }
 
@@ -575,6 +575,6 @@ public abstract class AbstractFullReadOnlyController<
   }
 
   protected final Schema getSchema(Class<?> klass) {
-    return schemaService.getDynamicSchema(klass);
+    return schemaService.getSchema(klass);
   }
 }
