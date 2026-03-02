@@ -198,7 +198,7 @@ public class AppController {
 
     log.debug("Rendering resource {} from app {}", resource, application.getKey());
 
-    ResourceResult resourceResult = appManager.getAppResource(application, resource, contextPath);
+    ResourceResult resourceResult = appManager.getAppResource(application, resource, baseUrl);
     if (resourceResult instanceof ResourceFound found) {
       serveResource(request, response, found, application);
     } else if (resourceResult instanceof Redirect redirect) {
@@ -279,7 +279,15 @@ public class AppController {
         contentLength,
         String.valueOf(lastModified),
         etag);
-    StreamUtils.copyThenCloseInputStream(inputStream, response.getOutputStream());
+    try {
+      StreamUtils.copyThenCloseInputStream(inputStream, response.getOutputStream());
+    } catch (IOException e) {
+      if (isClientDisconnect(e)) {
+        log.debug("Client disconnected while streaming app resource: {}", filename);
+      } else {
+        throw e;
+      }
+    }
   }
 
   @DeleteMapping("/{app}")
@@ -406,5 +414,14 @@ public class AppController {
       log.warn("Invalid path format detected: {}", e.getMessage());
       throw new WebMessageException(badRequest("Invalid resource path"));
     }
+  }
+
+  private static boolean isClientDisconnect(IOException e) {
+    String msg = e.getMessage();
+    if (msg != null && (msg.contains("Broken pipe") || msg.contains("Connection reset by peer"))) {
+      return true;
+    }
+    Throwable cause = e.getCause();
+    return cause instanceof IOException && isClientDisconnect((IOException) cause);
   }
 }
