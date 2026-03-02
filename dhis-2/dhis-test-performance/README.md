@@ -38,13 +38,76 @@ Test results are saved to `target/gatling/<simulation-class>-<timestamp>/`:
 
 ### Analysis
 
-* look at Gatling's own `index.html`
-* if it doesn't provide the analysis you need, try
-[gatling-statistics](https://github.com/dhis2/gatling-statistics)
+* Look at Gatling's own `index.html`
+* To compare two runs (e.g. baseline vs feature branch), use `scripts/compare-gatling-runs.sh`:
+
+```sh
+./scripts/compare-gatling-runs.sh \
+  target/gatling/usersperformancetest-20260217072013445 \
+  target/gatling/usersperformancetest-20260217073019128
+```
+
+This requires [gstat](https://github.com/dhis2/gatling-statistics) (`uv tool install gatling-statistics`)
+and prints a GitHub markdown table of p50/p95 differences between the two runs.
 
 Since Gatling 3.12, test results are written in binary format. The `run-simulation.sh` script
 automatically converts `simulation.log` to `simulation.csv` if
 [glog](https://github.com/dhis2/gatling/releases) is installed like in CI.
+
+## Platform Tests
+
+The `platform` package (`org.hisp.dhis.test.platform`) contains focused CRUD performance tests.
+
+### UsersPerformanceTest
+
+Tests single-user CRUD operations on `/api/users` (POST, GET, PUT, PATCH, DELETE).
+
+All properties have defaults targeting the Sierra Leone demo DB on `localhost:8080`, so no
+configuration is needed for a local run:
+
+```sh
+mvn gatling:test -Dgatling.simulationClass=org.hisp.dhis.test.platform.UsersPerformanceTest \
+  --file dhis-2/pom.xml -pl dhis-test-performance
+```
+
+To run against a remote instance, create a local `.properties` file (do not commit credentials):
+
+```properties
+baseUrl=https://your-instance.example.org/dhis
+username=admin
+password=changeme
+
+# UIDs from your target DB — find them via /api/userRoles, /api/organisationUnits, /api/userGroups
+# Point userGroupUid at a large group (10k+ members) to amplify N+1 effects
+userRoleUid=<userRoleUid>
+orgUnitUid=<rootOrgUnitUid>
+userGroupUid=<largeUserGroupUid>
+
+iterations=10
+mode=sequential
+```
+
+Then pass it via `-DconfigFile`:
+
+```sh
+mvn gatling:test -Dgatling.simulationClass=org.hisp.dhis.test.platform.UsersPerformanceTest \
+  -DconfigFile=/path/to/my-instance.properties \
+  --file dhis-2/pom.xml -pl dhis-test-performance
+```
+
+Individual `-D` flags always override values from the config file. Available properties:
+
+| Property | Default | Description |
+|:---|:---|:---|
+| `configFile` | — | Path to a `.properties` file |
+| `baseUrl` | `http://localhost:8080` | DHIS2 base URL |
+| `username` | `admin` | API username |
+| `password` | `district` | API password |
+| `userRoleUid` | `Euq3XfEIEbx` | UID of the user role assigned to test users |
+| `orgUnitUid` | `ImspTQPwCqd` | UID of the org unit assigned to test users |
+| `userGroupUid` | `wl5cDMuUhmF` | UID of a user group to assign (leave blank to skip) |
+| `iterations` | `3` | Requests per scenario |
+| `mode` | `parallel` | `parallel` or `sequential` |
 
 ## Raw Tests (JSON-driven)
 
