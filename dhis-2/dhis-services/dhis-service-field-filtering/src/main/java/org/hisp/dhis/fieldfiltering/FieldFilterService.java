@@ -447,7 +447,7 @@ public class FieldFilterService {
       return;
     }
 
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
 
     if (!schema.isIdentifiableObject()) {
       return;

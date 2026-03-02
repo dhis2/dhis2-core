@@ -52,7 +52,7 @@ public class PeriodTypeObjectBundleHook extends AbstractObjectBundleHook<Identif
 
   @Override
   public void preCreate(IdentifiableObject object, ObjectBundle bundle) {
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
 
     for (Property property : schema.getPropertyMap().values()) {
       if (PeriodType.class.isAssignableFrom(property.getKlass())) {
@@ -70,7 +70,7 @@ public class PeriodTypeObjectBundleHook extends AbstractObjectBundleHook<Identif
   @Override
   public void preUpdate(
       IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle) {
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
 
     for (Property property : schema.getPropertyMap().values()) {
       if (PeriodType.class.isAssignableFrom(property.getKlass())) {
