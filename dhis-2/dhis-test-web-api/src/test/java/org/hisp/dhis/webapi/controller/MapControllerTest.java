@@ -170,12 +170,11 @@ class MapControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testPostMapViewWithEventFallbackError() {
-    String mapId =
-        assertStatus(
-            HttpStatus.CONFLICT,
-            POST(
-                "/maps/",
-                """
+    assertStatus(
+        HttpStatus.CONFLICT,
+        POST(
+            "/maps/",
+            """
                     {\"name\":\"My map\",
                     \"mapViews\":[ {
                     \"eventCoordinateFieldFallback\": \"teigeometry-123456\",
