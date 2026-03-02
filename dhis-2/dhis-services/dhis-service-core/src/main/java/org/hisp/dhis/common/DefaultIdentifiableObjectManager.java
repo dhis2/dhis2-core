@@ -146,11 +146,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   @Transactional
   public void save(@Nonnull IdentifiableObject object, boolean clearSharing) {
-    IdentifiableObjectStore<? super IdentifiableObject> store = getIdentifiableObjectStore(object);
-
-    if (store != null) {
-      store.save(object, clearSharing);
-    }
+    getStore(object).save(object, clearSharing);
   }
 
   @Override
@@ -162,27 +158,19 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   @Transactional
   public void update(@Nonnull IdentifiableObject object) {
-    IdentifiableObjectStore<? super IdentifiableObject> store = getIdentifiableObjectStore(object);
-    if (store != null) {
-      store.update(object);
-    }
+    getStore(object).update(object);
   }
 
   @Override
   @Transactional
   public void update(@Nonnull IdentifiableObject object, UserDetails currentUserDetails) {
-    IdentifiableObjectStore<? super IdentifiableObject> store = getIdentifiableObjectStore(object);
-    if (store != null) {
-      store.update(object, currentUserDetails);
-    }
+    getStore(object).update(object, currentUserDetails);
   }
 
   @Override
   @Transactional
   public void update(@Nonnull List<IdentifiableObject> objects) {
-    if (objects.isEmpty()) {
-      return;
-    }
+    if (objects.isEmpty()) return;
     for (IdentifiableObject object : objects) {
       update(object);
     }
@@ -200,7 +188,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
             .collect(Collectors.toSet()));
 
     translatedObject.setLastUpdated(new Date());
-    translatedObject.setLastUpdatedBy(getCurrentUser());
+    translatedObject.setLastUpdatedBy(get(User.class, CurrentUserUtil.getCurrentUsername()));
 
     entityManager.unwrap(Session.class).update(translatedObject);
   }
@@ -208,10 +196,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   @Transactional
   public void delete(@Nonnull IdentifiableObject object) {
-    IdentifiableObjectStore<? super IdentifiableObject> store = getIdentifiableObjectStore(object);
-    if (store != null) {
-      store.delete(object);
-    }
+    getStore(object).delete(object);
   }
 
   @Nonnull
@@ -226,38 +211,21 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
 
   @Override
   public <T extends IdentifiableObject> boolean existsByUser(Class<T> type, @Nonnull User user) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return false;
-    }
-
-    return existsByUser(store, user);
+    return existsByUser(getStore(type), user);
   }
 
   @CheckForNull
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T get(@Nonnull Class<T> type, long id) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return null;
-    }
-
-    return store.get(id);
+    return getStore(type).get(id);
   }
 
   @CheckForNull
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T get(@Nonnull Class<T> type, @Nonnull String uid) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return null;
-    }
-
+    IdentifiableObjectStore<T> store = getStore(type);
     return CurrentUserUtil.getCurrentUserDetails().isSuper()
         ? store.getByUidNoAcl(uid)
         : store.getByUid(uid);
@@ -272,27 +240,21 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
 
   @Nonnull
   @Override
+  @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T load(@Nonnull Class<T> type, @Nonnull String uid)
       throws IllegalQueryException {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      throw new IllegalQueryException("No store registered for objects of type: " + type);
-    }
-
-    return store.loadByUid(uid);
+    return getStore(type).loadByUid(uid);
   }
 
   @Nonnull
   @Override
+  @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T load(
       @Nonnull Class<T> type, @Nonnull ErrorCode errorCode, @Nonnull String uid)
       throws IllegalQueryException {
     T object = get(type, uid);
 
-    if (object == null) {
-      throw new IllegalQueryException(new ErrorMessage(errorCode, uid));
-    }
+    if (object == null) throw new IllegalQueryException(new ErrorMessage(errorCode, uid));
 
     return object;
   }
@@ -335,26 +297,14 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getNoAcl(
       @Nonnull Class<T> type, @Nonnull Collection<String> uids) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getByUidNoAcl(uids);
+    return getStore(type).getByUidNoAcl(uids);
   }
 
   @CheckForNull
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T getByCode(@Nonnull Class<T> type, @Nonnull String code) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return null;
-    }
-
-    return store.getByCode(code);
+    return getStore(type).getByCode(code);
   }
 
   @Nonnull
@@ -362,30 +312,14 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T loadByCode(@Nonnull Class<T> type, @Nonnull String code)
       throws IllegalQueryException {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      throw new IllegalQueryException(ErrorCode.E1113, type.getSimpleName(), code);
-    }
-
-    return store.loadByCode(code);
+    return getStore(type).loadByCode(code);
   }
 
   @CheckForNull
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T getByName(@Nonnull Class<T> type, @Nonnull String name) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return null;
-    }
-
-    return store.getByName(name);
-  }
-
-  private User getCurrentUser() {
-    return get(User.class, CurrentUserUtil.getCurrentUsername());
+    return getStore(type).getByName(name);
   }
 
   @CheckForNull
@@ -393,15 +327,8 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T search(@Nonnull Class<T> type, @Nonnull String query) {
     T object = get(type, query);
-
-    if (object == null) {
-      object = getByCode(type, query);
-    }
-
-    if (object == null) {
-      object = getByName(type, query);
-    }
-
+    if (object == null) object = getByCode(type, query);
+    if (object == null) object = getByName(type, query);
     return object;
   }
 
@@ -409,52 +336,28 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getAll(@Nonnull Class<T> type) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getAll();
+    return getStore(type).getAll();
   }
 
   @Nonnull
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getDataWriteAll(@Nonnull Class<T> type) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getDataWriteAll();
+    return getStore(type).getDataWriteAll();
   }
 
   @Nonnull
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getDataReadAll(@Nonnull Class<T> type) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getDataReadAll();
+    return getStore(type).getDataReadAll();
   }
 
   @Nonnull
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getAllSorted(@Nonnull Class<T> type) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getAllOrderedName();
+    return getStore(type).getAllOrderedName();
   }
 
   @Nonnull
@@ -463,26 +366,14 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   public <T extends IdentifiableObject> List<T> getAllByAttributes(
       @Nonnull Class<T> type, @Nonnull Collection<UID> attributes) {
     if (!hasAttributeValues(type) || attributes.isEmpty()) return List.of();
-
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-    if (store == null) return List.of();
-    return store.getAllByAttributes(attributes);
+    return getStore(type).getAllByAttributes(attributes);
   }
 
   @Override
   public <T extends IdentifiableObject> long countAllValuesByAttributes(
       @Nonnull Class<T> type, @Nonnull Collection<UID> attributes) {
-    if (!hasAttributeValues(type) || attributes.isEmpty()) {
-      return 0;
-    }
-
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return 0;
-    }
-
-    return store.countAllValuesByAttributes(attributes);
+    if (!hasAttributeValues(type) || attributes.isEmpty()) return 0;
+    return getStore(type).countAllValuesByAttributes(attributes);
   }
 
   @Nonnull
@@ -497,13 +388,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   public <T extends IdentifiableObject> List<T> getByUidWithoutTransaction(
       @Nonnull Class<T> type, @Nonnull Collection<String> uids) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getByUid(uids);
+    return getStore(type).getByUid(uids);
   }
 
   @Nonnull
@@ -511,8 +396,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getByUid(
       Collection<Class<? extends T>> types, @Nonnull Collection<String> uids) {
-    List<T> list = new ArrayList<>();
-
+    List<T> list = new ArrayList<>(uids.size());
     for (Class<? extends T> type : types) {
       list.addAll(getByUid(type, uids));
     }
@@ -524,9 +408,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> loadByUid(
       @Nonnull Class<T> type, @CheckForNull Collection<String> uids) throws IllegalQueryException {
-    if (uids == null || uids.isEmpty()) {
-      return List.of();
-    }
+    if (uids == null || uids.isEmpty()) return List.of();
 
     List<T> objects = getByUid(type, uids);
 
@@ -546,13 +428,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getById(
       @Nonnull Class<T> type, @Nonnull Collection<Long> ids) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getById(ids);
+    return getStore(type).getById(ids);
   }
 
   @Nonnull
@@ -560,13 +436,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getByCode(
       @Nonnull Class<T> type, @Nonnull Collection<String> codes) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getByCode(codes);
+    return getStore(type).getByCode(codes);
   }
 
   @Nonnull
@@ -574,9 +444,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getOrdered(
       @Nonnull Class<T> type, @Nonnull IdScheme idScheme, @Nonnull Collection<String> values) {
-    if (values.isEmpty()) {
-      return List.of();
-    }
+    if (values.isEmpty()) return List.of();
     return values.stream()
         .map(value -> getObject(type, idScheme, value))
         .filter(Objects::nonNull)
@@ -588,50 +456,28 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getByUidOrdered(
       @Nonnull Class<T> type, @Nonnull List<String> uids) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null || uids.isEmpty()) {
-      return List.of();
-    }
+    IdentifiableObjectStore<T> store = getStore(type);
     return uids.stream().map(store::getByUid).filter(Objects::nonNull).collect(toList());
   }
 
   @Override
   @Transactional
   public <T extends IdentifiableObject> int getCount(@Nonnull Class<T> type) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store != null) {
-      return store.getCount();
-    }
-
-    return 0;
+    return getStore(type).getCount();
   }
 
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> int getCountByCreated(
       @Nonnull Class<T> type, @Nonnull Date created) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store != null) {
-      return store.getCountGeCreated(created);
-    }
-
-    return 0;
+    return getStore(type).getCountGeCreated(created);
   }
 
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> int getCountByLastUpdated(
       @Nonnull Class<T> type, @Nonnull Date lastUpdated) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store != null) {
-      return store.getCountGeLastUpdated(lastUpdated);
-    }
-
-    return 0;
+    return getStore(type).getCountGeLastUpdated(lastUpdated);
   }
 
   @Nonnull
@@ -639,13 +485,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getLikeName(
       @Nonnull Class<T> type, @Nonnull String name, boolean caseSensitive) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getAllLikeName(name, caseSensitive);
+    return getStore(type).getAllLikeName(name, caseSensitive);
   }
 
   @Nonnull
@@ -653,13 +493,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getBetweenSorted(
       @Nonnull Class<T> type, int first, int max) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getAllOrderedName(first, max);
+    return getStore(type).getAllOrderedName(first, max);
   }
 
   @Nonnull
@@ -667,25 +501,13 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getBetweenLikeName(
       @Nonnull Class<T> type, @Nonnull Set<String> words, int first, int max) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getAllLikeName(words, first, max);
+    return getStore(type).getAllLikeName(words, first, max);
   }
 
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> Date getLastUpdated(@Nonnull Class<T> type) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return null;
-    }
-
-    return store.getLastUpdated();
+    return getStore(type).getLastUpdated();
   }
 
   @Nonnull
@@ -693,14 +515,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> Map<String, T> getIdMap(
       @Nonnull Class<T> type, @Nonnull IdScheme idScheme) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return Map.of();
-    }
-
-    List<T> objects = store.getAll();
-
+    List<T> objects = getStore(type).getAll();
     return IdentifiableObjectUtils.getIdMap(objects, idScheme);
   }
 
@@ -711,24 +526,17 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
       @Nonnull Class<T> type,
       @Nonnull IdentifiableProperty property,
       @Nonnull Collection<String> identifiers) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
 
-    if (store == null || identifiers.isEmpty()) {
-      return List.of();
-    }
-
-    switch (property) {
-      case ID:
-      case UID:
-        return store.getByUid(identifiers);
-      case CODE:
-        return store.getByCode(identifiers);
-      case NAME:
-        return store.getByName(identifiers);
-      default:
-        throw new InvalidIdentifierReferenceException(
-            "Invalid identifiable property / class combination: " + property);
-    }
+    if (identifiers.isEmpty()) return List.of();
+    IdentifiableObjectStore<T> store = getStore(type);
+    return switch (property) {
+      case ID, UID -> store.getByUid(identifiers);
+      case CODE -> store.getByCode(identifiers);
+      case NAME -> store.getByName(identifiers);
+      default ->
+          throw new InvalidIdentifierReferenceException(
+              "Invalid identifiable property / class combination: " + property);
+    };
   }
 
   @Nonnull
@@ -736,13 +544,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getObjects(
       @Nonnull Class<T> type, @Nonnull Collection<Long> identifiers) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getById(identifiers);
+    return getStore(type).getById(identifiers);
   }
 
   @CheckForNull
@@ -758,11 +560,9 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T getObject(
       @Nonnull Class<T> type, @Nonnull IdScheme idScheme, @Nonnull String value) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
+    if (StringUtils.isEmpty(value)) return null;
 
-    if (store == null || StringUtils.isEmpty(value)) {
-      return null;
-    }
+    IdentifiableObjectStore<T> store = getStore(type);
 
     if (idScheme.isNull() || idScheme.is(IdentifiableProperty.UID)) {
       return store.getByUid(value);
@@ -873,36 +673,20 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> T getNoAcl(@Nonnull Class<T> type, @Nonnull String uid) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return null;
-    }
-
-    return store.getByUidNoAcl(uid);
+    return getStore(type).getByUidNoAcl(uid);
   }
 
   @Override
   @Transactional
   public <T extends IdentifiableObject> void updateNoAcl(@Nonnull T object) {
-    IdentifiableObjectStore<? super T> store = getIdentifiableObjectStore(object);
-
-    if (store != null) {
-      store.updateNoAcl(object);
-    }
+    getStore(object).updateNoAcl(object);
   }
 
   @Nonnull
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getAllNoAcl(@Nonnull Class<T> type) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getAllNoAcl();
+    return getStore(type).getAllNoAcl();
   }
 
   @Override
@@ -919,34 +703,21 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Override
   @Transactional(readOnly = true)
   public <T extends DimensionalObject> List<T> getDataDimensions(@Nonnull Class<T> type) {
-    GenericDimensionalObjectStore<T> store = getDimensionalObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getByDataDimension(true);
+    return getDimensionalObjectStore(type).getByDataDimension(true);
   }
 
   @Nonnull
   @Override
   @Transactional(readOnly = true)
   public <T extends DimensionalObject> List<T> getDataDimensionsNoAcl(@Nonnull Class<T> type) {
-    GenericDimensionalObjectStore<T> store = getDimensionalObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getByDataDimensionNoAcl(true);
+    return getDimensionalObjectStore(type).getByDataDimensionNoAcl(true);
   }
 
   @Override
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> boolean isAttributeValueUniqueTo(
       @Nonnull Class<T> type, @Nonnull UID object, @Nonnull UID attributeId, String value) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-    return store != null && store.isAttributeValueUniqueTo(object, attributeId, value);
+    return getStore(type).isAttributeValueUniqueTo(object, attributeId, value);
   }
 
   @Nonnull
@@ -954,8 +725,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional(readOnly = true)
   public <T extends IdentifiableObject> List<T> getAllByAttributeAndValues(
       @Nonnull Class<T> type, @Nonnull UID attribute, @Nonnull List<String> values) {
-    IdentifiableObjectStore<T> store = getIdentifiableObjectStore(type);
-    return store != null ? store.getAllByAttributeAndValues(attribute, values) : List.of();
+    return getStore(type).getAllByAttributeAndValues(attribute, values);
   }
 
   @Nonnull
@@ -992,13 +762,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
   @Transactional(readOnly = true)
   public List<String> getUidsCreatedBefore(
       @Nonnull Class<? extends IdentifiableObject> type, @Nonnull Date date) {
-    IdentifiableObjectStore<?> store = getIdentifiableObjectStore(type);
-
-    if (store == null) {
-      return List.of();
-    }
-
-    return store.getUidsCreatedBefore(date);
+    return getStore(type).getUidsCreatedBefore(date);
   }
 
   // --------------------------------------------------------------------------
@@ -1018,16 +782,15 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
 
     IdentifiableObject defaultObject = defaults.get(realClass);
 
-    return defaultObject != null && defaultObject.getUid().equals(object.getUid());
+    return defaultObject != null && defaultObject.getUID().equals(object.getUID());
   }
 
   @Override
   @Transactional
   public void removeUserGroupFromSharing(@Nonnull String userGroupUid) {
-    List<Schema> schemas =
-        schemaService.getSchemas().stream().filter(Schema::isShareable).collect(toList());
+    List<Schema> schemas = schemaService.getSchemas().stream().filter(Schema::isShareable).toList();
 
-    IdentifiableObjectStore<?> store = getIdentifiableObjectStore(UserGroup.class);
+    IdentifiableObjectStore<?> store = getStore(UserGroup.class);
     schemas.forEach(
         schema -> store.removeUserGroupFromSharing(userGroupUid, schema.getTableName()));
   }
@@ -1036,7 +799,6 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
    * Indicates whether the given class type is attribute enabled, i.e. has an attribute value
    * collection as part of the data model.
    *
-   * @param <T>
    * @param type the class type.
    * @return true if type is attribute enabled.
    */
@@ -1046,24 +808,32 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     return schema != null && schema.hasAttributeValues();
   }
 
+  @Nonnull
   @SuppressWarnings("unchecked")
-  private <T extends IdentifiableObject> IdentifiableObjectStore<T> getIdentifiableObjectStore(
-      @Nonnull T object) {
-    return getIdentifiableObjectStore((Class<T>) getRealClass(object));
+  private <T extends IdentifiableObject> IdentifiableObjectStore<T> getStore(@Nonnull T object) {
+    return getStore((Class<T>) getRealClass(object));
   }
 
+  @Nonnull
   @SuppressWarnings("unchecked")
-  private <T extends IdentifiableObject> IdentifiableObjectStore<T> getIdentifiableObjectStore(
+  private <T extends IdentifiableObject> IdentifiableObjectStore<T> getStore(
       @Nonnull Class<T> type) {
-    return (IdentifiableObjectStore<T>)
-        getObjectStore(type, identifiableObjectStoreCache, identifiableObjectStores);
+    IdentifiableObjectStore<T> store =
+        (IdentifiableObjectStore<T>)
+            getObjectStore(type, identifiableObjectStoreCache, identifiableObjectStores);
+    if (store == null) throw new UnsupportedOperationException("No store exists for type: " + type);
+    return store;
   }
 
+  @Nonnull
   @SuppressWarnings("unchecked")
   private <T extends DimensionalObject> GenericDimensionalObjectStore<T> getDimensionalObjectStore(
       @Nonnull Class<T> type) {
-    return (GenericDimensionalObjectStore<T>)
-        getObjectStore(type, dimensionalObjectStoreCache, dimensionalObjectStores);
+    GenericDimensionalObjectStore<T> store =
+        (GenericDimensionalObjectStore<T>)
+            getObjectStore(type, dimensionalObjectStoreCache, dimensionalObjectStores);
+    if (store == null) throw new UnsupportedOperationException("No store exists for type: " + type);
+    return store;
   }
 
   @SuppressWarnings("unchecked")
@@ -1073,14 +843,7 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
     Class<T> realType =
         HibernateProxy.class.isAssignableFrom(type) ? (Class<T>) type.getSuperclass() : type;
     return cache.computeIfAbsent(
-        realType,
-        key -> {
-          S store = stores.stream().filter(s -> s.getClazz() == key).findFirst().orElse(null);
-          if (store == null) {
-            log.debug("No IdentifiableObjectStore found for class: '{}'", realType);
-          }
-          return store;
-        });
+        realType, key -> stores.stream().filter(s -> s.getClazz() == key).findFirst().orElse(null));
   }
 
   /**

@@ -331,11 +331,13 @@ public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
   @Nonnull
   @Override
   public final T loadByUid(@Nonnull String uid) {
-    T object = getByUid(uid);
+    T object =
+        CurrentUserUtil.hasCurrentUser() && CurrentUserUtil.getCurrentUserDetails().isSuper()
+            ? getByUidNoAcl(uid)
+            : getByUid(uid);
 
-    if (object == null) {
+    if (object == null)
       throw new IllegalQueryException(ErrorCode.E1113, getClazz().getSimpleName(), uid);
-    }
 
     return object;
   }
