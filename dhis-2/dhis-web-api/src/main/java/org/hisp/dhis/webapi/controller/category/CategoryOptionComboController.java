@@ -190,7 +190,7 @@ public class CategoryOptionComboController
       @PathVariable UID uid,
       Map<String, String> rpParameters,
       UserDetails currentUser,
-      HttpServletRequest request)
+      @RequestBody JsonPatch patch)
       throws NotFoundException,
           ForbiddenException,
           ConflictException,
@@ -199,7 +199,6 @@ public class CategoryOptionComboController
     CategoryOptionCombo persisted = getEntity(uid);
     updatePermissionCheck(currentUser, persisted);
 
-    JsonPatch patch = jsonMapper.readValue(request.getInputStream(), JsonPatch.class);
     if (patch.getOperations().stream()
         .map(op -> op.getPath().getMatchingProperty())
         .anyMatch(
