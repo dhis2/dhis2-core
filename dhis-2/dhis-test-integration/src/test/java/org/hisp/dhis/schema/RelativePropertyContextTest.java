@@ -89,8 +89,7 @@ class RelativePropertyContextTest extends PostgresIntegrationTestBase {
   }
 
   private void assertPropertyDoesExist(Class<?> type, String path, Class<?> expectedType) {
-    RelativePropertyContext context =
-        new RelativePropertyContext(type, schemaService::getDynamicSchema);
+    RelativePropertyContext context = new RelativePropertyContext(type, schemaService::getSchema);
     // test "resolve"
     Property property = context.resolve(path);
     assertNotNull(property, path + " not found");
@@ -108,8 +107,7 @@ class RelativePropertyContextTest extends PostgresIntegrationTestBase {
   }
 
   private void assertPropertyDoesNotExist(Class<?> type, String path) {
-    RelativePropertyContext context =
-        new RelativePropertyContext(type, schemaService::getDynamicSchema);
+    RelativePropertyContext context = new RelativePropertyContext(type, schemaService::getSchema);
     assertNull(context.resolve(path));
     assertThrows(NoSuchElementException.class, () -> context.resolveMandatory(path));
   }
