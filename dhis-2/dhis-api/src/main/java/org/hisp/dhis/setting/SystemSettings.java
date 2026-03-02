@@ -860,4 +860,10 @@ public non-sealed interface SystemSettings extends Settings {
   default String getCustomColorMobile() {
     return asString("keyCustomColorMobile", "");
   }
+  /*
+   * @since 2.43
+   */
+  default Boolean getCustomTranslationsEnabled() {
+    return asBoolean("keyCustomTranslationsEnabled", false);
+  }
 }

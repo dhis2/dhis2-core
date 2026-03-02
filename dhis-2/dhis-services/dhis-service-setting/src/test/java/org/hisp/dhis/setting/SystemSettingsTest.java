@@ -102,14 +102,15 @@ class SystemSettingsTest {
   @Test
   void testKeysWithDefaults() {
     Set<String> keys = SystemSettings.keysWithDefaults();
-    assertEquals(148, keys.size());
-    assertTrue(keys.contains(("keyCustomColor")));
-    assertTrue(keys.contains(("keyCustomColorMobile")));
+    assertEquals(149, keys.size());
     // just check some at random
     assertTrue(keys.contains("syncSkipSyncForDataChangedBefore"));
     assertTrue(keys.contains("keyTrackerDashboardLayout"));
     assertTrue(keys.contains("experimentalAnalyticsSqlEngineEnabled"));
     assertTrue(keys.contains("notifierGistOverview"));
+    assertTrue(keys.contains("keyCustomTranslationsEnabled"));
+    assertTrue(keys.contains(("keyCustomColor")));
+    assertTrue(keys.contains(("keyCustomColorMobile")));
   }
 
   @Test

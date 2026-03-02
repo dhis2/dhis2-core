@@ -106,6 +106,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -164,26 +165,19 @@ public abstract class AbstractCrudController<
    * removed.
    */
   @Beta
-  @OpenApi.Param(JsonPatch.class)
   @ResponseBody
   @PatchMapping(path = "/{uid}", consumes = "application/json-patch+json")
   public WebMessage patchObject(
       @OpenApi.Param(UID.class) @PathVariable("uid") UID uid,
       @RequestParam Map<String, String> rpParameters,
       @CurrentUser UserDetails currentUser,
-      HttpServletRequest request)
-      throws ForbiddenException,
-          NotFoundException,
-          IOException,
-          JsonPatchException,
-          ConflictException {
+      @RequestBody JsonPatch patch)
+      throws ForbiddenException, NotFoundException, JsonPatchException, ConflictException {
     final T persistedObject = getEntity(uid);
 
     updatePermissionCheck(currentUser, persistedObject);
 
     manager.resetNonOwnerProperties(persistedObject);
-
-    JsonPatch patch = jsonMapper.readValue(request.getInputStream(), JsonPatch.class);
 
     final T patchedObject = doPatch(patch, persistedObject);
 
