@@ -153,7 +153,7 @@ class MapControllerTest extends H2ControllerIntegrationTestBase {
             POST(
                 "/maps/",
                 """
-                    {\"name\":\"My map\", 
+                    {\"name\":\"My map\",
                     \"mapViews\":[ {
                     \"eventCoordinateFieldFallback\": \"teigeometry\",
                     \"layer\": \"thematic1\",
@@ -176,7 +176,7 @@ class MapControllerTest extends H2ControllerIntegrationTestBase {
             POST(
                 "/maps/",
                 """
-                    {\"name\":\"My map\", 
+                    {\"name\":\"My map\",
                     \"mapViews\":[ {
                     \"eventCoordinateFieldFallback\": \"teigeometry-123456\",
                     \"layer\": \"thematic1\",
