@@ -108,6 +108,7 @@ class SystemSettingsTest {
     assertTrue(keys.contains("keyTrackerDashboardLayout"));
     assertTrue(keys.contains("experimentalAnalyticsSqlEngineEnabled"));
     assertTrue(keys.contains("notifierGistOverview"));
+    assertTrue(keys.contains("keyCustomTranslationsEnabled"));
   }
 
   @Test

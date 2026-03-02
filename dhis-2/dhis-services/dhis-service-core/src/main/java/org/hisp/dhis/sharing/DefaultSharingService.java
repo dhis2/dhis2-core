@@ -96,7 +96,7 @@ public class DefaultSharingService implements SharingService {
     // Ignore publicAccess if user is not allowed to make objects public
     // ---------------------------------------------------------------------
 
-    Schema schema = schemaService.getDynamicSchema(entityClass);
+    Schema schema = schemaService.getSchema(entityClass);
 
     if (aclService.canMakePublic(CurrentUserUtil.getCurrentUserDetails(), entity)) {
       entity.getSharing().setPublicAccess(sharing.getPublicAccess());

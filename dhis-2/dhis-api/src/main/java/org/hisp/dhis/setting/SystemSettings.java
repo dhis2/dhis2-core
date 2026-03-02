@@ -857,4 +857,11 @@ public non-sealed interface SystemSettings extends Settings {
   default int getDeviceEnrollmentIATTtlSeconds() {
     return asInt("deviceEnrollmentIATTtlSeconds", 60);
   }
+
+  /**
+   * @since 2.43
+   */
+  default Boolean getCustomTranslationsEnabled() {
+    return asBoolean("keyCustomTranslationsEnabled", false);
+  }
 }

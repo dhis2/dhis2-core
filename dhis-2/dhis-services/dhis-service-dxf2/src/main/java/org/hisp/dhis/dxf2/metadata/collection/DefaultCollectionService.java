@@ -127,7 +127,7 @@ public class DefaultCollectionService implements CollectionService {
       Property property,
       Collection<String> itemCodes,
       TypeReport report) {
-    Schema owningSchema = schemaService.getDynamicSchema(property.getItemKlass());
+    Schema owningSchema = schemaService.getSchema(property.getItemKlass());
     Property owningProperty = owningSchema.propertyByRole(property.getOwningRole());
 
     updateCollectionItems(
@@ -206,7 +206,7 @@ public class DefaultCollectionService implements CollectionService {
       Property property,
       Collection<String> itemCodes,
       TypeReport report) {
-    Schema owningSchema = schemaService.getDynamicSchema(property.getItemKlass());
+    Schema owningSchema = schemaService.getSchema(property.getItemKlass());
     Property owningProperty = owningSchema.propertyByRole(property.getOwningRole());
 
     updateCollectionItems(
@@ -258,7 +258,7 @@ public class DefaultCollectionService implements CollectionService {
 
   private Property validateUpdate(IdentifiableObject object, String propertyName, String message)
       throws ForbiddenException, NotFoundException, ConflictException {
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
 
     if (!aclService.canUpdate(CurrentUserUtil.getCurrentUserDetails(), object)) {
       throw new ForbiddenException("You don't have the proper permissions to update this object.");

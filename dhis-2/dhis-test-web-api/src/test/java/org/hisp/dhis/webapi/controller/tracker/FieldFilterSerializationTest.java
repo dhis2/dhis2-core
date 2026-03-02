@@ -102,7 +102,7 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
   @BeforeAll
   void setUp() {
     events = createEvents(2);
-    eventSchema = schemaService.getDynamicSchema(events.get(0).getClass());
+    eventSchema = schemaService.getSchema(events.get(0).getClass());
   }
 
   @ParameterizedTest
