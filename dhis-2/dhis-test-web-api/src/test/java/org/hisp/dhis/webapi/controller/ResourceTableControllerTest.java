@@ -31,11 +31,21 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
+import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -43,13 +53,26 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Jan Bernitt
  */
+@ContextConfiguration
 @Transactional
 class ResourceTableControllerTest extends PostgresControllerIntegrationTestBase {
+
+  @Autowired private AnalyticsTableGenerator analyticsTableGenerator;
+
+  @Configuration
+  static class TestConfig {
+    @Bean
+    @Primary
+    public AnalyticsTableGenerator analyticsTableGenerator() {
+      return mock(AnalyticsTableGenerator.class);
+    }
+  }
 
   @Test
   void testResourceTables() {
     JsonWebMessage msg = assertWebMessage(HttpStatus.OK, POST("/resourceTables"));
     assertStartsWith("Initiated RESOURCE_TABLE", msg.getMessage());
+    verify(analyticsTableGenerator, atLeastOnce()).generateResourceTables(any());
   }
 
   @Test
