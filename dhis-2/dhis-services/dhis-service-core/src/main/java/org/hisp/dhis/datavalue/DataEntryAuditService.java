@@ -99,6 +99,7 @@ class DataEntryAuditService {
     if (coc != null) attributes.put("categoryOptionCombo", coc.getValue());
     UID aoc = value.attributeOptionCombo();
     if (aoc != null) attributes.put("attributeOptionCombo", aoc.getValue());
+    attributes.put("followup", value.followUp());
     attributes.put("deleted", value.deleted());
     attributes.put("value", value.value());
     return attributes;
