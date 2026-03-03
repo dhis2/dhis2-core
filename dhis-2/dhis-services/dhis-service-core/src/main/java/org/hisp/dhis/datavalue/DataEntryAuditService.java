@@ -83,6 +83,7 @@ class DataEntryAuditService {
                 .createdAt(now)
                 .createdBy(username)
                 .attributes(attributes)
+                .data("{}")
                 .build());
       }
     }
