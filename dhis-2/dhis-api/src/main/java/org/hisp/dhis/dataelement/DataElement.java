@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -132,7 +132,10 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @JacksonXmlRootElement(localName = "dataElement", namespace = DxfNamespaces.DXF_2_0)
 public class DataElement extends BaseMetadataObject
-    implements DimensionalItemObject, NameableObject, MetadataObject, ValueTypedDimensionalItemObject {
+    implements DimensionalItemObject,
+        NameableObject,
+        MetadataObject,
+        ValueTypedDimensionalItemObject {
 
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE)
@@ -155,8 +158,7 @@ public class DataElement extends BaseMetadataObject
   @Column(name = "formname", length = 230)
   private String formName;
 
-  @Embedded
-  private TranslationProperty translations = new TranslationProperty();
+  @Embedded private TranslationProperty translations = new TranslationProperty();
 
   /** The style defines how the DataElement should be represented on clients */
   @Type(type = "jbObjectStyle")
@@ -234,9 +236,7 @@ public class DataElement extends BaseMetadataObject
   /** The option set for data values linked to this data element, can be null. */
   @AuditAttribute
   @ManyToOne
-  @JoinColumn(
-      name = "optionsetid",
-      foreignKey = @ForeignKey(name = "fk_dataelement_optionsetid"))
+  @JoinColumn(name = "optionsetid", foreignKey = @ForeignKey(name = "fk_dataelement_optionsetid"))
   private OptionSet optionSet;
 
   /** The option set for comments linked to this data element, can be null. */
@@ -850,7 +850,7 @@ public class DataElement extends BaseMetadataObject
   public OptionSet getCommentOptionSet() {
     return commentOptionSet;
   }
-  
+
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public ObjectStyle getStyle() {

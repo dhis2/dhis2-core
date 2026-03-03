@@ -93,8 +93,7 @@ public class CommonMergeHandler {
    * @param sources to be replaced
    * @param target to replace each source
    */
-  public <T extends IdentifiableObject> void handleRefsInCustomForms(
-      List<T> sources, T target) {
+  public <T extends IdentifiableObject> void handleRefsInCustomForms(List<T> sources, T target) {
     for (T source : sources) {
       List<DataEntryForm> forms =
           dataEntryFormService.getDataEntryFormsWithHtmlContaining(source.getUid());
