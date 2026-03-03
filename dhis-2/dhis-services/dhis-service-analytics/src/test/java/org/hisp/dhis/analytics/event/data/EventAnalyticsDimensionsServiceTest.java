@@ -188,10 +188,7 @@ class EventAnalyticsDimensionsServiceTest {
 
     // Then: categories are included
     List<String> categoryUids =
-        items.stream()
-            .filter(Category.class::isInstance)
-            .map(IdentifiableObject::getUid)
-            .toList();
+        items.stream().filter(Category.class::isInstance).map(IdentifiableObject::getUid).toList();
     assertTrue(categoryUids.containsAll(List.of("CatA", "CatB")));
 
     // And: only attribute COGS are included (DISAGGREGATION filtered out)
