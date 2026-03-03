@@ -54,11 +54,14 @@ drop index if exists in_trackerevent_deleted_assigneduserid; -- replaced by prog
 create index in_trackerevent_program_created
     on trackerevent (programid, created desc, eventid desc);
 
+-- support order=occurredAt:desc within a program
 create index in_trackerevent_program_occurreddate
     on trackerevent (programid, occurreddate desc, eventid desc);
 
-create index in_trackerevent_program_deleted_assigneduser
-    on trackerevent (programid, deleted, assigneduserid);
+-- support assigned user filtering within a program.
+-- assigneduserid is more selective than deleted, so it comes first.
+create index in_trackerevent_program_assigneduser_deleted
+    on trackerevent (programid, assigneduserid, deleted);
 
 -- 4. singleevent: the existing in_singleevent_programstageid_occurreddate
 -- (V2_43_50) covers order=occurredDate and stays as-is.
