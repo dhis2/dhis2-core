@@ -532,6 +532,29 @@ public class AggregateDataExchangeService {
     return exchange != null && exchange.getId() > 0;
   }
 
+  /**
+   * Returns true if all data items across all source requests of the given exchange are of allowed
+   * types.
+   *
+   * @param exchange the {@link AggregateDataExchange}.
+   * @return true if all data item types are allowed.
+   */
+  private boolean hasAllowedDxItemTypes(AggregateDataExchange exchange) {
+    return exchange.getSource().getRequests().stream()
+        .flatMap(
+            request -> {
+              IdScheme inputIdScheme = IdScheme.of(request.getInputIdScheme());
+              if (inputIdScheme == null) {
+                inputIdScheme = IdScheme.UID;
+              }
+              DimensionalObject dxDimension =
+                  toDimensionalObject(DATA_X_DIM_ID, request.getDx(), inputIdScheme);
+              return dxDimension.getItems().stream();
+            })
+        .map(DimensionalItemObject::getDimensionItemType)
+        .allMatch(AggregateDataExchange.ALLOWED_DX_ITEM_TYPES::contains);
+  }
+
   public static DataEntryGroup.Input toDataEntryGroup(Grid grid) {
 
     int dxInx = grid.getIndexOfHeader(DATA_X_DIM_ID);

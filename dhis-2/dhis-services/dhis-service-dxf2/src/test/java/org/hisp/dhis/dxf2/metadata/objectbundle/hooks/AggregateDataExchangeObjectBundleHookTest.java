@@ -160,7 +160,7 @@ class AggregateDataExchangeObjectBundleHookTest {
     when(dimensionService.getDataDimensionalItemObject(any(), eq("LrDpG50RAU9")))
         .thenReturn(reportingRate);
 
-    assertErrorCode(ErrorCode.E6306, objectBundleHook.validate(exchange, objectBundle));
+    assertErrorCode(ErrorCode.E6307, objectBundleHook.validate(exchange, objectBundle));
   }
 
   @Test
@@ -173,7 +173,7 @@ class AggregateDataExchangeObjectBundleHookTest {
     when(dimensionService.getDataDimensionalItemObject(any(), eq("LrDpG50RAU9")))
         .thenReturn(programDataElement);
 
-    assertErrorCode(ErrorCode.E6306, objectBundleHook.validate(exchange, objectBundle));
+    assertErrorCode(ErrorCode.E6307, objectBundleHook.validate(exchange, objectBundle));
   }
 
   @Test

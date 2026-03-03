@@ -130,7 +130,7 @@ public class AggregateDataExchangeObjectBundleHook
   private void validateSourceDxItemTypes(SourceRequest request, Consumer<ErrorReport> addReports) {
     IdScheme idScheme =
         request.getInputIdScheme() != null
-            ? IdScheme.from(request.getInputIdScheme())
+            ? IdScheme.of(request.getInputIdScheme())
             : IdScheme.UID;
 
     for (String item : request.getDx()) {
@@ -143,7 +143,7 @@ public class AggregateDataExchangeObjectBundleHook
         addReports.accept(
             new ErrorReport(
                 AggregateDataExchange.class,
-                ErrorCode.E6306,
+                ErrorCode.E6307,
                 dxObject.getDimensionItemType(),
                 AggregateDataExchange.ALLOWED_DX_ITEM_TYPES));
       }

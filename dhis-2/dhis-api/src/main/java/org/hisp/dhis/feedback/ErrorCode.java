@@ -467,6 +467,8 @@ public enum ErrorCode {
   E6305(
       "Aggregate data exchange target API must specify either access token or username and password"),
   E6306("Aggregate data exchange source using periods of different types: `{0}` ({1}) vs `{2}`"),
+  E6307(
+      "Aggregate data exchange source request contains data item with unsupported type: `{0}`, allowed types are: {1}"),
 
   /*Analytics table hook*/
   E6400("Analytics table hook `{0}` is a duplicate of `{1}`"),
