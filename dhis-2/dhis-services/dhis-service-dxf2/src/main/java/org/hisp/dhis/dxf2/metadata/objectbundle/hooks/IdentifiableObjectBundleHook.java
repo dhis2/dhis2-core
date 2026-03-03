@@ -69,8 +69,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
       identifiableObject.getSharing().setOwner(identifiableObject.getCreatedBy());
     }
 
-    Schema schema =
-        schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(identifiableObject));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(identifiableObject));
     handleAttributeValues(identifiableObject, schema);
     handleSkipSharing(identifiableObject, bundle);
     handleSkipTranslation(identifiableObject, bundle);
@@ -136,7 +135,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
 
     handleCreatedByProperty(object, persistedObject, bundle);
 
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
     handleAttributeValues(object, schema);
     handleSortOrder(object, bundle, schema);
   }

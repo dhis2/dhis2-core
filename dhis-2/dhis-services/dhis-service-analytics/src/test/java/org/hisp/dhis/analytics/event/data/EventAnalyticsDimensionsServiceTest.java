@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allSkippedValueTypeTEAs;
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeDataElements;
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeTEAs;
 import static org.hisp.dhis.analytics.common.DimensionServiceCommonTest.aggregateAllowedValueTypesPredicate;
@@ -96,6 +98,24 @@ class EventAnalyticsDimensionsServiceTest {
   }
 
   @Test
+  void testQueryDoesNotContainSkippedDimensions() {
+    List<BaseIdentifiableObject> analyticsDimensions =
+        eventAnalyticsDimensionsService
+            .getQueryDimensionsByProgramStageId(PROGRAM_UID, "anUid")
+            .stream()
+            .map(PrefixedDimension::getItem)
+            .toList();
+
+    when(program.getTrackedEntityAttributes()).thenReturn(allSkippedValueTypeTEAs());
+
+    assertTrue(
+        analyticsDimensions.stream()
+            .filter(TrackedEntityAttribute.class::isInstance)
+            .collect(toSet())
+            .isEmpty());
+  }
+
+  @Test
   void testQueryDoesntContainDisallowedValueTypes() {
     List<IdentifiableObject> analyticsDimensions =
         eventAnalyticsDimensionsService
@@ -111,7 +131,7 @@ class EventAnalyticsDimensionsServiceTest {
             .noneMatch(queryDisallowedValueTypesPredicate()));
     assertTrue(
         analyticsDimensions.stream()
-            .filter(b -> b instanceof TrackedEntityAttribute)
+            .filter(TrackedEntityAttribute.class::isInstance)
             .map(tea -> ((TrackedEntityAttribute) tea).getValueType())
             .noneMatch(queryDisallowedValueTypesPredicate()));
   }
@@ -125,12 +145,12 @@ class EventAnalyticsDimensionsServiceTest {
 
     assertTrue(
         analyticsDimensions.stream()
-            .filter(b -> b instanceof DataElement)
+            .filter(DataElement.class::isInstance)
             .map(de -> ((DataElement) de).getValueType())
             .allMatch(aggregateAllowedValueTypesPredicate()));
     assertTrue(
         analyticsDimensions.stream()
-            .filter(b -> b instanceof TrackedEntityAttribute)
+            .filter(TrackedEntityAttribute.class::isInstance)
             .map(tea -> ((TrackedEntityAttribute) tea).getValueType())
             .allMatch(aggregateAllowedValueTypesPredicate()));
   }
@@ -168,13 +188,16 @@ class EventAnalyticsDimensionsServiceTest {
 
     // Then: categories are included
     List<String> categoryUids =
-        items.stream().filter(i -> i instanceof Category).map(IdentifiableObject::getUid).toList();
+        items.stream()
+            .filter(Category.class::isInstance)
+            .map(IdentifiableObject::getUid)
+            .toList();
     assertTrue(categoryUids.containsAll(List.of("CatA", "CatB")));
 
     // And: only attribute COGS are included (DISAGGREGATION filtered out)
     List<String> cogsUids =
         items.stream()
-            .filter(i -> i instanceof CategoryOptionGroupSet)
+            .filter(CategoryOptionGroupSet.class::isInstance)
             .map(IdentifiableObject::getUid)
             .toList();
     assertTrue(cogsUids.contains("COGS_ATTR"));

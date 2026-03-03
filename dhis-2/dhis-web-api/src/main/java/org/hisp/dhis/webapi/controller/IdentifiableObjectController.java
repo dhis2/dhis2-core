@@ -37,6 +37,7 @@ import java.util.Optional;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.query.GetObjectListParams;
@@ -59,8 +60,9 @@ public class IdentifiableObjectController
   @Nonnull
   @Override
   @SuppressWarnings("unchecked")
-  public IdentifiableObject getEntity(String uid) throws NotFoundException {
-    Optional<IdentifiableObject> object = (Optional<IdentifiableObject>) manager.find(uid);
+  public IdentifiableObject getEntity(@Nonnull UID uid) throws NotFoundException {
+    Optional<IdentifiableObject> object =
+        (Optional<IdentifiableObject>) manager.find(uid.getValue());
     if (object.isEmpty()) {
       throw new NotFoundException(format("No identifiable object with id `%s` exists", uid));
     }
@@ -75,7 +77,7 @@ public class IdentifiableObjectController
 
   @Override
   public WebMessage putJsonObject(
-      @PathVariable("uid") String pvUid,
+      @PathVariable("uid") UID uid,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
       throws HttpRequestMethodNotSupportedException {
@@ -84,7 +86,7 @@ public class IdentifiableObjectController
 
   @Override
   public WebMessage deleteObject(
-      @PathVariable("uid") String pvUid,
+      @PathVariable("uid") UID uid,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)

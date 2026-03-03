@@ -780,7 +780,7 @@ public class DefaultCascadeSharingService implements CascadeSharingService {
    * @return plurals name of the object schema.
    */
   private String getTypeReportKey(Object object) {
-    return schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object)).getPlural();
+    return schemaService.getSchema(HibernateProxyUtils.getRealClass(object)).getPlural();
   }
 
   /**
