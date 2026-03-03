@@ -10,13 +10,13 @@ drop index if exists in_trackedentityinstance_deleted;
 drop index if exists in_programinstance_programid;
 drop index if exists in_programinstance_deleted;
 
--- trackedentity: leading column lets PG jump to the right type partition when
+-- 1. trackedentity: leading column lets PG jump to the right type partition when
 -- data is unevenly distributed across tracked entity types.
 drop index if exists in_trackedentity_type_created;
 create index in_trackedentity_type_created
     on trackedentity (trackedentitytypeid, created desc, trackedentityid desc);
 
--- enrollment: leading column lets PG jump to the right program partition when
+-- 2. enrollment: leading column lets PG jump to the right program partition when
 -- data is unevenly distributed across programs.
 drop index if exists in_enrollment_program_created;
 create index in_enrollment_program_created
@@ -25,13 +25,42 @@ drop index if exists in_enrollment_program_enrollmentdate;
 create index in_enrollment_program_enrollmentdate
     on enrollment (programid, enrollmentdate desc, enrollmentid desc);
 
--- trackerevent: the query filters ev.programstageid in (...) with the
--- program's stages, so programstageid works as leading column.
-drop index if exists in_trackerevent_programstageid_created;
-create index in_trackerevent_programstageid_created
-    on trackerevent (programstageid, created desc, eventid desc);
+-- 3. trackerevent: Denormalize programid to eliminate the join to enrollment
+-- for program context. This fixes the "Join Trap" for program-scoped queries.
 
--- singleevent: the existing in_singleevent_programstageid_occurreddate
+-- add programid column if not exists
+alter table trackerevent add column if not exists programid bigint;
+
+-- idempotent backfill: join to programstage (metadata) is faster than enrollment
+update trackerevent ev
+set programid = ps.programid
+from programstage ps
+where ev.programstageid = ps.programstageid
+  and ev.programid is null;
+
+-- add FK and NOT NULL constraint
+alter table trackerevent alter column programid set not null;
+alter table trackerevent
+    add constraint fk_trackerevent_programid foreign key (programid)
+    references program (programid);
+
+-- drop unused/redundant event indices
+drop index if exists in_trackerevent_status_occurreddate; -- 0 scans
+drop index if exists in_trackerevent_programstageid_created; -- replaced by program-scoped index
+drop index if exists in_trackerevent_occurreddate; -- replaced by program-scoped index
+drop index if exists in_trackerevent_deleted_assigneduserid; -- replaced by program-scoped index
+
+-- add new composite indices with programid prefix
+create index in_trackerevent_program_created
+    on trackerevent (programid, created desc, eventid desc);
+
+create index in_trackerevent_program_occurreddate
+    on trackerevent (programid, occurreddate desc, eventid desc);
+
+create index in_trackerevent_program_deleted_assigneduser
+    on trackerevent (programid, deleted, assigneduserid);
+
+-- 4. singleevent: the existing in_singleevent_programstageid_occurreddate
 -- (V2_43_50) covers order=occurredDate and stays as-is.
 drop index if exists in_singleevent_programstageid_created;
 create index in_singleevent_programstageid_created

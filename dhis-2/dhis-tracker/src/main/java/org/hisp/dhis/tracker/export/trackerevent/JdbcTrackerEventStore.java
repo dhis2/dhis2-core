@@ -623,7 +623,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       SqlHelper hlp) {
     if (params.hasEnrolledInTrackerProgram()) {
       sqlParams.addValue("programid", params.getEnrolledInTrackerProgram().getId());
-      sql.append(hlp.whereAnd()).append(" en.programid = :programid ");
+      sql.append(hlp.whereAnd()).append(" ev.programid = :programid ");
     } else {
       addProgramConditions(sql, sqlParams, params, hlp);
     }
@@ -674,7 +674,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           params.getEnrolledInTrackerProgram(),
           params.getQuerySearchScope(),
           "ou",
-          hasTrackedEntityJoin ? "te" : "en",
+          hasTrackedEntityJoin ? "te" : "ev",
           hlp::whereAnd);
     } else {
       buildOwnershipClause(sql, sqlParams, params.getOrgUnitMode(), "p", "ou", "te", hlp::whereAnd);
@@ -790,7 +790,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   private void addJoinOnProgramOwner(StringBuilder sql) {
     sql.append(
         " inner join trackedentityprogramowner po"
-            + " on po.trackedentityid = en.trackedentityid and po.programid = en.programid ");
+            + " on po.trackedentityid = en.trackedentityid and po.programid = ev.programid ");
   }
 
   private void addJoinOnOwnerOrgUnit(StringBuilder sql) {
@@ -954,14 +954,14 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       SqlHelper hlp) {
     if (params.hasEnrolledInTrackerProgram()) {
       sqlParams.addValue("programid", params.getEnrolledInTrackerProgram().getId());
-      sql.append(hlp.whereAnd()).append(" en.programid = :programid ");
+      sql.append(hlp.whereAnd()).append(" ev.programid = :programid ");
     } else {
       sqlParams.addValue(
           "programid",
           params.getAccessibleTrackerPrograms().isEmpty()
               ? null
               : getIdentifiers(params.getAccessibleTrackerPrograms()));
-      sql.append(hlp.whereAnd()).append(" p.programid in (").append(":programid").append(") ");
+      sql.append(hlp.whereAnd()).append(" ev.programid in (").append(":programid").append(") ");
     }
   }
 

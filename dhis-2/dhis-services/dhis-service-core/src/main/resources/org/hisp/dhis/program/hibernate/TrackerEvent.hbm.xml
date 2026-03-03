@@ -31,6 +31,9 @@
     <many-to-one name="enrollment" class="org.hisp.dhis.tracker.model.Enrollment"
                  column="enrollmentid" not-null="true" foreign-key="fk_trackerevent_enrollmentid"/>
 
+    <many-to-one name="program" class="org.hisp.dhis.program.Program"
+                 column="programid" not-null="true" foreign-key="fk_trackerevent_programid"/>
+
     <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
       column="programstageid" not-null="true" foreign-key="fk_trackerevent_programstageid" />
 
