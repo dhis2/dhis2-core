@@ -129,9 +129,7 @@ public class AggregateDataExchangeObjectBundleHook
    */
   private void validateSourceDxItemTypes(SourceRequest request, Consumer<ErrorReport> addReports) {
     IdScheme idScheme =
-        request.getInputIdScheme() != null
-            ? IdScheme.of(request.getInputIdScheme())
-            : IdScheme.UID;
+        request.getInputIdScheme() != null ? IdScheme.of(request.getInputIdScheme()) : IdScheme.UID;
 
     for (String item : request.getDx()) {
       DimensionalItemObject dxObject =
