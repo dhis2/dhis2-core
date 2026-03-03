@@ -99,7 +99,7 @@ class EventAnalyticsDimensionsServiceTest {
 
   @Test
   void testQueryDoesNotContainSkippedDimensions() {
-    List<BaseIdentifiableObject> analyticsDimensions =
+    List<IdentifiableObject> analyticsDimensions =
         eventAnalyticsDimensionsService
             .getQueryDimensionsByProgramStageId(PROGRAM_UID, "anUid")
             .stream()
