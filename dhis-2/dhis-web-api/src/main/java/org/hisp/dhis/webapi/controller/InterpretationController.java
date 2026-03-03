@@ -39,6 +39,7 @@ import java.util.Iterator;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -303,12 +304,12 @@ public class InterpretationController
   @Override
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public WebMessage deleteObject(
-      @PathVariable String uid,
+      @PathVariable UID uid,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
       throws ForbiddenException {
-    Interpretation interpretation = interpretationService.getInterpretation(uid);
+    Interpretation interpretation = interpretationService.getInterpretation(uid.getValue());
 
     if (interpretation == null) {
       return notFound("Interpretation does not exist: " + uid);

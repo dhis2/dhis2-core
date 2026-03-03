@@ -84,7 +84,7 @@ class DefaultQueryPlannerTest {
     when(schema.hasPersistedProperty("id")).thenReturn(true);
 
     PropertyPath displayNamePath = new PropertyPath(displayNameProperty, true);
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(schema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(schema);
     when(schemaService.getPropertyPath(DataElement.class, "displayName"))
         .thenReturn(displayNamePath);
 
@@ -115,7 +115,7 @@ class DefaultQueryPlannerTest {
     when(schema.hasPersistedProperty("id")).thenReturn(true);
 
     PropertyPath displayDescriptionPath = new PropertyPath(displayDescriptionProperty, true);
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(schema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(schema);
     when(schemaService.getPropertyPath(DataElement.class, "displayDescription"))
         .thenReturn(displayDescriptionPath);
 
@@ -142,7 +142,7 @@ class DefaultQueryPlannerTest {
     when(schema.hasPersistedProperty("id")).thenReturn(true);
 
     PropertyPath displayShortNamePath = new PropertyPath(displayShortNameProperty, true);
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(schema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(schema);
     when(schemaService.getPropertyPath(DataElement.class, "displayShortName"))
         .thenReturn(displayShortNamePath);
 
@@ -168,7 +168,7 @@ class DefaultQueryPlannerTest {
     when(schema.hasPersistedProperty("name")).thenReturn(true);
     when(schema.hasPersistedProperty("id")).thenReturn(true);
 
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(schema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(schema);
 
     // When: Query plan is created
     QueryPlan<DataElement> plan = queryPlanner.planQuery(query);
@@ -202,7 +202,7 @@ class DefaultQueryPlannerTest {
     PropertyPath displayNamePath = new PropertyPath(displayNameProperty, true);
     PropertyPath customPropertyPath = new PropertyPath(customProperty, false);
 
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(schema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(schema);
     when(schemaService.getPropertyPath(DataElement.class, "displayName"))
         .thenReturn(displayNamePath);
     when(schemaService.getPropertyPath(DataElement.class, "customProperty"))
@@ -231,7 +231,7 @@ class DefaultQueryPlannerTest {
     when(schema.hasPersistedProperty("id")).thenReturn(true);
 
     PropertyPath nonPersistedPath = new PropertyPath(nonPersistedProperty, false);
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(schema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(schema);
     when(schemaService.getPropertyPath(DataElement.class, "nonPersistedProperty"))
         .thenReturn(nonPersistedPath);
 
@@ -276,7 +276,7 @@ class DefaultQueryPlannerTest {
     when(parentSchema.getProperty("id")).thenReturn(idProperty);
     when(parentSchema.getProperty("name")).thenReturn(nameProperty);
 
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(dataElementSchema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(dataElementSchema);
 
     // PropertyPath for "parent.id"
     PropertyPath parentIdPath = new PropertyPath(idProperty, true, new String[] {"parent"});
@@ -324,7 +324,7 @@ class DefaultQueryPlannerTest {
     // Mock id property
     Property idProperty = mockSimplePersistedProperty("id");
 
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(dataElementSchema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(dataElementSchema);
 
     // PropertyPath for "parent.id"
     PropertyPath parentIdPath = new PropertyPath(idProperty, true, new String[] {"parent"});
@@ -370,7 +370,7 @@ class DefaultQueryPlannerTest {
 
     Property idProperty = mockSimplePersistedProperty("id");
 
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(dataElementSchema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(dataElementSchema);
 
     // PropertyPath for "parent.parent.id"
     PropertyPath deepPath = new PropertyPath(idProperty, true, new String[] {"parent", "parent"});
@@ -404,7 +404,7 @@ class DefaultQueryPlannerTest {
 
     Property idProperty = mockSimplePersistedProperty("id");
 
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(dataElementSchema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(dataElementSchema);
 
     // PropertyPath for collection path - marked as collection
     PropertyPath collectionPath =
@@ -442,7 +442,7 @@ class DefaultQueryPlannerTest {
     Property parentProperty = mockManyToOneRelationshipProperty("parent", DataElement.class);
     when(dataElementSchema.getProperty("parent")).thenReturn(parentProperty);
 
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(dataElementSchema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(dataElementSchema);
 
     // PropertyPath for "id" (no alias)
     PropertyPath simpleIdPath = new PropertyPath(idProperty, true);
@@ -487,7 +487,7 @@ class DefaultQueryPlannerTest {
     Property createdByProperty = mockManyToOneRelationshipProperty("createdBy", Object.class);
     when(dataElementSchema.getProperty("createdBy")).thenReturn(createdByProperty);
 
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(dataElementSchema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(dataElementSchema);
 
     // PropertyPath for "id" (no alias)
     PropertyPath simpleIdPath = new PropertyPath(idProperty, true);

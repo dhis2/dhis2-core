@@ -32,6 +32,7 @@ package org.hisp.dhis.test.platform;
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gatling.javaapi.core.*;
 import io.gatling.javaapi.http.*;
@@ -60,6 +61,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *   <li><b>GET</b> — fetches a single pre-created user by UID
  *   <li><b>PUT</b> — full-replace of a pre-created user
  *   <li><b>PATCH</b> — partial update via RFC 6902 JSON Patch on a pre-created user
+ *   <li><b>PATCH userGroups</b> — updates group assignment via the user-side PATCH path
  *   <li><b>DELETE</b> — deletes pre-created users (separate pool, timing is clean)
  * </ol>
  *
@@ -100,6 +102,7 @@ public class UsersPerformanceTest extends Simulation {
    */
   private static final Properties CONFIG = loadConfig();
 
+  // Consider to extract to a helper function if other tests want to follow this pattern
   private static Properties loadConfig() {
     String path = System.getProperty("configFile");
     Properties props = new Properties();
@@ -138,6 +141,15 @@ public class UsersPerformanceTest extends Simulation {
   private static final int ITERATIONS = Integer.parseInt(prop("iterations", "3"));
   private static final String MODE = prop("mode", "parallel");
 
+  // Request names — used in both scenario definitions and assertions
+  private static final String POST_REQUEST = "POST User - create";
+  private static final String GET_REQUEST = "GET User - by uid";
+  private static final String PUT_REQUEST = "PUT User - full update";
+  private static final String PATCH_REQUEST = "PATCH User - partial update";
+  private static final String PATCH_GROUPS_REQUEST = "PATCH User - replace userGroups";
+  private static final String DELETE_REQUEST = "DELETE User - delete";
+  private static final int PATCH_GROUP_COUNT = Integer.parseInt(prop("patchGroupCount", "7"));
+
   // Timestamp-based offset so each run generates unique usernames
   private static final int RUN_OFFSET = (int) (System.currentTimeMillis() % 10_000_000);
   private static final AtomicInteger POST_COUNTER = new AtomicInteger(RUN_OFFSET);
@@ -149,9 +161,12 @@ public class UsersPerformanceTest extends Simulation {
    */
   private static final List<String[]> READ_WRITE_USERS = new ArrayList<>();
 
+  private static final List<String> PATCH_GROUP_UIDS = new ArrayList<>();
+
   private static final AtomicInteger GET_INDEX = new AtomicInteger(0);
   private static final AtomicInteger PUT_INDEX = new AtomicInteger(0);
   private static final AtomicInteger PATCH_INDEX = new AtomicInteger(0);
+  private static final AtomicInteger PATCH_GROUPS_INDEX = new AtomicInteger(0);
 
   /**
    * Pre-created users for the DELETE scenario. Consumed one-at-a-time; sized generously so the
@@ -159,32 +174,69 @@ public class UsersPerformanceTest extends Simulation {
    */
   private static final BlockingQueue<String> DELETE_UID_QUEUE = new LinkedBlockingQueue<>();
 
+  private static String patchUserGroupsBody(int startIndex) {
+    int count = Math.min(PATCH_GROUP_COUNT, PATCH_GROUP_UIDS.size());
+    StringBuilder groups = new StringBuilder("[");
+    for (int i = 0; i < count; i++) {
+      if (i > 0) {
+        groups.append(',');
+      }
+      String uid = PATCH_GROUP_UIDS.get((startIndex + i) % PATCH_GROUP_UIDS.size());
+      groups.append("{\"id\":\"").append(uid).append("\"}");
+    }
+    groups.append(']');
+
+    return """
+        [{"op":"add","path":"/userGroups","value":%s},{"op":"add","path":"/attributeValues","value":[]}]\
+        """
+        .formatted(groups);
+  }
+
+  private static void fetchUserGroupUids(
+      HttpClient client, ObjectMapper mapper, String auth, int needed) {
+    try {
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .uri(URI.create(BASE_URL + "/api/userGroups?fields=id&pageSize=" + needed))
+              .header("Authorization", "Basic " + auth)
+              .header("Accept", "application/json")
+              .GET()
+              .build();
+      HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+      if (response.statusCode() != 200) {
+        System.err.println("Fetching user groups failed (HTTP " + response.statusCode() + ")");
+        return;
+      }
+
+      JsonNode groups = mapper.readTree(response.body()).path("userGroups");
+      for (JsonNode group : groups) {
+        String uid = group.path("id").asText();
+        if (!uid.isBlank()) {
+          PATCH_GROUP_UIDS.add(uid);
+        }
+      }
+    } catch (Exception e) {
+      System.err.println("Fetching user groups failed: " + e.getMessage());
+    }
+  }
+
   /** Builds a minimal valid user JSON body for POST/PUT. Pass {@code null} for id on creation. */
   private static String userBody(String id, String username, String firstName) {
-    String idField = id != null ? "\"id\":\"" + id + "\"," : "";
+    String idField = id != null ? "\"id\":\"%s\",".formatted(id) : "";
     String groupsField =
-        USER_GROUP_UID.isBlank() ? "" : ",\"userGroups\":[{\"id\":\"" + USER_GROUP_UID + "\"}]";
-    return "{"
-        + idField
-        + "\"username\":\""
-        + username
-        + "\","
-        + "\"firstName\":\""
-        + firstName
-        + "\","
-        + "\"surname\":\"Test\","
-        + "\"password\":\"Test1234@\","
-        + "\"userRoles\":[{\"id\":\""
-        + USER_ROLE_UID
-        + "\"}],"
-        + "\"organisationUnits\":[{\"id\":\""
-        + ORG_UNIT_UID
-        + "\"}],"
-        + "\"dataViewOrganisationUnits\":[{\"id\":\""
-        + ORG_UNIT_UID
-        + "\"}]"
-        + groupsField
-        + "}";
+        USER_GROUP_UID.isBlank()
+            ? ""
+            : """
+                ,"userGroups":[{"id":"%s"}]\
+                """
+                .formatted(USER_GROUP_UID);
+    return """
+        {%s"username":"%s","firstName":"%s","surname":"Test","password":"Test1234@",\
+        "userRoles":[{"id":"%s"}],"organisationUnits":[{"id":"%s"}],\
+        "dataViewOrganisationUnits":[{"id":"%s"}]%s}\
+        """
+        .formatted(
+            idField, username, firstName, USER_ROLE_UID, ORG_UNIT_UID, ORG_UNIT_UID, groupsField);
   }
 
   /**
@@ -230,13 +282,8 @@ public class UsersPerformanceTest extends Simulation {
     int delNeeded = ITERATIONS * 3 + 5;
     String groupLabel = USER_GROUP_UID.isBlank() ? "" : " (group: " + USER_GROUP_UID + ")";
     System.out.println(
-        "Pre-creating "
-            + rwNeeded
-            + " read/write users and "
-            + delNeeded
-            + " delete users"
-            + groupLabel
-            + "...");
+        "Pre-creating %d read/write users and %d delete users%s..."
+            .formatted(rwNeeded, delNeeded, groupLabel));
 
     String auth =
         Base64.getEncoder()
@@ -258,16 +305,23 @@ public class UsersPerformanceTest extends Simulation {
       if (uid != null) DELETE_UID_QUEUE.offer(uid);
     }
 
+    fetchUserGroupUids(client, mapper, auth, rwNeeded);
+    if (PATCH_GROUP_UIDS.isEmpty() && !USER_GROUP_UID.isBlank()) {
+      PATCH_GROUP_UIDS.add(USER_GROUP_UID);
+    }
+    if (PATCH_GROUP_UIDS.isEmpty()) {
+      throw new IllegalStateException(
+          "Could not fetch any user groups for PATCH /api/users scenario");
+    }
+
     System.out.println(
-        "Pre-created "
-            + READ_WRITE_USERS.size()
-            + "/"
-            + rwNeeded
-            + " read/write users, "
-            + DELETE_UID_QUEUE.size()
-            + "/"
-            + delNeeded
-            + " delete users.");
+        "Pre-created %d/%d read/write users, %d/%d delete users, loaded %d user groups."
+            .formatted(
+                READ_WRITE_USERS.size(),
+                rwNeeded,
+                DELETE_UID_QUEUE.size(),
+                delNeeded,
+                PATCH_GROUP_UIDS.size()));
   }
 
   public UsersPerformanceTest() {
@@ -279,7 +333,7 @@ public class UsersPerformanceTest extends Simulation {
 
     // ── Scenario: POST /api/users ────────────────────────────────────────────
     ScenarioBuilder postScenario =
-        scenario("POST User - create")
+        scenario(POST_REQUEST)
             .exec(flushCookieJar())
             .repeat(ITERATIONS)
             .on(
@@ -289,7 +343,7 @@ public class UsersPerformanceTest extends Simulation {
                       return session.set("postBody", userBody(null, username, "Post"));
                     })
                     .exec(
-                        http("POST User - create")
+                        http(POST_REQUEST)
                             .post("/api/users")
                             .header("Content-Type", "application/json")
                             .body(StringBody("#{postBody}"))
@@ -297,7 +351,7 @@ public class UsersPerformanceTest extends Simulation {
 
     // ── Scenario: GET /api/users/{uid} ──────────────────────────────────────
     ScenarioBuilder getScenario =
-        scenario("GET User - by uid")
+        scenario(GET_REQUEST)
             .exec(flushCookieJar())
             .repeat(ITERATIONS)
             .on(
@@ -307,14 +361,11 @@ public class UsersPerformanceTest extends Simulation {
                               GET_INDEX.getAndIncrement() % READ_WRITE_USERS.size());
                       return session.set("getUid", user[0]);
                     })
-                    .exec(
-                        http("GET User - by uid")
-                            .get("/api/users/#{getUid}")
-                            .check(status().is(200))));
+                    .exec(http(GET_REQUEST).get("/api/users/#{getUid}").check(status().is(200))));
 
     // ── Scenario: PUT /api/users/{uid} ──────────────────────────────────────
     ScenarioBuilder putScenario =
-        scenario("PUT User - full update")
+        scenario(PUT_REQUEST)
             .exec(flushCookieJar())
             .repeat(ITERATIONS)
             .on(
@@ -327,7 +378,7 @@ public class UsersPerformanceTest extends Simulation {
                           .set("putBody", userBody(user[0], user[1], "PutUpdated"));
                     })
                     .exec(
-                        http("PUT User - full update")
+                        http(PUT_REQUEST)
                             .put("/api/users/#{putUid}")
                             .header("Content-Type", "application/json")
                             .body(StringBody("#{putBody}"))
@@ -335,7 +386,7 @@ public class UsersPerformanceTest extends Simulation {
 
     // ── Scenario: PATCH /api/users/{uid} ────────────────────────────────────
     ScenarioBuilder patchScenario =
-        scenario("PATCH User - partial update")
+        scenario(PATCH_REQUEST)
             .exec(flushCookieJar())
             .repeat(ITERATIONS)
             .on(
@@ -346,18 +397,40 @@ public class UsersPerformanceTest extends Simulation {
                       return session.set("patchUid", user[0]);
                     })
                     .exec(
-                        http("PATCH User - partial update")
+                        http(PATCH_REQUEST)
                             .patch("/api/users/#{patchUid}")
                             .header("Content-Type", "application/json-patch+json")
                             .body(
                                 StringBody(
-                                    "[{\"op\":\"replace\",\"path\":\"/firstName\",\"value\":\"PerfPatched\"}]"))
+                                    """
+                                    [{"op":"replace","path":"/firstName","value":"PerfPatched"}]\
+                                    """))
+                            .check(status().is(200))));
+
+    // ── Scenario: PATCH /api/users/{uid} userGroups ────────────────────────
+    ScenarioBuilder patchGroupsScenario =
+        scenario(PATCH_GROUPS_REQUEST)
+            .exec(flushCookieJar())
+            .repeat(ITERATIONS)
+            .on(
+                exec(session -> {
+                      int index = PATCH_GROUPS_INDEX.getAndIncrement();
+                      String[] user = READ_WRITE_USERS.get(index % READ_WRITE_USERS.size());
+                      return session
+                          .set("patchUserUid", user[0])
+                          .set("patchGroupsBody", patchUserGroupsBody(index));
+                    })
+                    .exec(
+                        http(PATCH_GROUPS_REQUEST)
+                            .patch("/api/users/#{patchUserUid}")
+                            .header("Content-Type", "application/json-patch+json")
+                            .body(StringBody("#{patchGroupsBody}"))
                             .check(status().is(200))));
 
     // ── Scenario: DELETE /api/users/{uid} ───────────────────────────────────
     // Users are pre-created in before(), so this scenario measures only DELETE time.
     ScenarioBuilder deleteScenario =
-        scenario("DELETE User - delete")
+        scenario(DELETE_REQUEST)
             .exec(flushCookieJar())
             .repeat(ITERATIONS)
             .on(
@@ -372,7 +445,7 @@ public class UsersPerformanceTest extends Simulation {
                     })
                     .exitHereIfFailed()
                     .exec(
-                        http("DELETE User - delete")
+                        http(DELETE_REQUEST)
                             .delete("/api/users/#{deleteUid}")
                             .check(status().is(200))));
 
@@ -382,19 +455,45 @@ public class UsersPerformanceTest extends Simulation {
     PopulationBuilder getPopulation = getScenario.injectClosed(singleUser);
     PopulationBuilder putPopulation = putScenario.injectClosed(singleUser);
     PopulationBuilder patchPopulation = patchScenario.injectClosed(singleUser);
+    PopulationBuilder patchGroupsPopulation = patchGroupsScenario.injectClosed(singleUser);
     PopulationBuilder deletePopulation = deleteScenario.injectClosed(singleUser);
 
-    if ("sequential".equals(MODE)) {
-      setUp(
-              postPopulation
-                  .andThen(getPopulation)
-                  .andThen(putPopulation)
-                  .andThen(patchPopulation)
-                  .andThen(deletePopulation))
-          .protocols(httpProtocol);
-    } else {
-      setUp(postPopulation, getPopulation, putPopulation, patchPopulation, deletePopulation)
-          .protocols(httpProtocol);
-    }
+    var sim =
+        "sequential".equals(MODE)
+            ? setUp(
+                postPopulation
+                    .andThen(getPopulation)
+                    .andThen(putPopulation)
+                    .andThen(patchPopulation)
+                    .andThen(patchGroupsPopulation)
+                    .andThen(deletePopulation))
+            : setUp(
+                postPopulation,
+                getPopulation,
+                putPopulation,
+                patchPopulation,
+                patchGroupsPopulation,
+                deletePopulation);
+
+    sim.protocols(httpProtocol)
+        .assertions(
+            details(POST_REQUEST).responseTime().percentile(95).lt(450),
+            details(POST_REQUEST).responseTime().max().lt(600),
+            details(POST_REQUEST).successfulRequests().percent().is(100D),
+            details(GET_REQUEST).responseTime().percentile(95).lt(350),
+            details(GET_REQUEST).responseTime().max().lt(500),
+            details(GET_REQUEST).successfulRequests().percent().is(100D),
+            details(PUT_REQUEST).responseTime().percentile(95).lt(600),
+            details(PUT_REQUEST).responseTime().max().lt(800),
+            details(PUT_REQUEST).successfulRequests().percent().is(100D),
+            details(PATCH_REQUEST).responseTime().percentile(95).lt(550),
+            details(PATCH_REQUEST).responseTime().max().lt(750),
+            details(PATCH_REQUEST).successfulRequests().percent().is(100D),
+            details(PATCH_GROUPS_REQUEST).responseTime().percentile(95).lt(700),
+            details(PATCH_GROUPS_REQUEST).responseTime().max().lt(900),
+            details(PATCH_GROUPS_REQUEST).successfulRequests().percent().is(100D),
+            details(DELETE_REQUEST).responseTime().percentile(95).lt(1800),
+            details(DELETE_REQUEST).responseTime().max().lt(2500),
+            details(DELETE_REQUEST).successfulRequests().percent().is(100D));
   }
 }
