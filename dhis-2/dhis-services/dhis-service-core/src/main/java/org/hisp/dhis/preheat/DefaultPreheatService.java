@@ -206,8 +206,10 @@ public class DefaultPreheatService implements PreheatService {
     }
 
     for (Class<? extends IdentifiableObject> klass : klasses) {
+      // Pass the objects being imported to avoid loading ALL records for uniqueness checking
+      List<IdentifiableObject> objectsBeingImported = params.getObjects().get(klass);
       List<? extends IdentifiableObject> objects =
-          schemaToDataFetcher.fetch(schemaService.getDynamicSchema(klass));
+          schemaToDataFetcher.fetch(schemaService.getSchema(klass), objectsBeingImported);
       if (!objects.isEmpty()) {
         uniqueCollectionMap.put(klass, new ArrayList<>(objects));
       }
@@ -267,7 +269,7 @@ public class DefaultPreheatService implements PreheatService {
             (klass, list) ->
                 list.forEach(
                     object -> {
-                      Schema schema = schemaService.getDynamicSchema(klass);
+                      Schema schema = schemaService.getSchema(klass);
 
                       if (schema == null || !schema.isShareable()) {
                         return;
@@ -463,7 +465,7 @@ public class DefaultPreheatService implements PreheatService {
     collectScanTargets(targets);
 
     for (Class<?> klass : targets.keySet()) {
-      Schema schema = schemaService.getDynamicSchema(klass);
+      Schema schema = schemaService.getSchema(klass);
 
       List<Property> referenceProperties =
           schema.getProperties().stream()
@@ -671,7 +673,7 @@ public class DefaultPreheatService implements PreheatService {
     collectScanTargets(targets);
 
     for (Class<?> objectClass : targets.keySet()) {
-      Schema schema = schemaService.getDynamicSchema(objectClass);
+      Schema schema = schemaService.getSchema(objectClass);
 
       if (!schema.isIdentifiableObject()) {
         continue;
@@ -746,7 +748,7 @@ public class DefaultPreheatService implements PreheatService {
       Class<?> klass = entry.getKey();
       List<?> objects = entry.getValue();
 
-      Schema schema = schemaService.getDynamicSchema(klass);
+      Schema schema = schemaService.getSchema(klass);
       Map<String, Property> properties = schema.getEmbeddedObjectProperties();
 
       if (properties.isEmpty()) {
@@ -802,7 +804,7 @@ public class DefaultPreheatService implements PreheatService {
     }
 
     for (Class<? extends IdentifiableObject> objectClass : objects.keySet()) {
-      Schema schema = schemaService.getDynamicSchema(objectClass);
+      Schema schema = schemaService.getSchema(objectClass);
       List<IdentifiableObject> identifiableObjects = objects.get(objectClass);
       Map<String, Map<Object, String>> value =
           handleUniqueProperties(schema, identifier, identifiableObjects);
@@ -818,7 +820,7 @@ public class DefaultPreheatService implements PreheatService {
       return;
     }
 
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
 
     List<Property> properties =
         schema.getProperties().stream()

@@ -37,32 +37,31 @@ import lombok.NoArgsConstructor;
 public final class OrgUnitSqlFragments {
 
   /**
-   * Builds the join predicate between the event analytics table and org unit structure table for
-   * enrollment OU.
+   * Builds the join predicate between the event analytics table and the enrollment analytics table.
    *
-   * @param orgUnitAlias alias used for {@code analytics_rs_orgunitstructure} in the current query
+   * @param enrollmentAlias alias used for the enrollment analytics table in the current query
    * @return SQL join condition using quoted identifiers
    */
-  public static String joinCondition(String orgUnitAlias) {
+  public static String joinCondition(String enrollmentAlias) {
     return quotedColumn(
-            OrgUnitSqlConstants.EVENT_TABLE_ALIAS, OrgUnitSqlConstants.EVENT_ENROLLMENT_OU_COLUMN)
+            OrgUnitSqlConstants.EVENT_TABLE_ALIAS, OrgUnitSqlConstants.ENROLLMENT_JOIN_COLUMN)
         + " = "
-        + quotedColumn(orgUnitAlias, OrgUnitSqlConstants.ORG_UNIT_UID_COLUMN);
+        + quotedColumn(enrollmentAlias, OrgUnitSqlConstants.ENROLLMENT_JOIN_COLUMN);
   }
 
   /**
-   * Builds the legacy (string-based) inner join clause required when ENROLLMENT_OU is part of query
-   * constraints or output.
+   * Builds the legacy (string-based) inner join clause for enrollment OU resolution.
    *
+   * @param enrollmentTableName program-specific enrollment analytics table name
    * @return full {@code inner join ... on ...} clause with trailing space
    */
-  public static String innerJoinClause() {
+  public static String innerJoinClause(String enrollmentTableName) {
     return "inner join "
-        + OrgUnitSqlConstants.ORG_UNIT_STRUCTURE_TABLE
+        + enrollmentTableName
         + " as "
-        + OrgUnitSqlConstants.ORG_UNIT_STRUCTURE_ALIAS
+        + OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS
         + " on "
-        + joinCondition(OrgUnitSqlConstants.ORG_UNIT_STRUCTURE_ALIAS)
+        + joinCondition(OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS)
         + " ";
   }
 
@@ -76,7 +75,7 @@ public final class OrgUnitSqlFragments {
   public static String selectEnrollmentOuUid(boolean groupBy) {
     String uidCol =
         quotedColumn(
-            OrgUnitSqlConstants.ORG_UNIT_STRUCTURE_ALIAS, OrgUnitSqlConstants.ORG_UNIT_UID_COLUMN);
+            OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS, OrgUnitSqlConstants.ENROLLMENT_OU_COLUMN);
     return groupBy ? uidCol : uidCol + " as " + OrgUnitSqlConstants.ENROLLMENT_OU_RESULT_ALIAS;
   }
 
@@ -87,9 +86,21 @@ public final class OrgUnitSqlFragments {
    */
   public static String selectEnrollmentOuName() {
     return quotedColumn(
-            OrgUnitSqlConstants.ORG_UNIT_STRUCTURE_ALIAS, OrgUnitSqlConstants.ORG_UNIT_NAME_COLUMN)
+            OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS,
+            OrgUnitSqlConstants.ENROLLMENT_OU_NAME_COLUMN)
         + " as "
         + OrgUnitSqlConstants.ENROLLMENT_OU_NAME_RESULT_ALIAS;
+  }
+
+  /**
+   * Builds a literal enrollment OU UID projection for hierarchical mode. Produces a constant value
+   * aliased as the enrollment OU column, collapsing all rows to one aggregated row.
+   *
+   * @param uid the org unit UID to use as a literal value
+   * @return SQL fragment like {@code 'uid' as enrollmentou}
+   */
+  public static String selectLiteralEnrollmentOuUid(String uid) {
+    return "'" + uid + "' as " + OrgUnitSqlConstants.ENROLLMENT_OU_RESULT_ALIAS;
   }
 
   /**
@@ -101,7 +112,7 @@ public final class OrgUnitSqlFragments {
   public static String predicateByUids(String quotedUidList) {
     return " "
         + quotedColumn(
-            OrgUnitSqlConstants.ORG_UNIT_STRUCTURE_ALIAS, OrgUnitSqlConstants.ORG_UNIT_UID_COLUMN)
+            OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS, OrgUnitSqlConstants.ENROLLMENT_OU_COLUMN)
         + " in ("
         + quotedUidList
         + ") ";
@@ -116,10 +127,27 @@ public final class OrgUnitSqlFragments {
   public static String predicateByLevels(String commaSeparatedLevels) {
     return " "
         + quotedColumn(
-            OrgUnitSqlConstants.ORG_UNIT_STRUCTURE_ALIAS, OrgUnitSqlConstants.ORG_UNIT_LEVEL_COLUMN)
+            OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS,
+            OrgUnitSqlConstants.ENROLLMENT_OU_LEVEL_COLUMN)
         + " in ("
         + commaSeparatedLevels
         + ") ";
+  }
+
+  /**
+   * Builds a uidlevel-based predicate for enrollment OU hierarchical filtering.
+   *
+   * @param level the org unit hierarchy level
+   * @param quotedUidList comma-delimited and quoted UID values
+   * @return SQL predicate fragment for uidlevel filtering
+   */
+  public static String predicateByUidLevel(int level, String quotedUidList) {
+    return quotedColumn(
+            OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS,
+            OrgUnitSqlConstants.UID_LEVEL_PREFIX + level)
+        + " in ("
+        + quotedUidList
+        + ")";
   }
 
   private static String quotedColumn(String alias, String column) {

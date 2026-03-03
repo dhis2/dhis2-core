@@ -535,7 +535,7 @@ public class TrackedEntityQuery10AutoTest extends AnalyticsApiTest {
         new QueryParamsBuilder()
             .add("includeMetadataDetails=true")
             .add("asc=ur1Edk5Oe2n.enrollmentdate")
-            .add("headers=ouname,ur1Edk5Oe2n.enrollmentdate,ZkbAXlQUYJG.ou")
+            .add("headers=ouname,ur1Edk5Oe2n.enrollmentdate,ZkbAXlQUYJG.ou,ZkbAXlQUYJG.ouname")
             .add("displayProperty=NAME")
             .add("totalPages=false")
             .add("pageSize=10")
@@ -554,8 +554,8 @@ public class TrackedEntityQuery10AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         4,
-        3,
-        3); // Pass runtime flag, row count, and expected header counts
+        4,
+        4); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -593,6 +593,15 @@ public class TrackedEntityQuery10AutoTest extends AnalyticsApiTest {
         actualHeaders,
         "ZkbAXlQUYJG.ou",
         "Organisation unit, TB program, TB visit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ZkbAXlQUYJG.ouname",
+        "Organisation Unit Name, TB program, TB visit",
         "TEXT",
         "java.lang.String",
         false,
