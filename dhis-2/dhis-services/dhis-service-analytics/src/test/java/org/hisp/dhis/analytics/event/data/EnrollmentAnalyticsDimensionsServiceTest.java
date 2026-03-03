@@ -91,7 +91,7 @@ class EnrollmentAnalyticsDimensionsServiceTest {
     when(program.getProgramStages()).thenReturn(java.util.Set.of(stage));
     when(program.getTrackedEntityAttributes()).thenReturn(allSkippedValueTypeTEAs());
 
-    List<BaseIdentifiableObject> analyticsDimensions =
+    List<IdentifiableObject> analyticsDimensions =
         enrollmentAnalyticsDimensionsService.getQueryDimensionsByProgramId("anUid").stream()
             .map(PrefixedDimension::getItem)
             .toList();

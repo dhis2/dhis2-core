@@ -192,11 +192,11 @@ public class Program extends BaseMetadataObject
 
   @Column(name = "eventlabel", columnDefinition = "text")
   private String eventLabel;
-  
+
+  @Column(name = "programstageslabel", columnDefinition = "text")
   private String programStagesLabel;
-
-  private String eventLabel;
-
+  
+  @Column(name = "eventslabel", columnDefinition = "text")
   private String eventsLabel;
 
   @ManyToMany
