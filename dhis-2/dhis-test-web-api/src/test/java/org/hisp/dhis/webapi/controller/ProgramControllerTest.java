@@ -401,8 +401,7 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
         """;
     assertStatus(HttpStatus.CREATED, POST("/programs", json));
 
-    JsonProgram program =
-        GET("/programs/Program1111").content(HttpStatus.OK).as(JsonProgram.class);
+    JsonProgram program = GET("/programs/Program1111").content(HttpStatus.OK).as(JsonProgram.class);
 
     assertEquals("scalar fields program", program.getName());
     assertEquals("scalar prog", program.getShortName());
