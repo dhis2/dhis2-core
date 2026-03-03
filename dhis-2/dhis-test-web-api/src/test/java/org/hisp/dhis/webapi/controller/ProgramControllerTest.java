@@ -383,6 +383,66 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void shouldCreateProgramAndPersistScalarFields() {
+    // language=JSON
+    String json =
+        """
+        {
+          "id": "Program1111",
+          "name": "scalar fields program",
+          "shortName": "scalar prog",
+          "programType": "WITHOUT_REGISTRATION",
+          "displayIncidentDate": false,
+          "onlyEnrollOnce": true,
+          "expiryDays": 5,
+          "completeEventsExpiryDays": 3,
+          "minAttributesRequiredToSearch": 2
+        }
+        """;
+    assertStatus(HttpStatus.CREATED, POST("/programs", json));
+
+    JsonProgram program =
+        GET("/programs/Program1111").content(HttpStatus.OK).as(JsonProgram.class);
+
+    assertEquals("scalar fields program", program.getName());
+    assertEquals("scalar prog", program.getShortName());
+    assertEquals("WITHOUT_REGISTRATION", program.getString("programType").string());
+    assertFalse(program.getBoolean("displayIncidentDate").booleanValue());
+    assertTrue(program.getBoolean("onlyEnrollOnce").booleanValue());
+    assertEquals(5, program.getNumber("expiryDays").intValue());
+    assertEquals(3, program.getNumber("completeEventsExpiryDays").intValue());
+    assertEquals(2, program.getNumber("minAttributesRequiredToSearch").intValue());
+  }
+
+  @Test
+  void shouldUpdateProgramAndPersistChanges() {
+    // language=JSON
+    String json =
+        """
+        {
+          "id": "PrZMWi7rBga",
+          "name": "updated program name",
+          "shortName": "test program",
+          "programType": "WITH_REGISTRATION",
+          "description": "updated program description",
+          "onlyEnrollOnce": true,
+          "expiryDays": 10,
+          "enrollmentDateLabel": "Updated Enrollment Date"
+        }
+        """;
+    assertStatus(HttpStatus.OK, PUT("/programs/" + PROGRAM_UID, json));
+
+    JsonProgram program =
+        GET("/programs/{id}", PROGRAM_UID).content(HttpStatus.OK).as(JsonProgram.class);
+
+    assertEquals("updated program name", program.getName());
+    assertEquals("updated program description", program.getDescription());
+    assertTrue(program.getBoolean("onlyEnrollOnce").booleanValue());
+    assertEquals(10, program.getNumber("expiryDays").intValue());
+    assertEquals("Updated Enrollment Date", program.getEnrollmentDateLabel().string());
+  }
+
+  @Test
   void testDeleteWithMapView() {
     String mapViewJson =
         """
