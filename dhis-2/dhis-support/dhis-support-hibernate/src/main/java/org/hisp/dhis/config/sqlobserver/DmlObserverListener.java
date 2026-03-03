@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -46,7 +46,6 @@ import net.ttddyy.dsproxy.listener.MethodExecutionListener;
 import net.ttddyy.dsproxy.listener.QueryExecutionListener;
 import net.ttddyy.dsproxy.proxy.ParameterSetOperation;
 import org.hisp.dhis.audit.DmlEvent;
-import org.hisp.dhis.audit.DmlEvent.DmlOperation;
 import org.hisp.dhis.audit.DmlObservedEvent;
 import org.hisp.dhis.config.sqlobserver.DmlSqlParser.DmlParseResult;
 import org.hisp.dhis.config.sqlobserver.HibernateTableEntityRegistry.TableInfo;
@@ -54,8 +53,8 @@ import org.springframework.context.ApplicationEventPublisher;
 
 /**
  * Intercepts all DML statements (INSERT/UPDATE/DELETE) at the JDBC level via datasource-proxy.
- * Accumulates events per connection and publishes them as a batch on transaction commit. Discards on
- * rollback.
+ * Accumulates events per connection and publishes them as a batch on transaction commit. Discards
+ * on rollback.
  *
  * <p>Implements both {@link QueryExecutionListener} (for SQL interception) and {@link
  * MethodExecutionListener} (for commit/rollback detection).
@@ -70,8 +69,7 @@ public class DmlObserverListener implements QueryExecutionListener, MethodExecut
    * Accumulated DML events keyed by connection identity hash code (as String). Using identity hash
    * to avoid calling connection.toString() on pooled connections.
    */
-  private final ConcurrentHashMap<String, List<DmlEvent>> pendingEvents =
-      new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, List<DmlEvent>> pendingEvents = new ConcurrentHashMap<>();
 
   public DmlObserverListener(
       HibernateTableEntityRegistry registry, ApplicationEventPublisher eventPublisher) {
@@ -198,7 +196,9 @@ public class DmlObserverListener implements QueryExecutionListener, MethodExecut
   private void discardAndClear(String connectionId) {
     List<DmlEvent> events = pendingEvents.remove(connectionId);
     if (events != null && !events.isEmpty()) {
-      log.debug("Discarded {} DML events for connection {} (rollback/close)", events.size(),
+      log.debug(
+          "Discarded {} DML events for connection {} (rollback/close)",
+          events.size(),
           connectionId);
     }
   }

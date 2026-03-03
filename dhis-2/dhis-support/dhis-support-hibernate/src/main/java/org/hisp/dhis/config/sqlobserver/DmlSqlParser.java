@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -166,8 +166,7 @@ public class DmlSqlParser {
 
     // Count SET clause params first to offset WHERE params correctly
     int setParamCount = countSetParams(update);
-    Map<String, Integer> columnToParam =
-        extractWhereColumnParams(update.getWhere(), setParamCount);
+    Map<String, Integer> columnToParam = extractWhereColumnParams(update.getWhere(), setParamCount);
 
     return Optional.of(
         DmlParseResult.builder()
@@ -221,8 +220,7 @@ public class DmlSqlParser {
    * column = ?} predicates joined by AND. Parameter positions are 1-based and offset by any
    * preceding SET clause params.
    */
-  private static Map<String, Integer> extractWhereColumnParams(
-      Expression where, int paramOffset) {
+  private static Map<String, Integer> extractWhereColumnParams(Expression where, int paramOffset) {
     Map<String, Integer> result = new HashMap<>();
     if (where == null) {
       return result;
@@ -246,8 +244,7 @@ public class DmlSqlParser {
     }
   }
 
-  private static void handleEquals(
-      EqualsTo equalsTo, Map<String, Integer> result, int[] counter) {
+  private static void handleEquals(EqualsTo equalsTo, Map<String, Integer> result, int[] counter) {
     Expression left = equalsTo.getLeftExpression();
     Expression right = equalsTo.getRightExpression();
 
@@ -281,5 +278,4 @@ public class DmlSqlParser {
 
     return i > 0 ? query.substring(i) : query;
   }
-
 }

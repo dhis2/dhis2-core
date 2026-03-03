@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -35,9 +35,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.AuditableEntity;
-import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
+import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.audit.DmlEvent;
 import org.hisp.dhis.audit.DmlEvent.DmlOperation;
 import org.hisp.dhis.audit.DmlObservedEvent;
@@ -77,8 +77,7 @@ public class DmlAuditBridge {
 
         AuditType auditType = toAuditType(dmlEvent.getOperation());
         AuditScope auditScope = auditable.scope();
-        String uid =
-            dmlEvent.getEntityId() != null ? dmlEvent.getEntityId().toString() : null;
+        String uid = dmlEvent.getEntityId() != null ? dmlEvent.getEntityId().toString() : null;
 
         Audit audit =
             Audit.builder()
@@ -93,8 +92,7 @@ public class DmlAuditBridge {
 
         auditManager.send(audit);
       } catch (ClassNotFoundException e) {
-        log.trace(
-            "Entity class not found for DML audit: {}", dmlEvent.getEntityClassName());
+        log.trace("Entity class not found for DML audit: {}", dmlEvent.getEntityClassName());
       } catch (Exception e) {
         log.warn("Failed to send DML audit for {}", dmlEvent.getEntityClassName(), e);
       }

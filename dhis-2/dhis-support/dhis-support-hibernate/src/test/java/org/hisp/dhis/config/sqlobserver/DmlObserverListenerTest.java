@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -48,9 +48,9 @@ import net.ttddyy.dsproxy.QueryInfo;
 import net.ttddyy.dsproxy.listener.MethodExecutionContext;
 import org.hisp.dhis.audit.DmlEvent.DmlOperation;
 import org.hisp.dhis.audit.DmlObservedEvent;
-import org.mockito.ArgumentCaptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.context.ApplicationEventPublisher;
 
 class DmlObserverListenerTest {
@@ -100,8 +100,7 @@ class DmlObserverListenerTest {
   @Test
   void afterQuery_insertOnAutoCommitPublishesImmediately() throws Exception {
     ExecutionInfo execInfo = createSuccessExecutionInfo(true);
-    List<QueryInfo> queries =
-        List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
+    List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
 
     listener.afterQuery(execInfo, queries);
 
@@ -116,8 +115,7 @@ class DmlObserverListenerTest {
   @Test
   void afterQuery_insertOnNonAutoCommitAccumulatesEvents() throws Exception {
     ExecutionInfo execInfo = createSuccessExecutionInfo(false);
-    List<QueryInfo> queries =
-        List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
+    List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
 
     listener.afterQuery(execInfo, queries);
 
@@ -129,8 +127,7 @@ class DmlObserverListenerTest {
   void commitPublishesAccumulatedEvents() throws Exception {
     // Accumulate an event
     ExecutionInfo execInfo = createSuccessExecutionInfo(false);
-    List<QueryInfo> queries =
-        List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
+    List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
     listener.afterQuery(execInfo, queries);
 
     // Simulate commit
@@ -148,8 +145,7 @@ class DmlObserverListenerTest {
   void rollbackDiscardsAccumulatedEvents() throws Exception {
     // Accumulate an event
     ExecutionInfo execInfo = createSuccessExecutionInfo(false);
-    List<QueryInfo> queries =
-        List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
+    List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
     listener.afterQuery(execInfo, queries);
 
     // Simulate rollback
