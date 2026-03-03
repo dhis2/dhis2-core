@@ -50,6 +50,12 @@ Test results are saved to `target/gatling/<simulation-class>-<timestamp>/`:
 This requires [gstat](https://github.com/dhis2/gatling-statistics) (`uv tool install gatling-statistics`)
 and prints a GitHub markdown table of p50/p95 differences between the two runs.
 
+The comparison script uses `gstat` output, not Gatling's `index.html`. The percentile values are
+good for relative baseline-vs-candidate comparison when both runs are processed the same way, but
+they may differ slightly from the numbers shown in Gatling's HTML report due to differences in
+percentile calculation. If exact parity with Gatling's UI matters, use `index.html` as the source
+of truth.
+
 Since Gatling 3.12, test results are written in binary format. The `run-simulation.sh` script
 automatically converts `simulation.log` to `simulation.csv` if
 [glog](https://github.com/dhis2/gatling/releases) is installed like in CI.
