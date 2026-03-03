@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.event;
+package org.hisp.dhis.webapi.controller.tracker.export.trackerevent;
 
 import static org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig.csvMapper;
 
@@ -49,7 +49,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.view.TrackerEvent;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
@@ -58,12 +58,12 @@ import org.springframework.stereotype.Service;
 /**
  * @author Enrico Colasante
  */
-@Service("org.hisp.dhis.webapi.controller.tracker.export.event.CsvEventService")
-class CsvEventService implements CsvService<Event> {
+@Service("org.hisp.dhis.webapi.controller.tracker.export.trackerevent.CsvTrackerEventService")
+class CsvTrackerEventService implements CsvService<TrackerEvent> {
   private static final Pattern TRIM_SINGLE_QUOTES = Pattern.compile("^'|'$");
 
   @Override
-  public void write(OutputStream outputStream, List<Event> events, boolean withHeader)
+  public void write(OutputStream outputStream, List<TrackerEvent> events, boolean withHeader)
       throws IOException {
     ObjectWriter writer = getObjectWriter(withHeader);
 
@@ -72,14 +72,15 @@ class CsvEventService implements CsvService<Event> {
 
   @Override
   public void writeZip(
-      OutputStream outputStream, List<Event> toCompress, boolean withHeader, String file)
+      OutputStream outputStream, List<TrackerEvent> toCompress, boolean withHeader, String file)
       throws IOException {
     CompressionUtil.writeZip(
         outputStream, getCsvEventDataValues(toCompress), getObjectWriter(withHeader), file);
   }
 
   @Override
-  public void writeGzip(OutputStream outputStream, List<Event> toCompress, boolean withHeader)
+  public void writeGzip(
+      OutputStream outputStream, List<TrackerEvent> toCompress, boolean withHeader)
       throws IOException {
     CompressionUtil.writeGzip(
         outputStream, getCsvEventDataValues(toCompress), getObjectWriter(withHeader));
@@ -88,18 +89,18 @@ class CsvEventService implements CsvService<Event> {
   private ObjectWriter getObjectWriter(boolean withHeader) {
     final CsvSchema csvSchema =
         csvMapper
-            .schemaFor(CsvEventDataValue.class)
+            .schemaFor(CsvTrackerEventDataValue.class)
             .withLineSeparator("\n")
             .withUseHeader(withHeader);
 
     return csvMapper.writer(csvSchema.withUseHeader(withHeader));
   }
 
-  private List<CsvEventDataValue> getCsvEventDataValues(List<Event> events) {
-    List<CsvEventDataValue> dataValues = new ArrayList<>();
+  private List<CsvTrackerEventDataValue> getCsvEventDataValues(List<TrackerEvent> events) {
+    List<CsvTrackerEventDataValue> dataValues = new ArrayList<>();
 
-    for (Event event : events) {
-      CsvEventDataValue templateDataValue = map(event);
+    for (TrackerEvent event : events) {
+      CsvTrackerEventDataValue templateDataValue = map(event);
 
       if (event.getDataValues().isEmpty()) {
         dataValues.add(templateDataValue);
@@ -113,8 +114,8 @@ class CsvEventService implements CsvService<Event> {
     return dataValues;
   }
 
-  private static CsvEventDataValue map(Event event) {
-    CsvEventDataValue result = new CsvEventDataValue();
+  private static CsvTrackerEventDataValue map(TrackerEvent event) {
+    CsvTrackerEventDataValue result = new CsvTrackerEventDataValue();
     result.setEvent(event.getEvent());
     result.setStatus(event.getStatus() != null ? event.getStatus().name() : null);
     result.setProgram(event.getProgram());
@@ -153,8 +154,8 @@ class CsvEventService implements CsvService<Event> {
     return result;
   }
 
-  private static CsvEventDataValue map(DataValue value, CsvEventDataValue base) {
-    CsvEventDataValue result = new CsvEventDataValue(base);
+  private static CsvTrackerEventDataValue map(DataValue value, CsvTrackerEventDataValue base) {
+    CsvTrackerEventDataValue result = new CsvTrackerEventDataValue(base);
     result.setDataElement(value.getDataElement());
     result.setValue(value.getValue());
     result.setProvidedElsewhere(value.isProvidedElsewhere());
@@ -171,24 +172,27 @@ class CsvEventService implements CsvService<Event> {
   }
 
   @Override
-  public List<Event> read(InputStream inputStream, boolean skipFirst)
+  public List<TrackerEvent> read(InputStream inputStream, boolean skipFirst)
       throws IOException, ParseException {
     CsvSchema csvSchema = CsvSchema.emptySchema().withHeader().withColumnReordering(true);
 
     if (!skipFirst) {
       csvSchema =
-          csvMapper.schemaFor(CsvEventDataValue.class).withoutHeader().withColumnReordering(true);
+          csvMapper
+              .schemaFor(CsvTrackerEventDataValue.class)
+              .withoutHeader()
+              .withColumnReordering(true);
     }
 
-    List<Event> events = new ArrayList<>();
+    List<TrackerEvent> events = new ArrayList<>();
 
-    ObjectReader reader = csvMapper.readerFor(CsvEventDataValue.class).with(csvSchema);
+    ObjectReader reader = csvMapper.readerFor(CsvTrackerEventDataValue.class).with(csvSchema);
 
-    MappingIterator<CsvEventDataValue> iterator = reader.readValues(inputStream);
-    Event event = new Event();
+    MappingIterator<CsvTrackerEventDataValue> iterator = reader.readValues(inputStream);
+    TrackerEvent event = new TrackerEvent();
 
     while (iterator.hasNext()) {
-      CsvEventDataValue dataValue = iterator.next();
+      CsvTrackerEventDataValue dataValue = iterator.next();
 
       if (dataValue.getEvent() == null || !Objects.equals(event.getEvent(), dataValue.getEvent())) {
         event = map(dataValue);
@@ -217,9 +221,9 @@ class CsvEventService implements CsvService<Event> {
     return events;
   }
 
-  private static Event map(CsvEventDataValue dataValue) throws ParseException {
-    Event event;
-    event = new Event();
+  private static TrackerEvent map(CsvTrackerEventDataValue dataValue) throws ParseException {
+    TrackerEvent event;
+    event = new TrackerEvent();
     event.setEvent(dataValue.getEvent());
     event.setStatus(
         StringUtils.isEmpty(dataValue.getStatus())

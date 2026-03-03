@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.event;
+package org.hisp.dhis.webapi.controller.tracker.export.singleevent;
 
 import static org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig.csvMapper;
 
@@ -49,7 +49,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.view.SingleEvent;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
@@ -58,12 +58,12 @@ import org.springframework.stereotype.Service;
 /**
  * @author Enrico Colasante
  */
-@Service("org.hisp.dhis.webapi.controller.tracker.export.event.CsvEventService")
-class CsvEventService implements CsvService<Event> {
+@Service("org.hisp.dhis.webapi.controller.tracker.export.singleevent.CsvSingleEventService")
+class CsvSingleEventService implements CsvService<SingleEvent> {
   private static final Pattern TRIM_SINGLE_QUOTES = Pattern.compile("^'|'$");
 
   @Override
-  public void write(OutputStream outputStream, List<Event> events, boolean withHeader)
+  public void write(OutputStream outputStream, List<SingleEvent> events, boolean withHeader)
       throws IOException {
     ObjectWriter writer = getObjectWriter(withHeader);
 
@@ -72,14 +72,14 @@ class CsvEventService implements CsvService<Event> {
 
   @Override
   public void writeZip(
-      OutputStream outputStream, List<Event> toCompress, boolean withHeader, String file)
+      OutputStream outputStream, List<SingleEvent> toCompress, boolean withHeader, String file)
       throws IOException {
     CompressionUtil.writeZip(
         outputStream, getCsvEventDataValues(toCompress), getObjectWriter(withHeader), file);
   }
 
   @Override
-  public void writeGzip(OutputStream outputStream, List<Event> toCompress, boolean withHeader)
+  public void writeGzip(OutputStream outputStream, List<SingleEvent> toCompress, boolean withHeader)
       throws IOException {
     CompressionUtil.writeGzip(
         outputStream, getCsvEventDataValues(toCompress), getObjectWriter(withHeader));
@@ -88,18 +88,18 @@ class CsvEventService implements CsvService<Event> {
   private ObjectWriter getObjectWriter(boolean withHeader) {
     final CsvSchema csvSchema =
         csvMapper
-            .schemaFor(CsvEventDataValue.class)
+            .schemaFor(CsvSingleEventDataValue.class)
             .withLineSeparator("\n")
             .withUseHeader(withHeader);
 
     return csvMapper.writer(csvSchema.withUseHeader(withHeader));
   }
 
-  private List<CsvEventDataValue> getCsvEventDataValues(List<Event> events) {
-    List<CsvEventDataValue> dataValues = new ArrayList<>();
+  private List<CsvSingleEventDataValue> getCsvEventDataValues(List<SingleEvent> events) {
+    List<CsvSingleEventDataValue> dataValues = new ArrayList<>();
 
-    for (Event event : events) {
-      CsvEventDataValue templateDataValue = map(event);
+    for (SingleEvent event : events) {
+      CsvSingleEventDataValue templateDataValue = map(event);
 
       if (event.getDataValues().isEmpty()) {
         dataValues.add(templateDataValue);
@@ -113,18 +113,13 @@ class CsvEventService implements CsvService<Event> {
     return dataValues;
   }
 
-  private static CsvEventDataValue map(Event event) {
-    CsvEventDataValue result = new CsvEventDataValue();
+  private static CsvSingleEventDataValue map(SingleEvent event) {
+    CsvSingleEventDataValue result = new CsvSingleEventDataValue();
     result.setEvent(event.getEvent());
     result.setStatus(event.getStatus() != null ? event.getStatus().name() : null);
     result.setProgram(event.getProgram());
-    result.setProgramStage(event.getProgramStage());
-    result.setEnrollment(event.getEnrollment());
     result.setOrgUnit(event.getOrgUnit());
     result.setOccurredAt(event.getOccurredAt() == null ? null : event.getOccurredAt().toString());
-    result.setScheduledAt(
-        event.getScheduledAt() == null ? null : event.getScheduledAt().toString());
-    result.setFollowUp(event.isFollowUp());
     result.setDeleted(event.isDeleted());
     result.setCreatedAt(event.getCreatedAt() == null ? null : event.getCreatedAt().toString());
     result.setCreatedAtClient(
@@ -153,8 +148,8 @@ class CsvEventService implements CsvService<Event> {
     return result;
   }
 
-  private static CsvEventDataValue map(DataValue value, CsvEventDataValue base) {
-    CsvEventDataValue result = new CsvEventDataValue(base);
+  private static CsvSingleEventDataValue map(DataValue value, CsvSingleEventDataValue base) {
+    CsvSingleEventDataValue result = new CsvSingleEventDataValue(base);
     result.setDataElement(value.getDataElement());
     result.setValue(value.getValue());
     result.setProvidedElsewhere(value.isProvidedElsewhere());
@@ -171,24 +166,27 @@ class CsvEventService implements CsvService<Event> {
   }
 
   @Override
-  public List<Event> read(InputStream inputStream, boolean skipFirst)
+  public List<SingleEvent> read(InputStream inputStream, boolean skipFirst)
       throws IOException, ParseException {
     CsvSchema csvSchema = CsvSchema.emptySchema().withHeader().withColumnReordering(true);
 
     if (!skipFirst) {
       csvSchema =
-          csvMapper.schemaFor(CsvEventDataValue.class).withoutHeader().withColumnReordering(true);
+          csvMapper
+              .schemaFor(CsvSingleEventDataValue.class)
+              .withoutHeader()
+              .withColumnReordering(true);
     }
 
-    List<Event> events = new ArrayList<>();
+    List<SingleEvent> events = new ArrayList<>();
 
-    ObjectReader reader = csvMapper.readerFor(CsvEventDataValue.class).with(csvSchema);
+    ObjectReader reader = csvMapper.readerFor(CsvSingleEventDataValue.class).with(csvSchema);
 
-    MappingIterator<CsvEventDataValue> iterator = reader.readValues(inputStream);
-    Event event = new Event();
+    MappingIterator<CsvSingleEventDataValue> iterator = reader.readValues(inputStream);
+    SingleEvent event = new SingleEvent();
 
     while (iterator.hasNext()) {
-      CsvEventDataValue dataValue = iterator.next();
+      CsvSingleEventDataValue dataValue = iterator.next();
 
       if (dataValue.getEvent() == null || !Objects.equals(event.getEvent(), dataValue.getEvent())) {
         event = map(dataValue);
@@ -217,24 +215,21 @@ class CsvEventService implements CsvService<Event> {
     return events;
   }
 
-  private static Event map(CsvEventDataValue dataValue) throws ParseException {
-    Event event;
-    event = new Event();
+  private static SingleEvent map(CsvSingleEventDataValue dataValue) throws ParseException {
+    SingleEvent event;
+    event = new SingleEvent();
     event.setEvent(dataValue.getEvent());
     event.setStatus(
         StringUtils.isEmpty(dataValue.getStatus())
             ? EventStatus.ACTIVE
             : Enum.valueOf(EventStatus.class, dataValue.getStatus()));
     event.setProgram(dataValue.getProgram());
-    event.setProgramStage(dataValue.getProgramStage());
-    event.setEnrollment(dataValue.getEnrollment());
     event.setOrgUnit(dataValue.getOrgUnit());
     event.setCreatedAt(DateUtils.instantFromDateAsString(dataValue.getCreatedAt()));
     event.setCreatedAtClient(DateUtils.instantFromDateAsString(dataValue.getCreatedAtClient()));
     event.setUpdatedAt(DateUtils.instantFromDateAsString(dataValue.getUpdatedAt()));
     event.setUpdatedAtClient(DateUtils.instantFromDateAsString(dataValue.getUpdatedAtClient()));
     event.setOccurredAt(DateUtils.instantFromDateAsString(dataValue.getOccurredAt()));
-    event.setScheduledAt(DateUtils.instantFromDateAsString(dataValue.getScheduledAt()));
     event.setCompletedAt(DateUtils.instantFromDateAsString(dataValue.getCompletedAt()));
     event.setCompletedBy(dataValue.getCompletedBy());
     event.setStoredBy(dataValue.getStoredBy());
