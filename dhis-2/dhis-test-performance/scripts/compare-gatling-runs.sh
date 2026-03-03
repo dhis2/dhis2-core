@@ -4,8 +4,8 @@
 # Usage:
 #   ./compare-gatling-runs.sh <baseline-dir> <feature-dir>
 #
-# Requires: gstat (uv tool install gatling-statistics)
-#           glog  (https://github.com/dhis2/gatling/releases) — needed to produce simulation.csv
+# Requires: [gstat] (https://github.com/dhis2/gatling-statistics)
+#           [glog] (https://github.com/dhis2/gatling/releases)
 #
 # Example:
 #   ./compare-gatling-runs.sh \
@@ -20,7 +20,7 @@ if [[ $# -ne 2 ]]; then
 fi
 
 command -v gstat &>/dev/null || {
-  echo "Error: gstat not found. Install with: uv tool install gatling-statistics" >&2
+  echo "Error: gstat not found. Install with: uv tool install git+https://github.com/dhis2/gatling-statistics" >&2
   exit 1
 }
 
