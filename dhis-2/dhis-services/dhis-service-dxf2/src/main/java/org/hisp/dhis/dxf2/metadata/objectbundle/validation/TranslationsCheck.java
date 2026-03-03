@@ -68,7 +68,7 @@ public class TranslationsCheck implements ObjectValidationCheck {
       return;
     }
 
-    Schema schema = context.getSchemaService().getDynamicSchema(klass);
+    Schema schema = context.getSchemaService().getSchema(klass);
 
     for (int i = 0; i < objects.size(); i++) {
       run(objects.get(i), klass, addReports, schema, i, context);

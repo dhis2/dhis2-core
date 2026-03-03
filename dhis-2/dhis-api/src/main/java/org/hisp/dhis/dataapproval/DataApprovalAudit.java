@@ -33,6 +33,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
@@ -49,35 +59,55 @@ import org.hisp.dhis.user.User;
  *
  * @author Jim Grace
  */
+@Entity
+@Table(name = "dataapprovalaudit")
 public class DataApprovalAudit implements Serializable {
 
   private static final long serialVersionUID = 4209187342531545619L;
 
   /** Identifies the data approval audit record (required). */
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  @Column(name = "dataapprovalauditid")
   private long id;
 
   /** The approval level for which this approval is defined. */
+  @ManyToOne
+  @JoinColumn(name = "levelid", nullable = false)
   private DataApprovalLevel level;
 
   /** The workflow for the values being approved (required). */
+  @ManyToOne
+  @JoinColumn(name = "workflowid", nullable = false)
   private DataApprovalWorkflow workflow;
 
   /** The Period of the approval (required). */
+  @ManyToOne
+  @JoinColumn(name = "periodid", nullable = false)
   private Period period;
 
   /** The OrganisationUnit of the approval (required). */
+  @ManyToOne
+  @JoinColumn(name = "organisationunitid", nullable = false)
   private OrganisationUnit organisationUnit;
 
   /** The attribute category option combo being approved (optional). */
+  @ManyToOne
+  @JoinColumn(name = "attributeoptioncomboid", nullable = false)
   private CategoryOptionCombo attributeOptionCombo;
 
   /** Type of data approval action done. */
+  @Enumerated(EnumType.STRING)
+  @Column(name = "action", length = 100, nullable = false)
   private DataApprovalAction action;
 
   /** The Date (including time) when this approval was made (required). */
+  @Column(name = "created", nullable = false)
   private Date created;
 
   /** The User who made this approval (required). */
+  @ManyToOne
+  @JoinColumn(name = "creator", nullable = false)
   private User creator;
 
   // -------------------------------------------------------------------------

@@ -33,6 +33,7 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -78,8 +79,8 @@ class MapControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "Map does not exist: xyz",
-        PUT("/maps/xyz", "{'name':'My updated map'}").content(HttpStatus.NOT_FOUND));
+        "Map does not exist: m1234567890",
+        PUT("/maps/m1234567890", "{'name':'My updated map'}").content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -110,5 +111,75 @@ class MapControllerTest extends H2ControllerIntegrationTestBase {
     JsonObject mapView = map.getArray("mapViews").get(0).as(JsonObject.class);
     assertEquals(attrId, mapView.getString("orgUnitField").string());
     assertEquals("GeoJsonAttribute", mapView.getString("orgUnitFieldDisplayName").string());
+  }
+
+  @Test
+  void testPostWithBaseMap() {
+    String id =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/maps",
+                """
+                        {"type": "MAP",
+                        "name": "Test",
+                        "basemap": "openStreetMap",
+                        "basemaps": [
+                            {
+                                "id": "openStreetMap",
+                                "opacity": 1.2,
+                                "hidden": true
+                            }
+                        ]}
+                    """));
+
+    JsonObject map = GET("/maps/{uid}", id).content();
+    assertNotNull(map.getArray("basemaps"));
+    assertEquals(1, map.getArray("basemaps").size());
+
+    JsonObject basemaps = map.getArray("basemaps").get(0).as(JsonObject.class);
+    assertEquals("openStreetMap", basemaps.getString("id").string());
+    assertEquals(1.2, basemaps.getNumber("opacity").doubleValue());
+    assertTrue(basemaps.getBoolean("hidden").booleanValue());
+
+    assertEquals("openStreetMap", map.getString("basemap").string());
+  }
+
+  @Test
+  void testPostMapViewWithEventFallback() {
+    String mapId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/maps/",
+                """
+                    {\"name\":\"My map\",
+                    \"mapViews\":[ {
+                    \"eventCoordinateFieldFallback\": \"teigeometry\",
+                    \"layer\": \"thematic1\",
+                    \"renderingStrategy\": \"SINGLE\" } ]}
+                    """));
+
+    JsonObject map = GET("/maps/{uid}", mapId).content();
+    assertNotNull(map.getArray("mapViews"));
+    assertEquals(1, map.getArray("mapViews").size());
+
+    JsonObject mapView = map.getArray("mapViews").get(0).as(JsonObject.class);
+    assertEquals("teigeometry", mapView.getString("eventCoordinateFieldFallback").string());
+  }
+
+  @Test
+  void testPostMapViewWithEventFallbackError() {
+    assertStatus(
+        HttpStatus.CONFLICT,
+        POST(
+            "/maps/",
+            """
+                    {\"name\":\"My map\",
+                    \"mapViews\":[ {
+                    \"eventCoordinateFieldFallback\": \"teigeometry-123456\",
+                    \"layer\": \"thematic1\",
+                    \"renderingStrategy\": \"SINGLE\" } ]}
+                    """));
   }
 }

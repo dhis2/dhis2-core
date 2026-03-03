@@ -146,7 +146,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
       InternalHibernateGenericStore<T> store,
       CriteriaBuilder builder,
       Root<T> root) {
-    Schema schema = schemaService.getDynamicSchema(query.getObjectType());
+    Schema schema = schemaService.getSchema(query.getObjectType());
     boolean shareable = schema.isShareable();
     if (!shareable) return null;
     UserDetails user = query.getCurrentUserDetails();
@@ -195,7 +195,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   @Nonnull
   private <T extends IdentifiableObject> List<jakarta.persistence.criteria.Order> getOrders(
       Query<T> query, CriteriaBuilder builder, Root<T> root) {
-    Schema schema = schemaService.getDynamicSchema(query.getObjectType());
+    Schema schema = schemaService.getSchema(query.getObjectType());
     return query.getOrders().stream()
         .map(o -> getOrderPredicate(builder, root, schema, o))
         .toList();

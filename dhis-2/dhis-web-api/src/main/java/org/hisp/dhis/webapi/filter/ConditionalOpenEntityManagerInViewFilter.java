@@ -78,6 +78,12 @@ public class ConditionalOpenEntityManagerInViewFilter extends OpenEntityManagerI
   private static final List<PathPattern> EXCLUDE_PATTERNS =
       Stream.of(
               "/api/tracker/**",
+              "/api/*/gist",
+              "/api/*/gist.csv",
+              "/api/*/*/gist",
+              "/api/*/*/gist.csv",
+              "/api/*/*/*/gist",
+              "/api/*/*/*/gist.csv",
               "/api/ping",
               "/api/metrics",
               "/api/system/ping",

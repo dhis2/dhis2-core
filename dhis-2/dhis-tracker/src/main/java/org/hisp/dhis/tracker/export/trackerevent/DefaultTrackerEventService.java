@@ -37,7 +37,6 @@ import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
@@ -58,7 +57,6 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -66,7 +64,6 @@ import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Service("org.hisp.dhis.tracker.export.trackerevent.TrackerEventService")
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -75,8 +72,6 @@ class DefaultTrackerEventService implements TrackerEventService {
   private final JdbcTrackerEventStore eventStore;
 
   private final IdentifiableObjectManager manager;
-
-  private final TrackerAccessManager trackerAccessManager;
 
   private final DataElementService dataElementService;
 
@@ -135,11 +130,6 @@ class DefaultTrackerEventService implements TrackerEventService {
               + " could not be found.");
     }
     TrackerEvent event = events.getItems().get(0);
-
-    List<String> errors = trackerAccessManager.canRead(getCurrentUserDetails(), event, dataElement);
-    if (!errors.isEmpty()) {
-      throw new NotFoundException(DataElement.class, dataElementUid.getValue());
-    }
 
     String fileResourceUid = null;
     for (EventDataValue eventDataValue : event.getEventDataValues()) {
@@ -222,11 +212,8 @@ class DefaultTrackerEventService implements TrackerEventService {
                 dataValue.getDataElement());
       }
 
-      if (dataElement != null) // check permissions
-      {
+      if (dataElement != null) {
         dataValues.add(dataValue);
-      } else {
-        log.info("Cannot find data element with UID {}", dataValue.getDataElement());
       }
     }
     event.setEventDataValues(dataValues);

@@ -33,6 +33,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_DHIS2_INTERNAL_C
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_DHIS2_INTERNAL_CLIENT_SECRET;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_DHIS2_INTERNAL_MAPPING_CLAIM;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_DHIS2_INTERNAL_SERVER_URL;
+import static org.hisp.dhis.external.conf.ConfigurationKey.SERVER_BASE_URL;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.DEFAULT_MAPPING_CLAIM;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.DEFAULT_REDIRECT_TEMPLATE_URL;
 
@@ -73,9 +74,16 @@ public class Dhis2InternalOidcProvider {
       throw new IllegalArgumentException("DHIS2 internal client secret is missing!");
     }
 
+    String serverUrl = config.getProperty(OIDC_DHIS2_INTERNAL_SERVER_URL);
+    if (Strings.isNullOrEmpty(serverUrl)) {
+      serverUrl = config.getProperty(SERVER_BASE_URL);
+    }
+    if (serverUrl.endsWith("/")) {
+      serverUrl = serverUrl.substring(0, serverUrl.length() - 1);
+    }
+
     ClientRegistration clientRegistration =
-        buildClientRegistration(
-            dhis2ClientId, dhis2ClientSecret, config.getProperty(OIDC_DHIS2_INTERNAL_SERVER_URL));
+        buildClientRegistration(dhis2ClientId, dhis2ClientSecret, serverUrl);
 
     return DhisOidcClientRegistration.builder()
         .clientRegistration(clientRegistration)
@@ -83,6 +91,7 @@ public class Dhis2InternalOidcProvider {
         .loginIcon("")
         .loginIconPadding("")
         .loginText("not visible")
+        .visibleOnLoginPage(false)
         .build();
   }
 
@@ -100,7 +109,7 @@ public class Dhis2InternalOidcProvider {
     builder.tokenUri(providerBaseUrl + "/oauth2/token");
     builder.jwkSetUri(providerBaseUrl + "/oauth2/jwks");
     builder.userInfoUri(providerBaseUrl + "/oauth2/userinfo");
-    builder.issuerUri(providerBaseUrl);
+    builder.issuerUri(providerBaseUrl + "/");
     builder.redirectUri(DEFAULT_REDIRECT_TEMPLATE_URL);
     builder.userInfoAuthenticationMethod(AuthenticationMethod.HEADER);
     builder.userNameAttributeName(IdTokenClaimNames.SUB);

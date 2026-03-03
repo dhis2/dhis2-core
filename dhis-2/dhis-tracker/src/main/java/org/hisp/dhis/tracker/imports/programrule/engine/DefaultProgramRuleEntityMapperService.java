@@ -52,7 +52,6 @@ import java.util.Objects;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
@@ -81,7 +80,6 @@ import org.springframework.stereotype.Service;
 /**
  * @author Zubair Asghar
  */
-@Slf4j
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleEntityMapperService")
 public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityMapperService {
@@ -159,8 +157,6 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
               : StringUtils.EMPTY,
           programRule.getPriority());
     } catch (Exception e) {
-      log.debug("Invalid rule action in ProgramRule: " + programRule.getUid());
-
       return null;
     }
   }
@@ -421,12 +417,6 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     if (programRuleAction.hasContent()) {
       return StringUtils.EMPTY;
     }
-
-    log.warn(
-        String.format(
-            "No location found for ProgramRuleAction: %s in ProgramRule: %s",
-            programRuleAction.getProgramRuleActionType(),
-            programRuleAction.getProgramRule().getUid()));
 
     return StringUtils.EMPTY;
   }

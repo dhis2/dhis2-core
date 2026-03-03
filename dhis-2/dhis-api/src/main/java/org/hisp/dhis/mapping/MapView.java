@@ -184,6 +184,8 @@ public class MapView extends BaseAnalyticalObject
 
   private String eventPointColor;
 
+  private String eventCoordinateFieldFallback;
+
   private int eventPointRadius;
 
   private MapViewRenderingStrategy renderingStrategy;
@@ -715,6 +717,17 @@ public class MapView extends BaseAnalyticalObject
 
   public void setEventPointRadius(int eventPointRadius) {
     this.eventPointRadius = eventPointRadius;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(max = 15)
+  public String getEventCoordinateFieldFallback() {
+    return eventCoordinateFieldFallback;
+  }
+
+  public void setEventCoordinateFieldFallback(String eventCoordinateFieldFallback) {
+    this.eventCoordinateFieldFallback = eventCoordinateFieldFallback;
   }
 
   @JsonProperty

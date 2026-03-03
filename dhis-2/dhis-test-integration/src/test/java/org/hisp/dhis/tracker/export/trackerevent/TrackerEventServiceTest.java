@@ -137,6 +137,30 @@ class TrackerEventServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldFetchOneEventWhenPassingEventUid() throws ForbiddenException, BadRequestException {
+    TrackerEventOperationParams params =
+        operationParamsBuilder.events(Set.of(UID.of("D9PbzJY8bJM"))).build();
+
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
+
+    assertEquals(List.of("D9PbzJY8bJM"), uids(events));
+  }
+
+  @Test
+  void shouldFetchOneEventWhenPassingEventUidAndFilterByDataElement()
+      throws ForbiddenException, BadRequestException {
+    TrackerEventOperationParams params =
+        operationParamsBuilder
+            .events(Set.of(UID.of("D9PbzJY8bJM")))
+            .filterByDataElement(UID.of("DATAEL00001"))
+            .build();
+
+    List<TrackerEvent> events = trackerEventService.findEvents(params);
+
+    assertEquals(List.of("D9PbzJY8bJM"), uids(events));
+  }
+
+  @Test
   void shouldExportEventAndMapAssignedUserWhenAssignedUserIsNotNull()
       throws ForbiddenException, BadRequestException {
     TrackerEventOperationParams params =

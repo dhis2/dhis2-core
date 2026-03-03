@@ -32,6 +32,7 @@ package org.hisp.dhis.util;
 import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.STATIC_DATE_DIMENSIONS;
 
 import java.util.Set;
 import java.util.stream.Stream;
@@ -43,14 +44,6 @@ import org.hisp.dhis.period.RelativePeriodEnum;
 /** Helper class that provides supportive methods to deal with query criteria and periods. */
 @NoArgsConstructor(access = PRIVATE)
 public class PeriodCriteriaUtils {
-
-  /**
-   * Date dimensions that get normalized to "pe" dimensions during request processing. When used as
-   * dimension/filter values (e.g., "ENROLLMENT_DATE:2021"), they represent period constraints and
-   * should prevent a default period from being added.
-   */
-  private static final Set<String> STATIC_DATE_DIMENSIONS =
-      Set.of("ENROLLMENT_DATE", "INCIDENT_DATE", "LAST_UPDATED", "CREATED_DATE", "COMPLETED_DATE");
 
   private static boolean hasStaticDateDimension(Set<String> dims) {
     return dims.stream()

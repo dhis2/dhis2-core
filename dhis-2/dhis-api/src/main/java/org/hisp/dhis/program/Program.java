@@ -169,6 +169,9 @@ public class Program extends BaseMetadataObject
   @Column(name = "enrollmentlabel", columnDefinition = "text")
   private String enrollmentLabel;
 
+  @Column(name = "enrollmentslabel", columnDefinition = "text")
+  private String enrollmentsLabel;
+  
   @Column(name = "followuplabel", columnDefinition = "text")
   private String followUpLabel;
 
@@ -189,6 +192,12 @@ public class Program extends BaseMetadataObject
 
   @Column(name = "eventlabel", columnDefinition = "text")
   private String eventLabel;
+  
+  private String programStagesLabel;
+
+  private String eventLabel;
+
+  private String eventsLabel;
 
   @ManyToMany
   @JoinTable(
@@ -444,21 +453,27 @@ public class Program extends BaseMetadataObject
 
   /**
    * Returns non-confidential TrackedEntityAttributes from ProgramTrackedEntityAttributes. Use
-   * getAttributes() to access the persisted attribute list.
+   * getAttributes() to access the persisted attribute list. Skipped attributes are also considered
+   * confidential.
    */
   public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributes() {
     return getTrackedEntityAttributes().stream()
-        .filter(a -> !a.isConfidentialBool())
+        .filter(a -> !a.isConfidentialBool() && !a.isSkipAnalytics())
         .collect(Collectors.toList());
   }
 
   /**
    * Returns TrackedEntityAttributes from ProgramTrackedEntityAttributes which have a legend set and
-   * is of numeric value type.
+   * is of numeric value type. Skipped attributes are also considered confidential.
    */
   public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributesWithLegendSet() {
     return getTrackedEntityAttributes().stream()
-        .filter(a -> !a.isConfidentialBool() && a.hasLegendSet() && a.isNumericType())
+        .filter(
+            a ->
+                !a.isConfidentialBool()
+                    && !a.isSkipAnalytics()
+                    && a.hasLegendSet()
+                    && a.isNumericType())
         .collect(Collectors.toList());
   }
 
@@ -884,6 +899,24 @@ public class Program extends BaseMetadataObject
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @PropertyRange(min = 2)
+  public String getEnrollmentsLabel() {
+    return enrollmentsLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "enrollmentsLabel", key = "ENROLLMENTS_LABEL")
+  public String getDisplayEnrollmentsLabel() {
+    return getTranslation("ENROLLMENTS_LABEL", getEnrollmentsLabel());
+  }
+
+  public void setEnrollmentsLabel(String enrollmentsLabel) {
+    this.enrollmentsLabel = enrollmentsLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
   public String getFollowUpLabel() {
     return followUpLabel;
   }
@@ -994,6 +1027,24 @@ public class Program extends BaseMetadataObject
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @PropertyRange(min = 2)
+  public String getProgramStagesLabel() {
+    return programStagesLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "programStagesLabel", key = "PROGRAM_STAGES_LABEL")
+  public String getDisplayProgramStagesLabel() {
+    return getTranslation("PROGRAM_STAGES_LABEL", getProgramStagesLabel());
+  }
+
+  public void setProgramStagesLabel(String programStagesLabel) {
+    this.programStagesLabel = programStagesLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
   public String getEventLabel() {
     return eventLabel;
   }
@@ -1007,6 +1058,24 @@ public class Program extends BaseMetadataObject
 
   public void setEventLabel(String eventLabel) {
     this.eventLabel = eventLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getEventsLabel() {
+    return eventsLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "eventsLabel", key = "EVENTS_LABEL")
+  public String getDisplayEventsLabel() {
+    return getTranslation("EVENTS_LABEL", getEventsLabel());
+  }
+
+  public void setEventsLabel(String eventsLabel) {
+    this.eventsLabel = eventsLabel;
   }
 
   @JsonProperty
@@ -1441,12 +1510,15 @@ public class Program extends BaseMetadataObject
     copy.setUseFirstStageDuringRegistration(original.getUseFirstStageDuringRegistration());
     copy.setUserRoles(copyOf(original.getUserRoles()));
     copy.setEnrollmentLabel(original.getEnrollmentLabel());
+    copy.setEnrollmentsLabel(original.getEnrollmentsLabel());
     copy.setNoteLabel(original.getNoteLabel());
     copy.setFollowUpLabel(original.getFollowUpLabel());
     copy.setOrgUnitLabel(original.getOrgUnitLabel());
     copy.setTrackedEntityAttributeLabel(original.getTrackedEntityAttributeLabel());
     copy.setProgramStageLabel(original.getProgramStageLabel());
+    copy.setProgramStagesLabel(original.getProgramStagesLabel());
     copy.setEventLabel(original.getEventLabel());
+    copy.setEventsLabel(original.getEventsLabel());
     copy.setRelationshipLabel(original.getRelationshipLabel());
     copy.setEnableChangeLog(original.isEnableChangeLog());
   }

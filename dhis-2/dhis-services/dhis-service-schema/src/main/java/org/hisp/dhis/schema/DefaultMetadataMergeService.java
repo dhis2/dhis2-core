@@ -53,7 +53,7 @@ public class DefaultMetadataMergeService implements MetadataMergeService {
     T source = metadataMergeParams.getSource();
     T target = metadataMergeParams.getTarget();
 
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(source));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(source));
 
     for (Property property : schema.getProperties()) {
       if (schema.isIdentifiableObject()) {

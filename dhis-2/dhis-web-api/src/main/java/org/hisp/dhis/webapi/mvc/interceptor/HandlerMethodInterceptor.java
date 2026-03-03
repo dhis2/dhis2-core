@@ -27,61 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datavalue;
+package org.hisp.dhis.webapi.mvc.interceptor;
 
-import static java.util.Objects.requireNonNull;
+import static org.hisp.dhis.log.MdcKeys.MDC_CONTROLLER;
+import static org.hisp.dhis.log.MdcKeys.MDC_METHOD;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.UsageTestOnly;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.MDC;
+import org.springframework.web.method.HandlerMethod;
+import org.springframework.web.servlet.HandlerInterceptor;
 
-/** A record of the ID combination that points to a unique aggregate data value row. */
-public record DataEntryKey(
-    @Nonnull UID dataElement,
-    @Nonnull UID orgUnit,
-    @CheckForNull UID categoryOptionCombo,
-    @CheckForNull UID attributeOptionCombo,
-    @Nonnull Period period)
-    implements DataEntryId {
+/**
+ * Adds the controller class name and handler method name to MDC. This is a {@link
+ * HandlerInterceptor} rather than a servlet filter because {@link HandlerMethod} is only available
+ * after Spring MVC resolves the request mapping.
+ */
+public class HandlerMethodInterceptor implements HandlerInterceptor {
 
-  public DataEntryKey {
-    requireNonNull(dataElement);
-    requireNonNull(orgUnit);
-    requireNonNull(period);
+  @Override
+  public boolean preHandle(
+      HttpServletRequest request, HttpServletResponse response, Object handler) {
+    if (handler instanceof HandlerMethod handlerMethod) {
+      MDC.put(MDC_CONTROLLER, handlerMethod.getBeanType().getSimpleName());
+      MDC.put(MDC_METHOD, handlerMethod.getMethod().getName());
+    }
+    return true;
   }
 
-  @UsageTestOnly
-  public DataEntryKey(
-      @Nonnull DataElement dataElement,
-      @Nonnull Period period,
-      @Nonnull OrganisationUnit orgUnit,
-      @CheckForNull CategoryOptionCombo categoryOptionCombo,
-      @CheckForNull CategoryOptionCombo attributeOptionCombo) {
-    this(
-        UID.of(dataElement),
-        UID.of(orgUnit),
-        UID.of(categoryOptionCombo),
-        UID.of(attributeOptionCombo),
-        period);
-  }
-
-  @Nonnull
-  public DataEntryValue toDeletedValue() {
-    return new DataEntryValue(
-        0,
-        dataElement,
-        orgUnit,
-        categoryOptionCombo,
-        attributeOptionCombo,
-        period,
-        null,
-        null,
-        null,
-        true);
+  @Override
+  public void afterCompletion(
+      HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
+    MDC.remove(MDC_CONTROLLER);
+    MDC.remove(MDC_METHOD);
   }
 }

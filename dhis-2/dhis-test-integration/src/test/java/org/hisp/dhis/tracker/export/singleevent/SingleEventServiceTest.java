@@ -129,6 +129,30 @@ class SingleEventServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldFetchOneEventWhenPassingEventUid() throws ForbiddenException, BadRequestException {
+    SingleEventOperationParams params =
+        operationParamsBuilder.events(Set.of(UID.of("QRYjLTiJTrA"))).build();
+
+    List<SingleEvent> events = singleEventService.findEvents(params);
+
+    assertEquals(List.of("QRYjLTiJTrA"), uids(events));
+  }
+
+  @Test
+  void shouldFetchOneEventWhenPassingEventUidAndFilterByDataElement()
+      throws ForbiddenException, BadRequestException {
+    SingleEventOperationParams params =
+        operationParamsBuilder
+            .events(Set.of(UID.of("QRYjLTiJTrA")))
+            .filterByDataElement(UID.of("GieVkTxp4HH"))
+            .build();
+
+    List<SingleEvent> events = singleEventService.findEvents(params);
+
+    assertEquals(List.of("QRYjLTiJTrA"), uids(events));
+  }
+
+  @Test
   void shouldExportEventAndMapAssignedUserWhenAssignedUserIsNotNull()
       throws ForbiddenException, BadRequestException {
     SingleEventOperationParams params =
@@ -145,7 +169,7 @@ class SingleEventServiceTest extends PostgresIntegrationTestBase {
       throws ForbiddenException, BadRequestException {
     SingleEventOperationParams params =
         SingleEventOperationParams.builderForDataSync(
-                UID.of("iS7eutanDry"), null, Map.of("qLZC0lvvxQH", Set.of("GieVkTxp4HH")))
+                null, Map.of("qLZC0lvvxQH", Set.of("GieVkTxp4HH")))
             .build();
 
     Page<SingleEvent> events = singleEventService.findEvents(params, PageParams.of(1, 10, false));
@@ -157,7 +181,8 @@ class SingleEventServiceTest extends PostgresIntegrationTestBase {
             "ck7DzdxqLqA",
             "OTmjvJDn0Fu",
             "kWjSezkXHVp",
-            "QRYjLTiJTrA"),
+            "QRYjLTiJTrA",
+            "G9PbzJY8bJG"),
         uids(events.getItems()));
 
     events.getItems().stream()

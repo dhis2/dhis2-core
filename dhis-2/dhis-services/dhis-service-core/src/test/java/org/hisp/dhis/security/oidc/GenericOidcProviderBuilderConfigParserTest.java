@@ -42,6 +42,53 @@ import org.junit.jupiter.api.Test;
 class GenericOidcProviderBuilderConfigParserTest {
 
   @Test
+  void parseDhis2ProviderIsReservedAndSkipped() {
+    Properties p = new Properties();
+    p.put("oidc.provider.dhis2.client_id", "dhis2-client");
+    p.put("oidc.provider.dhis2.client_secret", "secret");
+    p.put("oidc.provider.dhis2.authorization_uri", "http://localhost:8080/oauth2/authorize");
+    p.put("oidc.provider.dhis2.token_uri", "http://localhost:8080/oauth2/token");
+    p.put("oidc.provider.dhis2.user_info_uri", "http://localhost:8080/userinfo");
+    p.put("oidc.provider.dhis2.jwk_uri", "http://localhost:8080/oauth2/jwks");
+    List<DhisOidcClientRegistration> parse = GenericOidcProviderConfigParser.parse(p);
+    assertThat(parse, hasSize(0));
+  }
+
+  @Test
+  void parseDhis2ProviderSkippedButOthersStillParsed() {
+    Properties p = new Properties();
+    p.put("oidc.provider.dhis2.client_id", "dhis2-client");
+    p.put("oidc.provider.dhis2.client_secret", "secret");
+    p.put("oidc.provider.dhis2.authorization_uri", "http://localhost:8080/oauth2/authorize");
+    p.put("oidc.provider.dhis2.token_uri", "http://localhost:8080/oauth2/token");
+    p.put("oidc.provider.dhis2.user_info_uri", "http://localhost:8080/userinfo");
+    p.put("oidc.provider.dhis2.jwk_uri", "http://localhost:8080/oauth2/jwks");
+
+    p.put("oidc.provider.idporten.client_id", "testClientId");
+    p.put("oidc.provider.idporten.client_secret", "testClientSecret");
+    p.put("oidc.provider.idporten.authorization_uri", "https://oidc-ver2.difi.no/authorize");
+    p.put("oidc.provider.idporten.token_uri", "https://oidc-ver2.difi.no/token");
+    p.put("oidc.provider.idporten.user_info_uri", "https://oidc-ver2.difi.no/userinfo");
+    p.put("oidc.provider.idporten.jwk_uri", "https://oidc-ver2.difi.no/jwk");
+
+    List<DhisOidcClientRegistration> parse = GenericOidcProviderConfigParser.parse(p);
+    assertThat(parse, hasSize(1));
+  }
+
+  @Test
+  void parseSkipsAllReservedProviderIds() {
+    Properties p = new Properties();
+    p.put("oidc.provider.dhis2.client_id", "dhis2-client");
+    p.put("oidc.provider.google.client_id", "google-client");
+    p.put("oidc.provider.azure.client_id", "azure-client");
+    p.put("oidc.provider.wso2.client_id", "wso2-client");
+    p.put("oidc.provider.custom.client_id", "custom-client");
+
+    List<DhisOidcClientRegistration> parse = GenericOidcProviderConfigParser.parse(p);
+    assertThat(parse, hasSize(0));
+  }
+
+  @Test
   void parseConfigAllValidParameters() {
     Properties p = new Properties();
     p.put("oidc.provider.idporten.client_id", "testClientId");
