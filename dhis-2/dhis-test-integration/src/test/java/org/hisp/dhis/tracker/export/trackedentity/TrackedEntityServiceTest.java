@@ -49,6 +49,7 @@ import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
 import static org.hisp.dhis.tracker.TrackerTestUtils.twoHoursAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.twoHoursBefore;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -1136,6 +1137,46 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .build();
 
     assertIsEmpty(trackedEntityService.findTrackedEntities(operationParams));
+  }
+
+  @Test
+  void shouldReturnOnlyOverdueTrackedEntitiesWhenFilteringByOverdueStatus()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntity teOverdue = setupTeWithEvent(EventStatus.SCHEDULE, -10);
+    setupTeWithEvent(EventStatus.SKIPPED, -10);
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(UID.of(orgUnitA)))
+            .orgUnitMode(SELECTED)
+            .program(UID.of(programA))
+            .eventStatus(EventStatus.OVERDUE)
+            .eventStartDate(Date.from(Instant.now().minus(20, ChronoUnit.DAYS)))
+            .eventEndDate(Date.from(Instant.now().plus(20, ChronoUnit.DAYS)))
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(teOverdue.getUid()), uids(trackedEntities));
+  }
+
+  @Test
+  void shouldReturnOnlyScheduledTrackedEntitiesWhenFilteringByScheduledStatus()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntity teScheduled = setupTeWithEvent(EventStatus.SCHEDULE, 10);
+    setupTeWithEvent(EventStatus.SKIPPED, 10);
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(UID.of(orgUnitA)))
+            .orgUnitMode(SELECTED)
+            .program(UID.of(programA))
+            .eventStatus(EventStatus.SCHEDULE)
+            .eventStartDate(Date.from(Instant.now().minus(20, ChronoUnit.DAYS)))
+            .eventEndDate(Date.from(Instant.now().plus(20, ChronoUnit.DAYS)))
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(teScheduled.getUid()), uids(trackedEntities));
   }
 
   @Test
@@ -2487,5 +2528,22 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
                 .includeEnrollments(EnrollmentFields.all())
                 .build())
         .build();
+  }
+
+  private TrackedEntity setupTeWithEvent(EventStatus status, int days) {
+    TrackedEntity te = createTrackedEntity(orgUnitA, trackedEntityTypeA);
+    manager.save(te);
+
+    Enrollment enrollment = createEnrollment(programA, te, orgUnitA);
+    manager.save(enrollment);
+
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(te, programA, orgUnitA);
+
+    TrackerEvent event = createEvent(programStageA1, enrollment, orgUnitA);
+    event.setScheduledDate(Date.from(Instant.now().plus(days, ChronoUnit.DAYS)));
+    event.setStatus(status);
+    manager.save(event);
+
+    return te;
   }
 }

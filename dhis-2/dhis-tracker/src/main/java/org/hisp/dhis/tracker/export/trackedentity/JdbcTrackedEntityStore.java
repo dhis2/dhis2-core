@@ -610,18 +610,22 @@ class JdbcTrackedEntityStore {
       sqlParameters.addValue("eventStatus", EventStatus.SKIPPED.name());
     } else if (params.isEventStatus(EventStatus.SCHEDULE)) {
       sql.append(EVENT_ALIAS)
-          .append(".status is not null and ")
+          .append(".status != :skippedStatus")
+          .append(" and ")
           .append(EVENT_ALIAS)
           .append(".occurreddate is null and date(now()) <= date(")
           .append(EVENT_ALIAS)
           .append(".scheduleddate)");
+      sqlParameters.addValue("skippedStatus", EventStatus.SKIPPED.name());
     } else if (params.isEventStatus(EventStatus.OVERDUE)) {
       sql.append(EVENT_ALIAS)
-          .append(".status is not null and ")
+          .append(".status != :skippedStatus")
+          .append(" and ")
           .append(EVENT_ALIAS)
           .append(".occurreddate is null and date(now()) > date(")
           .append(EVENT_ALIAS)
           .append(".scheduleddate)");
+      sqlParameters.addValue("skippedStatus", EventStatus.SKIPPED.name());
     }
   }
 
