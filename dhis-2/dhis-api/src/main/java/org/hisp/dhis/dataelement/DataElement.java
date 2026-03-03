@@ -140,6 +140,7 @@ public class DataElement extends BaseMetadataObject
   private long id;
 
   @Column(name = "code", unique = true, length = 50)
+  @AuditAttribute
   private String code;
 
   @Column(name = "name", nullable = false, unique = true, length = 230)
@@ -157,9 +158,14 @@ public class DataElement extends BaseMetadataObject
   @Embedded
   private TranslationProperty translations = new TranslationProperty();
 
+  /** The style defines how the DataElement should be represented on clients */
   @Type(type = "jbObjectStyle")
   private ObjectStyle style;
 
+  /**
+   * Field mask represent how the value should be formatted during input. This string will be
+   * validated as a TextPatternSegment of type TEXT.
+   */
   @Column(name = "fieldmask")
   private String fieldMask;
 
@@ -258,15 +264,6 @@ public class DataElement extends BaseMetadataObject
 
   @Type(type = "jsbObjectSharing")
   private Sharing sharing = new Sharing();
-
-  /** The style defines how the DataElement should be represented on clients */
-  // style field declared above
-
-  /**
-   * Field mask represent how the value should be formatted during input. This string will be
-   * validated as a TextPatternSegment of type TEXT.
-   */
-  // fieldMask field declared above
 
   // -------------------------------------------------------------------------
   // Transient fields
@@ -853,7 +850,7 @@ public class DataElement extends BaseMetadataObject
   public OptionSet getCommentOptionSet() {
     return commentOptionSet;
   }
-
+  
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public ObjectStyle getStyle() {
