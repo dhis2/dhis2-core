@@ -109,6 +109,36 @@ Individual `-D` flags always override values from the config file. Available pro
 | `iterations` | `3` | Requests per scenario |
 | `mode` | `parallel` | `parallel` or `sequential` |
 
+### UserGroupMembershipPerformanceTest
+
+Tests the user-group membership workflow on `/api/userGroups`:
+
+* `POST` create a new group with an initial user set
+* `PATCH` replace the `users` collection with a larger set
+* `PUT` full-replace the group with another user set
+* `DELETE` remove the group
+
+The test discovers a small set of existing user IDs during setup and reuses them for every
+iteration, which keeps timings focused on membership updates rather than user creation.
+
+```sh
+mvn gatling:test -Dgatling.simulationClass=org.hisp.dhis.test.platform.UserGroupMembershipPerformanceTest \
+  --file dhis-2/pom.xml -pl dhis-test-performance
+```
+
+Available properties:
+
+| Property | Default | Description |
+|:---|:---|:---|
+| `configFile` | — | Path to a `.properties` file |
+| `baseUrl` | `http://localhost:8080` | DHIS2 base URL |
+| `username` | `admin` | API username |
+| `password` | `district` | API password |
+| `iterations` | `3` | Workflow iterations |
+| `initialUserCount` | `3` | Users included in the create request |
+| `patchUserCount` | `6` | Users included after the PATCH replace |
+| `putUserCount` | `9` | Users included after the PUT full replace |
+
 ## Raw Tests (JSON-driven)
 
 The `raw` package (`org.hisp.dhis.test.raw`) contains JSON-driven performance tests ported from
@@ -208,4 +238,3 @@ docker builder prune -a
 ```
 
 Use `-a` to remove all cache layers, not just unused ones.
-

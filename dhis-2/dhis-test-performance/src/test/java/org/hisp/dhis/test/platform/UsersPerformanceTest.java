@@ -32,6 +32,7 @@ package org.hisp.dhis.test.platform;
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gatling.javaapi.core.*;
 import io.gatling.javaapi.http.*;
@@ -60,6 +61,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *   <li><b>GET</b> — fetches a single pre-created user by UID
  *   <li><b>PUT</b> — full-replace of a pre-created user
  *   <li><b>PATCH</b> — partial update via RFC 6902 JSON Patch on a pre-created user
+ *   <li><b>PATCH userGroups</b> — updates group assignment via the user-side PATCH path
  *   <li><b>DELETE</b> — deletes pre-created users (separate pool, timing is clean)
  * </ol>
  *
@@ -144,7 +146,9 @@ public class UsersPerformanceTest extends Simulation {
   private static final String GET_REQUEST = "GET User - by uid";
   private static final String PUT_REQUEST = "PUT User - full update";
   private static final String PATCH_REQUEST = "PATCH User - partial update";
+  private static final String PATCH_GROUPS_REQUEST = "PATCH User - replace userGroups";
   private static final String DELETE_REQUEST = "DELETE User - delete";
+  private static final int PATCH_GROUP_COUNT = Integer.parseInt(prop("patchGroupCount", "7"));
 
   // Timestamp-based offset so each run generates unique usernames
   private static final int RUN_OFFSET = (int) (System.currentTimeMillis() % 10_000_000);
@@ -157,15 +161,64 @@ public class UsersPerformanceTest extends Simulation {
    */
   private static final List<String[]> READ_WRITE_USERS = new ArrayList<>();
 
+  private static final List<String> PATCH_GROUP_UIDS = new ArrayList<>();
+
   private static final AtomicInteger GET_INDEX = new AtomicInteger(0);
   private static final AtomicInteger PUT_INDEX = new AtomicInteger(0);
   private static final AtomicInteger PATCH_INDEX = new AtomicInteger(0);
+  private static final AtomicInteger PATCH_GROUPS_INDEX = new AtomicInteger(0);
 
   /**
    * Pre-created users for the DELETE scenario. Consumed one-at-a-time; sized generously so the
    * queue is never exhausted within a normal test run.
    */
   private static final BlockingQueue<String> DELETE_UID_QUEUE = new LinkedBlockingQueue<>();
+
+  private static String patchUserGroupsBody(int startIndex) {
+    int count = Math.min(PATCH_GROUP_COUNT, PATCH_GROUP_UIDS.size());
+    StringBuilder groups = new StringBuilder("[");
+    for (int i = 0; i < count; i++) {
+      if (i > 0) {
+        groups.append(',');
+      }
+      String uid = PATCH_GROUP_UIDS.get((startIndex + i) % PATCH_GROUP_UIDS.size());
+      groups.append("{\"id\":\"").append(uid).append("\"}");
+    }
+    groups.append(']');
+
+    return """
+        [{"op":"add","path":"/userGroups","value":%s},{"op":"add","path":"/attributeValues","value":[]}]\
+        """
+        .formatted(groups);
+  }
+
+  private static void fetchUserGroupUids(
+      HttpClient client, ObjectMapper mapper, String auth, int needed) {
+    try {
+      HttpRequest request =
+          HttpRequest.newBuilder()
+              .uri(URI.create(BASE_URL + "/api/userGroups?fields=id&pageSize=" + needed))
+              .header("Authorization", "Basic " + auth)
+              .header("Accept", "application/json")
+              .GET()
+              .build();
+      HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+      if (response.statusCode() != 200) {
+        System.err.println("Fetching user groups failed (HTTP " + response.statusCode() + ")");
+        return;
+      }
+
+      JsonNode groups = mapper.readTree(response.body()).path("userGroups");
+      for (JsonNode group : groups) {
+        String uid = group.path("id").asText();
+        if (!uid.isBlank()) {
+          PATCH_GROUP_UIDS.add(uid);
+        }
+      }
+    } catch (Exception e) {
+      System.err.println("Fetching user groups failed: " + e.getMessage());
+    }
+  }
 
   /** Builds a minimal valid user JSON body for POST/PUT. Pass {@code null} for id on creation. */
   private static String userBody(String id, String username, String firstName) {
@@ -252,9 +305,23 @@ public class UsersPerformanceTest extends Simulation {
       if (uid != null) DELETE_UID_QUEUE.offer(uid);
     }
 
+    fetchUserGroupUids(client, mapper, auth, rwNeeded);
+    if (PATCH_GROUP_UIDS.isEmpty() && !USER_GROUP_UID.isBlank()) {
+      PATCH_GROUP_UIDS.add(USER_GROUP_UID);
+    }
+    if (PATCH_GROUP_UIDS.isEmpty()) {
+      throw new IllegalStateException(
+          "Could not fetch any user groups for PATCH /api/users scenario");
+    }
+
     System.out.println(
-        "Pre-created %d/%d read/write users, %d/%d delete users."
-            .formatted(READ_WRITE_USERS.size(), rwNeeded, DELETE_UID_QUEUE.size(), delNeeded));
+        "Pre-created %d/%d read/write users, %d/%d delete users, loaded %d user groups."
+            .formatted(
+                READ_WRITE_USERS.size(),
+                rwNeeded,
+                DELETE_UID_QUEUE.size(),
+                delNeeded,
+                PATCH_GROUP_UIDS.size()));
   }
 
   public UsersPerformanceTest() {
@@ -340,6 +407,26 @@ public class UsersPerformanceTest extends Simulation {
                                     """))
                             .check(status().is(200))));
 
+    // ── Scenario: PATCH /api/users/{uid} userGroups ────────────────────────
+    ScenarioBuilder patchGroupsScenario =
+        scenario(PATCH_GROUPS_REQUEST)
+            .exec(flushCookieJar())
+            .repeat(ITERATIONS)
+            .on(
+                exec(session -> {
+                      int index = PATCH_GROUPS_INDEX.getAndIncrement();
+                      String[] user = READ_WRITE_USERS.get(index % READ_WRITE_USERS.size());
+                      return session
+                          .set("patchUserUid", user[0])
+                          .set("patchGroupsBody", patchUserGroupsBody(index));
+                    })
+                    .exec(
+                        http(PATCH_GROUPS_REQUEST)
+                            .patch("/api/users/#{patchUserUid}")
+                            .header("Content-Type", "application/json-patch+json")
+                            .body(StringBody("#{patchGroupsBody}"))
+                            .check(status().is(200))));
+
     // ── Scenario: DELETE /api/users/{uid} ───────────────────────────────────
     // Users are pre-created in before(), so this scenario measures only DELETE time.
     ScenarioBuilder deleteScenario =
@@ -368,6 +455,7 @@ public class UsersPerformanceTest extends Simulation {
     PopulationBuilder getPopulation = getScenario.injectClosed(singleUser);
     PopulationBuilder putPopulation = putScenario.injectClosed(singleUser);
     PopulationBuilder patchPopulation = patchScenario.injectClosed(singleUser);
+    PopulationBuilder patchGroupsPopulation = patchGroupsScenario.injectClosed(singleUser);
     PopulationBuilder deletePopulation = deleteScenario.injectClosed(singleUser);
 
     var sim =
@@ -377,9 +465,15 @@ public class UsersPerformanceTest extends Simulation {
                     .andThen(getPopulation)
                     .andThen(putPopulation)
                     .andThen(patchPopulation)
+                    .andThen(patchGroupsPopulation)
                     .andThen(deletePopulation))
             : setUp(
-                postPopulation, getPopulation, putPopulation, patchPopulation, deletePopulation);
+                postPopulation,
+                getPopulation,
+                putPopulation,
+                patchPopulation,
+                patchGroupsPopulation,
+                deletePopulation);
 
     sim.protocols(httpProtocol)
         .assertions(
@@ -395,6 +489,9 @@ public class UsersPerformanceTest extends Simulation {
             details(PATCH_REQUEST).responseTime().percentile(95).lt(550),
             details(PATCH_REQUEST).responseTime().max().lt(750),
             details(PATCH_REQUEST).successfulRequests().percent().is(100D),
+            details(PATCH_GROUPS_REQUEST).responseTime().percentile(95).lt(700),
+            details(PATCH_GROUPS_REQUEST).responseTime().max().lt(900),
+            details(PATCH_GROUPS_REQUEST).successfulRequests().percent().is(100D),
             details(DELETE_REQUEST).responseTime().percentile(95).lt(1800),
             details(DELETE_REQUEST).responseTime().max().lt(2500),
             details(DELETE_REQUEST).successfulRequests().percent().is(100D));
