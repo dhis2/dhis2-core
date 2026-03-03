@@ -171,7 +171,7 @@ public class Program extends BaseMetadataObject
 
   @Column(name = "enrollmentslabel", columnDefinition = "text")
   private String enrollmentsLabel;
-  
+
   @Column(name = "followuplabel", columnDefinition = "text")
   private String followUpLabel;
 
@@ -195,7 +195,7 @@ public class Program extends BaseMetadataObject
 
   @Column(name = "programstageslabel", columnDefinition = "text")
   private String programStagesLabel;
-  
+
   @Column(name = "eventslabel", columnDefinition = "text")
   private String eventsLabel;
 
