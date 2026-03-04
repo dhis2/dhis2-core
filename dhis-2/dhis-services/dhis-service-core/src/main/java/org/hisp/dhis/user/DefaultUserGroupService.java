@@ -42,6 +42,7 @@ import org.hibernate.Session;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.HibernateCacheManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.stereotype.Service;
@@ -134,7 +135,12 @@ public class DefaultUserGroupService implements UserGroupService {
   @Override
   @Transactional(readOnly = true)
   public boolean canAddOrRemoveMember(String uid, @Nonnull UserDetails userDetails) {
-    UserGroup userGroup = getUserGroup(uid);
+    return canAddOrRemoveMember(getUserGroup(uid), userDetails);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean canAddOrRemoveMember(UserGroup userGroup, @Nonnull UserDetails userDetails) {
 
     if (userGroup == null) {
       return false;
@@ -151,10 +157,11 @@ public class DefaultUserGroupService implements UserGroupService {
   @Transactional
   public void addUserToGroups(User user, Collection<String> uids, UserDetails currentUser) {
     for (String uid : uids) {
-      if (canAddOrRemoveMember(uid, currentUser)) {
-        UserGroup userGroup = getUserGroup(uid);
-        userGroup.addUser(user);
-        userGroupStore.updateNoAcl(userGroup);
+      UserGroup userGroup = getUserGroup(uid);
+      if (canAddOrRemoveMember(userGroup, currentUser)
+          && userGroupStore.addMember(
+              userGroup.getUID(), user.getUID(), UID.of(currentUser.getUid()))) {
+        user.getGroups().add(userGroup);
       }
     }
     aclService.invalidateCurrentUserGroupInfoCache();
