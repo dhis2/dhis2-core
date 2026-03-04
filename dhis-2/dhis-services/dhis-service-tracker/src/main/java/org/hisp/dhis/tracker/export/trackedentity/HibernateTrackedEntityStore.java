@@ -105,8 +105,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private static final String IS_NULL = "IS NULL";
 
-  private static final String IS_NOT_NULL = "IS NOT NULL";
-
   private static final String SPACE = " ";
 
   private static final String SINGLE_QUOTE = "'";
@@ -918,7 +916,6 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
         sql.append(" AND EV.status != '").append(EventStatus.SKIPPED.name()).append("'");
         sql.append(" AND EV.occurreddate IS NULL AND date(now()) <= date(EV.scheduleddate)");
       } else if (params.isEventStatus(EventStatus.OVERDUE)) {
-        // TODO Add condition here
         sql.append(" AND EV.scheduleddate >= '")
             .append(start)
             .append("' AND EV.scheduleddate <= '")
