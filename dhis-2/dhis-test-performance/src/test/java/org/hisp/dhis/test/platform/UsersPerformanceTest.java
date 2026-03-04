@@ -163,10 +163,12 @@ public class UsersPerformanceTest extends Simulation {
 
   private static final List<String> PATCH_GROUP_UIDS = new ArrayList<>();
 
+  // Each scenario starts at a different offset so parallel runs don't share the same user.
+  // Offsets are separated by ITERATIONS so each scenario gets its own non-overlapping slice.
   private static final AtomicInteger GET_INDEX = new AtomicInteger(0);
-  private static final AtomicInteger PUT_INDEX = new AtomicInteger(0);
-  private static final AtomicInteger PATCH_INDEX = new AtomicInteger(0);
-  private static final AtomicInteger PATCH_GROUPS_INDEX = new AtomicInteger(0);
+  private static final AtomicInteger PUT_INDEX = new AtomicInteger(ITERATIONS);
+  private static final AtomicInteger PATCH_INDEX = new AtomicInteger(ITERATIONS * 2);
+  private static final AtomicInteger PATCH_GROUPS_INDEX = new AtomicInteger(ITERATIONS * 3);
 
   /**
    * Pre-created users for the DELETE scenario. Consumed one-at-a-time; sized generously so the
@@ -278,7 +280,7 @@ public class UsersPerformanceTest extends Simulation {
   @Override
   public void before() {
     // Conservative pool sizes: enough headroom for ~3× concurrent virtual users per scenario.
-    int rwNeeded = ITERATIONS * 3 + 5;
+    int rwNeeded = ITERATIONS * 4 + 5;
     int delNeeded = ITERATIONS * 3 + 5;
     String groupLabel = USER_GROUP_UID.isBlank() ? "" : " (group: " + USER_GROUP_UID + ")";
     System.out.println(
