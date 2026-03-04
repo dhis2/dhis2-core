@@ -75,8 +75,7 @@ public class LoginAppDiagnostics {
     }
     // Innermost (unwrapped) request
     String innermostHeader = str(r.getHeader("X-Forwarded-Host"));
-    wrapperChain.add(
-        "[" + depth + "] " + r.getClass().getName() + " -> XFH=" + innermostHeader);
+    wrapperChain.add("[" + depth + "] " + r.getClass().getName() + " -> XFH=" + innermostHeader);
     lastRenderInfo.put("wrapperLayer_" + depth, r.getClass().getSimpleName());
     lastRenderInfo.put("wrapperLayer_" + depth + "_XFH", innermostHeader);
     lastRenderInfo.put("wrapperDepth", String.valueOf(depth));

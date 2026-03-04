@@ -47,8 +47,8 @@ public class HttpServletRequestPaths {
   }
 
   /**
-   * Set a fallback base URL (from server.base.url in dhis.conf) to use when X-Forwarded-Host is
-   * not present. This handles cases like internal RequestDispatcher forwards where proxy headers are
+   * Set a fallback base URL (from server.base.url in dhis.conf) to use when X-Forwarded-Host is not
+   * present. This handles cases like internal RequestDispatcher forwards where proxy headers are
    * lost.
    */
   public static void setFallbackBaseUrl(String url) {
