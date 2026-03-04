@@ -46,8 +46,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.auth.ApiHeadersAuthScheme;
 import org.hisp.dhis.common.auth.ApiQueryParamsAuthScheme;
 import org.hisp.dhis.common.auth.ApiTokenAuthScheme;
@@ -57,9 +57,14 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataDumpService;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataEntryService;
+import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.DataEntrySummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -68,6 +73,7 @@ import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.route.Route;
+import org.hisp.dhis.scheduling.RecordingJobProgress;
 import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -75,7 +81,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -97,7 +102,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
       override.put("audit.database", "true");
       override.put("audit.metadata", "CREATE");
       override.put("audit.tracker", "CREATE");
-      override.put("audit.aggregate", "CREATE");
+      override.put("audit.aggregate", "UPDATE");
       PostgresDhisConfigurationProvider postgresDhisConfigurationProvider =
           new PostgresDhisConfigurationProvider(null);
       postgresDhisConfigurationProvider.addProperties(override);
@@ -114,6 +119,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
   @Autowired private DataDumpService dataDumpService;
+  @Autowired private DataEntryService dataEntryService;
 
   @Autowired private PeriodService periodService;
 
@@ -221,9 +227,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  @Disabled(
-      "DV audit via hibernate events no longer works with native SQL upserts - waiting for decision on goal with DV audits")
-  void testSaveAggregateDataValue() {
+  void testSaveAggregateDataValue() throws ConflictException {
     // ---------------------------------------------------------------------
     // Add supporting data
     // ---------------------------------------------------------------------
@@ -251,13 +255,33 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     manager.save(orgUnitB);
     manager.save(orgUnitC);
     manager.save(orgUnitD);
-    CategoryOptionCombo optionCombo = categoryService.getDefaultCategoryOptionCombo();
-    categoryService.addCategoryOptionCombo(optionCombo);
-    DataValue dataValueA = createDataValue(dataElementA, periodA, orgUnitA, "1", optionCombo);
-    DataValue dataValueB = createDataValue(dataElementB, periodB, orgUnitB, "2", optionCombo);
-    DataValue dataValueC = createDataValue(dataElementC, periodC, orgUnitC, "3", optionCombo);
-    DataValue dataValueD = createDataValue(dataElementD, periodD, orgUnitD, "4", optionCombo);
-    addDataValues(dataValueA, dataValueB, dataValueC, dataValueD);
+
+    DataSet ds = createDataSet('A', periodService.getPeriodType(PeriodTypeEnum.MONTHLY));
+    ds.addDataSetElement(dataElementA);
+    ds.addDataSetElement(dataElementB);
+    ds.addDataSetElement(dataElementC);
+    ds.addDataSetElement(dataElementD);
+    ds.addOrganisationUnit(orgUnitA);
+    ds.addOrganisationUnit(orgUnitB);
+    ds.addOrganisationUnit(orgUnitC);
+    ds.addOrganisationUnit(orgUnitD);
+    manager.save(ds);
+
+    List<DataEntryValue> values =
+        List.of(
+            createDataValue(dataElementA, periodA, orgUnitA, "1"),
+            createDataValue(dataElementB, periodB, orgUnitB, "2"),
+            createDataValue(dataElementC, periodC, orgUnitC, "3"),
+            createDataValue(dataElementD, periodD, orgUnitD, "4"));
+
+    DataEntrySummary summary =
+        dataEntryService.upsertGroup(
+            new DataEntryGroup.Options(),
+            new DataEntryGroup(values),
+            RecordingJobProgress.transitory());
+
+    assertEquals(4, summary.succeeded());
+
     AuditAttributes attributes = new AuditAttributes();
     attributes.put("dataElement", dataElementA.getUid());
     AuditQuery query = AuditQuery.builder().auditAttributes(attributes).build();
@@ -265,9 +289,14 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     List<Audit> audits = auditService.getAudits(query);
     assertEquals(1, audits.size());
     Audit audit = audits.get(0);
-    assertEquals(DataValue.class.getName(), audit.getKlass());
     assertEquals(dataElementA.getUid(), audit.getAttributes().get("dataElement"));
     assertNotNull(audit.getData());
+  }
+
+  public static DataEntryValue createDataValue(
+      DataElement dataElement, Period period, OrganisationUnit source, String value) {
+    return new DataEntryValue(
+        0, UID.of(dataElement), UID.of(source), null, null, period, "1", null, null, null);
   }
 
   @Test
