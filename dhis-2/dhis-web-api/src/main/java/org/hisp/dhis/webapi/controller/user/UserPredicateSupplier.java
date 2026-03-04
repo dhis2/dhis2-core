@@ -101,7 +101,7 @@ public class UserPredicateSupplier implements JpaPredicateSupplier {
     if (params.isIncludeOrgUnitChildren()) {
       List<Predicate> pathPredicates = new ArrayList<>();
       for (OrganisationUnit ou : params.getOrganisationUnits()) {
-        pathPredicates.add(builder.like(ouJoin.get("path"), "%/" + ou.getUid() + "%"));
+        pathPredicates.add(builder.like(ouJoin.get("path"), ou.getStoredPath() + "%"));
       }
       conditions.add(builder.or(pathPredicates.toArray(new Predicate[0])));
     } else {

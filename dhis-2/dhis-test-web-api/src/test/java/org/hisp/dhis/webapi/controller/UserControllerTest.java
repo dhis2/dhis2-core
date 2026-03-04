@@ -1227,6 +1227,73 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  @DisplayName(
+      "GET /users?filter=organisationUnits.id:in:[uid] returns only users in that org unit")
+  void testGetUsersFilterByOrgUnitMembership() {
+    OrganisationUnit orgA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(orgA);
+    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
+    organisationUnitService.addOrganisationUnit(orgB);
+
+    User alice = createUserWithAuth("alice");
+    alice.addOrganisationUnit(orgA);
+    userService.updateUser(alice);
+
+    User bob = createUserWithAuth("bob");
+    bob.addOrganisationUnit(orgB);
+    userService.updateUser(bob);
+
+    JsonList<JsonUser> users =
+        GET("/users?filter=organisationUnits.id:in:[" + orgB.getUid() + "]")
+            .content(HttpStatus.OK)
+            .getList("users", JsonUser.class);
+
+    List<String> uids = users.stream().map(JsonUser::getId).toList();
+    assertTrue(uids.contains(bob.getUid()), "bob (in orgB) should be returned");
+    assertFalse(uids.contains(alice.getUid()), "alice (in orgA only) should not be returned");
+  }
+
+  @Test
+  @DisplayName(
+      "GET /users?filter=organisationUnits.id:in:[uid]&userOrgUnits=true&includeChildren=true"
+          + " returns intersection of filter and subtree")
+  void testGetUsersFilterByOrgUnitMembershipWithChildren() {
+    OrganisationUnit orgA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(orgA);
+    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
+    organisationUnitService.addOrganisationUnit(orgB);
+
+    User alice = createUserWithAuth("alice");
+    alice.addOrganisationUnit(orgA);
+    userService.updateUser(alice);
+
+    User bob = createUserWithAuth("bob");
+    bob.addOrganisationUnit(orgB);
+    userService.updateUser(bob);
+
+    // viewer's org units = orgA → userOrgUnits=true&includeChildren=true covers orgA subtree
+    User viewer = createUserWithAuth("viewer", "ALL");
+    viewer.addOrganisationUnit(orgA);
+    userService.updateUser(viewer);
+    switchToNewUser(viewer);
+
+    // filter=organisationUnits.id:in:[orgB] AND userOrgUnits subtree (orgA+children)
+    // → only bob satisfies both (directly in orgB, which is under orgA)
+    JsonList<JsonUser> users =
+        GET("/users?filter=organisationUnits.id:in:["
+                + orgB.getUid()
+                + "]&userOrgUnits=true&includeChildren=true")
+            .content(HttpStatus.OK)
+            .getList("users", JsonUser.class);
+
+    List<String> uids = users.stream().map(JsonUser::getId).toList();
+    assertTrue(uids.contains(bob.getUid()), "bob (in orgB, subtree of orgA) should be returned");
+    assertFalse(uids.contains(alice.getUid()), "alice (in orgA, not orgB) should not be returned");
+    assertFalse(
+        uids.contains(viewer.getUid()), "viewer (in orgA, not orgB) should not be returned");
+  }
+
+  @Test
   void testGetUserRoleUsersAreTransformed() {
     UserRole role = createUserRole('X');
     User user = makeUser("Y");

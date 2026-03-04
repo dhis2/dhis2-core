@@ -229,18 +229,28 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
                   UserOrgUnitType.DATA_OUTPUT, "dataViewOrganisationUnits",
                   UserOrgUnitType.TEI_SEARCH, "teiSearchOrganisationUnits")
               .getOrDefault(params.getOrgUnitBoundary(), "organisationUnits");
-      hql += "left join u." + opProperty + " ou ";
 
+      // Use EXISTS subquery instead of a JOIN to avoid a second collection join in the main query.
+      // Two collection joins (groups + org units) cause Hibernate to silently override
+      // setMaxResults with Integer.MAX_VALUE and paginate in memory, fetching all rows.
       if (params.isIncludeOrgUnitChildren()) {
-        hql += hlp.whereAnd() + " (";
+        hql +=
+            hlp.whereAnd()
+                + " exists (select 1 from User u2 inner join u2."
+                + opProperty
+                + " ou where u2.id = u.id and (";
 
         for (OrganisationUnit ou : params.getOrganisationUnits()) {
           hql += format("ou.path like :ou%s or ", ou.getUid());
         }
 
-        hql = TextUtils.removeLastOr(hql) + ")";
+        hql = TextUtils.removeLastOr(hql) + "))";
       } else {
-        hql += hlp.whereAnd() + " ou.id in (:ouIds) ";
+        hql +=
+            hlp.whereAnd()
+                + " exists (select 1 from User u2 inner join u2."
+                + opProperty
+                + " ou where u2.id = u.id and ou.id in (:ouIds))";
       }
     }
 
@@ -382,7 +392,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     if (!params.getOrganisationUnits().isEmpty()) {
       if (params.isIncludeOrgUnitChildren()) {
         for (OrganisationUnit ou : params.getOrganisationUnits()) {
-          query.setParameter(format("ou%s", ou.getUid()), "%/" + ou.getUid() + "%");
+          query.setParameter(format("ou%s", ou.getUid()), ou.getStoredPath() + "%");
         }
       } else {
         Collection<Long> ouIds =

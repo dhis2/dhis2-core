@@ -44,6 +44,10 @@ import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -51,8 +55,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -89,7 +95,9 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.query.JpaPredicateSupplier;
 import org.hisp.dhis.query.Query;
+import org.hisp.dhis.query.operators.InOperator;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
@@ -218,12 +226,70 @@ public class UserController
     boolean manage;
   }
 
+  /**
+   * Org unit collection properties that may appear as generic filter paths (e.g. {@code
+   * filter=organisationUnits.id:in:[...]}). These filters are routed to in-memory evaluation by
+   * {@code DefaultQueryPlanner} — which forces the query engine to load ALL rows before paginating.
+   * We intercept them here and convert them to SQL-level EXISTS predicates.
+   */
+  private static final Set<String> OU_MEMBER_FILTER_PROPERTIES =
+      Set.of("organisationUnits", "dataViewOrganisationUnits", "teiSearchOrganisationUnits");
+
   @Override
   protected void modifyGetObjectList(GetUserObjectListParams params, Query<User> query) {
-    if (!needsSpecialPredicates(params)) return;
+    boolean hasLiftedFilters = liftOrgUnitMemberFilters(query);
+    if (!needsSpecialPredicates(params) && !hasLiftedFilters) return;
     UserQueryParams queryParams = toUserQueryParams(params);
     userService.handleUserQueryParams(queryParams);
     query.addPredicateSupplier(new UserPredicateSupplier(queryParams));
+  }
+
+  /**
+   * Scans the query's generic filter list for {@code organisationUnits.id:in:[...]} style filters,
+   * removes them, and replaces them with SQL EXISTS predicates. This prevents {@code
+   * DefaultQueryPlanner} from routing them to in-memory evaluation, which would cause the query
+   * engine to fetch all rows (LIMIT=MAX_VALUE) before paginating.
+   *
+   * @return {@code true} if at least one filter was lifted
+   */
+  private static boolean liftOrgUnitMemberFilters(Query<User> query) {
+    boolean lifted = false;
+    Iterator<Filter> it = query.getFilters().iterator();
+    while (it.hasNext()) {
+      Filter filter = it.next();
+      String path = filter.getPath();
+      int dot = path.lastIndexOf('.');
+      if (dot < 0) continue;
+      String property = path.substring(0, dot);
+      if (!OU_MEMBER_FILTER_PROPERTIES.contains(property)) continue;
+      if (!(filter.getOperator() instanceof InOperator<?> inOp)) continue;
+      List<String> uids = inOp.getArgs().stream().map(Object::toString).toList();
+      if (uids.isEmpty()) continue;
+      it.remove();
+      query.addPredicateSupplier(ouMemberPredicate(property, uids));
+      lifted = true;
+    }
+    return lifted;
+  }
+
+  /**
+   * Returns a JPA predicate that restricts results to users who are members of at least one of the
+   * given org units (by UID) via the specified org unit collection property. Uses an EXISTS
+   * subquery to avoid row multiplication and ensure SQL-level pagination works correctly.
+   */
+  private static JpaPredicateSupplier ouMemberPredicate(String ouProperty, List<String> uids) {
+    return new JpaPredicateSupplier() {
+      @Override
+      public <T> Predicate getPredicate(
+          CriteriaBuilder builder, Root<T> root, CriteriaQuery<?> query) {
+        var sub = query.subquery(Integer.class);
+        var u2 = sub.from(User.class);
+        sub.select(builder.literal(1));
+        var ouJoin = u2.join(ouProperty);
+        sub.where(builder.equal(u2.get("id"), root.get("id")), ouJoin.get("uid").in(uids));
+        return builder.exists(sub);
+      }
+    };
   }
 
   @Override
