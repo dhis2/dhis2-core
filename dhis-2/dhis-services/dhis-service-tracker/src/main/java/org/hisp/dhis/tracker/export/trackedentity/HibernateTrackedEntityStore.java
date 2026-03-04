@@ -113,6 +113,8 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
 
   private static final String EQUALS = " = ";
 
+  private static final String NOT_EQUALS = " != ";
+
   private static final String EV_STATUS = "EV.status";
 
   private static final String SELECT_COUNT_INSTANCE_FROM = "SELECT count(trackedentityid) FROM ( ";
@@ -913,16 +915,17 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append("' AND EV.scheduleddate <= '")
             .append(end)
             .append("'");
-        sql.append(
-            " AND EV.status IS NOT NULL AND EV.occurreddate IS NULL AND date(now()) <= date(EV.scheduleddate)");
+        sql.append(" AND EV.status != '").append(EventStatus.SKIPPED.name()).append("'");
+        sql.append(" AND EV.occurreddate IS NULL AND date(now()) <= date(EV.scheduleddate)");
       } else if (params.isEventStatus(EventStatus.OVERDUE)) {
+        // TODO Add condition here
         sql.append(" AND EV.scheduleddate >= '")
             .append(start)
             .append("' AND EV.scheduleddate <= '")
             .append(end)
             .append("'");
-        sql.append(
-            " AND EV.status IS NOT NULL AND EV.occurreddate IS NULL AND date(now()) > date(EV.scheduleddate)");
+        sql.append(" AND EV.status != '").append(EventStatus.SKIPPED.name()).append("'");
+        sql.append(" AND EV.occurreddate IS NULL AND date(now()) > date(EV.scheduleddate)");
       } else if (params.isEventStatus(EventStatus.SKIPPED)) {
         sql.append(" AND EV.scheduleddate >= '")
             .append(start)
@@ -1078,8 +1081,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(getQueryDateConditionBetween(whereHlp, EV_SCHEDULEDDATE, start, end))
             .append(whereHlp.whereAnd())
             .append(EV_STATUS)
-            .append(SPACE)
-            .append(IS_NOT_NULL)
+            .append(NOT_EQUALS)
+            .append(SINGLE_QUOTE)
+            .append(EventStatus.SKIPPED.name())
+            .append(SINGLE_QUOTE)
             .append(whereHlp.whereAnd())
             .append(EV_OCCURREDDATE)
             .append(SPACE)
@@ -1091,8 +1096,10 @@ class HibernateTrackedEntityStore extends SoftDeleteHibernateObjectStore<Tracked
             .append(getQueryDateConditionBetween(whereHlp, EV_SCHEDULEDDATE, start, end))
             .append(whereHlp.whereAnd())
             .append(EV_STATUS)
-            .append(SPACE)
-            .append(IS_NOT_NULL)
+            .append(NOT_EQUALS)
+            .append(SINGLE_QUOTE)
+            .append(EventStatus.SKIPPED.name())
+            .append(SINGLE_QUOTE)
             .append(whereHlp.whereAnd())
             .append(EV_OCCURREDDATE)
             .append(SPACE)

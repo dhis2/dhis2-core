@@ -1177,6 +1177,52 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldReturnOnlyOverdueTrackedEntitiesWhenFilteringByOverdueStatus()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntity teOverdue = setupTeWithScheduledEvent(EventStatus.SCHEDULE, -10);
+    setupTeWithScheduledEvent(EventStatus.SCHEDULE, 10);
+    setupTeWithScheduledEvent(EventStatus.SKIPPED, -10);
+    setupTeWithOccurredEvent(EventStatus.ACTIVE);
+    setupTeWithOccurredEvent(EventStatus.COMPLETED);
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(UID.of(orgUnitA)))
+            .orgUnitMode(SELECTED)
+            .program(UID.of(programA))
+            .eventStatus(EventStatus.OVERDUE)
+            .eventStartDate(Date.from(Instant.now().minus(20, ChronoUnit.DAYS)))
+            .eventEndDate(Date.from(Instant.now().plus(20, ChronoUnit.DAYS)))
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(teOverdue.getUid()), uids(trackedEntities));
+  }
+
+  @Test
+  void shouldReturnOnlyScheduledTrackedEntitiesWhenFilteringByScheduledStatus()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntity teScheduled = setupTeWithScheduledEvent(EventStatus.SCHEDULE, 10);
+    setupTeWithScheduledEvent(EventStatus.SCHEDULE, -10);
+    setupTeWithScheduledEvent(EventStatus.SKIPPED, 10);
+    setupTeWithOccurredEvent(EventStatus.ACTIVE);
+    setupTeWithOccurredEvent(EventStatus.COMPLETED);
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(UID.of(orgUnitA)))
+            .orgUnitMode(SELECTED)
+            .program(UID.of(programA))
+            .eventStatus(EventStatus.SCHEDULE)
+            .eventStartDate(Date.from(Instant.now().minus(20, ChronoUnit.DAYS)))
+            .eventEndDate(Date.from(Instant.now().plus(20, ChronoUnit.DAYS)))
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(teScheduled.getUid()), uids(trackedEntities));
+  }
+
+  @Test
   @Disabled("IncludeDeleted param is not working when TE has a deleted relationship")
   void shouldIncludeDeletedEnrollmentAndEvents()
       throws ForbiddenException, NotFoundException, BadRequestException {
@@ -2383,5 +2429,37 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
                 .includeEnrollments(EnrollmentFields.all())
                 .build())
         .build();
+  }
+
+  private TrackedEntity setupTeWithScheduledEvent(EventStatus status, int days) {
+    TrackedEntity te = createTrackedEntity(orgUnitA, trackedEntityTypeA);
+    manager.save(te);
+
+    Enrollment enrollment = createEnrollment(programA, te, orgUnitA);
+    manager.save(enrollment);
+
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(te, programA, orgUnitA);
+
+    Event event = createEvent(programStageA1, enrollment, orgUnitA);
+    event.setScheduledDate(Date.from(Instant.now().plus(days, ChronoUnit.DAYS)));
+    event.setStatus(status);
+    manager.save(event);
+
+    return te;
+  }
+
+  private void setupTeWithOccurredEvent(EventStatus status) {
+    TrackedEntity te = createTrackedEntity(orgUnitA, trackedEntityTypeA);
+    manager.save(te);
+
+    Enrollment enrollment = createEnrollment(programA, te, orgUnitA);
+    manager.save(enrollment);
+
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(te, programA, orgUnitA);
+
+    Event event = createEvent(programStageA1, enrollment, orgUnitA);
+    event.setOccurredDate(Date.from(Instant.now()));
+    event.setStatus(status);
+    manager.save(event);
   }
 }
