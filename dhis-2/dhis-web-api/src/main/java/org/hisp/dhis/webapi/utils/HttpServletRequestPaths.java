@@ -36,8 +36,26 @@ import java.util.regex.Pattern;
 public class HttpServletRequestPaths {
   private static final Pattern API_VERSION = Pattern.compile("(/api/(\\d+)?/)");
 
+  /** Configured fallback from server.base.url in dhis.conf */
+  private static volatile String configuredFallbackBaseUrl;
+
+  /** Learned fallback from the first request that had X-Forwarded-Host headers */
+  private static volatile String learnedFallbackBaseUrl;
+
   private HttpServletRequestPaths() {
     throw new IllegalStateException("Utility class");
+  }
+
+  /**
+   * Set a fallback base URL (from server.base.url in dhis.conf) to use when X-Forwarded-Host is
+   * not present. This handles cases like internal RequestDispatcher forwards where proxy headers are
+   * lost.
+   */
+  public static void setFallbackBaseUrl(String url) {
+    if (url != null && !url.isEmpty()) {
+      // Strip trailing slash for consistency
+      configuredFallbackBaseUrl = url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
+    }
   }
 
   public static String getApiPath(HttpServletRequest request) {
@@ -56,6 +74,22 @@ public class HttpServletRequestPaths {
   }
 
   public static String getContextPath(HttpServletRequest request) {
+    String xForwardedHost = request.getHeader("X-Forwarded-Host");
+    boolean hasForwardedHeaders = xForwardedHost != null && !xForwardedHost.isEmpty();
+
+    // When X-Forwarded-Host is absent (e.g., internal RequestDispatcher forwards where proxy
+    // headers are lost), use the best available fallback:
+    // 1. Configured server.base.url from dhis.conf (explicit config takes priority)
+    // 2. Learned base URL from a previous request that had forwarded headers
+    if (!hasForwardedHeaders) {
+      if (configuredFallbackBaseUrl != null) {
+        return configuredFallbackBaseUrl;
+      }
+      if (learnedFallbackBaseUrl != null) {
+        return learnedFallbackBaseUrl;
+      }
+    }
+
     StringBuilder builder = new StringBuilder();
     String xForwardedProto = request.getHeader("X-Forwarded-Proto");
     String xForwardedPort = request.getHeader("X-Forwarded-Port");
@@ -68,18 +102,17 @@ public class HttpServletRequestPaths {
       builder.append(request.getScheme());
     }
 
-    String host = request.getHeader("X-Forwarded-Host");
-    if (host == null || host.isEmpty()) {
-      host = request.getServerName();
+    if (!hasForwardedHeaders) {
+      xForwardedHost = request.getServerName();
     } else {
       // X-Forwarded-Host can be "host:port" - extract hostname for URL building
-      if (host.contains("]:")) {
-        host = host.substring(0, host.indexOf("]:") + 1);
-      } else if (host.contains(":") && !host.startsWith("[")) {
-        host = host.substring(0, host.indexOf(":"));
+      if (xForwardedHost.contains("]:")) {
+        xForwardedHost = xForwardedHost.substring(0, xForwardedHost.indexOf("]:") + 1);
+      } else if (xForwardedHost.contains(":") && !xForwardedHost.startsWith("[")) {
+        xForwardedHost = xForwardedHost.substring(0, xForwardedHost.indexOf(":"));
       }
     }
-    builder.append("://").append(host);
+    builder.append("://").append(xForwardedHost);
 
     int port;
 
@@ -95,6 +128,14 @@ public class HttpServletRequestPaths {
 
     builder.append(request.getContextPath());
 
-    return builder.toString();
+    String result = builder.toString();
+
+    // Learn the base URL from the first request that has forwarded headers, so we can
+    // use it as a fallback for subsequent requests that lack them (e.g., internal forwards).
+    if (hasForwardedHeaders && learnedFallbackBaseUrl == null) {
+      learnedFallbackBaseUrl = result;
+    }
+
+    return result;
   }
 }

@@ -50,7 +50,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.security.LoginAppDiagnostics;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
@@ -65,6 +64,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.security.LoginAppDiagnostics;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.staticresource.HtmlCacheBustingService;
@@ -177,15 +177,7 @@ public class AppController {
     String contextPath = request.getContextPath();
     String baseUrl = contextService.getContextPath();
 
-    LoginAppDiagnostics.capture(
-        baseUrl,
-        request.getServerName(),
-        request.getHeader("X-Forwarded-Host"),
-        request.getHeader("X-Forwarded-Proto"),
-        request.getHeader("X-Forwarded-Port"),
-        request.getScheme(),
-        request.getServerPort(),
-        request.getClass().getName());
+    LoginAppDiagnostics.capture(request, baseUrl);
 
     // Sanitize for logging, though Tomcat / Spring should have done this already
     appName = TextUtils.removeNewlines(appName);

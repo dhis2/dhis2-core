@@ -29,6 +29,10 @@
  */
 package org.hisp.dhis.security;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -39,24 +43,44 @@ import java.util.concurrent.ConcurrentHashMap;
 public class LoginAppDiagnostics {
   private static final ConcurrentHashMap<String, String> lastRenderInfo = new ConcurrentHashMap<>();
 
-  public static void capture(
-      String baseUrl,
-      String serverName,
-      String xForwardedHost,
-      String xForwardedProto,
-      String xForwardedPort,
-      String scheme,
-      int serverPort,
-      String requestClass) {
+  public static void capture(HttpServletRequest request, String baseUrl) {
     lastRenderInfo.put("renderBaseUrl", baseUrl);
-    lastRenderInfo.put("renderServerName", serverName);
-    lastRenderInfo.put("renderXForwardedHost", str(xForwardedHost));
-    lastRenderInfo.put("renderXForwardedProto", str(xForwardedProto));
-    lastRenderInfo.put("renderXForwardedPort", str(xForwardedPort));
-    lastRenderInfo.put("renderScheme", scheme);
-    lastRenderInfo.put("renderServerPort", String.valueOf(serverPort));
-    lastRenderInfo.put("renderRequestClass", requestClass);
+    lastRenderInfo.put("renderServerName", request.getServerName());
+    lastRenderInfo.put("renderXForwardedHost", str(request.getHeader("X-Forwarded-Host")));
+    lastRenderInfo.put("renderXForwardedProto", str(request.getHeader("X-Forwarded-Proto")));
+    lastRenderInfo.put("renderXForwardedPort", str(request.getHeader("X-Forwarded-Port")));
+    lastRenderInfo.put("renderScheme", request.getScheme());
+    lastRenderInfo.put("renderServerPort", String.valueOf(request.getServerPort()));
+    lastRenderInfo.put("renderRequestClass", request.getClass().getName());
+    lastRenderInfo.put("renderDispatcherType", String.valueOf(request.getDispatcherType()));
     lastRenderInfo.put("renderTimestamp", java.time.Instant.now().toString());
+    lastRenderInfo.put(
+        "renderUsedFallback",
+        (request.getHeader("X-Forwarded-Host") == null
+                || request.getHeader("X-Forwarded-Host").isEmpty())
+            ? "true"
+            : "false");
+
+    // Unwrap the request wrapper chain to find where headers disappear
+    List<String> wrapperChain = new ArrayList<>();
+    HttpServletRequest r = request;
+    int depth = 0;
+    while (r instanceof HttpServletRequestWrapper wrapper) {
+      String headerAtLayer = str(r.getHeader("X-Forwarded-Host"));
+      wrapperChain.add("[" + depth + "] " + r.getClass().getName() + " -> XFH=" + headerAtLayer);
+      lastRenderInfo.put("wrapperLayer_" + depth, r.getClass().getSimpleName());
+      lastRenderInfo.put("wrapperLayer_" + depth + "_XFH", headerAtLayer);
+      r = (HttpServletRequest) wrapper.getRequest();
+      depth++;
+    }
+    // Innermost (unwrapped) request
+    String innermostHeader = str(r.getHeader("X-Forwarded-Host"));
+    wrapperChain.add(
+        "[" + depth + "] " + r.getClass().getName() + " -> XFH=" + innermostHeader);
+    lastRenderInfo.put("wrapperLayer_" + depth, r.getClass().getSimpleName());
+    lastRenderInfo.put("wrapperLayer_" + depth + "_XFH", innermostHeader);
+    lastRenderInfo.put("wrapperDepth", String.valueOf(depth));
+    lastRenderInfo.put("wrapperChainSummary", String.join(" | ", wrapperChain));
   }
 
   public static ConcurrentHashMap<String, String> getLastRenderInfo() {
