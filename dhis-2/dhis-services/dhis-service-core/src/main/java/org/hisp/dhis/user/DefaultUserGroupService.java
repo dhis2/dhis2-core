@@ -182,19 +182,18 @@ public class DefaultUserGroupService implements UserGroupService {
 
     // Remove user from groups they're no longer in (SQL bypass avoids loading UserGroup.members)
     for (UserGroup userGroup : new HashSet<>(user.getGroups())) {
-      if (!updates.contains(userGroup) && canAddOrRemoveMember(userGroup, currentUser)) {
-        if (userGroupStore.removeMember(userGroup.getUID(), userUid, currentUserUid)) {
-          user.getGroups().remove(userGroup);
-        }
+      if (!updates.contains(userGroup)
+          && canAddOrRemoveMember(userGroup, currentUser)
+          && userGroupStore.removeMember(userGroup.getUID(), userUid, currentUserUid)) {
+        user.getGroups().remove(userGroup);
       }
     }
 
     // Add user to groups they should be in (SQL bypass with NOT EXISTS guard)
     for (UserGroup userGroup : updates) {
-      if (canAddOrRemoveMember(userGroup, currentUser)) {
-        if (userGroupStore.addMember(userGroup.getUID(), userUid, currentUserUid)) {
-          user.getGroups().add(userGroup);
-        }
+      if (canAddOrRemoveMember(userGroup, currentUser)
+          && userGroupStore.addMember(userGroup.getUID(), userUid, currentUserUid)) {
+        user.getGroups().add(userGroup);
       }
     }
 

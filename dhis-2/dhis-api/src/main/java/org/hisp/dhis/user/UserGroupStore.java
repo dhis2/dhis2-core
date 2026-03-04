@@ -50,8 +50,8 @@ public interface UserGroupStore extends IdentifiableObjectStore<UserGroup> {
   boolean addMember(@Nonnull UID userGroupUid, @Nonnull UID userUid, @Nonnull UID lastUpdatedByUid);
 
   /**
-   * Removes a user from a user group directly via SQL, without loading the members collection.
-   * Also updates the group's lastUpdated timestamp if the membership was removed.
+   * Removes a user from a user group directly via SQL, without loading the members collection. Also
+   * updates the group's lastUpdated timestamp if the membership was removed.
    *
    * @param userGroupUid the UID of the user group
    * @param userUid the UID of the user to remove
