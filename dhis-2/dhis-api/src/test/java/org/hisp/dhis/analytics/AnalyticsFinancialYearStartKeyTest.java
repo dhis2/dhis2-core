@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,39 +29,33 @@
  */
 package org.hisp.dhis.analytics;
 
+import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_APRIL;
+import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_AUGUST;
+import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_FEBRUARY;
+import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_JULY;
+import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
+import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_SEPTEMBER;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.hisp.dhis.period.FinancialAprilPeriodType;
 import org.hisp.dhis.period.FinancialAugustPeriodType;
 import org.hisp.dhis.period.FinancialFebruaryPeriodType;
 import org.hisp.dhis.period.FinancialJulyPeriodType;
 import org.hisp.dhis.period.FinancialOctoberPeriodType;
-import org.hisp.dhis.period.FinancialPeriodType;
 import org.hisp.dhis.period.FinancialSeptemberPeriodType;
+import org.junit.jupiter.api.Test;
 
-/**
- * @author Henning Håkonsen
- */
-public enum AnalyticsFinancialYearStartKey {
-  FINANCIAL_YEAR_FEBRUARY("FINANCIAL_YEAR_FEBRUARY", new FinancialFebruaryPeriodType()),
-  FINANCIAL_YEAR_APRIL("FINANCIAL_YEAR_APRIL", new FinancialAprilPeriodType()),
-  FINANCIAL_YEAR_JULY("FINANCIAL_YEAR_JULY", new FinancialJulyPeriodType()),
-  FINANCIAL_YEAR_AUGUST("FINANCIAL_YEAR_AUGUST", new FinancialAugustPeriodType()),
-  FINANCIAL_YEAR_SEPTEMBER("FINANCIAL_YEAR_SEPTEMBER", new FinancialSeptemberPeriodType()),
-  FINANCIAL_YEAR_OCTOBER("FINANCIAL_YEAR_OCTOBER", new FinancialOctoberPeriodType());
+class AnalyticsFinancialYearStartKeyTest {
 
-  private final String name;
-
-  private final FinancialPeriodType financialPeriodType;
-
-  AnalyticsFinancialYearStartKey(String name, FinancialPeriodType financialPeriodType) {
-    this.name = name;
-    this.financialPeriodType = financialPeriodType;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public FinancialPeriodType getFinancialPeriodType() {
-    return financialPeriodType;
+  @Test
+  void getFinancialPeriodType() {
+    assertEquals(
+        FINANCIAL_YEAR_FEBRUARY.getFinancialPeriodType(), new FinancialFebruaryPeriodType());
+    assertEquals(FINANCIAL_YEAR_APRIL.getFinancialPeriodType(), new FinancialAprilPeriodType());
+    assertEquals(FINANCIAL_YEAR_JULY.getFinancialPeriodType(), new FinancialJulyPeriodType());
+    assertEquals(FINANCIAL_YEAR_AUGUST.getFinancialPeriodType(), new FinancialAugustPeriodType());
+    assertEquals(
+        FINANCIAL_YEAR_SEPTEMBER.getFinancialPeriodType(), new FinancialSeptemberPeriodType());
+    assertEquals(FINANCIAL_YEAR_OCTOBER.getFinancialPeriodType(), new FinancialOctoberPeriodType());
   }
 }
