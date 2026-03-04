@@ -67,4 +67,13 @@ public class LoginConfigResponse {
   @JsonProperty private boolean useCustomLogoFront;
 
   @JsonProperty private List<LoginOidcProvider> oidcProviders;
+
+  @JsonProperty private String buildRevision;
+  @JsonProperty private String buildTime;
+
+  @JsonProperty private String resolvedBaseUrl;
+  @JsonProperty private String serverName;
+  @JsonProperty private String xForwardedHost;
+  @JsonProperty private String xForwardedProto;
+  @JsonProperty private String xForwardedPort;
 }

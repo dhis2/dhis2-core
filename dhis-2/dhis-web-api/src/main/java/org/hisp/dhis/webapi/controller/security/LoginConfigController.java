@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -42,8 +43,10 @@ import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.setting.SystemSettingsTranslationService;
+import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.utils.HttpServletRequestPaths;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -74,7 +77,10 @@ public class LoginConfigController {
 
   @GetMapping()
   public LoginConfigResponse getConfig(
-      @RequestParam(required = false, defaultValue = "en") String locale, SystemSettings settings) {
+      @RequestParam(required = false, defaultValue = "en") String locale,
+      SystemSettings settings,
+      HttpServletRequest request) {
+    SystemInfo systemInfo = systemService.getSystemInfo();
     return LoginConfigResponse.builder()
         .applicationTitle(getTranslatableString("applicationTitle", locale))
         .applicationDescription(getTranslatableString("keyApplicationIntro", locale))
@@ -98,6 +104,13 @@ public class LoginConfigController {
         .minPasswordLength(String.valueOf(settings.getMinPasswordLength()))
         .maxPasswordLength(String.valueOf(settings.getMaxPasswordLength()))
         .oidcProviders(getRegisteredOidcProviders())
+        .buildRevision(systemInfo.getRevision())
+        .buildTime(systemInfo.getBuildTime() != null ? systemInfo.getBuildTime().toString() : null)
+        .resolvedBaseUrl(HttpServletRequestPaths.getContextPath(request))
+        .serverName(request.getServerName())
+        .xForwardedHost(request.getHeader("X-Forwarded-Host"))
+        .xForwardedProto(request.getHeader("X-Forwarded-Proto"))
+        .xForwardedPort(request.getHeader("X-Forwarded-Port"))
         .build();
   }
 
