@@ -131,6 +131,8 @@ public class HibernateTrackedEntityInstanceStore
 
   private static final String EQUALS = " = ";
 
+  private static final String NOT_EQUALS = " != ";
+
   private static final String PSI_STATUS = "PSI.status";
 
   private static final String UID_VALUE_SEPARATOR = ":";
@@ -1096,8 +1098,10 @@ public class HibernateTrackedEntityInstanceStore
             .append(getQueryDateConditionBetween(whereHlp, PSI_DUEDATE, start, end))
             .append(whereHlp.whereAnd())
             .append(PSI_STATUS)
-            .append(SPACE)
-            .append(IS_NOT_NULL)
+            .append(NOT_EQUALS)
+            .append(SINGLE_QUOTE)
+            .append(EventStatus.SKIPPED.name())
+            .append(SINGLE_QUOTE)
             .append(whereHlp.whereAnd())
             .append(PSI_EXECUTIONDATE)
             .append(SPACE)
@@ -1109,8 +1113,10 @@ public class HibernateTrackedEntityInstanceStore
             .append(getQueryDateConditionBetween(whereHlp, PSI_DUEDATE, start, end))
             .append(whereHlp.whereAnd())
             .append(PSI_STATUS)
-            .append(SPACE)
-            .append(IS_NOT_NULL)
+            .append(NOT_EQUALS)
+            .append(SINGLE_QUOTE)
+            .append(EventStatus.SKIPPED.name())
+            .append(SINGLE_QUOTE)
             .append(whereHlp.whereAnd())
             .append(PSI_EXECUTIONDATE)
             .append(SPACE)

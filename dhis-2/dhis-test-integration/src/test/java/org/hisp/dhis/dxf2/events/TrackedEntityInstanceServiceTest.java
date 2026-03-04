@@ -38,8 +38,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -74,15 +76,19 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternMethod;
 import org.hisp.dhis.textpattern.TextPatternSegment;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -119,6 +125,8 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
   @Autowired private UserService _userService;
 
   @Autowired private FileResourceService fileResourceService;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
   private org.hisp.dhis.trackedentity.TrackedEntityInstance maleC;
@@ -194,6 +202,9 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
     trackedEntityAttributeB = createTrackedEntityAttribute('B');
     trackedEntityAttributeService.addTrackedEntityAttribute(trackedEntityAttributeB);
     trackedEntityType = createTrackedEntityType('A');
+    manager.save(trackedEntityType, false);
+    trackedEntityType.getSharing().setPublicAccess(AccessStringHelper.FULL);
+    manager.update(trackedEntityType);
 
     TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
     trackedEntityTypeAttribute.setTrackedEntityAttribute(uniqueIdAttribute);
@@ -230,6 +241,7 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
     dateConflictsMaleA.setTrackedEntityType(trackedEntityType);
     programA = createProgram('A', new HashSet<>(), organisationUnitA);
     programA.setProgramType(ProgramType.WITH_REGISTRATION);
+    programA.setTrackedEntityType(trackedEntityType);
     programStageA1 = createProgramStage('1', programA);
     programStageA2 = createProgramStage('2', programA);
     programA.setProgramStages(
@@ -909,6 +921,58 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
             .collect(Collectors.toList()));
   }
 
+  @Test
+  void shouldReturnOnlyOverdueTrackedEntitiesWhenFilteringByOverdueStatus() {
+    org.hisp.dhis.trackedentity.TrackedEntityInstance teOverdue =
+        setupTeWithDueDate(EventStatus.SCHEDULE, -10);
+    setupTeWithDueDate(EventStatus.SCHEDULE, 10);
+    setupTeWithDueDate(EventStatus.SKIPPED, -10);
+    setupTeWithExecutionDate(EventStatus.ACTIVE);
+    setupTeWithExecutionDate(EventStatus.COMPLETED);
+    TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+    queryParams.setOrganisationUnits(Set.of(organisationUnitA));
+    queryParams.setEnrolledInTrackerProgram(programA);
+    queryParams.setEventStatus(EventStatus.OVERDUE);
+    queryParams.setEventStartDate(Date.from(Instant.now().minus(20, ChronoUnit.DAYS)));
+    queryParams.setEventEndDate(Date.from(Instant.now().plus(20, ChronoUnit.DAYS)));
+    dbmsManager.flushSession();
+
+    List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntities =
+        teiDaoService.getTrackedEntityInstances(queryParams, true, true);
+
+    assertContainsOnly(
+        List.of(teOverdue.getUid()),
+        trackedEntities.stream()
+            .map(org.hisp.dhis.trackedentity.TrackedEntityInstance::getUid)
+            .collect(Collectors.toList()));
+  }
+
+  @Test
+  void shouldReturnOnlyScheduledTrackedEntitiesWhenFilteringByScheduledStatus() {
+    org.hisp.dhis.trackedentity.TrackedEntityInstance teScheduled =
+        setupTeWithDueDate(EventStatus.SCHEDULE, 10);
+    setupTeWithDueDate(EventStatus.SCHEDULE, -10);
+    setupTeWithDueDate(EventStatus.SKIPPED, -10);
+    setupTeWithExecutionDate(EventStatus.ACTIVE);
+    setupTeWithExecutionDate(EventStatus.COMPLETED);
+    TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+    queryParams.setOrganisationUnits(Set.of(organisationUnitA));
+    queryParams.setEnrolledInTrackerProgram(programA);
+    queryParams.setEventStatus(EventStatus.SCHEDULE);
+    queryParams.setEventStartDate(Date.from(Instant.now().minus(20, ChronoUnit.DAYS)));
+    queryParams.setEventEndDate(Date.from(Instant.now().plus(20, ChronoUnit.DAYS)));
+    dbmsManager.flushSession();
+
+    List<org.hisp.dhis.trackedentity.TrackedEntityInstance> trackedEntities =
+        teiDaoService.getTrackedEntityInstances(queryParams, true, true);
+
+    assertContainsOnly(
+        List.of(teScheduled.getUid()),
+        trackedEntities.stream()
+            .map(org.hisp.dhis.trackedentity.TrackedEntityInstance::getUid)
+            .collect(Collectors.toList()));
+  }
+
   /** Get with the current session because some Store exclude deleted */
   public org.hisp.dhis.trackedentity.TrackedEntityInstance getTrackedEntity(String uid) {
 
@@ -921,5 +985,46 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest {
                     + " e WHERE e.uid = :uid")
             .setParameter("uid", uid)
             .getSingleResult();
+  }
+
+  private org.hisp.dhis.trackedentity.TrackedEntityInstance setupTeWithDueDate(
+      EventStatus status, int days) {
+    org.hisp.dhis.trackedentity.TrackedEntityInstance te =
+        createTrackedEntityInstance(organisationUnitA);
+    te.setTrackedEntityType(trackedEntityType);
+    manager.save(te);
+
+    ProgramInstance enrollment = createProgramInstance(programA, te, organisationUnitA);
+    manager.save(enrollment);
+
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        te, programA, organisationUnitA);
+
+    ProgramStageInstance event =
+        createProgramStageInstance(programStageA1, enrollment, organisationUnitA);
+    event.setDueDate(Date.from(Instant.now().plus(days, ChronoUnit.DAYS)));
+    event.setStatus(status);
+    manager.save(event);
+
+    return te;
+  }
+
+  private void setupTeWithExecutionDate(EventStatus status) {
+    org.hisp.dhis.trackedentity.TrackedEntityInstance te =
+        createTrackedEntityInstance(organisationUnitA);
+    te.setTrackedEntityType(trackedEntityType);
+    manager.save(te);
+
+    ProgramInstance enrollment = createProgramInstance(programA, te, organisationUnitA);
+    manager.save(enrollment);
+
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
+        te, programA, organisationUnitA);
+
+    ProgramStageInstance event =
+        createProgramStageInstance(programStageA1, enrollment, organisationUnitA);
+    event.setExecutionDate(Date.from(Instant.now()));
+    event.setStatus(status);
+    manager.save(event);
   }
 }
