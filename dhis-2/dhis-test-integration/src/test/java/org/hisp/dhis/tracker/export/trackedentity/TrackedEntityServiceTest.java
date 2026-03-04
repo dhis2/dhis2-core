@@ -2263,6 +2263,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   private TrackedEntity setupTeWithScheduledEvent(EventStatus status, int days) {
     TrackedEntity te = createTrackedEntity(orgUnitA);
+    te.setTrackedEntityType(trackedEntityTypeA);
     manager.save(te);
 
     Enrollment enrollment = createEnrollment(programA, te, orgUnitA);
@@ -2280,6 +2281,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
 
   private void setupTeWithOccurredEvent(EventStatus status) {
     TrackedEntity te = createTrackedEntity(orgUnitA);
+    te.setTrackedEntityType(trackedEntityTypeA);
     manager.save(te);
 
     Enrollment enrollment = createEnrollment(programA, te, orgUnitA);
