@@ -152,7 +152,7 @@ class DataElementOperandControllerTest {
             .build();
     // End mockmvc setup
 
-    when(schemaService.getDynamicSchema(DataElementOperand.class))
+    when(schemaService.getSchema(DataElementOperand.class))
         .thenReturn(new Schema(DataElementOperand.class, "", ""));
 
     User user = rnd.nextObject(User.class);

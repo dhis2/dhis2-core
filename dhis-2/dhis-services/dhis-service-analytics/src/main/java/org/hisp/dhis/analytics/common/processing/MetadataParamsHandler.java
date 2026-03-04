@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getCustomLabelOrHeaderColumnName;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.isDataElement;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.supportsCustomLabel;
 import static org.hisp.dhis.analytics.orgunit.OrgUnitHelper.getActiveOrganisationUnits;
 import static org.hisp.dhis.analytics.util.AnalyticsOrganisationUnitUtils.getUserOrganisationUnitItems;
@@ -87,7 +88,6 @@ public class MetadataParamsHandler {
    *
    * @param grid the current {@link Grid}.
    * @param contextParams the {@link ContextParams}.
-   * @param contextParams the total of rows found for the current query.
    * @param rowsCount the total of rows found.
    */
   public void handle(
@@ -173,6 +173,19 @@ public class MetadataParamsHandler {
             .filter(entry -> isSameDimension(dimId, entry))
             .map(entry -> asEntryWithFullPrefix(dimId, entry))
             .collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
+
+    // For event-level data elements, also add short format (stageUid.dimensionUid) to match
+    // headers that use this format
+    if (isDataElement(dimId)) {
+      String shortFormatKey =
+          dimId.getProgramStage().getElement().getUid() + DOT + dimId.getDimension().getUid();
+
+      items.putAll(
+          items.entrySet().stream()
+              .filter(entry -> isSameDimension(dimId, entry))
+              .map(entry -> Map.entry(shortFormatKey, entry.getValue()))
+              .collect(Collectors.toMap(Entry::getKey, Entry::getValue)));
+    }
   }
 
   /**

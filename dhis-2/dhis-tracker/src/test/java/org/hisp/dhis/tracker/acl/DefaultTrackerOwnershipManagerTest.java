@@ -46,6 +46,7 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -79,6 +80,8 @@ class DefaultTrackerOwnershipManagerTest {
   @Mock private HibernateProgramTempOwnershipAuditStore programTempOwnershipAuditStore;
 
   @Mock private HibernateProgramTempOwnerStore programTempOwnerStore;
+
+  @Mock private IdentifiableObjectStore<TrackedEntity> trackedEntityStore;
 
   @Mock private ProgramOwnershipHistoryService programOwnershipHistoryService;
 
@@ -119,6 +122,7 @@ class DefaultTrackerOwnershipManagerTest {
             cacheProvider,
             programTempOwnershipAuditStore,
             programTempOwnerStore,
+            trackedEntityStore,
             programOwnershipHistoryService,
             programService,
             trackerProgramService,

@@ -147,14 +147,14 @@ public class MessageConversationController
   @OpenApi.Param(name = "markRead", value = boolean.class)
   @GetMapping("/{uid:[a-zA-Z0-9]{11}}")
   public ResponseEntity<?> getObject(
-      @PathVariable String uid,
+      @PathVariable UID uid,
       GetObjectParams params,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
     org.hisp.dhis.message.MessageConversation messageConversation =
-        messageService.getMessageConversation(uid);
+        messageService.getMessageConversation(uid.getValue());
 
     if (messageConversation == null) {
       response.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -789,7 +789,7 @@ public class MessageConversationController
   @Override
   @RequiresAuthority(anyOf = F_METADATA_IMPORT)
   public WebMessage deleteObject(
-      @PathVariable String uid,
+      @PathVariable UID uid,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
       HttpServletResponse response)
@@ -799,7 +799,7 @@ public class MessageConversationController
           HttpRequestMethodNotSupportedException {
 
     org.hisp.dhis.message.MessageConversation messageConversation =
-        messageService.getMessageConversation(uid);
+        messageService.getMessageConversation(uid.getValue());
 
     if (messageConversation == null) {
       return notFound("Message conversation does not exist: " + uid);

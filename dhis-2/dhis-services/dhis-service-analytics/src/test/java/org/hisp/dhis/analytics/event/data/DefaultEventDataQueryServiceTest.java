@@ -73,6 +73,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageService;
@@ -308,6 +309,79 @@ class DefaultEventDataQueryServiceTest {
             anyList(),
             eq(true),
             any());
+  }
+
+  @Test
+  void getFromRequestParsesProgramStatusDimensionForEventQuery() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).dimension(Set.of(Set.of("PROGRAM_STATUS:ACTIVE"))).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(Set.of(EnrollmentStatus.ACTIVE), params.getEnrollmentStatus());
+  }
+
+  @Test
+  void getFromRequestParsesMultipleProgramStatusesFromDimensionForEventAggregate() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .dimension(Set.of(Set.of("PROGRAM_STATUS:ACTIVE;COMPLETED;CANCELLED")))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(
+        Set.of(EnrollmentStatus.ACTIVE, EnrollmentStatus.COMPLETED, EnrollmentStatus.CANCELLED),
+        params.getEnrollmentStatus());
+  }
+
+  @Test
+  void getFromRequestMergesProgramStatusDimensionWithProgramStatusRequestParam() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT)
+            .dimension(Set.of(Set.of("PROGRAM_STATUS:ACTIVE")))
+            .enrollmentStatus(Set.of(EnrollmentStatus.COMPLETED))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(
+        Set.of(EnrollmentStatus.ACTIVE, EnrollmentStatus.COMPLETED), params.getEnrollmentStatus());
+  }
+
+  @Test
+  void getFromRequestRejectsInvalidProgramStatusDimensionValue() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT)
+            .dimension(Set.of(Set.of("PROGRAM_STATUS:INVALID")))
+            .build();
+
+    assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+  }
+
+  @Test
+  void getFromRequestParsesProgramStatusDimensionForEnrollmentEndpoint() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT)
+            .dimension(Set.of(Set.of("PROGRAM_STATUS:ACTIVE")))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(Set.of(EnrollmentStatus.ACTIVE), params.getEnrollmentStatus());
+  }
+
+  @Test
+  void getFromRequestParsesProgramStatusFilterForEnrollmentEndpoint() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT)
+            .filter(Set.of(Set.of("PROGRAM_STATUS:ACTIVE;COMPLETED")))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(
+        Set.of(EnrollmentStatus.ACTIVE, EnrollmentStatus.COMPLETED), params.getEnrollmentStatus());
   }
 
   private QueryItem createDateQueryItem(String columnName) {

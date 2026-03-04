@@ -38,7 +38,6 @@ import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
@@ -66,7 +65,6 @@ import org.hisp.dhis.tracker.model.SingleEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Slf4j
 @Service("org.hisp.dhis.tracker.export.singleevent.SingleEventService")
 @RequiredArgsConstructor
 class DefaultSingleEventService implements SingleEventService {
@@ -220,11 +218,8 @@ class DefaultSingleEventService implements SingleEventService {
                 dataValue.getDataElement());
       }
 
-      if (dataElement != null) // check permissions
-      {
+      if (dataElement != null) {
         dataValues.add(dataValue);
-      } else {
-        log.info("Cannot find data element with UID {}", dataValue.getDataElement());
       }
     }
     event.setEventDataValues(dataValues);

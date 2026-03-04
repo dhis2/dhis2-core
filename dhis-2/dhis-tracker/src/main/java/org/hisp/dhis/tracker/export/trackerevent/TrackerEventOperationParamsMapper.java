@@ -259,10 +259,6 @@ class TrackerEventOperationParamsMapper {
 
       validateMinimumCharactersToSearch(attributeFilter, tea);
 
-      if (attributeFilter.getValue().isEmpty()) {
-        params.filterBy(tea);
-      }
-
       for (QueryFilter filter : attributeFilter.getValue()) {
         params.filterBy(tea, filter);
       }

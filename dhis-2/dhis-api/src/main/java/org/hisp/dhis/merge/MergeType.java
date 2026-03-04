@@ -31,6 +31,7 @@ package org.hisp.dhis.merge;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -48,6 +49,7 @@ public enum MergeType {
   INDICATOR(Indicator.class),
   DATA_ELEMENT(DataElement.class),
   CATEGORY(Category.class),
+  CATEGORY_COMBO(CategoryCombo.class),
   CATEGORY_OPTION(CategoryOption.class),
   CATEGORY_OPTION_COMBO(CategoryOptionCombo.class);
 

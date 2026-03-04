@@ -44,6 +44,7 @@ import static org.hisp.dhis.common.IdCoder.ObjectType.OU;
 import static org.hisp.dhis.feedback.DataEntrySummary.error;
 import static org.hisp.dhis.security.Authorities.F_EDIT_EXPIRED;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -67,6 +68,7 @@ import org.hisp.dhis.common.IdCoder;
 import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataset.DataSetCompletion;
 import org.hisp.dhis.dataset.LockStatus;
@@ -98,6 +100,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
   private final DataEntryStore store;
   private final IdCoder idCoder;
+  private final DataEntryAuditService audit;
 
   @Override
   @Transactional(readOnly = true)
@@ -402,6 +405,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   }
 
   @Override
+  @UsageTestOnly
   @IndirectTransactional
   public int upsertValuesForJdbcTest(DataValue... values) {
     if (values == null || values.length == 0) return 0;
@@ -409,6 +413,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   }
 
   @Override
+  @UsageTestOnly
   @Transactional
   public int upsertValues(DataValue... values) {
     if (values == null || values.length == 0) return 0;
@@ -416,6 +421,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   }
 
   @Override
+  @UsageTestOnly
   @Transactional
   public int upsertValues(DataEntryValue... values) {
     if (values == null || values.length == 0) return 0;
@@ -423,6 +429,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   }
 
   @Override
+  @UsageTestOnly
   @Transactional
   public int upsertValues(DataEntryValue.Input... values) throws BadRequestException {
     if (values == null || values.length == 0) return 0;
@@ -437,7 +444,9 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     ValidationSource source = new ValuesValidationSource(List.of(value));
     DataEntryGroup valid = validate(force, dataSet, source, errors);
     if (valid.values().isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
-    store.upsertValues(List.of(value));
+    int n = store.upsertValues(List.of(value));
+    if (n > 0)
+      audit.auditUpsert(valid, new DataEntrySummary(1, 1, 1, 0, List.of()), getCurrentUsername());
   }
 
   @Override
@@ -499,8 +508,9 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
           progress.runStage(
               0, () -> options.dryRun() ? drySucceeded : store.upsertValues(validValues));
     }
-
-    return new DataEntrySummary(entered, attempted, succeeded, deleted, errors);
+    DataEntrySummary summary = new DataEntrySummary(entered, attempted, succeeded, deleted, errors);
+    audit.auditUpsert(group, summary, getCurrentUsername());
+    return summary;
   }
 
   @Override
@@ -517,19 +527,22 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
   @Override
   @Transactional
-  public boolean deleteValue(boolean force, @CheckForNull UID dataSet, @Nonnull DataEntryKey key)
+  public boolean deleteValue(boolean force, @CheckForNull UID dataSet, @Nonnull DataValueKey key)
       throws ConflictException, BadRequestException {
     DataEntryValue value = key.toDeletedValue();
     List<DataEntryError> errors = new ArrayList<>(1);
     ValidationSource source = new ValuesValidationSource(List.of(value));
     DataEntryGroup valid = validate(force, dataSet, source, errors);
     if (valid.values().isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
-    return store.deleteByKeys(List.of(key)) > 0;
+    boolean deleted = store.deleteByKeys(List.of(key)) > 0;
+    if (deleted)
+      audit.auditUpsert(valid, new DataEntrySummary(1, 1, 1, 1, List.of()), getCurrentUsername());
+    return deleted;
   }
 
   @Override
   @Transactional(readOnly = true)
-  public LockStatus getEntryStatus(UID dataSet, @Nonnull DataEntryKey key)
+  public LockStatus getEntryStatus(UID dataSet, @Nonnull DataValueKey key)
       throws ConflictException {
     DataEntryValue e = key.toDeletedValue();
     ValidationSource source = new ValuesValidationSource(List.of(e));
@@ -631,7 +644,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     Set<String> aocOuRestricted =
         Set.copyOf(store.getAocWithOrgUnitHierarchy(source.attributeOptionCombos()));
     if (!aocOuRestricted.isEmpty()) {
-      Iterator<UID> aocIter = source.attributeOptionCombos().iterator();
+      Iterator<UID> aocIter = source.attributeOptionCombos().filter(Objects::nonNull).iterator();
       while (aocIter.hasNext()) {
         UID aoc = aocIter.next();
         if (!aocOuRestricted.contains(aoc.getValue())) continue;
@@ -683,7 +696,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     if (values.isEmpty()) return values;
 
     // - require: no two values may affect the same data value (=key =row)
-    Map<DataEntryKey, List<DataEntryValue>> valuesByKey =
+    Map<DataValueKey, List<DataEntryValue>> valuesByKey =
         values.stream().collect(groupingBy(DataEntryValue::toKey));
     if (valuesByKey.size() != values.size()) {
       // only report first to keep error message manageable
@@ -761,7 +774,9 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
   private static String normalizeValue(DataEntryValue e, ValueType type) {
     String val = e.value();
-    if (val == null || type == null || !type.isBoolean()) return val;
+    if (val == null || type == null) return val;
+    if (type.isInteger() && val.endsWith(".0")) return val.substring(0, val.length() - 2);
+    if (!type.isBoolean()) return val;
     int len = val.length();
     if (len > 5) return val;
     String lower = val.toLowerCase();
@@ -855,7 +870,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     // - require: DS not already approved (data approval)
     Set<String> aocInApproval = Set.copyOf(store.getDataSetAocInApproval(ds));
     if (!aocInApproval.isEmpty()) {
-      Iterator<UID> iterAoc = source.attributeOptionCombos().iterator();
+      Iterator<UID> iterAoc = source.attributeOptionCombos().filter(Objects::nonNull).iterator();
       while (iterAoc.hasNext()) {
         UID aoc = iterAoc.next();
         if (!aocInApproval.contains(aoc.getValue())) continue;
@@ -954,8 +969,8 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     Stream<UID> optionCombos();
 
     /**
-     * @return all attribute option combos in the source (nulls allowed; not necessarily distinct
-     *     yet)
+     * @return all attribute option combos in the source (must maintain nulls; not necessarily
+     *     distinct yet)
      */
     Stream<UID> attributeOptionCombos();
 
@@ -978,7 +993,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
     /**
      * @param de filter
-     * @return all COCs used in combination with the given DE (no nulls, no duplicates)
+     * @return all COCs used in combination with the given DE (must maintain nulls, no duplicates)
      */
     Stream<UID> categoryOptionCombosForDataElement(UID de);
 
@@ -1101,7 +1116,6 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
       return scope.elements().stream()
           .filter(e -> e.dataElement().equals(de))
           .map(DataEntryGroup.Scope.Element::categoryOptionCombo)
-          .filter(Objects::nonNull)
           .distinct();
     }
 

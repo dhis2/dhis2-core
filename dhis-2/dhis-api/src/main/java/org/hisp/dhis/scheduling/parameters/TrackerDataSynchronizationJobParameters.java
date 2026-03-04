@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,27 +27,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datavalue;
+package org.hisp.dhis.scheduling.parameters;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.period.Period;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Optional;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.scheduling.JobParameters;
 
-public interface DataEntryId {
+/**
+ * @author Zubair Asghar
+ */
+@Getter
+@Setter
+@NoArgsConstructor
+public class TrackerDataSynchronizationJobParameters implements JobParameters {
+  static final int PAGE_SIZE_MIN = 5;
 
-  @Nonnull
-  UID dataElement();
+  static final int PAGE_SIZE_MAX = 200;
 
-  @Nonnull
-  UID orgUnit();
+  @JsonProperty private int pageSize = 60;
 
-  @CheckForNull
-  UID categoryOptionCombo();
+  @Override
+  public Optional<ErrorReport> validate() {
+    if (pageSize < PAGE_SIZE_MIN || pageSize > PAGE_SIZE_MAX) {
+      return Optional.of(
+          new ErrorReport(
+              this.getClass(),
+              ErrorCode.E4008,
+              "pageSize",
+              PAGE_SIZE_MIN,
+              PAGE_SIZE_MAX,
+              pageSize));
+    }
 
-  @CheckForNull
-  UID attributeOptionCombo();
-
-  @Nonnull
-  Period period();
+    return Optional.empty();
+  }
 }
