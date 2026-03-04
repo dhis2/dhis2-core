@@ -176,6 +176,15 @@ public class AppController {
     String contextPath = request.getContextPath();
     String baseUrl = contextService.getContextPath();
 
+    log.error(
+        "renderApp baseUrl={}, serverName={}, X-Forwarded-Host={}, X-Forwarded-Proto={}, scheme={}, serverPort={}",
+        baseUrl,
+        request.getServerName(),
+        request.getHeader("X-Forwarded-Host"),
+        request.getHeader("X-Forwarded-Proto"),
+        request.getScheme(),
+        request.getServerPort());
+
     // Sanitize for logging, though Tomcat / Spring should have done this already
     appName = TextUtils.removeNewlines(appName);
 
