@@ -99,6 +99,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
@@ -132,6 +133,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
   @Autowired private TrackerOwnershipManager trackerOwnershipManager;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private User user;
 
@@ -1207,15 +1210,16 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     setupTeWithOccurredEvent(EventStatus.COMPLETED);
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
-            .organisationUnits(Set.of(UID.of(orgUnitA)))
+            .organisationUnits(Set.of(orgUnitA.getUid()))
             .orgUnitMode(SELECTED)
-            .program(UID.of(programA))
+            .programUid(programA.getUid())
             .eventStatus(EventStatus.OVERDUE)
             .eventStartDate(Date.from(Instant.now().minus(20, ChronoUnit.DAYS)))
             .eventEndDate(Date.from(Instant.now().plus(20, ChronoUnit.DAYS)))
+            .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(teOverdue.getUid()), uids(trackedEntities));
   }
@@ -1230,15 +1234,16 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
     setupTeWithOccurredEvent(EventStatus.COMPLETED);
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
-            .organisationUnits(Set.of(UID.of(orgUnitA)))
+            .organisationUnits(Set.of(orgUnitA.getUid()))
             .orgUnitMode(SELECTED)
-            .program(UID.of(programA))
+            .programUid(programA.getUid())
             .eventStatus(EventStatus.SCHEDULE)
             .eventStartDate(Date.from(Instant.now().minus(20, ChronoUnit.DAYS)))
             .eventEndDate(Date.from(Instant.now().plus(20, ChronoUnit.DAYS)))
+            .user(user)
             .build();
 
-    List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
 
     assertContainsOnly(List.of(teScheduled.getUid()), uids(trackedEntities));
   }
@@ -2257,7 +2262,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   private TrackedEntity setupTeWithScheduledEvent(EventStatus status, int days) {
-    TrackedEntity te = createTrackedEntity(orgUnitA, trackedEntityTypeA);
+    TrackedEntity te = createTrackedEntity(orgUnitA);
     manager.save(te);
 
     Enrollment enrollment = createEnrollment(programA, te, orgUnitA);
@@ -2274,7 +2279,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   private void setupTeWithOccurredEvent(EventStatus status) {
-    TrackedEntity te = createTrackedEntity(orgUnitA, trackedEntityTypeA);
+    TrackedEntity te = createTrackedEntity(orgUnitA);
     manager.save(te);
 
     Enrollment enrollment = createEnrollment(programA, te, orgUnitA);
