@@ -39,6 +39,7 @@ import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipCla
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -356,8 +357,15 @@ class JdbcTrackedEntityStore {
       sql.append("select distinct te.trackedentityid");
     }
 
-    // TE columns needed by the outer query
-    sql.append(", te.uid, te.created");
+    // Use an ordered set to collect SELECT columns without duplicates. te.created is always needed
+    // except on the enrolledAt path (which orders by en_enrollmentdate instead). An explicit
+    // order=createdAt can add it back -- the set handles the deduplication automatically, avoiding
+    // the unnecessary sort-key width that causes work_mem spills on the enrolledAt path.
+    LinkedHashSet<String> selectCols = new LinkedHashSet<>();
+    selectCols.add("te.uid");
+    if (!isOrderingByEnrolledAt(params)) {
+      selectCols.add("te.created");
+    }
 
     // Add order-by columns so they are available for ORDER BY (required for DISTINCT)
     for (Order order : params.getOrder()) {
@@ -371,19 +379,12 @@ class JdbcTrackedEntityStore {
         }
 
         if (ENROLLMENT_DATE_KEY.equals(field)) {
-          sql.append(", ")
-              .append(ENROLLMENT_ALIAS)
-              .append(".enrollmentdate as ")
-              .append(ENROLLMENT_DATE_ALIAS);
-        } else if (!"created".equals(field)) {
-          // "created" is already in the select list above
-          sql.append(", te.").append(ORDERABLE_FIELDS.get(field));
+          selectCols.add(ENROLLMENT_ALIAS + ".enrollmentdate as " + ENROLLMENT_DATE_ALIAS);
+        } else {
+          selectCols.add("te." + ORDERABLE_FIELDS.get(field));
         }
       } else if (order.getField() instanceof TrackedEntityAttribute tea) {
-        sql.append(", ")
-            .append(quote(tea.getUid()))
-            .append(".value as ")
-            .append(quote(tea.getUid()));
+        selectCols.add(quote(tea.getUid()) + ".value as " + quote(tea.getUid()));
       } else {
         throw new IllegalArgumentException(
             String.format(
@@ -392,6 +393,8 @@ class JdbcTrackedEntityStore {
                 String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
       }
     }
+
+    selectCols.forEach(col -> sql.append(", ").append(col));
   }
 
   private void addJoinOnProgram(
@@ -592,7 +595,12 @@ class JdbcTrackedEntityStore {
         .append(EVENT_ALIAS)
         .append(".enrollmentid = ")
         .append(ENROLLMENT_ALIAS)
-        .append(".enrollmentid");
+        .append(".enrollmentid")
+        .append(" and ")
+        .append(EVENT_ALIAS)
+        .append(".programid = ")
+        .append(ENROLLMENT_ALIAS)
+        .append(".programid");
 
     addEventFilterConditions(sql, sqlParameters, params);
   }
@@ -792,7 +800,10 @@ class JdbcTrackedEntityStore {
           .append(EVENT_ALIAS)
           .append(" on ")
           .append(EVENT_ALIAS)
-          .append(".enrollmentid = en.enrollmentid");
+          .append(".enrollmentid = en.enrollmentid")
+          .append(" and ")
+          .append(EVENT_ALIAS)
+          .append(".programid = en.programid");
       addEventFilterConditions(sql, sqlParameters, params);
       sql.append(" ");
     }
