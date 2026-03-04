@@ -1142,8 +1142,11 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnOnlyOverdueTrackedEntitiesWhenFilteringByOverdueStatus()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntity teOverdue = setupTeWithEvent(EventStatus.SCHEDULE, -10);
-    setupTeWithEvent(EventStatus.SKIPPED, -10);
+    TrackedEntity teOverdue = setupTeWithScheduledEvent(EventStatus.SCHEDULE, -10);
+    setupTeWithScheduledEvent(EventStatus.SCHEDULE, 10);
+    setupTeWithScheduledEvent(EventStatus.SKIPPED, -10);
+    setupTeWithOccurredEvent(EventStatus.ACTIVE);
+    setupTeWithOccurredEvent(EventStatus.COMPLETED);
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(UID.of(orgUnitA)))
@@ -1162,8 +1165,11 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldReturnOnlyScheduledTrackedEntitiesWhenFilteringByScheduledStatus()
       throws ForbiddenException, NotFoundException, BadRequestException {
-    TrackedEntity teScheduled = setupTeWithEvent(EventStatus.SCHEDULE, 10);
-    setupTeWithEvent(EventStatus.SKIPPED, 10);
+    TrackedEntity teScheduled = setupTeWithScheduledEvent(EventStatus.SCHEDULE, 10);
+    setupTeWithScheduledEvent(EventStatus.SCHEDULE, -10);
+    setupTeWithScheduledEvent(EventStatus.SKIPPED, 10);
+    setupTeWithOccurredEvent(EventStatus.ACTIVE);
+    setupTeWithOccurredEvent(EventStatus.COMPLETED);
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder()
             .organisationUnits(Set.of(UID.of(orgUnitA)))
@@ -2530,7 +2536,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         .build();
   }
 
-  private TrackedEntity setupTeWithEvent(EventStatus status, int days) {
+  private TrackedEntity setupTeWithScheduledEvent(EventStatus status, int days) {
     TrackedEntity te = createTrackedEntity(orgUnitA, trackedEntityTypeA);
     manager.save(te);
 
@@ -2545,5 +2551,20 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     manager.save(event);
 
     return te;
+  }
+
+  private void setupTeWithOccurredEvent(EventStatus status) {
+    TrackedEntity te = createTrackedEntity(orgUnitA, trackedEntityTypeA);
+    manager.save(te);
+
+    Enrollment enrollment = createEnrollment(programA, te, orgUnitA);
+    manager.save(enrollment);
+
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(te, programA, orgUnitA);
+
+    TrackerEvent event = createEvent(programStageA1, enrollment, orgUnitA);
+    event.setOccurredDate(Date.from(Instant.now()));
+    event.setStatus(status);
+    manager.save(event);
   }
 }
