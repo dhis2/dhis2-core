@@ -32,10 +32,13 @@ package org.hisp.dhis.dataexchange.aggregate;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.EnumSet;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 
@@ -50,6 +53,15 @@ import org.hisp.dhis.common.MetadataObject;
 @Accessors(chain = true)
 @JacksonXmlRootElement(localName = "aggregateDataExchange", namespace = DxfNamespaces.DXF_2_0)
 public class AggregateDataExchange extends BaseIdentifiableObject implements MetadataObject {
+
+  /** Allowed dimension item types for source request data items. */
+  public static final Set<DimensionItemType> ALLOWED_DX_ITEM_TYPES =
+      EnumSet.of(
+          DimensionItemType.INDICATOR,
+          DimensionItemType.DATA_ELEMENT,
+          DimensionItemType.DATA_ELEMENT_OPERAND,
+          DimensionItemType.PROGRAM_INDICATOR);
+
   /** Data exchange source. */
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
