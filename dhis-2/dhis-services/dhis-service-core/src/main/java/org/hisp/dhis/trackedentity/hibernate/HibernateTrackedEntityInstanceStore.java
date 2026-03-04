@@ -123,8 +123,6 @@ public class HibernateTrackedEntityInstanceStore
 
   private static final String IS_NULL = "IS NULL";
 
-  private static final String IS_NOT_NULL = "IS NOT NULL";
-
   private static final String SPACE = " ";
 
   private static final String SINGLE_QUOTE = "'";
