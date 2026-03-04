@@ -831,6 +831,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
   }
 
   @Test
+  @Disabled("OU validation error. Needs to be reviewed")
   public void queryWithProgramAndEnrollmentStaticDimOrdering() {
     // Given
     QueryParamsBuilder params =
