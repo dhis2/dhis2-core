@@ -122,6 +122,30 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
         .evictCollectionData("org.hisp.dhis.user.UserGroup.members", id);
   }
 
+  @Override
+  public boolean removeMember(
+      @Nonnull UID userGroupUid, @Nonnull UID userUid, @Nonnull UID lastUpdatedByUid) {
+    String sql =
+        """
+        DELETE FROM usergroupmembers
+        WHERE usergroupid = (SELECT usergroupid FROM usergroup WHERE uid = ?)
+        AND userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        """;
+    boolean changed = jdbcTemplate.update(sql, userGroupUid.getValue(), userUid.getValue()) > 0;
+    if (changed) {
+      evictUserGroupsCollectionCache(userUid);
+      updateLastUpdated(userGroupUid, lastUpdatedByUid);
+    }
+    return changed;
+  }
+
+  @Override
+  public void removeAllMemberships(@Nonnull UID userUid) {
+    jdbcTemplate.update(
+        "DELETE FROM usergroupmembers WHERE userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)",
+        userUid.getValue());
+  }
+
   //  @Override
   // TODO: MAS: send event to invalidate sessions for users in this group
   //  public void update(@Nonnull UserGroup object, User user) {
