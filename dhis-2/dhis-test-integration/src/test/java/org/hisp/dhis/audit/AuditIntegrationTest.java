@@ -35,7 +35,6 @@ import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntityAttr
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -60,7 +59,6 @@ import org.hisp.dhis.datavalue.DataDumpService;
 import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
-import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ConflictException;
@@ -296,7 +294,7 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
   public static DataEntryValue createDataValue(
       DataElement dataElement, Period period, OrganisationUnit source, String value) {
     return new DataEntryValue(
-        0, UID.of(dataElement), UID.of(source), null, null, period, "1", null, null, null);
+        0, UID.of(dataElement), UID.of(source), null, null, period, value, null, null, null);
   }
 
   @Test
@@ -357,9 +355,5 @@ class AuditIntegrationTest extends PostgresIntegrationTestBase {
     assertNotNull(deserializeProgramStage.get("dataSetElements"));
     List<String> uids = (List<String>) deserializeProgramStage.get("dataSetElements");
     assertEquals(1, uids.size());
-  }
-
-  private void addDataValues(DataValue... values) {
-    if (dataDumpService.upsertValues(values) < values.length) fail("Failed to upsert test data");
   }
 }
