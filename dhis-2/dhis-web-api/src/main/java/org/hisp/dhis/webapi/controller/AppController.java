@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.security.LoginAppDiagnostics;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
@@ -176,14 +177,15 @@ public class AppController {
     String contextPath = request.getContextPath();
     String baseUrl = contextService.getContextPath();
 
-    log.error(
-        "renderApp baseUrl={}, serverName={}, X-Forwarded-Host={}, X-Forwarded-Proto={}, scheme={}, serverPort={}",
+    LoginAppDiagnostics.capture(
         baseUrl,
         request.getServerName(),
         request.getHeader("X-Forwarded-Host"),
         request.getHeader("X-Forwarded-Proto"),
+        request.getHeader("X-Forwarded-Port"),
         request.getScheme(),
-        request.getServerPort());
+        request.getServerPort(),
+        request.getClass().getName());
 
     // Sanitize for logging, though Tomcat / Spring should have done this already
     appName = TextUtils.removeNewlines(appName);

@@ -36,6 +36,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.security.LoginAppDiagnostics;
 import org.hisp.dhis.security.LoginConfigResponse;
 import org.hisp.dhis.security.LoginOidcProvider;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
@@ -111,6 +112,7 @@ public class LoginConfigController {
         .xForwardedHost(request.getHeader("X-Forwarded-Host"))
         .xForwardedProto(request.getHeader("X-Forwarded-Proto"))
         .xForwardedPort(request.getHeader("X-Forwarded-Port"))
+        .lastLoginRender(LoginAppDiagnostics.getLastRenderInfo())
         .build();
   }
 
