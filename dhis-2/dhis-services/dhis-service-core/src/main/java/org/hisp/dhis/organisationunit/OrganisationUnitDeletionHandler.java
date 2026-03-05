@@ -32,6 +32,7 @@ package org.hisp.dhis.organisationunit;
 import static java.util.stream.Collectors.joining;
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
+import java.util.Map;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.Program;
@@ -67,13 +68,11 @@ public class OrganisationUnitDeletionHandler extends IdObjectDeletionHandler<Org
   }
 
   private void deleteUser(User user) {
-    user.getOrganisationUnits()
-        .iterator()
-        .forEachRemaining(
-            unit -> {
-              unit.getUsers().remove(user);
-              idObjectManager.updateNoAcl(unit);
-            });
+    // SQL bypass avoids loading user.organisationUnits + unit.getUsers() (742 rows)
+    // which would make OrgUnit entities dirty and trigger UserRole.members cascade on flush.
+    // Hibernate also cleans up usermembership when the User entity is flushed for deletion
+    // (User.organisationUnits is the owning side of the join table).
+    delete("DELETE FROM usermembership WHERE userinfoid = :id", Map.of("id", user.getId()));
   }
 
   private void deleteProgram(Program program) {

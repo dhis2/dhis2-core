@@ -27,30 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.user;
+package org.hisp.dhis.query;
 
-import javax.annotation.Nonnull;
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataset.DataSet;
+import static java.util.List.of;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface UserRoleStore extends IdentifiableObjectStore<UserRole> {
-  /**
-   * Returns the number of UserRoles which are associated with the given DataSet.
-   *
-   * @param dataSet the DataSet.
-   * @return number of UserRoles.
-   */
-  int countDataSetUserRoles(DataSet dataSet);
+import org.junit.jupiter.api.Test;
 
-  /**
-   * Removes all role memberships for a user directly via SQL, without loading any members
-   * collection. Used during user deletion to avoid N+1 queries on large roles.
-   *
-   * @param userUid the UID of the user being removed from all roles
-   */
-  void removeAllMemberships(@Nonnull UID userUid);
+class FilterTest {
+
+  @Test
+  void supportsDbPredicateForEqualOperator() {
+    assertTrue(Filters.eq("members.id", "abc123").supportsDbPredicate());
+  }
+
+  @Test
+  void supportsDbPredicateForInOperator() {
+    assertTrue(Filters.in("members.id", of("a", "b")).supportsDbPredicate());
+  }
+
+  @Test
+  void doesNotSupportDbPredicateForNonEligibleOperator() {
+    assertFalse(Filters.gt("members.id", 1).supportsDbPredicate());
+  }
+
+  @Test
+  void doesNotSupportDbPredicateForAttributeFilter() {
+    assertFalse(Filters.eq("members.id", "abc123").asAttribute().supportsDbPredicate());
+  }
+
+  @Test
+  void doesNotSupportDbPredicateForVirtualFilter() {
+    assertFalse(Filters.query("abc").supportsDbPredicate());
+  }
 }
