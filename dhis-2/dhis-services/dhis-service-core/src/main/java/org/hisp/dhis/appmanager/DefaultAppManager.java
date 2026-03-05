@@ -610,10 +610,17 @@ public class DefaultAppManager implements AppManager {
           originalJsContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
         }
 
+        // Apps are built with REACT_APP_DHIS2_BASE_URL:".." (one level up).
+        // The server serves apps at a deeper path, so we must adjust the
+        // relative URL to reach the context root:
+        //   Legacy path:    /contextPath/api/apps/{appName}/ → 3 levels up
+        //   Canonical path: /contextPath/apps/{appName}/     → 2 levels up
+        boolean canonicalAppPaths = settingsProvider.getCurrentSettings().getCanonicalAppPaths();
+        String relativePath = canonicalAppPaths ? "../.." : "../../..";
         String modifiedJsContent =
             originalJsContent.replace(
                 "REACT_APP_DHIS2_BASE_URL:\"..\"",
-                "REACT_APP_DHIS2_BASE_URL:\"" + "../../.." + "\"");
+                "REACT_APP_DHIS2_BASE_URL:\"" + relativePath + "\"");
 
         ByteArrayResource byteArrayResource =
             toByteArrayResource(
