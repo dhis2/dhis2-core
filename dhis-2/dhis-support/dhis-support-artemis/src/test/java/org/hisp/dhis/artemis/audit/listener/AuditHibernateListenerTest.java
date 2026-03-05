@@ -81,7 +81,7 @@ public class AuditHibernateListenerTest {
     map.put("password", createProperty("password", false));
 
     when(schema.getFieldNameMapProperties()).thenReturn(map);
-    when(schemaService.getDynamicSchema(User.class)).thenReturn(schema);
+    when(schemaService.getSchema(User.class)).thenReturn(schema);
     Map<String, Object> auditObjectMap =
         (Map<String, Object>)
             postInsertAuditListener.createAuditEntry(user, state, session, 1, persister);

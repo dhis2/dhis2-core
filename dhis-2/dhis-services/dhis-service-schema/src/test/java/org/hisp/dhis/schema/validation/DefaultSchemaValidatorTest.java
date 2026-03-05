@@ -168,7 +168,7 @@ class DefaultSchemaValidatorTest {
   @BeforeEach
   void setUpSchema() {
     schema.setPropertyMap(introspectorService.getPropertiesMap(SimpleFields.class));
-    when(schemaService.getDynamicSchema(SimpleFields.class)).thenReturn(schema);
+    when(schemaService.getSchema(SimpleFields.class)).thenReturn(schema);
   }
 
   @Test

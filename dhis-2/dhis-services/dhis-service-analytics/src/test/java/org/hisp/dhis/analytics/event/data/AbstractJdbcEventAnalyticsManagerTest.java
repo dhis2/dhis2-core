@@ -1422,7 +1422,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     List<String> columns = eventSubject.getGroupByColumnNames(params, true);
 
-    assertTrue(columns.stream().anyMatch(c -> c.contains("ous.\"organisationunituid\"")));
+    assertTrue(columns.stream().anyMatch(c -> c.contains("enrl.\"ou\"")));
   }
 
   @Test
@@ -1440,7 +1440,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     String whereClause = eventSubject.getWhereClause(params);
 
-    assertThat(whereClause, containsString("ous.\"organisationunituid\""));
+    assertThat(whereClause, containsString("enrl.\"uidlevel1\""));
     assertThat(whereClause, containsString(ouA.getUid()));
     assertThat(whereClause, containsString(ouB.getUid()));
   }
@@ -1460,8 +1460,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     String fromClause = eventSubject.getFromClause(params);
 
-    assertThat(fromClause, containsString("inner join analytics_rs_orgunitstructure as ous"));
-    assertThat(fromClause, containsString("ax.\"enrollmentou\" = ous.\"organisationunituid\""));
+    assertThat(fromClause, containsString("inner join analytics_enrollment_"));
+    assertThat(fromClause, containsString("enrl on ax.\"enrollment\" = enrl.\"enrollment\""));
   }
 
   @Test
@@ -1481,9 +1481,9 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     eventSubject.addFromClause(sb, params);
     String fromClause = sb.build();
 
-    assertThat(fromClause, containsString("analytics_rs_orgunitstructure"));
-    assertThat(fromClause, containsString("ous"));
-    assertThat(fromClause, containsString("ax.\"enrollmentou\""));
+    assertThat(fromClause, containsString("analytics_enrollment_"));
+    assertThat(fromClause, containsString("enrl"));
+    assertThat(fromClause, containsString("ax.\"enrollment\""));
   }
 
   @Test
@@ -1503,8 +1503,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         sb, params, new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT));
     String selectClause = sb.build();
 
-    assertThat(selectClause, containsString("ous.\"organisationunituid\" as enrollmentou"));
-    assertThat(selectClause, containsString("ous.\"name\" as enrollmentouname"));
+    assertThat(selectClause, containsString("enrl.\"ou\" as enrollmentou"));
+    assertThat(selectClause, containsString("enrl.\"ouname\" as enrollmentouname"));
   }
 
   @Test
@@ -1519,8 +1519,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     String whereClause = eventSubject.getWhereClause(params);
 
-    assertThat(whereClause, containsString("ous.\"level\" in (4)"));
-    assertThat(whereClause.contains("uidlevel"), is(false));
+    assertThat(whereClause, containsString("enrl.\"oulevel\" in (4)"));
   }
 
   @Test
@@ -1539,7 +1538,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     String whereClause = eventSubject.getWhereClause(params);
 
     assertThat(whereClause, containsString("uidlevel1"));
-    assertThat(whereClause, containsString("ous.\"level\" in (4)"));
+    assertThat(whereClause, containsString("enrl.\"oulevel\" in (4)"));
   }
 
   @Test
@@ -1561,8 +1560,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForObject(sqlCaptor.capture(), eq(Long.class));
 
     String sql = sqlCaptor.getValue();
-    assertThat(sql, containsString("inner join analytics_rs_orgunitstructure as ous"));
-    assertThat(sql, containsString("ous.\"level\" in (4)"));
+    assertThat(sql, containsString("inner join analytics_enrollment_"));
+    assertThat(sql, containsString("enrl.\"oulevel\" in (4)"));
   }
 
   private EventQueryParams getEventQueryParamsForCoordinateFieldsTest(

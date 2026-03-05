@@ -64,7 +64,7 @@ public class DimensionIdentifierHelper {
   public static final Character DIMENSION_SEPARATOR = '.';
 
   /**
-   * Event-level static dimensions that should support short format headers (e.g.,
+   * Stage-scoped static dimensions that should support short format headers (e.g.,
    * programStageUid.eventdate instead of programUid.programStageUid.eventdate).
    */
   public static final List<StaticDimension> SUPPORTED_EVENT_STATIC_DIMENSIONS =
@@ -72,6 +72,7 @@ public class DimensionIdentifierHelper {
           StaticDimension.EVENT_DATE,
           StaticDimension.SCHEDULED_DATE,
           StaticDimension.EVENT_STATUS,
+          StaticDimension.OUNAME,
           StaticDimension.OU);
 
   /**

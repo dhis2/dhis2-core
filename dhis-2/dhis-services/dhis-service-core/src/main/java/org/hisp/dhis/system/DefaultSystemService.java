@@ -124,6 +124,7 @@ public class DefaultSystemService implements SystemService, InitializingBean {
         .capability(capabilityProvider.getSystemCapability())
         .calendar(calendarService.getSystemCalendar().name())
         .dateFormat(calendarService.getSystemDateFormat().getJs())
+        .sessionTimeout(dhisConfig.getIntProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT))
         .serverDate(now)
         .serverTimeZoneId(tz.getID())
         .serverTimeZoneDisplayName(tz.getDisplayName())
