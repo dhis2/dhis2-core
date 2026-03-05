@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -29,35 +29,26 @@
  */
 package org.hisp.dhis.audit;
 
-import java.util.List;
 import javax.annotation.CheckForNull;
-import org.springframework.context.ApplicationEvent;
+import org.hisp.dhis.log.MdcKeys;
+import org.slf4j.MDC;
 
 /**
- * Spring application event published when a JDBC transaction commits, carrying all DML events
- * observed during that transaction. Rolled-back transactions do not produce this event.
+ * Captures the origin context of a DML operation from the current MDC. All fields are nullable
+ * since async jobs won't have controller/method and unauthenticated requests won't have sessionId.
  */
-public class DmlObservedEvent extends ApplicationEvent {
+public record DmlOrigin(
+    @CheckForNull String controller,
+    @CheckForNull String method,
+    @CheckForNull String requestId,
+    @CheckForNull String sessionId) {
 
-  private final List<DmlEvent> events;
-  private final DmlOrigin origin;
-
-  public DmlObservedEvent(Object source, List<DmlEvent> events) {
-    this(source, events, null);
-  }
-
-  public DmlObservedEvent(Object source, List<DmlEvent> events, DmlOrigin origin) {
-    super(source);
-    this.events = List.copyOf(events);
-    this.origin = origin;
-  }
-
-  public List<DmlEvent> getEvents() {
-    return events;
-  }
-
-  @CheckForNull
-  public DmlOrigin getOrigin() {
-    return origin;
+  /** Snapshot the current MDC values into a {@link DmlOrigin}. */
+  public static DmlOrigin fromMdc() {
+    return new DmlOrigin(
+        MDC.get(MdcKeys.MDC_CONTROLLER),
+        MDC.get(MdcKeys.MDC_METHOD),
+        MDC.get(MdcKeys.MDC_REQUEST_ID),
+        MDC.get(MdcKeys.MDC_SESSION_ID));
   }
 }

@@ -30,6 +30,8 @@
 package org.hisp.dhis.config.sqlobserver;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -48,9 +50,13 @@ import net.ttddyy.dsproxy.QueryInfo;
 import net.ttddyy.dsproxy.listener.MethodExecutionContext;
 import org.hisp.dhis.audit.DmlEvent.DmlOperation;
 import org.hisp.dhis.audit.DmlObservedEvent;
+import org.hisp.dhis.audit.DmlOrigin;
+import org.hisp.dhis.log.MdcKeys;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.slf4j.MDC;
 import org.springframework.context.ApplicationEventPublisher;
 
 class DmlObserverListenerTest {
@@ -64,6 +70,11 @@ class DmlObserverListenerTest {
     registry = mock(HibernateTableEntityRegistry.class);
     eventPublisher = mock(ApplicationEventPublisher.class);
     listener = new DmlObserverListener(registry, eventPublisher);
+  }
+
+  @AfterEach
+  void tearDown() {
+    MDC.clear();
   }
 
   @Test
@@ -173,6 +184,69 @@ class DmlObserverListenerTest {
 
     List<DmlObservedEvent> events = captor.getAllValues();
     assertTrue(events.size() >= 1);
+  }
+
+  @Test
+  void afterQuery_autoCommitCapturesOriginFromMdc() throws Exception {
+    MDC.put(MdcKeys.MDC_CONTROLLER, "DataElementController");
+    MDC.put(MdcKeys.MDC_METHOD, "postJsonObject");
+    MDC.put(MdcKeys.MDC_REQUEST_ID, "req-123");
+    MDC.put(MdcKeys.MDC_SESSION_ID, "sess-abc");
+
+    ExecutionInfo execInfo = createSuccessExecutionInfo(true);
+    List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
+
+    listener.afterQuery(execInfo, queries);
+
+    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
+    verify(eventPublisher).publishEvent(captor.capture());
+    DmlOrigin origin = captor.getValue().getOrigin();
+    assertNotNull(origin);
+    assertEquals("DataElementController", origin.controller());
+    assertEquals("postJsonObject", origin.method());
+    assertEquals("req-123", origin.requestId());
+    assertEquals("sess-abc", origin.sessionId());
+  }
+
+  @Test
+  void commitCapturesOriginFromMdcAtAccumulationTime() throws Exception {
+    MDC.put(MdcKeys.MDC_CONTROLLER, "OrgUnitController");
+    MDC.put(MdcKeys.MDC_REQUEST_ID, "req-456");
+
+    ExecutionInfo execInfo = createSuccessExecutionInfo(false);
+    List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
+    listener.afterQuery(execInfo, queries);
+
+    // Clear MDC before commit to prove origin was captured at accumulation time
+    MDC.clear();
+
+    Connection conn = execInfo.getStatement().getConnection();
+    MethodExecutionContext commitCtx = createMethodContext(conn, "commit");
+    listener.afterMethod(commitCtx);
+
+    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
+    verify(eventPublisher).publishEvent(captor.capture());
+    DmlOrigin origin = captor.getValue().getOrigin();
+    assertNotNull(origin);
+    assertEquals("OrgUnitController", origin.controller());
+    assertEquals("req-456", origin.requestId());
+  }
+
+  @Test
+  void afterQuery_emptyMdcProducesOriginWithNulls() throws Exception {
+    ExecutionInfo execInfo = createSuccessExecutionInfo(true);
+    List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
+
+    listener.afterQuery(execInfo, queries);
+
+    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
+    verify(eventPublisher).publishEvent(captor.capture());
+    DmlOrigin origin = captor.getValue().getOrigin();
+    assertNotNull(origin);
+    assertNull(origin.controller());
+    assertNull(origin.method());
+    assertNull(origin.requestId());
+    assertNull(origin.sessionId());
   }
 
   // ── Helpers ──

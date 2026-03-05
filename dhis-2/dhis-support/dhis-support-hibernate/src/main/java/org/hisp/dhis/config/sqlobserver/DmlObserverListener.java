@@ -47,6 +47,7 @@ import net.ttddyy.dsproxy.listener.QueryExecutionListener;
 import net.ttddyy.dsproxy.proxy.ParameterSetOperation;
 import org.hisp.dhis.audit.DmlEvent;
 import org.hisp.dhis.audit.DmlObservedEvent;
+import org.hisp.dhis.audit.DmlOrigin;
 import org.hisp.dhis.config.sqlobserver.DmlSqlParser.DmlParseResult;
 import org.hisp.dhis.config.sqlobserver.HibernateTableEntityRegistry.TableInfo;
 import org.springframework.context.ApplicationEventPublisher;
@@ -65,11 +66,15 @@ public class DmlObserverListener implements QueryExecutionListener, MethodExecut
   private final HibernateTableEntityRegistry registry;
   private final ApplicationEventPublisher eventPublisher;
 
+  /** Holder for accumulated DML events and the origin context captured on first DML. */
+  record PendingBatch(List<DmlEvent> events, DmlOrigin origin) {}
+
   /**
-   * Accumulated DML events keyed by connection identity hash code (as String). Using identity hash
+   * Accumulated DML batches keyed by connection identity hash code (as String). Using identity hash
    * to avoid calling connection.toString() on pooled connections.
    */
-  private final ConcurrentHashMap<String, List<DmlEvent>> pendingEvents = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, PendingBatch> pendingBatches =
+      new ConcurrentHashMap<>();
 
   public DmlObserverListener(
       HibernateTableEntityRegistry registry, ApplicationEventPublisher eventPublisher) {
@@ -142,9 +147,14 @@ public class DmlObserverListener implements QueryExecutionListener, MethodExecut
 
         // For auto-commit connections, publish immediately
         if (isAutoCommit(execInfo)) {
-          eventPublisher.publishEvent(new DmlObservedEvent(this, List.of(event)));
+          eventPublisher.publishEvent(
+              new DmlObservedEvent(this, List.of(event), DmlOrigin.fromMdc()));
         } else {
-          pendingEvents.computeIfAbsent(connectionId, k -> new ArrayList<>()).add(event);
+          pendingBatches
+              .computeIfAbsent(
+                  connectionId, k -> new PendingBatch(new ArrayList<>(), DmlOrigin.fromMdc()))
+              .events()
+              .add(event);
         }
       }
     }
@@ -182,11 +192,12 @@ public class DmlObserverListener implements QueryExecutionListener, MethodExecut
   // ── Internal helpers ──
 
   private void publishAndClear(String connectionId) {
-    List<DmlEvent> events = pendingEvents.remove(connectionId);
-    if (events != null && !events.isEmpty()) {
-      log.debug("Publishing {} DML events for connection {}", events.size(), connectionId);
+    PendingBatch batch = pendingBatches.remove(connectionId);
+    if (batch != null && !batch.events().isEmpty()) {
+      log.debug(
+          "Publishing {} DML events for connection {}", batch.events().size(), connectionId);
       try {
-        eventPublisher.publishEvent(new DmlObservedEvent(this, events));
+        eventPublisher.publishEvent(new DmlObservedEvent(this, batch.events(), batch.origin()));
       } catch (Exception e) {
         log.warn("Failed to publish DmlObservedEvent", e);
       }
@@ -194,11 +205,11 @@ public class DmlObserverListener implements QueryExecutionListener, MethodExecut
   }
 
   private void discardAndClear(String connectionId) {
-    List<DmlEvent> events = pendingEvents.remove(connectionId);
-    if (events != null && !events.isEmpty()) {
+    PendingBatch batch = pendingBatches.remove(connectionId);
+    if (batch != null && !batch.events().isEmpty()) {
       log.debug(
           "Discarded {} DML events for connection {} (rollback/close)",
-          events.size(),
+          batch.events().size(),
           connectionId);
     }
   }
