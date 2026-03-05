@@ -50,20 +50,23 @@ alter table trackerevent
     references program (programid);
 
 -- drop unused/redundant event indices
-drop index if exists in_trackerevent_status_occurreddate; -- 0 scans
+drop index if exists in_trackerevent_status_occurreddate; -- replaced by program-scoped index
 drop index if exists in_trackerevent_programstageid_created; -- replaced by program-scoped index
 drop index if exists in_trackerevent_occurreddate; -- replaced by program-scoped index
 drop index if exists in_trackerevent_deleted_assigneduserid; -- replaced by program-scoped index
 
 -- add new composite indices with programid prefix for optimal filtering + ordering
+drop index if exists in_trackerevent_program_created;
 create index in_trackerevent_program_created
     on trackerevent (programid, created desc, eventid desc);
 
 -- support fast order=occurredAt:desc within a program
+drop index if exists in_trackerevent_program_occurreddate;
 create index in_trackerevent_program_occurreddate
     on trackerevent (programid, occurreddate desc, eventid desc);
 
 -- support assigned user filtering within a program.
+drop index if exists in_trackerevent_program_assigneduser;
 create index in_trackerevent_program_assigneduser
     on trackerevent (programid, assigneduserid);
 
