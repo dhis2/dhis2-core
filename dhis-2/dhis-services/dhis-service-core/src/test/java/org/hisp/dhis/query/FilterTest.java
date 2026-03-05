@@ -29,37 +29,36 @@
  */
 package org.hisp.dhis.query;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static java.util.List.of;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.query.operators.MatchMode;
 import org.junit.jupiter.api.Test;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-class QueryTest {
+class FilterTest {
 
   @Test
-  void validFilterParameters() {
-    Query<?> query = Query.of(DataElement.class);
-    query.add(Filters.eq("id", "anc"));
-    query.add(Filters.like("name", "anc", MatchMode.ANYWHERE));
-    query.add(Filters.eq("code", "anc"));
-    assertEquals(3, query.getFilters().size());
+  void supportsDbPredicateForEqualOperator() {
+    assertTrue(Filters.eq("members.id", "abc123").supportsDbPredicate());
   }
 
   @Test
-  void allowsDbPredicateWhenRootIsAnd() {
-    Query<?> query = Query.of(DataElement.class);
-    assertTrue(query.allowsDbPredicate());
+  void supportsDbPredicateForInOperator() {
+    assertTrue(Filters.in("members.id", of("a", "b")).supportsDbPredicate());
   }
 
   @Test
-  void doesNotAllowDbPredicateWhenRootIsOr() {
-    Query<?> query = Query.of(DataElement.class, Junction.Type.OR);
-    assertFalse(query.allowsDbPredicate());
+  void doesNotSupportDbPredicateForNonEligibleOperator() {
+    assertFalse(Filters.gt("members.id", 1).supportsDbPredicate());
+  }
+
+  @Test
+  void doesNotSupportDbPredicateForAttributeFilter() {
+    assertFalse(Filters.eq("members.id", "abc123").asAttribute().supportsDbPredicate());
+  }
+
+  @Test
+  void doesNotSupportDbPredicateForVirtualFilter() {
+    assertFalse(Filters.query("abc").supportsDbPredicate());
   }
 }

@@ -40,8 +40,6 @@ import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
-import org.hisp.dhis.query.operators.EqualOperator;
-import org.hisp.dhis.query.operators.InOperator;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -244,14 +242,11 @@ public class DefaultQueryPlanner implements QueryPlanner {
   }
 
   private boolean isCollectionIdDbFilter(Query<?> query, Filter filter, PropertyPath path) {
-    if (query.getRootJunctionType() != Junction.Type.AND
-        || filter.isVirtual()
-        || filter.isAttribute()) {
+    if (!query.allowsDbPredicate()) {
       return false;
     }
 
-    if (!(filter.getOperator() instanceof EqualOperator<?>
-        || filter.getOperator() instanceof InOperator<?>)) {
+    if (!filter.supportsDbPredicate()) {
       return false;
     }
 

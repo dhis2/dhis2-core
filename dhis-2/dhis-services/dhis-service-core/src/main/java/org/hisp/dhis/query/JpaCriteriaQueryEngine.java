@@ -38,6 +38,7 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
@@ -59,8 +60,6 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.hibernate.InternalHibernateGenericStore;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
-import org.hisp.dhis.query.operators.EqualOperator;
-import org.hisp.dhis.query.operators.InOperator;
 import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.query.planner.PropertyPath;
 import org.hisp.dhis.schema.Property;
@@ -407,15 +406,9 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   }
 
   private boolean isCollectionIdPredicate(Query<?> query, Filter filter, PropertyPath path) {
-    if (query.getRootJunctionType() != Junction.Type.AND
-        || filter.isVirtual()
-        || filter.isAttribute()
+    if (!query.allowsDbPredicate()
+        || !filter.supportsDbPredicate()
         || !path.haveAlias()) {
-      return false;
-    }
-
-    if (!(filter.getOperator() instanceof EqualOperator<?>
-        || filter.getOperator() instanceof InOperator<?>)) {
       return false;
     }
 
@@ -463,9 +456,22 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
       return builder.disjunction();
     }
 
-    return new CollectionIdExistsPredicateSupplier(
-            query.getObjectType(), path.getAlias(), path.getPath(), values)
-        .getPredicate(builder, root, criteriaQuery);
+    var subquery = criteriaQuery.subquery(Integer.class);
+    Root<?> subRoot = subquery.from((Class) query.getObjectType());
+
+    From<?, ?> joined = subRoot;
+    for (String alias : path.getAlias()) {
+      joined = joined.join(alias);
+    }
+
+    String terminalField = path.getPath();
+    terminalField = terminalField.substring(terminalField.lastIndexOf('.') + 1);
+
+    subquery.select(builder.literal(1));
+    subquery.where(
+        builder.equal(subRoot.get("id"), root.get("id")), joined.get(terminalField).in(values));
+
+    return builder.exists(subquery);
   }
 
   private <Y> Predicate buildIdentifiableFilter(
