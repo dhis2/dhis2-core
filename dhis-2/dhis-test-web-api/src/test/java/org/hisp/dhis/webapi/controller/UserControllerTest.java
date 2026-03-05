@@ -48,7 +48,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1229,8 +1228,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  @DisplayName(
-      "GET /users?invitationStatus=EXPIRED returns only users with expired invitations")
+  @DisplayName("GET /users?invitationStatus=EXPIRED returns only users with expired invitations")
   void testGetUsersFilterByInvitationStatusExpired() {
     // regular user (not an invitation)
     createUserWithAuth("alice");
