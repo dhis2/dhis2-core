@@ -47,6 +47,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1219,6 +1221,40 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
     JsonList<JsonUser> users =
         GET("/users?filter=disabled:eq:true")
+            .content(HttpStatus.OK)
+            .getList("users", JsonUser.class);
+
+    assertEquals(1, users.size());
+    assertEquals(bob.getUid(), users.get(0).getId());
+  }
+
+  @Test
+  @DisplayName(
+      "GET /users?invitationStatus=EXPIRED returns only users with expired invitations")
+  void testGetUsersFilterByInvitationStatusExpired() {
+    // regular user (not an invitation)
+    createUserWithAuth("alice");
+
+    // invitation user with expired restore
+    User bob = createUserWithAuth("bob");
+    bob.setInvitation(true);
+    bob.setRestoreToken("fakeHashedToken");
+    Calendar cal = Calendar.getInstance();
+    cal.add(Calendar.DAY_OF_YEAR, -1);
+    bob.setRestoreExpiry(cal.getTime());
+    userService.updateUser(bob);
+
+    // invitation user with non-expired restore (still valid)
+    User carol = createUserWithAuth("carol");
+    carol.setInvitation(true);
+    carol.setRestoreToken("anotherToken");
+    cal = Calendar.getInstance();
+    cal.add(Calendar.DAY_OF_YEAR, 1);
+    carol.setRestoreExpiry(cal.getTime());
+    userService.updateUser(carol);
+
+    JsonList<JsonUser> users =
+        GET("/users?invitationStatus=EXPIRED")
             .content(HttpStatus.OK)
             .getList("users", JsonUser.class);
 
