@@ -195,9 +195,9 @@ public class DefaultQueryPlanner implements QueryPlanner {
       dbQuery.addPredicateSupplier(
           new JpaPredicateSupplier() {
             @Override
-            public <T> Predicate getPredicate(
+            public <R> Predicate getPredicate(
                 jakarta.persistence.criteria.CriteriaBuilder builder,
-                Root<T> root,
+                Root<R> root,
                 CriteriaQuery<?> criteriaQuery) {
               return builder.disjunction();
             }
@@ -256,9 +256,9 @@ public class DefaultQueryPlanner implements QueryPlanner {
     return new JpaPredicateSupplier() {
       @Override
       @SuppressWarnings({"rawtypes", "unchecked"})
-      public <T> Predicate getPredicate(
+      public <R> Predicate getPredicate(
           jakarta.persistence.criteria.CriteriaBuilder builder,
-          Root<T> root,
+          Root<R> root,
           CriteriaQuery<?> criteriaQuery) {
         var subquery = criteriaQuery.subquery(Integer.class);
         Root<?> subRoot = subquery.from((Class) objectType);
