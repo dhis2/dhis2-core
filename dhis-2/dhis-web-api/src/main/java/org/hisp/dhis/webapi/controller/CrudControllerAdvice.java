@@ -34,6 +34,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
+import static org.hisp.dhis.util.ExceptionUtils.getHelpfulMessage;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import io.github.classgraph.ClassGraph;
@@ -88,6 +89,7 @@ import org.springframework.beans.TypeMismatchException;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.security.access.AccessDeniedException;
@@ -400,6 +402,13 @@ public class CrudControllerAdvice {
   @ResponseBody
   public WebMessage persistenceExceptionHandler(PersistenceException ex) {
     return conflict(ex.getMessage());
+  }
+
+  @ExceptionHandler(DataIntegrityViolationException.class)
+  @ResponseBody
+  public WebMessage dataIntegrityExceptionHandler(DataIntegrityViolationException ex) {
+    String helpfulMessage = getHelpfulMessage(ex);
+    return conflict(helpfulMessage);
   }
 
   @ExceptionHandler(AccessDeniedException.class)

@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.bundle.persister;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -324,46 +325,19 @@ public abstract class AbstractTrackerPersister<
           // encryption logic, so we need to use the one from payload
           boolean isDelete = StringUtils.isEmpty(attribute.getValue());
 
-          TrackedEntityAttributeValue trackedEntityAttributeValue =
+          TrackedEntityAttributeValue currentValue =
               attributeValueById.get(attribute.getAttribute());
 
-          boolean isUpdated = false;
+          boolean isNew = Objects.isNull(currentValue);
 
-          boolean isNew = Objects.isNull(trackedEntityAttributeValue);
-
-          if (isDelete && isNew) {
-            return;
+          String previousValue = isNew ? null : currentValue.getPlainValue();
+          boolean valueChanged = isNew || !Objects.equals(previousValue, attribute.getValue());
+          if (isDelete && !isNew) {
+            delete(session, preheat, currentValue, trackedEntityInstance);
+          } else if (valueChanged) {
+            saveOrUpdateAttributeValue(
+                session, preheat, trackedEntityInstance, attribute, currentValue, isNew);
           }
-
-          if (isDelete) {
-            delete(session, preheat, trackedEntityAttributeValue, trackedEntityInstance);
-          } else {
-            if (!isNew) {
-              isUpdated = !trackedEntityAttributeValue.getPlainValue().equals(attribute.getValue());
-            }
-
-            trackedEntityAttributeValue =
-                Optional.ofNullable(trackedEntityAttributeValue)
-                    .orElseGet(
-                        () ->
-                            new TrackedEntityAttributeValue()
-                                .setAttribute(
-                                    getTrackedEntityAttributeFromPreheat(
-                                        preheat, attribute.getAttribute()))
-                                .setEntityInstance(trackedEntityInstance))
-                    .setStoredBy(attribute.getStoredBy())
-                    .setValue(attribute.getValue());
-
-            saveOrUpdate(
-                session,
-                preheat,
-                isNew,
-                trackedEntityInstance,
-                trackedEntityAttributeValue,
-                isUpdated);
-          }
-
-          handleReservedValue(trackedEntityAttributeValue);
         });
   }
 
@@ -386,13 +360,36 @@ public abstract class AbstractTrackerPersister<
         AuditType.DELETE);
   }
 
+  private void saveOrUpdateAttributeValue(
+      Session session,
+      TrackerPreheat preheat,
+      TrackedEntityInstance trackedEntityInstance,
+      Attribute attribute,
+      TrackedEntityAttributeValue currentValue,
+      boolean isNew) {
+    currentValue =
+        Optional.ofNullable(currentValue)
+            .orElseGet(
+                () ->
+                    new TrackedEntityAttributeValue()
+                        .setAttribute(
+                            getTrackedEntityAttributeFromPreheat(preheat, attribute.getAttribute()))
+                        .setEntityInstance(trackedEntityInstance))
+            .setStoredBy(attribute.getStoredBy())
+            .setValue(attribute.getValue())
+            .setLastUpdated(new Date());
+
+    saveOrUpdate(session, preheat, isNew, trackedEntityInstance, currentValue);
+
+    handleReservedValue(currentValue);
+  }
+
   private void saveOrUpdate(
       Session session,
       TrackerPreheat preheat,
       boolean isNew,
       TrackedEntityInstance trackedEntityInstance,
-      TrackedEntityAttributeValue trackedEntityAttributeValue,
-      boolean isUpdated) {
+      TrackedEntityAttributeValue trackedEntityAttributeValue) {
     if (isFileResource(trackedEntityAttributeValue)) {
       assignFileResource(
           session, preheat, trackedEntityInstance.getUid(), trackedEntityAttributeValue.getValue());
@@ -408,10 +405,7 @@ public abstract class AbstractTrackerPersister<
       auditType = AuditType.CREATE;
     } else {
       session.merge(trackedEntityAttributeValue);
-
-      if (isUpdated) {
-        auditType = AuditType.UPDATE;
-      }
+      auditType = AuditType.UPDATE;
     }
 
     logTrackedEntityAttributeValueHistory(

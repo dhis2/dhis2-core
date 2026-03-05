@@ -83,6 +83,8 @@ import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentialsDto;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
@@ -96,6 +98,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.switchuser.SwitchUserGrantedAuthority;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -177,7 +180,19 @@ public class MeController {
             .map(BaseIdentifiableObject::getUid)
             .collect(Collectors.toList());
 
-    MeDto meDto = new MeDto(user, userSettings, programs, dataSets);
+    // Filter userGroups and userRoles based on ACL read access
+    Set<UserGroup> filteredUserGroups =
+        user.getGroups().stream()
+            .filter(group -> aclService.canRead(user, group))
+            .collect(Collectors.toSet());
+
+    Set<UserRole> filteredUserRoles =
+        user.getUserRoles().stream()
+            .filter(role -> aclService.canRead(user, role))
+            .collect(Collectors.toSet());
+
+    MeDto meDto =
+        new MeDto(user, userSettings, programs, dataSets, filteredUserGroups, filteredUserRoles);
     determineUserImpersonation(meDto);
 
     // TODO: To remove when we remove old UserCredentials compatibility
@@ -273,6 +288,30 @@ public class MeController {
         NodeUtils.createRootNode(collectionNode.getChildren().get(0)),
         APPLICATION_JSON_VALUE,
         response.getOutputStream());
+  }
+
+  /**
+   * Removes the avatar (profile picture) for the current user. This endpoint allows users to remove
+   * their profile picture without requiring special authorities to access the /users endpoint.
+   *
+   * @param currentUser the currently authenticated user
+   */
+  @DeleteMapping(value = "/avatar")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void removeAvatar(@CurrentUser(required = true) User currentUser) {
+    FileResource avatar = currentUser.getAvatar();
+
+    if (avatar != null) {
+      // Mark the file resource as unassigned so it can be cleaned up
+      FileResource fileResource = fileResourceService.getFileResource(avatar.getUid());
+      if (fileResource != null) {
+        fileResource.setAssigned(false);
+        fileResourceService.updateFileResource(fileResource);
+      }
+
+      currentUser.setAvatar(null);
+      manager.update(currentUser);
+    }
   }
 
   @GetMapping(

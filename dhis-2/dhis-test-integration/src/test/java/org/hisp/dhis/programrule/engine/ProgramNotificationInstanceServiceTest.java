@@ -60,7 +60,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -167,9 +166,7 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase {
   @Test
   void testShouldGetAndSendScheduledNotificationInstanceWithoutTimeout() {
     ProgramNotificationInstanceParam param =
-        ProgramNotificationInstanceParam.builder()
-            .scheduledAt(DateUtils.removeTimeStamp(Date.from(Instant.now())))
-            .build();
+        ProgramNotificationInstanceParam.builder().scheduledAt(Date.from(Instant.now())).build();
     List<ProgramNotificationInstance> instances =
         programNotificationInstanceService.getProgramNotificationInstances(param);
     assertEquals(
