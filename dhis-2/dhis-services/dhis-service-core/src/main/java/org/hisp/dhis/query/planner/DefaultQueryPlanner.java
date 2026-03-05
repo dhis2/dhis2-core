@@ -46,7 +46,6 @@ import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.operators.EqualOperator;
 import org.hisp.dhis.query.operators.InOperator;
-import org.hisp.dhis.query.operators.Operator;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -176,89 +175,42 @@ public class DefaultQueryPlanner implements QueryPlanner {
    */
   private <T extends IdentifiableObject> boolean translateCollectionIdFilterToExists(
       Query<T> query, Filter filter, Query<T> dbQuery) {
-    PropertyPath path = resolveTranslatableCollectionIdPath(query, filter);
-    if (path == null) return false;
+    if (query.getRootJunctionType() != Junction.Type.AND
+        || filter.isVirtual()
+        || filter.isAttribute()) {
+      return false;
+    }
+
+    if (!(filter.getOperator() instanceof EqualOperator<?>
+        || filter.getOperator() instanceof InOperator<?>)) {
+      return false;
+    }
+
+    PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
+    if (path == null || !path.isPersisted() || !path.haveAlias()) return false;
+
+    if (!isCollectionIdPath(query.getObjectType(), filter.getPath(), path.getProperty())) {
+      return false;
+    }
 
     Collection<?> values = filter.getOperator().getArgs();
     if (values.isEmpty()) {
-      return addAlwaysFalsePredicate(dbQuery);
+      dbQuery.addPredicateSupplier(
+          new JpaPredicateSupplier() {
+            @Override
+            public <R> Predicate getPredicate(
+                jakarta.persistence.criteria.CriteriaBuilder builder,
+                Root<R> root,
+                jakarta.persistence.criteria.CriteriaQuery<?> criteriaQuery) {
+              return builder.disjunction();
+            }
+          });
+      return true;
     }
 
     dbQuery.addPredicateSupplier(
         new CollectionIdExistsPredicateSupplier(
             query.getObjectType(), path.getAlias(), path.getPath(), values));
-    return true;
-  }
-
-  /**
-   * Determines if the filter is an eligible collection identifier filter and resolves its property
-   * path.
-   *
-   * @param query the query containing the filter
-   * @param filter the filter to evaluate
-   * @return the resolved property path if the filter is an eligible collection identifier filter,
-   *     or {@code null} otherwise
-   * @param <T> the type of identifiable objects being queried
-   */
-  private <T extends IdentifiableObject> PropertyPath resolveTranslatableCollectionIdPath(
-      Query<T> query, Filter filter) {
-    if (!isEligibleCollectionIdFilter(query, filter)) return null;
-
-    PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
-    if (path == null || !path.isPersisted() || !path.haveAlias()) return null;
-
-    return isCollectionIdPath(query.getObjectType(), filter.getPath(), path.getProperty())
-        ? path
-        : null;
-  }
-
-  /**
-   * Checks if the filter is a non-virtual, non-attribute filter on an "id" property of a collection
-   * path, with a supported operator.
-   *
-   * @param query the query containing the filter
-   * @param filter the filter to evaluate
-   * @return {@code true} if the filter is an eligible collection identifier filter, {@code false}
-   *     otherwise
-   */
-  private boolean isEligibleCollectionIdFilter(Query<?> query, Filter filter) {
-    if (query.getRootJunctionType() != Junction.Type.AND) return false;
-    if (filter.isVirtual() || filter.isAttribute()) return false;
-    return isCollectionIdSupportedOperator(filter.getOperator());
-  }
-
-  /**
-   * Checks if the operator is supported for collection identifier filters. Currently only supports
-   * equality and IN operators.
-   *
-   * @param operator the operator to evaluate
-   * @return {@code true} if the operator is supported for collection identifier filters, {@code
-   *     false} otherwise
-   */
-  private boolean isCollectionIdSupportedOperator(Operator<?> operator) {
-    return operator instanceof EqualOperator<?> || operator instanceof InOperator<?>;
-  }
-
-  /**
-   * Adds a predicate that always evaluates to false to the query. This is used to handle cases
-   * where a collection identifier filter has an empty value set, which should result in no matches.
-   *
-   * @param dbQuery the query to which the predicate should be added
-   * @return {@code true} to indicate that the filter was handled and no further processing is
-   *     needed
-   * @param <T> the type of identifiable objects being queried
-   */
-  private <T extends IdentifiableObject> boolean addAlwaysFalsePredicate(Query<T> dbQuery) {
-    dbQuery.addPredicateSupplier(
-        new JpaPredicateSupplier() {
-          @Override
-          public <R> Predicate getPredicate(
-              jakarta.persistence.criteria.CriteriaBuilder builder,
-              Root<R> root,
-              jakarta.persistence.criteria.CriteriaQuery<?> criteriaQuery) {
-            return builder.disjunction();
-          }
-        });
     return true;
   }
 
@@ -278,39 +230,12 @@ public class DefaultQueryPlanner implements QueryPlanner {
   */
   private boolean isCollectionIdPath(
       Class<?> rootType, String filterPath, Property terminalProperty) {
-    if (!isTerminalIdProperty(terminalProperty)) return false;
+    if (terminalProperty == null || !"id".equals(terminalProperty.getName())) return false;
 
     String[] components = filterPath.split("\\.");
-    if (!hasPathTraversal(components)) return false;
+    if (components.length < 2) return false;
 
     return hasCollectionTraversal(rootType, components);
-  }
-
-  /**
-   * Returns whether the terminal property is `id`, which is required for this collection identifier
-   * translation pattern (for example `collectionProperty.id:in:[...]`).
-   *
-   * <p>Other terminal properties are intentionally not translated and continue through the existing
-   * planner path.
-   *
-   * @param terminalProperty the terminal property of the filter path
-   * @return {@code true} if the terminal property is named "id", {@code false} otherwise
-   */
-  private boolean isTerminalIdProperty(Property terminalProperty) {
-    return terminalProperty != null && "id".equals(terminalProperty.getName());
-  }
-
-  /**
-   * Checks if the filter path has at least one traversal (i.e. contains at least one dot). This is
-   * required for this collection identifier translation pattern, as we are only targeting filters
-   * on collection relationships (e.g. `collectionProperty.id`), and we want to exclude simple
-   * properties named "id" on the root object (e.g. `id`
-   *
-   * @param components the components of the filter path, split by dot
-   * @return {@code true} if the filter path has at least one traversal, {@code false} otherwise
-   */
-  private boolean hasPathTraversal(String[] components) {
-    return components.length >= 2;
   }
 
   /**
