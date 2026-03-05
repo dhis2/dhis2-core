@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.query.planner;
 
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
@@ -168,46 +166,99 @@ public class DefaultQueryPlanner implements QueryPlanner {
     return new QueryPlan<>(dbQuery, memoryQuery);
   }
 
+  /**
+   * Lifts eligible collection identifier filters (e.g. {@code organisationUnits.id:in:[...]} or
+   * {@code ...:eq:...}) out of the generic filter list and translates them to SQL-level EXISTS
+   * predicates. This prevents in-memory fallback and preserves database pagination for these
+   * filters.
+   *
+   * @return {@code true} when the filter was translated and should not be processed further
+   */
   private <T extends IdentifiableObject> boolean translateCollectionIdFilterToExists(
       Query<T> query, Filter filter, Query<T> dbQuery) {
-    if (query.getRootJunctionType() != Junction.Type.AND
-        || filter.isVirtual()
-        || filter.isAttribute()) {
-      return false;
-    }
+    PropertyPath path = resolveTranslatableCollectionIdPath(query, filter);
+    if (path == null) return false;
 
-    Operator<?> operator = filter.getOperator();
-    if (!(operator instanceof EqualOperator<?> || operator instanceof InOperator<?>)) {
-      return false;
-    }
-
-    PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
-    if (path == null || !path.isPersisted() || !path.haveAlias()) {
-      return false;
-    }
-
-    if (!isCollectionIdPath(query.getObjectType(), filter.getPath(), path.getProperty())) {
-      return false;
-    }
-
-    Collection<?> values = operator.getArgs();
+    Collection<?> values = filter.getOperator().getArgs();
     if (values.isEmpty()) {
-      dbQuery.addPredicateSupplier(
-          new JpaPredicateSupplier() {
-            @Override
-            public <R> Predicate getPredicate(
-                jakarta.persistence.criteria.CriteriaBuilder builder,
-                Root<R> root,
-                CriteriaQuery<?> criteriaQuery) {
-              return builder.disjunction();
-            }
-          });
-      return true;
+      return addAlwaysFalsePredicate(dbQuery);
     }
 
     dbQuery.addPredicateSupplier(
-        existsCollectionPropertyPredicate(
+        new CollectionIdExistsPredicateSupplier(
             query.getObjectType(), path.getAlias(), path.getPath(), values));
+    return true;
+  }
+
+  /**
+   * Determines if the filter is an eligible collection identifier filter and resolves its property
+   * path.
+   *
+   * @param query the query containing the filter
+   * @param filter the filter to evaluate
+   * @return the resolved property path if the filter is an eligible collection identifier filter,
+   *     or {@code null} otherwise
+   * @param <T> the type of identifiable objects being queried
+   */
+  private <T extends IdentifiableObject> PropertyPath resolveTranslatableCollectionIdPath(
+      Query<T> query, Filter filter) {
+    if (!isEligibleCollectionIdFilter(query, filter)) return null;
+
+    PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
+    if (path == null || !path.isPersisted() || !path.haveAlias()) return null;
+
+    return isCollectionIdPath(query.getObjectType(), filter.getPath(), path.getProperty())
+        ? path
+        : null;
+  }
+
+  /**
+   * Checks if the filter is a non-virtual, non-attribute filter on an "id" property of a collection
+   * path, with a supported operator.
+   *
+   * @param query the query containing the filter
+   * @param filter the filter to evaluate
+   * @return {@code true} if the filter is an eligible collection identifier filter, {@code false}
+   *     otherwise
+   */
+  private boolean isEligibleCollectionIdFilter(Query<?> query, Filter filter) {
+    if (query.getRootJunctionType() != Junction.Type.AND) return false;
+    if (filter.isVirtual() || filter.isAttribute()) return false;
+    return isCollectionIdSupportedOperator(filter.getOperator());
+  }
+
+  /**
+   * Checks if the operator is supported for collection identifier filters. Currently only supports
+   * equality and IN operators.
+   *
+   * @param operator the operator to evaluate
+   * @return {@code true} if the operator is supported for collection identifier filters, {@code
+   *     false} otherwise
+   */
+  private boolean isCollectionIdSupportedOperator(Operator<?> operator) {
+    return operator instanceof EqualOperator<?> || operator instanceof InOperator<?>;
+  }
+
+  /**
+   * Adds a predicate that always evaluates to false to the query. This is used to handle cases
+   * where a collection identifier filter has an empty value set, which should result in no matches.
+   *
+   * @param dbQuery the query to which the predicate should be added
+   * @return {@code true} to indicate that the filter was handled and no further processing is
+   *     needed
+   * @param <T> the type of identifiable objects being queried
+   */
+  private <T extends IdentifiableObject> boolean addAlwaysFalsePredicate(Query<T> dbQuery) {
+    dbQuery.addPredicateSupplier(
+        new JpaPredicateSupplier() {
+          @Override
+          public <R> Predicate getPredicate(
+              jakarta.persistence.criteria.CriteriaBuilder builder,
+              Root<R> root,
+              jakarta.persistence.criteria.CriteriaQuery<?> criteriaQuery) {
+            return builder.disjunction();
+          }
+        });
     return true;
   }
 
@@ -249,30 +300,6 @@ public class DefaultQueryPlanner implements QueryPlanner {
     }
 
     return hasCollection;
-  }
-
-  private JpaPredicateSupplier existsCollectionPropertyPredicate(
-      Class<?> objectType, String[] aliases, String terminalPath, Collection<?> values) {
-    String terminalField = terminalPath.substring(terminalPath.lastIndexOf('.') + 1);
-    return new JpaPredicateSupplier() {
-      @Override
-      @SuppressWarnings({"rawtypes", "unchecked"})
-      public <R> Predicate getPredicate(
-          jakarta.persistence.criteria.CriteriaBuilder builder,
-          Root<R> root,
-          CriteriaQuery<?> criteriaQuery) {
-        var subquery = criteriaQuery.subquery(Integer.class);
-        Root<?> subRoot = subquery.from((Class) objectType);
-        From<?, ?> joined = subRoot;
-        for (String alias : aliases) {
-          joined = joined.join(alias);
-        }
-        subquery.select(builder.literal(1));
-        subquery.where(
-            builder.equal(subRoot.get("id"), root.get("id")), joined.get(terminalField).in(values));
-        return builder.exists(subquery);
-      }
-    };
   }
 
   private boolean isDbFilter(Query<?> query, Filter filter) {
