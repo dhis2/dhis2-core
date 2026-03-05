@@ -262,6 +262,20 @@ public class DefaultQueryPlanner implements QueryPlanner {
     return true;
   }
 
+  /*
+    * Checks if the filter path corresponds to an "id" property of a collection path. This is done by
+    * verifying that the terminal property is named "id", that the path has at least one traversal, and
+    that at least one traversal in the path is a collection. This ensures that we only translate
+    filters that target identifiers of collection relationships, which can be safely translated to
+    * EXISTS predicates without risking unintended consequences on non-collection relationships or
+    * simple properties.
+    *
+    * @param rootType the root type of the query
+    * @param filterPath the filter path to evaluate
+    * @param terminalProperty the terminal property of the filter path
+    * @return {@code true} if the filter path corresponds to an "id" property of a collection
+    * path {@code false} otherwise
+   */
   private boolean isCollectionIdPath(
       Class<?> rootType, String filterPath, Property terminalProperty) {
     if (!isTerminalIdProperty(terminalProperty)) return false;
@@ -272,14 +286,43 @@ public class DefaultQueryPlanner implements QueryPlanner {
     return hasCollectionTraversal(rootType, components);
   }
 
+  /**
+   * Returns whether the terminal property is `id`, which is required for this
+   * collection identifier translation pattern (for example
+   * `collectionProperty.id:in:[...]`).
+   *
+   * Other terminal properties are intentionally not translated and continue
+   * through the existing planner path.
+   * @param terminalProperty the terminal property of the filter path
+   * @return {@code true} if the terminal property is named "id", {@code false} otherwise
+   */
   private boolean isTerminalIdProperty(Property terminalProperty) {
     return terminalProperty != null && "id".equals(terminalProperty.getName());
   }
 
+  /**
+   * Checks if the filter path has at least one traversal (i.e. contains at least one dot). This is
+   * required for this collection identifier translation pattern, as we are only targeting filters on
+   * collection relationships (e.g. `collectionProperty.id`), and we want to exclude simple properties
+   * named "id" on the root object (e.g. `id`
+   * @param components the components of the filter path, split by dot
+   * @return {@code true} if the filter path has at least one traversal, {@code false} otherwise
+   */
   private boolean hasPathTraversal(String[] components) {
     return components.length >= 2;
   }
 
+  /**
+   * Returns whether the non-terminal path contains at least one collection traversal.
+   *
+   * <p>While traversing schema properties, invalid segments, embedded objects, or
+   * non-traversable/simple segments return {@code false}. A path is eligible only
+   * if traversal succeeds and at least one collection property is encountered.
+   *
+   * @param rootType root query type
+   * @param components filter path split by `.`
+   * @return {@code true} when the path traverses at least one collection
+   */
   private boolean hasCollectionTraversal(Class<?> rootType, String[] components) {
     Schema schema = schemaService.getSchema(rootType);
     boolean hasCollection = false;
@@ -302,6 +345,18 @@ public class DefaultQueryPlanner implements QueryPlanner {
     return hasCollection;
   }
 
+  /**
+   * Returns whether a filter can be executed in the DB query plan.
+   *
+   * <p>Virtual filters are DB-eligible only for `identifiable` and `query`. For
+   * regular filters, the path must resolve to a persisted property and not require
+   * in-memory alias traversal (for example collection/embedded paths handled by
+   * {@code pathRequiresInMemoryFiltering(...)}).
+   *
+   * @param query query containing the filter
+   * @param filter filter to evaluate
+   * @return {@code true} when the filter is DB-eligible, {@code false} otherwise
+   */
   private boolean isDbFilter(Query<?> query, Filter filter) {
     if (filter.isVirtual()) return filter.isIdentifiable() || filter.isQuery();
     PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
@@ -318,13 +373,19 @@ public class DefaultQueryPlanner implements QueryPlanner {
   }
 
   /**
-   * Checks if any property in the alias path requires in-memory filtering. This includes:
+   * Returns whether an aliased path should remain in in-memory filtering.
    *
+   * <p>This includes:
    * <ul>
    *   <li>Collection paths - require JOINs which our simple get() chaining doesn't support
    *   <li>Embedded object paths - JPA navigation through embedded objects followed by relationships
    *       can be problematic
    * </ul>
+   *
+   * <p>This planner step is conservative: collection and embedded-object traversals
+   * are treated as in-memory here. Collection identifier filters that are eligible
+   * for SQL translation are handled earlier by
+   * {@code translateCollectionIdFilterToExists(...)} and therefore do not reach this method.
    */
   private boolean pathRequiresInMemoryFiltering(Class<?> klass, String[] aliases) {
     Schema schema = schemaService.getSchema(klass);
