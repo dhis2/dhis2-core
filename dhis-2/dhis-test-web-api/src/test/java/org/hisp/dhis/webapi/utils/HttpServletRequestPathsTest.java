@@ -69,7 +69,7 @@ class HttpServletRequestPathsTest {
 
     String result = HttpServletRequestPaths.getContextPath(request);
 
-    assertEquals("http://localhost:8080", result);
+    assertEquals("https://dev.im.dhis2.org/apppath", result);
   }
 
   @Test
