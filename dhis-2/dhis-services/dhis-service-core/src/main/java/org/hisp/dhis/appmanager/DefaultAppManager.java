@@ -598,8 +598,21 @@ public class DefaultAppManager implements AppManager {
         AppHtmlTemplate template = new AppHtmlTemplate(contextPath, app);
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         template.apply(resourceFound.resource().getInputStream(), bout);
+
+        // Old-style apps reference sibling resources via ../dhis-web-commons/
+        // etc. This resolves correctly from /dhis-web-{appName}/ (legacy) but
+        // breaks from /apps/{appName}/ (canonical) because ../ lands on /apps/
+        // instead of /. Adjust to ../../ so the path reaches the context root.
+        byte[] htmlBytes = bout.toByteArray();
+        boolean canonicalAppPaths = settingsProvider.getCurrentSettings().getCanonicalAppPaths();
+        if (canonicalAppPaths) {
+          String html = new String(htmlBytes, StandardCharsets.UTF_8);
+          html = html.replace("\"../dhis-web-", "\"../../dhis-web-");
+          htmlBytes = html.getBytes(StandardCharsets.UTF_8);
+        }
+
         ByteArrayResource byteArrayResource =
-            toByteArrayResource(bout.toByteArray(), resourceFound.resource());
+            toByteArrayResource(htmlBytes, resourceFound.resource());
         return new ResourceResult.ResourceFound(byteArrayResource, "text/html;charset=UTF-8");
       } else if (pageName.endsWith(".js")
           || (resourceFound.resource().getFilename() != null
