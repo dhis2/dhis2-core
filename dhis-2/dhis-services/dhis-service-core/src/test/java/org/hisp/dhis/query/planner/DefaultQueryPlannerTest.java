@@ -385,11 +385,9 @@ class DefaultQueryPlannerTest {
     assertTrue(plan.memoryQuery().isEmpty(), "Memory query should be empty");
   }
 
-  /**
-   * Tests that collection id paths (e.g., dataElementGroups.id) are translated to DB predicates.
-   */
+  /** Tests that collection id paths (e.g., dataElementGroups.id) are planned for DB filtering. */
   @Test
-  void testCollectionIdPathTranslatedToDbPredicate() {
+  void testCollectionIdPathPlannedToDb() {
     // Given: A filter on collection path
     Query<DataElement> query = Query.of(DataElement.class);
     query.add(Filters.eq("dataElementGroups.id", "group123"));
@@ -415,12 +413,10 @@ class DefaultQueryPlannerTest {
     // When: Query plan is created
     QueryPlan<DataElement> plan = queryPlanner.planQuery(query);
 
-    // Then: Filter is translated into DB predicate supplier and removed from generic filter lists
-    assertEquals(0, plan.dbQuery().getFilters().size(), "Translated filter should be removed");
+    // Then: Planner keeps this filter in DB query; DB engine handles SQL predicate composition
+    assertEquals(1, plan.dbQuery().getFilters().size(), "Collection id path should be in DB");
     assertEquals(
-        1,
-        plan.dbQuery().getPredicateSuppliers().size(),
-        "DB query should contain predicate supplier");
+        0, plan.dbQuery().getPredicateSuppliers().size(), "Planner should not add JPA predicates");
     assertTrue(plan.memoryQuery().isEmpty(), "Memory query should be empty");
   }
 

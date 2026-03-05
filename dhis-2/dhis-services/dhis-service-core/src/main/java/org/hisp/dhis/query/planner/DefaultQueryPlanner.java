@@ -29,10 +29,7 @@
  */
 package org.hisp.dhis.query.planner;
 
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -40,7 +37,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Filter;
-import org.hisp.dhis.query.JpaPredicateSupplier;
 import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
@@ -113,10 +109,6 @@ public class DefaultQueryPlanner implements QueryPlanner {
     Set<String> distinctRootAliases = new HashSet<>();
 
     for (Filter filter : query.getFilters()) {
-      if (translateCollectionIdFilterToExists(query, filter, dbQuery)) {
-        continue;
-      }
-
       if (!isDbFilter(query, filter)) {
         memoryQuery.add(filter);
         continue;
@@ -165,60 +157,11 @@ public class DefaultQueryPlanner implements QueryPlanner {
     return new QueryPlan<>(dbQuery, memoryQuery);
   }
 
-  /**
-   * Lifts eligible collection identifier filters (e.g. {@code organisationUnits.id:in:[...]} or
-   * {@code ...:eq:...}) out of the generic filter list and translates them to SQL-level EXISTS
-   * predicates. This prevents in-memory fallback and preserves database pagination for these
-   * filters.
-   *
-   * @return {@code true} when the filter was translated and should not be processed further
-   */
-  private <T extends IdentifiableObject> boolean translateCollectionIdFilterToExists(
-      Query<T> query, Filter filter, Query<T> dbQuery) {
-    if (query.getRootJunctionType() != Junction.Type.AND
-        || filter.isVirtual()
-        || filter.isAttribute()) {
-      return false;
-    }
-
-    if (!(filter.getOperator() instanceof EqualOperator<?>
-        || filter.getOperator() instanceof InOperator<?>)) {
-      return false;
-    }
-
-    PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
-    if (path == null || !path.isPersisted() || !path.haveAlias()) return false;
-
-    if (!isCollectionIdPath(query.getObjectType(), filter.getPath(), path.getProperty())) {
-      return false;
-    }
-
-    Collection<?> values = filter.getOperator().getArgs();
-    if (values.isEmpty()) {
-      dbQuery.addPredicateSupplier(
-          new JpaPredicateSupplier() {
-            @Override
-            public <R> Predicate getPredicate(
-                jakarta.persistence.criteria.CriteriaBuilder builder,
-                Root<R> root,
-                jakarta.persistence.criteria.CriteriaQuery<?> criteriaQuery) {
-              return builder.disjunction();
-            }
-          });
-      return true;
-    }
-
-    dbQuery.addPredicateSupplier(
-        new CollectionIdExistsPredicateSupplier(
-            query.getObjectType(), path.getAlias(), path.getPath(), values));
-    return true;
-  }
-
   /*
    * Checks if the filter path corresponds to an "id" property of a collection path. This is done by
    * verifying that the terminal property is named "id", that the path has at least one traversal, and
-   that at least one traversal in the path is a collection. This ensures that we only translate
-   filters that target identifiers of collection relationships, which can be safely translated to
+   * that at least one traversal in the path is a collection. This ensures that we only translate
+   * filters that target identifiers of collection relationships, which can be safely translated to
    * EXISTS predicates without risking unintended consequences on non-collection relationships or
    * simple properties.
    *
@@ -227,7 +170,7 @@ public class DefaultQueryPlanner implements QueryPlanner {
    * @param terminalProperty the terminal property of the filter path
    * @return {@code true} if the filter path corresponds to an "id" property of a collection
    * path {@code false} otherwise
-  */
+   */
   private boolean isCollectionIdPath(
       Class<?> rootType, String filterPath, Property terminalProperty) {
     if (terminalProperty == null || !"id".equals(terminalProperty.getName())) return false;
@@ -289,12 +232,30 @@ public class DefaultQueryPlanner implements QueryPlanner {
     if (Attribute.ObjectType.isValidType(path.getPath())) return false;
 
     if (path.haveAlias()) {
+      if (isCollectionIdDbFilter(query, filter, path)) {
+        return true;
+      }
       if (pathRequiresInMemoryFiltering(query.getObjectType(), path.getAlias())) {
         return false;
       }
       return path.getProperty().isSimple();
     }
     return true;
+  }
+
+  private boolean isCollectionIdDbFilter(Query<?> query, Filter filter, PropertyPath path) {
+    if (query.getRootJunctionType() != Junction.Type.AND
+        || filter.isVirtual()
+        || filter.isAttribute()) {
+      return false;
+    }
+
+    if (!(filter.getOperator() instanceof EqualOperator<?>
+        || filter.getOperator() instanceof InOperator<?>)) {
+      return false;
+    }
+
+    return isCollectionIdPath(query.getObjectType(), filter.getPath(), path.getProperty());
   }
 
   /**
@@ -309,9 +270,8 @@ public class DefaultQueryPlanner implements QueryPlanner {
    * </ul>
    *
    * <p>This planner step is conservative: collection and embedded-object traversals are treated as
-   * in-memory here. Collection identifier filters that are eligible for SQL translation are handled
-   * earlier by {@code translateCollectionIdFilterToExists(...)} and therefore do not reach this
-   * method.
+   * in-memory here, except for collection-id filters explicitly marked as DB-eligible by {@code
+   * isCollectionIdDbFilter(...)}.
    */
   private boolean pathRequiresInMemoryFiltering(Class<?> klass, String[] aliases) {
     Schema schema = schemaService.getSchema(klass);
