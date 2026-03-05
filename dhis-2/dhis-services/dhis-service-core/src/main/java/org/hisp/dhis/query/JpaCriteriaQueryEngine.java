@@ -406,9 +406,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   }
 
   private boolean isCollectionIdPredicate(Query<?> query, Filter filter, PropertyPath path) {
-    if (!query.allowsDbPredicate()
-        || !filter.supportsDbPredicate()
-        || !path.haveAlias()) {
+    if (!query.allowsDbPredicate() || !filter.supportsDbPredicate() || !path.haveAlias()) {
       return false;
     }
 
