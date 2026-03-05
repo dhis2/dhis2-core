@@ -51,6 +51,8 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.scheduling.JobScheduler;
+import org.hisp.dhis.startup.SchedulerStart;
 import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.junit.jupiter.api.AfterAll;
@@ -60,6 +62,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockserver.client.MockServerClient;
+import org.mockserver.model.JsonBody;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.transaction.TestTransaction;
@@ -116,6 +119,14 @@ class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
       postgresDhisConfigurationProvider.addProperties(override);
       return postgresDhisConfigurationProvider;
     }
+
+    @Bean
+    public SchedulerStart schedulerStart(JobScheduler scheduler) {
+      SchedulerStart routine = new SchedulerStart(scheduler);
+      routine.setRunlevel(15);
+      routine.setSkipInTests(false);
+      return routine;
+    }
   }
 
   @Test
@@ -133,21 +144,46 @@ class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
                         .toURI()),
                 StandardCharsets.UTF_8)
             .replace("<PORT>", targetMockServerContainer.getFirstMappedPort().toString());
-
-    assertStatus(HttpStatus.CREATED, POST("/eventHooks", body));
-
     TestTransaction.flagForCommit();
-    HttpResponse post =
+    assertStatus(HttpStatus.CREATED, POST("/eventHooks", body));
+    TestTransaction.end();
+
+    TestTransaction.start();
+    TestTransaction.flagForCommit();
+    HttpResponse dataElement =
         POST(
             "/dataElements",
             "{'name':'A', 'shortName':'A', 'valueType':'NUMBER','domainType':'AGGREGATE','aggregationType':'SUM'"
                 + " }");
 
+    HttpResponse anotherDataElement =
+        POST(
+            "/dataElements",
+            "{'name':'B', 'shortName':'B', 'valueType':'NUMBER','domainType':'AGGREGATE','aggregationType':'SUM'"
+                + " }");
     TestTransaction.end();
-    assertTrue(post.success());
+
+    String dataElementId = assertStatus(HttpStatus.CREATED, dataElement);
+    String anotherDataElementId = assertStatus(HttpStatus.CREATED, anotherDataElement);
+
     await()
-        .atMost(Duration.ofSeconds(5))
+        .atMost(Duration.ofSeconds(60))
         .untilAsserted(() -> targetMockServerClient.verify(request().withPath("/api/gateway")));
+
+    assertEquals(
+        "metadata.dataElement." + dataElementId,
+        ((JsonBody)
+                targetMockServerClient
+                    .retrieveRecordedRequests(request().withPath("/api/gateway"))[0].getBody())
+            .get("path")
+            .asText());
+    assertEquals(
+        "metadata.dataElement." + anotherDataElementId,
+        ((JsonBody)
+                targetMockServerClient
+                    .retrieveRecordedRequests(request().withPath("/api/gateway"))[1].getBody())
+            .get("path")
+            .asText());
   }
 
   @Test

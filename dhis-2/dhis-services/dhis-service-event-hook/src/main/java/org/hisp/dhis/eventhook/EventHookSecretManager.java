@@ -31,16 +31,12 @@ package org.hisp.dhis.eventhook;
 
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
-import java.util.function.UnaryOperator;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.auth.AuthScheme;
-import org.hisp.dhis.eventhook.targets.JmsTarget;
-import org.hisp.dhis.eventhook.targets.KafkaTarget;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Morten Olav Hansen
@@ -63,13 +59,6 @@ public class EventHookSecretManager {
     for (Target target : eventHook.getTargets()) {
       if (target.getType().equals(WebhookTarget.TYPE)) {
         handleWebhook((WebhookTarget) target, encrypt);
-      } else {
-        UnaryOperator<String> callback = encrypt ? encryptor::encrypt : encryptor::decrypt;
-        if (target.getType().equals(JmsTarget.TYPE)) {
-          handleJms((JmsTarget) target, callback);
-        } else if (target.getType().equals(KafkaTarget.TYPE)) {
-          handleKafka((KafkaTarget) target, callback);
-        }
       }
     }
   }
@@ -83,18 +72,6 @@ public class EventHookSecretManager {
       } else {
         target.setAuth(auth.decrypt(encryptor::decrypt));
       }
-    }
-  }
-
-  private void handleJms(JmsTarget target, UnaryOperator<String> callback) {
-    if (StringUtils.hasText(target.getPassword())) {
-      target.setPassword(callback.apply(target.getPassword()));
-    }
-  }
-
-  private void handleKafka(KafkaTarget target, UnaryOperator<String> callback) {
-    if (StringUtils.hasText(target.getPassword())) {
-      target.setPassword(callback.apply(target.getPassword()));
     }
   }
 }

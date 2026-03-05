@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,23 +27,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.handlers;
+package org.hisp.dhis.eventhook;
 
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.eventhook.Event;
-import org.hisp.dhis.eventhook.EventHook;
-import org.hisp.dhis.eventhook.Handler;
-import org.hisp.dhis.eventhook.targets.ConsoleTarget;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.Builder;
+import lombok.Data;
 
-/**
- * @author Morten Olav Hansen
- */
-@Slf4j
-public class ConsoleHandler implements Handler {
-  public ConsoleHandler(ConsoleTarget target) {}
+@Data
+@Builder
+public class EventHookTargets {
+  @Builder.Default private List<ReactiveHandler> targets = new ArrayList<>();
 
-  @Override
-  public void run(EventHook eventHook, Event event, String payload) {
-    log.info(payload);
+  @Builder.Default private EventHook eventHook = null;
+
+  public void closeTargets() {
+    targets.forEach(ReactiveHandler::close);
   }
 }

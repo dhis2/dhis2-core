@@ -111,4 +111,6 @@ public interface CacheProvider {
   <V> Cache<V> createQueryAliasCache();
 
   <V> Cache<V> createCorsWhitelistCache();
+
+  <V> Cache<V> createEventHookTargetsCache();
 }
