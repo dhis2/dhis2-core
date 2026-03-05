@@ -29,7 +29,12 @@
  */
 package org.hisp.dhis.query.planner;
 
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -37,9 +42,14 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Filter;
+import org.hisp.dhis.query.JpaPredicateSupplier;
 import org.hisp.dhis.query.Junction;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
+import org.hisp.dhis.query.operators.EqualOperator;
+import org.hisp.dhis.query.operators.InOperator;
+import org.hisp.dhis.query.operators.Operator;
+import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Component;
@@ -106,6 +116,10 @@ public class DefaultQueryPlanner implements QueryPlanner {
     Set<String> distinctRootAliases = new HashSet<>();
 
     for (Filter filter : query.getFilters()) {
+      if (translateCollectionIdFilterToExists(query, filter, dbQuery)) {
+        continue;
+      }
+
       if (!isDbFilter(query, filter)) {
         memoryQuery.add(filter);
         continue;
@@ -152,6 +166,112 @@ public class DefaultQueryPlanner implements QueryPlanner {
     }
 
     return new QueryPlan<>(dbQuery, memoryQuery);
+  }
+
+  private <T extends IdentifiableObject> boolean translateCollectionIdFilterToExists(
+      Query<T> query, Filter filter, Query<T> dbQuery) {
+    if (query.getRootJunctionType() != Junction.Type.AND
+        || filter.isVirtual()
+        || filter.isAttribute()) {
+      return false;
+    }
+
+    Operator<?> operator = filter.getOperator();
+    if (!(operator instanceof EqualOperator<?> || operator instanceof InOperator<?>)) {
+      return false;
+    }
+
+    PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
+    if (path == null || !path.isPersisted() || !path.haveAlias()) {
+      return false;
+    }
+
+    if (!isCollectionIdPath(query.getObjectType(), filter.getPath(), path.getProperty())) {
+      return false;
+    }
+
+    Collection<?> values = operator.getArgs();
+    if (values.isEmpty()) {
+      dbQuery.addPredicateSupplier(
+          new JpaPredicateSupplier() {
+            @Override
+            public <T> Predicate getPredicate(
+                jakarta.persistence.criteria.CriteriaBuilder builder,
+                Root<T> root,
+                CriteriaQuery<?> criteriaQuery) {
+              return builder.disjunction();
+            }
+          });
+      return true;
+    }
+
+    dbQuery.addPredicateSupplier(
+        existsCollectionPropertyPredicate(
+            query.getObjectType(), path.getAlias(), path.getPath(), values));
+    return true;
+  }
+
+  private boolean isCollectionIdPath(
+      Class<?> rootType, String filterPath, Property terminalProperty) {
+    if (terminalProperty == null || !"id".equals(terminalProperty.getName())) {
+      return false;
+    }
+
+    String[] components = filterPath.split("\\.");
+    if (components.length < 2) {
+      return false;
+    }
+
+    Schema schema = schemaService.getSchema(rootType);
+    boolean hasCollection = false;
+
+    for (int i = 0; i < components.length - 1; i++) {
+      Property property = schema.getProperty(components[i]);
+      if (property == null || property.isEmbeddedObject()) {
+        return false;
+      }
+
+      if (property.isCollection()) {
+        if (property.getItemKlass() == null) {
+          return false;
+        }
+        hasCollection = true;
+        schema = schemaService.getSchema(property.getItemKlass());
+      } else if (!property.isSimple()) {
+        if (property.getKlass() == null) {
+          return false;
+        }
+        schema = schemaService.getSchema(property.getKlass());
+      } else {
+        return false;
+      }
+    }
+
+    return hasCollection;
+  }
+
+  private JpaPredicateSupplier existsCollectionPropertyPredicate(
+      Class<?> objectType, String[] aliases, String terminalPath, Collection<?> values) {
+    String terminalField = terminalPath.substring(terminalPath.lastIndexOf('.') + 1);
+    return new JpaPredicateSupplier() {
+      @Override
+      @SuppressWarnings({"rawtypes", "unchecked"})
+      public <T> Predicate getPredicate(
+          jakarta.persistence.criteria.CriteriaBuilder builder,
+          Root<T> root,
+          CriteriaQuery<?> criteriaQuery) {
+        var subquery = criteriaQuery.subquery(Integer.class);
+        Root<?> subRoot = subquery.from((Class) objectType);
+        From<?, ?> joined = subRoot;
+        for (String alias : aliases) {
+          joined = joined.join(alias);
+        }
+        subquery.select(builder.literal(1));
+        subquery.where(
+            builder.equal(subRoot.get("id"), root.get("id")), joined.get(terminalField).in(values));
+        return builder.exists(subquery);
+      }
+    };
   }
 
   private boolean isDbFilter(Query<?> query, Filter filter) {
