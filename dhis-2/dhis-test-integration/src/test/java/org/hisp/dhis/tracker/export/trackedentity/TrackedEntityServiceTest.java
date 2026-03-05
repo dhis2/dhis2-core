@@ -99,6 +99,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
@@ -132,6 +133,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   @Autowired private TrackedEntityAttributeValueService attributeValueService;
 
   @Autowired private TrackerOwnershipManager trackerOwnershipManager;
+
+  @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
   private User user;
 
@@ -1198,6 +1201,54 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
   }
 
   @Test
+  void shouldReturnOnlyOverdueTrackedEntitiesWhenFilteringByOverdueStatus()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntity teOverdue = setupTeWithScheduledEvent(EventStatus.SCHEDULE, -10);
+    setupTeWithScheduledEvent(EventStatus.SCHEDULE, 10);
+    setupTeWithScheduledEvent(EventStatus.SKIPPED, -10);
+    setupTeWithOccurredEvent(EventStatus.ACTIVE);
+    setupTeWithOccurredEvent(EventStatus.COMPLETED);
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programUid(programA.getUid())
+            .eventStatus(EventStatus.OVERDUE)
+            .eventStartDate(Date.from(Instant.now().minus(20, ChronoUnit.DAYS)))
+            .eventEndDate(Date.from(Instant.now().plus(20, ChronoUnit.DAYS)))
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(teOverdue.getUid()), uids(trackedEntities));
+  }
+
+  @Test
+  void shouldReturnOnlyScheduledTrackedEntitiesWhenFilteringByScheduledStatus()
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntity teScheduled = setupTeWithScheduledEvent(EventStatus.SCHEDULE, 10);
+    setupTeWithScheduledEvent(EventStatus.SCHEDULE, -10);
+    setupTeWithScheduledEvent(EventStatus.SKIPPED, 10);
+    setupTeWithOccurredEvent(EventStatus.ACTIVE);
+    setupTeWithOccurredEvent(EventStatus.COMPLETED);
+    TrackedEntityOperationParams operationParams =
+        TrackedEntityOperationParams.builder()
+            .organisationUnits(Set.of(orgUnitA.getUid()))
+            .orgUnitMode(SELECTED)
+            .programUid(programA.getUid())
+            .eventStatus(EventStatus.SCHEDULE)
+            .eventStartDate(Date.from(Instant.now().minus(20, ChronoUnit.DAYS)))
+            .eventEndDate(Date.from(Instant.now().plus(20, ChronoUnit.DAYS)))
+            .user(user)
+            .build();
+
+    List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities(operationParams);
+
+    assertContainsOnly(List.of(teScheduled.getUid()), uids(trackedEntities));
+  }
+
+  @Test
   @Disabled("IncludeDeleted param is not working when TE has a deleted relationship")
   void shouldIncludeDeletedEnrollmentAndEvents()
       throws ForbiddenException, NotFoundException, BadRequestException {
@@ -2208,5 +2259,39 @@ class TrackedEntityServiceTest extends IntegrationTestBase {
         .trackedEntityParams(new TrackedEntityParams(true, TRUE, false, false))
         .user(user)
         .build();
+  }
+
+  private TrackedEntity setupTeWithScheduledEvent(EventStatus status, int days) {
+    TrackedEntity te = createTrackedEntity(orgUnitA);
+    te.setTrackedEntityType(trackedEntityTypeA);
+    manager.save(te);
+
+    Enrollment enrollment = createEnrollment(programA, te, orgUnitA);
+    manager.save(enrollment);
+
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(te, programA, orgUnitA);
+
+    Event event = createEvent(programStageA1, enrollment, orgUnitA);
+    event.setScheduledDate(Date.from(Instant.now().plus(days, ChronoUnit.DAYS)));
+    event.setStatus(status);
+    manager.save(event);
+
+    return te;
+  }
+
+  private void setupTeWithOccurredEvent(EventStatus status) {
+    TrackedEntity te = createTrackedEntity(orgUnitA);
+    te.setTrackedEntityType(trackedEntityTypeA);
+    manager.save(te);
+
+    Enrollment enrollment = createEnrollment(programA, te, orgUnitA);
+    manager.save(enrollment);
+
+    trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(te, programA, orgUnitA);
+
+    Event event = createEvent(programStageA1, enrollment, orgUnitA);
+    event.setOccurredDate(Date.from(Instant.now()));
+    event.setStatus(status);
+    manager.save(event);
   }
 }
