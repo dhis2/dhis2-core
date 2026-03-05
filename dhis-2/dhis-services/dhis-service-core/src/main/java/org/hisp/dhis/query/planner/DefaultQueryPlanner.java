@@ -213,38 +213,39 @@ public class DefaultQueryPlanner implements QueryPlanner {
 
   private boolean isCollectionIdPath(
       Class<?> rootType, String filterPath, Property terminalProperty) {
-    if (terminalProperty == null || !"id".equals(terminalProperty.getName())) {
-      return false;
-    }
+    if (!isTerminalIdProperty(terminalProperty)) return false;
 
     String[] components = filterPath.split("\\.");
-    if (components.length < 2) {
-      return false;
-    }
+    if (!hasPathTraversal(components)) return false;
 
+    return hasCollectionTraversal(rootType, components);
+  }
+
+  private boolean isTerminalIdProperty(Property terminalProperty) {
+    return terminalProperty != null && "id".equals(terminalProperty.getName());
+  }
+
+  private boolean hasPathTraversal(String[] components) {
+    return components.length >= 2;
+  }
+
+  private boolean hasCollectionTraversal(Class<?> rootType, String[] components) {
     Schema schema = schemaService.getSchema(rootType);
     boolean hasCollection = false;
 
     for (int i = 0; i < components.length - 1; i++) {
       Property property = schema.getProperty(components[i]);
-      if (property == null || property.isEmbeddedObject()) {
-        return false;
-      }
+      if (property == null || property.isEmbeddedObject()) return false;
 
       if (property.isCollection()) {
-        if (property.getItemKlass() == null) {
-          return false;
-        }
+        if (property.getItemKlass() == null) return false;
         hasCollection = true;
         schema = schemaService.getSchema(property.getItemKlass());
-      } else if (!property.isSimple()) {
-        if (property.getKlass() == null) {
-          return false;
-        }
-        schema = schemaService.getSchema(property.getKlass());
-      } else {
-        return false;
+        continue;
       }
+
+      if (property.isSimple() || property.getKlass() == null) return false;
+      schema = schemaService.getSchema(property.getKlass());
     }
 
     return hasCollection;
