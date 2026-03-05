@@ -90,6 +90,10 @@ public record DataEntryGroup(
     requireNonNull(values);
   }
 
+  public DataEntryGroup(@Nonnull List<DataEntryValue> values) {
+    this(null, null, null, values);
+  }
+
   public boolean canMergeWith(DataEntryGroup other) {
     if (!Objects.equals(dataSet, other.dataSet)) return false;
     if (!Objects.equals(completion, other.completion)) return false;
