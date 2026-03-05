@@ -447,7 +447,9 @@ public class Program extends BaseMetadataObject
    */
   public List<TrackedEntityAttribute> getTrackedEntityAttributes() {
     return programAttributes.stream()
+        .filter(Objects::nonNull)
         .map(ProgramTrackedEntityAttribute::getAttribute)
+        .filter(Objects::nonNull)
         .collect(Collectors.toList());
   }
 
