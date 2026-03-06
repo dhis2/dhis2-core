@@ -36,6 +36,9 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.Api;
 import org.hisp.dhis.dataexchange.aggregate.SourceRequest;
@@ -58,6 +61,8 @@ public class AggregateDataExchangeObjectBundleHook
 
   @Qualifier(AES_128_STRING_ENCRYPTOR)
   private final PooledPBEStringEncryptor encryptor;
+
+  private final DimensionService dimensionService;
 
   @Override
   public void validate(
@@ -110,6 +115,35 @@ public class AggregateDataExchangeObjectBundleHook
 
       if (isEmpty(request.getDx()) || isEmpty(request.getPe()) || isEmpty(request.getOu())) {
         addReports.accept(new ErrorReport(AggregateDataExchange.class, ErrorCode.E6303));
+      }
+
+      validateSourceDxItemTypes(request, addReports);
+    }
+  }
+
+  /**
+   * Validates that source request data items are of allowed types.
+   *
+   * @param request the {@link SourceRequest}.
+   * @param addReports the list of {@link ErrorReport}.
+   */
+  private void validateSourceDxItemTypes(SourceRequest request, Consumer<ErrorReport> addReports) {
+    IdScheme idScheme =
+        request.getInputIdScheme() != null ? IdScheme.of(request.getInputIdScheme()) : IdScheme.UID;
+
+    for (String item : request.getDx()) {
+      DimensionalItemObject dxObject =
+          dimensionService.getDataDimensionalItemObject(idScheme, item);
+
+      if (dxObject != null
+          && !AggregateDataExchange.ALLOWED_DX_ITEM_TYPES.contains(
+              dxObject.getDimensionItemType())) {
+        addReports.accept(
+            new ErrorReport(
+                AggregateDataExchange.class,
+                ErrorCode.E6307,
+                dxObject.getDimensionItemType(),
+                AggregateDataExchange.ALLOWED_DX_ITEM_TYPES));
       }
     }
   }

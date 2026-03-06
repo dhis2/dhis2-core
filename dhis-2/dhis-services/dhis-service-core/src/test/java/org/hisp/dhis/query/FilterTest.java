@@ -27,41 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics;
+package org.hisp.dhis.query;
 
-import org.hisp.dhis.period.FinancialAprilPeriodType;
-import org.hisp.dhis.period.FinancialAugustPeriodType;
-import org.hisp.dhis.period.FinancialFebruaryPeriodType;
-import org.hisp.dhis.period.FinancialJulyPeriodType;
-import org.hisp.dhis.period.FinancialOctoberPeriodType;
-import org.hisp.dhis.period.FinancialPeriodType;
-import org.hisp.dhis.period.FinancialSeptemberPeriodType;
+import static java.util.List.of;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- * @author Henning Håkonsen
- */
-public enum AnalyticsFinancialYearStartKey {
-  FINANCIAL_YEAR_FEBRUARY("FINANCIAL_YEAR_FEBRUARY", new FinancialFebruaryPeriodType()),
-  FINANCIAL_YEAR_APRIL("FINANCIAL_YEAR_APRIL", new FinancialAprilPeriodType()),
-  FINANCIAL_YEAR_JULY("FINANCIAL_YEAR_JULY", new FinancialJulyPeriodType()),
-  FINANCIAL_YEAR_AUGUST("FINANCIAL_YEAR_AUGUST", new FinancialAugustPeriodType()),
-  FINANCIAL_YEAR_SEPTEMBER("FINANCIAL_YEAR_SEPTEMBER", new FinancialSeptemberPeriodType()),
-  FINANCIAL_YEAR_OCTOBER("FINANCIAL_YEAR_OCTOBER", new FinancialOctoberPeriodType());
+import org.junit.jupiter.api.Test;
 
-  private final String name;
+class FilterTest {
 
-  private final FinancialPeriodType financialPeriodType;
-
-  AnalyticsFinancialYearStartKey(String name, FinancialPeriodType financialPeriodType) {
-    this.name = name;
-    this.financialPeriodType = financialPeriodType;
+  @Test
+  void supportsDbPredicateForEqualOperator() {
+    assertTrue(Filters.eq("members.id", "abc123").supportsDbPredicate());
   }
 
-  public String getName() {
-    return name;
+  @Test
+  void supportsDbPredicateForInOperator() {
+    assertTrue(Filters.in("members.id", of("a", "b")).supportsDbPredicate());
   }
 
-  public FinancialPeriodType getFinancialPeriodType() {
-    return financialPeriodType;
+  @Test
+  void doesNotSupportDbPredicateForNonEligibleOperator() {
+    assertFalse(Filters.gt("members.id", 1).supportsDbPredicate());
+  }
+
+  @Test
+  void doesNotSupportDbPredicateForAttributeFilter() {
+    assertFalse(Filters.eq("members.id", "abc123").asAttribute().supportsDbPredicate());
+  }
+
+  @Test
+  void doesNotSupportDbPredicateForVirtualFilter() {
+    assertFalse(Filters.query("abc").supportsDbPredicate());
   }
 }
