@@ -73,8 +73,7 @@ public class DmlObserverListener implements QueryExecutionListener, MethodExecut
    * Accumulated DML batches keyed by connection identity hash code (as String). Using identity hash
    * to avoid calling connection.toString() on pooled connections.
    */
-  private final ConcurrentHashMap<String, PendingBatch> pendingBatches =
-      new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, PendingBatch> pendingBatches = new ConcurrentHashMap<>();
 
   public DmlObserverListener(
       HibernateTableEntityRegistry registry, ApplicationEventPublisher eventPublisher) {
@@ -195,8 +194,7 @@ public class DmlObserverListener implements QueryExecutionListener, MethodExecut
   private void publishAndClear(String connectionId) {
     PendingBatch batch = pendingBatches.remove(connectionId);
     if (batch != null && !batch.events().isEmpty()) {
-      log.debug(
-          "Publishing {} DML events for connection {}", batch.events().size(), connectionId);
+      log.debug("Publishing {} DML events for connection {}", batch.events().size(), connectionId);
       try {
         eventPublisher.publishEvent(new DmlObservedEvent(this, batch.events(), batch.origin()));
       } catch (Exception e) {
