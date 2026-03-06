@@ -45,9 +45,16 @@ where ev.programstageid = ps.programstageid
 
 -- add FK and NOT NULL constraint
 alter table trackerevent alter column programid set not null;
-alter table trackerevent
-    add constraint fk_trackerevent_programid foreign key (programid)
-    references program (programid);
+do $$ begin
+    if not exists (
+        select 1 from pg_constraint
+        where conrelid = 'trackerevent'::regclass and conname = 'fk_trackerevent_programid'
+    ) then
+        alter table trackerevent
+            add constraint fk_trackerevent_programid foreign key (programid)
+            references program (programid);
+    end if;
+end $$;
 
 -- drop unused/redundant event indices
 drop index if exists in_trackerevent_status_occurreddate; -- replaced by program-scoped index

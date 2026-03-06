@@ -34,7 +34,6 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
-import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildEventOrgUnitCondition;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOrgUnitModeClause;
 import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipClause;
 
@@ -666,13 +665,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           params.getOrgUnitMode(),
           "ou",
           hlp.whereAnd());
-      buildEventOrgUnitCondition(
-          sql,
-          sqlParams,
-          Set.of(params.getOrgUnit()),
-          params.getOrgUnitMode(),
-          "ev",
-          hlp.whereAnd());
     }
 
     if (params.hasEnrolledInTrackerProgram()) {
@@ -1096,13 +1088,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           Set.of(params.getOrgUnit()),
           params.getOrgUnitMode(),
           "ou",
-          hlp.whereAnd());
-      buildEventOrgUnitCondition(
-          sql,
-          sqlParams,
-          Set.of(params.getOrgUnit()),
-          params.getOrgUnitMode(),
-          "ev",
           hlp.whereAnd());
     }
 
