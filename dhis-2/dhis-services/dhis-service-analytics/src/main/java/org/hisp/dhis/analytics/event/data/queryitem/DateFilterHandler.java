@@ -206,6 +206,7 @@ public class DateFilterHandler implements QueryItemFilterHandler {
                   DateField.withDefaults().withDate(referenceDate),
                   null,
                   false,
+                  null,
                   null)
               .stream()
               .map(org.hisp.dhis.period.PeriodDimension::getPeriod)

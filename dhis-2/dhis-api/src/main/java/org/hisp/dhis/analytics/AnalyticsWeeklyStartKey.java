@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.analytics;
 
+import org.hisp.dhis.period.CalendarPeriodType;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyFridayPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
@@ -60,5 +61,9 @@ public enum AnalyticsWeeklyStartKey {
 
   public PeriodType getPeriodType() {
     return periodType;
+  }
+
+  public CalendarPeriodType getCalendarPeriodType() {
+    return (CalendarPeriodType) periodType;
   }
 }
