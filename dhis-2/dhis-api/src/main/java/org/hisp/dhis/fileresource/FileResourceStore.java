@@ -34,7 +34,7 @@ import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.datavalue.DataValueKey;
+import org.hisp.dhis.datavalue.DataValueFileResourceKey;
 import org.joda.time.DateTime;
 
 public interface FileResourceStore extends IdentifiableObjectStore<FileResource> {
@@ -104,7 +104,7 @@ public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
    * @param uid of a file resource
    * @return data value(s) key combinations that have the given file resource as value.
    */
-  List<DataValueKey> findDataValuesByFileResourceValue(@Nonnull String uid);
+  List<DataValueFileResourceKey> findDataValuesByFileResourceValue(@Nonnull String uid);
 
   /**
    * Get all unassigned File Resources by JOB_DATA FileResourceDomain, which have no associated job

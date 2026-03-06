@@ -245,7 +245,7 @@ public class OrganisationUnitController
   @OpenApi.Response(GetObjectListResponse.class)
   @GetMapping(value = "/{uid}", params = "includeChildren=true")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getIncludeChildren(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
+      @PathVariable("uid") UID uid,
       GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
@@ -256,7 +256,7 @@ public class OrganisationUnitController
   @OpenApi.Response(GetObjectListResponse.class)
   @GetMapping("/{uid}/children")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getChildren(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
+      @PathVariable("uid") UID uid,
       GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
@@ -265,14 +265,14 @@ public class OrganisationUnitController
     List<Filter> children =
         List.of(
             in("level", List.of(parent.getLevel(), parent.getLevel() + 1)),
-            like("path", uid, MatchMode.ANYWHERE));
+            like("path", uid.getValue(), MatchMode.ANYWHERE));
     return getObjectListWith(params, response, currentUser, children);
   }
 
   @OpenApi.Response(GetObjectListResponse.class)
   @GetMapping(value = "/{uid}", params = "level")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getObjectWithLevel(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
+      @PathVariable("uid") UID uid,
       @RequestParam int level,
       GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
@@ -284,7 +284,7 @@ public class OrganisationUnitController
   @OpenApi.Response(GetObjectListResponse.class)
   @GetMapping(value = "/{uid}/children", params = "level")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getChildrenWithLevel(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
+      @PathVariable("uid") UID uid,
       @RequestParam int level,
       GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
@@ -323,7 +323,7 @@ public class OrganisationUnitController
   @OpenApi.Response(GetObjectListResponse.class)
   @GetMapping(value = "/{uid}", params = "includeAncestors=true")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getIncludeAncestors(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
+      @PathVariable("uid") UID uid,
       GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
@@ -334,7 +334,7 @@ public class OrganisationUnitController
   @OpenApi.Response(GetObjectListResponse.class)
   @GetMapping("/{uid}/ancestors")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getAncestors(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
+      @PathVariable("uid") UID uid,
       GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
@@ -352,7 +352,7 @@ public class OrganisationUnitController
   @OpenApi.Response(GetObjectListResponse.class)
   @GetMapping("/{uid}/parents")
   public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getParents(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String uid,
+      @PathVariable("uid") UID uid,
       GetOrganisationUnitObjectListParams params,
       HttpServletResponse response,
       @CurrentUser UserDetails currentUser)
@@ -554,7 +554,7 @@ public class OrganisationUnitController
   }
 
   @Override
-  protected void postDeleteEntity(String entityUID) {
+  protected void postDeleteEntity(UID entityUID) {
     versionService.updateVersion(VersionService.ORGANISATIONUNIT_VERSION);
   }
 }

@@ -26,23 +26,24 @@
 #
 ---
   name: categories_same_category_options
-  description: Categories with the same category options
+  description: Categories with identical category options
   section: Categories
   section_order: 6
   summary_sql: >-
     WITH duplicative_categories  AS (
     SELECT catoptions, COUNT(*) as count
-    FROM ( SELECT categoryid,
+    FROM (SELECT categoryid,
     array_agg(categoryoptionid ORDER BY categoryoptionid) as catoptions
     FROM categories_categoryoptions group by categoryid) as foo
     GROUP BY catoptions HAVING COUNT(*) > 1
     )
     SELECT COUNT(*) as value,
-     100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*)
+    100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*)
     FROM category),0 ) percent
     FROM duplicative_categories;
   details_sql: >-
-    SELECT x.uid,'(' || b.rank || ') ' || x.name as name  from category x
+    SELECT x.uid,'(' || b.rank || ') ' || x.name as name 
+    FROM category x
     INNER JOIN (
     SELECT categoryid, array_agg(categoryoptionid ORDER BY categoryoptionid) as catoptions
     from categories_categoryoptions GROUP BY categoryid

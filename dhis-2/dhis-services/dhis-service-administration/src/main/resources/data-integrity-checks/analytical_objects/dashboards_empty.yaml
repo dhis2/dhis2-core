@@ -26,7 +26,7 @@
 #
 ---
   name: dashboards_no_items
-  description: Dashboards with no items.
+  description: Dashboards with no items
   section: Dashboards
   section_order: 4
   summary_sql: >-

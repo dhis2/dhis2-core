@@ -43,13 +43,11 @@ import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIf;
 
 /** Groups e2e tests for "/analytics/outlierDetection" endpoint. */
 @EnabledIf(value = "hasOutliersSupport", disabledReason = "outliers are only supported in Postgres")
-@Disabled("Temporarily disabled while fixing Redis issue")
 public class OutliersDetection3AutoTest extends AnalyticsApiTest {
   private final AnalyticsOutlierDetectionActions actions = new AnalyticsOutlierDetectionActions();
 

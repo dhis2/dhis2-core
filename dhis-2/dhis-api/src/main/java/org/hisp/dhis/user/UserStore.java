@@ -32,7 +32,6 @@ package org.hisp.dhis.user;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -41,6 +40,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
@@ -244,4 +244,33 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    */
   List<User> getUsersWithOrgUnit(
       @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull Set<UID> uids);
+
+  /**
+   * Update one source category dimension constraint to the targetCategoryId, where the User does
+   * not have a constraint for the targetCategoryId.
+   *
+   * @param sourceCategoryIds source category ids
+   * @param targetCategoryId target category id
+   * @return number of updated rows
+   */
+  int updateCatDimensionConstraintsCategoryRefs(Set<Long> sourceCategoryIds, long targetCategoryId);
+
+  /**
+   * Delete category dimension constraints for all sourceCategoryIds
+   *
+   * @param sourceCategoryIds source category ids
+   * @return number of updated rows
+   */
+  int deleteRemainingCatDimensionConstraints(Set<Long> sourceCategoryIds);
+
+  /**
+   * Delete category dimension constraints for all sourceCategoryIds where the User already has the
+   * targetCategoryId
+   *
+   * @param sourceCategoryIds source category ids
+   * @param targetCategoryId target category id
+   * @return number of deleted rows
+   */
+  int deleteCatDimensionConstraintsWhenUserHasTarget(
+      Set<Long> sourceCategoryIds, long targetCategoryId);
 }

@@ -58,7 +58,6 @@ import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -77,10 +76,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 public class GeoJsonImportController {
-
   private final GeoJsonService geoJsonService;
+
   private final JobExecutionService jobExecutionService;
-  private final UserService userService;
 
   @PostMapping(
       value = "/geometry",

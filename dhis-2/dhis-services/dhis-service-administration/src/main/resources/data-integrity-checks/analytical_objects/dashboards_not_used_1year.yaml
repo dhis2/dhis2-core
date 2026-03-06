@@ -26,7 +26,7 @@
 #
 ---
   name: dashboards_not_viewed_one_year
-  description: Dashboards which have not been actively viewed in the past 12 months
+  description: Dashboards which have not been actively viewed in the last 12 months
   section: Visualizations
   section_order: 3
   summary_sql: >-

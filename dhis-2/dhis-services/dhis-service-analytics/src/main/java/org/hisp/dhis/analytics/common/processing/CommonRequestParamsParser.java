@@ -46,6 +46,7 @@ import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.feedback.ErrorCode.E7129;
 import static org.hisp.dhis.feedback.ErrorCode.E7250;
 import static org.hisp.dhis.feedback.ErrorCode.E7251;
+import static org.hisp.dhis.feedback.ErrorCode.E7253;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Streams;
@@ -58,6 +59,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -127,12 +130,17 @@ public class CommonRequestParamsParser implements Parser<CommonRequestParams, Co
         .getProgramAttributes()
         .addAll(getProgramAttributes(programs).map(IdentifiableObject::getUid).toList());
 
+    List<DimensionIdentifier<DimensionParam>> dimensionIdentifiers =
+        retrieveDimensionParams(request, programs, userOrgUnits);
+    Set<DimensionIdentifier<DimensionParam>> parsedHeaders =
+        parseHeaders(request, programs, userOrgUnits);
+
     return CommonParsedParams.builder()
         .programs(programs)
         .pagingParams(computePagingParams(request))
         .orderParams(getSortingParams(request, programs, userOrgUnits))
-        .dimensionIdentifiers(retrieveDimensionParams(request, programs, userOrgUnits))
-        .parsedHeaders(parseHeaders(request, programs, userOrgUnits))
+        .dimensionIdentifiers(dimensionIdentifiers)
+        .parsedHeaders(parsedHeaders)
         .userOrgUnit(userOrgUnits)
         .build();
   }
@@ -398,22 +406,113 @@ public class CommonRequestParamsParser implements Parser<CommonRequestParams, Co
       List<Program> programs,
       List<OrganisationUnit> userOrgUnits) {
     String dimensionId = getDimensionFromParam(dimensionOrFilter);
-
-    // We first parse the dimensionId into <Program, ProgramStage, String>
-    // to be able to operate on the string version (uid) of the dimension.
-    DimensionIdentifier<StringUid> stringDimensionIdentifier =
-        dimensionIdentifierConverter.fromString(programs, dimensionId);
     List<String> items = getDimensionItemsFromParam(dimensionOrFilter);
+    DimensionIdentifier<StringUid> stringDimensionIdentifier =
+        toStringDimensionIdentifier(programs, dimensionId);
 
-    Optional<StaticDimension> staticDimension =
-        StaticDimension.of(stringDimensionIdentifier.getDimension().getUid());
+    StaticDimension staticDimension =
+        StaticDimension.of(stringDimensionIdentifier.getDimension().getUid()).orElse(null);
 
-    // Then we check if it's a static dimension.
-    if (staticDimension.isPresent()) {
-      return parseAsStaticDimension(
-          dimensionParamType, stringDimensionIdentifier, outputIdScheme, items);
+    validateStageScopedOuNameUsage(dimensionParamType, stringDimensionIdentifier, staticDimension);
+
+    Optional<DimensionIdentifier<DimensionParam>> staticDimensionIdentifier =
+        tryParseAsStaticDimension(
+            dimensionParamType, outputIdScheme, items, stringDimensionIdentifier, staticDimension);
+
+    if (staticDimensionIdentifier.isPresent()) {
+      return staticDimensionIdentifier.get();
     }
 
+    Optional<DimensionIdentifier<DimensionParam>> dimensionalObjectIdentifier =
+        tryParseAsDimensionalObject(
+            dimensionParamType,
+            relativePeriodDate,
+            displayProperty,
+            outputIdScheme,
+            userOrgUnits,
+            items,
+            stringDimensionIdentifier);
+
+    return dimensionalObjectIdentifier.orElseGet(
+        () ->
+            parseAsQueryItemDimension(
+                dimensionOrFilter,
+                dimensionParamType,
+                outputIdScheme,
+                dimensionId,
+                stringDimensionIdentifier));
+  }
+
+  private DimensionIdentifier<StringUid> toStringDimensionIdentifier(
+      List<Program> programs, String dimensionId) {
+    // We first parse the dimensionId into <Program, ProgramStage, String>
+    // to be able to operate on the string version (uid) of the dimension.
+    try {
+      return dimensionIdentifierConverter.fromString(programs, dimensionId);
+    } catch (IllegalArgumentException e) {
+      throw toQueryExceptionIfUnsupportedStageDimension(e);
+    }
+  }
+
+  private IllegalArgumentException toQueryExceptionIfUnsupportedStageDimension(
+      IllegalArgumentException exception) {
+    Pattern pattern =
+        Pattern.compile("Dimension `([^`]+)` is not supported for program stage `([^`]+)`");
+    Matcher matcher = pattern.matcher(exception.getMessage());
+
+    if (matcher.find()) {
+      String unsupportedDimension = matcher.group(1);
+      String stageUid = matcher.group(2);
+      throw new IllegalQueryException(E7253, unsupportedDimension, stageUid);
+    }
+
+    return exception;
+  }
+
+  private void validateStageScopedOuNameUsage(
+      DimensionParamType dimensionParamType,
+      DimensionIdentifier<StringUid> stringDimensionIdentifier,
+      StaticDimension staticDimension) {
+    // stageUid.ouname is a header-only syntax for stage-specific OU display name.
+    // It must not be accepted as a query dimension/filter/sort field.
+    if (isStageScopedOuNameInNonHeader(
+        dimensionParamType, stringDimensionIdentifier, staticDimension)) {
+      throw new IllegalQueryException(
+          E7253,
+          stringDimensionIdentifier.getDimension().getUid(),
+          stringDimensionIdentifier.getProgramStage().getElement().getUid());
+    }
+  }
+
+  private Optional<DimensionIdentifier<DimensionParam>> tryParseAsStaticDimension(
+      DimensionParamType dimensionParamType,
+      IdScheme outputIdScheme,
+      List<String> items,
+      DimensionIdentifier<StringUid> stringDimensionIdentifier,
+      StaticDimension staticDimension) {
+    // OU dimensions with items (USER_ORGUNIT, LEVEL-X, OU_GROUP-X, or specific UIDs) need
+    // to go through DimensionalObject resolution to resolve those items to actual org units.
+    // OU dimensions WITHOUT items (e.g., just "ou" in headers) should use static dimension
+    // handling to avoid failing org unit resolution.
+    boolean isOuDimensionWithItems = staticDimension == StaticDimension.OU && !items.isEmpty();
+
+    if (Objects.nonNull(staticDimension) && !isOuDimensionWithItems) {
+      return Optional.of(
+          parseAsStaticDimension(
+              dimensionParamType, stringDimensionIdentifier, outputIdScheme, items));
+    }
+
+    return Optional.empty();
+  }
+
+  private Optional<DimensionIdentifier<DimensionParam>> tryParseAsDimensionalObject(
+      DimensionParamType dimensionParamType,
+      Date relativePeriodDate,
+      DisplayProperty displayProperty,
+      IdScheme outputIdScheme,
+      List<OrganisationUnit> userOrgUnits,
+      List<String> items,
+      DimensionIdentifier<StringUid> stringDimensionIdentifier) {
     // Then we check if it's a DimensionalObject.
     DimensionalObject dimensionalObject =
         dataQueryService.getDimension(
@@ -428,14 +527,23 @@ public class CommonRequestParamsParser implements Parser<CommonRequestParams, Co
     if (Objects.nonNull(dimensionalObject)) {
       DimensionParam dimensionParam =
           DimensionParam.ofObject(dimensionalObject, dimensionParamType, outputIdScheme, items);
-      return DimensionIdentifier.of(
-          stringDimensionIdentifier.getProgram(),
-          stringDimensionIdentifier.getProgramStage(),
-          dimensionParam);
+      return Optional.of(
+          DimensionIdentifier.of(
+              stringDimensionIdentifier.getProgram(),
+              stringDimensionIdentifier.getProgramStage(),
+              dimensionParam));
     }
 
-    QueryItem queryItem;
+    return Optional.empty();
+  }
 
+  private DimensionIdentifier<DimensionParam> parseAsQueryItemDimension(
+      String dimensionOrFilter,
+      DimensionParamType dimensionParamType,
+      IdScheme outputIdScheme,
+      String dimensionId,
+      DimensionIdentifier<StringUid> stringDimensionIdentifier) {
+    QueryItem queryItem;
     if (!stringDimensionIdentifier.hasProgram() && !stringDimensionIdentifier.hasProgramStage()) {
       // If we reach here, it should be a trackedEntityAttribute.
       queryItem =
@@ -481,6 +589,15 @@ public class CommonRequestParamsParser implements Parser<CommonRequestParams, Co
     }
 
     return dimensionIdentifier;
+  }
+
+  private static boolean isStageScopedOuNameInNonHeader(
+      DimensionParamType dimensionParamType,
+      DimensionIdentifier<StringUid> stringDimensionIdentifier,
+      StaticDimension staticDimension) {
+    return dimensionParamType != HEADERS
+        && stringDimensionIdentifier.hasProgramStage()
+        && staticDimension == StaticDimension.OUNAME;
   }
 
   /**

@@ -51,6 +51,8 @@
 
         <property name="eventLabel" column="eventlabel"/>
 
+        <property name="eventsLabel" column="eventslabel"/>
+
         <set name="notificationTemplates" cascade="all-delete-orphan">
             <key column="programstageid"/>
             <one-to-many class="org.hisp.dhis.program.notification.ProgramNotificationTemplate"/>

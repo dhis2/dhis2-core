@@ -29,10 +29,13 @@
  */
 package org.hisp.dhis.analytics.hibernate;
 
+import static org.hibernate.LockMode.PESSIMISTIC_WRITE;
+
 import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
+import org.hibernate.LockOptions;
 import org.hisp.dhis.analytics.CategoryDimensionStore;
 import org.hisp.dhis.category.CategoryDimension;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
@@ -64,5 +67,23 @@ public class HibernateCategoryDimensionStore extends HibernateGenericStore<Categ
             CategoryDimension.class)
         .setParameter("categoryOptions", categoryOptions)
         .getResultList();
+  }
+
+  @Override
+  public int updateCatDimensionCategoryRefs(
+      Collection<Long> sourceCategoryIds, long targetCategoryId) {
+    if (sourceCategoryIds == null || sourceCategoryIds.isEmpty()) return 0;
+    String sql =
+        """
+        update categorydimension cd
+        set categoryid = :targetCategoryId
+        where cd.categoryid in :sourceCategoryIds
+        """;
+    return getSession()
+        .createNativeQuery(sql)
+        .setParameter("targetCategoryId", targetCategoryId)
+        .setParameter("sourceCategoryIds", sourceCategoryIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .executeUpdate();
   }
 }

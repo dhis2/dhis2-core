@@ -168,7 +168,7 @@ public class AggregateDataSetSMSListener extends CompressionSMSListener {
             : sub.getValues().stream().map(AggregateDataSetSMSListener::toDataEntryValue).toList();
     if (values.isEmpty()) return SmsResponse.WARN_DVEMPTY;
     DataEntryGroup.Input input =
-        new DataEntryGroup.Input(null, ds, null, null, ou, pe, aoc, null, values);
+        new DataEntryGroup.Input(null, ds, null, null, ou, pe, aoc, null, null, values);
     try {
       DataEntryGroup group = dataEntryService.decodeGroup(input);
       DataEntrySummary result = dataEntryService.upsertGroup(options, group, transitory());

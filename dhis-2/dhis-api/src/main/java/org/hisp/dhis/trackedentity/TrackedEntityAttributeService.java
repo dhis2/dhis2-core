@@ -172,19 +172,4 @@ public interface TrackedEntityAttributeService {
 
   @Transactional(readOnly = true)
   List<TrackedEntityAttribute> getAllUniqueTrackedEntityAttributes();
-
-  /**
-   * Get all {@link TrackedEntityAttribute} linked to all {@link TrackedEntityType} present in the
-   * system
-   *
-   * @return a Set of {@link TrackedEntityAttribute}
-   */
-  Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes();
-
-  /**
-   * Fetches all {@link TrackedEntityAttribute} UIDs of the given {@link Program}
-   *
-   * @return a Set of {@link TrackedEntityAttribute} UIDs
-   */
-  Set<String> getTrackedEntityAttributesInProgram(@Nonnull Program program);
 }

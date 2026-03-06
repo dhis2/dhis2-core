@@ -26,7 +26,7 @@
 #
 ---
   name: invalid_category_combos
-  description:  Category combinations which are invalid.
+  description:  Category combinations which are invalid
   section: Categories
   section_order: 7
   summary_sql: >-

@@ -260,6 +260,6 @@ public class SystemSettingsController {
   }
 
   private static String getUserUiLanguage() {
-    return UserSettings.getCurrentSettings().getUserUiLocale().getLanguage();
+    return UserSettings.getCurrentSettings().getUserUiLocale().language();
   }
 }

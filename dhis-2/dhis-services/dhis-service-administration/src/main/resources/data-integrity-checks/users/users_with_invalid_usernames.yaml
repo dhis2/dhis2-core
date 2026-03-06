@@ -26,7 +26,7 @@
 #
 ---
 name: users_with_invalid_usernames
-description: Users who have invalid usernames.
+description: Users which have invalid usernames
 section: Users
 section_order: 5
 summary_sql: >-

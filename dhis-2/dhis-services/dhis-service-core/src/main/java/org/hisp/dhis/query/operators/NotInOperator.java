@@ -50,11 +50,11 @@ public class NotInOperator<T extends Comparable<T>> extends InOperator<T> {
 
     if (property.isCollection()) {
       return builder.not(
-          root.get(path.getPath())
+          getPropertyPath(root, path)
               .in(getValue(Collection.class, path.getProperty().getItemKlass(), getArgs())));
     }
 
-    return builder.not(root.get(path.getPath()).in(getArgs()));
+    return builder.not(getPropertyPath(root, path).in(getArgs()));
   }
 
   @Override

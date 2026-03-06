@@ -26,7 +26,7 @@
 #
 ---
 name: program_rules_no_action
-description: Program rules with no action.
+description: Program rules without actions
 section: Program rules
 section_order: 2
 summary_sql: >-
@@ -37,13 +37,13 @@ summary_sql: >-
     100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM programrule),0) as percent
     FROM program_rules_no_action;
 details_sql: >-
-     SELECT a.uid,a.name,NULL AS comment,
-     array_agg(COALESCE(b.name,'NULL') || ':' || COALESCE(b.uid,'NULL')) as refs  
-     from programrule a
-     LEFT OUTER JOIN program b on a.programid = b.programid
-     where programruleid
-     NOT IN (SELECT DISTINCT programruleid from programruleaction)
-     GROUP BY a.uid,a.name;
+    SELECT a.uid,a.name,NULL AS comment,
+    array_agg(COALESCE(b.name,'NULL') || ':' || COALESCE(b.uid,'NULL')) as refs  
+    from programrule a
+    LEFT OUTER JOIN program b on a.programid = b.programid
+    where programruleid
+    NOT IN (SELECT DISTINCT programruleid from programruleaction)
+    GROUP BY a.uid,a.name;
 details_id_type: programRules
 severity: SEVERE
 introduction: >

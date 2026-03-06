@@ -219,7 +219,7 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
 
     List<TrackedEntityAttribute> trackedEntityAttributes =
         getAllTrackedEntityAttributes(trackedEntityType, programsByTetUid)
-            .filter(tea -> !tea.isConfidentialBool())
+            .filter(tea -> !tea.isConfidentialBool() && !tea.isSkipAnalytics())
             .toList();
 
     params.addExtraParam(
@@ -332,7 +332,9 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
 
     List<TrackedEntityAttribute> attributes =
         ((List<TrackedEntityAttribute>)
-            params.getExtraParam(trackedEntityType.getUid(), ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES));
+                params.getExtraParam(
+                    trackedEntityType.getUid(), ALL_NON_CONFIDENTIAL_TET_ATTRIBUTES))
+            .stream().filter(tea -> !tea.isSkipAnalytics()).toList();
 
     if (isNotEmpty(attributes)) {
       attributes.forEach(

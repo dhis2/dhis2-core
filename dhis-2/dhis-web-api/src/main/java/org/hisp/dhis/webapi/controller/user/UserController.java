@@ -42,13 +42,13 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -85,7 +85,11 @@ import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.query.Filter;
+import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.query.Query;
 import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
@@ -212,49 +216,68 @@ public class UserController
     @OpenApi.Description(
         "Shorthand for `canManage=true` + `authSubset=true` (takes precedence over individual parameters)")
     boolean manage;
-
-    @JsonIgnore
-    boolean isUsingAnySpecialFilters() {
-      return getQuery() != null
-          || phoneNumber != null
-          || canManage
-          || authSubset
-          || lastLogin != null
-          || inactiveMonths != null
-          || inactiveSince != null
-          || selfRegistered
-          || invitationStatus != null
-          || userOrgUnits
-          || includeChildren
-          || orgUnitBoundary != null
-          || ou != null
-          || manage;
-    }
   }
 
   @Override
-  protected List<UID> getPreQueryMatches(GetUserObjectListParams params) throws ConflictException {
-    if (!params.isUsingAnySpecialFilters()) return null;
+  protected void modifyGetObjectList(GetUserObjectListParams params, Query<User> query) {
+    if (!needsSpecialPredicates(params)) return;
     UserQueryParams queryParams = toUserQueryParams(params);
+    userService.handleUserQueryParams(queryParams);
+    query.addPredicateSupplier(new UserPredicateSupplier(queryParams));
+  }
 
-    if (params.isManage()) {
-      queryParams.setCanManage(true);
-      queryParams.setAuthSubset(true);
+  @Override
+  @Nonnull
+  protected List<Filter> getAdditionalFilters(GetUserObjectListParams params)
+      throws ConflictException {
+    List<Filter> filters = super.getAdditionalFilters(params);
+    addSimpleFilters(params, filters);
+    return filters;
+  }
+
+  private boolean needsSpecialPredicates(GetUserObjectListParams params) {
+    return params.getQuery() != null
+        || params.isCanManage()
+        || params.isAuthSubset()
+        || params.isManage()
+        || params.isUserOrgUnits()
+        || params.getOrgUnitBoundary() != null
+        || params.getOu() != null
+        || params.isIncludeChildren()
+        || params.getInvitationStatus() == UserInvitationStatus.EXPIRED;
+  }
+
+  private void addSimpleFilters(GetUserObjectListParams params, List<Filter> filters) {
+    if (params.getPhoneNumber() != null) {
+      filters.add(Filters.eq("phoneNumber", params.getPhoneNumber()));
     }
-    return userService.getUserIds(queryParams, params.getOrders());
+    if (params.getLastLogin() != null) {
+      filters.add(Filters.ge("lastLogin", params.getLastLogin()));
+    }
+    if (params.getInactiveMonths() != null) {
+      Calendar cal = PeriodType.createCalendarInstance();
+      cal.add(Calendar.MONTH, (params.getInactiveMonths() * -1));
+      filters.add(Filters.lt("lastLogin", cal.getTime()));
+    } else if (params.getInactiveSince() != null) {
+      filters.add(Filters.lt("lastLogin", params.getInactiveSince()));
+    }
+    if (params.isSelfRegistered()) {
+      filters.add(Filters.eq("selfRegistered", true));
+    }
+    if (params.getInvitationStatus() == UserInvitationStatus.ALL) {
+      filters.add(Filters.eq("invitation", true));
+    }
   }
 
   private UserQueryParams toUserQueryParams(GetUserObjectListParams params) {
     UserQueryParams res = new UserQueryParams();
     res.setQuery(StringUtils.trimToNull(params.getQuery()));
-    res.setPhoneNumber(StringUtils.trimToNull(params.getPhoneNumber()));
     res.setCanManage(params.isCanManage());
     res.setAuthSubset(params.isAuthSubset());
-    res.setLastLogin(params.getLastLogin());
-    res.setInactiveMonths(params.getInactiveMonths());
-    res.setInactiveSince(params.getInactiveSince());
-    res.setSelfRegistered(params.isSelfRegistered());
-    res.setInvitationStatus(params.getInvitationStatus());
+    if (params.isManage()) {
+      res.setCanManage(true);
+      res.setAuthSubset(true);
+    }
     res.setUserOrgUnits(params.isUserOrgUnits());
     res.setIncludeOrgUnitChildren(params.isIncludeChildren());
     String ou = params.getOu();
@@ -263,13 +286,14 @@ public class UserController
     }
     UserOrgUnitType boundary = params.getOrgUnitBoundary();
     if (boundary != null) res.setOrgUnitBoundary(boundary);
+    res.setInvitationStatus(params.getInvitationStatus());
     return res;
   }
 
   @Override
   @Nonnull
-  protected User getEntity(String uid) throws NotFoundException {
-    User user = userService.getUser(uid);
+  protected User getEntity(@Nonnull UID uid) throws NotFoundException {
+    User user = userService.getUser(uid.getValue());
     if (user == null) {
       throw new NotFoundException(User.class, uid);
     }
@@ -280,25 +304,25 @@ public class UserController
   @GetMapping("/{uid}/{property}")
   @OpenApi.Document(group = OpenApi.Document.GROUP_QUERY)
   public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @OpenApi.Param(OpenApi.PropertyNames.class) @PathVariable("property") String pvProperty,
+      @OpenApi.Param({UID.class, User.class}) @PathVariable("uid") UID uid,
+      @OpenApi.Param(OpenApi.PropertyNames.class) @PathVariable("property") String property,
       @RequestParam(required = false) List<String> fields,
       @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
 
-    if ("dataApprovalWorkflows".equals(pvProperty)) {
-      return getDataApprovalWorkflows(pvUid, currentUser);
+    if ("dataApprovalWorkflows".equals(property)) {
+      return getDataApprovalWorkflows(uid, currentUser);
     } else {
-      return super.getObjectProperty(pvUid, pvProperty, fields, currentUser, response);
+      return super.getObjectProperty(uid, property, fields, currentUser, response);
     }
   }
 
-  private ResponseEntity<ObjectNode> getDataApprovalWorkflows(String pvUid, UserDetails currentUser)
+  private ResponseEntity<ObjectNode> getDataApprovalWorkflows(UID id, UserDetails currentUser)
       throws NotFoundException, ForbiddenException {
-    User user = userService.getUser(pvUid);
+    User user = userService.getUser(id.getValue());
     if (user == null) {
-      throw new NotFoundException("User not found: " + pvUid);
+      throw new NotFoundException("User not found: " + id);
     }
     if (!aclService.canRead(currentUser, user)) {
       throw new ForbiddenException("You don't have the proper permissions to access this user.");
@@ -551,15 +575,15 @@ public class UserController
       produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public WebMessage putJsonObject(
-      @PathVariable("uid") String pvUid,
+      @PathVariable("uid") UID uid,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
       throws IOException, ConflictException, ForbiddenException, NotFoundException {
     User inputUser = renderService.fromJson(request.getInputStream(), getEntityClass());
-    return importReport(updateUser(pvUid, inputUser));
+    return importReport(updateUser(uid, inputUser));
   }
 
-  protected ImportReport updateUser(String userUid, User inputUser)
+  protected ImportReport updateUser(UID userUid, User inputUser)
       throws ConflictException, ForbiddenException, NotFoundException {
     User user = getEntity(userUid);
 
@@ -575,7 +599,7 @@ public class UserController
     currentUser.getAllAuthorities();
 
     inputUser.setId(user.getId());
-    inputUser.setUid(userUid);
+    inputUser.setUid(userUid.getValue());
     mergeLastLoginAttribute(user, inputUser);
 
     boolean isPasswordChangeAttempt = inputUser.getPassword() != null;
@@ -599,7 +623,7 @@ public class UserController
 
     // import was successful
     if (importReport.getStatus() == Status.OK && importReport.getStats().updated() == 1) {
-      updateUserGroups(userUid, inputUser, currentUser);
+      updateUserGroups(userUid.getValue(), inputUser, currentUser);
 
       // If it was a pw change attempt (input.pw != null) and update was
       // success we assume password has changed...

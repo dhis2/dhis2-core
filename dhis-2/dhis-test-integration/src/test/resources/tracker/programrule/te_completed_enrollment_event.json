@@ -71,7 +71,8 @@
       "events": [],
       "relationships": [],
       "attributes": [],
-      "notes": []
+      "notes": [],
+      "attributeOptionCombo": {}
     }
   ],
   "events": [
@@ -100,7 +101,6 @@
         "idScheme": "UID"
       },
       "attributeCategoryOptions": [],
-
       "dataValues": [
         {
           "createdAt": "2019-01-28T12:10:38.113",

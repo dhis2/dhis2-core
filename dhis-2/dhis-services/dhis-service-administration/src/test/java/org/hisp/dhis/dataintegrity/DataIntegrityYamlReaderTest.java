@@ -37,6 +37,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.networknt.schema.ValidationMessage;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -46,7 +51,9 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import org.hisp.dhis.dataintegrity.DataIntegrityDetails.DataIntegrityIssue;
+import org.hisp.dhis.jsonschema.JsonSchemaValidator;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
 
 /**
  * Tests the {@link DataIntegrityYamlReader}.
@@ -55,11 +62,38 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityYamlReaderTest {
   @Test
+  void testAllChecksMatchSchema() throws Exception {
+    ObjectMapper yaml = new ObjectMapper(new YAMLFactory());
+
+    try (InputStream is = new ClassPathResource("data-integrity-checks.yaml").getInputStream()) {
+      JsonNode checksList = yaml.readTree(is).get("checks");
+
+      for (JsonNode checkPath : checksList) {
+        String relativePath = checkPath.asText();
+        String resourcePath = "data-integrity-checks/" + relativePath;
+
+        try (InputStream checkStream = new ClassPathResource(resourcePath).getInputStream()) {
+          JsonNode checkJson = yaml.readValue(checkStream, JsonNode.class);
+          Set<ValidationMessage> validationMessages =
+              JsonSchemaValidator.validateDataIntegrityCheck(checkJson);
+
+          assertTrue(
+              validationMessages.isEmpty(),
+              "Data integrity check `"
+                  + relativePath
+                  + "` failed schema validation: "
+                  + validationMessages);
+        }
+      }
+    }
+  }
+
+  @Test
   void testReadDataIntegrityYaml() {
 
     List<DataIntegrityCheck> checks = new ArrayList<>();
     readYaml(checks, "data-integrity-checks.yaml", "data-integrity-checks", CLASS_PATH);
-    assertEquals(94, checks.size());
+    assertEquals(95, checks.size());
 
     // Names should be unique
     List<String> allNames = checks.stream().map(DataIntegrityCheck::getName).toList();
@@ -208,6 +242,23 @@ class DataIntegrityYamlReaderTest {
     assertEquals(keys.size(), Set.copyOf(keys).size());
     assertEquals(
         keys.size(), Set.copyOf(keys.stream().map(resourceBundle::getString).toList()).size());
+  }
+
+  @Test
+  void testTranslationsAreEqualToCheckDescriptions() {
+    ResourceBundle resourceBundle = ResourceBundle.getBundle("i18n_global");
+
+    List<DataIntegrityCheck> checks = new ArrayList<>();
+    readYaml(checks, "data-integrity-checks.yaml", "data-integrity-checks", CLASS_PATH);
+    // Check for names
+    for (DataIntegrityCheck check : checks) {
+      String translationKey = "data_integrity." + check.getName() + ".name";
+      String translation = resourceBundle.getString(translationKey);
+      assertEquals(
+          check.getDescription(),
+          translation,
+          "Data integrity check description should match translation for key " + translationKey);
+    }
   }
 
   private void readYaml(

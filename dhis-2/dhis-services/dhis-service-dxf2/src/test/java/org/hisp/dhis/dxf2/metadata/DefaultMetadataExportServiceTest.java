@@ -151,7 +151,6 @@ class DefaultMetadataExportServiceTest {
     map.getMapViews().add(mapView);
 
     DashboardItem item = new DashboardItem();
-    item.setName("itemA");
     item.setMap(map);
 
     Dashboard dashboard = new Dashboard("dashboardA");

@@ -131,7 +131,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
     relationship1From = getTrackedEntity(relationship1.getFrom().getTrackedEntity());
     assertNotNull(relationship1From, "test expects 'from' to be a tracked entity");
     relationship1To = getEvent(relationship1.getTo().getEvent());
-    assertNotNull(relationship1To.getUid(), "test expects 'to' to be an event");
+    assertNotNull(relationship1To.getUID(), "test expects 'to' to be an event");
 
     relationship2 = getRelationship(UID.of("p53a6314631"));
     relationship2From = getTrackedEntity(relationship2.getFrom().getTrackedEntity());
@@ -160,7 +160,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   @Test
   void shouldGetRelationshipsById() {
     JsonRelationship jsonRelationship =
-        GET("/tracker/relationships/{uid}", relationship1.getUid())
+        GET("/tracker/relationships/{uid}", relationship1.getUID())
             .content(HttpStatus.OK)
             .as(JsonRelationship.class);
 
@@ -168,14 +168,14 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
         jsonRelationship, "relationship", "relationshipType", "createdAtClient", "from", "to");
     assertRelationship(relationship1, jsonRelationship);
     assertHasOnlyUid(
-        relationship1From.getUid(), "trackedEntity", jsonRelationship.getObject("from"));
-    assertHasOnlyUid(relationship1To.getUid(), "event", jsonRelationship.getObject("to"));
+        relationship1From.getUID(), "trackedEntity", jsonRelationship.getObject("from"));
+    assertHasOnlyUid(relationship1To.getUID(), "event", jsonRelationship.getObject("to"));
   }
 
   @Test
   void shouldGetRelationshipsByIdWithFieldsAll() {
     JsonRelationship jsonRelationship =
-        GET("/tracker/relationships/{uid}?fields=*", relationship1.getUid())
+        GET("/tracker/relationships/{uid}?fields=*", relationship1.getUID())
             .content(HttpStatus.OK)
             .as(JsonRelationship.class);
 
@@ -187,16 +187,16 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   @Test
   void shouldGetRelationshipsByIdWithFields() {
     JsonRelationship jsonRelationship =
-        GET("/tracker/relationships/{uid}?fields=relationship,to[event]", relationship1.getUid())
+        GET("/tracker/relationships/{uid}?fields=relationship,to[event]", relationship1.getUID())
             .content(HttpStatus.OK)
             .as(JsonRelationship.class);
 
     assertHasOnlyMembers(jsonRelationship, "relationship", "to");
     assertEquals(
-        relationship1.getUid().getValue(), jsonRelationship.getRelationship(), "relationship UID");
+        relationship1.getUID().getValue(), jsonRelationship.getRelationship(), "relationship UID");
     assertHasOnlyMembers(jsonRelationship.getObject("to"), "event");
     assertEquals(
-        relationship1To.getUid().getValue(),
+        relationship1To.getUID().getValue(),
         jsonRelationship.getTo().getEvent().getEvent(),
         "event UID");
   }
@@ -227,19 +227,19 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   @Test
   void shouldGetRelationshipsByEvent() {
     JsonList<JsonRelationship> jsonRelationships =
-        GET("/tracker/relationships?event={uid}", relationship1To.getUid())
+        GET("/tracker/relationships?event={uid}", relationship1To.getUID())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
     JsonRelationship jsonRelationship =
         assertContains(
             jsonRelationships,
-            rel -> relationship1.getUid().getValue().equals(rel.getRelationship()),
-            "expected to find relationship " + relationship1.getUid());
+            rel -> relationship1.getUID().getValue().equals(rel.getRelationship()),
+            "expected to find relationship " + relationship1.getUID());
 
     assertRelationship(relationship1, jsonRelationship);
-    assertHasOnlyUid(relationship1From.getUid(), "trackedEntity", jsonRelationship.getFrom());
-    assertHasOnlyUid(relationship1To.getUid(), "event", jsonRelationship.getTo());
+    assertHasOnlyUid(relationship1From.getUID(), "trackedEntity", jsonRelationship.getFrom());
+    assertHasOnlyUid(relationship1To.getUID(), "event", jsonRelationship.getTo());
   }
 
   @Test
@@ -265,8 +265,8 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
     JsonRelationship jsonRelationship =
         assertContains(
             jsonRelationships,
-            rel -> relationship.getUid().getValue().equals(rel.getRelationship()),
-            "expected to find relationship " + relationship.getUid());
+            rel -> relationship.getUID().getValue().equals(rel.getRelationship()),
+            "expected to find relationship " + relationship.getUID());
 
     assertRelationship(relationship, jsonRelationship);
     assertHasOnlyUid(UID.of(to), "event", jsonRelationship.getTo());
@@ -275,15 +275,15 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   @Test
   void shouldGetRelationshipsByEventWithAllFields() {
     JsonList<JsonRelationship> jsonRelationships =
-        GET("/tracker/relationships?event={uid}&fields=*", relationship1To.getUid())
+        GET("/tracker/relationships?event={uid}&fields=*", relationship1To.getUID())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
     JsonRelationship jsonRelationship =
         assertContains(
             jsonRelationships,
-            rel -> relationship1.getUid().getValue().equals(rel.getRelationship()),
-            "expected to find relationship " + relationship1.getUid());
+            rel -> relationship1.getUID().getValue().equals(rel.getRelationship()),
+            "expected to find relationship " + relationship1.getUID());
 
     assertRelationship(relationship1, jsonRelationship);
     assertTrackedEntityWithinRelationshipItem(relationship1From, jsonRelationship.getFrom());
@@ -295,20 +295,20 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
     JsonList<JsonRelationship> jsonRelationships =
         GET(
                 "/tracker/relationships?event={uid}&fields=relationship,to[event]",
-                relationship1To.getUid())
+                relationship1To.getUID())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
     JsonRelationship jsonRelationship =
         assertContains(
             jsonRelationships,
-            rel -> relationship1.getUid().getValue().equals(rel.getRelationship()),
-            "expected to find relationship " + relationship1.getUid());
+            rel -> relationship1.getUID().getValue().equals(rel.getRelationship()),
+            "expected to find relationship " + relationship1.getUID());
 
     assertHasOnlyMembers(jsonRelationship, "relationship", "to");
     assertHasOnlyMembers(jsonRelationship.getTo(), "event");
     assertEquals(
-        relationship1To.getUid().getValue(),
+        relationship1To.getUID().getValue(),
         jsonRelationship.getTo().getEvent().getEvent(),
         "event UID");
   }
@@ -330,7 +330,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
     JsonList<JsonRelationship> relationships =
         GET(
                 "/tracker/relationships?event={uid}&fields=to[event[dataValues[dataElement,value]]]",
-                relationship1To.getUid())
+                relationship1To.getUID())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
@@ -343,15 +343,15 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
     JsonList<JsonRelationship> jsonRelationships =
         GET(
                 "/tracker/relationships?event={uid}&fields=relationship,to[event[notes]]",
-                relationship1To.getUid())
+                relationship1To.getUID())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
     JsonRelationship jsonRelationship =
         assertContains(
             jsonRelationships,
-            rel -> relationship1.getUid().getValue().equals(rel.getRelationship()),
-            "expected to find relationship " + relationship1.getUid());
+            rel -> relationship1.getUID().getValue().equals(rel.getRelationship()),
+            "expected to find relationship " + relationship1.getUID());
 
     JsonList<JsonNote> notes = jsonRelationship.getTo().getEvent().getNotes();
     notes.forEach(
@@ -368,15 +368,15 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   @Test
   void shouldGetRelationshipsByEnrollment() {
     JsonList<JsonRelationship> jsonRelationships =
-        GET("/tracker/relationships?enrollment=" + relationship2To.getUid())
+        GET("/tracker/relationships?enrollment=" + relationship2To.getUID())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
     JsonRelationship jsonRelationship = assertFirstRelationship(relationship2, jsonRelationships);
     assertHasOnlyMembers(
         jsonRelationship, "relationship", "relationshipType", "from", "to", "createdAtClient");
-    assertHasOnlyUid(relationship2From.getUid(), "trackedEntity", jsonRelationship.getFrom());
-    assertHasOnlyUid(relationship2To.getUid(), "enrollment", jsonRelationship.getTo());
+    assertHasOnlyUid(relationship2From.getUID(), "trackedEntity", jsonRelationship.getFrom());
+    assertHasOnlyUid(relationship2To.getUID(), "enrollment", jsonRelationship.getTo());
   }
 
   @Test
@@ -401,14 +401,14 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
     JsonRelationship jsonRelationship = assertFirstRelationship(relationship2, jsonRelationships);
     assertHasOnlyMembers(
         jsonRelationship, "relationship", "relationshipType", "from", "to", "createdAtClient");
-    assertHasOnlyUid(relationship2From.getUid(), "trackedEntity", jsonRelationship.getFrom());
-    assertHasOnlyUid(relationship2To.getUid(), "enrollment", jsonRelationship.getTo());
+    assertHasOnlyUid(relationship2From.getUID(), "trackedEntity", jsonRelationship.getFrom());
+    assertHasOnlyUid(relationship2To.getUID(), "enrollment", jsonRelationship.getTo());
   }
 
   @Test
   void shouldGetRelationshipsByEnrollmentWithFieldsAll() {
     JsonList<JsonRelationship> jsonRelationships =
-        GET("/tracker/relationships?enrollment={uid}&fields=*", relationship2To.getUid())
+        GET("/tracker/relationships?enrollment={uid}&fields=*", relationship2To.getUID())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
@@ -422,13 +422,13 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
     JsonList<JsonRelationship> relationships =
         GET(
                 "/tracker/relationships?enrollment={uid}&fields=to[enrollment[events[enrollment,event]]]",
-                relationship2To.getUid())
+                relationship2To.getUID())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
     JsonRelationshipItem.JsonEvent event =
         relationships.get(0).getTo().getEnrollment().getEvents().get(0);
-    assertEquals(relationship2To.getUid().getValue(), event.getEnrollment());
+    assertEquals(relationship2To.getUID().getValue(), event.getEnrollment());
     assertEquals(
         getEventsByEnrollment(UID.of(event.getEnrollment())).get(0).getEvent().getValue(),
         event.getEvent());
@@ -505,15 +505,15 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
     JsonList<JsonRelationship> jsonRelationships =
         GET(
                 "/tracker/relationships?enrollment={uid}&fields=relationship,to[enrollment[notes]]",
-                relationship2To.getUid())
+                relationship2To.getUID())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
     JsonRelationship jsonRelationship =
         assertContains(
             jsonRelationships,
-            rel -> relationship2.getUid().getValue().equals(rel.getRelationship()),
-            "expected to find relationship " + relationship2.getUid());
+            rel -> relationship2.getUID().getValue().equals(rel.getRelationship()),
+            "expected to find relationship " + relationship2.getUID());
 
     JsonList<JsonNote> notes = jsonRelationship.getTo().getEnrollment().getNotes();
     notes.forEach(
@@ -530,21 +530,21 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   @Test
   void shouldGetRelationshipsByTrackedEntity() {
     JsonList<JsonRelationship> jsonRelationships =
-        GET("/tracker/relationships?trackedEntity={trackedEntity}", relationship1From.getUid())
+        GET("/tracker/relationships?trackedEntity={trackedEntity}", relationship1From.getUID())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
     JsonRelationship jsonRelationship =
         assertContains(
             jsonRelationships,
-            rel -> relationship1.getUid().getValue().equals(rel.getRelationship()),
-            "expected to find relationship " + relationship1.getUid());
+            rel -> relationship1.getUID().getValue().equals(rel.getRelationship()),
+            "expected to find relationship " + relationship1.getUID());
 
     assertRelationship(relationship1, jsonRelationship);
     assertHasOnlyMembers(
         jsonRelationship, "relationship", "relationshipType", "createdAtClient", "from", "to");
-    assertHasOnlyUid(relationship1From.getUid(), "trackedEntity", jsonRelationship.getFrom());
-    assertHasOnlyUid(relationship1To.getUid(), "event", jsonRelationship.getTo());
+    assertHasOnlyUid(relationship1From.getUID(), "trackedEntity", jsonRelationship.getFrom());
+    assertHasOnlyUid(relationship1To.getUID(), "event", jsonRelationship.getTo());
   }
 
   @Test
@@ -571,8 +571,8 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
     JsonRelationship jsonRelationship =
         assertContains(
             jsonRelationships,
-            rel -> relationship.getUid().getValue().equals(rel.getRelationship()),
-            "expected to find relationship " + relationship.getUid());
+            rel -> relationship.getUID().getValue().equals(rel.getRelationship()),
+            "expected to find relationship " + relationship.getUID());
 
     assertRelationship(relationship, jsonRelationship);
     assertHasOnlyUid(UID.of(to), "trackedEntity", jsonRelationship.getTo());
@@ -718,7 +718,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
     JsonList<JsonRelationship> relationships =
         GET(
                 "/tracker/relationships?trackedEntity={trackedEntity}&fields=from[trackedEntity[enrollments[enrollment,trackedEntity]]",
-                relationship1From.getUid())
+                relationship1From.getUID())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
@@ -727,7 +727,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
     List<Enrollment> enrollmentsByTrackedEntity =
         getEnrollmentsByTrackedEntity(UID.of(enrollments.get(0).getTrackedEntity()));
 
-    assertEquals(relationship1From.getUid().getValue(), enrollments.get(0).getTrackedEntity());
+    assertEquals(relationship1From.getUID().getValue(), enrollments.get(0).getTrackedEntity());
     assertContainsOnly(
         enrollmentsByTrackedEntity.stream().map(e -> e.getEnrollment().getValue()).toList(),
         enrollments.stream().map(JsonRelationshipItem.JsonEnrollment::getEnrollment).toList());
@@ -858,7 +858,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
     JsonList<JsonRelationship> relationships =
         GET(
                 "/tracker/relationships?trackedEntity={trackedEntity}&fields=from[trackedEntity[programOwners]",
-                relationship1From.getUid())
+                relationship1From.getUID())
             .content(HttpStatus.OK)
             .getList("relationships", JsonRelationship.class);
 
@@ -866,7 +866,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
         relationships.get(0).getFrom().getTrackedEntity().getProgramOwners();
 
     assertProgramOwners(
-        getEnrollmentsByTrackedEntity(relationship1From.getUid()), jsonProgramOwners);
+        getEnrollmentsByTrackedEntity(relationship1From.getUID()), jsonProgramOwners);
   }
 
   @Test
@@ -880,7 +880,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
     switchContextToUser(user);
 
     assertNoRelationships(
-        GET("/tracker/relationships?trackedEntity={trackedEntity}", relationship1From.getUid())
+        GET("/tracker/relationships?trackedEntity={trackedEntity}", relationship1From.getUID())
             .content(HttpStatus.OK));
   }
 
@@ -904,7 +904,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
     switchContextToUser(user);
 
     assertNoRelationships(
-        GET("/tracker/relationships?trackedEntity={trackedEntity}", relationship1From.getUid())
+        GET("/tracker/relationships?trackedEntity={trackedEntity}", relationship1From.getUID())
             .content(HttpStatus.OK));
   }
 
@@ -919,7 +919,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
 
     switchContextToUser(user);
 
-    GET("/tracker/relationships?trackedEntity={trackedEntity}", relationship1From.getUid())
+    GET("/tracker/relationships?trackedEntity={trackedEntity}", relationship1From.getUID())
         .error(FORBIDDEN);
   }
 

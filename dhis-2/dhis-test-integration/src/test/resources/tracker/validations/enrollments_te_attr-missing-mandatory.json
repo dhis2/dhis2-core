@@ -63,7 +63,11 @@
           "value": "123"
         }
       ],
-      "notes": []
+      "notes": [],
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
     }
   ],
   "events": [],

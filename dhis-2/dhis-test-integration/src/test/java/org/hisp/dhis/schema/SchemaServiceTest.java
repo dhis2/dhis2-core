@@ -114,7 +114,7 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
   void testCanScanJobParameters() {
     JobParameters parameters =
         new AnalyticsJobParameters(10, new HashSet<>(), new HashSet<>(), true, true);
-    Schema schema = schemaService.getDynamicSchema(parameters.getClass());
+    Schema schema = schemaService.getSchema(parameters.getClass());
 
     assertNotNull(schema);
     assertFalse(schema.getProperties().isEmpty());
@@ -127,7 +127,7 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
     configuration.setJobParameters(
         new AnalyticsJobParameters(10, new HashSet<>(), new HashSet<>(), true, true));
 
-    Schema schema = schemaService.getDynamicSchema(configuration.getClass());
+    Schema schema = schemaService.getSchema(configuration.getClass());
     assertNotNull(schema);
     assertFalse(schema.getProperties().isEmpty());
 
@@ -137,7 +137,7 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
     Object jobParameters = ReflectionUtils.invokeMethod(configuration, property.getGetterMethod());
     assertNotNull(jobParameters);
 
-    schema = schemaService.getDynamicSchema(jobParameters.getClass());
+    schema = schemaService.getSchema(jobParameters.getClass());
 
     assertNotNull(schema);
     assertFalse(schema.getProperties().isEmpty());
@@ -146,7 +146,7 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testBulkSmsGatewayConfig() {
-    Schema schema = schemaService.getDynamicSchema(BulkSmsGatewayConfig.class);
+    Schema schema = schemaService.getSchema(BulkSmsGatewayConfig.class);
     Property isDefault = schema.getProperty("isDefault");
     assertEquals(PropertyType.BOOLEAN, isDefault.getPropertyType());
     assertNotNull(isDefault.getGetterMethod(), "getter is null");
@@ -155,14 +155,14 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDashboardItemTextTranslatable() {
-    Schema schema = schemaService.getDynamicSchema(DashboardItem.class);
+    Schema schema = schemaService.getSchema(DashboardItem.class);
     Property text = schema.getProperty("text");
     assertTrue(text.isTranslatable());
   }
 
   @Test
   void testCategoryComboTranslatable() {
-    Schema schema = schemaService.getDynamicSchema(CategoryCombo.class);
+    Schema schema = schemaService.getSchema(CategoryCombo.class);
     Property categoryCombo = schema.getProperty("name");
     assertTrue(categoryCombo.isTranslatable());
   }

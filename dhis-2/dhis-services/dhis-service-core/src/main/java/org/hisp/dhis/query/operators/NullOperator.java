@@ -46,7 +46,7 @@ public class NullOperator<T extends Comparable<T>> extends Operator<T> {
 
   @Override
   public <Y> Predicate getPredicate(CriteriaBuilder builder, Root<Y> root, PropertyPath path) {
-    return builder.isNull(root.get(path.getPath()));
+    return builder.isNull(getPropertyPath(root, path));
   }
 
   @Override

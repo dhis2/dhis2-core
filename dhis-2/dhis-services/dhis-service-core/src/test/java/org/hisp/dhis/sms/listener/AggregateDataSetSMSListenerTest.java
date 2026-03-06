@@ -161,7 +161,7 @@ class AggregateDataSetSMSListenerTest extends CompressionSMSListenerTest {
     when(organisationUnitService.getOrganisationUnit(anyString())).thenReturn(organisationUnit);
     when(dataSetService.getDataSet(anyString())).thenReturn(dataSet);
     when(dataEntryService.upsertGroup(any(), any(), any()))
-        .thenReturn(new DataEntrySummary(0, 0, 0, List.of()));
+        .thenReturn(new DataEntrySummary(0, 0, 0, 0, List.of()));
     when(categoryService.getCategoryOptionCombo(anyString())).thenReturn(categoryOptionCombo);
     when(dataElementService.getDataElement(anyString())).thenReturn(dataElement);
 

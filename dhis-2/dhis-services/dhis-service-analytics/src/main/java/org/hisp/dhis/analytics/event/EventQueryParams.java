@@ -60,7 +60,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -90,6 +89,7 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -266,6 +266,21 @@ public class EventQueryParams extends DataQueryParams {
 
   @Getter protected List<OrganisationUnit> userOrgUnits = new ArrayList<>();
 
+  /** Items when ENROLLMENT_OU is used as a dimension. */
+  private List<DimensionalItemObject> enrollmentOuDimensionItems = new ArrayList<>();
+
+  /** Items when ENROLLMENT_OU is used as a filter. */
+  private List<DimensionalItemObject> enrollmentOuFilterItems = new ArrayList<>();
+
+  /** Level constraints when ENROLLMENT_OU is used as a dimension. */
+  private Set<Integer> enrollmentOuDimensionLevels = new LinkedHashSet<>();
+
+  /** Level constraints when ENROLLMENT_OU is used as a filter. */
+  private Set<Integer> enrollmentOuFilterLevels = new LinkedHashSet<>();
+
+  /** Whether ENROLLMENT_OU dimension was requested via relative keywords (e.g. USER_ORGUNIT). */
+  private boolean enrollmentOuDimensionHierarchical = false;
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -341,6 +356,11 @@ public class EventQueryParams extends DataQueryParams {
     params.userOrgUnits = this.userOrgUnits;
     params.outputFormat = this.outputFormat;
     params.piDisagInfo = this.piDisagInfo;
+    params.enrollmentOuDimensionItems = new ArrayList<>(this.enrollmentOuDimensionItems);
+    params.enrollmentOuFilterItems = new ArrayList<>(this.enrollmentOuFilterItems);
+    params.enrollmentOuDimensionLevels = new LinkedHashSet<>(this.enrollmentOuDimensionLevels);
+    params.enrollmentOuFilterLevels = new LinkedHashSet<>(this.enrollmentOuFilterLevels);
+    params.enrollmentOuDimensionHierarchical = this.enrollmentOuDimensionHierarchical;
     return params;
   }
 
@@ -1163,6 +1183,17 @@ public class EventQueryParams extends DataQueryParams {
         && ((ValueTypedDimensionalItemObject) value).getValueType().isText();
   }
 
+  /**
+   * Checks if a value dimension with a date value type exists.
+   *
+   * @return true if a value dimension with a date value type exists, false if not.
+   */
+  public boolean hasDateValueDimension() {
+    return hasValueDimension()
+        && value instanceof ValueTypedDimensionalItemObject
+        && ((ValueTypedDimensionalItemObject) value).getValueType().isDate();
+  }
+
   @Override
   public boolean hasProgramIndicatorDimension() {
     return programIndicator != null;
@@ -1236,6 +1267,57 @@ public class EventQueryParams extends DataQueryParams {
 
   public boolean hasDataIdScheme() {
     return dataIdScheme != null;
+  }
+
+  public boolean hasEnrollmentOuDimension() {
+    return isNotEmpty(enrollmentOuDimensionItems) || !enrollmentOuDimensionLevels.isEmpty();
+  }
+
+  public boolean hasEnrollmentOuFilter() {
+    return isNotEmpty(enrollmentOuFilterItems) || !enrollmentOuFilterLevels.isEmpty();
+  }
+
+  public boolean hasEnrollmentOu() {
+    return hasEnrollmentOuDimension() || hasEnrollmentOuFilter();
+  }
+
+  public List<DimensionalItemObject> getEnrollmentOuDimensionItems() {
+    return enrollmentOuDimensionItems;
+  }
+
+  public List<DimensionalItemObject> getEnrollmentOuFilterItems() {
+    return enrollmentOuFilterItems;
+  }
+
+  /** Returns all enrollment OU items from both dimension and filter. */
+  public List<DimensionalItemObject> getAllEnrollmentOuItems() {
+    return ListUtils.union(enrollmentOuDimensionItems, enrollmentOuFilterItems);
+  }
+
+  public Set<Integer> getEnrollmentOuDimensionLevels() {
+    return enrollmentOuDimensionLevels;
+  }
+
+  public Set<Integer> getEnrollmentOuFilterLevels() {
+    return enrollmentOuFilterLevels;
+  }
+
+  public boolean isEnrollmentOuDimensionHierarchical() {
+    return enrollmentOuDimensionHierarchical;
+  }
+
+  public boolean hasEnrollmentOuLevelConstraint() {
+    return !enrollmentOuDimensionLevels.isEmpty() || !enrollmentOuFilterLevels.isEmpty();
+  }
+
+  public Set<Integer> getAllEnrollmentOuLevelsForSql() {
+    Set<Integer> levels = new LinkedHashSet<>(enrollmentOuDimensionLevels);
+    levels.addAll(enrollmentOuFilterLevels);
+    return levels;
+  }
+
+  public List<DimensionalItemObject> getAllEnrollmentOuItemsForSql() {
+    return getAllEnrollmentOuItems();
   }
 
   /**
@@ -1788,6 +1870,31 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withPiDisagInfo(PiDisagInfo piDisagInfo) {
       this.params.piDisagInfo = piDisagInfo;
+      return this;
+    }
+
+    public Builder withEnrollmentOuDimension(List<DimensionalItemObject> items) {
+      this.params.enrollmentOuDimensionItems = items;
+      return this;
+    }
+
+    public Builder withEnrollmentOuFilter(List<DimensionalItemObject> items) {
+      this.params.enrollmentOuFilterItems = items;
+      return this;
+    }
+
+    public Builder withEnrollmentOuDimensionLevels(Set<Integer> levels) {
+      this.params.enrollmentOuDimensionLevels = new LinkedHashSet<>(levels);
+      return this;
+    }
+
+    public Builder withEnrollmentOuFilterLevels(Set<Integer> levels) {
+      this.params.enrollmentOuFilterLevels = new LinkedHashSet<>(levels);
+      return this;
+    }
+
+    public Builder withEnrollmentOuDimensionHierarchical(boolean hierarchical) {
+      this.params.enrollmentOuDimensionHierarchical = hierarchical;
       return this;
     }
 

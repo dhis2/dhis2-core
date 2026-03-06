@@ -26,7 +26,7 @@
 #
 ---
 name: indicators_not_grouped
-description: Indicators not in any groups.
+description: Indicators not included in any groups
 section: Indicators
 section_order: 2
 summary_sql: >-

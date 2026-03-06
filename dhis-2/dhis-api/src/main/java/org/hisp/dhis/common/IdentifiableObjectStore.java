@@ -93,6 +93,15 @@ public interface IdentifiableObjectStore<T> extends GenericStore<T> {
   T getByUid(@Nonnull String uid);
 
   /**
+   * Retrieves the object with the given UID, or null if no object exists.
+   *
+   * @param uid the UID.
+   * @return the object with the given UID.
+   */
+  @CheckForNull
+  T getByUid(@Nonnull UID uid);
+
+  /**
    * Retrieves the object with the given UID, throws exception if no object exists.
    *
    * @param uid the UID.

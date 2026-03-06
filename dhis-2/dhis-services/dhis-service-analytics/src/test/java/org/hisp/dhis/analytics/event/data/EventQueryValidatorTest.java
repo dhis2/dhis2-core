@@ -150,6 +150,33 @@ class EventQueryValidatorTest extends TestBase {
   }
 
   @Test
+  void validateSuccessWithEnrollmentOuOnly() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .withEnrollmentOuFilter(List.of(ouA))
+            .build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
+  }
+
+  @Test
+  void validateFailsWithoutOuAndWithoutEnrollmentOu() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withStartDate(new DateTime(2010, 6, 1, 0, 0).toDate())
+            .withEndDate(new DateTime(2012, 3, 20, 0, 0).toDate())
+            .build();
+
+    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
+
+    assertEquals(ErrorCode.E7200, error.getErrorCode());
+  }
+
+  @Test
   void validateSingleDataElementMultipleProgramsQueryItemSuccess() {
     EventQueryParams params =
         new EventQueryParams.Builder()
@@ -463,6 +490,25 @@ class EventQueryValidatorTest extends TestBase {
             .build();
 
     // Should not throw - stage date item provides period context
+    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
+    assertNull(error);
+  }
+
+  @Test
+  void validateSuccessWithStaticDateItem_EnrollmentDate() {
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi.addFilter(new QueryFilter(QueryOperator.GE, "2025-01-01"));
+    qi.addFilter(new QueryFilter(QueryOperator.LE, "2025-12-31"));
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withOrganisationUnits(List.of(ouA))
+            .addItem(qi)
+            .build();
+
     ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
     assertNull(error);
   }

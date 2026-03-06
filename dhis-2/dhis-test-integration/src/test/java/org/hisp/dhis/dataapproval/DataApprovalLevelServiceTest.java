@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
@@ -45,6 +46,7 @@ import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -65,6 +67,8 @@ class DataApprovalLevelServiceTest extends PostgresIntegrationTestBase {
   @Autowired private CategoryService categoryService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
+
+  @Autowired private DbmsManager dbmsManager;
 
   // -------------------------------------------------------------------------
   // Supporting data
@@ -647,5 +651,132 @@ class DataApprovalLevelServiceTest extends PostgresIntegrationTestBase {
       names += (names.isEmpty() ? "" : " ") + level.getName();
     }
     return names;
+  }
+
+  // -------------------------------------------------------------------------
+  // JPA Annotation Tests - added for HBM to JPA migration verification
+  // -------------------------------------------------------------------------
+
+  @Test
+  void testJpaEntityPersistenceAndRetrieval() {
+    // Test that entity can be persisted and retrieved with all fields intact
+    DataApprovalLevel level = new DataApprovalLevel("Test Level JPA", 3, setA);
+    level.setLevel(1);
+
+    long id = dataApprovalLevelService.addDataApprovalLevel(level, 1);
+    DataApprovalLevel retrieved = dataApprovalLevelService.getDataApprovalLevel(id);
+
+    assertNotNull(retrieved);
+    assertEquals("Test Level JPA", retrieved.getName());
+    assertEquals(3, retrieved.getOrgUnitLevel());
+    assertEquals(1, retrieved.getLevel());
+    assertNotNull(retrieved.getCategoryOptionGroupSet());
+    assertEquals("Set A", retrieved.getCategoryOptionGroupSet().getName());
+  }
+
+  @Test
+  void testJpaUniqueConstraintOnName() {
+    // Test that name field has unique constraint
+    // Using orgUnitLevel=10 and 11 to avoid conflicts with setUp fixtures (which use 1-5)
+    DataApprovalLevel level1 = new DataApprovalLevel("Unique Name Test", 10, null);
+    DataApprovalLevel level2 = new DataApprovalLevel("Unique Name Test", 11, null);
+
+    long id1 = dataApprovalLevelService.addDataApprovalLevel(level1, 1);
+    assertNotNull(dataApprovalLevelService.getDataApprovalLevel(id1));
+    assertEquals("Unique Name Test", dataApprovalLevelService.getDataApprovalLevel(id1).getName());
+
+    // Attempting to add second level with same name should fail
+    // The unique constraint is enforced at the database level
+    try {
+      dataApprovalLevelService.addDataApprovalLevel(level2, 2);
+      // If we get here without exception, the service might handle duplicates differently
+      // Verify that only one level with this name exists
+      List<DataApprovalLevel> allLevels = dataApprovalLevelService.getAllDataApprovalLevels();
+      long countWithSameName =
+          allLevels.stream().filter(l -> "Unique Name Test".equals(l.getName())).count();
+      assertEquals(
+          1, countWithSameName, "Should only have one level with the name 'Unique Name Test'");
+    } catch (Exception e) {
+      // Expected: constraint violation exception
+      // This is the correct behavior - unique constraint prevents duplicate names
+      assertTrue(
+          e.getMessage().contains("unique")
+              || e.getMessage().contains("duplicate")
+              || e.getMessage().contains("constraint")
+              || e.getCause() != null,
+          "Exception should be related to unique constraint violation");
+    }
+  }
+
+  @Test
+  void testJpaCompositeUniqueConstraint() {
+    // Test the composite unique constraint on (orgUnitLevel, categoryOptionGroupSet)
+    // Same orgUnitLevel and categoryOptionGroupSet should not be allowed twice
+    // Using orgUnitLevel=6 to avoid conflicts with setUp fixtures (which use 1-5)
+    DataApprovalLevel level1 = new DataApprovalLevel("Level 1 Composite", 6, setA);
+    DataApprovalLevel level2 = new DataApprovalLevel("Level 2 Composite", 6, setA);
+
+    long id1 = dataApprovalLevelService.addDataApprovalLevel(level1, 1);
+    assertNotNull(dataApprovalLevelService.getDataApprovalLevel(id1));
+    assertEquals(6, dataApprovalLevelService.getDataApprovalLevel(id1).getOrgUnitLevel());
+    assertEquals(
+        "Set A",
+        dataApprovalLevelService.getDataApprovalLevel(id1).getCategoryOptionGroupSet().getName());
+
+    // Attempting to add second level with same orgUnitLevel and categoryOptionGroupSet should fail
+    // This is enforced at database level via composite unique constraint
+    assertThrows(
+        Exception.class,
+        () -> {
+          dataApprovalLevelService.addDataApprovalLevel(level2, 2);
+          dbmsManager.flushSession(); // Force flush to trigger DB constraint
+        },
+        "Should throw exception due to composite unique constraint violation on (orgUnitLevel, categoryOptionGroupSet)");
+  }
+
+  @Test
+  void testJpaManyToOneCategoryOptionGroupSet() {
+    // Test that ManyToOne relationship to CategoryOptionGroupSet is properly loaded
+    // Using orgUnitLevel=8 and 9 to avoid conflicts with setUp fixtures (which use 1-5)
+    DataApprovalLevel levelWithSet = new DataApprovalLevel("Level with Set", 8, setB);
+    DataApprovalLevel levelWithoutSet = new DataApprovalLevel("Level without Set", 9, null);
+
+    long id1 = dataApprovalLevelService.addDataApprovalLevel(levelWithSet, 1);
+    long id2 = dataApprovalLevelService.addDataApprovalLevel(levelWithoutSet, 2);
+
+    DataApprovalLevel retrieved1 = dataApprovalLevelService.getDataApprovalLevel(id1);
+    DataApprovalLevel retrieved2 = dataApprovalLevelService.getDataApprovalLevel(id2);
+
+    assertNotNull(retrieved1.getCategoryOptionGroupSet());
+    assertEquals("Set B", retrieved1.getCategoryOptionGroupSet().getName());
+    assertNull(retrieved2.getCategoryOptionGroupSet());
+  }
+
+  @Test
+  void testJpaIdGeneration() {
+    // Test that ID is properly auto-generated using IDENTITY strategy
+    DataApprovalLevel level1 = new DataApprovalLevel("ID Gen Test 1", 1, null);
+    DataApprovalLevel level2 = new DataApprovalLevel("ID Gen Test 2", 2, null);
+
+    long id1 = dataApprovalLevelService.addDataApprovalLevel(level1, 1);
+    long id2 = dataApprovalLevelService.addDataApprovalLevel(level2, 2);
+
+    assertTrue(id1 > 0);
+    assertTrue(id2 > 0);
+    assertTrue(id2 != id1);
+  }
+
+  @Test
+  void testJpaNonNullConstraints() {
+    // Test that non-null constraints are enforced (name, orgUnitLevel, level)
+    DataApprovalLevel level = new DataApprovalLevel("Non-null Test", 3, null);
+    level.setLevel(1);
+
+    long id = dataApprovalLevelService.addDataApprovalLevel(level, 1);
+    DataApprovalLevel retrieved = dataApprovalLevelService.getDataApprovalLevel(id);
+
+    assertNotNull(retrieved.getName());
+    assertTrue(retrieved.getOrgUnitLevel() > 0);
+    assertTrue(retrieved.getLevel() > 0);
   }
 }

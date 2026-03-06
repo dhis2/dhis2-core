@@ -36,12 +36,12 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataValueChangelog;
 import org.hisp.dhis.datavalue.DataValueChangelogEntry;
 import org.hisp.dhis.datavalue.DataValueChangelogQueryParams;
 import org.hisp.dhis.datavalue.DataValueChangelogStore;
 import org.hisp.dhis.datavalue.DataValueChangelogType;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.period.Period;
@@ -154,16 +154,16 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
   public List<DataValueChangelogEntry> getEntries(@Nonnull DataValueQueryParams params) {
     String aoc = getCategoryOptionComboIdByComboAndOptions(params.getCc(), params.getCp());
     return getEntries(
-        new DataEntryKey(
+        new DataValueKey(
             UID.of(params.getDe()),
             UID.of(params.getOu()),
             UID.ofNullable(params.getCo()),
             UID.ofNullable(aoc),
-            params.getPe()));
+            Period.of(params.getPe())));
   }
 
   @Override
-  public List<DataValueChangelogEntry> getEntries(@Nonnull DataEntryKey key) {
+  public List<DataValueChangelogEntry> getEntries(@Nonnull DataValueKey key) {
     @Language("sql")
     String sql =
         """
@@ -186,7 +186,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         .of(sql, NativeSQL.of(getSession()))
         .setParameter("de", key.dataElement())
         .setParameter("ou", key.orgUnit())
-        .setParameter("iso", key.period())
+        .setParameter("iso", key.period().getIsoDate())
         .eraseNullParameterLines()
         .setParameter("coc", key.categoryOptionCombo())
         .setParameter("aoc", key.attributeOptionCombo())

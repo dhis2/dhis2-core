@@ -210,7 +210,7 @@ class AnalyticsValidationServiceTest extends PostgresIntegrationTestBase {
     manager.update(trackedEntity);
     Program program =
         createProgram(
-            'A', null, Sets.newHashSet(entityAttribute), Sets.newHashSet(orgUnitA, orgUnitA), null);
+            'A', null, Sets.newHashSet(entityAttribute), Sets.newHashSet(orgUnitA, orgUnitA));
     program.setUid(PROGRAM_UID);
     programService.addProgram(program);
     ProgramStage stageA = createProgramStage('A', 0);

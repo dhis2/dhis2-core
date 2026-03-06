@@ -26,7 +26,7 @@
 #
 ---
 name: programs_inconsistent_tracked_entity_type
-description: Programs which are inconsistently linked to a tracked entity type.
+description: Programs which are inconsistently linked to a tracked entity type
 section: Programs
 section_order: 3
 summary_sql: >-

@@ -26,7 +26,7 @@
 #
 ---
 name: program_indicators_without_expression
-description: Program indicators without an expression.
+description: Program indicators without expressions
 section: Program indicators
 section_order: 1
 summary_sql: >-

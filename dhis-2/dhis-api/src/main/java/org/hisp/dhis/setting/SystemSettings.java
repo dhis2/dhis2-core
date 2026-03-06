@@ -29,20 +29,23 @@
  */
 package org.hisp.dhis.setting;
 
+import static org.hisp.dhis.analytics.AnalyticsWeeklyStartKey.WEEKLY;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.Date;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BinaryOperator;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
+import org.hisp.dhis.analytics.AnalyticsWeeklyStartKey;
 import org.hisp.dhis.common.DigitGroupSeparator;
 import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheability;
@@ -237,6 +240,10 @@ public non-sealed interface SystemSettings extends Settings {
   default AnalyticsFinancialYearStartKey getAnalyticsFinancialYearStart() {
     return asEnum(
         "analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER);
+  }
+
+  default AnalyticsWeeklyStartKey getAnalyticsWeeklyStart() {
+    return asEnum("analyticsWeeklyStart", WEEKLY);
   }
 
   default String getPhoneNumberAreaCode() {
@@ -471,10 +478,6 @@ public non-sealed interface SystemSettings extends Settings {
 
   default String getDateFormat() {
     return asString("keyDateFormat", "yyyy-MM-dd");
-  }
-
-  default String getStyle() {
-    return asString("keyStyle", "light_blue/light_blue.css");
   }
 
   default String getRemoteInstanceUrl() {
@@ -838,5 +841,30 @@ public non-sealed interface SystemSettings extends Settings {
    */
   default int getDeviceEnrollmentIATTtlSeconds() {
     return asInt("deviceEnrollmentIATTtlSeconds", 60);
+  }
+
+  /**
+   * since 2.43
+   *
+   * @return custom color to use as the background for DHIS2 header bar
+   */
+  default String getCustomColor() {
+    return asString("keyCustomColor", "");
+  }
+
+  /**
+   * since 2.43
+   *
+   * @return custom color to use as the background for DHIS2 header bar for Android
+   */
+  default String getCustomColorMobile() {
+    return asString("keyCustomColorMobile", "");
+  }
+
+  /*
+   * @since 2.43
+   */
+  default Boolean getCustomTranslationsEnabled() {
+    return asBoolean("keyCustomTranslationsEnabled", false);
   }
 }

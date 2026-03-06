@@ -26,7 +26,7 @@
 #
 ---
 name: orgunits_multiple_roots
-description: The organisation unit hierarchy should have a single root.
+description: Organisation unit hierarchy should have a single root
 section: Organisation units
 section_order: 8
 summary_sql: >-

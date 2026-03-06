@@ -34,16 +34,26 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hisp.dhis.common.UserOrgUnitType.DATA_OUTPUT;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.common.DimensionType;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.DisplayProperty;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -102,5 +112,40 @@ class DataQueryServiceTest {
     List<OrganisationUnit> userOrgUnits = dataQueryService.getUserOrgUnits(dataQueryParams, null);
 
     assertEquals(0, userOrgUnits.size());
+  }
+
+  @Test
+  void testStageSpecificCategoryOptionGroupSetDimensionHasDisplayName() {
+    String stageUid = "kO3z4Dhc038";
+    String cogsUid = "C31vHZqu0qU";
+    String dimension = stageUid + "." + cogsUid;
+
+    Program program = new Program();
+    program.setUid("bMcwwoVnbSR");
+
+    ProgramStage programStage = new ProgramStage();
+    programStage.setUid(stageUid);
+    programStage.setProgram(program);
+
+    CategoryOptionGroupSet cogs = new CategoryOptionGroupSet();
+    cogs.setUid(cogsUid);
+    cogs.setName("Funding Partner");
+    cogs.setDataDimension(true);
+
+    when(idObjectManager.getObject(ProgramStage.class, IdScheme.UID, stageUid))
+        .thenReturn(programStage);
+    when(idObjectManager.getObject(Category.class, IdScheme.UID, cogsUid)).thenReturn(null);
+    when(idObjectManager.getObject(CategoryOptionGroupSet.class, IdScheme.UID, cogsUid))
+        .thenReturn(cogs);
+
+    DimensionalObject result =
+        dataQueryService.getDimension(
+            dimension, List.of(), new Date(), List.of(), false, DisplayProperty.NAME, IdScheme.UID);
+
+    assertNotNull(result);
+    assertEquals(dimension, result.getDimension());
+    assertEquals(cogsUid, result.getDimensionName());
+    assertEquals(DimensionType.CATEGORY_OPTION_GROUP_SET, result.getDimensionType());
+    assertEquals("Funding Partner", result.getDisplayProperty(DisplayProperty.NAME));
   }
 }

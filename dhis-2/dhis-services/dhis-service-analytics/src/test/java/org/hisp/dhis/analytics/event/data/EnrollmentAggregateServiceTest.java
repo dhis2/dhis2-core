@@ -56,6 +56,7 @@ import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.tracker.MetadataItemsHandler;
 import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
+import org.hisp.dhis.common.AnalyticsCustomHeader;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
@@ -227,6 +228,65 @@ class EnrollmentAggregateServiceTest {
         deE.getName() + " - " + psB.getName(),
         NUMBER,
         Double.class.getName());
+  }
+
+  @Test
+  void verifyHeaderCreationForStageSpecificEventDateWithCustomHeader() {
+    // Given - simulates dimension=ou:USER_ORGUNIT,A03MvHHogjR.EVENT_DATE:202205
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    ProgramStage psA = new ProgramStage("Birth", new Program());
+    psA.setUid("A03MvHHogjR");
+
+    // The underlying item UID is "occurreddate" (DB column name)
+    org.hisp.dhis.common.BaseDimensionalItemObject eventDateItem =
+        new org.hisp.dhis.common.BaseDimensionalItemObject("occurreddate");
+    eventDateItem.setUid("occurreddate");
+    eventDateItem.setName("occurreddate");
+
+    QueryItem qiEventDate = new QueryItem(eventDateItem, null, ValueType.DATE, null, null);
+    qiEventDate.setProgramStage(psA);
+    // Set custom header for EVENT_DATE (this is done by the query parser for stage-specific dates)
+    qiEventDate.setCustomHeader(AnalyticsCustomHeader.forEventDate(psA));
+
+    DimensionalObject periods =
+        new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, createPeriodDimensions("202205"));
+    DimensionalObject orgUnits =
+        new BaseDimensionalObject(
+            ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, "ouA", List.of(ouA));
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(periods)
+            .addDimension(orgUnits)
+            .addItem(qiEventDate)
+            .withSkipData(true)
+            .withSkipMeta(false)
+            .build();
+
+    // When
+    when(securityManager.withUserConstraints(any(EventQueryParams.class))).thenReturn(params);
+    Grid grid = service.getEnrollments(params);
+
+    // Then
+    List<GridHeader> headers = grid.getHeaders();
+    assertThat(headers, is(notNullValue()));
+    assertThat(headers, hasSize(4));
+
+    // Verify the EVENT_DATE header
+    GridHeader eventDateHeader = headers.get(3);
+    // The header name should be "A03MvHHogjR.eventdate" (custom header key)
+    assertThat(
+        "Header name should use custom header key",
+        eventDateHeader.getName(),
+        is("A03MvHHogjR.eventdate"));
+    // The header column should be "Event date" (custom header label), NOT "occurreddate"
+    assertThat(
+        "Header column should use custom header label",
+        eventDateHeader.getColumn(),
+        is("Event date"));
+    assertThat(
+        "Header value type should be DATE", eventDateHeader.getValueType(), is(ValueType.DATE));
   }
 
   private void assertHeaderWithColumn(

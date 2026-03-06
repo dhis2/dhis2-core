@@ -88,6 +88,8 @@ public class QueryItem implements GroupableItem {
 
   private AnalyticsCustomHeader customHeader;
 
+  private List<String> dimensionValues = new ArrayList<>();
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -201,6 +203,10 @@ public class QueryItem implements GroupableItem {
 
   public boolean addFilter(QueryFilter filter) {
     return filters.add(filter);
+  }
+
+  public void addDimensionValue(String value) {
+    dimensionValues.add(value);
   }
 
   public String getKey() {

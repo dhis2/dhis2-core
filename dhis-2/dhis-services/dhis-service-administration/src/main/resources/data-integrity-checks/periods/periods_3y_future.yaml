@@ -26,7 +26,7 @@
 #
 ---
   name: periods_3y_future
-  description: Periods which are more than three years in the future.
+  description: Periods which are more than three years in the future
   section: Periods
   section_order: 2
   summary_sql: >-

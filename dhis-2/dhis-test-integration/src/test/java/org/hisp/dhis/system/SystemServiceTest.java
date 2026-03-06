@@ -29,12 +29,16 @@
  */
 package org.hisp.dhis.system;
 
+import static org.hisp.dhis.test.utils.Assertions.assertNotBlank;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.hisp.dhis.system.SystemInfo.SystemInfoForAppCacheFilter;
 import org.hisp.dhis.system.SystemInfo.SystemInfoForDataStats;
 import org.hisp.dhis.system.SystemInfo.SystemInfoForMetadataExport;
+import org.hisp.dhis.system.capability.SystemCapability;
+import org.hisp.dhis.system.database.DatabaseInfo;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -49,10 +53,8 @@ class SystemServiceTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName("System info for metadata export has expected values")
   void systemInfoForMetadataTest() {
-    // when
     SystemInfoForMetadataExport info = systemService.getSystemInfoForMetadataExport();
 
-    // then
     assertEquals("123", info.version());
     assertEquals("abc1234", info.revision());
     assertNotNull(info.serverDate().toString());
@@ -62,10 +64,8 @@ class SystemServiceTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName("System info for data stats has expected values")
   void systemInfoForDataStatsTest() {
-    // when
     SystemInfoForDataStats info = systemService.getSystemInfoForDataStats();
 
-    // then
     assertEquals("123", info.version());
     assertEquals("abc1234", info.revision());
     assertNotNull(info.serverDate());
@@ -76,10 +76,8 @@ class SystemServiceTest extends PostgresIntegrationTestBase {
   @Test
   @DisplayName("System info for app cache filter has expected values")
   void systemInfoForAppCacheFilterTest() {
-    // when
     SystemInfoForAppCacheFilter info = systemService.getSystemInfoForAppCacheFilter();
 
-    // then
     assertEquals("123", info.version());
     assertEquals("abc1234", info.revision());
     assertEquals("iso8601", info.calendar());
@@ -90,5 +88,25 @@ class SystemServiceTest extends PostgresIntegrationTestBase {
   void systemInfoVersionTest() {
     String infoVersion = systemService.getSystemInfoVersion();
     assertEquals("123", infoVersion);
+  }
+
+  @Test
+  @DisplayName("System info has expected value")
+  void systemInfoTest() {
+    SystemInfo info = systemService.getSystemInfo();
+
+    assertNotNull(info);
+
+    DatabaseInfo databaseInfo = info.getDatabaseInfo();
+
+    assertNotNull(databaseInfo);
+    assertNotBlank(databaseInfo.getUrl());
+    assertNotBlank(databaseInfo.getName());
+    assertNotBlank(databaseInfo.getUser());
+
+    SystemCapability capability = info.getCapability();
+
+    assertNotNull(capability);
+    assertFalse(capability.isAnalyticsTotalCounts());
   }
 }

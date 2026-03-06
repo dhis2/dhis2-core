@@ -33,7 +33,6 @@ import jakarta.persistence.Embeddable;
 import jakarta.persistence.Transient;
 import java.io.Serializable;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -99,7 +98,7 @@ public class TranslationProperty implements Serializable {
   private String getTranslationValue(String locale, String translationKey, String defaultValue) {
     for (Translation translation : translations) {
       if (locale.equals(translation.getLocale())
-          && translationKey.equals(translation.getProperty())
+          && translationKey.equalsIgnoreCase(translation.getProperty())
           && !StringUtils.isEmpty(translation.getValue())) {
         return translation.getValue();
       }

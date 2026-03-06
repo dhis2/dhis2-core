@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.i18n;
 
-import java.util.Locale;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.i18n.locale.I18nLocale;
 
 public interface I18nLocaleStore extends IdentifiableObjectStore<I18nLocale> {

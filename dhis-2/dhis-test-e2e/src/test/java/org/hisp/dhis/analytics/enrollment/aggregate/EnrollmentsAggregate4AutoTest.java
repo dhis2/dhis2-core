@@ -138,6 +138,98 @@ public class EnrollmentsAggregate4AutoTest extends AnalyticsApiTest {
     validateRow(response, List.of("2", "", "Female"));
   }
 
+  /**
+   * This test is identical to "queryAggregatedenrollmentsmacase1" but instead of using the
+   * "enrollmentDate" filter, it uses the "dimension" filter with "ENROLLMENT_DATE:LAST_12_MONTHS".
+   */
+  @Test
+  public void queryAggregatedenrollmentsmacase1_with_staticDimension() throws JSONException {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("includeMetadataDetails=true")
+            .add("headers=A03MvHHogjR.a3kGcGDCuk6,lZGmxYbs97q,cejWyOfXge6")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("outputType=ENROLLMENT")
+            .add("pageSize=100")
+            .add("page=1")
+            .add(
+                "dimension=ENROLLMENT_DATE:LAST_12_MONTHS,ou:lc3eMKXaEfw,A03MvHHogjR.a3kGcGDCuk6,lZGmxYbs97q,cejWyOfXge6:IN:Female")
+            .add("relativePeriodDate=2023-08-01");
+
+    // When
+    ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(3)))
+        .body("rows", hasSize(equalTo(36)))
+        .body("height", equalTo(36))
+        .body("width", equalTo(3))
+        .body("headerWidth", equalTo(3));
+
+    // Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":100,\"page\":1},\"items\":{\"lZGmxYbs97q\":{\"uid\":\"lZGmxYbs97q\",\"aggregationType\":\"NONE\",\"code\":\"MMD_PER_ID\",\"valueType\":\"TEXT\",\"name\":\"Unique ID\",\"description\":\"Unique identiifer\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"totalAggregationType\":\"NONE\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"uid\":\"a3kGcGDCuk6\",\"aggregationType\":\"AVERAGE\",\"code\":\"DE_2006098\",\"valueType\":\"NUMBER\",\"name\":\"MCH Apgar Score\",\"description\":\"Apgar is a quick test performed on a baby at 1 and 5 minutes after birth. The 1-minute score determines how well the baby tolerated the birthing process. The 5-minute score tells the doctor how well the baby is doing outside the mother's womb.\",\"dimensionItemType\":\"DATA_ELEMENT\",\"totalAggregationType\":\"SUM\"},\"Mnp3oXrpAbK\":{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"uid\":\"rBvjJYbMCVx\",\"code\":\"Male\",\"name\":\"Male\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"uid\":\"ZzYYXq4fJie\",\"name\":\"Baby Postnatal\",\"description\":\"Baby Postnatal\"},\"ou\":{\"uid\":\"ou\",\"dimensionType\":\"ORGANISATION_UNIT\",\"name\":\"Organisation unit\"},\"202208\":{\"uid\":\"202208\",\"code\":\"202208\",\"endDate\":\"2022-08-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"August 2022\",\"startDate\":\"2022-08-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202307\":{\"uid\":\"202307\",\"code\":\"202307\",\"endDate\":\"2023-07-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"July 2023\",\"startDate\":\"2023-07-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202209\":{\"uid\":\"202209\",\"code\":\"202209\",\"endDate\":\"2022-09-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"September 2022\",\"startDate\":\"2022-09-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202305\":{\"uid\":\"202305\",\"code\":\"202305\",\"endDate\":\"2023-05-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"May 2023\",\"startDate\":\"2023-05-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202306\":{\"uid\":\"202306\",\"code\":\"202306\",\"endDate\":\"2023-06-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"June 2023\",\"startDate\":\"2023-06-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202303\":{\"uid\":\"202303\",\"code\":\"202303\",\"endDate\":\"2023-03-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"March 2023\",\"startDate\":\"2023-03-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202304\":{\"uid\":\"202304\",\"code\":\"202304\",\"endDate\":\"2023-04-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"April 2023\",\"startDate\":\"2023-04-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202301\":{\"uid\":\"202301\",\"code\":\"202301\",\"endDate\":\"2023-01-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"January 2023\",\"startDate\":\"2023-01-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202302\":{\"uid\":\"202302\",\"code\":\"202302\",\"endDate\":\"2023-02-28T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"February 2023\",\"startDate\":\"2023-02-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"cejWyOfXge6\":{\"uid\":\"cejWyOfXge6\",\"aggregationType\":\"NONE\",\"valueType\":\"TEXT\",\"name\":\"Gender\",\"description\":\"Gender\",\"dimensionItemType\":\"PROGRAM_ATTRIBUTE\",\"totalAggregationType\":\"NONE\"},\"202211\":{\"uid\":\"202211\",\"code\":\"202211\",\"endDate\":\"2022-11-30T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"November 2022\",\"startDate\":\"2022-11-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202212\":{\"uid\":\"202212\",\"code\":\"202212\",\"endDate\":\"2022-12-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"December 2022\",\"startDate\":\"2022-12-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"202210\":{\"uid\":\"202210\",\"code\":\"202210\",\"endDate\":\"2022-10-31T00:00:00.000\",\"valueType\":\"TEXT\",\"name\":\"October 2022\",\"startDate\":\"2022-10-01T00:00:00.000\",\"dimensionItemType\":\"PERIOD\",\"totalAggregationType\":\"SUM\"},\"pe\":{\"uid\":\"pe\",\"dimensionType\":\"PERIOD\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"lc3eMKXaEfw\":{\"uid\":\"lc3eMKXaEfw\",\"code\":\"OU_197385\",\"valueType\":\"TEXT\",\"name\":\"Bonthe\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"lZGmxYbs97q\":[],\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[\"202208\",\"202209\",\"202210\",\"202211\",\"202212\",\"202301\",\"202302\",\"202303\",\"202304\",\"202305\",\"202306\",\"202307\"],\"ou\":[\"lc3eMKXaEfw\"],\"cejWyOfXge6\":[\"Mnp3oXrpAbK\"]}}\n";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // Assert headers.
+    validateHeader(
+        response,
+        0,
+        "A03MvHHogjR.a3kGcGDCuk6",
+        "MCH Apgar Score",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        true);
+    validateHeader(
+        response, 1, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 2, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
+
+    // Assert rows.
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+    validateRow(response, List.of("0", "", "Female"));
+    validateRow(response, List.of("1", "", "Female"));
+    validateRow(response, List.of("2", "", "Female"));
+  }
+
   @Test
   public void queryAggregatedenrollmentsmacase2() throws JSONException {
     // Given

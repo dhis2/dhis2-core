@@ -31,8 +31,8 @@ package org.hisp.dhis.webapi.view;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
-import java.util.Locale;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 

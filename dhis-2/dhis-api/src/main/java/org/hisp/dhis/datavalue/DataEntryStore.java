@@ -40,6 +40,7 @@ import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.period.Period;
 
 /**
  * DB support for the bulk data value import (AKA data entry).
@@ -148,7 +149,7 @@ public interface DataEntryStore {
       @Nonnull UID orgUnit,
       @CheckForNull UID categoryOptionCombo,
       @CheckForNull UID attributeOptionCombo,
-      @Nonnull String period);
+      @Nonnull Period period);
 
   /**
    * Find the datasets a data element can be used with to allow grouping data values into groups of
@@ -164,7 +165,11 @@ public interface DataEntryStore {
   Import support
    */
 
-  int deleteByKeys(List<DataEntryKey> keys);
+  int countScope(@Nonnull DataEntryGroup.Scope scope);
+
+  int deleteScope(@Nonnull DataEntryGroup.Scope scope);
+
+  int deleteByKeys(List<DataValueKey> keys);
 
   int upsertValues(List<DataEntryValue> values);
 

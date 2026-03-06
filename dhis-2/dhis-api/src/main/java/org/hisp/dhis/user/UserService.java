@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -43,6 +42,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
@@ -205,6 +205,14 @@ public interface UserService {
    * @return true if the given user represents the last user with ALL authority.
    */
   boolean isLastSuperUser(User user);
+
+  /**
+   * Handles the user query parameters by setting defaults and processing specific fields such as
+   * organisation units and user roles.
+   *
+   * @param params the {@link UserQueryParams}.
+   */
+  void handleUserQueryParams(UserQueryParams params);
 
   /**
    * Returns a list of users based on the given query parameters. The default order of last name and

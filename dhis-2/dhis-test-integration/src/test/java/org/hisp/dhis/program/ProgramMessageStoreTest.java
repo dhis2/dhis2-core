@@ -30,6 +30,7 @@
 package org.hisp.dhis.program;
 
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createSingleEvent;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
@@ -130,9 +131,7 @@ class ProgramMessageStoreTest extends PostgresIntegrationTestBase {
     TrackedEntity trackedEntityB = createTrackedEntity(orgUnitA, trackedEntityType);
     manager.save(trackedEntityB);
 
-    enrollmentA = new Enrollment(new Date(), new Date(), trackedEntityB, programA);
-    enrollmentA.setUid(CodeGenerator.generateUid());
-    enrollmentA.setOrganisationUnit(orgUnitA);
+    enrollmentA = createEnrollment(programA, trackedEntityB, orgUnitA);
 
     eventA = createEvent(stageA, enrollmentA, orgUnitA);
     eventA.setScheduledDate(new Date());

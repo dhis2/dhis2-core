@@ -26,7 +26,7 @@
 #
 ---
 name: orgunits_null_island
-description: Organisation units located within 100 km of Null Island (0,0).
+description: Organisation units located within 100 km of Null Island (0,0)
 section: Organisation units
 section_order: 6
 summary_sql: >-

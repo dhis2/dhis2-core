@@ -33,10 +33,14 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.analytics.QueryKey.NV;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
 import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OU_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
 import static org.hisp.dhis.common.QueryOperator.IN;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
+import static org.hisp.dhis.program.EnrollmentStatus.ACTIVE;
+import static org.hisp.dhis.program.EnrollmentStatus.COMPLETED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -44,14 +48,23 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Set;
 import java.util.function.Consumer;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
+import org.hisp.dhis.analytics.event.data.stage.DefaultStageDatePeriodBucketSqlRenderer;
+import org.hisp.dhis.analytics.event.data.stage.DefaultStageOrgUnitSqlService;
+import org.hisp.dhis.analytics.event.data.stage.DefaultStageQueryItemClassifier;
+import org.hisp.dhis.analytics.event.data.stage.DefaultStageQuerySqlFacade;
+import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
+import org.hisp.dhis.common.AnalyticsCustomHeader;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
@@ -140,6 +153,11 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
             dataElementService);
     ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
     filterBuilder = new QueryItemFilterBuilder(organisationUnitResolver, sqlBuilder);
+    StageQuerySqlFacade stageQuerySqlFacade =
+        new DefaultStageQuerySqlFacade(
+            new DefaultStageQueryItemClassifier(),
+            new DefaultStageDatePeriodBucketSqlRenderer(sqlBuilder),
+            new DefaultStageOrgUnitSqlService(organisationUnitResolver, sqlBuilder));
 
     subject =
         new JdbcEnrollmentAnalyticsManager(
@@ -155,7 +173,8 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
             sqlBuilder,
             organisationUnitResolver,
             columnMapper,
-            filterBuilder);
+            filterBuilder,
+            stageQuerySqlFacade);
   }
 
   @Test
@@ -267,10 +286,12 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
   }
 
   @Test
-  void verifyGetEnrollmentsWithStageOuDimensionIncludesOuNameAndCode() {
+  void verifyGetEnrollmentsWithStageOuDimensionIncludesOuNameAndCodeWhenRequested() {
     // Stage.ou dimensions should include ev_ouname and ev_oucode columns
-    // This tests the STAGE_OU_NAME_COLUMN and STAGE_OU_CODE_COLUMN constants
-    EventQueryParams params = createStageOuRequestParams();
+    // only when explicitly requested in headers
+    String stageUid = programStage.getUid();
+    EventQueryParams params =
+        createStageOuRequestParamsWithHeaders(Set.of(stageUid + ".ouname", stageUid + ".oucode"));
 
     subject.getEnrollments(params, new ListGrid(), 10000);
     verify(jdbcTemplate).queryForRowSet(sql.capture());
@@ -281,11 +302,103 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     assertThat(generatedSql, containsString("ev_ouname"));
     assertThat(generatedSql, containsString("ev_oucode"));
     // Verify output aliases use stage UID prefix
-    assertThat(generatedSql, containsString(programStage.getUid() + ".ouname"));
-    assertThat(generatedSql, containsString(programStage.getUid() + ".oucode"));
+    assertThat(generatedSql, containsString(stageUid + ".ouname"));
+    assertThat(generatedSql, containsString(stageUid + ".oucode"));
+  }
+
+  @Test
+  void verifyGetEnrollmentsWithStageOuDimensionExcludesOuNameAndCodeWithoutHeaders() {
+    // Stage.ou dimensions should NOT include ouname/oucode columns
+    // when not explicitly requested in headers
+    EventQueryParams params = createStageOuRequestParams();
+
+    subject.getEnrollments(params, new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+
+    // CTE still includes ev_ouname and ev_oucode (they are always in the CTE)
+    assertThat(generatedSql, containsString("ev_ouname"));
+    assertThat(generatedSql, containsString("ev_oucode"));
+    // But outer SELECT should NOT alias them with stage UID prefix
+    assertThat(generatedSql, not(containsString(programStage.getUid() + ".ouname")));
+    assertThat(generatedSql, not(containsString(programStage.getUid() + ".oucode")));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentWithStageDateDimensionGeneratesValidSql() {
+    // Test that aggregate enrollment queries with stage-specific EVENT_DATE:
+    // 1. Use a per-stage filter CTE (latest_events_<stageUid>)
+    // 2. Do NOT create a redundant program stage CTE
+    // 3. Map the header column correctly (eventdate -> ev_occurreddate)
+    EventQueryParams params = createAggregateEnrollmentWithStageDateParams();
+
+    ListGrid grid = new ListGrid();
+    // Add headers that match what would be returned from the endpoint
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+    grid.addHeader(
+        new GridHeader(
+            programStage.getUid() + ".eventdate", "Event date", ValueType.DATE, false, false));
+
+    subject.getEnrollments(params, grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+
+    // The SQL should contain a per-stage filter CTE
+    assertThat(generatedSql, containsString("latest_events_" + programStage.getUid()));
+
+    // The SQL should NOT contain a separate CTE like 'Zj7UnCAulEk_occurreddate_0'
+    // (avoiding redundant CTE generation)
+    assertThat(
+        generatedSql, not(containsString(programStage.getUid() + "_" + OCCURRED_DATE_COLUMN_NAME)));
+
+    // The filter CTE should use the ev_occurreddate alias for the date column
+    assertThat(generatedSql, containsString("ev_occurreddate"));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentIncludesProgramStatusFilterInSql() {
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.withEndpointAction(AGGREGATE);
+    params.withEnrollmentStatuses(
+        new java.util.LinkedHashSet<>(java.util.List.of(ACTIVE, COMPLETED)));
+
+    subject.getEnrollments(params.build(), new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+
+    assertThat(generatedSql, containsString("enrollmentstatus in ("));
+    assertThat(generatedSql, containsString("'ACTIVE'"));
+    assertThat(generatedSql, containsString("'COMPLETED'"));
+  }
+
+  private EventQueryParams createAggregateEnrollmentWithStageDateParams() {
+    // Create a stage-specific EVENT_DATE query item (like Zj7UnCAulEk.EVENT_DATE:THIS_YEAR)
+    BaseDimensionalItemObject dateItem = new BaseDimensionalItemObject(OCCURRED_DATE_COLUMN_NAME);
+    QueryItem queryItem =
+        new QueryItem(dateItem, programA, null, ValueType.DATE, null, null)
+            .withCustomHeader(AnalyticsCustomHeader.forEventDate(programStage));
+    queryItem.setProgramStage(programStage);
+    queryItem.setProgram(programA);
+
+    // Add a date filter (like :THIS_YEAR which gets translated to date bounds)
+    queryItem.addFilter(new QueryFilter(QueryOperator.GE, "2026-01-01"));
+    queryItem.addFilter(new QueryFilter(QueryOperator.LE, "2026-12-31"));
+
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.addItem(queryItem);
+    // Set aggregate enrollment mode
+    params.withEndpointAction(AGGREGATE);
+    return params.build();
   }
 
   private EventQueryParams createStageOuRequestParams() {
+    return createStageOuRequestParamsWithHeaders(Set.of());
+  }
+
+  private EventQueryParams createStageOuRequestParamsWithHeaders(Set<String> headers) {
     // Create a stage.ou dimension query item
     BaseDimensionalItemObject ouItem = new BaseDimensionalItemObject(OU_COLUMN_NAME);
     QueryItem queryItem = new QueryItem(ouItem);
@@ -296,6 +409,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
     EventQueryParams.Builder params = createRequestParamsBuilder();
     params.addItem(queryItem);
+    params.withHeaders(headers);
     return params.build();
   }
 

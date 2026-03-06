@@ -52,7 +52,11 @@
       "events": [],
       "relationships": [],
       "attributes": [],
-      "notes": []
+      "notes": [],
+      "attributeOptionCombo": {
+      "idScheme": "UID",
+      "identifier": "wpVV2AvPM89"
+      }
     }
   ],
   "events": [],

@@ -53,7 +53,6 @@ import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
@@ -69,8 +68,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class DataItemServiceFacade {
-  private final UserService userService;
-
   private final QueryExecutor queryExecutor;
 
   /**

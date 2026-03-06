@@ -79,6 +79,7 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUser;
@@ -128,6 +129,15 @@ public abstract class AbstractFullReadOnlyController<
   @Autowired protected AttributeService attributeService;
 
   @Autowired protected CsvMapper csvMapper;
+
+  @Autowired protected SchemaService schemaService;
+
+  private Schema schema;
+
+  protected final Schema getSchema() {
+    if (schema == null) schema = schemaService.getSchema(getEntityClass());
+    return schema;
+  }
 
   // --------------------------------------------------------------------------
   // Hooks
@@ -300,24 +310,21 @@ public abstract class AbstractFullReadOnlyController<
       String arraySeparator,
       boolean skipHeader)
       throws IOException {
-    CsvSchema schema;
     CsvSchema.Builder schemaBuilder = CsvSchema.builder();
     Map<String, Function<T, Object>> obj2valueByProperty = new LinkedHashMap<>();
 
     setupSchemaAndProperties(schemaBuilder, fields, obj2valueByProperty);
 
-    schema =
+    CsvSchema csv =
         schemaBuilder
             .build()
             .withColumnSeparator(separator)
             .withArrayElementSeparator(arraySeparator);
 
-    if (!skipHeader) {
-      schema = schema.withHeader();
-    }
+    if (!skipHeader) csv = csv.withHeader();
 
     try (StringWriter strW = new StringWriter();
-        SequenceWriter seqW = csvMapper.writer(schema).writeValues(strW)) {
+        SequenceWriter seqW = csvMapper.writer(csv).writeValues(strW)) {
 
       Object[] row = new Object[obj2valueByProperty.size()];
 
@@ -394,7 +401,7 @@ public abstract class AbstractFullReadOnlyController<
   @OpenApi.Response(OpenApi.EntityType.class)
   @GetMapping("/{uid:[a-zA-Z0-9]{11}}")
   public @ResponseBody ResponseEntity<?> getObject(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
+      @PathVariable("uid") UID uid,
       GetObjectParams params,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
@@ -408,7 +415,7 @@ public abstract class AbstractFullReadOnlyController<
 
     cachePrivate(response);
 
-    T entity = getEntity(pvUid);
+    T entity = getEntity(uid);
 
     GetObjectListParams listParams = params.toListParams();
     addProgrammaticFilters(listParams::addFilter); // temporary workaround
@@ -431,8 +438,8 @@ public abstract class AbstractFullReadOnlyController<
 
   @GetMapping("/{uid:[a-zA-Z0-9]{11}}/{property}")
   public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @OpenApi.Param(PropertyNames.class) @PathVariable("property") String pvProperty,
+      @PathVariable("uid") UID uid,
+      @OpenApi.Param(PropertyNames.class) @PathVariable("property") String property,
       @RequestParam(required = false) List<String> fields,
       @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
@@ -452,14 +459,13 @@ public abstract class AbstractFullReadOnlyController<
     cachePrivate(response);
 
     GetObjectParams params = new GetObjectParams();
-    params.addField(pvProperty + fieldFilter);
-    ObjectNode objectNode = getObjectInternal(pvUid, params, currentUser);
+    params.addField(property + fieldFilter);
+    ObjectNode objectNode = getObjectInternal(uid, params, currentUser);
 
     return ResponseEntity.ok(objectNode);
   }
 
-  @SuppressWarnings("unchecked")
-  private ObjectNode getObjectInternal(String uid, GetObjectParams params, UserDetails currentUser)
+  private ObjectNode getObjectInternal(UID uid, GetObjectParams params, UserDetails currentUser)
       throws NotFoundException {
     T entity = getEntity(uid);
 
@@ -558,17 +564,17 @@ public abstract class AbstractFullReadOnlyController<
   }
 
   @Nonnull
-  protected T getEntity(String uid) throws NotFoundException {
+  protected T getEntity(@Nonnull UID uid) throws NotFoundException {
     return getEntity(uid, getEntityClass())
         .orElseThrow(() -> new NotFoundException(getEntityClass(), uid));
   }
 
   protected final <E extends IdentifiableObject> java.util.Optional<E> getEntity(
-      String uid, Class<E> entityType) {
+      @Nonnull UID uid, Class<E> entityType) {
     return java.util.Optional.ofNullable(manager.get(entityType, uid));
   }
 
   protected final Schema getSchema(Class<?> klass) {
-    return schemaService.getDynamicSchema(klass);
+    return schemaService.getSchema(klass);
   }
 }

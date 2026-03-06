@@ -35,9 +35,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import org.apache.commons.io.FileUtils;
+import org.hisp.dhis.common.Locale;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -320,13 +320,12 @@ class AppTest {
     var translationManifest = getTranslation(translationJSON);
     app.setManifestTranslations(translationManifest);
 
-    Locale locale =
-        new Locale.Builder().setLanguage("uz").setRegion("UZ").setScript("Cyrl").build();
+    Locale locale = new Locale("uz", "UZ", "Cyrl");
 
     var result = app.localise(locale);
     assertEquals("help (Uzbek Cyrillic)", result.getShortcuts().get(0).getDisplayName());
 
-    locale = new Locale.Builder().setLanguage("uz").setRegion("UZ").setScript("Latn").build();
+    locale = new Locale("uz", "UZ", "Latn");
 
     result = app.localise(locale);
     assertEquals("help (Uzbek-Uzbekistan Latin)", result.getShortcuts().get(0).getDisplayName());

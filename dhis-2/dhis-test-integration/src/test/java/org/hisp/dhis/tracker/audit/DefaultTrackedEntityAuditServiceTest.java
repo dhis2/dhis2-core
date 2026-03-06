@@ -94,7 +94,10 @@ class DefaultTrackedEntityAuditServiceTest extends PostgresIntegrationTestBase {
   void shouldCreateReadAuditWhenGettingEnrollmentAndTrackedEntitySupplied()
       throws ForbiddenException, BadRequestException {
     enrollmentService.findEnrollments(
-        EnrollmentOperationParams.builder().program(program).trackedEntity(trackedEntity).build());
+        EnrollmentOperationParams.builder()
+            .program(program)
+            .trackedEntities(Set.of(trackedEntity))
+            .build());
     await()
         .atMost(TIMEOUT, TimeUnit.SECONDS)
         .until(() -> auditService.getTrackedEntityAuditsCount(params) == countBeforeTest + 1);
@@ -122,7 +125,7 @@ class DefaultTrackedEntityAuditServiceTest extends PostgresIntegrationTestBase {
         enrollmentService.findEnrollments(
             EnrollmentOperationParams.builder()
                 .program(program)
-                .trackedEntity(trackedEntity)
+                .trackedEntities(Set.of(trackedEntity))
                 .enrollments(Set.of(UID.generate()))
                 .build());
 

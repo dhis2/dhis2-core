@@ -26,7 +26,7 @@
 #
 ---
 name: orgunits_multiple_spaces
-description: Organisation units should not have multiple spaces in their names or shortnames.
+description: Organisation units should not have multiple spaces in their names or shortnames
 section: Organisation units
 section_order: 6
 summary_sql: >-

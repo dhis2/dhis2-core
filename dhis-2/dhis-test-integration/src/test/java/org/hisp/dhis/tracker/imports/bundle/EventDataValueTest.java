@@ -73,8 +73,8 @@ class EventDataValueTest extends PostgresIntegrationTestBase {
     final User userA = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(userA);
 
-    testSetup.importTrackerData("tracker/single_te.json");
-    testSetup.importTrackerData("tracker/single_enrollment.json");
+    testSetup.importTrackerData("tracker/one_te.json");
+    testSetup.importTrackerData("tracker/one_enrollment.json");
     manager.flush();
   }
 

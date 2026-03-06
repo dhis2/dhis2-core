@@ -40,6 +40,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.program.ProgramStage;
@@ -93,7 +94,7 @@ public class TrackedEntityDataElementDimension {
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public LegendSet getLegendSet() {
     return legendSet;

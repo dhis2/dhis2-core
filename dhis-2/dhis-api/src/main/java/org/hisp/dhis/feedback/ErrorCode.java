@@ -90,6 +90,9 @@ public enum ErrorCode {
       "Unexpected CategoryOptionCombo provided with CategoryOptions: {0} for CategoryCombo: {1}. Missing expected CategoryOptionCombos with CategoryOption sets: {2}"),
   E1132(
       "Provided CategoryOptionCombo {0} cannot be processed (potential duplicate). An existing CategoryOptionCombo {1} has the same CategoryCombo {2} and same CategoryOptions {3}"),
+  E1133("CategoryCombo must be provided for Category option combo {0}"),
+  E1134(
+      "Only properties [attributeValues, code, ignoreApproval] are updatable for Category option combo"),
 
   /* Org unit merge */
   E1500("At least one source org unit must be specified"),
@@ -120,9 +123,24 @@ public enum ErrorCode {
   E1533("{0} {1} does not exist: `{2}`"),
   E1534("dataMergeStrategy field must be specified. With value `DISCARD` or `LAST_UPDATED`"),
 
+  /* Category merge */
+  E1535("Source CategoryOptions: {0} do not match target CategoryOptions: {1}"),
+  E1536(
+      "Source and target Categories cannot share a CategoryCombo. Shared CategoryCombos found: {0}"),
+  E1537("Source Categories cannot share a CategoryCombo. Shared CategoryCombos found: {0}"),
+
   /* CategoryOptionCombo merge */
   E1540(
       "CategoryOptionCombos must be duplicates (same cat combo, same cat options, different UID) in order to merge"),
+
+  /* CategoryCombo merge */
+  E1545("Source and target CategoryCombos must have identical Categories: source {0} has {1}"),
+  E1546(
+      "CategoryOptionCombo has incorrect number of CategoryOptions. Expected {0} but found {1} for COC: {2}"),
+  E1547(
+      "CategoryOptionCombo has CategoryOptions that are not valid for the CategoryCombo categories: {0}"),
+  E1548(
+      "Duplicate CategoryOptionCombo `{0}` found for CategoryCombo `{1}`. Fix this before attempting the merge."),
 
   /* DataElement merge */
   E1550("All source ValueTypes must match target ValueType: `{0}`. Other ValueTypes found: `{1}`"),
@@ -448,6 +466,9 @@ public enum ErrorCode {
   E6304("Aggregate data exchange target API must be specified when target type is EXTERNAL"),
   E6305(
       "Aggregate data exchange target API must specify either access token or username and password"),
+  E6306("Aggregate data exchange source using periods of different types: `{0}` ({1}) vs `{2}`"),
+  E6307(
+      "Aggregate data exchange source request contains data item with unsupported type: `{0}`, allowed types are: {1}"),
 
   /*Analytics table hook*/
   E6400("Analytics table hook `{0}` is a duplicate of `{1}`"),
@@ -580,10 +601,13 @@ public enum ErrorCode {
       "Period dimension cannot be used with stage-specific date dimensions (ie: EVENT_DATE, SCHEDULED_DATE)"),
   E7243("Duplicate stage dimension identifier: `{0}`"),
   E7244("Multiple stages in stage-specific dimensions are not allowed: `{0}`"),
+  E7245("Program stage `{0}` does not belong to program `{1}`"),
 
   /* TE analytics */
   E7250("Dimension is not a fully qualified: `{0}`"),
   E7251("Query does not support program indicators: `{0}`"),
+  E7253(
+      "Dimension `{0}` is not supported for program stage `{1}`. Only event-level dimensions are supported for stage-specific scope"),
 
   /* Org unit analytics */
   E7300(Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED),
@@ -664,6 +688,8 @@ public enum ErrorCode {
       "Untimely data entry for attribute option combo ${combo:{0}} and period(s): `${periods:{1}}`"),
   E8033(
       "Untimely data entry (already approved) for attribute option combo ${combo:{0}}, org unit ${unit:{1}} and periods: `${periods:{2}}`"),
+  E8034("Data set deletion scope ID refers to a non-existing object: `${id:{0}}`"),
+  E8035("Data set deletion scope ID is not a valid UID: `${id:{0}}`"),
   // value level decoding and input issues
   E8100("Value #${index:{0}} period not defined in group or value: `${dv:{1}}`"),
   E8101("Value #${index:{0}} data set is required to decode category options: `${options:{1}}`"),

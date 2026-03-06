@@ -32,6 +32,7 @@ package org.hisp.dhis.setting;
 import static org.hisp.dhis.setting.SystemSettings.isConfidential;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -126,10 +127,9 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
   public void putAll(@Nonnull Map<String, String> settings)
       throws NotFoundException, BadRequestException {
     if (settings.isEmpty()) return;
-    validateAll(settings);
 
     Set<String> deletes = new HashSet<>();
-    for (Map.Entry<String, String> e : settings.entrySet()) {
+    for (Map.Entry<String, String> e : validateAll(settings).entrySet()) {
       String key = e.getKey();
       String value = e.getValue();
       if (value == null || value.isEmpty()) {
@@ -143,7 +143,8 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
     allSettings = null; // invalidate
   }
 
-  private void validateAll(@Nonnull Map<String, String> settings)
+  @Nonnull
+  private Map<String, String> validateAll(@Nonnull Map<String, String> settings)
       throws NotFoundException, BadRequestException {
     Set<String> allowed = SystemSettings.keysWithDefaults();
     List<String> illegal =
@@ -151,11 +152,16 @@ public class DefaultSystemSettingsService implements SystemSettingsService {
     if (!illegal.isEmpty())
       throw new NotFoundException("Setting does not exist: " + String.join(",", illegal));
     SystemSettings empty = SystemSettings.of(Map.of());
+    Map<String, String> formatted = new HashMap<>(settings.size());
     for (Map.Entry<String, String> e : settings.entrySet()) {
-      if (!empty.isValid(e.getKey(), e.getValue()))
+      try {
+        formatted.put(e.getKey(), empty.format(e.getKey(), e.getValue()));
+      } catch (IllegalArgumentException ex) {
         throw new BadRequestException(
             "Not a valid value for setting %s: %s".formatted(e.getKey(), e.getValue()));
+      }
     }
+    return formatted;
   }
 
   @Override

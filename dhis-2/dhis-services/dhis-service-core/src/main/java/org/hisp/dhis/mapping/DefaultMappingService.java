@@ -39,7 +39,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDimension;
-import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -62,8 +61,6 @@ public class DefaultMappingService extends GenericAnalyticalObjectService<MapVie
   private final OrganisationUnitService organisationUnitService;
 
   private final IndicatorService indicatorService;
-
-  private final PeriodService periodService;
 
   // -------------------------------------------------------------------------
   // MappingService implementation

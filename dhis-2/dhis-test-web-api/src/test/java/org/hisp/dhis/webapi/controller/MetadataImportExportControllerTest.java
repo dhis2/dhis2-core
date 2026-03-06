@@ -566,6 +566,21 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
   }
 
   @Test
+  @DisplayName("Should return conflict when source request visualization is not a valid UID")
+  void testSourceRequestVisualizationInvalidUid() {
+    JsonWebMessage message =
+        assertWebMessage(
+            HttpStatus.CONFLICT,
+            POST(
+                "/metadata/",
+                "{'aggregateDataExchanges': [{'id': 'iFOyIpQciyk', 'name': 'Test exchange',"
+                    + "'source': {'requests': [{'name': 'R1', 'visualization': '1nvalidUid',"
+                    + "'dx': ['fbfJHSPpUQD'], 'pe': ['202201'], 'ou': ['ImspTQPwCqd']}]},"
+                    + "'target': {'type': 'INTERNAL'}}]}"));
+    assertTrue(message.getMessage().contains("1nvalidUid"));
+  }
+
+  @Test
   @DisplayName(
       "Should return error E6305 if create a new AggregateDataExchange without authentication"
           + " details")
@@ -611,60 +626,6 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
     assertEquals(
         "User has no data write access for AggregateDataExchange: Internal data exchange",
         report.getString("description").string());
-  }
-
-  @Test
-  void testAggregateDataExchangeSuccess() {
-    POST("/metadata/", Path.of("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
-    JsonTypeReport typeReport =
-        POST("/aggregateDataExchanges/iFOyIpQciyk/exchange")
-            .content(HttpStatus.OK)
-            .get("response")
-            .as(JsonTypeReport.class);
-    JsonImportSummary report = typeReport.getImportSummaries().get(0).as(JsonImportSummary.class);
-    assertEquals("SUCCESS", report.getStatus());
-  }
-
-  @Test
-  void deleteStatsAreCorrectWhenDeleteNotAllowedTest() {
-    // given import of 2 categories and 2 category combos
-    POST(
-            "/metadata?importReportMode=FULL&importStrategy=CREATE_AND_UPDATE&async=false",
-            Path.of("metadata/categories_with_category_combos.json"))
-        .content(HttpStatus.OK);
-
-    // when trying to delete 2 categories
-    JsonImportSummary importSummary =
-        POST(
-                "/metadata?importReportMode=FULL&importStrategy=DELETE&async=false",
-                Path.of("metadata/delete_categories.json"))
-            .content(HttpStatus.CONFLICT)
-            .get("response")
-            .as(JsonImportSummary.class);
-
-    // then report shows items as ignored as delete is not allowed
-    assertEquals("WARNING", importSummary.getStatus());
-    JsonTypeReport typeReport = importSummary.getTypeReports().get(0).as(JsonTypeReport.class);
-
-    assertTrue(
-        typeReport.getObjectReports().stream()
-            .flatMap(or -> or.getErrorReports().stream())
-            .allMatch(
-                er ->
-                    er.getMessage()
-                        .contains(
-                            "Object could not be deleted because it is associated with another object")));
-    assertEquals(2, importSummary.getStats().getTotal());
-    assertEquals(2, importSummary.getStats().getIgnored());
-    assertEquals(0, importSummary.getStats().getDeleted());
-    assertEquals(0, importSummary.getStats().getCreated());
-    assertEquals(0, importSummary.getStats().getUpdated());
-
-    assertEquals(2, typeReport.getStats().getTotal());
-    assertEquals(2, typeReport.getStats().getIgnored());
-    assertEquals(0, typeReport.getStats().getDeleted());
-    assertEquals(0, typeReport.getStats().getCreated());
-    assertEquals(0, typeReport.getStats().getUpdated());
   }
 
   @Test

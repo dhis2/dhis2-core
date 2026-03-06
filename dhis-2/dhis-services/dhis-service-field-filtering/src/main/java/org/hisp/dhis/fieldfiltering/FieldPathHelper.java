@@ -31,6 +31,7 @@ package org.hisp.dhis.fieldfiltering;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.function.Predicate.not;
+import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -52,7 +53,6 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.Access;
-import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
@@ -134,7 +134,7 @@ public class FieldPathHelper {
     }
 
     Schema schema =
-        schemaService.getDynamicSchema(
+        schemaService.getSchema(
             property.isCollection() ? property.getItemKlass() : property.getKlass());
 
     if (schema == null) {
@@ -238,7 +238,7 @@ public class FieldPathHelper {
       return;
     }
 
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
 
     if (!schema.isIdentifiableObject()) {
       return;
@@ -257,7 +257,7 @@ public class FieldPathHelper {
       return;
     }
 
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
     String currentPath = paths.remove(0);
 
     Property property = schema.getProperty(currentPath);
@@ -267,14 +267,13 @@ public class FieldPathHelper {
     }
 
     if (property.isCollection()) {
-      Collection<?> currentObjects =
-          ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+      Collection<?> currentObjects = safeInvoke(object, property.getGetterMethod());
 
       for (Object o : currentObjects) {
         visitFieldPath(o, new ArrayList<>(paths), objectConsumer);
       }
     } else {
-      Object currentObject = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+      Object currentObject = safeInvoke(object, property.getGetterMethod());
       visitFieldPath(currentObject, new ArrayList<>(paths), objectConsumer);
     }
   }
@@ -417,7 +416,7 @@ public class FieldPathHelper {
     requireNonNull(klass);
 
     // get root schema
-    Schema schema = schemaService.getDynamicSchema(klass);
+    Schema schema = schemaService.getSchema(klass);
     Property currentProperty;
 
     for (String path : paths) {
@@ -428,9 +427,9 @@ public class FieldPathHelper {
       }
 
       if (currentProperty.isCollection()) {
-        schema = schemaService.getDynamicSchema(currentProperty.getItemKlass());
+        schema = schemaService.getSchema(currentProperty.getItemKlass());
       } else {
-        schema = schemaService.getDynamicSchema(currentProperty.getKlass());
+        schema = schemaService.getSchema(currentProperty.getKlass());
       }
     }
 

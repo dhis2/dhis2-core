@@ -31,6 +31,8 @@
 
         <property name="enrollmentLabel" column="enrollmentlabel" type="text"/>
 
+        <property name="enrollmentsLabel" column="enrollmentslabel" type="text"/>
+
         <property name="followUpLabel" column="followuplabel" type="text"/>
 
         <property name="orgUnitLabel" column="orgunitlabel" type="text"/>
@@ -43,7 +45,11 @@
 
         <property name="programStageLabel" column="programstagelabel" type="text"/>
 
+        <property name="programStagesLabel" column="programstageslabel" type="text"/>
+
         <property name="eventLabel" column="eventlabel" type="text"/>
+
+        <property name="eventsLabel" column="eventslabel" type="text"/>
 
         <set name="programStages" order-by="sortOrder">
             <key column="programid"/>
@@ -149,6 +155,9 @@
 
         <many-to-one name="categoryCombo" class="org.hisp.dhis.category.CategoryCombo"
                      column="categorycomboid" not-null="true" foreign-key="fk_program_categorycomboid"/>
+
+        <many-to-one name="enrollmentCategoryCombo" class="org.hisp.dhis.category.CategoryCombo"
+                     column="enrollmentcategorycomboid" not-null="true" foreign-key="fk_program_enrollmentcategorycomboid"/>
 
         <many-to-one name="trackedEntityType" class="org.hisp.dhis.trackedentity.TrackedEntityType"
                      column="trackedentitytypeid" foreign-key="fk_program_trackedentitytypeid"/>

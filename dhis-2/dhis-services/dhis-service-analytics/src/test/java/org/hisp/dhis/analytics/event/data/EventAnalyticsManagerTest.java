@@ -72,6 +72,11 @@ import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
+import org.hisp.dhis.analytics.event.data.stage.DefaultStageDatePeriodBucketSqlRenderer;
+import org.hisp.dhis.analytics.event.data.stage.DefaultStageOrgUnitSqlService;
+import org.hisp.dhis.analytics.event.data.stage.DefaultStageQueryItemClassifier;
+import org.hisp.dhis.analytics.event.data.stage.DefaultStageQuerySqlFacade;
+import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -149,7 +154,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
           + "createdbydisplayname"
           + ","
           + "lastupdatedbydisplayname"
-          + ",lastupdated,scheduleddate,enrollmentdate,enrollmentoccurreddate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,ST_AsGeoJSON(coalesce(enrollmentgeometry), 6) as enrollmentgeometry,longitude,latitude,ouname,ounamehierarchy,"
+          + ",lastupdated,scheduleddate,enrollmentdate,enrollmentoccurreddate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,ST_AsGeoJSON(coalesce(ax.enrollmentgeometry), 6) as enrollmentgeometry,longitude,latitude,ouname,ounamehierarchy,"
           + "oucode,enrollmentstatus,eventstatus";
 
   @BeforeEach
@@ -164,6 +169,11 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             dataElementService);
     ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
     filterBuilder = new QueryItemFilterBuilder(organisationUnitResolver, sqlBuilder);
+    StageQuerySqlFacade stageQuerySqlFacade =
+        new DefaultStageQuerySqlFacade(
+            new DefaultStageQueryItemClassifier(),
+            new DefaultStageDatePeriodBucketSqlRenderer(sqlBuilder),
+            new DefaultStageOrgUnitSqlService(organisationUnitResolver, sqlBuilder));
 
     subject =
         new JdbcEventAnalyticsManager(
@@ -179,7 +189,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             sqlBuilder,
             organisationUnitResolver,
             columnMapper,
-            filterBuilder);
+            filterBuilder,
+            stageQuerySqlFacade);
 
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
@@ -202,7 +213,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + "createdbydisplayname"
             + ","
             + "lastupdatedbydisplayname"
-            + ",lastupdated,scheduleddate,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,ST_AsGeoJSON(coalesce(enrollmentgeometry), 6) as enrollmentgeometry,"
+            + ",lastupdated,scheduleddate,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,ST_AsGeoJSON(coalesce(ax.enrollmentgeometry), 6) as enrollmentgeometry,"
             + "longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,eventstatus,ax.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
             + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
@@ -264,7 +275,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + ","
             + "lastupdatedbydisplayname"
             + ",lastupdated,scheduleddate,enrollmentdate,"
-            + "enrollmentoccurreddate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,ST_AsGeoJSON(coalesce(enrollmentgeometry), 6) as enrollmentgeometry,longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,"
+            + "enrollmentoccurreddate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,ST_AsGeoJSON(coalesce(ax.enrollmentgeometry), 6) as enrollmentgeometry,longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,"
             + "eventstatus,ax.\"quarterly\",ax.\"ou\",\""
             + dataElement.getUid()
             + "_name"
@@ -750,6 +761,43 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + "\" is not null)";
 
     assertThat(sql.getValue(), containsString(expectedFirstOrLastSubquery));
+  }
+
+  @Test
+  void verifyGetAggregatedEventDataRendersTimestampForDateQueryItem() {
+    // Given: a QueryItem with DATE value type
+    DataElement dateElement = createDataElement('D');
+    dateElement.setUid("dateElement1");
+    dateElement.setValueType(ValueType.DATE);
+
+    QueryItem dateQueryItem =
+        new QueryItem(dateElement, programA, null, ValueType.DATE, AggregationType.NONE, null);
+    dateQueryItem.setProgramStage(programStage);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withPeriods(createPeriodDimensions("2000Q1"), "quarterly")
+            .withOrganisationUnits(List.of(createOrganisationUnit('A')))
+            .withProgram(programA)
+            .withProgramStage(programStage)
+            .withTableName(getTable(programA.getUid()))
+            .addItem(dateQueryItem)
+            .build();
+
+    // Mock row set with a date value
+    when(rowSet.next()).thenReturn(true).thenReturn(false);
+    when(rowSet.getString("dateElement1")).thenReturn("2024-01-15");
+    when(rowSet.getString("quarterly")).thenReturn("2024Q1");
+    when(rowSet.getString("ou")).thenReturn("OrgUnit");
+    when(rowSet.getInt("value")).thenReturn(1);
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
+    // When
+    subject.getAggregatedEventData(params, createGrid(), 200000);
+
+    // Then: verify renderTimestamp was called for the date value
+    verify(sqlBuilder).renderTimestamp("2024-01-15");
   }
 
   private EventQueryParams createRequestParamsWithFilter(ValueType queryItemValueType) {

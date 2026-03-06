@@ -51,6 +51,11 @@ public interface SqlBuilder {
    */
   Database getDatabase();
 
+  /**
+   * @return true if database supports high performance queries.
+   */
+  boolean isHighPerformance();
+
   // Data types
 
   /**

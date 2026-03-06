@@ -26,7 +26,7 @@
 #
 ---
   name: data_elements_aggregate_no_groups
-  description: Aggregate data elements not in any data element groups.
+  description: Aggregate data elements not in any data element groups
   section: Data elements (aggregate)
   section_order: 4
   summary_sql: >-

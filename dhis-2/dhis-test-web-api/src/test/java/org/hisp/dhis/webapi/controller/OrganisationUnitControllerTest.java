@@ -33,6 +33,7 @@ import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import org.hisp.dhis.http.HttpStatus;
@@ -225,9 +226,12 @@ class OrganisationUnitControllerTest extends PostgresControllerIntegrationTestBa
 
   @Test
   void testGetAllOrganisationUnitsByLevel() {
-    assertEquals(
+    JsonObject response =
+        GET("/organisationUnits?levelSorted=true&fields=id,displayName,level").content();
+    assertContainsOnly(
         List.of("L0", "L1x", "L1", "L2x", "L22", "L21", "L3x", "L31", "L32"),
-        toOrganisationUnitNames(GET("/organisationUnits?levelSorted=true").content()));
+        toOrganisationUnitNames(response));
+    assertTrue(isNonDecreasing(toOrganisationUnitLevels(response)));
   }
 
   @Test
@@ -290,5 +294,22 @@ class OrganisationUnitControllerTest extends PostgresControllerIntegrationTestBa
   private void assertListOfOrganisationUnits(JsonObject response, String... names) {
     assertContainsOnly(List.of(names), toOrganisationUnitNames(response));
     assertEquals(names.length, response.getObject("pager").getNumber("total").intValue());
+  }
+
+  private List<Integer> toOrganisationUnitLevels(JsonObject response) {
+    return response
+        .getList("organisationUnits", JsonObject.class)
+        .toList(ou -> ou.getNumber("level").intValue());
+  }
+
+  private boolean isNonDecreasing(List<Integer> values) {
+    int prev = Integer.MIN_VALUE;
+    for (int value : values) {
+      if (value < prev) {
+        return false;
+      }
+      prev = value;
+    }
+    return true;
   }
 }

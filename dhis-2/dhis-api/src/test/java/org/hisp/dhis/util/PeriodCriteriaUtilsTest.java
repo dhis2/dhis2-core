@@ -42,6 +42,8 @@ import java.util.Set;
 import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /** Unit tests for {@link PeriodCriteriaUtils}. */
 class PeriodCriteriaUtilsTest {
@@ -301,6 +303,43 @@ class PeriodCriteriaUtilsTest {
   }
 
   @Test
+  void testHasPeriodEvent_whenDimensionContainsEnrollmentDate() {
+    EventsAnalyticsQueryCriteria c = getDefaultEventsAnalyticsQueryCriteria();
+    c.getDimension().add("ENROLLMENT_DATE:2021");
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @Test
+  void testHasPeriodEvent_whenDimensionContainsIncidentDate() {
+    EventsAnalyticsQueryCriteria c = getDefaultEventsAnalyticsQueryCriteria();
+    c.getDimension().add("INCIDENT_DATE:THIS_YEAR");
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @Test
+  void testHasPeriodEvent_whenFilterContainsEnrollmentDate() {
+    EventsAnalyticsQueryCriteria c = getDefaultEventsAnalyticsQueryCriteria();
+    Set<String> filters = new HashSet<>();
+    filters.add("ENROLLMENT_DATE:2021");
+    c.setFilter(filters);
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @Test
+  void testHasPeriodEnrollment_whenDimensionContainsEnrollmentDateDim() {
+    EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
+    c.getDimension().add("ENROLLMENT_DATE:2021");
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @Test
+  void testHasPeriodEnrollment_whenDimensionContainsIncidentDateDim() {
+    EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
+    c.getDimension().add("INCIDENT_DATE:LAST_12_MONTHS");
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @Test
   void testHasPeriodEvent_whenDimensionContainsStageDotEventDate() {
     EventsAnalyticsQueryCriteria c = getDefaultEventsAnalyticsQueryCriteria();
     c.getDimension().add("ZkbAXlQUYJG.EVENT_DATE:THIS_YEAR");
@@ -330,6 +369,49 @@ class PeriodCriteriaUtilsTest {
     filters.add("A03MvHHogjR.SCHEDULED_DATE:201910");
     c.setFilter(filters);
     assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {"ENROLLMENT_DATE", "INCIDENT_DATE", "LAST_UPDATED", "CREATED", "COMPLETED"})
+  void testHasPeriodEvent_whenDimensionContainsStaticDateDimension(String staticDim) {
+    EventsAnalyticsQueryCriteria c = getDefaultEventsAnalyticsQueryCriteria();
+    c.getDimension().add(staticDim + ":THIS_YEAR");
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {"ENROLLMENT_DATE", "INCIDENT_DATE", "LAST_UPDATED", "CREATED", "COMPLETED"})
+  void testHasPeriodEvent_whenFilterContainsStaticDateDimension(String staticDim) {
+    EventsAnalyticsQueryCriteria c = getDefaultEventsAnalyticsQueryCriteria();
+    c.getFilter().add(staticDim + ":THIS_YEAR");
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {"ENROLLMENT_DATE", "INCIDENT_DATE", "LAST_UPDATED", "CREATED", "COMPLETED"})
+  void testHasPeriodEnrollment_whenDimensionContainsStaticDateDimension(String staticDim) {
+    EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
+    c.getDimension().add(staticDim + ":THIS_YEAR");
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+      strings = {"ENROLLMENT_DATE", "INCIDENT_DATE", "LAST_UPDATED", "CREATED", "COMPLETED"})
+  void testHasPeriodEnrollment_whenFilterContainsStaticDateDimension(String staticDim) {
+    EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
+    c.getFilter().add(staticDim + ":THIS_YEAR");
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @Test
+  void testHasPeriodEvent_whenDimensionContainsOldStaticDateDimension_returnsFalse() {
+    EventsAnalyticsQueryCriteria c = getDefaultEventsAnalyticsQueryCriteria();
+    c.getDimension().add("CREATED_DATE:THIS_YEAR");
+    assertFalse(PeriodCriteriaUtils.hasPeriod(c));
   }
 
   private EventsAnalyticsQueryCriteria configureEventsAnalyticsQueryCriteriaWithPeriod(

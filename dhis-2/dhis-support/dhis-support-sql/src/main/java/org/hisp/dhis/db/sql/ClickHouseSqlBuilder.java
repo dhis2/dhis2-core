@@ -66,6 +66,11 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
     return Database.CLICKHOUSE;
   }
 
+  @Override
+  public boolean isHighPerformance() {
+    return true;
+  }
+
   // Data types
 
   @Override

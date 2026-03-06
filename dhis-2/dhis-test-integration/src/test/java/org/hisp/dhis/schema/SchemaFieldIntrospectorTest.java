@@ -53,28 +53,28 @@ class SchemaFieldIntrospectorTest extends PostgresIntegrationTestBase {
 
   @Test
   void testMethodScan() {
-    Schema schema = schemaService.getDynamicSchema(SimpleWithMethods.class);
+    Schema schema = schemaService.getSchema(SimpleWithMethods.class);
     assertNotNull(schema.getProperty("x"));
     assertNotNull(schema.getProperty("y"));
   }
 
   @Test
   void testFieldScan() {
-    Schema schema = schemaService.getDynamicSchema(SimpleWithFields.class);
+    Schema schema = schemaService.getSchema(SimpleWithFields.class);
     assertNotNull(schema.getProperty("x"));
     assertNotNull(schema.getProperty("y"));
   }
 
   @Test
   void testFieldMethodScan() {
-    Schema schema = schemaService.getDynamicSchema(SimpleWithFieldAndMethod.class);
+    Schema schema = schemaService.getSchema(SimpleWithFieldAndMethod.class);
     assertNotNull(schema.getProperty("x"));
     assertNotNull(schema.getProperty("y"));
   }
 
   @Test
   void testNamespaces() {
-    Schema schema = schemaService.getDynamicSchema(SimpleWithFieldAndMethodWithNamespace.class);
+    Schema schema = schemaService.getSchema(SimpleWithFieldAndMethodWithNamespace.class);
     assertEquals("simple", schema.getName());
     assertEquals("https://simple.com", schema.getNamespace());
     assertNotNull(schema.getProperty("x"));

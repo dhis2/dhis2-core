@@ -26,7 +26,7 @@
 #
 ---
 name: category_options_shared_within_category_combo
-description:  Category combinations with categories which share the same category options.
+description:  Category combinations with categories with identical category options
 section: Categories
 section_order: 7
 summary_sql: >-

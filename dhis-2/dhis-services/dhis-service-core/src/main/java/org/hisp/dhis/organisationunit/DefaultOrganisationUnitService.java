@@ -107,7 +107,6 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   @Transactional
   public long addOrganisationUnit(OrganisationUnit organisationUnit) {
     organisationUnitStore.save(organisationUnit);
-    // TODO: MAS: This is only used in tests and should be moved to a test util class
     return organisationUnit.getId();
   }
 

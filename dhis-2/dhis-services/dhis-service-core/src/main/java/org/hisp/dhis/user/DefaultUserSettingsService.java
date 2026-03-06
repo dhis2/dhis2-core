@@ -32,6 +32,7 @@ package org.hisp.dhis.user;
 import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -137,15 +138,13 @@ public class DefaultUserSettingsService implements UserSettingsService, UserSess
   public void putAll(@Nonnull Map<String, String> settings, @Nonnull String username)
       throws NotFoundException, BadRequestException, ConflictException {
     if (settings.isEmpty()) return;
-    validateAll(settings);
-
     User user = userStore.getUserByUsername(username);
     if (user == null)
       throw new ConflictException(
           "%s with username %s could not be found."
               .formatted(User.class.getSimpleName(), username));
     Set<String> deletes = new HashSet<>();
-    for (Map.Entry<String, String> e : settings.entrySet()) {
+    for (Map.Entry<String, String> e : validateAll(settings).entrySet()) {
       String key = e.getKey();
       String value = e.getValue();
       if (value == null || value.isEmpty()) {
@@ -158,7 +157,8 @@ public class DefaultUserSettingsService implements UserSettingsService, UserSess
     updateSession(username);
   }
 
-  private void validateAll(@Nonnull Map<String, String> settings)
+  @Nonnull
+  private Map<String, String> validateAll(@Nonnull Map<String, String> settings)
       throws NotFoundException, BadRequestException {
     Set<String> allowed = UserSettings.keysWithDefaults();
     List<String> illegal =
@@ -166,11 +166,16 @@ public class DefaultUserSettingsService implements UserSettingsService, UserSess
     if (!illegal.isEmpty())
       throw new NotFoundException("Setting does not exist: " + String.join(",", illegal));
     UserSettings empty = UserSettings.of(Map.of());
+    Map<String, String> formatted = new HashMap<>(settings.size());
     for (Map.Entry<String, String> e : settings.entrySet()) {
-      if (!empty.isValid(e.getKey(), e.getValue()))
+      try {
+        formatted.put(e.getKey(), empty.format(e.getKey(), e.getValue()));
+      } catch (IllegalArgumentException ex) {
         throw new BadRequestException(
             "Not a valid value for setting %s: %s".formatted(e.getKey(), e.getValue()));
+      }
     }
+    return formatted;
   }
 
   @Override

@@ -36,10 +36,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
@@ -288,9 +288,9 @@ class IndicatorServiceTest extends PostgresIntegrationTestBase {
     String denominatorTranslated = "Denominator description translated";
     Set<Translation> listObjectTranslation = new HashSet<>(indicatorA.getTranslations());
     listObjectTranslation.add(
-        new Translation(locale.getLanguage(), "NUMERATOR_DESCRIPTION", numeratorTranslated));
+        new Translation(locale.language(), "NUMERATOR_DESCRIPTION", numeratorTranslated));
     listObjectTranslation.add(
-        new Translation(locale.getLanguage(), "DENOMINATOR_DESCRIPTION", denominatorTranslated));
+        new Translation(locale.language(), "DENOMINATOR_DESCRIPTION", denominatorTranslated));
     identifiableObjectManager.updateTranslations(indicatorA, listObjectTranslation);
     assertEquals(numeratorTranslated, indicatorA.getDisplayNumeratorDescription());
     assertEquals(denominatorTranslated, indicatorA.getDisplayDenominatorDescription());

@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static java.lang.String.format;
+import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.assertSmsResponse;
 import static org.hisp.dhis.webapi.controller.tracker.imports.SmsTestUtils.encodeSms;
@@ -283,8 +284,7 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
   }
 
   private Enrollment enrollment(TrackedEntity te) {
-    Enrollment enrollment = new Enrollment(program, te, te.getOrganisationUnit());
-    enrollment.setAutoFields();
+    Enrollment enrollment = createEnrollment(program, te, te.getOrganisationUnit());
     enrollment.setEnrollmentDate(new Date());
     enrollment.setOccurredDate(new Date());
     enrollment.setStatus(EnrollmentStatus.COMPLETED);

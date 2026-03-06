@@ -139,13 +139,13 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
     JsonPage page =
         GET(
                 "/tracker/trackedEntities?trackedEntities={uid},{uid}",
-                trackedEntity1.getUid(),
-                trackedEntity2.getUid())
+                trackedEntity1.getUID(),
+                trackedEntity2.getUID())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
     assertContainsOnly(
-        List.of(trackedEntity1.getUid().getValue(), trackedEntity2.getUid().getValue()),
+        List.of(trackedEntity1.getUID().getValue(), trackedEntity2.getUID().getValue()),
         page.getList("trackedEntities", JsonTrackedEntity.class)
             .toList(JsonTrackedEntity::getTrackedEntity));
 
@@ -160,8 +160,8 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
     JsonPage page =
         GET(
                 "/tracker/trackedEntities?trackedEntities={uid},{uid}&page=2&pageSize=1&totalPages=true",
-                trackedEntity1.getUid(),
-                trackedEntity2.getUid())
+                trackedEntity1.getUID(),
+                trackedEntity2.getUID())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -181,7 +181,7 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
         1,
         String.format(
             "http://localhost/api/tracker/trackedEntities?trackedEntities=%s,%s",
-            trackedEntity1.getUid(), trackedEntity2.getUid()));
+            trackedEntity1.getUID(), trackedEntity2.getUID()));
     assertHasNoMember(pager, "nextPage");
   }
 
@@ -210,7 +210,7 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
             .asA(JsonPage.class);
 
     assertContainsOnly(
-        List.of(enrollment1.getUid().getValue(), enrollment2.getUid().getValue()),
+        List.of(enrollment1.getUID().getValue(), enrollment2.getUID().getValue()),
         page.getList("enrollments", JsonEnrollment.class).toList(JsonEnrollment::getEnrollment));
 
     JsonPager pager = page.getPager();
@@ -232,8 +232,8 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
     JsonPager pager = page.getPager();
     assertEquals(2, pager.getPage());
     assertEquals(1, pager.getPageSize());
-    assertEquals(3, pager.getTotal());
-    assertEquals(3, pager.getPageCount());
+    assertEquals(4, pager.getTotal());
+    assertEquals(4, pager.getPageCount());
     assertPagerLink(
         pager.getPrevPage(),
         1,
@@ -267,13 +267,13 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
         GET(
                 "/tracker/events?program={programUid}&events={uid},{uid}",
                 program,
-                event1.getUid(),
-                event2.getUid())
+                event1.getUID(),
+                event2.getUID())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
     assertContainsOnly(
-        List.of(event1.getUid().getValue(), event2.getUid().getValue()),
+        List.of(event1.getUID().getValue(), event2.getUID().getValue()),
         page.getList("events", JsonEvent.class).toList(JsonEvent::getEvent));
 
     JsonPager pager = page.getPager();
@@ -287,8 +287,8 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
     JsonPage page =
         GET(
                 "/tracker/events?events={uid},{uid}&program={programUid}&page=1&pageSize=1&totalPages=true",
-                event1.getUid(),
-                event2.getUid(),
+                event1.getUID(),
+                event2.getUID(),
                 program)
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
@@ -306,7 +306,7 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
         2,
         1,
         String.format(
-            "http://localhost/api/tracker/events?events=%s,%s", event1.getUid(), event2.getUid()));
+            "http://localhost/api/tracker/events?events=%s,%s", event1.getUID(), event2.getUID()));
   }
 
   @Test
@@ -327,7 +327,7 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
   @Test
   void shouldGetPaginatedRelationshipsWithDefaults() {
     JsonPage page =
-        GET("/tracker/relationships?event={uid}", event1.getUid())
+        GET("/tracker/relationships?event={uid}", event1.getUID())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -345,7 +345,7 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
   @Test
   void shouldGetPaginatedRelationshipsWithPagingSetToTrue() {
     JsonPage page =
-        GET("/tracker/relationships?event={uid}&paging=true", event1.getUid())
+        GET("/tracker/relationships?event={uid}&paging=true", event1.getUID())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -366,7 +366,7 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
     JsonPage page =
         GET(
                 "/tracker/relationships?event={uid}&paging=true&page=2&pageSize=1&totalPages=true",
-                event1.getUid())
+                event1.getUID())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -384,14 +384,14 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
         pager.getPrevPage(),
         1,
         1,
-        String.format("http://localhost/api/tracker/relationships?event=%s", event1.getUid()));
+        String.format("http://localhost/api/tracker/relationships?event=%s", event1.getUID()));
     assertHasNoMember(pager, "nextPage");
   }
 
   @Test
   void shouldGetPaginatedRelationshipsWithNonDefaultsAndTotals() {
     JsonPage page =
-        GET("/tracker/relationships?event={uid}&page=2&pageSize=1&totalPages=true", event1.getUid())
+        GET("/tracker/relationships?event={uid}&page=2&pageSize=1&totalPages=true", event1.getUID())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -413,7 +413,7 @@ class ExportControllerPaginationTest extends PostgresControllerIntegrationTestBa
   @Test
   void shouldGetNonPaginatedItemsWithPagingSetToFalse() {
     JsonPage page =
-        GET("/tracker/relationships?event={uid}&paging=false", event1.getUid())
+        GET("/tracker/relationships?event={uid}&paging=false", event1.getUID())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 

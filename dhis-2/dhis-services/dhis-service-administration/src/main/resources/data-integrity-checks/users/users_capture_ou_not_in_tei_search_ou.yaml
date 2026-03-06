@@ -26,7 +26,7 @@
 #
 ---
 name: users_capture_ou_not_in_tei_search_ou
-description: Users who have a data capture organisation unit which is not within their tracked entity search organisation unit hierarchy.
+description: Users which have a data capture organisation unit which is not within their tracked entity search organisation unit hierarchy
 section: Users
 section_order: 2
 summary_sql: >-

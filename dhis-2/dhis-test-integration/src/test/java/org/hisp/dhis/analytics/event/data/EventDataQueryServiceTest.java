@@ -155,7 +155,7 @@ class EventDataQueryServiceTest extends PostgresIntegrationTestBase {
     atB = createTrackedEntityAttribute('B');
     attributeService.addTrackedEntityAttribute(atA);
     attributeService.addTrackedEntityAttribute(atB);
-    prA = createProgram('A', null, Sets.newHashSet(atA, atB), Sets.newHashSet(ouA, ouB), null);
+    prA = createProgram('A', null, Sets.newHashSet(atA, atB), Sets.newHashSet(ouA, ouB));
     programService.addProgram(prA);
     psA = createProgramStage('A', 0);
     psA.addDataElement(deA, 0);

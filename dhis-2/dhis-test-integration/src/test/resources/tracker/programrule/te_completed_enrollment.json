@@ -74,7 +74,8 @@
       "events": [],
       "relationships": [],
       "attributes": [],
-      "notes": []
+      "notes": [],
+      "attributeOptionCombo": {}
     }
   ],
   "events": [],

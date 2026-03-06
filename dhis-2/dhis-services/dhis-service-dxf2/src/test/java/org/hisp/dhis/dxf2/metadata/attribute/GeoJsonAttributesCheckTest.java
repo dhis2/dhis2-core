@@ -86,7 +86,7 @@ class GeoJsonAttributesCheckTest {
     schema.getPropertyMap().put("attributeValues", property);
     SchemaService schemaService = Mockito.mock(SchemaService.class);
 
-    when(schemaService.getDynamicSchema(OrganisationUnit.class)).thenReturn(schema);
+    when(schemaService.getSchema(OrganisationUnit.class)).thenReturn(schema);
     when(validationContext.getSchemaService()).thenReturn(schemaService);
 
     Preheat preheat = Mockito.mock(Preheat.class);
@@ -166,7 +166,7 @@ class GeoJsonAttributesCheckTest {
         objectReportList::add);
 
     assertFalse(CollectionUtils.isEmpty(objectReportList));
-    assertEquals(ErrorCode.E6004, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
+    assertEquals(ErrorCode.E6005, objectReportList.get(0).getErrorReports().get(0).getErrorCode());
   }
 
   @Test

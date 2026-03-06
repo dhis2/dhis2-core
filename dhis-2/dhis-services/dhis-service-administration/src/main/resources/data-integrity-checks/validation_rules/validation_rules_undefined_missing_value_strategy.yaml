@@ -26,7 +26,7 @@
 #
 ---
 name: validation_rules_missing_value_strategy_null
-description: All validation rule expressions should have a missing value strategy.
+description: Validation rule expressions without missing value strategies
 section: Validation rules
 section_order: 1
 summary_sql: >-

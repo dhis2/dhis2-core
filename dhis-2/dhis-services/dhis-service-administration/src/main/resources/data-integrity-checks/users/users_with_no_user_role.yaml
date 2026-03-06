@@ -26,25 +26,25 @@
 #
 ---
 name: users_with_no_user_role
-description: Users who have no user role assigned.
+description: Users without user roles
 section: Users
 section_order: 3
 summary_sql: >-
-  SELECT COUNT(*) as value,
+    SELECT COUNT(*) as value,
     100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM userinfo), 0) as percent
     FROM userinfo
     WHERE userinfoid NOT IN (SELECT DISTINCT userid FROM userrolemembers);
 details_sql: >
-  SELECT uid, 
-  username as name,
-  'disabled:' || disabled as comment
-  from userinfo
-  WHERE userinfoid NOT IN (SELECT DISTINCT userid FROM userrolemembers);
+    SELECT uid, 
+    username as name,
+    'disabled:' || disabled as comment
+    from userinfo
+    WHERE userinfoid NOT IN (SELECT DISTINCT userid FROM userrolemembers);
 details_id_type: users
 severity: SEVERE
 introduction: >
-  All users should have at least one use role associated with their account. If a user does not have a role, 
-  they will not be able to perform any actions in the system.
+    All users should have at least one use role associated with their account. If a user does not have a role, 
+    they will not be able to perform any actions in the system.
 recommendation: >
-  Using the list of users provided by the details query, either assign a user role or roles to the user
-  or alternatively, delete the user if they are no longer active in the system.
+    Using the list of users provided by the details query, either assign a user role or roles to the user
+    or alternatively, delete the user if they are no longer active in the system.

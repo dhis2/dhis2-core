@@ -94,6 +94,8 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   private String enrollmentLabel;
 
+  private String enrollmentsLabel;
+
   private String followUpLabel;
 
   private String orgUnitLabel;
@@ -106,7 +108,11 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   private String programStageLabel;
 
+  private String programStagesLabel;
+
   private String eventLabel;
+
+  private String eventsLabel;
 
   private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
@@ -144,8 +150,11 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   private ObjectStyle style;
 
-  /** The CategoryCombo used for data attributes. */
+  /** The CategoryCombo used for tracker and single events. */
   private CategoryCombo categoryCombo;
+
+  /** The CategoryCombo used for enrollments. */
+  private CategoryCombo enrollmentCategoryCombo;
 
   /** Property indicating whether offline storage is enabled for this program or not */
   private boolean skipOffline;
@@ -312,21 +321,27 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   /**
    * Returns non-confidential TrackedEntityAttributes from ProgramTrackedEntityAttributes. Use
-   * getAttributes() to access the persisted attribute list.
+   * getAttributes() to access the persisted attribute list. Skipped attributes are also considered
+   * confidential.
    */
   public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributes() {
     return getTrackedEntityAttributes().stream()
-        .filter(a -> !a.isConfidentialBool())
+        .filter(a -> !a.isConfidentialBool() && !a.isSkipAnalytics())
         .collect(Collectors.toList());
   }
 
   /**
    * Returns TrackedEntityAttributes from ProgramTrackedEntityAttributes which have a legend set and
-   * is of numeric value type.
+   * is of numeric value type. Skipped attributes are also considered confidential.
    */
   public List<TrackedEntityAttribute> getNonConfidentialTrackedEntityAttributesWithLegendSet() {
     return getTrackedEntityAttributes().stream()
-        .filter(a -> !a.isConfidentialBool() && a.hasLegendSet() && a.isNumericType())
+        .filter(
+            a ->
+                !a.isConfidentialBool()
+                    && !a.isSkipAnalytics()
+                    && a.hasLegendSet()
+                    && a.isNumericType())
         .collect(Collectors.toList());
   }
 
@@ -490,6 +505,24 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @PropertyRange(min = 2)
+  public String getEnrollmentsLabel() {
+    return enrollmentsLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "enrollmentsLabel", key = "ENROLLMENTS_LABEL")
+  public String getDisplayEnrollmentsLabel() {
+    return getTranslation("ENROLLMENTS_LABEL", getEnrollmentsLabel());
+  }
+
+  public void setEnrollmentsLabel(String enrollmentsLabel) {
+    this.enrollmentsLabel = enrollmentsLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
   public String getFollowUpLabel() {
     return followUpLabel;
   }
@@ -600,6 +633,24 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @PropertyRange(min = 2)
+  public String getProgramStagesLabel() {
+    return programStagesLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "programStagesLabel", key = "PROGRAM_STAGES_LABEL")
+  public String getDisplayProgramStagesLabel() {
+    return getTranslation("PROGRAM_STAGES_LABEL", getProgramStagesLabel());
+  }
+
+  public void setProgramStagesLabel(String programStagesLabel) {
+    this.programStagesLabel = programStagesLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
   public String getEventLabel() {
     return eventLabel;
   }
@@ -613,6 +664,24 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
 
   public void setEventLabel(String eventLabel) {
     this.eventLabel = eventLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getEventsLabel() {
+    return eventsLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "eventsLabel", key = "EVENTS_LABEL")
+  public String getDisplayEventsLabel() {
+    return getTranslation("EVENTS_LABEL", getEventsLabel());
+  }
+
+  public void setEventsLabel(String eventsLabel) {
+    this.eventsLabel = eventsLabel;
   }
 
   @JsonProperty
@@ -804,6 +873,26 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
   }
 
   @JsonProperty
+  @JsonSerialize(as = IdentifiableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public CategoryCombo getEnrollmentCategoryCombo() {
+    return enrollmentCategoryCombo;
+  }
+
+  public void setEnrollmentCategoryCombo(CategoryCombo enrollmentCategoryCombo) {
+    this.enrollmentCategoryCombo = enrollmentCategoryCombo;
+  }
+
+  /**
+   * Indicates whether this program has an enrollment category combination which is different from
+   * the default category combination.
+   */
+  public boolean hasNonDefaultEnrollmentCategoryCombo() {
+    return enrollmentCategoryCombo != null
+        && !CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME.equals(enrollmentCategoryCombo.getName());
+  }
+
+  @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public boolean isSkipOffline() {
     return skipOffline;
@@ -983,6 +1072,7 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
     copy.setAccessLevel(original.getAccessLevel());
     copy.setProgramAttributes(new ArrayList<>());
     copy.setCategoryCombo(original.getCategoryCombo());
+    copy.setEnrollmentCategoryCombo(original.getEnrollmentCategoryCombo());
     copy.setCategoryMappings(copyOf(original.getCategoryMappings()));
     copy.setCompleteEventsExpiryDays(original.getCompleteEventsExpiryDays());
     copy.setDataEntryForm(original.getDataEntryForm());
@@ -1016,12 +1106,15 @@ public class Program extends BaseNameableObject implements VersionedObject, Meta
     copy.setUseFirstStageDuringRegistration(original.getUseFirstStageDuringRegistration());
     copy.setUserRoles(copyOf(original.getUserRoles()));
     copy.setEnrollmentLabel(original.getEnrollmentLabel());
+    copy.setEnrollmentsLabel(original.getEnrollmentsLabel());
     copy.setNoteLabel(original.getNoteLabel());
     copy.setFollowUpLabel(original.getFollowUpLabel());
     copy.setOrgUnitLabel(original.getOrgUnitLabel());
     copy.setTrackedEntityAttributeLabel(original.getTrackedEntityAttributeLabel());
     copy.setProgramStageLabel(original.getProgramStageLabel());
+    copy.setProgramStagesLabel(original.getProgramStagesLabel());
     copy.setEventLabel(original.getEventLabel());
+    copy.setEventsLabel(original.getEventsLabel());
     copy.setRelationshipLabel(original.getRelationshipLabel());
     copy.setEnableChangeLog(original.isEnableChangeLog());
   }

@@ -26,7 +26,7 @@
 #
 ---
 name: indicator_no_analysis
-description: Indicators not used in analytical objects.
+description: Indicators not used in any analytical objects
 section: Indicators
 section_order: 4
 summary_sql: >-

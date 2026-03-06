@@ -123,8 +123,7 @@ public abstract class AbstractHibernateListener {
    */
   protected Object createAuditEntry(PostDeleteEvent event) {
     Map<String, Object> objectMap = new HashMap<>();
-    Schema schema =
-        schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(event.getEntity()));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(event.getEntity()));
     Map<String, Property> properties = schema.getFieldNameMapProperties();
 
     for (int i = 0; i < event.getDeletedState().length; i++) {
@@ -169,7 +168,7 @@ public abstract class AbstractHibernateListener {
       Serializable id,
       EntityPersister persister) {
     Map<String, Object> objectMap = new HashMap<>();
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(entity));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(entity));
     Map<String, Property> properties = schema.getFieldNameMapProperties();
 
     HibernateProxy entityProxy = null;

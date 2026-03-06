@@ -47,6 +47,7 @@ import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -84,6 +85,7 @@ class CategoryOptionComboServiceTest extends PostgresIntegrationTestBase {
   private CategoryOptionCombo categoryOptionComboB;
 
   private CategoryOptionCombo categoryOptionComboC;
+  @Autowired private DbmsManager dbmsManager;
 
   @BeforeEach
   void setUp() {
@@ -240,6 +242,7 @@ class CategoryOptionComboServiceTest extends PostgresIntegrationTestBase {
     assertNotNull(categoryService.getCategoryOptionCombo(idA));
     assertNotNull(categoryService.getCategoryOptionCombo(idB));
     assertNotNull(categoryService.getCategoryOptionCombo(idC));
+    dbmsManager.clearSession();
     assertThrows(DeleteNotAllowedException.class, () -> categoryService.deleteCategory(categoryA));
   }
 

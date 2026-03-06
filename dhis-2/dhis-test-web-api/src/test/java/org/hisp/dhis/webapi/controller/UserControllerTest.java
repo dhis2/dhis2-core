@@ -47,6 +47,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1104,6 +1105,162 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("GET /users?ou={uid} returns only users in the current user's org unit")
+  void testGetUsersFilterByOrgUnit() {
+    OrganisationUnit orgA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(orgA);
+    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
+    organisationUnitService.addOrganisationUnit(orgB);
+
+    User alice = createUserWithAuth("alice");
+    alice.addOrganisationUnit(orgA);
+    userService.updateUser(alice);
+
+    User bob = createUserWithAuth("bob");
+    bob.addOrganisationUnit(orgB);
+    userService.updateUser(bob);
+
+    // Switch to a user whose org units are orgA (fresh security context)
+    User viewer = createUserWithAuth("viewer", "ALL");
+    viewer.addOrganisationUnit(orgA);
+    userService.updateUser(viewer);
+    switchToNewUser(viewer);
+
+    JsonList<JsonUser> users =
+        GET("/users?ou=" + orgA.getUid()).content(HttpStatus.OK).getList("users", JsonUser.class);
+
+    List<String> uids = users.stream().map(JsonUser::getId).toList();
+    assertTrue(uids.contains(alice.getUid()));
+    assertTrue(uids.contains(viewer.getUid()));
+    assertFalse(uids.contains(bob.getUid()));
+  }
+
+  @Test
+  @DisplayName("GET /users?ou={uid}&includeChildren=true returns users in org unit subtree")
+  void testGetUsersFilterByOrgUnitWithChildren() {
+    OrganisationUnit orgA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(orgA);
+    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
+    organisationUnitService.addOrganisationUnit(orgB);
+    OrganisationUnit orgC = createOrganisationUnit('C', orgB);
+    organisationUnitService.addOrganisationUnit(orgC);
+
+    User alice = createUserWithAuth("alice");
+    alice.addOrganisationUnit(orgA);
+    userService.updateUser(alice);
+
+    User bob = createUserWithAuth("bob");
+    bob.addOrganisationUnit(orgB);
+    userService.updateUser(bob);
+
+    User charlie = createUserWithAuth("charlie");
+    charlie.addOrganisationUnit(orgC);
+    userService.updateUser(charlie);
+
+    // Switch to a user whose org units are orgA (fresh security context)
+    User viewer = createUserWithAuth("viewer", "ALL");
+    viewer.addOrganisationUnit(orgA);
+    userService.updateUser(viewer);
+    switchToNewUser(viewer);
+
+    JsonList<JsonUser> users =
+        GET("/users?ou=" + orgA.getUid() + "&includeChildren=true")
+            .content(HttpStatus.OK)
+            .getList("users", JsonUser.class);
+
+    List<String> uids = users.stream().map(JsonUser::getId).toList();
+    assertTrue(uids.contains(alice.getUid()));
+    assertTrue(uids.contains(bob.getUid()));
+    assertTrue(uids.contains(charlie.getUid()));
+    assertTrue(uids.contains(viewer.getUid()));
+  }
+
+  @Test
+  @DisplayName("GET /users?query=alice returns only matching users by name/email/username")
+  void testGetUsersFilterByQuery() {
+    User alice = createUserWithAuth("alice");
+    createUserWithAuth("bob");
+
+    JsonList<JsonUser> users =
+        GET("/users?query=alice").content(HttpStatus.OK).getList("users", JsonUser.class);
+
+    assertEquals(1, users.size());
+    assertEquals(alice.getUid(), users.get(0).getId());
+  }
+
+  @Test
+  @DisplayName("GET /users?phoneNumber={value} returns only users with that phone number")
+  void testGetUsersFilterByPhoneNumber() {
+    User alice = createUserWithAuth("alice");
+    alice.setPhoneNumber("+1234567890");
+    userService.updateUser(alice);
+
+    User bob = createUserWithAuth("bob");
+    bob.setPhoneNumber("+0987654321");
+    userService.updateUser(bob);
+
+    JsonList<JsonUser> users =
+        GET("/users?phoneNumber=+1234567890")
+            .content(HttpStatus.OK)
+            .getList("users", JsonUser.class);
+
+    assertEquals(1, users.size());
+    assertEquals(alice.getUid(), users.get(0).getId());
+  }
+
+  @Test
+  @DisplayName("GET /users with disabled filter returns only disabled users")
+  void testGetUsersFilterByDisabled() {
+    User alice = createUserWithAuth("alice");
+    userService.updateUser(alice);
+
+    User bob = createUserWithAuth("bob");
+    bob.setDisabled(true);
+    userService.updateUser(bob);
+
+    JsonList<JsonUser> users =
+        GET("/users?filter=disabled:eq:true")
+            .content(HttpStatus.OK)
+            .getList("users", JsonUser.class);
+
+    assertEquals(1, users.size());
+    assertEquals(bob.getUid(), users.get(0).getId());
+  }
+
+  @Test
+  @DisplayName("GET /users?invitationStatus=EXPIRED returns only users with expired invitations")
+  void testGetUsersFilterByInvitationStatusExpired() {
+    // regular user (not an invitation)
+    createUserWithAuth("alice");
+
+    // invitation user with expired restore
+    User bob = createUserWithAuth("bob");
+    bob.setInvitation(true);
+    bob.setRestoreToken("fakeHashedToken");
+    Calendar cal = Calendar.getInstance();
+    cal.add(Calendar.DAY_OF_YEAR, -1);
+    bob.setRestoreExpiry(cal.getTime());
+    userService.updateUser(bob);
+
+    // invitation user with non-expired restore (still valid)
+    User carol = createUserWithAuth("carol");
+    carol.setInvitation(true);
+    carol.setRestoreToken("anotherToken");
+    cal = Calendar.getInstance();
+    cal.add(Calendar.DAY_OF_YEAR, 1);
+    carol.setRestoreExpiry(cal.getTime());
+    userService.updateUser(carol);
+
+    JsonList<JsonUser> users =
+        GET("/users?invitationStatus=EXPIRED")
+            .content(HttpStatus.OK)
+            .getList("users", JsonUser.class);
+
+    assertEquals(1, users.size());
+    assertEquals(bob.getUid(), users.get(0).getId());
+  }
+
+  @Test
   void testGetUserRoleUsersAreTransformed() {
     UserRole role = createUserRole('X');
     User user = makeUser("Y");
@@ -1120,5 +1277,72 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
     assertFalse(userInRole.has("email"), "email should not be exposed");
     assertEquals(user.getUid(), userInRole.getString("id").string());
+  }
+
+  @Test
+  @DisplayName(
+      "GET /users?filter=organisationUnits.id:in:[uid] returns only users in that org unit")
+  void testGetUsersFilterByOrgUnitMembership() {
+    OrganisationUnit orgA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(orgA);
+    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
+    organisationUnitService.addOrganisationUnit(orgB);
+
+    User alice = createUserWithAuth("alice");
+    alice.addOrganisationUnit(orgA);
+    userService.updateUser(alice);
+
+    User bob = createUserWithAuth("bob");
+    bob.addOrganisationUnit(orgB);
+    userService.updateUser(bob);
+
+    JsonList<JsonUser> users =
+        GET("/users?filter=organisationUnits.id:in:[" + orgB.getUid() + "]")
+            .content(HttpStatus.OK)
+            .getList("users", JsonUser.class);
+
+    List<String> uids = users.stream().map(JsonUser::getId).toList();
+    assertTrue(uids.contains(bob.getUid()), "bob (in orgB) should be returned");
+    assertFalse(uids.contains(alice.getUid()), "alice (in orgA only) should not be returned");
+  }
+
+  @Test
+  @DisplayName(
+      "GET /users?filter=organisationUnits.id:in:[uid]&userOrgUnits=true&includeChildren=true"
+          + " returns intersection of filter and subtree")
+  void testGetUsersFilterByOrgUnitMembershipWithChildren() {
+    OrganisationUnit orgA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(orgA);
+    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
+    organisationUnitService.addOrganisationUnit(orgB);
+
+    User alice = createUserWithAuth("alice");
+    alice.addOrganisationUnit(orgA);
+    userService.updateUser(alice);
+
+    User bob = createUserWithAuth("bob");
+    bob.addOrganisationUnit(orgB);
+    userService.updateUser(bob);
+
+    // viewer's org units = orgA → userOrgUnits=true&includeChildren=true covers orgA subtree
+    User viewer = createUserWithAuth("viewer", "ALL");
+    viewer.addOrganisationUnit(orgA);
+    userService.updateUser(viewer);
+    switchToNewUser(viewer);
+
+    // filter=organisationUnits.id:in:[orgB] AND userOrgUnits subtree (orgA+children)
+    // → only bob satisfies both (directly in orgB, which is under orgA)
+    JsonList<JsonUser> users =
+        GET("/users?filter=organisationUnits.id:in:["
+                + orgB.getUid()
+                + "]&userOrgUnits=true&includeChildren=true")
+            .content(HttpStatus.OK)
+            .getList("users", JsonUser.class);
+
+    List<String> uids = users.stream().map(JsonUser::getId).toList();
+    assertTrue(uids.contains(bob.getUid()), "bob (in orgB, subtree of orgA) should be returned");
+    assertFalse(uids.contains(alice.getUid()), "alice (in orgA, not orgB) should not be returned");
+    assertFalse(
+        uids.contains(viewer.getUid()), "viewer (in orgA, not orgB) should not be returned");
   }
 }

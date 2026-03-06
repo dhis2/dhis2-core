@@ -26,7 +26,7 @@
 #
 ---
 name: organisation_units_violating_exclusive_group_sets
-description: Organisation units which belong to multiple groups in a group set.
+description: Organisation units which belong to multiple groups in a group set
 section: Organisation units
 section_order: 10
 summary_sql: >-

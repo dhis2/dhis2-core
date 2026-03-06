@@ -79,6 +79,57 @@ class DateFilterHandlerTest {
   }
 
   @Test
+  void supports_withEnrollmentDateAndDateType_returnsTrue() {
+    QueryItem queryItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME));
+    queryItem.setValueType(ValueType.DATE);
+
+    assertTrue(handler.supports(queryItem));
+  }
+
+  @Test
+  void supports_withEnrollmentOccurredDateAndDateType_returnsTrue() {
+    QueryItem queryItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(
+                EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME));
+    queryItem.setValueType(ValueType.DATE);
+
+    assertTrue(handler.supports(queryItem));
+  }
+
+  @Test
+  void supports_withLastUpdatedAndDateType_returnsTrue() {
+    QueryItem queryItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME));
+    queryItem.setValueType(ValueType.DATE);
+
+    assertTrue(handler.supports(queryItem));
+  }
+
+  @Test
+  void supports_withCreatedDateAndDateType_returnsTrue() {
+    QueryItem queryItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME));
+    queryItem.setValueType(ValueType.DATE);
+
+    assertTrue(handler.supports(queryItem));
+  }
+
+  @Test
+  void supports_withCompletedDateAndDateType_returnsTrue() {
+    QueryItem queryItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME));
+    queryItem.setValueType(ValueType.DATE);
+
+    assertTrue(handler.supports(queryItem));
+  }
+
+  @Test
   void supports_withOtherItem_returnsFalse() {
     DataElement dataElement = createDataElement('A');
     QueryItem queryItem = new QueryItem(dataElement);
@@ -187,6 +238,138 @@ class DateFilterHandlerTest {
     assertThrows(
         IllegalQueryException.class,
         () -> handler.applyFilters(queryItem, filterParts, "EVENT_DATE:INVALID_VALUE", null));
+  }
+
+  @Test
+  void applyFilters_withIsoPeriod_storesDimensionValue() {
+    QueryItem queryItem = createDateQueryItem();
+    String[] filterParts = {"EVENT_DATE", "202205"};
+
+    handler.applyFilters(queryItem, filterParts, "EVENT_DATE:202205", null);
+
+    assertThat(queryItem.getDimensionValues(), hasSize(1));
+    assertThat(queryItem.getDimensionValues().get(0), is("202205"));
+  }
+
+  @Test
+  void applyFilters_withRelativePeriod_storesDimensionValues() {
+    QueryItem queryItem = createDateQueryItem();
+    String[] filterParts = {"EVENT_DATE", "THIS_MONTH"};
+
+    handler.applyFilters(queryItem, filterParts, "EVENT_DATE:THIS_MONTH", null);
+
+    assertThat(queryItem.getDimensionValues(), hasSize(1));
+    assertFalse(queryItem.getDimensionValues().isEmpty());
+  }
+
+  @Test
+  void applyFilters_withDateRange_doesNotStoreDimensionValue() {
+    QueryItem queryItem = createDateQueryItem();
+    String[] filterParts = {"EVENT_DATE", "2025-01-01_2025-01-31"};
+
+    handler.applyFilters(queryItem, filterParts, "EVENT_DATE:2025-01-01_2025-01-31", null);
+
+    assertThat(queryItem.getDimensionValues(), hasSize(0));
+  }
+
+  @Test
+  void applyFilters_withExplicitOperator_doesNotStoreDimensionValue() {
+    QueryItem queryItem = createDateQueryItem();
+    String[] filterParts = {"EVENT_DATE", "GT:2025-01-01"};
+
+    handler.applyFilters(queryItem, filterParts, "EVENT_DATE:GT:2025-01-01", null);
+
+    assertThat(queryItem.getDimensionValues(), hasSize(0));
+  }
+
+  @Test
+  void applyFilters_withSemicolonSeparatedRelativePeriods_addsGEAndLEFilters() {
+    QueryItem queryItem = createDateQueryItem();
+    String[] filterParts = {"EVENT_DATE", "THIS_YEAR;LAST_YEAR"};
+
+    handler.applyFilters(queryItem, filterParts, "EVENT_DATE:THIS_YEAR;LAST_YEAR", null);
+
+    List<QueryFilter> filters = queryItem.getFilters();
+    assertThat(filters, hasSize(2));
+    assertThat(filters.get(0).getOperator(), is(QueryOperator.GE));
+    assertThat(filters.get(1).getOperator(), is(QueryOperator.LE));
+    // LAST_YEAR start should be earlier than THIS_YEAR start
+    // The GE filter should use the earliest start date (LAST_YEAR start)
+    // The LE filter should use the latest end date (THIS_YEAR end)
+  }
+
+  @Test
+  void applyFilters_withSemicolonSeparatedIsoPeriods_addsGEAndLEFilters() {
+    QueryItem queryItem = createDateQueryItem();
+    String[] filterParts = {"EVENT_DATE", "2025Q1;2025Q2"};
+
+    handler.applyFilters(queryItem, filterParts, "EVENT_DATE:2025Q1;2025Q2", null);
+
+    List<QueryFilter> filters = queryItem.getFilters();
+    assertThat(filters, hasSize(2));
+    assertThat(filters.get(0).getOperator(), is(QueryOperator.GE));
+    assertThat(filters.get(0).getFilter(), is("2025-01-01"));
+    assertThat(filters.get(1).getOperator(), is(QueryOperator.LE));
+    assertThat(filters.get(1).getFilter(), is("2025-06-30"));
+  }
+
+  @Test
+  void applyFilters_withSemicolonSeparatedRelativePeriods_storesDimensionValues() {
+    QueryItem queryItem = createDateQueryItem();
+    String[] filterParts = {"EVENT_DATE", "THIS_YEAR;LAST_YEAR"};
+
+    handler.applyFilters(queryItem, filterParts, "EVENT_DATE:THIS_YEAR;LAST_YEAR", null);
+
+    // Should store dimension values from both relative periods
+    assertThat(queryItem.getDimensionValues().size(), is(2));
+  }
+
+  @Test
+  void applyFilters_withSemicolonSeparatedMixedPeriods_addsGEAndLEFilters() {
+    QueryItem queryItem = createDateQueryItem();
+    String[] filterParts = {"EVENT_DATE", "2025Q1;2025Q3"};
+
+    handler.applyFilters(queryItem, filterParts, "EVENT_DATE:2025Q1;2025Q3", null);
+
+    List<QueryFilter> filters = queryItem.getFilters();
+    assertThat(filters, hasSize(2));
+    assertThat(filters.get(0).getOperator(), is(QueryOperator.GE));
+    assertThat(filters.get(0).getFilter(), is("2025-01-01"));
+    assertThat(filters.get(1).getOperator(), is(QueryOperator.LE));
+    assertThat(filters.get(1).getFilter(), is("2025-09-30"));
+  }
+
+  @Test
+  void applyFilters_withSemicolonSeparatedDateRanges_mergesEarliestStartAndLatestEnd() {
+    QueryItem queryItem = createDateQueryItem();
+    String[] filterParts = {"EVENT_DATE", "2025-03-01_2025-03-31;2025-01-01_2025-01-31"};
+
+    handler.applyFilters(
+        queryItem, filterParts, "EVENT_DATE:2025-03-01_2025-03-31;2025-01-01_2025-01-31", null);
+
+    List<QueryFilter> filters = queryItem.getFilters();
+    assertThat(filters, hasSize(2));
+    assertThat(filters.get(0).getOperator(), is(QueryOperator.GE));
+    assertThat(filters.get(0).getFilter(), is("2025-01-01"));
+    assertThat(filters.get(1).getOperator(), is(QueryOperator.LE));
+    assertThat(filters.get(1).getFilter(), is("2025-03-31"));
+    assertThat(queryItem.getDimensionValues(), hasSize(0));
+  }
+
+  @Test
+  void applyFilters_withSemicolonSeparatedFiltersWithSpaces_trimsAndParsesAllParts() {
+    QueryItem queryItem = createDateQueryItem();
+    String[] filterParts = {"EVENT_DATE", " 2025Q1 ; 2025Q2 "};
+
+    handler.applyFilters(queryItem, filterParts, "EVENT_DATE: 2025Q1 ; 2025Q2 ", null);
+
+    List<QueryFilter> filters = queryItem.getFilters();
+    assertThat(filters, hasSize(2));
+    assertThat(filters.get(0).getOperator(), is(QueryOperator.GE));
+    assertThat(filters.get(0).getFilter(), is("2025-01-01"));
+    assertThat(filters.get(1).getOperator(), is(QueryOperator.LE));
+    assertThat(filters.get(1).getFilter(), is("2025-06-30"));
+    assertThat(queryItem.getDimensionValues(), hasSize(2));
   }
 
   private QueryItem createDateQueryItem() {

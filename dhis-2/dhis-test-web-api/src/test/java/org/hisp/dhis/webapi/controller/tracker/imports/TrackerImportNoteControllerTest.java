@@ -106,7 +106,7 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
     te.setTrackedEntityType(trackedEntityType);
     manager.save(te);
 
-    enrollment = enrollment(te, program, orgUnit);
+    enrollment = enrollment(te, program, orgUnit, coc);
     event = event(enrollment, programStage, coc);
     enrollment.setEvents(Set.of(event));
     manager.update(enrollment);
@@ -240,13 +240,15 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
     return eventA;
   }
 
-  private Enrollment enrollment(TrackedEntity te, Program program, OrganisationUnit orgUnit) {
+  private Enrollment enrollment(
+      TrackedEntity te, Program program, OrganisationUnit orgUnit, CategoryOptionCombo coc) {
     Enrollment enrollmentA = new Enrollment(program, te, orgUnit);
     enrollmentA.setAutoFields();
     enrollmentA.setEnrollmentDate(new Date());
     enrollmentA.setOccurredDate(new Date());
     enrollmentA.setStatus(EnrollmentStatus.COMPLETED);
     enrollmentA.setFollowup(true);
+    enrollmentA.setAttributeOptionCombo(coc);
     manager.save(enrollmentA, false);
     te.setEnrollments(Set.of(enrollmentA));
     manager.save(te, false);

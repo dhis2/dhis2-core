@@ -33,7 +33,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.junit.jupiter.api.Test;
@@ -99,20 +98,14 @@ class DataIntegrityProgramRulesInconsistentlyLinkedControllerTest
 
   public void setUpTest() {
 
-    programA = new Program();
-    programA.setAutoFields();
+    programA = createProgramWithoutRegistration('A');
     programA.setName("Program A");
     programA.setShortName("Program A");
-    programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);
-    programA.setCategoryCombo(categoryService.getCategoryCombo(getDefaultCatCombo()));
     programService.addProgram(programA);
 
-    programB = new Program();
-    programB.setAutoFields();
+    programB = createProgramWithoutRegistration('B');
     programB.setName("Program B");
     programB.setShortName("Program B");
-    programB.setProgramType(ProgramType.WITHOUT_REGISTRATION);
-    programB.setCategoryCombo(categoryService.getCategoryCombo(getDefaultCatCombo()));
     programService.addProgram(programB);
 
     programStageA = new ProgramStage();

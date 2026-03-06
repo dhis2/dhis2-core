@@ -61,7 +61,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -83,6 +82,7 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.PasswordGenerator;
 import org.hisp.dhis.common.UID;
@@ -381,12 +381,9 @@ public class DefaultUserService implements UserService {
     return userStore.getUserCount();
   }
 
-  /**
-   * Handles the user query parameters by setting defaults and processing specific fields.
-   *
-   * @param params the {@link UserQueryParams}.
-   */
-  private void handleUserQueryParams(UserQueryParams params) {
+  @Override
+  @Transactional(readOnly = true)
+  public void handleUserQueryParams(UserQueryParams params) {
     boolean canSeeOwnRoles =
         params.isCanSeeOwnRoles()
             || settingsProvider.getCurrentSettings().getCanGrantOwnUserRoles();
@@ -503,7 +500,6 @@ public class DefaultUserService implements UserService {
     return canAddOrUpdateUser(userGroups, CurrentUserUtil.getCurrentUserDetails());
   }
 
-  // TODO: MAS refactor to use user details instead of user
   @Override
   @Transactional(readOnly = true)
   public boolean canAddOrUpdateUser(Collection<String> userGroups, UserDetails currentUser) {

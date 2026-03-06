@@ -172,9 +172,11 @@ class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
     enrollmentA = new Enrollment(enrollmentDate, incidenDate, trackedEntityA, programA);
     enrollmentA.setUid("UID-PIA");
     enrollmentA.setOrganisationUnit(organisationUnitA);
+    enrollmentA.setAttributeOptionCombo(coA);
     manager.save(enrollmentA);
     enrollmentB = new Enrollment(enrollmentDate, incidenDate, trackedEntityB, programB);
     enrollmentB.setOrganisationUnit(organisationUnitB);
+    enrollmentB.setAttributeOptionCombo(coA);
     manager.save(enrollmentB);
     TrackerEvent eventA = new TrackerEvent();
     eventA.setEnrollment(enrollmentA);
@@ -394,9 +396,11 @@ class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
     // Enrollments
     Enrollment enrollmentC = new Enrollment(today, tomorrow, trackedEntityX, programA);
     enrollmentC.setOrganisationUnit(organisationUnitA);
+    enrollmentC.setAttributeOptionCombo(coA);
     manager.save(enrollmentC);
     Enrollment enrollmentD = new Enrollment(aWeekAgo, yesterday, trackedEntityY, programA);
     enrollmentD.setOrganisationUnit(organisationUnitA);
+    enrollmentD.setAttributeOptionCombo(coA);
     manager.save(enrollmentD);
     // Queries
     List<Enrollment> results;

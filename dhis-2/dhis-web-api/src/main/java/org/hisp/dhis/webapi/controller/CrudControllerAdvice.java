@@ -39,6 +39,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.RuntimeJsonMappingException;
 import io.github.classgraph.ClassGraph;
 import jakarta.persistence.PersistenceException;
@@ -95,6 +96,7 @@ import org.springframework.beans.TypeMismatchException;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.core.convert.TypeDescriptor;
 import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -399,6 +401,7 @@ public class CrudControllerAdvice {
 
   @ExceptionHandler({
     JsonParseException.class,
+    JsonMappingException.class,
     MetadataImportException.class,
     MetadataExportException.class
   })
@@ -434,6 +437,13 @@ public class CrudControllerAdvice {
   @ExceptionHandler(PersistenceException.class)
   @ResponseBody
   public WebMessage persistenceExceptionHandler(PersistenceException ex) {
+    String helpfulMessage = getHelpfulMessage(ex);
+    return conflict(helpfulMessage);
+  }
+
+  @ExceptionHandler(DataIntegrityViolationException.class)
+  @ResponseBody
+  public WebMessage dataIntegrityExceptionHandler(DataIntegrityViolationException ex) {
     String helpfulMessage = getHelpfulMessage(ex);
     return conflict(helpfulMessage);
   }
@@ -742,7 +752,7 @@ public class CrudControllerAdvice {
    * @return detailed message or original exception message
    */
   @Nullable
-  public static String getHelpfulMessage(PersistenceException ex) {
+  public static String getHelpfulMessage(Exception ex) {
     Throwable cause = ex.getCause();
 
     if (cause != null) {

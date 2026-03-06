@@ -91,7 +91,8 @@ public final class GenericOidcProviderConfigParser {
    * OIDC provider config properties lines starting with these client names will be ignored by this
    * parser, these clients/providers have their own respective provider classes and config parsers.
    */
-  private static final Set<String> RESERVED_PROVIDER_IDS = Set.of("azure", "google", "wso2");
+  private static final Set<String> RESERVED_PROVIDER_IDS =
+      Set.of("azure", "google", "wso2", "dhis2");
 
   private static final ImmutableMap<String, Boolean> KEY_REQUIRED_MAP;
 

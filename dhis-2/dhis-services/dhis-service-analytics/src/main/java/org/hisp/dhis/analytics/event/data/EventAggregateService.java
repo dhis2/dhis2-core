@@ -48,9 +48,13 @@ import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.event.EventAnalyticsUtils.addValues;
 import static org.hisp.dhis.analytics.event.EventAnalyticsUtils.generateEventDataPermutations;
+import static org.hisp.dhis.analytics.event.LabelMapper.getEnrollmentDateLabel;
+import static org.hisp.dhis.analytics.event.LabelMapper.getIncidentDateLabel;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.UNLIMITED_PAGING;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.addPaging;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getDimensionsKeywords;
+import static org.hisp.dhis.analytics.tracker.ResponseHelper.getItemDisplayProperty;
+import static org.hisp.dhis.analytics.tracker.ResponseHelper.getItemUid;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.isTableLayout;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
@@ -71,12 +75,15 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
 import org.hisp.dhis.analytics.OrgUnitFieldType;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
@@ -100,6 +107,8 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.period.PeriodDimension;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.util.Timer;
@@ -297,42 +306,113 @@ public class EventAggregateService {
     if (params.isCollapseDataDimensions() || params.isAggregateData()) {
       grid.addHeader(new GridHeader(DATA_COLLAPSED_DIM_ID, DISPLAY_NAME_DATA_X, TEXT, false, true));
     } else {
-      for (QueryItem item : params.getItems()) {
-        String name = item.getItem().getUid();
-        // attach program stage uid to the header name if it is a program stage item
-        if (item.hasProgramStage()) {
-          name = item.getProgramStage().getUid() + "." + name;
-        }
+      addItemHeaders(params, grid);
+    }
 
-        String displayProperty = item.getItem().getDisplayProperty(params.getDisplayProperty());
+    addDimensionHeaders(params, grid);
+    addValueHeader(grid);
 
-        grid.addHeader(
-            new GridHeader(
-                name,
-                displayProperty,
-                item.getValueType(),
-                false,
-                true,
-                item.getOptionSet(),
-                item.getLegendSet()));
+    if (params.isIncludeNumDen()) {
+      addNumDenHeaders(grid);
+    }
+  }
+
+  private void addItemHeaders(EventQueryParams params, Grid grid) {
+    for (QueryItem item : params.getItems()) {
+      grid.addHeader(
+          new GridHeader(
+              getItemUid(item),
+              getItemDisplayProperty(item, params.getDisplayProperty()),
+              item.getValueType(),
+              false,
+              true,
+              item.getOptionSet(),
+              item.getLegendSet()));
+    }
+  }
+
+  private void addDimensionHeaders(EventQueryParams params, Grid grid) {
+    for (DimensionalObject dimension : params.getDimensions()) {
+      String headerName = getDimensionHeaderName(dimension);
+      String headerColumn = getDimensionHeaderColumn(dimension, params);
+
+      grid.addHeader(new GridHeader(headerName, headerColumn, TEXT, false, true));
+    }
+
+    if (params.hasEnrollmentOuDimension()) {
+      grid.addHeader(
+          new GridHeader(
+              ColumnHeader.ENROLLMENT_OU.getItem(),
+              ColumnHeader.ENROLLMENT_OU.getName(),
+              TEXT,
+              false,
+              true));
+    }
+  }
+
+  private String getDimensionHeaderName(DimensionalObject dimension) {
+    return getStaticDateField(dimension).map(this::toDateFieldKey).orElse(dimension.getDimension());
+  }
+
+  private String getDimensionHeaderColumn(DimensionalObject dimension, EventQueryParams params) {
+    return getStaticDateField(dimension)
+        .map(dateField -> getDateFieldLabel(dateField, params.getProgram()))
+        .orElse(dimension.getDisplayProperty(params.getDisplayProperty()));
+  }
+
+  private Optional<String> getStaticDateField(DimensionalObject dimension) {
+    if (!PERIOD_DIM_ID.equals(dimension.getDimension())) {
+      return Optional.empty();
+    }
+
+    Set<String> dateFields =
+        dimension.getItems().stream()
+            .filter(PeriodDimension.class::isInstance)
+            .map(PeriodDimension.class::cast)
+            .map(PeriodDimension::getDateField)
+            .collect(java.util.stream.Collectors.toSet());
+
+    if (dateFields.size() == 1) {
+      String dateField = dateFields.iterator().next();
+      if (dateField != null) {
+        return Optional.of(dateField);
       }
     }
 
-    for (DimensionalObject dimension : params.getDimensions()) {
-      String displayProperty = dimension.getDisplayProperty(params.getDisplayProperty());
+    return Optional.empty();
+  }
 
-      grid.addHeader(new GridHeader(dimension.getDimension(), displayProperty, TEXT, false, true));
+  private String toDateFieldKey(String dateField) {
+    return dateField.toLowerCase().replace("_", "");
+  }
+
+  private String getDateFieldLabel(String dateField, Program program) {
+    return switch (dateField) {
+      case "ENROLLMENT_DATE" -> getEnrollmentDateLabel(program, toDateFieldDisplayName(dateField));
+      case "INCIDENT_DATE" -> getIncidentDateLabel(program, toDateFieldDisplayName(dateField));
+      default -> toDateFieldDisplayName(dateField);
+    };
+  }
+
+  private String toDateFieldDisplayName(String dateField) {
+    String[] parts = dateField.toLowerCase().split("_");
+    if (parts.length == 0) {
+      return dateField;
     }
+    parts[0] = parts[0].substring(0, 1).toUpperCase() + parts[0].substring(1);
+    return String.join(" ", parts);
+  }
 
+  private void addValueHeader(Grid grid) {
     grid.addHeader(new GridHeader(VALUE_ID, VALUE_HEADER_NAME, NUMBER, false, false));
+  }
 
-    if (params.isIncludeNumDen()) {
-      grid.addHeader(new GridHeader(NUMERATOR_ID, NUMERATOR_HEADER_NAME, NUMBER, false, false))
-          .addHeader(new GridHeader(DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, NUMBER, false, false))
-          .addHeader(new GridHeader(FACTOR_ID, FACTOR_HEADER_NAME, NUMBER, false, false))
-          .addHeader(new GridHeader(MULTIPLIER_ID, MULTIPLIER_HEADER_NAME, NUMBER, false, false))
-          .addHeader(new GridHeader(DIVISOR_ID, DIVISOR_HEADER_NAME, NUMBER, false, false));
-    }
+  private void addNumDenHeaders(Grid grid) {
+    grid.addHeader(new GridHeader(NUMERATOR_ID, NUMERATOR_HEADER_NAME, NUMBER, false, false))
+        .addHeader(new GridHeader(DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, NUMBER, false, false))
+        .addHeader(new GridHeader(FACTOR_ID, FACTOR_HEADER_NAME, NUMBER, false, false))
+        .addHeader(new GridHeader(MULTIPLIER_ID, MULTIPLIER_HEADER_NAME, NUMBER, false, false))
+        .addHeader(new GridHeader(DIVISOR_ID, DIVISOR_HEADER_NAME, NUMBER, false, false));
   }
 
   /**

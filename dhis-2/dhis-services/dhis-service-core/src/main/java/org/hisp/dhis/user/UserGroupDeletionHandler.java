@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.user;
 
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
@@ -40,6 +40,8 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class UserGroupDeletionHandler extends IdObjectDeletionHandler<UserGroup> {
+  private final UserGroupStore userGroupStore;
+
   @Override
   protected void registerHandler() {
     whenDeleting(User.class, this::deleteUser);
@@ -47,16 +49,11 @@ public class UserGroupDeletionHandler extends IdObjectDeletionHandler<UserGroup>
   }
 
   private void deleteUser(User user) {
-    Set<UserGroup> userGroups = user.getGroups();
-    for (UserGroup group : userGroups) {
-      group.getMembers().remove(user);
-      idObjectManager.updateNoAcl(group);
-    }
+    userGroupStore.removeAllMemberships(UID.of(user.getUid()));
   }
 
   private void deleteUserGroup(UserGroup userGroup) {
-    Set<UserGroup> userGroups = userGroup.getManagedByGroups();
-    for (UserGroup group : userGroups) {
+    for (UserGroup group : userGroup.getManagedByGroups()) {
       group.getManagedGroups().remove(userGroup);
       idObjectManager.updateNoAcl(group);
     }

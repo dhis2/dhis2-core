@@ -145,7 +145,7 @@ class TrackedEntityRequestParamsMapper {
                 new AssignedUserQueryParam(
                     trackedEntityRequestParams.getAssignedUserMode(),
                     trackedEntityRequestParams.getAssignedUsers(),
-                    UID.of(user)))
+                    user.getUID()))
             .trackedEntities(trackedEntityRequestParams.getTrackedEntities())
             .includeDeleted(trackedEntityRequestParams.isIncludeDeleted())
             .potentialDuplicate(trackedEntityRequestParams.getPotentialDuplicate())
@@ -201,6 +201,14 @@ class TrackedEntityRequestParamsMapper {
       if (params.getEnrollmentOccurredBefore() != null) {
         throw new BadRequestException(
             "`program` must be defined when `enrollmentOccurredBefore` is specified");
+      }
+
+      if (params.getOrder().stream()
+          .map(OrderCriteria::getField)
+          .filter(TrackedEntityMapper.ORDERABLE_FIELDS::containsKey)
+          .map(TrackedEntityMapper.ORDERABLE_FIELDS::get)
+          .anyMatch(mapped -> mapped.startsWith("enrollment."))) {
+        throw new BadRequestException("`program` must be defined when `order=enrolledAt` is used");
       }
     }
 

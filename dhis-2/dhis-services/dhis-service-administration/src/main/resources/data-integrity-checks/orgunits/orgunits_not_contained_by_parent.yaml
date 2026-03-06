@@ -26,7 +26,7 @@
 #
 ---
 name: orgunits_not_contained_by_parent
-description: Organisation units with point coordinates should be contained by their parent.
+description: Organisation units with point coordinates should be contained by their parent
 section: Organisation units
 section_order: 5
 summary_sql: >-

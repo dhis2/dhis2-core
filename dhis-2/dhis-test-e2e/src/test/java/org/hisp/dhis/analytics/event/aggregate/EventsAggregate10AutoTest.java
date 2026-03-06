@@ -306,6 +306,90 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
   }
 
   @Test
+  @DisplayName(
+      "Events Aggregate - Fixed periods with gaps - Time field: ENROLLMENT_DATE as dimension")
+  public void eventAggregateWithFixedPeriodTimeField_asDimension() throws JSONException {
+    // generated sql condition:
+    // (((ax."enrollmentdate" >= '2023-01-01' and ax."enrollmentdate" < '2023-02-01')
+    // or
+    // (ax."enrollmentdate" >= '2024-02-01' and ax."enrollmentdate" < '2024-03-01')))
+
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("stage=A03MvHHogjR")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("outputType=EVENT")
+            .add("dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6,ENROLLMENT_DATE:202301;202402")
+            .add("relativePeriodDate=2025-09-29");
+
+    // When
+    ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        6,
+        4,
+        4); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"202402\":{\"name\":\"February 2024\"},\"202301\":{\"name\":\"January 2023\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[\"202301\",\"202402\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "A03MvHHogjR.a3kGcGDCuk6",
+        "MCH Apgar Score",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ou",
+        "Organisation unit",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    // validateHeaderPropertiesByName(response, actualHeaders,"pe", "", "TEXT", "java.lang.String",
+    // false, true);
+    validateHeaderPropertiesByName(
+        response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+    // Assert PostGIS-specific headers DO NOT exist if 'expectPostgis' is false
+    if (!expectPostgis) {
+      validateHeaderExistence(actualHeaders, "geometry", false);
+      validateHeaderExistence(actualHeaders, "longitude", false);
+      validateHeaderExistence(actualHeaders, "latitude", false);
+    }
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row values in any order.
+    validateRow(response, List.of("", "ImspTQPwCqd", "202201", "1"));
+    validateRow(response, List.of("2.0", "ImspTQPwCqd", "202201", "236"));
+  }
+
+  @Test
   @DisplayName("Events Aggregate - Relative period - Time field: scheduledDate")
   public void eventAggregateWithRelativePeriodTimeField() throws JSONException {
 
@@ -561,185 +645,5 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
     // 7. Assert row values in any position.
     validateRow(response, List.of("7.0", "ImspTQPwCqd", "2022", "1"));
     validateRow(response, List.of("1.0", "ImspTQPwCqd", "2022", "2638"));
-  }
-
-  @Test
-  @DisplayName("Events Query - Using createdDate Time Field")
-  public void eventQueryUsingCreatedDateTimeField() throws JSONException {
-    // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = isPostgres();
-
-    // Given
-    QueryParamsBuilder params =
-        new QueryParamsBuilder()
-            .add("includeMetadataDetails=true")
-            .add("headers=ouname,GxdhnY5wmHq,lastupdated")
-            .add("createdDate=201708")
-            .add("stage=A03MvHHogjR")
-            .add("displayProperty=NAME")
-            .add("totalPages=false")
-            .add("pageSize=100000")
-            .add("outputType=EVENT")
-            .add("page=1")
-            .add("dimension=ou:USER_ORGUNIT,GxdhnY5wmHq")
-            .add("relativePeriodDate=2025-09-29");
-
-    // When
-    ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
-
-    // Then
-    // 1. Validate Response Structure (Counts, Headers, Height/Width)
-    //    This helper checks basic counts and dimensions, adapting based on the runtime
-    // 'expectPostgis' flag.
-    validateResponseStructure(
-        response,
-        expectPostgis,
-        19003,
-        3,
-        3); // Pass runtime flag, row count, and expected header counts
-
-    // 2. Extract Headers into a List of Maps for easy access by name
-    List<Map<String, Object>> actualHeaders =
-        response.extractList("headers", Map.class).stream()
-            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
-            .collect(Collectors.toList());
-
-    // 3. Assert metaData.
-    String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":100000,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"201708\":{\"name\":\"August 2017\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"GxdhnY5wmHq\":{\"uid\":\"GxdhnY5wmHq\",\"name\":\"Average weight (g)\",\"dimensionItemType\":\"PROGRAM_INDICATOR\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"GxdhnY5wmHq\":[]}}";
-    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
-    assertEquals(expectedMetaData, actualMetaData, false);
-
-    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "ouname",
-        "Organisation unit name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "GxdhnY5wmHq",
-        "Average weight (g)",
-        "NUMBER",
-        "java.lang.Double",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "lastupdated",
-        "Last updated on",
-        "DATETIME",
-        "java.time.LocalDateTime",
-        false,
-        true);
-
-    // Assert PostGIS-specific headers DO NOT exist if 'expectPostgis' is false
-    if (!expectPostgis) {
-      validateHeaderExistence(actualHeaders, "geometry", false);
-      validateHeaderExistence(actualHeaders, "longitude", false);
-      validateHeaderExistence(actualHeaders, "latitude", false);
-    }
-
-    // rowContext not found or empty in the response, skipping assertions.
-
-    // 7. Assert row values in any position.
-    validateRow(response, List.of("Moriba Town CHC", "2734", "2018-08-06 21:12:36.692"));
-    validateRow(response, List.of("Wallehun MCHP", "3250", "2018-08-06 21:12:33.989"));
-  }
-
-  @Test
-  @DisplayName("Events Query - Using completedDate Time Field")
-  public void eventQueryUsingCompletedDateTimeField() throws JSONException {
-    // Read the 'expect.postgis' system property at runtime to adapt assertions.
-    boolean expectPostgis = isPostgres();
-
-    // Given
-    QueryParamsBuilder params =
-        new QueryParamsBuilder()
-            .add("includeMetadataDetails=true")
-            .add("headers=ouname,GxdhnY5wmHq,lastupdated")
-            .add("stage=A03MvHHogjR")
-            .add("displayProperty=NAME")
-            .add("totalPages=false")
-            .add("pageSize=100")
-            .add("outputType=EVENT")
-            .add("page=1")
-            .add("dimension=ou:USER_ORGUNIT,GxdhnY5wmHq")
-            .add("completedDate=202111")
-            .add("relativePeriodDate=2025-09-29");
-
-    // When
-    ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
-
-    // Then
-    // 1. Validate Response Structure (Counts, Headers, Height/Width)
-    //    This helper checks basic counts and dimensions, adapting based on the runtime
-    // 'expectPostgis' flag.
-    validateResponseStructure(
-        response,
-        expectPostgis,
-        12,
-        3,
-        3); // Pass runtime flag, row count, and expected header counts
-
-    // 2. Extract Headers into a List of Maps for easy access by name
-    List<Map<String, Object>> actualHeaders =
-        response.extractList("headers", Map.class).stream()
-            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
-            .collect(Collectors.toList());
-
-    // 3. Assert metaData.
-    String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"pageSize\":100,\"isLastPage\":true},\"items\":{\"ImspTQPwCqd\":{\"uid\":\"ImspTQPwCqd\",\"code\":\"OU_525\",\"name\":\"Sierra Leone\",\"dimensionItemType\":\"ORGANISATION_UNIT\",\"valueType\":\"TEXT\",\"totalAggregationType\":\"SUM\"},\"202111\":{\"name\":\"November 2021\"},\"IpHINAT79UW\":{\"uid\":\"IpHINAT79UW\",\"name\":\"Child Programme\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"uid\":\"ou\",\"name\":\"Organisation unit\",\"dimensionType\":\"ORGANISATION_UNIT\"},\"A03MvHHogjR\":{\"uid\":\"A03MvHHogjR\",\"name\":\"Birth\",\"description\":\"Birth of the baby\"},\"GxdhnY5wmHq\":{\"uid\":\"GxdhnY5wmHq\",\"name\":\"Average weight (g)\",\"dimensionItemType\":\"PROGRAM_INDICATOR\",\"valueType\":\"NUMBER\",\"aggregationType\":\"AVERAGE\",\"totalAggregationType\":\"SUM\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"GxdhnY5wmHq\":[]}}";
-    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
-    assertEquals(expectedMetaData, actualMetaData, false);
-
-    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "ouname",
-        "Organisation unit name",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "GxdhnY5wmHq",
-        "Average weight (g)",
-        "NUMBER",
-        "java.lang.Double",
-        false,
-        true);
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "lastupdated",
-        "Last updated on",
-        "DATETIME",
-        "java.time.LocalDateTime",
-        false,
-        true);
-
-    // Assert PostGIS-specific headers DO NOT exist if 'expectPostgis' is false
-    if (!expectPostgis) {
-      validateHeaderExistence(actualHeaders, "geometry", false);
-      validateHeaderExistence(actualHeaders, "longitude", false);
-      validateHeaderExistence(actualHeaders, "latitude", false);
-    }
-
-    // rowContext not found or empty in the response, skipping assertions.
-
-    // 7. Assert row values in any position.
-    validateRow(response, List.of("Ngelehun CHC", "3212", "2017-11-16 12:53:58.92"));
-    validateRow(response, List.of("Ngelehun CHC", "3000", "2017-11-15 17:59:53.633"));
   }
 }

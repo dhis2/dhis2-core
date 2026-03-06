@@ -31,11 +31,11 @@ package org.hisp.dhis.pushanalysis.scheduling;
 
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.email.EmailService;
 import org.hisp.dhis.scheduling.Job;

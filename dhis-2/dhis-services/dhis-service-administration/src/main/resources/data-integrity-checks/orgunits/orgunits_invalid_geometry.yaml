@@ -26,7 +26,7 @@
 #
 ---
 name: orgunits_invalid_geometry
-description: Organisation units with invalid geometry.
+description: Organisation units with invalid geometry
 section: Organisation units
 section_order: 7
 summary_sql: >-

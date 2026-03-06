@@ -110,6 +110,7 @@ class ProgramTest {
     assertEquals(original.getAccessLevel(), copy.getAccessLevel());
     assertEquals(original.getAnalyticsDataElements(), copy.getAnalyticsDataElements());
     assertEquals(original.getCategoryCombo(), copy.getCategoryCombo());
+    assertEquals(original.getEnrollmentCategoryCombo(), copy.getEnrollmentCategoryCombo());
     assertEquals(original.getCategoryMappings(), copy.getCategoryMappings());
     assertEquals(original.getCompleteEventsExpiryDays(), copy.getCompleteEventsExpiryDays());
     assertEquals(original.getDataElements(), copy.getDataElements());
@@ -138,6 +139,7 @@ class ProgramTest {
     assertEquals(original.getTrackedEntityType(), copy.getTrackedEntityType());
     assertEquals(original.getTranslations(), copy.getTranslations());
     assertEquals(original.getDisplayEnrollmentLabel(), copy.getDisplayEnrollmentLabel());
+    assertEquals(original.getDisplayEnrollmentsLabel(), copy.getDisplayEnrollmentsLabel());
     assertEquals(original.getDisplayFollowUpLabel(), copy.getDisplayFollowUpLabel());
     assertEquals(original.getDisplayNoteLabel(), copy.getDisplayNoteLabel());
     assertEquals(original.getDisplayOrgUnitLabel(), copy.getDisplayOrgUnitLabel());
@@ -232,7 +234,7 @@ class ProgramTest {
   @Test
   void testExpectedFieldCount() {
     Field[] allClassFieldsIncludingInherited = getAllFields(Program.class);
-    assertEquals(64, allClassFieldsIncludingInherited.length);
+    assertEquals(68, allClassFieldsIncludingInherited.length);
   }
 
   public static boolean notEqualsOrBothNull(String original, String copy) {
@@ -245,6 +247,8 @@ class ProgramTest {
     p.setAccessLevel(AccessLevel.OPEN);
     p.setAutoFields();
     p.setCategoryCombo(new CategoryCombo("cat combo", DataDimensionType.ATTRIBUTE));
+    p.setEnrollmentCategoryCombo(
+        new CategoryCombo("enrollment cat combo", DataDimensionType.ATTRIBUTE));
     p.setCategoryMappings(Set.of(ProgramCategoryMapping.builder().id("UjaiJ5yiruk").build()));
     p.setCode(CodeGenerator.generateCode(CodeGenerator.UID_CODE_SIZE));
     p.setCompleteEventsExpiryDays(22);
@@ -284,12 +288,15 @@ class ProgramTest {
     p.setUseFirstStageDuringRegistration(false);
     p.setUserRoles(Collections.emptySet());
     p.setEnrollmentLabel("Enrollment label");
+    p.setEnrollmentsLabel("Enrollments label");
     p.setNoteLabel("Note label");
     p.setFollowUpLabel("Follow Up Label");
     p.setOrgUnitLabel("Org Unit Label");
     p.setTrackedEntityAttributeLabel("Tracked Entity Attribute Label");
     p.setProgramStageLabel("Program Stage Label");
+    p.setProgramStagesLabel("Program stages label");
     p.setEventLabel("Event Label");
+    p.setEventsLabel("Events Label");
     p.setRelationshipLabel("Relationship Label");
 
     return p;

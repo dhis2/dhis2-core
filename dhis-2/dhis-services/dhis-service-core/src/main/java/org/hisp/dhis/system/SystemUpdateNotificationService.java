@@ -173,10 +173,7 @@ public class SystemUpdateNotificationService {
       int hotfixVersion = extractInt(patchElement, "hotfixVersion");
 
       if (patchVersion == latestPatchVersion && hotfixVersion == latestHotfixVersion) {
-        log.debug(
-            "Found a newer hotfix version, " + "adding it the result list; version={}",
-            hotfixVersion);
-
+        log.debug("Found newer hotfix version, adding to result list, version: {}", hotfixVersion);
         newerPatchVersions.add(patchElement);
       }
     }
@@ -308,9 +305,9 @@ public class SystemUpdateNotificationService {
     // '.Int.MAX_VALUE', so we can sort it on top of the list
     if (buildVersion.contains("SNAPSHOT")) {
       log.info(
-          "We are running a SNAPSHOT version, "
-              + "handle current patch version as higher than max. "
-              + "This effectively disables system update notifications.");
+          """
+          Snapshot version detected, set current patch version as higher than max. \
+          This disables system update notifications.""");
 
       buildVersion = buildVersion.replace("-SNAPSHOT", "." + Integer.MAX_VALUE);
     }

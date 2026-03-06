@@ -29,29 +29,26 @@
  */
 package org.hisp.dhis.gist;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.ToString;
+import javax.annotation.CheckForNull;
 
 /**
  * Pager POJO for paging gist lists.
  *
  * @author Jan Bernitt
  */
-@Getter
-@AllArgsConstructor
-@ToString
-public final class GistPager {
+public record GistPager(
+    int page,
+    int pageSize,
+    @CheckForNull Integer total,
+    @CheckForNull String prevPage,
+    @CheckForNull String nextPage) {
 
-  @JsonProperty private final int page;
-  @JsonProperty private final int pageSize;
-  @JsonProperty private final Integer total;
-  @JsonProperty private final String prevPage;
-  @JsonProperty private final String nextPage;
-
-  @JsonProperty
   public Integer getPageCount() {
+    return getPageCount(total, pageSize);
+  }
+
+  @CheckForNull
+  static Integer getPageCount(Integer total, int pageSize) {
     return total == null ? null : (int) Math.ceil(total / (double) pageSize);
   }
 }
