@@ -791,8 +791,13 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     PATCH("/users/" + peter.getUid(), "[{'op':'replace','path':'/externalAuth','value':true}]")
         .content(HttpStatus.OK);
 
-    POST("/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'Saf€sEcre1'}")
-        .content(HttpStatus.CONFLICT);
+    assertEquals(
+        "Cannot replicate a user with external authentication enabled",
+        POST(
+                "/users/" + peter.getUid() + "/replica",
+                "{'username':'peter2','password':'Saf€sEcre1'}")
+            .error(HttpStatus.CONFLICT)
+            .getMessage());
   }
 
   @Test
