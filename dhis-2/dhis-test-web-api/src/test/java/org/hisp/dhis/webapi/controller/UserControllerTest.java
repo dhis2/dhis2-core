@@ -51,6 +51,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -632,6 +633,47 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
                 "/users/" + peter.getUid() + "/replica",
                 "{'username':'peter2','password':'Saf€sEcre1'}")
             .content());
+  }
+
+  @Test
+  @DisplayName("Replicated user inherits roles and group memberships from source user")
+  void testReplicateUserCopiesRolesAndGroups() {
+    // Assign an extra role and a group to peter
+    UserRole extraRole = createUserRole("ROLE_EXTRA", "F_DATAVALUE_ADD");
+    userService.addUserRole(extraRole);
+    String extraRoleUid = userService.getUserRoleByName("ROLE_EXTRA").getUid();
+    PATCH(
+            "/users/" + peter.getUid(),
+            "[{'op':'add','path':'/userRoles','value':[{'id':'"
+                + extraRoleUid
+                + "'},{'id':'"
+                + peter.getUserRoles().iterator().next().getUid()
+                + "'}]}]")
+        .content(HttpStatus.OK);
+
+    UserGroup group = createUserGroup('A', emptySet());
+    manager.save(group);
+    PATCH(
+            "/users/" + peter.getUid(),
+            "[{'op':'add','path':'/userGroups','value':[{'id':'" + group.getUid() + "'}]}]")
+        .content(HttpStatus.OK);
+
+    POST("/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'Saf€sEcre1'}")
+        .content(HttpStatus.CREATED);
+
+    User replica = userService.getUserByUsername("peter2");
+    assertNotNull(replica);
+
+    Set<String> replicaRoleUids =
+        replica.getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toSet());
+    assertTrue(
+        replicaRoleUids.contains(extraRoleUid), "Replica should inherit roles from source user");
+
+    Set<String> replicaGroupUids =
+        replica.getGroups().stream().map(UserGroup::getUid).collect(Collectors.toSet());
+    assertTrue(
+        replicaGroupUids.contains(group.getUid()),
+        "Replica should inherit group memberships from source user");
   }
 
   @Test

@@ -1566,6 +1566,15 @@ public class DefaultUserService implements UserService {
     }
     userGroupService.addUserToGroups(userReplica, groupsToCopy, currentUser);
 
+    // Evict userReplica from L1 and L2 caches so subsequent loads see the JDBC-inserted
+    // userRoles memberships. userRoles is the owning side of the join table, so Hibernate
+    // marked its collection as "loaded" (empty) during persist — JDBC bypasses that snapshot.
+    session.evict(userReplica);
+    session
+        .getSessionFactory()
+        .getCache()
+        .evictCollectionData(User.class.getName() + ".userRoles", userReplica.getId());
+
     UserSettings settings = userSettingsService.getUserSettings(existingUser.getUsername(), false);
 
     Set<String> allowedKeys = UserSettings.keysWithDefaults();
