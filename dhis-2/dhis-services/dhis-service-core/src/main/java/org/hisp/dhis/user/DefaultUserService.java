@@ -1574,7 +1574,7 @@ public class DefaultUserService implements UserService {
     entityManager.flush();
 
     UID replicaUid = userReplica.getUID();
-    UID sourceUid = UID.of(existingUserUid);
+    UID sourceUid = existingUser.getUID();
     for (UserRole role : rolesToCopy) {
       userRoleStore.addMember(role.getUID(), replicaUid);
     }
