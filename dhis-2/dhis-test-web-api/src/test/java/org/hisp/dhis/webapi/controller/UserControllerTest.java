@@ -52,6 +52,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -636,9 +638,10 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  @DisplayName("Replicated user inherits roles and group memberships from source user")
-  void testReplicateUserCopiesRolesAndGroups() {
-    // Assign an extra role and a group to peter
+  @DisplayName(
+      "Replicated user inherits roles, group memberships, org units, and dimension constraints from source user")
+  void testReplicateUserCopiesRolesGroupsOrgUnitsAndConstraints() {
+    // Assign an extra role to peter
     UserRole extraRole = createUserRole("ROLE_EXTRA", "F_DATAVALUE_ADD");
     userService.addUserRole(extraRole);
     String extraRoleUid = userService.getUserRoleByName("ROLE_EXTRA").getUid();
@@ -651,11 +654,38 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
                 + "'}]}]")
         .content(HttpStatus.OK);
 
+    // Assign a group to peter
     UserGroup group = createUserGroup('A', emptySet());
     manager.save(group);
     PATCH(
             "/users/" + peter.getUid(),
             "[{'op':'add','path':'/userGroups','value':[{'id':'" + group.getUid() + "'}]}]")
+        .content(HttpStatus.OK);
+
+    // Assign an org unit to peter (capture + data-view)
+    OrganisationUnit ou = createOrganisationUnit('Z');
+    organisationUnitService.addOrganisationUnit(ou);
+    PATCH(
+            "/users/" + peter.getUid(),
+            "[{'op':'add','path':'/organisationUnits','value':[{'id':'"
+                + ou.getUid()
+                + "'}]},{'op':'add','path':'/dataViewOrganisationUnits','value':[{'id':'"
+                + ou.getUid()
+                + "'}]}]")
+        .content(HttpStatus.OK);
+
+    // Assign dimension constraints to peter
+    CategoryOptionGroupSet cogs = createCategoryOptionGroupSet('A');
+    manager.save(cogs);
+    Category cat = createCategory('A');
+    manager.save(cat);
+    PATCH(
+            "/users/" + peter.getUid(),
+            "[{'op':'add','path':'/cogsDimensionConstraints','value':[{'id':'"
+                + cogs.getUid()
+                + "'}]},{'op':'add','path':'/catDimensionConstraints','value':[{'id':'"
+                + cat.getUid()
+                + "'}]}]")
         .content(HttpStatus.OK);
 
     POST("/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'Saf€sEcre1'}")
@@ -674,6 +704,38 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(
         replicaGroupUids.contains(group.getUid()),
         "Replica should inherit group memberships from source user");
+
+    Set<String> replicaOuUids =
+        replica.getOrganisationUnits().stream()
+            .map(OrganisationUnit::getUid)
+            .collect(Collectors.toSet());
+    assertTrue(
+        replicaOuUids.contains(ou.getUid()),
+        "Replica should inherit capture org units from source user");
+
+    Set<String> replicaDvOuUids =
+        replica.getDataViewOrganisationUnits().stream()
+            .map(OrganisationUnit::getUid)
+            .collect(Collectors.toSet());
+    assertTrue(
+        replicaDvOuUids.contains(ou.getUid()),
+        "Replica should inherit data-view org units from source user");
+
+    Set<String> replicaCogsUids =
+        replica.getCogsDimensionConstraints().stream()
+            .map(CategoryOptionGroupSet::getUid)
+            .collect(Collectors.toSet());
+    assertTrue(
+        replicaCogsUids.contains(cogs.getUid()),
+        "Replica should inherit COGS dimension constraints from source user");
+
+    Set<String> replicaCatUids =
+        replica.getCatDimensionConstraints().stream()
+            .map(Category::getUid)
+            .collect(Collectors.toSet());
+    assertTrue(
+        replicaCatUids.contains(cat.getUid()),
+        "Replica should inherit category dimension constraints from source user");
   }
 
   @Test

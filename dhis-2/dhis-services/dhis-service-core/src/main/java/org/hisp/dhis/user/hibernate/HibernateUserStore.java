@@ -786,7 +786,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
           AND categoryoptiongroupsetid = m.categoryoptiongroupsetid
         )
         """,
-        target, source, target);
+        target,
+        source,
+        target);
     jdbcTemplate.update(
         """
         INSERT INTO users_catdimensionconstraints (userid, dataelementcategoryid)
@@ -799,7 +801,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
           AND dataelementcategoryid = m.dataelementcategoryid
         )
         """,
-        target, source, target);
+        target,
+        source,
+        target);
   }
 
   @Override
@@ -818,7 +822,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
           AND organisationunitid = m.organisationunitid
         )
         """,
-        target, source, target);
+        target,
+        source,
+        target);
     jdbcTemplate.update(
         """
         INSERT INTO userdatavieworgunits (userinfoid, organisationunitid)
@@ -831,7 +837,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
           AND organisationunitid = m.organisationunitid
         )
         """,
-        target, source, target);
+        target,
+        source,
+        target);
     jdbcTemplate.update(
         """
         INSERT INTO userteisearchorgunits (userinfoid, organisationunitid)
@@ -844,6 +852,8 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
           AND organisationunitid = m.organisationunitid
         )
         """,
-        target, source, target);
+        target,
+        source,
+        target);
   }
 }
