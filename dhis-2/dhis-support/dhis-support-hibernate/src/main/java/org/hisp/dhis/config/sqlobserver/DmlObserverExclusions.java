@@ -50,6 +50,7 @@ public class DmlObserverExclusions {
           "spring_session",
           "spring_session_attributes",
           "systemsetting",
+          "icon",
           "messageconversation_messages",
           "messageconversation_usermessages");
 

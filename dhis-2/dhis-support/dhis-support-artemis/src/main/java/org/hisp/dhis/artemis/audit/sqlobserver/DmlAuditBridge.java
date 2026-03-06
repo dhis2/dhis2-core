@@ -41,7 +41,6 @@ import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.audit.DmlEvent;
 import org.hisp.dhis.audit.DmlEvent.DmlOperation;
 import org.hisp.dhis.audit.DmlObservedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -59,8 +58,8 @@ public class DmlAuditBridge {
 
   private final AuditManager auditManager;
 
-  @EventListener
-  public void onDmlObserved(DmlObservedEvent event) {
+  // TODO: disable for now  @EventListener
+  public void DisabledOnDmlObserved(DmlObservedEvent event) {
     String currentUser = getCurrentUser();
 
     for (DmlEvent dmlEvent : event.getEvents()) {

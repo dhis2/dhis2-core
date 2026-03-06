@@ -29,13 +29,9 @@
  */
 package org.hisp.dhis.cacheinvalidation.sqlobserver;
 
-import static org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationConfig.CHANNEL_NAME;
-
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.audit.DmlEvent;
 import org.hisp.dhis.audit.DmlObservedEvent;
-import org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationMessagePublisher;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -52,15 +48,7 @@ import org.springframework.stereotype.Component;
 @Conditional(DmlCacheInvalidationCondition.class)
 public class DmlCacheInvalidationBridge {
 
-  private final CacheInvalidationMessagePublisher messagePublisher;
-  private final String serverInstanceId;
-
-  public DmlCacheInvalidationBridge(
-      CacheInvalidationMessagePublisher messagePublisher,
-      @Qualifier("cacheInvalidationServerId") String serverInstanceId) {
-    this.messagePublisher = messagePublisher;
-    this.serverInstanceId = serverInstanceId;
-  }
+  public DmlCacheInvalidationBridge() {}
 
   @EventListener
   public void onDmlObserved(DmlObservedEvent event) {
@@ -74,10 +62,10 @@ public class DmlCacheInvalidationBridge {
           dmlEvent.getEntityId() != null ? dmlEvent.getEntityId().toString() : "unknown";
 
       String message =
-          serverInstanceId + ":" + op + ":" + dmlEvent.getEntityClassName() + ":" + entityId;
+          "serverInstanceId" + ":" + op + ":" + dmlEvent.getEntityClassName() + ":" + entityId;
 
       log.debug("Publishing DML cache invalidation: {}", message);
-      messagePublisher.publish(CHANNEL_NAME, message);
+      //      messagePublisher.publish(CHANNEL_NAME, message);
     }
   }
 }

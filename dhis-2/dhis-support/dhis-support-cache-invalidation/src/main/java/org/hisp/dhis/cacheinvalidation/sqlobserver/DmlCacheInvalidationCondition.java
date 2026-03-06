@@ -42,8 +42,7 @@ public class DmlCacheInvalidationCondition extends PropertiesAwareConfigurationC
 
   @Override
   public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    return getConfiguration().isEnabled(ConfigurationKey.SQL_DML_OBSERVER_ENABLED)
-        && getConfiguration().isEnabled(ConfigurationKey.REDIS_CACHE_INVALIDATION_ENABLED);
+    return getConfiguration().isEnabled(ConfigurationKey.SQL_DML_OBSERVER_ENABLED);
   }
 
   @Override
