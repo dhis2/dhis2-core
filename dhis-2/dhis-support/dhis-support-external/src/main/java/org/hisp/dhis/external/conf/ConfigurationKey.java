@@ -812,14 +812,14 @@ public enum ConfigurationKey {
    * ETags are validated BEFORE heavy computations, using local in-memory version tracking for cache
    * invalidation. (default: off)
    */
-  ETAG_CACHE_ENABLED("etag.cache.enabled", Constants.OFF, false),
+  CACHE_API_ETAG_CACHE_ENABLED("cache.api.etag.cache.enabled", Constants.OFF, false),
 
   /**
    * TTL window in minutes for conditional ETag caching. This is the maximum time a cached response
    * can be considered valid without checking for data changes. Acts as a safety net to ensure
    * periodic refresh. (default: 60)
    */
-  ETAG_CACHE_TTL_MINUTES("etag.cache.ttl_minutes", "60", false),
+  CACHE_API_ETAG_CACHE_TTL_MINUTES("cache.api.etag.cache.ttl_minutes", "60", false),
 
   // Enable saved requests, this will save the URL the user tries to access before they are logged
   // in, and redirect to that URL after they are logged in.

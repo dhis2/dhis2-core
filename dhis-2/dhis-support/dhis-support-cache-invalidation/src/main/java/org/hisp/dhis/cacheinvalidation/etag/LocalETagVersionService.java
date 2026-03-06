@@ -99,14 +99,14 @@ public class LocalETagVersionService implements ETagVersionService {
 
   @Override
   public boolean isEnabled() {
-    return configurationProvider.isEnabled(ConfigurationKey.ETAG_CACHE_ENABLED);
+    return configurationProvider.isEnabled(ConfigurationKey.CACHE_API_ETAG_CACHE_ENABLED);
   }
 
   @Override
   public int getTtlMinutes() {
     return Integer.parseInt(
         configurationProvider.getPropertyOrDefault(
-            ConfigurationKey.ETAG_CACHE_TTL_MINUTES,
-            ConfigurationKey.ETAG_CACHE_TTL_MINUTES.getDefaultValue()));
+            ConfigurationKey.CACHE_API_ETAG_CACHE_TTL_MINUTES,
+            ConfigurationKey.CACHE_API_ETAG_CACHE_TTL_MINUTES.getDefaultValue()));
   }
 }
