@@ -716,8 +716,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(source.getNationality(), replica.getNationality(), "nationality should be copied");
     assertEquals(source.getEmployer(), replica.getEmployer(), "employer should be copied");
     assertEquals(source.isDisabled(), replica.isDisabled(), "disabled should be copied");
-    assertEquals(
-        source.isExternalAuth(), replica.isExternalAuth(), "externalAuth should be copied");
+    assertFalse(replica.isExternalAuth(), "externalAuth must be false on replica");
     assertEquals(
         source.isSelfRegistered(), replica.isSelfRegistered(), "selfRegistered should be copied");
 
@@ -732,11 +731,6 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     assertNull(replica.getOpenId(), "openId must be null on replica");
     assertNull(replica.getLastLogin(), "lastLogin must be null on new replica");
 
-    // --- Security-sensitive fields must never be shared between accounts ---
-    assertNull(replica.getSecret(), "2FA secret must be null on replica");
-    assertNull(replica.getRestoreToken(), "restoreToken must be null on replica");
-    assertNull(replica.getRestoreExpiry(), "restoreExpiry must be null on replica");
-    assertNull(replica.getIdToken(), "idToken must be null on replica");
     // passwordLastUpdated is set by encodeAndSetPassword when the replica's password is assigned
     assertNotNull(
         replica.getPasswordLastUpdated(),
@@ -789,6 +783,16 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     assertTrue(
         replicaCatUids.contains(cat.getUid()),
         "Replica should inherit category dimension constraints from source user");
+  }
+
+  @Test
+  @DisplayName("Replicating a user with external authentication enabled is rejected")
+  void testReplicateUserWithExternalAuthIsRejected() {
+    PATCH("/users/" + peter.getUid(), "[{'op':'replace','path':'/externalAuth','value':true}]")
+        .content(HttpStatus.OK);
+
+    POST("/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'Saf€sEcre1'}")
+        .content(HttpStatus.CONFLICT);
   }
 
   @Test

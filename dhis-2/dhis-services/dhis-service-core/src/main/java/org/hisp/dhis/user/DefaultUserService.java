@@ -1533,6 +1533,10 @@ public class DefaultUserService implements UserService {
       throw new NotFoundException("User not found: " + existingUserUid);
     }
 
+    if (existingUser.isExternalAuth()) {
+      throw new ConflictException("Cannot replicate a user with external authentication enabled");
+    }
+
     Set<UserRole> rolesToCopy = new HashSet<>(existingUser.getUserRoles());
     Collection<String> groupsToCopy = getUids(existingUser.getGroups());
     User userReplica = new User();
@@ -1553,6 +1557,9 @@ public class DefaultUserService implements UserService {
     // Note: we re-fetch the source user from DB above, so these fields are populated
     // even if they are excluded from JSON serialization.
     userReplica.setSecret(null);
+    // Clear 2FA type: secret is null so leaving twoFactorType set would produce a broken account.
+    // The replica user can enroll in 2FA themselves after first login.
+    userReplica.setTwoFactorType(null);
     userReplica.setRestoreToken(null);
     userReplica.setRestoreExpiry(null);
     userReplica.setIdToken(null);
