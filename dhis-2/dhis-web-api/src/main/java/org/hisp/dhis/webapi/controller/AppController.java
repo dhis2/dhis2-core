@@ -41,6 +41,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -57,7 +58,6 @@ import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
-import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -66,6 +66,8 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.staticresource.HtmlCacheBustingService;
+import org.hisp.dhis.webapi.staticresource.StaticCacheControlService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -76,7 +78,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -90,7 +91,6 @@ import org.springframework.web.multipart.MultipartFile;
     entity = App.class,
     classifiers = {"team:extensibility", "purpose:support"})
 @Controller
-@RequestMapping("/api/apps")
 @Slf4j
 public class AppController {
 
@@ -104,7 +104,11 @@ public class AppController {
 
   @Autowired private ContextService contextService;
 
-  @GetMapping(value = "/menu", produces = ContextUtils.CONTENT_TYPE_JSON)
+  @Autowired private StaticCacheControlService staticCacheControlService;
+
+  @Autowired private HtmlCacheBustingService htmlCacheBustingService;
+
+  @GetMapping(value = "/api/apps/menu", produces = ContextUtils.CONTENT_TYPE_JSON)
   public @ResponseBody Map<String, List<WebModule>> getWebModules(HttpServletRequest request) {
     String baseUrl = contextService.getContextPath();
 
@@ -112,7 +116,7 @@ public class AppController {
     return Map.of("modules", modules);
   }
 
-  @GetMapping(produces = ContextUtils.CONTENT_TYPE_JSON)
+  @GetMapping(value = "/api/apps", produces = ContextUtils.CONTENT_TYPE_JSON)
   public ResponseEntity<List<App>> getApps(@RequestParam(required = false) String key) {
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
     String baseUrl = contextService.getContextPath();
@@ -135,7 +139,7 @@ public class AppController {
     return ResponseEntity.ok(apps);
   }
 
-  @PostMapping(produces = ContextUtils.CONTENT_TYPE_JSON)
+  @PostMapping(value = "/api/apps", produces = ContextUtils.CONTENT_TYPE_JSON)
   @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
   public ResponseEntity<App> installApp(@RequestParam("file") MultipartFile file)
       throws IOException, WebMessageException {
@@ -151,17 +155,19 @@ public class AppController {
       throw new WebMessageException(conflict(message));
     }
 
+    htmlCacheBustingService.invalidateAll();
     return new ResponseEntity<>(installedApp, HttpStatus.CREATED);
   }
 
-  @PutMapping
+  @PutMapping("/api/apps")
   @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void reloadApps() {
     appManager.reloadApps();
+    htmlCacheBustingService.invalidateAll();
   }
 
-  @GetMapping("/{app}/**")
+  @GetMapping("/api/apps/{app}/**")
   public void renderApp(
       @PathVariable("app") String appName, HttpServletRequest request, HttpServletResponse response)
       throws IOException, WebMessageException {
@@ -188,6 +194,48 @@ public class AppController {
     // Get page requested
     String resource = getResourcePath(request.getPathInfo(), application, contextPath);
 
+    renderAppResource(application, resource, baseUrl, request, response);
+  }
+
+  /**
+   * Serves the login app directly without {@code RequestDispatcher.forward()}, which loses proxy
+   * headers (X-Forwarded-Host, etc.) in containerised deployments.
+   */
+  @GetMapping("/login/**")
+  public void renderLoginApp(HttpServletRequest request, HttpServletResponse response)
+      throws IOException, WebMessageException {
+    String baseUrl = contextService.getContextPath();
+
+    App app = appManager.getApp("login", baseUrl);
+    if (app == null) {
+      throw new WebMessageException(notFound("Login app not found."));
+    }
+    if (!appManager.isAccessible(app)) {
+      throw new WebMessageException(forbidden("User does not have access to the login app."));
+    }
+
+    // Extract resource path: /login/foo/bar.js → /foo/bar.js
+    String uri = request.getRequestURI();
+    String path = uri.substring(request.getContextPath().length());
+    String resource = path.startsWith("/login") ? path.substring("/login".length()) : path;
+    if (resource.isEmpty() || resource.equals("/")) {
+      resource = "/index.html";
+    }
+
+    // Validate and clean the resource path
+    resource = REGEX_REMOVE_PROTOCOL.matcher(resource).replaceAll("");
+    validateResourcePath(resource);
+
+    renderAppResource(app, resource, baseUrl, request, response);
+  }
+
+  private void renderAppResource(
+      App application,
+      String resource,
+      String baseUrl,
+      HttpServletRequest request,
+      HttpServletResponse response)
+      throws IOException, WebMessageException {
     log.debug("Rendering resource {} from app {}", resource, application.getKey());
 
     ResourceResult resourceResult = appManager.getAppResource(application, resource, baseUrl);
@@ -208,7 +256,7 @@ public class AppController {
       log.warn("Internal server error - no resource result.  This is a bug.");
       throw new WebMessageException(
           error(
-              "Failed to locate resource for app '" + appName + "'.",
+              "Failed to locate resource for app '" + application.getKey() + "'.",
               "AppManager should always return a ResourceResult, this is a bug."));
     }
   }
@@ -222,20 +270,14 @@ public class AppController {
     String filename = resourceResult.resource().getFilename();
     log.debug("Serving app resource, filename: {}", filename);
 
-    // Use a combination of app version and last modified timestamp to generate an ETag
-    // This is to ensure that the ETag changes when the app is updated
-    // There is no guarantee that a new app uploaded will have a different version number, so we
-    // need to include the last modified timestamp
-    // Similarly, with classPath resources the lastModified timestamp may be missing or not
-    // reliable, so we need to include the version number
-    // See also AppHtmlNoCacheFilter for cache control headers set on index.html responses
+    String requestUri = request.getRequestURI();
+    staticCacheControlService.setHeaders(response, requestUri, app.getKey());
 
     long lastModified = resourceResult.resource().lastModified();
-    String etagSource = String.format("%s-%s", app.getVersion(), String.valueOf(lastModified));
-    String etag = HashUtils.hashMD5(etagSource.getBytes());
+    String etag = staticCacheControlService.generateETag(app, lastModified, requestUri);
 
     if (new ServletWebRequest(request, response).checkNotModified(etag, lastModified)) {
-      log.debug("Resource not modified (etag {}, source {})", etag, etagSource);
+      log.debug("Resource not modified (etag {}, uri {})", etag, requestUri);
       response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
       return;
     }
@@ -249,9 +291,26 @@ public class AppController {
       response.setContentType(mimeType);
     }
 
-    long contentLength = appManager.getUriContentLength(resourceResult.resource());
+    boolean isHtmlEntry =
+        (mimeType != null && mimeType.startsWith("text/html"))
+            || (filename != null && filename.endsWith(".html"));
 
-    response.setContentLengthLong(contentLength);
+    InputStream inputStream;
+    long contentLength;
+
+    if (isHtmlEntry) {
+      inputStream =
+          htmlCacheBustingService.rewriteIfNeeded(
+              resourceResult.resource().getInputStream(), app, requestUri);
+      contentLength = inputStream.available();
+    } else {
+      inputStream = resourceResult.resource().getInputStream();
+      contentLength = appManager.getUriContentLength(resourceResult.resource());
+    }
+
+    if (contentLength > 0) {
+      response.setContentLengthLong(contentLength);
+    }
 
     log.debug(
         "Serving resource: {} (contentType: {}, contentLength: {}, lastModified: {}, etag: {})",
@@ -260,11 +319,18 @@ public class AppController {
         contentLength,
         String.valueOf(lastModified),
         etag);
-    StreamUtils.copyThenCloseInputStream(
-        resourceResult.resource().getInputStream(), response.getOutputStream());
+    try {
+      StreamUtils.copyThenCloseInputStream(inputStream, response.getOutputStream());
+    } catch (IOException e) {
+      if (isClientDisconnect(e)) {
+        log.debug("Client disconnected while streaming app resource: {}", filename);
+      } else {
+        throw e;
+      }
+    }
   }
 
-  @DeleteMapping("/{app}")
+  @DeleteMapping("/api/apps/{app}")
   @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteApp(
@@ -278,10 +344,12 @@ public class AppController {
     if (!appManager.deleteApp(appToDelete, deleteAppData)) {
       throw new WebMessageException(badRequest("App cannot be deleted."));
     }
+
+    htmlCacheBustingService.invalidateAll();
   }
 
   @SuppressWarnings("unchecked")
-  @PostMapping(value = "/config", consumes = ContextUtils.CONTENT_TYPE_JSON)
+  @PostMapping(value = "/api/apps/config", consumes = ContextUtils.CONTENT_TYPE_JSON)
   @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void setConfig(HttpServletRequest request) throws IOException, WebMessageException {
@@ -386,5 +454,13 @@ public class AppController {
       log.warn("Invalid path format detected: {}", e.getMessage());
       throw new WebMessageException(badRequest("Invalid resource path"));
     }
+  }
+
+  private static boolean isClientDisconnect(IOException e) {
+    String msg = e.getMessage();
+    if (msg != null && (msg.contains("Broken pipe") || msg.contains("Connection reset by peer"))) {
+      return true;
+    }
+    return e.getCause() instanceof IOException ioCause && isClientDisconnect(ioCause);
   }
 }
