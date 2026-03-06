@@ -41,7 +41,6 @@ import org.hibernate.event.spi.PostDeleteEvent;
 import org.hibernate.event.spi.PostInsertEvent;
 import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.persister.entity.EntityPersister;
-import org.hisp.dhis.cache.ETagVersionService;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.datastatistics.DataStatisticsEvent;
@@ -67,8 +66,6 @@ public class PostCacheEventPublisher
         PostCommitDeleteEventListener {
 
   @Autowired private CacheInvalidationMessagePublisher messagePublisher;
-
-  @Autowired private ETagVersionService eTagVersionService;
 
   @Autowired
   @Qualifier("cacheInvalidationServerId")
@@ -119,16 +116,6 @@ public class PostCacheEventPublisher
   private void publishMessage(Class<?> realClass, String message) {
     if (!EXCLUDE_LIST.contains(realClass)) {
       messagePublisher.publish(CHANNEL_NAME, message);
-
-      // Bump entity-type-specific ETag version when local data changes occur.
-      // This provides granular cache invalidation - only caches for this entity type are
-      // invalidated.
-      if (eTagVersionService != null && eTagVersionService.isEnabled()) {
-        eTagVersionService.incrementEntityTypeVersion(realClass);
-        log.debug(
-            "Incremented ETag version for entity type {} due to local data change",
-            realClass.getSimpleName());
-      }
     } else {
       log.debug("Ignoring excluded class: " + realClass.getName());
     }
