@@ -36,8 +36,8 @@ import javax.annotation.Nonnull;
  * version lookups for generating ETags, enabling efficient cache invalidation without expensive
  * database queries.
  *
- * <p>The version is incremented when data changes are detected via Redis pub/sub cache invalidation
- * messages, ensuring that cached responses are invalidated across all DHIS2 instances in a cluster.
+ * <p>The version is incremented when data changes are detected (e.g., via a DML observer layer),
+ * ensuring that cached responses are invalidated when underlying data changes.
  *
  * @author Morten Svanæs
  */

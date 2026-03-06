@@ -38,7 +38,6 @@ import static org.mockito.Mockito.verify;
 import org.hibernate.SessionFactory;
 import org.hibernate.cache.internal.DisabledCaching;
 import org.hibernate.service.spi.ServiceRegistryImplementor;
-import org.hisp.dhis.cache.ETagVersionService;
 import org.hisp.dhis.cache.PaginationCacheManager;
 import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -68,7 +67,6 @@ class CacheInvalidationListenerTest {
 
   @Mock protected PeriodService periodService;
 
-  @Mock protected ETagVersionService eTagVersionService;
 
   @Mock protected DisabledCaching disabledCaching;
 
@@ -90,7 +88,6 @@ class CacheInvalidationListenerTest {
             idObjectManager,
             trackedEntityAttributeService,
             periodService,
-            eTagVersionService,
             "SERVER_A");
 
     lenient().when(sessionFactory.getCache()).thenReturn(disabledCaching);
@@ -152,37 +149,4 @@ class CacheInvalidationListenerTest {
     verify(paginationCacheManager, times(1)).evictCache(anyString());
   }
 
-  @Test
-  @DisplayName("Should increment global ETag version when ETag caching is enabled")
-  void testETagVersionIncrement_WhenEnabled() {
-    lenient().when(eTagVersionService.isEnabled()).thenReturn(true);
-
-    String message = "SERVER_B" + ":" + "UPDATE" + ":" + "org.hisp.dhis.user.User" + ":" + "1";
-    cacheInvalidationListener.message(CacheInvalidationConfig.CHANNEL_NAME, message);
-
-    verify(eTagVersionService, times(1)).incrementGlobalVersion();
-  }
-
-  @Test
-  @DisplayName("Should not increment global ETag version when ETag caching is disabled")
-  void testETagVersionIncrement_WhenDisabled() {
-    lenient().when(eTagVersionService.isEnabled()).thenReturn(false);
-
-    String message = "SERVER_B" + ":" + "UPDATE" + ":" + "org.hisp.dhis.user.User" + ":" + "1";
-    cacheInvalidationListener.message(CacheInvalidationConfig.CHANNEL_NAME, message);
-
-    verify(eTagVersionService, times(0)).incrementGlobalVersion();
-  }
-
-  @Test
-  @DisplayName("Should not increment ETag version for messages from same server")
-  void testETagVersionIncrement_SameServer() {
-    lenient().when(eTagVersionService.isEnabled()).thenReturn(true);
-
-    // Message from same server (SERVER_A)
-    String message = "SERVER_A" + ":" + "UPDATE" + ":" + "org.hisp.dhis.user.User" + ":" + "1";
-    cacheInvalidationListener.message(CacheInvalidationConfig.CHANNEL_NAME, message);
-
-    verify(eTagVersionService, times(0)).incrementGlobalVersion();
-  }
 }

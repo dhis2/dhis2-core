@@ -808,9 +808,9 @@ public enum ConfigurationKey {
   CACHE_EHCACHE_CONFIG_FILE("cache.ehcache.config.file", "classpath:ehcache.xml", false),
 
   /**
-   * Enable conditional ETag caching with Redis pub/sub for cache invalidation. This provides
-   * efficient HTTP caching where ETags are validated BEFORE heavy computations. Requires Redis to
-   * be enabled. (default: off)
+   * Enable conditional ETag caching for API responses. This provides efficient HTTP caching where
+   * ETags are validated BEFORE heavy computations, using local in-memory version tracking for cache
+   * invalidation. (default: off)
    */
   ETAG_CACHE_ENABLED("etag.cache.enabled", Constants.OFF, false),
 
