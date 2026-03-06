@@ -67,7 +67,6 @@ class CacheInvalidationListenerTest {
 
   @Mock protected PeriodService periodService;
 
-
   @Mock protected DisabledCaching disabledCaching;
 
   private CacheInvalidationListener cacheInvalidationListener;
@@ -148,5 +147,4 @@ class CacheInvalidationListenerTest {
     verify(sessionFactory.getCache(), times(1)).evict(any(), any());
     verify(paginationCacheManager, times(1)).evictCache(anyString());
   }
-
 }

@@ -35,8 +35,8 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 /**
- * No-op implementation of {@link ETagVersionService} that is used when ETag caching is not
- * enabled. All methods return 0 or false, effectively disabling the ETag versioning feature.
+ * No-op implementation of {@link ETagVersionService} that is used when ETag caching is not enabled.
+ * All methods return 0 or false, effectively disabling the ETag versioning feature.
  *
  * @author Morten Svanæs
  */
