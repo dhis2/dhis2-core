@@ -1,0 +1,651 @@
+/*
+ * Copyright (c) 2004-2022, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.webapi.controller.tracker.export.singleevent;
+
+import static org.hisp.dhis.http.HttpClientAdapter.Header;
+import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
+import static org.hisp.dhis.test.utils.Assertions.assertContains;
+import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
+import static org.hisp.dhis.test.webapi.Assertions.assertNoDiff;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
+import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Map;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceContentStore;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.fileresource.FileResourceStorageStatus;
+import org.hisp.dhis.fileresource.ImageFileDimension;
+import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
+import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
+import org.hisp.dhis.webapi.controller.tracker.JsonNote;
+import org.hisp.dhis.webapi.controller.tracker.TestSetup;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.io.TempDir;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+class SingleEventsExportControllerTest extends PostgresControllerIntegrationTestBase {
+  private static final String USER_UID = "tTgjgobT1oS";
+  private static final String EVENT_UID = "QRYjLTiJTrA";
+  private static final String EVENT_UID_2 = "kWjSezkXHVp";
+  private static final String EVENT_UID_3 = "OTmjvJDn0Fu";
+  private static final String EVENT_UID_4 = "ck7DzdxqLqA";
+  private static final String EVENT_UID_5 = "lumVtWwwy0O";
+  private static final String EVENT_UID_6 = "cadc5eGj0j7";
+  private static final String PROGRAM_UID = "iS7eutanDry";
+  private static final String ORG_UNIT_UID = "DiszpKrYNg8";
+  private static final String DATA_ELEMENT_UID = "GieVkTxp4HH";
+  private static final String TRACKER_PROGRAM_UID = "BFcipDERJnf";
+  private static final String TRACKER_EVENT_UID = "pTzf9KYMk72";
+
+  @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private FileResourceService fileResourceService;
+
+  @Autowired private FileResourceContentStore fileResourceContentStore;
+
+  @Autowired private TestSetup testSetup;
+
+  private User user;
+  private User owner;
+  private DataElement dataElement;
+
+  @BeforeAll
+  void setUp() throws IOException {
+    testSetup.importMetadata();
+    user = userService.getUser(USER_UID);
+    owner = userService.getUser("M5zQapPyTZI");
+
+    dataElement = manager.get(DataElement.class, DATA_ELEMENT_UID);
+
+    injectSecurityContextUser(user);
+    testSetup.importTrackerData();
+  }
+
+  @BeforeEach
+  void setupUser() {
+    injectSecurityContextUser(user);
+  }
+
+  @Test
+  void shouldReturnSingleEventsWhenRequestingWithProgramParameter() {
+    JsonMixed content =
+        GET("/tracker/singleEvents?program={program}", PROGRAM_UID).content(HttpStatus.OK);
+
+    JsonList<JsonEvent> events = content.getList("singleEvents", JsonEvent.class);
+    assertFalse(events.isEmpty(), "Should have at least one single event");
+
+    JsonEvent event = events.get(0);
+    assertHasMember(event, "event");
+    assertHasMember(event, "program");
+    assertHasMember(event, "orgUnit");
+    assertHasMember(event, "status");
+  }
+
+  @Test
+  void shouldReturnSingleEventWhenFilteringByEventUid() {
+    JsonMixed content =
+        GET("/tracker/singleEvents?program={program}&events={event}", PROGRAM_UID, EVENT_UID)
+            .content(HttpStatus.OK);
+
+    JsonList<JsonEvent> events = content.getList("singleEvents", JsonEvent.class);
+    assertHasSize(1, events.stream().toList());
+    assertEquals(EVENT_UID, events.get(0).getEvent());
+  }
+
+  @Test
+  void shouldReturnSingleEventsWhenFilteringByOrgUnit() {
+    JsonMixed content =
+        GET("/tracker/singleEvents?program={program}&orgUnit={orgUnit}", PROGRAM_UID, ORG_UNIT_UID)
+            .content(HttpStatus.OK);
+
+    JsonList<JsonEvent> events = content.getList("singleEvents", JsonEvent.class);
+    assertFalse(events.isEmpty());
+    events.forEach(
+        event -> assertEquals(ORG_UNIT_UID, event.getOrgUnit(), "OrgUnit should match filter"));
+  }
+
+  @Test
+  void shouldReturnFilteredFieldsWhenRequestingWithFieldsParameter() {
+    JsonMixed content =
+        GET(
+                "/tracker/singleEvents?program={program}&events={event}&fields=event,status",
+                PROGRAM_UID,
+                EVENT_UID)
+            .content(HttpStatus.OK);
+
+    JsonEvent event = content.getList("singleEvents", JsonEvent.class).get(0);
+    assertHasOnlyMembers(event, "event", "status");
+    assertEquals(EVENT_UID, event.getEvent());
+  }
+
+  @Test
+  void shouldReturnEmptyListWhenNoEventsMatchFilters() {
+    JsonMixed content =
+        GET(
+                "/tracker/singleEvents?program={program}&events={event}",
+                PROGRAM_UID,
+                CodeGenerator.generateUid())
+            .content(HttpStatus.OK);
+
+    JsonList<JsonEvent> events = content.getList("singleEvents", JsonEvent.class);
+    assertTrue(events.isEmpty());
+  }
+
+  @Test
+  void shouldReturnBadRequestWhenProgramParameterIsMissing() {
+    assertEquals(
+        "Program is mandatory", GET("/tracker/singleEvents").error(BAD_REQUEST).getMessage());
+  }
+
+  @Test
+  void shouldReturnSingleEventWhenRequestingByUid() {
+    JsonEvent event =
+        GET("/tracker/singleEvents/{uid}", EVENT_UID).content(HttpStatus.OK).as(JsonEvent.class);
+
+    assertEquals(EVENT_UID, event.getEvent());
+    assertEquals(PROGRAM_UID, event.getProgram());
+    assertEquals(ORG_UNIT_UID, event.getOrgUnit());
+    assertHasMember(event, "status");
+    assertHasMember(event, "occurredAt");
+    assertHasMember(event, "createdAt");
+    assertHasMember(event, "updatedAt");
+    assertHasMember(event, "dataValues");
+    assertHasNoMember(event, "relationships");
+  }
+
+  @Test
+  void shouldReturnSingleEventWithDataValuesWhenRequestingByUid() {
+    JsonEvent event =
+        GET("/tracker/singleEvents/{uid}?fields=dataValues", EVENT_UID)
+            .content(HttpStatus.OK)
+            .as(JsonEvent.class);
+
+    assertHasOnlyMembers(event, "dataValues");
+    assertFalse(event.getDataValues().isEmpty());
+
+    JsonDataValue dataValue = event.getDataValues().get(0);
+    assertHasMember(dataValue, "dataElement");
+    assertHasMember(dataValue, "value");
+  }
+
+  @Test
+  void shouldReturnSingleEventWithSelectedFieldsWhenRequestingWithFieldsParameter() {
+    JsonEvent event =
+        GET("/tracker/singleEvents/{uid}?fields=orgUnit,status", EVENT_UID)
+            .content(HttpStatus.OK)
+            .as(JsonEvent.class);
+
+    assertHasOnlyMembers(event, "orgUnit", "status");
+    assertEquals(ORG_UNIT_UID, event.getOrgUnit());
+    assertHasMember(event, "status");
+  }
+
+  @Test
+  void shouldGetEventByPathIdenticalToQueryParamWhenRequestingBothWays() {
+    JsonEvent pathEvent =
+        GET("/tracker/singleEvents/{id}?fields=*", EVENT_UID)
+            .content(HttpStatus.OK)
+            .as(JsonEvent.class);
+
+    JsonMixed content =
+        GET(
+                "/tracker/singleEvents?fields=*&events={id}&program={programUid}",
+                EVENT_UID,
+                PROGRAM_UID)
+            .content(HttpStatus.OK);
+    JsonList<JsonEvent> queryEvents = content.getList("singleEvents", JsonEvent.class);
+
+    assertHasSize(1, queryEvents.stream().toList());
+    assertNoDiff(pathEvent, queryEvents.get(0));
+  }
+
+  @Test
+  void shouldReturnNotFoundWhenRequestingNonExistentEvent() {
+    String nonExistentUid = CodeGenerator.generateUid();
+    assertEquals(
+        "Event with id " + nonExistentUid + " could not be found.",
+        GET("/tracker/singleEvents/{uid}", nonExistentUid)
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void shouldReturnNotFoundWhenRequestingTrackerEventByUid() {
+    assertEquals(
+        "Event with id " + TRACKER_EVENT_UID + " could not be found.",
+        GET("/tracker/singleEvents/{uid}", TRACKER_EVENT_UID)
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void shouldReturnNoSingleEventsWhenProgramIsWithRegistration() {
+    assertEquals(
+        "Program specified is not an event program: " + TRACKER_PROGRAM_UID,
+        GET("/tracker/singleEvents?program={program}", TRACKER_PROGRAM_UID)
+            .error(BAD_REQUEST)
+            .getMessage());
+  }
+
+  @Test
+  void shouldReturnSingleEventWithNotesWhenEventHasNotes() {
+    SingleEvent event = manager.get(SingleEvent.class, EVENT_UID);
+
+    JsonEvent jsonEvent =
+        GET("/tracker/singleEvents/{uid}?fields=notes", event.getUid())
+            .content(HttpStatus.OK)
+            .as(JsonEvent.class);
+
+    assertHasOnlyMembers(jsonEvent, "notes");
+    assertFalse(jsonEvent.getNotes().isEmpty());
+
+    JsonNote jsonNote = jsonEvent.getNotes().get(0);
+    assertEquals("r8Ge3bH7aF9", jsonNote.getNote());
+    assertEquals("single event comment value", jsonNote.getValue());
+  }
+
+  @Test
+  void shouldReturnUserInfoWhenEventHasCreatedByAndUpdatedByAndAssignedUser() {
+    JsonObject jsonEvent = GET("/tracker/singleEvents/{id}", EVENT_UID).content(HttpStatus.OK);
+
+    assertEquals(user.getUsername(), jsonEvent.getString("createdBy.username").string());
+    assertEquals(user.getUsername(), jsonEvent.getString("updatedBy.username").string());
+    assertEquals(
+        userService.getUser("lPaILkLkgOM").getDisplayName(),
+        jsonEvent.getString("assignedUser.displayName").string());
+
+    assertFalse(jsonEvent.getArray("dataValues").isEmpty());
+    assertEquals(
+        user.getUsername(),
+        jsonEvent.getArray("dataValues").getObject(0).getString("createdBy.username").string());
+    assertEquals(
+        user.getUsername(),
+        jsonEvent.getArray("dataValues").getObject(0).getString("updatedBy.username").string());
+  }
+
+  @Test
+  void shouldReturnFileWhenRequestingDataValueFile() throws ConflictException {
+    DataElement de = createDataElementWithValueType(ValueType.FILE_RESOURCE);
+    FileResource file = storeFile("text/plain", "file content");
+
+    SingleEvent event = manager.get(SingleEvent.class, EVENT_UID_3);
+    event.getEventDataValues().add(createDataValue(de, file.getUid()));
+    manager.update(event);
+    manager.flush();
+
+    HttpResponse response =
+        GET(
+            "/tracker/singleEvents/{eventUid}/dataValues/{dataElementUid}/file",
+            event.getUid(),
+            de.getUid());
+
+    assertEquals(HttpStatus.OK, response.status());
+    assertEquals("\"" + file.getUid() + "\"", response.header("Etag"));
+    assertEquals("no-cache, private", response.header("Cache-Control"));
+    assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
+    assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
+    assertContains("script-src 'none';", response.header("Content-Security-Policy"));
+    assertEquals("file content", response.content("text/plain"));
+  }
+
+  @Test
+  void shouldReturnFileWhenRequestingDataValueFileAndFileIsAnImage() throws ConflictException {
+    DataElement de = createDataElementWithValueType(ValueType.IMAGE);
+    FileResource file = storeFile("image/png", "image content");
+
+    SingleEvent event = manager.get(SingleEvent.class, EVENT_UID_4);
+    event.getEventDataValues().add(createDataValue(de, file.getUid()));
+    manager.update(event);
+    manager.flush();
+
+    HttpResponse response =
+        GET(
+            "/tracker/singleEvents/{eventUid}/dataValues/{dataElementUid}/file",
+            event.getUid(),
+            de.getUid());
+
+    assertEquals(HttpStatus.OK, response.status());
+    assertEquals("\"" + file.getUid() + "\"", response.header("Etag"));
+    assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
+    assertEquals("image content", response.content("image/png"));
+  }
+
+  @Test
+  void shouldReturnNotModifiedWhenRequestingFileWithMatchingETag() throws ConflictException {
+    DataElement de = createDataElementWithValueType(ValueType.FILE_RESOURCE);
+    FileResource file = storeFile("text/plain", "file content");
+
+    SingleEvent event = manager.get(SingleEvent.class, EVENT_UID_5);
+    event.getEventDataValues().add(createDataValue(de, file.getUid()));
+    manager.update(event);
+    manager.flush();
+
+    HttpResponse response =
+        GET(
+            "/tracker/singleEvents/{eventUid}/dataValues/{dataElementUid}/file",
+            event.getUid(),
+            de.getUid(),
+            Header("If-None-Match", "\"" + file.getUid() + "\""));
+
+    assertEquals(HttpStatus.NOT_MODIFIED, response.status());
+    assertEquals("\"" + file.getUid() + "\"", response.header("Etag"));
+    assertContains("script-src 'none';", response.header("Content-Security-Policy"));
+    assertFalse(response.hasBody());
+  }
+
+  @Test
+  void shouldReturnBadRequestWhenRequestingFileWithDimensionParameter() {
+    assertStartsWith(
+        "Request parameter 'dimension'",
+        GET(
+                "/tracker/singleEvents/{eventUid}/dataValues/{dataElementUid}/file?dimension=small",
+                CodeGenerator.generateUid(),
+                CodeGenerator.generateUid())
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage());
+  }
+
+  @Test
+  void shouldReturnNotFoundWhenRequestingFileForNonExistentDataElement() {
+    String deUid = CodeGenerator.generateUid();
+
+    assertStartsWith(
+        "DataElement with id " + deUid,
+        GET("/tracker/singleEvents/{eventUid}/dataValues/{dataElementUid}/file", EVENT_UID_6, deUid)
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void shouldReturnNotFoundWhenRequestingFileForDataElementThatIsNotAFile() {
+    assertStartsWith(
+        "Data element " + dataElement.getUid() + " is not a file",
+        GET(
+                "/tracker/singleEvents/{eventUid}/dataValues/{dataElementUid}/file",
+                EVENT_UID,
+                dataElement.getUid())
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void shouldReturnNotFoundWhenNoDataValueExists() {
+    SingleEvent event = manager.get(SingleEvent.class, EVENT_UID_2);
+    DataElement de = createDataElementWithValueType(ValueType.FILE_RESOURCE);
+
+    assertEquals(
+        "Event " + event.getUid() + " with data element " + de.getUid() + " could not be found.",
+        GET(
+                "/tracker/singleEvents/{eventUid}/dataValues/{dataElementUid}/file",
+                event.getUid(),
+                de.getUid())
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void shouldReturnNotFoundWhenDataValueIsNull() {
+    SingleEvent event = manager.get(SingleEvent.class, EVENT_UID_3);
+    DataElement de = createDataElementWithValueType(ValueType.IMAGE);
+
+    event.getEventDataValues().add(createDataValue(de, null));
+    manager.update(event);
+    manager.flush();
+
+    assertEquals(
+        "DataValue for data element " + de.getUid() + " could not be found.",
+        GET(
+                "/tracker/singleEvents/{eventUid}/dataValues/{dataElementUid}/file",
+                event.getUid(),
+                de.getUid())
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void shouldReturnConflictWhenFileResourceInDbButNotInStore() {
+    SingleEvent event = manager.get(SingleEvent.class, EVENT_UID_4);
+    DataElement de = createDataElementWithValueType(ValueType.FILE_RESOURCE);
+
+    FileResource file = createFileResource('A', "file content".getBytes());
+    manager.save(file, false);
+
+    event.getEventDataValues().add(createDataValue(de, file.getUid()));
+    manager.update(event);
+    manager.flush();
+
+    assertStartsWith(
+        "Content is being processed and is not available yet, try again later",
+        GET(
+                "/tracker/singleEvents/{eventUid}/dataValues/{dataElementUid}/file",
+                event.getUid(),
+                de.getUid())
+            .error(HttpStatus.CONFLICT)
+            .getMessage());
+  }
+
+  @Test
+  void shouldReturnNotFoundWhenFileResourceDoesNotExist() {
+    SingleEvent event = manager.get(SingleEvent.class, EVENT_UID_5);
+    DataElement de = createDataElementWithValueType(ValueType.FILE_RESOURCE);
+    String fileUid = CodeGenerator.generateUid();
+
+    event.getEventDataValues().add(createDataValue(de, fileUid));
+    manager.update(event);
+    manager.flush();
+
+    assertStartsWith(
+        "FileResource with id " + fileUid,
+        GET(
+                "/tracker/singleEvents/{eventUid}/dataValues/{dataElementUid}/file",
+                event.getUid(),
+                de.getUid())
+            .error(HttpStatus.NOT_FOUND)
+            .getMessage());
+  }
+
+  @Test
+  void shouldReturnImageWhenRequestingDataValueImage() throws ConflictException {
+    DataElement de = createDataElementWithValueType(ValueType.IMAGE);
+    FileResource file = storeFile("image/png", "image content");
+
+    SingleEvent event = manager.get(SingleEvent.class, EVENT_UID_6);
+    event.getEventDataValues().add(createDataValue(de, file.getUid()));
+    manager.update(event);
+    manager.flush();
+
+    HttpResponse response =
+        GET(
+            "/tracker/singleEvents/{eventUid}/dataValues/{dataElementUid}/image",
+            event.getUid(),
+            de.getUid());
+
+    assertEquals(HttpStatus.OK, response.status());
+    assertEquals("\"" + file.getUid() + "\"", response.header("Etag"));
+    assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
+    assertEquals("image content", response.content("image/png"));
+  }
+
+  @Test
+  void shouldReturnSmallImageWhenRequestingWithDimensionParameter(@TempDir Path tempDir)
+      throws ConflictException, IOException {
+    DataElement de = createDataElementWithValueType(ValueType.IMAGE);
+
+    FileResource file = storeFile("image/png", "original image");
+    file.setHasMultipleStorageFiles(true);
+    manager.update(file);
+
+    Path smallImage = tempDir.resolve("small.png");
+    String smallFileContent = "small file";
+    Files.writeString(smallImage, smallFileContent);
+    fileResourceContentStore.saveFileResourceContent(
+        file, Map.of(ImageFileDimension.SMALL, smallImage.toFile()));
+
+    SingleEvent event = manager.get(SingleEvent.class, EVENT_UID_2);
+    event.getEventDataValues().add(createDataValue(de, file.getUid()));
+    manager.update(event);
+    manager.flush();
+
+    HttpResponse response =
+        GET(
+            "/tracker/singleEvents/{eventUid}/dataValues/{dataElementUid}/image?dimension=small",
+            event.getUid(),
+            de.getUid());
+
+    assertEquals(HttpStatus.OK, response.status());
+    assertEquals(
+        Long.toString(smallFileContent.getBytes().length), response.header("Content-Length"));
+    assertEquals(smallFileContent, response.content("image/png"));
+  }
+
+  @Test
+  void shouldReturnBadRequestWhenRequestingImageWithInvalidDimension() throws ConflictException {
+    DataElement de = createDataElementWithValueType(ValueType.IMAGE);
+    FileResource file = storeFile("image/png", "image content");
+
+    SingleEvent event = manager.get(SingleEvent.class, EVENT_UID_3);
+    event.getEventDataValues().add(createDataValue(de, file.getUid()));
+    manager.update(event);
+    manager.flush();
+
+    String message =
+        GET(
+                "/tracker/singleEvents/{eventUid}/dataValues/{dataElementUid}/image?dimension=tiny",
+                event.getUid(),
+                de.getUid())
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage();
+
+    assertStartsWith("Value 'tiny' is not valid", message);
+  }
+
+  @Test
+  void shouldReturnBadRequestWhenRequestingImageForNonImageDataElement() throws ConflictException {
+    DataElement de = createDataElementWithValueType(ValueType.FILE_RESOURCE);
+    FileResource file = storeFile("text/plain", "file content");
+
+    SingleEvent event = manager.get(SingleEvent.class, EVENT_UID_4);
+    event.getEventDataValues().add(createDataValue(de, file.getUid()));
+    manager.update(event);
+    manager.flush();
+
+    String message =
+        GET(
+                "/tracker/singleEvents/{eventUid}/dataValues/{dataElementUid}/image",
+                event.getUid(),
+                de.getUid())
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage();
+
+    assertStartsWith("File is not an image", message);
+  }
+
+  @Test
+  void shouldReturnBadRequestWhenRequestingDimensionForImageWithoutMultipleFiles(
+      @TempDir Path tempDir) throws ConflictException, IOException {
+    DataElement de = createDataElementWithValueType(ValueType.IMAGE);
+
+    FileResource file = storeFile("image/png", "original image");
+    file.setHasMultipleStorageFiles(false);
+    manager.update(file);
+
+    Path smallImage = tempDir.resolve("small.png");
+    Files.writeString(smallImage, "small file");
+    fileResourceContentStore.saveFileResourceContent(
+        file, Map.of(ImageFileDimension.SMALL, smallImage.toFile()));
+
+    SingleEvent event = manager.get(SingleEvent.class, EVENT_UID_5);
+    event.getEventDataValues().add(createDataValue(de, file.getUid()));
+    manager.update(event);
+    manager.flush();
+
+    String message =
+        GET(
+                "/tracker/singleEvents/{eventUid}/dataValues/{dataElementUid}/image?dimension=small",
+                event.getUid(),
+                de.getUid())
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage();
+
+    assertStartsWith("Image is not stored using multiple dimensions", message);
+  }
+
+  private DataElement createDataElementWithValueType(ValueType type) {
+    DataElement result = createDataElement('B');
+    result.setValueType(type);
+    result.getSharing().setOwner(owner);
+    manager.save(result, false);
+    return result;
+  }
+
+  private EventDataValue createDataValue(DataElement de, String value) {
+    EventDataValue result = new EventDataValue();
+    result.setDataElement(de.getUid());
+    result.setValue(value);
+    return result;
+  }
+
+  private FileResource storeFile(String contentType, String content) throws ConflictException {
+    byte[] data = content.getBytes();
+    FileResource fr = createFileResource('A', data);
+    fr.setContentType(contentType);
+    fileResourceService.syncSaveFileResource(fr, data);
+    fr.setStorageStatus(FileResourceStorageStatus.STORED);
+    return fr;
+  }
+}
