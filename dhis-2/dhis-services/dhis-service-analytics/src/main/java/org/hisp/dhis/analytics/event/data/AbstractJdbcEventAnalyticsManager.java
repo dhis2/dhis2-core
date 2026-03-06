@@ -193,6 +193,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RequiredArgsConstructor
 public abstract class AbstractJdbcEventAnalyticsManager {
+  private final DateFieldPeriodBucketColumnResolver dateFieldPeriodBucketColumnResolver =
+      createDateFieldPeriodBucketColumnResolver();
+
+  private DateFieldPeriodBucketColumnResolver createDateFieldPeriodBucketColumnResolver() {
+    return new DateFieldPeriodBucketColumnResolver(sqlBuilder);
+  }
 
   /**
    * Represents an aggregate clause with its SQL expression and metadata about the aggregation type.
@@ -832,6 +838,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     // ---------------------------------------------------------------------
 
     final String finalSqlValue = sql;
+    System.out.println(sql);
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), finalSqlValue));
@@ -1143,6 +1150,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private String getTableAndColumn(
       EventQueryParams params, DimensionalObject dimension, boolean isGroupByClause) {
     String col = dimension.getDimensionName();
+    Optional<String> dynamicPeriodBucket =
+        dateFieldPeriodBucketColumnResolver.resolve(getAnalyticsType(), dimension, isGroupByClause);
+
+    if (dynamicPeriodBucket.isPresent()) {
+      return dynamicPeriodBucket.get();
+    }
 
     if (params.hasTimeField() && DimensionType.PERIOD == dimension.getDimensionType()) {
       return sqlBuilder.quote(DATE_PERIOD_STRUCT_ALIAS, col);
