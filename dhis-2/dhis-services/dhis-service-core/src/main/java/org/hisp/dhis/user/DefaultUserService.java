@@ -1535,7 +1535,6 @@ public class DefaultUserService implements UserService {
 
     Set<UserRole> rolesToCopy = new HashSet<>(existingUser.getUserRoles());
     Collection<String> groupsToCopy = getUids(existingUser.getGroups());
-
     User userReplica = new User();
     metadataMergeService.merge(
         new MetadataMergeParams<>(existingUser, userReplica).setMergeMode(MergeMode.REPLACE));
@@ -1561,19 +1560,33 @@ public class DefaultUserService implements UserService {
     entityManager.flush();
 
     UID replicaUid = userReplica.getUID();
+    UID sourceUid = UID.of(existingUserUid);
     for (UserRole role : rolesToCopy) {
       userRoleStore.addMember(role.getUID(), replicaUid);
     }
     userGroupService.addUserToGroups(userReplica, groupsToCopy, currentUser);
+    userStore.copyOrgUnitMemberships(sourceUid, replicaUid);
+    userStore.copyDimensionConstraints(sourceUid, replicaUid);
 
     // Evict userReplica from L1 and L2 caches so subsequent loads see the JDBC-inserted
-    // userRoles memberships. userRoles is the owning side of the join table, so Hibernate
-    // marked its collection as "loaded" (empty) during persist — JDBC bypasses that snapshot.
+    // memberships. These are all owning-side join tables, so Hibernate marked their collections
+    // as "loaded" (empty) during persist — JDBC bypasses that snapshot.
     session.evict(userReplica);
-    session
-        .getSessionFactory()
-        .getCache()
-        .evictCollectionData(User.class.getName() + ".userRoles", userReplica.getId());
+    long replicaId = userReplica.getId();
+    String userClass = User.class.getName();
+    for (String collection :
+        List.of(
+            "userRoles",
+            "organisationUnits",
+            "dataViewOrganisationUnits",
+            "teiSearchOrganisationUnits",
+            "cogsDimensionConstraints",
+            "catDimensionConstraints")) {
+      session
+          .getSessionFactory()
+          .getCache()
+          .evictCollectionData(userClass + "." + collection, replicaId);
+    }
 
     UserSettings settings = userSettingsService.getUserSettings(existingUser.getUsername(), false);
 
