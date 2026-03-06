@@ -204,6 +204,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "weeklyStartingOnMonday",
+      "query": "/api/analytics.json?dimension=dx:HS9zqaBdOQ4,pe:THIS_WEEK&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&relativePeriodDate=2022-02-01",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }
