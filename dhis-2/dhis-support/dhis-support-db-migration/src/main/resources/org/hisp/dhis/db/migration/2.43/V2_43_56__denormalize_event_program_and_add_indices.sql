@@ -70,8 +70,24 @@ drop index if exists in_trackerevent_program_assigneduser;
 create index in_trackerevent_program_assigneduser
     on trackerevent (programid, assigneduserid);
 
--- 4. singleevent: the existing in_singleevent_programstageid_occurreddate
--- (V2_43_50) covers order=occurredDate and stays as-is.
+-- 4. singleevent: fix broken occurreddate index (V2_43_50 omitted DESC and eventid, causing
+-- backward scan + incremental sort instead of a true early-stop ordered scan) and add
+-- ou-prefixed indices for SELECTED mode (single org unit equality predicate on ev directly,
+-- since singleevent has no trackedentityprogramowner ownership table).
+-- The sort-leading (ps, sort-col) indices cover ALL/broad scope; the (ps, ou, sort-col)
+-- indices cover SELECTED where the ou equality enables early-stop at LIMIT.
+drop index if exists in_singleevent_programstageid_occurreddate;
+create index in_singleevent_programstageid_occurreddate
+    on singleevent (programstageid, occurreddate desc, eventid desc);
+
 drop index if exists in_singleevent_programstageid_created;
 create index in_singleevent_programstageid_created
     on singleevent (programstageid, created desc, eventid desc);
+
+drop index if exists in_singleevent_programstageid_organisationunitid_created;
+create index in_singleevent_programstageid_organisationunitid_created
+    on singleevent (programstageid, organisationunitid, created desc, eventid desc);
+
+drop index if exists in_singleevent_programstageid_organisationunitid_occurreddate;
+create index in_singleevent_programstageid_organisationunitid_occurreddate
+    on singleevent (programstageid, organisationunitid, occurreddate desc, eventid desc);
