@@ -1549,6 +1549,13 @@ public class DefaultUserService implements UserService {
     userReplica.setOpenId(null);
     userReplica.setUsername(username);
     userReplica.setLastLogin(null);
+    // Security-sensitive fields must never be shared between accounts.
+    // Note: we re-fetch the source user from DB above, so these fields are populated
+    // even if they are excluded from JSON serialization.
+    userReplica.setSecret(null);
+    userReplica.setRestoreToken(null);
+    userReplica.setRestoreExpiry(null);
+    userReplica.setIdToken(null);
     // Roles and groups are assigned explicitly via JDBC after flush.  clear them here
     // so Hibernate cascade does not attempt to write the join tables before the userinfo
     // row exists in the database.

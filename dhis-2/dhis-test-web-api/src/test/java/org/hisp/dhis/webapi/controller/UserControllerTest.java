@@ -39,6 +39,7 @@ import static org.hisp.dhis.http.HttpStatus.Series.SUCCESSFUL;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -639,8 +640,17 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   @DisplayName(
-      "Replicated user inherits roles, group memberships, org units, and dimension constraints from source user")
-  void testReplicateUserCopiesRolesGroupsOrgUnitsAndConstraints() {
+      "Replicated user inherits roles, group memberships, org units, dimension constraints, and scalar fields from source user")
+  void testReplicateUserProfile() {
+    // Set scalar fields on peter so we can verify they are copied
+    PATCH(
+            "/users/" + peter.getUid(),
+            "[{'op':'replace','path':'/phoneNumber','value':'555-1234'},"
+                + "{'op':'replace','path':'/jobTitle','value':'Test Engineer'},"
+                + "{'op':'replace','path':'/nationality','value':'Norwegian'},"
+                + "{'op':'replace','path':'/employer','value':'DHIS2'}]")
+        .content(HttpStatus.OK);
+
     // Assign an extra role to peter
     UserRole extraRole = createUserRole("ROLE_EXTRA", "F_DATAVALUE_ADD");
     userService.addUserRole(extraRole);
@@ -688,12 +698,55 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
                 + "'}]}]")
         .content(HttpStatus.OK);
 
+    // Re-fetch peter so we have the up-to-date scalar values to compare against
+    User source = userService.getUser(peter.getUid());
+
     POST("/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'Saf€sEcre1'}")
         .content(HttpStatus.CREATED);
 
     User replica = userService.getUserByUsername("peter2");
     assertNotNull(replica);
 
+    // --- Scalar fields: should be equal ---
+    assertEquals(source.getFirstName(), replica.getFirstName(), "firstName should be copied");
+    assertEquals(source.getSurname(), replica.getSurname(), "surname should be copied");
+    assertEquals(source.getEmail(), replica.getEmail(), "email should be copied");
+    assertEquals(source.getPhoneNumber(), replica.getPhoneNumber(), "phoneNumber should be copied");
+    assertEquals(source.getJobTitle(), replica.getJobTitle(), "jobTitle should be copied");
+    assertEquals(source.getNationality(), replica.getNationality(), "nationality should be copied");
+    assertEquals(source.getEmployer(), replica.getEmployer(), "employer should be copied");
+    assertEquals(source.isDisabled(), replica.isDisabled(), "disabled should be copied");
+    assertEquals(
+        source.isExternalAuth(), replica.isExternalAuth(), "externalAuth should be copied");
+    assertEquals(
+        source.isSelfRegistered(), replica.isSelfRegistered(), "selfRegistered should be copied");
+
+    // --- Identity fields: must be different ---
+    assertNotEquals(source.getUid(), replica.getUid(), "uid must be unique");
+    assertNotEquals(source.getUuid(), replica.getUuid(), "uuid must be unique");
+    assertEquals("peter2", replica.getUsername(), "username must be the requested one");
+
+    // --- Fields explicitly cleared on replica ---
+    assertNull(replica.getCode(), "code must be null on replica");
+    assertNull(replica.getLdapId(), "ldapId must be null on replica");
+    assertNull(replica.getOpenId(), "openId must be null on replica");
+    assertNull(replica.getLastLogin(), "lastLogin must be null on new replica");
+
+    // --- Security-sensitive fields must never be shared between accounts ---
+    assertNull(replica.getSecret(), "2FA secret must be null on replica");
+    assertNull(replica.getRestoreToken(), "restoreToken must be null on replica");
+    assertNull(replica.getRestoreExpiry(), "restoreExpiry must be null on replica");
+    assertNull(replica.getIdToken(), "idToken must be null on replica");
+    // passwordLastUpdated is set by encodeAndSetPassword when the replica's password is assigned
+    assertNotNull(
+        replica.getPasswordLastUpdated(),
+        "passwordLastUpdated should reflect when the replica's password was set");
+    assertNotEquals(
+        source.getPasswordLastUpdated(),
+        replica.getPasswordLastUpdated(),
+        "passwordLastUpdated must not be inherited from source");
+
+    // --- Collections: should match source ---
     Set<String> replicaRoleUids =
         replica.getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toSet());
     assertTrue(
