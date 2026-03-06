@@ -47,6 +47,15 @@ public interface UserRoleStore extends IdentifiableObjectStore<UserRole> {
   int countDataSetUserRoles(DataSet dataSet);
 
   /**
+   * Adds a user to a role directly via SQL, without loading any members collection.
+   *
+   * @param userRoleUid the UID of the role
+   * @param userUid the UID of the user
+   * @return true if a new membership row was inserted
+   */
+  boolean addMember(@Nonnull UID userRoleUid, @Nonnull UID userUid);
+
+  /**
    * Removes all role memberships for a user directly via SQL, without loading any members
    * collection. Used during user deletion to avoid N+1 queries on large roles.
    *

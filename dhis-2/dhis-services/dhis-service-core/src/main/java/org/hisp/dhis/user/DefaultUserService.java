@@ -1524,6 +1524,18 @@ public class DefaultUserService implements UserService {
 
     Session session = entityManager.unwrap(Session.class);
 
+    // Re-fetch within this transaction so lazy collections (e.g. userRoles) are initialized
+    // before the merge. The entity loaded in the controller is detached here, and
+    // DefaultMetadataMergeService skips any uninitialized Hibernate collection.
+    String existingUserUid = existingUser.getUid();
+    existingUser = userStore.getByUidNoAcl(existingUserUid);
+    if (existingUser == null) {
+      throw new NotFoundException("User not found: " + existingUserUid);
+    }
+
+    Set<UserRole> rolesToCopy = new HashSet<>(existingUser.getUserRoles());
+    Collection<String> groupsToCopy = getUids(existingUser.getGroups());
+
     User userReplica = new User();
     metadataMergeService.merge(
         new MetadataMergeParams<>(existingUser, userReplica).setMergeMode(MergeMode.REPLACE));
@@ -1538,11 +1550,21 @@ public class DefaultUserService implements UserService {
     userReplica.setOpenId(null);
     userReplica.setUsername(username);
     userReplica.setLastLogin(null);
+    // Roles and groups are assigned explicitly via JDBC after flush — clear them here
+    // so Hibernate cascade does not attempt to write the join tables before the userinfo
+    // row exists in the database.
+    userReplica.setUserRoles(new HashSet<>());
     encodeAndSetPassword(userReplica, password);
 
     addUser(userReplica);
+    // Flush so the new userinfo row is visible to the JDBC subqueries in addMember below.
+    entityManager.flush();
 
-    userGroupService.addUserToGroups(userReplica, getUids(existingUser.getGroups()), currentUser);
+    UID replicaUid = userReplica.getUID();
+    for (UserRole role : rolesToCopy) {
+      userRoleStore.addMember(role.getUID(), replicaUid);
+    }
+    userGroupService.addUserToGroups(userReplica, groupsToCopy, currentUser);
 
     UserSettings settings = userSettingsService.getUserSettings(existingUser.getUsername(), false);
 
