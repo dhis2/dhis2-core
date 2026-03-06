@@ -134,6 +134,7 @@ public class DmlObserverListener implements QueryExecutionListener, MethodExecut
                 .tableName(result.getTableName())
                 .entityClassName(entityClassName)
                 .entityId(entityId)
+                .updatedColumns(result.getUpdatedColumns())
                 .timestamp(Instant.now())
                 .connectionId(connectionId)
                 .build();

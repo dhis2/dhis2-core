@@ -48,6 +48,7 @@ import net.ttddyy.dsproxy.ConnectionInfo;
 import net.ttddyy.dsproxy.ExecutionInfo;
 import net.ttddyy.dsproxy.QueryInfo;
 import net.ttddyy.dsproxy.listener.MethodExecutionContext;
+import org.hisp.dhis.audit.DmlEvent;
 import org.hisp.dhis.audit.DmlEvent.DmlOperation;
 import org.hisp.dhis.audit.DmlObservedEvent;
 import org.hisp.dhis.audit.DmlOrigin;
@@ -58,6 +59,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.slf4j.MDC;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 
 class DmlObserverListenerTest {
 
@@ -75,6 +79,7 @@ class DmlObserverListenerTest {
   @AfterEach
   void tearDown() {
     MDC.clear();
+    SecurityContextHolder.clearContext();
   }
 
   @Test
@@ -233,6 +238,56 @@ class DmlObserverListenerTest {
   }
 
   @Test
+  void afterQuery_updateCapturesUpdatedColumns() throws Exception {
+    ExecutionInfo execInfo = createSuccessExecutionInfo(true);
+    List<QueryInfo> queries =
+        List.of(
+            createQueryInfo(
+                "UPDATE dataelement SET name = ?, shortname = ? WHERE dataelementid = ?"));
+
+    listener.afterQuery(execInfo, queries);
+
+    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
+    verify(eventPublisher).publishEvent(captor.capture());
+    DmlEvent event = captor.getValue().getEvents().get(0);
+    assertEquals(DmlOperation.UPDATE, event.getOperation());
+    assertTrue(event.getUpdatedColumns().contains("name"));
+    assertTrue(event.getUpdatedColumns().contains("shortname"));
+    assertEquals(2, event.getUpdatedColumns().size());
+  }
+
+  @Test
+  void afterQuery_insertHasEmptyUpdatedColumns() throws Exception {
+    ExecutionInfo execInfo = createSuccessExecutionInfo(true);
+    List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
+
+    listener.afterQuery(execInfo, queries);
+
+    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
+    verify(eventPublisher).publishEvent(captor.capture());
+    DmlEvent event = captor.getValue().getEvents().get(0);
+    assertTrue(event.getUpdatedColumns().isEmpty());
+  }
+
+  @Test
+  void afterQuery_capturesAuthenticatedUsername() throws Exception {
+    User principal = new User("admin", "password", List.of());
+    SecurityContextHolder.getContext()
+        .setAuthentication(new UsernamePasswordAuthenticationToken(principal, null, List.of()));
+
+    ExecutionInfo execInfo = createSuccessExecutionInfo(true);
+    List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
+
+    listener.afterQuery(execInfo, queries);
+
+    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
+    verify(eventPublisher).publishEvent(captor.capture());
+    DmlOrigin origin = captor.getValue().getOrigin();
+    assertNotNull(origin);
+    assertEquals("admin", origin.username());
+  }
+
+  @Test
   void afterQuery_emptyMdcProducesOriginWithNulls() throws Exception {
     ExecutionInfo execInfo = createSuccessExecutionInfo(true);
     List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
@@ -243,6 +298,7 @@ class DmlObserverListenerTest {
     verify(eventPublisher).publishEvent(captor.capture());
     DmlOrigin origin = captor.getValue().getOrigin();
     assertNotNull(origin);
+    assertNull(origin.username());
     assertNull(origin.controller());
     assertNull(origin.method());
     assertNull(origin.requestId());

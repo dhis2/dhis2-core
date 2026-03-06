@@ -31,6 +31,7 @@ package org.hisp.dhis.audit;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Set;
 import lombok.Builder;
 import lombok.Value;
 
@@ -61,6 +62,9 @@ public class DmlEvent {
 
   /** Extracted primary key value, or null if not extractable from the SQL parameters. */
   Serializable entityId;
+
+  /** Column names from the SET clause for UPDATE operations. Empty for INSERT/DELETE. */
+  @Builder.Default Set<String> updatedColumns = Set.of();
 
   Instant timestamp;
 

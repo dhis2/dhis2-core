@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.hisp.dhis.audit.DmlEvent.DmlOperation;
 import org.hisp.dhis.config.sqlobserver.DmlSqlParser.DmlParseResult;
 import org.junit.jupiter.api.Test;
@@ -123,6 +124,35 @@ class DmlSqlParserTest {
     // SET clause has 2 params, WHERE has 1 param at offset 3
     Map<String, Integer> params = r.getColumnToParamIndex();
     assertEquals(3, params.get("dataelementid"));
+  }
+
+  @Test
+  void parse_updateExtractsUpdatedColumns() {
+    Optional<DmlParseResult> result =
+        DmlSqlParser.parse(
+            "UPDATE dataelement SET name = ?, shortname = ?, lastupdated = ? WHERE dataelementid = ?");
+
+    assertTrue(result.isPresent());
+    DmlParseResult r = result.get();
+    assertEquals(Set.of("name", "shortname", "lastupdated"), r.getUpdatedColumns());
+  }
+
+  @Test
+  void parse_insertHasEmptyUpdatedColumns() {
+    Optional<DmlParseResult> result =
+        DmlSqlParser.parse("INSERT INTO dataelement (uid, name) VALUES (?, ?)");
+
+    assertTrue(result.isPresent());
+    assertTrue(result.get().getUpdatedColumns().isEmpty());
+  }
+
+  @Test
+  void parse_deleteHasEmptyUpdatedColumns() {
+    Optional<DmlParseResult> result =
+        DmlSqlParser.parse("DELETE FROM dataelement WHERE dataelementid = ?");
+
+    assertTrue(result.isPresent());
+    assertTrue(result.get().getUpdatedColumns().isEmpty());
   }
 
   @Test

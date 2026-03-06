@@ -30,9 +30,11 @@
 package org.hisp.dhis.config.sqlobserver;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -70,6 +72,9 @@ public class DmlSqlParser {
      * parameter position. Only populated for simple {@code column = ?} equality predicates.
      */
     Map<String, Integer> columnToParamIndex;
+
+    /** Column names from the SET clause of an UPDATE statement. Empty for INSERT/DELETE. */
+    @Builder.Default Set<String> updatedColumns = Set.of();
   }
 
   /**
@@ -167,12 +172,14 @@ public class DmlSqlParser {
     // Count SET clause params first to offset WHERE params correctly
     int setParamCount = countSetParams(update);
     Map<String, Integer> columnToParam = extractWhereColumnParams(update.getWhere(), setParamCount);
+    Set<String> updatedColumns = extractSetColumns(update);
 
     return Optional.of(
         DmlParseResult.builder()
             .operation(DmlOperation.UPDATE)
             .tableName(tableName)
             .columnToParamIndex(columnToParam)
+            .updatedColumns(updatedColumns)
             .build());
   }
 
@@ -213,6 +220,22 @@ public class DmlSqlParser {
       }
     }
     return count;
+  }
+
+  /** Extracts the column names from the SET clause of an UPDATE statement. */
+  private static Set<String> extractSetColumns(Update update) {
+    Set<String> columns = new LinkedHashSet<>();
+    List<UpdateSet> updateSets = update.getUpdateSets();
+    if (updateSets != null) {
+      for (UpdateSet updateSet : updateSets) {
+        if (updateSet.getColumns() != null) {
+          for (Column col : updateSet.getColumns()) {
+            columns.add(col.getColumnName().toLowerCase());
+          }
+        }
+      }
+    }
+    return Set.copyOf(columns);
   }
 
   /**
