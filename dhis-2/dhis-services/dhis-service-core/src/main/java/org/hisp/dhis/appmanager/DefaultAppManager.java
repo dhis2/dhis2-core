@@ -598,8 +598,21 @@ public class DefaultAppManager implements AppManager {
         AppHtmlTemplate template = new AppHtmlTemplate(contextPath, app);
         ByteArrayOutputStream bout = new ByteArrayOutputStream();
         template.apply(resourceFound.resource().getInputStream(), bout);
+
+        // Old-style apps reference sibling resources via ../dhis-web-commons/
+        // etc. This resolves correctly from /dhis-web-{appName}/ (legacy) but
+        // breaks from /apps/{appName}/ (canonical) because ../ lands on /apps/
+        // instead of /. Adjust to ../../ so the path reaches the context root.
+        byte[] htmlBytes = bout.toByteArray();
+        boolean canonicalAppPaths = settingsProvider.getCurrentSettings().getCanonicalAppPaths();
+        if (canonicalAppPaths) {
+          String html = new String(htmlBytes, StandardCharsets.UTF_8);
+          html = html.replace("\"../dhis-web-", "\"../../dhis-web-");
+          htmlBytes = html.getBytes(StandardCharsets.UTF_8);
+        }
+
         ByteArrayResource byteArrayResource =
-            toByteArrayResource(bout.toByteArray(), resourceFound.resource());
+            toByteArrayResource(htmlBytes, resourceFound.resource());
         return new ResourceResult.ResourceFound(byteArrayResource, "text/html;charset=UTF-8");
       } else if (pageName.endsWith(".js")
           || (resourceFound.resource().getFilename() != null
@@ -610,10 +623,17 @@ public class DefaultAppManager implements AppManager {
           originalJsContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
         }
 
+        // Apps are built with REACT_APP_DHIS2_BASE_URL:".." (one level up).
+        // The server serves apps at a deeper path, so we must adjust the
+        // relative URL to reach the context root:
+        //   Legacy path:    /contextPath/api/apps/{appName}/ → 3 levels up
+        //   Canonical path: /contextPath/apps/{appName}/     → 2 levels up
+        boolean canonicalAppPaths = settingsProvider.getCurrentSettings().getCanonicalAppPaths();
+        String relativePath = canonicalAppPaths ? "../.." : "../../..";
         String modifiedJsContent =
             originalJsContent.replace(
                 "REACT_APP_DHIS2_BASE_URL:\"..\"",
-                "REACT_APP_DHIS2_BASE_URL:\"" + "../../.." + "\"");
+                "REACT_APP_DHIS2_BASE_URL:\"" + relativePath + "\"");
 
         ByteArrayResource byteArrayResource =
             toByteArrayResource(
