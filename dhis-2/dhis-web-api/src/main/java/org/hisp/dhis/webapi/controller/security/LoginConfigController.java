@@ -99,7 +99,7 @@ public class LoginConfigController {
         .emailConfigured(settings.isEmailConfigured())
         .selfRegistrationEnabled(configurationService.getConfiguration().selfRegistrationAllowed())
         .apiVersion(systemService.getSystemInfoVersion())
-        .recaptchaSite(settings.getRecaptchaSite())
+        .recaptchaSite("HARDCODED123_A")
         .loginPageLayout(settings.getLoginPageLayout().name())
         .loginPageTemplate(settings.getLoginPageTemplate())
         .minPasswordLength(String.valueOf(settings.getMinPasswordLength()))
