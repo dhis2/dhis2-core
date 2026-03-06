@@ -99,18 +99,18 @@ class DataSetObjectBundleHookTest {
 
   @Test
   @DisplayName(
-      "Section indicators list is mutable after preUpdate (no UnsupportedOperationException)")
-  void sectionIndicatorsAreMutableAfterPreUpdate() {
+      "Section's indicators list is mutable after preUpdate (no UnsupportedOperationException)")
+  void sectionIndicatorsAreMutableAfterPreUpdateTest() {
     hook.preUpdate(importDataSet, persistedDataSet, bundle);
 
-    // MetadataMergeService calls clear() on every collection during merge;
-    // this would throw UnsupportedOperationException if the list were immutable (Stream.toList())
+    // MetadataMergeService calls clear() on every collection during merge
+    // this would throw UnsupportedOperationException if the list were immutable
     assertDoesNotThrow(() -> section.getIndicators().clear());
   }
 
   @Test
   @DisplayName("Indicator removed from DataSet is also removed from its Section's indicators")
-  void removedDataSetIndicatorIsRemovedFromSectionIndicators() {
+  void removedDataSetIndicatorIsRemovedFromSectionIndicatorsTest() {
     hook.preUpdate(importDataSet, persistedDataSet, bundle);
     assertEquals(List.of(indicatorToKeep), section.getIndicators());
   }
