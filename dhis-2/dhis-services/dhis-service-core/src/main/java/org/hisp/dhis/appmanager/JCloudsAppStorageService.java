@@ -133,6 +133,10 @@ public class JCloudsAppStorageService implements AppStorageService {
               jCloudsStore.getBlob(
                   resource.getName() + AppStorageService.MANIFEST_TRANSLATION_FILENAME)));
 
+      app.setCacheConfig(
+          readAppCacheConfig(
+              jCloudsStore.getBlob(resource.getName() + AppStorageService.CACHE_CONFIG_FILENAME)));
+
       Blob bundledAppInfo = jCloudsStore.getBlob(resource.getName() + BUNDLED_APP_INFO_FILENAME);
       if (bundledAppInfo != null) {
         try (InputStream bundledAppInfoStream = bundledAppInfo.getPayload().openStream()) {
@@ -157,6 +161,18 @@ public class JCloudsAppStorageService implements AppStorageService {
           "An error occurred trying to read the app manifest translations '{}'",
           e.getLocalizedMessage());
       return Collections.emptyList();
+    }
+  }
+
+  private AppCacheConfig readAppCacheConfig(Blob cacheConfigBlob) {
+    if (cacheConfigBlob == null) {
+      return null;
+    }
+    try (InputStream inputStream = cacheConfigBlob.getPayload().openStream()) {
+      return App.MAPPER.readValue(inputStream, AppCacheConfig.class);
+    } catch (IOException e) {
+      log.warn("Failed to read {}: {}", AppStorageService.CACHE_CONFIG_FILENAME, e.getMessage());
+      return null;
     }
   }
 
