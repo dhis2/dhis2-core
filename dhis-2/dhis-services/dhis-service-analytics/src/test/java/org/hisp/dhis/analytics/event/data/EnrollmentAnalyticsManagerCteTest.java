@@ -175,7 +175,8 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
             organisationUnitResolver,
             columnMapper,
             filterBuilder,
-            stageQuerySqlFacade);
+            stageQuerySqlFacade,
+            new DateFieldPeriodBucketColumnResolver(new PostgreSqlBuilder()));
   }
 
   @Test

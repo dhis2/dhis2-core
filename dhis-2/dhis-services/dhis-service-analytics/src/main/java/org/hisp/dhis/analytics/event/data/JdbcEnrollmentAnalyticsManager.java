@@ -166,7 +166,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       OrganisationUnitResolver organisationUnitResolver,
       ColumnMapper columnMapper,
       QueryItemFilterBuilder filterBuilder,
-      StageQuerySqlFacade stageQuerySqlFacade) {
+      StageQuerySqlFacade stageQuerySqlFacade,
+      DateFieldPeriodBucketColumnResolver dateFieldPeriodBucketColumnResolver) {
     super(
         jdbcTemplate,
         programIndicatorService,
@@ -180,7 +181,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         organisationUnitResolver,
         columnMapper,
         filterBuilder,
-        stageQuerySqlFacade);
+        stageQuerySqlFacade,
+        dateFieldPeriodBucketColumnResolver);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
