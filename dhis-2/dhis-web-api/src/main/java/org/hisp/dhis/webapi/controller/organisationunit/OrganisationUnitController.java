@@ -44,6 +44,7 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -78,6 +79,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.version.VersionService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.service.ConditionalETagService;
 import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -106,6 +108,35 @@ public class OrganisationUnitController
   @Autowired private VersionService versionService;
   @Autowired private OrgUnitSplitService orgUnitSplitService;
   @Autowired private OrgUnitMergeService orgUnitMergeService;
+  @Autowired private ConditionalETagService conditionalETagService;
+
+  /**
+   * Returns a list of organisation units. Uses conditional ETag caching with Redis pub/sub for
+   * efficient cache invalidation. The ETag check happens BEFORE the heavy query computation.
+   */
+  @Override
+  @OpenApi.Response(GetObjectListResponse.class)
+  @GetMapping
+  public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getObjectList(
+      GetOrganisationUnitObjectListParams params,
+      HttpServletResponse response,
+      @CurrentUser UserDetails currentUser)
+      throws ForbiddenException, BadRequestException, ConflictException {
+    // Check for conditional ETag match before executing the heavy query
+    // Uses entity-type-specific versioning - only OrganisationUnit changes invalidate this cache
+    HttpServletRequest request = org.hisp.dhis.webapi.utils.ContextUtils.getRequest();
+    if (request != null) {
+      Optional<ResponseEntity<StreamingJsonRoot<OrganisationUnit>>> notModified =
+          conditionalETagService.checkNotModifiedResponse(
+              currentUser, request, OrganisationUnit.class);
+      if (notModified.isPresent()) {
+        return notModified.get();
+      }
+      // Set ETag headers for the response
+      conditionalETagService.setETagHeaders(currentUser, response, OrganisationUnit.class);
+    }
+    return super.getObjectList(params, response, currentUser);
+  }
 
   @ResponseStatus(HttpStatus.OK)
   @RequiresAuthority(anyOf = F_ORGANISATION_UNIT_SPLIT)
