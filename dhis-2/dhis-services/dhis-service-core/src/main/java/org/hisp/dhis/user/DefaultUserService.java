@@ -1550,7 +1550,7 @@ public class DefaultUserService implements UserService {
     userReplica.setOpenId(null);
     userReplica.setUsername(username);
     userReplica.setLastLogin(null);
-    // Roles and groups are assigned explicitly via JDBC after flush — clear them here
+    // Roles and groups are assigned explicitly via JDBC after flush.  clear them here
     // so Hibernate cascade does not attempt to write the join tables before the userinfo
     // row exists in the database.
     userReplica.setUserRoles(new HashSet<>());
