@@ -59,7 +59,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.LockOptions;
-import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.QueryCacheManager;
@@ -453,7 +452,6 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
     TypedQuery<User> typedQuery = entityManager.createQuery(hql, User.class);
     typedQuery.setParameter("username", username);
-    typedQuery.setHint(QueryHints.CACHEABLE, true);
 
     return QueryUtils.getSingleResult(typedQuery);
   }
