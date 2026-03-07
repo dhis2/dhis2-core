@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -107,7 +108,7 @@ class EnrollmentQueryParams {
 
   private CategoryOptionCombo attributeOptionCombo;
 
-  private List<Order> order;
+  private List<Order> order = new ArrayList<>();
 
   // -------------------------------------------------------------------------
   // Constructors

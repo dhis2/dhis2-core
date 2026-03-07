@@ -46,6 +46,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.user.User;
@@ -61,6 +62,8 @@ public class TrackerEvent extends SoftDeletableObject {
   private Date lastUpdatedAtClient;
 
   @AuditAttribute private Enrollment enrollment;
+
+  @AuditAttribute private Program program;
 
   @AuditAttribute private ProgramStage programStage;
 
@@ -105,6 +108,13 @@ public class TrackerEvent extends SoftDeletableObject {
     }
 
     lastUpdatedAtClient = lastUpdated;
+  }
+
+  public void setEnrollment(Enrollment enrollment) {
+    this.enrollment = enrollment;
+    if (enrollment != null && enrollment.getProgram() != null) {
+      this.program = enrollment.getProgram();
+    }
   }
 
   public boolean hasAttributeOptionCombo() {

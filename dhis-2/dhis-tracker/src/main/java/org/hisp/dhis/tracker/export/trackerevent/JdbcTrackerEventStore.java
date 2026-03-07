@@ -82,6 +82,8 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.export.Geometries;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.OrderJdbcClause;
+import org.hisp.dhis.tracker.export.OrderJdbcClause.SqlOrder;
 import org.hisp.dhis.tracker.export.UserInfoSnapshots;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
@@ -120,7 +122,8 @@ class JdbcTrackerEventStore {
        on evn.noteid = n.noteid\
        left join userinfo on n.lastupdatedby = userinfo.userinfoid\s""";
 
-  private static final String DEFAULT_ORDER = "ev_id desc";
+  private static final String DEFAULT_ORDER = "ev_created desc, ev_id desc";
+  private static final String PK_COLUMN = "ev_id";
 
   /**
    * Events can be ordered by given fields which correspond to fields on {@link TrackerEvent}. Maps
@@ -620,7 +623,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       SqlHelper hlp) {
     if (params.hasEnrolledInTrackerProgram()) {
       sqlParams.addValue("programid", params.getEnrolledInTrackerProgram().getId());
-      sql.append(hlp.whereAnd()).append(" en.programid = :programid ");
+      sql.append(hlp.whereAnd()).append(" ev.programid = :programid ");
     } else {
       addProgramConditions(sql, sqlParams, params, hlp);
     }
@@ -671,7 +674,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           params.getEnrolledInTrackerProgram(),
           params.getQuerySearchScope(),
           "ou",
-          hasTrackedEntityJoin ? "te" : "en",
+          hasTrackedEntityJoin ? "te" : "ev",
           hlp::whereAnd);
     } else {
       buildOwnershipClause(sql, sqlParams, params.getOrgUnitMode(), "p", "ou", "te", hlp::whereAnd);
@@ -787,7 +790,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   private void addJoinOnProgramOwner(StringBuilder sql) {
     sql.append(
         " inner join trackedentityprogramowner po"
-            + " on po.trackedentityid = en.trackedentityid and po.programid = en.programid ");
+            + " on po.trackedentityid = en.trackedentityid and po.programid = ev.programid ");
   }
 
   private void addJoinOnOwnerOrgUnit(StringBuilder sql) {
@@ -951,14 +954,14 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       SqlHelper hlp) {
     if (params.hasEnrolledInTrackerProgram()) {
       sqlParams.addValue("programid", params.getEnrolledInTrackerProgram().getId());
-      sql.append(hlp.whereAnd()).append(" en.programid = :programid ");
+      sql.append(hlp.whereAnd()).append(" ev.programid = :programid ");
     } else {
       sqlParams.addValue(
           "programid",
           params.getAccessibleTrackerPrograms().isEmpty()
               ? null
               : getIdentifiers(params.getAccessibleTrackerPrograms()));
-      sql.append(hlp.whereAnd()).append(" p.programid in (").append(":programid").append(") ");
+      sql.append(hlp.whereAnd()).append(" ev.programid in (").append(":programid").append(") ");
     }
   }
 
@@ -976,7 +979,9 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
           params.getAccessibleTrackerProgramStages().isEmpty()
               ? null
               : getIdentifiers(params.getAccessibleTrackerProgramStages()));
-      sql.append(hlp.whereAnd()).append(" ev.programstageid in (:programstageid) ");
+      // Filter via the joined programstage table so PG can use it as a driving table,
+      // which enables the in_trackerevent_enrollmentid index instead of a PK backward scan.
+      sql.append(hlp.whereAnd()).append(" ps.programstageid in (:programstageid) ");
     }
   }
 
@@ -1201,7 +1206,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String getOrderQuery(TrackerEventQueryParams params) {
-    ArrayList<String> orderFields = new ArrayList<>();
+    List<SqlOrder> orderFields = new ArrayList<>();
 
     for (Order order : params.getOrder()) {
       if (order.getField() instanceof String field) {
@@ -1213,11 +1218,11 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
                   field, String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
         }
 
-        orderFields.add(ORDERABLE_FIELDS.get(field) + " " + order.getDirection());
+        orderFields.add(SqlOrder.of(ORDERABLE_FIELDS.get(field), order));
       } else if (order.getField() instanceof TrackedEntityAttribute tea) {
-        orderFields.add(tea.getUid() + "_value " + order.getDirection());
+        orderFields.add(SqlOrder.of(tea.getUid() + "_value", order));
       } else if (order.getField() instanceof DataElement de) {
-        orderFields.add(de.getUid() + " " + order.getDirection());
+        orderFields.add(SqlOrder.of(de.getUid(), order));
       } else {
         throw new IllegalArgumentException(
             String.format(
@@ -1228,11 +1233,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       }
     }
 
-    if (!orderFields.isEmpty()) {
-      return "order by " + StringUtils.join(orderFields, ',') + ", " + DEFAULT_ORDER + " ";
-    } else {
-      return "order by " + DEFAULT_ORDER + " ";
-    }
+    return OrderJdbcClause.of(orderFields, DEFAULT_ORDER, PK_COLUMN);
   }
 
   private boolean isNotSuperUser(UserDetails user) {

@@ -67,6 +67,25 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 @RequiredArgsConstructor(access = lombok.AccessLevel.PRIVATE)
 public class OrgUnitQueryBuilder {
 
+  /**
+   * Appends an SQL clause to filter directly on the event table's organisationunitid column for
+   * SELECTED mode. Use in addition to {@link #buildOrgUnitModeClause} to give PG an early predicate
+   * on the event row, avoiding a full index scan when the org unit filter is selective.
+   */
+  public static void buildEventOrgUnitCondition(
+      StringBuilder sql,
+      MapSqlParameterSource sqlParameters,
+      Set<OrganisationUnit> orgUnits,
+      OrganisationUnitSelectionMode orgUnitMode,
+      String eventTableAlias,
+      String clause) {
+    if (orgUnitMode != OrganisationUnitSelectionMode.SELECTED || orgUnits.isEmpty()) {
+      return;
+    }
+    sql.append(clause).append(eventTableAlias).append(".organisationunitid in (:evOrgUnits) ");
+    sqlParameters.addValue("evOrgUnits", getIdentifiers(orgUnits));
+  }
+
   /** Appends an SQL clause to filter by org units based on the given org unit mode. */
   public static void buildOrgUnitModeClause(
       StringBuilder sql,

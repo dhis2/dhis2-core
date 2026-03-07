@@ -39,12 +39,12 @@ import static org.hisp.dhis.tracker.export.OrgUnitQueryBuilder.buildOwnershipCla
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
@@ -55,6 +55,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.OrderJdbcClause;
+import org.hisp.dhis.tracker.export.OrderJdbcClause.SqlOrder;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.jdbc.core.SqlParameterValue;
@@ -71,7 +73,10 @@ class JdbcTrackedEntityStore {
 
   private static final String ENROLLMENT_ALIAS = "en";
 
-  private static final String DEFAULT_ORDER = MAIN_QUERY_ALIAS + ".trackedentityid desc";
+  private static final String DEFAULT_ORDER =
+      MAIN_QUERY_ALIAS + ".created desc, " + MAIN_QUERY_ALIAS + ".trackedentityid desc";
+
+  private static final String PK_COLUMN = MAIN_QUERY_ALIAS + ".trackedentityid";
 
   private static final String ENROLLMENT_DATE_ALIAS = "en_enrollmentdate";
 
@@ -235,19 +240,16 @@ class JdbcTrackedEntityStore {
     addOuterSelect(sql, params);
     sql.append(" from (");
     addSubqueryBody(sql, sqlParameters, params);
-    sql.append(" ");
     if (needsDistinctOnForEnrolledAt(params)) {
       addDistinctOnOrderBy(sql, params);
     } else {
       addOrderBy(sql, params);
-      sql.append(" ");
       addLimitAndOffset(sql, pageParams);
     }
-    sql.append(") ").append(MAIN_QUERY_ALIAS).append(" ");
+    sql.append(") ").append(MAIN_QUERY_ALIAS);
     addOrderBy(sql, params);
     // LIMIT must be in outer query for DISTINCT ON (applied after final ORDER BY)
     if (needsDistinctOnForEnrolledAt(params)) {
-      sql.append(" ");
       addLimitAndOffset(sql, pageParams);
     }
     return sql.toString();
@@ -321,10 +323,11 @@ class JdbcTrackedEntityStore {
    * columns (trackedentityid), followed by the enrollment date in the requested direction.
    */
   private void addDistinctOnOrderBy(StringBuilder sql, TrackedEntityQueryParams params) {
-    sql.append("order by te.trackedentityid, ")
+    sql.append(" order by te.trackedentityid, ")
         .append(ENROLLMENT_ALIAS)
         .append(".enrollmentdate ")
-        .append(getEnrolledAtOrder(params).getDirection().name());
+        .append(getEnrolledAtOrder(params).getDirection().name())
+        .append(" ");
   }
 
   /**
@@ -354,8 +357,15 @@ class JdbcTrackedEntityStore {
       sql.append("select distinct te.trackedentityid");
     }
 
-    // TE columns needed by the outer query
-    sql.append(", te.uid");
+    // Use an ordered set to collect SELECT columns without duplicates. te.created is always needed
+    // except on the enrolledAt path (which orders by en_enrollmentdate instead). An explicit
+    // order=createdAt can add it back -- the set handles the deduplication automatically, avoiding
+    // the unnecessary sort-key width that causes work_mem spills on the enrolledAt path.
+    LinkedHashSet<String> selectCols = new LinkedHashSet<>();
+    selectCols.add("te.uid");
+    if (!isOrderingByEnrolledAt(params)) {
+      selectCols.add("te.created");
+    }
 
     // Add order-by columns so they are available for ORDER BY (required for DISTINCT)
     for (Order order : params.getOrder()) {
@@ -369,19 +379,12 @@ class JdbcTrackedEntityStore {
         }
 
         if (ENROLLMENT_DATE_KEY.equals(field)) {
-          sql.append(", ")
-              .append(ENROLLMENT_ALIAS)
-              .append(".enrollmentdate as ")
-              .append(ENROLLMENT_DATE_ALIAS);
+          selectCols.add(ENROLLMENT_ALIAS + ".enrollmentdate as " + ENROLLMENT_DATE_ALIAS);
         } else {
-          // TE column needed in SELECT for DISTINCT ORDER BY
-          sql.append(", te.").append(ORDERABLE_FIELDS.get(field));
+          selectCols.add("te." + ORDERABLE_FIELDS.get(field));
         }
       } else if (order.getField() instanceof TrackedEntityAttribute tea) {
-        sql.append(", ")
-            .append(quote(tea.getUid()))
-            .append(".value as ")
-            .append(quote(tea.getUid()));
+        selectCols.add(quote(tea.getUid()) + ".value as " + quote(tea.getUid()));
       } else {
         throw new IllegalArgumentException(
             String.format(
@@ -390,6 +393,8 @@ class JdbcTrackedEntityStore {
                 String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
       }
     }
+
+    selectCols.forEach(col -> sql.append(", ").append(col));
   }
 
   private void addJoinOnProgram(
@@ -590,7 +595,12 @@ class JdbcTrackedEntityStore {
         .append(EVENT_ALIAS)
         .append(".enrollmentid = ")
         .append(ENROLLMENT_ALIAS)
-        .append(".enrollmentid");
+        .append(".enrollmentid")
+        .append(" and ")
+        .append(EVENT_ALIAS)
+        .append(".programid = ")
+        .append(ENROLLMENT_ALIAS)
+        .append(".programid");
 
     addEventFilterConditions(sql, sqlParameters, params);
   }
@@ -790,7 +800,10 @@ class JdbcTrackedEntityStore {
           .append(EVENT_ALIAS)
           .append(" on ")
           .append(EVENT_ALIAS)
-          .append(".enrollmentid = en.enrollmentid");
+          .append(".enrollmentid = en.enrollmentid")
+          .append(" and ")
+          .append(EVENT_ALIAS)
+          .append(".programid = en.programid");
       addEventFilterConditions(sql, sqlParameters, params);
       sql.append(" ");
     }
@@ -857,7 +870,7 @@ class JdbcTrackedEntityStore {
    * LIMIT) and the outer query (to return results in the correct order).
    */
   private void addOrderBy(StringBuilder sql, TrackedEntityQueryParams params) {
-    List<String> orderFields = new ArrayList<>();
+    List<SqlOrder> orderFields = new ArrayList<>();
     for (Order order : params.getOrder()) {
       if (order.getField() instanceof String field) {
         if (!ORDERABLE_FIELDS.containsKey(field)) {
@@ -868,9 +881,9 @@ class JdbcTrackedEntityStore {
                   String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
         }
 
-        orderFields.add(ORDERABLE_FIELDS.get(field) + " " + order.getDirection());
+        orderFields.add(SqlOrder.of(ORDERABLE_FIELDS.get(field), order));
       } else if (order.getField() instanceof TrackedEntityAttribute tea) {
-        orderFields.add(quote(tea.getUid()) + " " + order.getDirection());
+        orderFields.add(SqlOrder.of(quote(tea.getUid()), order));
       } else {
         throw new IllegalArgumentException(
             String.format(
@@ -880,14 +893,7 @@ class JdbcTrackedEntityStore {
       }
     }
 
-    sql.append("order by ");
-
-    if (orderFields.isEmpty()) {
-      sql.append(DEFAULT_ORDER);
-      return;
-    }
-
-    sql.append(StringUtils.join(orderFields, ',')).append(", ").append(DEFAULT_ORDER);
+    sql.append(OrderJdbcClause.of(orderFields, DEFAULT_ORDER, PK_COLUMN));
   }
 
   /**
