@@ -70,6 +70,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.ListIndexBase;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.attribute.AttributeValuesDeserializer;
@@ -229,6 +230,7 @@ public class Program extends BaseMetadataObject
   @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
   @JoinColumn(name = "programid")
   @OrderColumn(name = "sort_order")
+  @ListIndexBase(1)
   private List<ProgramTrackedEntityAttribute> programAttributes = new ArrayList<>();
 
   @ManyToMany
