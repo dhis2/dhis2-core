@@ -45,8 +45,6 @@ import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -62,10 +60,10 @@ import org.hisp.dhis.icon.IconService;
 import org.hisp.dhis.icon.UpdateIconRequest;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.tracker.export.FileResourceStream;
+import org.hisp.dhis.webapi.security.csp.CspUserUploadedContent;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -97,7 +95,6 @@ public class IconController {
 
   private final IconService iconService;
   private final FileResourceService fileResourceService;
-  private final DhisConfigurationProvider dhisConfig;
   private final FieldFilterService fieldFilterService;
   private final ContextService contextService;
   private final LinkService linkService;
@@ -126,6 +123,7 @@ public class IconController {
     return new IconListResponse(pager, objectNodes);
   }
 
+  @CspUserUploadedContent
   @GetMapping(value = "/{key}/icon")
   public void getIconData(@PathVariable String key, HttpServletResponse response)
       throws NotFoundException, ConflictException {
@@ -140,6 +138,7 @@ public class IconController {
     return new ResponseEntity<>(icon, HttpStatus.OK);
   }
 
+  @CspUserUploadedContent
   @GetMapping("/{key}/icon.svg")
   @Deprecated
   public void getIconData(
@@ -195,8 +194,6 @@ public class IconController {
     response.setHeader(HttpHeaders.CONTENT_LENGTH, String.valueOf(image.getContentLength()));
     response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + image.getName());
     response.setHeader("Cache-Control", CacheControl.maxAge(TTL, TimeUnit.DAYS).getHeaderValue());
-    HeaderUtils.setSecurityHeaders(
-        response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
 
     try {
       fileResourceService.copyFileResourceContent(image, response.getOutputStream());

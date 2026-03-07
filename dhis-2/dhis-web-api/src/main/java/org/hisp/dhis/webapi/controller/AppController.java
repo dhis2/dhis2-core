@@ -65,6 +65,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.webapi.security.csp.CustomCsp;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -161,6 +162,8 @@ public class AppController {
     appManager.reloadApps();
   }
 
+  @CustomCsp(
+      "default-src 'self'; style-src 'self' 'unsafe-inline'; child-src 'self' blob:; img-src * data:; connect-src *;")
   @GetMapping("/{app}/**")
   public void renderApp(
       @PathVariable("app") String appName, HttpServletRequest request, HttpServletResponse response)
