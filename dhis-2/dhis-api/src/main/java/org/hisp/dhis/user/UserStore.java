@@ -325,4 +325,7 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @param attributeUids attribute UIDs to remove from attributevalues
    */
   void removeAttributeValues(@Nonnull String userUid, @Nonnull Collection<String> attributeUids);
+
+  /** Clears local Hibernate query cache regions after direct JDBC writes to user tables. */
+  void clearUserQueryCache();
 }

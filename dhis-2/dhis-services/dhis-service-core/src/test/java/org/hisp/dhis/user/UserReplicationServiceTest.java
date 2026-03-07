@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -35,6 +35,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,6 +51,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.setting.UserSettings;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -161,5 +163,52 @@ class UserReplicationServiceTest {
     verify(userRoleStore, never()).copyRoleMemberships(any(), any());
     verify(userStore, never()).copyOrgUnitMemberships(any(), any());
     verify(userStore, never()).copyDimensionConstraints(any(), any());
+    verify(userStore, never()).clearUserQueryCache();
+  }
+
+  @Test
+  void replicateUserClearsQueryCacheAfterSuccessfulJdbcReplication() throws Exception {
+    CurrentUserUtil.injectUserInSecurityContext(
+        UserDetails.empty()
+            .id(42L)
+            .uid("actingUid123")
+            .username("admin")
+            .password("secret")
+            .enabled(true)
+            .accountNonExpired(true)
+            .accountNonLocked(true)
+            .credentialsNonExpired(true)
+            .build());
+
+    User existingUser = new User();
+    existingUser.setUid("sourceUid123");
+
+    User sourceUser = new User();
+    sourceUser.setUid("sourceUid123");
+    sourceUser.setUsername("source");
+    sourceUser.setExternalAuth(false);
+
+    User replicaUser = new User();
+    replicaUser.setUid("replicaUid123");
+
+    when(userStore.getUserByUsername("replica")).thenReturn(null);
+    when(userStore.getByUidNoAcl("sourceUid123")).thenReturn(sourceUser);
+    when(passwordManager.encode("Str0ngPass!")).thenReturn("encodedPassword");
+    when(userStore.insertUserCopy(
+            eq("sourceUid123"),
+            anyString(),
+            any(UUID.class),
+            eq("replica"),
+            eq("encodedPassword"),
+            eq(42L)))
+        .thenReturn(1);
+    UserSettings settings = org.mockito.Mockito.mock(UserSettings.class);
+    when(settings.toMap()).thenReturn(java.util.Map.of());
+    when(userSettingsService.getUserSettings("source", false)).thenReturn(settings);
+    when(userStore.getByUidNoAcl(anyString())).thenReturn(sourceUser, replicaUser);
+
+    userService.replicateUser(existingUser, "replica", "Str0ngPass!");
+
+    verify(userStore, times(1)).clearUserQueryCache();
   }
 }

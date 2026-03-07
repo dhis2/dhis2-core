@@ -934,4 +934,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
           userUid);
     }
   }
+
+  @Override
+  public void clearUserQueryCache() {
+    getSession().getSessionFactory().getCache().evictQueryRegions();
+  }
 }
