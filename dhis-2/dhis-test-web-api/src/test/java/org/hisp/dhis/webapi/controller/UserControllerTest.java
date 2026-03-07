@@ -740,49 +740,52 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
         replica.getPasswordLastUpdated(),
         "passwordLastUpdated must not be inherited from source");
 
-    // --- Collections: should match source ---
-    Set<String> replicaRoleUids =
-        replica.getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toSet());
-    assertTrue(
-        replicaRoleUids.contains(extraRoleUid), "Replica should inherit roles from source user");
+    // --- Collections: should exactly match source ---
+    assertEquals(
+        source.getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toSet()),
+        replica.getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toSet()),
+        "Replica roles must exactly match source roles");
 
-    Set<String> replicaGroupUids =
-        replica.getGroups().stream().map(UserGroup::getUid).collect(Collectors.toSet());
-    assertTrue(
-        replicaGroupUids.contains(group.getUid()),
-        "Replica should inherit group memberships from source user");
+    assertEquals(
+        source.getGroups().stream().map(UserGroup::getUid).collect(Collectors.toSet()),
+        replica.getGroups().stream().map(UserGroup::getUid).collect(Collectors.toSet()),
+        "Replica group memberships must exactly match source");
 
-    Set<String> replicaOuUids =
+    assertEquals(
+        source.getOrganisationUnits().stream()
+            .map(OrganisationUnit::getUid)
+            .collect(Collectors.toSet()),
         replica.getOrganisationUnits().stream()
             .map(OrganisationUnit::getUid)
-            .collect(Collectors.toSet());
-    assertTrue(
-        replicaOuUids.contains(ou.getUid()),
-        "Replica should inherit capture org units from source user");
+            .collect(Collectors.toSet()),
+        "Replica capture org units must exactly match source");
 
-    Set<String> replicaDvOuUids =
+    assertEquals(
+        source.getDataViewOrganisationUnits().stream()
+            .map(OrganisationUnit::getUid)
+            .collect(Collectors.toSet()),
         replica.getDataViewOrganisationUnits().stream()
             .map(OrganisationUnit::getUid)
-            .collect(Collectors.toSet());
-    assertTrue(
-        replicaDvOuUids.contains(ou.getUid()),
-        "Replica should inherit data-view org units from source user");
+            .collect(Collectors.toSet()),
+        "Replica data-view org units must exactly match source");
 
-    Set<String> replicaCogsUids =
+    assertEquals(
+        source.getCogsDimensionConstraints().stream()
+            .map(CategoryOptionGroupSet::getUid)
+            .collect(Collectors.toSet()),
         replica.getCogsDimensionConstraints().stream()
             .map(CategoryOptionGroupSet::getUid)
-            .collect(Collectors.toSet());
-    assertTrue(
-        replicaCogsUids.contains(cogs.getUid()),
-        "Replica should inherit COGS dimension constraints from source user");
+            .collect(Collectors.toSet()),
+        "Replica COGS dimension constraints must exactly match source");
 
-    Set<String> replicaCatUids =
+    assertEquals(
+        source.getCatDimensionConstraints().stream()
+            .map(Category::getUid)
+            .collect(Collectors.toSet()),
         replica.getCatDimensionConstraints().stream()
             .map(Category::getUid)
-            .collect(Collectors.toSet());
-    assertTrue(
-        replicaCatUids.contains(cat.getUid()),
-        "Replica should inherit category dimension constraints from source user");
+            .collect(Collectors.toSet()),
+        "Replica category dimension constraints must exactly match source");
   }
 
   @Test
