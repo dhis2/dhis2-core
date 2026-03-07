@@ -89,11 +89,11 @@ class UserReplicationServiceTest {
   @BeforeEach
   void setUp() {
     when(cacheProvider.<String>createUserDisplayNameCache()).thenReturn(userDisplayNameCache);
-    when(cacheProvider.<Integer>createUserFailedLoginAttemptCache(eq(0)))
+    when(cacheProvider.<Integer>createUserFailedLoginAttemptCache(0))
         .thenReturn(userFailedLoginAttemptCache);
-    when(cacheProvider.<Integer>createUserAccountRecoverAttemptCache(eq(0)))
+    when(cacheProvider.<Integer>createUserAccountRecoverAttemptCache(0))
         .thenReturn(userAccountRecoverAttemptCache);
-    when(cacheProvider.<Integer>createDisable2FAFailedAttemptCache(eq(0)))
+    when(cacheProvider.<Integer>createDisable2FAFailedAttemptCache(0))
         .thenReturn(twoFaDisableFailedAttemptCache);
 
     userService =
@@ -125,7 +125,7 @@ class UserReplicationServiceTest {
     CurrentUserUtil.injectUserInSecurityContext(
         UserDetails.empty()
             .id(42L)
-            .uid("actingUid123")
+            .uid("a1234567890")
             .username("admin")
             .password("secret")
             .enabled(true)
@@ -135,18 +135,18 @@ class UserReplicationServiceTest {
             .build());
 
     User existingUser = new User();
-    existingUser.setUid("sourceUid123");
+    existingUser.setUid("b1234567890");
 
     User sourceUser = new User();
-    sourceUser.setUid("sourceUid123");
+    sourceUser.setUid("b1234567890");
     sourceUser.setUsername("source");
     sourceUser.setExternalAuth(false);
 
     when(userStore.getUserByUsername("replica")).thenReturn(null);
-    when(userStore.getByUidNoAcl("sourceUid123")).thenReturn(sourceUser);
+    when(userStore.getByUidNoAcl("b1234567890")).thenReturn(sourceUser);
     when(passwordManager.encode("Str0ngPass!")).thenReturn("encodedPassword");
     when(userStore.insertUserCopy(
-            eq("sourceUid123"),
+            eq("b1234567890"),
             anyString(),
             any(UUID.class),
             eq("replica"),
@@ -159,7 +159,7 @@ class UserReplicationServiceTest {
             NotFoundException.class,
             () -> userService.replicateUser(existingUser, "replica", "Str0ngPass!"));
 
-    assertEquals("User not found: sourceUid123", ex.getMessage());
+    assertEquals("User not found: b1234567890", ex.getMessage());
     verify(userRoleStore, never()).copyRoleMemberships(any(), any());
     verify(userStore, never()).copyOrgUnitMemberships(any(), any());
     verify(userStore, never()).copyDimensionConstraints(any(), any());
@@ -171,7 +171,7 @@ class UserReplicationServiceTest {
     CurrentUserUtil.injectUserInSecurityContext(
         UserDetails.empty()
             .id(42L)
-            .uid("actingUid123")
+            .uid("a1234567890")
             .username("admin")
             .password("secret")
             .enabled(true)
@@ -181,21 +181,21 @@ class UserReplicationServiceTest {
             .build());
 
     User existingUser = new User();
-    existingUser.setUid("sourceUid123");
+    existingUser.setUid("b1234567890");
 
     User sourceUser = new User();
-    sourceUser.setUid("sourceUid123");
+    sourceUser.setUid("b1234567890");
     sourceUser.setUsername("source");
     sourceUser.setExternalAuth(false);
 
     User replicaUser = new User();
-    replicaUser.setUid("replicaUid123");
+    replicaUser.setUid("c1234567890");
 
     when(userStore.getUserByUsername("replica")).thenReturn(null);
-    when(userStore.getByUidNoAcl("sourceUid123")).thenReturn(sourceUser);
+    when(userStore.getByUidNoAcl("b1234567890")).thenReturn(sourceUser);
     when(passwordManager.encode("Str0ngPass!")).thenReturn("encodedPassword");
     when(userStore.insertUserCopy(
-            eq("sourceUid123"),
+            eq("b1234567890"),
             anyString(),
             any(UUID.class),
             eq("replica"),
