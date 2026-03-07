@@ -769,4 +769,91 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
         .executeUpdate();
   }
+
+  @Override
+  public void copyDimensionConstraints(@Nonnull UID sourceUserUid, @Nonnull UID targetUserUid) {
+    String source = sourceUserUid.getValue();
+    String target = targetUserUid.getValue();
+    jdbcTemplate.update(
+        """
+        INSERT INTO users_cogsdimensionconstraints (userid, categoryoptiongroupsetid)
+        SELECT (SELECT userinfoid FROM userinfo WHERE uid = ?), m.categoryoptiongroupsetid
+        FROM users_cogsdimensionconstraints m
+        WHERE m.userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        AND NOT EXISTS (
+          SELECT 1 FROM users_cogsdimensionconstraints
+          WHERE userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+          AND categoryoptiongroupsetid = m.categoryoptiongroupsetid
+        )
+        """,
+        target,
+        source,
+        target);
+    jdbcTemplate.update(
+        """
+        INSERT INTO users_catdimensionconstraints (userid, dataelementcategoryid)
+        SELECT (SELECT userinfoid FROM userinfo WHERE uid = ?), m.dataelementcategoryid
+        FROM users_catdimensionconstraints m
+        WHERE m.userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        AND NOT EXISTS (
+          SELECT 1 FROM users_catdimensionconstraints
+          WHERE userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+          AND dataelementcategoryid = m.dataelementcategoryid
+        )
+        """,
+        target,
+        source,
+        target);
+  }
+
+  @Override
+  public void copyOrgUnitMemberships(@Nonnull UID sourceUserUid, @Nonnull UID targetUserUid) {
+    String source = sourceUserUid.getValue();
+    String target = targetUserUid.getValue();
+    jdbcTemplate.update(
+        """
+        INSERT INTO usermembership (userinfoid, organisationunitid)
+        SELECT (SELECT userinfoid FROM userinfo WHERE uid = ?), m.organisationunitid
+        FROM usermembership m
+        WHERE m.userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        AND NOT EXISTS (
+          SELECT 1 FROM usermembership
+          WHERE userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+          AND organisationunitid = m.organisationunitid
+        )
+        """,
+        target,
+        source,
+        target);
+    jdbcTemplate.update(
+        """
+        INSERT INTO userdatavieworgunits (userinfoid, organisationunitid)
+        SELECT (SELECT userinfoid FROM userinfo WHERE uid = ?), m.organisationunitid
+        FROM userdatavieworgunits m
+        WHERE m.userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        AND NOT EXISTS (
+          SELECT 1 FROM userdatavieworgunits
+          WHERE userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+          AND organisationunitid = m.organisationunitid
+        )
+        """,
+        target,
+        source,
+        target);
+    jdbcTemplate.update(
+        """
+        INSERT INTO userteisearchorgunits (userinfoid, organisationunitid)
+        SELECT (SELECT userinfoid FROM userinfo WHERE uid = ?), m.organisationunitid
+        FROM userteisearchorgunits m
+        WHERE m.userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        AND NOT EXISTS (
+          SELECT 1 FROM userteisearchorgunits
+          WHERE userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+          AND organisationunitid = m.organisationunitid
+        )
+        """,
+        target,
+        source,
+        target);
+  }
 }

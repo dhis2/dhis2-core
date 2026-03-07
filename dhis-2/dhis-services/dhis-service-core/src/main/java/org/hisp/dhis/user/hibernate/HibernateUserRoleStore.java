@@ -57,6 +57,22 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
   }
 
   @Override
+  public boolean addMember(@Nonnull UID userRoleUid, @Nonnull UID userUid) {
+    String sql =
+        """
+        INSERT INTO userrolemembers (userid, userroleid)
+        SELECT u.userinfoid, ur.userroleid
+        FROM userinfo u, userrole ur
+        WHERE u.uid = ? AND ur.uid = ?
+        AND NOT EXISTS (
+          SELECT 1 FROM userrolemembers urm
+          WHERE urm.userid = u.userinfoid AND urm.userroleid = ur.userroleid
+        )
+        """;
+    return jdbcTemplate.update(sql, userUid.getValue(), userRoleUid.getValue()) > 0;
+  }
+
+  @Override
   public void removeAllMemberships(@Nonnull UID userUid) {
     jdbcTemplate.update(
         "DELETE FROM userrolemembers WHERE userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)",

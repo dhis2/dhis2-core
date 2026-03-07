@@ -1524,6 +1524,21 @@ public class DefaultUserService implements UserService {
 
     Session session = entityManager.unwrap(Session.class);
 
+    // Re-fetch within this transaction so lazy collections (e.g. userRoles) are initialized
+    // before the merge. The entity loaded in the controller is detached here, and
+    // DefaultMetadataMergeService skips any uninitialized Hibernate collection.
+    String existingUserUid = existingUser.getUid();
+    existingUser = userStore.getByUidNoAcl(existingUserUid);
+    if (existingUser == null) {
+      throw new NotFoundException("User not found: " + existingUserUid);
+    }
+
+    if (existingUser.isExternalAuth()) {
+      throw new ConflictException("Cannot replicate a user with external authentication enabled");
+    }
+
+    Set<UserRole> rolesToCopy = new HashSet<>(existingUser.getUserRoles());
+    Collection<String> groupsToCopy = getUids(existingUser.getGroups());
     User userReplica = new User();
     metadataMergeService.merge(
         new MetadataMergeParams<>(existingUser, userReplica).setMergeMode(MergeMode.REPLACE));
@@ -1538,11 +1553,54 @@ public class DefaultUserService implements UserService {
     userReplica.setOpenId(null);
     userReplica.setUsername(username);
     userReplica.setLastLogin(null);
+    // Security-sensitive fields must never be shared between accounts.
+    // Note: we re-fetch the source user from DB above, so these fields are populated
+    // even if they are excluded from JSON serialization.
+    userReplica.setSecret(null);
+    // Clear 2FA type: secret is null so leaving twoFactorType set would produce a broken account.
+    // The replica user can enroll in 2FA themselves after first login.
+    userReplica.setTwoFactorType(null);
+    userReplica.setRestoreToken(null);
+    userReplica.setRestoreExpiry(null);
+    userReplica.setIdToken(null);
+    // Roles and groups are assigned explicitly via JDBC after flush.  clear them here
+    // so Hibernate cascade does not attempt to write the join tables before the userinfo
+    // row exists in the database.
+    userReplica.setUserRoles(new HashSet<>());
     encodeAndSetPassword(userReplica, password);
 
     addUser(userReplica);
+    // Flush so the new userinfo row is visible to the JDBC subqueries in addMember below.
+    entityManager.flush();
 
-    userGroupService.addUserToGroups(userReplica, getUids(existingUser.getGroups()), currentUser);
+    UID replicaUid = userReplica.getUID();
+    UID sourceUid = existingUser.getUID();
+    for (UserRole role : rolesToCopy) {
+      userRoleStore.addMember(role.getUID(), replicaUid);
+    }
+    userGroupService.addUserToGroups(userReplica, groupsToCopy, currentUser);
+    userStore.copyOrgUnitMemberships(sourceUid, replicaUid);
+    userStore.copyDimensionConstraints(sourceUid, replicaUid);
+
+    // Evict userReplica from L1 and L2 caches so subsequent loads see the JDBC-inserted
+    // memberships. These are all owning-side join tables, so Hibernate marked their collections
+    // as "loaded" (empty) during persist — JDBC bypasses that snapshot.
+    session.evict(userReplica);
+    long replicaId = userReplica.getId();
+    String userClass = User.class.getName();
+    for (String collection :
+        List.of(
+            "userRoles",
+            "organisationUnits",
+            "dataViewOrganisationUnits",
+            "teiSearchOrganisationUnits",
+            "cogsDimensionConstraints",
+            "catDimensionConstraints")) {
+      session
+          .getSessionFactory()
+          .getCache()
+          .evictCollectionData(userClass + "." + collection, replicaId);
+    }
 
     UserSettings settings = userSettingsService.getUserSettings(existingUser.getUsername(), false);
 

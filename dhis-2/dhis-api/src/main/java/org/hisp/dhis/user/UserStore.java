@@ -246,6 +246,24 @@ public interface UserStore extends IdentifiableObjectStore<User> {
       @Nonnull UserOrgUnitProperty orgUnitProperty, @Nonnull Set<UID> uids);
 
   /**
+   * Copies all org unit memberships (capture, data-view, TEI-search) from the source user to the
+   * target user directly via SQL, without loading any collection into memory.
+   *
+   * @param sourceUserUid UID of the user to copy from
+   * @param targetUserUid UID of the user to copy to
+   */
+  void copyOrgUnitMemberships(@Nonnull UID sourceUserUid, @Nonnull UID targetUserUid);
+
+  /**
+   * Copies category option group set and category dimension constraints from the source user to the
+   * target user directly via SQL, without loading any collection into memory.
+   *
+   * @param sourceUserUid UID of the user to copy from
+   * @param targetUserUid UID of the user to copy to
+   */
+  void copyDimensionConstraints(@Nonnull UID sourceUserUid, @Nonnull UID targetUserUid);
+
+  /**
    * Update one source category dimension constraint to the targetCategoryId, where the User does
    * not have a constraint for the targetCategoryId.
    *
