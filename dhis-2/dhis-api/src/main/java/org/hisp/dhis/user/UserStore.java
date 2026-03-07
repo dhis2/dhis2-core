@@ -291,7 +291,7 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @param encodedPassword pre-encoded bcrypt password for the new user
    * @param actingUserId id of the user performing the replication (for lastupdatedby/creatoruserid)
    */
-  void insertUserCopy(
+  int insertUserCopy(
       @Nonnull String sourceUid,
       @Nonnull String newUid,
       @Nonnull UUID newUuid,

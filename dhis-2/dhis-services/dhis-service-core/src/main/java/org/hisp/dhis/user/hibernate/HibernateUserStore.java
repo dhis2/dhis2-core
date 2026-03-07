@@ -769,7 +769,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
-  public void insertUserCopy(
+  public int insertUserCopy(
       @Nonnull String sourceUid,
       @Nonnull String newUid,
       @Nonnull UUID newUuid,
@@ -779,7 +779,7 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     long newId =
         Objects.requireNonNull(
             jdbcTemplate.queryForObject("SELECT nextval('hibernate_sequence')", Long.class));
-    jdbcTemplate.update(
+    return jdbcTemplate.update(
         """
         INSERT INTO userinfo (
           userinfoid,

@@ -1527,8 +1527,12 @@ public class DefaultUserService implements UserService {
 
     // Single JDBC INSERT…SELECT copies all scalar fields atomically. Collections are handled
     // by dedicated JDBC methods below — no Hibernate entity construction needed.
-    userStore.insertUserCopy(
+    int insertedRows =
+        userStore.insertUserCopy(
         sourceUid, newUid, newUuid, username, encodedPassword, currentUser.getId());
+    if (insertedRows != 1) {
+      throw new NotFoundException("User not found: " + sourceUid);
+    }
 
     UID replicaUid = UID.of(newUid);
     UID srcUid = UID.of(sourceUid);
