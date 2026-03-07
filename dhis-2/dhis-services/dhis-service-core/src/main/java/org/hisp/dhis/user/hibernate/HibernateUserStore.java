@@ -769,4 +769,171 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
         .executeUpdate();
   }
+
+  @Override
+  public void insertUserCopy(
+      @Nonnull String sourceUid,
+      @Nonnull String newUid,
+      @Nonnull UUID newUuid,
+      @Nonnull String username,
+      @Nonnull String encodedPassword,
+      long actingUserId) {
+    long newId =
+        Objects.requireNonNull(
+            jdbcTemplate.queryForObject("SELECT nextval('hibernate_sequence')", Long.class));
+    jdbcTemplate.update(
+        """
+        INSERT INTO userinfo (
+          userinfoid,
+          surname, firstname, email, phonenumber, uid, code,
+          lastupdated, lastcheckedinterpretations, jobtitle, introduction, gender,
+          birthday, nationality, employer, education, interests, languages, created,
+          welcomemessage, whatsapp, skype, facebookmessenger, telegram, twitter,
+          avatar, attributevalues, dataviewmaxorgunitlevel, lastupdatedby, creatoruserid,
+          username, password, secret, externalauth, openid, ldapid, passwordlastupdated,
+          lastlogin, restoretoken, restoreexpiry, selfregistered, invitation, disabled,
+          uuid, accountexpiry, idtoken, verifiedemail, emailverificationtoken, twofactortype)
+        SELECT
+          ?,
+          surname, firstname, email, phonenumber,
+          ?,
+          NULL,
+          now(),
+          NULL,
+          jobtitle, introduction, gender, birthday, nationality, employer,
+          education, interests, languages,
+          now(),
+          welcomemessage, whatsapp, skype, facebookmessenger, telegram, twitter,
+          avatar, attributevalues, dataviewmaxorgunitlevel,
+          ?,
+          ?,
+          ?,
+          ?,
+          NULL,
+          false,
+          NULL,
+          NULL,
+          now(),
+          NULL,
+          NULL,
+          NULL,
+          selfregistered,
+          false,
+          disabled,
+          ?,
+          accountexpiry,
+          NULL,
+          NULL,
+          NULL,
+          'NOT_ENABLED'
+        FROM userinfo
+        WHERE uid = ?
+        """,
+        newId,
+        newUid,
+        actingUserId,
+        actingUserId,
+        username,
+        encodedPassword,
+        newUuid,
+        sourceUid);
+  }
+
+  @Override
+  public void copyOrgUnitMemberships(@Nonnull UID sourceUserUid, @Nonnull UID targetUserUid) {
+    String source = sourceUserUid.getValue();
+    String target = targetUserUid.getValue();
+    jdbcTemplate.update(
+        """
+        INSERT INTO usermembership (userinfoid, organisationunitid)
+        SELECT (SELECT userinfoid FROM userinfo WHERE uid = ?), m.organisationunitid
+        FROM usermembership m
+        WHERE m.userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        AND NOT EXISTS (
+          SELECT 1 FROM usermembership
+          WHERE userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+          AND organisationunitid = m.organisationunitid
+        )
+        """,
+        target,
+        source,
+        target);
+    jdbcTemplate.update(
+        """
+        INSERT INTO userdatavieworgunits (userinfoid, organisationunitid)
+        SELECT (SELECT userinfoid FROM userinfo WHERE uid = ?), m.organisationunitid
+        FROM userdatavieworgunits m
+        WHERE m.userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        AND NOT EXISTS (
+          SELECT 1 FROM userdatavieworgunits
+          WHERE userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+          AND organisationunitid = m.organisationunitid
+        )
+        """,
+        target,
+        source,
+        target);
+    jdbcTemplate.update(
+        """
+        INSERT INTO userteisearchorgunits (userinfoid, organisationunitid)
+        SELECT (SELECT userinfoid FROM userinfo WHERE uid = ?), m.organisationunitid
+        FROM userteisearchorgunits m
+        WHERE m.userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        AND NOT EXISTS (
+          SELECT 1 FROM userteisearchorgunits
+          WHERE userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+          AND organisationunitid = m.organisationunitid
+        )
+        """,
+        target,
+        source,
+        target);
+  }
+
+  @Override
+  public void copyDimensionConstraints(@Nonnull UID sourceUserUid, @Nonnull UID targetUserUid) {
+    String source = sourceUserUid.getValue();
+    String target = targetUserUid.getValue();
+    jdbcTemplate.update(
+        """
+        INSERT INTO users_cogsdimensionconstraints (userid, categoryoptiongroupsetid)
+        SELECT (SELECT userinfoid FROM userinfo WHERE uid = ?), m.categoryoptiongroupsetid
+        FROM users_cogsdimensionconstraints m
+        WHERE m.userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        AND NOT EXISTS (
+          SELECT 1 FROM users_cogsdimensionconstraints
+          WHERE userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+          AND categoryoptiongroupsetid = m.categoryoptiongroupsetid
+        )
+        """,
+        target,
+        source,
+        target);
+    jdbcTemplate.update(
+        """
+        INSERT INTO users_catdimensionconstraints (userid, dataelementcategoryid)
+        SELECT (SELECT userinfoid FROM userinfo WHERE uid = ?), m.dataelementcategoryid
+        FROM users_catdimensionconstraints m
+        WHERE m.userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        AND NOT EXISTS (
+          SELECT 1 FROM users_catdimensionconstraints
+          WHERE userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+          AND dataelementcategoryid = m.dataelementcategoryid
+        )
+        """,
+        target,
+        source,
+        target);
+  }
+
+  @Override
+  public void removeAttributeValues(
+      @Nonnull String userUid, @Nonnull Collection<String> attributeUids) {
+    for (String attrUid : attributeUids) {
+      jdbcTemplate.update(
+          "UPDATE userinfo SET attributevalues = attributevalues - ? WHERE uid = ?",
+          attrUid,
+          userUid);
+    }
+  }
 }
