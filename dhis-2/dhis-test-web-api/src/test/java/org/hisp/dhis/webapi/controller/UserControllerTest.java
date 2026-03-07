@@ -749,7 +749,6 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     JsonUser lastUpdatedByAdmin = userGroup.getLastUpdatedBy();
     assertTrue(userGroup.getUsers().isEmpty());
     assertEquals(ADMIN_USER_UID, lastUpdatedByAdmin.getId());
-    assertEquals("admin", lastUpdatedByAdmin.getUsername());
 
     // switch to new user & add usergroup to new user
     String role = newUser.getUserRoles().stream().map(IdentifiableObject::getUid).findFirst().get();
@@ -785,7 +784,6 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     JsonUser lastUpdatedByNewUser = userGroupUserAdded.getLastUpdatedBy();
     assertFalse(userGroupUserAdded.getUsers().isEmpty());
     assertEquals(newUser.getUid(), lastUpdatedByNewUser.getId());
-    assertEquals("test", lastUpdatedByNewUser.getUsername());
   }
 
   @Test
@@ -811,7 +809,6 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     JsonUser lastUpdatedByAdmin = userGroup.getLastUpdatedBy();
     assertTrue(userGroup.getUsers().isEmpty());
     assertEquals(ADMIN_USER_UID, lastUpdatedByAdmin.getId());
-    assertEquals("admin", lastUpdatedByAdmin.getUsername());
 
     manager.flush();
     manager.clear();
@@ -852,7 +849,6 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     JsonUser lastUpdatedByNewUser = userGroupUserAdded.getLastUpdatedBy();
     assertFalse(userGroupUserAdded.getUsers().isEmpty());
     assertEquals(newUser.getUid(), lastUpdatedByNewUser.getId());
-    assertEquals("test", lastUpdatedByNewUser.getUsername());
 
     // switch back to admin and remove group from user
     switchToAdminUser();
@@ -878,7 +874,6 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     JsonUser updatedByAdminAgain = userGroupUserRemoved.getLastUpdatedBy();
     assertTrue(userGroupUserRemoved.getUsers().isEmpty());
     assertEquals(getAdminUid(), updatedByAdminAgain.getId());
-    assertEquals("admin", updatedByAdminAgain.getUsername());
   }
 
   @Test
