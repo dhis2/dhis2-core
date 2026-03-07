@@ -54,6 +54,7 @@ import org.hisp.dhis.common.DisplayDensity;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.FontSize;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
@@ -234,7 +235,7 @@ public class EventReport extends BaseAnalyticalObject
 
   @Override
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Program getProgram() {
     return program;

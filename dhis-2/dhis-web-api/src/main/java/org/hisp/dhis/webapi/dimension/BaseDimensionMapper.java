@@ -32,8 +32,8 @@ package org.hisp.dhis.webapi.dimension;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 
 /** Base mapper for Dimensions to be returned */
@@ -42,7 +42,7 @@ public abstract class BaseDimensionMapper implements DimensionMapper {
   /** Returns a DimensionResponse with common fields mapped */
   @Override
   public DimensionResponse map(PrefixedDimension prefixedDimension, String prefix) {
-    BaseIdentifiableObject dimension = prefixedDimension.getItem();
+    IdentifiableObject dimension = prefixedDimension.getItem();
     DimensionResponse mapped =
         DimensionResponse.builder()
             .id(getPrefixed(prefix, dimension.getUid()))
@@ -54,8 +54,8 @@ public abstract class BaseDimensionMapper implements DimensionMapper {
             .name(dimension.getName())
             .build();
 
-    if (dimension instanceof BaseNameableObject) {
-      return mapped.withDisplayShortName(((BaseNameableObject) dimension).getDisplayShortName());
+    if (dimension instanceof NameableObject nameableObject) {
+      return mapped.withDisplayShortName((nameableObject).getDisplayShortName());
     }
     return mapped;
   }
