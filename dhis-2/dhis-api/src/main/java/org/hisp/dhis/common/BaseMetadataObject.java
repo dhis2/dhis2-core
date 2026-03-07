@@ -43,6 +43,7 @@ import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
 import java.util.Date;
 import lombok.Setter;
+import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
@@ -64,6 +65,7 @@ public class BaseMetadataObject implements MetadataObject {
 
   @Column(name = "uid", unique = true, nullable = false, length = 11)
   @Setter
+  @AuditAttribute
   protected String uid;
 
   @Column(name = "created", nullable = false, updatable = false)

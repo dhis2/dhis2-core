@@ -49,7 +49,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
@@ -99,7 +99,7 @@ class EventAnalyticsDimensionsServiceTest {
 
   @Test
   void testQueryDoesNotContainSkippedDimensions() {
-    List<BaseIdentifiableObject> analyticsDimensions =
+    List<IdentifiableObject> analyticsDimensions =
         eventAnalyticsDimensionsService
             .getQueryDimensionsByProgramStageId(PROGRAM_UID, "anUid")
             .stream()
@@ -116,8 +116,8 @@ class EventAnalyticsDimensionsServiceTest {
   }
 
   @Test
-  void testQueryDoesNotContainDisallowedValueTypes() {
-    List<BaseIdentifiableObject> analyticsDimensions =
+  void testQueryDoesntContainDisallowedValueTypes() {
+    List<IdentifiableObject> analyticsDimensions =
         eventAnalyticsDimensionsService
             .getQueryDimensionsByProgramStageId(PROGRAM_UID, "anUid")
             .stream()
@@ -138,7 +138,7 @@ class EventAnalyticsDimensionsServiceTest {
 
   @Test
   void testAggregateOnlyContainsAllowedValueTypes() {
-    List<BaseIdentifiableObject> analyticsDimensions =
+    List<IdentifiableObject> analyticsDimensions =
         eventAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId("anUid").stream()
             .map(PrefixedDimension::getItem)
             .toList();
@@ -181,24 +181,21 @@ class EventAnalyticsDimensionsServiceTest {
     when(categoryService.getAllCategoryOptionGroupSets()).thenReturn(List.of(attrGogs, disaggGogs));
 
     // When
-    List<BaseIdentifiableObject> items =
+    List<IdentifiableObject> items =
         eventAnalyticsDimensionsService.getAggregateDimensionsByProgramStageId("stage1").stream()
             .map(PrefixedDimension::getItem)
             .toList();
 
     // Then: categories are included
     List<String> categoryUids =
-        items.stream()
-            .filter(Category.class::isInstance)
-            .map(BaseIdentifiableObject::getUid)
-            .toList();
+        items.stream().filter(Category.class::isInstance).map(IdentifiableObject::getUid).toList();
     assertTrue(categoryUids.containsAll(List.of("CatA", "CatB")));
 
     // And: only attribute COGS are included (DISAGGREGATION filtered out)
     List<String> cogsUids =
         items.stream()
             .filter(CategoryOptionGroupSet.class::isInstance)
-            .map(BaseIdentifiableObject::getUid)
+            .map(IdentifiableObject::getUid)
             .toList();
     assertTrue(cogsUids.contains("COGS_ATTR"));
     assertFalse(cogsUids.contains("COGS_DIS"));
