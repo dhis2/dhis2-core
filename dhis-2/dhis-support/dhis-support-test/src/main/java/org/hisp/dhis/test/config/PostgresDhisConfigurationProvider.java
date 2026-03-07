@@ -62,8 +62,40 @@ public class PostgresDhisConfigurationProvider extends TestDhisConfigurationProv
             .withUsername(POSTGRES_USERNAME)
             .withPassword(POSTGRES_PASSWORD)
             .withInitScript("db/extensions.sql")
-            .withTmpFs(Map.of("/testtmpfs", "rw"))
-            .withCommand("postgres -c idle_session_timeout=35000")
+            .withTmpFs(Map.of("/var/lib/postgresql/data", "rw,size=512m"))
+            .withCommand(
+                "postgres",
+                "-c",
+                "idle_session_timeout=35000",
+                // Disable durability (safe for tests, data is disposable)
+                "-c",
+                "fsync=off",
+                "-c",
+                "synchronous_commit=off",
+                "-c",
+                "full_page_writes=off",
+                // WAL tuning
+                "-c",
+                "wal_level=minimal",
+                "-c",
+                "max_wal_senders=0",
+                // Memory (conservative for CI/dev machines)
+                "-c",
+                "shared_buffers=128MB",
+                "-c",
+                "work_mem=8MB",
+                "-c",
+                "maintenance_work_mem=64MB",
+                "-c",
+                "effective_cache_size=256MB",
+                // I/O tuning for tmpfs
+                "-c",
+                "random_page_cost=1.1",
+                // Reduce logging overhead
+                "-c",
+                "log_statement=none",
+                "-c",
+                "logging_collector=off")
             .withEnv("LC_COLLATE", "C");
 
     POSTGRES_CONTAINER.start();
