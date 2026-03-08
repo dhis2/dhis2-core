@@ -143,6 +143,7 @@ class UserReplicationServiceTest {
     sourceUser.setExternalAuth(false);
 
     when(userStore.getUserByUsername("replica")).thenReturn(null);
+    when(userStore.getByUidNoAcl("b1234567890")).thenReturn(sourceUser);
     when(passwordManager.encode("Str0ngPass!")).thenReturn("encodedPassword");
     when(userStore.insertUserCopy(
             eq("b1234567890"),
