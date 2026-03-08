@@ -703,17 +703,17 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     // Re-fetch peter so we have the up-to-date scalar values to compare against
     User source = userService.getUser(peter.getUid());
 
-    JsonObject postResult =
+    var postResponse =
         POST(
-                "/users/" + peter.getUid() + "/replica",
-                "{'username':'peter2','password':'Saf€sEcre1'}")
-            .content(HttpStatus.CREATED);
+            "/users/" + peter.getUid() + "/replica",
+            "{'username':'peter2','password':'Saf€sEcre1'}");
+    postResponse.content(HttpStatus.CREATED);
+    String replicaUid =
+        postResponse.location().substring(postResponse.location().lastIndexOf('/') + 1);
 
     // Simulate the FE's immediate GET by UID after the replica POST.
     // This is a new HTTP request (new transaction) and exercises the L2 query cache path
     // that the in-process userService call below does not cover.
-    String replicaLocation = postResult.getString("location").string();
-    String replicaUid = replicaLocation.substring(replicaLocation.lastIndexOf('/') + 1);
     GET("/users/" + replicaUid).content(HttpStatus.OK);
 
     User replica = userService.getUserByUsername("peter2");
@@ -812,26 +812,29 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   @Test
   @DisplayName("Replicated user inherits user settings from source user")
   void testReplicateUserCopiesSettings() {
-    // Set a non-default setting on peter so we have something to verify
+    // Set a non-default UI locale on peter so we have something to verify
     POST("/userSettings/keyUiLocale?userId=" + peter.getUid(), "sv").content(HttpStatus.OK);
     assertEquals(
         "sv",
         GET("/userSettings/keyUiLocale?userId=" + peter.getUid()).content("text/plain"),
         "Source user should have keyUiLocale=sv before replication");
 
-    JsonObject postResult =
+    var postResponse =
         POST(
-                "/users/" + peter.getUid() + "/replica",
-                "{'username':'peter2','password':'Saf€sEcre1'}")
-            .content(HttpStatus.CREATED);
+            "/users/" + peter.getUid() + "/replica",
+            "{'username':'peter2','password':'Saf€sEcre1'}");
+    postResponse.content(HttpStatus.CREATED);
 
-    String replicaLocation = postResult.getString("location").string();
-    String replicaUid = replicaLocation.substring(replicaLocation.lastIndexOf('/') + 1);
-
+    // Verify settings are visible via /api/me/settings — the same endpoint the FE uses —
+    // by switching the session to the replica user's credentials.
+    User replica = userService.getUserByUsername("peter2");
+    assertNotNull(replica, "Replica user must exist after replication");
+    switchToNewUser(replica);
     assertEquals(
         "sv",
-        GET("/userSettings/keyUiLocale?userId=" + replicaUid).content("text/plain"),
-        "Replica user should inherit keyUiLocale from source");
+        GET("/me/settings/keyUiLocale").content().string(),
+        "Replica user should see inherited keyUiLocale via /api/me/settings");
+    switchToAdminUser();
   }
 
   @Test

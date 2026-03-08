@@ -1571,7 +1571,6 @@ public class DefaultUserService implements UserService {
             .filter(e -> allowedKeys.contains(e.getKey()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     userSettingsService.putAll(filteredMap, username);
-    userStore.clearUserQueryCache();
 
     return userStore.getByUidNoAcl(newUid);
   }
