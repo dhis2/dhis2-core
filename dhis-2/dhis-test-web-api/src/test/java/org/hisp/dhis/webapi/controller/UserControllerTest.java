@@ -681,6 +681,8 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
                 + ou.getUid()
                 + "'}]},{'op':'add','path':'/dataViewOrganisationUnits','value':[{'id':'"
                 + ou.getUid()
+                + "'}]},{'op':'add','path':'/teiSearchOrganisationUnits','value':[{'id':'"
+                + ou.getUid()
                 + "'}]}]")
         .content(HttpStatus.OK);
 
@@ -701,8 +703,18 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     // Re-fetch peter so we have the up-to-date scalar values to compare against
     User source = userService.getUser(peter.getUid());
 
-    POST("/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'Saf€sEcre1'}")
-        .content(HttpStatus.CREATED);
+    JsonObject postResult =
+        POST(
+                "/users/" + peter.getUid() + "/replica",
+                "{'username':'peter2','password':'Saf€sEcre1'}")
+            .content(HttpStatus.CREATED);
+
+    // Simulate the FE's immediate GET by UID after the replica POST.
+    // This is a new HTTP request (new transaction) and exercises the L2 query cache path
+    // that the in-process userService call below does not cover.
+    String replicaLocation = postResult.getString("location").string();
+    String replicaUid = replicaLocation.substring(replicaLocation.lastIndexOf('/') + 1);
+    GET("/users/" + replicaUid).content(HttpStatus.OK);
 
     User replica = userService.getUserByUsername("peter2");
     assertNotNull(replica);
@@ -786,6 +798,40 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
             .map(Category::getUid)
             .collect(Collectors.toSet()),
         "Replica category dimension constraints must exactly match source");
+
+    assertEquals(
+        source.getTeiSearchOrganisationUnits().stream()
+            .map(OrganisationUnit::getUid)
+            .collect(Collectors.toSet()),
+        replica.getTeiSearchOrganisationUnits().stream()
+            .map(OrganisationUnit::getUid)
+            .collect(Collectors.toSet()),
+        "Replica TEI search org units must exactly match source");
+  }
+
+  @Test
+  @DisplayName("Replicated user inherits user settings from source user")
+  void testReplicateUserCopiesSettings() {
+    // Set a non-default setting on peter so we have something to verify
+    POST("/userSettings/keyUiLocale?userId=" + peter.getUid(), "sv").content(HttpStatus.OK);
+    assertEquals(
+        "sv",
+        GET("/userSettings/keyUiLocale?userId=" + peter.getUid()).content("text/plain"),
+        "Source user should have keyUiLocale=sv before replication");
+
+    JsonObject postResult =
+        POST(
+                "/users/" + peter.getUid() + "/replica",
+                "{'username':'peter2','password':'Saf€sEcre1'}")
+            .content(HttpStatus.CREATED);
+
+    String replicaLocation = postResult.getString("location").string();
+    String replicaUid = replicaLocation.substring(replicaLocation.lastIndexOf('/') + 1);
+
+    assertEquals(
+        "sv",
+        GET("/userSettings/keyUiLocale?userId=" + replicaUid).content("text/plain"),
+        "Replica user should inherit keyUiLocale from source");
   }
 
   @Test

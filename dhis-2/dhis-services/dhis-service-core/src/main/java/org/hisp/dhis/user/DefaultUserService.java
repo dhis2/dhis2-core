@@ -1534,6 +1534,10 @@ public class DefaultUserService implements UserService {
       throw new NotFoundException("User not found: " + sourceUid);
     }
 
+    // Evict the stale negative cache entry for the new username so that subsequent lookups
+    // (e.g. userSettingsService.putAll) hit the DB and find the newly inserted row.
+    userStore.clearUserQueryCache();
+
     UID replicaUid = UID.of(newUid);
     UID srcUid = UID.of(sourceUid);
 

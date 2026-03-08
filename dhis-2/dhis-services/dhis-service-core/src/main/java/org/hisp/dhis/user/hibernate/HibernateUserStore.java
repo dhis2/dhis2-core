@@ -59,6 +59,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.LockOptions;
+import org.hibernate.jpa.QueryHints;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.QueryCacheManager;
@@ -96,6 +97,9 @@ import org.springframework.stereotype.Repository;
 public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     implements UserStore {
   public static final String DISABLED_COLUMN = "disabled";
+
+  /** Named query cache region for {@link #getUserByUsername} results. */
+  static final String USERNAME_QUERY_CACHE_REGION = "org.hisp.dhis.user.User.byUsername";
 
   private final QueryCacheManager queryCacheManager;
 
@@ -452,6 +456,8 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
     TypedQuery<User> typedQuery = entityManager.createQuery(hql, User.class);
     typedQuery.setParameter("username", username);
+    typedQuery.setHint(QueryHints.HINT_CACHEABLE, true);
+    typedQuery.setHint(QueryHints.HINT_CACHE_REGION, USERNAME_QUERY_CACHE_REGION);
 
     return QueryUtils.getSingleResult(typedQuery);
   }
@@ -937,6 +943,6 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
   @Override
   public void clearUserQueryCache() {
-    getSession().getSessionFactory().getCache().evictQueryRegions();
+    getSession().getSessionFactory().getCache().evictQueryRegion(USERNAME_QUERY_CACHE_REGION);
   }
 }

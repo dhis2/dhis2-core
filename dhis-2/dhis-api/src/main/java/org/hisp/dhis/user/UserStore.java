@@ -326,6 +326,10 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    */
   void removeAttributeValues(@Nonnull String userUid, @Nonnull Collection<String> attributeUids);
 
-  /** Clears local Hibernate query cache regions after direct JDBC writes to user tables. */
+  /**
+   * Evicts the {@code getUserByUsername} query cache region after a direct JDBC write, so that
+   * subsequent lookups by username reflect the new row rather than a stale cached result. Only the
+   * username query region is evicted; all other query cache regions are left intact.
+   */
   void clearUserQueryCache();
 }
