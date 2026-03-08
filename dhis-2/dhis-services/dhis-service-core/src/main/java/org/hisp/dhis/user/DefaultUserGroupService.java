@@ -161,19 +161,6 @@ public class DefaultUserGroupService implements UserGroupService {
 
   @Override
   @Transactional
-  public void removeUserFromGroups(User user, Collection<String> uids) {
-    for (String uid : uids) {
-      if (canAddOrRemoveMember(uid)) {
-        UserGroup userGroup = getUserGroup(uid);
-        userGroup.removeUser(user);
-        userGroupStore.updateNoAcl(userGroup);
-      }
-    }
-    aclService.invalidateCurrentUserGroupInfoCache();
-  }
-
-  @Override
-  @Transactional
   public void updateUserGroups(
       User user, @Nonnull Collection<String> uids, UserDetails currentUser) {
     Collection<UserGroup> updates = getUserGroupsByUid(uids);

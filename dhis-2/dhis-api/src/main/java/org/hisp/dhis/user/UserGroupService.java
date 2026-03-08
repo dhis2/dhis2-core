@@ -75,8 +75,6 @@ public interface UserGroupService {
    */
   boolean canAddOrRemoveMember(UserGroup userGroup, @Nonnull UserDetails currentUser);
 
-  void removeUserFromGroups(User user, @Nonnull Collection<String> uids);
-
   void updateUserGroups(User user, @Nonnull Collection<String> uids, UserDetails currentUser);
 
   List<UserGroup> getAllUserGroups();
