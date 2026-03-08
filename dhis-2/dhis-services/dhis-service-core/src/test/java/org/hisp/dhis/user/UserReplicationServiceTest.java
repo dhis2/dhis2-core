@@ -44,6 +44,7 @@ import java.util.UUID;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.message.MessageSender;
@@ -164,6 +165,44 @@ class UserReplicationServiceTest {
     verify(userStore, never()).copyOrgUnitMemberships(any(), any());
     verify(userStore, never()).copyDimensionConstraints(any(), any());
     verify(userStore, never()).clearUserQueryCache();
+  }
+
+  @Test
+  void replicateUserThrowsForbiddenWhenCurrentUserCannotManageSourceUsersGroup() {
+    CurrentUserUtil.injectUserInSecurityContext(
+        UserDetails.empty()
+            .id(42L)
+            .uid("a1234567890")
+            .username("admin")
+            .password("secret")
+            .enabled(true)
+            .accountNonExpired(true)
+            .accountNonLocked(true)
+            .credentialsNonExpired(true)
+            .build());
+
+    UserGroup group = new UserGroup();
+    group.setUid("g1234567890");
+
+    User existingUser = new User();
+    existingUser.setUid("b1234567890");
+
+    User sourceUser = new User();
+    sourceUser.setUid("b1234567890");
+    sourceUser.setUsername("source");
+    sourceUser.setExternalAuth(false);
+    sourceUser.getGroups().add(group);
+
+    when(userStore.getUserByUsername("replica")).thenReturn(null);
+    when(userStore.getByUidNoAcl("b1234567890")).thenReturn(sourceUser);
+    when(userGroupService.canAddOrRemoveMember(eq("g1234567890"), any(UserDetails.class)))
+        .thenReturn(false);
+
+    assertThrows(
+        ForbiddenException.class,
+        () -> userService.replicateUser(existingUser, "replica", "Str0ngPass!"));
+
+    verify(userStore, never()).insertUserCopy(any(), any(), any(), any(), any(), any(Long.class));
   }
 
   @Test

@@ -90,6 +90,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -1498,7 +1499,7 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public User replicateUser(User existingUser, String username, String password)
-      throws ConflictException, NotFoundException, BadRequestException {
+      throws ConflictException, NotFoundException, BadRequestException, ForbiddenException {
 
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
@@ -1506,7 +1507,7 @@ public class DefaultUserService implements UserService {
       throw new ConflictException("Username is not valid");
     }
 
-    if (getUserByUsername(username) != null) {
+    if (userStore.getUserByUsername(username) != null) {
       throw new ConflictException("Username already taken: " + username);
     }
 
@@ -1521,12 +1522,20 @@ public class DefaultUserService implements UserService {
       throw new ConflictException("Cannot replicate a user with external authentication enabled");
     }
 
+    // Verify that the current user has permissions to manage all user groups of the existing user,
+    // otherwise replication could result in a new user with group memberships that the current user
+    // cannot manage.
+    for (UserGroup group : existingUser.getGroups()) {
+      if (!userGroupService.canAddOrRemoveMember(group.getUid(), currentUser)) {
+        throw new ForbiddenException(
+            "Lacking permission to add members to user group: " + group.getUid());
+      }
+    }
+
     String newUid = CodeGenerator.generateUid();
     UUID newUuid = UUID.randomUUID();
     String encodedPassword = passwordManager.encode(password);
 
-    // Single JDBC INSERT…SELECT copies all scalar fields atomically. Collections are handled
-    // by dedicated JDBC methods below — no Hibernate entity construction needed.
     int insertedRows =
         userStore.insertUserCopy(
             sourceUid, newUid, newUuid, username, encodedPassword, currentUser.getId());
@@ -1564,6 +1573,11 @@ public class DefaultUserService implements UserService {
       }
     }
 
+    // Copy only the formally-defined UserSettings keys (those with a default accessor method):
+    // keyStyle, keyUiLocale, keyDbLocale, keyAnalysisDisplayProperty,
+    // keyMessageEmailNotification, keyMessageSmsNotification, keyTrackerDashboardLayout.
+    // This excludes any arbitrary/legacy key-value pairs that may be present in the DB
+    // but are not recognised by the UserSettings interface.
     UserSettings settings = userSettingsService.getUserSettings(existingUser.getUsername(), false);
     Set<String> allowedKeys = UserSettings.keysWithDefaults();
     Map<String, String> filteredMap =
