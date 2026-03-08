@@ -37,6 +37,7 @@ import static org.apache.commons.lang3.StringUtils.trim;
 import com.google.common.net.HttpHeaders;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
@@ -125,6 +126,26 @@ public class ConditionalETagService {
     long entityTypeVersion = eTagVersionService.getEntityTypeVersion(entityType);
 
     return String.format("%s-%s-%d-%d", userUid, entityTypeName, timeWindow, entityTypeVersion);
+  }
+
+  /**
+   * Generates a composite ETag for endpoints that depend on multiple entity types. The version is
+   * the sum of all individual entity type versions, so any single type change invalidates the
+   * cache.
+   *
+   * @param userDetails the current user details
+   * @param entityTypes the entity classes this endpoint depends on
+   * @return the generated ETag value (without quotes)
+   */
+  public String generateETag(
+      @Nonnull UserDetails userDetails, @Nonnull Collection<Class<?>> entityTypes) {
+    String userUid = userDetails.getUid();
+    long timeWindow = calculateTimeWindow();
+    long compositeVersion = 0;
+    for (Class<?> type : entityTypes) {
+      compositeVersion += eTagVersionService.getEntityTypeVersion(type);
+    }
+    return String.format("%s-c-%d-%d", userUid, timeWindow, compositeVersion);
   }
 
   /**
@@ -355,6 +376,25 @@ public class ConditionalETagService {
     }
 
     String currentETag = generateETag(userDetails, entityType);
+    setETagHeadersInternal(response, currentETag);
+  }
+
+  /**
+   * Sets ETag headers on response for a composite endpoint that depends on multiple entity types.
+   * Use this when building streaming responses for composite endpoints.
+   *
+   * @param userDetails the current user details
+   * @param response the HTTP response to set headers on
+   * @param entityTypes the entity classes this endpoint depends on
+   */
+  public void setETagHeaders(
+      @Nonnull UserDetails userDetails,
+      @Nonnull HttpServletResponse response,
+      @Nonnull Collection<Class<?>> entityTypes) {
+    if (!isEnabled()) {
+      return;
+    }
+    String currentETag = generateETag(userDetails, entityTypes);
     setETagHeadersInternal(response, currentETag);
   }
 

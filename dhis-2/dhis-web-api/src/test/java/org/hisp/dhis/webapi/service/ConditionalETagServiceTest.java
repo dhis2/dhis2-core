@@ -34,6 +34,7 @@ import static org.mockito.Mockito.*;
 
 import com.google.common.net.HttpHeaders;
 import java.util.Optional;
+import java.util.Set;
 import org.hisp.dhis.cache.ETagVersionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
@@ -375,5 +376,41 @@ class ConditionalETagServiceTest {
 
     // Should return 304 because OrganisationUnit version hasn't changed
     assertEquals(HttpStatus.NOT_MODIFIED, response.getStatusCode());
+  }
+
+  // ========== Composite Entity-Type Tests ==========
+
+  @Test
+  @DisplayName("Should generate composite ETag with sum of entity-type versions")
+  void testGenerateETag_Composite() {
+    when(eTagVersionService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(10L);
+    when(eTagVersionService.getEntityTypeVersion(User.class)).thenReturn(20L);
+    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+
+    Set<Class<?>> types = Set.of(OrganisationUnit.class, User.class);
+    String etag = service.generateETag(userDetails, types);
+
+    assertNotNull(etag);
+    assertTrue(etag.startsWith("testUser123-c-"));
+    assertTrue(etag.endsWith("-30")); // 10 + 20
+  }
+
+  @Test
+  @DisplayName("Should set composite ETag headers on response")
+  void testSetETagHeaders_Composite() {
+    when(eTagVersionService.isEnabled()).thenReturn(true);
+    when(eTagVersionService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(10L);
+    when(eTagVersionService.getEntityTypeVersion(User.class)).thenReturn(20L);
+    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    service.setETagHeaders(userDetails, response, Set.of(OrganisationUnit.class, User.class));
+
+    String etagHeader = response.getHeader(HttpHeaders.ETAG);
+    assertNotNull(etagHeader);
+    assertTrue(etagHeader.contains("-c-"));
+    assertEquals("Cookie, Authorization", response.getHeader(HttpHeaders.VARY));
+    assertNotNull(response.getHeader(HttpHeaders.CACHE_CONTROL));
   }
 }

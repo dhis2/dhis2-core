@@ -29,43 +29,93 @@
  */
 package org.hisp.dhis.cacheinvalidation.sqlobserver;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.audit.DmlEvent;
 import org.hisp.dhis.audit.DmlObservedEvent;
+import org.hisp.dhis.cache.ETagVersionService;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.configuration.Configuration;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 /**
- * Bridges DML observer events to the Redis cache invalidation channel. Publishes cache invalidation
- * messages for each DML event that has a mapped entity class.
+ * Bridges DML observer events to the ETag version service. Listens for {@link DmlObservedEvent}s
+ * and increments entity-type ETag versions for metadata changes, enabling HTTP conditional caching
+ * (ETag/If-None-Match) to detect stale responses.
  *
- * <p>When entityId is available, publishes fine-grained invalidation. When entityId is null,
- * publishes with "unknown" ID for coarse-grained fallback invalidation.
+ * <p>Only metadata entity types (those implementing {@link MetadataObject}) trigger version bumps.
+ * High-volume data writes (DataValue, Event, etc.) are intentionally excluded to avoid unnecessary
+ * cache churn. Within a single batch of events, each entity type is bumped at most once.
+ *
+ * @author Morten Svanæs
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 @Conditional(DmlCacheInvalidationCondition.class)
 public class DmlCacheInvalidationBridge {
 
-  public DmlCacheInvalidationBridge() {}
+  private static final Class<?> UNRESOLVABLE = Void.class;
+
+  /**
+   * Non-MetadataObject entity types that should still trigger version bumps because they back
+   * composite API endpoints. For example, {@link Configuration} is not a MetadataObject but the
+   * {@code /api/configuration} endpoint needs ETag invalidation when it changes.
+   */
+  private static final Set<Class<?>> ADDITIONAL_TRACKED_TYPES = Set.of(Configuration.class);
+
+  private final ETagVersionService eTagVersionService;
+
+  private final ConcurrentHashMap<String, Class<?>> classCache = new ConcurrentHashMap<>();
 
   @EventListener
   public void onDmlObserved(DmlObservedEvent event) {
+    Set<Class<?>> bumpedTypes = new HashSet<>();
+
     for (DmlEvent dmlEvent : event.getEvents()) {
-      if (dmlEvent.getEntityClassName() == null) {
+      String entityClassName = dmlEvent.getEntityClassName();
+      if (entityClassName == null) {
         continue;
       }
 
-      String op = dmlEvent.getOperation().name().toLowerCase();
-      String entityId =
-          dmlEvent.getEntityId() != null ? dmlEvent.getEntityId().toString() : "unknown";
+      Class<?> entityClass = resolveClass(entityClassName);
+      if (entityClass == null) {
+        continue;
+      }
 
-      String message =
-          "serverInstanceId" + ":" + op + ":" + dmlEvent.getEntityClassName() + ":" + entityId;
+      // Only metadata changes and explicitly tracked non-metadata types
+      // should invalidate API caches. Data writes (DataValue, Event, etc.)
+      // are high-volume and should not churn cache versions.
+      if (!MetadataObject.class.isAssignableFrom(entityClass)
+          && !ADDITIONAL_TRACKED_TYPES.contains(entityClass)) {
+        continue;
+      }
 
-      log.debug("Publishing DML cache invalidation: {}", message);
-      //      messagePublisher.publish(CHANNEL_NAME, message);
+      // Deduplicate within batch: one version bump per entity type per transaction
+      if (bumpedTypes.add(entityClass)) {
+        eTagVersionService.incrementEntityTypeVersion(entityClass);
+        log.debug("Bumped ETag version for metadata entity type: {}", entityClass.getSimpleName());
+      }
     }
+  }
+
+  private Class<?> resolveClass(String className) {
+    Class<?> cached =
+        classCache.computeIfAbsent(
+            className,
+            name -> {
+              try {
+                return Class.forName(name);
+              } catch (ClassNotFoundException e) {
+                log.warn("Could not resolve entity class: {}", name);
+                return UNRESOLVABLE;
+              }
+            });
+    return cached == UNRESOLVABLE ? null : cached;
   }
 }
