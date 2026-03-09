@@ -99,7 +99,7 @@ public class LoginConfigController {
         .emailConfigured(settings.isEmailConfigured())
         .selfRegistrationEnabled(configurationService.getConfiguration().selfRegistrationAllowed())
         .apiVersion(systemService.getSystemInfoVersion())
-        .recaptchaSite("HARDCODED123_B")
+        .recaptchaSite(settings.getRecaptchaSite())
         .loginPageLayout(settings.getLoginPageLayout().name())
         .loginPageTemplate(settings.getLoginPageTemplate())
         .minPasswordLength(String.valueOf(settings.getMinPasswordLength()))
@@ -111,7 +111,7 @@ public class LoginConfigController {
         .serverName(request.getServerName())
         .xForwardedHost(request.getHeader("X-Forwarded-Host"))
         .xForwardedProto(request.getHeader("X-Forwarded-Proto"))
-        .xForwardedPort(request.getHeader("X-Forwarded-Port"))
+        .xForwardedPort(request.getHeader("X-Forwarded-Port")+"---V1")
         .lastLoginRender(LoginAppDiagnostics.getLastRenderInfo())
         .build();
   }
