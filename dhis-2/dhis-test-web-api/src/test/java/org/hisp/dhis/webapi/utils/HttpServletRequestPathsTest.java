@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.utils;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 
@@ -40,6 +41,11 @@ import org.springframework.mock.web.MockHttpServletRequest;
  * deployments.
  */
 class HttpServletRequestPathsTest {
+
+  @BeforeEach
+  void resetFallbackBaseUrls() {
+    HttpServletRequestPaths.resetFallbackBaseUrls();
+  }
 
   @Test
   void getContextPath_usesXForwardedHostWhenPresent() {
@@ -59,17 +65,81 @@ class HttpServletRequestPathsTest {
   }
 
   @Test
-  void getContextPath_fallsBackToServerNameWhenNoXForwardedHost() {
+  void getContextPath_appendsRequestContextPathToFallbackBaseUrlWithoutPath() {
+    HttpServletRequestPaths.setFallbackBaseUrl("http://localhost:8080");
+
     MockHttpServletRequest request = new MockHttpServletRequest();
     request.setScheme("http");
     request.setServerName("localhost");
     request.setServerPort(8080);
-    request.setContextPath("");
-    request.setRequestURI("/api/apps/menu");
+    request.setContextPath("/server1");
+    request.setRequestURI("/server1/api/apps/menu");
 
     String result = HttpServletRequestPaths.getContextPath(request);
 
-    assertEquals("https://dev.im.dhis2.org/apppath", result);
+    assertEquals("http://localhost:8080/server1", result);
+  }
+
+  @Test
+  void getContextPath_appendsRequestContextPathToFallbackBaseUrlWithTrailingSlash() {
+    HttpServletRequestPaths.setFallbackBaseUrl("http://localhost:8080/");
+
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setScheme("http");
+    request.setServerName("localhost");
+    request.setServerPort(8080);
+    request.setContextPath("/server1");
+    request.setRequestURI("/server1/api/apps/menu");
+
+    String result = HttpServletRequestPaths.getContextPath(request);
+
+    assertEquals("http://localhost:8080/server1", result);
+  }
+
+  @Test
+  void getContextPath_keepsExplicitFallbackPathWhenItMatchesRequestContextPath() {
+    HttpServletRequestPaths.setFallbackBaseUrl("http://localhost:8080/server1");
+
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setScheme("http");
+    request.setServerName("localhost");
+    request.setServerPort(8080);
+    request.setContextPath("/server1");
+    request.setRequestURI("/server1/api/apps/menu");
+
+    String result = HttpServletRequestPaths.getContextPath(request);
+
+    assertEquals("http://localhost:8080/server1", result);
+  }
+
+  @Test
+  void getContextPath_keepsDifferentExplicitFallbackPathUnchanged() {
+    HttpServletRequestPaths.setFallbackBaseUrl("http://localhost:8080/other");
+
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setScheme("http");
+    request.setServerName("localhost");
+    request.setServerPort(8080);
+    request.setContextPath("/server1");
+    request.setRequestURI("/server1/api/apps/menu");
+
+    String result = HttpServletRequestPaths.getContextPath(request);
+
+    assertEquals("http://localhost:8080/other", result);
+  }
+
+  @Test
+  void getContextPath_derivesRequestUrlWhenNoFallbackAndNoForwardedHeaders() {
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setScheme("http");
+    request.setServerName("localhost");
+    request.setServerPort(8080);
+    request.setContextPath("/server1");
+    request.setRequestURI("/server1/api/apps/menu");
+
+    String result = HttpServletRequestPaths.getContextPath(request);
+
+    assertEquals("http://localhost:8080/server1", result);
   }
 
   @Test
@@ -95,11 +165,12 @@ class HttpServletRequestPathsTest {
     request.setScheme("http");
     request.setServerName("localhost");
     request.setServerPort(8080);
-    request.setContextPath("");
+    request.setContextPath("/server1");
+    request.setRequestURI("/server1/api/apps/menu");
     request.addHeader("X-Forwarded-Host", "");
 
     String result = HttpServletRequestPaths.getContextPath(request);
 
-    assertEquals("http://localhost:8080", result);
+    assertEquals("http://localhost:8080/server1", result);
   }
 }

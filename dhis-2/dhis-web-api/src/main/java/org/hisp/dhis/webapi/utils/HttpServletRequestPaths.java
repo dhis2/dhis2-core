@@ -30,6 +30,8 @@
 package org.hisp.dhis.webapi.utils;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -77,7 +79,7 @@ public class HttpServletRequestPaths {
     boolean hasForwardedHeaders = hasForwardedHeaders(request);
 
     if (!hasForwardedHeaders) {
-      String fallback = getFallbackBaseUrl();
+      String fallback = resolveFallbackBaseUrl(getFallbackBaseUrl(), request.getContextPath());
       if (fallback != null) {
         return fallback;
       }
@@ -105,6 +107,11 @@ public class HttpServletRequestPaths {
     return result;
   }
 
+  static void resetFallbackBaseUrls() {
+    configuredFallbackBaseUrl = null;
+    learnedFallbackBaseUrl = null;
+  }
+
   private static boolean hasForwardedHeaders(HttpServletRequest request) {
     String xForwardedHost = request.getHeader("X-Forwarded-Host");
     return xForwardedHost != null && !xForwardedHost.isEmpty();
@@ -116,6 +123,37 @@ public class HttpServletRequestPaths {
       return configuredFallbackBaseUrl;
     }
     return learnedFallbackBaseUrl;
+  }
+
+  private static String resolveFallbackBaseUrl(String fallbackBaseUrl, String contextPath) {
+    if (fallbackBaseUrl == null) {
+      return null;
+    }
+    if (contextPath == null || contextPath.isEmpty()) {
+      return fallbackBaseUrl;
+    }
+
+    try {
+      URI fallbackUri = URI.create(fallbackBaseUrl);
+      String fallbackPath = fallbackUri.getPath();
+      if (fallbackPath != null && !fallbackPath.isEmpty() && !"/".equals(fallbackPath)) {
+        return fallbackBaseUrl;
+      }
+
+      URI mergedUri =
+          new URI(
+              fallbackUri.getScheme(),
+              fallbackUri.getUserInfo(),
+              fallbackUri.getHost(),
+              fallbackUri.getPort(),
+              contextPath,
+              fallbackUri.getQuery(),
+              fallbackUri.getFragment());
+
+      return mergedUri.toString();
+    } catch (IllegalArgumentException | URISyntaxException ex) {
+      return fallbackBaseUrl;
+    }
   }
 
   /** Uses X-Forwarded-Proto if it's a valid HTTP scheme, otherwise falls back to request scheme. */
