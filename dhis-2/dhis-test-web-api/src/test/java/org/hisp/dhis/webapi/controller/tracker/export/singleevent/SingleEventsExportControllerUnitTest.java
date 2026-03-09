@@ -68,7 +68,7 @@ class SingleEventsExportControllerUnitTest {
     Exception exception =
         assertThrows(
             IllegalStateException.class,
-            () -> new SingleEventsExportController(eventService, null, null, null));
+            () -> new SingleEventsExportController(eventService, null, null));
 
     assertAll(
         () ->

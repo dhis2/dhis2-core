@@ -68,7 +68,7 @@ class TrackerEventsExportControllerUnitTest {
     Exception exception =
         assertThrows(
             IllegalStateException.class,
-            () -> new TrackerEventsExportController(eventService, null, null, null));
+            () -> new TrackerEventsExportController(eventService, null, null));
 
     assertAll(
         () ->

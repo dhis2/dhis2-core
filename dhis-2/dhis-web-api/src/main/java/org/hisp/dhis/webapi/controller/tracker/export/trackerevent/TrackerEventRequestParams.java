@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Set;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OpenApi;
@@ -156,9 +155,6 @@ will take more time to return.**
 
   @OpenApi.Property({UID.class, CategoryOptionCombo.class})
   private UID attributeCategoryCombo;
-
-  @OpenApi.Property({UID[].class, CategoryOption.class})
-  private Set<UID> attributeCategoryOptions = new HashSet<>();
 
   private boolean includeDeleted = false;
 

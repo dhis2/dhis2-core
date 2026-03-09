@@ -84,8 +84,6 @@ public class SingleEvent {
 
   @JsonProperty private String attributeOptionCombo;
 
-  @JsonProperty private String attributeCategoryOptions;
-
   @JsonProperty private String completedBy;
 
   @JsonProperty private Instant completedAt;

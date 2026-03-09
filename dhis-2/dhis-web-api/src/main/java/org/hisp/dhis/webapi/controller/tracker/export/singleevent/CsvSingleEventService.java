@@ -47,45 +47,41 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil;
-import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
 import org.hisp.dhis.webapi.controller.tracker.view.SingleEvent;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
-import org.springframework.stereotype.Service;
 
-/**
- * @author Enrico Colasante
- */
-@Service("org.hisp.dhis.webapi.controller.tracker.export.singleevent.CsvSingleEventService")
-class CsvSingleEventService implements CsvService<SingleEvent> {
+class CsvSingleEventService {
   private static final Pattern TRIM_SINGLE_QUOTES = Pattern.compile("^'|'$");
 
-  @Override
-  public void write(OutputStream outputStream, List<SingleEvent> events, boolean withHeader)
+  private CsvSingleEventService() {
+    throw new IllegalStateException("Utility class");
+  }
+
+  public static void write(OutputStream outputStream, List<SingleEvent> events, boolean withHeader)
       throws IOException {
     ObjectWriter writer = getObjectWriter(withHeader);
 
     writer.writeValue(outputStream, getCsvEventDataValues(events));
   }
 
-  @Override
-  public void writeZip(
+  public static void writeZip(
       OutputStream outputStream, List<SingleEvent> toCompress, boolean withHeader, String file)
       throws IOException {
     CompressionUtil.writeZip(
         outputStream, getCsvEventDataValues(toCompress), getObjectWriter(withHeader), file);
   }
 
-  @Override
-  public void writeGzip(OutputStream outputStream, List<SingleEvent> toCompress, boolean withHeader)
+  public static void writeGzip(
+      OutputStream outputStream, List<SingleEvent> toCompress, boolean withHeader)
       throws IOException {
     CompressionUtil.writeGzip(
         outputStream, getCsvEventDataValues(toCompress), getObjectWriter(withHeader));
   }
 
-  private ObjectWriter getObjectWriter(boolean withHeader) {
+  private static ObjectWriter getObjectWriter(boolean withHeader) {
     final CsvSchema csvSchema =
         csvMapper
             .schemaFor(CsvSingleEventDataValue.class)
@@ -95,7 +91,7 @@ class CsvSingleEventService implements CsvService<SingleEvent> {
     return csvMapper.writer(csvSchema.withUseHeader(withHeader));
   }
 
-  private List<CsvSingleEventDataValue> getCsvEventDataValues(List<SingleEvent> events) {
+  private static List<CsvSingleEventDataValue> getCsvEventDataValues(List<SingleEvent> events) {
     List<CsvSingleEventDataValue> dataValues = new ArrayList<>();
 
     for (SingleEvent event : events) {
@@ -133,7 +129,6 @@ class CsvSingleEventService implements CsvService<SingleEvent> {
         event.getCompletedAt() == null ? null : event.getCompletedAt().toString());
     result.setCompletedBy(event.getCompletedBy());
     result.setAttributeOptionCombo(event.getAttributeOptionCombo());
-    result.setAttributeCategoryOptions(event.getAttributeCategoryOptions());
     result.setAssignedUser(
         event.getAssignedUser() == null ? null : event.getAssignedUser().getUsername());
 
@@ -165,8 +160,7 @@ class CsvSingleEventService implements CsvService<SingleEvent> {
     return result;
   }
 
-  @Override
-  public List<SingleEvent> read(InputStream inputStream, boolean skipFirst)
+  public static List<SingleEvent> read(InputStream inputStream, boolean skipFirst)
       throws IOException, ParseException {
     CsvSchema csvSchema = CsvSchema.emptySchema().withHeader().withColumnReordering(true);
 
@@ -234,7 +228,6 @@ class CsvSingleEventService implements CsvService<SingleEvent> {
     event.setCompletedBy(dataValue.getCompletedBy());
     event.setStoredBy(dataValue.getStoredBy());
     event.setAttributeOptionCombo(dataValue.getAttributeOptionCombo());
-    event.setAttributeCategoryOptions(dataValue.getAttributeCategoryOptions());
     event.setAssignedUser(User.builder().username(dataValue.getAssignedUser()).build());
 
     if (StringUtils.isNotBlank(dataValue.getGeometry())) {

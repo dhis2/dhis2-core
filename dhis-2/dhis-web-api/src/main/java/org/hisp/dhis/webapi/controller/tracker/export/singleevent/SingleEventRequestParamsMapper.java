@@ -106,7 +106,6 @@ class SingleEventRequestParamsMapper {
             .updatedWithin(eventRequestParams.getUpdatedWithin())
             .eventStatus(eventRequestParams.getStatus())
             .attributeCategoryCombo(eventRequestParams.getAttributeCategoryCombo())
-            .attributeCategoryOptions(eventRequestParams.getAttributeCategoryOptions())
             .events(eventRequestParams.getEvents())
             .includeDeleted(eventRequestParams.isIncludeDeleted())
             .fields(

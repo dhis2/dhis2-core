@@ -61,23 +61,13 @@ public interface SingleEventMapper {
   /** Events can be ordered by given fields which correspond to fields on {@link SingleEvent}. */
   Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(
-          entry("assignedUser", "assignedUser"),
-          entry("assignedUserDisplayName", "assignedUser.displayName"),
-          entry("attributeOptionCombo", "attributeOptionCombo.uid"),
           entry("completedAt", "completedDate"),
-          entry("completedBy", "completedBy"),
           entry("createdAt", "created"),
-          entry("createdAtClient", "createdAtClient"),
-          entry("createdBy", "createdBy"),
           entry("deleted", "deleted"),
           entry("event", "uid"),
           entry("occurredAt", "occurredDate"),
-          entry("orgUnit", "organisationUnit.uid"),
           entry("status", "status"),
-          entry("storedBy", "storedBy"),
-          entry("updatedAt", "lastUpdated"),
-          entry("updatedAtClient", "lastUpdatedAtClient"),
-          entry("updatedBy", "lastUpdatedBy"));
+          entry("updatedAt", "lastUpdated"));
 
   default org.hisp.dhis.webapi.controller.tracker.view.SingleEvent map(SingleEvent event) {
     // events as part of enrollments and relationships are always exported using idScheme=UID
@@ -94,7 +84,6 @@ public interface SingleEventMapper {
   @Mapping(target = "updatedAt", source = "lastUpdated")
   @Mapping(target = "updatedAtClient", source = "lastUpdatedAtClient")
   @Mapping(target = "attributeOptionCombo", source = "attributeOptionCombo")
-  @Mapping(target = "attributeCategoryOptions", source = "attributeOptionCombo.categoryOptions")
   @Mapping(target = "completedAt", source = "completedDate")
   @Mapping(target = "createdBy", source = "createdByUserInfo")
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")

@@ -71,7 +71,6 @@ import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.webapi.controller.tracker.RequestHandler;
 import org.hisp.dhis.webapi.controller.tracker.export.ChangeLogRequestParams;
-import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.export.MappingErrors;
 import org.hisp.dhis.webapi.controller.tracker.export.ResponseHeader;
 import org.hisp.dhis.webapi.controller.tracker.export.event.ChangeLogRequestParamsMapper;
@@ -109,20 +108,15 @@ class SingleEventsExportController {
 
   private final SingleEventService singleEventService;
 
-  private final CsvService<org.hisp.dhis.webapi.controller.tracker.view.SingleEvent>
-      csvEventService;
-
   private final RequestHandler requestHandler;
 
   private final SingleEventChangeLogService singleEventChangeLogService;
 
   public SingleEventsExportController(
       SingleEventService singleEventService,
-      CsvService<org.hisp.dhis.webapi.controller.tracker.view.SingleEvent> csvEventService,
       RequestHandler requestHandler,
       SingleEventChangeLogService singleEventChangeLogService) {
     this.singleEventService = singleEventService;
-    this.csvEventService = csvEventService;
     this.requestHandler = requestHandler;
     this.singleEventChangeLogService = singleEventChangeLogService;
 
@@ -194,7 +188,7 @@ class SingleEventsExportController {
     ResponseHeader.addContentDispositionAttachment(response, EVENT_CSV_FILE);
     response.setContentType(CONTENT_TYPE_CSV);
 
-    csvEventService.write(response.getOutputStream(), events, !skipHeader);
+    CsvSingleEventService.write(response.getOutputStream(), events, !skipHeader);
   }
 
   @GetMapping(produces = {CONTENT_TYPE_CSV_GZIP})
@@ -212,7 +206,7 @@ class SingleEventsExportController {
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV_GZIP);
 
-    csvEventService.writeGzip(response.getOutputStream(), events, !skipHeader);
+    CsvSingleEventService.writeGzip(response.getOutputStream(), events, !skipHeader);
   }
 
   @GetMapping(produces = {CONTENT_TYPE_CSV_ZIP})
@@ -230,7 +224,7 @@ class SingleEventsExportController {
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV_ZIP);
 
-    csvEventService.writeZip(response.getOutputStream(), events, !skipHeader, EVENT_CSV_FILE);
+    CsvSingleEventService.writeZip(response.getOutputStream(), events, !skipHeader, EVENT_CSV_FILE);
   }
 
   @OpenApi.Response(status = Status.OK, value = Page.class)

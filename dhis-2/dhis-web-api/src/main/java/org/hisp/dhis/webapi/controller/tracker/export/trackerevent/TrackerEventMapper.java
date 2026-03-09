@@ -61,31 +61,14 @@ public interface TrackerEventMapper {
   /** Events can be ordered by given fields which correspond to fields on {@link TrackerEvent}. */
   Map<String, String> ORDERABLE_FIELDS =
       Map.ofEntries(
-          entry("assignedUser", "assignedUser"),
-          entry("assignedUserDisplayName", "assignedUser.displayName"),
-          entry("attributeOptionCombo", "attributeOptionCombo.uid"),
           entry("completedAt", "completedDate"),
-          entry("completedBy", "completedBy"),
           entry("createdAt", "created"),
-          entry("createdAtClient", "createdAtClient"),
-          entry("createdBy", "createdBy"),
           entry("deleted", "deleted"),
-          entry("enrolledAt", "enrollment.enrollmentDate"),
-          entry("enrollment", "enrollment.uid"),
-          entry("enrollmentStatus", "enrollment.status"),
           entry("event", "uid"),
-          entry("followUp", "enrollment.followUp"),
           entry("occurredAt", "occurredDate"),
-          entry("orgUnit", "organisationUnit.uid"),
-          entry("program", "enrollment.program.uid"),
-          entry("programStage", "programStage.uid"),
           entry("scheduledAt", "scheduledDate"),
           entry("status", "status"),
-          entry("storedBy", "storedBy"),
-          entry("trackedEntity", "enrollment.trackedEntity.uid"),
-          entry("updatedAt", "lastUpdated"),
-          entry("updatedAtClient", "lastUpdatedAtClient"),
-          entry("updatedBy", "lastUpdatedBy"));
+          entry("updatedAt", "lastUpdated"));
 
   default org.hisp.dhis.webapi.controller.tracker.view.TrackerEvent map(TrackerEvent event) {
     // events as part of enrollments and relationships are always exported using idScheme=UID
@@ -107,7 +90,6 @@ public interface TrackerEventMapper {
   @Mapping(target = "updatedAt", source = "lastUpdated")
   @Mapping(target = "updatedAtClient", source = "lastUpdatedAtClient")
   @Mapping(target = "attributeOptionCombo", source = "attributeOptionCombo")
-  @Mapping(target = "attributeCategoryOptions", source = "attributeOptionCombo.categoryOptions")
   @Mapping(target = "completedAt", source = "completedDate")
   @Mapping(target = "createdBy", source = "createdByUserInfo")
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
