@@ -85,7 +85,10 @@ interface RelationshipItemMapper {
   @Mapping(target = "completedAt", source = "completedDate")
   @Mapping(target = "createdBy", source = "createdByUserInfo")
   @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
-  @Mapping(target = "attributes", source = "trackedEntity.trackedEntityAttributeValues")
+  @Mapping(
+      target = "attributes",
+      source = "trackedEntity.trackedEntityAttributeValues",
+      defaultExpression = "java(java.util.List.of())")
   @Mapping(target = "notes", source = "notes")
   RelationshipItem.Enrollment map(Enrollment enrollment);
 

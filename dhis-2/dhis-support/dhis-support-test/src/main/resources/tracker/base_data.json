@@ -1338,6 +1338,20 @@
       "to": {
         "event": "D9PbzJY8bJM"
       }
+    },
+    {
+      "relationship": "WTTYiPQDqh2",
+      "relationshipType": {
+        "idScheme": "UID",
+        "identifier": "WTTYiPQDqh1"
+      },
+      "createdAtClient": "2018-11-01T13:24:37.118",
+      "from": {
+        "enrollment": "nxP7UnKhomK"
+      },
+      "to": {
+        "enrollment": "TvctPPhpD8z"
+      }
     }
   ],
   "username": "system-process"

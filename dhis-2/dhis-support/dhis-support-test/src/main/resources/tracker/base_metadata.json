@@ -1100,7 +1100,7 @@
             "id": "GieVkTxp4HH"
           },
           "lastUpdated": "2022-04-22T05:57:59.783",
-          "skipSynchronization" : true,
+          "skipSynchronization": true,
           "programStage": {
             "id": "qLZC0lvvxQH"
           },
@@ -1894,6 +1894,27 @@
         "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
         "trackedEntityType": {
           "id": "ja8NY4PW7Xm"
+        }
+      }
+    },
+    {
+      "id": "WTTYiPQDqh1",
+      "name": "Enrollment to enrollment",
+      "fromToName": "Enrollment to enrollment",
+      "sharing": {
+        "owner": "tTgjgobT1oS",
+        "public": "rwrwrw--"
+      },
+      "fromConstraint": {
+        "relationshipEntity": "PROGRAM_INSTANCE",
+        "program": {
+          "id": "BFcipDERJnf"
+        }
+      },
+      "toConstraint": {
+        "relationshipEntity": "PROGRAM_INSTANCE",
+        "program": {
+          "id": "BFcipDERJnf"
         }
       }
     }
