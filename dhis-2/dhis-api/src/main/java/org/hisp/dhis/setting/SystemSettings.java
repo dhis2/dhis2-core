@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.setting;
 
-import static org.hisp.dhis.analytics.AnalyticsWeeklyStartKey.WEEKLY;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -238,12 +236,11 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   default AnalyticsFinancialYearStartKey getAnalyticsFinancialYearStart() {
-    return asEnum(
-        "analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER);
+    return asEnum("analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.getDefault());
   }
 
   default AnalyticsWeeklyStartKey getAnalyticsWeeklyStart() {
-    return asEnum("analyticsWeeklyStart", WEEKLY);
+    return asEnum("analyticsWeeklyStart", AnalyticsWeeklyStartKey.getDefault());
   }
 
   default String getPhoneNumberAreaCode() {
