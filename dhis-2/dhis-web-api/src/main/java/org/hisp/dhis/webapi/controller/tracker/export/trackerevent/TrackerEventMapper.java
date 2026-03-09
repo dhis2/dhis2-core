@@ -63,11 +63,8 @@ public interface TrackerEventMapper {
       Map.ofEntries(
           entry("completedAt", "completedDate"),
           entry("createdAt", "created"),
-          entry("deleted", "deleted"),
-          entry("event", "uid"),
           entry("occurredAt", "occurredDate"),
           entry("scheduledAt", "scheduledDate"),
-          entry("status", "status"),
           entry("updatedAt", "lastUpdated"));
 
   default org.hisp.dhis.webapi.controller.tracker.view.TrackerEvent map(TrackerEvent event) {

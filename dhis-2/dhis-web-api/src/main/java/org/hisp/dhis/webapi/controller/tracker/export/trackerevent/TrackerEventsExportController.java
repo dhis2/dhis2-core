@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackerevent;
 
-import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
+import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreImplemented;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
@@ -121,7 +121,7 @@ class TrackerEventsExportController {
     this.requestHandler = requestHandler;
     this.trackerEventChangeLogService = trackerEventChangeLogService;
 
-    assertUserOrderableFieldsAreSupported(
+    assertUserOrderableFieldsAreImplemented(
         "trackerEvent",
         TrackerEventMapper.ORDERABLE_FIELDS,
         trackerEventService.getOrderableFields());
@@ -191,7 +191,7 @@ class TrackerEventsExportController {
     ResponseHeader.addContentDispositionAttachment(response, EVENT_CSV_FILE);
     response.setContentType(CONTENT_TYPE_CSV);
 
-    CsvTrackerEventService.write(response.getOutputStream(), events, !skipHeader);
+    TrackerEventCsvWriter.write(response.getOutputStream(), events, !skipHeader);
   }
 
   @GetMapping(produces = {CONTENT_TYPE_CSV_GZIP})
@@ -209,7 +209,7 @@ class TrackerEventsExportController {
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV_GZIP);
 
-    CsvTrackerEventService.writeGzip(response.getOutputStream(), events, !skipHeader);
+    TrackerEventCsvWriter.writeGzip(response.getOutputStream(), events, !skipHeader);
   }
 
   @GetMapping(produces = {CONTENT_TYPE_CSV_ZIP})
@@ -227,8 +227,7 @@ class TrackerEventsExportController {
     ResponseHeader.addContentTransferEncodingBinary(response);
     response.setContentType(CONTENT_TYPE_CSV_ZIP);
 
-    CsvTrackerEventService.writeZip(
-        response.getOutputStream(), events, !skipHeader, EVENT_CSV_FILE);
+    TrackerEventCsvWriter.writeZip(response.getOutputStream(), events, !skipHeader, EVENT_CSV_FILE);
   }
 
   @OpenApi.Response(status = Status.OK, value = Page.class)

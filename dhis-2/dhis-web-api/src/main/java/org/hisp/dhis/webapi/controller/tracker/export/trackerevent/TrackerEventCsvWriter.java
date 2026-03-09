@@ -31,32 +31,18 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackerevent;
 
 import static org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig.csvMapper;
 
-import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.regex.Pattern;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil;
 import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackerEvent;
-import org.hisp.dhis.webapi.controller.tracker.view.User;
-import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKTReader;
 
-class CsvTrackerEventService {
-  private static final Pattern TRIM_SINGLE_QUOTES = Pattern.compile("^'|'$");
-
-  private CsvTrackerEventService() {
+class TrackerEventCsvWriter {
+  private TrackerEventCsvWriter() {
     throw new IllegalStateException("Utility class");
   }
 
@@ -84,18 +70,18 @@ class CsvTrackerEventService {
   private static ObjectWriter getObjectWriter(boolean withHeader) {
     final CsvSchema csvSchema =
         csvMapper
-            .schemaFor(CsvTrackerEventDataValue.class)
+            .schemaFor(TrackerEventCsvRow.class)
             .withLineSeparator("\n")
             .withUseHeader(withHeader);
 
     return csvMapper.writer(csvSchema.withUseHeader(withHeader));
   }
 
-  private static List<CsvTrackerEventDataValue> getCsvEventDataValues(List<TrackerEvent> events) {
-    List<CsvTrackerEventDataValue> dataValues = new ArrayList<>();
+  private static List<TrackerEventCsvRow> getCsvEventDataValues(List<TrackerEvent> events) {
+    List<TrackerEventCsvRow> dataValues = new ArrayList<>();
 
     for (TrackerEvent event : events) {
-      CsvTrackerEventDataValue templateDataValue = map(event);
+      TrackerEventCsvRow templateDataValue = map(event);
 
       if (event.getDataValues().isEmpty()) {
         dataValues.add(templateDataValue);
@@ -109,8 +95,8 @@ class CsvTrackerEventService {
     return dataValues;
   }
 
-  private static CsvTrackerEventDataValue map(TrackerEvent event) {
-    CsvTrackerEventDataValue result = new CsvTrackerEventDataValue();
+  private static TrackerEventCsvRow map(TrackerEvent event) {
+    TrackerEventCsvRow result = new TrackerEventCsvRow();
     result.setEvent(event.getEvent());
     result.setStatus(event.getStatus() != null ? event.getStatus().name() : null);
     result.setProgram(event.getProgram());
@@ -148,8 +134,8 @@ class CsvTrackerEventService {
     return result;
   }
 
-  private static CsvTrackerEventDataValue map(DataValue value, CsvTrackerEventDataValue base) {
-    CsvTrackerEventDataValue result = new CsvTrackerEventDataValue(base);
+  private static TrackerEventCsvRow map(DataValue value, TrackerEventCsvRow base) {
+    TrackerEventCsvRow result = new TrackerEventCsvRow(base);
     result.setDataElement(value.getDataElement());
     result.setValue(value.getValue());
     result.setProvidedElsewhere(value.isProvidedElsewhere());
@@ -163,89 +149,5 @@ class CsvTrackerEventService {
     }
 
     return result;
-  }
-
-  public static List<TrackerEvent> read(InputStream inputStream, boolean skipFirst)
-      throws IOException, ParseException {
-    CsvSchema csvSchema = CsvSchema.emptySchema().withHeader().withColumnReordering(true);
-
-    if (!skipFirst) {
-      csvSchema =
-          csvMapper
-              .schemaFor(CsvTrackerEventDataValue.class)
-              .withoutHeader()
-              .withColumnReordering(true);
-    }
-
-    List<TrackerEvent> events = new ArrayList<>();
-
-    ObjectReader reader = csvMapper.readerFor(CsvTrackerEventDataValue.class).with(csvSchema);
-
-    MappingIterator<CsvTrackerEventDataValue> iterator = reader.readValues(inputStream);
-    TrackerEvent event = new TrackerEvent();
-
-    while (iterator.hasNext()) {
-      CsvTrackerEventDataValue dataValue = iterator.next();
-
-      if (dataValue.getEvent() == null || !Objects.equals(event.getEvent(), dataValue.getEvent())) {
-        event = map(dataValue);
-        events.add(event);
-      }
-
-      if (ObjectUtils.anyNotNull(
-          dataValue.getProvidedElsewhere(),
-          dataValue.getDataElement(),
-          dataValue.getValue(),
-          dataValue.getCreatedAtDataValue(),
-          dataValue.getUpdatedAtDataValue(),
-          dataValue.getStoredByDataValue())) {
-        DataValue value = new DataValue();
-        value.setProvidedElsewhere(
-            dataValue.getProvidedElsewhere() != null && dataValue.getProvidedElsewhere());
-        value.setDataElement(dataValue.getDataElement());
-        value.setValue(dataValue.getValue());
-        value.setCreatedAt(DateUtils.instantFromDateAsString(dataValue.getCreatedAtDataValue()));
-        value.setUpdatedAt(DateUtils.instantFromDateAsString(dataValue.getUpdatedAtDataValue()));
-        value.setStoredBy(dataValue.getStoredByDataValue());
-        event.getDataValues().add(value);
-      }
-    }
-
-    return events;
-  }
-
-  private static TrackerEvent map(CsvTrackerEventDataValue dataValue) throws ParseException {
-    TrackerEvent event;
-    event = new TrackerEvent();
-    event.setEvent(dataValue.getEvent());
-    event.setStatus(
-        StringUtils.isEmpty(dataValue.getStatus())
-            ? EventStatus.ACTIVE
-            : Enum.valueOf(EventStatus.class, dataValue.getStatus()));
-    event.setProgram(dataValue.getProgram());
-    event.setProgramStage(dataValue.getProgramStage());
-    event.setEnrollment(dataValue.getEnrollment());
-    event.setOrgUnit(dataValue.getOrgUnit());
-    event.setCreatedAt(DateUtils.instantFromDateAsString(dataValue.getCreatedAt()));
-    event.setCreatedAtClient(DateUtils.instantFromDateAsString(dataValue.getCreatedAtClient()));
-    event.setUpdatedAt(DateUtils.instantFromDateAsString(dataValue.getUpdatedAt()));
-    event.setUpdatedAtClient(DateUtils.instantFromDateAsString(dataValue.getUpdatedAtClient()));
-    event.setOccurredAt(DateUtils.instantFromDateAsString(dataValue.getOccurredAt()));
-    event.setScheduledAt(DateUtils.instantFromDateAsString(dataValue.getScheduledAt()));
-    event.setCompletedAt(DateUtils.instantFromDateAsString(dataValue.getCompletedAt()));
-    event.setCompletedBy(dataValue.getCompletedBy());
-    event.setStoredBy(dataValue.getStoredBy());
-    event.setAttributeOptionCombo(dataValue.getAttributeOptionCombo());
-    event.setAssignedUser(User.builder().username(dataValue.getAssignedUser()).build());
-
-    if (StringUtils.isNotBlank(dataValue.getGeometry())) {
-      event.setGeometry(
-          new WKTReader().read(TRIM_SINGLE_QUOTES.matcher(dataValue.getGeometry()).replaceAll("")));
-    } else if (dataValue.getLongitude() != null && dataValue.getLatitude() != null) {
-      event.setGeometry(
-          new WKTReader()
-              .read("Point(" + dataValue.getLongitude() + " " + dataValue.getLatitude() + ")"));
-    }
-    return event;
   }
 }

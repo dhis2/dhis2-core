@@ -31,32 +31,18 @@ package org.hisp.dhis.webapi.controller.tracker.export.singleevent;
 
 import static org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig.csvMapper;
 
-import com.fasterxml.jackson.databind.MappingIterator;
-import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.regex.Pattern;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.tracker.export.CompressionUtil;
 import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
 import org.hisp.dhis.webapi.controller.tracker.view.SingleEvent;
-import org.hisp.dhis.webapi.controller.tracker.view.User;
-import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKTReader;
 
-class CsvSingleEventService {
-  private static final Pattern TRIM_SINGLE_QUOTES = Pattern.compile("^'|'$");
-
-  private CsvSingleEventService() {
+class SingleEventCsvWriter {
+  private SingleEventCsvWriter() {
     throw new IllegalStateException("Utility class");
   }
 
@@ -84,18 +70,18 @@ class CsvSingleEventService {
   private static ObjectWriter getObjectWriter(boolean withHeader) {
     final CsvSchema csvSchema =
         csvMapper
-            .schemaFor(CsvSingleEventDataValue.class)
+            .schemaFor(SingleEventCsvRow.class)
             .withLineSeparator("\n")
             .withUseHeader(withHeader);
 
     return csvMapper.writer(csvSchema.withUseHeader(withHeader));
   }
 
-  private static List<CsvSingleEventDataValue> getCsvEventDataValues(List<SingleEvent> events) {
-    List<CsvSingleEventDataValue> dataValues = new ArrayList<>();
+  private static List<SingleEventCsvRow> getCsvEventDataValues(List<SingleEvent> events) {
+    List<SingleEventCsvRow> dataValues = new ArrayList<>();
 
     for (SingleEvent event : events) {
-      CsvSingleEventDataValue templateDataValue = map(event);
+      SingleEventCsvRow templateDataValue = map(event);
 
       if (event.getDataValues().isEmpty()) {
         dataValues.add(templateDataValue);
@@ -109,8 +95,8 @@ class CsvSingleEventService {
     return dataValues;
   }
 
-  private static CsvSingleEventDataValue map(SingleEvent event) {
-    CsvSingleEventDataValue result = new CsvSingleEventDataValue();
+  private static SingleEventCsvRow map(SingleEvent event) {
+    SingleEventCsvRow result = new SingleEventCsvRow();
     result.setEvent(event.getEvent());
     result.setStatus(event.getStatus() != null ? event.getStatus().name() : null);
     result.setProgram(event.getProgram());
@@ -143,8 +129,8 @@ class CsvSingleEventService {
     return result;
   }
 
-  private static CsvSingleEventDataValue map(DataValue value, CsvSingleEventDataValue base) {
-    CsvSingleEventDataValue result = new CsvSingleEventDataValue(base);
+  private static SingleEventCsvRow map(DataValue value, SingleEventCsvRow base) {
+    SingleEventCsvRow result = new SingleEventCsvRow(base);
     result.setDataElement(value.getDataElement());
     result.setValue(value.getValue());
     result.setProvidedElsewhere(value.isProvidedElsewhere());
@@ -158,86 +144,5 @@ class CsvSingleEventService {
     }
 
     return result;
-  }
-
-  public static List<SingleEvent> read(InputStream inputStream, boolean skipFirst)
-      throws IOException, ParseException {
-    CsvSchema csvSchema = CsvSchema.emptySchema().withHeader().withColumnReordering(true);
-
-    if (!skipFirst) {
-      csvSchema =
-          csvMapper
-              .schemaFor(CsvSingleEventDataValue.class)
-              .withoutHeader()
-              .withColumnReordering(true);
-    }
-
-    List<SingleEvent> events = new ArrayList<>();
-
-    ObjectReader reader = csvMapper.readerFor(CsvSingleEventDataValue.class).with(csvSchema);
-
-    MappingIterator<CsvSingleEventDataValue> iterator = reader.readValues(inputStream);
-    SingleEvent event = new SingleEvent();
-
-    while (iterator.hasNext()) {
-      CsvSingleEventDataValue dataValue = iterator.next();
-
-      if (dataValue.getEvent() == null || !Objects.equals(event.getEvent(), dataValue.getEvent())) {
-        event = map(dataValue);
-        events.add(event);
-      }
-
-      if (ObjectUtils.anyNotNull(
-          dataValue.getProvidedElsewhere(),
-          dataValue.getDataElement(),
-          dataValue.getValue(),
-          dataValue.getCreatedAtDataValue(),
-          dataValue.getUpdatedAtDataValue(),
-          dataValue.getStoredByDataValue())) {
-        DataValue value = new DataValue();
-        value.setProvidedElsewhere(
-            dataValue.getProvidedElsewhere() != null && dataValue.getProvidedElsewhere());
-        value.setDataElement(dataValue.getDataElement());
-        value.setValue(dataValue.getValue());
-        value.setCreatedAt(DateUtils.instantFromDateAsString(dataValue.getCreatedAtDataValue()));
-        value.setUpdatedAt(DateUtils.instantFromDateAsString(dataValue.getUpdatedAtDataValue()));
-        value.setStoredBy(dataValue.getStoredByDataValue());
-        event.getDataValues().add(value);
-      }
-    }
-
-    return events;
-  }
-
-  private static SingleEvent map(CsvSingleEventDataValue dataValue) throws ParseException {
-    SingleEvent event;
-    event = new SingleEvent();
-    event.setEvent(dataValue.getEvent());
-    event.setStatus(
-        StringUtils.isEmpty(dataValue.getStatus())
-            ? EventStatus.ACTIVE
-            : Enum.valueOf(EventStatus.class, dataValue.getStatus()));
-    event.setProgram(dataValue.getProgram());
-    event.setOrgUnit(dataValue.getOrgUnit());
-    event.setCreatedAt(DateUtils.instantFromDateAsString(dataValue.getCreatedAt()));
-    event.setCreatedAtClient(DateUtils.instantFromDateAsString(dataValue.getCreatedAtClient()));
-    event.setUpdatedAt(DateUtils.instantFromDateAsString(dataValue.getUpdatedAt()));
-    event.setUpdatedAtClient(DateUtils.instantFromDateAsString(dataValue.getUpdatedAtClient()));
-    event.setOccurredAt(DateUtils.instantFromDateAsString(dataValue.getOccurredAt()));
-    event.setCompletedAt(DateUtils.instantFromDateAsString(dataValue.getCompletedAt()));
-    event.setCompletedBy(dataValue.getCompletedBy());
-    event.setStoredBy(dataValue.getStoredBy());
-    event.setAttributeOptionCombo(dataValue.getAttributeOptionCombo());
-    event.setAssignedUser(User.builder().username(dataValue.getAssignedUser()).build());
-
-    if (StringUtils.isNotBlank(dataValue.getGeometry())) {
-      event.setGeometry(
-          new WKTReader().read(TRIM_SINGLE_QUOTES.matcher(dataValue.getGeometry()).replaceAll("")));
-    } else if (dataValue.getLongitude() != null && dataValue.getLatitude() != null) {
-      event.setGeometry(
-          new WKTReader()
-              .read("Point(" + dataValue.getLongitude() + " " + dataValue.getLatitude() + ")"));
-    }
-    return event;
   }
 }

@@ -63,10 +63,7 @@ public interface SingleEventMapper {
       Map.ofEntries(
           entry("completedAt", "completedDate"),
           entry("createdAt", "created"),
-          entry("deleted", "deleted"),
-          entry("event", "uid"),
           entry("occurredAt", "occurredDate"),
-          entry("status", "status"),
           entry("updatedAt", "lastUpdated"));
 
   default org.hisp.dhis.webapi.controller.tracker.view.SingleEvent map(SingleEvent event) {

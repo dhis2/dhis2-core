@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.singleevent;
+package org.hisp.dhis.webapi.controller.tracker.export.trackerevent;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Getter;
@@ -42,11 +42,15 @@ import org.springframework.util.Assert;
   "event",
   "status",
   "program",
+  "programStage",
+  "enrollment",
   "orgUnit",
   "occurredAt",
+  "scheduledAt",
   "geometry",
   "latitude",
   "longitude",
+  "followUp",
   "deleted",
   "createdAt",
   "createdAtClient",
@@ -68,16 +72,24 @@ import org.springframework.util.Assert;
 })
 @Getter
 @Setter
-class CsvSingleEventDataValue {
+class TrackerEventCsvRow {
   private UID event;
 
   private String status;
 
   private String program;
 
+  private String programStage;
+
   private String orgUnit;
 
+  private UID enrollment;
+
   private String occurredAt;
+
+  private String scheduledAt;
+
+  private boolean followUp;
 
   private boolean deleted;
 
@@ -121,18 +133,22 @@ class CsvSingleEventDataValue {
 
   private String storedByDataValue;
 
-  public CsvSingleEventDataValue() {}
+  public TrackerEventCsvRow() {}
 
-  public CsvSingleEventDataValue(CsvSingleEventDataValue dataValue) {
+  public TrackerEventCsvRow(TrackerEventCsvRow dataValue) {
     Assert.notNull(dataValue, "A non-null CsvOutputEventDataValue must be given as a parameter.");
 
     event = dataValue.getEvent();
     status = dataValue.getStatus();
     program = dataValue.getProgram();
+    programStage = dataValue.getProgramStage();
+    enrollment = dataValue.getEnrollment();
     orgUnit = dataValue.getOrgUnit();
     occurredAt = dataValue.getOccurredAt();
     attributeOptionCombo = dataValue.getAttributeOptionCombo();
     attributeCategoryOptions = dataValue.getAttributeCategoryOptions();
+    scheduledAt = dataValue.getScheduledAt();
+    followUp = dataValue.isFollowUp();
     deleted = dataValue.isDeleted();
     createdAt = dataValue.getCreatedAt();
     updatedAt = dataValue.getUpdatedAt();
