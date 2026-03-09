@@ -776,15 +776,22 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
   @Override
   public int insertUserCopy(
-      @Nonnull String sourceUid,
-      @Nonnull String newUid,
+      @Nonnull UID sourceUid,
+      @Nonnull UID newUid,
       @Nonnull UUID newUuid,
       @Nonnull String username,
       @Nonnull String encodedPassword,
-      long actingUserId) {
+      @Nonnull UID actingUserUid) {
     long newId =
         Objects.requireNonNull(
             jdbcTemplate.queryForObject("SELECT nextval('hibernate_sequence')", Long.class));
+    long actingUserId =
+        Objects.requireNonNull(
+            jdbcTemplate.queryForObject(
+                "SELECT userinfoid FROM userinfo WHERE uid = ?",
+                Long.class,
+                actingUserUid.getValue()));
+
     return jdbcTemplate.update(
         """
         INSERT INTO userinfo (
@@ -834,13 +841,13 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         WHERE uid = ?
         """,
         newId,
-        newUid,
+        newUid.getValue(),
         actingUserId,
         actingUserId,
         username,
         encodedPassword,
         newUuid,
-        sourceUid);
+        sourceUid.getValue());
   }
 
   @Override
@@ -932,12 +939,12 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
   @Override
   public void removeAttributeValues(
-      @Nonnull String userUid, @Nonnull Collection<String> attributeUids) {
+      @Nonnull UID userUid, @Nonnull Collection<String> attributeUids) {
     for (String attrUid : attributeUids) {
       jdbcTemplate.update(
           "UPDATE userinfo SET attributevalues = attributevalues - ? WHERE uid = ?",
           attrUid,
-          userUid);
+          userUid.getValue());
     }
   }
 

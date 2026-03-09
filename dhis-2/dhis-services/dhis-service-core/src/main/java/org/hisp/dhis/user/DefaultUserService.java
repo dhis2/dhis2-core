@@ -1512,8 +1512,8 @@ public class DefaultUserService implements UserService {
     }
 
     // Re-fetch within this transaction so scalar fields and lazy collections are available.
-    String sourceUid = existingUser.getUid();
-    existingUser = userStore.getByUidNoAcl(sourceUid);
+    UID sourceUid = existingUser.getUID();
+    existingUser = userStore.getByUidNoAcl(sourceUid.toString());
     if (existingUser == null) {
       throw new NotFoundException("User not found: " + sourceUid);
     }
@@ -1532,13 +1532,13 @@ public class DefaultUserService implements UserService {
       }
     }
 
-    String newUid = CodeGenerator.generateUid();
-    UUID newUuid = UUID.randomUUID();
+    UID replicaUid = UID.generate();
+    UUID replicaUuid = UUID.randomUUID();
     String encodedPassword = passwordManager.encode(password);
 
     int insertedRows =
         userStore.insertUserCopy(
-            sourceUid, newUid, newUuid, username, encodedPassword, currentUser.getId());
+            sourceUid, replicaUid, replicaUuid, username, encodedPassword, currentUser.getUID());
     if (insertedRows != 1) {
       throw new NotFoundException("User not found: " + sourceUid);
     }
@@ -1547,18 +1547,15 @@ public class DefaultUserService implements UserService {
     // (e.g. userSettingsService.putAll) hit the DB and find the newly inserted row.
     userStore.clearUserQueryCache();
 
-    UID replicaUid = UID.of(newUid);
-    UID srcUid = UID.of(sourceUid);
-
-    userRoleStore.copyRoleMemberships(srcUid, replicaUid);
+    userRoleStore.copyRoleMemberships(sourceUid, replicaUid);
 
     // addUserToGroups performs ACL checks, so we go through the service rather than raw JDBC.
     User replicaStub = new User();
-    replicaStub.setUid(newUid);
+    replicaStub.setUid(replicaUid.getValue());
     userGroupService.addUserToGroups(replicaStub, getUids(existingUser.getGroups()), currentUser);
 
-    userStore.copyOrgUnitMemberships(srcUid, replicaUid);
-    userStore.copyDimensionConstraints(srcUid, replicaUid);
+    userStore.copyOrgUnitMemberships(sourceUid, replicaUid);
+    userStore.copyDimensionConstraints(sourceUid, replicaUid);
 
     // Unique attribute values must not be shared between accounts.
     AttributeValues attrValues = existingUser.getAttributeValues();
@@ -1569,7 +1566,7 @@ public class DefaultUserService implements UserService {
               .map(Attribute::getUid)
               .toList();
       if (!uniqueAttrUids.isEmpty()) {
-        userStore.removeAttributeValues(newUid, uniqueAttrUids);
+        userStore.removeAttributeValues(replicaUid, uniqueAttrUids);
       }
     }
 
@@ -1586,6 +1583,6 @@ public class DefaultUserService implements UserService {
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     userSettingsService.putAll(filteredMap, username);
 
-    return userStore.getByUidNoAcl(newUid);
+    return userStore.getByUidNoAcl(replicaUid.getValue());
   }
 }

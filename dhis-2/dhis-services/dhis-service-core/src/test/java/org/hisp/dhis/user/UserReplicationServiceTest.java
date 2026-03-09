@@ -44,6 +44,7 @@ import java.util.UUID;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.i18n.I18nManager;
@@ -147,12 +148,12 @@ class UserReplicationServiceTest {
     when(userStore.getByUidNoAcl("b1234567890")).thenReturn(sourceUser);
     when(passwordManager.encode("Str0ngPass!")).thenReturn("encodedPassword");
     when(userStore.insertUserCopy(
-            eq("b1234567890"),
-            anyString(),
+            eq(UID.of("b1234567890")),
+            any(UID.class),
             any(UUID.class),
             eq("replica"),
             eq("encodedPassword"),
-            eq(42L)))
+            eq(UID.of("a1234567890"))))
         .thenReturn(0);
 
     NotFoundException ex =
@@ -202,7 +203,7 @@ class UserReplicationServiceTest {
         ForbiddenException.class,
         () -> userService.replicateUser(existingUser, "replica", "Str0ngPass!"));
 
-    verify(userStore, never()).insertUserCopy(any(), any(), any(), any(), any(), any(Long.class));
+    verify(userStore, never()).insertUserCopy(any(), any(), any(), any(), any(), any(UID.class));
   }
 
   @Test
@@ -233,12 +234,12 @@ class UserReplicationServiceTest {
     when(userStore.getUserByUsername("replica")).thenReturn(null);
     when(passwordManager.encode("Str0ngPass!")).thenReturn("encodedPassword");
     when(userStore.insertUserCopy(
-            eq("b1234567890"),
-            anyString(),
+            eq(UID.of("b1234567890")),
+            any(UID.class),
             any(UUID.class),
             eq("replica"),
             eq("encodedPassword"),
-            eq(42L)))
+            eq(UID.of("a1234567890"))))
         .thenReturn(1);
     UserSettings settings = org.mockito.Mockito.mock(UserSettings.class);
     when(settings.toMap()).thenReturn(java.util.Map.of());

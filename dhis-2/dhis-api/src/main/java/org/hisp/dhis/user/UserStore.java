@@ -292,12 +292,12 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @param actingUserId id of the user performing the replication (for lastupdatedby/creatoruserid)
    */
   int insertUserCopy(
-      @Nonnull String sourceUid,
-      @Nonnull String newUid,
+      @Nonnull UID sourceUid,
+      @Nonnull UID newUid,
       @Nonnull UUID newUuid,
       @Nonnull String username,
       @Nonnull String encodedPassword,
-      long actingUserId);
+      @Nonnull UID actingUserUid);
 
   /**
    * Copies all org unit memberships (capture, data-view, TEI-search) from the source user to the
@@ -324,7 +324,7 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @param userUid UID of the user to update
    * @param attributeUids attribute UIDs to remove from attributevalues
    */
-  void removeAttributeValues(@Nonnull String userUid, @Nonnull Collection<String> attributeUids);
+  void removeAttributeValues(@Nonnull UID userUid, @Nonnull Collection<String> attributeUids);
 
   /**
    * Evicts the {@code getUserByUsername} query cache region after a direct JDBC write, so that
