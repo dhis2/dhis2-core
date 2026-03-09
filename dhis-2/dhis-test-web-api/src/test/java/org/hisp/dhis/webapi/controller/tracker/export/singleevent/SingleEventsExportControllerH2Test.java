@@ -104,7 +104,7 @@ class SingleEventsExportControllerH2Test extends H2ControllerIntegrationTestBase
   @ParameterizedTest
   @MethodSource(value = "callEventsEndpoint")
   void
-      shouldMatchContentTypeAndAttachment_whenEndpointForCompressedEventJsonIsInvokedForTrackerEvent(
+      shouldMatchContentTypeAndAttachment_whenEndpointForCompressedEventJsonIsInvokedForSingleEvent(
           String url, String expectedContentType, String expectedAttachment, String encoding)
           throws ForbiddenException, BadRequestException {
 
