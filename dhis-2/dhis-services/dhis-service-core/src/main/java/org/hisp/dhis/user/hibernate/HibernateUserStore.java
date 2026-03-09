@@ -852,8 +852,6 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
   @Override
   public void copyOrgUnitMemberships(@Nonnull UID sourceUserUid, @Nonnull UID targetUserUid) {
-    String source = sourceUserUid.getValue();
-    String target = targetUserUid.getValue();
     jdbcTemplate.update(
         """
         INSERT INTO usermembership (userinfoid, organisationunitid)
@@ -866,9 +864,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
           AND organisationunitid = m.organisationunitid
         )
         """,
-        target,
-        source,
-        target);
+        targetUserUid.getValue(),
+        sourceUserUid.getValue(),
+        targetUserUid.getValue());
     jdbcTemplate.update(
         """
         INSERT INTO userdatavieworgunits (userinfoid, organisationunitid)
@@ -881,9 +879,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
           AND organisationunitid = m.organisationunitid
         )
         """,
-        target,
-        source,
-        target);
+        targetUserUid.getValue(),
+        sourceUserUid.getValue(),
+        targetUserUid.getValue());
     jdbcTemplate.update(
         """
         INSERT INTO userteisearchorgunits (userinfoid, organisationunitid)
@@ -896,15 +894,13 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
           AND organisationunitid = m.organisationunitid
         )
         """,
-        target,
-        source,
-        target);
+        targetUserUid.getValue(),
+        sourceUserUid.getValue(),
+        targetUserUid.getValue());
   }
 
   @Override
   public void copyDimensionConstraints(@Nonnull UID sourceUserUid, @Nonnull UID targetUserUid) {
-    String source = sourceUserUid.getValue();
-    String target = targetUserUid.getValue();
     jdbcTemplate.update(
         """
         INSERT INTO users_cogsdimensionconstraints (userid, categoryoptiongroupsetid)
@@ -917,9 +913,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
           AND categoryoptiongroupsetid = m.categoryoptiongroupsetid
         )
         """,
-        target,
-        source,
-        target);
+        targetUserUid.getValue(),
+        sourceUserUid.getValue(),
+        targetUserUid.getValue());
     jdbcTemplate.update(
         """
         INSERT INTO users_catdimensionconstraints (userid, dataelementcategoryid)
@@ -932,9 +928,9 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
           AND dataelementcategoryid = m.dataelementcategoryid
         )
         """,
-        target,
-        source,
-        target);
+        targetUserUid.getValue(),
+        sourceUserUid.getValue(),
+        targetUserUid.getValue());
   }
 
   @Override
