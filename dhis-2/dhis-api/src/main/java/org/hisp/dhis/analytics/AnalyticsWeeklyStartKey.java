@@ -66,4 +66,8 @@ public enum AnalyticsWeeklyStartKey {
   public CalendarPeriodType getCalendarPeriodType() {
     return (CalendarPeriodType) periodType;
   }
+
+  public static AnalyticsWeeklyStartKey getDefault() {
+    return WEEKLY;
+  }
 }

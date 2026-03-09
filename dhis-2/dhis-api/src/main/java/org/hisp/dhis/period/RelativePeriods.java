@@ -31,7 +31,6 @@ package org.hisp.dhis.period;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toUnmodifiableList;
-import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_FEBRUARY;
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
 import static org.hisp.dhis.analytics.AnalyticsWeeklyStartKey.WEEKLY;
 
@@ -403,7 +402,7 @@ public class RelativePeriods implements Serializable {
 
     if (isThisFinancialPeriod()) {
       if (financialYearStart == null) {
-        financialYearStart = FINANCIAL_YEAR_FEBRUARY;
+        financialYearStart = AnalyticsFinancialYearStartKey.getDefault();
       }
 
       FinancialPeriodType financialPeriodType = financialYearStart.getFinancialPeriodType();
@@ -506,7 +505,7 @@ public class RelativePeriods implements Serializable {
 
     if (isThisWeek()) {
       if (weeklyStart == null) {
-        weeklyStart = WEEKLY;
+        weeklyStart = AnalyticsWeeklyStartKey.getDefault();
       }
 
       periods.add(

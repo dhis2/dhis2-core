@@ -63,4 +63,8 @@ public enum AnalyticsFinancialYearStartKey {
   public FinancialPeriodType getFinancialPeriodType() {
     return financialPeriodType;
   }
+
+  public static AnalyticsFinancialYearStartKey getDefault() {
+    return FINANCIAL_YEAR_OCTOBER;
+  }
 }
