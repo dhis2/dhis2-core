@@ -51,6 +51,7 @@ import net.sf.jasperreports.engine.JasperReport;
 import org.apache.commons.io.IOUtils;
 import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
+import org.hisp.dhis.analytics.AnalyticsWeeklyStartKey;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -169,9 +170,13 @@ public class DefaultReportService implements ReportService {
         if (report.hasRelativePeriods()) {
           AnalyticsFinancialYearStartKey financialYearStart =
               settingsProvider.getCurrentSettings().getAnalyticsFinancialYearStart();
+          AnalyticsWeeklyStartKey weeklyStart =
+              settingsProvider.getCurrentSettings().getAnalyticsWeeklyStart();
 
           List<PeriodDimension> relativePeriods =
-              report.getRelatives().getRelativePeriods(reportDate, null, false, financialYearStart);
+              report
+                  .getRelatives()
+                  .getRelativePeriods(reportDate, null, false, financialYearStart, weeklyStart);
 
           String periodString =
               relativePeriods.stream()
@@ -246,16 +251,22 @@ public class DefaultReportService implements ReportService {
     if (report != null && report.hasRelativePeriods()) {
       AnalyticsFinancialYearStartKey financialYearStart =
           settingsProvider.getCurrentSettings().getAnalyticsFinancialYearStart();
+      AnalyticsWeeklyStartKey weeklyStart =
+          settingsProvider.getCurrentSettings().getAnalyticsWeeklyStart();
 
       if (calendar.isIso8601()) {
         for (PeriodDimension period :
-            report.getRelatives().getRelativePeriods(date, format, true, financialYearStart)) {
+            report
+                .getRelatives()
+                .getRelativePeriods(date, format, true, financialYearStart, weeklyStart)) {
           periods.add(period.getIsoDate());
         }
       } else {
         periods =
             IdentifiableObjectUtils.getLocalPeriodIdentifiers(
-                report.getRelatives().getRelativePeriods(date, format, true, financialYearStart),
+                report
+                    .getRelatives()
+                    .getRelativePeriods(date, format, true, financialYearStart, weeklyStart),
                 calendar);
       }
     }

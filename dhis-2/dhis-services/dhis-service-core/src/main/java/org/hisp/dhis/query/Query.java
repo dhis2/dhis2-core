@@ -194,4 +194,12 @@ public class Query<T extends IdentifiableObject> {
     this.predicateSuppliers.add(supplier);
     return this;
   }
+
+  /**
+   * @return true when query-level constraints allow using special DB predicates (such as correlated
+   *     EXISTS) for compatible filters.
+   */
+  public boolean allowsDbPredicate() {
+    return rootJunctionType == Junction.Type.AND;
+  }
 }

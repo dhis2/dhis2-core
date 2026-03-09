@@ -37,6 +37,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
@@ -384,12 +385,9 @@ class DefaultQueryPlannerTest {
     assertTrue(plan.memoryQuery().isEmpty(), "Memory query should be empty");
   }
 
-  /**
-   * Tests that collection paths (e.g., dataElementGroups.id) go to in-memory query even with
-   * multiple filters.
-   */
+  /** Tests that collection id paths (e.g., dataElementGroups.id) are planned for DB filtering. */
   @Test
-  void testCollectionPathGoesToInMemory() {
+  void testCollectionIdPathPlannedToDb() {
     // Given: A filter on collection path
     Query<DataElement> query = Query.of(DataElement.class);
     query.add(Filters.eq("dataElementGroups.id", "group123"));
@@ -415,9 +413,41 @@ class DefaultQueryPlannerTest {
     // When: Query plan is created
     QueryPlan<DataElement> plan = queryPlanner.planQuery(query);
 
-    // Then: Filter should be in in-memory query (collection paths require JOINs)
-    assertEquals(0, plan.dbQuery().getFilters().size(), "Collection path should NOT be in DB");
-    assertEquals(1, plan.memoryQuery().getFilters().size(), "Collection path should be in memory");
+    // Then: Planner keeps this filter in DB query; DB engine handles SQL predicate composition
+    assertEquals(1, plan.dbQuery().getFilters().size(), "Collection id path should be in DB");
+    assertEquals(
+        0, plan.dbQuery().getPredicateSuppliers().size(), "Planner should not add JPA predicates");
+    assertTrue(plan.memoryQuery().isEmpty(), "Memory query should be empty");
+  }
+
+  /** Tests that non-id collection paths still fall back to in-memory filtering. */
+  @Test
+  void testCollectionNonIdPathFallsBackToInMemory() {
+    Query<DataElement> query = Query.of(DataElement.class);
+    query.add(Filters.eq("dataElementGroups.name", "Group A"));
+
+    Schema dataElementSchema = mockSchema();
+    when(dataElementSchema.hasPersistedProperty("name")).thenReturn(true);
+    when(dataElementSchema.hasPersistedProperty("id")).thenReturn(true);
+
+    Property collectionProperty = mockCollectionProperty("dataElementGroups");
+    when(dataElementSchema.getProperty("dataElementGroups")).thenReturn(collectionProperty);
+
+    Property nameProperty = mockSimplePersistedProperty("name");
+
+    when(schemaService.getSchema(DataElement.class)).thenReturn(dataElementSchema);
+
+    PropertyPath collectionNamePath =
+        new PropertyPath(nameProperty, true, new String[] {"dataElementGroups"});
+    when(schemaService.getPropertyPath(DataElement.class, "dataElementGroups.name"))
+        .thenReturn(collectionNamePath);
+
+    QueryPlan<DataElement> plan = queryPlanner.planQuery(query);
+
+    assertEquals(
+        0, plan.dbQuery().getFilters().size(), "Collection non-id path should not be in DB");
+    assertEquals(
+        1, plan.memoryQuery().getFilters().size(), "Collection non-id path should be in memory");
   }
 
   /**
@@ -571,6 +601,7 @@ class DefaultQueryPlannerTest {
     property.setPersisted(true);
     property.setSimple(false);
     property.setCollection(true);
+    property.setItemKlass(DataElementGroup.class);
     return property;
   }
 }
