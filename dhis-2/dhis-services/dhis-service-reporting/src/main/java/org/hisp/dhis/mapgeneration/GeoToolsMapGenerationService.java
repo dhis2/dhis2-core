@@ -42,6 +42,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.analytics.AnalyticsWeeklyStartKey;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.commons.filter.FilterUtils;
@@ -212,8 +213,14 @@ public class GeoToolsMapGenerationService implements MapGenerationService {
     } else if (mapView.getRelatives() != null) {
       AnalyticsFinancialYearStartKey financialYearStart =
           settingsProvider.getCurrentSettings().getAnalyticsFinancialYearStart();
+      AnalyticsWeeklyStartKey weeklyStart =
+          settingsProvider.getCurrentSettings().getAnalyticsWeeklyStart();
+
       period =
-          mapView.getRelatives().getRelativePeriods(date, null, false, financialYearStart).get(0);
+          mapView
+              .getRelatives()
+              .getRelativePeriods(date, null, false, financialYearStart, weeklyStart)
+              .get(0);
     }
 
     Integer radiusLow =
