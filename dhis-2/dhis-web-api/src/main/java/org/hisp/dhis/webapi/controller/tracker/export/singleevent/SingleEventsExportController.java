@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.singleevent;
 
-import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreImplemented;
+import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
@@ -120,7 +120,7 @@ class SingleEventsExportController {
     this.requestHandler = requestHandler;
     this.singleEventChangeLogService = singleEventChangeLogService;
 
-    assertUserOrderableFieldsAreImplemented(
+    assertUserOrderableFieldsAreSupported(
         "singleEvent", SingleEventMapper.ORDERABLE_FIELDS, singleEventService.getOrderableFields());
   }
 

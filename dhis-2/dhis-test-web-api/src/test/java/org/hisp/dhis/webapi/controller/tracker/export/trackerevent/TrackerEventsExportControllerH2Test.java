@@ -48,6 +48,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
+import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -69,7 +70,7 @@ class TrackerEventsExportControllerH2Test extends H2ControllerIntegrationTestBas
       TrackerEventService trackerEventService = mock(TrackerEventService.class);
       // Orderable fields are checked within the controller constructor
       when(trackerEventService.getOrderableFields())
-          .thenReturn(new HashSet<>(TrackerEventMapper.ORDERABLE_FIELDS.values()));
+          .thenReturn(new HashSet<>(EventMapper.ORDERABLE_FIELDS.values()));
       return trackerEventService;
     }
 

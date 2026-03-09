@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hisp.dhis.common.Maturity;
 
 public class ControllerSupport {
   private ControllerSupport() {
@@ -58,37 +57,6 @@ public class ControllerSupport {
       Set<String> unsupportedFieldNames =
           fieldsAdvocatedByWeb.entrySet().stream()
               .filter(e -> unsupportedFields.contains(e.getValue()))
-              .map(Entry::getKey)
-              .collect(Collectors.toSet());
-      throw new IllegalStateException(
-          entityName
-              + " controller supports ordering by "
-              + String.join(", ", unsupportedFieldNames)
-              + " while "
-              + entityName
-              + " service does not.");
-    }
-  }
-
-  /**
-   * Ensures that {@code fieldsAdvocatedByWeb} advocated by {@link
-   * org.hisp.dhis.webapi.controller.tracker.export} as orderable are in fact orderable by the
-   * service. Web is responsible for mapping from the language users use (our API) to our internal
-   * representation used in our services. This is to prevent web is declaring orderable fields that
-   * are not implemented in the service (store). Use {@link #assertUserOrderableFieldsAreSupported}
-   * for stable endpoints.
-   */
-  @Maturity(value = Maturity.Classification.BETA)
-  public static void assertUserOrderableFieldsAreImplemented(
-      String entityName,
-      Map<String, String> fieldsAdvocatedByWeb,
-      Set<String> fieldsSupportedByService) {
-    Set<String> notImplementedFields = new HashSet<>(fieldsSupportedByService);
-    notImplementedFields.removeAll(fieldsAdvocatedByWeb.values());
-    if (!notImplementedFields.isEmpty()) {
-      Set<String> unsupportedFieldNames =
-          fieldsAdvocatedByWeb.entrySet().stream()
-              .filter(e -> notImplementedFields.contains(e.getValue()))
               .map(Entry::getKey)
               .collect(Collectors.toSet());
       throw new IllegalStateException(

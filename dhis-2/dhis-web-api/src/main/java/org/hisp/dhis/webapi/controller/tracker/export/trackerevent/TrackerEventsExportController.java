@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackerevent;
 
-import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreImplemented;
+import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.assertUserOrderableFieldsAreSupported;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validatePaginationParameters;
 import static org.hisp.dhis.webapi.controller.tracker.RequestParamsValidator.validateUnsupportedParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.FieldFilterRequestHandler.getRequestURL;
@@ -121,7 +121,7 @@ class TrackerEventsExportController {
     this.requestHandler = requestHandler;
     this.trackerEventChangeLogService = trackerEventChangeLogService;
 
-    assertUserOrderableFieldsAreImplemented(
+    assertUserOrderableFieldsAreSupported(
         "trackerEvent",
         TrackerEventMapper.ORDERABLE_FIELDS,
         trackerEventService.getOrderableFields());
