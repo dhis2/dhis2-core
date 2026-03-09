@@ -38,6 +38,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.UID;
 
 @Getter
@@ -67,17 +68,17 @@ public class SourceRequest implements Serializable {
   @JsonProperty private AggregationType aggregationType;
 
   /** Input identifier scheme. */
-  @JsonProperty private String inputIdScheme;
+  @JsonProperty private IdProperty inputIdScheme;
 
   /** Output data element identifier scheme. */
-  @JsonProperty private String outputDataElementIdScheme;
+  @JsonProperty private IdProperty outputDataElementIdScheme;
 
   /** Output org unit identifier scheme. */
-  @JsonProperty private String outputOrgUnitIdScheme;
+  @JsonProperty private IdProperty outputOrgUnitIdScheme;
 
   /** Output data item identifier scheme. */
-  @JsonProperty private String outputDataItemIdScheme;
+  @JsonProperty private IdProperty outputDataItemIdScheme;
 
   /** Output identifier scheme. */
-  @JsonProperty private String outputIdScheme;
+  @JsonProperty private IdProperty outputIdScheme;
 }

@@ -153,6 +153,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "enrollmentOuWithUserOrgUnit",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?dimension=ENROLLMENT_OU:USER_ORGUNIT,pe:2021&displayProperty=NAME&totalPages=false",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

@@ -91,7 +91,8 @@ public class ProgramDataElementOptionQuery implements DataItemQuery {
               Pair.of("optionset_uid", "optionset.uid"),
               Pair.of("optionvalue_uid", "optionvalue.uid"),
               Pair.of("optionvalue_name", "optionvalue.name"),
-              Pair.of("optionvalue_code", "optionvalue.code"))
+              Pair.of("optionvalue_code", "optionvalue.code"),
+              Pair.of("item_skipanalytics", "programstagedataelement.skipanalytics"))
           .stream()
           .map(pair -> pair.getRight() + " as " + pair.getLeft())
           .collect(joining(", "));
@@ -108,7 +109,7 @@ public class ProgramDataElementOptionQuery implements DataItemQuery {
         join optionvalue on optionvalue.optionsetid = optionset.optionsetid
       """;
 
-  private static final String SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE = " from dataelement ";
+  private static final String SPACED_FROM_DATA_ELEMENT = " from dataelement ";
 
   @Override
   public String getStatement(MapSqlParameterSource paramsMap) {
@@ -128,7 +129,7 @@ public class ProgramDataElementOptionQuery implements DataItemQuery {
     }
 
     sql.append(
-        " group by program.name, program.shortname, item_name, item_domaintype, "
+        " group by program.name, program.shortname, item_name, item_domaintype, item_skipanalytics, "
             + COMMON_UIDS
             + ", item_valuetype, item_code, item_sharing, item_shortname,"
             + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname, i18n_third_name");
@@ -142,7 +143,9 @@ public class ProgramDataElementOptionQuery implements DataItemQuery {
 
     // Mandatory filters. They do not respect the root junction filtering.
     sql.append(always(sharingConditions("t.item_sharing", READ_ACCESS, paramsMap)));
-    sql.append(" and");
+    sql.append(" and ");
+    sql.append(always("t.item_skipanalytics = false"));
+    sql.append(" and ");
     sql.append(ifSet(valueTypeFiltering("t.item_valuetype", paramsMap)));
 
     // Optional filters, based on the current root junction.
@@ -211,7 +214,7 @@ public class ProgramDataElementOptionQuery implements DataItemQuery {
     return new StringBuilder()
         .append(SPACED_SELECT + COMMON_COLUMNS)
         .append(translationNamesColumnsFor("dataelement", true, true, false))
-        .append(SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE)
+        .append(SPACED_FROM_DATA_ELEMENT)
         .append(JOINS)
         .append(translationNamesJoinsOn("dataelement", true, true))
         .toString();
@@ -224,7 +227,7 @@ public class ProgramDataElementOptionQuery implements DataItemQuery {
             ", program.name as i18n_first_name, dataelement.name as i18n_second_name, optionvalue.name as i18n_third_name")
         .append(
             ", program.shortname as i18n_first_shortname, dataelement.shortname as i18n_second_shortname")
-        .append(SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE)
+        .append(SPACED_FROM_DATA_ELEMENT)
         .append(JOINS)
         .toString();
   }

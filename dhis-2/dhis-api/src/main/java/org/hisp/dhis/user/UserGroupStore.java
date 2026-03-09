@@ -29,9 +29,45 @@
  */
 package org.hisp.dhis.user;
 
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.UID;
 
 /** Contains functions to manage {@link UserGroup} */
 public interface UserGroupStore extends IdentifiableObjectStore<UserGroup> {
   String ID = UserGroupStore.class.getName();
+
+  /**
+   * Adds a user to a user group directly via SQL, without loading the members collection. Also
+   * updates the group's lastUpdated timestamp if the membership was added. This avoids N+1 query
+   * problems when adding users to groups with many members.
+   *
+   * @param userGroupUid the UID of the user group
+   * @param userUid the UID of the user to add
+   * @param lastUpdatedByUid the UID of the user performing the operation
+   * @return true if the membership was added, false if user was already a member
+   */
+  boolean addMember(@Nonnull UID userGroupUid, @Nonnull UID userUid, @Nonnull UID lastUpdatedByUid);
+
+  /**
+   * Removes a user from a user group directly via SQL, without loading the members collection. Also
+   * updates the group's lastUpdated timestamp if the membership was removed.
+   *
+   * @param userGroupUid the UID of the user group
+   * @param userUid the UID of the user to remove
+   * @param lastUpdatedByUid the UID of the user performing the operation
+   * @return true if the membership was removed, false if user was not a member
+   */
+  boolean removeMember(
+      @Nonnull UID userGroupUid, @Nonnull UID userUid, @Nonnull UID lastUpdatedByUid);
+
+  void updateLastUpdated(@Nonnull UID userGroupUid, @Nonnull UID lastUpdatedByUid);
+
+  /**
+   * Removes all group memberships for a user directly via SQL, without loading any members
+   * collection. Used during user deletion to avoid N+1 queries on large groups.
+   *
+   * @param userUid the UID of the user being removed from all groups
+   */
+  void removeAllMemberships(@Nonnull UID userUid);
 }

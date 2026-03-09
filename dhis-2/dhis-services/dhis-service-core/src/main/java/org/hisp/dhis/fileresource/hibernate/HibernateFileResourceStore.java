@@ -39,7 +39,7 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueKey;
+import org.hisp.dhis.datavalue.DataValueFileResourceKey;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
@@ -173,7 +173,7 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
   }
 
   @Override
-  public List<DataValueKey> findDataValuesByFileResourceValue(@Nonnull String uid) {
+  public List<DataValueFileResourceKey> findDataValuesByFileResourceValue(@Nonnull String uid) {
     String sql =
         "select de.uid as de, o.uid as ou, dv.periodid as pe, co.uid as co from dataelement de"
             + " inner join datavalue dv on de.dataelementid = dv.dataelementid"
@@ -190,7 +190,7 @@ public class HibernateFileResourceStore extends HibernateIdentifiableObjectStore
     return stream
         .map(
             col ->
-                new DataValueKey(
+                new DataValueFileResourceKey(
                     (String) (col)[0],
                     (String) col[1],
                     ((Number) col[2]).longValue(),

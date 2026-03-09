@@ -35,7 +35,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {DebugMapper.class})
+@Mapper
 public interface AttributeMapper extends PreheatMapper<Attribute> {
   AttributeMapper INSTANCE = Mappers.getMapper(AttributeMapper.class);
 

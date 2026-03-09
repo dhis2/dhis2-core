@@ -50,7 +50,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -84,7 +83,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /** Created by zubair on 04.07.17. */
-@Slf4j
 @Transactional
 @RequiredArgsConstructor
 @Service
@@ -156,7 +154,6 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
         dsntService.getScheduledNotifications(DataSetNotificationTrigger.SCHEDULED_DAYS);
 
     if (templates == null || templates.isEmpty()) {
-      log.info("No template found");
       return;
     }
     sendBatch("single", createBatchForSingleNotifications(templates, progress), progress);
@@ -173,7 +170,6 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
         dsntService.getCompleteNotifications(registration.getDataSet());
 
     if (templates == null || templates.isEmpty()) {
-      log.info("No template found");
       return;
     }
     sendBatch(
@@ -423,8 +419,6 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
       if (VALIDATOR.get(channel).test(ou)) {
         recipients = RECIPIENT_MAPPER.get(channel).apply(Set.of(ou), recipients);
       } else {
-        log.error(format("DataSet notification not sent due to invalid %s recipient", channel));
-
         throw new IllegalArgumentException(format("Invalid %s recipient", channel));
       }
     }

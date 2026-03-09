@@ -53,10 +53,10 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -328,7 +328,7 @@ class DataValueListenerTest extends TestBase {
     // Mock for dataValueService
     doReturn(fetchedDataValue.toEntry())
         .when(dataExportService)
-        .exportValue(any(DataEntryKey.class));
+        .exportValue(any(DataValueKey.class));
 
     // Mock for userService
     when(userService.getUser(anyString())).thenReturn(user);

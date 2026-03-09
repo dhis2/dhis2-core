@@ -66,6 +66,10 @@ public interface JsonProgram extends JsonObject, JsonNameableObject {
     return getString("enrollmentLabel");
   }
 
+  default JsonString getEnrollmentsLabel() {
+    return getString("enrollmentsLabel");
+  }
+
   default JsonString getFollowUpLabel() {
     return getString("followUpLabel");
   }
@@ -90,7 +94,15 @@ public interface JsonProgram extends JsonObject, JsonNameableObject {
     return getString("programStageLabel");
   }
 
+  default JsonString getProgramStagesLabel() {
+    return getString("programStagesLabel");
+  }
+
   default JsonString getEventLabel() {
     return getString("eventLabel");
+  }
+
+  default JsonString getEventsLabel() {
+    return getString("eventsLabel");
   }
 }

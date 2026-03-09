@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,36 +27,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.mappers;
-
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.mapstruct.AfterMapping;
-import org.mapstruct.BeforeMapping;
+package org.hisp.dhis.datavalue;
 
 /**
- * @author Luciano Fiandesio
+ * Data record for a usual data value key (with no attribute option combo).
+ *
+ * @author Jan Bernitt
  */
-@Slf4j
-public class DebugMapper {
-  private long start = 0;
-
-  @BeforeMapping
-  public void before(Object anySource) {
-    if (anySource != null) {
-      String uid = "";
-      if (anySource instanceof IdentifiableObject anySourceObject) {
-        uid = anySourceObject.getUid();
-      }
-      log.debug(anySource.getClass().getSimpleName() + " -> " + uid);
-    } else {
-      log.debug("unknown source class");
-    }
-    start = System.currentTimeMillis();
-  }
-
-  @AfterMapping
-  public void after() {
-    log.debug("ms. : " + (System.currentTimeMillis() - start));
-  }
-}
+public record DataValueFileResourceKey(String de, String ou, long pe, String co) {}

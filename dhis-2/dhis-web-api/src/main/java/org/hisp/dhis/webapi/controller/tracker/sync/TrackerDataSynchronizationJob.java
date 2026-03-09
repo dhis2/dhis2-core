@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,39 +29,32 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.sync;
 
-import javax.annotation.Nonnull;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dxf2.sync.DataSynchronizationWithPaging;
-import org.hisp.dhis.dxf2.sync.SynchronizationResult;
+import lombok.AllArgsConstructor;
+import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.TrackerDataSynchronizationJobParameters;
+import org.springframework.stereotype.Component;
 
 /**
- * Base class for tracker data synchronization jobs that require paging support and an associated
- * Program UID context. Extends {@link DataSynchronizationWithPaging} to add tracker-specific
- * synchronization behavior.
+ * @author Zubair Asghar
  */
-public abstract class TrackerDataSynchronizationWithPaging
-    implements DataSynchronizationWithPaging {
+@Component
+@AllArgsConstructor
+public class TrackerDataSynchronizationJob implements Job {
 
-  /**
-   * Synchronize tracker data (events, enrollments, tracked entities etc.) for a specific program.
-   *
-   * @param pageSize number of records per page
-   * @param progress job progress reporter
-   * @param programUid uid of the program whose tracker data should be synchronized
-   * @return result of synchronization
-   */
-  public abstract SynchronizationResult synchronizeTrackerData(
-      int pageSize, JobProgress progress, @Nonnull String programUid);
+  private final TrackerDataSynchronizationService trackerDataSynchronizationService;
 
-  /**
-   * This method from {@link DataSynchronizationWithPaging} is not directly used here.
-   * Implementations should invoke {@link #synchronizeTrackerData(int, JobProgress, UID)} instead
-   * when a program context is available.
-   */
   @Override
-  public SynchronizationResult synchronizeData(int pageSize, JobProgress progress) {
-    throw new UnsupportedOperationException(
-        "Use synchronizeTrackerData(pageSize, progress, programUid) instead.");
+  public JobType getJobType() {
+    return JobType.TRACKED_ENTITY_DATA_SYNC;
+  }
+
+  @Override
+  public void execute(JobEntry config, JobProgress progress) {
+    TrackerDataSynchronizationJobParameters params =
+        (TrackerDataSynchronizationJobParameters) config.parameters();
+    trackerDataSynchronizationService.synchronizeData(params.getPageSize(), progress);
   }
 }

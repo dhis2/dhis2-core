@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobEntry;
@@ -51,17 +50,12 @@ import org.springframework.stereotype.Component;
 /**
  * @author Ameen
  */
-@Slf4j
 @RequiredArgsConstructor
 @Component("trackerTrigramIndexingJob")
 public class TrackerTrigramIndexingJob implements Job {
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
   private final TrackedEntityAttributeTableManager trackedEntityAttributeTableManager;
-
-  // -------------------------------------------------------------------------
-  // Implementation
-  // -------------------------------------------------------------------------
 
   @Override
   public JobType getJobType() {
@@ -73,14 +67,11 @@ public class TrackerTrigramIndexingJob implements Job {
     TrackerTrigramIndexJobParameters parameters =
         (TrackerTrigramIndexJobParameters) jobConfiguration.parameters();
 
-    log.info("Starting Trigram Indexing Job.");
     progress.startingProcess("Starting Trigram indexing process");
 
-    log.debug("Fetching all trigram indexed attributes from db");
     List<Long> indexedAttributes =
         trackedEntityAttributeTableManager.getAttributeIdsWithTrigramIndex();
 
-    log.debug("Fetching all indexable attributes from db");
     Set<TrackedEntityAttribute> indexableAttributes =
         trackedEntityAttributeService.getAllTrigramIndexableTrackedEntityAttributes();
 
@@ -92,42 +83,34 @@ public class TrackerTrigramIndexingJob implements Job {
     if ((indexesWereCreated || indexesWereRemoved)
         && parameters != null
         && parameters.isRunAnalyze()) {
-      log.debug("Running `ANALYZE` on tracked entity attribute values");
       trackedEntityAttributeTableManager.runAnalyzeOnTrackedEntityAttributeValue();
     }
 
     progress.completedProcess("Job completed");
-    log.info("Trigram Indexing job completed");
   }
 
   private boolean createTrigramIndexes(
       JobProgress progress,
       List<Long> indexedAttributes,
       Set<TrackedEntityAttribute> indexableAttributes) {
-    log.debug("Found total {} indexable attributes", indexableAttributes.size());
-
     Set<TrackedEntityAttribute> missingIndexableAttributes =
         indexableAttributes.stream()
             .filter(attr -> !indexedAttributes.contains(attr.getId()))
             .collect(Collectors.toSet());
 
     if (missingIndexableAttributes.isEmpty()) {
-      log.debug("All indexable attributes are already indexed, skipping trigram index creation.");
       return false;
-    } else {
-      log.debug("Creating {} trigram indexes", missingIndexableAttributes.size());
-
-      progress.startingStage(
-          "Creating trigram indexes for attributes", missingIndexableAttributes.size());
-      progress.runStage(
-          missingIndexableAttributes.stream(),
-          TrackedEntityAttribute::getName,
-          trackedEntityAttributeTableManager::createTrigramIndex,
-          TrackerTrigramIndexingJob::computeTrigramIndexingCreationSummary);
-      progress.completedStage("Trigram indexes created");
-
-      log.debug("Created {} trigram indexes", missingIndexableAttributes.size());
     }
+
+    progress.startingStage(
+        "Creating trigram indexes for attributes", missingIndexableAttributes.size());
+    progress.runStage(
+        missingIndexableAttributes.stream(),
+        TrackedEntityAttribute::getName,
+        trackedEntityAttributeTableManager::createTrigramIndex,
+        TrackerTrigramIndexingJob::computeTrigramIndexingCreationSummary);
+    progress.completedStage("Trigram indexes created");
+
     return true;
   }
 
@@ -135,8 +118,6 @@ public class TrackerTrigramIndexingJob implements Job {
       JobProgress progress,
       List<Long> indexedAttributes,
       Set<TrackedEntityAttribute> indexableAttributes) {
-    log.debug("Checking existence obsolete trigram indexes");
-
     Set<Long> obsoleteIndexedAttributes = new HashSet<>(indexedAttributes);
     obsoleteIndexedAttributes.removeAll(
         indexableAttributes.stream()
@@ -144,11 +125,8 @@ public class TrackerTrigramIndexingJob implements Job {
             .collect(Collectors.toSet()));
 
     if (obsoleteIndexedAttributes.isEmpty()) {
-      log.debug("No obsolete trigram indexes to drop");
       return false;
     }
-
-    log.debug("Found total {} obsolete trigram indexes in db", obsoleteIndexedAttributes.size());
 
     progress.startingStage(
         "Deleting obsolete trigram indexes", obsoleteIndexedAttributes.size(), SKIP_ITEM_OUTLIER);
@@ -161,20 +139,14 @@ public class TrackerTrigramIndexingJob implements Job {
   }
 
   private static String computeTrigramIndexingCreationSummary(int successful, int failed) {
-    String summary =
-        format(
-            "Number of trigram index created: %d. Number of trigram index creation failed: %d",
-            successful, failed);
-    log.debug(summary);
-    return summary;
+    return format(
+        "Number of trigram index created: %d. Number of trigram index creation failed: %d",
+        successful, failed);
   }
 
   private static String computeTrigramIndexingDropSummary(int successful, int failed) {
-    String summary =
-        format(
-            "Number of obsolete trigram index dropped: %d. Number of obsoletet trigram index drop failed: %d",
-            successful, failed);
-    log.debug(summary);
-    return summary;
+    return format(
+        "Number of obsolete trigram index dropped: %d. Number of obsolete trigram index drop failed: %d",
+        successful, failed);
   }
 }

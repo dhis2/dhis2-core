@@ -29,18 +29,21 @@
  */
 package org.hisp.dhis.analytics.event.data.ou;
 
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
 
 /** Orchestrates ENROLLMENT_OU SQL clauses for query and aggregate paths. */
@@ -59,9 +62,11 @@ public final class OrgUnitSqlCoordinator {
       return;
     }
 
+    String enrollmentTableName = enrollmentTableName(params);
+
     sb.innerJoin(
-        OrgUnitSqlConstants.ORG_UNIT_STRUCTURE_TABLE,
-        OrgUnitSqlConstants.ORG_UNIT_STRUCTURE_ALIAS,
+        enrollmentTableName,
+        OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS,
         OrgUnitSqlFragments::joinCondition);
   }
 
@@ -73,15 +78,14 @@ public final class OrgUnitSqlCoordinator {
    */
   public static void appendLegacyJoin(StringBuilder sql, EventQueryParams params) {
     if (params.hasEnrollmentOu()) {
-      sql.append(OrgUnitSqlFragments.innerJoinClause());
+      sql.append(OrgUnitSqlFragments.innerJoinClause(enrollmentTableName(params)));
     }
   }
 
   /**
-   * Adds ENROLLMENT_OU aggregate select/group-by columns when required.
-   *
-   * <p>This is only applicable for event analytics aggregate queries where ENROLLMENT_OU is a
-   * dimension.
+   * Adds ENROLLMENT_OU select/group-by column for aggregate event queries when ENROLLMENT_OU is a
+   * dimension. This produces disaggregation by enrollment org unit, matching the standard OU
+   * dimension behavior.
    *
    * @param columns mutable output column list
    * @param params query parameters
@@ -96,7 +100,16 @@ public final class OrgUnitSqlCoordinator {
       boolean isAggregated,
       AnalyticsType analyticsType) {
     if (isAggregated && params.hasEnrollmentOuDimension() && analyticsType == AnalyticsType.EVENT) {
-      columns.add(OrgUnitSqlFragments.selectEnrollmentOuUid(isGroupBy));
+      if (params.isEnrollmentOuDimensionHierarchical()) {
+        // Hierarchical mode: produce a literal OU uid (no group by needed).
+        if (!isGroupBy) {
+          List<DimensionalItemObject> items = params.getEnrollmentOuDimensionItems();
+          String uid = items.isEmpty() ? "" : items.get(0).getUid();
+          columns.add(OrgUnitSqlFragments.selectLiteralEnrollmentOuUid(uid));
+        }
+      } else {
+        columns.add(OrgUnitSqlFragments.selectEnrollmentOuUid(isGroupBy));
+      }
     }
   }
 
@@ -116,38 +129,78 @@ public final class OrgUnitSqlCoordinator {
   }
 
   /**
-   * Appends ENROLLMENT_OU where conditions, combining UID and level predicates with OR semantics.
+   * Appends ENROLLMENT_OU where conditions. UID items are grouped by org unit level and produce
+   * {@code enrl."uidlevel{N}" in (...)} conditions joined with AND. Level constraints produce
+   * {@code enrl."oulevel" in (...)} conditions. The two groups are combined with OR semantics.
    *
    * @param sql SQL buffer being assembled
    * @param hlp helper used to add {@code where/and} prefixes
    * @param params query parameters
-   * @param sqlBuilder SQL dialect helper used for quoting UID lists
    */
   public static void appendWherePredicateIfNeeded(
-      StringBuilder sql, SqlHelper hlp, EventQueryParams params, AnalyticsSqlBuilder sqlBuilder) {
+      StringBuilder sql, SqlHelper hlp, EventQueryParams params) {
     if (!params.hasEnrollmentOu()) {
       return;
     }
 
     List<String> predicates = new ArrayList<>();
-    List<DimensionalItemObject> enrollmentOuItems = params.getAllEnrollmentOuItemsForSql();
 
-    if (!enrollmentOuItems.isEmpty()) {
-      predicates.add(
-          OrgUnitSqlFragments.predicateByUids(
-              sqlBuilder.singleQuotedCommaDelimited(getUids(enrollmentOuItems))));
+    // Dimension items: hierarchical mode uses uidlevel filtering, direct mode uses enrl."ou" match.
+    List<DimensionalItemObject> dimensionItems = params.getEnrollmentOuDimensionItems();
+    if (!dimensionItems.isEmpty()) {
+      if (params.isEnrollmentOuDimensionHierarchical()) {
+        String uidLevelClause = buildUidLevelClause(dimensionItems);
+        predicates.add(" " + uidLevelClause + " ");
+      } else {
+        String uids =
+            dimensionItems.stream().map(item -> "'" + item.getUid() + "'").collect(joining(","));
+        predicates.add(OrgUnitSqlFragments.predicateByUids(uids));
+      }
     }
 
-    if (!params.getAllEnrollmentOuLevelsForSql().isEmpty()) {
+    // Filter items use hierarchical uidlevel filtering.
+    List<DimensionalItemObject> filterItems = params.getEnrollmentOuFilterItems();
+    if (!filterItems.isEmpty()) {
+      String uidLevelClause = buildUidLevelClause(filterItems);
+      predicates.add(" " + uidLevelClause + " ");
+    }
+
+    if (!params.getEnrollmentOuFilterLevels().isEmpty()) {
       String levels =
-          params.getAllEnrollmentOuLevelsForSql().stream()
-              .map(String::valueOf)
-              .collect(joining(","));
+          params.getEnrollmentOuFilterLevels().stream().map(String::valueOf).collect(joining(","));
       predicates.add(OrgUnitSqlFragments.predicateByLevels(levels));
     }
 
     if (!predicates.isEmpty()) {
       sql.append(hlp.whereAnd()).append(" (").append(String.join(" or ", predicates)).append(") ");
     }
+  }
+
+  /**
+   * Groups org unit items by level and produces uidlevel-based IN conditions joined with AND.
+   *
+   * @param items org unit items (must be OrganisationUnit instances)
+   * @return combined uidlevel predicates joined with " and "
+   */
+  private static String buildUidLevelClause(List<DimensionalItemObject> items) {
+    Map<Integer, List<OrganisationUnit>> byLevel =
+        items.stream()
+            .map(item -> (OrganisationUnit) item)
+            .collect(groupingBy(OrganisationUnit::getLevel));
+
+    return byLevel.entrySet().stream()
+        .map(
+            entry -> {
+              String uids =
+                  entry.getValue().stream()
+                      .map(ou -> "'" + ou.getUid() + "'")
+                      .collect(joining(","));
+              return OrgUnitSqlFragments.predicateByUidLevel(entry.getKey(), uids);
+            })
+        .collect(joining(" and "));
+  }
+
+  private static String enrollmentTableName(EventQueryParams params) {
+    return AnalyticsTable.getTableName(AnalyticsTableType.ENROLLMENT, params.getProgram());
   }
 }

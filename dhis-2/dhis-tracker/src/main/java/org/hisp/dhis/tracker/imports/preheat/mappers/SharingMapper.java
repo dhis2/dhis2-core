@@ -35,7 +35,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {DebugMapper.class, UserAccessMapper.class, UserGroupAccessMapper.class})
+@Mapper(uses = {UserAccessMapper.class, UserGroupAccessMapper.class})
 public interface SharingMapper extends PreheatMapper<Sharing> {
   SharingMapper INSTANCE = Mappers.getMapper(SharingMapper.class);
 

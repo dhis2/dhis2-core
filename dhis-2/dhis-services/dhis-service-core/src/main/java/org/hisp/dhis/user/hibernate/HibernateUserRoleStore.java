@@ -30,7 +30,9 @@
 package org.hisp.dhis.user.hibernate;
 
 import jakarta.persistence.EntityManager;
+import javax.annotation.Nonnull;
 import org.hibernate.query.Query;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AclService;
@@ -52,6 +54,13 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
       ApplicationEventPublisher publisher,
       AclService aclService) {
     super(entityManager, jdbcTemplate, publisher, UserRole.class, aclService, true);
+  }
+
+  @Override
+  public void removeAllMemberships(@Nonnull UID userUid) {
+    jdbcTemplate.update(
+        "DELETE FROM userrolemembers WHERE userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)",
+        userUid.getValue());
   }
 
   @Override

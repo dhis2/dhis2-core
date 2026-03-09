@@ -29,59 +29,30 @@
  */
 package org.hisp.dhis.datavalue;
 
-import static java.util.Objects.requireNonNull;
-
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.UsageTestOnly;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
-/** A record of the ID combination that points to a unique aggregate data value row. */
-public record DataEntryKey(
-    @Nonnull UID dataElement,
-    @Nonnull UID orgUnit,
-    @CheckForNull UID categoryOptionCombo,
-    @CheckForNull UID attributeOptionCombo,
-    @Nonnull Period period)
-    implements DataEntryId {
-
-  public DataEntryKey {
-    requireNonNull(dataElement);
-    requireNonNull(orgUnit);
-    requireNonNull(period);
-  }
-
-  @UsageTestOnly
-  public DataEntryKey(
-      @Nonnull DataElement dataElement,
-      @Nonnull Period period,
-      @Nonnull OrganisationUnit orgUnit,
-      @CheckForNull CategoryOptionCombo categoryOptionCombo,
-      @CheckForNull CategoryOptionCombo attributeOptionCombo) {
-    this(
-        UID.of(dataElement),
-        UID.of(orgUnit),
-        UID.of(categoryOptionCombo),
-        UID.of(attributeOptionCombo),
-        period);
-  }
+/**
+ * The combination of fields that makes a data value PK ID.
+ *
+ * @author Jan Bernitt
+ */
+public interface DataValueId {
 
   @Nonnull
-  public DataEntryValue toDeletedValue() {
-    return new DataEntryValue(
-        0,
-        dataElement,
-        orgUnit,
-        categoryOptionCombo,
-        attributeOptionCombo,
-        period,
-        null,
-        null,
-        null,
-        true);
-  }
+  UID dataElement();
+
+  @Nonnull
+  UID orgUnit();
+
+  @CheckForNull
+  UID categoryOptionCombo();
+
+  @CheckForNull
+  UID attributeOptionCombo();
+
+  @Nonnull
+  Period period();
 }

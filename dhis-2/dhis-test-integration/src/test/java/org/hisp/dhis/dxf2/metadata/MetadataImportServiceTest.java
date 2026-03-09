@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.category.Category;
+import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
@@ -1017,7 +1018,7 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     assertNotNull(srA);
     assertNotNull(srA.getName());
     assertNotNull(srA.getVisualization());
-    assertNotNull("UID", srA.getOutputDataItemIdScheme());
+    assertEquals(IdProperty.UID, srA.getOutputDataItemIdScheme());
     Target tA = aeA.getTarget();
     assertNotNull(tA);
     assertEquals(TargetType.INTERNAL, tA.getType());
@@ -1034,7 +1035,7 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     assertNotNull(srB);
     assertNotNull(srB.getName());
     assertNotNull(srB.getVisualization());
-    assertNotNull("UID", srB.getOutputDataItemIdScheme());
+    assertEquals(IdProperty.UID, srB.getOutputDataItemIdScheme());
     Target tB = aeB.getTarget();
     assertNotNull(tB);
     assertEquals(TargetType.EXTERNAL, tB.getType());
@@ -1054,7 +1055,7 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
     assertNotNull(srC);
     assertNotNull(srC.getName());
     assertNotNull(srC.getVisualization());
-    assertNotNull("UID", srC.getOutputDataItemIdScheme());
+    assertEquals(IdProperty.UID, srC.getOutputDataItemIdScheme());
     Target tC = aeC.getTarget();
     assertNotNull(tC);
     assertEquals(TargetType.EXTERNAL, tC.getType());
