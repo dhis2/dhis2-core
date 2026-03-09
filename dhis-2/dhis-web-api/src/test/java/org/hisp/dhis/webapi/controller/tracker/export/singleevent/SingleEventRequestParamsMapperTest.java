@@ -341,7 +341,7 @@ class SingleEventRequestParamsMapperTest {
     SingleEventRequestParams requestParams = new SingleEventRequestParams();
     requestParams.setProgram(PROGRAM_UID);
     requestParams.setOrder(
-        OrderCriteria.fromOrderString("createdAt:asc,zGlzbfreTOH,occurredAt:desc,orgUnit:asc"));
+        OrderCriteria.fromOrderString("createdAt:asc,zGlzbfreTOH,occurredAt:desc"));
 
     SingleEventOperationParams params =
         SingleEventRequestParamsMapper.map(requestParams, idSchemeParams);
@@ -350,8 +350,7 @@ class SingleEventRequestParamsMapperTest {
         List.of(
             new Order("created", SortDirection.ASC),
             new Order(UID.of("zGlzbfreTOH"), SortDirection.ASC),
-            new Order("occurredDate", SortDirection.DESC),
-            new Order("organisationUnit.uid", SortDirection.ASC)),
+            new Order("occurredDate", SortDirection.DESC)),
         params.getOrder());
   }
 
