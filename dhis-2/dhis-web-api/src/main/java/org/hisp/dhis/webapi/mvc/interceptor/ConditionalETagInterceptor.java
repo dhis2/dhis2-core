@@ -104,7 +104,10 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
           "system/**",
           Set.of(Configuration.class),
           "dimensions/**",
-          Set.of(Configuration.class));
+          Set.of(Configuration.class),
+          "loginConfig/**",
+          Set.of(Configuration.class)
+      );
 
   private static final List<CompositeEndpointPattern> COMPOSITE_PATH_PATTERNS =
       compileCompositeEndpointPatterns(COMPOSITE_ENDPOINTS);
