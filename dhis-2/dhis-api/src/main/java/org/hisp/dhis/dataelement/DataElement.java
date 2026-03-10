@@ -721,9 +721,9 @@ public class DataElement extends BaseMetadataObject
   @Sortable(whenPersisted = false)
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Translatable(propertyName = "shortName", key = "SHORTNAME")
+  @Translatable(propertyName = "shortName", key = "SHORT_NAME")
   public String getDisplayShortName() {
-    return translations.getTranslation("SHORTNAME", shortName);
+    return translations.getTranslation("SHORT_NAME", shortName);
   }
 
   @Override
