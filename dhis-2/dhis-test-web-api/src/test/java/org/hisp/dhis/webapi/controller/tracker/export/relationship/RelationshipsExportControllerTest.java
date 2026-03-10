@@ -475,6 +475,27 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
   }
 
   @Test
+  void shouldGetEnrollmentToEnrollmentRelationshipWithTrackerDataViewWhenAttributesNotRequested() {
+    RelationshipType relationshipType = manager.get(RelationshipType.class, "WTTYiPQDqh1");
+    TrackerDataView trackerDataView = new TrackerDataView();
+    trackerDataView.getAttributes().add("dIVt4l5vIOa");
+    relationshipType.getToConstraint().setTrackerDataView(trackerDataView);
+    manager.save(relationshipType, false);
+
+    JsonList<JsonRelationship> relationships =
+        GET("/tracker/relationships?enrollment=nxP7UnKhomK&fields=relationship,to[enrollment[enrollment]]")
+            .content(HttpStatus.OK)
+            .getList("relationships", JsonRelationship.class);
+
+    JsonRelationship jsonRelationship =
+        assertContains(
+            relationships,
+            r -> "WTTYiPQDqh2".equals(r.getRelationship()),
+            "expected to find enrollment-to-enrollment relationship WTTYiPQDqh2");
+    assertEquals("TvctPPhpD8z", jsonRelationship.getTo().getEnrollment().getEnrollment());
+  }
+
+  @Test
   void shouldGetRelationshipsByEnrollmentWithAttributesWithTrackerDataViewDefined() {
     RelationshipType relationshipType = manager.get(RelationshipType.class, "xLmPUYJX8Ks");
     TrackerDataView trackerDataView = new TrackerDataView();
