@@ -324,7 +324,7 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @param userUid UID of the user to update
    * @param attributeUids attribute UIDs to remove from attributevalues
    */
-  void removeAttributeValues(@Nonnull UID userUid, @Nonnull Collection<String> attributeUids);
+  void removeAttributeValues(@Nonnull UID userUid, @Nonnull Collection<UID> attributeUids);
 
   /**
    * Evicts the {@code getUserByUsername} query cache region after a direct JDBC write, so that

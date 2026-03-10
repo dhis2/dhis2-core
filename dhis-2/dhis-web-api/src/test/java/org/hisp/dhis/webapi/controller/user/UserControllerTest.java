@@ -101,10 +101,10 @@ class UserControllerTest {
   @BeforeEach
   public void setUp() {
     UserGroup userGroup1 = new UserGroup();
-    userGroup1.setUid("abc1");
+    userGroup1.setUid("abcdefghij1");
 
     UserGroup userGroup2 = new UserGroup();
-    userGroup2.setUid("abc2");
+    userGroup2.setUid("abcdefghij2");
 
     currentUser = new User();
     currentUser.setId(1000);
@@ -156,7 +156,9 @@ class UserControllerTest {
 
     verify(userGroupService)
         .updateUserGroups(
-            user, Set.of(UID.of("abc1"), UID.of("abc2")), UserDetails.fromUser(currentUser2));
+            user,
+            Set.of(UID.of("abcdefghij1"), UID.of("abcdefghij2")),
+            UserDetails.fromUser(currentUser2));
   }
 
   private ImportReport createReportWith(Status status, Consumer<TypeReport> operation) {
@@ -309,7 +311,8 @@ class UserControllerTest {
     verify(userGroupService)
         .updateUserGroups(
             same(user),
-            (Collection<UID>) argThat(containsInAnyOrder(UID.of("abc1"), UID.of("abc2"))),
+            (Collection<UID>)
+                argThat(containsInAnyOrder(UID.of("abcdefghij1"), UID.of("abcdefghij2"))),
             same(currentUserDetails));
   }
 }

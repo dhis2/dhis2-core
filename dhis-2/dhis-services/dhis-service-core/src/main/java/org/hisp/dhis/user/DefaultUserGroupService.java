@@ -187,7 +187,7 @@ public class DefaultUserGroupService implements UserGroupService {
   }
 
   private Collection<UserGroup> getUserGroupsByUid(@Nonnull Collection<UID> uids) {
-    return userGroupStore.getByUid(uids.stream().map(UID::getValue).toList());
+    return userGroupStore.getByUid(UID.toValueList(uids));
   }
 
   @Override
