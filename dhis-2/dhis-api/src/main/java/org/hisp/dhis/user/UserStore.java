@@ -284,13 +284,12 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * <p>Collection memberships (roles, groups, org units, dimension constraints) are NOT copied by
    * this method; use the dedicated copy methods for those.
    *
-   * @param sourceUid UID of the user to copy scalar fields from
-   * @param newUid UID for the new user row
-   * @param newUuid UUID for the new user row
+   * @param sourceUid UID of the user to copy
+   * @param newUid UID for the new user
+   * @param newUuid UUID for the new user
    * @param username username for the new user
    * @param encodedPassword pre-encoded bcrypt password for the new user
-   * @param actingUserUid id of the user performing the replication (for
-   *     lastupdatedby/creatoruserid)
+   * @param actingUserUid UID of the user performing the replication
    */
   int insertUserCopy(
       @Nonnull UID sourceUid,
@@ -325,7 +324,7 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @param userUid UID of the user to update
    * @param attributeUids attribute UIDs to remove from attributevalues
    */
-  void removeAttributeValues(@Nonnull UID userUid, @Nonnull Collection<UID> attributeUids);
+  void removeAttributeValues(@Nonnull UID userUid, @Nonnull Collection<String> attributeUids);
 
   /**
    * Evicts the {@code getUserByUsername} query cache region after a direct JDBC write, so that
