@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -146,9 +147,10 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook<DataSet> {
         .forEach(
             s ->
                 s.setIndicators(
-                    s.getIndicators().stream()
-                        .filter(i -> !removedIndicators.contains(i.getUid()))
-                        .toList()));
+                    new ArrayList<>(
+                        s.getIndicators().stream()
+                            .filter(i -> !removedIndicators.contains(i.getUid()))
+                            .toList())));
   }
 
   private List<DataElement> getUpdatedDataElements(DataSet importDataSet, Section section) {
