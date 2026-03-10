@@ -41,6 +41,7 @@ import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
+import java.io.Serializable;
 import java.util.Date;
 import lombok.Setter;
 import org.hisp.dhis.audit.AuditAttribute;
@@ -61,7 +62,7 @@ import org.hisp.dhis.user.User;
  * database columns.
  */
 @MappedSuperclass
-public class BaseMetadataObject implements MetadataObject {
+public class BaseMetadataObject implements MetadataObject, Serializable {
 
   @Column(name = "uid", unique = true, nullable = false, length = 11)
   @Setter
