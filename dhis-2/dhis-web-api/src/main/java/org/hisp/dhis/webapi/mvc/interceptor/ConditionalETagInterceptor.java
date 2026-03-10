@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.mvc.interceptor;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -52,7 +51,6 @@ import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.webapi.service.ConditionalETagService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
-import org.springframework.web.servlet.ModelAndView;
 
 /**
  * Interceptor that provides automatic conditional ETag caching for metadata API endpoints.
@@ -71,11 +69,6 @@ import org.springframework.web.servlet.ModelAndView;
 public class ConditionalETagInterceptor implements HandlerInterceptor {
 
   private static final String ETAG_ATTR = ConditionalETagInterceptor.class.getName() + ".etag";
-  private static final String ENTITY_TYPE_ATTR =
-      ConditionalETagInterceptor.class.getName() + ".entityType";
-
-  private static final String COMPOSITE_TYPES_ATTR =
-      ConditionalETagInterceptor.class.getName() + ".compositeTypes";
 
   /**
    * Non-CRUD endpoints mapped to the entity types they depend on. When any of these entity types
@@ -93,8 +86,13 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
           "configuration",
           Set.of(Configuration.class));
 
-  /** Version-prefix pattern: matches /api/41/ or /api/ */
-  private static final Pattern PATH_PATTERN = Pattern.compile("/api/(?:\\d{2}/)?([\\w]+)");
+  /** Matches the first resource segment after /api/ and optional version prefix. */
+  private static final Pattern RESOURCE_PATH_PATTERN =
+      Pattern.compile("^/api/(?:\\d{2}/)?([\\w]+)");
+
+  /** Matches exact composite root endpoints such as /api/me or /api/41/me. */
+  private static final Pattern COMPOSITE_PATH_PATTERN =
+      Pattern.compile("^/api/(?:\\d{2}/)?([\\w]+)/?$");
 
   private final ConditionalETagService conditionalETagService;
   private final SchemaService schemaService;
@@ -118,25 +116,28 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
       return true;
     }
 
-    String resourceName = extractResourceName(request.getRequestURI());
-    if (resourceName == null) {
-      return true;
-    }
+    String requestUri = request.getRequestURI();
 
     UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
 
     // Check composite endpoint map first (non-CRUD endpoints with multi-type dependencies)
-    Set<Class<?>> compositeTypes = COMPOSITE_ENDPOINTS.get(resourceName);
+    String compositeEndpointName = extractCompositeEndpointName(requestUri);
+    Set<Class<?>> compositeTypes =
+        compositeEndpointName == null ? null : COMPOSITE_ENDPOINTS.get(compositeEndpointName);
     if (compositeTypes != null) {
       String currentETag = conditionalETagService.generateETag(userDetails, compositeTypes);
       if (conditionalETagService.checkNotModified(request, currentETag)) {
         log.debug("ETag match for composite endpoint {} - returning 304", request.getRequestURI());
         response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-        conditionalETagService.setETagHeaders(userDetails, response, compositeTypes);
+        conditionalETagService.setETagHeaders(response, currentETag);
         return false;
       }
-      request.setAttribute(ETAG_ATTR, currentETag);
-      request.setAttribute(COMPOSITE_TYPES_ATTR, compositeTypes);
+      storeETag(request, currentETag);
+      return true;
+    }
+
+    String resourceName = extractResourceName(requestUri);
+    if (resourceName == null) {
       return true;
     }
 
@@ -153,42 +154,12 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
     if (conditionalETagService.checkNotModified(request, currentETag)) {
       log.debug("ETag match for {} - returning 304", request.getRequestURI());
       response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-      conditionalETagService.setETagHeaders(userDetails, response, entityType);
+      conditionalETagService.setETagHeaders(response, currentETag);
       return false;
     }
 
-    // Store ETag for postHandle to set headers
-    request.setAttribute(ETAG_ATTR, currentETag);
-    request.setAttribute(ENTITY_TYPE_ATTR, entityType);
+    storeETag(request, currentETag);
     return true;
-  }
-
-  @Override
-  public void postHandle(
-      @Nonnull HttpServletRequest request,
-      @Nonnull HttpServletResponse response,
-      @Nonnull Object handler,
-      ModelAndView modelAndView) {
-
-    String currentETag = (String) request.getAttribute(ETAG_ATTR);
-    if (currentETag == null) {
-      return;
-    }
-
-    if (!response.isCommitted() && isSuccessStatus(response.getStatus())) {
-      UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
-      @SuppressWarnings("unchecked")
-      Collection<Class<?>> compositeTypes =
-          (Collection<Class<?>>) request.getAttribute(COMPOSITE_TYPES_ATTR);
-      if (compositeTypes != null) {
-        conditionalETagService.setETagHeaders(userDetails, response, compositeTypes);
-      } else {
-        Class<?> entityType = (Class<?>) request.getAttribute(ENTITY_TYPE_ATTR);
-        if (entityType != null) {
-          conditionalETagService.setETagHeaders(userDetails, response, entityType);
-        }
-      }
-    }
   }
 
   /**
@@ -197,12 +168,26 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
    */
   static String extractResourceName(String uri) {
     if (uri == null) return null;
-    Matcher matcher = PATH_PATTERN.matcher(uri);
+    Matcher matcher = RESOURCE_PATH_PATTERN.matcher(uri);
     return matcher.find() ? matcher.group(1) : null;
   }
 
-  private static boolean isSuccessStatus(int status) {
-    return status >= 200 && status < 300;
+  /**
+   * Extracts the endpoint name for composite root endpoints only. e.g. "/api/me" → "me",
+   * "/api/me/settings" → null.
+   */
+  static String extractCompositeEndpointName(String uri) {
+    if (uri == null) return null;
+    Matcher matcher = COMPOSITE_PATH_PATTERN.matcher(uri);
+    return matcher.matches() ? matcher.group(1) : null;
+  }
+
+  static String getStoredETag(HttpServletRequest request) {
+    return (String) request.getAttribute(ETAG_ATTR);
+  }
+
+  private static void storeETag(HttpServletRequest request, String currentETag) {
+    request.setAttribute(ETAG_ATTR, currentETag);
   }
 
   /** Visible for testing. Returns the composite entity types for a resource name, or null. */

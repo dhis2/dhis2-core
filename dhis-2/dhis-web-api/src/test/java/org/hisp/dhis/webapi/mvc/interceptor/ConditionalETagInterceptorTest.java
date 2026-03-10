@@ -107,6 +107,27 @@ class ConditionalETagInterceptorTest {
   }
 
   @Test
+  void testExtractCompositeEndpointName_me() {
+    assertEquals("me", ConditionalETagInterceptor.extractCompositeEndpointName("/api/me"));
+  }
+
+  @Test
+  void testExtractCompositeEndpointName_meWithVersion() {
+    assertEquals("me", ConditionalETagInterceptor.extractCompositeEndpointName("/api/41/me"));
+  }
+
+  @Test
+  void testExtractCompositeEndpointName_subPathDoesNotMatch() {
+    assertNull(ConditionalETagInterceptor.extractCompositeEndpointName("/api/me/settings"));
+  }
+
+  @Test
+  void testExtractCompositeEndpointName_configurationSubPathDoesNotMatch() {
+    assertNull(
+        ConditionalETagInterceptor.extractCompositeEndpointName("/api/configuration/systemId"));
+  }
+
+  @Test
   void testExtractResourceName_null() {
     assertNull(ConditionalETagInterceptor.extractResourceName(null));
   }
@@ -116,7 +137,7 @@ class ConditionalETagInterceptorTest {
     assertNull(ConditionalETagInterceptor.extractResourceName("/something"));
   }
 
-  // --- preHandle / postHandle tests ---
+  // --- preHandle tests ---
 
   @Test
   void testSkipsNonGetRequests() throws Exception {
@@ -209,18 +230,17 @@ class ConditionalETagInterceptorTest {
 
     assertFalse(result);
     assertEquals(HttpServletResponse.SC_NOT_MODIFIED, response.getStatus());
-    verify(conditionalETagService).setETagHeaders(userDetails, response, OrganisationUnit.class);
+    verify(conditionalETagService).setETagHeaders(response, etag);
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  void testSetsETagHeadersOnSuccess() throws Exception {
+  void testStoresETagOnSuccess() throws Exception {
     setUpSecurityContext();
 
     MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/41/organisationUnits");
     request.setRequestURI("/api/41/organisationUnits");
     MockHttpServletResponse response = new MockHttpServletResponse();
-    response.setStatus(HttpServletResponse.SC_OK);
 
     when(conditionalETagService.isEnabled()).thenReturn(true);
 
@@ -236,11 +256,8 @@ class ConditionalETagInterceptorTest {
     // preHandle stores etag in request attribute
     boolean preResult = interceptor.preHandle(request, response, new Object());
     assertTrue(preResult);
-
-    // postHandle sets headers on success response
-    interceptor.postHandle(request, response, new Object(), null);
-
-    verify(conditionalETagService).setETagHeaders(userDetails, response, OrganisationUnit.class);
+    assertEquals(etag, ConditionalETagInterceptor.getStoredETag(request));
+    verify(conditionalETagService, never()).setETagHeaders(any(HttpServletResponse.class), anyString());
   }
 
   // --- composite endpoint tests ---
@@ -264,17 +281,16 @@ class ConditionalETagInterceptorTest {
 
     assertFalse(result);
     assertEquals(HttpServletResponse.SC_NOT_MODIFIED, response.getStatus());
-    verify(conditionalETagService).setETagHeaders(userDetails, response, expectedTypes);
+    verify(conditionalETagService).setETagHeaders(response, etag);
   }
 
   @Test
-  void testCompositeEndpointSetsHeadersOnSuccess() throws Exception {
+  void testCompositeEndpointStoresETagOnSuccess() throws Exception {
     setUpSecurityContext();
 
     MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/me");
     request.setRequestURI("/api/me");
     MockHttpServletResponse response = new MockHttpServletResponse();
-    response.setStatus(HttpServletResponse.SC_OK);
 
     when(conditionalETagService.isEnabled()).thenReturn(true);
 
@@ -285,10 +301,45 @@ class ConditionalETagInterceptorTest {
 
     boolean preResult = interceptor.preHandle(request, response, new Object());
     assertTrue(preResult);
+    assertEquals(etag, ConditionalETagInterceptor.getStoredETag(request));
+    verify(conditionalETagService, never()).setETagHeaders(any(HttpServletResponse.class), anyString());
+  }
 
-    interceptor.postHandle(request, response, new Object(), null);
+  @Test
+  void testCompositeEndpointDoesNotMatchSubPath() throws Exception {
+    setUpSecurityContext();
 
-    verify(conditionalETagService).setETagHeaders(userDetails, response, expectedTypes);
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/me/settings");
+    request.setRequestURI("/api/me/settings");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    when(conditionalETagService.isEnabled()).thenReturn(true);
+    when(schemaService.getSchemaByPluralName("me")).thenReturn(null);
+
+    boolean result = interceptor.preHandle(request, response, new Object());
+
+    assertTrue(result);
+    assertNull(ConditionalETagInterceptor.getStoredETag(request));
+    verify(conditionalETagService, never()).generateETag(any(UserDetails.class), any(Set.class));
+  }
+
+  @Test
+  void testConfigurationSubPathDoesNotMatchCompositeEndpoint() throws Exception {
+    setUpSecurityContext();
+
+    MockHttpServletRequest request =
+        new MockHttpServletRequest("GET", "/api/configuration/systemId");
+    request.setRequestURI("/api/configuration/systemId");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    when(conditionalETagService.isEnabled()).thenReturn(true);
+    when(schemaService.getSchemaByPluralName("configuration")).thenReturn(null);
+
+    boolean result = interceptor.preHandle(request, response, new Object());
+
+    assertTrue(result);
+    assertNull(ConditionalETagInterceptor.getStoredETag(request));
+    verify(conditionalETagService, never()).generateETag(any(UserDetails.class), any(Set.class));
   }
 
   private void setUpSecurityContext() {

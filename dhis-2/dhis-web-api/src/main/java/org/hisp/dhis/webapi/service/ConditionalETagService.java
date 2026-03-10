@@ -353,7 +353,7 @@ public class ConditionalETagService {
     }
 
     String currentETag = generateETag(userDetails);
-    setETagHeadersInternal(response, currentETag);
+    setETagHeaders(response, currentETag);
   }
 
   /**
@@ -376,7 +376,7 @@ public class ConditionalETagService {
     }
 
     String currentETag = generateETag(userDetails, entityType);
-    setETagHeadersInternal(response, currentETag);
+    setETagHeaders(response, currentETag);
   }
 
   /**
@@ -395,10 +395,18 @@ public class ConditionalETagService {
       return;
     }
     String currentETag = generateETag(userDetails, entityTypes);
-    setETagHeadersInternal(response, currentETag);
+    setETagHeaders(response, currentETag);
   }
 
-  private void setETagHeadersInternal(HttpServletResponse response, String currentETag) {
+  /**
+   * Sets ETag headers on response using an already computed ETag value. Use this when the ETag was
+   * determined earlier in the request lifecycle and must be reused consistently.
+   *
+   * @param response the HTTP response to set headers on
+   * @param currentETag the already computed ETag value (without quotes)
+   */
+  public void setETagHeaders(
+      @Nonnull HttpServletResponse response, @Nonnull String currentETag) {
     response.setHeader(HttpHeaders.ETAG, quote(currentETag));
     response.setHeader(HttpHeaders.VARY, "Cookie, Authorization");
     response.setHeader(

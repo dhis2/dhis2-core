@@ -720,7 +720,7 @@ public enum ConfigurationKey {
   REDIS_CACHE_INVALIDATION_ENABLED("redis.cache.invalidation.enabled", Constants.OFF, false),
 
   /** SQL DML observer for JDBC-level audit and cache invalidation. Enable or disable. */
-  SQL_DML_OBSERVER_ENABLED("sql.dml.observer.enabled", Constants.OFF, false),
+  SQL_DML_OBSERVER_ENABLED("sql.dml.observer.enabled", Constants.ON, false),
 
   /** Content Security Policy feature. Enable or disable the feature. (sensitive) */
   CSP_ENABLED("csp.enabled", Constants.ON, true),
@@ -815,7 +815,7 @@ public enum ConfigurationKey {
    * ETags are validated BEFORE heavy computations, using local in-memory version tracking for cache
    * invalidation. (default: off)
    */
-  CACHE_API_ETAG_CACHE_ENABLED("cache.api.etag.cache.enabled", Constants.OFF, false),
+  CACHE_API_ETAG_CACHE_ENABLED("cache.api.etag.cache.enabled", Constants.ON, false),
 
   /**
    * TTL window in minutes for conditional ETag caching. This is the maximum time a cached response
