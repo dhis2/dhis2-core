@@ -111,6 +111,34 @@ class ConditionalETagResponseBodyAdviceTest {
   }
 
   @Test
+  void testGetApiMeWithContextPathIncludesETagHeaders() throws Exception {
+    mockMvc
+        .perform(get("/server1/api/me").contextPath("/server1"))
+        .andExpect(status().isOk())
+        .andExpect(header().exists("ETag"))
+        .andExpect(header().string("Vary", "Cookie, Authorization"))
+        .andExpect(
+            header()
+                .string(
+                    "Cache-Control",
+                    CacheControl.noCache().cachePrivate().mustRevalidate().getHeaderValue()));
+  }
+
+  @Test
+  void testGetApiSystemInfoWithQueryParametersIncludesETagHeaders() throws Exception {
+    mockMvc
+        .perform(get("/api/system/info").param("fields", "id"))
+        .andExpect(status().isOk())
+        .andExpect(header().exists("ETag"))
+        .andExpect(header().string("Vary", "Cookie, Authorization"))
+        .andExpect(
+            header()
+                .string(
+                    "Cache-Control",
+                    CacheControl.noCache().cachePrivate().mustRevalidate().getHeaderValue()));
+  }
+
+  @Test
   void testMatchingETagReturns304AndSkipsController() throws Exception {
     MvcResult firstResult = mockMvc.perform(get("/api/me")).andExpect(status().isOk()).andReturn();
     String etag = firstResult.getResponse().getHeader("ETag");
@@ -175,6 +203,11 @@ class ConditionalETagResponseBodyAdviceTest {
     @GetMapping("/api/me/settings")
     public @ResponseBody ResponseEntity<Map<String, String>> settings() {
       return ResponseEntity.ok(Map.of("status", "settings"));
+    }
+
+    @GetMapping("/api/system/info")
+    public @ResponseBody ResponseEntity<Map<String, String>> systemInfo() {
+      return ResponseEntity.ok(Map.of("status", "system-info"));
     }
   }
 }

@@ -33,10 +33,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Map;
 import java.util.Set;
+import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.service.ConditionalETagService;
 import org.junit.jupiter.api.AfterEach;
@@ -78,7 +81,34 @@ class ConditionalETagInterceptorTest {
     SecurityContextHolder.clearContext();
   }
 
-  // --- extractResourceName tests (static, no mocking needed) ---
+  // --- path extraction tests (static, no mocking needed) ---
+
+  @Test
+  void testExtractApiRelativePath_standard() {
+    assertEquals(
+        "organisationUnits",
+        ConditionalETagInterceptor.extractApiRelativePath("/api/organisationUnits"));
+  }
+
+  @Test
+  void testExtractApiRelativePath_withVersion() {
+    assertEquals(
+        "organisationUnits/abc1234567",
+        ConditionalETagInterceptor.extractApiRelativePath("/api/41/organisationUnits/abc1234567"));
+  }
+
+  @Test
+  void testExtractApiRelativePath_ignoresQueryParameters() {
+    assertEquals(
+        "system/info",
+        ConditionalETagInterceptor.extractApiRelativePath("/api/system/info?fields=id"));
+  }
+
+  @Test
+  void testExtractApiRelativePath_trimsTrailingSlash() {
+    assertEquals(
+        "system/info", ConditionalETagInterceptor.extractApiRelativePath("/api/system/info/"));
+  }
 
   @Test
   void testExtractResourceName_standard() {
@@ -107,24 +137,79 @@ class ConditionalETagInterceptorTest {
   }
 
   @Test
-  void testExtractCompositeEndpointName_me() {
-    assertEquals("me", ConditionalETagInterceptor.extractCompositeEndpointName("/api/me"));
+  void testResolveCompositeEndpointTypes_me() {
+    assertEquals(
+        ConditionalETagInterceptor.getCompositeEndpointTypes("me"),
+        ConditionalETagInterceptor.resolveCompositeEndpointTypes("/api/me"));
   }
 
   @Test
-  void testExtractCompositeEndpointName_meWithVersion() {
-    assertEquals("me", ConditionalETagInterceptor.extractCompositeEndpointName("/api/41/me"));
+  void testResolveCompositeEndpointTypes_meWithVersion() {
+    assertEquals(
+        ConditionalETagInterceptor.getCompositeEndpointTypes("me"),
+        ConditionalETagInterceptor.resolveCompositeEndpointTypes("/api/41/me"));
   }
 
   @Test
-  void testExtractCompositeEndpointName_subPathDoesNotMatch() {
-    assertNull(ConditionalETagInterceptor.extractCompositeEndpointName("/api/me/settings"));
+  void testResolveCompositeEndpointTypes_slashPattern() {
+    assertEquals(
+        ConditionalETagInterceptor.getCompositeEndpointTypes("system/info"),
+        ConditionalETagInterceptor.resolveCompositeEndpointTypes("/api/system/info"));
   }
 
   @Test
-  void testExtractCompositeEndpointName_configurationSubPathDoesNotMatch() {
+  void testResolveCompositeEndpointTypes_slashPatternWithVersionAndQueryParameters() {
+    assertEquals(
+        ConditionalETagInterceptor.getCompositeEndpointTypes("system/info"),
+        ConditionalETagInterceptor.resolveCompositeEndpointTypes("/api/41/system/info?fields=id"));
+  }
+
+  @Test
+  void testResolveCompositeEndpointTypes_singleSegmentWildcardMatchesSingleSegmentOnly() {
+    Set<Class<?>> wildcardTypes = Set.of(Configuration.class);
+    Map<String, Set<Class<?>>> compositeEndpoints = Map.of("system/*", wildcardTypes);
+
+    assertEquals(
+        wildcardTypes,
+        ConditionalETagInterceptor.resolveCompositeEndpointTypes(
+            "/api/system/info?fields=id", compositeEndpoints));
     assertNull(
-        ConditionalETagInterceptor.extractCompositeEndpointName("/api/configuration/systemId"));
+        ConditionalETagInterceptor.resolveCompositeEndpointTypes(
+            "/api/system/tasks/foo", compositeEndpoints));
+  }
+
+  @Test
+  void testResolveCompositeEndpointTypes_doubleWildcardMatchesNestedSegments() {
+    Set<Class<?>> wildcardTypes = Set.of(Configuration.class);
+
+    assertEquals(
+        wildcardTypes,
+        ConditionalETagInterceptor.resolveCompositeEndpointTypes(
+            "/api/system/tasks/foo", Map.of("system/**", wildcardTypes)));
+  }
+
+  @Test
+  void testResolveCompositeEndpointTypes_exactMatchWinsOverWildcard() {
+    Set<Class<?>> exactTypes = Set.of(Configuration.class);
+    Set<Class<?>> wildcardTypes = Set.of(User.class);
+    Map<String, Set<Class<?>>> compositeEndpoints =
+        Map.of("system/info", exactTypes, "system/*", wildcardTypes);
+
+    assertEquals(
+        exactTypes,
+        ConditionalETagInterceptor.resolveCompositeEndpointTypes(
+            "/api/system/info", compositeEndpoints));
+  }
+
+  @Test
+  void testResolveCompositeEndpointTypes_subPathDoesNotMatchExactRootComposite() {
+    assertNull(ConditionalETagInterceptor.resolveCompositeEndpointTypes("/api/me/settings"));
+  }
+
+  @Test
+  void testResolveCompositeEndpointTypes_configurationSubPathDoesNotMatchCompositeEndpoint() {
+    assertNull(
+        ConditionalETagInterceptor.resolveCompositeEndpointTypes("/api/configuration/systemId"));
   }
 
   @Test
@@ -257,7 +342,8 @@ class ConditionalETagInterceptorTest {
     boolean preResult = interceptor.preHandle(request, response, new Object());
     assertTrue(preResult);
     assertEquals(etag, ConditionalETagInterceptor.getStoredETag(request));
-    verify(conditionalETagService, never()).setETagHeaders(any(HttpServletResponse.class), anyString());
+    verify(conditionalETagService, never())
+        .setETagHeaders(any(HttpServletResponse.class), anyString());
   }
 
   // --- composite endpoint tests ---
@@ -302,7 +388,109 @@ class ConditionalETagInterceptorTest {
     boolean preResult = interceptor.preHandle(request, response, new Object());
     assertTrue(preResult);
     assertEquals(etag, ConditionalETagInterceptor.getStoredETag(request));
-    verify(conditionalETagService, never()).setETagHeaders(any(HttpServletResponse.class), anyString());
+    verify(conditionalETagService, never())
+        .setETagHeaders(any(HttpServletResponse.class), anyString());
+  }
+
+  @Test
+  void testCompositeEndpointWithContextPathStoresETagOnSuccess() throws Exception {
+    setUpSecurityContext();
+
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/server1/api/me");
+    request.setContextPath("/server1");
+    request.setRequestURI("/server1/api/me");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    when(conditionalETagService.isEnabled()).thenReturn(true);
+
+    Set<Class<?>> expectedTypes = ConditionalETagInterceptor.getCompositeEndpointTypes("me");
+    String etag = "userUid123-c-100-42";
+    when(conditionalETagService.generateETag(userDetails, expectedTypes)).thenReturn(etag);
+    when(conditionalETagService.checkNotModified(request, etag)).thenReturn(false);
+
+    boolean preResult = interceptor.preHandle(request, response, new Object());
+
+    assertTrue(preResult);
+    assertEquals(etag, ConditionalETagInterceptor.getStoredETag(request));
+  }
+
+  @Test
+  void testCompositeSlashEndpointWithContextPathAndQueryStoresETagOnSuccess() throws Exception {
+    setUpSecurityContext();
+
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/server1/api/system/info");
+    request.setContextPath("/server1");
+    request.setRequestURI("/server1/api/system/info");
+    request.setQueryString("fields=id");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    when(conditionalETagService.isEnabled()).thenReturn(true);
+
+    Set<Class<?>> expectedTypes =
+        ConditionalETagInterceptor.getCompositeEndpointTypes("system/info");
+    String etag = "userUid123-c-200-84";
+    when(conditionalETagService.generateETag(userDetails, expectedTypes)).thenReturn(etag);
+    when(conditionalETagService.checkNotModified(request, etag)).thenReturn(false);
+
+    boolean preResult = interceptor.preHandle(request, response, new Object());
+
+    assertTrue(preResult);
+    assertEquals(etag, ConditionalETagInterceptor.getStoredETag(request));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void testMetadataEndpointWithContextPathStoresETagOnSuccess() throws Exception {
+    setUpSecurityContext();
+
+    MockHttpServletRequest request =
+        new MockHttpServletRequest("GET", "/server1/api/41/organisationUnits");
+    request.setContextPath("/server1");
+    request.setRequestURI("/server1/api/41/organisationUnits");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    when(conditionalETagService.isEnabled()).thenReturn(true);
+
+    Schema schema = mock(Schema.class);
+    when(schema.isMetadata()).thenReturn(true);
+    when(schema.getKlass()).thenReturn((Class) OrganisationUnit.class);
+    when(schemaService.getSchemaByPluralName("organisationUnits")).thenReturn(schema);
+
+    String etag = "userUid123-OrganisationUnit-42-7";
+    when(conditionalETagService.generateETag(userDetails, OrganisationUnit.class)).thenReturn(etag);
+    when(conditionalETagService.checkNotModified(request, etag)).thenReturn(false);
+
+    boolean preResult = interceptor.preHandle(request, response, new Object());
+
+    assertTrue(preResult);
+    assertEquals(etag, ConditionalETagInterceptor.getStoredETag(request));
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  void testMetadataEndpointWithQueryParametersStillUsesResourceSegment() throws Exception {
+    setUpSecurityContext();
+
+    MockHttpServletRequest request = new MockHttpServletRequest("GET", "/api/41/organisationUnits");
+    request.setRequestURI("/api/41/organisationUnits");
+    request.setQueryString("fields=id");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+
+    when(conditionalETagService.isEnabled()).thenReturn(true);
+
+    Schema schema = mock(Schema.class);
+    when(schema.isMetadata()).thenReturn(true);
+    when(schema.getKlass()).thenReturn((Class) OrganisationUnit.class);
+    when(schemaService.getSchemaByPluralName("organisationUnits")).thenReturn(schema);
+
+    String etag = "userUid123-OrganisationUnit-42-7";
+    when(conditionalETagService.generateETag(userDetails, OrganisationUnit.class)).thenReturn(etag);
+    when(conditionalETagService.checkNotModified(request, etag)).thenReturn(false);
+
+    boolean preResult = interceptor.preHandle(request, response, new Object());
+
+    assertTrue(preResult);
+    assertEquals(etag, ConditionalETagInterceptor.getStoredETag(request));
   }
 
   @Test

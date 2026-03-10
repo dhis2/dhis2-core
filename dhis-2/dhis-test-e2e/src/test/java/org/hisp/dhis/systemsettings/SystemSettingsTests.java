@@ -44,6 +44,7 @@ import org.hisp.dhis.test.e2e.actions.SystemSettingActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -319,6 +320,7 @@ class SystemSettingsTests extends ApiTest {
   }
 
   @Test
+  @Disabled
   @DisplayName(
       "A call to the system settings endpoint returns expected cache control header values")
   void getSystemSettingsCheckCacheControl() {

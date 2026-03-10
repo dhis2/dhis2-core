@@ -405,13 +405,18 @@ public class ConditionalETagService {
    * @param response the HTTP response to set headers on
    * @param currentETag the already computed ETag value (without quotes)
    */
-  public void setETagHeaders(
-      @Nonnull HttpServletResponse response, @Nonnull String currentETag) {
+  public void setETagHeaders(@Nonnull HttpServletResponse response, @Nonnull String currentETag) {
     response.setHeader(HttpHeaders.ETAG, quote(currentETag));
     response.setHeader(HttpHeaders.VARY, "Cookie, Authorization");
-    response.setHeader(
-        HttpHeaders.CACHE_CONTROL,
-        CacheControl.noCache().cachePrivate().mustRevalidate().getHeaderValue());
+
+    Collection<String> headers = response.getHeaders(HttpHeaders.CACHE_CONTROL);
+    if (headers.isEmpty()) {
+      response.setHeader(
+          HttpHeaders.CACHE_CONTROL,
+          CacheControl.noCache().cachePrivate().mustRevalidate().getHeaderValue());
+    } else {
+      log.error("Cache-control is already set: " + String.join(",", headers));
+    }
   }
 
   /**

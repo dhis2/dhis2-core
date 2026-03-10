@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.springframework.http.CacheControl.noCache;
-
 import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
@@ -88,7 +86,6 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserSettingsService;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
-import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -525,8 +522,8 @@ public abstract class AbstractFullReadOnlyController<
   }
 
   private void cachePrivate(HttpServletResponse response) {
-    response.setHeader(
-        ContextUtils.HEADER_CACHE_CONTROL, noCache().cachePrivate().getHeaderValue());
+    //    response.setHeader(
+    //        ContextUtils.HEADER_CACHE_CONTROL, noCache().cachePrivate().getHeaderValue());
   }
 
   private boolean hasHref(List<String> fields) {

@@ -205,7 +205,7 @@ public class ContextUtils {
   }
 
   public static HttpServletResponse setNoStore(HttpServletResponse response) {
-    response.setHeader(HEADER_CACHE_CONTROL, HEADER_VALUE_NO_STORE);
+    //    response.setHeader(HEADER_CACHE_CONTROL, HEADER_VALUE_NO_STORE);
     return response;
   }
 

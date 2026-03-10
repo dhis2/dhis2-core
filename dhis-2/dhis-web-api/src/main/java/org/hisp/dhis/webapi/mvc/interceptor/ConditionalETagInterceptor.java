@@ -31,9 +31,10 @@ package org.hisp.dhis.webapi.mvc.interceptor;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -49,8 +50,11 @@ import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.webapi.service.ConditionalETagService;
+import org.springframework.http.server.PathContainer;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
+import org.springframework.web.util.pattern.PathPattern;
+import org.springframework.web.util.pattern.PathPatternParser;
 
 /**
  * Interceptor that provides automatic conditional ETag caching for metadata API endpoints.
@@ -69,6 +73,8 @@ import org.springframework.web.servlet.HandlerInterceptor;
 public class ConditionalETagInterceptor implements HandlerInterceptor {
 
   private static final String ETAG_ATTR = ConditionalETagInterceptor.class.getName() + ".etag";
+  private static final Pattern API_PATH_PATTERN = Pattern.compile("^/api(?:/\\d{2})?(?:/(.*))?$");
+  private static final PathPatternParser PATH_PATTERN_PARSER = new PathPatternParser();
 
   /**
    * Non-CRUD endpoints mapped to the entity types they depend on. When any of these entity types
@@ -76,23 +82,32 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
    */
   private static final Map<String, Set<Class<?>>> COMPOSITE_ENDPOINTS =
       Map.of(
-          "me",
+          "me/**",
           Set.of(
               User.class,
               UserRole.class,
               UserGroup.class,
               OrganisationUnit.class,
               DataApprovalLevel.class),
-          "configuration",
+          "systemSettings/**",
+          Set.of(Configuration.class),
+          "userSettings/**",
+          Set.of(Configuration.class),
+          "userDataStore/**",
+          Set.of(Configuration.class),
+          "messageConversations/**",
+          Set.of(Configuration.class),
+          "dashboards/**",
+          Set.of(Configuration.class),
+          "dataStatistics/**",
+          Set.of(Configuration.class),
+          "system/**",
+          Set.of(Configuration.class),
+          "dimensions/**",
           Set.of(Configuration.class));
 
-  /** Matches the first resource segment after /api/ and optional version prefix. */
-  private static final Pattern RESOURCE_PATH_PATTERN =
-      Pattern.compile("^/api/(?:\\d{2}/)?([\\w]+)");
-
-  /** Matches exact composite root endpoints such as /api/me or /api/41/me. */
-  private static final Pattern COMPOSITE_PATH_PATTERN =
-      Pattern.compile("^/api/(?:\\d{2}/)?([\\w]+)/?$");
+  private static final List<CompositeEndpointPattern> COMPOSITE_PATH_PATTERNS =
+      compileCompositeEndpointPatterns(COMPOSITE_ENDPOINTS);
 
   private final ConditionalETagService conditionalETagService;
   private final SchemaService schemaService;
@@ -116,14 +131,14 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
       return true;
     }
 
-    String requestUri = request.getRequestURI();
+    String requestUri = getPathWithinApplication(request);
+    String apiRelativePath = extractApiRelativePath(requestUri);
 
     UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
 
     // Check composite endpoint map first (non-CRUD endpoints with multi-type dependencies)
-    String compositeEndpointName = extractCompositeEndpointName(requestUri);
     Set<Class<?>> compositeTypes =
-        compositeEndpointName == null ? null : COMPOSITE_ENDPOINTS.get(compositeEndpointName);
+        resolveCompositeEndpointTypes(apiRelativePath, COMPOSITE_PATH_PATTERNS);
     if (compositeTypes != null) {
       String currentETag = conditionalETagService.generateETag(userDetails, compositeTypes);
       if (conditionalETagService.checkNotModified(request, currentETag)) {
@@ -136,7 +151,7 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
       return true;
     }
 
-    String resourceName = extractResourceName(requestUri);
+    String resourceName = extractResourceNameFromApiRelativePath(apiRelativePath);
     if (resourceName == null) {
       return true;
     }
@@ -163,35 +178,150 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
   }
 
   /**
+   * Extracts the API-relative path after /api/ and optional version prefix. e.g.
+   * "/api/41/organisationUnits/abc123" → "organisationUnits/abc123", "/api/me?paging=false" → "me"
+   */
+  static String extractApiRelativePath(String uri) {
+    if (uri == null) {
+      return null;
+    }
+
+    String path = stripQueryAndFragment(uri);
+    var matcher = API_PATH_PATTERN.matcher(path);
+    if (!matcher.matches()) {
+      return null;
+    }
+
+    return normalizeApiRelativePath(matcher.group(1));
+  }
+
+  /**
    * Extracts the resource name (first path segment after /api/ and optional version prefix). e.g.
    * "/api/41/organisationUnits/abc123" → "organisationUnits", "/api/me" → "me"
    */
   static String extractResourceName(String uri) {
-    if (uri == null) return null;
-    Matcher matcher = RESOURCE_PATH_PATTERN.matcher(uri);
-    return matcher.find() ? matcher.group(1) : null;
+    return extractResourceNameFromApiRelativePath(extractApiRelativePath(uri));
   }
 
-  /**
-   * Extracts the endpoint name for composite root endpoints only. e.g. "/api/me" → "me",
-   * "/api/me/settings" → null.
-   */
-  static String extractCompositeEndpointName(String uri) {
-    if (uri == null) return null;
-    Matcher matcher = COMPOSITE_PATH_PATTERN.matcher(uri);
-    return matcher.matches() ? matcher.group(1) : null;
+  static Set<Class<?>> resolveCompositeEndpointTypes(String uri) {
+    return resolveCompositeEndpointTypes(extractApiRelativePath(uri), COMPOSITE_PATH_PATTERNS);
+  }
+
+  static Set<Class<?>> resolveCompositeEndpointTypes(
+      String uri, Map<String, Set<Class<?>>> compositeEndpoints) {
+    return resolveCompositeEndpointTypes(
+        extractApiRelativePath(uri), compileCompositeEndpointPatterns(compositeEndpoints));
   }
 
   static String getStoredETag(HttpServletRequest request) {
     return (String) request.getAttribute(ETAG_ATTR);
   }
 
+  private static String getPathWithinApplication(HttpServletRequest request) {
+    String requestUri = request.getRequestURI();
+    String contextPath = request.getContextPath();
+
+    if (contextPath != null
+        && !contextPath.isEmpty()
+        && requestUri != null
+        && requestUri.startsWith(contextPath)) {
+      return requestUri.substring(contextPath.length());
+    }
+
+    return requestUri;
+  }
+
   private static void storeETag(HttpServletRequest request, String currentETag) {
     request.setAttribute(ETAG_ATTR, currentETag);
   }
 
-  /** Visible for testing. Returns the composite entity types for a resource name, or null. */
-  static Set<Class<?>> getCompositeEndpointTypes(String resourceName) {
-    return COMPOSITE_ENDPOINTS.get(resourceName);
+  private static String extractResourceNameFromApiRelativePath(String apiRelativePath) {
+    if (apiRelativePath == null) {
+      return null;
+    }
+
+    int slashIndex = apiRelativePath.indexOf('/');
+    return slashIndex >= 0 ? apiRelativePath.substring(0, slashIndex) : apiRelativePath;
   }
+
+  private static Set<Class<?>> resolveCompositeEndpointTypes(
+      String apiRelativePath, List<CompositeEndpointPattern> compositeEndpointPatterns) {
+    if (apiRelativePath == null) {
+      return null;
+    }
+
+    PathContainer pathContainer = PathContainer.parsePath("/" + apiRelativePath);
+
+    for (CompositeEndpointPattern compositeEndpointPattern : compositeEndpointPatterns) {
+      if (compositeEndpointPattern.pathPattern().matches(pathContainer)) {
+        return compositeEndpointPattern.types();
+      }
+    }
+
+    return null;
+  }
+
+  private static List<CompositeEndpointPattern> compileCompositeEndpointPatterns(
+      Map<String, Set<Class<?>>> compositeEndpoints) {
+    return compositeEndpoints.entrySet().stream()
+        .map(
+            entry -> {
+              String normalizedPattern = normalizeApiRelativePath(entry.getKey());
+              if (normalizedPattern == null) {
+                throw new IllegalArgumentException(
+                    "Composite endpoint pattern must not be blank: " + entry.getKey());
+              }
+
+              return new CompositeEndpointPattern(
+                  normalizedPattern,
+                  PATH_PATTERN_PARSER.parse("/" + normalizedPattern),
+                  entry.getValue());
+            })
+        .sorted(
+            Comparator.comparing(
+                    CompositeEndpointPattern::pathPattern, PathPattern.SPECIFICITY_COMPARATOR)
+                .thenComparing(CompositeEndpointPattern::pattern))
+        .toList();
+  }
+
+  private static String stripQueryAndFragment(String path) {
+    int queryStart = path.indexOf('?');
+    int fragmentStart = path.indexOf('#');
+    int endIndex = path.length();
+
+    if (queryStart >= 0) {
+      endIndex = queryStart;
+    }
+    if (fragmentStart >= 0 && fragmentStart < endIndex) {
+      endIndex = fragmentStart;
+    }
+
+    return path.substring(0, endIndex);
+  }
+
+  private static String normalizeApiRelativePath(String path) {
+    if (path == null) {
+      return null;
+    }
+
+    String normalizedPath = stripQueryAndFragment(path).strip();
+
+    while (normalizedPath.startsWith("/")) {
+      normalizedPath = normalizedPath.substring(1);
+    }
+
+    while (normalizedPath.endsWith("/")) {
+      normalizedPath = normalizedPath.substring(0, normalizedPath.length() - 1);
+    }
+
+    return normalizedPath.isEmpty() ? null : normalizedPath;
+  }
+
+  /** Visible for testing. Returns the composite entity types for an exact composite pattern key. */
+  static Set<Class<?>> getCompositeEndpointTypes(String pattern) {
+    return COMPOSITE_ENDPOINTS.get(pattern);
+  }
+
+  private record CompositeEndpointPattern(
+      String pattern, PathPattern pathPattern, Set<Class<?>> types) {}
 }
