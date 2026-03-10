@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,45 +27,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.filter;
+package org.hisp.dhis.webapi.utils;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.http.HttpMethod;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
 
-/**
- * Filter which enforces no cache for HTML pages like index pages to prevent stale versions being
- * rendered in clients.
- *
- * @author Kai Vandivier
- */
 @Component
-public class AppHtmlNoCacheFilter extends OncePerRequestFilter {
-  // Match paths with '/dhis-web-' or '/apps' that end with '.html' or '/'
-  // https://regex101.com/r/4QfxgS/1
-  public static final String HTML_PATH_REGEX = "\\/(dhis-web-|apps).*(\\.html|\\/)$";
-  public static final Pattern HTML_PATH_PATTERN = Pattern.compile(HTML_PATH_REGEX);
+@RequiredArgsConstructor
+@Slf4j
+public class HttpServletRequestPathsInitializer {
 
-  @Override
-  protected void doFilterInternal(
-      HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-      throws IOException, ServletException {
+  private final DhisConfigurationProvider configurationProvider;
 
-    String uri = request.getRequestURI();
-    Matcher m = HTML_PATH_PATTERN.matcher(uri);
-
-    if (m.find() && HttpMethod.GET.matches(request.getMethod())) {
-      ContextUtils.setNoStore(response);
+  @PostConstruct
+  public void init() {
+    String serverBaseUrl = configurationProvider.getServerBaseUrl();
+    if (serverBaseUrl != null && !serverBaseUrl.isEmpty()) {
+      HttpServletRequestPaths.setFallbackBaseUrl(serverBaseUrl);
+      log.info("Set HttpServletRequestPaths fallback base URL to: {}", serverBaseUrl);
     }
-
-    chain.doFilter(request, response);
   }
 }
