@@ -710,6 +710,7 @@ public class DataElement extends BaseMetadataObject
   // -------------------------------------------------------------------------
 
   @Override
+  @Sortable
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getShortName() {
@@ -717,6 +718,7 @@ public class DataElement extends BaseMetadataObject
   }
 
   @Override
+  @Sortable(whenPersisted = false)
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Translatable(propertyName = "shortName", key = "SHORTNAME")
@@ -725,6 +727,7 @@ public class DataElement extends BaseMetadataObject
   }
 
   @Override
+  @Sortable
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getDescription() {
@@ -732,6 +735,7 @@ public class DataElement extends BaseMetadataObject
   }
 
   @Override
+  @Sortable(value = false)
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Translatable(propertyName = "description", key = "DESCRIPTION")
@@ -779,6 +783,7 @@ public class DataElement extends BaseMetadataObject
     return valueTypeOptions;
   }
 
+  @Sortable
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @PropertyRange(min = 2)
