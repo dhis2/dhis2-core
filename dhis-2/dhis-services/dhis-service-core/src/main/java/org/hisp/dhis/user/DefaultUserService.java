@@ -1560,10 +1560,10 @@ public class DefaultUserService implements UserService {
     // Unique attribute values must not be shared between accounts.
     AttributeValues attrValues = existingUser.getAttributeValues();
     if (!attrValues.isEmpty()) {
-      List<String> uniqueAttrUids =
+      List<UID> uniqueAttrUids =
           attributeService.getAttributesByIds(attrValues.keys()).stream()
               .filter(Attribute::isUnique)
-              .map(Attribute::getUid)
+              .map(Attribute::getUID)
               .toList();
       if (!uniqueAttrUids.isEmpty()) {
         userStore.removeAttributeValues(replicaUid, uniqueAttrUids);

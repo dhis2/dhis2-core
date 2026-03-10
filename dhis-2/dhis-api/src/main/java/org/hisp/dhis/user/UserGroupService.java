@@ -32,6 +32,7 @@ package org.hisp.dhis.user;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 
 public interface UserGroupService {
   String ID = UserGroupService.class.getName();
@@ -75,7 +76,7 @@ public interface UserGroupService {
    */
   boolean canAddOrRemoveMember(UserGroup userGroup, @Nonnull UserDetails currentUser);
 
-  void updateUserGroups(User user, @Nonnull Collection<String> uids, UserDetails currentUser);
+  void updateUserGroups(User user, @Nonnull Collection<UID> uids, UserDetails currentUser);
 
   List<UserGroup> getAllUserGroups();
 

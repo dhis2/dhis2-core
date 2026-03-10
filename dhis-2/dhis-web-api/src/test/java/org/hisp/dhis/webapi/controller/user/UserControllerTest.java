@@ -51,6 +51,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -154,7 +155,8 @@ class UserControllerTest {
     }
 
     verify(userGroupService)
-        .updateUserGroups(user, Set.of("abc1", "abc2"), UserDetails.fromUser(currentUser2));
+        .updateUserGroups(
+            user, Set.of(UID.of("abc1"), UID.of("abc2")), UserDetails.fromUser(currentUser2));
   }
 
   private ImportReport createReportWith(Status status, Consumer<TypeReport> operation) {
@@ -307,7 +309,7 @@ class UserControllerTest {
     verify(userGroupService)
         .updateUserGroups(
             same(user),
-            (Collection<String>) argThat(containsInAnyOrder("abc1", "abc2")),
+            (Collection<UID>) argThat(containsInAnyOrder(UID.of("abc1"), UID.of("abc2"))),
             same(currentUserDetails));
   }
 }

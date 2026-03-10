@@ -934,12 +934,11 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
   }
 
   @Override
-  public void removeAttributeValues(
-      @Nonnull UID userUid, @Nonnull Collection<String> attributeUids) {
-    for (String attrUid : attributeUids) {
+  public void removeAttributeValues(@Nonnull UID userUid, @Nonnull Collection<UID> attributeUids) {
+    for (UID attrUid : attributeUids) {
       jdbcTemplate.update(
           "UPDATE userinfo SET attributevalues = attributevalues - ? WHERE uid = ?",
-          attrUid,
+          attrUid.getValue(),
           userUid.getValue());
     }
   }

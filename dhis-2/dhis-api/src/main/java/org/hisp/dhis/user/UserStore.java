@@ -289,7 +289,8 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @param newUuid UUID for the new user row
    * @param username username for the new user
    * @param encodedPassword pre-encoded bcrypt password for the new user
-   * @param actingUserId id of the user performing the replication (for lastupdatedby/creatoruserid)
+   * @param actingUserUid id of the user performing the replication (for
+   *     lastupdatedby/creatoruserid)
    */
   int insertUserCopy(
       @Nonnull UID sourceUid,
@@ -324,7 +325,7 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    * @param userUid UID of the user to update
    * @param attributeUids attribute UIDs to remove from attributevalues
    */
-  void removeAttributeValues(@Nonnull UID userUid, @Nonnull Collection<String> attributeUids);
+  void removeAttributeValues(@Nonnull UID userUid, @Nonnull Collection<UID> attributeUids);
 
   /**
    * Evicts the {@code getUserByUsername} query cache region after a direct JDBC write, so that
