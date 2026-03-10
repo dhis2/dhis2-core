@@ -36,6 +36,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Setter;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -62,7 +63,7 @@ public class ProgramStageWorkingList extends BaseIdentifiableObject implements M
   private ProgramStageQueryCriteria programStageQueryCriteria = new ProgramStageQueryCriteria();
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   public Program getProgram() {
     return program;
   }
