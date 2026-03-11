@@ -896,7 +896,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME),
     INCIDENT_DATE(
         ColumnHeader.INCIDENT_DATE.getItem(),
-        EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME,
+        EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
     EVENT_DATE(
         ColumnHeader.EVENT_DATE.getItem(), EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
