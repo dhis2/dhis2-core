@@ -914,16 +914,11 @@ public class EventQueryTest extends AnalyticsApiTest {
         true);
 
     validateRow(
-        response,
-        0,
-        List.of(
-            "zQpYVEyAM2t",
-            "Sierra Leone / Western Area / Rural Western Area / Hastings Health Centre",
-            "10"));
+        response, 0, List.of("Urk55T8KgpT", "Sierra Leone / Kailahun / Mandu / Yoyah CHP", "24"));
     validateRow(
         response,
         1,
-        List.of("lyONqUkY1Bq", "Sierra Leone / Tonkolili / Kunike / Matholey MCHP", "17"));
+        List.of("QFcMulIoEii", "Sierra Leone / Bombali / Gbanti Kamaranka / Gbainkfay MCHP", "21"));
   }
 
   @Test

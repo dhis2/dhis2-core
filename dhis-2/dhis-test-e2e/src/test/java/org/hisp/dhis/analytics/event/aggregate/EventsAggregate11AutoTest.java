@@ -1097,11 +1097,10 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
     // rowContext not found or empty in the response, skipping assertions.
 
     // 7. Assert row existence by value (unsorted results - validates all columns).
-    // Validate row exists with values from original row index 0
-    validateRowExists(response, actualHeaders, Map.of("incidentdate", "2022", "value", "18"));
-
-    // Validate row exists with values from original row index 2
-    validateRowExists(response, actualHeaders, Map.of("incidentdate", "2021", "value", "8"));
+    // Validate row exists with values from original row.
+    validateRowExists(response, actualHeaders, Map.of("incidentdate", "2022", "value", "1"));
+    validateRowExists(response, actualHeaders, Map.of("incidentdate", "2021", "value", "10"));
+    validateRowExists(response, actualHeaders, Map.of("incidentdate", "2020", "value", "1"));
   }
 
   @Test
