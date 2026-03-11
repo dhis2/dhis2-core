@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.config;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.AUDIT_DB_ENABLED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CACHE_EHCACHE_CONFIG_FILE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.USE_QUERY_CACHE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.USE_SECOND_LEVEL_CACHE;
@@ -84,7 +85,14 @@ public class HibernateConfig {
   }
 
   @Bean
-  public JpaTransactionManager jpaTransactionManager(EntityManagerFactory entityManagerFactory) {
+  public JpaTransactionManager jpaTransactionManager(
+      EntityManagerFactory entityManagerFactory,
+      @Qualifier("actualDataSource") DataSource dataSource,
+      DhisConfigurationProvider dhisConfig) {
+    if (dhisConfig.isEnabled(AUDIT_DB_ENABLED)) {
+      return new DbAuditTransactionManager(
+          entityManagerFactory, dataSource, new UsernameSupplier());
+    }
     return new JpaTransactionManager(entityManagerFactory);
   }
 

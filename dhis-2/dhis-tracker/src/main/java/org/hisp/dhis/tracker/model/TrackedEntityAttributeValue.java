@@ -40,9 +40,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.Accessors;
-import org.hisp.dhis.audit.AuditAttribute;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -52,7 +49,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
  *
  * @author Abyot Asalefew
  */
-@Auditable(scope = AuditScope.TRACKER)
 @Accessors(chain = true)
 @ToString(onlyExplicitlyIncluded = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -60,10 +56,9 @@ public class TrackedEntityAttributeValue implements Serializable {
   /** Determines if a de-serialized file is compatible with this class. */
   @Serial private static final long serialVersionUID = -4469496681709547707L;
 
-  @Setter @ToString.Include @EqualsAndHashCode.Include @AuditAttribute
-  private TrackedEntityAttribute attribute;
+  @Setter @ToString.Include @EqualsAndHashCode.Include private TrackedEntityAttribute attribute;
 
-  @Setter @ToString.Include @AuditAttribute private TrackedEntity trackedEntity;
+  @Setter @ToString.Include private TrackedEntity trackedEntity;
   @Setter @ToString.Include private Date created;
   @Setter @ToString.Include private Date lastUpdated;
   @Setter @ToString.Include private String storedBy;
@@ -108,13 +103,11 @@ public class TrackedEntityAttributeValue implements Serializable {
     setLastUpdated(date);
   }
 
-  @AuditAttribute
   @JsonProperty
   public Date getCreated() {
     return created;
   }
 
-  @AuditAttribute
   @JsonProperty
   public Date getLastUpdated() {
     return lastUpdated;
@@ -167,7 +160,6 @@ public class TrackedEntityAttributeValue implements Serializable {
    *
    * @return String with value, either plain-text or decrypted.
    */
-  @AuditAttribute
   @JsonProperty
   @EqualsAndHashCode.Include
   public String getValue() {

@@ -61,9 +61,6 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.ListIndexBase;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
-import org.hisp.dhis.audit.AuditAttribute;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseTrackerObject;
 import org.hisp.dhis.common.CodeGenerator;
@@ -88,7 +85,6 @@ import org.locationtech.jts.geom.Geometry;
 @Entity
 @Table(name = "enrollment")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
-@Auditable(scope = AuditScope.TRACKER)
 @Data
 public class Enrollment extends BaseTrackerObject
     implements IdentifiableObject, SoftDeletableEntity {
@@ -161,13 +157,11 @@ public class Enrollment extends BaseTrackerObject
   @JsonProperty
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "trackedentityid", referencedColumnName = "trackedentityid")
-  @AuditAttribute
   private TrackedEntity trackedEntity;
 
   @JsonProperty
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "programid", referencedColumnName = "programid", nullable = false)
-  @AuditAttribute
   private Program program;
 
   @JsonProperty
@@ -185,7 +179,6 @@ public class Enrollment extends BaseTrackerObject
       name = "organisationunitid",
       referencedColumnName = "organisationunitid",
       nullable = false)
-  @AuditAttribute
   private OrganisationUnit organisationUnit;
 
   @JsonProperty
@@ -204,7 +197,6 @@ public class Enrollment extends BaseTrackerObject
       name = "attributeoptioncomboid",
       referencedColumnName = "categoryoptioncomboid",
       nullable = false)
-  @AuditAttribute
   private CategoryOptionCombo attributeOptionCombo;
 
   // -------------------------------------------------------------------------

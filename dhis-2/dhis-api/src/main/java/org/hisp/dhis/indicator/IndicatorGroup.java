@@ -62,7 +62,6 @@ import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.attribute.AttributeValuesDeserializer;
 import org.hisp.dhis.attribute.AttributeValuesSerializer;
-import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseMetadataObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -127,7 +126,6 @@ public class IndicatorGroup extends BaseMetadataObject
   private Set<Indicator> members = new HashSet<>();
 
   @Type(type = "jsbAttributeValues")
-  @AuditAttribute
   private AttributeValues attributeValues = AttributeValues.empty();
 
   @Type(type = "jsbObjectSharing")

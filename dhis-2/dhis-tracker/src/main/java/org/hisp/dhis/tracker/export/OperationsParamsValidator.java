@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.tracker.export;
 
-import static org.hisp.dhis.audit.AuditOperationType.READ;
 import static org.hisp.dhis.security.Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS;
 
 import java.util.HashSet;
@@ -55,7 +54,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
-import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
@@ -74,8 +72,6 @@ public class OperationsParamsValidator {
   private final TrackedEntityTypeService trackedEntityTypeService;
 
   private final OrganisationUnitService organisationUnitService;
-
-  private final TrackedEntityAuditService trackedEntityAuditService;
 
   /**
    * Validates the user is authorized and/or has the necessary configuration set up in case the org
@@ -218,8 +214,6 @@ public class OperationsParamsValidator {
     if (trackedEntity == null || (trackedEntity.isDeleted() && !includeDeleted)) {
       throw new BadRequestException("Tracked entity is specified but does not exist: " + uid);
     }
-    trackedEntityAuditService.addTrackedEntityAudit(READ, user.getUsername(), trackedEntity);
-
     if (trackedEntity.getTrackedEntityType() != null
         && !aclService.canDataRead(user, trackedEntity.getTrackedEntityType())) {
       throw new ForbiddenException(

@@ -29,9 +29,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
-import static org.hisp.dhis.audit.AuditOperationType.DELETE;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import java.util.Collection;
 import java.util.List;
@@ -42,7 +40,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
@@ -70,8 +67,6 @@ import org.springframework.stereotype.Service;
 public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeletionService {
   private final IdentifiableObjectManager manager;
 
-  private final TrackedEntityAuditService trackedEntityAuditService;
-
   private final TrackedEntityAttributeValueService attributeValueService;
 
   private final SingleEventChangeLogService singleEventChangeLogService;
@@ -95,8 +90,6 @@ public class DefaultTrackerObjectsDeletionService implements TrackerObjectDeleti
       if (trackedEntity == null) {
         throw new NotFoundException(TrackedEntity.class, uid);
       }
-      trackedEntityAuditService.addTrackedEntityAudit(DELETE, getCurrentUsername(), trackedEntity);
-
       trackedEntity.setLastUpdatedByUserInfo(userInfoSnapshot);
 
       Set<Enrollment> daoEnrollments = trackedEntity.getEnrollments();

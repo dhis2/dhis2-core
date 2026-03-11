@@ -49,8 +49,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataapproval.DataApproval;
-import org.hisp.dhis.dataapproval.DataApprovalAudit;
-import org.hisp.dhis.dataapproval.DataApprovalAuditStore;
 import org.hisp.dhis.dataapproval.DataApprovalStore;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationStore;
@@ -78,7 +76,6 @@ public class DataCategoryOptionComboMergeHandler {
 
   private final DataValueStore dataValueStore;
   private final DataValueChangelogStore dataValueChangelogStore;
-  private final DataApprovalAuditStore dataApprovalAuditStore;
   private final DataApprovalStore dataApprovalStore;
   private final TrackerEventStore trackerEventStore;
   private final SingleEventStore singleEventStore;
@@ -144,16 +141,6 @@ public class DataCategoryOptionComboMergeHandler {
         handleDaDuplicates(sourceDuplicateList.get(true), targetDas, target, sources);
       }
     }
-  }
-
-  /**
-   * Deletes {@link DataApprovalAudit}s as the source {@link CategoryOptionCombo}s are always
-   * deleted.
-   */
-  public void handleDataApprovalAudits(@Nonnull List<CategoryOptionCombo> sources) {
-    log.info(
-        "Deleting source data approval audits as source CategoryOptionCombos are being deleted");
-    sources.forEach(dataApprovalAuditStore::deleteDataApprovalAudits);
   }
 
   /**

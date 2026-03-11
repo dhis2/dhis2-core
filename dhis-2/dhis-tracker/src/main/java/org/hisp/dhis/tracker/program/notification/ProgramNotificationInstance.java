@@ -52,7 +52,6 @@ import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
-import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -87,7 +86,6 @@ public class ProgramNotificationInstance implements IdentifiableObject {
 
   @JsonProperty
   @Column(name = "code", length = 50)
-  @AuditAttribute
   protected String code;
 
   @Column(name = "created", nullable = false, updatable = false)

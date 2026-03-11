@@ -37,9 +37,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import org.hisp.dhis.audit.AuditAttribute;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.SoftDeletableEntity;
@@ -51,18 +48,17 @@ import org.hisp.dhis.relationship.RelationshipType;
  * @author Abyot Asalefew
  * @author Stian Sandvold
  */
-@Auditable(scope = AuditScope.TRACKER)
 public class Relationship extends SoftDeletableObject implements Serializable, SoftDeletableEntity {
   /** Determines if a de-serialized file is compatible with this class. */
   private static final long serialVersionUID = 3818815755138507997L;
 
   private Date createdAtClient;
 
-  @AuditAttribute private RelationshipType relationshipType;
+  private RelationshipType relationshipType;
 
-  @AuditAttribute private RelationshipItem from;
+  private RelationshipItem from;
 
-  @AuditAttribute private RelationshipItem to;
+  private RelationshipItem to;
 
   private ObjectStyle style;
 

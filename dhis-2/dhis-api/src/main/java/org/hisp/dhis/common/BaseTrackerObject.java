@@ -36,7 +36,6 @@ import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import java.util.Date;
 import lombok.Setter;
-import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
@@ -47,7 +46,6 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 public class BaseTrackerObject {
 
   @Setter
-  @AuditAttribute
   @Column(name = "uid", unique = true, nullable = false, length = 11)
   protected String uid;
 

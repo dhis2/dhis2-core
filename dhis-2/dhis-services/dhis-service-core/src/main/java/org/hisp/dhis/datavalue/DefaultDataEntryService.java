@@ -44,7 +44,6 @@ import static org.hisp.dhis.common.IdCoder.ObjectType.OU;
 import static org.hisp.dhis.feedback.DataEntrySummary.error;
 import static org.hisp.dhis.security.Authorities.F_EDIT_EXPIRED;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -100,7 +99,6 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
   private final DataEntryStore store;
   private final IdCoder idCoder;
-  private final DataEntryAuditService audit;
 
   @Override
   @Transactional(readOnly = true)
@@ -444,9 +442,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     ValidationSource source = new ValuesValidationSource(List.of(value));
     DataEntryGroup valid = validate(force, dataSet, source, errors);
     if (valid.values().isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
-    int n = store.upsertValues(List.of(value));
-    if (n > 0)
-      audit.auditUpsert(valid, new DataEntrySummary(1, 1, 1, 0, List.of()), getCurrentUsername());
+    store.upsertValues(List.of(value));
   }
 
   @Override
@@ -509,7 +505,6 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
               0, () -> options.dryRun() ? drySucceeded : store.upsertValues(validValues));
     }
     DataEntrySummary summary = new DataEntrySummary(entered, attempted, succeeded, deleted, errors);
-    audit.auditUpsert(group, summary, getCurrentUsername());
     return summary;
   }
 
@@ -535,8 +530,6 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     DataEntryGroup valid = validate(force, dataSet, source, errors);
     if (valid.values().isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
     boolean deleted = store.deleteByKeys(List.of(key)) > 0;
-    if (deleted)
-      audit.auditUpsert(valid, new DataEntrySummary(1, 1, 1, 1, List.of()), getCurrentUsername());
     return deleted;
   }
 

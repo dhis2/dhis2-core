@@ -79,7 +79,6 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Locale;
@@ -213,8 +212,6 @@ public class DefaultUserService implements UserService {
   @Transactional
   public long addUser(User user) {
     String currentUsername = CurrentUserUtil.getCurrentUsername();
-    AuditLogUtil.infoWrapper(log, currentUsername, user, AuditLogUtil.ACTION_CREATE);
-
     userStore.save(user);
 
     return user.getId();
@@ -223,7 +220,6 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public long addUser(User user, UserDetails actingUser) {
-    AuditLogUtil.infoWrapper(log, actingUser.getUsername(), user, AuditLogUtil.ACTION_CREATE);
 
     userStore.save(user, actingUser, false);
 
@@ -234,24 +230,17 @@ public class DefaultUserService implements UserService {
   @Transactional
   public void updateUser(User user) {
     userStore.update(user);
-
-    AuditLogUtil.infoWrapper(
-        log, CurrentUserUtil.getCurrentUsername(), user, AuditLogUtil.ACTION_UPDATE);
   }
 
   @Override
   @Transactional
   public void updateUser(User user, UserDetails actingUser) {
     userStore.update(user, actingUser);
-
-    AuditLogUtil.infoWrapper(log, actingUser.getUsername(), user, AuditLogUtil.ACTION_UPDATE);
   }
 
   @Override
   @Transactional
   public void deleteUser(User user) {
-    AuditLogUtil.infoWrapper(
-        log, CurrentUserUtil.getCurrentUsername(), user, AuditLogUtil.ACTION_DELETE);
 
     userStore.delete(user);
   }

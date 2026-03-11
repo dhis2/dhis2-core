@@ -42,7 +42,6 @@ import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -57,11 +56,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.artemis.audit.AuditManager;
-import org.hisp.dhis.artemis.audit.AuditableEntity;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -124,8 +118,6 @@ public class RouteService {
   private DataBufferFactory dataBufferFactory;
 
   private WebClient webClient;
-
-  private final AuditManager auditManager;
 
   protected static final Set<String> ALLOWED_REQUEST_HEADERS =
       Set.of(
@@ -338,54 +330,11 @@ public class RouteService {
             .retrieve()
             .onStatus(httpStatusCode -> true, clientResponse -> Mono.empty());
 
-    Audit.AuditBuilder auditBuilder =
-        Audit.builder()
-            .auditScope(AuditScope.API)
-            .createdBy(userDetails.getUsername())
-            .auditType(AuditType.SECURITY)
-            .data("");
-
-    RouteRunApiAuditEntry auditEntry = new RouteRunApiAuditEntry();
-    auditEntry.setSource("Route Run");
-    auditEntry.setRouteId(routeId);
-    auditEntry.setHttpMethod(httpMethod.name());
-    auditEntry.setUpstreamUrl(upstreamUrlLog);
-
     return responseSpec
         .toEntityFlux(DataBuffer.class)
         .onErrorReturn(
             throwable -> throwable.getCause() instanceof ReadTimeoutException,
             new ResponseEntity<>(HttpStatus.GATEWAY_TIMEOUT))
-        .doOnError(
-            throwable -> {
-              auditEntry.setSuccessful(false);
-              AuditableEntity auditableEntity =
-                  new AuditableEntity(RouteRunApiAuditEntry.class, auditEntry);
-              Audit audit =
-                  auditBuilder
-                      .createdAt(LocalDateTime.now())
-                      .attributes(
-                          auditManager.collectAuditAttributes(
-                              auditEntry, RouteRunApiAuditEntry.class))
-                      .auditableEntity(auditableEntity)
-                      .build();
-              auditManager.send(audit);
-            })
-        .doOnSuccess(
-            fluxResponseEntity -> {
-              auditEntry.setSuccessful(true);
-              AuditableEntity auditableEntity =
-                  new AuditableEntity(RouteRunApiAuditEntry.class, auditEntry);
-              Audit audit =
-                  auditBuilder
-                      .createdAt(LocalDateTime.now())
-                      .attributes(
-                          auditManager.collectAuditAttributes(
-                              auditEntry, RouteRunApiAuditEntry.class))
-                      .auditableEntity(auditableEntity)
-                      .build();
-              auditManager.send(audit);
-            })
         .block();
   }
 

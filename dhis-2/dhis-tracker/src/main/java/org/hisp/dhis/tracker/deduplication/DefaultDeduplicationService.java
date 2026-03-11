@@ -186,7 +186,6 @@ public class DefaultDeduplicationService implements DeduplicationService {
       throw new RuntimeException("Could not find TrackedEntity: " + duplicate.getUid());
     }
     updateTeAndPotentialDuplicate(params, original);
-    potentialDuplicateStore.auditMerge(params);
   }
 
   private boolean haveSameEnrollment(

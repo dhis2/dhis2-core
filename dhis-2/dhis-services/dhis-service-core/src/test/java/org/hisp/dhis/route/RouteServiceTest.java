@@ -65,14 +65,13 @@ class RouteServiceTest {
     DhisConfigurationProvider dhisConfigurationProvider =
         new TestDhisConfigurationProvider(properties);
 
-    RouteService routeService =
-        new RouteService(null, null, dhisConfigurationProvider, null, null, null);
+    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
     assertThrows(IllegalStateException.class, routeService::postConstruct);
   }
 
   @Test
   void testCreateRequestUrlDoesNotEscapeUrl() {
-    RouteService routeService = new RouteService(null, null, null, null, null, null);
+    RouteService routeService = new RouteService(null, null, null, null, null);
     String upstreamUrl =
         routeService.createRequestUrl(
             UriComponentsBuilder.fromUriString(
@@ -91,8 +90,7 @@ class RouteServiceTest {
     DhisConfigurationProvider dhisConfigurationProvider =
         new TestDhisConfigurationProvider(properties);
 
-    RouteService routeService =
-        new RouteService(null, null, dhisConfigurationProvider, null, null, null);
+    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
     assertThrows(IllegalStateException.class, routeService::postConstruct);
   }
 
@@ -106,8 +104,7 @@ class RouteServiceTest {
     DhisConfigurationProvider dhisConfigurationProvider =
         new TestDhisConfigurationProvider(properties);
 
-    RouteService routeService =
-        new RouteService(null, null, dhisConfigurationProvider, null, null, null);
+    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
     routeService.postConstruct();
 
     Route route = new Route();
@@ -136,8 +133,7 @@ class RouteServiceTest {
     DhisConfigurationProvider dhisConfigurationProvider =
         new TestDhisConfigurationProvider(properties);
 
-    RouteService routeService =
-        new RouteService(null, null, dhisConfigurationProvider, null, null, null);
+    RouteService routeService = new RouteService(null, null, dhisConfigurationProvider, null, null);
     routeService.postConstruct();
 
     Route route = new Route();

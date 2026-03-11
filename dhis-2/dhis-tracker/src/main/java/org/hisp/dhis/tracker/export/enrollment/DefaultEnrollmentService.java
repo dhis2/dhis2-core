@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import static org.hisp.dhis.audit.AuditOperationType.READ;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.ArrayList;
@@ -56,7 +55,6 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.acl.TrackerProgramService;
-import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
@@ -83,8 +81,6 @@ class DefaultEnrollmentService implements EnrollmentService {
   private final TrackerAccessManager trackerAccessManager;
 
   private final EnrollmentOperationParamsMapper paramsMapper;
-
-  private final TrackedEntityAuditService trackedEntityAuditService;
 
   private final TrackerProgramService trackerProgramService;
 
@@ -152,8 +148,6 @@ class DefaultEnrollmentService implements EnrollmentService {
             params.getFields(),
             params.isIncludeDeleted());
 
-    addTrackedEntityAudit(queryParams.getTrackedEntities(), enrollments);
-
     return enrollments;
   }
 
@@ -168,20 +162,7 @@ class DefaultEnrollmentService implements EnrollmentService {
     List<Enrollment> enrollments =
         mapEnrollment(enrollmentsPage.getItems(), params.getFields(), params.isIncludeDeleted());
 
-    addTrackedEntityAudit(queryParams.getTrackedEntities(), enrollments);
-
     return enrollmentsPage.withFilteredItems(enrollments);
-  }
-
-  /**
-   * Adds audit entry for tracked entity read. Only audits when a single tracked entity is requested
-   * to avoid duplicate audits when called from /trackedEntities (which audits its own results).
-   */
-  private void addTrackedEntityAudit(Set<UID> trackedEntities, List<Enrollment> enrollments) {
-    if (trackedEntities.size() == 1 && !enrollments.isEmpty()) {
-      trackedEntityAuditService.addTrackedEntityAudit(
-          READ, getCurrentUserDetails().getUsername(), enrollments.get(0).getTrackedEntity());
-    }
   }
 
   private Enrollment addRequestedFields(

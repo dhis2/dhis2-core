@@ -59,7 +59,6 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.attribute.AttributeValuesDeserializer;
 import org.hisp.dhis.attribute.AttributeValuesSerializer;
-import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
@@ -90,10 +89,10 @@ public class BaseIdentifiableObject extends BaseLinkableObject
   @Setter protected long id;
 
   /** The unique identifier for this object. */
-  @Setter @AuditAttribute protected String uid;
+  @Setter protected String uid;
 
   /** The unique code for this object. */
-  @Setter @AuditAttribute protected String code;
+  @Setter protected String code;
 
   /** The name of this object. Required and unique. */
   @Setter protected String name;
@@ -105,7 +104,7 @@ public class BaseIdentifiableObject extends BaseLinkableObject
   @Setter protected Date lastUpdated;
 
   /** Set of the dynamic attributes values that belong to this data element. */
-  @AuditAttribute private AttributeValues attributeValues = AttributeValues.empty();
+  private AttributeValues attributeValues = AttributeValues.empty();
 
   /** Set of available object translation, normally filtered by locale. */
   protected Set<Translation> translations = new HashSet<>();

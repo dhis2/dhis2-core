@@ -345,7 +345,6 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("reservedvalue");
     emptyTable("sequentialnumbercounter");
 
-    emptyTable("audit");
     emptyTable("eventhook");
     emptyTable("dataentryform");
 

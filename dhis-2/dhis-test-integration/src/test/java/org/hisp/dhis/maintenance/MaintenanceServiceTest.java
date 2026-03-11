@@ -35,20 +35,13 @@ import static org.hisp.dhis.tracker.test.TrackerTestBase.createSingleEvent;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTeToTeRelationship;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import org.hisp.dhis.audit.Audit;
-import org.hisp.dhis.audit.AuditQuery;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.AuditService;
-import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.CodeGenerator;
@@ -94,7 +87,6 @@ import org.hisp.dhis.tracker.test.RelationshipUtils;
 import org.hisp.dhis.user.User;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -132,8 +124,6 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private TrackedEntityTypeService trackedEntityTypeService;
-
-  @Autowired private AuditService auditService;
 
   @Autowired private CategoryService categoryService;
 
@@ -567,36 +557,6 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
 
     assertFalse(enrollmentExistsIncludingDeleted(enrollment));
     assertFalse(relationshipExistsIncludingDeleted(r.getUid()));
-  }
-
-  @Test
-  @Disabled("until we can inject dhis.conf property overrides")
-  void testAuditEntryForDeletionOfSoftDeletedTrackedEntity() {
-    manager.delete(trackedEntityWithAssociations);
-    assertFalse(
-        trackedEntityService.findTrackedEntity(UID.of(trackedEntityWithAssociations)).isPresent());
-    assertTrue(trackedEntityExistsIncludingDeleted(trackedEntityWithAssociations.getUid()));
-    maintenanceService.deleteSoftDeletedTrackedEntities();
-    List<Audit> audits =
-        auditService.getAudits(
-            AuditQuery.builder()
-                .auditType(Sets.newHashSet(AuditType.DELETE))
-                .auditScope(Sets.newHashSet(AuditScope.TRACKER))
-                .build());
-    assertFalse(audits.isEmpty());
-    assertEquals(
-        1,
-        audits.stream()
-            .filter(a -> a.getKlass().equals("org.hisp.dhis.program.Enrollment"))
-            .count());
-    assertEquals(
-        1, audits.stream().filter(a -> a.getKlass().equals("org.hisp.dhis.program.Event")).count());
-    assertEquals(
-        1,
-        audits.stream()
-            .filter(a -> a.getKlass().equals("org.hisp.dhis.trackedentity.TrackedEntity"))
-            .count());
-    audits.forEach(a -> assertEquals(AuditType.DELETE, a.getAuditType()));
   }
 
   @Test

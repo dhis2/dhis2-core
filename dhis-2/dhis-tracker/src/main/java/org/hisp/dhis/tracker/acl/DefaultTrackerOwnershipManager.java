@@ -70,7 +70,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   private static final int TEMPORARY_OWNERSHIP_VALIDITY_IN_HOURS = 3;
 
   private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
-  private final HibernateProgramTempOwnershipAuditStore programTempOwnershipAuditStore;
   private final HibernateProgramTempOwnerStore programTempOwnerStore;
   private final IdentifiableObjectStore<TrackedEntity> trackedEntityStore;
   private final TrackerProgramService trackerProgramService;
@@ -85,7 +84,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       UserService userService,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
       CacheProvider cacheProvider,
-      HibernateProgramTempOwnershipAuditStore programTempOwnershipAuditStore,
       HibernateProgramTempOwnerStore programTempOwnerStore,
       IdentifiableObjectStore<TrackedEntity> trackedEntityStore,
       ProgramOwnershipHistoryService programOwnershipHistoryService,
@@ -97,7 +95,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     this.userService = userService;
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
-    this.programTempOwnershipAuditStore = programTempOwnershipAuditStore;
     this.programOwnershipHistoryService = programOwnershipHistoryService;
     this.programTempOwnerStore = programTempOwnerStore;
     this.trackedEntityStore = trackedEntityStore;
@@ -120,7 +117,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   @Transactional
   // TODO(tracker) This method should take a tracked entity UID instead.
   // Currently we can’t use TrackedEntityService due to a cyclic dependency:
-  // OwnershipManager is used by RelationshipService and TrackedEntityAuditService.
+  // OwnershipManager is used by RelationshipService.
   // Once the cycle is resolved, we could move all validations here instead of in the controller.
   public void transferOwnership(
       @Nonnull TrackedEntity trackedEntity, @Nonnull UID programUid, @Nonnull UID orgUnitUid)
@@ -192,11 +189,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     validateTrackedEntity(trackedEntity, user);
     validateProgram(program, trackedEntity);
     validateUser(trackedEntity, program, user);
-
-    if (trackedEntity.getTrackedEntityType().isAllowAuditLog()) {
-      programTempOwnershipAuditStore.addProgramTempOwnershipAudit(
-          new ProgramTempOwnershipAudit(program, trackedEntity, reason, user.getUsername()));
-    }
 
     trackedEntity.setLastUpdated(new Date());
     trackedEntityStore.update(trackedEntity);

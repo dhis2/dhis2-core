@@ -27,40 +27,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataapproval;
+package org.hisp.dhis.config;
 
-import java.util.List;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import java.util.function.Supplier;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 
 /**
- * Defines the functionality for persisting DataApproval objects.
+ * Resolves the current authenticated username from Spring Security's {@link SecurityContextHolder}.
+ * Returns {@code "system-process"} when no authenticated user is present.
  *
- * @author Jim Grace
+ * <p>This is a local copy of the same logic in {@code
+ * org.hisp.dhis.artemis.config.UsernameSupplier}, kept here to avoid a cross-module dependency from
+ * {@code dhis-support-hibernate} on {@code dhis-support-artemis}.
  */
-public interface DataApprovalAuditStore extends GenericStore<DataApprovalAudit> {
-  String ID = DataApprovalAuditStore.class.getName();
+class UsernameSupplier implements Supplier<String> {
 
-  /**
-   * Deletes DataApprovalAudits for the given organisation unit.
-   *
-   * @param organisationUnit the organisation unit.
-   */
-  void deleteDataApprovalAudits(OrganisationUnit organisationUnit);
+  private static final String DEFAULT_USERNAME = "system-process";
 
-  /**
-   * Deletes DataApprovalAudits for the given category option combo.
-   *
-   * @param coc the category option combo
-   */
-  void deleteDataApprovalAudits(CategoryOptionCombo coc);
-
-  /**
-   * Returns DataApprovalAudit objects for query parameters.
-   *
-   * @param params Data approval audit query parameters.
-   * @return matching DataApproval object, if any
-   */
-  List<DataApprovalAudit> getDataApprovalAudits(DataApprovalAuditQueryParams params);
+  @Override
+  public String get() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (authentication == null
+        || !authentication.isAuthenticated()
+        || authentication.getPrincipal() == null) {
+      return DEFAULT_USERNAME;
+    }
+    Object principal = authentication.getPrincipal();
+    if (!(principal instanceof UserDetails)) {
+      return DEFAULT_USERNAME;
+    }
+    return ((UserDetails) principal).getUsername();
+  }
 }

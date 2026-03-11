@@ -128,7 +128,6 @@ public class DefaultOrgUnitMergeService implements OrgUnitMergeService {
         .add(analyticalObjectHandler::mergeAnalyticalObjects)
         .add(dataHandler::mergeDataValueAudits)
         .add(dataHandler::mergeDataValues)
-        .add(dataHandler::mergeDataApprovalAudits)
         .add(dataHandler::mergeDataApprovals)
         .add(dataHandler::mergeLockExceptions)
         .add(dataHandler::mergeValidationResults)

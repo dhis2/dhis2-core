@@ -39,7 +39,6 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.math.BigInteger;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -49,15 +48,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.hibernate.query.NativeQuery;
-import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.artemis.audit.AuditManager;
-import org.hisp.dhis.artemis.audit.AuditableEntity;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.tracker.Page;
@@ -66,7 +59,6 @@ import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerStore;
 import org.hisp.dhis.tracker.export.trackedentity.HibernateTrackedEntityChangeLogStore;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog;
 import org.hisp.dhis.tracker.model.Enrollment;
-import org.hisp.dhis.tracker.model.Relationship;
 import org.hisp.dhis.tracker.model.RelationshipItem;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
@@ -82,8 +74,6 @@ import org.springframework.stereotype.Component;
 @Component("org.hisp.dhis.tracker.deduplication.HibernatePotentialDuplicateStore")
 class HibernatePotentialDuplicateStore
     extends HibernateIdentifiableObjectStore<PotentialDuplicate> {
-  private final AuditManager auditManager;
-
   private final HibernateTrackedEntityChangeLogStore hibernateTrackedEntityChangeLogStore;
 
   private final TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore;
@@ -93,11 +83,9 @@ class HibernatePotentialDuplicateStore
       JdbcTemplate jdbcTemplate,
       ApplicationEventPublisher publisher,
       AclService aclService,
-      AuditManager auditManager,
       HibernateTrackedEntityChangeLogStore hibernateTrackedEntityChangeLogStore,
       TrackedEntityProgramOwnerStore trackedEntityProgramOwnerStore) {
     super(entityManager, jdbcTemplate, publisher, PotentialDuplicate.class, aclService, false);
-    this.auditManager = auditManager;
     this.hibernateTrackedEntityChangeLogStore = hibernateTrackedEntityChangeLogStore;
     this.trackedEntityProgramOwnerStore = trackedEntityProgramOwnerStore;
   }
@@ -300,34 +288,5 @@ class HibernatePotentialDuplicateStore
     // Flush to update records before we delete duplicate, or else it might
     // be soft-deleted by hibernate.
     getSession().flush();
-  }
-
-  public void auditMerge(DeduplicationMergeParams params) {
-    TrackedEntity duplicate = params.getDuplicate();
-    MergeObject mergeObject = params.getMergeObject();
-
-    mergeObject
-        .getRelationships()
-        .forEach(
-            rel ->
-                duplicate.getRelationshipItems().stream()
-                    .map(RelationshipItem::getRelationship)
-                    .filter(r -> r.getUID().equals(rel))
-                    .findAny()
-                    .ifPresent(
-                        relationship ->
-                            auditManager.send(
-                                Audit.builder()
-                                    .auditScope(AuditScope.TRACKER)
-                                    .auditType(AuditType.UPDATE)
-                                    .createdAt(LocalDateTime.now())
-                                    .object(relationship)
-                                    .klass(
-                                        HibernateProxyUtils.getRealClass(relationship)
-                                            .getCanonicalName())
-                                    .uid(rel.getValue())
-                                    .auditableEntity(
-                                        new AuditableEntity(Relationship.class, relationship))
-                                    .build())));
   }
 }

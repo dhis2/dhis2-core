@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import static org.hisp.dhis.audit.AuditOperationType.SEARCH;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.Date;
@@ -54,7 +53,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.tracker.export.OperationsParamsValidator;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
@@ -72,8 +70,6 @@ import org.springframework.transaction.annotation.Transactional;
 class DefaultTrackedEntityService implements TrackedEntityService {
 
   private final JdbcTrackedEntityStore trackedEntityStore;
-
-  private final TrackedEntityAuditService trackedEntityAuditService;
 
   private final TrackedEntityAggregate trackedEntityAggregate;
 
@@ -276,8 +272,6 @@ class DefaultTrackedEntityService implements TrackedEntityService {
                 trackedEntity, queryParams.getEnrolledInTrackerProgram()));
       }
     }
-    trackedEntityAuditService.addTrackedEntityAudit(SEARCH, user.getUsername(), trackedEntities);
-
     return trackedEntities;
   }
 

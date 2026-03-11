@@ -187,7 +187,6 @@ class DeduplicationServiceTest {
     verify(trackerObjectDeletionService).deleteTrackedEntities(List.of(UID.of(trackedEntityB)));
     verify(potentialDuplicateStore)
         .update(argThat(t -> t.getStatus().equals(DeduplicationStatus.MERGED)));
-    verify(potentialDuplicateStore).auditMerge(deduplicationMergeParams);
   }
 
   @Test
@@ -203,7 +202,6 @@ class DeduplicationServiceTest {
         () -> deduplicationService.autoMerge(deduplicationMergeParams));
     verify(deduplicationHelper, times(0)).generateMergeObject(trackedEntityA, trackedEntityB);
     verify(potentialDuplicateStore, times(0)).update(any());
-    verify(potentialDuplicateStore, times(0)).auditMerge(deduplicationMergeParams);
   }
 
   @Test
@@ -220,7 +218,6 @@ class DeduplicationServiceTest {
         () -> deduplicationService.autoMerge(deduplicationMergeParams));
     verify(deduplicationHelper, times(0)).generateMergeObject(trackedEntityA, trackedEntityB);
     verify(potentialDuplicateStore, times(0)).update(any());
-    verify(potentialDuplicateStore, times(0)).auditMerge(deduplicationMergeParams);
   }
 
   @Test
@@ -237,7 +234,6 @@ class DeduplicationServiceTest {
         () -> deduplicationService.autoMerge(deduplicationMergeParams));
     verify(deduplicationHelper, times(0)).generateMergeObject(trackedEntityA, trackedEntityB);
     verify(potentialDuplicateStore, times(0)).update(any());
-    verify(potentialDuplicateStore, times(0)).auditMerge(deduplicationMergeParams);
   }
 
   @Test
@@ -254,7 +250,6 @@ class DeduplicationServiceTest {
         () -> deduplicationService.autoMerge(deduplicationMergeParams));
     verify(deduplicationHelper, times(0)).generateMergeObject(trackedEntityA, trackedEntityB);
     verify(potentialDuplicateStore, times(0)).update(any());
-    verify(potentialDuplicateStore, times(0)).auditMerge(deduplicationMergeParams);
   }
 
   @Test
@@ -273,7 +268,6 @@ class DeduplicationServiceTest {
         () -> deduplicationService.autoMerge(deduplicationMergeParams));
     verify(deduplicationHelper, times(0)).generateMergeObject(trackedEntityA, trackedEntityB);
     verify(potentialDuplicateStore, times(0)).update(any());
-    verify(potentialDuplicateStore, times(0)).auditMerge(deduplicationMergeParams);
   }
 
   @Test
@@ -293,7 +287,6 @@ class DeduplicationServiceTest {
     verify(deduplicationHelper).generateMergeObject(trackedEntityA, trackedEntityB);
     verify(deduplicationHelper).getUserAccessErrors(trackedEntityA, trackedEntityB, mergeObject);
     verify(potentialDuplicateStore, times(0)).update(any());
-    verify(potentialDuplicateStore, times(0)).auditMerge(deduplicationMergeParams);
   }
 
   @Test
@@ -318,7 +311,6 @@ class DeduplicationServiceTest {
     verify(potentialDuplicateStore)
         .moveRelationships(trackedEntityA, trackedEntityB, mergeObject.getRelationships());
     verify(trackerObjectDeletionService).deleteTrackedEntities(List.of(UID.of(trackedEntityB)));
-    verify(potentialDuplicateStore).auditMerge(deduplicationMergeParams);
   }
 
   @Test
@@ -346,7 +338,6 @@ class DeduplicationServiceTest {
             trackedEntityB,
             deduplicationMergeParams.getMergeObject().getRelationships());
     verify(trackerObjectDeletionService).deleteTrackedEntities(List.of(UID.of(trackedEntityB)));
-    verify(potentialDuplicateStore).auditMerge(deduplicationMergeParams);
   }
 
   @Test
@@ -365,7 +356,6 @@ class DeduplicationServiceTest {
     verify(deduplicationHelper, times(0))
         .getUserAccessErrors(
             trackedEntityA, trackedEntityB, deduplicationMergeParams.getMergeObject());
-    verify(potentialDuplicateStore, times(0)).auditMerge(deduplicationMergeParams);
   }
 
   private TrackedEntityAttributeValue getTrackedEntityAttributeValue(

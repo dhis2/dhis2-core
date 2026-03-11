@@ -70,7 +70,6 @@ import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.attribute.AttributeValuesDeserializer;
 import org.hisp.dhis.attribute.AttributeValuesSerializer;
-import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseLinkableObject;
@@ -183,7 +182,6 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   @Column(name = "displayoptions", length = 50000)
   private String displayOptions;
 
-  @AuditAttribute
   @Type(type = "jsbAttributeValues")
   private AttributeValues attributeValues = AttributeValues.empty();
 

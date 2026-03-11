@@ -48,7 +48,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -149,12 +148,10 @@ public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
       }
 
       if (!checkPublicAccess(userDetails, object)) {
-        AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_CREATE_DENIED);
         throw new AccessDeniedException(object.toString());
       }
     }
 
-    AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_CREATE);
     getSession().saveOrUpdate(object);
   }
 
@@ -178,11 +175,9 @@ public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
     }
 
     if (!isUpdateAllowed(object, userDetails)) {
-      AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_UPDATE_DENIED);
       throw new AccessDeniedException(String.valueOf(object));
     }
 
-    AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_UPDATE);
     getSession().update(object);
   }
 
@@ -200,11 +195,9 @@ public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
     }
 
     if (!isUpdateAllowed(object, userDetails)) {
-      AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_UPDATE_DENIED);
       throw new AccessDeniedException(String.valueOf(object));
     }
 
-    AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_UPDATE);
     getSession().merge(object);
   }
 
@@ -235,11 +228,8 @@ public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
     String username = userDetails.getUsername();
 
     if (!isDeleteAllowed(object, userDetails)) {
-      AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_DELETE_DENIED);
       throw new AccessDeniedException(object.toString());
     }
-
-    AuditLogUtil.infoWrapper(log, username, object, AuditLogUtil.ACTION_DELETE);
 
     super.delete(object);
   }
@@ -250,8 +240,6 @@ public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
     T object = getNoPostProcess(id);
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     if (object != null && isReadNotAllowed(object, currentUserDetails)) {
-      AuditLogUtil.infoWrapper(
-          log, CurrentUserUtil.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED);
       throw new AccessDeniedException(object.toString());
     }
 
@@ -378,8 +366,6 @@ public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
     if (isReadNotAllowed(object, currentUser)) {
-      AuditLogUtil.infoWrapper(
-          log, CurrentUserUtil.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED);
       throw new AccessDeniedException(String.valueOf(object));
     }
 

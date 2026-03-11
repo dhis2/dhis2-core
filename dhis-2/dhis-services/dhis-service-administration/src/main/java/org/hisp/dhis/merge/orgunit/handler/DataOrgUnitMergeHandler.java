@@ -35,7 +35,6 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataapproval.DataApprovalAuditService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValueChangelogService;
 import org.hisp.dhis.merge.DataMergeStrategy;
@@ -65,8 +64,6 @@ public class DataOrgUnitMergeHandler {
   private final DataValueChangelogService dataValueChangelogService;
 
   private final DataSetService dataSetService;
-
-  private final DataApprovalAuditService dataApprovalAuditService;
 
   private final ValidationResultService validationResultService;
 
@@ -124,10 +121,6 @@ public class DataOrgUnitMergeHandler {
             // Delete source data values
             "delete from datavalue where sourceid in (:source_ids);",
         request.getTarget().getId());
-  }
-
-  public void mergeDataApprovalAudits(OrgUnitMergeRequest request) {
-    request.getSources().forEach(ou -> dataApprovalAuditService.deleteDataApprovalAudits(ou));
   }
 
   @Transactional

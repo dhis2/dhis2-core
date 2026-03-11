@@ -596,31 +596,6 @@ public enum ConfigurationKey {
    */
   CHANGELOG_AGGREGATE("changelog.aggregate", Constants.ON),
 
-  /** Use in-memory queue before sending audits into the Artemis queue. (default: off). */
-  AUDIT_USE_IN_MEMORY_QUEUE_ENABLED(
-      "audit.in_memory-queue.enabled",
-      Constants.OFF,
-      false,
-      new String[] {"audit.inmemory_queue.enabled"}),
-
-  /** Send audits to "logs/dhis-audit.log". (default: on). */
-  AUDIT_LOGGER("audit.logger", Constants.ON, false),
-
-  /** Save audits to database table "audit". (default: off). */
-  AUDIT_DATABASE("audit.database", Constants.OFF, false),
-
-  /** Sets the audit matrix for metadata. (default: none). */
-  AUDIT_METADATA_MATRIX("audit.metadata", "", false),
-
-  /** Sets the audit matrix for aggregate. (default: none). */
-  AUDIT_AGGREGATE_MATRIX("audit.aggregate", "", false),
-
-  /** Sets the audit matrix for tracker. (default: none). */
-  AUDIT_TRACKER_MATRIX("audit.tracker", "", false),
-
-  /** Sets the audit matrix for API. (default: none). */
-  AUDIT_API_MATRIX("audit.api", "", false),
-
   /** Enable OIDC. (default: off). */
   OIDC_OAUTH2_LOGIN_ENABLED("oidc.oauth2.login.enabled", Constants.OFF, false),
 
@@ -693,11 +668,8 @@ public enum ConfigurationKey {
    */
   ACTIVE_READ_REPLICAS("active.read.replicas", "0", false),
 
-  /**
-   * Allows enabling/disabling audits system-wide (without configuring the audit matrix). (default:
-   * true)
-   */
-  AUDIT_ENABLED("system.audit.enabled", Constants.ON, false),
+  /** Enable DB-level audit via PostgreSQL triggers and the db_audit table. (default: off). */
+  AUDIT_DB_ENABLED("audit.db.enabled", Constants.OFF, false),
 
   /** JWT OIDC token authentication feature. Enable or disable. */
   ENABLE_JWT_OIDC_TOKEN_AUTHENTICATION(

@@ -37,9 +37,6 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hisp.dhis.audit.AuditAttribute;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.event.EventStatus;
@@ -51,7 +48,6 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.user.User;
 import org.locationtech.jts.geom.Geometry;
 
-@Auditable(scope = AuditScope.TRACKER)
 @Setter
 @Getter
 @NoArgsConstructor
@@ -60,7 +56,7 @@ public class SingleEvent extends SoftDeletableObject {
 
   private Date lastUpdatedAtClient;
 
-  @AuditAttribute private ProgramStage programStage;
+  private ProgramStage programStage;
 
   private String storedBy;
 
@@ -70,17 +66,17 @@ public class SingleEvent extends SoftDeletableObject {
 
   private Date occurredDate;
 
-  @AuditAttribute private OrganisationUnit organisationUnit;
+  private OrganisationUnit organisationUnit;
 
-  @AuditAttribute private CategoryOptionCombo attributeOptionCombo;
+  private CategoryOptionCombo attributeOptionCombo;
 
   private List<Note> notes = new ArrayList<>();
 
-  @AuditAttribute private Set<EventDataValue> eventDataValues = new HashSet<>();
+  private Set<EventDataValue> eventDataValues = new HashSet<>();
 
   private Set<RelationshipItem> relationshipItems = new HashSet<>();
 
-  @AuditAttribute private EventStatus status = EventStatus.ACTIVE;
+  private EventStatus status = EventStatus.ACTIVE;
 
   private String completedBy;
 

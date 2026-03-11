@@ -29,9 +29,6 @@
  */
 package org.hisp.dhis.tracker.program.message;
 
-import static org.hisp.dhis.audit.AuditOperationType.READ;
-import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -48,7 +45,6 @@ import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
@@ -78,8 +74,6 @@ public class DefaultProgramMessageService implements ProgramMessageService {
   private final AclService aclService;
 
   private final ProgramMessageOperationParamMapper operationParamMapper;
-
-  private final TrackedEntityAuditService trackedEntityAuditService;
 
   // -------------------------------------------------------------------------
   // Implementation methods
@@ -172,8 +166,6 @@ public class DefaultProgramMessageService implements ProgramMessageService {
       if (trackedEntity == null) {
         violations.add("Tracked entity does not exist");
       }
-
-      trackedEntityAuditService.addTrackedEntityAudit(READ, getCurrentUsername(), trackedEntity);
     }
 
     if (recipients.getOrganisationUnit() != null

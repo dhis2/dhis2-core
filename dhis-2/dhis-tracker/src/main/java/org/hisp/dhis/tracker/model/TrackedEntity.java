@@ -55,9 +55,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
-import org.hisp.dhis.audit.AuditAttribute;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseTrackerObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
@@ -86,7 +83,6 @@ import org.locationtech.jts.geom.Geometry;
     name = "updateTrackedEntitiesLastUpdated",
     query =
         "update trackedentity set lastUpdated = :lastUpdated, lastupdatedbyuserinfo = CAST(:lastupdatedbyuserinfo as jsonb) WHERE uid in :trackedEntities")
-@Auditable(scope = AuditScope.TRACKER)
 public class TrackedEntity extends BaseTrackerObject
     implements IdentifiableObject, SoftDeletableEntity {
 
@@ -126,7 +122,6 @@ public class TrackedEntity extends BaseTrackerObject
   @Column(name = "potentialDuplicate")
   private boolean potentialDuplicate;
 
-  @AuditAttribute
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(
       name = "organisationunitid",
@@ -134,7 +129,6 @@ public class TrackedEntity extends BaseTrackerObject
       nullable = false)
   private OrganisationUnit organisationUnit;
 
-  @AuditAttribute
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(
       name = "trackedentitytypeid",
@@ -142,7 +136,7 @@ public class TrackedEntity extends BaseTrackerObject
       nullable = false)
   private TrackedEntityType trackedEntityType;
 
-  @AuditAttribute private boolean inactive;
+  private boolean inactive;
 
   private Geometry geometry;
 

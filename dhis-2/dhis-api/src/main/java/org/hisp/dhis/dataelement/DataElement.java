@@ -50,7 +50,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.analytics.DataType;
-import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -114,7 +113,7 @@ public class DataElement extends BaseDimensionalItemObject
   private boolean zeroIsSignificant;
 
   /** The option set for data values linked to this data element, can be null. */
-  @AuditAttribute private OptionSet optionSet;
+  private OptionSet optionSet;
 
   /** The option set for comments linked to this data element, can be null. */
   private OptionSet commentOptionSet;

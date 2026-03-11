@@ -36,9 +36,6 @@ import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mockStatic;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Set;
@@ -76,8 +73,6 @@ class DefaultTrackerOwnershipManagerTest {
   @Mock private UserService userService;
 
   @Mock private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
-
-  @Mock private HibernateProgramTempOwnershipAuditStore programTempOwnershipAuditStore;
 
   @Mock private HibernateProgramTempOwnerStore programTempOwnerStore;
 
@@ -120,7 +115,6 @@ class DefaultTrackerOwnershipManagerTest {
             userService,
             trackedEntityProgramOwnerService,
             cacheProvider,
-            programTempOwnershipAuditStore,
             programTempOwnerStore,
             trackedEntityStore,
             programOwnershipHistoryService,
@@ -163,9 +157,6 @@ class DefaultTrackerOwnershipManagerTest {
 
     trackerOwnershipManager.grantTemporaryOwnership(
         trackedEntity.getUID(), program.getUID(), reason);
-
-    verify(programTempOwnershipAuditStore, times(1))
-        .addProgramTempOwnershipAudit(any(ProgramTempOwnershipAudit.class));
   }
 
   @Test
@@ -179,9 +170,6 @@ class DefaultTrackerOwnershipManagerTest {
 
     trackerOwnershipManager.grantTemporaryOwnership(
         trackedEntity.getUID(), program.getUID(), reason);
-
-    verify(programTempOwnershipAuditStore, never())
-        .addProgramTempOwnershipAudit(any(ProgramTempOwnershipAudit.class));
   }
 
   private TrackedEntity createTrackedEntityWithAuditLog(boolean isAllowAuditLog) {

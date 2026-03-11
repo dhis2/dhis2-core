@@ -29,24 +29,10 @@
  */
 package org.hisp.dhis.maintenance.jdbc;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.artemis.audit.Audit;
-import org.hisp.dhis.artemis.audit.AuditManager;
-import org.hisp.dhis.artemis.audit.AuditableEntity;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.AuditType;
-import org.hisp.dhis.common.SoftDeletableEntity;
-import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.maintenance.MaintenanceStore;
-import org.hisp.dhis.tracker.model.Enrollment;
-import org.hisp.dhis.tracker.model.Relationship;
-import org.hisp.dhis.tracker.model.SingleEvent;
-import org.hisp.dhis.tracker.model.TrackedEntity;
-import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
@@ -57,18 +43,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class JdbcMaintenanceStore implements MaintenanceStore {
-  private static final Map<Class<? extends SoftDeletableEntity>, SoftDeletableEntity>
-      ENTITY_MAPPER =
-          Map.of(
-              Enrollment.class, new Enrollment(),
-              TrackerEvent.class, new TrackerEvent(),
-              SingleEvent.class, new SingleEvent(),
-              TrackedEntity.class, new TrackedEntity(),
-              Relationship.class, new Relationship());
-
   private final JdbcTemplate jdbcTemplate;
-
-  private final AuditManager auditManager;
 
   // -------------------------------------------------------------------------
   // MaintenanceStore implementation
@@ -154,12 +129,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           trackerEventDeleteQuery
         };
 
-    int result = jdbcTemplate.batchUpdate(sqlStmts)[sqlStmts.length - 1];
-
-    if (result > 0 && !trackerEventsToDelete.isEmpty()) {
-      auditHardDeletedEntity(trackerEventsToDelete, TrackerEvent.class);
-    }
-    return result;
+    return jdbcTemplate.batchUpdate(sqlStmts)[sqlStmts.length - 1];
   }
 
   @Override
@@ -196,12 +166,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           singleEventDeleteQuery
         };
 
-    int result = jdbcTemplate.batchUpdate(sqlStmts)[sqlStmts.length - 1];
-
-    if (result > 0 && !singleEventsToDelete.isEmpty()) {
-      auditHardDeletedEntity(singleEventsToDelete, SingleEvent.class);
-    }
-    return result;
+    return jdbcTemplate.batchUpdate(sqlStmts)[sqlStmts.length - 1];
   }
 
   @Override
@@ -220,13 +185,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
      */
     String[] sqlStmts = {"delete from relationship where deleted is true"};
 
-    int result = jdbcTemplate.batchUpdate(sqlStmts)[sqlStmts.length - 1];
-
-    if (result > 0) {
-      auditHardDeletedEntity(deletedRelationships, Relationship.class);
-    }
-
-    return result;
+    return jdbcTemplate.batchUpdate(sqlStmts)[sqlStmts.length - 1];
   }
 
   @Override
@@ -285,14 +244,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from enrollment where deleted is true"
         };
 
-    int result = jdbcTemplate.batchUpdate(sqlStmts)[sqlStmts.length - 1];
-
-    if (result > 0) {
-      auditHardDeletedEntity(associatedEvents, TrackerEvent.class);
-      auditHardDeletedEntity(deletedEnrollments, Enrollment.class);
-    }
-
-    return result;
+    return jdbcTemplate.batchUpdate(sqlStmts)[sqlStmts.length - 1];
   }
 
   @Override
@@ -387,15 +339,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from trackedentity where deleted is true"
         };
 
-    int result = jdbcTemplate.batchUpdate(sqlStmts)[sqlStmts.length - 1];
-
-    if (result > 0) {
-      auditHardDeletedEntity(associatedEvents, TrackerEvent.class);
-      auditHardDeletedEntity(associatedEnrollments, Enrollment.class);
-      auditHardDeletedEntity(deletedTeUids, TrackedEntity.class);
-    }
-
-    return result;
+    return jdbcTemplate.batchUpdate(sqlStmts)[sqlStmts.length - 1];
   }
 
   /**
@@ -442,29 +386,5 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
     }
 
     return deletedUids;
-  }
-
-  private void auditHardDeletedEntity(
-      List<String> deletedEntities, Class<? extends SoftDeletableEntity> entity) {
-    if (deletedEntities == null || deletedEntities.isEmpty()) {
-      return;
-    }
-    deletedEntities.forEach(
-        deletedEntity -> {
-          SoftDeletableEntity object =
-              ENTITY_MAPPER.getOrDefault(entity, new SoftDeletableObject());
-
-          object.setUid(deletedEntity);
-          object.setDeleted(true);
-          auditManager.send(
-              Audit.builder()
-                  .auditType(AuditType.DELETE)
-                  .auditScope(AuditScope.TRACKER)
-                  .createdAt(LocalDateTime.now())
-                  .object(object)
-                  .uid(deletedEntity)
-                  .auditableEntity(new AuditableEntity(entity, object))
-                  .build());
-        });
   }
 }

@@ -55,7 +55,6 @@ import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.HibernateNativeStore;
-import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.UID;
@@ -342,7 +341,6 @@ public class HibernateGenericStore<T> extends HibernateNativeStore<T> implements
 
   @Override
   public void save(@Nonnull T object) {
-    AuditLogUtil.infoWrapper(log, object, AuditLogUtil.ACTION_CREATE);
     getSession().save(object);
   }
 

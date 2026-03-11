@@ -37,7 +37,6 @@ import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.commons.util.PageRange;
-import org.hisp.dhis.dataapproval.DataApprovalAuditService;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
@@ -77,8 +76,6 @@ public class DefaultMaintenanceService implements MaintenanceService {
   private final CompleteDataSetRegistrationService completeRegistrationService;
 
   private final DataApprovalService dataApprovalService;
-
-  private final DataApprovalAuditService dataApprovalAuditService;
 
   private final ApplicationEventPublisher eventPublisher;
 
@@ -158,7 +155,6 @@ public class DefaultMaintenanceService implements MaintenanceService {
     }
 
     dataApprovalService.deleteDataApprovals(organisationUnit);
-    dataApprovalAuditService.deleteDataApprovalAudits(organisationUnit);
     completeRegistrationService.deleteCompleteDataSetRegistrations(organisationUnit);
     dataValueChangelogService.deleteByOrgUnit(UID.of(organisationUnit));
     dataValueService.deleteDataValues(organisationUnit);

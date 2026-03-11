@@ -34,8 +34,6 @@ import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.DeliveryMode;
 import jakarta.jms.JMSException;
-import java.util.HashMap;
-import java.util.Map;
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
 import org.apache.activemq.artemis.core.config.CoreAddressConfiguration;
@@ -45,9 +43,6 @@ import org.apache.activemq.artemis.core.server.JournalType;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
 import org.apache.activemq.artemis.jms.client.ActiveMQJMSConnectionFactory;
-import org.hisp.dhis.artemis.AuditProducerConfiguration;
-import org.hisp.dhis.artemis.Topics;
-import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
@@ -234,28 +229,5 @@ public class ArtemisConfig {
     artemisConfigData.setEmbedded(artemisEmbeddedConfig);
 
     return artemisConfigData;
-  }
-
-  /**
-   * Holds a Map of AuditScope -> Topic Name so that a Producer can resolve the topic name from the
-   * scope
-   */
-  @Bean
-  public Map<AuditScope, String> scopeToDestinationMap() {
-    Map<AuditScope, String> scopeDestinationMap = new HashMap<>();
-
-    scopeDestinationMap.put(AuditScope.METADATA, Topics.METADATA_TOPIC_NAME);
-    scopeDestinationMap.put(AuditScope.AGGREGATE, Topics.AGGREGATE_TOPIC_NAME);
-    scopeDestinationMap.put(AuditScope.TRACKER, Topics.TRACKER_TOPIC_NAME);
-    scopeDestinationMap.put(AuditScope.API, Topics.API_TOPIC_NAME);
-
-    return scopeDestinationMap;
-  }
-
-  @Bean
-  public AuditProducerConfiguration producerConfiguration() {
-    return AuditProducerConfiguration.builder()
-        .useQueue(dhisConfig.isEnabled(ConfigurationKey.AUDIT_USE_IN_MEMORY_QUEUE_ENABLED))
-        .build();
   }
 }

@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.merge.category;
 
-import static org.hisp.dhis.dataapproval.DataApprovalAction.APPROVE;
 import static org.hisp.dhis.feedback.ErrorCode.E1540;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
@@ -58,9 +57,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataapproval.DataApproval;
-import org.hisp.dhis.dataapproval.DataApprovalAudit;
-import org.hisp.dhis.dataapproval.DataApprovalAuditQueryParams;
-import org.hisp.dhis.dataapproval.DataApprovalAuditStore;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalStore;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
@@ -149,7 +145,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataDumpService dataDumpService;
   @Autowired private CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
   @Autowired private DataValueChangelogStore dataValueChangelogStore;
-  @Autowired private DataApprovalAuditStore dataApprovalAuditStore;
   @Autowired private DataApprovalStore dataApprovalStore;
   @Autowired private TrackerEventStore trackerEventStore;
   @Autowired private SingleEventStore singleEventStore;
@@ -1345,18 +1340,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     daw.setCategoryCombo(categoryMetadata.cc1());
     manager.save(daw);
 
-    DataApprovalAudit daa1 = createDataApprovalAudit(cocDuplicate, dataApprovalLevel, daw, p1);
-    DataApprovalAudit daa2 = createDataApprovalAudit(cocDuplicate, dataApprovalLevel, daw, p1);
-    DataApprovalAudit daa3 = createDataApprovalAudit(cocDuplicate, dataApprovalLevel, daw, p1);
-    DataApprovalAudit daa4 = createDataApprovalAudit(cocDuplicate, dataApprovalLevel, daw, p1);
-    DataApprovalAudit daa5 = createDataApprovalAudit(cocTarget, dataApprovalLevel, daw, p1);
-
-    dataApprovalAuditStore.save(daa1);
-    dataApprovalAuditStore.save(daa2);
-    dataApprovalAuditStore.save(daa3);
-    dataApprovalAuditStore.save(daa4);
-    dataApprovalAuditStore.save(daa5);
-
     // params
     MergeParams mergeParams = getMergeParams();
 
@@ -1364,21 +1347,9 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
 
     // then
-    DataApprovalAuditQueryParams source1DaaQueryParams =
-        new DataApprovalAuditQueryParams()
-            .setAttributeOptionCombos(new HashSet<>(Collections.singletonList(cocDuplicate)));
-    DataApprovalAuditQueryParams targetDaaQueryParams =
-        new DataApprovalAuditQueryParams()
-            .setAttributeOptionCombos(new HashSet<>(Collections.singletonList(cocTarget)));
-
-    List<DataApprovalAudit> sourceAudits =
-        dataApprovalAuditStore.getDataApprovalAudits(source1DaaQueryParams);
-    List<DataApprovalAudit> targetItems =
-        dataApprovalAuditStore.getDataApprovalAudits(targetDaaQueryParams);
-
     assertFalse(report.hasErrorMessages());
-    assertEquals(0, sourceAudits.size(), "Expect 0 entries with source COC refs");
-    assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref");
+    //    assertEquals(0, sourceAudits.size(), "Expect 0 entries with source COC refs");
+    //    assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref");
     assertCocCountAfterAutoGenerate(5);
   }
 
@@ -2243,20 +2214,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   private DataEntryValue.Input createDataValue(CategoryOptionCombo coc, String value, Period p) {
     return new DataEntryValue.Input(
         de1.getUid(), ou1.getUid(), coc.getUid(), coc.getUid(), p.getIsoDate(), value, null);
-  }
-
-  private DataApprovalAudit createDataApprovalAudit(
-      CategoryOptionCombo coc, DataApprovalLevel level, DataApprovalWorkflow workflow, Period p) {
-    DataApprovalAudit daa = new DataApprovalAudit();
-    daa.setAttributeOptionCombo(coc);
-    daa.setOrganisationUnit(ou1);
-    daa.setLevel(level);
-    daa.setWorkflow(workflow);
-    daa.setPeriod(p);
-    daa.setAction(APPROVE);
-    daa.setCreated(new Date());
-    daa.setCreator(getCurrentUser());
-    return daa;
   }
 
   private DataApproval createDataApproval(

@@ -67,7 +67,6 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.attribute.AttributeValuesDeserializer;
 import org.hisp.dhis.attribute.AttributeValuesSerializer;
-import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseIdentifiableObject.AttributeValue;
 import org.hisp.dhis.common.BaseMetadataObject;
@@ -149,7 +148,6 @@ public class CategoryOption extends BaseMetadataObject
 
   @Embedded private TranslationProperty translations = new TranslationProperty();
 
-  @AuditAttribute
   @Type(type = "jsbAttributeValues")
   private AttributeValues attributeValues = AttributeValues.empty();
 

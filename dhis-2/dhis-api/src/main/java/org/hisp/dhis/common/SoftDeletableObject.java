@@ -35,7 +35,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import java.util.Objects;
-import org.hisp.dhis.audit.AuditAttribute;
 
 /**
  * @author Enrico Colasante
@@ -43,7 +42,7 @@ import org.hisp.dhis.audit.AuditAttribute;
 @JacksonXmlRootElement(localName = "softDeletableObject", namespace = DxfNamespaces.DXF_2_0)
 public class SoftDeletableObject extends BaseIdentifiableObject implements SoftDeletableEntity {
   /** Indicates whether the object is soft deleted. */
-  @AuditAttribute protected boolean deleted = false;
+  protected boolean deleted = false;
 
   // -------------------------------------------------------------------------
   // Constructors

@@ -41,9 +41,6 @@ import java.util.regex.Pattern;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-import org.hisp.dhis.audit.AuditAttribute;
-import org.hisp.dhis.audit.AuditScope;
-import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
@@ -57,7 +54,6 @@ import org.hisp.dhis.period.Period;
 /**
  * @author Kristian Nordal
  */
-@Auditable(scope = AuditScope.AGGREGATE)
 public class DataValue implements Serializable {
   /** Determines if a de-serialized file is compatible with this class. */
   private static final long serialVersionUID = 6269303850789110610L;
@@ -72,17 +68,17 @@ public class DataValue implements Serializable {
   // Persistent properties
   // -------------------------------------------------------------------------
 
-  @Setter @AuditAttribute private DataElement dataElement;
+  @Setter private DataElement dataElement;
 
-  @Setter @AuditAttribute private Period period;
+  @Setter private Period period;
 
-  @Setter @AuditAttribute private OrganisationUnit source;
+  @Setter private OrganisationUnit source;
 
-  @Setter @AuditAttribute private CategoryOptionCombo categoryOptionCombo;
+  @Setter private CategoryOptionCombo categoryOptionCombo;
 
-  @Setter @Getter @AuditAttribute private CategoryOptionCombo attributeOptionCombo;
+  @Setter @Getter private CategoryOptionCombo attributeOptionCombo;
 
-  @AuditAttribute private String value;
+  private String value;
 
   @Setter @Getter private String storedBy;
 

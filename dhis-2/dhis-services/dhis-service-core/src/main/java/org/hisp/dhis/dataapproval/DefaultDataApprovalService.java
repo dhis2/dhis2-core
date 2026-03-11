@@ -29,15 +29,9 @@
  */
 package org.hisp.dhis.dataapproval;
 
-import static org.hisp.dhis.dataapproval.DataApprovalAction.ACCEPT;
-import static org.hisp.dhis.dataapproval.DataApprovalAction.APPROVE;
-import static org.hisp.dhis.dataapproval.DataApprovalAction.UNACCEPT;
-import static org.hisp.dhis.dataapproval.DataApprovalAction.UNAPPROVE;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -73,8 +67,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.dataapproval.DataApprovalService")
 public class DefaultDataApprovalService implements DataApprovalService {
   private final DataApprovalStore dataApprovalStore;
-
-  private final DataApprovalAuditStore dataApprovalAuditStore;
 
   private final DataApprovalWorkflowStore workflowStore;
 
@@ -239,8 +231,6 @@ public class DefaultDataApprovalService implements DataApprovalService {
     for (DataApproval da : checkedList) {
       log.debug("-> approving " + da);
 
-      audit(da, currentUser, APPROVE);
-
       dataApprovalStore.addDataApproval(da);
     }
 
@@ -288,8 +278,6 @@ public class DefaultDataApprovalService implements DataApprovalService {
 
     for (DataApproval da : foundApprovals) {
       log.debug("unapproving " + da);
-
-      audit(da, currentUser, UNAPPROVE);
 
       dataApprovalStore.deleteDataApproval(da);
     }
@@ -343,8 +331,6 @@ public class DefaultDataApprovalService implements DataApprovalService {
       log.debug("accepting " + da);
 
       da.setAccepted(true, currentUser);
-
-      audit(da, currentUser, ACCEPT);
 
       dataApprovalStore.updateDataApproval(da);
     }
@@ -400,8 +386,6 @@ public class DefaultDataApprovalService implements DataApprovalService {
       log.debug("unaccepting " + da);
 
       da.setAccepted(false, currentUser);
-
-      audit(da, currentUser, UNACCEPT);
 
       dataApprovalStore.updateDataApproval(da);
     }
@@ -558,22 +542,6 @@ public class DefaultDataApprovalService implements DataApprovalService {
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
-
-  /**
-   * Audits a data approval action.
-   *
-   * @param da the details of the action.
-   * @param currentUser the current user.
-   * @param action the data approval action to audit.
-   */
-  private void audit(DataApproval da, User currentUser, DataApprovalAction action) {
-    DataApprovalAudit audit = new DataApprovalAudit(da, action);
-
-    audit.setCreated(new Date());
-    audit.setCreator(currentUser);
-
-    dataApprovalAuditStore.save(audit);
-  }
 
   /** Returns the next higher (lower number) level within a workflow. */
   private DataApprovalLevel nextHigherLevel(

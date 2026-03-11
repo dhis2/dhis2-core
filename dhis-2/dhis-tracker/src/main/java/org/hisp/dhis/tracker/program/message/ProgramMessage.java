@@ -60,7 +60,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.attribute.AttributeValues;
-import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdScheme;
@@ -96,7 +95,6 @@ public class ProgramMessage implements IdentifiableObject, Serializable {
 
   @JsonProperty
   @Column(name = "code", length = 50)
-  @AuditAttribute
   protected String code;
 
   @Column(name = "created", nullable = false, updatable = false)
