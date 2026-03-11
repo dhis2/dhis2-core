@@ -506,7 +506,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        1471,
+        2023,
         4,
         4); // Pass runtime flag, row count, and expected header counts
 
@@ -556,8 +556,13 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
     // rowContext not found or empty in the response, skipping assertions.
 
     // 7. Assert row values in any order.
-    validateRow(response, List.of("1.0", "ImspTQPwCqd", "20211008", "9"));
+    validateRow(response, List.of("1.0", "ImspTQPwCqd", "20220202", "7"));
     validateRow(response, List.of("0.0", "ImspTQPwCqd", "20211028", "5"));
+    validateRow(response, List.of("1.0", "ImspTQPwCqd", "20220819", "6"));
+    validateRow(response, List.of("1.0", "ImspTQPwCqd", "20221224", "10"));
+    validateRow(response, List.of("2.0", "ImspTQPwCqd", "20211007", "10"));
+    validateRow(response, List.of("1.0", "ImspTQPwCqd", "20220204", "7"));
+    validateRow(response, List.of("0.0", "ImspTQPwCqd", "20220208", "5"));
   }
 
   @Test
