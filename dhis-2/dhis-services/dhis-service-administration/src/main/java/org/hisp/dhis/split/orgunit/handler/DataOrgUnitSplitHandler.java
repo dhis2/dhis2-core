@@ -54,7 +54,6 @@ public class DataOrgUnitSplitHandler {
   public void splitData(OrgUnitSplitRequest request) {
     migrate(request, "DataValueChangelog", PARAM_ORG_UNIT);
     migrate(request, "DataValue", PARAM_SOURCE);
-    migrate(request, "DataApprovalAudit", PARAM_ORG_UNIT);
     migrate(request, "DataApproval", PARAM_ORG_UNIT);
     migrate(request, "LockException", PARAM_ORG_UNIT);
     migrate(request, "ValidationResult", PARAM_ORG_UNIT);

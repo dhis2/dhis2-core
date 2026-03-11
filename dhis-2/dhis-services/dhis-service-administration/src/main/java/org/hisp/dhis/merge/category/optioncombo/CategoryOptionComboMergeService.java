@@ -65,7 +65,7 @@ public class CategoryOptionComboMergeService implements MergeService {
   private List<MetadataMergeHandler> metadataMergeHandlers;
   private List<DataMergeHandler> dataMergeHandlers;
 
-  //  private List<DataMergeHandlerNoTarget> auditMergeHandlers;
+  private List<DataMergeHandlerNoTarget> auditMergeHandlers;
 
   @Override
   public MergeRequest validate(@Nonnull MergeParams params, @Nonnull MergeReport mergeReport) {
@@ -160,10 +160,8 @@ public class CategoryOptionComboMergeService implements MergeService {
             dataMergeHandler::handleSingleEvents,
             dataMergeHandler::handleCompleteDataSetRegistrations);
 
-    //    auditMergeHandlers =
-    //        List.of(
-    //            (sources, target) -> dataMergeHandler.handleDataValueAudits(sources),
-    //            (sources, target) -> dataMergeHandler.handleDataApprovalAudits(sources));
+    auditMergeHandlers =
+        List.of((sources, target) -> dataMergeHandler.handleDataValueAudits(sources));
   }
 
   /**
