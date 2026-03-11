@@ -163,7 +163,7 @@ public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
   public void update(@Nonnull T object, @Nonnull UserDetails userDetails) {
     checkNotNull(object);
     checkNotNull(userDetails);
-    
+
     setFields(object, userDetails);
 
     if (object.getSharing().getOwner() == null) {

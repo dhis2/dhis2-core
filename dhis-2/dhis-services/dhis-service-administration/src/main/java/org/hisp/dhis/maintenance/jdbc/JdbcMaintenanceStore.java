@@ -198,7 +198,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
     if (deletedEnrollments.isEmpty()) {
       return 0;
     }
-    
+
     String eventSelect =
         "(select eventid from trackerevent where enrollmentid in " + enrollmentSelect + " )";
 
@@ -255,7 +255,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
     if (deletedTeUids.isEmpty()) {
       return 0;
     }
-    
+
     /*
      * Prepare filter queries for hard delete
      */
