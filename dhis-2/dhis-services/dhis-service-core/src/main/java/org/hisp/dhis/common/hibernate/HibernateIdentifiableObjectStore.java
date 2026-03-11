@@ -120,8 +120,6 @@ public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
     checkNotNull(object);
     checkNotNull(userDetails);
 
-    String username = userDetails.getUsername();
-
     setFields(object, userDetails);
 
     if (clearSharing) {
@@ -165,9 +163,7 @@ public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
   public void update(@Nonnull T object, @Nonnull UserDetails userDetails) {
     checkNotNull(object);
     checkNotNull(userDetails);
-
-    String username = userDetails.getUsername();
-
+    
     setFields(object, userDetails);
 
     if (object.getSharing().getOwner() == null) {
@@ -185,8 +181,6 @@ public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
   public void merge(@Nonnull T object, @Nonnull UserDetails userDetails) {
     checkNotNull(object);
     checkNotNull(userDetails);
-
-    String username = userDetails.getUsername();
 
     setFields(object, userDetails);
 
@@ -225,7 +219,6 @@ public class HibernateIdentifiableObjectStore<T extends IdentifiableObject>
   @Override
   public void delete(@Nonnull T object) {
     UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
-    String username = userDetails.getUsername();
 
     if (!isDeleteAllowed(object, userDetails)) {
       throw new AccessDeniedException(object.toString());

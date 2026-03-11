@@ -274,8 +274,6 @@ public class DefaultDataApprovalService implements DataApprovalService {
 
     List<DataApproval> foundApprovals = getPresentApprovals(checkedList, "unapprove");
 
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-
     for (DataApproval da : foundApprovals) {
       log.debug("unapproving " + da);
 
