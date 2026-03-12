@@ -1070,7 +1070,11 @@
           "id": "QfUVllTs6cS"
         }
       ],
-      "teiSearchOrganisationUnits": [],
+      "teiSearchOrganisationUnits": [
+        {
+          "id": "QfUVllTs6cW"
+        }
+      ],
       "created": "2019-03-25T13:58:35.560",
       "code": "admin",
       "organisationUnits": [

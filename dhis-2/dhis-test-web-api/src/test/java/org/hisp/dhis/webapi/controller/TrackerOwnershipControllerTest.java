@@ -76,6 +76,8 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest {
             false, "regular-user", Set.of(orgUnitA, orgUnitB), Set.of(orgUnitA, orgUnitB));
     User superuser =
         createAndAddUser(true, "superuser", Set.of(orgUnitA, orgUnitB), Set.of(orgUnitA, orgUnitB));
+    superuser.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB));
+    manager.save(superuser);
     injectSecurityContext(superuser);
 
     String tetId =

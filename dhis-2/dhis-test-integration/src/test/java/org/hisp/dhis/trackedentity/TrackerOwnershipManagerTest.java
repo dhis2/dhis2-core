@@ -134,6 +134,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
   private User superUser;
 
+  private User adminUser;
+
   private TrackedEntityType trackedEntityType;
 
   private ProgramInstance programInstance;
@@ -143,13 +145,15 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   @Override
   protected void setUpTest() throws Exception {
     userService = _userService;
-    preCreateInjectAdminUser();
+    adminUser = preCreateInjectAdminUser();
 
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnitA);
     organisationUnitB = createOrganisationUnit('B');
     organisationUnitService.addOrganisationUnit(organisationUnitB);
 
+    adminUser.setTeiSearchOrganisationUnits(Set.of(organisationUnitA, organisationUnitB));
+    userService.updateUser(adminUser);
     userA = createUserWithAuth("userA");
     userA.addOrganisationUnit(organisationUnitA);
     userService.updateUser(userA);
@@ -413,6 +417,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   void shouldNotTransferOwnershipWhenOrgUnitNotAssociatedToProgram() {
     OrganisationUnit notAssociatedOrgUnit = createOrganisationUnit('C');
     organisationUnitService.addOrganisationUnit(notAssociatedOrgUnit);
+    adminUser.setTeiSearchOrganisationUnits(Set.of(notAssociatedOrgUnit));
+    userService.updateUser(adminUser);
     Exception exception =
         assertThrows(
             ForbiddenException.class,
@@ -421,6 +427,20 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
         String.format(
             "The program %s is not associated to the org unit %s",
             programA.getUid(), notAssociatedOrgUnit.getUid()),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldNotTransferOwnershipWhenOrgUnitNotInEffectiveUserScope() {
+    OrganisationUnit outOfScopeOrgUnit = createOrganisationUnit('C');
+    organisationUnitService.addOrganisationUnit(outOfScopeOrgUnit);
+
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () -> transferOwnership(entityInstanceA1, programA, outOfScopeOrgUnit));
+    assertEquals(
+        "Tracked entity not transferred. Org unit supplied is not in the user scope.",
         exception.getMessage());
   }
 
