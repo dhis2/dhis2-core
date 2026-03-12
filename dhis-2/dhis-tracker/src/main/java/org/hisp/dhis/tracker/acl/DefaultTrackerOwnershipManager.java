@@ -134,7 +134,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     }
 
     if (!getCurrentUserDetails().isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getPath())) {
-      throw new NotFoundException(
+      throw new ForbiddenException(
           "Tracked entity not transferred. Org unit supplied is not in the user scope.");
     }
 
