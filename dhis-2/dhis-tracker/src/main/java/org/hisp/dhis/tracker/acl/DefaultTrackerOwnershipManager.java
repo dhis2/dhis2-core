@@ -133,6 +133,11 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
           "Tracked entity not transferred. Org unit supplied does not exist.");
     }
 
+    if (!getCurrentUserDetails().isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getPath())) {
+      throw new NotFoundException(
+          "Tracked entity not transferred. Org unit supplied is not in the user scope.");
+    }
+
     if (!hasAccess(getCurrentUserDetails(), trackedEntity, program)) {
       log.error("Unauthorized attempt to change ownership");
       throw new ForbiddenException(
