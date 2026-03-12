@@ -49,7 +49,6 @@ import static org.hisp.dhis.user.UserConstants.TBD_NAME;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import jakarta.persistence.EntityManager;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
@@ -74,16 +73,15 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Locale;
-import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.PasswordGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UserOrgUnitType;
@@ -92,6 +90,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -101,8 +100,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.period.Cal;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.schema.MetadataMergeParams;
-import org.hisp.dhis.schema.MetadataMergeService;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
@@ -142,9 +139,7 @@ public class DefaultUserService implements UserService {
   private final MessageSender emailMessageSender;
   private final I18nManager i18nManager;
   private final ObjectMapper jsonMapper;
-  private final MetadataMergeService metadataMergeService;
   private final AttributeService attributeService;
-  private final EntityManager entityManager;
 
   private final Cache<String> userDisplayNameCache;
   private final Cache<Integer> userFailedLoginAttemptCache;
@@ -166,9 +161,7 @@ public class DefaultUserService implements UserService {
       AclService aclService,
       OrganisationUnitService organisationUnitService,
       SessionRegistry sessionRegistry,
-      MetadataMergeService metadataMergeService,
-      AttributeService attributeService,
-      EntityManager entityManager) {
+      AttributeService attributeService) {
     checkNotNull(userStore);
     checkNotNull(userGroupService);
     checkNotNull(userRoleStore);
@@ -183,9 +176,7 @@ public class DefaultUserService implements UserService {
     checkNotNull(emailMessageSender);
     checkNotNull(i18nManager);
     checkNotNull(jsonMapper);
-    checkNotNull(metadataMergeService);
     checkNotNull(attributeService);
-    checkNotNull(entityManager);
 
     this.userStore = userStore;
     this.userGroupService = userGroupService;
@@ -201,9 +192,7 @@ public class DefaultUserService implements UserService {
     this.emailMessageSender = emailMessageSender;
     this.i18nManager = i18nManager;
     this.jsonMapper = jsonMapper;
-    this.metadataMergeService = metadataMergeService;
     this.attributeService = attributeService;
-    this.entityManager = entityManager;
     this.userFailedLoginAttemptCache = cacheProvider.createUserFailedLoginAttemptCache(0);
     this.userAccountRecoverAttemptCache = cacheProvider.createUserAccountRecoverAttemptCache(0);
     this.twoFaDisableFailedAttemptCache = cacheProvider.createDisable2FAFailedAttemptCache(0);
@@ -1510,7 +1499,7 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public User replicateUser(User existingUser, String username, String password)
-      throws ConflictException, NotFoundException, BadRequestException {
+      throws ConflictException, NotFoundException, BadRequestException, ForbiddenException {
 
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
 
@@ -1518,55 +1507,82 @@ public class DefaultUserService implements UserService {
       throw new ConflictException("Username is not valid");
     }
 
-    if (getUserByUsername(username) != null) {
+    if (userStore.getUserByUsername(username) != null) {
       throw new ConflictException("Username already taken: " + username);
     }
 
-    Session session = entityManager.unwrap(Session.class);
+    // Re-fetch within this transaction so scalar fields and lazy collections are available.
+    UID sourceUid = existingUser.getUID();
+    existingUser = userStore.getByUidNoAcl(sourceUid.toString());
+    if (existingUser == null) {
+      throw new NotFoundException("User not found: " + sourceUid);
+    }
 
-    User userReplica = new User();
-    metadataMergeService.merge(
-        new MetadataMergeParams<>(existingUser, userReplica).setMergeMode(MergeMode.REPLACE));
-    copyAttributeValues(userReplica);
-    userReplica.setId(0);
-    userReplica.setUuid(UUID.randomUUID());
-    userReplica.setUid(CodeGenerator.generateUid());
-    userReplica.setCode(null);
-    userReplica.setCreated(new Date());
-    userReplica.setCreatedBy(session.getReference(User.class, currentUser.getId()));
-    userReplica.setLdapId(null);
-    userReplica.setOpenId(null);
-    userReplica.setUsername(username);
-    userReplica.setLastLogin(null);
-    encodeAndSetPassword(userReplica, password);
+    if (existingUser.isExternalAuth()) {
+      throw new ConflictException("Cannot replicate a user with external authentication enabled");
+    }
 
-    addUser(userReplica);
+    // Verify that the current user has permissions to manage all user groups of the existing user,
+    // otherwise replication could result in a new user with group memberships that the current user
+    // cannot manage.
+    for (UserGroup group : existingUser.getGroups()) {
+      if (!userGroupService.canAddOrRemoveMember(group.getUid(), currentUser)) {
+        throw new ForbiddenException(
+            "Lacking permission to add members to user group: " + group.getUid());
+      }
+    }
 
-    userGroupService.addUserToGroups(userReplica, getUids(existingUser.getGroups()), currentUser);
+    UID replicaUid = UID.generate();
+    UUID replicaUuid = UUID.randomUUID();
+    String encodedPassword = passwordManager.encode(password);
 
+    int insertedRows =
+        userStore.insertUserCopy(
+            sourceUid, replicaUid, replicaUuid, username, encodedPassword, currentUser.getUID());
+    if (insertedRows != 1) {
+      throw new NotFoundException("User not found: " + sourceUid);
+    }
+
+    // Evict the stale negative cache entry for the new username so that subsequent lookups
+    // (e.g. userSettingsService.putAll) hit the DB and find the newly inserted row.
+    userStore.clearUserQueryCache();
+
+    userRoleStore.copyRoleMemberships(sourceUid, replicaUid);
+
+    // addUserToGroups performs ACL checks, so we go through the service rather than raw JDBC.
+    User replicaStub = new User();
+    replicaStub.setUid(replicaUid.getValue());
+    userGroupService.addUserToGroups(replicaStub, getUids(existingUser.getGroups()), currentUser);
+
+    userStore.copyOrgUnitMemberships(sourceUid, replicaUid);
+    userStore.copyDimensionConstraints(sourceUid, replicaUid);
+
+    // Unique attribute values must not be shared between accounts.
+    AttributeValues attrValues = existingUser.getAttributeValues();
+    if (!attrValues.isEmpty()) {
+      List<UID> uniqueAttrUids =
+          attributeService.getAttributesByIds(attrValues.keys()).stream()
+              .filter(Attribute::isUnique)
+              .map(Attribute::getUID)
+              .toList();
+      if (!uniqueAttrUids.isEmpty()) {
+        userStore.removeAttributeValues(replicaUid, uniqueAttrUids);
+      }
+    }
+
+    // Copy only the formally-defined UserSettings keys (those with a default accessor method):
+    // keyStyle, keyUiLocale, keyDbLocale, keyAnalysisDisplayProperty,
+    // keyMessageEmailNotification, keyMessageSmsNotification, keyTrackerDashboardLayout.
+    // This excludes any arbitrary/legacy key-value pairs that may be present in the DB
+    // but are not recognised by the UserSettings interface.
     UserSettings settings = userSettingsService.getUserSettings(existingUser.getUsername(), false);
-
     Set<String> allowedKeys = UserSettings.keysWithDefaults();
     Map<String, String> filteredMap =
         settings.toMap().entrySet().stream()
             .filter(e -> allowedKeys.contains(e.getKey()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    userSettingsService.putAll(filteredMap, username);
 
-    userSettingsService.putAll(filteredMap, userReplica.getUsername());
-
-    return userReplica;
-  }
-
-  private void copyAttributeValues(User userReplica) {
-    if (userReplica.getAttributeValues().isEmpty()) return;
-
-    List<String> uniqueAttributeIds =
-        attributeService.getAttributesByIds(userReplica.getAttributeValues().keys()).stream()
-            .filter(Attribute::isUnique)
-            .map(Attribute::getUid)
-            .toList();
-
-    userReplica.setAttributeValues(
-        userReplica.getAttributeValues().removedAll(uniqueAttributeIds::contains));
+    return userStore.getByUidNoAcl(replicaUid.getValue());
   }
 }

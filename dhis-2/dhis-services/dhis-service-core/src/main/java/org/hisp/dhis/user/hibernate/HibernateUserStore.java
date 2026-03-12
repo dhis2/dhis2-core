@@ -59,7 +59,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.LockOptions;
-import org.hibernate.annotations.QueryHints;
+import org.hibernate.jpa.QueryHints;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.QueryCacheManager;
@@ -97,6 +97,9 @@ import org.springframework.stereotype.Repository;
 public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     implements UserStore {
   public static final String DISABLED_COLUMN = "disabled";
+
+  /** Named query cache region for {@link #getUserByUsername} results. */
+  static final String USERNAME_QUERY_CACHE_REGION = "org.hisp.dhis.user.User.byUsername";
 
   private final QueryCacheManager queryCacheManager;
 
@@ -453,7 +456,8 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
 
     TypedQuery<User> typedQuery = entityManager.createQuery(hql, User.class);
     typedQuery.setParameter("username", username);
-    typedQuery.setHint(QueryHints.CACHEABLE, true);
+    typedQuery.setHint(QueryHints.HINT_CACHEABLE, true);
+    typedQuery.setHint(QueryHints.HINT_CACHE_REGION, USERNAME_QUERY_CACHE_REGION);
 
     return QueryUtils.getSingleResult(typedQuery);
   }
@@ -768,5 +772,179 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
         .setParameter("sourceCategoryIds", sourceCategoryIds)
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
         .executeUpdate();
+  }
+
+  @Override
+  public int insertUserCopy(
+      @Nonnull UID sourceUid,
+      @Nonnull UID newUid,
+      @Nonnull UUID newUuid,
+      @Nonnull String username,
+      @Nonnull String encodedPassword,
+      @Nonnull UID actingUserUid) {
+    long newId =
+        Objects.requireNonNull(
+            jdbcTemplate.queryForObject("SELECT nextval('hibernate_sequence')", Long.class));
+    long actingUserId =
+        Objects.requireNonNull(
+            jdbcTemplate.queryForObject(
+                "SELECT userinfoid FROM userinfo WHERE uid = ?",
+                Long.class,
+                actingUserUid.getValue()));
+
+    return jdbcTemplate.update(
+        """
+        INSERT INTO userinfo (
+          userinfoid,
+          surname, firstname, email, phonenumber, uid, code,
+          lastupdated, lastcheckedinterpretations, jobtitle, introduction, gender,
+          birthday, nationality, employer, education, interests, languages, created,
+          welcomemessage, whatsapp, skype, facebookmessenger, telegram, twitter,
+          avatar, attributevalues, dataviewmaxorgunitlevel, lastupdatedby, creatoruserid,
+          username, password, secret, externalauth, openid, ldapid, passwordlastupdated,
+          lastlogin, restoretoken, restoreexpiry, selfregistered, invitation, disabled,
+          uuid, accountexpiry, idtoken, verifiedemail, emailverificationtoken, twofactortype)
+        SELECT
+          ?,
+          surname, firstname, email, phonenumber,
+          ?,
+          NULL,
+          now(),
+          NULL,
+          jobtitle, introduction, gender, birthday, nationality, employer,
+          education, interests, languages,
+          now(),
+          welcomemessage, whatsapp, skype, facebookmessenger, telegram, twitter,
+          avatar, attributevalues, dataviewmaxorgunitlevel,
+          ?,
+          ?,
+          ?,
+          ?,
+          NULL,
+          false,
+          NULL,
+          NULL,
+          now(),
+          NULL,
+          NULL,
+          NULL,
+          selfregistered,
+          false,
+          disabled,
+          ?,
+          accountexpiry,
+          NULL,
+          NULL,
+          NULL,
+          'NOT_ENABLED'
+        FROM userinfo
+        WHERE uid = ?
+        """,
+        newId,
+        newUid.getValue(),
+        actingUserId,
+        actingUserId,
+        username,
+        encodedPassword,
+        newUuid,
+        sourceUid.getValue());
+  }
+
+  @Override
+  public void copyOrgUnitMemberships(@Nonnull UID sourceUserUid, @Nonnull UID targetUserUid) {
+    jdbcTemplate.update(
+        """
+        INSERT INTO usermembership (userinfoid, organisationunitid)
+        SELECT (SELECT userinfoid FROM userinfo WHERE uid = ?), m.organisationunitid
+        FROM usermembership m
+        WHERE m.userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        AND NOT EXISTS (
+          SELECT 1 FROM usermembership
+          WHERE userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+          AND organisationunitid = m.organisationunitid
+        )
+        """,
+        targetUserUid.getValue(),
+        sourceUserUid.getValue(),
+        targetUserUid.getValue());
+    jdbcTemplate.update(
+        """
+        INSERT INTO userdatavieworgunits (userinfoid, organisationunitid)
+        SELECT (SELECT userinfoid FROM userinfo WHERE uid = ?), m.organisationunitid
+        FROM userdatavieworgunits m
+        WHERE m.userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        AND NOT EXISTS (
+          SELECT 1 FROM userdatavieworgunits
+          WHERE userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+          AND organisationunitid = m.organisationunitid
+        )
+        """,
+        targetUserUid.getValue(),
+        sourceUserUid.getValue(),
+        targetUserUid.getValue());
+    jdbcTemplate.update(
+        """
+        INSERT INTO userteisearchorgunits (userinfoid, organisationunitid)
+        SELECT (SELECT userinfoid FROM userinfo WHERE uid = ?), m.organisationunitid
+        FROM userteisearchorgunits m
+        WHERE m.userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        AND NOT EXISTS (
+          SELECT 1 FROM userteisearchorgunits
+          WHERE userinfoid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+          AND organisationunitid = m.organisationunitid
+        )
+        """,
+        targetUserUid.getValue(),
+        sourceUserUid.getValue(),
+        targetUserUid.getValue());
+  }
+
+  @Override
+  public void copyDimensionConstraints(@Nonnull UID sourceUserUid, @Nonnull UID targetUserUid) {
+    jdbcTemplate.update(
+        """
+        INSERT INTO users_cogsdimensionconstraints (userid, categoryoptiongroupsetid)
+        SELECT (SELECT userinfoid FROM userinfo WHERE uid = ?), m.categoryoptiongroupsetid
+        FROM users_cogsdimensionconstraints m
+        WHERE m.userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        AND NOT EXISTS (
+          SELECT 1 FROM users_cogsdimensionconstraints
+          WHERE userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+          AND categoryoptiongroupsetid = m.categoryoptiongroupsetid
+        )
+        """,
+        targetUserUid.getValue(),
+        sourceUserUid.getValue(),
+        targetUserUid.getValue());
+    jdbcTemplate.update(
+        """
+        INSERT INTO users_catdimensionconstraints (userid, dataelementcategoryid)
+        SELECT (SELECT userinfoid FROM userinfo WHERE uid = ?), m.dataelementcategoryid
+        FROM users_catdimensionconstraints m
+        WHERE m.userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        AND NOT EXISTS (
+          SELECT 1 FROM users_catdimensionconstraints
+          WHERE userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+          AND dataelementcategoryid = m.dataelementcategoryid
+        )
+        """,
+        targetUserUid.getValue(),
+        sourceUserUid.getValue(),
+        targetUserUid.getValue());
+  }
+
+  @Override
+  public void removeAttributeValues(@Nonnull UID userUid, @Nonnull Collection<UID> attributeUids) {
+    for (UID attrUid : attributeUids) {
+      jdbcTemplate.update(
+          "UPDATE userinfo SET attributevalues = attributevalues - ? WHERE uid = ?",
+          attrUid.getValue(),
+          userUid.getValue());
+    }
+  }
+
+  @Override
+  public void clearUserQueryCache() {
+    getSession().getSessionFactory().getCache().evictQueryRegion(USERNAME_QUERY_CACHE_REGION);
   }
 }
