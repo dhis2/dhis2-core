@@ -147,6 +147,11 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
 
+    if (!currentUser.getTeiSearchOrganisationUnits().contains(orgUnit)) {
+      throw new ForbiddenException(
+          "Tracked entity not transferred. Org unit supplied is not in the user scope.");
+    }
+
     if (hasAccess(currentUser, entityInstance, program) || skipAccessValidation) {
       if (!programService.hasOrgUnit(program, orgUnit)) {
         throw new ForbiddenException(

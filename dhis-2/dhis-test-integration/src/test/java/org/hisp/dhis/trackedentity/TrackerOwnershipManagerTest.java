@@ -225,6 +225,11 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
     defaultParams =
         new TrackedEntityParams(false, TrackedEntityEnrollmentParams.FALSE, false, false);
+
+    User admin = getAdminUser();
+    admin.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
+    manager.update(admin);
+    injectSecurityContextUser(admin);
   }
 
   @Test
@@ -717,6 +722,10 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   void shouldNotTransferOwnershipWhenOrgUnitNotAssociatedToProgram() {
     OrganisationUnit notAssociatedOrgUnit = createOrganisationUnit('C');
     organisationUnitService.addOrganisationUnit(notAssociatedOrgUnit);
+    User adminUser = getAdminUser();
+    adminUser.setTeiSearchOrganisationUnits(Set.of(notAssociatedOrgUnit));
+    injectSecurityContextUser(adminUser);
+
     Exception exception =
         assertThrows(
             ForbiddenException.class,
@@ -725,6 +734,20 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
         String.format(
             "The program %s is not associated to the org unit %s",
             programA.getUid(), notAssociatedOrgUnit.getUid()),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldNotTransferOwnershipWhenOrgUnitNotInEffectiveUserScope() {
+    OrganisationUnit outOfScopeOrgUnit = createOrganisationUnit('C');
+    organisationUnitService.addOrganisationUnit(outOfScopeOrgUnit);
+
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () -> transferOwnership(entityInstanceA1, programA, outOfScopeOrgUnit));
+    assertEquals(
+        "Tracked entity not transferred. Org unit supplied is not in the user scope.",
         exception.getMessage());
   }
 
