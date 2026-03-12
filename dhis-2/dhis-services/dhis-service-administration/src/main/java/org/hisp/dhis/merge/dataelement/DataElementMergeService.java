@@ -172,7 +172,6 @@ public class DataElementMergeService implements MergeService {
     auditMergeHandlers =
         ImmutableList.<DataElementAuditMergeHandler>builder()
             .add(trackerMergeHandler::handleEventChangeLogs)
-            .add(dataDataElementMergeHandler::handleDataValueAuditDataElement)
             .build();
 
     commonMergeHandlers =

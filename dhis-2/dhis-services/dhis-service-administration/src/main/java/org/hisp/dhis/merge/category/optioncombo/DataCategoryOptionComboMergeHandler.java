@@ -52,8 +52,6 @@ import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalStore;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationStore;
-import org.hisp.dhis.datavalue.DataValueChangelog;
-import org.hisp.dhis.datavalue.DataValueChangelogStore;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.maintenance.MaintenanceStore;
 import org.hisp.dhis.merge.DataMergeStrategy;
@@ -75,7 +73,6 @@ import org.springframework.stereotype.Component;
 public class DataCategoryOptionComboMergeHandler {
 
   private final DataValueStore dataValueStore;
-  private final DataValueChangelogStore dataValueChangelogStore;
   private final DataApprovalStore dataApprovalStore;
   private final TrackerEventStore trackerEventStore;
   private final SingleEventStore singleEventStore;
@@ -98,15 +95,6 @@ public class DataCategoryOptionComboMergeHandler {
       dataValueStore.mergeDataValuesWithAttributeOptionCombos(
           target.getId(), IdentifiableObjectUtils.getIdentifiersSet(sources));
     }
-  }
-
-  /**
-   * All {@link DataValueChangelog}s will deleted, as source {@link CategoryOptionCombo}s are always
-   * deleted.
-   */
-  public void handleDataValueAudits(@Nonnull List<CategoryOptionCombo> sources) {
-    log.info("Deleting source data value audits as source CategoryOptionCombos are being deleted");
-    sources.forEach(coc -> dataValueChangelogStore.deleteByOptionCombo(UID.of(coc)));
   }
 
   public void handleDataApprovals(

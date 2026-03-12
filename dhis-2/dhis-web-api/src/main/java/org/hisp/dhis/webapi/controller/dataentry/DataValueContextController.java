@@ -42,8 +42,6 @@ import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataExportPipeline;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueChangelogEntry;
-import org.hisp.dhis.datavalue.DataValueChangelogService;
 import org.hisp.dhis.datavalue.DataValueQueryParams;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.period.Period;
@@ -61,7 +59,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/dataEntry")
 public class DataValueContextController {
 
-  private final DataValueChangelogService dataValueChangelogService;
   private final DataExportPipeline dataExportPipeline;
   private final PeriodService periodService;
 
@@ -70,8 +67,6 @@ public class DataValueContextController {
     // treat "" as null for CC + CP (this endpoint only for backwards compatibility)
     if ("".equals(params.getCp())) params.setCp(null);
     if ("".equals(params.getCc())) params.setCc(null);
-
-    List<DataValueChangelogEntry> entries = dataValueChangelogService.getChangelogEntries(params);
 
     Set<String> periods =
         periodService.getPeriods(Period.of(params.getPe()), 13).stream()
@@ -95,6 +90,6 @@ public class DataValueContextController {
                 .build(),
             Function.identity());
 
-    return new DataValueContextDto().setAudits(entries).setHistory(dataValues);
+    return new DataValueContextDto().setHistory(dataValues);
   }
 }

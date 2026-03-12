@@ -37,11 +37,8 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueChangelog;
-import org.hisp.dhis.datavalue.DataValueChangelogStore;
 import org.hisp.dhis.datavalue.DataValueStore;
 import org.hisp.dhis.merge.DataMergeStrategy;
 import org.hisp.dhis.merge.MergeRequest;
@@ -58,7 +55,6 @@ import org.springframework.stereotype.Component;
 public class DataDataElementMergeHandler {
 
   private final DataValueStore dataValueStore;
-  private final DataValueChangelogStore dataValueChangelogStore;
 
   /**
    * Method retrieving {@link DataValue}s by source {@link DataElement} references. All retrieved
@@ -81,24 +77,6 @@ public class DataDataElementMergeHandler {
     } else {
       dataValueStore.mergeDataValuesWithDataElements(
           target.getId(), IdentifiableObjectUtils.getIdentifiersSet(sources));
-    }
-  }
-
-  /**
-   * Method retrieving {@link DataValueChangelog}s by source {@link DataElement} references. All
-   * retrieved {@link DataValueChangelog}s will either be deleted or left as is, based on whether
-   * the source {@link DataElement}s are being deleted or not.
-   *
-   * @param sources source {@link DataElement}s used to retrieve {@link DataValueChangelog}s
-   */
-  public void handleDataValueAuditDataElement(
-      @Nonnull List<DataElement> sources, @Nonnull MergeRequest mergeRequest) {
-    if (mergeRequest.isDeleteSources()) {
-      log.info("Deleting source data value audit records as source DataElements are being deleted");
-      sources.forEach(de -> dataValueChangelogStore.deleteByDataElement(UID.of(de)));
-    } else {
-      log.info(
-          "Leaving source data value audit records as is, source DataElements are not being deleted");
     }
   }
 

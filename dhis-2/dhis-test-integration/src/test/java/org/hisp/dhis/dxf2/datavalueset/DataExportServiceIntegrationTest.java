@@ -77,7 +77,6 @@ import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueChangelogService;
 import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
@@ -126,8 +125,6 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
 
   @Autowired private DataExportService dataExportService;
   @Autowired private DataExportStore dataExportStore;
-
-  @Autowired private DataValueChangelogService dataValueChangelogService;
 
   @Autowired private DataEntryPipeline dataEntryPipeline;
 
@@ -612,8 +609,6 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
         dataValues.stream().map(DataExportValue::value).collect(toSet()),
         "mismatch in dataValues values");
 
-    for (DataExportValue dv : dataValues)
-      assertEquals(1, dataValueChangelogService.getChangelogEntries(dv).size());
   }
 
   @Test
@@ -630,8 +625,6 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
         dataValues.stream().map(DataExportValue::value).collect(toSet()),
         "mismatch in dataValues values");
 
-    for (DataExportValue dv : dataValues)
-      assertEquals(1, dataValueChangelogService.getChangelogEntries(dv).size());
   }
 
   @Test
@@ -645,9 +638,6 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertContainsValue(new DataValue(deB, peA, ouA, ocDef, ocDef), dataValues);
     assertContainsValue(new DataValue(deC, peA, ouA, ocDef, ocDef), dataValues);
 
-    for (DataExportValue dv : dataValues)
-      assertEquals(
-          1, dataValueChangelogService.getChangelogEntries(dv).size(), "should be a CREATE audit");
   }
 
   @Test
@@ -1142,11 +1132,6 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertImported(3, 0, summary);
 
     List<DataExportValue> dataValues = assertDataValuesCount(3);
-    for (DataExportValue dv : dataValues)
-      assertEquals(
-          2,
-          dataValueChangelogService.getChangelogEntries(dv).size(),
-          "expected data value update(s) to be audited");
   }
 
   @Test

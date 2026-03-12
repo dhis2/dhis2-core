@@ -73,9 +73,6 @@ import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueChangelog;
-import org.hisp.dhis.datavalue.DataValueChangelogQueryParams;
-import org.hisp.dhis.datavalue.DataValueChangelogStore;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.eventvisualization.EventVisualizationStore;
@@ -187,7 +184,6 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataDimensionItemStore dataDimensionItemStore;
   @Autowired private DataExportStore dataExportStore;
   @Autowired private DataDumpService dataDumpService;
-  @Autowired private DataValueChangelogStore dataValueChangelogStore;
   @Autowired private TrackerEventChangeLogService trackerEventChangeLogService;
   @Autowired private SingleEventChangeLogService singleEventChangeLogService;
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
@@ -2798,95 +2794,6 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
     assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
   }
 
-  // ------------------------
-  // -- DataValueChangelog --
-  // ------------------------
-  @Test
-  @DisplayName(
-      "DataValueChangelogs with references to source DataElements are not changed or deleted when sources not deleted")
-  void dataValueAuditMergeTest() throws ConflictException, BadRequestException {
-    // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-
-    dataDumpService.upsertValues(
-        createDataValue(deSource1, "1", p1),
-        createDataValue(deSource2, "1", p1),
-        createDataValue(deTarget, "1", p1));
-
-    dataDumpService.upsertValues(
-        createDataValue(deSource1, "2", p1), createDataValue(deSource2, "2", p1));
-
-    // params
-    MergeParams mergeParams = getMergeParams();
-
-    // when
-    MergeReport report = dataElementMergeService.processMerge(mergeParams);
-
-    // then
-    DataValueChangelogQueryParams sourceDvaQueryParams =
-        getQueryParams(List.of(deSource1, deSource2), List.of(p1));
-    DataValueChangelogQueryParams targetDvaQueryParams =
-        getQueryParams(List.of(deTarget), List.of(p1));
-
-    List<DataValueChangelog> sourceAudits =
-        dataValueChangelogStore.getEntries(sourceDvaQueryParams);
-    List<DataValueChangelog> targetItems = dataValueChangelogStore.getEntries(targetDvaQueryParams);
-
-    List<DataElement> allDataElements = dataElementService.getAllDataElements();
-
-    assertFalse(report.hasErrorMessages());
-    assertEquals(4, sourceAudits.size(), "Expect 4 entries with source data element refs");
-    assertEquals(1, targetItems.size(), "Expect 1 entry with target data element ref");
-    assertEquals(4, allDataElements.size(), "Expect 4 data elements present");
-    assertTrue(allDataElements.containsAll(List.of(deTarget, deSource1, deSource2)));
-  }
-
-  @Test
-  @DisplayName(
-      "DataValueChangelogs with references to source DataElements are deleted when sources are deleted")
-  void dataValueAuditMergeDeleteTest() throws ConflictException, BadRequestException {
-    // given
-    Period p1 = createPeriod(DateUtils.parseDate("2024-1-4"), DateUtils.parseDate("2024-1-4"));
-    p1.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    periodService.addPeriod(p1);
-
-    dataDumpService.upsertValues(
-        createDataValue(deSource1, "1", p1),
-        createDataValue(deSource2, "1", p1),
-        createDataValue(deTarget, "1", p1));
-
-    dataDumpService.upsertValues(
-        createDataValue(deSource1, "2", p1), createDataValue(deSource2, "2", p1));
-
-    // params
-    MergeParams mergeParams = getMergeParams();
-    mergeParams.setDeleteSources(true);
-
-    // when
-    MergeReport report = dataElementMergeService.processMerge(mergeParams);
-
-    // then
-    DataValueChangelogQueryParams sourceDvaQueryParams =
-        getQueryParams(List.of(deSource1, deSource2), List.of(p1));
-    DataValueChangelogQueryParams targetDvaQueryParams =
-        getQueryParams(List.of(deTarget), List.of(p1));
-
-    List<DataValueChangelog> sourceAudits =
-        dataValueChangelogStore.getEntries(sourceDvaQueryParams);
-    List<DataValueChangelog> targetItems = dataValueChangelogStore.getEntries(targetDvaQueryParams);
-
-    List<DataElement> allDataElements = dataElementService.getAllDataElements();
-
-    assertFalse(report.hasErrorMessages());
-    assertEquals(0, sourceAudits.size(), "Expect 0 entries with source data element refs");
-    assertEquals(1, targetItems.size(), "Expect 1 entry with target data element ref");
-    assertEquals(2, allDataElements.size(), "Expect 2 data elements present");
-    assertTrue(allDataElements.contains(deTarget));
-    assertFalse(allDataElements.containsAll(List.of(deSource1, deSource2)));
-  }
-
   // --------------------------------------
   // -- EventChangeLog --
   // --------------------------------------
@@ -3073,13 +2980,6 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   private DataEntryValue.Input createDataValue(DataElement de, String value, Period p) {
     return new DataEntryValue.Input(
         de.getUid(), ou1.getUid(), coc1.getUid(), coc1.getUid(), p.getIsoDate(), value, null);
-  }
-
-  private DataValueChangelogQueryParams getQueryParams(
-      List<DataElement> dataElements, List<Period> periods) {
-    return new DataValueChangelogQueryParams()
-        .setDataElements(dataElements.stream().map(DataElement::getUid).map(UID::of).toList())
-        .setPeriods(periods);
   }
 
   private void assertMergeSuccessfulSourcesNotDeleted(

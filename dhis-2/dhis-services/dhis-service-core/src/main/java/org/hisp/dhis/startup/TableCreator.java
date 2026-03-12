@@ -58,9 +58,6 @@ public class TableCreator extends AbstractStartupRoutine {
         "create unique index dataapproval_unique on dataapproval(datasetid,periodid,organisationunitid,attributeoptioncomboid,dataapprovallevelid)",
         "dataapproval_unique");
     createSilently(
-        "create index in_datavalueaudit on datavalueaudit(dataelementid,periodid,organisationunitid,categoryoptioncomboid,attributeoptioncomboid)",
-        "in_datavalueaudit");
-    createSilently(
         "create index in_trackedentityattributevalue_attributeid on trackedentityattributevalue(trackedentityattributeid)",
         "in_trackedentityattributevalue_attributeid");
   }

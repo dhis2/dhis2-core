@@ -126,7 +126,6 @@ public class DefaultOrgUnitMergeService implements OrgUnitMergeService {
         .add(metadataHandler::mergeUsers)
         .add(metadataHandler::mergeConfiguration)
         .add(analyticalObjectHandler::mergeAnalyticalObjects)
-        .add(dataHandler::mergeDataValueAudits)
         .add(dataHandler::mergeDataValues)
         .add(dataHandler::mergeDataApprovals)
         .add(dataHandler::mergeLockExceptions)

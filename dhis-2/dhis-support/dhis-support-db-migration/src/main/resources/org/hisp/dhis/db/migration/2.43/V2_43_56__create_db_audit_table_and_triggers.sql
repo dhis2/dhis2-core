@@ -3,10 +3,20 @@
 -- these objects are zero-overhead unless the feature is active.
 
 -- ---------------------------------------------------------------------------
--- 0. Drop old application-level audit table (replaced by db_audit)
+-- 0. Drop old application-level audit tables (replaced by db_audit)
 -- ---------------------------------------------------------------------------
 
+-- Drop trigger from V2_43_17 that wrote to datavalueaudit (table is being dropped below)
+DROP TRIGGER IF EXISTS trg_datavalue_audit ON datavalue;
+DROP FUNCTION IF EXISTS log_datavalue_audit();
+
 DROP TABLE IF EXISTS audit CASCADE;
+DROP TABLE IF EXISTS dataapprovalaudit CASCADE;
+DROP TABLE IF EXISTS datavalueaudit CASCADE;
+DROP TABLE IF EXISTS programtempownershipaudit CASCADE;
+DROP TABLE IF EXISTS trackedentityattributevalueaudit CASCADE;
+DROP TABLE IF EXISTS trackedentitydatavalueaudit CASCADE;
+DROP TABLE IF EXISTS trackedentityinstanceaudit CASCADE;
 
 -- ---------------------------------------------------------------------------
 -- 1. Audit config table

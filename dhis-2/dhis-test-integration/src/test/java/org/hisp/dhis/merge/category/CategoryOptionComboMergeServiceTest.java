@@ -71,9 +71,6 @@ import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueChangelog;
-import org.hisp.dhis.datavalue.DataValueChangelogQueryParams;
-import org.hisp.dhis.datavalue.DataValueChangelogStore;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
@@ -144,7 +141,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataExportStore dataExportStore;
   @Autowired private DataDumpService dataDumpService;
   @Autowired private CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
-  @Autowired private DataValueChangelogStore dataValueChangelogStore;
   @Autowired private DataApprovalStore dataApprovalStore;
   @Autowired private TrackerEventStore trackerEventStore;
   @Autowired private SingleEventStore singleEventStore;
@@ -1281,78 +1277,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     assertCocCountAfterAutoGenerate(5);
   }
 
-  // ------------------------
-  // -- DataValueChangelog --
-  // ------------------------
-
-  @Test
-  @DisplayName(
-      "DataValueChangelogs with references to source COCs are deleted when sources are deleted")
-  void dataValueAuditMergeDeleteTest() throws ConflictException, BadRequestException {
-    // given
-    dataDumpService.upsertValues(
-        createDataValue(cocDuplicate, "1", p1),
-        createDataValue(cocDuplicate2, "1", p1),
-        createDataValue(cocTarget, "1", p1));
-
-    dataDumpService.upsertValues(
-        createDataValue(cocDuplicate, "2", p1),
-        createDataValue(cocDuplicate2, "2", p1),
-        createDataValue(cocTarget, "1", p1));
-
-    // params
-    MergeParams mergeParams = getMergeParams();
-
-    // when
-    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
-
-    // then
-    DataValueChangelogQueryParams source1DvaQueryParams = getQueryParams(cocDuplicate);
-    DataValueChangelogQueryParams targetDvaQueryParams = getQueryParams(cocTarget);
-
-    List<DataValueChangelog> source1Audits =
-        dataValueChangelogStore.getEntries(source1DvaQueryParams);
-
-    List<DataValueChangelog> targetItems = dataValueChangelogStore.getEntries(targetDvaQueryParams);
-
-    assertFalse(report.hasErrorMessages());
-    assertEquals(0, source1Audits.size(), "Expect 0 entries with source COC refs");
-    assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref");
-    assertCocCountAfterAutoGenerate(5);
-  }
-
-  // ------------------------
-  // -- DataApprovalAudit --
-  // ------------------------
-  @Test
-  @DisplayName(
-      "DataApprovalAudits with references to source COCs are deleted when sources are deleted")
-  void dataApprovalAuditMergeDeleteTest() throws ConflictException {
-    // given
-    DataApprovalLevel dataApprovalLevel = new DataApprovalLevel();
-    dataApprovalLevel.setLevel(1);
-    dataApprovalLevel.setName("DAL");
-    manager.save(dataApprovalLevel);
-
-    DataApprovalWorkflow daw = new DataApprovalWorkflow();
-    daw.setPeriodType(PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY));
-    daw.setName("DAW");
-    daw.setCategoryCombo(categoryMetadata.cc1());
-    manager.save(daw);
-
-    // params
-    MergeParams mergeParams = getMergeParams();
-
-    // when
-    MergeReport report = categoryOptionComboMergeService.processMerge(mergeParams);
-
-    // then
-    assertFalse(report.hasErrorMessages());
-    //    assertEquals(0, sourceAudits.size(), "Expect 0 entries with source COC refs");
-    //    assertEquals(1, targetItems.size(), "Expect 1 entry with target COC ref");
-    assertCocCountAfterAutoGenerate(5);
-  }
-
   // -----------------------
   // ---- DataApproval ----
   // -----------------------
@@ -2226,10 +2150,6 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     da.setCreated(new Date());
     da.setCreator(getCurrentUser());
     return da;
-  }
-
-  private DataValueChangelogQueryParams getQueryParams(CategoryOptionCombo coc) {
-    return new DataValueChangelogQueryParams().setCategoryOptionCombo(UID.of(coc));
   }
 
   private DataValue addDataValue(DataValue value) {

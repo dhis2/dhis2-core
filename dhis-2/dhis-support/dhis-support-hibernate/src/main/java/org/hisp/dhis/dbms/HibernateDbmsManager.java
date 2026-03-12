@@ -73,7 +73,6 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("smscommands");
     emptyTable("incomingsms");
 
-    emptyTable("datavalueaudit");
     emptyTable("datavalue");
     emptyTable("completedatasetregistration");
 
@@ -195,7 +194,6 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("datasetoperands");
     emptyTable("dataset");
 
-    emptyTable("dataapprovalaudit");
     emptyTable("dataapprovalworkflowlevels");
     emptyTable("dataapprovalworkflow");
     emptyTable("dataapprovallevel");
@@ -215,7 +213,6 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyRelationships();
 
     emptyTable("programnotificationinstance");
-    emptyTable("trackedentitydatavalueaudit");
     emptyTable("trackereventchangelog");
     emptyTable("singleeventchangelog");
     emptyTable("trackedentityprogramowner");
@@ -242,14 +239,12 @@ public class HibernateDbmsManager implements DbmsManager {
     emptyTable("periodboundary");
     emptyTable("programindicator");
     emptyTable("programownershiphistory");
-    emptyTable("programtempownershipaudit");
     emptyTable("programtempowner");
     emptyTable("program");
 
     emptyTable("eventfilter");
 
     emptyTable("trackedentityattributevalue");
-    emptyTable("trackedentityattributevalueaudit");
     emptyTable("trackedentitychangelog");
     emptyTable("trackedentitytypeattribute");
     emptyTable("trackedentityattribute");

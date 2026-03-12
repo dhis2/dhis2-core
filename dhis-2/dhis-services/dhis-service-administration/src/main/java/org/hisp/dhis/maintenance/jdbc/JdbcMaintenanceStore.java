@@ -121,7 +121,6 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from note where noteid in" + noteSelect,
           // delete other objects related to events
           "delete from relationshipitem where trackereventid in " + trackerEventSelect,
-          "delete from trackedentitydatavalueaudit where eventid in " + trackerEventSelect,
           "delete from trackereventchangelog where eventid in " + trackerEventSelect,
           "delete from programmessage where trackereventid in " + trackerEventSelect,
           "delete from programnotificationinstance where trackereventid in " + trackerEventSelect,
@@ -158,7 +157,6 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from note where noteid in" + noteSelect,
           // delete other objects related to events
           "delete from relationshipitem where singleeventid in " + singleEventSelect,
-          "delete from trackedentitydatavalueaudit where eventid in " + singleEventSelect,
           "delete from singleeventchangelog where eventid in " + singleEventSelect,
           "delete from programmessage where singleeventid in " + singleEventSelect,
           "delete from programnotificationinstance where singleeventid in " + singleEventSelect,
@@ -227,7 +225,6 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from note where noteid in" + noteSelect,
           // delete other entries linked to events
           "delete from relationshipitem where trackereventid in " + eventSelect,
-          "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
           "delete from trackereventchangelog where eventid in " + eventSelect,
           "delete from programmessage where trackereventid in " + eventSelect,
           "delete from programnotificationinstance where trackereventid in " + eventSelect,
@@ -308,7 +305,6 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
               union all select noteid from singleevent_notes
               union all select noteid from enrollment_notes)""",
           // delete other objects related to obsolete events
-          "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
           "delete from trackereventchangelog where eventid in " + eventSelect,
           // delete other objects related to obsolete enrollments
           "delete from programmessage where enrollmentid in " + enrollmentSelect,
@@ -317,11 +313,9 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
           "delete from programmessage where trackedentityid in " + teSelect,
           "delete from relationshipitem where trackedentityid in " + teSelect,
           "delete from trackedentityattributevalue where trackedentityid in " + teSelect,
-          "delete from trackedentityattributevalueaudit where trackedentityid in " + teSelect,
           "delete from trackedentitychangelog where trackedentityid in " + teSelect,
           "delete from trackedentityprogramowner where trackedentityid in " + teSelect,
           "delete from programtempowner where trackedentityid in " + teSelect,
-          "delete from programtempownershipaudit where trackedentityid in " + teSelect,
           "delete from programownershiphistory where trackedentityid in " + teSelect,
           "delete from enrollment where trackedentityid in " + teSelect,
           // finally delete the tracked entities
@@ -343,10 +337,8 @@ public class JdbcMaintenanceStore implements MaintenanceStore {
         "with period_ids(periodid) as ("
             + "    select distinct periodid from completedatasetregistration"
             + "    union select distinct periodid from dataapproval"
-            + "    union select distinct periodid from dataapprovalaudit"
             + "    union select distinct periodid from datainputperiod"
             + "    union select distinct periodid from datavalue"
-            + "    union select distinct periodid from datavalueaudit"
             + "    union select distinct periodid from eventchart_periods"
             + "    union select distinct periodid from eventreport_periods"
             + "    union select distinct periodid from eventvisualization_periods"
