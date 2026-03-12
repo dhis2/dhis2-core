@@ -116,7 +116,7 @@ class TrackerProgramServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldReturnSingleProgramWhenUserHasDataWriteAccessToTrackerProgram()
+  void shouldReturnTrackerProgramWhenUserHasDataWriteAccess()
       throws ForbiddenException, BadRequestException {
     assertEquals(
         "TsngICFQjvP",
