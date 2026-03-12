@@ -202,6 +202,11 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
     manager.update(trackedEntityA1Enrollment);
 
     fields = TrackedEntityFields.none();
+
+    User admin = getAdminUser();
+    admin.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
+    manager.update(admin);
+    injectSecurityContextUser(admin);
   }
 
   @Test
@@ -704,6 +709,11 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   void shouldNotTransferOwnershipWhenOrgUnitNotAssociatedToProgram() {
     OrganisationUnit notAssociatedOrgUnit = createOrganisationUnit('C');
     organisationUnitService.addOrganisationUnit(notAssociatedOrgUnit);
+    User admin = getAdminUser();
+    admin.setTeiSearchOrganisationUnits(Set.of(notAssociatedOrgUnit));
+    manager.update(admin);
+    injectSecurityContextUser(admin);
+
     Exception exception =
         assertThrows(
             ForbiddenException.class,
@@ -712,6 +722,20 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
         String.format(
             "The program %s is not associated to the org unit %s",
             programA.getUid(), notAssociatedOrgUnit.getUid()),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldNotTransferOwnershipWhenOrgUnitNotInEffectiveUserScope() {
+    OrganisationUnit outOfScopeOrgUnit = createOrganisationUnit('C');
+    organisationUnitService.addOrganisationUnit(outOfScopeOrgUnit);
+
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () -> transferOwnership(trackedEntityA1, programA, outOfScopeOrgUnit));
+    assertEquals(
+        "Tracked entity not transferred. Org unit supplied is not in the user scope.",
         exception.getMessage());
   }
 

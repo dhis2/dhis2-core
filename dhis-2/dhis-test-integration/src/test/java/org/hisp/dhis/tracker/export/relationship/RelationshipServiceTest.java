@@ -282,7 +282,9 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldNotReturnRelationshipWhenTeIsTransferredAndUserHasNoAccessToAtLeastOneProgram()
       throws ForbiddenException {
-    injectAdminIntoSecurityContext();
+    User adminUser = getAdminUser();
+    adminUser.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB));
+    injectSecurityContextUser(adminUser);
 
     TrackedEntityType trackedEntityType = createTrackedEntityType('X');
     manager.save(trackedEntityType, false);
