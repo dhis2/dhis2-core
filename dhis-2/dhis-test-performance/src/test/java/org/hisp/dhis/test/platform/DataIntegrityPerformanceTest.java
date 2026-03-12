@@ -269,17 +269,17 @@ public class DataIntegrityPerformanceTest extends Simulation {
     setUp(scenario.injectClosed(singleUser))
         .protocols(httpProtocol)
         .assertions(
-            // Submit should be quick
-            details(SUBMIT_REQUEST).responseTime().percentile(95).lt(1000),
-            details(SUBMIT_REQUEST).responseTime().max().lt(2000),
+            // Submit only enqueues the job — should be very fast
+            details(SUBMIT_REQUEST).responseTime().percentile(95).lt(100),
+            details(SUBMIT_REQUEST).responseTime().max().lt(200),
             details(SUBMIT_REQUEST).successfulRequests().percent().is(100D),
-            // Poll endpoint itself should always respond quickly
-            details(POLL_REQUEST).responseTime().percentile(95).lt(500),
-            details(POLL_REQUEST).responseTime().max().lt(1000),
+            // Notifier poll is a lightweight read — should be very fast
+            details(POLL_REQUEST).responseTime().percentile(95).lt(100),
+            details(POLL_REQUEST).responseTime().max().lt(200),
             details(POLL_REQUEST).successfulRequests().percent().is(100D),
-            // Results fetch is a read of cached data
-            details(RESULTS_REQUEST).responseTime().percentile(95).lt(500),
-            details(RESULTS_REQUEST).responseTime().max().lt(1000),
+            // Results are served from cache — should be near-instant
+            details(RESULTS_REQUEST).responseTime().percentile(95).lt(20),
+            details(RESULTS_REQUEST).responseTime().max().lt(50),
             details(RESULTS_REQUEST).successfulRequests().percent().is(100D));
   }
 }
