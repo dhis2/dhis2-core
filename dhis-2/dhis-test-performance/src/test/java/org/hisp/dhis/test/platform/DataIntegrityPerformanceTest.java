@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -138,10 +138,9 @@ public class DataIntegrityPerformanceTest extends Simulation {
             .repeat(ITERATIONS)
             .on(
                 // Step 1: clear the application cache so each iteration starts cold
-                exec(
-                        http(CACHE_CLEAR_REQUEST)
-                            .post("/api/maintenance?cacheClear=true")
-                            .check(status().is(200)))
+                exec(http(CACHE_CLEAR_REQUEST)
+                        .post("/api/maintenance?cacheClear=true")
+                        .check(status().is(200)))
 
                     // Step 2: submit the job and save the job ID
                     .exec(
@@ -157,22 +156,20 @@ public class DataIntegrityPerformanceTest extends Simulation {
                             !Boolean.TRUE.equals(session.get("jobDone"))
                                 && session.getInt("pollCount") < MAX_POLLS)
                     .on(
-                        exec(
-                                http(POLL_REQUEST)
-                                    .get("/api/system/tasks/DATA_INTEGRITY/#{jobId}")
-                                    .check(status().is(200))
-                                    // Selects all array elements where completed == true;
-                                    // optional so the check does not fail while the job is running.
-                                    .check(
-                                        jsonPath("$[?(@.completed == true)]")
-                                            .findAll()
-                                            .optional()
-                                            .saveAs("completedEvents")))
+                        exec(http(POLL_REQUEST)
+                                .get("/api/system/tasks/DATA_INTEGRITY/#{jobId}")
+                                .check(status().is(200))
+                                // Selects all array elements where completed == true;
+                                // optional so the check does not fail while the job is running.
+                                .check(
+                                    jsonPath("$[?(@.completed == true)]")
+                                        .findAll()
+                                        .optional()
+                                        .saveAs("completedEvents")))
                             .exec(
                                 session -> {
                                   Object events = session.get("completedEvents");
-                                  boolean done =
-                                      events instanceof List<?> list && !list.isEmpty();
+                                  boolean done = events instanceof List<?> list && !list.isEmpty();
                                   int count = session.getInt("pollCount") + 1;
                                   if (done) {
                                     System.out.println(
@@ -206,41 +203,33 @@ public class DataIntegrityPerformanceTest extends Simulation {
                     // Step 5: fetch and log per-check execution times from the summary results
                     .doIf(session -> Boolean.TRUE.equals(session.get("jobDone")))
                     .then(
-                        exec(
-                                http(RESULTS_REQUEST)
-                                    .get("/api/dataIntegrity/summary")
-                                    .check(status().is(200))
-                                    .check(bodyString().saveAs("summaryBody"))
-                                    .check(
-                                        bodyString()
-                                            .transform(
-                                                body -> {
-                                                  try {
-                                                    JsonNode root =
-                                                        OBJECT_MAPPER.readTree(body);
-                                                    StringJoiner slow =
-                                                        new StringJoiner(", ");
-                                                    root.fields()
-                                                        .forEachRemaining(
-                                                            e -> {
-                                                              long ms =
-                                                                  e.getValue()
-                                                                      .path(
-                                                                          "averageExecutionTime")
-                                                                      .asLong(-1);
-                                                              if (ms > MAX_CHECK_MS)
-                                                                slow.add(
-                                                                    e.getKey()
-                                                                        + "="
-                                                                        + ms
-                                                                        + "ms");
-                                                            });
-                                                    return slow.toString();
-                                                  } catch (Exception ex) {
-                                                    return "parse error: " + ex.getMessage();
-                                                  }
-                                                })
-                                            .is("")))
+                        exec(http(RESULTS_REQUEST)
+                                .get("/api/dataIntegrity/summary")
+                                .check(status().is(200))
+                                .check(bodyString().saveAs("summaryBody"))
+                                .check(
+                                    bodyString()
+                                        .transform(
+                                            body -> {
+                                              try {
+                                                JsonNode root = OBJECT_MAPPER.readTree(body);
+                                                StringJoiner slow = new StringJoiner(", ");
+                                                root.fields()
+                                                    .forEachRemaining(
+                                                        e -> {
+                                                          long ms =
+                                                              e.getValue()
+                                                                  .path("averageExecutionTime")
+                                                                  .asLong(-1);
+                                                          if (ms > MAX_CHECK_MS)
+                                                            slow.add(e.getKey() + "=" + ms + "ms");
+                                                        });
+                                                return slow.toString();
+                                              } catch (Exception ex) {
+                                                return "parse error: " + ex.getMessage();
+                                              }
+                                            })
+                                        .is("")))
                             .exec(
                                 session -> {
                                   String body = session.getString("summaryBody");
