@@ -114,8 +114,8 @@ public class DataIntegrityPerformanceTest extends Simulation {
   private static final String PASSWORD = prop("password", "district");
   private static final int ITERATIONS = Integer.parseInt(prop("iterations", "3"));
   private static final int POLL_INTERVAL_MS = Integer.parseInt(prop("pollIntervalMs", "200"));
-  // Default: 300 polls × 200 ms = 60 s timeout
-  private static final int MAX_POLLS = Integer.parseInt(prop("maxPolls", "300"));
+  //20x200ms is huge, but should serve as a firm upper limit.
+  private static final int MAX_POLLS = Integer.parseInt(prop("maxPolls", "20"));
   private static final long MAX_CHECK_MS = Long.parseLong(prop("maxCheckMs", "50"));
 
   private static final String CACHE_CLEAR_REQUEST = "POST Maintenance - clear application cache";
@@ -138,6 +138,9 @@ public class DataIntegrityPerformanceTest extends Simulation {
             .repeat(ITERATIONS)
             .on(
                 // Step 1: clear the application cache so each iteration starts cold
+                // We cannot do much about the postgres cache, so the first
+                // run is really the most useful here. Subsequent runs may be faster
+                // due to postgres caching, but at least we rule out application-level caching effects.
                 exec(http(CACHE_CLEAR_REQUEST)
                         .post("/api/maintenance?cacheClear=true")
                         .check(status().is(200)))
@@ -269,15 +272,15 @@ public class DataIntegrityPerformanceTest extends Simulation {
     setUp(scenario.injectClosed(singleUser))
         .protocols(httpProtocol)
         .assertions(
-            // Submit only enqueues the job — should be very fast
+            // Submit only enqueues the job. should be fast
             details(SUBMIT_REQUEST).responseTime().percentile(95).lt(100),
             details(SUBMIT_REQUEST).responseTime().max().lt(200),
             details(SUBMIT_REQUEST).successfulRequests().percent().is(100D),
-            // Notifier poll is a lightweight read — should be very fast
+            // Notifier poll is a lightweight read. should be fast
             details(POLL_REQUEST).responseTime().percentile(95).lt(100),
             details(POLL_REQUEST).responseTime().max().lt(200),
             details(POLL_REQUEST).successfulRequests().percent().is(100D),
-            // Results are served from cache — should be near-instant
+            // Results are served from cache on the second try
             details(RESULTS_REQUEST).responseTime().percentile(95).lt(20),
             details(RESULTS_REQUEST).responseTime().max().lt(50),
             details(RESULTS_REQUEST).successfulRequests().percent().is(100D));
