@@ -114,7 +114,7 @@ public class DataIntegrityPerformanceTest extends Simulation {
   private static final String PASSWORD = prop("password", "district");
   private static final int ITERATIONS = Integer.parseInt(prop("iterations", "3"));
   private static final int POLL_INTERVAL_MS = Integer.parseInt(prop("pollIntervalMs", "200"));
-  //20x200ms is huge, but should serve as a firm upper limit.
+  // 20x200ms is huge, but should serve as a firm upper limit.
   private static final int MAX_POLLS = Integer.parseInt(prop("maxPolls", "20"));
   private static final long MAX_CHECK_MS = Long.parseLong(prop("maxCheckMs", "50"));
 
@@ -140,7 +140,8 @@ public class DataIntegrityPerformanceTest extends Simulation {
                 // Step 1: clear the application cache so each iteration starts cold
                 // We cannot do much about the postgres cache, so the first
                 // run is really the most useful here. Subsequent runs may be faster
-                // due to postgres caching, but at least we rule out application-level caching effects.
+                // due to postgres caching, but at least we rule out application-level caching
+                // effects.
                 exec(http(CACHE_CLEAR_REQUEST)
                         .post("/api/maintenance?cacheClear=true")
                         .check(status().is(200)))
