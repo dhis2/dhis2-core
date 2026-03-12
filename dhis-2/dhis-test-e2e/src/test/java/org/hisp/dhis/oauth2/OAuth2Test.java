@@ -255,14 +255,22 @@ class OAuth2Test extends BaseE2ETest {
     // The JWT auth resolver maps the "email" claim to User.openId via getUserByOpenId().
     Map<String, Object> userMap =
         Map.of(
-            "username", username,
-            "password", password,
-            "email", email,
-            "openId", email,
-            "userRoles", List.of(Map.of("id", SUPER_USER_ROLE_UID)),
-            "firstName", "user",
-            "surname", "userson",
-            "organisationUnits", List.of(Map.of("id", orgUnitUID)));
+            "username",
+            username,
+            "password",
+            password,
+            "email",
+            email,
+            "openId",
+            email,
+            "userRoles",
+            List.of(Map.of("id", SUPER_USER_ROLE_UID)),
+            "firstName",
+            "user",
+            "surname",
+            "userson",
+            "organisationUnits",
+            List.of(Map.of("id", orgUnitUID)));
 
     ResponseEntity<String> createResp = postWithAdminBasicAuth("/users", userMap);
     JsonNode createJson = objectMapper.readTree(createResp.getBody());
