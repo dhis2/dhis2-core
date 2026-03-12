@@ -3307,7 +3307,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"page\":1,\"total\":27,\"pageSize\":10,\"pageCount\":3},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"pe\":{},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"ou\":{},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"2021\":{\"name\":\"2021\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"incidentdate\":{\"name\":\"Start of treatment date\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"incidentdate\":[\"2021\"]}}";
+        "{\"pager\":{\"page\":1,\"total\":12,\"pageSize\":10,\"pageCount\":2},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"pe\":{},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"ou\":{},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"2021\":{\"name\":\"2021\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"incidentdate\":{\"name\":\"Start of treatment date\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"incidentdate\":[\"2021\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -3340,15 +3340,15 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
 
     // Validate selected values for row index 3
     validateRowValueByName(response, actualHeaders, 3, "oucode", "OU_559");
-    validateRowValueByName(response, actualHeaders, 3, "enrollmentdate", "2021-05-19 12:27:48.317");
+    validateRowValueByName(response, actualHeaders, 3, "enrollmentdate", "2022-04-01 12:27:48.401");
 
     // Validate selected values for row index 6
     validateRowValueByName(response, actualHeaders, 6, "oucode", "OU_559");
-    validateRowValueByName(response, actualHeaders, 6, "enrollmentdate", "2021-09-11 12:27:48.552");
+    validateRowValueByName(response, actualHeaders, 6, "enrollmentdate", "2021-11-14 12:27:48.61");
 
     // Validate selected values for row index 9
     validateRowValueByName(response, actualHeaders, 9, "oucode", "OU_559");
-    validateRowValueByName(response, actualHeaders, 9, "enrollmentdate", "2021-05-14 12:35:24.03");
+    validateRowValueByName(response, actualHeaders, 9, "enrollmentdate", "2021-09-11 12:27:48.552");
   }
 
   @Test

@@ -161,21 +161,7 @@ public class DefaultUserGroupService implements UserGroupService {
 
   @Override
   @Transactional
-  public void removeUserFromGroups(User user, Collection<String> uids) {
-    for (String uid : uids) {
-      if (canAddOrRemoveMember(uid)) {
-        UserGroup userGroup = getUserGroup(uid);
-        userGroup.removeUser(user);
-        userGroupStore.updateNoAcl(userGroup);
-      }
-    }
-    aclService.invalidateCurrentUserGroupInfoCache();
-  }
-
-  @Override
-  @Transactional
-  public void updateUserGroups(
-      User user, @Nonnull Collection<String> uids, UserDetails currentUser) {
+  public void updateUserGroups(User user, @Nonnull Collection<UID> uids, UserDetails currentUser) {
     Collection<UserGroup> updates = getUserGroupsByUid(uids);
     UID currentUserUid = UID.of(currentUser.getUid());
     UID userUid = user.getUID();
@@ -200,8 +186,8 @@ public class DefaultUserGroupService implements UserGroupService {
     aclService.invalidateCurrentUserGroupInfoCache();
   }
 
-  private Collection<UserGroup> getUserGroupsByUid(@Nonnull Collection<String> uids) {
-    return userGroupStore.getByUid(uids);
+  private Collection<UserGroup> getUserGroupsByUid(@Nonnull Collection<UID> uids) {
+    return userGroupStore.getByUid(UID.toValueList(uids));
   }
 
   @Override

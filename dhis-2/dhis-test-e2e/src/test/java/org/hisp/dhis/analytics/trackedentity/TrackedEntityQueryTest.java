@@ -49,6 +49,7 @@ import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -831,7 +832,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
   }
 
   @Test
-  @Disabled("OU validation error. Needs to be reviewed")
   public void queryWithProgramAndEnrollmentStaticDimOrdering() {
     // Given
     QueryParamsBuilder params =
@@ -839,6 +839,47 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             .add("program=IpHINAT79UW")
             .add("lastUpdated=LAST_10_YEARS")
             .add("desc=lastupdated,IpHINAT79UW.A03MvHHogjR.ouname")
+            .add("headers=ouname,lZGmxYbs97q")
+            .add("relativePeriodDate=2022-09-27");
+
+    // When
+    ApiResponse response =
+        analyticsTrackedEntityActions.query().get("nEenWmSyUEp", JSON, JSON, params);
+
+    // Then
+    response
+        .validate()
+        .statusCode(200)
+        .body("headers", hasSize(equalTo(2)))
+        .body("rows", hasSize(equalTo(50)))
+        .body("height", equalTo(50))
+        .body("width", equalTo(2))
+        .body("headerWidth", equalTo(2));
+
+    // Validate headers
+    validateHeader(
+        response, 0, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
+    validateHeader(
+        response, 1, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true);
+
+    // Validate the first three rows, as samples.
+    validateRow(response, 0, List.of("Ngelehun CHC", ""));
+
+    validateRow(response, 1, List.of("Ngelehun CHC", ""));
+
+    validateRow(response, 2, List.of("Ngelehun CHC", ""));
+  }
+
+  @Test
+  @DisplayName(
+      "Use stageId.ouname instead of programId.stageId.ouname for sorting on enrollment static dimension")
+  public void queryWithProgramAndEnrollmentStaticDimOrdering2() {
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("program=IpHINAT79UW")
+            .add("lastUpdated=LAST_10_YEARS")
+            .add("desc=lastupdated,A03MvHHogjR.ouname")
             .add("headers=ouname,lZGmxYbs97q")
             .add("relativePeriodDate=2022-09-27");
 
