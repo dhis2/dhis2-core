@@ -737,7 +737,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     Exception exception =
         assertThrows(
             ForbiddenException.class,
-            () -> transferOwnership(trackedEntityA1, programA, organisationUnitB));
+            () -> transferOwnership(entityInstanceA1, programA, organisationUnitB));
     assertEquals(
         String.format(
             "Current user doesn't have data write access to the provided program %s.",
