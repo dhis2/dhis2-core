@@ -2,6 +2,7 @@
 -- The trigger function short-circuits when app.dhis2_user is not set, so
 -- these objects are zero-overhead unless the feature is active.
 
+
 -- ---------------------------------------------------------------------------
 -- 0. Drop old application-level audit tables (replaced by db_audit)
 -- ---------------------------------------------------------------------------
@@ -39,6 +40,31 @@ INSERT INTO db_audit_config (key, value, description) VALUES
     ('archive_dir', '', 'Filesystem path where daily CSV archives are written. '
                         'Must be writable by the postgres OS user. '
                         'Set before running archive_db_audit().');
+
+-- ---------------------------------------------------------------------------
+-- 2. Sensitive column redaction table
+--
+-- Lists columns that must never appear in plaintext in db_audit.
+-- The trigger function replaces matching column values with a SHA-256 hash,
+-- so change detection is preserved (same hash = no change) without storing
+-- the raw value.
+--
+-- Add rows here to extend coverage — no DDL or trigger changes required:
+--
+--   INSERT INTO db_audit_redact VALUES ('trackedentity', 'geometry');
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE db_audit_redact (
+    table_name  TEXT NOT NULL,
+    column_name TEXT NOT NULL,
+    PRIMARY KEY (table_name, column_name)
+);
+
+-- Tracked entity: geometry can encode precise location of a patient
+INSERT INTO db_audit_redact (table_name, column_name) VALUES
+    ('trackedentity',              'geometry'),
+    ('trackedentityattributevalue','value'),      -- raw attribute values (e.g. name, DOB, phone)
+    ('enrollment',                 'geometry');   -- enrollment location
 
 -- ---------------------------------------------------------------------------
 -- 3. Audit table (partitioned by changed_at for future monthly partitions)
@@ -84,13 +110,15 @@ CREATE INDEX idx_db_audit_record_uid  ON db_audit_default (record_uid)
 CREATE OR REPLACE FUNCTION dhis2_db_audit_fn()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER AS $$
 DECLARE
-    v_user     TEXT;
-    v_row_json JSONB;
-    v_pk_json  JSONB := '{}';
-    v_uid_val  TEXT;
-    v_old_data JSONB;
-    v_new_data JSONB;
-    i          INT;
+    v_user        TEXT;
+    v_row_json    JSONB;
+    v_pk_json     JSONB := '{}';
+    v_uid_val     TEXT;
+    v_old_data    JSONB;
+    v_new_data    JSONB;
+    v_redact_cols TEXT[];
+    v_col         TEXT;
+    i             INT;
 BEGIN
     -- Short-circuit: COALESCE handles NULL (variable never set in this session,
     -- e.g. StatelessSession writes) as well as '' (set to empty string).
@@ -121,6 +149,34 @@ BEGIN
 
     -- Last arg is the UID column name; NULL stored when the column is absent.
     v_uid_val := v_row_json ->> TG_ARGV[TG_NARGS - 1];
+
+    -- Apply column-level redaction for sensitive tables.
+    -- Matching column values are replaced with a SHA-256 hash so that change
+    -- detection is preserved (identical hash = value unchanged) without storing
+    -- the raw value in the audit log.
+    SELECT array_agg(column_name)
+    INTO   v_redact_cols
+    FROM   db_audit_redact
+    WHERE  table_name = TG_TABLE_NAME;
+
+    IF v_redact_cols IS NOT NULL THEN
+        FOREACH v_col IN ARRAY v_redact_cols LOOP
+            IF v_old_data IS NOT NULL AND v_old_data ? v_col THEN
+                v_old_data := jsonb_set(
+                    v_old_data, ARRAY[v_col],
+                    to_jsonb('sha256:' || encode(
+                        sha256((v_old_data ->> v_col)::bytea), 'hex'))
+                );
+            END IF;
+            IF v_new_data IS NOT NULL AND v_new_data ? v_col THEN
+                v_new_data := jsonb_set(
+                    v_new_data, ARRAY[v_col],
+                    to_jsonb('sha256:' || encode(
+                        sha256((v_new_data ->> v_col)::bytea), 'hex'))
+                );
+            END IF;
+        END LOOP;
+    END IF;
 
     -- The INSERT is wrapped in an EXCEPTION block so that audit failures never
     -- abort the originating business transaction. PostgreSQL implements this as
