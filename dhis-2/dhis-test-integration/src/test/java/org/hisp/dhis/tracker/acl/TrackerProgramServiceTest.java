@@ -88,7 +88,7 @@ class TrackerProgramServiceTest extends PostgresIntegrationTestBase {
             "TsngICFQjvP");
 
     assertContainsOnly(
-        accessiblePrograms, getUids(trackerProgramService.getAccessibleTrackerPrograms()));
+        accessiblePrograms, getUids(trackerProgramService.getTrackerProgramsWithDataReadAccess()));
   }
 
   @Test
@@ -97,21 +97,30 @@ class TrackerProgramServiceTest extends PostgresIntegrationTestBase {
 
     assertEquals(
         accessiblePrograms,
-        getUids(trackerProgramService.getAccessibleTrackerPrograms(trackedEntityType)));
+        getUids(trackerProgramService.getTrackerProgramsWithDataReadAccess(trackedEntityType)));
   }
 
   @Test
   void shouldReturnEmptyListWhenNoProgramAccessible() {
-    makeProgramInaccessible("TsngICFQjvP");
+    removeDataAccessFromProgram("TsngICFQjvP");
 
-    assertIsEmpty(trackerProgramService.getAccessibleTrackerPrograms(trackedEntityType));
+    assertIsEmpty(trackerProgramService.getTrackerProgramsWithDataReadAccess(trackedEntityType));
   }
 
   @Test
-  void shouldReturnSingleProgramWhenTrackerProgramAccessible()
+  void shouldReturnSingleProgramWhenUserHasDataReadAccessToTrackerProgram()
       throws ForbiddenException, BadRequestException {
     assertEquals(
-        "TsngICFQjvP", trackerProgramService.getTrackerProgram(UID.of("TsngICFQjvP")).getUid());
+        "TsngICFQjvP",
+        trackerProgramService.getTrackerProgramWithDataReadAccess(UID.of("TsngICFQjvP")).getUid());
+  }
+
+  @Test
+  void shouldReturnSingleProgramWhenUserHasDataWriteAccessToTrackerProgram()
+      throws ForbiddenException, BadRequestException {
+    assertEquals(
+        "TsngICFQjvP",
+        trackerProgramService.getTrackerProgramWithDataWriteAccess(UID.of("TsngICFQjvP")).getUid());
   }
 
   @Test
@@ -120,7 +129,8 @@ class TrackerProgramServiceTest extends PostgresIntegrationTestBase {
 
     Exception exception =
         assertThrows(
-            BadRequestException.class, () -> trackerProgramService.getTrackerProgram(madeUpUid));
+            BadRequestException.class,
+            () -> trackerProgramService.getTrackerProgramWithDataReadAccess(madeUpUid));
     assertEquals("Provided program, " + madeUpUid + ", does not exist.", exception.getMessage());
   }
 
@@ -131,32 +141,59 @@ class TrackerProgramServiceTest extends PostgresIntegrationTestBase {
     Exception exception =
         assertThrows(
             BadRequestException.class,
-            () -> trackerProgramService.getTrackerProgram(eventProgramUid));
+            () -> trackerProgramService.getTrackerProgramWithDataReadAccess(eventProgramUid));
     assertEquals(
         "Provided program, " + eventProgramUid.getValue() + ", is not a tracker program.",
         exception.getMessage());
   }
 
   @Test
-  void shouldFailWhenRequestingSingleProgramThatIsNotAccessible() {
-    makeProgramInaccessible("TsngICFQjvP");
+  void shouldFailWhenRequestingSingleProgramWithNoDataReadAccess() {
+    removeDataAccessFromProgram("TsngICFQjvP");
 
     Exception exception =
         assertThrows(
             ForbiddenException.class,
-            () -> trackerProgramService.getTrackerProgram(UID.of("TsngICFQjvP")));
+            () -> trackerProgramService.getTrackerProgramWithDataReadAccess(UID.of("TsngICFQjvP")));
     assertStartsWith(
-        "Current user doesn't have access to the provided program", exception.getMessage());
+        "Current user doesn't have data read access to the provided program",
+        exception.getMessage());
   }
 
-  private void makeProgramInaccessible(String uid) {
+  @Test
+  void shouldFailWhenRequestingSingleProgramWithNoDataWriteAccess() {
+    removeDataWriteAccessFromProgram("TsngICFQjvP");
+
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerProgramService.getTrackerProgramWithDataWriteAccess(UID.of("TsngICFQjvP")));
+    assertStartsWith(
+        "Current user doesn't have data write access to the provided program",
+        exception.getMessage());
+  }
+
+  private void removeDataAccessFromProgram(String uid) {
     User admin = getAdminUser();
     injectSecurityContextUser(admin);
 
     Program program = manager.get(Program.class, uid);
     assertNotNull(program);
-    program.getSharing().setPublicAccess(AccessStringHelper.DEFAULT);
-    manager.save(program);
+    program.getSharing().setPublicAccess(AccessStringHelper.READ);
+    manager.save(program, false);
+
+    injectSecurityContextUser(regularUser);
+  }
+
+  private void removeDataWriteAccessFromProgram(String uid) {
+    User admin = getAdminUser();
+    injectSecurityContextUser(admin);
+
+    Program program = manager.get(Program.class, uid);
+    assertNotNull(program);
+    program.getSharing().setPublicAccess(AccessStringHelper.READ_ONLY);
+    manager.save(program, false);
 
     injectSecurityContextUser(regularUser);
   }
