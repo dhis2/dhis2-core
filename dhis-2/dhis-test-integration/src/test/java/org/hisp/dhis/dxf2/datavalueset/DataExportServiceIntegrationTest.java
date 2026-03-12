@@ -608,7 +608,6 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
         Set.of("10001", "10002", "10003"),
         dataValues.stream().map(DataExportValue::value).collect(toSet()),
         "mismatch in dataValues values");
-
   }
 
   @Test
@@ -624,7 +623,6 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
         Set.of("10001", "10002", "10003"),
         dataValues.stream().map(DataExportValue::value).collect(toSet()),
         "mismatch in dataValues values");
-
   }
 
   @Test
@@ -637,7 +635,6 @@ class DataExportServiceIntegrationTest extends PostgresIntegrationTestBase {
     assertContainsValue(new DataValue(deA, peA, ouA, ocDef, ocDef), dataValues);
     assertContainsValue(new DataValue(deB, peA, ouA, ocDef, ocDef), dataValues);
     assertContainsValue(new DataValue(deC, peA, ouA, ocDef, ocDef), dataValues);
-
   }
 
   @Test

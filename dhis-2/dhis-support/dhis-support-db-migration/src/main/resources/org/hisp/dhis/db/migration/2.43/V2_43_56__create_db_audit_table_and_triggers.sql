@@ -193,9 +193,26 @@ DECLARE
         'dataentryform', 'notificationtemplate',
         'legend', 'legendset',
         'pushanalysis', 'programnotificationtemplate',
-        'apitoken', 'oauth2client'
+        'apitoken', 'oauth2client',
         -- jobconfiguration intentionally excluded: updated heavily by the scheduler
         -- via StatelessSession (no authenticated user context; not a meaningful audit target)
+
+        -- Mapping tables (many-to-many relationships)
+        -- No uid column; record_uid will be NULL. record_pk captures the composite PK.
+        -- Category membership
+        'categories_categoryoptions',       -- category → its allowed options
+        'categorycombos_categories',        -- categorycombo → its categories
+        'categoryoptioncombos_categoryoptions', -- COC → its options
+        'categoryoptiongroupmembers',       -- categoryoptiongroup → its options
+        -- Data element & dataset membership
+        'dataelementgroupmembers',          -- dataelementgroup → its elements
+        'datasetsource',                    -- dataset → its org units
+        -- Program
+        'program_organisationunits',        -- program → its org units
+        -- Organisation unit groups
+        'orgunitgroupmembers',              -- orgunitgroup → its org units
+        -- Users & groups
+        'usergroupmembers'                  -- usergroup → its users
     ];
 BEGIN
     FOREACH t IN ARRAY tables LOOP
