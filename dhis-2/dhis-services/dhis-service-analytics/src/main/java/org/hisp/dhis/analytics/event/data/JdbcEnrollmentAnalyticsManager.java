@@ -59,6 +59,7 @@ import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -149,7 +150,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   private static final String ENROLLMENT_COL = "enrollment";
 
   private static final Set<TimeField> EVENT_TIME_FIELDS =
-      Set.of(TimeField.EVENT_DATE, TimeField.SCHEDULED_DATE);
+      EnumSet.of(TimeField.EVENT_DATE, TimeField.SCHEDULED_DATE);
 
   public JdbcEnrollmentAnalyticsManager(
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
