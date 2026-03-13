@@ -125,7 +125,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   public void transferOwnership(
       @Nonnull TrackedEntity trackedEntity, @Nonnull UID programUid, @Nonnull UID orgUnitUid)
       throws ForbiddenException, BadRequestException, NotFoundException {
-    Program program = trackerProgramService.getTrackerProgram(programUid);
+    Program program = trackerProgramService.getTrackerProgramWithDataWriteAccess(programUid);
     OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(orgUnitUid.getValue());
 
     if (orgUnit == null) {
@@ -187,7 +187,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
     UserDetails user = getCurrentUserDetails();
     // TODO(tracker) jdbc-hibernate: check the impact on performance
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, trackedEntityUid.getValue());
-    Program program = trackerProgramService.getTrackerProgram(programUid);
+    // data read access to the program is enough as permanent ownership is not changed
+    Program program = trackerProgramService.getTrackerProgramWithDataReadAccess(programUid);
 
     validateTrackedEntity(trackedEntity, user);
     validateProgram(program, trackedEntity);
