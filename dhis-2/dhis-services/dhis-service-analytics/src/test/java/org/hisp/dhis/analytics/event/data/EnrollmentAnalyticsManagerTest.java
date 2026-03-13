@@ -407,7 +407,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   void verifyGetEventsWithProgramStatusParam() {
     mockEmptyRowSet();
 
-    EventQueryParams params = createRequestParamsWithStatuses();
+    EventQueryParams params = createRequestParamsWithStatusesForEnrollmentQuery();
 
     subject.getEnrollments(params, new ListGrid(), 10000);
 
