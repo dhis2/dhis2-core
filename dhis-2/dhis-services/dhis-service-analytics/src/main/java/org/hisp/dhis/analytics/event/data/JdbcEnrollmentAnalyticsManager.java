@@ -191,7 +191,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           useExperimentalAnalyticsQueryEngine()
               ? buildAggregatedEnrollmentQueryWithCte(grid.getHeaders(), params)
               : getAggregatedEnrollmentsSql(grid.getHeaders(), params);
-      System.out.println(sql);
     } else {
       sql =
           useExperimentalAnalyticsQueryEngine()
