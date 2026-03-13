@@ -51,8 +51,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RepeatableStageParams;
-import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
-import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
+import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -179,7 +178,7 @@ abstract class EventAnalyticsTest {
     params.withProgram(programA);
     params.withCoordinateFields(COL_NAME_GEOMETRY_LIST);
     params.withRowContext(true);
-    params.withEndpointItem(EndpointItem.ENROLLMENT);
+    params.withEndpointItem(RequestTypeAware.EndpointItem.ENROLLMENT);
     return params.build();
   }
 
@@ -194,22 +193,6 @@ abstract class EventAnalyticsTest {
     params.withEnrollmentStatuses(new LinkedHashSet<>(List.of(ACTIVE, COMPLETED)));
     params.withEventStatuses(new LinkedHashSet<>(List.of(SCHEDULE)));
     params.withCoordinateFields(COL_NAME_GEOMETRY_LIST);
-    return params.build();
-  }
-
-  protected EventQueryParams createRequestParamsWithStatusesForEnrollmentQuery() {
-    OrganisationUnit ouA = createOrganisationUnit('A');
-    ouA.setPath("/" + ouA.getUid());
-    EventQueryParams.Builder params = new EventQueryParams.Builder();
-    params.withPeriods(createPeriodDimensions("2000Q1"), "quarterly");
-    params.withOrganisationUnits(getList(ouA));
-    params.withTableName(getTableName() + "_" + programA.getUid());
-    params.withProgram(programA);
-    params.withEnrollmentStatuses(new LinkedHashSet<>(List.of(ACTIVE, COMPLETED)));
-    params.withEventStatuses(new LinkedHashSet<>(List.of(SCHEDULE)));
-    params.withCoordinateFields(COL_NAME_GEOMETRY_LIST);
-    params.withEndpointAction(EndpointAction.QUERY);
-    params.withEndpointItem(EndpointItem.ENROLLMENT);
     return params.build();
   }
 
