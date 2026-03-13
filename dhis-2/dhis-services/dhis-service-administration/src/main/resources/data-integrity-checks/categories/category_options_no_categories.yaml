@@ -31,21 +31,17 @@
   section_order: 3
   summary_sql: >-
     WITH category_options_no_categories  AS (
-    SELECT uid,name FROM categoryoption
-    WHERE categoryoptionid
-    NOT IN
-    (SELECT DISTINCT categoryoptionid
-    FROM categories_categoryoptions))
+    SELECT uid,name FROM categoryoption co
+    WHERE NOT EXISTS (
+    SELECT 1 FROM categories_categoryoptions c WHERE c.categoryoptionid = co.categoryoptionid))
     SELECT COUNT(*) as value,
     100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*)
     FROM categoryoption), 0 ) as percent
     FROM category_options_no_categories;
   details_sql: >-
-    SELECT uid,name FROM categoryoption
-    WHERE categoryoptionid
-    NOT IN
-    (SELECT DISTINCT categoryoptionid
-    FROM categories_categoryoptions)
+    SELECT uid,name FROM categoryoption co
+    WHERE NOT EXISTS (
+    SELECT 1 FROM categories_categoryoptions c WHERE c.categoryoptionid = co.categoryoptionid)
     ORDER BY name;
   severity: WARNING
   introduction: >
