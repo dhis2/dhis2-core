@@ -70,6 +70,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.ListIndexBase;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
@@ -123,6 +125,7 @@ import org.hisp.dhis.user.sharing.Sharing;
  */
 @Entity
 @Table(name = "program")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @JacksonXmlRootElement(localName = "program", namespace = DxfNamespaces.DXF_2_0)
 public class Program extends BaseMetadataObject
     implements IdentifiableObject, NameableObject, VersionedObject {
@@ -205,6 +208,7 @@ public class Program extends BaseMetadataObject
       name = "program_organisationunits",
       joinColumns = @JoinColumn(name = "programid"),
       inverseJoinColumns = @JoinColumn(name = "organisationunitid"))
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
   @OneToMany
