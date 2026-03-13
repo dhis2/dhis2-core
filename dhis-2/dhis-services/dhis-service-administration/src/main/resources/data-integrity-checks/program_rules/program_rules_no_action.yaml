@@ -31,18 +31,17 @@ section: Program rules
 section_order: 2
 summary_sql: >-
     WITH program_rules_no_action as (
-    SELECT uid from programrule where programruleid
-    NOT IN (SELECT DISTINCT programruleid from programruleaction) )
+    SELECT uid from programrule pr
+    WHERE NOT EXISTS (SELECT 1 from programruleaction a WHERE a.programruleid = pr.programruleid))
     SELECT COUNT(*) as value,
     100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM programrule),0) as percent
     FROM program_rules_no_action;
 details_sql: >-
     SELECT a.uid,a.name,NULL AS comment,
-    array_agg(COALESCE(b.name,'NULL') || ':' || COALESCE(b.uid,'NULL')) as refs  
+    array_agg(COALESCE(b.name,'NULL') || ':' || COALESCE(b.uid,'NULL')) as refs
     from programrule a
     LEFT OUTER JOIN program b on a.programid = b.programid
-    where programruleid
-    NOT IN (SELECT DISTINCT programruleid from programruleaction)
+    WHERE NOT EXISTS (SELECT 1 FROM programruleaction x WHERE x.programruleid = a.programruleid)
     GROUP BY a.uid,a.name;
 details_id_type: programRules
 severity: SEVERE
