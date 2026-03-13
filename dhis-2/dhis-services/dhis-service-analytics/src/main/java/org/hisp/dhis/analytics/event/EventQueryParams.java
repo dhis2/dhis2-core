@@ -1332,9 +1332,14 @@ public class EventQueryParams extends DataQueryParams {
     return DESC == sortOrder ? 1 : 0;
   }
 
-  /** Returns true when parameters are incoming from analytics enrollments/aggregate entry point */
+  /** Returns true when the request is incoming from analytics enrollments/aggregate end point. */
   public boolean isAggregatedEnrollments() {
     return endpointAction == EndpointAction.AGGREGATE && endpointItem == EndpointItem.ENROLLMENT;
+  }
+
+  /** Returns true when the request is incoming from analytics events/query end point. */
+  public boolean isQueryEvents() {
+    return endpointAction == QUERY && endpointItem == EndpointItem.EVENT;
   }
 
   @Override
