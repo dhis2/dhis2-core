@@ -149,8 +149,7 @@ public class Main {
 
     Exception startUpException = starter.getStartUpException();
     if (startUpException != null) {
-      log.error(
-          "FATAL: Failed to initialize Spring context. Shutting down.", startUpException);
+      log.error("FATAL: Failed to initialize Spring context. Shutting down.", startUpException);
       System.exit(1);
     }
 
@@ -161,8 +160,7 @@ public class Main {
             try {
               performDeferredLoadOnStartup(tomcat);
             } catch (Exception ex) {
-              log.error(
-                  "FATAL: Failed during deferred servlet startup. Shutting down.", ex);
+              log.error("FATAL: Failed during deferred servlet startup. Shutting down.", ex);
               System.exit(1);
             }
             tomcat.getServer().await();
