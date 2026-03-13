@@ -259,15 +259,15 @@ public class Program extends BaseMetadataObject
   @Column(name = "selectincidentdatesinfuture")
   private Boolean selectIncidentDatesInFuture = false;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "relatedprogramid")
   private Program relatedProgram;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "trackedentitytypeid")
   private TrackedEntityType trackedEntityType;
 
-  @ManyToOne(cascade = CascadeType.ALL)
+  @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JoinColumn(name = "dataentryformid")
   private DataEntryForm dataEntryForm;
 
@@ -276,12 +276,12 @@ public class Program extends BaseMetadataObject
   private ObjectStyle style;
 
   /** The CategoryCombo used for tracker and single events. */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "categorycomboid", nullable = false)
   private CategoryCombo categoryCombo;
 
   /** The CategoryCombo used for enrollments. */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "enrollmentcategorycomboid", nullable = false)
   private CategoryCombo enrollmentCategoryCombo;
 
