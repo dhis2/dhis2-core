@@ -154,6 +154,13 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
                 program.getUid(), orgUnit.getUid()));
       }
 
+      if (!aclService.canDataWrite(currentUserService.getCurrentUser(), program)) {
+        throw new ForbiddenException(
+            String.format(
+                "Current user doesn't have data write access to the provided program %s.",
+                program.getUid()));
+      }
+
       TrackedEntityProgramOwner teProgramOwner =
           trackedEntityProgramOwnerService.getTrackedEntityProgramOwner(
               entityInstance.getId(), program.getId());
