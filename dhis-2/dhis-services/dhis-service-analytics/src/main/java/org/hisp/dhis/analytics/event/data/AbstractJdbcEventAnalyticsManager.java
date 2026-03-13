@@ -71,6 +71,7 @@ import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.STAGE_
 import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.STAGE_OU_NAME_COLUMN;
 import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_GEOMETRY_COL_POSTFIX;
 import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_NAME_COL_POSTFIX;
+import static org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValue;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.replaceStringBetween;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
@@ -612,6 +613,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (!isGroupByClause) {
         handleRowContext(columns, params, queryItem, columnAndAlias);
       }
+    }
+
+    if (params.hasEnrollmentStatuses()) {
+      columns.add(ColumnAndAlias.ofColumn(quote(ENROLLMENT_STATUS_COLUMN_NAME)).asSql());
     }
   }
 
