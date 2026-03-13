@@ -59,6 +59,7 @@ import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -70,6 +71,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
@@ -91,6 +93,7 @@ import org.hisp.dhis.analytics.util.sql.SqlAliasReplacer;
 import org.hisp.dhis.analytics.util.sql.SqlColumnParser;
 import org.hisp.dhis.analytics.util.sql.SqlWhereClauseExtractor;
 import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.common.DateRange;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -145,6 +148,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   private static final String IS_NOT_NULL = " is not null ";
 
   private static final String ENROLLMENT_COL = "enrollment";
+
+  private static final Set<TimeField> EVENT_TIME_FIELDS =
+      EnumSet.of(TimeField.EVENT_DATE, TimeField.SCHEDULED_DATE);
 
   public JdbcEnrollmentAnalyticsManager(
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
@@ -962,7 +968,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     sb.from(getFromClause(params));
 
-    addBaseAggregatedCteJoins(sb, cteContext);
+    addBaseAggregatedCteJoins(sb, cteContext, params);
 
     FilteredWhereContext filteredWhere = buildEnrollmentWhereClause(sb, params);
     // Add the base aggregate CTE along with the original where
@@ -984,16 +990,21 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    */
   private FilteredWhereContext buildEnrollmentWhereClause(
       SelectBuilder sb, EventQueryParams params) {
-    Condition baseWhereCondition = Condition.raw(getWhereClause(params));
+    Condition baseWhereCondition = Condition.raw(getBaseAggregationWhereClause(params));
 
     EventQueryParams paramsWithoutProgramStageItems = withoutProgramStageItems(params);
+    Set<QueryItem> aggregateEventDateFilters =
+        new LinkedHashSet<>(getAggregateEventDateFilters(paramsWithoutProgramStageItems));
 
     Set<QueryItem> filtersWithoutEnrollmentPrefix =
         Stream.concat(
                 paramsWithoutProgramStageItems.getItems().stream(),
                 paramsWithoutProgramStageItems.getItemFilters().stream())
             .filter(QueryItem::hasFilter)
-            .filter(item -> !needsEnrollmentPrefix(item.getItem(), params))
+            .filter(
+                item ->
+                    aggregateEventDateFilters.contains(item)
+                        || !needsEnrollmentPrefix(item.getItem(), params))
             .collect(Collectors.toCollection(LinkedHashSet::new));
 
     String filterClauseWithEnrollmentPrefixOnly =
@@ -1042,6 +1053,93 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             tableAlias -> tableAlias + ".%s = ax.%s".formatted(ENROLLMENT_COL, ENROLLMENT_COL));
       }
     }
+  }
+
+  private void addBaseAggregatedCteJoins(
+      SelectBuilder sb, CteContext cteContext, EventQueryParams params) {
+    addBaseAggregatedCteJoins(sb, cteContext);
+
+    List<QueryItem> aggregateEventDateFilters = getAggregateEventDateFilters(params);
+    Map<TimeField, List<DateRange>> eventTimeDateRanges = getAggregateEventTimeDateRanges(params);
+
+    if (aggregateEventDateFilters.isEmpty() && eventTimeDateRanges.isEmpty()) {
+      return;
+    }
+
+    List<String> eventFilters = new ArrayList<>();
+
+    String eventFilterSql =
+        aggregateEventDateFilters.stream()
+            .map(item -> extractFiltersAsSql(item, "ev." + quote(item.getItemName()), params))
+            .filter(StringUtils::isNotBlank)
+            .collect(Collectors.joining(" and "));
+
+    if (!eventFilterSql.isBlank()) {
+      eventFilters.add(eventFilterSql);
+    }
+
+    eventTimeDateRanges.forEach(
+        (timeField, dateRanges) ->
+            dateRanges.stream()
+                .map(dateRange -> buildEventDateRangeSql(timeField, dateRange))
+                .filter(StringUtils::isNotBlank)
+                .forEach(eventFilters::add));
+
+    if (eventFilters.isEmpty()) {
+      return;
+    }
+
+    String eventTableName = ANALYTICS_EVENT + params.getProgram().getUid();
+    String eventEnrollmentFilterSql =
+        """
+        (
+            select distinct ev.enrollment
+            from %s ev
+            where ev.eventstatus != 'SCHEDULE'
+              and %s
+        )
+        """
+            .formatted(eventTableName, String.join(" and ", eventFilters));
+
+    sb.innerJoin(
+        eventEnrollmentFilterSql,
+        "evf",
+        tableAlias -> tableAlias + ".%s = ax.%s".formatted(ENROLLMENT_COL, ENROLLMENT_COL));
+  }
+
+  private List<QueryItem> getAggregateEventDateFilters(EventQueryParams params) {
+    return Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
+        .filter(QueryItem::hasFilter)
+        .filter(item -> !item.hasProgramStage())
+        .filter(
+            item ->
+                EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(item.getItemId()))
+        .toList();
+  }
+
+  private Map<TimeField, List<DateRange>> getAggregateEventTimeDateRanges(EventQueryParams params) {
+    return params.getTimeDateRanges(EVENT_TIME_FIELDS);
+  }
+
+  private String buildEventDateRangeSql(TimeField timeField, DateRange dateRange) {
+    String eventColumn = "ev." + quote(timeField.getEventColumnName());
+    return "%s >= '%s' and %s < '%s'"
+        .formatted(
+            eventColumn,
+            toMediumDate(dateRange.getStartDate()),
+            eventColumn,
+            toMediumDate(dateRange.getEndDatePlusOneDay()));
+  }
+
+  private String getBaseAggregationWhereClause(EventQueryParams params) {
+    if (!params.hasTimeDateRanges()) {
+      return getWhereClause(params);
+    }
+
+    EventQueryParams sanitizedParams =
+        new EventQueryParams.Builder(params).withoutTimeDateRanges(EVENT_TIME_FIELDS).build();
+
+    return getWhereClause(sanitizedParams);
   }
 
   private String buildAggregatedEnrollmentQueryWithCte(

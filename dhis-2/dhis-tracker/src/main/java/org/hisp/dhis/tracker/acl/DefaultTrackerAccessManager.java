@@ -83,7 +83,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
 
     List<Program> tetPrograms =
-        trackerProgramService.getAccessibleTrackerPrograms(trackedEntityType);
+        trackerProgramService.getTrackerProgramsWithDataReadAccess(trackedEntityType);
     if (tetPrograms.isEmpty()) {
       return List.of("User has no access to any program");
     }
@@ -137,7 +137,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
 
     List<Program> tetPrograms =
-        trackerProgramService.getAccessibleTrackerPrograms(trackedEntityType);
+        trackerProgramService.getTrackerProgramsWithDataReadAccess(trackedEntityType);
 
     if (tetPrograms.isEmpty()) {
       errors.add(

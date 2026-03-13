@@ -44,7 +44,6 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
@@ -55,6 +54,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.OrderJdbcClause;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.jdbc.core.SqlParameterValue;
@@ -72,6 +72,8 @@ class JdbcTrackedEntityStore {
   private static final String ENROLLMENT_ALIAS = "en";
 
   private static final String DEFAULT_ORDER = MAIN_QUERY_ALIAS + ".trackedentityid desc";
+
+  private static final String PK_COLUMN = MAIN_QUERY_ALIAS + ".trackedentityid";
 
   private static final String ENROLLMENT_DATE_ALIAS = "en_enrollmentdate";
 
@@ -857,7 +859,7 @@ class JdbcTrackedEntityStore {
    * LIMIT) and the outer query (to return results in the correct order).
    */
   private void addOrderBy(StringBuilder sql, TrackedEntityQueryParams params) {
-    List<String> orderFields = new ArrayList<>();
+    List<OrderJdbcClause.SqlOrder> orderFields = new ArrayList<>();
     for (Order order : params.getOrder()) {
       if (order.getField() instanceof String field) {
         if (!ORDERABLE_FIELDS.containsKey(field)) {
@@ -868,9 +870,9 @@ class JdbcTrackedEntityStore {
                   String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
         }
 
-        orderFields.add(ORDERABLE_FIELDS.get(field) + " " + order.getDirection());
+        orderFields.add(OrderJdbcClause.SqlOrder.of(ORDERABLE_FIELDS.get(field), order));
       } else if (order.getField() instanceof TrackedEntityAttribute tea) {
-        orderFields.add(quote(tea.getUid()) + " " + order.getDirection());
+        orderFields.add(OrderJdbcClause.SqlOrder.of(quote(tea.getUid()), order));
       } else {
         throw new IllegalArgumentException(
             String.format(
@@ -880,14 +882,7 @@ class JdbcTrackedEntityStore {
       }
     }
 
-    sql.append("order by ");
-
-    if (orderFields.isEmpty()) {
-      sql.append(DEFAULT_ORDER);
-      return;
-    }
-
-    sql.append(StringUtils.join(orderFields, ',')).append(", ").append(DEFAULT_ORDER);
+    sql.append(OrderJdbcClause.of(orderFields, DEFAULT_ORDER, PK_COLUMN));
   }
 
   /**

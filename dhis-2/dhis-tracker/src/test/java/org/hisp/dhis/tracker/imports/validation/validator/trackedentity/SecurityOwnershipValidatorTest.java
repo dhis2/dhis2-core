@@ -431,7 +431,7 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
     when(bundle.getPreheat().getOrganisationUnit(trackedEntity.getOrgUnit()))
         .thenReturn(organisationUnit);
     when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
-    when(trackerProgramService.getAccessibleTrackerPrograms(trackedEntityType))
+    when(trackerProgramService.getTrackerProgramsWithDataReadAccess(trackedEntityType))
         .thenReturn(List.of(program));
     when(aclService.canDataWrite(user, program)).thenReturn(true);
     when(trackerOwnershipManager.hasAccess(user, te, program)).thenReturn(false);

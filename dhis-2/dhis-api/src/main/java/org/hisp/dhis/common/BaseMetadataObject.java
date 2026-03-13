@@ -76,7 +76,7 @@ public class BaseMetadataObject implements MetadataObject {
   @Setter
   protected Date lastUpdated;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "lastupdatedby")
   @Setter
   protected User lastUpdatedBy;

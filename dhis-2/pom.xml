@@ -91,7 +91,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.6.0</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.6.1</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.6</dhis-hisp-quick.version>
@@ -187,13 +187,13 @@
     <jsoup.version>1.21.1</jsoup.version>
 
     <!-- Div. utils -->
-    <guava.version>33.4.8-jre</guava.version>
+    <guava.version>33.5.0-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
     <google-api-client.version>2.8.1</google-api-client.version>
     <lombok.version>1.18.40</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
-    <joda-time.version>2.14.0</joda-time.version>
+    <joda-time.version>2.14.1</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.5.0</commons-collections4.version>
     <commons-beanutils.version>1.11.0</commons-beanutils.version>
@@ -202,7 +202,7 @@
     <commons-fileupload.version>1.6.0</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <commons-validator.version>1.10.0</commons-validator.version>
-    <commons-io.version>2.20.0</commons-io.version>
+    <commons-io.version>2.21.0</commons-io.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
     <jakarta-email.version>1.6.7</jakarta-email.version>
@@ -227,7 +227,7 @@
     <testcontainers.version>1.21.4</testcontainers.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.3.0</awaitility.version>
-    <swagger.version>2.1.34</swagger.version>
+    <swagger.version>2.1.39</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
     <h2.version>2.4.240</h2.version>

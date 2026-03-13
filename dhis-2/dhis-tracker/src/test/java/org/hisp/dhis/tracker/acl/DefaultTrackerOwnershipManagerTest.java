@@ -136,7 +136,8 @@ class DefaultTrackerOwnershipManagerTest {
     program.setAccessLevel(AccessLevel.PROTECTED);
     trackedEntityType = createTrackedEntityType('A');
     program.setTrackedEntityType(trackedEntityType);
-    when(trackerProgramService.getTrackerProgram(program.getUID())).thenReturn(program);
+    when(trackerProgramService.getTrackerProgramWithDataReadAccess(program.getUID()))
+        .thenReturn(program);
 
     User user = new User();
     user.setTeiSearchOrganisationUnits(Set.of(orgUnit));
