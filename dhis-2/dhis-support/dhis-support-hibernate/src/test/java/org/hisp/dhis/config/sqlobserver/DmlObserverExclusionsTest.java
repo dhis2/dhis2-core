@@ -1,0 +1,117 @@
+/*
+ * Copyright (c) 2004-2024, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.config.sqlobserver;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
+
+class DmlObserverExclusionsTest {
+
+  @Test
+  void isExcluded_auditTable() {
+    assertTrue(DmlObserverExclusions.isExcluded("audit"));
+  }
+
+  @Test
+  void isExcluded_flywaySchemaHistory() {
+    assertTrue(DmlObserverExclusions.isExcluded("flyway_schema_history"));
+  }
+
+  @Test
+  void isExcluded_springSession() {
+    assertTrue(DmlObserverExclusions.isExcluded("spring_session"));
+    assertTrue(DmlObserverExclusions.isExcluded("spring_session_attributes"));
+  }
+
+  @Test
+  void isExcluded_hibernateSequence() {
+    assertTrue(DmlObserverExclusions.isExcluded("hibernate_sequence"));
+  }
+
+  @Test
+  void trackedCacheTablesAreNotExcluded() {
+    assertFalse(DmlObserverExclusions.isExcluded("datastatisticsevent"));
+    assertFalse(DmlObserverExclusions.isExcluded("systemsetting"));
+  }
+
+  @Test
+  void highVolumeDataTablesAreExcluded() {
+    assertTrue(DmlObserverExclusions.isExcluded("datavalue"));
+    assertTrue(DmlObserverExclusions.isExcluded("trackedentityattributevalue"));
+    assertTrue(DmlObserverExclusions.isExcluded("eventdatavalue"));
+    assertTrue(DmlObserverExclusions.isExcluded("programstageinstance"));
+    assertTrue(DmlObserverExclusions.isExcluded("programinstance"));
+  }
+
+  @Test
+  void keyjsonvalue_notExcluded_becauseTrackedForDatastoreCacheInvalidation() {
+    // keyjsonvalue maps to DatastoreEntry which is observed in ETagObservedEntityTypes.
+    // It must NOT be excluded so that datastore changes invalidate ETags for
+    // systemSettings, loginConfig, and other composite endpoints.
+    assertFalse(DmlObserverExclusions.isExcluded("keyjsonvalue"));
+  }
+
+  @Test
+  void isExcluded_jobConfiguration() {
+    assertTrue(DmlObserverExclusions.isExcluded("jobconfiguration"));
+  }
+
+  @Test
+  void isExcluded_icon() {
+    assertTrue(DmlObserverExclusions.isExcluded("icon"));
+  }
+
+  @Test
+  void isExcluded_messageConversationJoinTables() {
+    assertTrue(DmlObserverExclusions.isExcluded("messageconversation_messages"));
+    assertTrue(DmlObserverExclusions.isExcluded("messageconversation_usermessages"));
+  }
+
+  @Test
+  void isExcluded_caseInsensitive() {
+    assertTrue(DmlObserverExclusions.isExcluded("AUDIT"));
+    assertTrue(DmlObserverExclusions.isExcluded("Audit"));
+    assertTrue(DmlObserverExclusions.isExcluded("FLYWAY_SCHEMA_HISTORY"));
+  }
+
+  @Test
+  void isExcluded_normalTableNotExcluded() {
+    assertFalse(DmlObserverExclusions.isExcluded("dataelement"));
+    assertFalse(DmlObserverExclusions.isExcluded("organisationunit"));
+    assertFalse(DmlObserverExclusions.isExcluded("trackedentity"));
+  }
+
+  @Test
+  void isExcluded_nullIsExcluded() {
+    assertTrue(DmlObserverExclusions.isExcluded(null));
+  }
+}

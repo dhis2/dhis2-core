@@ -1,0 +1,20 @@
+{
+  "programs": [
+    {
+      "id": "CchPrgEFL01",
+      "name": "Cache Program for EventFilter",
+      "shortName": "Cache EF Prog",
+      "programType": "WITHOUT_REGISTRATION",
+      "organisationUnits": [
+        { "id": "DiszpKrYNg8" }
+      ]
+    }
+  ],
+  "eventFilters": [
+    {
+      "id": "CchEF000001",
+      "name": "Cache Test Event Filter",
+      "program": "CchPrgEFL01"
+    }
+  ]
+}

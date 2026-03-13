@@ -23,6 +23,49 @@ mvn test \
     -Dtest.track_called_endpoints=true
 ```
 
+### Cache Suite
+
+The cache suite verifies the automatic API conditional `ETag` behavior end-to-end. The server under
+test must run with:
+
+```properties
+cache.api.etag.enabled=on
+```
+
+Run only the cache-tagged suite:
+
+```sh
+mvn -Pcache test \
+    -Dinstance.url=http://localhost:8080/api \
+    -Dtest.cleanup=true \
+    -Duser.default.username=admin \
+    -Duser.default.password=district \
+    -Dtest.track_called_endpoints=true
+```
+
+For fast ad hoc debugging against a running local server, use the smoke script:
+
+```sh
+./scripts/etag-cache-smoke.sh \
+    --base-url http://localhost:8080/api \
+    --username admin \
+    --password district
+```
+
+To replay harvested `coverage.csv` URLs and classify them as cached, uncached, or suspect:
+
+```sh
+./scripts/etag-cache-smoke.sh \
+    --base-url http://localhost:8080/api \
+    --username admin \
+    --password district \
+    --coverage coverage.csv
+```
+
+The default smoke manifest lives at `src/test/resources/cache/cache-routes.csv`. Add curated
+metadata fixtures under `src/test/resources/cache/fixtures/` when schema-driven object generation
+is not stable enough for exhaustive invalidation coverage.
+
 ### Selenium Grid and CPU architecture
 
 When running docker compose locally on MacOS with M1/M2/M3..., you need to use the Selenium Grid image for ARM64 architecture. 
@@ -284,4 +327,3 @@ Example (`ind-expected-pregnancies.json`):
 #### Accessing Created UIDs
 Add a `List<Resource>` (or a single `Resource`) parameter to your test method; 
 the extension injects the created objects, each exposing `type`, `code`, and `uid`.
-

@@ -105,6 +105,14 @@ public class ApiResponse {
     return raw.statusCode();
   }
 
+  public Response raw() {
+    return raw;
+  }
+
+  public String getHeader(String name) {
+    return raw.getHeader(name);
+  }
+
   public ValidatableResponse validate() {
     return raw.then();
   }
@@ -181,6 +189,10 @@ public class ApiResponse {
 
   public String getContentType() {
     return raw.getContentType();
+  }
+
+  public boolean hasHeader(String name) {
+    return getHeader(name) != null;
   }
 
   public <T> T as(Class<T> klass) {
