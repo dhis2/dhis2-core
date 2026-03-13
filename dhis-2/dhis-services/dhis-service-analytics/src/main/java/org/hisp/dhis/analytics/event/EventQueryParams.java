@@ -1098,6 +1098,20 @@ public class EventQueryParams extends DataQueryParams {
     return MapUtils.isNotEmpty(getTimeDateRanges());
   }
 
+  public Map<TimeField, List<DateRange>> getTimeDateRanges(Set<TimeField> timeFields) {
+    Map<TimeField, List<DateRange>> matchingRanges = new EnumMap<>(TimeField.class);
+
+    timeFields.forEach(
+        timeField -> {
+          List<DateRange> ranges = getTimeDateRanges().get(timeField);
+          if (ranges != null && !ranges.isEmpty()) {
+            matchingRanges.put(timeField, List.copyOf(ranges));
+          }
+        });
+
+    return matchingRanges;
+  }
+
   /** Returns true if multiple time dimensions are active (have date ranges or constraints). */
   public boolean hasMultipleTimeDimensions() {
     return getActiveTimeDimensions().size() > 1;
@@ -1807,6 +1821,13 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withStartEndDatesForPeriods() {
       this.params.replacePeriodsWithDates();
+      return this;
+    }
+
+    public Builder withoutTimeDateRanges(Set<TimeField> timeFields) {
+      if (timeFields != null) {
+        timeFields.forEach(this.params.getTimeDateRanges()::remove);
+      }
       return this;
     }
 
