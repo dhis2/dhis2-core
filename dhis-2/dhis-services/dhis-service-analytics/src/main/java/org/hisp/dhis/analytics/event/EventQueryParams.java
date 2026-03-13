@@ -48,6 +48,7 @@ import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 
@@ -1337,9 +1338,9 @@ public class EventQueryParams extends DataQueryParams {
     return endpointAction == EndpointAction.AGGREGATE && endpointItem == EndpointItem.ENROLLMENT;
   }
 
-  /** Returns true when the request is incoming from analytics events/query end point. */
-  public boolean isQueryEvents() {
-    return endpointAction == QUERY && endpointItem == EndpointItem.EVENT;
+  /** Returns true when the request is incoming from analytics events/aggregate end point. */
+  public boolean isAggregatedEvents() {
+    return endpointAction == AGGREGATE && endpointItem == EndpointItem.EVENT;
   }
 
   @Override
