@@ -90,6 +90,8 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class DefaultQueryItemLocator implements QueryItemLocator {
+  private static final String EVENT_DATE_DIMENSION = "EVENT_DATE";
+
   private final ProgramStageService programStageService;
 
   private final DataElementService dataElementService;
@@ -232,15 +234,16 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
     }
 
     if (CREATED.equals(dim)) {
-      if (EventOutputType.ENROLLMENT == type) {
-        return Optional.empty();
-      }
-      return Optional.of(
-          newDateQueryItem(program, legendSet, EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME));
+      return Optional.of(newDateQueryItem(program, legendSet, getCreatedDateColumn(type)));
     }
 
     if (COMPLETED.equals(dim)) {
       return Optional.of(newDateQueryItem(program, legendSet, getCompletedDateColumn(type)));
+    }
+
+    if (EVENT_DATE_DIMENSION.equals(dim)) {
+      return Optional.of(
+          newDateQueryItem(program, legendSet, EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME));
     }
 
     if (org.hisp.dhis.common.DimensionConstants.SCHEDULED_DATE.equals(dim)) {
@@ -479,6 +482,13 @@ public class DefaultQueryItemLocator implements QueryItemLocator {
       return EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME;
     }
     return EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME;
+  }
+
+  private String getCreatedDateColumn(EventOutputType type) {
+    if (EventOutputType.ENROLLMENT == type) {
+      return EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME;
+    }
+    return EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME;
   }
 
   private String getCompletedDateColumn(EventOutputType type) {

@@ -1180,6 +1180,15 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
   }
 
+  protected Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression>
+      resolveDateFieldPeriodBucket(DimensionalObject dimension, String tableAlias) {
+    return dateFieldPeriodBucketColumnResolver.resolve(getAnalyticsType(), dimension, tableAlias);
+  }
+
+  protected Optional<String> resolveDateFieldPeriodSourceColumn(DimensionalObject dimension) {
+    return dateFieldPeriodBucketColumnResolver.resolveSourceColumn(getAnalyticsType(), dimension);
+  }
+
   /**
    * Template method that generates a SQL query for retrieving events or enrollments.
    *

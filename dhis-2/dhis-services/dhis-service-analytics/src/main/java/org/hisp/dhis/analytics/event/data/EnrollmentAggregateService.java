@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.tracker.HeaderHelper.addCommonHeaders;
@@ -36,11 +37,13 @@ import static org.hisp.dhis.analytics.tracker.ResponseHelper.UNLIMITED_PAGING;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.addPaging;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.applyHeaders;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getDimensionsKeywords;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 
 import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
@@ -53,6 +56,7 @@ import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Service;
@@ -61,7 +65,6 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class EnrollmentAggregateService {
-
   private final EnrollmentAnalyticsManager enrollmentAnalyticsManager;
 
   private final EventQueryPlanner queryPlanner;
@@ -112,6 +115,7 @@ public class EnrollmentAggregateService {
 
     // Set response info.
     metadataHandler.addMetadata(grid, params, keywords);
+    removeRawPeriodDimensionMetadata(grid, periods);
     schemeIdHandler.applyScheme(grid, params);
 
     addPaging(params, UNLIMITED_PAGING, grid);
@@ -157,5 +161,26 @@ public class EnrollmentAggregateService {
 
   private List<DimensionalObject> getPeriods(EventQueryParams params) {
     return params.getDimensions().stream().filter(d -> d.getDimensionType() == PERIOD).toList();
+  }
+
+  @SuppressWarnings("unchecked")
+  private void removeRawPeriodDimensionMetadata(Grid grid, List<DimensionalObject> periods) {
+    if (hasDefaultPeriod(periods)) {
+      return;
+    }
+
+    Object dimensions = grid.getMetaData().get(DIMENSIONS.getKey());
+    if (dimensions instanceof Map<?, ?> dimensionMap) {
+      ((Map<String, Object>) dimensionMap).remove(PERIOD_DIM_ID);
+    }
+  }
+
+  private boolean hasDefaultPeriod(List<DimensionalObject> periods) {
+    return periods.stream()
+        .flatMap(period -> period.getItems().stream())
+        .filter(PeriodDimension.class::isInstance)
+        .map(PeriodDimension.class::cast)
+        .map(PeriodDimension::getDateField)
+        .anyMatch(dateField -> dateField == null);
   }
 }

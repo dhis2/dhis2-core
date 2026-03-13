@@ -54,6 +54,9 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class DateFieldPeriodBucketColumnResolver {
+  record ResolvedExpression(
+      String selectExpression, String groupByExpression, String sourceColumn) {}
+
   private static final Set<PeriodTypeEnum> PERIOD_IDENTIFIER_BACKED_TYPES =
       Set.of(
           PeriodTypeEnum.DAILY,
@@ -90,6 +93,14 @@ public class DateFieldPeriodBucketColumnResolver {
 
   Optional<String> resolve(
       AnalyticsType analyticsType, DimensionalObject dimension, boolean isGroupByClause) {
+    return resolve(analyticsType, dimension, "ax")
+        .map(
+            expression ->
+                isGroupByClause ? expression.groupByExpression() : expression.selectExpression());
+  }
+
+  Optional<ResolvedExpression> resolve(
+      AnalyticsType analyticsType, DimensionalObject dimension, String tableAlias) {
     if (dimension.getDimensionType() != DimensionType.PERIOD) {
       return Optional.empty();
     }
@@ -128,23 +139,50 @@ public class DateFieldPeriodBucketColumnResolver {
     }
 
     String dateColumn =
-        analyticsType == AnalyticsType.ENROLLMENT
-            ? sqlBuilder.quoteAx(timeField.get().getEnrollmentColumnName())
-            : sqlBuilder.quoteAx(timeField.get().getEventColumnName());
+        sqlBuilder.quote(tableAlias, getSourceColumn(analyticsType, timeField.get()));
 
     return renderPeriodBucketExpression(
-        dateColumn, periodTypes.iterator().next(), dimension.getDimensionName(), isGroupByClause);
+        dateColumn,
+        periodTypes.iterator().next(),
+        dimension.getDimensionName(),
+        getSourceColumn(analyticsType, timeField.get()));
   }
 
-  private Optional<String> renderPeriodBucketExpression(
-      String dateColumn, PeriodTypeEnum periodType, String dimensionName, boolean isGroupByClause) {
+  Optional<String> resolveSourceColumn(AnalyticsType analyticsType, DimensionalObject dimension) {
+    if (dimension.getDimensionType() != DimensionType.PERIOD) {
+      return Optional.empty();
+    }
+
+    Set<String> dateFields =
+        dimension.getItems().stream()
+            .map(PeriodDimension.class::cast)
+            .map(PeriodDimension::getDateField)
+            .filter(Objects::nonNull)
+            .collect(toSet());
+
+    if (dateFields.size() != 1) {
+      return Optional.empty();
+    }
+
+    String dateField = dateFields.iterator().next();
+
+    if (TimeField.OCCURRED_DATE.name().equals(dateField)) {
+      return Optional.empty();
+    }
+
+    return resolveTimeField(dateField).map(timeField -> getSourceColumn(analyticsType, timeField));
+  }
+
+  private Optional<ResolvedExpression> renderPeriodBucketExpression(
+      String dateColumn, PeriodTypeEnum periodType, String dimensionName, String sourceColumn) {
     return renderPeriodIdentifierExpression(dateColumn, periodType)
         .or(() -> renderBucket(dateColumn, periodType))
         .map(
             expression ->
-                isGroupByClause
-                    ? expression
-                    : expression + " as " + sqlBuilder.quote(dimensionName));
+                new ResolvedExpression(
+                    expression + " as " + sqlBuilder.quote(dimensionName),
+                    expression,
+                    sourceColumn));
   }
 
   private Optional<String> renderPeriodIdentifierExpression(
@@ -181,6 +219,12 @@ public class DateFieldPeriodBucketColumnResolver {
     return AnalyticsDateFilter.of(dateField)
         .map(AnalyticsDateFilter::getTimeField)
         .or(() -> TimeField.of(dateField));
+  }
+
+  private String getSourceColumn(AnalyticsType analyticsType, TimeField timeField) {
+    return analyticsType == AnalyticsType.ENROLLMENT
+        ? timeField.getEnrollmentColumnName()
+        : timeField.getEventColumnName();
   }
 
   private String getPeriodTypeColumnName(PeriodTypeEnum periodType) {
