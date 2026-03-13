@@ -140,13 +140,31 @@ public class Main {
 
     host.addChild(context);
 
-    tomcat.start();
+    try {
+      tomcat.start();
+    } catch (Exception ex) {
+      log.error("FATAL: Failed to start embedded Tomcat. Shutting down.", ex);
+      System.exit(1);
+    }
+
+    Exception startUpException = starter.getStartUpException();
+    if (startUpException != null) {
+      log.error(
+          "FATAL: Failed to initialize Spring context. Shutting down.", startUpException);
+      System.exit(1);
+    }
 
     Thread awaitThread =
         new Thread("container-" + (1)) {
           @Override
           public void run() {
-            performDeferredLoadOnStartup(tomcat);
+            try {
+              performDeferredLoadOnStartup(tomcat);
+            } catch (Exception ex) {
+              log.error(
+                  "FATAL: Failed during deferred servlet startup. Shutting down.", ex);
+              System.exit(1);
+            }
             tomcat.getServer().await();
           }
         };

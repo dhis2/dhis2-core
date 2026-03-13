@@ -90,6 +90,14 @@ public class DefaultSystemService implements SystemService, InitializingBean {
   public void afterPropertiesSet() {
     systemInfo = getStableSystemInfo();
 
+    if (systemInfo.getRevision() == null || systemInfo.getRevision().isBlank()) {
+      throw new IllegalStateException(
+          "FATAL: build.revision is missing. "
+              + "The server cannot start without a known build revision. "
+              + "Ensure the project was built with Maven (mvn package) "
+              + "so that build.properties is generated.");
+    }
+
     List<String> info =
         List.of(
             "DHIS 2 Version: " + systemInfo.getVersion(),
