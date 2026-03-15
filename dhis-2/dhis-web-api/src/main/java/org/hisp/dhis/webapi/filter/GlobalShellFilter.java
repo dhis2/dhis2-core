@@ -44,6 +44,7 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.ResourceResult;
@@ -108,7 +109,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       return;
     }
 
-    if (serveCanonicalServiceWorkerIfNeeded(response, path)) {
+    if (serveCanonicalServiceWorkerIfNeeded(request, response, path)) {
       return;
     }
 
@@ -395,8 +396,8 @@ public class GlobalShellFilter extends OncePerRequestFilter {
    *       preventing {@code @dhis2/pwa}'s localhost validation from destroying the canonical
    *       worker (which happens when it receives a 404 for the SW script URL).
    */
-  private boolean serveCanonicalServiceWorkerIfNeeded(HttpServletResponse response, String path)
-      throws IOException {
+  private boolean serveCanonicalServiceWorkerIfNeeded(
+      HttpServletRequest request, HttpServletResponse response, String path) throws IOException {
     if (!path.startsWith(GLOBAL_SHELL_PATH_PREFIX) || !path.endsWith(SERVICE_WORKER_JS)) {
       return false;
     }
@@ -409,7 +410,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     String remainder = path.substring(GLOBAL_SHELL_PATH_PREFIX.length());
     if (!remainder.contains(PATH_SEP)) {
       // Root-level: /apps/service-worker.js
-      return serveClasspathJsResource(response, path, CANONICAL_SW_RESOURCE);
+      return serveClasspathJsResource(request, response, path, CANONICAL_SW_RESOURCE);
     }
 
     // The global shell registers its own SW from /apps/{shellName}/service-worker.js
@@ -417,7 +418,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     String appName = remainder.substring(0, remainder.indexOf(PATH_SEP));
     String globalShellAppName = settingsProvider.getCurrentSettings().getGlobalShellAppName();
     if (appName.equals(globalShellAppName)) {
-      return serveClasspathJsResource(response, path, CANONICAL_SW_RESOURCE);
+      return serveClasspathJsResource(request, response, path, CANONICAL_SW_RESOURCE);
     }
 
     // Per-app scope: serve a self-unregistering SW so the browser gets a valid JS
@@ -425,23 +426,41 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     // only) to call registration.unregister() on the controlling SW — which is the
     // canonical one at /apps/, destroying it.
     log.debug("Serving self-unregistering service worker for per-app scope: {}", path);
-    return serveClasspathJsResource(response, path, UNREGISTERING_SW_RESOURCE);
+    return serveClasspathJsResource(request, response, path, UNREGISTERING_SW_RESOURCE);
   }
 
+  /**
+   * Serves a classpath JS resource (service worker) with proper caching. These resources are baked
+   * into the WAR and only change between DHIS2 releases, so they are safe to cache. Uses {@link
+   * StaticCacheControlService} for cache-control headers and content-hash ETags for conditional
+   * request support (304 Not Modified).
+   */
   private boolean serveClasspathJsResource(
-      HttpServletResponse response, String path, String resourceName) throws IOException {
+      HttpServletRequest request, HttpServletResponse response, String path, String resourceName)
+      throws IOException {
     try (InputStream stream = getClass().getClassLoader().getResourceAsStream(resourceName)) {
       if (stream == null) {
         log.warn("Service worker resource not found: {}", resourceName);
         return false;
       }
       byte[] bytes = stream.readAllBytes();
+      String etag = "\"" + HashUtils.hashMD5(bytes) + "\"";
+
+      staticCacheControlService.setHeaders(response, path, null);
+      response.setHeader("ETag", etag);
+      response.setHeader("Service-Worker-Allowed", "/");
+
+      String ifNoneMatch = request.getHeader("If-None-Match");
+      if (etag.equals(ifNoneMatch)) {
+        response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+        log.debug("Service worker not modified (etag {}): {}", etag, path);
+        return true;
+      }
+
       response.setContentType("application/javascript");
       response.setContentLength(bytes.length);
-      response.setHeader("Cache-Control", "no-store");
-      response.setHeader("Service-Worker-Allowed", "/");
       response.getOutputStream().write(bytes);
-      log.debug("Served {} at: {}", resourceName, path);
+      log.debug("Served {} at: {} (etag {})", resourceName, path, etag);
       return true;
     }
   }

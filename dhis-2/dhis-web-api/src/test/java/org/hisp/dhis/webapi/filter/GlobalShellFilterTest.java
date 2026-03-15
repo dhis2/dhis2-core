@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.filter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
@@ -39,9 +40,12 @@ import jakarta.servlet.FilterChain;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import org.hisp.dhis.appmanager.AppManager;
+import org.hisp.dhis.common.HashUtils;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsProvider;
-import org.hisp.dhis.webapi.staticresource.HtmlCacheBustingService;
+import org.hisp.dhis.system.SystemService;
 import org.hisp.dhis.webapi.staticresource.StaticCacheControlService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,6 +65,11 @@ import org.springframework.mock.web.MockHttpServletResponse;
  *   <li>Per-app SW request ({@code /apps/{name}/service-worker.js}) →
  *       unregistering-service-worker.js
  * </ul>
+ *
+ * <p>Uses a real {@link StaticCacheControlService} (with mocked dependencies) instead of a Mockito
+ * mock, since Mockito's ByteBuddy-based inline mock maker cannot instrument concrete classes on
+ * newer JDKs (22+). The service worker tests don't exercise {@code HtmlCacheBustingService}, so
+ * {@code null} is passed safely.
  */
 @ExtendWith(MockitoExtension.class)
 class GlobalShellFilterTest {
@@ -68,17 +77,40 @@ class GlobalShellFilterTest {
   @Mock private AppManager appManager;
   @Mock private SystemSettingsProvider settingsProvider;
   @Mock private SystemSettings settings;
-  @Mock private StaticCacheControlService staticCacheControlService;
-  @Mock private HtmlCacheBustingService htmlCacheBustingService;
+  @Mock private DhisConfigurationProvider dhisConfig;
+  @Mock private SystemService systemService;
   @Mock private FilterChain filterChain;
 
+  private StaticCacheControlService staticCacheControlService;
   private GlobalShellFilter filter;
 
   @BeforeEach
   void setUp() {
+    lenient()
+        .when(dhisConfig.isEnabled(ConfigurationKey.STATIC_CACHE_ENABLED))
+        .thenReturn(true);
+    lenient()
+        .when(dhisConfig.isEnabled(ConfigurationKey.STATIC_CACHE_DEV_MODE_FORCE_NO_CACHE))
+        .thenReturn(false);
+    lenient()
+        .when(dhisConfig.getProperty(ConfigurationKey.STATIC_CACHE_DEFAULT_MAX_AGE))
+        .thenReturn("3600");
+    lenient()
+        .when(dhisConfig.getProperty(ConfigurationKey.STATIC_CACHE_HTML_MAX_AGE))
+        .thenReturn("300");
+    lenient()
+        .when(dhisConfig.getProperty(ConfigurationKey.STATIC_CACHE_IMMUTABLE_MAX_AGE))
+        .thenReturn("31536000");
+    lenient()
+        .when(dhisConfig.getProperty(ConfigurationKey.STATIC_CACHE_ALWAYS_NO_CACHE_PATTERNS))
+        .thenReturn("**/*.html,**/index.*,**/manifest.*,**/config.*,**/plugin.html");
+
+    staticCacheControlService =
+        new StaticCacheControlService(dhisConfig, appManager, systemService);
+
+    // HtmlCacheBustingService is not exercised in service worker tests — passing null is safe
     filter =
-        new GlobalShellFilter(
-            appManager, settingsProvider, staticCacheControlService, htmlCacheBustingService);
+        new GlobalShellFilter(appManager, settingsProvider, staticCacheControlService, null);
     lenient().when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     lenient().when(settings.getGlobalShellAppName()).thenReturn("global-shell");
   }
@@ -97,8 +129,13 @@ class GlobalShellFilterTest {
 
     assertEquals(200, response.getStatus());
     assertEquals("application/javascript", response.getContentType());
-    assertEquals("no-store", response.getHeader("Cache-Control"));
     assertEquals("/", response.getHeader("Service-Worker-Allowed"));
+    assertNotNull(response.getHeader("ETag"), "Service worker response should include an ETag");
+
+    String cacheControl = response.getHeader("Cache-Control");
+    assertNotNull(cacheControl, "Should have Cache-Control header");
+    assertFalse(cacheControl.contains("no-store"), "Service worker should be cacheable");
+    assertTrue(cacheControl.contains("max-age=3600"), "Should use default max-age for JS");
 
     String body = response.getContentAsString();
     assertTrue(
@@ -144,8 +181,6 @@ class GlobalShellFilterTest {
     when(settings.getGlobalShellEnabled()).thenReturn(true);
     when(settings.getCanonicalAppPaths()).thenReturn(true);
 
-    // The global shell registers its SW from its own app path, not the root.
-    // It must still receive the canonical SW, not a 404.
     MockHttpServletRequest request = swRequest("/apps/global-shell/service-worker.js");
     MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -156,6 +191,66 @@ class GlobalShellFilterTest {
 
     String body = response.getContentAsString();
     assertTrue(body.contains("SHELL_CACHE"), "Global shell SW should get canonical content");
+  }
+
+  // --- conditional request (ETag / 304) ---
+
+  @Test
+  void swRequest_withMatchingETag_returns304() throws Exception {
+    when(settings.getGlobalShellEnabled()).thenReturn(true);
+    when(settings.getCanonicalAppPaths()).thenReturn(true);
+
+    // First request to get the ETag
+    MockHttpServletRequest request1 = swRequest("/apps/service-worker.js");
+    MockHttpServletResponse response1 = new MockHttpServletResponse();
+    filter.doFilter(request1, response1, filterChain);
+    String etag = response1.getHeader("ETag");
+    assertNotNull(etag, "First response must include an ETag");
+
+    // Second request with If-None-Match
+    MockHttpServletRequest request2 = swRequest("/apps/service-worker.js");
+    request2.addHeader("If-None-Match", etag);
+    MockHttpServletResponse response2 = new MockHttpServletResponse();
+    filter.doFilter(request2, response2, filterChain);
+
+    assertEquals(304, response2.getStatus());
+    assertEquals(etag, response2.getHeader("ETag"));
+    assertEquals(0, response2.getContentLength(), "304 response must have no body");
+  }
+
+  @Test
+  void swRequest_withStaleETag_returns200() throws Exception {
+    when(settings.getGlobalShellEnabled()).thenReturn(true);
+    when(settings.getCanonicalAppPaths()).thenReturn(true);
+
+    MockHttpServletRequest request = swRequest("/apps/service-worker.js");
+    request.addHeader("If-None-Match", "\"stale-etag-value\"");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    filter.doFilter(request, response, filterChain);
+
+    assertEquals(200, response.getStatus());
+    assertTrue(
+        response.getContentAsString().contains("SHELL_CACHE"),
+        "Stale ETag should return full content");
+  }
+
+  @Test
+  void swETag_isContentBased() throws Exception {
+    byte[] canonicalSwBytes;
+    try (InputStream stream =
+        getClass().getClassLoader().getResourceAsStream("canonical-service-worker.js")) {
+      canonicalSwBytes = stream.readAllBytes();
+    }
+    String expectedEtag = "\"" + HashUtils.hashMD5(canonicalSwBytes) + "\"";
+
+    when(settings.getGlobalShellEnabled()).thenReturn(true);
+    when(settings.getCanonicalAppPaths()).thenReturn(true);
+
+    MockHttpServletRequest request = swRequest("/apps/service-worker.js");
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    filter.doFilter(request, response, filterChain);
+
+    assertEquals(expectedEtag, response.getHeader("ETag"));
   }
 
   // --- canonical paths OFF ---
@@ -170,9 +265,6 @@ class GlobalShellFilterTest {
 
     filter.doFilter(request, response, filterChain);
 
-    // Not handled by SW logic, falls through to global-shell serving
-    // (which will eventually 404 since no real app is installed in this test).
-    // The key assertion: it did NOT write JS content.
     assertFalse(
         "application/javascript".equals(response.getContentType()),
         "Should not serve a SW when canonical paths are off");
