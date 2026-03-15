@@ -37,11 +37,15 @@ import java.util.HashSet;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -67,6 +71,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -76,6 +81,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTest {
 
   private String dataElementUid = CodeGenerator.generateUid();
+
+  private String dataElementNotInProgramStageUid = CodeGenerator.generateUid();
+
+  private String dataElementWithOptionSetUid = CodeGenerator.generateUid();
 
   private String trackedEntityAttributeUid = CodeGenerator.generateUid();
 
@@ -93,9 +102,16 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
 
   private ProgramStage programStageA;
 
+  private OptionSet optionSet;
+  private Option optionA;
+  private Option optionB;
+
   private DataElement dataElementA;
 
   private DataElement dataElementB;
+
+  private DataElement dataElementWithOptionSet;
+  private DataElement dataElementNotInProgramStage;
 
   private TrackedEntityAttribute trackedEntityAttributeA;
 
@@ -111,6 +127,8 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
 
   private ProgramStageDataElement programStageDataElementB;
 
+  private ProgramStageDataElement programStageDataElementC;
+
   private TrackedEntityInstance trackedEntityInstanceA;
 
   private ProgramInstance programInstanceA;
@@ -120,6 +138,9 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
   private EventDataValue eventDataValueA;
 
   private EventDataValue eventDataValueB;
+
+  private EventDataValue eventDataValueC;
+  private EventDataValue eventDataValueD;
 
   private OrganisationUnit organisationUnitA;
 
@@ -154,8 +175,12 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
   @Autowired
   private ProgramStageNotificationMessageRenderer programStageNotificationMessageRenderer;
 
-  @Override
-  protected void setUpTest() throws Exception {
+  @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired private OptionService optionService;
+
+  @BeforeEach
+  protected void setUp() throws Exception {
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
     testDate1 = testDate1.minusDays(70);
@@ -163,14 +188,35 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
     DateTime testDate2 = DateTime.now();
     testDate2.withTimeAtStartOfDay();
     Date enrollmentDate = testDate2.toDate();
+    optionA = createOption('A');
+    optionB = createOption('B');
+
+    optionSet = createOptionSet('O', optionA, optionB);
+    optionSet.setValueType(ValueType.TEXT);
+    optionService.saveOptionSet(optionSet);
+
+    dataElementWithOptionSet =
+        createDataElement('D', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER);
+    dataElementWithOptionSet.setOptionSet(optionSet);
+
+    dataElementWithOptionSet.setUid(dataElementWithOptionSetUid);
+
     dataElementA =
         createDataElement('A', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER);
     dataElementA.setUid(dataElementUid);
     dataElementB =
         createDataElement('B', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER);
     dataElementB.setUid("DEB-UID");
+
+    dataElementNotInProgramStage =
+        createDataElement('C', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER);
+    dataElementNotInProgramStage.setUid(dataElementNotInProgramStageUid);
     dataElementService.addDataElement(dataElementA);
     dataElementService.addDataElement(dataElementB);
+
+    dataElementService.addDataElement(dataElementWithOptionSet);
+    dataElementService.addDataElement(dataElementNotInProgramStage);
+
     trackedEntityAttributeA = createTrackedEntityAttribute('A');
     trackedEntityAttributeA.setUid(trackedEntityAttributeUid);
     trackedEntityAttributeB = createTrackedEntityAttribute('B');
@@ -196,10 +242,14 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
     programStageService.saveProgramStage(programStageA);
     programStageDataElementA = createProgramStageDataElement(programStageA, dataElementA, 1);
     programStageDataElementB = createProgramStageDataElement(programStageA, dataElementB, 2);
+    programStageDataElementC =
+        createProgramStageDataElement(programStageA, dataElementWithOptionSet, 3);
     programStageDataElementService.addProgramStageDataElement(programStageDataElementA);
     programStageDataElementService.addProgramStageDataElement(programStageDataElementB);
+    programStageDataElementService.addProgramStageDataElement(programStageDataElementC);
     programStageA.setProgramStageDataElements(
-        Sets.newHashSet(programStageDataElementA, programStageDataElementB));
+        Sets.newHashSet(
+            programStageDataElementA, programStageDataElementB, programStageDataElementC));
     programStageService.updateProgramStage(programStageA);
     programA.setProgramStages(Sets.newHashSet(programStageA));
     programService.updateProgram(programA);
@@ -233,7 +283,19 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
     eventDataValueB.setDataElement(dataElementB.getUid());
     eventDataValueB.setAutoFields();
     eventDataValueB.setValue("dataElementB-Text");
-    programStageInstanceA.setEventDataValues(Sets.newHashSet(eventDataValueA, eventDataValueB));
+
+    eventDataValueC = new EventDataValue();
+    eventDataValueC.setDataElement(dataElementWithOptionSet.getUid());
+    eventDataValueC.setAutoFields();
+    eventDataValueC.setValue("OptionCodeA");
+
+    eventDataValueD = new EventDataValue();
+    eventDataValueD.setDataElement(dataElementNotInProgramStage.getUid());
+    eventDataValueD.setAutoFields();
+    eventDataValueD.setValue("DataElementE-Text");
+
+    programStageInstanceA.setEventDataValues(
+        Sets.newHashSet(eventDataValueA, eventDataValueB, eventDataValueC, eventDataValueD));
     programStageInstanceService.addProgramStageInstance(programStageInstanceA);
     programInstanceA.getProgramStageInstances().add(programStageInstanceA);
     programInstanceService.updateProgramInstance(programInstanceA);
@@ -279,6 +341,34 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
             programStageInstanceA, programNotificationTemplate);
     assertEquals("message is dataElementA-Text", notificationMessage.getMessage());
     assertEquals("subject is dataElementA-Text", notificationMessage.getSubject());
+  }
+
+  @Test
+  void testRendererForMessageWithNullDataElement() {
+    programNotificationTemplate.setMessageTemplate(
+        "message is #{" + dataElementNotInProgramStageUid + "}");
+    programNotificationTemplate.setSubjectTemplate(
+        "subject is #{" + dataElementNotInProgramStageUid + "}");
+    programNotificationTemplateStore.update(programNotificationTemplate);
+    NotificationMessage notificationMessage =
+        programStageNotificationMessageRenderer.render(
+            programStageInstanceA, programNotificationTemplate);
+    assertEquals("message is [DataElement not in Program Stage]", notificationMessage.getMessage());
+    assertEquals("subject is [DataElement not in Program Stage]", notificationMessage.getSubject());
+  }
+
+  @Test
+  void testRendererForMessageWithADataElementAndOptionSet() {
+    programNotificationTemplate.setMessageTemplate(
+        "message is #{" + dataElementWithOptionSetUid + "}");
+    programNotificationTemplate.setSubjectTemplate(
+        "subject is #{" + dataElementWithOptionSetUid + "}");
+    programNotificationTemplateStore.update(programNotificationTemplate);
+    NotificationMessage notificationMessage =
+        programStageNotificationMessageRenderer.render(
+            programStageInstanceA, programNotificationTemplate);
+    assertEquals("message is OptionA", notificationMessage.getMessage());
+    assertEquals("subject is OptionA", notificationMessage.getSubject());
   }
 
   @Test

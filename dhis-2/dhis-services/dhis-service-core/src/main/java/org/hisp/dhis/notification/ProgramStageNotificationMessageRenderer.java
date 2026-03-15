@@ -33,11 +33,9 @@ import com.google.common.collect.Maps;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.option.OptionService;
@@ -191,16 +189,16 @@ public class ProgramStageNotificationMessageRenderer
     // If the AV has an OptionSet -> substitute value with the name of the
     // Option
     if (av.getAttribute().hasOptionSet()) {
-      value =
-          Optional.ofNullable(optionService.getOptionByCode(value))
-              .map(BaseIdentifiableObject::getName)
-              .orElse(MISSING_VALUE_REPLACEMENT);
+      return getOptionName(av.getAttribute().getOptionSet(), value);
     }
 
     return value;
   }
 
   private String filterValue(EventDataValue dv, DataElement dataElement) {
+    if (dataElement == null) {
+      return DE_NOT_IN_STAGE;
+    }
     String value = dv.getValue();
 
     if (value == null) {
@@ -210,10 +208,7 @@ public class ProgramStageNotificationMessageRenderer
     // If the DV has an OptionSet -> substitute value with the name of the
     // Option
     if (dataElement != null && dataElement.hasOptionSet()) {
-      value =
-          Optional.ofNullable(optionService.getOptionByCode(value))
-              .map(BaseIdentifiableObject::getName)
-              .orElse(MISSING_VALUE_REPLACEMENT);
+      return getOptionName(dataElement.getOptionSet(), value);
     }
 
     return value;

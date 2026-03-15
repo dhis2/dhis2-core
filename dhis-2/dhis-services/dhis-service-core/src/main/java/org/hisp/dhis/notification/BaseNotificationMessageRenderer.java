@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -44,6 +45,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.RegexUtils;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
@@ -66,6 +69,9 @@ public abstract class BaseNotificationMessageRenderer<T> implements Notification
   protected static final int SUBJECT_CHAR_LIMIT = 100;
 
   protected static final String CONFIDENTIAL_VALUE_REPLACEMENT = "[CONFIDENTIAL]";
+
+  protected static final String OPTION_SET_NOT_FOUND = "[OptionSet not found]";
+  protected static final String DE_NOT_IN_STAGE = "[DataElement not in Program Stage]";
 
   protected static final String MISSING_VALUE_REPLACEMENT = "[N/A]";
 
@@ -302,6 +308,13 @@ public abstract class BaseNotificationMessageRenderer<T> implements Notification
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
+  protected static String getOptionName(@Nonnull OptionSet optionSet, String value) {
+    return optionSet.getOptions().stream()
+        .filter(option -> Objects.equals(option.getCode(), value))
+        .findFirst()
+        .map(Option::getName)
+        .orElse(OPTION_SET_NOT_FOUND);
+  }
 
   protected static String chop(String input, int limit) {
     return input.substring(0, Math.min(input.length(), limit));
