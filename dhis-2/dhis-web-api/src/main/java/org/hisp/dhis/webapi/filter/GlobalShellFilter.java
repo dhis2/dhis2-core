@@ -379,6 +379,7 @@ public class GlobalShellFilter extends OncePerRequestFilter {
   }
 
   private static final String CANONICAL_SW_RESOURCE = "canonical-service-worker.js";
+  private static final String UNREGISTERING_SW_RESOURCE = "unregistering-service-worker.js";
 
   /**
    * Intercepts {@code service-worker.js} requests under {@code /apps/} when canonical app paths are
@@ -388,11 +389,11 @@ public class GlobalShellFilter extends OncePerRequestFilter {
    *   <li>Root-level ({@code /apps/service-worker.js}) or global-shell's own path: serves the
    *       canonical service worker that caches global-shell assets and handles the {@code
    *       @dhis2/pwa} message protocol.
-   *   <li>Per-app ({@code /apps/{name}/service-worker.js}): returns 404 so the browser's
-   *       {@code navigator.serviceWorker.register()} call fails immediately. This prevents
-   *       per-app scopes from accumulating redundant registrations — a single canonical worker at
-   *       the {@code /apps/} scope is sufficient.
-   * </ul>
+   *   <li>Per-app ({@code /apps/{name}/service-worker.js}): serves a self-unregistering service
+   *       worker that activates, immediately unregisters its own per-app registration, and
+   *       disappears. This avoids per-app scopes accumulating redundant registrations while
+   *       preventing {@code @dhis2/pwa}'s localhost validation from destroying the canonical
+   *       worker (which happens when it receives a 404 for the SW script URL).
    */
   private boolean serveCanonicalServiceWorkerIfNeeded(HttpServletResponse response, String path)
       throws IOException {
@@ -419,11 +420,12 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       return serveClasspathJsResource(response, path, CANONICAL_SW_RESOURCE);
     }
 
-    // Per-app scope: 404 so navigator.serviceWorker.register() rejects immediately.
-    // No SW lifecycle, no DevTools entry, no install/unregister churn.
-    log.debug("Rejecting per-app service worker registration at: {}", path);
-    response.sendError(HttpServletResponse.SC_NOT_FOUND);
-    return true;
+    // Per-app scope: serve a self-unregistering SW so the browser gets a valid JS
+    // response. Returning 404 here would cause @dhis2/pwa's checkValidSW (localhost
+    // only) to call registration.unregister() on the controlling SW — which is the
+    // canonical one at /apps/, destroying it.
+    log.debug("Serving self-unregistering service worker for per-app scope: {}", path);
+    return serveClasspathJsResource(response, path, UNREGISTERING_SW_RESOURCE);
   }
 
   private boolean serveClasspathJsResource(

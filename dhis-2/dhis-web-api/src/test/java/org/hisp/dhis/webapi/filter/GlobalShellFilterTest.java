@@ -107,7 +107,7 @@ class GlobalShellFilterTest {
   }
 
   @Test
-  void perAppSwRequest_canonicalOn_returns404() throws Exception {
+  void perAppSwRequest_canonicalOn_servesUnregisteringSW() throws Exception {
     when(settings.getGlobalShellEnabled()).thenReturn(true);
     when(settings.getCanonicalAppPaths()).thenReturn(true);
 
@@ -116,11 +116,15 @@ class GlobalShellFilterTest {
 
     filter.doFilter(request, response, filterChain);
 
-    assertEquals(404, response.getStatus());
+    assertEquals(200, response.getStatus());
+    assertEquals("application/javascript", response.getContentType());
+    String body = response.getContentAsString();
+    assertTrue(body.contains("unregister"), "Per-app SW must self-unregister");
+    assertFalse(body.contains("SHELL_CACHE"), "Per-app SW must NOT contain canonical content");
   }
 
   @Test
-  void deepPerAppSwRequest_canonicalOn_returns404() throws Exception {
+  void deepPerAppSwRequest_canonicalOn_servesUnregisteringSW() throws Exception {
     when(settings.getGlobalShellEnabled()).thenReturn(true);
     when(settings.getCanonicalAppPaths()).thenReturn(true);
 
@@ -129,7 +133,10 @@ class GlobalShellFilterTest {
 
     filter.doFilter(request, response, filterChain);
 
-    assertEquals(404, response.getStatus());
+    assertEquals(200, response.getStatus());
+    assertEquals("application/javascript", response.getContentType());
+    String body = response.getContentAsString();
+    assertTrue(body.contains("unregister"), "Per-app SW must self-unregister");
   }
 
   @Test
@@ -197,6 +204,21 @@ class GlobalShellFilterTest {
       assertTrue(content.contains("SHELL_CACHE"), "Canonical SW must define SHELL_CACHE");
     } catch (Exception e) {
       throw new AssertionError("Failed to read canonical-service-worker.js", e);
+    }
+  }
+
+  @Test
+  void unregisteringServiceWorkerResourceExistsOnClasspath() {
+    try (InputStream stream =
+        getClass().getClassLoader().getResourceAsStream("unregistering-service-worker.js")) {
+      assertTrue(stream != null, "unregistering-service-worker.js must be on the classpath");
+      String content = new String(stream.readAllBytes(), StandardCharsets.UTF_8);
+      assertTrue(
+          content.contains("unregister"), "Unregistering SW must contain self-unregister call");
+      assertFalse(
+          content.contains("SHELL_CACHE"), "Unregistering SW must NOT contain canonical content");
+    } catch (Exception e) {
+      throw new AssertionError("Failed to read unregistering-service-worker.js", e);
     }
   }
 

@@ -797,4 +797,14 @@ class ConditionalETagInterceptorTest {
     assertTrue(deps.entityTypes().contains(UserRole.class));
     assertTrue(deps.namedKeys().contains("installedApps"));
   }
+
+  @Test
+  void testNamedEndpointApps() {
+    ConditionalETagInterceptor.NamedEndpointDeps deps =
+        ConditionalETagInterceptor.getNamedEndpointDeps("apps");
+    assertNotNull(deps);
+    assertTrue(deps.entityTypes().contains(User.class));
+    assertTrue(deps.entityTypes().contains(UserRole.class));
+    assertTrue(deps.namedKeys().contains("installedApps"));
+  }
 }

@@ -176,6 +176,8 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
   private static final Map<String, NamedEndpointDeps> NAMED_KEY_ENDPOINTS =
       Map.of(
           "schemas", new NamedEndpointDeps(Set.of(), Set.of()),
+          "apps",
+              new NamedEndpointDeps(Set.of(User.class, UserRole.class), Set.of("installedApps")),
           "apps/menu",
               new NamedEndpointDeps(Set.of(User.class, UserRole.class), Set.of("installedApps")));
 
