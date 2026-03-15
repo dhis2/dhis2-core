@@ -180,7 +180,7 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
   @Autowired private OptionService optionService;
 
   @BeforeEach
-  protected void setUp() throws Exception {
+  void setUp() throws Exception {
     DateTime testDate1 = DateTime.now();
     testDate1.withTimeAtStartOfDay();
     testDate1 = testDate1.minusDays(70);

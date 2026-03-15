@@ -207,7 +207,7 @@ public class ProgramStageNotificationMessageRenderer
 
     // If the DV has an OptionSet -> substitute value with the name of the
     // Option
-    if (dataElement != null && dataElement.hasOptionSet()) {
+    if (dataElement.hasOptionSet()) {
       return getOptionName(dataElement.getOptionSet(), value);
     }
 
