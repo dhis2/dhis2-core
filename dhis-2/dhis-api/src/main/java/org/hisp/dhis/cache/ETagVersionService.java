@@ -67,6 +67,24 @@ public interface ETagVersionService {
    */
   long incrementEntityTypeVersion(@Nonnull Class<?> entityType);
 
+  /**
+   * Returns the version for a named (non-entity) cache key. Named keys are used for endpoints whose
+   * data is not tied to a single JPA entity type, such as the app menu or schema list.
+   *
+   * @param key the version key name (e.g. {@code "installedApps"})
+   * @return the current version number, or 0 if none exists
+   */
+  long getNamedVersion(@Nonnull String key);
+
+  /**
+   * Increments the version for a named (non-entity) cache key. Call this when the underlying data
+   * changes outside the DML observer pipeline (e.g. app install/uninstall).
+   *
+   * @param key the version key name
+   * @return the new version number after increment
+   */
+  long incrementNamedVersion(@Nonnull String key);
+
   /** Returns {@code true} if ETag caching is enabled. */
   boolean isEnabled();
 

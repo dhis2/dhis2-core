@@ -67,6 +67,7 @@ import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
 import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilderProvider;
+import org.hisp.dhis.cache.ETagVersionService;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.Locale;
@@ -113,6 +114,7 @@ public class DefaultAppManager implements AppManager {
   private final BundledAppManager bundledAppManager;
   private final I18nManager i18nManager;
   private final SystemSettingsProvider settingsProvider;
+  private final ETagVersionService eTagVersionService;
 
   /**
    * In-memory storage of installed apps. Initially loaded on startup. Should not be cleared during
@@ -130,7 +132,8 @@ public class DefaultAppManager implements AppManager {
       I18nManager i18nManager,
       LocaleManager localeManager,
       BundledAppManager bundledAppManager,
-      SystemSettingsProvider settingsProvider) {
+      SystemSettingsProvider settingsProvider,
+      ETagVersionService eTagVersionService) {
 
     checkNotNull(dhisConfigurationProvider);
     checkNotNull(jCloudsAppStorageService);
@@ -140,6 +143,7 @@ public class DefaultAppManager implements AppManager {
     checkNotNull(bundledAppManager);
     checkNotNull(localeManager);
     checkNotNull(settingsProvider);
+    checkNotNull(eTagVersionService);
 
     this.dhisConfigurationProvider = dhisConfigurationProvider;
     this.appHubService = appHubService;
@@ -150,6 +154,7 @@ public class DefaultAppManager implements AppManager {
     this.localeManager = localeManager;
     this.bundledAppManager = bundledAppManager;
     this.settingsProvider = settingsProvider;
+    this.eTagVersionService = eTagVersionService;
   }
 
   /**
@@ -453,6 +458,7 @@ public class DefaultAppManager implements AppManager {
         String.format(
             "Installed App with AppHub ID %s (status: %s)", app.getAppHubId(), app.getAppState()));
     cacheApp(app);
+    eTagVersionService.incrementNamedVersion("installedApps");
     return app;
   }
 
@@ -535,6 +541,7 @@ public class DefaultAppManager implements AppManager {
 
     jCloudsAppStorageService.deleteApp(app);
     reloadApps();
+    eTagVersionService.incrementNamedVersion("installedApps");
 
     // If a bundled version exists it will replace the deleted override.
     // In that case, deleting the app should not remove the namespace protection

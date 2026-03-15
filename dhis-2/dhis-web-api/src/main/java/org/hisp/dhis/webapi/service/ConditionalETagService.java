@@ -188,6 +188,39 @@ public class ConditionalETagService {
             "%s-%s-c-%d-%d-%s", userUid, buildRevision, timeWindow, allCacheVersion, versionParts));
   }
 
+  /**
+   * Generates an ETag for a named-key endpoint. Named-key endpoints may depend on a mix of entity
+   * types and non-entity named version keys (e.g. {@code "installedApps"}).
+   *
+   * @param userDetails the current user details
+   * @param entityTypes entity classes this endpoint depends on (may be empty)
+   * @param namedKeys non-entity version key names this endpoint depends on (may be empty)
+   * @return the generated hashed ETag value (without quotes)
+   */
+  public String generateETag(
+      @Nonnull UserDetails userDetails,
+      @Nonnull Collection<Class<?>> entityTypes,
+      @Nonnull Collection<String> namedKeys) {
+    String userUid = userDetails.getUid();
+    long timeWindow = calculateTimeWindow();
+    long allCacheVersion = eTagVersionService.getAllCacheVersion();
+
+    StringJoiner versionParts = new StringJoiner(".");
+    entityTypes.stream()
+        .sorted(Comparator.comparing(Class::getName))
+        .forEach(
+            type ->
+                versionParts.add(
+                    type.getName() + "=" + eTagVersionService.getEntityTypeVersion(type)));
+    namedKeys.stream()
+        .sorted()
+        .forEach(key -> versionParts.add(key + "=" + eTagVersionService.getNamedVersion(key)));
+
+    return hashETag(
+        String.format(
+            "%s-%s-n-%d-%d-%s", userUid, buildRevision, timeWindow, allCacheVersion, versionParts));
+  }
+
   /** Hashes the raw ETag value using SHA-256. */
   private static String hashETag(String rawETag) {
     try {
@@ -458,14 +491,16 @@ public class ConditionalETagService {
     response.setHeader(HttpHeaders.ETAG, quote(currentETag));
     response.setHeader(HttpHeaders.VARY, "Cookie, Authorization");
 
-    Collection<String> headers = response.getHeaders(HttpHeaders.CACHE_CONTROL);
-    if (headers.isEmpty()) {
-      response.setHeader(
-          HttpHeaders.CACHE_CONTROL,
-          CacheControl.noCache().cachePrivate().mustRevalidate().getHeaderValue());
-    } else {
-      log.warn("Cache-Control header already set: {}", String.join(",", headers));
+    String cacheControlValue =
+        CacheControl.noCache().cachePrivate().mustRevalidate().getHeaderValue();
+    Collection<String> existing = response.getHeaders(HttpHeaders.CACHE_CONTROL);
+    if (!existing.isEmpty()) {
+      log.debug(
+          "Overwriting pre-existing Cache-Control header: {} -> {}",
+          String.join(",", existing),
+          cacheControlValue);
     }
+    response.setHeader(HttpHeaders.CACHE_CONTROL, cacheControlValue);
   }
 
   /**

@@ -86,7 +86,9 @@ public class WebMessageControllerAdvice implements ResponseBodyAdvice<WebMessage
       if (httpStatus.is4xxClientError() || httpStatus.is5xxServerError()) {
         response
             .getHeaders()
-            .addIfAbsent("Cache-Control", CacheControl.noCache().cachePrivate().getHeaderValue());
+            .addIfAbsent(
+                "Cache-Control",
+                CacheControl.noCache().cachePrivate().mustRevalidate().getHeaderValue());
       }
     }
     return body;

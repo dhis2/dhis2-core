@@ -65,6 +65,16 @@ public class NoOpETagVersionService implements ETagVersionService {
   }
 
   @Override
+  public long getNamedVersion(@Nonnull String key) {
+    return 0L;
+  }
+
+  @Override
+  public long incrementNamedVersion(@Nonnull String key) {
+    return 0L;
+  }
+
+  @Override
   public boolean isEnabled() {
     return false;
   }

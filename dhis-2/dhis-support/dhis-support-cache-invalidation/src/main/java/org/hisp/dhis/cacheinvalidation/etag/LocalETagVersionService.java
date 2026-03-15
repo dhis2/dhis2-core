@@ -125,6 +125,20 @@ public class LocalETagVersionService implements ETagVersionService, Initializing
   }
 
   @Override
+  public long getNamedVersion(@Nonnull String key) {
+    AtomicLong version = entityTypeVersions.get(key);
+    return version != null ? version.get() : 0L;
+  }
+
+  @Override
+  public long incrementNamedVersion(@Nonnull String key) {
+    long newVersion =
+        entityTypeVersions.computeIfAbsent(key, k -> new AtomicLong(0)).incrementAndGet();
+    log.debug("Incremented named version for {} to {}", key, newVersion);
+    return newVersion;
+  }
+
+  @Override
   public boolean isEnabled() {
     return configurationProvider.isEnabled(ConfigurationKey.CACHE_API_ETAG_ENABLED);
   }

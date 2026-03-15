@@ -381,15 +381,17 @@ public class GlobalShellFilter extends OncePerRequestFilter {
   private static final String CANONICAL_SW_RESOURCE = "canonical-service-worker.js";
 
   /**
-   * When canonical app paths are enabled, the global shell's standard service worker (from
-   * {@code @dhis2/pwa}) conflicts with the new URL scheme. This method intercepts any {@code
-   * service-worker.js} request under {@code /apps/} and serves a canonical-aware replacement that:
+   * Intercepts {@code service-worker.js} requests under {@code /apps/} when canonical app paths are
+   * enabled.
    *
    * <ul>
-   *   <li>Only caches shell HTML for exact {@code /apps/{name}} navigations
-   *   <li>Lets {@code /apps/{name}/{resource}} pass through for actual app serving
-   *   <li>Cleans up stale Workbox caches from the previous worker
-   *   <li>Preserves the message bus for shell-app communication
+   *   <li>Root-level ({@code /apps/service-worker.js}) or global-shell's own path: serves the
+   *       canonical service worker that caches global-shell assets and handles the {@code
+   *       @dhis2/pwa} message protocol.
+   *   <li>Per-app ({@code /apps/{name}/service-worker.js}): returns 404 so the browser's
+   *       {@code navigator.serviceWorker.register()} call fails immediately. This prevents
+   *       per-app scopes from accumulating redundant registrations — a single canonical worker at
+   *       the {@code /apps/} scope is sufficient.
    * </ul>
    */
   private boolean serveCanonicalServiceWorkerIfNeeded(HttpServletResponse response, String path)
@@ -401,19 +403,43 @@ public class GlobalShellFilter extends OncePerRequestFilter {
       return false;
     }
 
-    try (InputStream swStream =
-        getClass().getClassLoader().getResourceAsStream(CANONICAL_SW_RESOURCE)) {
-      if (swStream == null) {
-        log.warn("Canonical service worker resource not found: {}", CANONICAL_SW_RESOURCE);
+    // After stripping "/apps/", a root request leaves just "service-worker.js"
+    // while a per-app request looks like "{appName}/service-worker.js"
+    String remainder = path.substring(GLOBAL_SHELL_PATH_PREFIX.length());
+    if (!remainder.contains(PATH_SEP)) {
+      // Root-level: /apps/service-worker.js
+      return serveClasspathJsResource(response, path, CANONICAL_SW_RESOURCE);
+    }
+
+    // The global shell registers its own SW from /apps/{shellName}/service-worker.js
+    // with scope /apps/ — it must receive the canonical SW, not a 404.
+    String appName = remainder.substring(0, remainder.indexOf(PATH_SEP));
+    String globalShellAppName = settingsProvider.getCurrentSettings().getGlobalShellAppName();
+    if (appName.equals(globalShellAppName)) {
+      return serveClasspathJsResource(response, path, CANONICAL_SW_RESOURCE);
+    }
+
+    // Per-app scope: 404 so navigator.serviceWorker.register() rejects immediately.
+    // No SW lifecycle, no DevTools entry, no install/unregister churn.
+    log.debug("Rejecting per-app service worker registration at: {}", path);
+    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+    return true;
+  }
+
+  private boolean serveClasspathJsResource(
+      HttpServletResponse response, String path, String resourceName) throws IOException {
+    try (InputStream stream = getClass().getClassLoader().getResourceAsStream(resourceName)) {
+      if (stream == null) {
+        log.warn("Service worker resource not found: {}", resourceName);
         return false;
       }
-      byte[] bytes = swStream.readAllBytes();
+      byte[] bytes = stream.readAllBytes();
       response.setContentType("application/javascript");
       response.setContentLength(bytes.length);
       response.setHeader("Cache-Control", "no-store");
       response.setHeader("Service-Worker-Allowed", "/");
       response.getOutputStream().write(bytes);
-      log.debug("Served canonical service worker at: {}", path);
+      log.debug("Served {} at: {}", resourceName, path);
       return true;
     }
   }

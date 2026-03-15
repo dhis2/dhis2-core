@@ -111,7 +111,7 @@ public class LoginConfigController {
         .serverName(request.getServerName())
         .xForwardedHost(request.getHeader("X-Forwarded-Host"))
         .xForwardedProto(request.getHeader("X-Forwarded-Proto"))
-        .xForwardedPort(request.getHeader("X-Forwarded-Port")+"---V1")
+        .xForwardedPort(request.getHeader("X-Forwarded-Port"))
         .lastLoginRender(LoginAppDiagnostics.getLastRenderInfo())
         .build();
   }

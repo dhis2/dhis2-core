@@ -40,6 +40,7 @@ import org.hisp.dhis.apphub.AppHubService;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilder;
 import org.hisp.dhis.cache.DefaultCacheBuilderProvider;
+import org.hisp.dhis.cache.ETagVersionService;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -73,6 +74,7 @@ class DefaultAppManagerTest {
   @Mock private BundledAppManager bundledAppInstaller;
   @Mock private LocaleManager localeManager;
   @Mock private SystemSettingsProvider settingsProvider;
+  @Mock private ETagVersionService eTagVersionService;
   @Mock private SystemSettings systemSettings;
 
   private AppManager appManager;
@@ -136,7 +138,8 @@ class DefaultAppManagerTest {
             i18nManager,
             localeManager,
             bundledAppInstaller,
-            settingsProvider);
+            settingsProvider,
+            eTagVersionService);
   }
 
   /**

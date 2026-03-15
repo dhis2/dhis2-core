@@ -567,4 +567,68 @@ class ConditionalETagServiceTest {
 
     assertNotEquals(etag1, etag2);
   }
+
+  // ========== Named-Key Endpoint Tests ==========
+
+  @Test
+  @DisplayName("Should generate deterministic ETag for named-key endpoint with no dependencies")
+  void testGenerateETag_NamedKeyNoDeps() {
+    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+
+    String etag = service.generateETag(userDetails, Set.of(), Set.of());
+
+    assertNotNull(etag);
+    assertEquals(64, etag.length());
+    assertEquals(etag, service.generateETag(userDetails, Set.of(), Set.of()));
+  }
+
+  @Test
+  @DisplayName("Should generate different ETags for different named keys")
+  void testGenerateETag_NamedKeyDifferentKeys() {
+    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagVersionService.getNamedVersion("installedApps")).thenReturn(1L);
+    when(eTagVersionService.getNamedVersion("otherKey")).thenReturn(1L);
+
+    String etag1 = service.generateETag(userDetails, Set.of(), Set.of("installedApps"));
+    String etag2 = service.generateETag(userDetails, Set.of(), Set.of("otherKey"));
+
+    assertNotEquals(etag1, etag2);
+  }
+
+  @Test
+  @DisplayName("Should invalidate when named version is incremented")
+  void testGenerateETag_NamedKeyVersionChange() {
+    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagVersionService.getNamedVersion("installedApps")).thenReturn(1L);
+
+    String etag1 = service.generateETag(userDetails, Set.of(), Set.of("installedApps"));
+
+    when(eTagVersionService.getNamedVersion("installedApps")).thenReturn(2L);
+    String etag2 = service.generateETag(userDetails, Set.of(), Set.of("installedApps"));
+
+    assertNotEquals(etag1, etag2);
+  }
+
+  @Test
+  @DisplayName("Should combine entity types and named keys in ETag")
+  void testGenerateETag_NamedKeyWithEntityTypes() {
+    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagVersionService.getEntityTypeVersion(User.class)).thenReturn(10L);
+    when(eTagVersionService.getEntityTypeVersion(UserRole.class)).thenReturn(20L);
+    when(eTagVersionService.getNamedVersion("installedApps")).thenReturn(5L);
+
+    String etag =
+        service.generateETag(
+            userDetails, Set.of(User.class, UserRole.class), Set.of("installedApps"));
+
+    assertNotNull(etag);
+    assertEquals(64, etag.length());
+
+    // Changing entity type version should invalidate
+    when(eTagVersionService.getEntityTypeVersion(User.class)).thenReturn(11L);
+    String etag2 =
+        service.generateETag(
+            userDetails, Set.of(User.class, UserRole.class), Set.of("installedApps"));
+    assertNotEquals(etag, etag2);
+  }
 }
