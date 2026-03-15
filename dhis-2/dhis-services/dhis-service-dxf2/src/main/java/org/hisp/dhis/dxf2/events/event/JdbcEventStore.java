@@ -864,7 +864,7 @@ public class JdbcEventStore implements EventStore {
 
     sql = sql.replaceFirst("select .*? from", "select count(*) from");
 
-    sql = sql.replaceFirst("order .*? (desc|asc)", "");
+    sql = sql.replaceFirst("(?i)order by .+", "");
 
     sql = sql.replaceFirst("limit \\d+ offset \\d+", "");
 
