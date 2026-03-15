@@ -27,56 +27,59 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security;
+package org.hisp.dhis.appmanager;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Per-app cache configuration, parsed from {@code dhis2-cache.json} at the root of an app ZIP.
+ * Falls back to {@link #DEFAULT} when the file is absent.
  */
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Builder
-public class LoginConfigResponse {
-  @JsonProperty private String apiVersion;
-  @JsonProperty private String applicationTitle;
-  @JsonProperty private String applicationDescription;
-  @JsonProperty private String applicationNotification;
-  @JsonProperty private String applicationLeftSideFooter;
-  @JsonProperty private String applicationRightSideFooter;
-  @JsonProperty private String countryFlag;
-  @JsonProperty private String uiLocale;
-  @JsonProperty private String loginPageLogo;
-  @JsonProperty private String loginPopup;
-  @JsonProperty private String loginPageLayout;
-  @JsonProperty private String loginPageTemplate;
-  @JsonProperty private String recaptchaSite;
-  @JsonProperty private String minPasswordLength;
-  @JsonProperty private String maxPasswordLength;
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class AppCacheConfig implements Serializable {
 
-  @JsonProperty private boolean emailConfigured;
-  @JsonProperty private boolean selfRegistrationEnabled;
-  @JsonProperty private boolean selfRegistrationNoRecaptcha;
-  @JsonProperty private boolean allowAccountRecovery;
-  @JsonProperty private boolean useCustomLogoFront;
+  private static final long serialVersionUID = 1L;
 
-  @JsonProperty private List<LoginOidcProvider> oidcProviders;
+  public static final AppCacheConfig DEFAULT = new AppCacheConfig(List.of(), null, null);
 
-  @JsonProperty private String buildRevision;
-  @JsonProperty private String buildTime;
+  private List<CacheRule> rules = List.of();
 
-  @JsonProperty private String resolvedBaseUrl;
-  @JsonProperty private String serverName;
-  @JsonProperty private String xForwardedHost;
-  @JsonProperty private String xForwardedProto;
-  @JsonProperty private String xForwardedPort;
+  private Integer defaultMaxAgeSeconds;
 
-  @JsonProperty private Map<String, String> lastLoginRender;
+  /**
+   * Whether HTML cache-busting rewrite is enabled for this app. {@code null} or {@code true} means
+   * enabled (default behavior). {@code false} means this app opts out of HTML cache-busting.
+   */
+  private Boolean htmlRewriteEnabled;
+
+  /**
+   * A single cache rule from {@code dhis2-cache.json}. Pattern uses Ant-style globs (e.g. {@code **
+   * /*.html}).
+   */
+  @Data
+  @NoArgsConstructor
+  @AllArgsConstructor
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  public static class CacheRule implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    private String pattern;
+
+    private Integer maxAgeSeconds;
+
+    private Boolean immutable;
+
+    private Boolean mustRevalidate;
+  }
 }

@@ -27,33 +27,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.staticresource;
 
-import jakarta.servlet.RequestDispatcher;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import org.hisp.dhis.appmanager.AppManager;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
- * Controller for handling the login app.
+ * Spring MVC interceptor that sets {@code Cache-Control} headers for core DHIS2 static resources
+ * served from classpath JARs ({@code /dhis-web-commons/**}, {@code /icons/**}, {@code /images/**},
+ * etc.). These resources are handled by Spring's {@code ResourceHttpRequestHandler} and this
+ * interceptor works in both embedded Tomcat and WAR deployment modes.
  *
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * <p>App resources ({@code /apps/**}) are handled directly by {@code AppController} which calls
+ * {@code StaticCacheControlService} itself, so this interceptor does not need to cover those paths.
  */
-@Controller
-public class LoginAppController {
+@Component
+@RequiredArgsConstructor
+public class StaticCacheInterceptor implements HandlerInterceptor {
 
-  @GetMapping("/login/**")
-  public void getLoginApp(HttpServletRequest request, HttpServletResponse response)
-      throws ServletException, IOException {
-    String contextRelativePath =
-        request.getRequestURI().substring(request.getContextPath().length());
-    String forwardPath =
-        "/" + AppManager.INSTALLED_APP_PREFIX + contextRelativePath.replaceFirst("/", "");
-    RequestDispatcher dispatcher = request.getServletContext().getRequestDispatcher(forwardPath);
-    dispatcher.forward(request, response);
+  private final StaticCacheControlService staticCacheControlService;
+
+  @Override
+  public boolean preHandle(
+      HttpServletRequest request, HttpServletResponse response, Object handler) {
+    String uri = request.getRequestURI();
+    if (isCoreStaticPath(uri)) {
+      staticCacheControlService.setHeaders(response, uri, null);
+    }
+    return true;
+  }
+
+  private boolean isCoreStaticPath(String uri) {
+    return uri.startsWith("/dhis-web-")
+        || uri.startsWith("/icons/")
+        || uri.startsWith("/images/")
+        || uri.equals("/favicon.ico");
   }
 }
