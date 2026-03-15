@@ -336,7 +336,9 @@ public class MeController {
     UserSettings settings = UserSettings.getCurrentSettings();
     JsonMap<JsonMixed> res =
         key == null || key.isEmpty() ? settings.toJson(false) : settings.toJson(false, key);
-    return ResponseEntity.ok().cacheControl(CacheControl.noCache().cachePrivate()).body(res);
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noCache().cachePrivate().mustRevalidate())
+        .body(res);
   }
 
   @GetMapping(value = "/settings/{key}", produces = APPLICATION_JSON_VALUE)

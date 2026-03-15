@@ -174,6 +174,26 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
               "loginConfig",
               Set.of(SystemSetting.class, DatastoreEntry.class, Configuration.class)));
 
+  /**
+   * Named-key endpoints whose data is not tied to a single JPA entity type. These depend on a mix
+   * of entity types (for user/role-based access) and named version keys (for non-DML events like
+   * app install/uninstall).
+   *
+   * <p>An endpoint with empty entity types AND empty named keys is static per build — it only
+   * changes on server restart.
+   */
+  private static final Map<String, NamedEndpointDeps> NAMED_KEY_ENDPOINTS =
+      Map.of(
+          "schemas",
+          new NamedEndpointDeps(Set.of(), Set.of()),
+          "apps",
+          new NamedEndpointDeps(Set.of(User.class, UserRole.class), Set.of("installedApps")),
+          "apps/menu",
+          new NamedEndpointDeps(Set.of(User.class, UserRole.class), Set.of("installedApps")));
+
+  private static final List<NamedEndpointPattern> NAMED_KEY_PATH_PATTERNS =
+      compileNamedEndpointPatterns(NAMED_KEY_ENDPOINTS);
+
   private static final List<CompositeEndpointPattern> COMPOSITE_PATH_PATTERNS =
       compileCompositeEndpointPatterns(COMPOSITE_ENDPOINTS);
 
@@ -186,6 +206,7 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
   private final Counter cacheSkip;
   private final Counter endpointComposite;
   private final Counter endpointMetadata;
+  private final Counter endpointNamedKey;
 
   @Autowired
   public ConditionalETagInterceptor(
@@ -210,12 +231,17 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
           Counter.builder(ETAG_CACHE_REQUESTS)
               .tag(TAG_ENDPOINT_TYPE, ENDPOINT_METADATA)
               .register(meterRegistry);
+      endpointNamedKey =
+          Counter.builder("dhis2_etag_cache_requests_total")
+              .tag("endpoint_type", "named_key")
+              .register(meterRegistry);
     } else {
       cacheHit = null;
       cacheMiss = null;
       cacheSkip = null;
       endpointComposite = null;
       endpointMetadata = null;
+      endpointNamedKey = null;
     }
   }
 
@@ -273,6 +299,15 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
     if (matchesAny(apiRelativePath, UNCACHED_PATH_PATTERNS)) {
       if (cacheSkip != null) cacheSkip.increment();
       return true;
+    }
+
+    // Check named-key endpoints (non-entity endpoints like schemas, app menu)
+    NamedEndpointDeps namedDeps =
+        resolveNamedEndpointDeps(apiRelativePath, NAMED_KEY_PATH_PATTERNS);
+    if (namedDeps != null) {
+      if (endpointNamedKey != null) endpointNamedKey.increment();
+      return handleNamedKeyRequest(
+          request, response, userDetails, namedDeps.entityTypes(), namedDeps.namedKeys());
     }
 
     // Check composite endpoint map (non-CRUD endpoints with multi-type dependencies)
@@ -435,6 +470,29 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
     return true;
   }
 
+  private boolean handleNamedKeyRequest(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      UserDetails userDetails,
+      Set<Class<?>> entityTypes,
+      Set<String> namedKeys) {
+
+    String baseETag = conditionalETagService.generateETag(userDetails, entityTypes, namedKeys);
+    String currentETag = hashWithQuery(baseETag, request.getQueryString());
+
+    if (conditionalETagService.checkNotModified(request, currentETag)) {
+      log.debug("ETag match for {} - returning 304", request.getRequestURI());
+      if (cacheHit != null) cacheHit.increment();
+      response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+      conditionalETagService.setETagHeaders(response, currentETag);
+      return false;
+    }
+
+    if (cacheMiss != null) cacheMiss.increment();
+    storeETag(request, currentETag);
+    return true;
+  }
+
   private static final ThreadLocal<MessageDigest> SHA256_DIGEST =
       ThreadLocal.withInitial(
           () -> {
@@ -574,4 +632,50 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
 
   private record CompositeEndpointPattern(
       String pattern, PathPattern pathPattern, Set<Class<?>> types) {}
+
+  record NamedEndpointDeps(Set<Class<?>> entityTypes, Set<String> namedKeys) {}
+
+  private record NamedEndpointPattern(
+      String pattern, PathPattern pathPattern, NamedEndpointDeps deps) {}
+
+  private static List<NamedEndpointPattern> compileNamedEndpointPatterns(
+      Map<String, NamedEndpointDeps> endpoints) {
+    return endpoints.entrySet().stream()
+        .map(
+            entry -> {
+              String normalizedPattern = normalizeApiRelativePath(entry.getKey());
+              if (normalizedPattern == null) {
+                throw new IllegalArgumentException(
+                    "Named endpoint pattern must not be blank: " + entry.getKey());
+              }
+              return new NamedEndpointPattern(
+                  normalizedPattern,
+                  PATH_PATTERN_PARSER.parse("/" + normalizedPattern),
+                  entry.getValue());
+            })
+        .sorted(
+            Comparator.comparing(
+                    NamedEndpointPattern::pathPattern, PathPattern.SPECIFICITY_COMPARATOR)
+                .thenComparing(NamedEndpointPattern::pattern))
+        .toList();
+  }
+
+  private static NamedEndpointDeps resolveNamedEndpointDeps(
+      String apiRelativePath, List<NamedEndpointPattern> patterns) {
+    if (apiRelativePath == null) {
+      return null;
+    }
+    PathContainer pathContainer = PathContainer.parsePath("/" + apiRelativePath);
+    for (NamedEndpointPattern nep : patterns) {
+      if (nep.pathPattern().matches(pathContainer)) {
+        return nep.deps();
+      }
+    }
+    return null;
+  }
+
+  /** Returns the named endpoint deps for the given pattern key. Visible for testing. */
+  static NamedEndpointDeps getNamedEndpointDeps(String pattern) {
+    return NAMED_KEY_ENDPOINTS.get(pattern);
+  }
 }

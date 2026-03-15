@@ -719,13 +719,6 @@ public enum ConfigurationKey {
   /** Redis based cache invalidation feature. Enable or disable. */
   REDIS_CACHE_INVALIDATION_ENABLED("redis.cache.invalidation.enabled", Constants.OFF, false),
 
-  /**
-   * @deprecated Use {@link #CACHE_API_ETAG_ENABLED} instead. Both the SQL DML observer and ETag
-   *     cache are now controlled by a single flag.
-   */
-  @Deprecated
-  SQL_DML_OBSERVER_ENABLED("sql.dml.observer.enabled", Constants.ON, false),
-
   /** Content Security Policy feature. Enable or disable the feature. (sensitive) */
   CSP_ENABLED("csp.enabled", Constants.ON, true),
 

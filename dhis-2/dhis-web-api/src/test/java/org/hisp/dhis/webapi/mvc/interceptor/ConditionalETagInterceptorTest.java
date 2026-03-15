@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.mvc.interceptor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -774,5 +775,26 @@ class ConditionalETagInterceptorTest {
     SecurityContextHolder.getContext()
         .setAuthentication(
             new UsernamePasswordAuthenticationToken(userDetails, null, java.util.List.of()));
+  }
+
+  // ========== Named-Key Endpoint Tests ==========
+
+  @Test
+  void testNamedEndpointSchemas() {
+    ConditionalETagInterceptor.NamedEndpointDeps deps =
+        ConditionalETagInterceptor.getNamedEndpointDeps("schemas");
+    assertNotNull(deps);
+    assertTrue(deps.entityTypes().isEmpty(), "schemas should have no entity type dependencies");
+    assertTrue(deps.namedKeys().isEmpty(), "schemas should have no named key dependencies");
+  }
+
+  @Test
+  void testNamedEndpointAppsMenu() {
+    ConditionalETagInterceptor.NamedEndpointDeps deps =
+        ConditionalETagInterceptor.getNamedEndpointDeps("apps/menu");
+    assertNotNull(deps);
+    assertTrue(deps.entityTypes().contains(User.class));
+    assertTrue(deps.entityTypes().contains(UserRole.class));
+    assertTrue(deps.namedKeys().contains("installedApps"));
   }
 }
