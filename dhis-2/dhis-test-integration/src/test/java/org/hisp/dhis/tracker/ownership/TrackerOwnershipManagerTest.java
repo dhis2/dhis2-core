@@ -202,6 +202,11 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
     manager.update(trackedEntityA1Enrollment);
 
     fields = TrackedEntityFields.none();
+
+    User admin = getAdminUser();
+    admin.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
+    manager.update(admin);
+    injectSecurityContextUser(admin);
   }
 
   @Test
@@ -704,6 +709,11 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   void shouldNotTransferOwnershipWhenOrgUnitNotAssociatedToProgram() {
     OrganisationUnit notAssociatedOrgUnit = createOrganisationUnit('C');
     organisationUnitService.addOrganisationUnit(notAssociatedOrgUnit);
+    User admin = getAdminUser();
+    admin.setTeiSearchOrganisationUnits(Set.of(notAssociatedOrgUnit));
+    manager.update(admin);
+    injectSecurityContextUser(admin);
+
     Exception exception =
         assertThrows(
             ForbiddenException.class,
@@ -719,6 +729,8 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   void shouldNotTransferOwnershipWhenUserHasNoDataWriteAccessToProgram() {
     programA.getSharing().setPublicAccess("rwr-----");
     programService.updateProgram(programA);
+    userA.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
+    manager.update(userA);
     injectSecurityContextUser(userA);
 
     Exception exception =
@@ -729,6 +741,20 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
         String.format(
             "Current user doesn't have data write access to the provided program %s.",
             programA.getUid()),
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldNotTransferOwnershipWhenOrgUnitNotInEffectiveUserScope() {
+    OrganisationUnit outOfScopeOrgUnit = createOrganisationUnit('C');
+    organisationUnitService.addOrganisationUnit(outOfScopeOrgUnit);
+
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () -> transferOwnership(trackedEntityA1, programA, outOfScopeOrgUnit));
+    assertEquals(
+        "Tracked entity not transferred. Org unit supplied is not in the user scope.",
         exception.getMessage());
   }
 

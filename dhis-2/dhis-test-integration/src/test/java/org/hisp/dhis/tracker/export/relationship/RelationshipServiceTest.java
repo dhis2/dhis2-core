@@ -130,6 +130,9 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
     manager.save(orgUnitB, false);
 
     user = createAndAddUser(false, "user", Set.of(orgUnitA), Set.of(orgUnitA));
+    User adminUser = getAdminUser();
+    adminUser.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB));
+    _userService.updateUser(adminUser);
 
     trackedEntityType = createTrackedEntityType('A');
     manager.save(trackedEntityType, false);

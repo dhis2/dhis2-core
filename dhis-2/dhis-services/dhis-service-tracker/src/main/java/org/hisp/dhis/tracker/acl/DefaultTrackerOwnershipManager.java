@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.acl;
 
 import static org.hisp.dhis.tracker.acl.OwnershipCacheUtils.getOwnershipCacheKey;
 import static org.hisp.dhis.tracker.acl.OwnershipCacheUtils.getTempOwnershipCacheKey;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 
 import java.util.Date;
 import java.util.Objects;
@@ -56,7 +57,6 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
-import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Service;
@@ -121,7 +121,12 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
       return;
     }
 
-    UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    UserDetails currentUser = getCurrentUserDetails();
+
+    if (!getCurrentUserDetails().isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getPath())) {
+      throw new ForbiddenException(
+          "Tracked entity not transferred. Org unit supplied is not in the user scope.");
+    }
 
     if (hasAccess(currentUser, trackedEntity, program)) {
       if (!programService.hasOrgUnit(program, orgUnit)) {
