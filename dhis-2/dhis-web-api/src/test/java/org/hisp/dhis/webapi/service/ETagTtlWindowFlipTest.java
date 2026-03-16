@@ -69,7 +69,6 @@ class ETagTtlWindowFlipTest {
   private static final int TTL_MINUTES = 60;
   private static final long TTL_MILLIS = TimeUnit.MINUTES.toMillis(TTL_MINUTES);
 
-  /** A fixed instant at exactly 12:00:00 UTC — right on a 60-minute bucket boundary. */
   private static final Instant BUCKET_BOUNDARY =
       Instant.ofEpochMilli((System.currentTimeMillis() / TTL_MILLIS) * TTL_MILLIS);
 
