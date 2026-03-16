@@ -200,7 +200,7 @@ class AggregatedRowBuilder {
       row.add(extractStringValue(OrgUnitRowAccess.enrollmentOuResultColumn(), ValueType.TEXT));
     }
 
-    if (params.hasEnrollmentStatuses()) {
+    if (params.hasEnrollmentStatuses() && params.isAggregatedEvents()) {
       row.add(rowSet.getString(ENROLLMENT_STATUS_COLUMN_NAME));
     }
   }

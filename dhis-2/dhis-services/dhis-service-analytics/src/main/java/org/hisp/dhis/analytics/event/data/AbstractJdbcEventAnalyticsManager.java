@@ -615,7 +615,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       }
     }
 
-    if (params.hasEnrollmentStatuses() && params.isQueryEvents()) {
+    if (params.hasEnrollmentStatuses() && params.isAggregatedEvents()) {
       columns.add(ColumnAndAlias.ofColumn(quote(ENROLLMENT_STATUS_COLUMN_NAME)).asSql());
     }
   }
