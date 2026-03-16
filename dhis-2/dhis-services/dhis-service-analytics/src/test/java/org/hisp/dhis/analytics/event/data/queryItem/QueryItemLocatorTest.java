@@ -545,8 +545,7 @@ class QueryItemLocatorTest {
         subject.getQueryItemFromDimension("INCIDENT_DATE", programA, EventOutputType.EVENT);
 
     assertThat(queryItem, is(notNullValue()));
-    assertThat(
-        queryItem.getItemId(), is(EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME));
+    assertThat(queryItem.getItemId(), is(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME));
     assertThat(queryItem.getValueType(), is(ValueType.DATE));
     assertThat(queryItem.getProgramStage(), is(nullValue()));
   }
