@@ -49,6 +49,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -442,6 +443,35 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     assertEquals(
         "Tracked entity not transferred. Org unit supplied is not in the user scope.",
         exception.getMessage());
+  }
+
+  @Test
+  void shouldTransferOwnershipWhenOrgUnitIsDescendantOfUserSearchScope() throws ForbiddenException {
+    OrganisationUnit childOfA = createOrganisationUnit('C');
+    childOfA.setParent(organisationUnitA);
+    organisationUnitService.addOrganisationUnit(childOfA);
+    childOfA.updatePath();
+    Set<OrganisationUnit> programOrgUnits = new HashSet<>(programA.getOrganisationUnits());
+    programOrgUnits.add(childOfA);
+    programA.setOrganisationUnits(programOrgUnits);
+    programService.updateProgram(programA);
+    adminUser.setTeiSearchOrganisationUnits(Set.of(organisationUnitA));
+    userService.updateUser(adminUser);
+
+    trackerOwnershipAccessManager.transferOwnership(
+        entityInstanceA1, programA, childOfA, false, true);
+
+    injectSecurityContext(userA);
+    List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> trackedEntities =
+        trackedEntityInstanceService.getTrackedEntityInstances(
+            createOperationParams(userA, programA, null), createInstanceParams(), false, false);
+    assertContainsOnly(
+        List.of(entityInstanceA1.getUid()),
+        trackedEntities.stream()
+            .map(
+                org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance
+                    ::getTrackedEntityInstance)
+            .collect(Collectors.toList()));
   }
 
   @Test
