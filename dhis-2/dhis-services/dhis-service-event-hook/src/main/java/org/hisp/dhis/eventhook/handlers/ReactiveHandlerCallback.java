@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,46 +27,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.eventhook.targets;
+package org.hisp.dhis.eventhook.handlers;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.eventhook.Target;
+import java.util.Map;
 
-/**
- * @author Morten Olav Hansen
- */
-@Getter
-@Setter
-@EqualsAndHashCode(callSuper = true)
-@Accessors(chain = true)
-public class JmsTarget extends Target {
-  public static final String TYPE = "jms";
+public interface ReactiveHandlerCallback {
 
-  @JsonProperty(required = true)
-  private String clientId = "dhis2-jms-" + CodeGenerator.generateUid();
+  void onError(Throwable throwable, Map<String, Object> outboxMessageCause);
 
-  @JsonProperty(required = true)
-  private String groupId = "dhis2";
+  void onSuccess(Map<String, Object> lastSuccessfulOutboxMessage);
 
-  @JsonProperty(required = true)
-  private String address = "dhis2.hooks";
-
-  @JsonProperty(required = true)
-  private String brokerUrl = "tcp://localhost:61616";
-
-  @JsonProperty private String username;
-
-  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-  private String password;
-
-  @JsonProperty private boolean useQueue;
-
-  public JmsTarget() {
-    super(TYPE);
-  }
+  void onComplete();
 }
