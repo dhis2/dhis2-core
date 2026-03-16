@@ -86,9 +86,7 @@ class GlobalShellFilterTest {
 
   @BeforeEach
   void setUp() {
-    lenient()
-        .when(dhisConfig.isEnabled(ConfigurationKey.STATIC_CACHE_ENABLED))
-        .thenReturn(true);
+    lenient().when(dhisConfig.isEnabled(ConfigurationKey.STATIC_CACHE_ENABLED)).thenReturn(true);
     lenient()
         .when(dhisConfig.isEnabled(ConfigurationKey.STATIC_CACHE_DEV_MODE_FORCE_NO_CACHE))
         .thenReturn(false);
@@ -109,8 +107,7 @@ class GlobalShellFilterTest {
         new StaticCacheControlService(dhisConfig, appManager, systemService);
 
     // HtmlCacheBustingService is not exercised in service worker tests — passing null is safe
-    filter =
-        new GlobalShellFilter(appManager, settingsProvider, staticCacheControlService, null);
+    filter = new GlobalShellFilter(appManager, settingsProvider, staticCacheControlService, null);
     lenient().when(settingsProvider.getCurrentSettings()).thenReturn(settings);
     lenient().when(settings.getGlobalShellAppName()).thenReturn("global-shell");
   }
