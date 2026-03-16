@@ -49,6 +49,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -134,6 +135,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
   private User superUser;
 
+  private User adminUser;
+
   private TrackedEntityType trackedEntityType;
 
   private ProgramInstance programInstance;
@@ -143,13 +146,15 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   @Override
   protected void setUpTest() throws Exception {
     userService = _userService;
-    preCreateInjectAdminUser();
+    adminUser = preCreateInjectAdminUser();
 
     organisationUnitA = createOrganisationUnit('A');
     organisationUnitService.addOrganisationUnit(organisationUnitA);
     organisationUnitB = createOrganisationUnit('B');
     organisationUnitService.addOrganisationUnit(organisationUnitB);
 
+    adminUser.setTeiSearchOrganisationUnits(Set.of(organisationUnitA, organisationUnitB));
+    userService.updateUser(adminUser);
     userA = createUserWithAuth("userA");
     userA.addOrganisationUnit(organisationUnitA);
     userService.updateUser(userA);
@@ -413,6 +418,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   void shouldNotTransferOwnershipWhenOrgUnitNotAssociatedToProgram() {
     OrganisationUnit notAssociatedOrgUnit = createOrganisationUnit('C');
     organisationUnitService.addOrganisationUnit(notAssociatedOrgUnit);
+    adminUser.setTeiSearchOrganisationUnits(Set.of(notAssociatedOrgUnit));
+    userService.updateUser(adminUser);
     Exception exception =
         assertThrows(
             ForbiddenException.class,
@@ -428,6 +435,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   void shouldNotTransferOwnershipWhenUserHasNoDataWriteAccessToProgram() {
     programA.getSharing().setPublicAccess("rwr-----");
     programService.updateProgram(programA);
+    userA.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
+    userService.updateUser(userA);
     injectSecurityContext(userA);
 
     Exception exception =
@@ -439,6 +448,49 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
             "Current user doesn't have data write access to the provided program %s.",
             programA.getUid()),
         exception.getMessage());
+  }
+
+  @Test
+  void shouldNotTransferOwnershipWhenOrgUnitNotInEffectiveUserScope() {
+    OrganisationUnit outOfScopeOrgUnit = createOrganisationUnit('C');
+    organisationUnitService.addOrganisationUnit(outOfScopeOrgUnit);
+
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () -> transferOwnership(entityInstanceA1, programA, outOfScopeOrgUnit));
+    assertEquals(
+        "Tracked entity not transferred. Org unit supplied is not in the user scope.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldTransferOwnershipWhenOrgUnitIsDescendantOfUserSearchScope() throws ForbiddenException {
+    OrganisationUnit childOfA = createOrganisationUnit('C');
+    childOfA.setParent(organisationUnitA);
+    organisationUnitService.addOrganisationUnit(childOfA);
+    childOfA.updatePath();
+    Set<OrganisationUnit> programOrgUnits = new HashSet<>(programA.getOrganisationUnits());
+    programOrgUnits.add(childOfA);
+    programA.setOrganisationUnits(programOrgUnits);
+    programService.updateProgram(programA);
+    adminUser.setTeiSearchOrganisationUnits(Set.of(organisationUnitA));
+    userService.updateUser(adminUser);
+
+    trackerOwnershipAccessManager.transferOwnership(
+        entityInstanceA1, programA, childOfA, false, true);
+
+    injectSecurityContext(userA);
+    List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> trackedEntities =
+        trackedEntityInstanceService.getTrackedEntityInstances(
+            createOperationParams(userA, programA, null), createInstanceParams(), false, false);
+    assertContainsOnly(
+        List.of(entityInstanceA1.getUid()),
+        trackedEntities.stream()
+            .map(
+                org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance
+                    ::getTrackedEntityInstance)
+            .collect(Collectors.toList()));
   }
 
   @Test

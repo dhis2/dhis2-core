@@ -33,11 +33,9 @@ import com.google.common.collect.Maps;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.notification.ProgramTemplateVariable;
@@ -137,10 +135,7 @@ public class ProgramNotificationMessageRenderer
     // If the AV has an OptionSet -> substitute value with the name of the
     // Option
     if (av.getAttribute().hasOptionSet()) {
-      value =
-          Optional.ofNullable(optionService.getOptionByCode(value))
-              .map(BaseIdentifiableObject::getName)
-              .orElse(MISSING_VALUE_REPLACEMENT);
+      return getOptionName(av.getAttribute().getOptionSet(), value);
     }
 
     return value;

@@ -69,6 +69,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -211,7 +212,9 @@ class RelationshipServiceTest extends TransactionalIntegrationTest {
     manager.save(relationshipTypeTeiToTei);
     manager.save(relationshipTypeTeiToPi);
     manager.save(relationshipTypeTeiToPsi);
-    createUserAndInjectSecurityContext(true);
+    User admin = createUserAndInjectSecurityContext(true);
+    admin.setTeiSearchOrganisationUnits(Set.of(organisationUnit));
+    userService.updateUser(admin);
   }
 
   @Test
