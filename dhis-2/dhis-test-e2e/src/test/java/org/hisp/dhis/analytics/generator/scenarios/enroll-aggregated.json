@@ -104,7 +104,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "withStatusActiveOnly",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT,PROGRAM_STATUS:ACTIVE,pe:202211",
+      "version": {
+        "min": 43
+      }
     }
-
   ]
 }

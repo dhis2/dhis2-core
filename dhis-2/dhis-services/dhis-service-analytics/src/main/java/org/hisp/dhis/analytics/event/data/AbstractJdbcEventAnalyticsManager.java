@@ -596,6 +596,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     OrgUnitSqlCoordinator.addDimensionSelectColumns(
         columns, params, isGroupByClause, isAggregated, getAnalyticsType());
+
+    if (params.hasEnrollmentStatuses() && params.isEnrollmentQuery()) {
+      columns.add(ColumnAndAlias.ofColumn(ENROLLMENT_STATUS_COLUMN_NAME).asSql());
+    }
   }
 
   private void addItemSelectColumns(
