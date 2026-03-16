@@ -739,6 +739,24 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
+  void shouldNotTransferOwnershipWhenUserHasNoDataWriteAccessToProgram() {
+    programA.getSharing().setPublicAccess("rwr-----");
+    programService.updateProgram(programA);
+    userA.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
+    injectSecurityContextUser(userA);
+
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () -> transferOwnership(entityInstanceA1, programA, organisationUnitB));
+    assertEquals(
+        String.format(
+            "Current user doesn't have data write access to the provided program %s.",
+            programA.getUid()),
+        exception.getMessage());
+  }
+
+  @Test
   void shouldNotTransferOwnershipWhenOrgUnitNotInEffectiveUserScope() {
     OrganisationUnit outOfScopeOrgUnit = createOrganisationUnit('C');
     organisationUnitService.addOrganisationUnit(outOfScopeOrgUnit);
