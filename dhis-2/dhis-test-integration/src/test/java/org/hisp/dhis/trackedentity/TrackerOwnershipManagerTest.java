@@ -44,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -749,6 +750,31 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
     assertEquals(
         "Tracked entity not transferred. Org unit supplied is not in the user scope.",
         exception.getMessage());
+  }
+
+  @Test
+  void shouldTransferOwnershipWhenOrgUnitIsDescendantOfUserSearchScope()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    OrganisationUnit childOfA = createOrganisationUnit('C');
+    childOfA.setParent(organisationUnitA);
+    organisationUnitService.addOrganisationUnit(childOfA);
+    childOfA.updatePath();
+    Set<OrganisationUnit> programOrgUnits = new HashSet<>(programA.getOrganisationUnits());
+    programOrgUnits.add(childOfA);
+    programA.setOrganisationUnits(programOrgUnits);
+    programService.updateProgram(programA);
+    User adminUser = getAdminUser();
+    adminUser.setTeiSearchOrganisationUnits(Set.of(organisationUnitA));
+    userService.updateUser(adminUser);
+    injectSecurityContextUser(adminUser);
+
+    trackerOwnershipAccessManager.transferOwnership(
+        entityInstanceA1, programA, childOfA, false, true);
+
+    TrackedEntityOperationParams operationParams = createOperationParams(userA, programA.getUid());
+    injectSecurityContext(userDetailsA);
+    List<String> trackedEntities = getTrackedEntities(operationParams);
+    assertContainsOnly(List.of(entityInstanceA1.getUid()), trackedEntities);
   }
 
   @Test
