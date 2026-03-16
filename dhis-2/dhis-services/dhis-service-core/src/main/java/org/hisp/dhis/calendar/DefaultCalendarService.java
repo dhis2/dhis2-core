@@ -59,7 +59,7 @@ public class DefaultCalendarService implements CalendarService {
   private final Map<String, Calendar> calendarMap = Maps.newHashMap();
 
   private static final List<DateFormat> DATE_FORMATS =
-      Lists.newArrayList(
+      List.of(
           new DateFormat("yyyy-MM-dd", "yyyy-MM-dd", "yyyy-MM-dd", "yyyy-mm-dd"),
           new DateFormat("dd-MM-yyyy", "dd-MM-yyyy", "dd-MM-yyyy", "dd-mm-yyyy"));
 
