@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
+import static org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValue;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
@@ -39,6 +40,7 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.ou.OrgUnitRowAccess;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.QueryItem;
@@ -192,6 +194,14 @@ class AggregatedRowBuilder {
       String dimensionValue =
           extractStringValue(dimension.getDimensionName(), dimension.getValueType());
       row.add(dimensionValue);
+    }
+
+    if (params.hasEnrollmentOuDimension()) {
+      row.add(extractStringValue(OrgUnitRowAccess.enrollmentOuResultColumn(), ValueType.TEXT));
+    }
+
+    if (params.hasEnrollmentStatuses() && params.isAggregatedEvents()) {
+      row.add(rowSet.getString(ENROLLMENT_STATUS_COLUMN_NAME));
     }
   }
 

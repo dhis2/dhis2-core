@@ -30,6 +30,7 @@
 package org.hisp.dhis.common;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -87,6 +88,8 @@ public class QueryItem implements GroupableItem {
   private RelationshipType relationshipType;
 
   private AnalyticsCustomHeader customHeader;
+
+  private List<String> dimensionValues = new ArrayList<>();
 
   // -------------------------------------------------------------------------
   // Constructors
@@ -203,22 +206,41 @@ public class QueryItem implements GroupableItem {
     return filters.add(filter);
   }
 
+  public void addDimensionValue(String value) {
+    dimensionValues.add(value);
+  }
+
   public String getKey() {
     QueryKey key = new QueryKey();
 
     key.add("item", getItemId())
-        .addIgnoreNull("filter", getFiltersAsString())
-        .addIgnoreNull("program", maybeGetProgramUid());
-
-    if (legendSet != null) {
-      key.add("legendSet", legendSet.getUid());
-    }
+        .addIgnoreNull("filterItem", getFiltersAsString())
+        .addIgnoreNull("programItem", getProgramUid())
+        .addIgnoreNull("programStageItem", getProgramStageUid())
+        .addIgnoreNull("legendSetItem", getLegendSetUid())
+        .addIgnoreNull("dimensionValuesItem", getDimensionValuesAsString());
 
     return key.build();
   }
 
-  private String maybeGetProgramUid() {
+  private String getProgramUid() {
     return program != null ? program.getUid() : null;
+  }
+
+  private String getProgramStageUid() {
+    return program != null ? program.getUid() : null;
+  }
+
+  private String getLegendSetUid() {
+    return legendSet != null ? legendSet.getUid() : null;
+  }
+
+  public String getDimensionValuesAsString() {
+    if (isEmpty(dimensionValues)) {
+      return null;
+    }
+
+    return StringUtils.join(dimensionValues, ", ");
   }
 
   /**

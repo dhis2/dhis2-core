@@ -159,6 +159,7 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
             .enrolledAt(Instant.now())
             .occurredAt(Instant.now())
             .enrollment(UID.generate())
+            .attributeOptionCombo(MetadataIdentifier.ofUid("HllvX50cXC0"))
             .build();
 
     ImportReport importReport =
@@ -195,13 +196,15 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
             .enrolledAt(Instant.now())
             .occurredAt(Instant.now())
             .enrollment(UID.generate())
+            .attributeOptionCombo(
+                MetadataIdentifier.ofUid(categoryService.getDefaultCategoryOptionCombo().getUid()))
             .build();
 
     org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .program(MetadataIdentifier.ofUid(programA.getUid()))
             .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
-            .enrollment(enrollment.getUid())
+            .enrollment(enrollment.getUID())
             .event(eventUid)
             .programStage(MetadataIdentifier.ofUid(programStageA.getUid()))
             .status(EventStatus.ACTIVE)
@@ -237,7 +240,7 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
         org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
             .program(MetadataIdentifier.ofUid(programA.getUid()))
             .orgUnit(MetadataIdentifier.ofUid(orgUnitA.getUid()))
-            .enrollment(enrollment.getUid())
+            .enrollment(enrollment.getUID())
             .event(eventUid)
             .programStage(MetadataIdentifier.ofUid(programStageA.getUid()))
             .status(EventStatus.COMPLETED)
@@ -278,6 +281,7 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
             .enrollment(uid)
             .enrolledAt(Instant.now())
             .occurredAt(Instant.now())
+            .attributeOptionCombo(MetadataIdentifier.ofUid("HllvX50cXC0"))
             .build();
 
     ImportReport importReport =
@@ -309,6 +313,7 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
             .enrollment(uid)
             .enrolledAt(Instant.now())
             .occurredAt(Instant.now())
+            .attributeOptionCombo(MetadataIdentifier.ofUid("HllvX50cXC0"))
             .build();
 
     importReport =
@@ -342,6 +347,7 @@ class TrackerNotificationHandlerServiceTest extends PostgresIntegrationTestBase 
             .enrollment(uid)
             .enrolledAt(Instant.now())
             .occurredAt(Instant.now())
+            .attributeOptionCombo(MetadataIdentifier.ofUid("HllvX50cXC0"))
             .build();
 
     ImportReport importReport =

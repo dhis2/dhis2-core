@@ -34,6 +34,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -46,6 +47,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.RegexUtils;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.util.DateUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
@@ -69,9 +74,11 @@ public abstract class BaseNotificationMessageRenderer<T> implements Notification
 
   protected static final String CONFIDENTIAL_VALUE_REPLACEMENT = "[CONFIDENTIAL]";
 
+  // Error placeholders
   protected static final String MISSING_VALUE_REPLACEMENT = "[N/A]";
-
   protected static final String VALUE_ON_ERROR = "[SERVER ERROR]";
+  protected static final String DE_NOT_IN_STAGE = "[DataElement not in Program Stage]";
+  protected static final String OPTION_SET_NOT_FOUND = "[OptionSet not found]";
 
   /** For Variable. */
   protected static final Pattern VARIABLE_CONTENT_PATTERN = Pattern.compile("^[A-Za-z0-9_]+$");
@@ -131,7 +138,7 @@ public abstract class BaseNotificationMessageRenderer<T> implements Notification
   @Override
   public NotificationMessage render(T entity, NotificationTemplate template) {
     final String collatedTemplate =
-        template.getSubjectTemplate() + " " + template.getMessageTemplate();
+        template.getDisplaySubjectTemplate() + " " + template.getDisplayMessageTemplate();
 
     Map<String, String> expressionToValueMap =
         extractExpressionsByType(collatedTemplate).entrySet().stream()
@@ -185,6 +192,38 @@ public abstract class BaseNotificationMessageRenderer<T> implements Notification
   /** Returns the set of ExpressionTypes supported by the implementor. */
   protected abstract Set<ExpressionType> getSupportedExpressionTypes();
 
+  /**
+   * Renders the display value for a {@link DataElement} within the context of an event.
+   *
+   * <p>This method performs the following:
+   *
+   * <ul>
+   *   <li>Returns a placeholder if the {@code DataElement} is not part of the program stage.
+   *   <li>Returns a confidential replacement if the underlying value is {@code null}.
+   *   <li>Resolves OptionSet codes to their corresponding display names when applicable.
+   *   <li>Otherwise, returns the raw data value.
+   * </ul>
+   *
+   * @param dv the {@link EventDataValue} containing the stored value
+   * @param dataElement the {@link DataElement} associated with the value
+   * @return a rendered, user-friendly value suitable for notifications or messages
+   */
+  protected String renderDataElementValue(EventDataValue dv, DataElement dataElement) {
+    if (dataElement == null) {
+      return DE_NOT_IN_STAGE;
+    }
+    String value = dv.getValue();
+
+    if (value == null) {
+      return CONFIDENTIAL_VALUE_REPLACEMENT;
+    }
+
+    // If the DV has an OptionSet -> substitute value with the name of the
+    // Option
+
+    return dataElement.hasOptionSet() ? getOptionName(dataElement.getOptionSet(), value) : value;
+  }
+
   // -------------------------------------------------------------------------
   // Internal methods
   // -------------------------------------------------------------------------
@@ -231,12 +270,12 @@ public abstract class BaseNotificationMessageRenderer<T> implements Notification
 
   private NotificationMessage createNotificationMessage(
       NotificationTemplate template, Map<String, String> expressionToValueMap) {
-    String subject = replaceExpressions(template.getSubjectTemplate(), expressionToValueMap);
+    String subject = replaceExpressions(template.getDisplaySubjectTemplate(), expressionToValueMap);
     subject = chop(subject, SUBJECT_CHAR_LIMIT);
 
     boolean hasSmsRecipients = template.getDeliveryChannels().contains(DeliveryChannel.SMS);
 
-    String message = replaceExpressions(template.getMessageTemplate(), expressionToValueMap);
+    String message = replaceExpressions(template.getDisplayMessageTemplate(), expressionToValueMap);
     message = chop(message, hasSmsRecipients ? SMS_CHAR_LIMIT : EMAIL_CHAR_LIMIT);
 
     return new NotificationMessage(subject, message);
@@ -307,6 +346,14 @@ public abstract class BaseNotificationMessageRenderer<T> implements Notification
 
   protected static String chop(String input, int limit) {
     return input.substring(0, Math.min(input.length(), limit));
+  }
+
+  protected static String getOptionName(@Nonnull OptionSet optionSet, String value) {
+    return optionSet.getOptions().stream()
+        .filter(option -> Objects.equals(option.getCode(), value))
+        .findFirst()
+        .map(Option::getName)
+        .orElse(OPTION_SET_NOT_FOUND);
   }
 
   protected static String daysUntil(Date date) {

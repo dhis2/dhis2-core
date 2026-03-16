@@ -13,11 +13,11 @@
 
     <many-to-one name="trackedEntity" class="org.hisp.dhis.tracker.model.TrackedEntity"
       column="trackedentityid" foreign-key="fk_trackedentityprogramowner_trackedentityinstanceid"
-      lazy="false" unique-key="uk_tei_program" />
+      lazy="false" unique-key="trackedentityprogramowner_trackedentityid_programid_key" />
 
     <many-to-one name="program" class="org.hisp.dhis.program.Program"
       column="programid" not-null="true" foreign-key="fk_trackedentityprogramowner_programid"
-      lazy="false" unique-key="uk_tei_program" />
+      lazy="false" unique-key="trackedentityprogramowner_trackedentityid_programid_key" />
 
     <property name="created" type="timestamp" not-null="true" />
 

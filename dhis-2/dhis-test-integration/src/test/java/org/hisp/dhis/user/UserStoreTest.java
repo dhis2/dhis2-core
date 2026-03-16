@@ -189,7 +189,6 @@ class UserStoreTest extends PostgresIntegrationTestBase {
   void testGetCurrentUserGroupInfoWithoutGroup() {
     User userA = makeUser("A");
     userStore.save(userA);
-    // TODO: MAS this should be refactored out
     CurrentUserGroupInfo currentUserGroupInfo = userStore.getCurrentUserGroupInfo(userA.getUid());
     assertNotNull(currentUserGroupInfo);
     assertEquals(0, currentUserGroupInfo.getUserGroupUIDs().size());

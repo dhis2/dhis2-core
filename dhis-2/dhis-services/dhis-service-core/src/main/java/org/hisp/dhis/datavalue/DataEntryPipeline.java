@@ -113,18 +113,31 @@ public class DataEntryPipeline {
     return importInputGroups(groups, options, progress);
   }
 
+  private ImportSummary importInputGroups(
+      @CheckForNull List<DataEntryGroup.Input> groups,
+      @Nonnull ImportOptions options,
+      @Nonnull JobProgress progress) {
+    ImportSummary summary =
+        importInputGroups(
+            groups,
+            options.getDataEntryOptions(),
+            options.getImportStrategy().isDelete(),
+            progress);
+    summary.setImportOptions(options);
+    return summary;
+  }
+
   @Nonnull
   public ImportSummary importInputGroups(
       @CheckForNull List<DataEntryGroup.Input> groups,
-      @Nonnull ImportOptions options,
+      @Nonnull DataEntryGroup.Options options,
+      boolean delete,
       @Nonnull JobProgress progress) {
     // when parsing fails the input is null, this forces abort because of failed stage before
     groups = progress.nonNullStagePostCondition(groups);
 
     try {
-      ImportSummary summary = importAutoSplitAndMerge(groups, options, progress);
-      summary.setImportOptions(options);
-      return summary;
+      return importAutoSplitAndMerge(groups, options, delete, progress);
     } catch (BadRequestException | ConflictException ex) {
       ImportSummary summary = new ImportSummary(ImportStatus.ERROR);
       summary.addConflict(toConflict(IntStream.of(-1), ex.getCode(), ex.getArgs()));
@@ -137,7 +150,10 @@ public class DataEntryPipeline {
    * the same DS should be merged into a single group.
    */
   private ImportSummary importAutoSplitAndMerge(
-      List<DataEntryGroup.Input> inputs, ImportOptions options, JobProgress progress)
+      List<DataEntryGroup.Input> inputs,
+      DataEntryGroup.Options options,
+      boolean delete,
+      JobProgress progress)
       throws BadRequestException, ConflictException {
     List<DataEntryGroup> groups = new ArrayList<>();
     for (DataEntryGroup.Input input : inputs) {
@@ -172,9 +188,7 @@ public class DataEntryPipeline {
           progress.nonNullStagePostCondition(progress.runStage(() -> mergeGroups(preMerge)));
     }
 
-    DataEntryGroup.Options opt =
-        new DataEntryGroup.Options(options.isDryRun(), options.isAtomic(), options.isForce());
-    return importGroups(mergedGroups, opt, progress, options.getImportStrategy().isDelete());
+    return importGroups(mergedGroups, options, progress, delete);
   }
 
   /**
@@ -187,10 +201,8 @@ public class DataEntryPipeline {
     DataEntryGroup g1 = groups.get(0);
     for (int i = 1; i < groups.size(); i++) {
       DataEntryGroup g2 = groups.get(i);
-      if (g1.dataSet() != null && g1.dataSet().equals(g2.dataSet())) {
-        if (!(g1.values() instanceof ArrayList<DataEntryValue>))
-          g1 = new DataEntryGroup(g1.dataSet(), new ArrayList<>(g1.values()));
-        g1.values().addAll(g2.values());
+      if (g1.canMergeWith(g2)) {
+        g1 = g1.mergedWith(g2);
       } else {
         merged.add(g1);
         g1 = g2;
@@ -206,7 +218,7 @@ public class DataEntryPipeline {
       DataEntryGroup.Options options,
       JobProgress progress,
       boolean delete) {
-    DataEntrySummary summary = new DataEntrySummary(0, 0, 0, List.of());
+    DataEntrySummary summary = new DataEntrySummary(0, 0, 0, 0, List.of());
     List<ImportConflict> conflicts = new ArrayList<>();
     List<DataSetCompletion> markComplete = new ArrayList<>(groups.size());
     for (DataEntryGroup g : groups) {

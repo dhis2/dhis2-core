@@ -34,6 +34,8 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -75,6 +77,8 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
             ? bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getProgram()
             : bundle.getPreheat().getProgram(enrollment.getProgram());
     TrackedEntity trackedEntity = getTrackedEntity(bundle, enrollment);
+    CategoryOptionCombo categoryOptionCombo =
+        bundle.getPreheat().getCategoryOptionCombo(enrollment.getAttributeOptionCombo());
     OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit(preheat, trackedEntity, program);
     // TODO(tracker) Validate payload org unit in user scope
 
@@ -92,6 +96,9 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
 
     checkWriteEnrollmentAccess(
         reporter, enrollment, program, ownerOrgUnit, trackedEntity.getUid(), user);
+
+    checkWriteCategoryOptionComboAccess(
+        reporter, enrollment, categoryOptionCombo, bundle.getUser());
   }
 
   private TrackedEntity getTrackedEntity(TrackerBundle bundle, Enrollment enrollment) {
@@ -114,7 +121,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
         .map(
             entity -> {
               TrackedEntity newEntity = new TrackedEntity();
-              newEntity.setUid(entity.getUid().getValue());
+              newEntity.setUid(entity.getUID().getValue());
               newEntity.setOrganisationUnit(
                   bundle.getPreheat().getOrganisationUnit(entity.getOrgUnit()));
               return newEntity;
@@ -130,7 +137,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
   private OrganisationUnit getOwnerOrganisationUnit(
       TrackerPreheat preheat, TrackedEntity trackedEntity, Program program) {
     Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner =
-        preheat.getProgramOwner().get(UID.of(trackedEntity));
+        preheat.getProgramOwner().get(trackedEntity.getUID());
     if (programOwner == null || programOwner.get(program.getUid()) == null) {
       return trackedEntity.getOrganisationUnit();
     } else {
@@ -215,6 +222,22 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       Reporter reporter, TrackerDto dto, Program program, UserDetails user) {
     if (!aclService.canDataWrite(user, program)) {
       reporter.addError(dto, ValidationCode.E1091, user, program);
+    }
+  }
+
+  public void checkWriteCategoryOptionComboAccess(
+      Reporter reporter,
+      TrackerDto dto,
+      CategoryOptionCombo categoryOptionCombo,
+      UserDetails user) {
+    if (categoryOptionCombo == null) {
+      return;
+    }
+
+    for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
+      if (!aclService.canDataWrite(user, categoryOption)) {
+        reporter.addError(dto, ValidationCode.E1099, user, categoryOption);
+      }
     }
   }
 }

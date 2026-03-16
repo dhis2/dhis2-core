@@ -34,6 +34,8 @@ import static org.hisp.dhis.period.PeriodTypeEnum.BI_MONTHLY;
 import static org.hisp.dhis.period.PeriodTypeEnum.BI_WEEKLY;
 import static org.hisp.dhis.period.PeriodTypeEnum.DAILY;
 import static org.hisp.dhis.period.PeriodTypeEnum.FINANCIAL_APRIL;
+import static org.hisp.dhis.period.PeriodTypeEnum.FINANCIAL_AUG;
+import static org.hisp.dhis.period.PeriodTypeEnum.FINANCIAL_FEB;
 import static org.hisp.dhis.period.PeriodTypeEnum.FINANCIAL_JULY;
 import static org.hisp.dhis.period.PeriodTypeEnum.FINANCIAL_NOV;
 import static org.hisp.dhis.period.PeriodTypeEnum.FINANCIAL_OCT;
@@ -45,6 +47,7 @@ import static org.hisp.dhis.period.PeriodTypeEnum.SIX_MONTHLY;
 import static org.hisp.dhis.period.PeriodTypeEnum.SIX_MONTHLY_APRIL;
 import static org.hisp.dhis.period.PeriodTypeEnum.SIX_MONTHLY_NOV;
 import static org.hisp.dhis.period.PeriodTypeEnum.WEEKLY;
+import static org.hisp.dhis.period.PeriodTypeEnum.WEEKLY_FRIDAY;
 import static org.hisp.dhis.period.PeriodTypeEnum.WEEKLY_SATURDAY;
 import static org.hisp.dhis.period.PeriodTypeEnum.WEEKLY_SUNDAY;
 import static org.hisp.dhis.period.PeriodTypeEnum.WEEKLY_THURSDAY;
@@ -404,6 +407,8 @@ public class Period implements Serializable {
         throw illegalInfix(p, "W", "Q", "S");
       }
       if (len == 7) {
+        if (p.endsWith("Feb")) return new Input(FINANCIAL_FEB, year);
+        if (p.endsWith("Aug")) return new Input(FINANCIAL_AUG, year);
         if (p.endsWith("Sep")) return new Input(FINANCIAL_SEP, year);
         if (p.endsWith("Oct")) return new Input(FINANCIAL_OCT, year);
         if (p.endsWith("Nov")) return new Input(FINANCIAL_NOV, year);
@@ -426,6 +431,7 @@ public class Period implements Serializable {
         int primary = digits1(p, 8);
         if (p.indexOf("WedW") == 4) return new Input(WEEKLY_WEDNESDAY, year, primary);
         if (p.indexOf("ThuW") == 4) return new Input(WEEKLY_THURSDAY, year, primary);
+        if (p.indexOf("FriW") == 4) return new Input(WEEKLY_FRIDAY, year, primary);
         if (p.indexOf("SatW") == 4) return new Input(WEEKLY_SATURDAY, year, primary);
         if (p.indexOf("SunW") == 4) return new Input(WEEKLY_SUNDAY, year, primary);
         if (p.indexOf("NovS") == 4) return new Input(SIX_MONTHLY_NOV, year, primary);
@@ -439,6 +445,7 @@ public class Period implements Serializable {
         int primary = digits2(p, 8);
         if (p.indexOf("WedW") == 4) return new Input(WEEKLY_WEDNESDAY, year, primary);
         if (p.indexOf("ThuW") == 4) return new Input(WEEKLY_THURSDAY, year, primary);
+        if (p.indexOf("FriW") == 4) return new Input(WEEKLY_FRIDAY, year, primary);
         if (p.indexOf("SatW") == 4) return new Input(WEEKLY_SATURDAY, year, primary);
         if (p.indexOf("SunW") == 4) return new Input(WEEKLY_SUNDAY, year, primary);
         throw illegalInfix(p, "WedW", "ThuW", "SatW", "SunW");

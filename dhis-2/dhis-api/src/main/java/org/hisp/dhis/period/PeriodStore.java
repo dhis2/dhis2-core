@@ -129,11 +129,26 @@ public interface PeriodStore {
   void addPeriodType(PeriodType periodType);
 
   /**
+   * Updated the given {@link PeriodType}. Currently, only the "label" is updatable.
+   *
+   * @param periodType the {@link PeriodType}.
+   */
+  void updatePeriodType(PeriodType periodType);
+
+  /**
    * Returns all PeriodTypes.
    *
    * @return a list of all PeriodTypes, or an empty list if there are no PeriodTypes.
    */
   List<PeriodType> getAllPeriodTypes();
+
+  /**
+   * Return the {@link PeriodType} by name.
+   *
+   * @param name the period type's name.
+   * @return the {@link PeriodType}, or null.
+   */
+  PeriodType getPeriodTypeByName(String name);
 
   // -------------------------------------------------------------------------
   // RelativePeriods

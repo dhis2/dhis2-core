@@ -69,14 +69,13 @@ class DateValidator implements Validator<Event> {
       return;
     }
 
-    if (event instanceof TrackerEvent trackerEvent) {
-      if (trackerEvent.getScheduledAt() == null
-          && EventStatus.SCHEDULE == trackerEvent.getStatus()) {
-        reporter.addError(trackerEvent, E1050, trackerEvent);
-        return;
-      }
-      validateExpiryPeriodType(reporter, trackerEvent, program);
+    if (event instanceof TrackerEvent trackerEvent
+        && trackerEvent.getScheduledAt() == null
+        && EventStatus.SCHEDULE == trackerEvent.getStatus()) {
+      reporter.addError(trackerEvent, E1050, trackerEvent);
+      return;
     }
+    validateExpiryPeriodType(reporter, event, program, bundle.getUser());
     validateCompletedDateIsSetOnlyForSupportedStatus(reporter, event);
     validateCompletionExpiryDays(reporter, event, program, bundle.getUser());
   }
@@ -101,16 +100,17 @@ class DateValidator implements Validator<Event> {
     }
   }
 
-  private void validateExpiryPeriodType(Reporter reporter, TrackerEvent event, Program program) {
+  private void validateExpiryPeriodType(
+      Reporter reporter, Event event, Program program, UserDetails user) {
     PeriodType periodType = program.getExpiryPeriodType();
 
-    if (periodType == null || program.getExpiryDays() == 0) {
-      // Nothing more to check here, return out
+    if (periodType == null
+        || program.getExpiryDays() == 0
+        || user.isAuthorized(Authorities.F_EDIT_EXPIRED.name())) {
       return;
     }
 
-    Instant referenceDate =
-        Optional.of(event).map(Event::getOccurredAt).orElseGet(event::getScheduledAt);
+    Instant referenceDate = getReferenceDate(event);
 
     if (referenceDate == null) {
       reporter.addError(event, E1046, event);
@@ -128,6 +128,16 @@ class DateValidator implements Validator<Event> {
                     + 1L)) // Extra day added to account for final 24 hours of expiring day
         .isBefore(Instant.now())) {
       reporter.addError(event, E1047, event);
+    }
+  }
+
+  private Instant getReferenceDate(Event event) {
+    if (event instanceof TrackerEvent trackerEvent) {
+      return Optional.of(trackerEvent)
+          .map(Event::getOccurredAt)
+          .orElseGet(trackerEvent::getScheduledAt);
+    } else {
+      return event.getOccurredAt();
     }
   }
 

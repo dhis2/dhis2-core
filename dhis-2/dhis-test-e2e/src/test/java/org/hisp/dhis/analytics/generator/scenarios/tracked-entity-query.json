@@ -237,6 +237,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "stageDimensionCheckMetadataItem",
+      "query": "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?includeMetadataDetails=true&asc=ur1Edk5Oe2n.enrollmentdate&headers=A03MvHHogjR.a3kGcGDCuk6&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=A03MvHHogjR.ou:USER_ORGUNIT,A03MvHHogjR.a3kGcGDCuk6:GT:10",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

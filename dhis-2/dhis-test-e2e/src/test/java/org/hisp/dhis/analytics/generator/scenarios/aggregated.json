@@ -193,9 +193,23 @@
     },
     {
       "name": "lastValueOrgUniDataValue",
-      "query": "/api/analytics?dimension=dx:jU1ivuoWAEp,pe:LAST_12_MONTHS&filter=ou:ImspTQPwCqd;O6uvpzGd5pu;YuQRtpLP10I&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&includeMetadataDetails=true",
+      "query": "/api/analytics.json?dimension=dx:jU1ivuoWAEp,pe:LAST_12_MONTHS&filter=ou:ImspTQPwCqd;O6uvpzGd5pu;YuQRtpLP10I&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&includeMetadataDetails=true",
       "version": {
         "min": 39
+      }
+    },
+    {
+      "name": "fixedPeriod2021Sep",
+      "query": "/api/analytics.json?dimension=dx:GSae40Fyppf,pe:2021Sep&filter=ou:ImspTQPwCqd&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "weeklyStartingOnMonday",
+      "query": "/api/analytics.json?dimension=dx:HS9zqaBdOQ4,pe:THIS_WEEK&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=false&skipData=false&relativePeriodDate=2022-02-01",
+      "version": {
+        "min": 43
       }
     }
   ]

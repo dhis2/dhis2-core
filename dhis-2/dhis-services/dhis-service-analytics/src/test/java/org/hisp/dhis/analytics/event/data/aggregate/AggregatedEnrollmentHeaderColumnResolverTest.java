@@ -50,7 +50,7 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
   @Test
   void shouldUseFilterCteForStageEventDate() {
     CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
-    cteContext.addFilterCte("latest_events", "select 1");
+    cteContext.addFilterCte("latest_events_stage1", "select 1");
 
     SelectBuilder sb = new SelectBuilder();
     sb.from("dummy");
@@ -64,13 +64,13 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
 
     String sql = sb.build();
 
-    assertThat(sql, containsString("value as \"stage1.eventdate\""));
+    assertThat(sql, containsString("ev_occurreddate as \"stage1.eventdate\""));
   }
 
   @Test
   void shouldUseFilterCteForStageOuName() {
     CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
-    cteContext.addFilterCte("latest_events", "select 1");
+    cteContext.addFilterCte("latest_events_stage1", "select 1");
 
     SelectBuilder sb = new SelectBuilder();
     sb.from("dummy");
@@ -90,7 +90,7 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
   @Test
   void shouldUseFilterCteForStageOuCode() {
     CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
-    cteContext.addFilterCte("latest_events", "select 1");
+    cteContext.addFilterCte("latest_events_stage1", "select 1");
 
     SelectBuilder sb = new SelectBuilder();
     sb.from("dummy");
@@ -110,7 +110,7 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
   @Test
   void shouldUseFilterCteForStageEventStatus() {
     CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
-    cteContext.addFilterCte("latest_events", "select 1");
+    cteContext.addFilterCte("latest_events_stage1", "select 1");
 
     SelectBuilder sb = new SelectBuilder();
     sb.from("dummy");
@@ -124,13 +124,13 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
 
     String sql = sb.build();
 
-    assertThat(sql, containsString("value as \"stage1.eventstatus\""));
+    assertThat(sql, containsString("ev_eventstatus as \"stage1.eventstatus\""));
   }
 
   @Test
   void shouldUseFilterCteForStageOu() {
     CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
-    cteContext.addFilterCte("latest_events", "select 1");
+    cteContext.addFilterCte("latest_events_stage1", "select 1");
 
     SelectBuilder sb = new SelectBuilder();
     sb.from("dummy");
@@ -144,13 +144,13 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
 
     String sql = sb.build();
 
-    assertThat(sql, containsString("value as \"stage1.ou\""));
+    assertThat(sql, containsString("ev_ou as \"stage1.ou\""));
   }
 
   @Test
   void shouldUseFilterCteForGenericStageItem() {
     CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
-    cteContext.addFilterCte("latest_events", "select 1");
+    cteContext.addFilterCte("latest_events_stage1", "select 1");
 
     SelectBuilder sb = new SelectBuilder();
     sb.from("dummy");
@@ -164,7 +164,27 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
 
     String sql = sb.build();
 
-    assertThat(sql, containsString("value as \"stage1.de1\""));
+    assertThat(sql, containsString("ev_de1 as \"stage1.de1\""));
+  }
+
+  @Test
+  void shouldUseFilterCteForBacktickQuotedStageItem() {
+    CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
+    cteContext.addFilterCte("latest_events_stage1", "select 1");
+
+    SelectBuilder sb = new SelectBuilder();
+    sb.from("dummy");
+
+    subject.addHeaderColumns(
+        Set.of("`stage1.de1`"),
+        cteContext,
+        sb,
+        Collections.emptyMap(),
+        column -> "`" + column + "`");
+
+    String sql = sb.build();
+
+    assertThat(sql, containsString("ev_de1 as `stage1.de1`"));
   }
 
   @Test
@@ -210,7 +230,7 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
     sb.from("dummy");
 
     subject.addHeaderColumns(
-        Set.of("stage1.de1"),
+        Set.of("\"stage1.de1\""),
         new CteContext(EndpointItem.ENROLLMENT),
         sb,
         Collections.emptyMap(),
@@ -218,6 +238,49 @@ class AggregatedEnrollmentHeaderColumnResolverTest {
 
     String sql = sb.build();
 
-    assertThat(sql, containsString("\"de1\""));
+    assertThat(sql, containsString("\"stage1.de1\""));
+  }
+
+  @Test
+  void shouldResolveDimensionsFromDifferentStages() {
+    CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
+    cteContext.addFilterCte("latest_events_stageA", "select 1");
+    cteContext.addFilterCte("latest_events_stageB", "select 1");
+
+    SelectBuilder sb = new SelectBuilder();
+    sb.from("dummy");
+
+    subject.addHeaderColumns(
+        Set.of("\"stageA.eventdate\"", "\"stageB.eventstatus\""),
+        cteContext,
+        sb,
+        Collections.emptyMap(),
+        column -> "\"" + column + "\"");
+
+    String sql = sb.build();
+
+    assertThat(sql, containsString("ev_occurreddate as \"stageA.eventdate\""));
+    assertThat(sql, containsString("ev_eventstatus as \"stageB.eventstatus\""));
+  }
+
+  @Test
+  void shouldResolveTwoDimensionsFromSameStage() {
+    CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
+    cteContext.addFilterCte("latest_events_stage1", "select 1");
+
+    SelectBuilder sb = new SelectBuilder();
+    sb.from("dummy");
+
+    subject.addHeaderColumns(
+        Set.of("\"stage1.eventdate\"", "\"stage1.eventstatus\""),
+        cteContext,
+        sb,
+        Collections.emptyMap(),
+        column -> "\"" + column + "\"");
+
+    String sql = sb.build();
+
+    assertThat(sql, containsString("ev_occurreddate as \"stage1.eventdate\""));
+    assertThat(sql, containsString("ev_eventstatus as \"stage1.eventstatus\""));
   }
 }

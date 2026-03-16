@@ -402,6 +402,35 @@ class DimensionIdentifierConverterTest {
   }
 
   @Test
+  void fromStringWithOuNameDimensionUsingProgramStageUid() {
+    // Given - OUNAME should also support stage-scoped syntax for query headers
+    Program program = new Program("prg-1");
+    program.setUid("lxAQ7Zs9VYR");
+    ProgramStage programStage = new ProgramStage("ps-1", program);
+    programStage.setUid("ZkbAXlQUYJG");
+    program.setProgramStages(Set.of(programStage));
+
+    List<Program> programs = List.of(program);
+    String fullDimensionId = "ZkbAXlQUYJG.ouname";
+
+    // When
+    DimensionIdentifier<StringUid> dimensionIdentifier =
+        converter.fromString(programs, fullDimensionId);
+
+    // Then
+    assertEquals(
+        "ouname", dimensionIdentifier.getDimension().getUid(), "Dimension uid should be ouname");
+    assertEquals(
+        "lxAQ7Zs9VYR",
+        dimensionIdentifier.getProgram().getElement().getUid(),
+        "Program uid should be resolved from program stage");
+    assertEquals(
+        "ZkbAXlQUYJG",
+        dimensionIdentifier.getProgramStage().getElement().getUid(),
+        "Stage uid should be ZkbAXlQUYJG");
+  }
+
+  @Test
   void fromStringWithEventDateDimensionWhenProgramStageDoesNotExist() {
     // Given - program stage UID that doesn't exist in any program
     Program program = new Program("prg-1");
@@ -671,7 +700,6 @@ class DimensionIdentifierConverterTest {
   @Test
   void fromStringWithStageUidAndNonStaticDimension() {
     // Given - stage UID (not a program UID) with a non-static dimension (e.g., data element)
-    // This should fail because the first element is not a valid program
     Program program = new Program("prg-1");
     program.setUid("IpHINAT79UW");
     ProgramStage programStage = new ProgramStage("ps-1", program);
@@ -681,16 +709,23 @@ class DimensionIdentifierConverterTest {
     List<Program> programs = List.of(program);
     String fullDimensionId = "ZkbAXlQUYJG.someDataElement";
 
-    // When - stage UID with non-static, non-event-level dimension
-    IllegalArgumentException thrown =
-        assertThrows(
-            IllegalArgumentException.class, () -> converter.fromString(programs, fullDimensionId));
+    // When
+    DimensionIdentifier<StringUid> dimensionIdentifier =
+        converter.fromString(programs, fullDimensionId);
 
-    // Then - should fail with "program does not exist" since it's not a recognized pattern
+    // Then - should resolve program from stage and keep stage scope
     assertEquals(
-        "Specified program ZkbAXlQUYJG does not exist",
-        thrown.getMessage(),
-        "Should fail as program not found for non-static dimensions");
+        "someDataElement",
+        dimensionIdentifier.getDimension().getUid(),
+        "Dimension uid should be someDataElement");
+    assertEquals(
+        "IpHINAT79UW",
+        dimensionIdentifier.getProgram().getElement().getUid(),
+        "Program uid should be resolved from program stage");
+    assertEquals(
+        "ZkbAXlQUYJG",
+        dimensionIdentifier.getProgramStage().getElement().getUid(),
+        "Stage uid should be ZkbAXlQUYJG");
   }
 
   @Test

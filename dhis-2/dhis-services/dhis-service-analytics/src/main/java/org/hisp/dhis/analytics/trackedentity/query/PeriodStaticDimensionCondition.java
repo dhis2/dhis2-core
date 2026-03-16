@@ -169,7 +169,7 @@ public class PeriodStaticDimensionCondition extends BaseRenderable {
     RelativePeriodEnum relativePeriodEnum = RelativePeriodEnum.valueOf(value);
     List<org.hisp.dhis.period.PeriodDimension> periods =
         RelativePeriods.getRelativePeriodsFromEnum(
-            relativePeriodEnum, DateField.withDefaults(), null, false, null);
+            relativePeriodEnum, DateField.withDefaults(), null, false, null, null);
 
     if (periods.isEmpty()) {
       return List.of();

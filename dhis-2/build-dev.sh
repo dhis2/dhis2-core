@@ -13,7 +13,7 @@ BUILD_BRANCH=$(git --git-dir "$DIR/../.git" branch --show-current)
 # This is to not risk running both the jibBuild and jibBuildArmOnly profiles in our pipelines.
 # There might be ways like using https://maven.apache.org/enforcer/enforcer-rules/requireActiveProfile.html
 # to prevent that but they would require more work.
-ARCH=$(mvn help:system | grep "os\.arch")
+ARCH=$(uname -m)
 JIB_PROFILE="jibDockerBuild,embedded"
 if [[ "$ARCH" == *arm64* || "$ARCH" == *aarch64* ]]; then
   JIB_PROFILE="$JIB_PROFILE,jibBuildArmOnly"
@@ -22,5 +22,5 @@ fi
 echo "Building dhis2-core and Docker image..."
 
 export MAVEN_OPTS="-Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=25"
-mvn clean package --threads 2C -DskipTests -Dmaven.test.skip=true --file "${DIR}/pom.xml" --projects dhis-web-server --also-make \
+mvn ${GOALS:-clean package} --threads 2C -DskipTests -Dmaven.test.skip=true --file "${DIR}/pom.xml" --projects dhis-web-server --also-make \
   --activate-profiles "$JIB_PROFILE" -Djib.to.image="$IMAGE" -Djib.container.labels=DHIS2_BUILD_REVISION="${BUILD_REVISION}",DHIS2_BUILD_BRANCH="${BUILD_BRANCH}"

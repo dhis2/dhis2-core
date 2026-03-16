@@ -29,27 +29,46 @@
  */
 package org.hisp.dhis.webapi.controller.category;
 
+import static org.hisp.dhis.security.Authorities.F_CATEGORY_COMBO_MERGE;
+import static org.hisp.dhis.webapi.controller.CrudControllerAdvice.getHelpfulMessage;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
+import jakarta.persistence.PersistenceException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionComboGenerateService;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.Maturity.Beta;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.MergeReport;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.merge.MergeParams;
+import org.hisp.dhis.merge.MergeService;
 import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Slf4j
 @Controller
 @RequestMapping("/api/categoryCombos")
 @RequiredArgsConstructor
@@ -60,6 +79,7 @@ public class CategoryComboController
   private final CategoryService categoryService;
   private final DataValueService dataValueService;
   private final CategoryOptionComboGenerateService categoryOptionComboGenerateService;
+  private final MergeService categoryComboMergeService;
 
   @GetMapping("/{uid}/metadata")
   public ResponseEntity<MetadataExportParams> getDataSetWithDependencies(
@@ -100,5 +120,26 @@ public class CategoryComboController
   @Override
   public void postUpdateEntity(CategoryCombo categoryCombo) {
     categoryOptionComboGenerateService.addAndPruneOptionCombos(categoryCombo);
+  }
+
+  @Beta
+  @ResponseStatus(HttpStatus.OK)
+  @RequiresAuthority(anyOf = F_CATEGORY_COMBO_MERGE)
+  @PostMapping(value = "/merge", produces = APPLICATION_JSON_VALUE)
+  public @ResponseBody WebMessage mergeCategoryCombos(@RequestBody MergeParams params)
+      throws ConflictException {
+    log.info("CategoryCombo merge received");
+
+    MergeReport report;
+    try {
+      report = categoryComboMergeService.processMerge(params);
+    } catch (PersistenceException ex) {
+      String helpfulMessage = getHelpfulMessage(ex);
+      log.error("Error while processing CategoryCombo merge: {}", helpfulMessage);
+      throw ex;
+    }
+
+    log.info("CategoryCombo merge processed with report: {}", report);
+    return WebMessageUtils.mergeReport(report);
   }
 }

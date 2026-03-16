@@ -1,4 +1,20 @@
 {
+  "dataSets": [
+    {
+      "id": "em8Bg4LCr5k",
+      "name":"ADE-DS1",
+      "shortName":"ADE-DS1",
+      "periodType":"Monthly",
+      "openFuturePeriods":0,
+      "expiryDays":0,
+      "timelyDays":15,
+      "organisationUnits": [{ "id": "ImspTQPwCqd" } ],
+      "dataSetElements": [
+        {"dataSet": {"id": "em8Bg4LCr5k"},"dataElement": {"id": "fbfJHSPpUQD"} },
+        {"dataSet": {"id": "em8Bg4LCr5k"},"dataElement": {"id": "cYeuwXTCPkU"} }
+      ]
+    }
+  ],
   "dataElements": [
     {
       "id": "fbfJHSPpUQD",

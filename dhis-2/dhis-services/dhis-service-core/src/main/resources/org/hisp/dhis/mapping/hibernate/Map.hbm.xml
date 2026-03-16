@@ -27,6 +27,8 @@
 
     <property name="basemap" />
 
+    <property name="basemaps" column="basemaps" type="jblBasemaps"/>
+
     <property name="title" />
 
     <property name="translations" type="jblTranslations"/>

@@ -65,6 +65,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -93,20 +94,16 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
   @Override
   @Transactional(readOnly = true)
   public void decideAccess(DataQueryParams params) {
-    User user = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-
-    decideAccessDataViewOrganisationUnits(params, user);
-    decideAccessDataReadObjects(params, user);
+    decideAccessDataViewOrganisationUnits(params, CurrentUserUtil.getCurrentUserDetails());
+    decideAccessDataReadObjects(params, CurrentUserUtil.getCurrentUserDetails());
   }
 
   @Override
   @Transactional(readOnly = true)
   public void decideAccess(
       List<OrganisationUnit> queryOrgUnits, Set<IdentifiableObject> readObjects) {
-    User user = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-
-    decideAccessDataViewOrganisationUnits(queryOrgUnits, user);
-    decideAccessDataReadObjects(readObjects, user);
+    decideAccessDataViewOrganisationUnits(queryOrgUnits, CurrentUserUtil.getCurrentUserDetails());
+    decideAccessDataReadObjects(readObjects, CurrentUserUtil.getCurrentUserDetails());
   }
 
   /**
@@ -116,7 +113,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
    * @param user the user to check.
    * @throws IllegalQueryException if user does not have access.
    */
-  private void decideAccessDataViewOrganisationUnits(DataQueryParams params, User user)
+  private void decideAccessDataViewOrganisationUnits(DataQueryParams params, UserDetails user)
       throws IllegalQueryException {
     decideAccessDataViewOrganisationUnits(params.getAllTypedOrganisationUnits(), user);
   }
@@ -129,13 +126,12 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
    * @throws IllegalQueryException if user does not have access.
    */
   private void decideAccessDataViewOrganisationUnits(
-      List<OrganisationUnit> queryOrgUnits, User user) throws IllegalQueryException {
-    if (queryOrgUnits.isEmpty() || !user.hasDataViewOrganisationUnit()) {
+      List<OrganisationUnit> queryOrgUnits, UserDetails user) throws IllegalQueryException {
+    if (queryOrgUnits.isEmpty() || user.getUserDataOrgUnitIds().isEmpty()) {
       return; // Allow if no
     }
 
-    Set<OrganisationUnit> viewOrgUnits = user.getDataViewOrganisationUnits();
-
+    Set<String> viewOrgUnits = user.getUserDataOrgUnitIds();
     Integer maxOrgUnitLevel = user.getDataViewMaxOrganisationUnitLevel();
 
     for (OrganisationUnit queryOrgUnit : queryOrgUnits) {
@@ -160,7 +156,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
    * @throws IllegalQueryException if user does not have access.
    */
   @Transactional(readOnly = true)
-  public void decideAccessDataReadObjects(DataQueryParams params, User user)
+  public void decideAccessDataReadObjects(DataQueryParams params, UserDetails user)
       throws IllegalQueryException {
     Set<IdentifiableObject> objects = new HashSet<>();
     objects.addAll(params.getAllDataSets());
@@ -186,7 +182,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
    * @throws IllegalQueryException if user does not have access.
    */
   @Transactional(readOnly = true)
-  public void decideAccessDataReadObjects(Set<IdentifiableObject> objects, User user)
+  public void decideAccessDataReadObjects(Set<IdentifiableObject> objects, UserDetails user)
       throws IllegalQueryException {
     for (IdentifiableObject object : objects) {
       if (!aclService.canDataRead(user, object)) {
@@ -194,7 +190,7 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
             ErrorCode.E7121,
             user != null ? user.getUsername() : "[None]",
             TextUtils.getPrettyClassName(object.getClass()),
-            object.getUid());
+            object.getUID());
       }
     }
   }
@@ -322,6 +318,14 @@ public class DefaultAnalyticsSecurityManager implements AnalyticsSecurityManager
     // ---------------------------------------------------------------------
 
     if (params.hasOrganisationUnits()) {
+      return;
+    }
+
+    // ENROLLMENT_OU in event queries has its own OU semantics via enrollment org unit predicates.
+    // Skip implicit default OU assignment only for ENROLLMENT_OU-only event queries.
+    if (params instanceof EventQueryParams eventParams
+        && eventParams.hasEnrollmentOu()
+        && !eventParams.hasOrganisationUnits()) {
       return;
     }
 

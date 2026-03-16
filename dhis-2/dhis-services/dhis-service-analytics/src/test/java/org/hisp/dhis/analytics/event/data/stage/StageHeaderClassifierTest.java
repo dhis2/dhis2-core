@@ -69,6 +69,7 @@ class StageHeaderClassifierTest {
   @Test
   void shouldHandleQuotedHeaders() {
     assertEquals(StageHeaderType.EVENT_DATE, subject.classify("\"stageF.eventdate\""));
+    assertEquals(StageHeaderType.EVENT_DATE, subject.classify("`stageF.eventdate`"));
   }
 
   @Test
@@ -90,5 +91,6 @@ class StageHeaderClassifierTest {
   void shouldNormalizeCaseForStageHeaders() {
     assertEquals(StageHeaderType.EVENT_DATE, subject.classify("StageH.EventDate"));
     assertEquals(StageHeaderType.OU, subject.classify("\"StageI.OU\""));
+    assertEquals(StageHeaderType.OU, subject.classify("`StageI.OU`"));
   }
 }

@@ -130,6 +130,14 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
                   + DIMENSION_IDENTIFIER_SEP
                   + "ou";
           dimIdByKey.put(shortFormatKey, dimensionIdentifier);
+        } else if (isEventLevelDataElementDimension(dimensionIdentifier)) {
+          // For stage-scoped data elements, add short format alias
+          // to support headers like programStageUid.dataElementUid.
+          String shortFormatKey =
+              dimensionIdentifier.getProgramStage().getElement().getUid()
+                  + DIMENSION_IDENTIFIER_SEP
+                  + dimensionIdentifier.getDimension().getUid();
+          dimIdByKey.put(shortFormatKey, dimensionIdentifier);
         }
       }
     }
@@ -151,6 +159,11 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
             == DimensionParamObjectType.ORGANISATION_UNIT;
   }
 
+  private static boolean isEventLevelDataElementDimension(
+      DimensionIdentifier<DimensionParam> dimIdentifier) {
+    return isDataElement(dimIdentifier);
+  }
+
   @Override
   @SneakyThrows
   public Object getObject(String columnLabel) throws InvalidResultSetAccessException {
@@ -162,6 +175,9 @@ public class SqlRowSetJsonExtractorDelegator extends SqlRowSetDelegator {
     List<JsonEnrollment> enrollments = parseEnrollmentsFromJson(super.getString("enrollments"));
 
     DimensionIdentifier<DimensionParam> dimensionIdentifier = dimIdByKey.get(columnLabel);
+    if (dimensionIdentifier == null) {
+      throw new IllegalQueryException(E7250, columnLabel);
+    }
 
     if (dimensionIdentifier.isEnrollmentDimension()) {
       return getObjectForEnrollments(enrollments, dimensionIdentifier);

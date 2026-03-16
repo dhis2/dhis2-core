@@ -97,6 +97,6 @@ public final class StageHeaderClassifier {
   }
 
   private String normalize(String header) {
-    return header.toLowerCase(Locale.ROOT).replace("\"", "");
+    return header.toLowerCase(Locale.ROOT).replace("\"", "").replace("`", "");
   }
 }

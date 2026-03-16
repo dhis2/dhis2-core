@@ -52,6 +52,7 @@ import org.hisp.dhis.common.DimensionalObjectUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -182,6 +183,8 @@ public class MapView extends BaseAnalyticalObject
   private String eventCoordinateField;
 
   private String eventPointColor;
+
+  private String eventCoordinateFieldFallback;
 
   private int eventPointRadius;
 
@@ -334,7 +337,7 @@ public class MapView extends BaseAnalyticalObject
 
   @Override
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Program getProgram() {
     return program;
@@ -520,7 +523,7 @@ public class MapView extends BaseAnalyticalObject
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public LegendSet getLegendSet() {
     return legendSet;
@@ -714,6 +717,17 @@ public class MapView extends BaseAnalyticalObject
 
   public void setEventPointRadius(int eventPointRadius) {
     this.eventPointRadius = eventPointRadius;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(max = 15)
+  public String getEventCoordinateFieldFallback() {
+    return eventCoordinateFieldFallback;
+  }
+
+  public void setEventCoordinateFieldFallback(String eventCoordinateFieldFallback) {
+    this.eventCoordinateFieldFallback = eventCoordinateFieldFallback;
   }
 
   @JsonProperty

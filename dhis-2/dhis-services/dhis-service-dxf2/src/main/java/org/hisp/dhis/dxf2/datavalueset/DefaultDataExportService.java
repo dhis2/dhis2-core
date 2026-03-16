@@ -37,6 +37,7 @@ import static org.hisp.dhis.common.IdCoder.ObjectType.DS;
 import static org.hisp.dhis.common.IdCoder.ObjectType.OU;
 import static org.hisp.dhis.common.IdCoder.ObjectType.OUG;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+import static org.hisp.dhis.util.DateUtils.toLongGmtDate;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,7 +45,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -54,13 +54,13 @@ import org.hisp.dhis.common.IdCoder;
 import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataExportGroup;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataExportParams.Order;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportValue;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.period.Period;
@@ -85,7 +85,7 @@ public class DefaultDataExportService implements DataExportService {
   @CheckForNull
   @Override
   @Transactional(readOnly = true)
-  public DataExportValue exportValue(@Nonnull DataEntryKey key) throws ConflictException {
+  public DataExportValue exportValue(@Nonnull DataValueKey key) throws ConflictException {
     validateAccess(key);
     return store.exportValue(key);
   }
@@ -120,15 +120,15 @@ public class DefaultDataExportService implements DataExportService {
       validateFilters(params);
       validateAccess(params);
     }
-    DataExportGroup.Ids encodeTo = DataExportGroup.Ids.of(parameters.getOutputIdSchemes());
+    DataExportGroup.Ids encodeTo = parameters.getOutputIdSchemes();
     UID ds = getUnique(params.getDataSets());
     Period pe = getUnique(params.getPeriods());
     UID ou = getUnique(params.getOrganisationUnits());
     if (!params.isExactOrgUnitsFilter()) ou = null; // result may contain other units
     UID aoc = getUnique(params.getAttributeOptionCombos());
-    boolean cocAsMap = Boolean.TRUE.equals(parameters.getUnfoldOptionCombos());
+    DataExportParams.EncodingParams encoding = parameters.geEncodingParams();
     return encodeGroup(
-        new DataExportGroup(ds, pe, ou, aoc, store.exportValues(params)), encodeTo, cocAsMap);
+        new DataExportGroup(ds, pe, ou, aoc, store.exportValues(params)), encodeTo, encoding);
   }
 
   private <T> T getUnique(List<T> elements) {
@@ -162,19 +162,19 @@ public class DefaultDataExportService implements DataExportService {
               .build();
 
       Iterator<DataExportValue> iter = store.exportValues(dsParams).iterator();
-      String peG = null;
+      Period peG = null;
       UID ouG = null;
       UID aocG = null;
       List<DataExportValue> valuesG = null;
       // split into groups of same PE, OU, AOC
       while (iter.hasNext()) {
         DataExportValue dv = iter.next();
-        String pe = dv.period();
+        Period pe = dv.period();
         UID ou = dv.orgUnit();
         UID aoc = dv.attributeOptionCombo();
         if (!pe.equals(peG) || !ou.equals(ouG) || !aoc.equals(aocG)) {
           if (valuesG != null)
-            groups.add(new DataExportGroup(ds, Period.of(peG), ouG, aocG, valuesG.stream()));
+            groups.add(new DataExportGroup(ds, peG, ouG, aocG, valuesG.stream()));
           valuesG = new ArrayList<>();
         }
         valuesG.add(dv);
@@ -184,18 +184,20 @@ public class DefaultDataExportService implements DataExportService {
       }
       // add last group
       if (valuesG != null && !valuesG.isEmpty())
-        groups.add(new DataExportGroup(ds, Period.of(peG), ouG, aocG, valuesG.stream()));
+        groups.add(new DataExportGroup(ds, peG, ouG, aocG, valuesG.stream()));
     }
 
-    DataExportGroup.Ids encodeTo = DataExportGroup.Ids.of(parameters.getOutputIdSchemes());
-    boolean cocAsMap = Boolean.TRUE.equals(parameters.getUnfoldOptionCombos());
+    DataExportGroup.Ids encodeTo = parameters.getOutputIdSchemes();
     List<DataExportGroup.Output> res = new ArrayList<>(groups.size());
-    for (DataExportGroup g : groups) res.add(encodeGroup(g, encodeTo, cocAsMap));
+    DataExportParams.EncodingParams encoding = parameters.geEncodingParams();
+    for (DataExportGroup g : groups) res.add(encodeGroup(g, encodeTo, encoding));
     return res.stream();
   }
 
   private DataExportGroup.Output encodeGroup(
-      @Nonnull DataExportGroup group, @Nonnull DataExportGroup.Ids to, boolean cocAsMap)
+      @Nonnull DataExportGroup group,
+      @Nonnull DataExportGroup.Ids to,
+      DataExportParams.EncodingParams encoding)
       throws ConflictException {
     IdProperty dsTo = to.dataSets();
     IdProperty deTo = to.dataElements();
@@ -209,6 +211,7 @@ public class DefaultDataExportService implements DataExportService {
     Function<UID, String> aocOf = UID::getValue;
     boolean deToOther = deTo.isNotUID();
     boolean ouToOther = ouTo.isNotUID();
+    boolean cocAsMap = encoding.unfoldOptionCombos();
     boolean cocToOther = cocTo.isNotUID() && !cocAsMap;
     boolean aocToOther = aocTo.isNotUID() && !cocAsMap;
 
@@ -283,26 +286,34 @@ public class DefaultDataExportService implements DataExportService {
     Period peG = group.period();
     String period = peG == null ? null : peG.getIsoDate();
     String orgUnit = ouG == null ? null : ouOf.apply(ouG);
+    boolean skipDefaultCoc = encoding.excludeDefaultCoc();
+    boolean skipDefaultAoc = encoding.excludeDefaultAoc();
     String attributeOptionCombo =
-        aocG == null || aocG.isDefaultOptionCombo() || cocAsMap ? null : aocOf.apply(aocG);
+        aocG == null || skipDefaultAoc && aocG.isDefaultOptionCombo() || cocAsMap
+            ? null
+            : aocOf.apply(aocG);
     Map<String, String> aocGMap =
-        aocG == null || aocG.isDefaultOptionCombo() || !cocAsMap ? null : cocMap.get(aocG);
+        aocG == null || skipDefaultAoc && aocG.isDefaultOptionCombo() || !cocAsMap
+            ? null
+            : cocMap.get(aocG);
     // DV encoding
     Map<UID, Map<String, String>> cocEncodeMap = cocMap;
     Function<UID, String> deEncode = deOf;
-    UnaryOperator<String> peEncode =
-        period == null ? UnaryOperator.identity() : pe -> pe.equals(period) ? null : pe;
+    Function<Period, String> peEncode =
+        peG == null ? Period::getIsoDate : pe -> pe.equals(peG) ? null : pe.getIsoDate();
     UID ouGroup = ouG;
     Function<UID, String> ouEncode =
         ouGroup == null ? ouOf : ou -> ou.equals(ouGroup) ? null : ou.getValue();
     Function<UID, String> dvCocPlain = cocOf;
     Function<UID, String> cocEncode =
-        cocAsMap ? coc -> null : coc -> coc.isDefaultOptionCombo() ? null : dvCocPlain.apply(coc);
+        cocAsMap
+            ? coc -> null
+            : coc -> skipDefaultCoc && coc.isDefaultOptionCombo() ? null : dvCocPlain.apply(coc);
     Function<UID, String> dvAocPlain = aocOf;
     Function<UID, String> aocEncode =
         aocG != null
             ? aoc -> null
-            : aoc -> aoc.isDefaultOptionCombo() ? null : dvAocPlain.apply(aoc);
+            : aoc -> skipDefaultAoc && aoc.isDefaultOptionCombo() ? null : dvAocPlain.apply(aoc);
     return new DataExportGroup.Output(
         to,
         dataSet,
@@ -310,6 +321,7 @@ public class DefaultDataExportService implements DataExportService {
         orgUnit,
         attributeOptionCombo,
         aocGMap,
+        null,
         values.map(
             dv ->
                 new DataExportValue.Output(
@@ -324,8 +336,8 @@ public class DefaultDataExportService implements DataExportService {
                     emptyAsNull(dv.comment()),
                     dv.followUp(),
                     emptyAsNull(dv.storedBy()),
-                    dv.created(),
-                    dv.lastUpdated(),
+                    toLongGmtDate(dv.created()),
+                    toLongGmtDate(dv.lastUpdated()),
                     dv.deleted())));
   }
 
@@ -425,7 +437,7 @@ public class DefaultDataExportService implements DataExportService {
     if (params.isLimitOutOfBounds()) throw new ConflictException(ErrorCode.E2009);
   }
 
-  private void validateAccess(DataEntryKey key) throws ConflictException {
+  private void validateAccess(DataValueKey key) throws ConflictException {
     UID aoc = key.attributeOptionCombo();
     validateAccess(List.of(), aoc == null ? List.of() : List.of(aoc), List.of(key.orgUnit()));
   }

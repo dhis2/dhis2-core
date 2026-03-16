@@ -38,9 +38,11 @@ import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.From;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -103,7 +105,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     CriteriaQuery<T> criteriaQuery = builder.createQuery(objectType);
     Root<T> root = criteriaQuery.from(objectType);
 
-    criteriaQuery.where(buildFilters(query, store, builder, root));
+    criteriaQuery.where(buildFilters(query, store, builder, root, criteriaQuery));
 
     if (!query.getOrders().isEmpty()) criteriaQuery.orderBy(getOrders(query, builder, root));
 
@@ -126,13 +128,18 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
       Query<T> query,
       InternalHibernateGenericStore<T> store,
       CriteriaBuilder builder,
-      Root<T> root) {
-    Predicate filters = buildQueryFilters(builder, root, query);
+      Root<T> root,
+      CriteriaQuery<?> criteriaQuery) {
+    Predicate filters = buildQueryFilters(builder, root, query, criteriaQuery);
     Predicate sharing = buildSharingFilters(query, store, builder, root);
-    if (sharing == null) return filters;
     Predicate and = builder.conjunction();
     and.getExpressions().add(filters);
-    and.getExpressions().add(sharing);
+    if (sharing != null) {
+      and.getExpressions().add(sharing);
+    }
+    for (JpaPredicateSupplier supplier : query.getPredicateSuppliers()) {
+      and.getExpressions().add(supplier.getPredicate(builder, root, criteriaQuery));
+    }
     return and;
   }
 
@@ -141,7 +148,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
       InternalHibernateGenericStore<T> store,
       CriteriaBuilder builder,
       Root<T> root) {
-    Schema schema = schemaService.getDynamicSchema(query.getObjectType());
+    Schema schema = schemaService.getSchema(query.getObjectType());
     boolean shareable = schema.isShareable();
     if (!shareable) return null;
     UserDetails user = query.getCurrentUserDetails();
@@ -180,7 +187,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
 
     criteriaQuery.select(builder.count(root));
 
-    criteriaQuery.where(buildFilters(query, store, builder, root));
+    criteriaQuery.where(buildFilters(query, store, builder, root, criteriaQuery));
 
     TypedQuery<Long> typedQuery = entityManager.createQuery(criteriaQuery);
 
@@ -190,7 +197,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   @Nonnull
   private <T extends IdentifiableObject> List<jakarta.persistence.criteria.Order> getOrders(
       Query<T> query, CriteriaBuilder builder, Root<T> root) {
-    Schema schema = schemaService.getDynamicSchema(query.getObjectType());
+    Schema schema = schemaService.getSchema(query.getObjectType());
     return query.getOrders().stream()
         .map(o -> getOrderPredicate(builder, root, schema, o))
         .toList();
@@ -337,7 +344,8 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     return (InternalHibernateGenericStore<E>) stores.get(klass);
   }
 
-  private <Y> Predicate buildQueryFilters(CriteriaBuilder builder, Root<Y> root, Query<?> query) {
+  private <Y> Predicate buildQueryFilters(
+      CriteriaBuilder builder, Root<Y> root, Query<?> query, CriteriaQuery<?> criteriaQuery) {
     if (query.getFilters().isEmpty()) return builder.conjunction();
 
     Predicate rootJunction =
@@ -347,7 +355,7 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
         };
 
     for (Filter filter : query.getFilters()) {
-      Predicate p = buildFilter(builder, root, filter, query);
+      Predicate p = buildFilter(builder, root, filter, query, criteriaQuery);
       if (p != null) rootJunction.getExpressions().add(p);
     }
 
@@ -360,11 +368,17 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
   private Stream<String> aliases(Filter filter, Query<?> query) {
     if (filter.isVirtual()) return Stream.empty();
     PropertyPath path = schemaService.getPropertyPath(query.getObjectType(), filter.getPath());
-    return path == null ? Stream.empty() : Stream.of(path.getAlias());
+    if (path == null) return Stream.empty();
+    if (isCollectionIdPredicate(query, filter, path)) return Stream.empty();
+    return Stream.of(path.getAlias());
   }
 
   private <Y> Predicate buildFilter(
-      CriteriaBuilder builder, Root<Y> root, Filter filter, Query<?> query) {
+      CriteriaBuilder builder,
+      Root<Y> root,
+      Filter filter,
+      Query<?> query,
+      CriteriaQuery<?> criteriaQuery) {
     if (filter == null || filter.getOperator() == null) return null;
     if (!filter.isVirtual()) {
       String filterPath = filter.getPath();
@@ -373,6 +387,14 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
       if (path == null && filterPath.startsWith(DISPLAY_PREFIX)) {
         filterPath = getBasePropertyName(filterPath);
         filter = new Filter(filterPath, filter.getOperator());
+        path = schemaService.getPropertyPath(query.getObjectType(), filterPath);
+      }
+      if (path == null) {
+        return null;
+      }
+
+      if (isCollectionIdPredicate(query, filter, path)) {
+        return getCollectionIdExistsPredicate(builder, root, criteriaQuery, query, filter, path);
       }
 
       return filter.getOperator().getPredicate(builder, root, path);
@@ -381,6 +403,73 @@ public class JpaCriteriaQueryEngine implements QueryEngine {
     if (filter.isIdentifiable()) return buildIdentifiableFilter(builder, root, filter, query);
     if (filter.isQuery()) return buildQueryFilter(builder, root, filter);
     throw new UnsupportedOperationException("Special filter is not implemented yet :/ " + filter);
+  }
+
+  private boolean isCollectionIdPredicate(Query<?> query, Filter filter, PropertyPath path) {
+    if (!query.allowsDbPredicate() || !filter.supportsDbPredicate() || !path.haveAlias()) {
+      return false;
+    }
+
+    return isCollectionIdPath(query.getObjectType(), filter.getPath(), path.getProperty());
+  }
+
+  private boolean isCollectionIdPath(
+      Class<?> rootType, String filterPath, Property terminalProperty) {
+    if (terminalProperty == null || !"id".equals(terminalProperty.getName())) return false;
+
+    String[] components = filterPath.split("\\.");
+    if (components.length < 2) return false;
+
+    Schema schema = schemaService.getSchema(rootType);
+    boolean hasCollection = false;
+
+    for (int i = 0; i < components.length - 1; i++) {
+      Property property = schema.getProperty(components[i]);
+      if (property == null || property.isEmbeddedObject()) return false;
+
+      if (property.isCollection()) {
+        if (property.getItemKlass() == null) return false;
+        hasCollection = true;
+        schema = schemaService.getSchema(property.getItemKlass());
+        continue;
+      }
+
+      if (property.isSimple() || property.getKlass() == null) return false;
+      schema = schemaService.getSchema(property.getKlass());
+    }
+
+    return hasCollection;
+  }
+
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  private <Y> Predicate getCollectionIdExistsPredicate(
+      CriteriaBuilder builder,
+      Root<Y> root,
+      CriteriaQuery<?> criteriaQuery,
+      Query<?> query,
+      Filter filter,
+      PropertyPath path) {
+    Collection<?> values = filter.getOperator().getArgs();
+    if (values.isEmpty()) {
+      return builder.disjunction();
+    }
+
+    var subquery = criteriaQuery.subquery(Integer.class);
+    Root<?> subRoot = subquery.from((Class) query.getObjectType());
+
+    From<?, ?> joined = subRoot;
+    for (String alias : path.getAlias()) {
+      joined = joined.join(alias);
+    }
+
+    String terminalField = path.getPath();
+    terminalField = terminalField.substring(terminalField.lastIndexOf('.') + 1);
+
+    subquery.select(builder.literal(1));
+    subquery.where(
+        builder.equal(subRoot.get("id"), root.get("id")), joined.get(terminalField).in(values));
+
+    return builder.exists(subquery);
   }
 
   private <Y> Predicate buildIdentifiableFilter(

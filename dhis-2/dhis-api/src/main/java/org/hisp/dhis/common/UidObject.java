@@ -39,8 +39,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public interface UidObject {
   /**
-   * @return external unique ID of the object as used in the RESTful API
+   * @deprecated This method is being phased out in favour of {@link #getUID()} which provides type
+   *     safety, validation and security bonuses. Please use {@link #getUID()} instead.
+   * @return external unique ID of the object as used in the RESTful API web api backward
+   *     compatibility
    */
+  @Deprecated(since = "2.43")
   @JsonProperty(value = "id")
   String getUid();
+
+  default UID getUID() {
+    return UID.of(getUid());
+  }
 }

@@ -150,7 +150,7 @@ class SetMandatoryFieldExecutorTest extends TrackerTestBase {
     when(preheat.getDataElement(DATA_ELEMENT_UID.getValue())).thenReturn(dataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
     Event event = getEventWithMandatoryValueSet();
-    when(preheat.getTrackerEvent(event.getUid()))
+    when(preheat.getTrackerEvent(event.getUID()))
         .thenReturn(new org.hisp.dhis.tracker.model.TrackerEvent());
     bundle.setEvents(List.of(event));
     bundle.setStrategy(event, TrackerImportStrategy.UPDATE);
@@ -195,8 +195,8 @@ class SetMandatoryFieldExecutorTest extends TrackerTestBase {
     when(preheat.getDataElement(DATA_ELEMENT_UID.getValue())).thenReturn(dataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
     Event event = getEventWithMandatoryValueNOTSet(newStatus);
-    when(preheat.getTrackerEvent(event.getUid()))
-        .thenReturn(eventWithMandatoryValue(event.getUid(), savedStatus));
+    when(preheat.getTrackerEvent(event.getUID()))
+        .thenReturn(eventWithMandatoryValue(event.getUID(), savedStatus));
     bundle.setEvents(List.of(event));
     bundle.setStrategy(event, TrackerImportStrategy.UPDATE);
     Optional<ProgramRuleIssue> error = executor.executeRuleAction(bundle, event);
@@ -245,7 +245,7 @@ class SetMandatoryFieldExecutorTest extends TrackerTestBase {
     when(preheat.getDataElement(DATA_ELEMENT_UID.getValue())).thenReturn(dataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage))).thenReturn(programStage);
     Event event = getEventWithMandatoryValueNOTSet(newStatus);
-    when(preheat.getTrackerEvent(event.getUid())).thenReturn(event(event.getUid(), savedStatus));
+    when(preheat.getTrackerEvent(event.getUID())).thenReturn(event(event.getUID(), savedStatus));
     bundle.setEvents(List.of(event));
     bundle.setStrategy(event, TrackerImportStrategy.UPDATE);
     Optional<ProgramRuleIssue> error =

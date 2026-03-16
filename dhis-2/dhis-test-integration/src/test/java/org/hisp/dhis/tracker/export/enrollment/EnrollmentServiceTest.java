@@ -37,6 +37,7 @@ import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.test.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourAfter;
 import static org.hisp.dhis.tracker.TrackerTestUtils.oneHourBefore;
 import static org.hisp.dhis.tracker.TrackerTestUtils.uids;
@@ -55,6 +56,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -74,7 +79,6 @@ import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
-import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipFields;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
 import org.hisp.dhis.tracker.model.Enrollment;
@@ -107,8 +111,6 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
-
-  @Autowired private TrackerProgramService trackerProgramService;
 
   private final Date occurredDate = new Date();
 
@@ -814,6 +816,46 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     assertEquals(enrollmentA.getGeometry(), enrollment.get().getGeometry());
   }
 
+  @Test
+  void shouldReturnEnrollmentWhenRequestedAttributeOptionComboAccessible()
+      throws ForbiddenException, BadRequestException {
+    CategoryOptionCombo attributeOptionCombo =
+        createAttributeOptionCombo(enrollmentA, AccessStringHelper.READ_ONLY);
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .attributeOptionCombo(attributeOptionCombo.getUID())
+            .build();
+
+    List<Enrollment> enrollments = enrollmentService.findEnrollments(operationParams);
+
+    assertContainsOnly(List.of(enrollmentA.getUid()), uids(enrollments));
+  }
+
+  @Test
+  void shouldFailWhenRequestedAttributeOptionComboNotAccessible() {
+    CategoryOptionCombo attributeOptionCombo =
+        createAttributeOptionCombo(enrollmentA, AccessStringHelper.DEFAULT);
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder()
+            .attributeOptionCombo(attributeOptionCombo.getUID())
+            .build();
+
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class, () -> enrollmentService.findEnrollments(operationParams));
+    assertStartsWith("User has no access to attribute option combo:", exception.getMessage());
+  }
+
+  @Test
+  void shouldReturnNoEnrollmentsWhenRequestedEnrollmentAttributeOptionComboNotAccessible()
+      throws ForbiddenException, BadRequestException {
+    createAttributeOptionCombo(enrollmentA, AccessStringHelper.DEFAULT);
+    EnrollmentOperationParams operationParams =
+        EnrollmentOperationParams.builder().enrollments(Set.of(enrollmentA.getUID())).build();
+
+    assertIsEmpty(enrollmentService.findEnrollments(operationParams));
+  }
+
   private static List<String> attributeUids(Enrollment enrollment) {
     return enrollment.getTrackedEntity().getTrackedEntityAttributeValues().stream()
         .map(v -> v.getAttribute().getUid())
@@ -824,5 +866,36 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
     return enrollment.getRelationshipItems().stream()
         .map(r -> r.getRelationship().getUid())
         .collect(Collectors.toSet());
+  }
+
+  private CategoryOptionCombo createAttributeOptionCombo(
+      Enrollment enrollment, String sharingAccess) {
+    injectSecurityContextUser(admin);
+
+    CategoryOption categoryOption = createCategoryOption('A');
+    categoryOption.getSharing().setPublicAccess(sharingAccess);
+    manager.save(categoryOption, false);
+
+    Category category = createCategory('A');
+    category.setCategoryOptions(List.of(categoryOption));
+    manager.save(category, false);
+
+    CategoryCombo categoryCombo = createCategoryCombo('A');
+    categoryCombo.setCategories(List.of(category));
+    manager.save(categoryCombo, false);
+
+    CategoryOptionCombo attributeOptionCombo = createCategoryOptionCombo('A');
+    attributeOptionCombo.setCategoryCombo(categoryCombo);
+    attributeOptionCombo.setCategoryOptions(Set.of(categoryOption));
+    attributeOptionCombo.getSharing().setPublicAccess(AccessStringHelper.READ_ONLY);
+    manager.save(attributeOptionCombo, false);
+
+    enrollment.setAttributeOptionCombo(attributeOptionCombo);
+    manager.update(enrollment);
+    manager.flush();
+
+    injectSecurityContextUser(user);
+
+    return attributeOptionCombo;
   }
 }

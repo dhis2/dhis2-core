@@ -53,11 +53,11 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryService;
 import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportValue;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.message.MessageSender;
@@ -250,7 +250,7 @@ public class DataValueSMSListener extends CommandSMSListener {
 
     DataExportValue curValue =
         dataExportService.exportValue(
-            new DataEntryKey(targetDataElement, period, orgUnit, null, null));
+            new DataValueKey(targetDataElement, period, orgUnit, null, null));
 
     int val = 0;
     if (curValue != null) {
@@ -300,7 +300,7 @@ public class DataValueSMSListener extends CommandSMSListener {
 
       DataExportValue dv =
           dataExportService.exportValue(
-              new DataEntryKey(code.getDataElement(), period, orgunit, optionCombo, null));
+              new DataValueKey(code.getDataElement(), period, orgunit, optionCombo, null));
 
       if (dv == null && !StringUtils.isEmpty(code.getCode())) {
         numberOfEmptyValue++;
@@ -357,7 +357,7 @@ public class DataValueSMSListener extends CommandSMSListener {
       valueTypeByDataElement.put(UID.of(dataElement), dataElement.getValueType());
       DataExportValue dv =
           dataExportService.exportValue(
-              new DataEntryKey(dataElement, period, orgunit, optionCombo, null));
+              new DataValueKey(dataElement, period, orgunit, optionCombo, null));
 
       if (dv == null && !StringUtils.isEmpty(code.getCode())) {
         codesWithoutDataValues.add(code.getCode());

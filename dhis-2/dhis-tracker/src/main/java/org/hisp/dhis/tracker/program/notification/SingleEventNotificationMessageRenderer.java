@@ -34,7 +34,6 @@ import com.google.common.collect.Maps;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -43,8 +42,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.notification.BaseNotificationMessageRenderer;
 import org.hisp.dhis.notification.TemplateVariable;
-import org.hisp.dhis.option.Option;
-import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.notification.ProgramStageTemplateVariable;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.springframework.stereotype.Component;
@@ -53,8 +50,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SingleEventNotificationMessageRenderer
     extends BaseNotificationMessageRenderer<SingleEvent> {
-
-  private final OptionService optionService;
 
   public static final ImmutableMap<TemplateVariable, Function<SingleEvent, String>>
       VARIABLE_RESOLVERS =
@@ -125,7 +120,7 @@ public class SingleEventNotificationMessageRenderer
         .collect(
             Collectors.toMap(
                 EventDataValue::getDataElement,
-                dv -> filterValue(dv, dataElementsMap.get(dv.getDataElement()))));
+                dv -> renderDataElementValue(dv, dataElementsMap.get(dv.getDataElement()))));
   }
 
   @Override
@@ -136,29 +131,5 @@ public class SingleEventNotificationMessageRenderer
   @Override
   protected Set<ExpressionType> getSupportedExpressionTypes() {
     return SUPPORTED_EXPRESSION_TYPES;
-  }
-
-  // -------------------------------------------------------------------------
-  // Internal methods
-  // -------------------------------------------------------------------------
-
-  private String filterValue(EventDataValue dv, DataElement dataElement) {
-    String value = dv.getValue();
-
-    if (value == null) {
-      return CONFIDENTIAL_VALUE_REPLACEMENT;
-    }
-
-    // If the DV has an OptionSet -> substitute value with the name of the
-    // Option
-    if (dataElement != null && dataElement.hasOptionSet()) {
-      Optional<Option> option =
-          optionService.findOptionByCode(dataElement.getOptionSet().getUid(), value);
-      if (option.isPresent()) {
-        value = option.get().getName();
-      }
-    }
-
-    return value != null ? value : MISSING_VALUE_REPLACEMENT;
   }
 }

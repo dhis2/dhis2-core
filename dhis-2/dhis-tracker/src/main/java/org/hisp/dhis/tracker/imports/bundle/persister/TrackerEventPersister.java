@@ -93,7 +93,7 @@ public class TrackerEventPersister
 
     return TrackerNotificationDataBundle.builder()
         .klass(TrackerEvent.class)
-        .trackerEventNotifications(bundle.getTrackerEventNotifications().get(UID.of(event)))
+        .trackerEventNotifications(bundle.getTrackerEventNotifications().get(event.getUID()))
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUser().getUsername())
@@ -106,7 +106,7 @@ public class TrackerEventPersister
   @Override
   protected List<NotificationTrigger> determineNotificationTriggers(
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.TrackerEvent entity) {
-    TrackerEvent persistedEvent = preheat.getTrackerEvent(entity.getUid());
+    TrackerEvent persistedEvent = preheat.getTrackerEvent(entity.getUID());
     List<NotificationTrigger> triggers = new ArrayList<>();
     // If the event is new and has been completed
     if (persistedEvent == null && entity.getStatus() == EventStatus.COMPLETED) {
@@ -134,7 +134,7 @@ public class TrackerEventPersister
   @Override
   protected TrackerEvent cloneEntityProperties(
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.TrackerEvent event) {
-    TrackerEvent originalEvent = preheat.getTrackerEvent(event.getUid());
+    TrackerEvent originalEvent = preheat.getTrackerEvent(event.getUID());
 
     if (originalEvent == null) {
       return new TrackerEvent();
@@ -307,7 +307,7 @@ public class TrackerEventPersister
   protected Set<UID> getUpdatedTrackedEntities(TrackerEvent entity) {
     return Stream.of(entity.getEnrollment())
         .filter(e -> e.getTrackedEntity() != null)
-        .map(e -> UID.of(e.getTrackedEntity()))
+        .map(e -> e.getTrackedEntity().getUID())
         .collect(Collectors.toSet());
   }
 

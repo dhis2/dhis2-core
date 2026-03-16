@@ -61,6 +61,10 @@
     <param name="clazz">org.hisp.dhis.eventvisualization.SimpleDimension</param>
   </typedef>
 
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jblBasemaps">
+    <param name="clazz">org.hisp.dhis.mapping.Basemap</param>
+  </typedef>
+
   <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonListBinaryType" name="jblEventRepetition">
     <param name="clazz">org.hisp.dhis.eventvisualization.EventRepetition</param>
   </typedef>

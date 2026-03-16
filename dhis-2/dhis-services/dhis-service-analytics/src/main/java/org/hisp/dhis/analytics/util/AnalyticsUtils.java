@@ -574,7 +574,7 @@ public final class AnalyticsUtils {
    * @param grid the {@link Grid}.
    * @throws IllegalArgumentException if validation fails.
    */
-  private static void validateGridForDataValueSet(Grid grid) {
+  public static void validateGridForDataValueSet(Grid grid) {
     isTrue(grid.headerExists(DATA_X_DIM_ID), "Data header does not exist");
     isTrue(grid.headerExists(PERIOD_DIM_ID), "Period header does not exist");
     isTrue(grid.headerExists(ORGUNIT_DIM_ID), "Org unit header does not exist");

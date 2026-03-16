@@ -97,7 +97,7 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
         "duplicate": "%s"
         }
         """
-                    .formatted(trackedEntityAOriginal.getUid(), trackedEntityADuplicate.getUid()))
+                    .formatted(trackedEntityAOriginal.getUID(), trackedEntityADuplicate.getUID()))
             .content(HttpStatus.OK)
             .as(JsonPotentialDuplicate.class);
     // potential duplicate B
@@ -113,7 +113,7 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
         "duplicate": "%s"
         }
         """
-                    .formatted(trackedEntityBOriginal.getUid(), trackedEntityBDuplicate.getUid()))
+                    .formatted(trackedEntityBOriginal.getUID(), trackedEntityBDuplicate.getUID()))
             .content(HttpStatus.OK)
             .as(JsonPotentialDuplicate.class);
     // potential duplicate C
@@ -130,7 +130,7 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
         "duplicate": "%s"
         }
         """
-                    .formatted(trackedEntityCOriginal.getUid(), trackedEntityCDuplicate.getUid()))
+                    .formatted(trackedEntityCOriginal.getUID(), trackedEntityCDuplicate.getUID()))
             .content(HttpStatus.OK)
             .as(JsonPotentialDuplicate.class);
   }
@@ -146,7 +146,7 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
   "original": "%s"
 }
 """
-                    .formatted(trackedEntityAOriginal.getUid()))
+                    .formatted(trackedEntityAOriginal.getUID()))
             .error(HttpStatus.BAD_REQUEST)
             .getMessage());
   }
@@ -162,7 +162,7 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
 "duplicate": "%s"
 }
 """
-                    .formatted(trackedEntityAOriginal.getUid()))
+                    .formatted(trackedEntityAOriginal.getUID()))
             .error(HttpStatus.BAD_REQUEST)
             .getMessage());
   }
@@ -177,7 +177,7 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
   "duplicate": "%s"
 }
 """
-                .formatted(trackedEntityAOriginal.getUid(), UID.generate()))
+                .formatted(trackedEntityAOriginal.getUID(), UID.generate()))
         .content(HttpStatus.NOT_FOUND);
   }
 
@@ -199,8 +199,8 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
 }
 """
                 .formatted(
-                    trackedEntityAOriginal.getUid(),
-                    testSetup.getTrackedEntity(trackerObjects, "dUE514NMOlo").getUid()))
+                    trackedEntityAOriginal.getUID(),
+                    testSetup.getTrackedEntity(trackerObjects, "dUE514NMOlo").getUID()))
         .content(HttpStatus.NOT_FOUND);
   }
 
@@ -300,8 +300,8 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
     JsonPage page =
         GET(
                 "/potentialDuplicates?trackedEntities={uid},{uid}",
-                trackedEntityADuplicate.getUid(),
-                trackedEntityBDuplicate.getUid())
+                trackedEntityADuplicate.getUID(),
+                trackedEntityBDuplicate.getUID())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -321,7 +321,7 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
     JsonPage page =
         GET(
                 "/potentialDuplicates?trackedEntities={uid}&fields=status",
-                trackedEntityADuplicate.getUid())
+                trackedEntityADuplicate.getUID())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -336,7 +336,7 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
     JsonPage page =
         GET(
                 "/potentialDuplicates?trackedEntities={uid}&totalPages=true",
-                trackedEntityADuplicate.getUid())
+                trackedEntityADuplicate.getUID())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -349,8 +349,8 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
     JsonPage page =
         GET(
                 "/potentialDuplicates?trackedEntities={uid},{uid}&page=2&pageSize=1",
-                trackedEntityADuplicate.getUid(),
-                trackedEntityBDuplicate.getUid())
+                trackedEntityADuplicate.getUID(),
+                trackedEntityBDuplicate.getUID())
             .content(HttpStatus.OK)
             .asA(JsonPage.class);
 
@@ -368,7 +368,7 @@ class DeduplicationControllerTest extends PostgresControllerIntegrationTestBase 
         1,
         String.format(
             "http://localhost/api/potentialDuplicates?trackedEntities=%s,%s",
-            trackedEntityADuplicate.getUid(), trackedEntityBDuplicate.getUid()));
+            trackedEntityADuplicate.getUID(), trackedEntityBDuplicate.getUID()));
     assertHasNoMember(pager, "total", "pageCount", "nextPage");
   }
 

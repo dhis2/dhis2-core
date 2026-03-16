@@ -30,6 +30,8 @@
 package org.hisp.dhis.webapi.filter;
 
 import static org.hisp.dhis.http.HttpClientAdapter.Header;
+import static org.hisp.dhis.log.MdcKeys.MDC_REQUEST_ID;
+import static org.hisp.dhis.log.MdcKeys.MDC_X_REQUEST_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -54,14 +56,17 @@ class RequestIdFilterTest extends H2ControllerIntegrationTestBase {
   void shouldAddRequestIdToMdcAndCleanup() {
     // First request with X-Request-ID header
     JsonObject response1 = GET("/test/requestId", Header("X-Request-ID", "request-1")).content();
+    assertEquals("request-1", response1.getString("requestId").string());
     assertEquals("request-1", response1.getString("xRequestID").string());
 
     // Second request with different X-Request-ID
     JsonObject response2 = GET("/test/requestId", Header("X-Request-ID", "request-2")).content();
+    assertEquals("request-2", response2.getString("requestId").string());
     assertEquals("request-2", response2.getString("xRequestID").string());
 
     // Third request without X-Request-ID header (should be null/cleaned up)
     JsonObject response3 = GET("/test/requestId").content();
+    assertNull(response3.getString("requestId").string());
     assertNull(response3.getString("xRequestID").string());
   }
 
@@ -70,12 +75,12 @@ class RequestIdFilterTest extends H2ControllerIntegrationTestBase {
     // UUID is valid
     String uuid = "550e8400-e29b-41d4-a716-446655440000";
     JsonObject response1 = GET("/test/requestId", Header("X-Request-ID", uuid)).content();
-    assertEquals(uuid, response1.getString("xRequestID").string());
+    assertEquals(uuid, response1.getString("requestId").string());
 
     // DHIS2 UID is valid
     String uid = "a1b2c3d4e5f";
     JsonObject response2 = GET("/test/requestId", Header("X-Request-ID", uid)).content();
-    assertEquals(uid, response2.getString("xRequestID").string());
+    assertEquals(uid, response2.getString("requestId").string());
   }
 
   @Test
@@ -83,7 +88,7 @@ class RequestIdFilterTest extends H2ControllerIntegrationTestBase {
     // Request with newline injection attempt
     JsonObject response1 =
         GET("/test/requestId", Header("X-Request-ID", "first\nsecond")).content();
-    assertEquals("(illegal)", response1.getString("xRequestID").string());
+    assertEquals("(illegal)", response1.getString("requestId").string());
 
     // Request with too long ID (>36 chars)
     JsonObject response2 =
@@ -91,17 +96,17 @@ class RequestIdFilterTest extends H2ControllerIntegrationTestBase {
                 "/test/requestId",
                 Header("X-Request-ID", "this-is-way-too-long-to-be-valid-request-id-123456789"))
             .content();
-    assertEquals("(illegal)", response2.getString("xRequestID").string());
+    assertEquals("(illegal)", response2.getString("requestId").string());
 
     // Request with special characters (quotes)
     JsonObject response3 =
         GET("/test/requestId", Header("X-Request-ID", "\"malicious\"")).content();
-    assertEquals("(illegal)", response3.getString("xRequestID").string());
+    assertEquals("(illegal)", response3.getString("requestId").string());
 
     // Request with spaces
     JsonObject response4 =
         GET("/test/requestId", Header("X-Request-ID", "no - not having it")).content();
-    assertEquals("(illegal)", response4.getString("xRequestID").string());
+    assertEquals("(illegal)", response4.getString("requestId").string());
   }
 
   @Configuration
@@ -113,14 +118,18 @@ class RequestIdFilterTest extends H2ControllerIntegrationTestBase {
     @GetMapping("/api/test/requestId")
     @ResponseBody
     public String getRequestInfo() {
-      String xRequestID = MDC.get("xRequestID");
+      String requestId = MDC.get(MDC_REQUEST_ID);
+      String xRequestID = MDC.get(MDC_X_REQUEST_ID);
 
       return """
           {
+            "requestId": %s,
             "xRequestID": %s
           }
           """
-          .formatted(xRequestID != null ? "\"" + xRequestID + "\"" : "null");
+          .formatted(
+              requestId != null ? "\"" + requestId + "\"" : "null",
+              xRequestID != null ? "\"" + xRequestID + "\"" : "null");
     }
   }
 }

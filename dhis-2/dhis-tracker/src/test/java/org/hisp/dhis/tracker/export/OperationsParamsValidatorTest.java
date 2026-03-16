@@ -36,10 +36,12 @@ import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.tracker.export.OperationsParamsValidator.validateOrgUnitMode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
 import java.util.Set;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
@@ -407,5 +409,15 @@ class OperationsParamsValidatorTest {
         paramsValidator.validateOrgUnits(Set.of(ORG_UNIT_UID), UserDetails.fromUser(userWithRoles));
 
     assertEquals(Set.of(orgUnit), orgUnits);
+  }
+
+  @Test
+  void shouldMapAttributeOptionCombo() throws ForbiddenException {
+    CategoryOptionCombo combo = new CategoryOptionCombo();
+
+    when(aclService.canDataRead(any(UserDetails.class), any(CategoryOptionCombo.class)))
+        .thenReturn(true);
+
+    paramsValidator.validateAttributeOptionCombo(combo, user);
   }
 }

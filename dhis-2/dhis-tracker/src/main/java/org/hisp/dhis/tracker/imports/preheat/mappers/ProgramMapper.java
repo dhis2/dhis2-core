@@ -39,7 +39,6 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(
     uses = {
-      DebugMapper.class,
       OrganisationUnitMapper.class,
       CategoryComboMapper.class,
       TrackedEntityTypeMapper.class,
@@ -64,6 +63,7 @@ public interface ProgramMapper extends PreheatMapper<Program> {
   @Mapping(target = "onlyEnrollOnce")
   @Mapping(target = "featureType")
   @Mapping(target = "categoryCombo")
+  @Mapping(target = "enrollmentCategoryCombo")
   @Mapping(target = "selectEnrollmentDatesInFuture")
   @Mapping(target = "selectIncidentDatesInFuture")
   @Mapping(target = "displayIncidentDate")

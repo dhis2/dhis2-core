@@ -97,6 +97,8 @@ public class EnrollmentOperationParams {
 
   private final List<Order> order;
 
+  private final UID attributeOptionCombo;
+
   public static class EnrollmentOperationParamsBuilder {
 
     private final List<Order> order = new ArrayList<>();

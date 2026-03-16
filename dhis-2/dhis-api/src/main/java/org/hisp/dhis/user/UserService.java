@@ -48,6 +48,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.security.core.session.SessionInformation;
@@ -205,6 +206,14 @@ public interface UserService {
    * @return true if the given user represents the last user with ALL authority.
    */
   boolean isLastSuperUser(User user);
+
+  /**
+   * Handles the user query parameters by setting defaults and processing specific fields such as
+   * organisation units and user roles.
+   *
+   * @param params the {@link UserQueryParams}.
+   */
+  void handleUserQueryParams(UserQueryParams params);
 
   /**
    * Returns a list of users based on the given query parameters. The default order of last name and
@@ -858,7 +867,9 @@ public interface UserService {
    * @param password the password for the new user
    * @return the newly created user replica
    * @throws ConflictException if validation fails
+   * @throws ForbiddenException if the current user lacks permission to manage any of the source
+   *     user's groups
    */
   User replicateUser(User existingUser, String username, String password)
-      throws ConflictException, NotFoundException, BadRequestException;
+      throws ConflictException, NotFoundException, BadRequestException, ForbiddenException;
 }

@@ -30,9 +30,6 @@
 package org.hisp.dhis.tracker.imports.preheat.supplier;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.time.StopWatch;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
@@ -45,7 +42,6 @@ import org.hisp.dhis.tracker.imports.preheat.cache.PreheatCacheService;
  *
  * @author Luciano Fiandesio
  */
-@Slf4j
 public abstract class AbstractPreheatSupplier implements PreheatSupplier {
   private static final int CACHE_TTL = 60;
 
@@ -53,22 +49,7 @@ public abstract class AbstractPreheatSupplier implements PreheatSupplier {
 
   @Override
   public void add(TrackerObjects trackerObjects, TrackerPreheat preheat) {
-    StopWatch watch = null;
-    if (log.isDebugEnabled()) {
-      log.debug("Executing preheat supplier: {}", this.getClass().getName());
-      watch = new StopWatch();
-      watch.start();
-    }
-
     preheatAdd(trackerObjects, preheat);
-
-    if (log.isDebugEnabled() && watch != null && watch.isStarted()) {
-      watch.stop();
-      log.debug(
-          "Supplier {} executed in : {}",
-          this.getClass().getName(),
-          TimeUnit.SECONDS.convert(watch.getNanoTime(), TimeUnit.NANOSECONDS));
-    }
   }
 
   /** Template method: executes preheat logic from the subclass */

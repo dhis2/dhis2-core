@@ -67,7 +67,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class RuleEngineRuleEngineMapperTest extends TrackerTestBase {
+class RuleEngineMapperTest extends TrackerTestBase {
   private static final String SAMPLE_VALUE_A = "textValueA";
 
   private static final Date NOW = new Date();
@@ -134,13 +134,13 @@ class RuleEngineRuleEngineMapperTest extends TrackerTestBase {
     assertEvent(
         eventA,
         ruleEvents.stream()
-            .filter(e -> e.getEvent().equals(eventA.getUid().getValue()))
+            .filter(e -> e.getEvent().equals(eventA.getUID().getValue()))
             .findFirst()
             .get());
     assertEvent(
         eventB,
         ruleEvents.stream()
-            .filter(e -> e.getEvent().equals(eventB.getUid().getValue()))
+            .filter(e -> e.getEvent().equals(eventB.getUID().getValue()))
             .findFirst()
             .get());
   }
@@ -258,7 +258,7 @@ class RuleEngineRuleEngineMapperTest extends TrackerTestBase {
   }
 
   private void assertEvent(org.hisp.dhis.tracker.imports.domain.Event event, RuleEvent ruleEvent) {
-    assertEquals(event.getUid().getValue(), ruleEvent.getEvent());
+    assertEquals(event.getUID().getValue(), ruleEvent.getEvent());
     assertEquals(event.getProgramStage().getIdentifier(), ruleEvent.getProgramStage());
     assertNotNull(ruleEvent.getProgramStageName());
     assertEquals(event.getStatus().name(), ruleEvent.getStatus().name());
@@ -291,7 +291,7 @@ class RuleEngineRuleEngineMapperTest extends TrackerTestBase {
 
   private void assertEnrollment(
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment, RuleEnrollment ruleEnrollment) {
-    assertEquals(enrollment.getUid().getValue(), ruleEnrollment.getEnrollment());
+    assertEquals(enrollment.getUID().getValue(), ruleEnrollment.getEnrollment());
     assertNotNull(ruleEnrollment.getProgramName());
     assertDates(enrollment.getOccurredAt(), ruleEnrollment.getIncidentDate());
     assertDates(enrollment.getEnrolledAt(), ruleEnrollment.getEnrollmentDate());

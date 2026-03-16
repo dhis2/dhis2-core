@@ -206,6 +206,21 @@ class EnrollmentsExportControllerTest extends PostgresControllerIntegrationTestB
     assertHasMember(attribute, "code");
   }
 
+  @ParameterizedTest
+  @MethodSource("getEnrollment")
+  void shouldGetEnrollmentWithAttributeOptionCombo(
+      BiFunction<Enrollment, String, JsonEnrollment> getEnrollment) {
+    Enrollment enrollment = get(Enrollment.class, "TvctPPhpD8z");
+    assertNotNull(
+        enrollment.getAttributeOptionCombo(),
+        "test expects an enrollment with an attribute option combo");
+
+    JsonEnrollment jsonEnrollment = getEnrollment.apply(enrollment, "attributeOptionCombo");
+    assertHasOnlyMembers(jsonEnrollment, "attributeOptionCombo");
+    assertEquals(
+        enrollment.getAttributeOptionCombo().getUid(), jsonEnrollment.getAttributeOptionCombo());
+  }
+
   @Test
   void shouldGetEnrollmentWithoutRelationshipsWhenRelationshipIsDeletedAndIncludeDeletedIsFalse() {
     Relationship relationship = get(Relationship.class, "p53a6314631");

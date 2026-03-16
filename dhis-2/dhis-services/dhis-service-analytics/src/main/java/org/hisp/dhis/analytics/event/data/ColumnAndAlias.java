@@ -35,7 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.system.util.SqlUtils;
 
 @Getter
-class ColumnAndAlias {
+public class ColumnAndAlias {
   public static final ColumnAndAlias EMPTY = ColumnAndAlias.ofColumn("");
 
   protected final String column;
@@ -56,11 +56,11 @@ class ColumnAndAlias {
     this.postfix = null;
   }
 
-  static ColumnAndAlias ofColumn(String column) {
+  public static ColumnAndAlias ofColumn(String column) {
     return ofColumnAndAlias(column, null);
   }
 
-  static ColumnAndAlias ofColumnAndAlias(String column, String alias) {
+  public static ColumnAndAlias ofColumnAndAlias(String column, String alias) {
     return new ColumnAndAlias(column, alias, null);
   }
 
@@ -76,11 +76,11 @@ class ColumnAndAlias {
     return Optional.ofNullable(alias).map(SqlUtils::quote).orElse(null);
   }
 
-  ColumnAndAlias withPostfix(String postfix) {
+  public ColumnAndAlias withPostfix(String postfix) {
     return new ColumnAndAlias(column, alias, postfix);
   }
 
-  boolean hasPostfix() {
+  public boolean hasPostfix() {
     return StringUtils.isNotEmpty(postfix);
   }
 }

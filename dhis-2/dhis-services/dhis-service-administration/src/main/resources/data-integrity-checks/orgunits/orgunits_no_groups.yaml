@@ -31,17 +31,17 @@ section: Organisation units
 section_order: 13
 summary_sql: >-
   WITH orgunits_no_groups as (
-  SELECT uid,name from organisationunit
-  where organisationunitid NOT IN (
-  SELECT organisationunitid from orgunitgroupmembers))
-  SELECT 
+  SELECT uid,name from organisationunit ou
+  WHERE NOT EXISTS (
+  SELECT 1 from orgunitgroupmembers m WHERE m.organisationunitid = ou.organisationunitid))
+  SELECT
   COUNT(*)as value,
   100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM organisationunit), 0) as percent
   FROM orgunits_no_groups;
 details_sql: >-
-  SELECT uid,name from organisationunit
-  where organisationunitid NOT IN (
-  SELECT organisationunitid from orgunitgroupmembers)
+  SELECT uid,name from organisationunit ou
+  WHERE NOT EXISTS (
+  SELECT 1 from orgunitgroupmembers m WHERE m.organisationunitid = ou.organisationunitid)
   ORDER BY name;
 details_id_type: organisationUnits
 severity: WARNING

@@ -203,16 +203,4 @@ public class DefaultTrackedEntityAttributeService implements TrackedEntityAttrib
         .filter(TrackedEntityAttribute::isUnique)
         .collect(toList());
   }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes() {
-    return trackedEntityAttributeStore.getTrackedEntityAttributesByTrackedEntityTypes();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public Set<String> getTrackedEntityAttributesInProgram(@Nonnull Program program) {
-    return trackedEntityAttributeStore.getTrackedEntityAttributesInProgram(program);
-  }
 }

@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.export;
 
 import java.util.HashSet;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
@@ -40,8 +41,10 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.springframework.stereotype.Component;
@@ -95,6 +98,17 @@ public class CategoryOptionComboService {
 
       return aoc;
     }
+  }
+
+  public CategoryOptionCombo getAttributeOptionCombo(@Nonnull UID uid) throws BadRequestException {
+    CategoryOptionCombo categoryOptionCombo =
+        categoryService.getCategoryOptionCombo(uid.getValue());
+
+    if (categoryOptionCombo == null) {
+      throw new BadRequestException("Attribute option combo does not exist: " + uid);
+    }
+
+    return categoryOptionCombo;
   }
 
   private CategoryOptionCombo getAttributeOptionComboInternal(

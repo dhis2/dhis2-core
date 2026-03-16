@@ -65,6 +65,7 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
@@ -118,6 +119,8 @@ import org.slf4j.LoggerFactory;
 public class TrackerTest extends Simulation {
   private static final Logger logger = LoggerFactory.getLogger(TrackerTest.class);
 
+  private static final AtomicLong REQUEST_COUNTER = new AtomicLong();
+
   private static final List<Map<String, Object>> userCredentials = new ArrayList<>();
   private static FeederBuilder<Object> userFeeder;
 
@@ -154,7 +157,7 @@ public class TrackerTest extends Simulation {
   private record Request(
       String url, EnumMap<Profile, Integer> p95Thresholds, String name, String... groups) {
     HttpRequestActionBuilder action() {
-      return http(name).get(url);
+      return http(name).get(url).header("X-Request-ID", session -> nextRequestId(name));
     }
 
     Optional<Assertion> assertion(Profile profile) {
@@ -367,6 +370,18 @@ public class TrackerTest extends Simulation {
             new EnumMap<>(Map.of(Profile.SMOKE, 101, Profile.LOAD, 107)),
             "Go to second page of program " + this.eventProgram,
             "Get a list of single events");
+    Request searchSingleEventsAssignedToAnyone =
+        new Request(
+            getEventsUrl + "&assignedUserMode=ANY",
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 50)),
+            "Search single events assigned to any user in program " + this.eventProgram,
+            "Get a list of single events");
+    Request searchSingleEventsNotAssignedToUser =
+        new Request(
+            getEventsUrl + "&assignedUserMode=NONE",
+            new EnumMap<>(Map.of(Profile.SMOKE, 70, Profile.LOAD, 107)),
+            "Search single events not assigned to a user in program " + this.eventProgram,
+            "Get a list of single events");
     Request searchSingleEvents =
         new Request(
             getEventsUrl + "&occurredAfter=2025-01-01&occurredBefore=2025-12-31",
@@ -403,6 +418,14 @@ public class TrackerTest extends Simulation {
                                     .action()
                                     .check(jsonPath("$.events[*]").count().is(50)))
                             .exec(
+                                searchSingleEventsAssignedToAnyone
+                                    .action()
+                                    .check(jsonPath("$.events[*]").count().is(3)))
+                            .exec(
+                                searchSingleEventsNotAssignedToUser
+                                    .action()
+                                    .check(jsonPath("$.events[*]").count().is(50)))
+                            .exec(
                                 searchSingleEvents
                                     .action()
                                     .check(jsonPath("$.events[*]").count().is(50))
@@ -421,6 +444,8 @@ public class TrackerTest extends Simulation {
         List.of(
             goToFirstPage,
             goToSecondPage,
+            searchSingleEventsAssignedToAnyone,
+            searchSingleEventsNotAssignedToUser,
             searchSingleEvents,
             getFirstEvent,
             getRelationshipsForFirstEvent));
@@ -430,6 +455,7 @@ public class TrackerTest extends Simulation {
     return http("Login")
         .post("/api/auth/login")
         .header("Content-Type", "application/json")
+        .header("X-Request-ID", session -> nextRequestId("Login"))
         .body(StringBody("{\"username\":\"#{username}\",\"password\":\"#{password}\"}"))
         .check(status().is(200));
   }
@@ -437,9 +463,17 @@ public class TrackerTest extends Simulation {
   private ScenarioWithRequests trackerProgramScenario() {
     String getTEsUrl =
         "/api/tracker/trackedEntities?"
-            + "order=createdAt:desc &page=1&pageSize=15&orgUnits=DiszpKrYNg8&orgUnitMode=SELECTED&program="
+            + "order=createdAt:desc&page=1&pageSize=15&orgUnits=DiszpKrYNg8&orgUnitMode=SELECTED&program="
             + this.trackerProgram
             + "&fields=:all,!relationships,programOwner[orgUnit,program]";
+
+    String getTEsWithEnrollmentStatusUrl =
+        "/api/tracker/trackedEntities?"
+            + "order=createdAt:desc&page=1&pageSize=15&orgUnitMode=ACCESSIBLE&program="
+            + this.trackerProgram
+            + "&filter=w75KJ2mc4zz:ge:A"
+            + "&enrollmentStatus=ACTIVE"
+            + "&fields=:all,!relationships,programOwners[orgUnit,program]";
 
     String searchForTEByNationalId =
         "/api/tracker/trackedEntities?orgUnitMode=ACCESSIBLE&program="
@@ -532,6 +566,11 @@ public class TrackerTest extends Simulation {
             new EnumMap<>(Map.of(Profile.SMOKE, 44, Profile.LOAD, 53)),
             "Get first page of TEs of program " + this.trackerProgram,
             "Get a list of TEs");
+    Request getTEsWithEnrollmentStatus =
+        new Request(
+            getTEsWithEnrollmentStatusUrl,
+            new EnumMap<>(Map.of(Profile.SMOKE, 50, Profile.LOAD, 60)),
+            "Get TEs with enrollment status");
     Request getFirstTrackedEntity =
         new Request(
             singleTrackedEntityUrl,
@@ -649,8 +688,11 @@ public class TrackerTest extends Simulation {
                                             .exec(
                                                 getRelationshipsForEvent
                                                     .action()
-                                                    .check(
-                                                        jsonPath("$.relationships").exists()))))));
+                                                    .check(jsonPath("$.relationships").exists())))))
+                    .exec(
+                        getTEsWithEnrollmentStatus
+                            .action()
+                            .check(jsonPath("$.trackedEntities[*]").count().is(15))));
 
     return new ScenarioWithRequests(
         scenarioBuilder,
@@ -662,6 +704,7 @@ public class TrackerTest extends Simulation {
             searchEventsByProgramStage,
             getTrackedEntitiesForEvents,
             getFirstPageOfTEs,
+            getTEsWithEnrollmentStatus,
             getFirstTrackedEntity,
             getFirstEnrollment,
             getRelationshipsForTrackedEntity,
@@ -717,5 +760,18 @@ public class TrackerTest extends Simulation {
                 .flatMap(scenario -> scenario.requests().stream())
                 .flatMap(r -> r.assertion(profile).stream()))
         .toList();
+  }
+
+  /**
+   * Generates a unique {@code X-Request-ID} header value and logs the mapping to the Gatling
+   * request name. The ID is a simple counter ({@code g-1}, {@code g-2}, ...) valid per {@link
+   * org.hisp.dhis.webapi.filter.RequestIdFilter}. The logged mapping allows correlating SQL queries
+   * (grouped by {@code request_id} in SQL comments) back to the Gatling request that triggered
+   * them.
+   */
+  private static String nextRequestId(String name) {
+    String id = "g-" + REQUEST_COUNTER.incrementAndGet();
+    logger.debug("X-Request-ID: {} -> {}", id, name);
+    return id;
   }
 }

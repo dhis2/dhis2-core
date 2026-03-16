@@ -176,7 +176,7 @@ public class TrackerBundle {
   }
 
   private static <T extends TrackerDto> Optional<T> findById(List<T> entities, UID uid) {
-    return entities.stream().filter(e -> Objects.equals(e.getUid(), uid)).findFirst();
+    return entities.stream().filter(e -> Objects.equals(e.getUID(), uid)).findFirst();
   }
 
   public Set<UID> getUpdatedTrackedEntities() {
@@ -211,10 +211,10 @@ public class TrackerBundle {
   }
 
   public void setStrategy(TrackerDto dto, TrackerImportStrategy strategy) {
-    this.getResolvedStrategyMap().get(dto.getTrackerType()).put(dto.getUid(), strategy);
+    this.getResolvedStrategyMap().get(dto.getTrackerType()).put(dto.getUID(), strategy);
   }
 
   public TrackerImportStrategy getStrategy(TrackerDto dto) {
-    return getResolvedStrategyMap().get(dto.getTrackerType()).get(dto.getUid());
+    return getResolvedStrategyMap().get(dto.getTrackerType()).get(dto.getUID());
   }
 }

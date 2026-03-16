@@ -49,6 +49,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetCompletion;
 import org.hisp.dhis.log.TimeExecution;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 
 /**
  * Service API data structure to enter multiple values for the same dataset. This set is either
@@ -62,14 +63,78 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 public record DataEntryGroup(
     @TimeExecution.Include @CheckForNull UID dataSet,
     @CheckForNull DataSetCompletion completion,
+    @CheckForNull Scope deletion,
     @TimeExecution.Include @Nonnull List<DataEntryValue> values) {
 
-  public DataEntryGroup(@CheckForNull UID dataSet, @Nonnull List<DataEntryValue> values) {
-    this(dataSet, null, values);
+  public record Scope(
+      @Nonnull List<UID> orgUnits, @Nonnull List<Period> periods, @Nonnull List<Element> elements) {
+
+    public Scope {
+      requireNonNull(orgUnits);
+      requireNonNull(periods);
+      requireNonNull(elements);
+    }
+
+    public record Element(
+        @Nonnull UID dataElement,
+        @CheckForNull UID categoryOptionCombo,
+        @CheckForNull UID attributeOptionCombo) {
+
+      public Element {
+        requireNonNull(dataElement);
+      }
+    }
   }
 
   public DataEntryGroup {
     requireNonNull(values);
+  }
+
+  public DataEntryGroup(@Nonnull List<DataEntryValue> values) {
+    this(null, null, null, values);
+  }
+
+  public boolean canMergeWith(DataEntryGroup other) {
+    if (!Objects.equals(dataSet, other.dataSet)) return false;
+    if (!Objects.equals(completion, other.completion)) return false;
+    if (deletion == null || other.deletion == null) return true;
+    return deletion.periods.equals(other.deletion.periods)
+        && deletion.orgUnits.equals(other.deletion.orgUnits);
+  }
+
+  public DataEntryGroup mergedWith(DataEntryGroup other) {
+    if (!canMergeWith(other)) throw new IllegalArgumentException("Groups cannot be merged.");
+    Scope del = deletion;
+    if (del == null) {
+      del = other.deletion;
+    } else if (other.deletion != null) {
+      del =
+          new Scope(
+              deletion.orgUnits,
+              deletion.periods,
+              merge(deletion.elements, other.deletion.elements));
+    }
+    return new DataEntryGroup(dataSet, completion, del, merge(values(), other.values()));
+  }
+
+  @Nonnull
+  private static <T> List<T> merge(List<T> a, List<T> b) {
+    if (a.isEmpty()) return b;
+    if (b.isEmpty()) return a;
+    List<T> values = new ArrayList<>(a.size() + b.size());
+    values.addAll(a);
+    values.addAll(b);
+    return values;
+  }
+
+  @CheckForNull
+  public Scope.Element deletionScopeElement(UID dataElement) {
+    return deletion == null
+        ? null
+        : deletion.elements.stream()
+            .filter(e -> e.dataElement.equals(dataElement))
+            .findFirst()
+            .orElse(null);
   }
 
   public String describe() {
@@ -100,12 +165,35 @@ public record DataEntryGroup(
       @CheckForNull
           @OpenApi.Description(
               """
-            Alternative to the `attributeOptionCombo` the defining which category option (value) is chosen for which category (key)
-            for the category combo of the `dataSet`. Can only be used when `dataSet` is provided as well.
-            Will only be considered if `attributeOptionCombo` is not present.
-            """)
+        Alternative to the `attributeOptionCombo` the defining which category option (value) is chosen for which category (key)
+        for the category combo of the `dataSet`. Can only be used when `dataSet` is provided as well.
+        Will only be considered if `attributeOptionCombo` is not present.
+        """)
           Map<String, String> attributeOptions,
+      @CheckForNull Scope deletion,
       @Nonnull List<DataEntryValue.Input> values) {
+
+    public record Scope(
+        @Nonnull List<String> orgUnits,
+        @Nonnull List<String> periods,
+        @Nonnull List<Element> elements) {
+
+      public Scope {
+        requireNonNull(orgUnits);
+        requireNonNull(periods);
+        requireNonNull(elements);
+      }
+
+      public record Element(
+          @Nonnull String dataElement,
+          @CheckForNull String categoryOptionCombo,
+          @CheckForNull String attributeOptionCombo) {
+
+        public Element {
+          requireNonNull(dataElement);
+        }
+      }
+    }
 
     public Input {
       requireNonNull(values);
@@ -120,7 +208,7 @@ public record DataEntryGroup(
     }
 
     public Input(Ids ids, String dataSet, List<DataEntryValue.Input> values) {
-      this(ids, dataSet, null, null, null, null, null, null, values);
+      this(ids, dataSet, null, null, null, null, null, null, null, values);
     }
 
     public String describe() {
@@ -136,15 +224,18 @@ public record DataEntryGroup(
           "ds=${ds:?} [de=${de:} ou=${ou:} pe=${pe:} aoc=${aoc:}](${count:0} values)", vars);
     }
 
-    public boolean isSameDsAoc(Input other) {
+    /** Groups of same DS and AOC (and completion and deletion scope if set) can be merged */
+    public boolean canMergeWith(Input other) {
       return dataSet != null
           && dataSet.equals(other.dataSet)
           && Objects.equals(attributeOptionCombo, other.attributeOptionCombo)
           && Objects.equals(attributeOptions, other.attributeOptions)
-          && Objects.equals(completionDate, other.completionDate);
+          && Objects.equals(completionDate, other.completionDate)
+          && Objects.equals(deletion, other.deletion);
     }
 
-    public Input mergedSameDsAoc(Input other) {
+    public Input mergedWith(Input other) {
+      if (!canMergeWith(other)) throw new IllegalArgumentException("Groups cannot be merged.");
       List<DataEntryValue.Input> merged = new ArrayList<>(values.size() + other.values.size());
       merged.addAll(values);
       merged.addAll(other.values);
@@ -155,8 +246,37 @@ public record DataEntryGroup(
       if (!Objects.equals(de, other.dataElement)) de = null;
       if (!Objects.equals(ou, other.orgUnit)) ou = null;
       if (!Objects.equals(pe, other.period)) pe = null;
+      String aoc = attributeOptionCombo;
+      Map<String, String> aox = attributeOptions;
+      return new Input(ids, dataSet, completionDate, de, ou, pe, aoc, aox, deletion, merged);
+    }
+
+    public Input withIds(@CheckForNull Ids ids) {
       return new Input(
-          ids, dataSet, completionDate, de, ou, pe, attributeOptionCombo, attributeOptions, merged);
+          ids,
+          dataSet,
+          completionDate,
+          dataElement,
+          orgUnit,
+          period,
+          attributeOptionCombo,
+          attributeOptions,
+          deletion,
+          values);
+    }
+
+    public Input withDeletion(@CheckForNull DataEntryGroup.Input.Scope deletion) {
+      return new Input(
+          ids,
+          dataSet,
+          completionDate,
+          dataElement,
+          orgUnit,
+          period,
+          attributeOptionCombo,
+          attributeOptions,
+          deletion,
+          values);
     }
   }
 
@@ -188,6 +308,16 @@ public record DataEntryGroup(
       @Nonnull IdProperty categoryOptions,
       @Nonnull IdProperty categories) {
 
+    public Ids {
+      requireNonNull(dataSets);
+      requireNonNull(dataElements);
+      requireNonNull(orgUnits);
+      requireNonNull(categoryOptionCombos);
+      requireNonNull(attributeOptionCombos);
+      requireNonNull(categoryOptions);
+      requireNonNull(categories);
+    }
+
     public Ids() {
       this(
           IdProperty.UID,
@@ -212,26 +342,24 @@ public record DataEntryGroup(
               IdProperty.of(schemes.getCategoryIdScheme()));
     }
 
-    public Ids dataElements(IdProperty dataElements) {
+    public static Ids of(
+        @CheckForNull IdProperty fallback,
+        @CheckForNull IdProperty dataSets,
+        @CheckForNull IdProperty dataElements,
+        @CheckForNull IdProperty orgUnits,
+        @CheckForNull IdProperty categoryOptionCombos,
+        @CheckForNull IdProperty attributeOptionCombos,
+        @CheckForNull IdProperty categoryOptions,
+        @CheckForNull IdProperty categories) {
+      IdProperty nullValue = fallback == null ? IdProperty.UID : fallback;
       return new Ids(
-          dataSets,
-          dataElements,
-          orgUnits,
-          categoryOptionCombos,
-          attributeOptionCombos,
-          categoryOptions,
-          categories);
-    }
-
-    public Ids orgUnits(IdProperty orgUnits) {
-      return new Ids(
-          dataSets,
-          dataElements,
-          orgUnits,
-          categoryOptionCombos,
-          attributeOptionCombos,
-          categoryOptions,
-          categories);
+          dataSets == null ? nullValue : dataSets,
+          dataElements == null ? nullValue : dataElements,
+          orgUnits == null ? nullValue : orgUnits,
+          categoryOptionCombos == null ? nullValue : categoryOptionCombos,
+          attributeOptionCombos == null ? nullValue : attributeOptionCombos,
+          categoryOptions == null ? nullValue : categoryOptions,
+          categories == null ? nullValue : categories);
     }
   }
 }

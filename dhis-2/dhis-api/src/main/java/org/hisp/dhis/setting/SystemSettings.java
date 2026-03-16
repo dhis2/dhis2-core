@@ -40,6 +40,7 @@ import java.util.function.BinaryOperator;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
+import org.hisp.dhis.analytics.AnalyticsWeeklyStartKey;
 import org.hisp.dhis.common.DigitGroupSeparator;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Locale;
@@ -235,8 +236,11 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   default AnalyticsFinancialYearStartKey getAnalyticsFinancialYearStart() {
-    return asEnum(
-        "analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER);
+    return asEnum("analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.getDefault());
+  }
+
+  default AnalyticsWeeklyStartKey getAnalyticsWeeklyStart() {
+    return asEnum("analyticsWeeklyStart", AnalyticsWeeklyStartKey.getDefault());
   }
 
   default String getPhoneNumberAreaCode() {
@@ -471,10 +475,6 @@ public non-sealed interface SystemSettings extends Settings {
 
   default String getDateFormat() {
     return asString("keyDateFormat", "yyyy-MM-dd");
-  }
-
-  default String getStyle() {
-    return asString("keyStyle", "light_blue/light_blue.css");
   }
 
   default String getRemoteInstanceUrl() {
@@ -838,5 +838,30 @@ public non-sealed interface SystemSettings extends Settings {
    */
   default int getDeviceEnrollmentIATTtlSeconds() {
     return asInt("deviceEnrollmentIATTtlSeconds", 60);
+  }
+
+  /**
+   * since 2.43
+   *
+   * @return custom color to use as the background for DHIS2 header bar
+   */
+  default String getCustomColor() {
+    return asString("keyCustomColor", "");
+  }
+
+  /**
+   * since 2.43
+   *
+   * @return custom color to use as the background for DHIS2 header bar for Android
+   */
+  default String getCustomColorMobile() {
+    return asString("keyCustomColorMobile", "");
+  }
+
+  /*
+   * @since 2.43
+   */
+  default Boolean getCustomTranslationsEnabled() {
+    return asBoolean("keyCustomTranslationsEnabled", false);
   }
 }

@@ -186,7 +186,11 @@
       "orgUnitName": "Mbokie CHP",
       "enrolledAt": "2021-02-28T12:05:00.000",
       "occurredAt": "2021-02-28T12:05:00.000",
-      "scheduledAt": "2021-02-28T12:05:00.000"
+      "scheduledAt": "2021-02-28T12:05:00.000",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
     },
     {
       "enrollment": "nxP7UnKhoYY",
@@ -204,7 +208,11 @@
       "orgUnitName": "Mbokie CHP",
       "enrolledAt": "2021-02-28T12:05:00.000",
       "occurredAt": "2021-02-28T12:05:00.000",
-      "scheduledAt": "2021-02-28T12:05:00.000"
+      "scheduledAt": "2021-02-28T12:05:00.000",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
     },
     {
       "enrollment": "nxP7UnKhoXX",
@@ -222,7 +230,11 @@
       "orgUnitName": "Mbokie CHP",
       "enrolledAt": "2021-02-28T12:05:00.000",
       "occurredAt": "2021-02-28T12:05:00.000",
-      "scheduledAt": "2021-02-28T12:05:00.000"
+      "scheduledAt": "2021-02-28T12:05:00.000",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
     }
   ]
 }

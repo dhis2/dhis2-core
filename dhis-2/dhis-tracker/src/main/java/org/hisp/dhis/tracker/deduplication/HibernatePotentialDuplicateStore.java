@@ -192,13 +192,13 @@ class HibernatePotentialDuplicateStore
         .getTrackedEntityAttributeValues()
         .forEach(
             oav -> {
-              if (trackedEntityAttributes.contains(UID.of(oav.getAttribute()))) {
+              if (trackedEntityAttributes.contains(oav.getAttribute().getUID())) {
                 originalAttributeValueMap.put(oav.getAttribute().getUid(), oav);
               }
             });
 
     duplicate.getTrackedEntityAttributeValues().stream()
-        .filter(av -> trackedEntityAttributes.contains(UID.of(av.getAttribute())))
+        .filter(av -> trackedEntityAttributes.contains(av.getAttribute().getUID()))
         .forEach(
             dav -> {
               String previousValue = null;
@@ -257,7 +257,7 @@ class HibernatePotentialDuplicateStore
       TrackedEntity original, TrackedEntity duplicate, Set<UID> relationships) {
     List<RelationshipItem> duplicateRelationshipItems =
         duplicate.getRelationshipItems().stream()
-            .filter(r -> relationships.contains(UID.of(r.getRelationship())))
+            .filter(r -> relationships.contains(r.getRelationship().getUID()))
             .toList();
     duplicateRelationshipItems.forEach(
         ri -> {
@@ -274,7 +274,7 @@ class HibernatePotentialDuplicateStore
     List<Enrollment> enrollmentList =
         duplicate.getEnrollments().stream()
             .filter(e -> !e.isDeleted())
-            .filter(e -> enrollments.contains(UID.of(e)))
+            .filter(e -> enrollments.contains(e.getUID()))
             .toList();
 
     enrollmentList.forEach(duplicate.getEnrollments()::remove);
@@ -312,7 +312,7 @@ class HibernatePotentialDuplicateStore
             rel ->
                 duplicate.getRelationshipItems().stream()
                     .map(RelationshipItem::getRelationship)
-                    .filter(r -> r.getUid().equals(rel.getValue()))
+                    .filter(r -> r.getUID().equals(rel))
                     .findAny()
                     .ifPresent(
                         relationship ->

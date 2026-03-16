@@ -39,6 +39,7 @@ import static org.hisp.dhis.http.HttpStatus.Series.SUCCESSFUL;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -47,9 +48,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -634,6 +639,220 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  @DisplayName(
+      "Replicated user inherits roles, group memberships, org units, dimension constraints, and scalar fields from source user")
+  void testReplicateUserProfile() {
+    // Set scalar fields on peter so we can verify they are copied
+    PATCH(
+            "/users/" + peter.getUid(),
+            "[{'op':'replace','path':'/phoneNumber','value':'555-1234'},"
+                + "{'op':'replace','path':'/jobTitle','value':'Test Engineer'},"
+                + "{'op':'replace','path':'/nationality','value':'Norwegian'},"
+                + "{'op':'replace','path':'/employer','value':'DHIS2'}]")
+        .content(HttpStatus.OK);
+
+    // Assign an extra role to peter
+    UserRole extraRole = createUserRole("ROLE_EXTRA", "F_DATAVALUE_ADD");
+    userService.addUserRole(extraRole);
+    String extraRoleUid = userService.getUserRoleByName("ROLE_EXTRA").getUid();
+    PATCH(
+            "/users/" + peter.getUid(),
+            "[{'op':'add','path':'/userRoles','value':[{'id':'"
+                + extraRoleUid
+                + "'},{'id':'"
+                + peter.getUserRoles().iterator().next().getUid()
+                + "'}]}]")
+        .content(HttpStatus.OK);
+
+    // Assign a group to peter
+    UserGroup group = createUserGroup('A', emptySet());
+    manager.save(group);
+    PATCH(
+            "/users/" + peter.getUid(),
+            "[{'op':'add','path':'/userGroups','value':[{'id':'" + group.getUid() + "'}]}]")
+        .content(HttpStatus.OK);
+
+    // Assign an org unit to peter (capture + data-view)
+    OrganisationUnit ou = createOrganisationUnit('Z');
+    organisationUnitService.addOrganisationUnit(ou);
+    PATCH(
+            "/users/" + peter.getUid(),
+            "[{'op':'add','path':'/organisationUnits','value':[{'id':'"
+                + ou.getUid()
+                + "'}]},{'op':'add','path':'/dataViewOrganisationUnits','value':[{'id':'"
+                + ou.getUid()
+                + "'}]},{'op':'add','path':'/teiSearchOrganisationUnits','value':[{'id':'"
+                + ou.getUid()
+                + "'}]}]")
+        .content(HttpStatus.OK);
+
+    // Assign dimension constraints to peter
+    CategoryOptionGroupSet cogs = createCategoryOptionGroupSet('A');
+    manager.save(cogs);
+    Category cat = createCategory('A');
+    manager.save(cat);
+    PATCH(
+            "/users/" + peter.getUid(),
+            "[{'op':'add','path':'/cogsDimensionConstraints','value':[{'id':'"
+                + cogs.getUid()
+                + "'}]},{'op':'add','path':'/catDimensionConstraints','value':[{'id':'"
+                + cat.getUid()
+                + "'}]}]")
+        .content(HttpStatus.OK);
+
+    // Re-fetch peter so we have the up-to-date scalar values to compare against
+    User source = userService.getUser(peter.getUid());
+
+    var postResponse =
+        POST(
+            "/users/" + peter.getUid() + "/replica",
+            "{'username':'peter2','password':'Saf€sEcre1'}");
+    postResponse.content(HttpStatus.CREATED);
+    String replicaUid =
+        postResponse.location().substring(postResponse.location().lastIndexOf('/') + 1);
+
+    // Simulate the FE's immediate GET by UID after the replica POST.
+    // This is a new HTTP request (new transaction) and exercises the L2 query cache path
+    // that the in-process userService call below does not cover.
+    GET("/users/" + replicaUid).content(HttpStatus.OK);
+
+    User replica = userService.getUserByUsername("peter2");
+    assertNotNull(replica);
+
+    // --- Scalar fields: should be equal ---
+    assertEquals(source.getFirstName(), replica.getFirstName(), "firstName should be copied");
+    assertEquals(source.getSurname(), replica.getSurname(), "surname should be copied");
+    assertEquals(source.getEmail(), replica.getEmail(), "email should be copied");
+    assertEquals(source.getPhoneNumber(), replica.getPhoneNumber(), "phoneNumber should be copied");
+    assertEquals(source.getJobTitle(), replica.getJobTitle(), "jobTitle should be copied");
+    assertEquals(source.getNationality(), replica.getNationality(), "nationality should be copied");
+    assertEquals(source.getEmployer(), replica.getEmployer(), "employer should be copied");
+    assertEquals(source.isDisabled(), replica.isDisabled(), "disabled should be copied");
+    assertFalse(replica.isExternalAuth(), "externalAuth must be false on replica");
+    assertEquals(
+        source.isSelfRegistered(), replica.isSelfRegistered(), "selfRegistered should be copied");
+
+    // --- Identity fields: must be different ---
+    assertNotEquals(source.getUid(), replica.getUid(), "uid must be unique");
+    assertNotEquals(source.getUuid(), replica.getUuid(), "uuid must be unique");
+    assertEquals("peter2", replica.getUsername(), "username must be the requested one");
+
+    // --- Fields explicitly cleared on replica ---
+    assertNull(replica.getCode(), "code must be null on replica");
+    assertNull(replica.getLdapId(), "ldapId must be null on replica");
+    assertNull(replica.getOpenId(), "openId must be null on replica");
+    assertNull(replica.getLastLogin(), "lastLogin must be null on new replica");
+
+    // passwordLastUpdated is set to now() in insertUserCopy for the replica
+    assertNotNull(
+        replica.getPasswordLastUpdated(),
+        "passwordLastUpdated should reflect when the replica's password was set");
+    assertNotEquals(
+        source.getPasswordLastUpdated(),
+        replica.getPasswordLastUpdated(),
+        "passwordLastUpdated must not be inherited from source");
+
+    // --- Collections: should exactly match source ---
+    assertEquals(
+        source.getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toSet()),
+        replica.getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toSet()),
+        "Replica roles must exactly match source roles");
+
+    assertEquals(
+        source.getGroups().stream().map(UserGroup::getUid).collect(Collectors.toSet()),
+        replica.getGroups().stream().map(UserGroup::getUid).collect(Collectors.toSet()),
+        "Replica group memberships must exactly match source");
+
+    assertEquals(
+        source.getOrganisationUnits().stream()
+            .map(OrganisationUnit::getUid)
+            .collect(Collectors.toSet()),
+        replica.getOrganisationUnits().stream()
+            .map(OrganisationUnit::getUid)
+            .collect(Collectors.toSet()),
+        "Replica capture org units must exactly match source");
+
+    assertEquals(
+        source.getDataViewOrganisationUnits().stream()
+            .map(OrganisationUnit::getUid)
+            .collect(Collectors.toSet()),
+        replica.getDataViewOrganisationUnits().stream()
+            .map(OrganisationUnit::getUid)
+            .collect(Collectors.toSet()),
+        "Replica data-view org units must exactly match source");
+
+    assertEquals(
+        source.getCogsDimensionConstraints().stream()
+            .map(CategoryOptionGroupSet::getUid)
+            .collect(Collectors.toSet()),
+        replica.getCogsDimensionConstraints().stream()
+            .map(CategoryOptionGroupSet::getUid)
+            .collect(Collectors.toSet()),
+        "Replica COGS dimension constraints must exactly match source");
+
+    assertEquals(
+        source.getCatDimensionConstraints().stream()
+            .map(Category::getUid)
+            .collect(Collectors.toSet()),
+        replica.getCatDimensionConstraints().stream()
+            .map(Category::getUid)
+            .collect(Collectors.toSet()),
+        "Replica category dimension constraints must exactly match source");
+
+    assertEquals(
+        source.getTeiSearchOrganisationUnits().stream()
+            .map(OrganisationUnit::getUid)
+            .collect(Collectors.toSet()),
+        replica.getTeiSearchOrganisationUnits().stream()
+            .map(OrganisationUnit::getUid)
+            .collect(Collectors.toSet()),
+        "Replica TEI search org units must exactly match source");
+  }
+
+  @Test
+  @DisplayName("Replicated user inherits user settings from source user")
+  void testReplicateUserCopiesSettings() {
+    // Set a non-default UI locale on peter so we have something to verify
+    POST("/userSettings/keyUiLocale?userId=" + peter.getUid(), "sv").content(HttpStatus.OK);
+    assertEquals(
+        "sv",
+        GET("/userSettings/keyUiLocale?userId=" + peter.getUid()).content("text/plain"),
+        "Source user should have keyUiLocale=sv before replication");
+
+    var postResponse =
+        POST(
+            "/users/" + peter.getUid() + "/replica",
+            "{'username':'peter2','password':'Saf€sEcre1'}");
+    postResponse.content(HttpStatus.CREATED);
+
+    // Verify settings are visible via /api/me/settings — the same endpoint the FE uses —
+    // by switching the session to the replica user's credentials.
+    User replica = userService.getUserByUsername("peter2");
+    assertNotNull(replica, "Replica user must exist after replication");
+    switchToNewUser(replica);
+    assertEquals(
+        "sv",
+        GET("/me/settings/keyUiLocale").content().string(),
+        "Replica user should see inherited keyUiLocale via /api/me/settings");
+    switchToAdminUser();
+  }
+
+  @Test
+  @DisplayName("Replicating a user with external authentication enabled is rejected")
+  void testReplicateUserWithExternalAuthIsRejected() {
+    PATCH("/users/" + peter.getUid(), "[{'op':'replace','path':'/externalAuth','value':true}]")
+        .content(HttpStatus.OK);
+
+    assertEquals(
+        "Cannot replicate a user with external authentication enabled",
+        POST(
+                "/users/" + peter.getUid() + "/replica",
+                "{'username':'peter2','password':'Saf€sEcre1'}")
+            .error(HttpStatus.CONFLICT)
+            .getMessage());
+  }
+
+  @Test
   void testReplicateUserCreatedByUpdated() throws JsonProcessingException {
     User newUser = createUserWithAuth("test", "ALL");
 
@@ -1104,6 +1323,162 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  @DisplayName("GET /users?ou={uid} returns only users in the current user's org unit")
+  void testGetUsersFilterByOrgUnit() {
+    OrganisationUnit orgA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(orgA);
+    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
+    organisationUnitService.addOrganisationUnit(orgB);
+
+    User alice = createUserWithAuth("alice");
+    alice.addOrganisationUnit(orgA);
+    userService.updateUser(alice);
+
+    User bob = createUserWithAuth("bob");
+    bob.addOrganisationUnit(orgB);
+    userService.updateUser(bob);
+
+    // Switch to a user whose org units are orgA (fresh security context)
+    User viewer = createUserWithAuth("viewer", "ALL");
+    viewer.addOrganisationUnit(orgA);
+    userService.updateUser(viewer);
+    switchToNewUser(viewer);
+
+    JsonList<JsonUser> users =
+        GET("/users?ou=" + orgA.getUid()).content(HttpStatus.OK).getList("users", JsonUser.class);
+
+    List<String> uids = users.stream().map(JsonUser::getId).toList();
+    assertTrue(uids.contains(alice.getUid()));
+    assertTrue(uids.contains(viewer.getUid()));
+    assertFalse(uids.contains(bob.getUid()));
+  }
+
+  @Test
+  @DisplayName("GET /users?ou={uid}&includeChildren=true returns users in org unit subtree")
+  void testGetUsersFilterByOrgUnitWithChildren() {
+    OrganisationUnit orgA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(orgA);
+    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
+    organisationUnitService.addOrganisationUnit(orgB);
+    OrganisationUnit orgC = createOrganisationUnit('C', orgB);
+    organisationUnitService.addOrganisationUnit(orgC);
+
+    User alice = createUserWithAuth("alice");
+    alice.addOrganisationUnit(orgA);
+    userService.updateUser(alice);
+
+    User bob = createUserWithAuth("bob");
+    bob.addOrganisationUnit(orgB);
+    userService.updateUser(bob);
+
+    User charlie = createUserWithAuth("charlie");
+    charlie.addOrganisationUnit(orgC);
+    userService.updateUser(charlie);
+
+    // Switch to a user whose org units are orgA (fresh security context)
+    User viewer = createUserWithAuth("viewer", "ALL");
+    viewer.addOrganisationUnit(orgA);
+    userService.updateUser(viewer);
+    switchToNewUser(viewer);
+
+    JsonList<JsonUser> users =
+        GET("/users?ou=" + orgA.getUid() + "&includeChildren=true")
+            .content(HttpStatus.OK)
+            .getList("users", JsonUser.class);
+
+    List<String> uids = users.stream().map(JsonUser::getId).toList();
+    assertTrue(uids.contains(alice.getUid()));
+    assertTrue(uids.contains(bob.getUid()));
+    assertTrue(uids.contains(charlie.getUid()));
+    assertTrue(uids.contains(viewer.getUid()));
+  }
+
+  @Test
+  @DisplayName("GET /users?query=alice returns only matching users by name/email/username")
+  void testGetUsersFilterByQuery() {
+    User alice = createUserWithAuth("alice");
+    createUserWithAuth("bob");
+
+    JsonList<JsonUser> users =
+        GET("/users?query=alice").content(HttpStatus.OK).getList("users", JsonUser.class);
+
+    assertEquals(1, users.size());
+    assertEquals(alice.getUid(), users.get(0).getId());
+  }
+
+  @Test
+  @DisplayName("GET /users?phoneNumber={value} returns only users with that phone number")
+  void testGetUsersFilterByPhoneNumber() {
+    User alice = createUserWithAuth("alice");
+    alice.setPhoneNumber("+1234567890");
+    userService.updateUser(alice);
+
+    User bob = createUserWithAuth("bob");
+    bob.setPhoneNumber("+0987654321");
+    userService.updateUser(bob);
+
+    JsonList<JsonUser> users =
+        GET("/users?phoneNumber=+1234567890")
+            .content(HttpStatus.OK)
+            .getList("users", JsonUser.class);
+
+    assertEquals(1, users.size());
+    assertEquals(alice.getUid(), users.get(0).getId());
+  }
+
+  @Test
+  @DisplayName("GET /users with disabled filter returns only disabled users")
+  void testGetUsersFilterByDisabled() {
+    User alice = createUserWithAuth("alice");
+    userService.updateUser(alice);
+
+    User bob = createUserWithAuth("bob");
+    bob.setDisabled(true);
+    userService.updateUser(bob);
+
+    JsonList<JsonUser> users =
+        GET("/users?filter=disabled:eq:true")
+            .content(HttpStatus.OK)
+            .getList("users", JsonUser.class);
+
+    assertEquals(1, users.size());
+    assertEquals(bob.getUid(), users.get(0).getId());
+  }
+
+  @Test
+  @DisplayName("GET /users?invitationStatus=EXPIRED returns only users with expired invitations")
+  void testGetUsersFilterByInvitationStatusExpired() {
+    // regular user (not an invitation)
+    createUserWithAuth("alice");
+
+    // invitation user with expired restore
+    User bob = createUserWithAuth("bob");
+    bob.setInvitation(true);
+    bob.setRestoreToken("fakeHashedToken");
+    Calendar cal = Calendar.getInstance();
+    cal.add(Calendar.DAY_OF_YEAR, -1);
+    bob.setRestoreExpiry(cal.getTime());
+    userService.updateUser(bob);
+
+    // invitation user with non-expired restore (still valid)
+    User carol = createUserWithAuth("carol");
+    carol.setInvitation(true);
+    carol.setRestoreToken("anotherToken");
+    cal = Calendar.getInstance();
+    cal.add(Calendar.DAY_OF_YEAR, 1);
+    carol.setRestoreExpiry(cal.getTime());
+    userService.updateUser(carol);
+
+    JsonList<JsonUser> users =
+        GET("/users?invitationStatus=EXPIRED")
+            .content(HttpStatus.OK)
+            .getList("users", JsonUser.class);
+
+    assertEquals(1, users.size());
+    assertEquals(bob.getUid(), users.get(0).getId());
+  }
+
+  @Test
   void testGetUserRoleUsersAreTransformed() {
     UserRole role = createUserRole('X');
     User user = makeUser("Y");
@@ -1120,5 +1495,72 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
     assertFalse(userInRole.has("email"), "email should not be exposed");
     assertEquals(user.getUid(), userInRole.getString("id").string());
+  }
+
+  @Test
+  @DisplayName(
+      "GET /users?filter=organisationUnits.id:in:[uid] returns only users in that org unit")
+  void testGetUsersFilterByOrgUnitMembership() {
+    OrganisationUnit orgA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(orgA);
+    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
+    organisationUnitService.addOrganisationUnit(orgB);
+
+    User alice = createUserWithAuth("alice");
+    alice.addOrganisationUnit(orgA);
+    userService.updateUser(alice);
+
+    User bob = createUserWithAuth("bob");
+    bob.addOrganisationUnit(orgB);
+    userService.updateUser(bob);
+
+    JsonList<JsonUser> users =
+        GET("/users?filter=organisationUnits.id:in:[" + orgB.getUid() + "]")
+            .content(HttpStatus.OK)
+            .getList("users", JsonUser.class);
+
+    List<String> uids = users.stream().map(JsonUser::getId).toList();
+    assertTrue(uids.contains(bob.getUid()), "bob (in orgB) should be returned");
+    assertFalse(uids.contains(alice.getUid()), "alice (in orgA only) should not be returned");
+  }
+
+  @Test
+  @DisplayName(
+      "GET /users?filter=organisationUnits.id:in:[uid]&userOrgUnits=true&includeChildren=true"
+          + " returns intersection of filter and subtree")
+  void testGetUsersFilterByOrgUnitMembershipWithChildren() {
+    OrganisationUnit orgA = createOrganisationUnit('A');
+    organisationUnitService.addOrganisationUnit(orgA);
+    OrganisationUnit orgB = createOrganisationUnit('B', orgA);
+    organisationUnitService.addOrganisationUnit(orgB);
+
+    User alice = createUserWithAuth("alice");
+    alice.addOrganisationUnit(orgA);
+    userService.updateUser(alice);
+
+    User bob = createUserWithAuth("bob");
+    bob.addOrganisationUnit(orgB);
+    userService.updateUser(bob);
+
+    // viewer's org units = orgA → userOrgUnits=true&includeChildren=true covers orgA subtree
+    User viewer = createUserWithAuth("viewer", "ALL");
+    viewer.addOrganisationUnit(orgA);
+    userService.updateUser(viewer);
+    switchToNewUser(viewer);
+
+    // filter=organisationUnits.id:in:[orgB] AND userOrgUnits subtree (orgA+children)
+    // → only bob satisfies both (directly in orgB, which is under orgA)
+    JsonList<JsonUser> users =
+        GET("/users?filter=organisationUnits.id:in:["
+                + orgB.getUid()
+                + "]&userOrgUnits=true&includeChildren=true")
+            .content(HttpStatus.OK)
+            .getList("users", JsonUser.class);
+
+    List<String> uids = users.stream().map(JsonUser::getId).toList();
+    assertTrue(uids.contains(bob.getUid()), "bob (in orgB, subtree of orgA) should be returned");
+    assertFalse(uids.contains(alice.getUid()), "alice (in orgA, not orgB) should not be returned");
+    assertFalse(
+        uids.contains(viewer.getUid()), "viewer (in orgA, not orgB) should not be returned");
   }
 }

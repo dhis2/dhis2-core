@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.jsonpatch;
 
+import static org.hisp.dhis.schema.DefaultSchemaService.safeInvoke;
 import static org.hisp.dhis.util.JsonUtils.jsonToObject;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -47,7 +48,6 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -104,7 +104,7 @@ public class JsonPatchManager {
     for (Property property : schema.getProperties()) {
 
       if (property.isCollection()) {
-        Object data = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
+        Object data = safeInvoke(object, property.getGetterMethod());
 
         Collection<?> collection = (Collection<?>) data;
 

@@ -33,6 +33,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.period.Period;
@@ -53,7 +54,7 @@ public class DefaultMetadataMergeService implements MetadataMergeService {
     T source = metadataMergeParams.getSource();
     T target = metadataMergeParams.getTarget();
 
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(source));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(source));
 
     for (Property property : schema.getProperties()) {
       if (schema.isIdentifiableObject()) {
@@ -73,14 +74,25 @@ public class DefaultMetadataMergeService implements MetadataMergeService {
       }
 
       if (property.isCollection()) {
-        Collection<T> sourceObject =
-            ReflectionUtils.invokeMethod(source, property.getGetterMethod());
-        Collection<T> targetObject =
-            ReflectionUtils.invokeMethod(target, property.getGetterMethod());
-
-        if (sourceObject == null) {
+        // Skip read-only computed collections: calling the getter may trigger Hibernate lazy-init
+        // of huge membership sets (e.g. UserRole.getUsers() iterates all members immediately).
+        // If there is no setter, the merge result would be discarded anyway.
+        if (property.getSetterMethod() == null) {
           continue;
         }
+
+        Collection<T> sourceObject =
+            ReflectionUtils.invokeMethod(source, property.getGetterMethod());
+
+        // Skip null or uninitialized Hibernate PersistentCollections to avoid triggering massive
+        // lazy loads when merging Hibernate-managed entities
+        // during preheat reference collection. Plain Java collections are always "initialized".
+        if (sourceObject == null || !Hibernate.isInitialized(sourceObject)) {
+          continue;
+        }
+
+        Collection<T> targetObject =
+            ReflectionUtils.invokeMethod(target, property.getGetterMethod());
 
         // Note this exception for Period is sort of a hack
         // because the collections used for periods might be projection

@@ -39,6 +39,10 @@ import org.hisp.dhis.jsontree.JsonObject;
  * @author Jan Bernitt
  */
 public interface JsonImportSummary extends JsonObject {
+  default String getDescription() {
+    return getString("description").string();
+  }
+
   default String getResponseType() {
     return getString("responseType").string();
   }

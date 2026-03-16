@@ -58,7 +58,7 @@ public class Relationship implements TrackerDto, Serializable {
   @JsonProperty private RelationshipItem to;
 
   @Override
-  public UID getUid() {
+  public UID getUID() {
     return relationship;
   }
 

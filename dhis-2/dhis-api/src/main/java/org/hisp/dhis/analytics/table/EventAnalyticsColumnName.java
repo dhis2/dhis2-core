@@ -69,5 +69,6 @@ public final class EventAnalyticsColumnName {
   public static final String ENROLLMENT_GEOMETRY_COLUMN_NAME = "enrollmentgeometry";
   public static final String REGISTRATION_OU_COLUMN_NAME = "registrationou";
   public static final String ENROLLMENT_OU_COLUMN_NAME = "enrollmentou";
+  public static final String ENROLLMENT_OU_NAME_COLUMN_NAME = "enrollmentouname";
   public static final String TRACKED_ENTITY_GEOMETRY_COLUMN_NAME = "tegeometry";
 }

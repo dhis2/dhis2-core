@@ -30,6 +30,7 @@
 package org.hisp.dhis.db.sql;
 
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 /**
  * Interface for resolving specific SQL queries for analytics, that requires custom logic that can't
@@ -56,4 +57,21 @@ public interface AnalyticsSqlBuilder extends SqlBuilder {
    * @return the timestamp as a string in the correct format.
    */
   String renderTimestamp(String timestampAsString);
+
+  /**
+   * Renders a database-specific expression for extracting a period bucket value directly from a
+   * stage date column.
+   *
+   * <p>Implementations may return an empty value to indicate that generic lookup-based rendering
+   * should be used.
+   *
+   * @param stageDateColumn the stage date SQL column/expression (already quoted/aliased)
+   * @param periodBucketColumn period bucket identifier such as {@code yearly}, {@code monthly},
+   *     {@code daily}, {@code quarterly}
+   * @return database-specific period bucket expression if supported
+   */
+  default Optional<String> renderStageDatePeriodBucket(
+      String stageDateColumn, String periodBucketColumn) {
+    return Optional.empty();
+  }
 }

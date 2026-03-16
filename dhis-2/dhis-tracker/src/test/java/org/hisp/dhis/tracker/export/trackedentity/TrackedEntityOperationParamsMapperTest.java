@@ -183,7 +183,7 @@ class TrackedEntityOperationParamsMapperTest {
     programStage.setProgram(program);
     program.setProgramStages(Set.of(programStage));
 
-    when(trackerProgramService.getAccessibleTrackerPrograms()).thenReturn(List.of(program));
+    when(trackerProgramService.getTrackerProgramsWithDataReadAccess()).thenReturn(List.of(program));
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
     tea1 = new TrackedEntityAttribute();
@@ -199,6 +199,8 @@ class TrackedEntityOperationParamsMapperTest {
 
     when(attributeService.getTrackedEntityAttribute(TEA_1_UID.getValue())).thenReturn(tea1);
     when(attributeService.getTrackedEntityAttribute(TEA_2_UID.getValue())).thenReturn(tea2);
+
+    when(organisationUnitService.getOrganisationUnitsByUid(any())).thenReturn(List.of());
   }
 
   @Test
@@ -531,7 +533,7 @@ class TrackedEntityOperationParamsMapperTest {
     when(aclService.canDataRead(currentUserWithOrgUnits, program)).thenReturn(true);
     program.setMinAttributesRequiredToSearch(0);
     program.setMaxTeiCountToReturn(1);
-    when(trackerProgramService.getAccessibleTrackerPrograms()).thenReturn(List.of(program));
+    when(trackerProgramService.getTrackerProgramsWithDataReadAccess()).thenReturn(List.of(program));
 
     TrackedEntityOperationParams operationParams =
         TrackedEntityOperationParams.builder().orgUnitMode(ACCESSIBLE).build();

@@ -71,6 +71,7 @@ public class UserDetailsImpl implements UserDetails {
       @JsonProperty("accountNonExpired") boolean accountNonExpired,
       @JsonProperty("accountNonLocked") boolean accountNonLocked,
       @JsonProperty("credentialsNonExpired") boolean credentialsNonExpired,
+      @JsonProperty("dataViewMaxOrganisationUnitLevel") int dataViewMaxOrganisationUnitLevel,
       @JsonProperty("authorities") Collection<GrantedAuthority> authorities,
       @JsonProperty("allAuthorities") Set<String> allAuthorities,
       @JsonProperty("allRestrictions") Set<String> allRestrictions,
@@ -100,6 +101,7 @@ public class UserDetailsImpl implements UserDetails {
         .accountNonExpired(accountNonExpired)
         .accountNonLocked(accountNonLocked)
         .credentialsNonExpired(credentialsNonExpired)
+        .dataViewMaxOrganisationUnitLevel(dataViewMaxOrganisationUnitLevel)
         .authorities(authorities)
         .allAuthorities(allAuthorities)
         .allRestrictions(allRestrictions)
@@ -133,6 +135,7 @@ public class UserDetailsImpl implements UserDetails {
   private final boolean accountNonLocked;
   private final boolean credentialsNonExpired;
   private final boolean isSuper;
+  private final Integer dataViewMaxOrganisationUnitLevel;
   @Nonnull private final Collection<GrantedAuthority> authorities;
   @Nonnull private final Set<String> allAuthorities;
   @Nonnull private final Set<String> allRestrictions;

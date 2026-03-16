@@ -55,10 +55,10 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataDumpService;
-import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataExportStore;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.MissingValueStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -358,7 +358,7 @@ class PredictionServiceTest extends PostgresIntegrationTestBase {
       Period period) {
     DataExportValue value =
         dataExportStore.exportValue(
-            new DataEntryKey(dataElement, period, source, combo, attributeOptionCombo));
+            new DataValueKey(dataElement, period, source, combo, attributeOptionCombo));
     return value == null ? null : value.value();
   }
 
