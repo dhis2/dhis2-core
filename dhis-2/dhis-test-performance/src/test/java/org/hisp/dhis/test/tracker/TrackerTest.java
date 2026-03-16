@@ -83,6 +83,10 @@ import org.slf4j.LoggerFactory;
  * parameters). This value must be >= the maximum concurrent users during the test; otherwise users
  * may be reused concurrently, causing login conflicts that invalidate sessions.
  *
+ * <p><b>Import:</b> When {@code -DimportEnabled=true} (default), the test first runs bulk import
+ * scenarios to populate the database with tracked entities and single events before the read
+ * scenarios. Use {@code -DimportEnabled=false} to skip imports if the DB is already seeded.
+ *
  * <p><b>Profiles:</b>
  *
  * <ul>
@@ -107,7 +111,7 @@ import org.slf4j.LoggerFactory;
  *       __/‾‾ <br>
  *       Uses: usersPerSec (target), rampDurationSec (between steps), durationSec (per step), steps,
  *       repeat (default: 1) <br>
- *       Default: 5 steps × 30s with 10s ramps (3.2min total) <br>
+ *       Default: 5 steps x 30s with 10s ramps (3.2min total) <br>
  *       Example: {@code -Dprofile=capacity -DusersPerSec=10 -Dsteps=5 -DrampDurationSec=10
  *       -DdurationSec=30}
  * </ul>
@@ -138,6 +142,13 @@ public class TrackerTest extends Simulation {
   private final int durationSec;
   private final int rampDurationSec;
   private final int steps;
+  private final boolean importEnabled;
+  private final int importChunkSize;
+  private final int importTotalTEs;
+  private final int importTotalSingleEvents;
+  private final int importUsers;
+  private final long syntheaSeed;
+  private SyntheaFeeder syntheaFeeder;
 
   private enum Profile {
     SMOKE,
@@ -189,12 +200,16 @@ public class TrackerTest extends Simulation {
         int repeat,
         int rampDurationSec,
         int durationSec,
-        int steps) {}
+        int steps,
+        int importChunkSize,
+        int importTotalTEs,
+        int importTotalSingleEvents,
+        int importUsers) {}
     ProfileDefaults defaults =
         switch (this.profile) {
-          case SMOKE -> new ProfileDefaults(1, 1, 100, 1, 1, 1);
-          case LOAD -> new ProfileDefaults(6, 100, 1, 30, 180, 1);
-          case CAPACITY -> new ProfileDefaults(8, 100, 1, 10, 30, 4);
+          case SMOKE -> new ProfileDefaults(1, 1, 100, 1, 1, 1, 10, 10, 10, 1);
+          case LOAD -> new ProfileDefaults(6, 100, 1, 30, 180, 1, 500, 10000, 10000, 6);
+          case CAPACITY -> new ProfileDefaults(8, 100, 1, 10, 30, 4, 500, 10000, 10000, 6);
         };
     this.usersPerSec = Integer.getInteger("usersPerSec", defaults.usersPerSec());
     this.repeat = Integer.getInteger("repeat", defaults.repeat());
@@ -202,6 +217,22 @@ public class TrackerTest extends Simulation {
     this.rampDurationSec = Integer.getInteger("rampDurationSec", defaults.rampDurationSec());
     this.durationSec = Integer.getInteger("durationSec", defaults.durationSec());
     this.steps = Integer.getInteger("steps", defaults.steps());
+    this.importEnabled = Boolean.parseBoolean(System.getProperty("importEnabled", "true"));
+    this.importChunkSize = Integer.getInteger("importChunkSize", defaults.importChunkSize());
+    this.importTotalTEs = Integer.getInteger("importTotalTEs", defaults.importTotalTEs());
+    this.importTotalSingleEvents =
+        Integer.getInteger("importTotalSingleEvents", defaults.importTotalSingleEvents());
+    this.importUsers = Integer.getInteger("importUsers", defaults.importUsers());
+    this.syntheaSeed = Long.getLong("syntheaSeed", 12345L);
+
+    if (this.importEnabled) {
+      int syntheaPopulation = this.importTotalTEs + this.importTotalSingleEvents;
+      logger.info(
+          "Initializing Synthea feeder: seed={}, population={}",
+          this.syntheaSeed,
+          syntheaPopulation);
+      this.syntheaFeeder = new SyntheaFeeder(this.syntheaSeed, syntheaPopulation);
+    }
 
     try {
       provisionUsers();
@@ -212,21 +243,52 @@ public class TrackerTest extends Simulation {
     ScenarioWithRequests eventScenario = eventProgramScenario();
     ScenarioWithRequests trackerScenario = trackerProgramScenario();
 
-    PopulationBuilder populationBuilder;
+    PopulationBuilder readScenarios;
     if (this.profile == Profile.SMOKE) {
       ClosedInjectionStep closedInjection = constantConcurrentUsers(1).during(1);
-      populationBuilder =
+      readScenarios =
           eventScenario
               .scenario()
               .injectClosed(closedInjection)
               .andThen(trackerScenario.scenario().injectClosed(closedInjection));
     } else {
       List<OpenInjectionStep> injectionProfile = buildInjectionProfile();
-      populationBuilder =
+      readScenarios =
           eventScenario
               .scenario()
               .injectOpen(injectionProfile)
               .andThen(trackerScenario.scenario().injectOpen(injectionProfile));
+    }
+
+    PopulationBuilder populationBuilder;
+    if (this.importEnabled) {
+      int trackerRequestsPerUser =
+          (int) Math.ceil((double) this.importTotalTEs / (this.importChunkSize * this.importUsers));
+      int singleEventRequestsPerUser =
+          (int)
+              Math.ceil(
+                  (double) this.importTotalSingleEvents
+                      / (this.importChunkSize * this.importUsers));
+
+      logger.debug(
+          "Import: {} TEs + {} single events, {}/chunk, {} users, {} tracker requests/user, {} single event requests/user",
+          this.importTotalTEs,
+          this.importTotalSingleEvents,
+          this.importChunkSize,
+          this.importUsers,
+          trackerRequestsPerUser,
+          singleEventRequestsPerUser);
+
+      PopulationBuilder trackerImport =
+          trackerImportScenario(trackerRequestsPerUser)
+              .injectClosed(constantConcurrentUsers(this.importUsers).during(Duration.ofHours(1)));
+      PopulationBuilder singleEventImport =
+          singleEventImportScenario(singleEventRequestsPerUser)
+              .injectClosed(constantConcurrentUsers(this.importUsers).during(Duration.ofHours(1)));
+
+      populationBuilder = trackerImport.andThen(singleEventImport).andThen(readScenarios);
+    } else {
+      populationBuilder = readScenarios;
     }
 
     HttpProtocolBuilder httpProtocolBuilder =
@@ -343,6 +405,124 @@ public class TrackerTest extends Simulation {
       Thread.sleep(pauseAfterProvisioningSec * 1000L);
       logger.debug("Starting test execution...");
     }
+  }
+
+  private ScenarioBuilder trackerImportScenario(int requestsPerUser) {
+    return scenario("Tracker Import")
+        .exec(
+            session -> session.set("username", this.adminUser).set("password", this.adminPassword))
+        .exec(login())
+        .exitHereIfFailed()
+        .repeat(requestsPerUser)
+        .on(
+            group("Import tracker TEs")
+                .on(
+                    exec(
+                        http("Import tracker payload")
+                            .post("/api/tracker?async=false&importStrategy=CREATE")
+                            .header("Content-Type", "application/json")
+                            .header("X-Request-ID", session -> nextRequestId("Import tracker"))
+                            .body(
+                                StringBody(session -> generateTrackerPayload(this.importChunkSize)))
+                            .check(status().is(200)))));
+  }
+
+  private ScenarioBuilder singleEventImportScenario(int requestsPerUser) {
+    return scenario("Single Event Import")
+        .exec(
+            session -> session.set("username", this.adminUser).set("password", this.adminPassword))
+        .exec(login())
+        .exitHereIfFailed()
+        .repeat(requestsPerUser)
+        .on(
+            group("Import single events")
+                .on(
+                    exec(
+                        http("Import single event payload")
+                            .post("/api/tracker?async=false&importStrategy=CREATE")
+                            .header("Content-Type", "application/json")
+                            .header(
+                                "X-Request-ID", session -> nextRequestId("Import single events"))
+                            .body(
+                                StringBody(
+                                    session -> generateSingleEventPayload(this.importChunkSize)))
+                            .check(status().is(200)))));
+  }
+
+  private String generateTrackerPayload(int chunkSize) {
+    StringBuilder sb = new StringBuilder(chunkSize * 1024);
+    sb.append("{\"trackedEntities\":[");
+    for (int i = 0; i < chunkSize; i++) {
+      Map<String, Object> person = this.syntheaFeeder.next();
+      String firstName = (String) person.get("firstName");
+      String lastName = (String) person.get("lastName");
+      String gender = (String) person.get("gender");
+      String date = (String) person.get("date");
+      if (i > 0) sb.append(",");
+      sb.append(
+          """
+          {
+            "trackedEntityType": "nEenWmSyUEp",
+            "orgUnit": "DiszpKrYNg8",
+            "attributes": [
+              {"attribute": "w75KJ2mc4zz", "value": "%s"},
+              {"attribute": "zDhUuAYrxNC", "value": "%s"},
+              {"attribute": "cejWyOfXge6", "value": "%s"}
+            ],
+            "enrollments": [{
+              "program": "%s",
+              "orgUnit": "DiszpKrYNg8",
+              "enrolledAt": "%s",
+              "status": "ACTIVE",
+              "events": [{
+                "programStage": "ZkbAXlQUYJG",
+                "orgUnit": "DiszpKrYNg8",
+                "occurredAt": "%s",
+                "status": "ACTIVE",
+                "dataValues": [
+                  {"dataElement": "D7m8vpzxHDJ", "value": "Pulmonary"},
+                  {"dataElement": "U5ubm6PPYrM", "value": "true"}
+                ]
+              }]
+            }]
+          }"""
+              .formatted(firstName, lastName, gender, this.trackerProgram, date, date));
+    }
+    sb.append("]}");
+    return sb.toString();
+  }
+
+  private String generateSingleEventPayload(int chunkSize) {
+    StringBuilder sb = new StringBuilder(chunkSize * 512);
+    sb.append("{\"events\":[");
+    for (int i = 0; i < chunkSize; i++) {
+      Map<String, Object> person = this.syntheaFeeder.next();
+      String gender = (String) person.get("gender");
+      String occurredAt = (String) person.get("date");
+      String birthdate = (String) person.get("birthdate");
+      int age =
+          java.time.LocalDate.parse(occurredAt).getYear()
+              - java.time.LocalDate.parse(birthdate).getYear();
+      if (age < 1) age = 1;
+
+      if (i > 0) sb.append(",");
+      sb.append(
+          """
+          {
+            "program": "%s",
+            "programStage": "pTo4uMt3xur",
+            "orgUnit": "DiszpKrYNg8",
+            "occurredAt": "%s",
+            "status": "COMPLETED",
+            "dataValues": [
+              {"dataElement": "qrur9Dvnyt5", "value": "%d"},
+              {"dataElement": "oZg33kd9taw", "value": "%s"}
+            ]
+          }"""
+              .formatted(this.eventProgram, occurredAt, age, gender));
+    }
+    sb.append("]}");
+    return sb.toString();
   }
 
   private ScenarioWithRequests eventProgramScenario() {
@@ -628,7 +808,7 @@ public class TrackerTest extends Simulation {
                             .exec(
                                 searchTeByNameWithLikeOperator
                                     .action()
-                                    .check(jsonPath("$.trackedEntities[*]").count().is(1)))
+                                    .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
                             .exec(
                                 searchTeByNationalIdWithEqualOperator
                                     .action()
