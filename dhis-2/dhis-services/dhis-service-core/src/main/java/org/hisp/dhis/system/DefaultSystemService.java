@@ -63,6 +63,7 @@ import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.env.Environment;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -82,6 +83,7 @@ public class DefaultSystemService implements SystemService, InitializingBean {
   private final DhisConfigurationProvider dhisConfig;
   private final CalendarService calendarService;
   private final SystemSettingsProvider settingsProvider;
+  private final Environment environment;
 
   /** Variable holding fixed system info state. */
   private SystemInfo systemInfo = null;
@@ -91,11 +93,16 @@ public class DefaultSystemService implements SystemService, InitializingBean {
     systemInfo = getStableSystemInfo();
 
     if (systemInfo.getRevision() == null || systemInfo.getRevision().isBlank()) {
-      throw new IllegalStateException(
-          "FATAL: build.revision is missing. "
-              + "The server cannot start without a known build revision. "
-              + "Ensure the project was built with Maven (mvn package) "
-              + "so that build.properties is generated.");
+      if (SystemUtils.isTestRun(environment.getActiveProfiles())) {
+        log.warn("build.revision is missing (expected in test context). Using placeholder.");
+        systemInfo = systemInfo.toBuilder().revision("test-build").version("test").build();
+      } else {
+        throw new IllegalStateException(
+            "FATAL: build.revision is missing. "
+                + "The server cannot start without a known build revision. "
+                + "Ensure the project was built with Maven (mvn package) "
+                + "so that build.properties is generated.");
+      }
     }
 
     List<String> info =
