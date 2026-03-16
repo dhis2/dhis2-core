@@ -44,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -225,6 +226,11 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
 
     defaultParams =
         new TrackedEntityParams(false, TrackedEntityEnrollmentParams.FALSE, false, false);
+
+    User admin = getAdminUser();
+    admin.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
+    manager.update(admin);
+    injectSecurityContextUser(admin);
   }
 
   @Test
@@ -717,6 +723,10 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   void shouldNotTransferOwnershipWhenOrgUnitNotAssociatedToProgram() {
     OrganisationUnit notAssociatedOrgUnit = createOrganisationUnit('C');
     organisationUnitService.addOrganisationUnit(notAssociatedOrgUnit);
+    User adminUser = getAdminUser();
+    adminUser.setTeiSearchOrganisationUnits(Set.of(notAssociatedOrgUnit));
+    injectSecurityContextUser(adminUser);
+
     Exception exception =
         assertThrows(
             ForbiddenException.class,
@@ -732,6 +742,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   void shouldNotTransferOwnershipWhenUserHasNoDataWriteAccessToProgram() {
     programA.getSharing().setPublicAccess("rwr-----");
     programService.updateProgram(programA);
+    userA.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
     injectSecurityContextUser(userA);
 
     Exception exception =
@@ -743,6 +754,45 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
             "Current user doesn't have data write access to the provided program %s.",
             programA.getUid()),
         exception.getMessage());
+  }
+
+  @Test
+  void shouldNotTransferOwnershipWhenOrgUnitNotInEffectiveUserScope() {
+    OrganisationUnit outOfScopeOrgUnit = createOrganisationUnit('C');
+    organisationUnitService.addOrganisationUnit(outOfScopeOrgUnit);
+
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () -> transferOwnership(entityInstanceA1, programA, outOfScopeOrgUnit));
+    assertEquals(
+        "Tracked entity not transferred. Org unit supplied is not in the user scope.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldTransferOwnershipWhenOrgUnitIsDescendantOfUserSearchScope()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    OrganisationUnit childOfA = createOrganisationUnit('C');
+    childOfA.setParent(organisationUnitA);
+    organisationUnitService.addOrganisationUnit(childOfA);
+    childOfA.updatePath();
+    Set<OrganisationUnit> programOrgUnits = new HashSet<>(programA.getOrganisationUnits());
+    programOrgUnits.add(childOfA);
+    programA.setOrganisationUnits(programOrgUnits);
+    programService.updateProgram(programA);
+    User adminUser = getAdminUser();
+    adminUser.setTeiSearchOrganisationUnits(Set.of(organisationUnitA));
+    userService.updateUser(adminUser);
+    injectSecurityContextUser(adminUser);
+
+    trackerOwnershipAccessManager.transferOwnership(
+        entityInstanceA1, programA, childOfA, false, true);
+
+    TrackedEntityOperationParams operationParams = createOperationParams(userA, programA.getUid());
+    injectSecurityContext(userDetailsA);
+    List<String> trackedEntities = getTrackedEntities(operationParams);
+    assertContainsOnly(List.of(entityInstanceA1.getUid()), trackedEntities);
   }
 
   @Test

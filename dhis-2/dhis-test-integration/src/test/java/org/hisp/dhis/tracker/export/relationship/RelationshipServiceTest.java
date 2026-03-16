@@ -124,6 +124,9 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase {
     manager.save(orgUnitB, false);
 
     user = createAndAddUser(false, "user", Set.of(orgUnitA), Set.of(orgUnitA));
+    User admin = getAdminUser();
+    admin.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB));
+    userService.updateUser(admin);
 
     trackedEntityType = createTrackedEntityType('A');
     manager.save(trackedEntityType, false);
