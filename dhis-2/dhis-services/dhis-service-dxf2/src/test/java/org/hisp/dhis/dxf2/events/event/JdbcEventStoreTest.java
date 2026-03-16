@@ -31,6 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
@@ -41,9 +42,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.trackedentity.store.EventStore;
 import org.hisp.dhis.event.EventStatus;
@@ -54,9 +62,12 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -147,6 +158,37 @@ class JdbcEventStoreTest {
     List<ProgramStageInstance> instances = subject.updateEvents(programStageInstances);
 
     assertNotEmpty(instances);
+  }
+
+  @Test
+  void shouldNotContainOrderByWhileCountingEvents() {
+    DataElement dataElement = new DataElement();
+    dataElement.setUid("hUQ5Hfcx1JA");
+    QueryItem queryItem =
+        new QueryItem(dataElement, null, ValueType.TEXT, AggregationType.NONE, null);
+
+    EventQueryParams params = new EventQueryParams();
+    params.addFilter(queryItem);
+    params.setDataElements(new HashSet<>(Collections.singleton(queryItem)));
+    params.addGridOrders(
+        Collections.singletonList(new OrderParam("hUQ5Hfcx1JA", SortDirection.ASC)));
+    params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.ALL);
+
+    when(currentUserService.getCurrentUser()).thenReturn(new User());
+
+    ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+    when(namedParameterJdbcTemplate.queryForObject(
+            sqlCaptor.capture(),
+            any(MapSqlParameterSource.class),
+            ArgumentMatchers.<Class<Integer>>any()))
+        .thenReturn(0);
+
+    subject.getEventCount(params);
+
+    String countSql = sqlCaptor.getValue();
+    assertFalse(
+        countSql.toLowerCase().contains("order by"),
+        "count query must not contain ORDER BY — column alias is removed from SELECT and would cause a DB error");
   }
 
   private void mockRowSet() throws SQLException {
