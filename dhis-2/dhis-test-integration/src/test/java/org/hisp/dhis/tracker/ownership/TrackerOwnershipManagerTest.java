@@ -726,6 +726,23 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldNotTransferOwnershipWhenUserHasNoDataWriteAccessToProgram() {
+    programA.getSharing().setPublicAccess("rwr-----");
+    programService.updateProgram(programA);
+    injectSecurityContextUser(userA);
+
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () -> transferOwnership(trackedEntityA1, programA, organisationUnitB));
+    assertEquals(
+        String.format(
+            "Current user doesn't have data write access to the provided program %s.",
+            programA.getUid()),
+        exception.getMessage());
+  }
+
+  @Test
   void shouldNotTransferOwnershipWhenOrgUnitNotInEffectiveUserScope() {
     OrganisationUnit outOfScopeOrgUnit = createOrganisationUnit('C');
     organisationUnitService.addOrganisationUnit(outOfScopeOrgUnit);
