@@ -729,6 +729,8 @@ class TrackerOwnershipManagerTest extends PostgresIntegrationTestBase {
   void shouldNotTransferOwnershipWhenUserHasNoDataWriteAccessToProgram() {
     programA.getSharing().setPublicAccess("rwr-----");
     programService.updateProgram(programA);
+    userA.setTeiSearchOrganisationUnits(Set.of(organisationUnitB));
+    manager.update(userA);
     injectSecurityContextUser(userA);
 
     Exception exception =
