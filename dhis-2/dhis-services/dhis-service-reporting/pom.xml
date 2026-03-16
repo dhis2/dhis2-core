@@ -195,7 +195,7 @@
     </dependency>
     <dependency>
       <groupId>org.geotools</groupId>
-      <artifactId>gt-epsg-hsql</artifactId>
+      <artifactId>gt-epsg-wkt</artifactId>
     </dependency>
     <dependency>
       <groupId>org.geotools</groupId>
@@ -246,4 +246,19 @@
     </dependency>
 
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <configuration>
+          <ignoredUnusedDeclaredDependencies combine.children="append">
+            <!-- gt-epsg-wkt is a GeoTools service provider loaded via ServiceLoader at runtime -->
+            <ignoredUnusedDeclaredDependency>org.geotools:gt-epsg-wkt</ignoredUnusedDeclaredDependency>
+          </ignoredUnusedDeclaredDependencies>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

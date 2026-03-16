@@ -626,6 +626,24 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
           </exclusion>
+          <!-- OpenCensus and gRPC are Google observability libs not needed by DHIS2 (~700KB) -->
+          <exclusion>
+            <groupId>io.opencensus</groupId>
+            <artifactId>opencensus-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.opencensus</groupId>
+            <artifactId>opencensus-contrib-http-util</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.grpc</groupId>
+            <artifactId>grpc-context</artifactId>
+          </exclusion>
+          <!-- Old HttpComponents 4.x not needed, DHIS2 uses HttpComponents 5.x -->
+          <exclusion>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+          </exclusion>
         </exclusions>
       </dependency>
       <dependency>
@@ -696,6 +714,17 @@
         <groupId>org.apache.kafka</groupId>
         <artifactId>kafka-clients</artifactId>
         <version>${kafka.version}</version>
+        <exclusions>
+          <!-- DHIS2 does not configure Snappy or ZSTD compression for Kafka (~9.6MB) -->
+          <exclusion>
+            <groupId>org.xerial.snappy</groupId>
+            <artifactId>snappy-java</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>com.github.luben</groupId>
+            <artifactId>zstd-jni</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <!-- Velocity -->
@@ -1064,6 +1093,13 @@
         <groupId>com.mysql</groupId>
         <artifactId>mysql-connector-j</artifactId>
         <version>${mysql-connector-j.version}</version>
+        <exclusions>
+          <!-- Protobuf is only needed for MySQL Group Replication plugin, not used by DHIS2 -->
+          <exclusion>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <!-- Flyway -->
@@ -1350,6 +1386,13 @@
         <groupId>org.geotools</groupId>
         <artifactId>gt-metadata</artifactId>
         <version>${geotools.version}</version>
+        <exclusions>
+          <!-- net.opengis.ows pulls in Eclipse EMF (~2.6MB) which is not used by DHIS2 -->
+          <exclusion>
+            <groupId>org.geotools.ogc</groupId>
+            <artifactId>net.opengis.ows</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.geotools</groupId>
@@ -1385,7 +1428,7 @@
       </dependency>
       <dependency>
         <groupId>org.geotools</groupId>
-        <artifactId>gt-epsg-hsql</artifactId>
+        <artifactId>gt-epsg-wkt</artifactId>
         <version>${geotools.version}</version>
       </dependency>
       <dependency>
@@ -1417,12 +1460,24 @@
         <groupId>org.apache.activemq</groupId>
         <artifactId>artemis-jakarta-client</artifactId>
         <version>${artemis-jakarta.version}</version>
+        <exclusions>
+          <!-- JGroups is only needed for Artemis HA clustering; DHIS2 uses embedded standalone Artemis -->
+          <exclusion>
+            <groupId>org.jgroups</groupId>
+            <artifactId>jgroups</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.activemq</groupId>
         <artifactId>artemis-jakarta-server</artifactId>
         <version>${artemis-jakarta.version}</version>
         <exclusions>
+          <!-- JGroups is only needed for Artemis HA clustering; DHIS2 uses embedded standalone Artemis -->
+          <exclusion>
+            <groupId>org.jgroups</groupId>
+            <artifactId>jgroups</artifactId>
+          </exclusion>
           <exclusion>
             <groupId>io.netty</groupId>
             <artifactId>netty-codec-socks</artifactId>
@@ -1470,6 +1525,58 @@
         <groupId>io.netty</groupId>
         <artifactId>netty-all</artifactId>
         <version>${netty-all.version}</version>
+        <exclusions>
+          <!-- QUIC native JARs (~12MB total) are not needed for Artemis AMQP messaging -->
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-native-quic</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-classes-quic</artifactId>
+          </exclusion>
+          <!-- Unused Netty transport and codec modules -->
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport-sctp</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport-udt</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-transport-rxtx</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-mqtt</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-memcache</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-smtp</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-xml</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-haproxy</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-marshalling</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-protobuf</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>io.github.classgraph</groupId>

@@ -31,6 +31,7 @@ package org.hisp.dhis.web.appbundler;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -52,6 +53,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.appmanager.AppBundleInfo;
 import org.hisp.dhis.appmanager.AppBundleInfo.BundledAppInfo;
@@ -309,7 +311,7 @@ public class AppBundler {
         Path destZipPath = targetArtifactDir.resolve(app.getName() + ".zip");
 
         if (Files.exists(sourceZipPath)) {
-          Files.copy(sourceZipPath, destZipPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+          repackZipWithoutSourceMaps(sourceZipPath, destZipPath);
         } else {
           error(
               "Source zip file not found, skipping copy for app {}: {}",
@@ -324,6 +326,37 @@ public class AppBundler {
       throw new IOException("Failed to copy app bundles to build directory", e);
     }
     return targetArtifactDir;
+  }
+
+  /**
+   * Repacks a ZIP file excluding source map files (*.map) to reduce size. Source maps are debug
+   * artifacts not needed in production deployments.
+   *
+   * @param sourceZip the source ZIP file path
+   * @param destZip the destination ZIP file path
+   * @throws IOException if there's an error reading or writing the ZIP
+   */
+  private void repackZipWithoutSourceMaps(Path sourceZip, Path destZip) throws IOException {
+    try (ZipFile zipFile = new ZipFile(sourceZip.toFile());
+        ZipOutputStream zos =
+            new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(destZip.toFile())))) {
+      var entries = zipFile.entries();
+      while (entries.hasMoreElements()) {
+        ZipEntry entry = entries.nextElement();
+        if (entry.getName().endsWith(".map")) {
+          continue;
+        }
+        ZipEntry newEntry = new ZipEntry(entry.getName());
+        newEntry.setTime(entry.getTime());
+        zos.putNextEntry(newEntry);
+        if (!entry.isDirectory()) {
+          try (InputStream in = zipFile.getInputStream(entry)) {
+            in.transferTo(zos);
+          }
+        }
+        zos.closeEntry();
+      }
+    }
   }
 
   /**
