@@ -61,6 +61,7 @@ import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
 
@@ -242,9 +243,11 @@ public class DataApprovalLevel extends BaseMetadataObject implements Identifiabl
     this.translations.setTranslations(translations);
   }
 
-  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "name", key = "NAME")
   public String getDisplayName() {
-    return getName();
+    return translations.getTranslation("NAME", name);
   }
 
   @Override
