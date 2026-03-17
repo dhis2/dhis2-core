@@ -135,27 +135,42 @@ class DefaultEventDataQueryServiceTest {
   }
 
   @Test
-  void getFromRequestRejectsCreatedDimensionForEnrollmentAggregate() {
+  void getFromRequestAcceptsAndNormalizesCreatedDimensionForEnrollmentAggregate() {
     EventDataQueryRequest request =
         baseRequestBuilder(AGGREGATE, ENROLLMENT)
             .dimension(Set.of(Set.of("CREATED:LAST_12_MONTHS")))
             .build();
 
-    IllegalQueryException ex =
-        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
-    assertEquals(ErrorCode.E7222, ex.getErrorCode());
+    subject.getFromRequest(request);
+
+    verify(dataQueryService)
+        .getDimension(
+            eq("pe"),
+            eq(List.of("LAST_12_MONTHS:CREATED")),
+            eq(request),
+            anyList(),
+            eq(true),
+            any());
   }
 
   @Test
-  void getFromRequestRejectsCreatedFilterForEnrollmentAggregate() {
+  void getFromRequestAcceptsAndNormalizesCreatedFilterForEnrollmentAggregate() {
     EventDataQueryRequest request =
         baseRequestBuilder(AGGREGATE, ENROLLMENT)
             .filter(Set.of(Set.of("CREATED:LAST_12_MONTHS")))
             .build();
 
-    IllegalQueryException ex =
-        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
-    assertEquals(ErrorCode.E7222, ex.getErrorCode());
+    subject.getFromRequest(request);
+
+    verify(dataQueryService)
+        .getDimension(
+            eq("pe"),
+            eq(List.of("LAST_12_MONTHS:CREATED")),
+            eq(request.getRelativePeriodDate()),
+            anyList(),
+            eq(true),
+            eq(null),
+            any());
   }
 
   @Test
@@ -225,6 +240,20 @@ class DefaultEventDataQueryServiceTest {
             anyList(),
             eq(true),
             any());
+  }
+
+  @Test
+  void getFromRequestAcceptsAndNormalizesEventDateDimensionForEnrollmentAggregate() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, ENROLLMENT)
+            .dimension(Set.of(Set.of("EVENT_DATE:2022Sep")))
+            .build();
+
+    subject.getFromRequest(request);
+
+    verify(dataQueryService)
+        .getDimension(
+            eq("pe"), eq(List.of("2022Sep:EVENT_DATE")), eq(request), anyList(), eq(true), any());
   }
 
   @Test

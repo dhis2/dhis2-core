@@ -32,9 +32,11 @@ package org.hisp.dhis.analytics.event.data;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasKey;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.AggregationType.COUNT;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
@@ -45,10 +47,14 @@ import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -66,6 +72,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.user.SystemUser;
@@ -150,6 +157,101 @@ class EnrollmentAggregateServiceTest {
         headers.get(4), deB.getUid(), deB.getName(), COORDINATE, Point.class.getName());
     assertHeaderWithColumn(
         headers.get(5), deC.getUid(), deC.getName(), NUMBER, Double.class.getName());
+  }
+
+  @Test
+  void verifyPeriodHeaderUsesDateFieldNameForStaticDateFieldPeriods() {
+    DataElement deA = createDataElement('A', NUMBER, COUNT);
+    PeriodDimension period = createPeriodDimensions("201809").get(0).setDateField("LAST_UPDATED");
+    DimensionalObject periods =
+        new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, "pe", "Period", List.of(period));
+    QueryItem qiA = new QueryItem(deA, null, deA.getValueType(), deA.getAggregationType(), null);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(periods)
+            .addItem(qiA)
+            .withSkipData(true)
+            .withSkipMeta(false)
+            .build();
+
+    when(securityManager.withUserConstraints(any(EventQueryParams.class))).thenReturn(params);
+
+    Grid grid = service.getEnrollments(params);
+
+    List<GridHeader> headers = grid.getHeaders();
+    assertThat(headers, hasSize(3));
+    assertHeaderWithColumn(headers.get(0), "value", "Value", NUMBER, Double.class.getName());
+    assertHeaderWithColumn(
+        headers.get(1), "lastupdated", "Last updated", TEXT, String.class.getName());
+    assertHeaderWithColumn(
+        headers.get(2), deA.getUid(), deA.getName(), NUMBER, Double.class.getName());
+  }
+
+  @Test
+  void verifyEventStaticDateFieldPeriodsRetainEventDateHeader() {
+    DataElement deA = createDataElement('A', NUMBER, COUNT);
+    PeriodDimension period = createPeriodDimensions("201809").get(0).setDateField("EVENT_DATE");
+    DimensionalObject periods =
+        new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, "pe", "Period", List.of(period));
+    QueryItem qiA = new QueryItem(deA, null, deA.getValueType(), deA.getAggregationType(), null);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(periods)
+            .addItem(qiA)
+            .withSkipData(true)
+            .withSkipMeta(false)
+            .build();
+
+    when(securityManager.withUserConstraints(any(EventQueryParams.class))).thenReturn(params);
+
+    Grid grid = service.getEnrollments(params);
+
+    List<GridHeader> headers = grid.getHeaders();
+    assertThat(headers, hasSize(3));
+    assertHeaderWithColumn(headers.get(0), "value", "Value", NUMBER, Double.class.getName());
+    assertHeaderWithColumn(headers.get(1), "eventdate", "Event date", TEXT, String.class.getName());
+    assertHeaderWithColumn(
+        headers.get(2), deA.getUid(), deA.getName(), NUMBER, Double.class.getName());
+  }
+
+  @Test
+  void verifyRawPeriodDimensionIsRemovedFromMetadataForStaticDateFieldPeriods() {
+    DataElement deA = createDataElement('A', NUMBER, COUNT);
+    PeriodDimension period = createPeriodDimensions("201809").get(0).setDateField("LAST_UPDATED");
+    DimensionalObject periods =
+        new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, "pe", "Period", List.of(period));
+    QueryItem qiA = new QueryItem(deA, null, deA.getValueType(), deA.getAggregationType(), null);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(periods)
+            .addItem(qiA)
+            .withSkipData(true)
+            .withSkipMeta(false)
+            .build();
+
+    when(securityManager.withUserConstraints(any(EventQueryParams.class))).thenReturn(params);
+    doAnswer(
+            invocation -> {
+              Grid grid = invocation.getArgument(0);
+              Map<String, List<String>> dimensions = new LinkedHashMap<>();
+              dimensions.put("lastupdated", List.of("201809"));
+              dimensions.put(PERIOD_DIM_ID, List.of("201809"));
+              grid.getMetaData().put(DIMENSIONS.getKey(), dimensions);
+              return null;
+            })
+        .when(metadataHandler)
+        .addMetadata(any(Grid.class), any(EventQueryParams.class), any(List.class));
+
+    Grid grid = service.getEnrollments(params);
+
+    Map<String, List<String>> dimensions =
+        (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+
+    assertThat(dimensions, hasKey("lastupdated"));
+    assertFalse(dimensions.containsKey(PERIOD_DIM_ID));
   }
 
   @Test
