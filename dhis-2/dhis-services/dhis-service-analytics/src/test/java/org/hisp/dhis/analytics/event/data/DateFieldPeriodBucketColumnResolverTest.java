@@ -30,8 +30,10 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -187,6 +189,197 @@ class DateFieldPeriodBucketColumnResolverTest {
             "2021AprilS1",
             TimeField.ENROLLMENT_DATE.name(),
             "(select \"sixmonthlyapril\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = case when extract(month from ax.\"enrollmentdate\") between 4 and 9 then make_date(extract(year from ax.\"enrollmentdate\")::int, 4, 1) when extract(month from ax.\"enrollmentdate\") >= 10 then make_date(extract(year from ax.\"enrollmentdate\")::int, 10, 1) else make_date(extract(year from ax.\"enrollmentdate\")::int - 1, 10, 1) end)"));
+  }
+
+  // --- Empty-result guard clause tests ---
+
+  @Test
+  void shouldReturnEmptyForNonPeriodDimension() {
+    DimensionalObject dimension =
+        new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of());
+
+    assertTrue(subject.resolve(AnalyticsType.EVENT, dimension, true).isEmpty());
+  }
+
+  @Test
+  void shouldReturnEmptyForOccurredDateField() {
+    DimensionalObject dimension = periodDimension("202301", TimeField.OCCURRED_DATE.name());
+
+    assertTrue(subject.resolve(AnalyticsType.EVENT, dimension, true).isEmpty());
+  }
+
+  @Test
+  void shouldReturnEmptyWhenDateFieldIsNull() {
+    PeriodDimension period = PeriodDimension.of("202301").setDateField(null);
+    PeriodType periodType = PeriodType.getPeriodTypeFromIsoString("202301");
+    period.getPeriod().setPeriodType(periodType);
+    DimensionalObject dimension =
+        new BaseDimensionalObject("pe", DimensionType.PERIOD, List.of(period));
+
+    assertTrue(subject.resolve(AnalyticsType.EVENT, dimension, true).isEmpty());
+  }
+
+  @Test
+  void shouldReturnEmptyWhenMultipleDateFieldsPresent() {
+    PeriodDimension p1 =
+        PeriodDimension.of("202301").setDateField(TimeField.ENROLLMENT_DATE.name());
+    p1.getPeriod().setPeriodType(PeriodType.getPeriodTypeFromIsoString("202301"));
+
+    PeriodDimension p2 = PeriodDimension.of("202302").setDateField(TimeField.LAST_UPDATED.name());
+    p2.getPeriod().setPeriodType(PeriodType.getPeriodTypeFromIsoString("202302"));
+
+    DimensionalObject dimension =
+        new BaseDimensionalObject("pe", DimensionType.PERIOD, List.of(p1, p2));
+
+    assertTrue(subject.resolve(AnalyticsType.EVENT, dimension, true).isEmpty());
+  }
+
+  @Test
+  void shouldReturnEmptyWhenMultiplePeriodTypesPresent() {
+    PeriodDimension p1 =
+        PeriodDimension.of("202301").setDateField(TimeField.ENROLLMENT_DATE.name());
+    p1.getPeriod().setPeriodType(PeriodType.getPeriodTypeFromIsoString("202301"));
+
+    PeriodDimension p2 = PeriodDimension.of("2023").setDateField(TimeField.ENROLLMENT_DATE.name());
+    p2.getPeriod().setPeriodType(PeriodType.getPeriodTypeFromIsoString("2023"));
+
+    DimensionalObject dimension =
+        new BaseDimensionalObject("pe", DimensionType.PERIOD, List.of(p1, p2));
+
+    assertTrue(subject.resolve(AnalyticsType.EVENT, dimension, true).isEmpty());
+  }
+
+  @Test
+  void shouldReturnEmptyForUnresolvableTimeField() {
+    PeriodDimension period = PeriodDimension.of("202301").setDateField("BOGUS_FIELD");
+    PeriodType periodType = PeriodType.getPeriodTypeFromIsoString("202301");
+    period.getPeriod().setPeriodType(periodType);
+    DimensionalObject dimension =
+        new BaseDimensionalObject("pe", DimensionType.PERIOD, List.of(period));
+
+    assertTrue(subject.resolve(AnalyticsType.EVENT, dimension, true).isEmpty());
+  }
+
+  // --- AnalyticsType.ENROLLMENT tests ---
+
+  @Test
+  void shouldUseEnrollmentColumnNameForEnrollmentAnalyticsType() {
+    String sql =
+        subject
+            .resolve(
+                AnalyticsType.ENROLLMENT,
+                periodDimension("202301", TimeField.ENROLLMENT_DATE.name()),
+                true)
+            .orElseThrow();
+
+    assertEquals(
+        "(select \"monthly\" from analytics_rs_dateperiodstructure as dps_period"
+            + " where dps_period.\"dateperiod\" = date_trunc('month', ax.\"enrollmentdate\")::date)",
+        sql);
+  }
+
+  @Test
+  void shouldUseEnrollmentOccurredDateColumnForIncidentDateWithEnrollmentType() {
+    String sql =
+        subject
+            .resolve(
+                AnalyticsType.ENROLLMENT,
+                periodDimension("2022", TimeField.INCIDENT_DATE.name()),
+                true)
+            .orElseThrow();
+
+    assertEquals(
+        "(select \"yearly\" from analytics_rs_dateperiodstructure as dps_period"
+            + " where dps_period.\"dateperiod\" = date_trunc('year', ax.\"occurreddate\")::date)",
+        sql);
+  }
+
+  // --- Custom table alias test ---
+
+  @Test
+  void shouldResolveWithCustomTableAlias() {
+    DateFieldPeriodBucketColumnResolver.ResolvedExpression resolved =
+        subject
+            .resolve(
+                AnalyticsType.EVENT,
+                periodDimension("202301", TimeField.ENROLLMENT_DATE.name()),
+                "t1")
+            .orElseThrow();
+
+    assertTrue(resolved.selectExpression().contains("t1.\"enrollmentdate\""));
+    assertTrue(resolved.groupByExpression().contains("t1.\"enrollmentdate\""));
+    assertEquals("enrollmentdate", resolved.sourceColumn());
+  }
+
+  // --- resolveSourceColumn tests ---
+
+  @Test
+  void shouldResolveSourceColumnForEventType() {
+    String column =
+        subject
+            .resolveSourceColumn(
+                AnalyticsType.EVENT, periodDimension("202301", TimeField.ENROLLMENT_DATE.name()))
+            .orElseThrow();
+
+    assertEquals("enrollmentdate", column);
+  }
+
+  @Test
+  void shouldResolveSourceColumnForEnrollmentType() {
+    String column =
+        subject
+            .resolveSourceColumn(
+                AnalyticsType.ENROLLMENT, periodDimension("202301", TimeField.LAST_UPDATED.name()))
+            .orElseThrow();
+
+    assertEquals("lastupdated", column);
+  }
+
+  @Test
+  void shouldReturnEmptySourceColumnForNonPeriodDimension() {
+    DimensionalObject dimension =
+        new BaseDimensionalObject("ou", DimensionType.ORGANISATION_UNIT, List.of());
+
+    assertTrue(subject.resolveSourceColumn(AnalyticsType.EVENT, dimension).isEmpty());
+  }
+
+  @Test
+  void shouldReturnEmptySourceColumnForOccurredDate() {
+    Optional<String> result =
+        subject.resolveSourceColumn(
+            AnalyticsType.EVENT, periodDimension("202301", TimeField.OCCURRED_DATE.name()));
+
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  void shouldReturnEmptySourceColumnWhenNoDateField() {
+    PeriodDimension period = PeriodDimension.of("202301").setDateField(null);
+    PeriodType periodType = PeriodType.getPeriodTypeFromIsoString("202301");
+    period.getPeriod().setPeriodType(periodType);
+    DimensionalObject dimension =
+        new BaseDimensionalObject("pe", DimensionType.PERIOD, List.of(period));
+
+    assertTrue(subject.resolveSourceColumn(AnalyticsType.EVENT, dimension).isEmpty());
+  }
+
+  // --- Select expression coverage for non-YEARLY period types ---
+
+  @Test
+  void shouldResolveSelectExpressionForMonthlyBucket() {
+    String sql =
+        subject
+            .resolve(
+                AnalyticsType.EVENT,
+                periodDimension("202301", TimeField.ENROLLMENT_DATE.name()),
+                false)
+            .orElseThrow();
+
+    assertEquals(
+        "(select \"monthly\" from analytics_rs_dateperiodstructure as dps_period"
+            + " where dps_period.\"dateperiod\" = date_trunc('month', ax.\"enrollmentdate\")::date)"
+            + " as \"pe\"",
+        sql);
   }
 
   private static DimensionalObject periodDimension(String isoPeriod, String dateField) {

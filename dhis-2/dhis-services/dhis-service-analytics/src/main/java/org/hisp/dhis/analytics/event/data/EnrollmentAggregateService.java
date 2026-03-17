@@ -44,6 +44,7 @@ import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
@@ -181,6 +182,6 @@ public class EnrollmentAggregateService {
         .filter(PeriodDimension.class::isInstance)
         .map(PeriodDimension.class::cast)
         .map(PeriodDimension::getDateField)
-        .anyMatch(dateField -> dateField == null);
+        .anyMatch(Objects::isNull);
   }
 }

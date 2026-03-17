@@ -31,9 +31,11 @@ package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.toSet;
 
+import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.common.AnalyticsDateFilter;
@@ -58,7 +60,7 @@ public class DateFieldPeriodBucketColumnResolver {
       String selectExpression, String groupByExpression, String sourceColumn) {}
 
   private static final Set<PeriodTypeEnum> PERIOD_IDENTIFIER_BACKED_TYPES =
-      Set.of(
+      EnumSet.of(
           PeriodTypeEnum.DAILY,
           PeriodTypeEnum.WEEKLY,
           PeriodTypeEnum.WEEKLY_WEDNESDAY,
@@ -82,6 +84,8 @@ public class DateFieldPeriodBucketColumnResolver {
           PeriodTypeEnum.FINANCIAL_SEP,
           PeriodTypeEnum.FINANCIAL_OCT,
           PeriodTypeEnum.FINANCIAL_NOV);
+
+  private static final Pattern WHITESPACE = Pattern.compile("\\s+");
 
   private static final String DATE_PERIOD_STRUCTURE_TABLE = "analytics_rs_dateperiodstructure";
 
@@ -268,57 +272,49 @@ public class DateFieldPeriodBucketColumnResolver {
                   + dateColumn
                   + " - interval '1 month')::date + interval '1 month'";
           case BI_MONTHLY ->
-              """
-              make_date(
-                extract(year from %1$s)::int,
-                ((extract(month from %1$s)::int - 1) / 2) * 2 + 1,
-                1
-              )
-              """
-                  .formatted(dateColumn)
-                  .replace('\n', ' ')
-                  .replaceAll("\\s+", " ")
-                  .trim();
+              collapseWhitespace(
+                  """
+                  make_date(
+                    extract(year from %1$s)::int,
+                    ((extract(month from %1$s)::int - 1) / 2) * 2 + 1,
+                    1
+                  )
+                  """
+                      .formatted(dateColumn));
           case SIX_MONTHLY ->
-              """
-              make_date(
-                extract(year from %1$s)::int,
-                case when extract(month from %1$s) <= 6 then 1 else 7 end,
-                1
-              )
-              """
-                  .formatted(dateColumn)
-                  .replace('\n', ' ')
-                  .replaceAll("\\s+", " ")
-                  .trim();
+              collapseWhitespace(
+                  """
+                  make_date(
+                    extract(year from %1$s)::int,
+                    case when extract(month from %1$s) <= 6 then 1 else 7 end,
+                    1
+                  )
+                  """
+                      .formatted(dateColumn));
           case SIX_MONTHLY_APRIL ->
-              """
-              case
-                when extract(month from %1$s) between 4 and 9
-                  then make_date(extract(year from %1$s)::int, 4, 1)
-                when extract(month from %1$s) >= 10
-                  then make_date(extract(year from %1$s)::int, 10, 1)
-                else make_date(extract(year from %1$s)::int - 1, 10, 1)
-              end
-              """
-                  .formatted(dateColumn)
-                  .replace('\n', ' ')
-                  .replaceAll("\\s+", " ")
-                  .trim();
+              collapseWhitespace(
+                  """
+                  case
+                    when extract(month from %1$s) between 4 and 9
+                      then make_date(extract(year from %1$s)::int, 4, 1)
+                    when extract(month from %1$s) >= 10
+                      then make_date(extract(year from %1$s)::int, 10, 1)
+                    else make_date(extract(year from %1$s)::int - 1, 10, 1)
+                  end
+                  """
+                      .formatted(dateColumn));
           case SIX_MONTHLY_NOV ->
-              """
-              case
-                when extract(month from %1$s) between 5 and 10
-                  then make_date(extract(year from %1$s)::int, 5, 1)
-                when extract(month from %1$s) >= 11
-                  then make_date(extract(year from %1$s)::int, 11, 1)
-                else make_date(extract(year from %1$s)::int - 1, 11, 1)
-              end
-              """
-                  .formatted(dateColumn)
-                  .replace('\n', ' ')
-                  .replaceAll("\\s+", " ")
-                  .trim();
+              collapseWhitespace(
+                  """
+                  case
+                    when extract(month from %1$s) between 5 and 10
+                      then make_date(extract(year from %1$s)::int, 5, 1)
+                    when extract(month from %1$s) >= 11
+                      then make_date(extract(year from %1$s)::int, 11, 1)
+                    else make_date(extract(year from %1$s)::int - 1, 11, 1)
+                  end
+                  """
+                      .formatted(dateColumn));
           case FINANCIAL_FEB -> renderFinancialYearStart(dateColumn, 2);
           case FINANCIAL_APRIL -> renderFinancialYearStart(dateColumn, 4);
           case FINANCIAL_JULY -> renderFinancialYearStart(dateColumn, 7);
@@ -331,7 +327,8 @@ public class DateFieldPeriodBucketColumnResolver {
   }
 
   private String renderFinancialYearStart(String dateColumn, int startMonth) {
-    return """
+    return collapseWhitespace(
+        """
         make_date(
           case when extract(month from %1$s) >= %2$d
                then extract(year from %1$s)::int
@@ -339,9 +336,10 @@ public class DateFieldPeriodBucketColumnResolver {
           end, %2$d, 1
         )
         """
-        .formatted(dateColumn, startMonth)
-        .replace('\n', ' ')
-        .replaceAll("\\s+", " ")
-        .trim();
+            .formatted(dateColumn, startMonth));
+  }
+
+  private static String collapseWhitespace(String input) {
+    return WHITESPACE.matcher(input).replaceAll(" ").trim();
   }
 }
