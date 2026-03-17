@@ -73,7 +73,6 @@ import org.springframework.security.oauth2.server.authorization.OAuth2Authorizat
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 import org.springframework.security.oauth2.server.authorization.jackson2.OAuth2AuthorizationServerJackson2Module;
 import org.springframework.security.oauth2.server.authorization.settings.AuthorizationServerSettings;
-import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -118,9 +117,6 @@ public class OAuth2DcrService {
         oAuth2ClientService.findByClientId(SYSTEM_REGISTRAR_CLIENTID);
     if (systemRegistrationClient == null) {
 
-      // TODO: MAS: This means that this setting value only will be used first time we creatae this
-      // client, and changes to the settings will not be refelcted unless the client is manually
-      // deleted
       String uriAllowList =
           systemSettingsService.getCurrentSettings().getDeviceEnrollmentRedirectAllowlist();
 
@@ -137,7 +133,6 @@ public class OAuth2DcrService {
                           .forEach(l::add))
               .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
               .scope("client.create")
-              .clientSettings(ClientSettings.builder().requireAuthorizationConsent(false).build())
               .build();
       oAuth2ClientService.save(registeredClient, new SystemUser());
     } else {
