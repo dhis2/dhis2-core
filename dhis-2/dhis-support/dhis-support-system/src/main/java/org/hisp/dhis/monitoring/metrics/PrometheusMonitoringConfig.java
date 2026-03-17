@@ -45,6 +45,7 @@ import org.hisp.dhis.datasource.DatabasePoolUtils.DbPoolType;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 /**
  * Configures Prometheus metrics integration for DHIS2.
@@ -85,7 +86,13 @@ public class PrometheusMonitoringConfig {
    * /api/metrics endpoint reads from this via {@code scrape()}.
    */
   @Bean
+  @Primary
   public PrometheusRegistry prometheusRegistry() {
+    return new PrometheusRegistry();
+  }
+
+  @Bean(name = "sendUsageMetricsRegistry")
+  public PrometheusRegistry sendUsageMetricsRegistry() {
     return new PrometheusRegistry();
   }
 

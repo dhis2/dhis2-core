@@ -267,12 +267,12 @@
       <artifactId>micrometer-registry-prometheus</artifactId>
     </dependency>
     <dependency>
-      <groupId>io.micrometer</groupId>
-      <artifactId>micrometer-registry-prometheus-simpleclient</artifactId>
+      <groupId>io.prometheus</groupId>
+      <artifactId>prometheus-metrics-model</artifactId>
     </dependency>
     <dependency>
       <groupId>io.prometheus</groupId>
-      <artifactId>prometheus-metrics-model</artifactId>
+      <artifactId>prometheus-metrics-exporter-opentelemetry</artifactId>
     </dependency>
     <dependency>
       <groupId>org.ehcache</groupId>

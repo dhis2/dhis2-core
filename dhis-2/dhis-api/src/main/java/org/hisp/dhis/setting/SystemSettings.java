@@ -864,4 +864,11 @@ public non-sealed interface SystemSettings extends Settings {
   default Boolean getCustomTranslationsEnabled() {
     return asBoolean("keyCustomTranslationsEnabled", false);
   }
+
+  /*
+   * @since 2.43
+   */
+  default Boolean getOptInSendUsageMetrics() {
+    return asBoolean("optInSendUsageMetrics", false);
+  }
 }
