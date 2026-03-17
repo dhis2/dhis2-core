@@ -98,7 +98,7 @@ public class ProgramNotificationInstance implements IdentifiableObject {
   @Temporal(TemporalType.TIMESTAMP)
   protected Date lastUpdated;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "lastupdatedby")
   @Setter
   protected User lastUpdatedBy;
