@@ -597,7 +597,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     OrgUnitSqlCoordinator.addDimensionSelectColumns(
         columns, params, isGroupByClause, isAggregated, getAnalyticsType());
 
-    if (params.hasEnrollmentStatuses() && params.isEnrollmentQuery()) {
+    if (params.hasEnrollmentStatuses() && params.isEnrollmentAggregateQuery()) {
       columns.add(ColumnAndAlias.ofColumn(ENROLLMENT_STATUS_COLUMN_NAME).asSql());
     }
   }

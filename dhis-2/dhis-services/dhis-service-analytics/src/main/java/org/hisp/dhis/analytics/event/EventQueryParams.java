@@ -1483,7 +1483,7 @@ public class EventQueryParams extends DataQueryParams {
     return endpointAction == QUERY;
   }
 
-  public boolean isEnrollmentQuery() {
+  public boolean isEnrollmentAggregateQuery() {
     return endpointAction == AGGREGATE && endpointItem == ENROLLMENT;
   }
 
