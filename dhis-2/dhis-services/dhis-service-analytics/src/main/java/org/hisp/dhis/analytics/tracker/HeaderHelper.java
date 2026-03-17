@@ -34,15 +34,20 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
+import static org.hisp.dhis.analytics.event.LabelMapper.getEnrollmentDateLabel;
+import static org.hisp.dhis.analytics.event.LabelMapper.getIncidentDateLabel;
 import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.isStageOuDimension;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getItemUid;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.common.ColumnHeader;
@@ -56,14 +61,16 @@ import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.period.PeriodDimension;
+import org.hisp.dhis.program.Program;
 
 @NoArgsConstructor(access = PRIVATE)
 public class HeaderHelper {
   public static void addCommonHeaders(
       Grid grid, EventQueryParams params, List<DimensionalObject> periods) {
 
-    addDimensionHeaders(grid, params.getDimensions());
-    addDimensionHeaders(grid, periods);
+    addDimensionHeaders(grid, params.getDimensions(), params.getProgram());
+    addDimensionHeaders(grid, periods, params.getProgram());
 
     if (params.hasEnrollmentStatuses() && !grid.headerExists(PROGRAM_STATUS.getItem())) {
       grid.addHeader(
@@ -125,12 +132,72 @@ public class HeaderHelper {
     }
   }
 
-  private static void addDimensionHeaders(Grid grid, List<DimensionalObject> dimensions) {
+  private static void addDimensionHeaders(
+      Grid grid, List<DimensionalObject> dimensions, Program program) {
     for (DimensionalObject dimension : dimensions) {
       grid.addHeader(
           new GridHeader(
-              dimension.getDimension(), dimension.getDimensionDisplayName(), TEXT, false, true));
+              getDimensionHeaderName(dimension),
+              getDimensionHeaderColumn(dimension, program),
+              TEXT,
+              false,
+              true));
     }
+  }
+
+  private static String getDimensionHeaderName(DimensionalObject dimension) {
+    return getStaticDateField(dimension)
+        .map(HeaderHelper::toDateFieldKey)
+        .orElse(dimension.getDimension());
+  }
+
+  private static String getDimensionHeaderColumn(DimensionalObject dimension, Program program) {
+    return getStaticDateField(dimension)
+        .map(dateField -> getDateFieldLabel(dateField, program))
+        .orElse(dimension.getDimensionDisplayName());
+  }
+
+  private static Optional<String> getStaticDateField(DimensionalObject dimension) {
+    if (!PERIOD_DIM_ID.equals(dimension.getDimension())) {
+      return Optional.empty();
+    }
+
+    Set<String> dateFields =
+        dimension.getItems().stream()
+            .filter(PeriodDimension.class::isInstance)
+            .map(PeriodDimension.class::cast)
+            .map(PeriodDimension::getDateField)
+            .collect(toSet());
+
+    if (dateFields.size() == 1) {
+      String dateField = dateFields.iterator().next();
+      if (dateField != null) {
+        return Optional.of(dateField);
+      }
+    }
+
+    return Optional.empty();
+  }
+
+  private static String toDateFieldKey(String dateField) {
+    return dateField.toLowerCase().replace("_", "");
+  }
+
+  private static String getDateFieldLabel(String dateField, Program program) {
+    return switch (dateField) {
+      case "ENROLLMENT_DATE" -> getEnrollmentDateLabel(program, toDateFieldDisplayName(dateField));
+      case "INCIDENT_DATE" -> getIncidentDateLabel(program, toDateFieldDisplayName(dateField));
+      default -> toDateFieldDisplayName(dateField);
+    };
+  }
+
+  private static String toDateFieldDisplayName(String dateField) {
+    String[] parts = dateField.toLowerCase().split("_");
+    if (parts.length == 0) {
+      return dateField;
+    }
+    parts[0] = parts[0].substring(0, 1).toUpperCase() + parts[0].substring(1);
+    return String.join(" ", parts);
   }
 
   private static GridHeader buildGridHeader(QueryItem item, HeaderBuildContext context) {
@@ -272,7 +339,7 @@ public class HeaderHelper {
       Set<String> coordinateFields =
           params.getCoordinateFields() == null
               ? Collections.emptySet()
-              : params.getCoordinateFields().stream().collect(toSet());
+              : new HashSet<>(params.getCoordinateFields());
 
       return new HeaderBuildContext(displayProperty, repeatedNames, coordinateFields);
     }

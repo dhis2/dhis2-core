@@ -231,7 +231,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             organisationUnitResolver,
             columnMapper,
             filterBuilder,
-            stageQuerySqlFacade);
+            stageQuerySqlFacade,
+            new DateFieldPeriodBucketColumnResolver(new PostgreSqlBuilder()));
 
     enrollmentSubject =
         new JdbcEnrollmentAnalyticsManager(
@@ -248,7 +249,8 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             organisationUnitResolver,
             columnMapper,
             filterBuilder,
-            stageQuerySqlFacade);
+            stageQuerySqlFacade,
+            new DateFieldPeriodBucketColumnResolver(new PostgreSqlBuilder()));
   }
 
   @Test

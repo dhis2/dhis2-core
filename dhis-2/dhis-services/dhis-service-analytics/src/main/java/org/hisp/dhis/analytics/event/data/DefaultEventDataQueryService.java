@@ -114,6 +114,8 @@ import org.springframework.util.Assert;
 @Service("org.hisp.dhis.analytics.event.EventDataQueryService")
 @RequiredArgsConstructor
 public class DefaultEventDataQueryService implements EventDataQueryService {
+  private static final String EVENT_DATE_DIMENSION = "EVENT_DATE";
+
   private static final String ENROLLMENT_OU_DIMENSION = "ENROLLMENT_OU";
   private static final String LEVEL_PREFIX = "LEVEL-";
 
@@ -718,7 +720,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       return new DimensionAndItems(dimensionId, items);
     }
 
-    if (!STATIC_DATE_DIMENSIONS.contains(dimensionId)) {
+    if (!isStaticDateDimension(dimensionId)) {
       return new DimensionAndItems(dimensionId, items);
     }
 
@@ -734,6 +736,10 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     return new DimensionAndItems("pe", periodItems);
   }
 
+  private boolean isStaticDateDimension(String dimensionId) {
+    return STATIC_DATE_DIMENSIONS.contains(dimensionId) || EVENT_DATE_DIMENSION.equals(dimensionId);
+  }
+
   private static boolean hasDateOperatorPrefix(List<String> items) {
     String first = items.get(0);
     int colonIndex = first.indexOf(':');
@@ -746,14 +752,15 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       return;
     }
 
-    if (!isEventAggregateRequest(request)) {
+    if (!isAggregateRequest(request)) {
       throwIllegalQueryEx(ErrorCode.E7222, dimensionString);
     }
   }
 
-  private boolean isEventAggregateRequest(EventDataQueryRequest request) {
+  private boolean isAggregateRequest(EventDataQueryRequest request) {
     return EndpointAction.AGGREGATE.equals(request.getEndpointAction())
-        && EndpointItem.EVENT.equals(request.getEndpointItem());
+        && (EndpointItem.EVENT.equals(request.getEndpointItem())
+            || EndpointItem.ENROLLMENT.equals(request.getEndpointItem()));
   }
 
   private boolean isProgramStatusDimension(String dimensionId) {

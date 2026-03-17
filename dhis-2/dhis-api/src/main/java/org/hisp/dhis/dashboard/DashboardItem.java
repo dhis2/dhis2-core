@@ -43,6 +43,7 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -108,23 +109,23 @@ public class DashboardItem implements IdentifiableObject, EmbeddedObject {
   @Column(name = "code")
   private String code;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "visualizationid")
   private Visualization visualization;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "eventvisualizationid")
   private EventVisualization eventVisualization;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "eventchartid")
   private EventChart eventChart;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "mapid")
   private Map map;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "eventreport")
   private EventReport eventReport;
 
@@ -184,7 +185,7 @@ public class DashboardItem implements IdentifiableObject, EmbeddedObject {
   @Temporal(TemporalType.TIMESTAMP)
   protected Date lastUpdated;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "lastupdatedby")
   protected User lastUpdatedBy;
 

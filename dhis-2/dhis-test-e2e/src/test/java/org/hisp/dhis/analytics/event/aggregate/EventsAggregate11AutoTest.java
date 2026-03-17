@@ -1003,7 +1003,7 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        3,
+        1,
         2,
         2); // Pass runtime flag, row count, and expected header counts
 
@@ -1036,10 +1036,7 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
 
     // 7. Assert row existence by value (unsorted results - validates all columns).
     // Validate row exists with values from original row index 0
-    validateRowExists(response, actualHeaders, Map.of("enrollmentdate", "2022", "value", "18"));
-
-    // Validate row exists with values from original row index 2
-    validateRowExists(response, actualHeaders, Map.of("enrollmentdate", "2021", "value", "8"));
+    validateRowExists(response, actualHeaders, Map.of("enrollmentdate", "2021", "value", "27"));
   }
 
   @DisplayName("Events Aggregate - INCIDENT_DATE dimension with period filter")
@@ -1065,7 +1062,7 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        3,
+        1,
         2,
         2); // Pass runtime flag, row count, and expected header counts
 
@@ -1098,9 +1095,7 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
 
     // 7. Assert row existence by value (unsorted results - validates all columns).
     // Validate row exists with values from original row.
-    validateRowExists(response, actualHeaders, Map.of("incidentdate", "2022", "value", "1"));
-    validateRowExists(response, actualHeaders, Map.of("incidentdate", "2021", "value", "10"));
-    validateRowExists(response, actualHeaders, Map.of("incidentdate", "2020", "value", "1"));
+    validateRowExists(response, actualHeaders, Map.of("incidentdate", "2021", "value", "12"));
   }
 
   @Test

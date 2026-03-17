@@ -258,9 +258,9 @@ public class Dashboard extends BaseMetadataObject implements IdentifiableObject,
     return name;
   }
 
-  @Override
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "name", key = "NAME")
   public String getDisplayName() {
     return translations.getTranslation("NAME", name);
   }
