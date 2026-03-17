@@ -35,15 +35,19 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
+import io.prometheus.metrics.core.metrics.Counter;
+import io.prometheus.metrics.model.registry.PrometheusRegistry;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.StreamSupport;
 import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.monitoring.metrics.MetricsEnabler;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
@@ -61,7 +65,6 @@ import org.springframework.web.util.UrlPathHelper;
  * @author Luciano Fiandesio
  */
 @Configuration
-@Conditional(WebMvcMetricsConfig.WebMvcMetricsEnabledCondition.class)
 public class WebMvcMetricsConfig implements WebMvcConfigurer {
   private static final String ATTRIBUTE_START_TIME =
       WebMvcMetricsFilter.class.getName() + ".START_TIME";
@@ -178,8 +181,13 @@ public class WebMvcMetricsConfig implements WebMvcConfigurer {
     }
   }
 
+  @Bean
+  public WebMvcTagsProvider servletTagsProvider() {
+    return new DefaultWebMvcTagsProvider();
+  }
+
   /** Replacement for the legacy WebMvcMetricsFilter that works with Jakarta EE. */
-  public static class WebMvcMetricsFilter extends OncePerRequestFilter {
+  public static class WebMvcMetricsFilter extends PushUsageMetricsWebMvcMetricsFilter {
     private final MeterRegistry registry;
     private final WebMvcTagsProvider tagsProvider;
     private final String metricName;
@@ -187,12 +195,14 @@ public class WebMvcMetricsConfig implements WebMvcConfigurer {
     private final HandlerMappingIntrospector handlerMappingIntrospector;
 
     public WebMvcMetricsFilter(
-        MeterRegistry registry,
+        MeterRegistry meterRegistry,
+        PrometheusRegistry sendUsageMetricsRegistry,
         WebMvcTagsProvider tagsProvider,
         String metricName,
         boolean autoTimeRequests,
         HandlerMappingIntrospector handlerMappingIntrospector) {
-      this.registry = registry;
+      super(sendUsageMetricsRegistry, tagsProvider);
+      this.registry = meterRegistry;
       this.tagsProvider = tagsProvider;
       this.metricName = metricName;
       this.autoTimeRequests = autoTimeRequests;
@@ -209,7 +219,7 @@ public class WebMvcMetricsConfig implements WebMvcConfigurer {
         HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws ServletException, IOException {
       if (!this.autoTimeRequests) {
-        filterChain.doFilter(request, response);
+        super.doFilterInternal(request, response, filterChain);
         return;
       }
 
@@ -217,7 +227,7 @@ public class WebMvcMetricsConfig implements WebMvcConfigurer {
       request.setAttribute(ATTRIBUTE_START_TIME, startTime);
 
       try {
-        filterChain.doFilter(request, response);
+        super.doFilterInternal(request, response, filterChain);
         Object handler = getHandler(request);
         recordTimerSample(startTime, request, response, handler, null);
       } catch (Exception exception) {
@@ -253,37 +263,74 @@ public class WebMvcMetricsConfig implements WebMvcConfigurer {
     }
   }
 
-  @Bean
-  public DefaultWebMvcTagsProvider servletTagsProvider() {
-    return new DefaultWebMvcTagsProvider();
-  }
-
-  @Bean
+  @Bean(name = "webMetricsFilter")
+  @Conditional(WebMvcMetricsConfig.WebMvcMetricsEnabledCondition.class)
   public WebMvcMetricsFilter webMetricsFilter(
-      MeterRegistry registry,
+      MeterRegistry metricsRegistry,
+      @Qualifier("sendUsageMetricsRegistry") PrometheusRegistry sendUsageMetricsRegistry,
       WebMvcTagsProvider tagsProvider,
       HandlerMappingIntrospector handlerMappingIntrospector) {
     return new WebMvcMetricsFilter(
-        registry, tagsProvider, "http_server_requests", true, handlerMappingIntrospector);
+        metricsRegistry,
+        sendUsageMetricsRegistry,
+        tagsProvider,
+        "http_server_requests",
+        true,
+        handlerMappingIntrospector);
   }
 
-  @Configuration
+  @Bean(name = "webMetricsFilter")
   @Conditional(WebMvcMetricsDisabledCondition.class)
-  static class DataSourcePoolMetadataMetricsConfig {
-    @Bean
-    public PassThroughWebMvcMetricsFilter webMetricsFilter() {
-      return new PassThroughWebMvcMetricsFilter();
-    }
+  public PushUsageMetricsWebMvcMetricsFilter pushUsageMetricsFilter(
+      @Qualifier("sendUsageMetricsRegistry") PrometheusRegistry sendUsageMetricsRegistry,
+      WebMvcTagsProvider tagsProvider) {
+    return new PushUsageMetricsWebMvcMetricsFilter(sendUsageMetricsRegistry, tagsProvider);
   }
 
-  // If API metrics are disabled, system still expects a filter named
-  // 'webMetricsFilter' to be available
-  static class PassThroughWebMvcMetricsFilter extends OncePerRequestFilter {
+  public static class PushUsageMetricsWebMvcMetricsFilter extends OncePerRequestFilter {
+    private final Counter counter;
+    private final WebMvcTagsProvider tagsProvider;
+
+    public PushUsageMetricsWebMvcMetricsFilter(
+        PrometheusRegistry prometheusRegistry, WebMvcTagsProvider tagsProvider) {
+
+      this.counter =
+          Counter.builder()
+              .name("http_errors")
+              .help("HTTP Errors")
+              .labelNames("exception", "method", "outcome", "status", "uri")
+              .register(prometheusRegistry);
+      counter.labelValues("", "", "", "", "").inc(0);
+      this.tagsProvider = tagsProvider;
+    }
+
     @Override
     protected void doFilterInternal(
         HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws ServletException, IOException {
-      filterChain.doFilter(request, response);
+      try {
+        filterChain.doFilter(request, response);
+        if (HttpStatus.resolve(response.getStatus()).is5xxServerError()) {
+          counter
+              .labelValues(
+                  StreamSupport.stream(
+                          this.tagsProvider.getTags(request, response, null, null).spliterator(),
+                          false)
+                      .map(Tag::getValue)
+                      .toArray(String[]::new))
+              .inc();
+        }
+      } catch (Exception exception) {
+        counter
+            .labelValues(
+                StreamSupport.stream(
+                        this.tagsProvider.getTags(request, response, null, exception).spliterator(),
+                        false)
+                    .map(Tag::getValue)
+                    .toArray(String[]::new))
+            .inc();
+        throw exception;
+      }
     }
   }
 
