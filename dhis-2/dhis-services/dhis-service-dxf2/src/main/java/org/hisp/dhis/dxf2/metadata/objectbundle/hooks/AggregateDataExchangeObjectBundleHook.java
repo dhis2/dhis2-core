@@ -156,6 +156,15 @@ public class AggregateDataExchangeObjectBundleHook
     }
   }
 
+  /**
+   * Validates that all periods in the source request are of the same type. Mixed period types (e.g.
+   * quarterly and monthly) will likely fail on versions 2.43+. Therefore, it does not make sense to
+   * allow for requests to contain mixed period types, as the data exchange is broken by
+   * construction.
+   *
+   * @param request the {@link SourceRequest}.
+   * @param addReports the list of {@link ErrorReport}.
+   */
   private void validatePeriods(SourceRequest request, Consumer<ErrorReport> addReports) {
     List<String> periods = request.getPe();
     if (isEmpty(periods)) {
