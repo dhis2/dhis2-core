@@ -88,6 +88,7 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
     String expectedMetaData =
         "{\"items\":{\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{},\"202105\":{\"name\":\"202105\"},\"202106\":{\"name\":\"202106\"},\"202103\":{\"name\":\"202103\"},\"202104\":{\"name\":\"202104\"},\"202101\":{\"name\":\"202101\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202102\":{\"name\":\"202102\"},\"A03MvHHogjR.eventdate\":{\"name\":\"Report date\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"A03MvHHogjR.eventdate\":[\"202101\",\"202102\",\"202103\",\"202104\",\"202105\",\"202106\"],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // 4. Validate Headers By Name (conditionally checking PostGIS headers).
@@ -1003,7 +1004,7 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        3,
+        1,
         2,
         2); // Pass runtime flag, row count, and expected header counts
 
@@ -1036,10 +1037,7 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
 
     // 7. Assert row existence by value (unsorted results - validates all columns).
     // Validate row exists with values from original row index 0
-    validateRowExists(response, actualHeaders, Map.of("enrollmentdate", "2022", "value", "18"));
-
-    // Validate row exists with values from original row index 2
-    validateRowExists(response, actualHeaders, Map.of("enrollmentdate", "2021", "value", "8"));
+    validateRowExists(response, actualHeaders, Map.of("enrollmentdate", "2021", "value", "27"));
   }
 
   @DisplayName("Events Aggregate - INCIDENT_DATE dimension with period filter")
@@ -1065,7 +1063,7 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
     validateResponseStructure(
         response,
         expectPostgis,
-        3,
+        1,
         2,
         2); // Pass runtime flag, row count, and expected header counts
 
@@ -1098,9 +1096,7 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
 
     // 7. Assert row existence by value (unsorted results - validates all columns).
     // Validate row exists with values from original row.
-    validateRowExists(response, actualHeaders, Map.of("incidentdate", "2022", "value", "1"));
-    validateRowExists(response, actualHeaders, Map.of("incidentdate", "2021", "value", "10"));
-    validateRowExists(response, actualHeaders, Map.of("incidentdate", "2020", "value", "1"));
+    validateRowExists(response, actualHeaders, Map.of("incidentdate", "2021", "value", "12"));
   }
 
   @Test
@@ -1117,7 +1113,6 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
 
     // When
     ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
-
     // Then
     // 1. Validate Response Structure (Counts, Headers, Height/Width)
     //    This helper checks basic counts and dimensions, adapting based on the runtime
@@ -1137,7 +1132,7 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"pe\":{\"name\":\"Period\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"2021\":{\"name\":\"2021\"}},\"dimensions\":{\"enrollmentou\":[\"ImspTQPwCqd\"],\"pe\":[\"2021\"]}}";
+        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"enrollmentou\":{\"name\":\"Enrollment org. unit\"},\"pe\":{\"name\":\"Period\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"2021\":{\"name\":\"2021\"}},\"dimensions\":{\"enrollmentou\":[\"ImspTQPwCqd\"],\"pe\":[\"2021\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -1202,7 +1197,7 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"pe\":{\"name\":\"Period\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"uFp0ztDOFbI\":{\"name\":\"Bendu CHC\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"BXd3TqaAxkK\":{\"name\":\"Sahun (Bumpeh) MCHP\"},\"2021\":{\"name\":\"2021\"},\"VpYAl8dXs6m\":{\"name\":\"Bendoma (Malegohun) MCHP\"}},\"dimensions\":{\"enrollmentou\":[\"BXd3TqaAxkK\",\"VpYAl8dXs6m\",\"uFp0ztDOFbI\"],\"pe\":[\"2021\"]}}";
+        "{\"items\":{\"enrollmentou\":{\"name\":\"Enrollment org. unit\"},\"pe\":{\"name\":\"Period\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"uFp0ztDOFbI\":{\"name\":\"Bendu CHC\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"BXd3TqaAxkK\":{\"name\":\"Sahun (Bumpeh) MCHP\"},\"2021\":{\"name\":\"2021\"},\"VpYAl8dXs6m\":{\"name\":\"Bendoma (Malegohun) MCHP\"}},\"dimensions\":{\"enrollmentou\":[\"BXd3TqaAxkK\",\"VpYAl8dXs6m\",\"uFp0ztDOFbI\"],\"pe\":[\"2021\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 

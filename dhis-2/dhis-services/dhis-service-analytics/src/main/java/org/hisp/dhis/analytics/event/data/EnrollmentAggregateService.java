@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.analytics.tracker.HeaderHelper.addCommonHeaders;
@@ -36,11 +37,14 @@ import static org.hisp.dhis.analytics.tracker.ResponseHelper.UNLIMITED_PAGING;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.addPaging;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.applyHeaders;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getDimensionsKeywords;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
@@ -53,6 +57,7 @@ import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Service;
@@ -61,7 +66,6 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class EnrollmentAggregateService {
-
   private final EnrollmentAnalyticsManager enrollmentAnalyticsManager;
 
   private final EventQueryPlanner queryPlanner;
@@ -112,6 +116,7 @@ public class EnrollmentAggregateService {
 
     // Set response info.
     metadataHandler.addMetadata(grid, params, keywords);
+    removeRawPeriodDimensionMetadata(grid, periods);
     schemeIdHandler.applyScheme(grid, params);
 
     addPaging(params, UNLIMITED_PAGING, grid);
@@ -157,5 +162,48 @@ public class EnrollmentAggregateService {
 
   private List<DimensionalObject> getPeriods(EventQueryParams params) {
     return params.getDimensions().stream().filter(d -> d.getDimensionType() == PERIOD).toList();
+  }
+
+  /**
+   * Removes the "pe" entry from {@code metadata.dimensions} when all periods use a non-default date
+   * field (e.g. ENROLLMENT_DATE, INCIDENT_DATE). In that case the period items are already exposed
+   * under their date-field-specific key (e.g. "enrollmentdate") by {@link
+   * MetadataItemsHandler#addMetadata}, so the generic "pe" key is redundant and would confuse
+   * consumers.
+   *
+   * <p>When at least one period uses the default date field ({@code dateField == null}), the "pe"
+   * key is kept because it is the only key under which those periods appear.
+   *
+   * @param grid the response grid whose metadata may be modified.
+   * @param periods the original period dimensions before start/end date expansion.
+   */
+  @SuppressWarnings("unchecked")
+  private void removeRawPeriodDimensionMetadata(Grid grid, List<DimensionalObject> periods) {
+    if (hasDefaultPeriod(periods)) {
+      return;
+    }
+
+    Object dimensions = grid.getMetaData().get(DIMENSIONS.getKey());
+    if (dimensions instanceof Map<?, ?> dimensionMap) {
+      ((Map<String, Object>) dimensionMap).remove(PERIOD_DIM_ID);
+    }
+  }
+
+  /**
+   * Returns {@code true} if any period in the given dimensions uses the default date field (i.e.
+   * {@link PeriodDimension#getDateField()} is {@code null}). A default period is one that is not
+   * bound to a specific date column like ENROLLMENT_DATE or INCIDENT_DATE, and is instead resolved
+   * against the standard event/occurrence date.
+   *
+   * @param periods the period dimensions to inspect.
+   * @return {@code true} if at least one period has a {@code null} date field.
+   */
+  private boolean hasDefaultPeriod(List<DimensionalObject> periods) {
+    return periods.stream()
+        .flatMap(period -> period.getItems().stream())
+        .filter(PeriodDimension.class::isInstance)
+        .map(PeriodDimension.class::cast)
+        .map(PeriodDimension::getDateField)
+        .anyMatch(Objects::isNull);
   }
 }

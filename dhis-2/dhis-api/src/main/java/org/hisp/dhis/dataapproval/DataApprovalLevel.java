@@ -36,6 +36,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -60,6 +61,7 @@ import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.common.annotation.Description;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
 
@@ -104,7 +106,7 @@ public class DataApprovalLevel extends BaseMetadataObject implements Identifiabl
   private int orgUnitLevel;
 
   /** The category option group set (optional) for this data approval level. */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "categoryoptiongroupsetid",
       foreignKey = @ForeignKey(name = "fK_dataapprovallevel_categoryoptiongroupsetid"))
@@ -241,9 +243,11 @@ public class DataApprovalLevel extends BaseMetadataObject implements Identifiabl
     this.translations.setTranslations(translations);
   }
 
-  @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "name", key = "NAME")
   public String getDisplayName() {
-    return getName();
+    return translations.getTranslation("NAME", name);
   }
 
   @Override
