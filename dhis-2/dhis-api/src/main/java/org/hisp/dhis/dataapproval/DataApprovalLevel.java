@@ -36,6 +36,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -104,7 +105,7 @@ public class DataApprovalLevel extends BaseMetadataObject implements Identifiabl
   private int orgUnitLevel;
 
   /** The category option group set (optional) for this data approval level. */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "categoryoptiongroupsetid",
       foreignKey = @ForeignKey(name = "fK_dataapprovallevel_categoryoptiongroupsetid"))

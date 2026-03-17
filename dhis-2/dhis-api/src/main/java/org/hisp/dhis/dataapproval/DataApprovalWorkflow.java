@@ -39,6 +39,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -102,12 +103,12 @@ public class DataApprovalWorkflow extends BaseMetadataObject
   @Embedded private TranslationProperty translations = new TranslationProperty();
 
   /** The period type for approving data with this workflow. */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "periodtypeid", nullable = false)
   private PeriodType periodType;
 
   /** The category combination for approving data with this workflow. */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "categorycomboid", nullable = false)
   private CategoryCombo categoryCombo;
 
