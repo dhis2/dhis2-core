@@ -494,6 +494,29 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase {
   }
 
   @Test
+  void shouldTransferOwnershipWhenOrgUnitIsInCaptureScopeButNotInSearchScope()
+      throws ForbiddenException {
+    adminUser.setTeiSearchOrganisationUnits(Set.of());
+    adminUser.setOrganisationUnits(Set.of(organisationUnitA));
+    userService.updateUser(adminUser);
+
+    trackerOwnershipAccessManager.transferOwnership(
+        entityInstanceA1, programA, organisationUnitA, false, true);
+
+    injectSecurityContext(userA);
+    List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> trackedEntities =
+        trackedEntityInstanceService.getTrackedEntityInstances(
+            createOperationParams(userA, programA, null), createInstanceParams(), false, false);
+    assertContainsOnly(
+        List.of(entityInstanceA1.getUid()),
+        trackedEntities.stream()
+            .map(
+                org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance
+                    ::getTrackedEntityInstance)
+            .collect(Collectors.toList()));
+  }
+
+  @Test
   void shouldFindTrackedEntityWhenProgramSuppliedAndUserIsOwner() {
     assignOwnership(entityInstanceA1, programA, organisationUnitA);
     TrackedEntityInstanceQueryParams params = createOperationParams(userA, programA, null);
