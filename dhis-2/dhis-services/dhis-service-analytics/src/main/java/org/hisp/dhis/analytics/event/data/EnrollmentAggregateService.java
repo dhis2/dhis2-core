@@ -164,6 +164,19 @@ public class EnrollmentAggregateService {
     return params.getDimensions().stream().filter(d -> d.getDimensionType() == PERIOD).toList();
   }
 
+  /**
+   * Removes the "pe" entry from {@code metadata.dimensions} when all periods use a non-default date
+   * field (e.g. ENROLLMENT_DATE, INCIDENT_DATE). In that case the period items are already exposed
+   * under their date-field-specific key (e.g. "enrollmentdate") by {@link
+   * MetadataItemsHandler#addMetadata}, so the generic "pe" key is redundant and would confuse
+   * consumers.
+   *
+   * <p>When at least one period uses the default date field ({@code dateField == null}), the "pe"
+   * key is kept because it is the only key under which those periods appear.
+   *
+   * @param grid the response grid whose metadata may be modified.
+   * @param periods the original period dimensions before start/end date expansion.
+   */
   @SuppressWarnings("unchecked")
   private void removeRawPeriodDimensionMetadata(Grid grid, List<DimensionalObject> periods) {
     if (hasDefaultPeriod(periods)) {
@@ -176,6 +189,15 @@ public class EnrollmentAggregateService {
     }
   }
 
+  /**
+   * Returns {@code true} if any period in the given dimensions uses the default date field (i.e.
+   * {@link PeriodDimension#getDateField()} is {@code null}). A default period is one that is not
+   * bound to a specific date column like ENROLLMENT_DATE or INCIDENT_DATE, and is instead resolved
+   * against the standard event/occurrence date.
+   *
+   * @param periods the period dimensions to inspect.
+   * @return {@code true} if at least one period has a {@code null} date field.
+   */
   private boolean hasDefaultPeriod(List<DimensionalObject> periods) {
     return periods.stream()
         .flatMap(period -> period.getItems().stream())

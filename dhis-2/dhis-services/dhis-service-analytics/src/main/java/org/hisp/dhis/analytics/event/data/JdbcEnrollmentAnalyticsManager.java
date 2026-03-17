@@ -1233,45 +1233,67 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
   /**
    * Add the columns specified in the headers to the SelectBuilder. The columns are added in the
-   * order specified in the headers and are based on existing CTE definitions.
-   *
-   * @param headers List of GridHeader objects
-   * @param cteContext CteContext object containing all CTE definitions
-   * @param sb SelectBuilder object to which the columns are added
+   * order specified in the headers and are based on existing CTE definitions. Stage-specific
+   * prefixes (e.g. "stageUid.eventdate") are preserved so the resolver can look up the correct
+   * per-stage filter CTE.
    */
   private void addHeaderAggregateColumns(
       List<GridHeader> headers, EventQueryParams params, CteContext cteContext, SelectBuilder sb) {
-    // Build header columns preserving stage-specific prefixes (e.g. "stageUid.eventdate")
-    // so the resolver can look up the correct per-stage filter CTE
     Set<String> headerColumns = new LinkedHashSet<>();
     Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression> resolvedPeriodExpression =
         resolveAggregateHeaderPeriodExpression(params);
-    boolean periodDimensionAlreadyProjected = params.getDimension(PERIOD_DIM_ID) != null;
+    boolean periodAlreadyProjected = params.getDimension(PERIOD_DIM_ID) != null;
 
     for (GridHeader header : headers) {
       String name = dateHeaderResolver.normalizeHeaderKey(header.getName());
-      if (name.equalsIgnoreCase(COL_VALUE)
-          || name.equalsIgnoreCase(PERIOD_DIM_ID)
-          || name.equalsIgnoreCase(ORGUNIT_DIM_ID)) {
+
+      if (isInfrastructureHeader(name)) {
         continue;
       }
-
-      if (dateHeaderResolver.isDerivedStaticPeriodHeader(params, name)) {
-        if (periodDimensionAlreadyProjected) {
-          continue;
-        }
-
-        if (resolvedPeriodExpression.isPresent()) {
-          sb.addColumn(resolvedPeriodExpression.get().groupByExpression(), "", quote(name));
-        }
+      if (tryProjectPeriodBucketHeader(
+          name, params, periodAlreadyProjected, resolvedPeriodExpression, sb)) {
         continue;
       }
-      headerColumns.add(quote(name));
+      headerColumns.add(resolveHeaderColumn(name));
     }
 
     Map<String, CteDefinition> cteDefinitionMap = collectCteDefinitions(cteContext);
     headerColumnResolver.addHeaderColumns(
         headerColumns, cteContext, sb, cteDefinitionMap, this::quote);
+  }
+
+  /** Returns true for headers whose columns are added by dedicated sibling methods. */
+  private boolean isInfrastructureHeader(String name) {
+    return name.equalsIgnoreCase(COL_VALUE)
+        || name.equalsIgnoreCase(PERIOD_DIM_ID)
+        || name.equalsIgnoreCase(ORGUNIT_DIM_ID);
+  }
+
+  /**
+   * Handles headers that derive from the period bucket date field. Returns true if the header was
+   * claimed (whether or not a column was actually added to the builder).
+   */
+  private boolean tryProjectPeriodBucketHeader(
+      String name,
+      EventQueryParams params,
+      boolean periodAlreadyProjected,
+      Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression> resolvedPeriodExpression,
+      SelectBuilder sb) {
+    if (!dateHeaderResolver.isDerivedStaticPeriodHeader(params, name)) {
+      return false;
+    }
+    if (!periodAlreadyProjected && resolvedPeriodExpression.isPresent()) {
+      sb.addColumn(resolvedPeriodExpression.get().groupByExpression(), "", quote(name));
+    }
+    return true;
+  }
+
+  /** Maps header name to the corresponding database column name. */
+  private String resolveHeaderColumn(String name) {
+    if (name.equalsIgnoreCase(PROGRAM_STATUS.getHeaderName())) {
+      return PROGRAM_STATUS.getColumnName();
+    }
+    return quote(name);
   }
 
   private Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression>
