@@ -50,6 +50,7 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 
 import com.google.common.base.MoreObjects;
@@ -1349,7 +1350,7 @@ public class EventQueryParams extends DataQueryParams {
 
   /** Returns true when the request is incoming from analytics enrollments/aggregate end point. */
   public boolean isAggregatedEnrollments() {
-    return endpointAction == EndpointAction.AGGREGATE && endpointItem == EndpointItem.ENROLLMENT;
+    return endpointAction == EndpointAction.AGGREGATE && endpointItem == ENROLLMENT;
   }
 
   /** Returns true when the request is incoming from analytics events/aggregate end point. */
@@ -1480,6 +1481,10 @@ public class EventQueryParams extends DataQueryParams {
 
   public boolean isComingFromQuery() {
     return endpointAction == QUERY;
+  }
+
+  public boolean isEnrollmentAggregateQuery() {
+    return endpointAction == AGGREGATE && endpointItem == ENROLLMENT;
   }
 
   public Long getClusterSize() {

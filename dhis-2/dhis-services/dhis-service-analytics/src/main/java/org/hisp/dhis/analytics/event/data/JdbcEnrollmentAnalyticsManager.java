@@ -35,7 +35,7 @@ import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.common.CteDefinition.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
-import static org.hisp.dhis.analytics.event.data.AbstractJdbcEventAnalyticsManager.COL_VALUE;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter;
 import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.isAggregateEnrollment;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
@@ -1211,7 +1211,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       if (!name.equalsIgnoreCase(COL_VALUE)
           && !name.equalsIgnoreCase(PERIOD_DIM_ID)
           && !name.equalsIgnoreCase(ORGUNIT_DIM_ID)) {
-        headerColumns.add(quote(name));
+        if (name.equalsIgnoreCase(PROGRAM_STATUS.getHeaderName())) {
+          // Database column has a different name.
+          headerColumns.add(PROGRAM_STATUS.getColumnName());
+        } else {
+          headerColumns.add(quote(name));
+        }
       }
     }
 

@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 import static lombok.AccessLevel.PRIVATE;
+import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.isStageOuDimension;
 import static org.hisp.dhis.analytics.tracker.ResponseHelper.getItemUid;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
@@ -63,6 +64,11 @@ public class HeaderHelper {
 
     addDimensionHeaders(grid, params.getDimensions());
     addDimensionHeaders(grid, periods);
+
+    if (params.hasEnrollmentStatuses() && !grid.headerExists(PROGRAM_STATUS.getItem())) {
+      grid.addHeader(
+          new GridHeader(PROGRAM_STATUS.getItem(), PROGRAM_STATUS.getName(), TEXT, false, true));
+    }
 
     DisplayProperty displayProperty = params.getDisplayProperty();
     HeaderBuildContext context = HeaderBuildContext.of(params, displayProperty);
