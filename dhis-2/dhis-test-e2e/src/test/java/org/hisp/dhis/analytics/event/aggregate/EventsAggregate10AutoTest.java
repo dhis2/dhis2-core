@@ -45,7 +45,6 @@ import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -679,7 +678,6 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     @Test
     @DisplayName("Events Aggregate - Date range - Time field: INCIDENT_DATE as dimension")
-    @Disabled("Unclear if INCIDENT_DATE should be supported in event analytics")
     public void incidentDateAsDimensionWithTimeRange() throws JSONException {
 
       // Read the 'expect.postgis' system property at runtime to adapt assertions.
@@ -755,7 +753,6 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     @Test
     @DisplayName("Events Aggregate - year - Time field: INCIDENT_DATE as dimension")
-    @Disabled("Unclear if INCIDENT_DATE should be supported in event analytics")
     public void incidentDate() throws JSONException {
       // Read the 'expect.postgis' system property at runtime to adapt assertions.
       boolean expectPostgis = isPostgres();

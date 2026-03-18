@@ -47,7 +47,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_NAME_SEP;
-import static org.hisp.dhis.common.DimensionConstants.INCIDENT_DATE;
 import static org.hisp.dhis.common.DimensionConstants.STATIC_DATE_DIMENSIONS;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
@@ -567,11 +566,6 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       normalizedInputs.add(
           new NormalizedDimensionInput(rawDimension, dimensionId, items, groupUUID));
       return;
-    }
-
-    if (INCIDENT_DATE.equals(dimensionId)
-        && RequestTypeAware.EndpointItem.EVENT.equals(request.getEndpointItem())) {
-      throwIllegalQueryEx(ErrorCode.E7222, rawDimension);
     }
 
     DimensionAndItems normalized = normalizeStaticDateDimension(dimensionId, items);
