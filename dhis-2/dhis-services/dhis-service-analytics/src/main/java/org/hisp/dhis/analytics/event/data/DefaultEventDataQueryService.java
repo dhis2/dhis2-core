@@ -417,8 +417,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       IdScheme idScheme,
       Set<EnrollmentStatus> enrollmentStatuses) {
     if (request.getFilter() != null) {
-      for (NormalizedDimensionInput input :
-          normalizeDimensionInputs(request.getFilter(), request)) {
+      for (NormalizedDimensionInput input : normalizeDimensionInputs(request.getFilter())) {
         if (ENROLLMENT_OU_DIMENSION.equals(input.dimensionId())) {
           resolveEnrollmentOuFilter(params, request, userOrgUnits, input.items(), idScheme);
           continue;
@@ -463,8 +462,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       IdScheme idScheme,
       Set<EnrollmentStatus> enrollmentStatuses) {
     if (request.getDimension() != null) {
-      for (NormalizedDimensionInput input :
-          normalizeDimensionInputs(request.getDimension(), request)) {
+      for (NormalizedDimensionInput input : normalizeDimensionInputs(request.getDimension())) {
         if (ENROLLMENT_OU_DIMENSION.equals(input.dimensionId())) {
           resolveEnrollmentOuDimension(params, request, userOrgUnits, input.items(), idScheme);
           continue;
@@ -583,11 +581,10 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
    * needed.
    *
    * @param requestDimensions the raw request dimensions
-   * @param request the original data query request
    * @return the list of normalized dimension inputs
    */
   private List<NormalizedDimensionInput> normalizeDimensionInputs(
-      Set<Set<String>> requestDimensions, EventDataQueryRequest request) {
+      Set<Set<String>> requestDimensions) {
 
     List<NormalizedDimensionInput> normalizedInputs = new ArrayList<>();
     PeriodDimensionTracker peTracker = new PeriodDimensionTracker();
