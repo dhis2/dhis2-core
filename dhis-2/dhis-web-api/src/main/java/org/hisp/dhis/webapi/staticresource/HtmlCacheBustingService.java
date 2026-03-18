@@ -149,8 +149,15 @@ public class HtmlCacheBustingService {
     if (url.isEmpty() || isExternal(url) || url.contains("?v=") || url.contains("&v=")) {
       return;
     }
+    // Split off fragment (#...) — query params must come before the fragment
+    String fragment = "";
+    int hashIdx = url.indexOf('#');
+    if (hashIdx >= 0) {
+      fragment = url.substring(hashIdx);
+      url = url.substring(0, hashIdx);
+    }
     String separator = url.contains("?") ? "&" : "?";
-    el.attr(attr, url + separator + param);
+    el.attr(attr, url + separator + param + fragment);
   }
 
   private boolean isExternal(String url) {

@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.staticresource;
 
 import jakarta.servlet.http.HttpServletResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -93,16 +94,20 @@ public class StaticCacheControlService {
   }
 
   /**
-   * Generates an ETag suitable for cache busting on upgrades. Includes the DHIS2 server version so
-   * that any patch/release automatically invalidates browser caches.
+   * Generates an ETag suitable for cache busting on upgrades. Uses the app's cache-bust key (which
+   * incorporates the app version) and the DHIS2 server version so that any app update or
+   * patch/release automatically invalidates browser caches. Does not require resource I/O, so this
+   * can be called before loading the resource to support early 304 responses.
    */
-  public String generateETag(
-      @CheckForNull App app, long lastModified, String uri, @CheckForNull String queryString) {
-    String version = app != null ? app.getVersion() : getDhis2Version();
+  public String generateETag(@CheckForNull App app, String uri, @CheckForNull String queryString) {
+    String appPart =
+        app != null && app.getCacheBustKey() != null
+            ? app.getCacheBustKey()
+            : (app != null && app.getVersion() != null ? app.getVersion() : "no-app");
     AppCacheConfig cfg = app != null ? app.getCacheConfig() : null;
     String suffix = isImmutable(uri, queryString, cfg) ? "-immutable" : "";
-    String source = version + "-" + lastModified + "-" + getDhis2Version() + suffix;
-    return HashUtils.hashMD5(source.getBytes());
+    String source = appPart + "-" + getDhis2Version() + suffix;
+    return HashUtils.hashMD5(source.getBytes(StandardCharsets.UTF_8));
   }
 
   private CacheControl computeCacheControl(

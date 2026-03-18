@@ -270,10 +270,10 @@ class StaticCacheControlServiceTest {
     App app = new App();
     app.setVersion("1.0.0");
 
-    String etag1 = service.generateETag(app, 12345L, "/apps/myapp/main.js", null);
+    String etag1 = service.generateETag(app, "/apps/myapp/main.js", null);
 
     when(systemService.getSystemInfoVersion()).thenReturn("2.42.1");
-    String etag2 = service.generateETag(app, 12345L, "/apps/myapp/main.js", null);
+    String etag2 = service.generateETag(app, "/apps/myapp/main.js", null);
 
     assertThat(
         "ETag must change when DHIS2 version changes", etag1, not(org.hamcrest.Matchers.is(etag2)));
@@ -284,7 +284,7 @@ class StaticCacheControlServiceTest {
   void eTag_nullApp_usesDhis2Version() {
     when(systemService.getSystemInfoVersion()).thenReturn("2.42.0");
 
-    String etag = service.generateETag(null, 99999L, "/dhis-web-commons/css/style.css", null);
+    String etag = service.generateETag(null, "/dhis-web-commons/css/style.css", null);
     assertThat("ETag should not be null or empty", etag, not(org.hamcrest.Matchers.emptyString()));
   }
 
