@@ -150,13 +150,25 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   @Spy
   private PostgreSqlAnalyticsSqlBuilder analyticsSqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
-  private static final String DEFAULT_COLUMNS_WITH_REGISTRATION =
+  private static final String BASE_COLUMNS =
       "event,ps,occurreddate,storedby,"
-          + "createdbydisplayname"
-          + ","
-          + "lastupdatedbydisplayname"
-          + ",lastupdated,scheduleddate,enrollmentdate,enrollmentoccurreddate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,ST_AsGeoJSON(coalesce(ax.enrollmentgeometry), 6) as enrollmentgeometry,longitude,latitude,ouname,ounamehierarchy,"
-          + "oucode,enrollmentstatus,eventstatus";
+          + "createdbydisplayname,lastupdatedbydisplayname,"
+          + "lastupdated,created,completeddate,scheduleddate";
+
+  private static final String REGISTRATION_COLUMNS =
+      ",enrollmentdate,enrollmentoccurreddate,trackedentity,enrollment";
+
+  private static final String GEO_AND_OU_COLUMNS =
+      ",ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\","
+          + "ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,"
+          + "ST_AsGeoJSON(coalesce(ax.enrollmentgeometry), 6) as enrollmentgeometry,"
+          + "longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,eventstatus";
+
+  private static final String DEFAULT_COLUMNS_WITH_REGISTRATION =
+      BASE_COLUMNS + REGISTRATION_COLUMNS + GEO_AND_OU_COLUMNS;
+
+  private static final String DEFAULT_COLUMNS_WITHOUT_REGISTRATION =
+      BASE_COLUMNS + GEO_AND_OU_COLUMNS;
 
   @BeforeEach
   public void setUp() {
@@ -211,12 +223,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String expected =
-        "select event,ps,occurreddate,storedby,"
-            + "createdbydisplayname"
-            + ","
-            + "lastupdatedbydisplayname"
-            + ",lastupdated,scheduleddate,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,ST_AsGeoJSON(coalesce(ax.enrollmentgeometry), 6) as enrollmentgeometry,"
-            + "longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,eventstatus,ax.\"quarterly\",ax.\"ou\"  from "
+        "select "
+            + DEFAULT_COLUMNS_WITHOUT_REGISTRATION
+            + ",ax.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
             + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
 
@@ -272,13 +281,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String expected =
-        "select event,ps,occurreddate,storedby,"
-            + "createdbydisplayname"
-            + ","
-            + "lastupdatedbydisplayname"
-            + ",lastupdated,scheduleddate,enrollmentdate,"
-            + "enrollmentoccurreddate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,ST_AsGeoJSON(coalesce(ax.enrollmentgeometry), 6) as enrollmentgeometry,longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,"
-            + "eventstatus,ax.\"quarterly\",ax.\"ou\",\""
+        "select "
+            + DEFAULT_COLUMNS_WITH_REGISTRATION
+            + ",ax.\"quarterly\",ax.\"ou\",\""
             + dataElement.getUid()
             + "_name"
             + "\"  from "
