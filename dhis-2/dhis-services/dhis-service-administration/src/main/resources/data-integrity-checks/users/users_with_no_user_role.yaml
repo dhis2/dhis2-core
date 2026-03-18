@@ -32,14 +32,14 @@ section_order: 3
 summary_sql: >-
     SELECT COUNT(*) as value,
     100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM userinfo), 0) as percent
-    FROM userinfo
-    WHERE userinfoid NOT IN (SELECT DISTINCT userid FROM userrolemembers);
+    FROM userinfo u
+    WHERE NOT EXISTS (SELECT 1 FROM userrolemembers r WHERE r.userid = u.userinfoid);
 details_sql: >
-    SELECT uid, 
+    SELECT uid,
     username as name,
     'disabled:' || disabled as comment
-    from userinfo
-    WHERE userinfoid NOT IN (SELECT DISTINCT userid FROM userrolemembers);
+    FROM userinfo u
+    WHERE NOT EXISTS (SELECT 1 FROM userrolemembers r WHERE r.userid = u.userinfoid);
 details_id_type: users
 severity: SEVERE
 introduction: >
