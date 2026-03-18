@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.dataexchange.aggregate;
 
+import static org.hisp.dhis.common.DimensionConstants.ATTRIBUTEOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
@@ -46,6 +48,11 @@ import static org.mockito.Mockito.when;
 
 import java.util.Date;
 import java.util.List;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.datavalue.DataExportGroup;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
@@ -281,5 +288,43 @@ class AggregateDataExchangeServiceTest {
     assertEquals("deTargetUid01", el.dataElement());
     assertEquals("cocTarget001", el.categoryOptionCombo());
     assertEquals("aocTarget001", el.attributeOptionCombo());
+  }
+
+  @Test
+  void testToDataEntryGroupDataSetIsNull() {
+    DataEntryGroup.Input group = AggregateDataExchangeService.toDataEntryGroup(emptyGrid());
+    assertNull(group.dataSet());
+  }
+
+  @Test
+  void testToDataEntryGroupWithDataSet() {
+    DataEntryGroup.Input group =
+        AggregateDataExchangeService.toDataEntryGroup(emptyGrid()).withDataSet("myDataSetUid");
+    assertEquals("myDataSetUid", group.dataSet());
+  }
+
+  @Test
+  void testToDataExportGroupDataSetIsNull() {
+    DataExportGroup.Output group = AggregateDataExchangeService.toDataExportGroup(emptyGrid());
+    assertNull(group.dataSet());
+  }
+
+  @Test
+  void testToDataExportGroupWithDataSet() {
+    DataExportGroup.Output group =
+        AggregateDataExchangeService.toDataExportGroup(emptyGrid()).withDataSet("myDataSetUid");
+    assertEquals("myDataSetUid", group.dataSet());
+  }
+
+  private Grid emptyGrid() {
+    Grid grid = new ListGrid();
+    grid.addHeader(new GridHeader(DATA_X_DIM_ID, "Data", ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader(PERIOD_DIM_ID, "Period", ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader(ORGUNIT_DIM_ID, "OrgUnit", ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader(CATEGORYOPTIONCOMBO_DIM_ID, "COC", ValueType.TEXT, false, true));
+    grid.addHeader(
+        new GridHeader(ATTRIBUTEOPTIONCOMBO_DIM_ID, "AOC", ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, true));
+    return grid;
   }
 }
