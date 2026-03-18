@@ -132,8 +132,6 @@ class CsvEventService implements CsvService<Event> {
     result.setUpdatedAt(event.getUpdatedAt() == null ? null : event.getUpdatedAt().toString());
     result.setUpdatedAtClient(
         event.getUpdatedAtClient() == null ? null : event.getUpdatedAtClient().toString());
-    result.setCompletedAt(
-        event.getCompletedAt() == null ? null : event.getCompletedAt().toString());
     result.setUpdatedBy(event.getUpdatedBy() == null ? null : event.getUpdatedBy().getUsername());
     result.setStoredBy(event.getStoredBy());
     result.setCompletedAt(

@@ -62,6 +62,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  *   <li><b>PUT</b> — full-replace of a pre-created user
  *   <li><b>PATCH</b> — partial update via RFC 6902 JSON Patch on a pre-created user
  *   <li><b>PATCH userGroups</b> — updates group assignment via the user-side PATCH path
+ *   <li><b>REPLICA</b> — replicates a pre-created user via {@code POST /api/users/{uid}/replica}
  *   <li><b>DELETE</b> — deletes pre-created users (separate pool, timing is clean)
  * </ol>
  *
@@ -147,6 +148,7 @@ public class UsersPerformanceTest extends Simulation {
   private static final String PUT_REQUEST = "PUT User - full update";
   private static final String PATCH_REQUEST = "PATCH User - partial update";
   private static final String PATCH_GROUPS_REQUEST = "PATCH User - replace userGroups";
+  private static final String REPLICA_REQUEST = "POST User - replicate";
   private static final String DELETE_REQUEST = "DELETE User - delete";
   private static final int PATCH_GROUP_COUNT = Integer.parseInt(prop("patchGroupCount", "7"));
 
@@ -154,6 +156,7 @@ public class UsersPerformanceTest extends Simulation {
   private static final int RUN_OFFSET = (int) (System.currentTimeMillis() % 10_000_000);
   private static final AtomicInteger POST_COUNTER = new AtomicInteger(RUN_OFFSET);
   private static final AtomicInteger PRE_CREATE_COUNTER = new AtomicInteger(RUN_OFFSET + 500_000);
+  private static final AtomicInteger REPLICA_COUNTER = new AtomicInteger(RUN_OFFSET + 1_000_000);
 
   /**
    * Pre-created users for GET/PUT/PATCH scenarios. Stored as [uid, username] pairs. Scenarios cycle
@@ -169,6 +172,7 @@ public class UsersPerformanceTest extends Simulation {
   private static final AtomicInteger PUT_INDEX = new AtomicInteger(ITERATIONS);
   private static final AtomicInteger PATCH_INDEX = new AtomicInteger(ITERATIONS * 2);
   private static final AtomicInteger PATCH_GROUPS_INDEX = new AtomicInteger(ITERATIONS * 3);
+  private static final AtomicInteger REPLICA_SOURCE_INDEX = new AtomicInteger(ITERATIONS * 4);
 
   /**
    * Pre-created users for the DELETE scenario. Consumed one-at-a-time; sized generously so the
@@ -280,7 +284,7 @@ public class UsersPerformanceTest extends Simulation {
   @Override
   public void before() {
     // Conservative pool sizes: enough headroom for ~3× concurrent virtual users per scenario.
-    int rwNeeded = ITERATIONS * 4 + 5;
+    int rwNeeded = ITERATIONS * 5 + 5;
     int delNeeded = ITERATIONS * 3 + 5;
     String groupLabel = USER_GROUP_UID.isBlank() ? "" : " (group: " + USER_GROUP_UID + ")";
     System.out.println(
@@ -429,6 +433,32 @@ public class UsersPerformanceTest extends Simulation {
                             .body(StringBody("#{patchGroupsBody}"))
                             .check(status().is(200))));
 
+    // ── Scenario: POST /api/users/{uid}/replica ─────────────────────────────
+    ScenarioBuilder replicaScenario =
+        scenario(REPLICA_REQUEST)
+            .exec(flushCookieJar())
+            .repeat(ITERATIONS)
+            .on(
+                exec(session -> {
+                      String[] user =
+                          READ_WRITE_USERS.get(
+                              REPLICA_SOURCE_INDEX.getAndIncrement() % READ_WRITE_USERS.size());
+                      int num = REPLICA_COUNTER.getAndIncrement();
+                      String replicaUsername = "perftest_rep_" + String.format("%07d", num);
+                      return session
+                          .set("replicaSourceUid", user[0])
+                          .set(
+                              "replicaBody",
+                              "{\"username\":\"%s\",\"password\":\"Test1234@\"}"
+                                  .formatted(replicaUsername));
+                    })
+                    .exec(
+                        http(REPLICA_REQUEST)
+                            .post("/api/users/#{replicaSourceUid}/replica")
+                            .header("Content-Type", "application/json")
+                            .body(StringBody("#{replicaBody}"))
+                            .check(status().is(201))));
+
     // ── Scenario: DELETE /api/users/{uid} ───────────────────────────────────
     // Users are pre-created in before(), so this scenario measures only DELETE time.
     ScenarioBuilder deleteScenario =
@@ -458,6 +488,7 @@ public class UsersPerformanceTest extends Simulation {
     PopulationBuilder putPopulation = putScenario.injectClosed(singleUser);
     PopulationBuilder patchPopulation = patchScenario.injectClosed(singleUser);
     PopulationBuilder patchGroupsPopulation = patchGroupsScenario.injectClosed(singleUser);
+    PopulationBuilder replicaPopulation = replicaScenario.injectClosed(singleUser);
     PopulationBuilder deletePopulation = deleteScenario.injectClosed(singleUser);
 
     var sim =
@@ -468,6 +499,7 @@ public class UsersPerformanceTest extends Simulation {
                     .andThen(putPopulation)
                     .andThen(patchPopulation)
                     .andThen(patchGroupsPopulation)
+                    .andThen(replicaPopulation)
                     .andThen(deletePopulation))
             : setUp(
                 postPopulation,
@@ -475,6 +507,7 @@ public class UsersPerformanceTest extends Simulation {
                 putPopulation,
                 patchPopulation,
                 patchGroupsPopulation,
+                replicaPopulation,
                 deletePopulation);
 
     sim.protocols(httpProtocol)
@@ -494,6 +527,9 @@ public class UsersPerformanceTest extends Simulation {
             details(PATCH_GROUPS_REQUEST).responseTime().percentile(95).lt(700),
             details(PATCH_GROUPS_REQUEST).responseTime().max().lt(900),
             details(PATCH_GROUPS_REQUEST).successfulRequests().percent().is(100D),
+            details(REPLICA_REQUEST).responseTime().percentile(95).lt(700),
+            details(REPLICA_REQUEST).responseTime().max().lt(1000),
+            details(REPLICA_REQUEST).successfulRequests().percent().is(100D),
             details(DELETE_REQUEST).responseTime().percentile(95).lt(1800),
             details(DELETE_REQUEST).responseTime().max().lt(2500),
             details(DELETE_REQUEST).successfulRequests().percent().is(100D));

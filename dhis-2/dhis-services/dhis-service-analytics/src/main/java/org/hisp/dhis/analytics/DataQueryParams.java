@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.collections4.MapUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.OrgUnitField.DEFAULT_ORG_UNIT_FIELD;
 import static org.hisp.dhis.analytics.TimeField.DEFAULT_TIME_FIELDS;
@@ -60,6 +61,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -69,6 +71,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -619,7 +622,27 @@ public class DataQueryParams {
         .add("timeField", timeField)
         .add("orgUnitField", orgUnitField)
         .add("expressiondimensionitems", getExpressionDimensionItemsExpressions())
+        .add("timeDateRanges", getTimeDateRangesAsString())
         .addIgnoreNull("locale", locale);
+  }
+
+  private String getTimeDateRangesAsString() {
+    String value = EMPTY;
+
+    if (isNotEmpty(getTimeDateRanges())) {
+      Set<Entry<TimeField, List<DateRange>>> entries = getTimeDateRanges().entrySet();
+
+      for (Entry<TimeField, List<DateRange>> entry : entries) {
+        if (entry != null) {
+          value =
+              value
+                  .concat(entry.getKey().asString())
+                  .concat(Arrays.toString(entry.getValue().toArray()));
+        }
+      }
+    }
+
+    return value;
   }
 
   private String getExpressionDimensionItemsExpressions() {

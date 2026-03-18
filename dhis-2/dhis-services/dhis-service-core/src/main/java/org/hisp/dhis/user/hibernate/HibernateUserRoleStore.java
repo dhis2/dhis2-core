@@ -64,6 +64,25 @@ public class HibernateUserRoleStore extends HibernateIdentifiableObjectStore<Use
   }
 
   @Override
+  public void copyRoleMemberships(@Nonnull UID sourceUserUid, @Nonnull UID targetUserUid) {
+    jdbcTemplate.update(
+        """
+        INSERT INTO userrolemembers (userroleid, userid)
+        SELECT m.userroleid, (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        FROM userrolemembers m
+        WHERE m.userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+        AND NOT EXISTS (
+          SELECT 1 FROM userrolemembers
+          WHERE userid = (SELECT userinfoid FROM userinfo WHERE uid = ?)
+          AND userroleid = m.userroleid
+        )
+        """,
+        targetUserUid.getValue(),
+        sourceUserUid.getValue(),
+        targetUserUid.getValue());
+  }
+
+  @Override
   public int countDataSetUserRoles(DataSet dataSet) {
     Query<Long> query =
         getTypedQuery(

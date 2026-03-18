@@ -37,6 +37,7 @@ import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
+import static org.hisp.dhis.analytics.common.ColumnHeader.ENROLLMENT_OU;
 import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.isStageOuDimension;
 import static org.hisp.dhis.analytics.event.data.QueryItemHelper.getItemOptions;
@@ -575,12 +576,21 @@ public class MetadataItemsHandler {
       return;
     }
 
+    metadataItemMap.putIfAbsent(
+        ENROLLMENT_OU.getItem(), new MetadataItem(getEnrollmentOuDisplayName()));
+
     for (DimensionalItemObject item : params.getEnrollmentOuDimensionItems()) {
       metadataItemMap.put(
           item.getUid(),
           new MetadataItem(
               item.getDisplayProperty(params.getDisplayProperty()), includeDetails ? item : null));
     }
+  }
+
+  // The metadata item name differs from ColumnHeader.ENROLLMENT_OU.getName() because the
+  // API contract requires the abbreviated form "org." while the column header uses "org".
+  private String getEnrollmentOuDisplayName() {
+    return "Enrollment org. unit";
   }
 
   private void addProgramStatusMetadata(

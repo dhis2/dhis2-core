@@ -194,7 +194,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             organisationUnitResolver,
             columnMapper,
             filterBuilder,
-            stageQuerySqlFacade);
+            stageQuerySqlFacade,
+            new DateFieldPeriodBucketColumnResolver(new PostgreSqlBuilder()));
   }
 
   @Test
@@ -407,7 +408,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   void verifyGetEventsWithProgramStatusParam() {
     mockEmptyRowSet();
 
-    EventQueryParams params = createRequestParamsWithStatuses();
+    EventQueryParams params = createRequestParamsWithStatusesForEnrollmentQuery();
 
     subject.getEnrollments(params, new ListGrid(), 10000);
 

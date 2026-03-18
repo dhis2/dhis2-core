@@ -254,6 +254,10 @@ public class EventQueryService {
                 true))
         .addHeader(
             new GridHeader(LAST_UPDATED.getItem(), LAST_UPDATED.getName(), DATETIME, false, true))
+        .addHeader(new GridHeader(CREATED.getItem(), CREATED.getName(), DATETIME, false, true))
+        .addHeader(
+            new GridHeader(
+                COMPLETED_DATE.getItem(), COMPLETED_DATE.getName(), DATETIME, false, true))
         .addHeader(
             new GridHeader(
                 SCHEDULED_DATE.getItem(),

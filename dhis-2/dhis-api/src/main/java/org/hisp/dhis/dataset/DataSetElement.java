@@ -37,6 +37,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.Cacheable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -72,12 +73,12 @@ public class DataSetElement implements EmbeddedObject, Serializable {
   private int id;
 
   /** Data set, never null. */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "datasetid", foreignKey = @ForeignKey(name = "fk_datasetelement_datasetid"))
   private DataSet dataSet;
 
   /** Data element, never null. */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "dataelementid",
       foreignKey = @ForeignKey(name = "fk_datasetelement_dataelementid"),
@@ -85,7 +86,7 @@ public class DataSetElement implements EmbeddedObject, Serializable {
   private DataElement dataElement;
 
   /** Category combination, potentially null. */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "categorycomboid",
       foreignKey = @ForeignKey(name = "fk_datasetelement_categorycomboid"))

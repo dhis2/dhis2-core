@@ -30,13 +30,13 @@ description: User roles without assigned users
 section: Users
 section_order: 5
 summary_sql: >-
-    SELECT COUNT(*) as value, 
+    SELECT COUNT(*) as value,
     100.0 * COUNT(*) / NULLIF((SELECT COUNT(*) FROM userrole), 0) as percent
-    FROM userrole
-    WHERE userroleid NOT IN (SELECT userroleid FROM userrolemembers);
+    FROM userrole r
+    WHERE NOT EXISTS (SELECT 1 FROM userrolemembers m WHERE m.userroleid = r.userroleid);
 details_sql: >-
-  SELECT uid, name FROM userrole
-  WHERE userroleid NOT IN (SELECT userroleid FROM userrolemembers);
+    SELECT uid, name FROM userrole r
+    WHERE NOT EXISTS (SELECT 1 FROM userrolemembers m WHERE m.userroleid = r.userroleid);
 details_id_type: userRoles
 severity: WARNING
 introduction: >
