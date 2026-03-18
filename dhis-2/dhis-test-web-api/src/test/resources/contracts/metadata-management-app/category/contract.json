@@ -3,5 +3,5 @@
   "httpMethod": "GET",
   "requestUrl": "/categories/{id}",
   "responseStatus": 200,
-  "jsonSchema": "contracts/maintenance-app/category/json-schema.json"
+  "jsonSchema": "contracts/metadata-management-app/category/json-schema.json"
 }
