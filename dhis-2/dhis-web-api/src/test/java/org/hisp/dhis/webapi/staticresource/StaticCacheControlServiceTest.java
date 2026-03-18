@@ -88,7 +88,7 @@ class StaticCacheControlServiceTest {
     when(config.isEnabled(ConfigurationKey.STATIC_CACHE_ENABLED)).thenReturn(false);
 
     MockHttpServletResponse response = new MockHttpServletResponse();
-    service.setHeaders(response, "/apps/dashboard/main.js", "dashboard");
+    service.setHeaders(response, "/apps/dashboard/main.js", null, "dashboard");
 
     assertThat(response.getHeader("Cache-Control"), containsString("no-store"));
   }
@@ -99,7 +99,7 @@ class StaticCacheControlServiceTest {
     when(config.isEnabled(ConfigurationKey.STATIC_CACHE_DEV_MODE_FORCE_NO_CACHE)).thenReturn(true);
 
     MockHttpServletResponse response = new MockHttpServletResponse();
-    service.setHeaders(response, "/apps/dashboard/main.js", "dashboard");
+    service.setHeaders(response, "/apps/dashboard/main.js", null, "dashboard");
 
     assertThat(response.getHeader("Cache-Control"), containsString("no-store"));
   }
@@ -108,7 +108,7 @@ class StaticCacheControlServiceTest {
   @DisplayName("HTML file matches always-no-cache pattern and returns no-store")
   void htmlFile_matchesNoCachePattern() {
     MockHttpServletResponse response = new MockHttpServletResponse();
-    service.setHeaders(response, "/apps/dashboard/index.html", null);
+    service.setHeaders(response, "/apps/dashboard/index.html", null, null);
 
     assertThat(response.getHeader("Cache-Control"), containsString("no-store"));
   }
@@ -117,7 +117,7 @@ class StaticCacheControlServiceTest {
   @DisplayName("Regular JS file gets default max-age with public caching")
   void regularJsFile_getsDefaultMaxAge() {
     MockHttpServletResponse response = new MockHttpServletResponse();
-    service.setHeaders(response, "/apps/dashboard/main.js", null);
+    service.setHeaders(response, "/apps/dashboard/main.js", null, null);
 
     String cc = response.getHeader("Cache-Control");
     assertThat(cc, containsString("max-age=3600"));
@@ -128,7 +128,7 @@ class StaticCacheControlServiceTest {
   @DisplayName("Hashed filename gets immutable treatment")
   void hashedFilename_getsImmutable() {
     MockHttpServletResponse response = new MockHttpServletResponse();
-    service.setHeaders(response, "/apps/dashboard/main.abc12345.js", null);
+    service.setHeaders(response, "/apps/dashboard/main.abc12345.js", null, null);
 
     String cc = response.getHeader("Cache-Control");
     assertThat(cc, containsString("max-age=31536000"));
@@ -139,7 +139,7 @@ class StaticCacheControlServiceTest {
   @DisplayName("Vite hash with mixed case and digits gets immutable")
   void viteHash_mixedCaseDigits() {
     MockHttpServletResponse response = new MockHttpServletResponse();
-    service.setHeaders(response, "/dhis-web-messaging/assets/main-Dhu2pmiS.js", null);
+    service.setHeaders(response, "/dhis-web-messaging/assets/main-Dhu2pmiS.js", null, null);
 
     assertThat(response.getHeader("Cache-Control"), containsString("max-age=31536000"));
   }
@@ -148,7 +148,7 @@ class StaticCacheControlServiceTest {
   @DisplayName("Vite hash with all-letter mixed case gets immutable")
   void viteHash_allLetterMixedCase() {
     MockHttpServletResponse response = new MockHttpServletResponse();
-    service.setHeaders(response, "/dhis-web-dashboard/assets/main-DHOiLmwl.js", null);
+    service.setHeaders(response, "/dhis-web-dashboard/assets/main-DHOiLmwl.js", null, null);
 
     assertThat(response.getHeader("Cache-Control"), containsString("max-age=31536000"));
   }
@@ -157,7 +157,7 @@ class StaticCacheControlServiceTest {
   @DisplayName("Vite hash containing a dash (base64url) gets immutable")
   void viteHash_containsDash() {
     MockHttpServletResponse response = new MockHttpServletResponse();
-    service.setHeaders(response, "/dhis-web-dashboard/assets/main-D-tfNpnx.js", null);
+    service.setHeaders(response, "/dhis-web-dashboard/assets/main-D-tfNpnx.js", null, null);
 
     assertThat(response.getHeader("Cache-Control"), containsString("max-age=31536000"));
   }
@@ -166,7 +166,7 @@ class StaticCacheControlServiceTest {
   @DisplayName("Vite hash containing underscore gets immutable")
   void viteHash_containsUnderscore() {
     MockHttpServletResponse response = new MockHttpServletResponse();
-    service.setHeaders(response, "/apps/dashboard/assets/App-B6NG_BIY.js", null);
+    service.setHeaders(response, "/apps/dashboard/assets/App-B6NG_BIY.js", null, null);
 
     assertThat(response.getHeader("Cache-Control"), containsString("max-age=31536000"));
   }
@@ -175,7 +175,7 @@ class StaticCacheControlServiceTest {
   @DisplayName("Vite hash with woff2 extension gets immutable")
   void viteHash_woff2Extension() {
     MockHttpServletResponse response = new MockHttpServletResponse();
-    service.setHeaders(response, "/apps/assets/fonts/roboto-latin-500-DRg8azjQ.woff2", null);
+    service.setHeaders(response, "/apps/assets/fonts/roboto-latin-500-DRg8azjQ.woff2", null, null);
 
     assertThat(response.getHeader("Cache-Control"), containsString("max-age=31536000"));
   }
@@ -184,7 +184,7 @@ class StaticCacheControlServiceTest {
   @DisplayName("Normal dash-separated filename (all lowercase) is NOT treated as hashed")
   void dashSeparated_allLowercase_notHashed() {
     MockHttpServletResponse response = new MockHttpServletResponse();
-    service.setHeaders(response, "/apps/dashboard/main-component.js", null);
+    service.setHeaders(response, "/apps/dashboard/main-component.js", null, null);
 
     assertThat(response.getHeader("Cache-Control"), containsString("max-age=3600"));
   }
@@ -193,7 +193,7 @@ class StaticCacheControlServiceTest {
   @DisplayName("Normal multi-dash filename is NOT treated as hashed")
   void multiDash_normalFilename_notHashed() {
     MockHttpServletResponse response = new MockHttpServletResponse();
-    service.setHeaders(response, "/apps/dashboard/app-dashboard-plugin.js", null);
+    service.setHeaders(response, "/apps/dashboard/app-dashboard-plugin.js", null, null);
 
     assertThat(response.getHeader("Cache-Control"), containsString("max-age=3600"));
   }
@@ -210,7 +210,7 @@ class StaticCacheControlServiceTest {
     when(appManager.getApp("my-app")).thenReturn(app);
 
     MockHttpServletResponse response = new MockHttpServletResponse();
-    service.setHeaders(response, "/apps/my-app/assets/logo.png", "my-app");
+    service.setHeaders(response, "/apps/my-app/assets/logo.png", null, "my-app");
 
     String cc = response.getHeader("Cache-Control");
     assertThat(cc, containsString("max-age=86400"));
@@ -228,7 +228,7 @@ class StaticCacheControlServiceTest {
     when(appManager.getApp("my-app")).thenReturn(app);
 
     MockHttpServletResponse response = new MockHttpServletResponse();
-    service.setHeaders(response, "/apps/my-app/static/bundle.js", "my-app");
+    service.setHeaders(response, "/apps/my-app/static/bundle.js", null, "my-app");
 
     String cc = response.getHeader("Cache-Control");
     assertThat(cc, containsString("max-age=31536000"));
@@ -246,7 +246,7 @@ class StaticCacheControlServiceTest {
     when(appManager.getApp("my-app")).thenReturn(app);
 
     MockHttpServletResponse response = new MockHttpServletResponse();
-    service.setHeaders(response, "/apps/my-app/config.json", "my-app");
+    service.setHeaders(response, "/apps/my-app/config.json", null, "my-app");
 
     assertThat(response.getHeader("Cache-Control"), containsString("no-store"));
   }
@@ -255,7 +255,7 @@ class StaticCacheControlServiceTest {
   @DisplayName("Core static resource (no app) gets default max-age")
   void coreStaticResource_getsDefaultMaxAge() {
     MockHttpServletResponse response = new MockHttpServletResponse();
-    service.setHeaders(response, "/dhis-web-commons/css/style.css", null);
+    service.setHeaders(response, "/dhis-web-commons/css/style.css", null, null);
 
     String cc = response.getHeader("Cache-Control");
     assertThat(cc, containsString("max-age=3600"));
@@ -270,10 +270,10 @@ class StaticCacheControlServiceTest {
     App app = new App();
     app.setVersion("1.0.0");
 
-    String etag1 = service.generateETag(app, 12345L, "/apps/myapp/main.js");
+    String etag1 = service.generateETag(app, 12345L, "/apps/myapp/main.js", null);
 
     when(systemService.getSystemInfoVersion()).thenReturn("2.42.1");
-    String etag2 = service.generateETag(app, 12345L, "/apps/myapp/main.js");
+    String etag2 = service.generateETag(app, 12345L, "/apps/myapp/main.js", null);
 
     assertThat(
         "ETag must change when DHIS2 version changes", etag1, not(org.hamcrest.Matchers.is(etag2)));
@@ -284,7 +284,7 @@ class StaticCacheControlServiceTest {
   void eTag_nullApp_usesDhis2Version() {
     when(systemService.getSystemInfoVersion()).thenReturn("2.42.0");
 
-    String etag = service.generateETag(null, 99999L, "/dhis-web-commons/css/style.css");
+    String etag = service.generateETag(null, 99999L, "/dhis-web-commons/css/style.css", null);
     assertThat("ETag should not be null or empty", etag, not(org.hamcrest.Matchers.emptyString()));
   }
 
@@ -299,7 +299,7 @@ class StaticCacheControlServiceTest {
     when(appManager.getApp("my-app")).thenReturn(app);
 
     MockHttpServletResponse response = new MockHttpServletResponse();
-    service.setHeaders(response, "/apps/my-app/logo.png", "my-app");
+    service.setHeaders(response, "/apps/my-app/logo.png", null, "my-app");
 
     String cc = response.getHeader("Cache-Control");
     assertThat(cc, containsString("max-age=7200"));
@@ -311,9 +311,64 @@ class StaticCacheControlServiceTest {
     when(config.getProperty(ConfigurationKey.STATIC_CACHE_ALWAYS_NO_CACHE_PATTERNS)).thenReturn("");
 
     MockHttpServletResponse response = new MockHttpServletResponse();
-    service.setHeaders(response, "/apps/dashboard/page.html", null);
+    service.setHeaders(response, "/apps/dashboard/page.html", null, null);
 
     String cc = response.getHeader("Cache-Control");
     assertThat(cc, containsString("must-revalidate"));
+  }
+
+  @Test
+  @DisplayName("Hashed filename emits immutable directive in Cache-Control header")
+  void hashedFilename_emitsImmutableDirective() {
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    service.setHeaders(response, "/apps/dashboard/main.abc12345.js", null, null);
+
+    String cc = response.getHeader("Cache-Control");
+    assertThat(cc, containsString("immutable"));
+    assertThat(cc, containsString("max-age=31536000"));
+    assertThat(cc, containsString("public"));
+  }
+
+  @Test
+  @DisplayName("Query string with ?v= cache-bust parameter gets immutable treatment")
+  void cacheBustQueryString_getsImmutable() {
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    service.setHeaders(response, "/apps/dashboard/style.css", "v=abc123", null);
+
+    String cc = response.getHeader("Cache-Control");
+    assertThat(cc, containsString("immutable"));
+    assertThat(cc, containsString("max-age=31536000"));
+  }
+
+  @Test
+  @DisplayName("Non-hashed file without ?v= does NOT get immutable")
+  void plainFile_noImmutable() {
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    service.setHeaders(response, "/apps/dashboard/style.css", null, null);
+
+    String cc = response.getHeader("Cache-Control");
+    assertThat(cc, not(containsString("immutable")));
+    assertThat(cc, containsString("max-age=3600"));
+  }
+
+  @Test
+  @DisplayName("Query string with &v= mid-string gets immutable treatment")
+  void cacheBustQueryStringMidParam_getsImmutable() {
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    service.setHeaders(response, "/apps/dashboard/style.css", "foo=bar&v=abc123", null);
+
+    String cc = response.getHeader("Cache-Control");
+    assertThat(cc, containsString("immutable"));
+    assertThat(cc, containsString("max-age=31536000"));
+  }
+
+  @Test
+  @DisplayName("Query string with verbose= does NOT trigger immutable")
+  void verboseParam_notImmutable() {
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    service.setHeaders(response, "/apps/dashboard/style.css", "verbose=true", null);
+
+    String cc = response.getHeader("Cache-Control");
+    assertThat(cc, not(containsString("immutable")));
   }
 }

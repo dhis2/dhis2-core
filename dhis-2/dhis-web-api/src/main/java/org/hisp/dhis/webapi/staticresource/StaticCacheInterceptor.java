@@ -55,7 +55,7 @@ public class StaticCacheInterceptor implements HandlerInterceptor {
       HttpServletRequest request, HttpServletResponse response, Object handler) {
     String uri = request.getRequestURI();
     if (isCoreStaticPath(uri)) {
-      staticCacheControlService.setHeaders(response, uri, null);
+      staticCacheControlService.setHeaders(response, uri, request.getQueryString(), null);
     }
     return true;
   }

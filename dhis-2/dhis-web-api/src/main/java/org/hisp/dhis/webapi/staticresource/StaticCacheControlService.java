@@ -74,17 +74,21 @@ public class StaticCacheControlService {
    *
    * @param response the HTTP response
    * @param requestUri the request URI (e.g. {@code /apps/dashboard/main.abc123.js})
+   * @param queryString the raw query string (without leading {@code ?}), or {@code null}
    * @param appKey the app key if the resource belongs to an app, or {@code null} for core resources
    */
   public void setHeaders(
-      HttpServletResponse response, String requestUri, @CheckForNull String appKey) {
+      HttpServletResponse response,
+      String requestUri,
+      @CheckForNull String queryString,
+      @CheckForNull String appKey) {
     if (!isCacheEnabled() || isDevModeForceNoCache()) {
       response.setHeader("Cache-Control", CacheControl.noStore().getHeaderValue());
       return;
     }
 
     AppCacheConfig appConfig = resolveAppConfig(appKey);
-    CacheControl cc = computeCacheControl(requestUri, appConfig);
+    CacheControl cc = computeCacheControl(requestUri, queryString, appConfig);
     response.setHeader("Cache-Control", cc.getHeaderValue());
   }
 
@@ -92,22 +96,24 @@ public class StaticCacheControlService {
    * Generates an ETag suitable for cache busting on upgrades. Includes the DHIS2 server version so
    * that any patch/release automatically invalidates browser caches.
    */
-  public String generateETag(@CheckForNull App app, long lastModified, String uri) {
+  public String generateETag(
+      @CheckForNull App app, long lastModified, String uri, @CheckForNull String queryString) {
     String version = app != null ? app.getVersion() : getDhis2Version();
     AppCacheConfig cfg = app != null ? app.getCacheConfig() : null;
-    String suffix = isImmutable(uri, cfg) ? "-immutable" : "";
+    String suffix = isImmutable(uri, queryString, cfg) ? "-immutable" : "";
     String source = version + "-" + lastModified + "-" + getDhis2Version() + suffix;
     return HashUtils.hashMD5(source.getBytes());
   }
 
-  private CacheControl computeCacheControl(String uri, AppCacheConfig config) {
+  private CacheControl computeCacheControl(
+      String uri, @CheckForNull String queryString, AppCacheConfig config) {
     if (matchesAnyNoCachePattern(uri) || matchesNoCacheRule(uri, config)) {
       return CacheControl.noStore();
     }
 
-    if (isImmutable(uri, config)) {
+    if (isImmutable(uri, queryString, config)) {
       long immutableSeconds = getImmutableMaxAgeSeconds();
-      return CacheControl.maxAge(immutableSeconds, TimeUnit.SECONDS).cachePublic();
+      return CacheControl.maxAge(immutableSeconds, TimeUnit.SECONDS).cachePublic().immutable();
     }
 
     Duration maxAge = resolveMaxAge(uri, config);
@@ -146,7 +152,8 @@ public class StaticCacheControlService {
                     && matchesPattern(r.getPattern(), uri));
   }
 
-  private boolean isImmutable(String uri, @CheckForNull AppCacheConfig config) {
+  private boolean isImmutable(
+      String uri, @CheckForNull String queryString, @CheckForNull AppCacheConfig config) {
     if (config != null) {
       boolean ruleMatch =
           config.getRules().stream()
@@ -155,7 +162,13 @@ public class StaticCacheControlService {
                       Boolean.TRUE.equals(r.getImmutable()) && matchesPattern(r.getPattern(), uri));
       if (ruleMatch) return true;
     }
+    if (hasCacheBustParam(queryString)) return true;
     return looksLikeHashedFilename(uri);
+  }
+
+  private static boolean hasCacheBustParam(@CheckForNull String queryString) {
+    if (queryString == null || queryString.isEmpty()) return false;
+    return queryString.startsWith("v=") || queryString.contains("&v=");
   }
 
   private Duration resolveMaxAge(String uri, @CheckForNull AppCacheConfig config) {

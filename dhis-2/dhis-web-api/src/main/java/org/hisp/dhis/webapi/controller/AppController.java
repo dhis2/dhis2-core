@@ -231,10 +231,12 @@ public class AppController {
     log.debug("Serving app resource, filename: {}", filename);
 
     String requestUri = request.getRequestURI();
-    staticCacheControlService.setHeaders(response, requestUri, app.getKey());
+    String queryString = request.getQueryString();
+    staticCacheControlService.setHeaders(response, requestUri, queryString, app.getKey());
 
     long lastModified = resourceResult.resource().lastModified();
-    String etag = staticCacheControlService.generateETag(app, lastModified, requestUri);
+    String etag =
+        staticCacheControlService.generateETag(app, lastModified, requestUri, queryString);
 
     if (new ServletWebRequest(request, response).checkNotModified(etag, lastModified)) {
       log.debug("Resource not modified (etag {}, uri {})", etag, requestUri);
