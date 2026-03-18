@@ -548,14 +548,12 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
    *
    * @param rawDimension the raw dimension string
    * @param groupUUID the group UUID
-   * @param request the original data query request
    * @param normalizedInputs the list of normalized inputs to populate
    * @param peTracker the period dimension tracker
    */
   private void processDimension(
       String rawDimension,
       UUID groupUUID,
-      EventDataQueryRequest request,
       List<NormalizedDimensionInput> normalizedInputs,
       PeriodDimensionTracker peTracker) {
 
@@ -598,7 +596,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       UUID groupUUID = UUID.randomUUID();
 
       for (String rawDimension : dimensionGroup) {
-        processDimension(rawDimension, groupUUID, request, normalizedInputs, peTracker);
+        processDimension(rawDimension, groupUUID, normalizedInputs, peTracker);
       }
     }
 
