@@ -47,6 +47,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionConstants.INCIDENT_DATE;
 import static org.hisp.dhis.common.DimensionConstants.STATIC_DATE_DIMENSIONS;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
@@ -77,7 +78,6 @@ import org.hisp.dhis.analytics.event.data.queryitem.QueryItemFilterHandlerRegist
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.DimensionConstants;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
@@ -88,8 +88,6 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RequestTypeAware;
-import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
-import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -571,7 +569,11 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       return;
     }
 
-    validateStaticDateDimensionSupport(dimensionId, rawDimension, request);
+    if (INCIDENT_DATE.equals(dimensionId)
+        && RequestTypeAware.EndpointItem.EVENT.equals(request.getEndpointItem())) {
+      throwIllegalQueryEx(ErrorCode.E7222, rawDimension);
+    }
+
     DimensionAndItems normalized = normalizeStaticDateDimension(dimensionId, items);
 
     if ("pe".equals(normalized.dimension())) {
@@ -744,23 +746,6 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     String first = items.get(0);
     int colonIndex = first.indexOf(':');
     return colonIndex > 0 && DATE_COMPARISON_OPERATORS.contains(first.substring(0, colonIndex));
-  }
-
-  private void validateStaticDateDimensionSupport(
-      String dimensionId, String dimensionString, EventDataQueryRequest request) {
-    if (!DimensionConstants.CREATED.equals(dimensionId)) {
-      return;
-    }
-
-    if (!isAggregateRequest(request)) {
-      throwIllegalQueryEx(ErrorCode.E7222, dimensionString);
-    }
-  }
-
-  private boolean isAggregateRequest(EventDataQueryRequest request) {
-    return EndpointAction.AGGREGATE.equals(request.getEndpointAction())
-        && (EndpointItem.EVENT.equals(request.getEndpointItem())
-            || EndpointItem.ENROLLMENT.equals(request.getEndpointItem()));
   }
 
   private boolean isProgramStatusDimension(String dimensionId) {

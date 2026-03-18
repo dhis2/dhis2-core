@@ -174,11 +174,28 @@ class DefaultEventDataQueryServiceTest {
   }
 
   @Test
-  void getFromRequestRejectsCreatedDimensionForEventQueryEndpoint() {
+  void getFromRequestAcceptsAndNormalizesCreatedDimensionForEventQuery() {
     EventDataQueryRequest request =
         baseRequestBuilder(QUERY, EVENT)
             .dimension(Set.of(Set.of("CREATED:LAST_12_MONTHS")))
             .build();
+
+    subject.getFromRequest(request);
+
+    verify(dataQueryService)
+        .getDimension(
+            eq("pe"),
+            eq(List.of("LAST_12_MONTHS:CREATED")),
+            eq(request),
+            anyList(),
+            eq(true),
+            any());
+  }
+
+  @Test
+  void getFromRequestRejectsIncidentDateDimensionForEventQuery() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).dimension(Set.of(Set.of("INCIDENT_DATE:2021"))).build();
 
     IllegalQueryException ex =
         assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
