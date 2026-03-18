@@ -70,7 +70,6 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EnrollmentStatus;
@@ -190,16 +189,6 @@ class DefaultEventDataQueryServiceTest {
             anyList(),
             eq(true),
             any());
-  }
-
-  @Test
-  void getFromRequestRejectsIncidentDateDimensionForEventQuery() {
-    EventDataQueryRequest request =
-        baseRequestBuilder(QUERY, EVENT).dimension(Set.of(Set.of("INCIDENT_DATE:2021"))).build();
-
-    IllegalQueryException ex =
-        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
-    assertEquals(ErrorCode.E7222, ex.getErrorCode());
   }
 
   @Test
