@@ -290,7 +290,9 @@ public class DhisWebApiWebSecurityConfig {
         web.debug(false)
             .ignoring()
             .requestMatchers(
-                new AntPathRequestMatcher("/api/ping"), new AntPathRequestMatcher("/favicon.ico"));
+                new AntPathRequestMatcher("/api/ping"),
+                new AntPathRequestMatcher("/api/system/ping"),
+                new AntPathRequestMatcher("/favicon.ico"));
   }
 
   private void configureMatchers(HttpSecurity http) throws Exception {
