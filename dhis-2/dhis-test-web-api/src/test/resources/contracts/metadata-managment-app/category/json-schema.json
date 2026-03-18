@@ -1,0 +1,76 @@
+{
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string"
+        },
+        "displayName": {
+            "type": "string"
+        },
+        "attributeValues": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "type": "string"
+                    },
+                    "attribute": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            }
+                        },
+                        "required": ["id"],
+                        "additionalProperties": true
+                    }
+                },
+                "required": ["value", "attribute"],
+                "additionalProperties": true
+            }
+        },
+        "dataDimensionType": {
+            "type": "string",
+            "enum": ["DISAGGREGATION", "ATTRIBUTE"]
+        },
+        "shortName": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "dataDimension": {
+            "type": "boolean"
+        },
+        "categoryOptions": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    },
+                    "displayName": {
+                        "type": "string"
+                    }
+                },
+                "required": ["id"],
+                "additionalProperties": true
+            }
+        }
+    },
+    "required": [
+        "id",
+        "name",
+        "attributeValues",
+        "dataDimensionType",
+        "shortName",
+        "dataDimension",
+        "categoryOptions"
+    ],
+    "additionalProperties": true
+}
