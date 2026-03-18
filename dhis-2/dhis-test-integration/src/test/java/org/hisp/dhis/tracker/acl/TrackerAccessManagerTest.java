@@ -199,7 +199,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     manager.save(eventB, false);
 
     User adminUser = getAdminUser();
-    adminUser.setTeiSearchOrganisationUnits(Set.of(orgUnitA));
+    adminUser.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB));
     adminUser.setOrganisationUnits(Set.of(orgUnitA));
     injectSecurityContextUser(adminUser);
   }

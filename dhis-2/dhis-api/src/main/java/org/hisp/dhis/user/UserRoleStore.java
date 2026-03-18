@@ -53,4 +53,13 @@ public interface UserRoleStore extends IdentifiableObjectStore<UserRole> {
    * @param userUid the UID of the user being removed from all roles
    */
   void removeAllMemberships(@Nonnull UID userUid);
+
+  /**
+   * Copies all role memberships from the source user to the target user directly via SQL, without
+   * loading any collection into memory.
+   *
+   * @param sourceUserUid UID of the user to copy from
+   * @param targetUserUid UID of the user to copy to
+   */
+  void copyRoleMemberships(@Nonnull UID sourceUserUid, @Nonnull UID targetUserUid);
 }

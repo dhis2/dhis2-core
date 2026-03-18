@@ -23,6 +23,7 @@ jobs:
             env: |
               DHIS2_IMAGE=dhis2/core-dev:latest
               SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
+              WARMUP=2
               MVN_ARGS=-Dprofile=smoke
             slack_webhook_secret: SLACK_WEBHOOK_TRACKER_BACKEND
           - name: tracker-load

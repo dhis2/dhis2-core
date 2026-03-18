@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static lombok.AccessLevel.PRIVATE;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
+import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.event.data.AbstractJdbcEventAnalyticsManager.COL_VALUE;
 import static org.hisp.dhis.analytics.event.data.AbstractJdbcEventAnalyticsManager.OUTER_SQL_ALIAS;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
@@ -117,6 +118,7 @@ public class EnrollmentQueryHelper {
       if (!headerName.equalsIgnoreCase(COL_VALUE)
           && !headerName.equalsIgnoreCase(PERIOD_DIM_ID)
           && !headerName.equalsIgnoreCase(ORGUNIT_DIM_ID)
+          && !headerName.equalsIgnoreCase(PROGRAM_STATUS.getItem())
           && !itemsToSkip.contains(headerName)) {
         headerColumns.add(headerName);
       }

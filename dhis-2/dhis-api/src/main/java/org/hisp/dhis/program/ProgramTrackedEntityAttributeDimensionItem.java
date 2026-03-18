@@ -45,6 +45,7 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
@@ -131,7 +132,7 @@ public class ProgramTrackedEntityAttributeDimensionItem extends BaseDimensionalI
   // -------------------------------------------------------------------------
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Property(value = PropertyType.REFERENCE, required = Property.Value.TRUE)
   public Program getProgram() {

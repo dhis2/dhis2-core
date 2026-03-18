@@ -26,17 +26,17 @@
     <owner.version>1.0.12</owner.version>
     <commons-collections4.version>4.5.0</commons-collections4.version>
     <commons-lang3.version>3.20.0</commons-lang3.version>
-    <json-path.version>2.10.0</json-path.version>
+    <json-path.version>3.0.0</json-path.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.3.0</awaitility.version>
-    <lombok.version>1.18.42</lombok.version>
+    <lombok.version>1.18.44</lombok.version>
     <allure.version>2.29.1</allure.version>
     <selenium-java.version>4.41.0</selenium-java.version>
     <slf4j-simple.version>2.0.17</slf4j-simple.version>
     <fluent-hc.version>4.5.14</fluent-hc.version>
     <httpclient5.version>5.6</httpclient5.version>
     <commons-io.version>2.21.0</commons-io.version>
-    <spring.version>7.0.5</spring.version>
+    <spring.version>7.0.6</spring.version>
     <subethasmtp-wiser.version>1.2</subethasmtp-wiser.version>
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <nimbus-jose-jwt.version>10.8</nimbus-jose-jwt.version>

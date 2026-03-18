@@ -46,6 +46,7 @@ import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_ID;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
+import static org.hisp.dhis.analytics.common.ColumnHeader.PROGRAM_STATUS;
 import static org.hisp.dhis.analytics.event.EventAnalyticsUtils.addValues;
 import static org.hisp.dhis.analytics.event.EventAnalyticsUtils.generateEventDataPermutations;
 import static org.hisp.dhis.analytics.event.LabelMapper.getEnrollmentDateLabel;
@@ -347,6 +348,11 @@ public class EventAggregateService {
               TEXT,
               false,
               true));
+    }
+
+    if (params.hasEnrollmentStatuses()) {
+      grid.addHeader(
+          new GridHeader(PROGRAM_STATUS.getItem(), PROGRAM_STATUS.getName(), TEXT, false, true));
     }
   }
 
