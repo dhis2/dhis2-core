@@ -525,7 +525,7 @@ class DataElementControllerTest extends PostgresControllerIntegrationTestBase {
 
   public static Stream<Arguments> invalidApiPathFormats() {
     return Stream.of(
-        Arguments.of("/44/dataElements"),
+        Arguments.of("/45/dataElements"),
         Arguments.of("/99/dataElements"),
         Arguments.of("/27/dataElements"),
         Arguments.of("/333/dataElements"),
