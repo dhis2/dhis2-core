@@ -83,7 +83,7 @@ class SecurityTrackerEventValidator
             ? preheatEvent.getProgramStage()
             : bundle.getPreheat().getProgramStage(trackerEvent.getProgramStage());
     OrganisationUnit organisationUnit =
-        strategy.isUpdateOrDelete()
+        strategy.isDelete()
             ? preheatEvent.getOrganisationUnit()
             : bundle.getPreheat().getOrganisationUnit(trackerEvent.getOrgUnit());
     UID teUid = getTeUidFromEvent(bundle, trackerEvent);
@@ -91,20 +91,16 @@ class SecurityTrackerEventValidator
         bundle.getPreheat().getCategoryOptionCombo(trackerEvent.getAttributeOptionCombo());
     OrganisationUnit ownerOrgUnit =
         getOwnerOrganisationUnit(bundle.getPreheat(), teUid, programStage.getProgram());
-    // TODO(tracker) Validate payload org unit in user scope
     boolean isCreatableInSearchScope =
         strategy.isCreate()
             ? trackerEvent.isCreatableInSearchScope()
             : preheatEvent.isCreatableInSearchScope();
 
-    // TODO: Discuss with product how this should be fixed.
-    // At the moment we are checking capture scope for event org unit
-    // only when we are creating or deleting an event.
-    // When updating, ownership is enough.
-    // We need to understand what to do when updating the org unit.
     if (strategy.isCreate() || strategy.isDelete()) {
       checkEventOrgUnitWriteAccess(
           reporter, trackerEvent, organisationUnit, isCreatableInSearchScope, bundle.getUser());
+    } else {
+      checkOrgUnitInSearchScope(reporter, trackerEvent, organisationUnit, bundle.getUser());
     }
     checkProgramStageWriteAccess(reporter, trackerEvent, programStage, bundle.getUser());
     checkProgramReadAccess(reporter, trackerEvent, programStage.getProgram(), bundle.getUser());
@@ -199,10 +195,19 @@ class SecurityTrackerEventValidator
       boolean isCreatableInSearchScope,
       UserDetails user) {
     String path = eventOrgUnit.getStoredPath();
-    if (isCreatableInSearchScope
-        ? !user.isInUserEffectiveSearchOrgUnitHierarchy(path)
-        : !user.isInUserHierarchy(path)) {
+    if (isCreatableInSearchScope) {
+      if (!user.isInUserEffectiveSearchOrgUnitHierarchy(path)) {
+        reporter.addError(event, ValidationCode.E1131, user, eventOrgUnit);
+      }
+    } else if (!user.isInUserHierarchy(path)) {
       reporter.addError(event, ValidationCode.E1000, user, eventOrgUnit);
+    }
+  }
+
+  private void checkOrgUnitInSearchScope(
+      Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit, UserDetails user) {
+    if (!user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath())) {
+      reporter.addError(dto, ValidationCode.E1131, user, orgUnit);
     }
   }
 
@@ -220,7 +225,7 @@ class SecurityTrackerEventValidator
     }
   }
 
-  public void checkWriteCategoryOptionComboAccess(
+  private void checkWriteCategoryOptionComboAccess(
       Reporter reporter,
       TrackerDto dto,
       CategoryOptionCombo categoryOptionCombo,

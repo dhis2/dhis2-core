@@ -82,7 +82,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class EventSecurityImportValidationTest extends PostgresIntegrationTestBase {
+class TrackerEventSecurityImportValidationTest extends PostgresIntegrationTestBase {
   @Autowired private TestSetup testSetup;
 
   @Autowired private TrackerImportService trackerImportService;
@@ -297,6 +297,23 @@ class EventSecurityImportValidationTest extends PostgresIntegrationTestBase {
     injectSecurityContextUser(userService.getUser(USER_5));
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasError(importReport, ValidationCode.E1000);
+    assertHasError(importReport, ValidationCode.E1131);
+  }
+
+  @Test
+  void shouldFailWhenUpdatingTrackerEventOrgUnitToOneOutsideUserSearchScope() throws IOException {
+    TrackerImportParams params =
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.CREATE).build();
+    assertNoErrors(
+        trackerImportService.importTracker(
+            params, testSetup.fromJson("tracker/validations/events-with-notes-data.json")));
+    injectSecurityContextUser(userService.getUser(USER_5));
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build(),
+            testSetup.fromJson("tracker/validations/events-with-notes-update-data.json"));
+
+    assertHasError(importReport, ValidationCode.E1131);
   }
 }
