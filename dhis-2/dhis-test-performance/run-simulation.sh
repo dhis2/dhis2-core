@@ -298,6 +298,29 @@ save_profiler_data() {
   fi
 }
 
+save_dhis2_logs() {
+  local gatling_dir="$1"
+  local warmup_num="${2:-0}"
+
+  if [ -z "$CAPTURE_DHIS2_LOGS" ] || [ "$warmup_num" -gt 0 ]; then
+    return 0
+  fi
+
+  if [ ! -d "$gatling_dir" ]; then
+    echo "Warning: Cannot save DHIS2 logs - directory does not exist: $gatling_dir"
+    return 1
+  fi
+
+  printf "Saving DHIS2 logs... "
+  if docker compose logs --no-color web > "$gatling_dir/dhis.log" 2>/dev/null; then
+    echo "done"
+  else
+    echo "failed"
+    echo "Warning: Failed to save DHIS2 logs"
+    return 1
+  fi
+}
+
 save_sql_logs() {
   local gatling_dir="$1"
   local warmup_num="${2:-0}"
@@ -317,29 +340,6 @@ save_sql_logs() {
   else
     echo "failed"
     echo "Warning: Failed to copy SQL logs from container"
-    return 1
-  fi
-}
-
-save_dhis2_logs() {
-  local gatling_dir="$1"
-  local warmup_num="${2:-0}"
-
-  if [ -z "$CAPTURE_DHIS2_LOGS" ] || [ "$warmup_num" -gt 0 ]; then
-    return 0
-  fi
-
-  if [ ! -d "$gatling_dir" ]; then
-    echo "Warning: Cannot save DHIS2 logs - directory does not exist: $gatling_dir"
-    return 1
-  fi
-
-  printf "Saving DHIS2 logs... "
-  if docker compose logs --no-color web > "$gatling_dir/dhis2.log" 2>/dev/null; then
-    echo "done"
-  else
-    echo "failed"
-    echo "Warning: Failed to save DHIS2 logs"
     return 1
   fi
 }
@@ -663,7 +663,7 @@ print_output_summary() {
   [ -f "$dir/index.html" ]     && files+=("index.html|Gatling report")
   [ -f "$dir/simulation.csv" ] && files+=("simulation.csv|Gatling data")
   [ -f "$dir/profile.html" ]   && files+=("profile.html|Profiler flamegraph")
-  [ -f "$dir/dhis2.log" ]      && files+=("dhis2.log|DHIS2 application log")
+  [ -f "$dir/dhis.log" ]       && files+=("dhis.log|DHIS2 application log")
   [ -f "$dir/pgbadger.html" ]  && files+=("pgbadger.html|SQL analysis")
 
   if [ ${#files[@]} -gt 0 ]; then
@@ -752,8 +752,8 @@ run_simulation() {
 
     # Post-process results for this run
     save_profiler_data "$gatling_run_dir" || echo "Warning: Failed to save profiler data"
-    save_sql_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to save SQL logs"
     save_dhis2_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to save DHIS2 logs"
+    save_sql_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to save SQL logs"
     post_process_profiler_data "$gatling_run_dir" || echo "Warning: Failed to post-process profiler data"
     post_process_sql_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to post-process SQL logs"
     generate_metadata "$gatling_run_dir" || echo "Warning: Failed to generate metadata"
