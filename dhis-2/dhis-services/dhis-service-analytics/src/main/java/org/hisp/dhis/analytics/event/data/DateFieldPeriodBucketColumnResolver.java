@@ -35,6 +35,7 @@ import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.common.AnalyticsDateFilter;
@@ -98,6 +99,8 @@ public class DateFieldPeriodBucketColumnResolver {
   private static final String DATE_PERIOD_STRUCTURE_ALIAS = "dps_period";
 
   private static final String DATE_PERIOD_COLUMN = "dateperiod";
+
+  private static final Pattern NON_ALPHANUMERIC_OR_UNDERSCORE = Pattern.compile("[^A-Za-z0-9_]");
 
   private final AnalyticsSqlBuilder sqlBuilder;
 
@@ -280,7 +283,8 @@ public class DateFieldPeriodBucketColumnResolver {
   }
 
   private String getJoinAlias(String tableAlias, String sourceColumn) {
-    return (DATE_PERIOD_STRUCTURE_ALIAS + "_" + tableAlias + "_" + sourceColumn)
-        .replaceAll("[^A-Za-z0-9_]", "_");
+    return NON_ALPHANUMERIC_OR_UNDERSCORE
+        .matcher(DATE_PERIOD_STRUCTURE_ALIAS + "_" + tableAlias + "_" + sourceColumn)
+        .replaceAll("_");
   }
 }

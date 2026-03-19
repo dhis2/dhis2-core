@@ -1390,10 +1390,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
   }
 
-  private void addPeriodAggregateColumns(EventQueryParams params, SelectBuilder sb) {
-    addPeriodAggregateColumns(params, sb, Optional.empty());
-  }
-
   private void addPeriodAggregateColumns(
       EventQueryParams params,
       SelectBuilder sb,
