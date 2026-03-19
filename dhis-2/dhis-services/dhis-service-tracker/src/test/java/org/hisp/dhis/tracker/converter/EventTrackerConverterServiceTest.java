@@ -192,6 +192,41 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest {
   }
 
   @Test
+  void shouldConvertFromEventWithCompletedDataWhenStatusIsCompletedAndCompletedDateIsPassed() {
+    setUpMocks();
+
+    DataElement dataElement = new DataElement();
+    dataElement.setUid(CodeGenerator.generateUid());
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElement.getUid())))
+        .thenReturn(dataElement);
+    when(preheat.getUsername()).thenReturn(USERNAME);
+
+    Instant completedAt = DateUtils.instantFromDateAsString("2020-10-10");
+    org.hisp.dhis.tracker.domain.Event event =
+        event(dataValue(MetadataIdentifier.ofUid(dataElement.getUid()), "value"));
+    event.setStatus(EventStatus.COMPLETED);
+    event.setCompletedAt(completedAt);
+
+    ProgramStageInstance result = converter.from(preheat, event);
+
+    assertNotNull(result);
+    assertNotNull(result.getProgramStage());
+    assertNotNull(result.getProgramStage().getProgram());
+    assertNotNull(result.getOrganisationUnit());
+    assertEquals(PROGRAM_UID, result.getProgramStage().getProgram().getUid());
+    assertEquals(PROGRAM_STAGE_UID, result.getProgramStage().getUid());
+    assertEquals(ORGANISATION_UNIT_UID, result.getOrganisationUnit().getUid());
+    assertEquals(DateUtils.fromInstant(completedAt), result.getCompletedDate());
+    assertEquals(USERNAME, result.getCompletedBy());
+    Set<EventDataValue> eventDataValues = result.getEventDataValues();
+    eventDataValues.forEach(
+        e -> {
+          assertEquals(USERNAME, e.getCreatedByUserInfo().getUsername());
+          assertEquals(USERNAME, e.getLastUpdatedByUserInfo().getUsername());
+        });
+  }
+
+  @Test
   void shouldConvertFromExistingEventWithNullCompletedDataWhenStatusIsActive() {
     setUpMocks();
 
