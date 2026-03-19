@@ -312,7 +312,7 @@ save_dhis2_logs() {
   fi
 
   printf "Saving DHIS2 logs... "
-  if docker compose logs --no-color web > "$gatling_dir/dhis.log" 2>/dev/null; then
+  if docker compose logs --no-color --timestamps web > "$gatling_dir/dhis.log" 2>/dev/null; then
     echo "done"
   else
     echo "failed"
