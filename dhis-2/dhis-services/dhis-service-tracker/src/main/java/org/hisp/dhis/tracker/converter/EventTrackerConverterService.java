@@ -236,7 +236,8 @@ public class EventTrackerConverterService
     EventStatus previousStatus = programStageInstance.getStatus();
 
     if (currentStatus != previousStatus && currentStatus == EventStatus.COMPLETED) {
-      programStageInstance.setCompletedDate(now);
+      programStageInstance.setCompletedDate(
+          event.getCompletedAt() == null ? now : DateUtils.fromInstant(event.getCompletedAt()));
       programStageInstance.setCompletedBy(preheat.getUsername());
     }
 
