@@ -253,7 +253,8 @@ public class EventTrackerConverterService
     EventStatus previousStatus = result.getStatus();
 
     if (currentStatus != previousStatus && currentStatus == EventStatus.COMPLETED) {
-      result.setCompletedDate(now);
+      result.setCompletedDate(
+          event.getCompletedAt() == null ? now : DateUtils.fromInstant(event.getCompletedAt()));
       result.setCompletedBy(preheat.getUsername());
     }
 
