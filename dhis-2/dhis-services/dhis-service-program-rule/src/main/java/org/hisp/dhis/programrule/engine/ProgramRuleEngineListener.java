@@ -28,6 +28,7 @@
 package org.hisp.dhis.programrule.engine;
 
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -44,21 +45,25 @@ public class ProgramRuleEngineListener {
 
   @TransactionalEventListener(fallbackExecution = true)
   public void onEnrollment(EnrollmentEvaluationEvent event) {
-    programRuleEngineService.evaluateEnrollmentAndRunEffects(event.getEnrollment());
+    programRuleEngineService.evaluateEnrollmentAndRunEffects(
+        event.getEnrollment(), CurrentUserUtil.getCurrentUserDetails());
   }
 
   @TransactionalEventListener(fallbackExecution = true)
   public void onDataValueChange(DataValueUpdatedEvent event) {
-    programRuleEngineService.evaluateEventAndRunEffects(event.getEvent());
+    programRuleEngineService.evaluateEventAndRunEffects(
+        event.getEvent(), CurrentUserUtil.getCurrentUserDetails());
   }
 
   @TransactionalEventListener(fallbackExecution = true)
   public void onEventCompletion(StageCompletionEvaluationEvent event) {
-    programRuleEngineService.evaluateEventAndRunEffects(event.getEvent());
+    programRuleEngineService.evaluateEventAndRunEffects(
+        event.getEvent(), CurrentUserUtil.getCurrentUserDetails());
   }
 
   @TransactionalEventListener(fallbackExecution = true)
   public void onScheduledEvent(StageScheduledEvaluationEvent event) {
-    programRuleEngineService.evaluateEventAndRunEffects(event.getEvent());
+    programRuleEngineService.evaluateEventAndRunEffects(
+        event.getEvent(), CurrentUserUtil.getCurrentUserDetails());
   }
 }

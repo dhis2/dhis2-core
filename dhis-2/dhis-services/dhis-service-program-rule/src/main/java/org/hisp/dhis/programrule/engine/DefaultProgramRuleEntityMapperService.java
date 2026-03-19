@@ -39,6 +39,8 @@ import static org.hisp.dhis.programrule.engine.RuleActionKey.ATTRIBUTE_TYPE;
 import static org.hisp.dhis.programrule.engine.RuleActionKey.CONTENT;
 import static org.hisp.dhis.programrule.engine.RuleActionKey.FIELD;
 import static org.hisp.dhis.programrule.engine.RuleActionKey.NOTIFICATION;
+import static org.hisp.dhis.rules.DateUtils.toRuleInstant;
+import static org.hisp.dhis.rules.DateUtils.toRuleLocalDate;
 import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
 
@@ -49,8 +51,6 @@ import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import kotlinx.datetime.Instant;
-import kotlinx.datetime.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
@@ -78,6 +78,7 @@ import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEnrollmentStatus;
 import org.hisp.dhis.rules.models.RuleEvent;
 import org.hisp.dhis.rules.models.RuleEventStatus;
+import org.hisp.dhis.rules.models.RuleInstant;
 import org.hisp.dhis.rules.models.RuleValueType;
 import org.hisp.dhis.rules.models.RuleVariable;
 import org.hisp.dhis.rules.models.RuleVariableAttribute;
@@ -87,7 +88,6 @@ import org.hisp.dhis.rules.models.RuleVariableNewestEvent;
 import org.hisp.dhis.rules.models.RuleVariableNewestStageEvent;
 import org.hisp.dhis.rules.models.RuleVariablePreviousEvent;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -213,14 +213,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     return new RuleEnrollment(
         enrollment.getUid(),
         enrollment.getProgram().getName(),
-        LocalDateTime.Formats.INSTANCE
-            .getISO()
-            .parse(DateUtils.toIso8601NoTz(enrollment.getOccurredDate()))
-            .getDate(),
-        LocalDateTime.Formats.INSTANCE
-            .getISO()
-            .parse(DateUtils.toIso8601NoTz(enrollment.getEnrollmentDate()))
-            .getDate(),
+        toRuleLocalDate(enrollment.getOccurredDate()),
+        toRuleLocalDate(enrollment.getEnrollmentDate()),
         RuleEnrollmentStatus.valueOf(enrollment.getStatus().toString()),
         orgUnit,
         orgUnitCode,
@@ -242,27 +236,29 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     String orgUnit = getOrgUnit(eventToEvaluate);
     String orgUnitCode = getOrgUnitCode(eventToEvaluate);
 
+    RuleInstant createdDate =
+        eventToEvaluate.getCreated() == null
+            ? RuleInstant.now()
+            : toRuleInstant(eventToEvaluate.getCreated());
+
     return new RuleEvent(
         eventToEvaluate.getUid(),
         eventToEvaluate.getProgramStage().getUid(),
         eventToEvaluate.getProgramStage().getName(),
         RuleEventStatus.valueOf(eventToEvaluate.getStatus().toString()),
         eventToEvaluate.getOccurredDate() != null
-            ? Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getOccurredDate().getTime())
-            : Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getScheduledDate().getTime()),
-        Instant.Companion.fromEpochMilliseconds(eventToEvaluate.getCreated().getTime()),
+            ? toRuleLocalDate(eventToEvaluate.getOccurredDate())
+            : toRuleLocalDate(eventToEvaluate.getScheduledDate()),
+        createdDate,
+        eventToEvaluate.getCreatedAtClient() == null
+            ? null
+            : toRuleInstant(eventToEvaluate.getCreatedAtClient()),
         eventToEvaluate.getScheduledDate() == null
             ? null
-            : LocalDateTime.Formats.INSTANCE
-                .getISO()
-                .parse(DateUtils.toIso8601NoTz(eventToEvaluate.getScheduledDate()))
-                .getDate(),
+            : toRuleLocalDate(eventToEvaluate.getScheduledDate()),
         eventToEvaluate.getCompletedDate() == null
             ? null
-            : LocalDateTime.Formats.INSTANCE
-                .getISO()
-                .parse(DateUtils.toIso8601NoTz(eventToEvaluate.getCompletedDate()))
-                .getDate(),
+            : toRuleLocalDate(eventToEvaluate.getCompletedDate()),
         orgUnit,
         orgUnitCode,
         eventToEvaluate.getEventDataValues().stream()
@@ -328,7 +324,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                   FIELD,
                   getAssignedParameter(pra),
                   ATTRIBUTE_TYPE,
-                  getAttributeType(pra).name()));
+                  getAttributeType(pra).name()),
+              0);
       case SHOWWARNING ->
           new RuleAction(
               pra.getData(),
@@ -339,7 +336,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                   FIELD,
                   getAssignedParameter(pra),
                   ATTRIBUTE_TYPE,
-                  getAttributeType(pra).name()));
+                  getAttributeType(pra).name()),
+              0);
       case WARNINGONCOMPLETE ->
           new RuleAction(
               pra.getData(),
@@ -350,7 +348,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                   FIELD,
                   getAssignedParameter(pra),
                   ATTRIBUTE_TYPE,
-                  getAttributeType(pra).name()));
+                  getAttributeType(pra).name()),
+              0);
       case SHOWERROR ->
           new RuleAction(
               pra.getData(),
@@ -361,7 +360,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                   FIELD,
                   getAssignedParameter(pra),
                   ATTRIBUTE_TYPE,
-                  getAttributeType(pra).name()));
+                  getAttributeType(pra).name()),
+              0);
       case ERRORONCOMPLETE ->
           new RuleAction(
               pra.getData(),
@@ -372,21 +372,27 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                   FIELD,
                   getAssignedParameter(pra),
                   ATTRIBUTE_TYPE,
-                  getAttributeType(pra).name()));
+                  getAttributeType(pra).name()),
+              0);
       case SETMANDATORYFIELD ->
           new RuleAction(
               null,
               SETMANDATORYFIELD.name(),
               createValues(
-                  FIELD, getAssignedParameter(pra), ATTRIBUTE_TYPE, getAttributeType(pra).name()));
+                  FIELD, getAssignedParameter(pra), ATTRIBUTE_TYPE, getAttributeType(pra).name()),
+              0);
       case SENDMESSAGE ->
           new RuleAction(
-              pra.getData(), SENDMESSAGE.name(), createValues(NOTIFICATION, pra.getTemplateUid()));
+              pra.getData(),
+              SENDMESSAGE.name(),
+              createValues(NOTIFICATION, pra.getTemplateUid()),
+              0);
       case SCHEDULEMESSAGE ->
           new RuleAction(
               pra.getData(),
               SCHEDULEMESSAGE.name(),
-              createValues(NOTIFICATION, pra.getTemplateUid()));
+              createValues(NOTIFICATION, pra.getTemplateUid()),
+              0);
       default -> null;
     };
   }

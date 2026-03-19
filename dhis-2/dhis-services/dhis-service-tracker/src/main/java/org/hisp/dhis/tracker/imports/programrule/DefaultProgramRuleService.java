@@ -57,6 +57,7 @@ import org.hisp.dhis.tracker.imports.converter.RuleEngineConverterService;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -128,7 +129,8 @@ class DefaultProgramRuleService implements ProgramRuleService {
                   .evaluateEnrollmentAndTrackerEvents(
                       enrollment,
                       getEventsFromEnrollment(enrollment.getUid(), bundle, preheat),
-                      getAttributes(e.getEnrollment(), e.getTrackedEntity(), bundle, preheat))
+                      getAttributes(e.getEnrollment(), e.getTrackedEntity(), bundle, preheat),
+                      UserDetails.fromUser(bundle.getUser()))
                   .stream();
             })
         .toList();
@@ -154,7 +156,8 @@ class DefaultProgramRuleService implements ProgramRuleService {
                             enrollment.getUid(),
                             enrollment.getTrackedEntity().getUid(),
                             bundle,
-                            preheat))
+                            preheat),
+                        UserDetails.fromUser(bundle.getUser()))
                     .stream())
         .toList();
   }
@@ -173,7 +176,8 @@ class DefaultProgramRuleService implements ProgramRuleService {
                   eventTrackerConverterService.fromForRuleEngine(preheat, entry.getValue());
 
               return programRuleEngine
-                  .evaluateProgramEvents(new HashSet<>(events), entry.getKey())
+                  .evaluateProgramEvents(
+                      new HashSet<>(events), entry.getKey(), UserDetails.fromUser(bundle.getUser()))
                   .stream();
             })
         .toList();

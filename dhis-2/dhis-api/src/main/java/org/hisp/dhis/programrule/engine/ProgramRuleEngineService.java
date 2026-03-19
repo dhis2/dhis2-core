@@ -30,6 +30,7 @@ package org.hisp.dhis.programrule.engine;
 import java.util.List;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleValidationResult;
+import org.hisp.dhis.user.UserDetails;
 
 /** Created by zubair@dhis2.org on 23.10.17. */
 public interface ProgramRuleEngineService {
@@ -38,18 +39,20 @@ public interface ProgramRuleEngineService {
    * actions present in these effects.
    *
    * @param enrollment identifier of the target enrollment.
+   * @param user
    * @return the list of rule effects calculated by rule engine.
    */
-  List<RuleEffect> evaluateEnrollmentAndRunEffects(long enrollment);
+  List<RuleEffect> evaluateEnrollmentAndRunEffects(long enrollment, UserDetails user);
 
   /**
    * Call rule engine to evaluate the target event and get a list of rule effects, then run the
    * actions present in these effects.
    *
    * @param event identifier (uid) of the target event.
+   * @param user
    * @return the list of rule effects calculated by rule engine
    */
-  List<RuleEffect> evaluateEventAndRunEffects(String event);
+  List<RuleEffect> evaluateEventAndRunEffects(String event, UserDetails user);
 
   /**
    * Gets the description of program rule condition. This also provides run time validation for

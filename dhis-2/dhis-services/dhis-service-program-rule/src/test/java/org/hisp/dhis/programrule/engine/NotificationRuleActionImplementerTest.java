@@ -300,7 +300,10 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest {
 
     ruleActionSendMessage =
         new RuleAction(
-            "", ProgramRuleActionType.SENDMESSAGE.name(), Map.of("notification", NOTIFICATION_UID));
+            "",
+            ProgramRuleActionType.SENDMESSAGE.name(),
+            Map.of("notification", NOTIFICATION_UID),
+            0);
 
     ruleEffectWithActionSendMessage = new RuleEffect("ruleId", ruleActionSendMessage, "");
 
@@ -308,7 +311,8 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest {
         new RuleAction(
             null,
             ProgramRuleActionType.SETMANDATORYFIELD.name(),
-            Map.of("field", MANDATORY_FIELD, "attributeType", AttributeType.UNKNOWN.name()));
+            Map.of("field", MANDATORY_FIELD, "attributeType", AttributeType.UNKNOWN.name()),
+            0);
 
     OrganisationUnit organisationUnitA = createOrganisationUnit('A');
 
