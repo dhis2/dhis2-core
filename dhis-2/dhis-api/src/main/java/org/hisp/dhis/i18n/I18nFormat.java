@@ -57,6 +57,7 @@ import org.hisp.dhis.period.WeeklyAbstractPeriodType;
  * @author Nguyen Dang Quang
  */
 public class I18nFormat {
+
   private static final DecimalFormat FORMAT_VALUE = new DecimalFormat("#.#");
 
   private static final String EMPTY = "";
@@ -76,6 +77,10 @@ public class I18nFormat {
   public static final String START_DATE_POSTFIX = ".startDate";
 
   public static final String END_DATE_POSTFIX = ".endDate";
+
+  public static final String SHORT_PERIOD_NAME_FORMAT = "W%s - %d-%02d-%02d - %d-%02d-%02d";
+
+  public static final String PERIOD_NAME_FORMAT = "Week %s - %d-%02d-%02d - %d-%02d-%02d";
 
   private ResourceBundle resourceBundle;
 
@@ -290,7 +295,7 @@ public class I18nFormat {
       }
 
       return String.format(
-          shortVersion ? "W%s %d-%02d-%02d - %d-%02d-%02d" : "Week %s %d-%02d-%02d - %d-%02d-%02d",
+          shortVersion ? SHORT_PERIOD_NAME_FORMAT : PERIOD_NAME_FORMAT,
           week,
           start.getYear(),
           start.getMonth(),
