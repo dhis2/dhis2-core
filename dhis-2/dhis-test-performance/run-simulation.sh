@@ -24,6 +24,8 @@ show_usage() {
   echo "                        Pattern: s3://databases.dhis2.org/<type>/<version>/dhis2-db-<type>.sql.gz"
   echo "  DHIS2_USERNAME        DHIS2 username for API authentication (default: admin)"
   echo "  DHIS2_PASSWORD        DHIS2 password for API authentication (default: district)"
+  echo "  DHIS_CONF             Custom dhis.conf content (multiline, overrides default dhis.conf)"
+  echo "                        Use double quotes to preserve newlines in .env files"
   echo "  ANALYTICS_GENERATE    Generate analytics tables before running tests (default: false)"
   echo "                        Required for analytics endpoints that query pre-computed tables"
   echo "  ANALYTICS_TIMEOUT     Max wait time for analytics generation in seconds (default: 900 = 15min)"
@@ -145,6 +147,13 @@ parse_prof_args() {
 }
 
 parse_prof_args
+
+# Write custom dhis.conf if provided inline
+if [ -n "${DHIS_CONF:-}" ]; then
+  echo "$DHIS_CONF" > docker/dhis-custom.conf
+  DHIS_CONF_FILE=dhis-custom.conf
+  echo "Using custom dhis.conf"
+fi
 
 ################################################################################
 # CLEANUP & TRAP
@@ -274,6 +283,16 @@ start_containers() {
   fi
 
   echo "All containers ready! (took $(($(date +%s) - start_time))s)"
+}
+
+save_dhis_conf() {
+  local gatling_dir="$1"
+
+  if [ ! -d "$gatling_dir" ]; then
+    return 1
+  fi
+
+  cp "docker/${DHIS_CONF_FILE:-dhis.conf}" "$gatling_dir/dhis.conf"
 }
 
 save_profiler_data() {
@@ -620,6 +639,10 @@ generate_metadata() {
     echo "DB_VERSION=$DB_VERSION"
     echo "DHIS2_USERNAME=$DHIS2_USERNAME"
     echo "DHIS2_PASSWORD=$DHIS2_PASSWORD"
+    if [ -n "${DHIS_CONF:-}" ]; then
+      # Quote the multiline value so it can be sourced back
+      echo "DHIS_CONF=\"$DHIS_CONF\""
+    fi
     echo "ANALYTICS_GENERATE=$ANALYTICS_GENERATE"
     echo "ANALYTICS_TIMEOUT=$ANALYTICS_TIMEOUT"
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
@@ -751,6 +774,7 @@ run_simulation() {
     echo ""
 
     # Post-process results for this run
+    save_dhis_conf "$gatling_run_dir" || echo "Warning: Failed to save dhis.conf"
     save_profiler_data "$gatling_run_dir" || echo "Warning: Failed to save profiler data"
     save_dhis2_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to save DHIS2 logs"
     save_sql_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to save SQL logs"
