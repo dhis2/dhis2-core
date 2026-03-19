@@ -115,6 +115,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.setting.SystemSettingsService;
@@ -379,12 +380,17 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    */
   @Override
   protected String getFromClause(EventQueryParams params) {
-    return " from "
-        + params.getTableName()
-        + " as "
-        + ANALYTICS_TBL_ALIAS
-        + " "
-        + joinOrgUnitTables(params, getAnalyticsType());
+    StringBuilder sql =
+        new StringBuilder(" from ")
+            .append(params.getTableName())
+            .append(" as ")
+            .append(ANALYTICS_TBL_ALIAS)
+            .append(" ");
+
+    resolveDateFieldPeriodBucketJoin(params, ANALYTICS_TBL_ALIAS)
+        .ifPresent(join -> sql.append(join.toSql()).append(" "));
+
+    return sql.append(joinOrgUnitTables(params, getAnalyticsType())).toString();
   }
 
   /** Appends the FROM clause, i.e. the main table name and alias. */
@@ -948,6 +954,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     // Add base column
     addDimensionSelectColumns(columns, params, true, true);
+    removeLegacyPeriodDimensionColumns(columns, params);
 
     SelectBuilder sb = new SelectBuilder();
     sb.addColumn(ENROLLMENT_COL, "ax");
@@ -1002,6 +1009,30 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     for (DimensionalObject dimension : params.getDimensions()) {
       resolveDateFieldPeriodSourceColumn(dimension).ifPresent(sb::addColumnIfNotExist);
     }
+  }
+
+  /**
+   * Removes physical period columns from the base enrollment CTE when the requested period
+   * dimension is derived from a non-default date field.
+   *
+   * <p>In that case, the final period value is resolved later through {@link
+   * DateFieldPeriodBucketColumnResolver}. Keeping the physical period column in the base CTE would
+   * duplicate the dimension and can produce conflicting projections in the outer aggregate query.
+   */
+  private void removeLegacyPeriodDimensionColumns(List<String> columns, EventQueryParams params) {
+    Optional.ofNullable(params.getDimension(PERIOD_DIM_ID))
+        .filter(
+            periodDimension ->
+                resolveDateFieldPeriodBucket(periodDimension, ANALYTICS_TBL_ALIAS).isPresent())
+        .ifPresent(
+            periodDimension ->
+                periodDimension.getItems().stream()
+                    .map(PeriodDimension.class::cast)
+                    .map(period -> period.getPeriodType().getPeriodTypeEnum().getName())
+                    .forEach(
+                        periodColumn ->
+                            columns.removeIf(
+                                column -> periodColumn.equalsIgnoreCase(column.trim()))));
   }
 
   /**
@@ -1195,6 +1226,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     // 3. Build up the final SQL using dedicated sub-steps
     SelectBuilder sb = new SelectBuilder();
+    Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression> resolvedPeriodExpression =
+        resolveAggregateHeaderPeriodExpression(params);
 
     // 3.1: Append the WITH clause if needed
     addCteClause(sb, cteContext);
@@ -1206,11 +1239,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     //    4) header columns (headerColumns)
     sb.addColumn("count(eb.enrollment) as value");
     addOrgUnitAggregateColumns(sb, params);
-    addPeriodAggregateColumns(params, sb);
-    addHeaderAggregateColumns(headers, params, cteContext, sb);
+    addPeriodAggregateColumns(params, sb, resolvedPeriodExpression);
+    addHeaderAggregateColumns(headers, params, cteContext, sb, resolvedPeriodExpression);
 
     // 3.3: Append the FROM clause (the main enrollment analytics table)
     sb.from(ENROLLMENT_AGGR_BASE, ENROLLMENT_AGGR_BASE_ALIAS);
+    appendPeriodBucketJoin(sb, resolvedPeriodExpression);
 
     // 3.4: Append JOINs for each relevant CTE definition
     for (String itemUid : cteContext.getCteKeysExcluding(ENROLLMENT_AGGR_BASE)) {
@@ -1238,10 +1272,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    * per-stage filter CTE.
    */
   private void addHeaderAggregateColumns(
-      List<GridHeader> headers, EventQueryParams params, CteContext cteContext, SelectBuilder sb) {
+      List<GridHeader> headers,
+      EventQueryParams params,
+      CteContext cteContext,
+      SelectBuilder sb,
+      Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression> resolvedPeriodExpression) {
     Set<String> headerColumns = new LinkedHashSet<>();
-    Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression> resolvedPeriodExpression =
-        resolveAggregateHeaderPeriodExpression(params);
     boolean periodAlreadyProjected = params.getDimension(PERIOD_DIM_ID) != null;
 
     for (GridHeader header : headers) {
@@ -1355,17 +1391,25 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   private void addPeriodAggregateColumns(EventQueryParams params, SelectBuilder sb) {
-    DimensionalObject periodDimension = params.getDimension(PERIOD_DIM_ID);
+    addPeriodAggregateColumns(params, sb, Optional.empty());
+  }
 
-    if (periodDimension != null) {
-      Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression> resolvedExpression =
-          resolveDateFieldPeriodBucket(periodDimension, ENROLLMENT_AGGR_BASE_ALIAS);
+  private void addPeriodAggregateColumns(
+      EventQueryParams params,
+      SelectBuilder sb,
+      Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression> resolvedExpression) {
+    Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression> expression =
+        resolvedExpression.isPresent()
+            ? resolvedExpression
+            : Optional.ofNullable(params.getDimension(PERIOD_DIM_ID))
+                .flatMap(
+                    periodDimension ->
+                        resolveDateFieldPeriodBucket(periodDimension, ENROLLMENT_AGGR_BASE_ALIAS));
 
-      if (resolvedExpression.isPresent()) {
-        sb.addColumn(resolvedExpression.get().selectExpression());
-        sb.groupBy(resolvedExpression.get().groupByExpression());
-        return;
-      }
+    if (expression.isPresent()) {
+      sb.addColumn(expression.get().selectExpression());
+      sb.groupBy(expression.get().groupByExpression());
+      return;
     }
 
     Set<String> periodColumns = getPeriodColumns(params);
@@ -1376,6 +1420,14 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         sb.groupBy(col);
       }
     }
+  }
+
+  private void appendPeriodBucketJoin(
+      SelectBuilder sb,
+      Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression> resolvedExpression) {
+    resolvedExpression
+        .flatMap(DateFieldPeriodBucketColumnResolver.ResolvedExpression::joinClause)
+        .ifPresent(join -> sb.leftJoin(join.table(), join.alias(), tableAlias -> join.condition()));
   }
 
   /**

@@ -261,7 +261,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
       validateResponseStructure(
           response,
           expectPostgis,
-          474,
+          422,
           4,
           4); // Pass runtime flag, row count, and expected header counts
 
@@ -300,327 +300,145 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
           true);
 
       // rowContext not found or empty in the response, skipping assertions.
+      // Validate row exists with values from original row index 0
+      validateRowExists(
+          response,
+          actualHeaders,
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "2574"));
 
+      // Validate row exists with values from original row index 21
+      validateRowExists(
+          response,
+          actualHeaders,
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "2707"));
+
+      // Validate row exists with values from original row index 42
       validateRowExists(
           response,
           actualHeaders,
           Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-01 00:00:00.0"));
+              "value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "2823.5"));
 
-      // Validate row exists with values from original row index 22
+      // Validate row exists with values from original row index 63
       validateRowExists(
           response,
           actualHeaders,
           Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-01 00:00:00.0"));
+              "value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "2893.5"));
 
-      // Validate row exists with values from original row index 44
+      // Validate row exists with values from original row index 84
+      validateRowExists(
+          response,
+          actualHeaders,
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "2961"));
+
+      // Validate row exists with values from original row index 105
+      validateRowExists(
+          response,
+          actualHeaders,
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3014"));
+
+      // Validate row exists with values from original row index 126
+      validateRowExists(
+          response,
+          actualHeaders,
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3063"));
+
+      // Validate row exists with values from original row index 147
+      validateRowExists(
+          response,
+          actualHeaders,
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3100"));
+
+      // Validate row exists with values from original row index 168
+      validateRowExists(
+          response,
+          actualHeaders,
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3149"));
+
+      // Validate row exists with values from original row index 189
       validateRowExists(
           response,
           actualHeaders,
           Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-02 00:00:00.0"));
+              "value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3197.5"));
 
-      // Validate row exists with values from original row index 66
+      // Validate row exists with values from original row index 210
+      validateRowExists(
+          response,
+          actualHeaders,
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3241"));
+
+      // Validate row exists with values from original row index 231
       validateRowExists(
           response,
           actualHeaders,
           Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-03 00:00:00.0"));
+              "value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3277.5"));
 
-      // Validate row exists with values from original row index 88
+      // Validate row exists with values from original row index 252
       validateRowExists(
           response,
           actualHeaders,
           Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-04 00:00:00.0"));
+              "value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3315.5"));
 
-      // Validate row exists with values from original row index 110
+      // Validate row exists with values from original row index 273
       validateRowExists(
           response,
           actualHeaders,
           Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-05 00:00:00.0"));
+              "value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3346.5"));
 
-      // Validate row exists with values from original row index 132
+      // Validate row exists with values from original row index 294
+      validateRowExists(
+          response,
+          actualHeaders,
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3405"));
+
+      // Validate row exists with values from original row index 315
       validateRowExists(
           response,
           actualHeaders,
           Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-06 00:00:00.0"));
+              "value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3467.5"));
 
-      // Validate row exists with values from original row index 154
+      // Validate row exists with values from original row index 336
+      validateRowExists(
+          response,
+          actualHeaders,
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3502"));
+
+      // Validate row exists with values from original row index 357
+      validateRowExists(
+          response,
+          actualHeaders,
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3567"));
+
+      // Validate row exists with values from original row index 378
+      validateRowExists(
+          response,
+          actualHeaders,
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3625"));
+
+      // Validate row exists with values from original row index 399
+      validateRowExists(
+          response,
+          actualHeaders,
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3700"));
+
+      // Validate row exists with values from original row index 420
+      validateRowExists(
+          response,
+          actualHeaders,
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3877"));
+
+      // Validate row exists with values from original row index 421
       validateRowExists(
           response,
           actualHeaders,
           Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-08 00:00:00.0"));
-
-      // Validate row exists with values from original row index 176
-      validateRowExists(
-          response,
-          actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-08 00:00:00.0"));
-
-      // Validate row exists with values from original row index 198
-      validateRowExists(
-          response,
-          actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-09 00:00:00.0"));
-
-      // Validate row exists with values from original row index 220
-      validateRowExists(
-          response,
-          actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-10 00:00:00.0"));
-
-      // Validate row exists with values from original row index 242
-      validateRowExists(
-          response,
-          actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-11 00:00:00.0"));
-
-      // Validate row exists with values from original row index 264
-      validateRowExists(
-          response,
-          actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-12 00:00:00.0"));
-
-      // Validate row exists with values from original row index 286
-      validateRowExists(
-          response,
-          actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-13 00:00:00.0"));
-
-      // Validate row exists with values from original row index 308
-      validateRowExists(
-          response,
-          actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-14 00:00:00.0"));
-
-      // Validate row exists with values from original row index 330
-      validateRowExists(
-          response,
-          actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-15 00:00:00.0"));
-
-      // Validate row exists with values from original row index 352
-      validateRowExists(
-          response,
-          actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-16 00:00:00.0"));
-
-      // Validate row exists with values from original row index 374
-      validateRowExists(
-          response,
-          actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-17 00:00:00.0"));
-
-      // Validate row exists with values from original row index 396
-      validateRowExists(
-          response,
-          actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-18 00:00:00.0"));
-
-      // Validate row exists with values from original row index 418
-      validateRowExists(
-          response,
-          actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-19 00:00:00.0"));
-
-      // Validate row exists with values from original row index 440
-      validateRowExists(
-          response,
-          actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-20 00:00:00.0"));
-
-      // Validate row exists with values from original row index 462
-      validateRowExists(
-          response,
-          actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-21 00:00:00.0"));
-
-      // Validate row exists with values from original row index 473
-      validateRowExists(
-          response,
-          actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-21 00:00:00.0"));
+              "value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3908.5"));
     }
 
     @Test
@@ -651,7 +469,7 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
       validateResponseStructure(
           response,
           expectPostgis,
-          474,
+          422,
           4,
           4); // Pass runtime flag, row count, and expected header counts
 
@@ -682,6 +500,15 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
       validateHeaderPropertiesByName(
           response,
           actualHeaders,
+          "eventdate",
+          "Event date",
+          "TEXT",
+          "java.lang.String",
+          false,
+          true);
+      validateHeaderPropertiesByName(
+          response,
+          actualHeaders,
           "GxdhnY5wmHq",
           "Average weight (g)",
           "NUMBER",
@@ -691,326 +518,146 @@ public class EnrollmentsAggregate6AutoTest extends AnalyticsApiTest {
 
       // rowContext not found or empty in the response, skipping assertions.
 
+      // 7. Assert row existence by value (unsorted results - validates all columns).
+      // Validate row exists with values from original row index 0
       validateRowExists(
           response,
           actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-01 00:00:00.0"));
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "2574"));
 
-      // Validate row exists with values from original row index 22
+      // Validate row exists with values from original row index 21
       validateRowExists(
           response,
           actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-01 00:00:00.0"));
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "2707"));
 
-      // Validate row exists with values from original row index 44
+      // Validate row exists with values from original row index 42
       validateRowExists(
           response,
           actualHeaders,
           Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-02 00:00:00.0"));
+              "value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "2823.5"));
 
-      // Validate row exists with values from original row index 66
+      // Validate row exists with values from original row index 63
       validateRowExists(
           response,
           actualHeaders,
           Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-03 00:00:00.0"));
+              "value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "2893.5"));
 
-      // Validate row exists with values from original row index 88
+      // Validate row exists with values from original row index 84
       validateRowExists(
           response,
           actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-04 00:00:00.0"));
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "2961"));
 
-      // Validate row exists with values from original row index 110
+      // Validate row exists with values from original row index 105
       validateRowExists(
           response,
           actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-05 00:00:00.0"));
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3014"));
 
-      // Validate row exists with values from original row index 132
+      // Validate row exists with values from original row index 126
       validateRowExists(
           response,
           actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-06 00:00:00.0"));
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3063"));
 
-      // Validate row exists with values from original row index 154
+      // Validate row exists with values from original row index 147
       validateRowExists(
           response,
           actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-08 00:00:00.0"));
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3100"));
 
-      // Validate row exists with values from original row index 176
+      // Validate row exists with values from original row index 168
       validateRowExists(
           response,
           actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-08 00:00:00.0"));
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3149"));
 
-      // Validate row exists with values from original row index 198
+      // Validate row exists with values from original row index 189
       validateRowExists(
           response,
           actualHeaders,
           Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-09 00:00:00.0"));
+              "value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3197.5"));
 
-      // Validate row exists with values from original row index 220
+      // Validate row exists with values from original row index 210
       validateRowExists(
           response,
           actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-10 00:00:00.0"));
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3241"));
 
-      // Validate row exists with values from original row index 242
+      // Validate row exists with values from original row index 231
       validateRowExists(
           response,
           actualHeaders,
           Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-11 00:00:00.0"));
+              "value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3277.5"));
 
-      // Validate row exists with values from original row index 264
+      // Validate row exists with values from original row index 252
       validateRowExists(
           response,
           actualHeaders,
           Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-12 00:00:00.0"));
+              "value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3315.5"));
 
-      // Validate row exists with values from original row index 286
+      // Validate row exists with values from original row index 273
       validateRowExists(
           response,
           actualHeaders,
           Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-13 00:00:00.0"));
+              "value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3346.5"));
 
-      // Validate row exists with values from original row index 308
+      // Validate row exists with values from original row index 294
       validateRowExists(
           response,
           actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-14 00:00:00.0"));
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3405"));
 
-      // Validate row exists with values from original row index 330
+      // Validate row exists with values from original row index 315
       validateRowExists(
           response,
           actualHeaders,
           Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-15 00:00:00.0"));
+              "value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3467.5"));
 
-      // Validate row exists with values from original row index 352
+      // Validate row exists with values from original row index 336
       validateRowExists(
           response,
           actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-16 00:00:00.0"));
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3502"));
 
-      // Validate row exists with values from original row index 374
+      // Validate row exists with values from original row index 357
       validateRowExists(
           response,
           actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-17 00:00:00.0"));
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3567"));
 
-      // Validate row exists with values from original row index 396
+      // Validate row exists with values from original row index 378
       validateRowExists(
           response,
           actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-18 00:00:00.0"));
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3625"));
 
-      // Validate row exists with values from original row index 418
+      // Validate row exists with values from original row index 399
       validateRowExists(
           response,
           actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-19 00:00:00.0"));
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3700"));
 
-      // Validate row exists with values from original row index 440
+      // Validate row exists with values from original row index 420
       validateRowExists(
           response,
           actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-20 00:00:00.0"));
+          Map.of("value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3877"));
 
-      // Validate row exists with values from original row index 462
+      // Validate row exists with values from original row index 421
       validateRowExists(
           response,
           actualHeaders,
           Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-21 00:00:00.0"));
-
-      // Validate row exists with values from original row index 473
-      validateRowExists(
-          response,
-          actualHeaders,
-          Map.of(
-              "value",
-              "1",
-              "ou",
-              "ImspTQPwCqd",
-              "eventdate",
-              "2022Sep",
-              "GxdhnY5wmHq",
-              "2022-09-21 00:00:00.0"));
+              "value", "1", "ou", "ImspTQPwCqd", "eventdate", "2022Sep", "GxdhnY5wmHq", "3908.5"));
     }
   }
 

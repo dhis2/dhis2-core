@@ -90,6 +90,9 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.ClickHouseAnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.DorisAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
@@ -188,23 +191,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             new DefaultStageDatePeriodBucketSqlRenderer(sqlBuilder),
             new DefaultStageOrgUnitSqlService(organisationUnitResolver, sqlBuilder));
 
-    subject =
-        new JdbcEventAnalyticsManager(
-            jdbcTemplate,
-            programIndicatorService,
-            programIndicatorSubqueryBuilder,
-            piDisagInfoInitializer,
-            piDisagQueryGenerator,
-            timeCoordinateSelector,
-            executionPlanStore,
-            systemSettingsService,
-            config,
-            sqlBuilder,
-            organisationUnitResolver,
-            columnMapper,
-            filterBuilder,
-            stageQuerySqlFacade,
-            new DateFieldPeriodBucketColumnResolver(new PostgreSqlBuilder()));
+    subject = createEventAnalyticsManager(sqlBuilder, "postgresql");
 
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
@@ -761,6 +748,117 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
         sql.getValue(),
         containsString(
             "group by (select \"monthly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('month', ax.\"enrollmentdate\")::date), ax.\"ou\", ax.\"fWIAEtYVEGk\""));
+  }
+
+  @Test
+  void verifyGetAggregatedEventQueryUsesJoinBasedPeriodLookupForDoris() {
+    DorisAnalyticsSqlBuilder dorisBuilder =
+        new DorisAnalyticsSqlBuilder("internal", "doris-jdbc.jar");
+    JdbcEventAnalyticsManager dorisSubject = createEventAnalyticsManager(dorisBuilder, "doris");
+
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
+    mockEmptyRowSet();
+
+    List<PeriodDimension> periods = createPeriodDimensions("202001");
+    periods.forEach(period -> period.setDateField(TimeField.ENROLLMENT_DATE.name()));
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams(programStage, ValueType.INTEGER))
+            .withPeriods(periods, "monthly")
+            .build();
+
+    dorisSubject.getAggregatedEventData(params, createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertThat(
+        sql.getValue(),
+        containsString(
+            "left join analytics_rs_dateperiodstructure as dps_period_ax_enrollmentdate on dps_period_ax_enrollmentdate.`dateperiod` = cast(date_trunc(cast(ax.`enrollmentdate` as date), 'month') as date)"));
+    assertThat(
+        sql.getValue(), containsString("dps_period_ax_enrollmentdate.`monthly` as `monthly`"));
+    assertThat(
+        sql.getValue(),
+        containsString(
+            "group by dps_period_ax_enrollmentdate.`monthly`, ax.`ou`, ax.`fWIAEtYVEGk`"));
+  }
+
+  @Test
+  void verifyGetAggregatedEventQueryUsesClickHouseBucketLookupWithoutPostgresFallback() {
+    ClickHouseAnalyticsSqlBuilder clickHouseBuilder = new ClickHouseAnalyticsSqlBuilder("dhis2");
+    JdbcEventAnalyticsManager clickHouseSubject =
+        createEventAnalyticsManager(clickHouseBuilder, "clickhouse");
+
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
+    mockEmptyRowSet();
+
+    List<PeriodDimension> periods = createPeriodDimensions("202001");
+    periods.forEach(period -> period.setDateField(TimeField.ENROLLMENT_DATE.name()));
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams(programStage, ValueType.INTEGER))
+            .withPeriods(periods, "monthly")
+            .build();
+
+    clickHouseSubject.getAggregatedEventData(params, createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertThat(
+        sql.getValue(),
+        containsString(
+            "(select \"monthly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = toDate(date_trunc('month', toDate(ax.\"enrollmentdate\")))) as \"monthly\""));
+    assertThat(
+        sql.getValue(),
+        containsString(
+            "group by (select \"monthly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = toDate(date_trunc('month', toDate(ax.\"enrollmentdate\")))), ax.\"ou\", ax.\"fWIAEtYVEGk\""));
+    assertThat(sql.getValue(), not(containsString("::date")));
+    assertThat(sql.getValue(), not(containsString(" interval ")));
+    assertThat(sql.getValue(), not(containsString("make_date")));
+    assertThat(
+        sql.getValue(),
+        not(
+            containsString(
+                "left join analytics_rs_dateperiodstructure as dps_period_ax_enrollmentdate")));
+  }
+
+  private JdbcEventAnalyticsManager createEventAnalyticsManager(
+      AnalyticsSqlBuilder builder, String analyticsDatabase) {
+    when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn(analyticsDatabase);
+
+    EventTimeFieldSqlRenderer timeCoordinateSelector = new EventTimeFieldSqlRenderer(builder);
+    ProgramIndicatorService programIndicatorService = mock(ProgramIndicatorService.class);
+    DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
+        new DefaultProgramIndicatorSubqueryBuilder(
+            programIndicatorService, systemSettingsService, builder, dataElementService);
+    ColumnMapper columnMapper = new ColumnMapper(builder, systemSettingsService);
+    filterBuilder = new QueryItemFilterBuilder(organisationUnitResolver, builder);
+    StageQuerySqlFacade stageQuerySqlFacade =
+        new DefaultStageQuerySqlFacade(
+            new DefaultStageQueryItemClassifier(),
+            new DefaultStageDatePeriodBucketSqlRenderer(builder),
+            new DefaultStageOrgUnitSqlService(organisationUnitResolver, builder));
+
+    return new JdbcEventAnalyticsManager(
+        jdbcTemplate,
+        programIndicatorService,
+        programIndicatorSubqueryBuilder,
+        piDisagInfoInitializer,
+        piDisagQueryGenerator,
+        timeCoordinateSelector,
+        executionPlanStore,
+        systemSettingsService,
+        config,
+        builder,
+        organisationUnitResolver,
+        columnMapper,
+        filterBuilder,
+        stageQuerySqlFacade,
+        new DateFieldPeriodBucketColumnResolver(builder));
   }
 
   private void verifyFirstOrLastAggregationTypeSubquery(
