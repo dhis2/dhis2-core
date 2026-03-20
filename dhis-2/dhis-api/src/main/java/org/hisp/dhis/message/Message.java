@@ -57,6 +57,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
@@ -65,8 +66,10 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Sortable;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
+import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -98,6 +101,7 @@ public class Message implements IdentifiableObject {
 
   /** The message text. */
   @Column(name = "messagetext", columnDefinition = "text")
+  @Type(type = "text")
   private String text;
 
   /** The message meta data, like user agent and OS of sender. */
@@ -217,6 +221,7 @@ public class Message implements IdentifiableObject {
 
   @JsonProperty
   @JacksonXmlProperty
+  @Property(PropertyType.TEXT)
   public String getText() {
     return text;
   }
