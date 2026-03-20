@@ -47,7 +47,7 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
-import org.hisp.dhis.tracker.imports.preprocess.TrackerPreprocessService;
+import org.hisp.dhis.tracker.imports.preprocess.Preprocessor;
 import org.hisp.dhis.tracker.imports.report.Error;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
@@ -69,8 +69,6 @@ public class DefaultTrackerImportService implements TrackerImportService {
   @Nonnull private final TrackerBundleService trackerBundleService;
 
   @Nonnull private final ValidationService validationService;
-
-  @Nonnull private final TrackerPreprocessService trackerPreprocessService;
 
   private PersistenceReport commit(TrackerImportParams params, TrackerBundle trackerBundle)
       throws ForbiddenException, NotFoundException {
@@ -96,7 +94,7 @@ public class DefaultTrackerImportService implements TrackerImportService {
                 () -> trackerBundleService.create(params, trackerObjects, currentUser)));
 
     jobProgress.startingStage("Running PreProcess");
-    jobProgress.runStage(() -> trackerPreprocessService.preprocess(trackerBundle));
+    jobProgress.runStage(() -> Preprocessor.preprocess(trackerBundle));
 
     jobProgress.startingStage("Running Validation");
     ValidationResult validationResult =

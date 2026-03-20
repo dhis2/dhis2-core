@@ -36,116 +36,68 @@ import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackerEvent;
-import org.springframework.stereotype.Component;
 
-/**
- * This preprocessor is responsible for setting the correct strategy for every tracker object.
- *
- * @author Enrico Colasante
- */
-@Component
-public class StrategyPreProcessor implements BundlePreProcessor {
-  @Override
-  public void process(TrackerBundle bundle) {
-    preProcessTrackedEntities(bundle);
-    preProcessEnrollments(bundle);
-    preProcessTrackerEvents(bundle);
-    preProcessSingleEvents(bundle);
-    preProcessRelationships(bundle);
+/** Sets the correct import strategy (CREATE, UPDATE, DELETE) for every tracker object. */
+class StrategyPreprocessor {
+
+  private StrategyPreprocessor() {
+    throw new UnsupportedOperationException("utility class");
   }
 
-  public void preProcessTrackedEntities(TrackerBundle bundle) {
+  static void process(TrackerBundle bundle) {
+    TrackerImportStrategy importStrategy = bundle.getImportStrategy();
+
     for (org.hisp.dhis.tracker.imports.domain.TrackedEntity te : bundle.getTrackedEntities()) {
-      TrackerImportStrategy importStrategy = bundle.getImportStrategy();
-
-      TrackedEntity existingTei = bundle.getPreheat().getTrackedEntity(te.getTrackedEntity());
-
+      TrackedEntity existing = bundle.getPreheat().getTrackedEntity(te.getTrackedEntity());
       if (importStrategy.isCreateAndUpdate()) {
-        if (existingTei == null) {
-          bundle.setStrategy(te, TrackerImportStrategy.CREATE);
-        } else {
-          bundle.setStrategy(te, TrackerImportStrategy.UPDATE);
-        }
+        bundle.setStrategy(
+            te, existing == null ? TrackerImportStrategy.CREATE : TrackerImportStrategy.UPDATE);
       } else {
         bundle.setStrategy(te, importStrategy);
       }
     }
-  }
 
-  public void preProcessEnrollments(TrackerBundle bundle) {
     for (org.hisp.dhis.tracker.imports.domain.Enrollment enrollment : bundle.getEnrollments()) {
-      TrackerImportStrategy importStrategy = bundle.getImportStrategy();
-
-      Enrollment existingPI = bundle.getPreheat().getEnrollment(enrollment.getEnrollment());
-
+      Enrollment existing = bundle.getPreheat().getEnrollment(enrollment.getEnrollment());
       if (importStrategy.isCreateAndUpdate()) {
-        if (existingPI == null) {
-          bundle.setStrategy(enrollment, TrackerImportStrategy.CREATE);
-        } else {
-          bundle.setStrategy(enrollment, TrackerImportStrategy.UPDATE);
-        }
+        bundle.setStrategy(
+            enrollment,
+            existing == null ? TrackerImportStrategy.CREATE : TrackerImportStrategy.UPDATE);
       } else {
         bundle.setStrategy(enrollment, importStrategy);
       }
     }
-  }
 
-  public void preProcessTrackerEvents(TrackerBundle bundle) {
     for (org.hisp.dhis.tracker.imports.domain.TrackerEvent event : bundle.getTrackerEvents()) {
-      TrackerImportStrategy importStrategy = bundle.getImportStrategy();
-
-      TrackerEvent existingEvent = bundle.getPreheat().getTrackerEvent(event.getEvent());
-
+      TrackerEvent existing = bundle.getPreheat().getTrackerEvent(event.getEvent());
       if (importStrategy.isCreateAndUpdate()) {
-        if (existingEvent == null) {
-          bundle.setStrategy(event, TrackerImportStrategy.CREATE);
-        } else {
-          bundle.setStrategy(event, TrackerImportStrategy.UPDATE);
-        }
+        bundle.setStrategy(
+            event, existing == null ? TrackerImportStrategy.CREATE : TrackerImportStrategy.UPDATE);
       } else {
         bundle.setStrategy(event, importStrategy);
       }
     }
-  }
 
-  public void preProcessSingleEvents(TrackerBundle bundle) {
     for (org.hisp.dhis.tracker.imports.domain.SingleEvent event : bundle.getSingleEvents()) {
-      TrackerImportStrategy importStrategy = bundle.getImportStrategy();
-
-      SingleEvent existingEvent = bundle.getPreheat().getSingleEvent(event.getEvent());
-
+      SingleEvent existing = bundle.getPreheat().getSingleEvent(event.getEvent());
       if (importStrategy.isCreateAndUpdate()) {
-        if (existingEvent == null) {
-          bundle.setStrategy(event, TrackerImportStrategy.CREATE);
-        } else {
-          bundle.setStrategy(event, TrackerImportStrategy.UPDATE);
-        }
+        bundle.setStrategy(
+            event, existing == null ? TrackerImportStrategy.CREATE : TrackerImportStrategy.UPDATE);
       } else {
         bundle.setStrategy(event, importStrategy);
       }
     }
-  }
 
-  public void preProcessRelationships(TrackerBundle bundle) {
     for (Relationship relationship : bundle.getRelationships()) {
-      TrackerImportStrategy importStrategy = bundle.getImportStrategy();
-      org.hisp.dhis.tracker.model.Relationship existingRelationship =
+      org.hisp.dhis.tracker.model.Relationship existing =
           bundle.getPreheat().getRelationship(relationship.getUID());
-
       if (importStrategy.isCreateAndUpdate()) {
-        if (existingRelationship == null) {
-          bundle.setStrategy(relationship, TrackerImportStrategy.CREATE);
-        } else {
-          bundle.setStrategy(relationship, TrackerImportStrategy.UPDATE);
-        }
+        bundle.setStrategy(
+            relationship,
+            existing == null ? TrackerImportStrategy.CREATE : TrackerImportStrategy.UPDATE);
       } else {
         bundle.setStrategy(relationship, importStrategy);
       }
     }
-  }
-
-  @Override
-  public boolean needsToRun(TrackerImportStrategy strategy) {
-    return true;
   }
 }

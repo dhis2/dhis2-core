@@ -29,38 +29,37 @@
  */
 package org.hisp.dhis.tracker.imports.preprocess;
 
-import java.util.List;
-import org.hisp.dhis.program.Program;
+import java.util.Objects;
+import java.util.Optional;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
-import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.tracker.imports.domain.User;
 
-/**
- * This preprocessor is responsible for initialize attribute option combo with the default one from
- * the program if no attribute option combo is provided.
- *
- * @author Enrico Colasante
- */
-@Component
-public class CategoryComboPreProcessor implements BundlePreProcessor {
-  @Override
-  public void process(TrackerBundle bundle) {
-    TrackerPreheat preheat = bundle.getPreheat();
-    List<Event> events =
-        bundle.getEvents().stream()
-            .filter(
-                e ->
-                    e.getAttributeOptionCombo().isBlank()
-                        && !e.getAttributeCategoryOptions().isEmpty())
-            .filter(e -> preheat.getProgram(e.getProgram()) != null)
-            .toList();
+/** Fills the assigned user with missing uid or username from preheat. */
+class AssignedUserPreprocessor {
 
-    for (Event e : events) {
-      Program program = preheat.getProgram(e.getProgram());
-      e.setAttributeOptionCombo(
-          preheat.getCategoryOptionComboIdentifier(
-              program.getCategoryCombo(), e.getAttributeCategoryOptions()));
+  private AssignedUserPreprocessor() {
+    throw new UnsupportedOperationException("utility class");
+  }
+
+  static void process(TrackerBundle bundle) {
+    for (Event event : bundle.getEvents()) {
+      User assignedUser = event.getAssignedUser();
+
+      if (Objects.isNull(assignedUser)) {
+        return;
+      }
+
+      if (Objects.isNull(assignedUser.getUid())) {
+        Optional<org.hisp.dhis.user.User> user =
+            bundle.getPreheat().getUserByUsername(assignedUser.getUsername());
+        user.ifPresent(u -> assignedUser.setUid(u.getUid()));
+      }
+      if (Objects.isNull(assignedUser.getUsername())) {
+        Optional<org.hisp.dhis.user.User> user =
+            bundle.getPreheat().getUserByUid(assignedUser.getUid());
+        user.ifPresent(u -> assignedUser.setUsername(u.getUsername()));
+      }
     }
   }
 }
