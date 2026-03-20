@@ -39,18 +39,18 @@ import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.SingleEvent;
-import org.springframework.stereotype.Component;
 
 /**
- * This preprocessor is responsible for setting the Program UID on an Event from the ProgramStage if
- * the Program is not present in the payload.
- *
- * @author Enrico Colasante
+ * Sets the Program UID on an Event from the ProgramStage if the Program is not present in the
+ * payload, or vice versa for single events.
  */
-@Component
-public class EventProgramPreProcessor implements BundlePreProcessor {
-  @Override
-  public void process(TrackerBundle bundle) {
+class EventProgramPreprocessor {
+
+  private EventProgramPreprocessor() {
+    throw new UnsupportedOperationException("utility class");
+  }
+
+  static void process(TrackerBundle bundle) {
     List<Event> eventsToPreprocess =
         bundle.getEvents().stream()
             .filter(
@@ -103,10 +103,5 @@ public class EventProgramPreProcessor implements BundlePreProcessor {
         }
       }
     }
-  }
-
-  @Override
-  public int getPriority() {
-    return -1;
   }
 }
