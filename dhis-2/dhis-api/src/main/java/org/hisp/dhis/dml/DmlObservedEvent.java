@@ -27,50 +27,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation.etag;
+package org.hisp.dhis.dml;
 
-import javax.annotation.Nonnull;
-import org.hisp.dhis.cache.ETagVersionService;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.stereotype.Service;
+import java.util.List;
+import javax.annotation.CheckForNull;
+import org.springframework.context.ApplicationEvent;
 
 /**
- * No-op implementation of {@link ETagVersionService} used when ETag caching is disabled. All
- * methods return 0 or {@code false}.
- *
- * @author Morten Svanæs
+ * Spring application event published when a JDBC transaction commits, carrying all DML events
+ * observed during that transaction. Rolled-back transactions do not produce this event.
  */
-@Service
-@Conditional(value = ETagCacheDisabledCondition.class)
-public class NoOpETagVersionService implements ETagVersionService {
+public class DmlObservedEvent extends ApplicationEvent {
 
-  @Override
-  public long getAllCacheVersion() {
-    return 0L;
+  private final transient List<DmlEvent> events;
+  private final transient DmlOrigin origin;
+
+  public DmlObservedEvent(Object source, List<DmlEvent> events) {
+    this(source, events, null);
   }
 
-  @Override
-  public long incrementAllCacheVersion() {
-    return 0L;
+  public DmlObservedEvent(Object source, List<DmlEvent> events, DmlOrigin origin) {
+    super(source);
+    this.events = List.copyOf(events);
+    this.origin = origin;
   }
 
-  @Override
-  public long getEntityTypeVersion(@Nonnull Class<?> entityType) {
-    return 0L;
+  public List<DmlEvent> getEvents() {
+    return events;
   }
 
-  @Override
-  public long incrementEntityTypeVersion(@Nonnull Class<?> entityType) {
-    return 0L;
-  }
-
-  @Override
-  public boolean isEnabled() {
-    return false;
-  }
-
-  @Override
-  public int getTtlMinutes() {
-    return 60;
+  @CheckForNull
+  public DmlOrigin getOrigin() {
+    return origin;
   }
 }

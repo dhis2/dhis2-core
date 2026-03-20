@@ -60,7 +60,7 @@ import net.sf.jsqlparser.statement.update.UpdateSet;
 import net.sf.jsqlparser.statement.values.ValuesStatement;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
-import org.hisp.dhis.audit.DmlEvent.DmlOperation;
+import org.hisp.dhis.dml.DmlOperation;
 
 /**
  * Utility for parsing DML SQL statements and extracting table name, operation type, and
@@ -81,7 +81,78 @@ public class DmlSqlParser {
           .permitNullValues(true)
           .build();
 
+  private static final Cache<String, Optional<DmlFastResult>> FAST_PARSE_CACHE =
+      new Cache2kBuilder<String, Optional<DmlFastResult>>() {}.entryCapacity(PARSE_CACHE_MAX_SIZE)
+          .eternal(true)
+          .permitNullValues(true)
+          .build();
+
   private DmlSqlParser() {}
+
+  /** Lightweight result containing only the operation type and table name. */
+  public record DmlFastResult(DmlOperation operation, String tableName) {}
+
+  /**
+   * Fast-path parser that extracts only operation type and table name via simple string
+   * tokenization — no full SQL AST parsing. Suitable for the hot path where only these two fields
+   * are needed.
+   *
+   * @return the operation and table name, or empty if the query is not a recognised DML statement
+   */
+  public static Optional<DmlFastResult> parseFast(String query) {
+    if (query == null || query.isEmpty()) {
+      return Optional.empty();
+    }
+
+    if (FAST_PARSE_CACHE.containsKey(query)) {
+      return FAST_PARSE_CACHE.peek(query);
+    }
+
+    String sql = stripLeadingComment(query);
+    Optional<DmlFastResult> result = doParseFast(sql);
+    FAST_PARSE_CACHE.put(query, result);
+    return result;
+  }
+
+  private static Optional<DmlFastResult> doParseFast(String sql) {
+    String[] tokens = sql.split("\\s+", 4);
+    if (tokens.length < 2) {
+      return Optional.empty();
+    }
+
+    String keyword = tokens[0].toUpperCase(java.util.Locale.ROOT);
+    return switch (keyword) {
+      case "INSERT" -> {
+        // INSERT INTO tablename ...
+        if (tokens.length >= 3 && tokens[1].toUpperCase(java.util.Locale.ROOT).equals("INTO")) {
+          yield Optional.of(new DmlFastResult(DmlOperation.INSERT, normalizeTableName(tokens[2])));
+        }
+        yield Optional.empty();
+      }
+      case "UPDATE" -> {
+        // UPDATE tablename SET ...
+        yield Optional.of(new DmlFastResult(DmlOperation.UPDATE, normalizeTableName(tokens[1])));
+      }
+      case "DELETE" -> {
+        // DELETE FROM tablename ...
+        if (tokens.length >= 3 && tokens[1].toUpperCase(java.util.Locale.ROOT).equals("FROM")) {
+          yield Optional.of(new DmlFastResult(DmlOperation.DELETE, normalizeTableName(tokens[2])));
+        }
+        yield Optional.empty();
+      }
+      default -> Optional.empty();
+    };
+  }
+
+  /** Strips schema prefix and lowercases the table name. */
+  private static String normalizeTableName(String rawName) {
+    String name = rawName.toLowerCase(java.util.Locale.ROOT);
+    int dotIdx = name.lastIndexOf('.');
+    if (dotIdx >= 0) {
+      name = name.substring(dotIdx + 1);
+    }
+    return name;
+  }
 
   @Value
   @Builder
@@ -138,6 +209,8 @@ public class DmlSqlParser {
     return prefix.startsWith("INS") || prefix.startsWith("UPD") || prefix.startsWith("DEL");
   }
 
+  // Retained for future cache-invalidation feature (replacing Redis/pub-sub Hibernate-event-based
+  // invalidation) where per-row PK extraction and column-level change tracking are needed.
   /**
    * Parses a DML SQL statement and extracts operation, table name, and column-to-parameter
    * mappings. Returns empty for non-DML or unparseable statements.

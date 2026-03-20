@@ -27,53 +27,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cache;
+package org.hisp.dhis.cacheinvalidation.etag;
 
 import javax.annotation.Nonnull;
+import org.hisp.dhis.cache.ETagService;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.stereotype.Service;
 
 /**
- * Manages ETag version counters used for conditional HTTP caching. Versions are incremented when
- * data changes are detected (e.g., via the DML observer layer), invalidating stale cached
- * responses.
+ * No-op implementation of {@link ETagService} used when ETag caching is disabled. All methods
+ * return 0 or {@code false}.
  *
  * @author Morten Svanæs
  */
-public interface ETagVersionService {
+@Service
+@Conditional(value = ETagCacheDisabledCondition.class)
+public class NoOpETagService implements ETagService {
 
-  /** Returns the all-cache version. Incrementing this invalidates every API ETag family at once. */
-  long getAllCacheVersion();
+  @Override
+  public long getAllCacheVersion() {
+    return 0L;
+  }
 
-  /**
-   * Increments the all-cache version. Use for deliberate broad cache invalidation, not for ordinary
-   * entity-type changes.
-   *
-   * @return the new version number after increment
-   */
-  long incrementAllCacheVersion();
+  @Override
+  public long incrementAllCacheVersion() {
+    return 0L;
+  }
 
-  /**
-   * Returns the ETag version for the given entity type.
-   *
-   * @param entityType the entity class (e.g., OrganisationUnit.class)
-   * @return the current version number, or 0 if none exists
-   */
-  long getEntityTypeVersion(@Nonnull Class<?> entityType);
+  @Override
+  public long getEntityTypeVersion(@Nonnull Class<?> entityType) {
+    return 0L;
+  }
 
-  /**
-   * Increments the ETag version for the given entity type.
-   *
-   * @param entityType the entity class (e.g., OrganisationUnit.class)
-   * @return the new version number after increment
-   */
-  long incrementEntityTypeVersion(@Nonnull Class<?> entityType);
+  @Override
+  public long incrementEntityTypeVersion(@Nonnull Class<?> entityType) {
+    return 0L;
+  }
 
-  /** Returns {@code true} if ETag caching is enabled. */
-  boolean isEnabled();
+  @Override
+  public boolean isEnabled() {
+    return false;
+  }
 
-  /**
-   * Returns the TTL window in minutes. Cached responses are revalidated at most this often.
-   *
-   * @return the TTL window in minutes
-   */
-  int getTtlMinutes();
+  @Override
+  public int getTtlMinutes() {
+    return 0;
+  }
 }

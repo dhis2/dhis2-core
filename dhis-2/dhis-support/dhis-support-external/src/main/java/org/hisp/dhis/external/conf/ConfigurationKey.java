@@ -813,7 +813,7 @@ public enum ConfigurationKey {
   /**
    * Enable conditional ETag caching for API responses. This provides efficient HTTP caching where
    * ETags are validated BEFORE heavy computations, using local in-memory version tracking for cache
-   * invalidation. (default: off)
+   * invalidation. (default: on)
    */
   CACHE_API_ETAG_ENABLED("cache.api.etag.enabled", Constants.ON, false),
 

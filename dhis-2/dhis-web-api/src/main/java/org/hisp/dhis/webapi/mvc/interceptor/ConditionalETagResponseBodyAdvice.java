@@ -60,7 +60,7 @@ public class ConditionalETagResponseBodyAdvice implements ResponseBodyAdvice<Obj
   public boolean supports(
       @Nonnull MethodParameter returnType,
       @Nonnull Class<? extends HttpMessageConverter<?>> selectedConverterType) {
-    // Short-circuit: only activate when the interceptor stored an ETag for this request
+    // Only activate when ETag caching is enabled; per-request filtering in beforeBodyWrite
     return conditionalETagService.isEnabled();
   }
 

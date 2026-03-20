@@ -27,31 +27,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.audit;
+package org.hisp.dhis.dml;
 
-import javax.annotation.CheckForNull;
-import org.hisp.dhis.log.MdcKeys;
-import org.hisp.dhis.user.CurrentUserUtil;
-import org.slf4j.MDC;
-
-/**
- * Captures the origin context of a DML operation from the current thread. All fields are nullable
- * since async jobs won't have controller/method and unauthenticated requests won't have a username.
- */
-public record DmlOrigin(
-    @CheckForNull String username,
-    @CheckForNull String controller,
-    @CheckForNull String method,
-    @CheckForNull String requestId,
-    @CheckForNull String sessionId) {
-
-  /** Snapshot the current MDC values and authenticated user into a {@link DmlOrigin}. */
-  public static DmlOrigin fromMdc() {
-    return new DmlOrigin(
-        CurrentUserUtil.hasCurrentUser() ? CurrentUserUtil.getCurrentUsername() : null,
-        MDC.get(MdcKeys.MDC_CONTROLLER),
-        MDC.get(MdcKeys.MDC_METHOD),
-        MDC.get(MdcKeys.MDC_REQUEST_ID),
-        MDC.get(MdcKeys.MDC_SESSION_ID));
-  }
+/** The type of DML operation intercepted at the JDBC level. */
+public enum DmlOperation {
+  INSERT,
+  UPDATE,
+  DELETE
 }

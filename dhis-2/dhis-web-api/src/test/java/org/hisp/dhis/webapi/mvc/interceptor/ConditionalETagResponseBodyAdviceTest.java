@@ -42,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.hisp.dhis.cache.ETagVersionService;
+import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.service.ConditionalETagService;
@@ -64,7 +64,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 class ConditionalETagResponseBodyAdviceTest {
 
-  private final ETagVersionService eTagVersionService = mock(ETagVersionService.class);
+  private final ETagService eTagService = mock(ETagService.class);
   private final SchemaService schemaService = mock(SchemaService.class);
 
   private MockMvc mockMvc;
@@ -78,11 +78,11 @@ class ConditionalETagResponseBodyAdviceTest {
     SecurityContextHolder.getContext()
         .setAuthentication(new UsernamePasswordAuthenticationToken(userDetails, null, List.of()));
 
-    when(eTagVersionService.isEnabled()).thenReturn(true);
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
-    lenient().when(eTagVersionService.getEntityTypeVersion(any())).thenReturn(1L);
+    when(eTagService.isEnabled()).thenReturn(true);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
+    lenient().when(eTagService.getEntityTypeVersion(any())).thenReturn(1L);
 
-    ConditionalETagService conditionalETagService = new ConditionalETagService(eTagVersionService);
+    ConditionalETagService conditionalETagService = new ConditionalETagService(eTagService);
     controller = new TestController();
     mockMvc =
         MockMvcBuilders.standaloneSetup(controller)

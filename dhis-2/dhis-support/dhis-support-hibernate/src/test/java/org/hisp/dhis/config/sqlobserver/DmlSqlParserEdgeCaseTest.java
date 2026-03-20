@@ -35,8 +35,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 import java.util.Optional;
-import org.hisp.dhis.audit.DmlEvent.DmlOperation;
 import org.hisp.dhis.config.sqlobserver.DmlSqlParser.DmlParseResult;
+import org.hisp.dhis.dml.DmlOperation;
 import org.junit.jupiter.api.Test;
 
 /**

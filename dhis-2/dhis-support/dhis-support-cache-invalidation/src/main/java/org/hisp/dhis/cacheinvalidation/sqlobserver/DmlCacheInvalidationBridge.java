@@ -35,10 +35,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.audit.DmlEvent;
-import org.hisp.dhis.audit.DmlObservedEvent;
 import org.hisp.dhis.cache.ETagObservedEntityTypes;
-import org.hisp.dhis.cache.ETagVersionService;
+import org.hisp.dhis.cache.ETagService;
+import org.hisp.dhis.cacheinvalidation.etag.ETagCacheEnabledCondition;
+import org.hisp.dhis.dml.DmlEvent;
+import org.hisp.dhis.dml.DmlObservedEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.event.EventListener;
@@ -57,12 +58,12 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-@Conditional(DmlCacheInvalidationCondition.class)
+@Conditional(ETagCacheEnabledCondition.class)
 public class DmlCacheInvalidationBridge {
 
   private static final Class<?> UNRESOLVABLE = Void.class;
 
-  private final ETagVersionService eTagVersionService;
+  private final ETagService eTagVersionService;
   private final MeterRegistry meterRegistry;
 
   private final Counter eventsProcessed;
@@ -70,11 +71,12 @@ public class DmlCacheInvalidationBridge {
   private final Counter eventsSkippedNull;
 
   private final ConcurrentHashMap<String, Class<?>> classCache = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, Counter> entityTypeBumpCounters =
+      new ConcurrentHashMap<>();
 
   @Autowired
   public DmlCacheInvalidationBridge(
-      ETagVersionService eTagVersionService,
-      @Autowired(required = false) MeterRegistry meterRegistry) {
+      ETagService eTagVersionService, @Autowired(required = false) MeterRegistry meterRegistry) {
     this.eTagVersionService = eTagVersionService;
     this.meterRegistry = meterRegistry;
 
@@ -105,7 +107,7 @@ public class DmlCacheInvalidationBridge {
       Set<Class<?>> bumpedTypes = new HashSet<>();
 
       for (DmlEvent dmlEvent : event.getEvents()) {
-        String entityClassName = dmlEvent.getEntityClassName();
+        String entityClassName = dmlEvent.entityClassName();
         if (entityClassName == null) {
           if (eventsSkippedNull != null) eventsSkippedNull.increment();
           continue;
@@ -127,9 +129,13 @@ public class DmlCacheInvalidationBridge {
           eTagVersionService.incrementEntityTypeVersion(entityClass);
           if (eventsProcessed != null) eventsProcessed.increment();
           if (meterRegistry != null) {
-            Counter.builder("dhis2_etag_version_bumps_total")
-                .tag("entity_type", entityClass.getSimpleName())
-                .register(meterRegistry)
+            entityTypeBumpCounters
+                .computeIfAbsent(
+                    entityClass.getSimpleName(),
+                    name ->
+                        Counter.builder("dhis2_etag_version_bumps_total")
+                            .tag("entity_type", name)
+                            .register(meterRegistry))
                 .increment();
           }
           log.debug(

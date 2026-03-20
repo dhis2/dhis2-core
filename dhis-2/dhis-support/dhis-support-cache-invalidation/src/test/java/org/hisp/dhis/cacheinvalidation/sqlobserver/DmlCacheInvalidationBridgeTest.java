@@ -34,14 +34,15 @@ import static org.mockito.Mockito.*;
 
 import java.time.Instant;
 import java.util.List;
-import org.hisp.dhis.audit.DmlEvent;
-import org.hisp.dhis.audit.DmlObservedEvent;
-import org.hisp.dhis.cache.ETagVersionService;
+import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datastatistics.DataStatistics;
 import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datastore.DatastoreEntry;
+import org.hisp.dhis.dml.DmlEvent;
+import org.hisp.dhis.dml.DmlObservedEvent;
+import org.hisp.dhis.dml.DmlOperation;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.setting.SystemSetting;
@@ -59,7 +60,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DmlCacheInvalidationBridgeTest {
 
-  @Mock private ETagVersionService eTagVersionService;
+  @Mock private ETagService eTagVersionService;
 
   private DmlCacheInvalidationBridge bridge;
 
@@ -71,14 +72,12 @@ class DmlCacheInvalidationBridgeTest {
   @Test
   void testMetadataEntityBumpsVersion() {
     DmlEvent event =
-        DmlEvent.builder()
-            .operation(DmlEvent.DmlOperation.UPDATE)
-            .tableName("dataelement")
-            .entityClassName("org.hisp.dhis.dataelement.DataElement")
-            .entityId(1L)
-            .timestamp(Instant.now())
-            .connectionId("conn-1")
-            .build();
+        new DmlEvent(
+            DmlOperation.UPDATE,
+            "dataelement",
+            "org.hisp.dhis.dataelement.DataElement",
+            Instant.now(),
+            "conn-1");
 
     bridge.onDmlObserved(new DmlObservedEvent(this, List.of(event), null));
 
@@ -89,14 +88,12 @@ class DmlCacheInvalidationBridgeTest {
   @Test
   void testNonMetadataEntitySkipped() {
     DmlEvent event =
-        DmlEvent.builder()
-            .operation(DmlEvent.DmlOperation.INSERT)
-            .tableName("datavalue")
-            .entityClassName("org.hisp.dhis.datavalue.DataValue")
-            .entityId(1L)
-            .timestamp(Instant.now())
-            .connectionId("conn-1")
-            .build();
+        new DmlEvent(
+            DmlOperation.INSERT,
+            "datavalue",
+            "org.hisp.dhis.datavalue.DataValue",
+            Instant.now(),
+            "conn-1");
 
     bridge.onDmlObserved(new DmlObservedEvent(this, List.of(event), null));
 
@@ -105,15 +102,7 @@ class DmlCacheInvalidationBridgeTest {
 
   @Test
   void testNullEntityClassNameSkipped() {
-    DmlEvent event =
-        DmlEvent.builder()
-            .operation(DmlEvent.DmlOperation.DELETE)
-            .tableName("sometable")
-            .entityClassName(null)
-            .entityId(1L)
-            .timestamp(Instant.now())
-            .connectionId("conn-1")
-            .build();
+    DmlEvent event = new DmlEvent(DmlOperation.DELETE, "sometable", null, Instant.now(), "conn-1");
 
     bridge.onDmlObserved(new DmlObservedEvent(this, List.of(event), null));
 
@@ -123,24 +112,20 @@ class DmlCacheInvalidationBridgeTest {
   @Test
   void testDeduplicationWithinBatch() {
     DmlEvent event1 =
-        DmlEvent.builder()
-            .operation(DmlEvent.DmlOperation.UPDATE)
-            .tableName("dataelement")
-            .entityClassName("org.hisp.dhis.dataelement.DataElement")
-            .entityId(1L)
-            .timestamp(Instant.now())
-            .connectionId("conn-1")
-            .build();
+        new DmlEvent(
+            DmlOperation.UPDATE,
+            "dataelement",
+            "org.hisp.dhis.dataelement.DataElement",
+            Instant.now(),
+            "conn-1");
 
     DmlEvent event2 =
-        DmlEvent.builder()
-            .operation(DmlEvent.DmlOperation.UPDATE)
-            .tableName("dataelement")
-            .entityClassName("org.hisp.dhis.dataelement.DataElement")
-            .entityId(2L)
-            .timestamp(Instant.now())
-            .connectionId("conn-1")
-            .build();
+        new DmlEvent(
+            DmlOperation.UPDATE,
+            "dataelement",
+            "org.hisp.dhis.dataelement.DataElement",
+            Instant.now(),
+            "conn-1");
 
     bridge.onDmlObserved(new DmlObservedEvent(this, List.of(event1, event2), null));
 
@@ -151,24 +136,20 @@ class DmlCacheInvalidationBridgeTest {
   @Test
   void testMultipleEntityTypesInBatch() {
     DmlEvent deEvent =
-        DmlEvent.builder()
-            .operation(DmlEvent.DmlOperation.UPDATE)
-            .tableName("dataelement")
-            .entityClassName("org.hisp.dhis.dataelement.DataElement")
-            .entityId(1L)
-            .timestamp(Instant.now())
-            .connectionId("conn-1")
-            .build();
+        new DmlEvent(
+            DmlOperation.UPDATE,
+            "dataelement",
+            "org.hisp.dhis.dataelement.DataElement",
+            Instant.now(),
+            "conn-1");
 
     DmlEvent indicatorEvent =
-        DmlEvent.builder()
-            .operation(DmlEvent.DmlOperation.INSERT)
-            .tableName("indicator")
-            .entityClassName("org.hisp.dhis.indicator.Indicator")
-            .entityId(2L)
-            .timestamp(Instant.now())
-            .connectionId("conn-1")
-            .build();
+        new DmlEvent(
+            DmlOperation.INSERT,
+            "indicator",
+            "org.hisp.dhis.indicator.Indicator",
+            Instant.now(),
+            "conn-1");
 
     bridge.onDmlObserved(new DmlObservedEvent(this, List.of(deEvent, indicatorEvent), null));
 
@@ -180,14 +161,12 @@ class DmlCacheInvalidationBridgeTest {
   @Test
   void testUnresolvableClassNameSkipped() {
     DmlEvent event =
-        DmlEvent.builder()
-            .operation(DmlEvent.DmlOperation.UPDATE)
-            .tableName("nonexistent")
-            .entityClassName("com.example.NonExistentClass")
-            .entityId(1L)
-            .timestamp(Instant.now())
-            .connectionId("conn-1")
-            .build();
+        new DmlEvent(
+            DmlOperation.UPDATE,
+            "nonexistent",
+            "com.example.NonExistentClass",
+            Instant.now(),
+            "conn-1");
 
     bridge.onDmlObserved(new DmlObservedEvent(this, List.of(event), null));
 
@@ -197,14 +176,12 @@ class DmlCacheInvalidationBridgeTest {
   @Test
   void testConfigurationEntityTracked() {
     DmlEvent event =
-        DmlEvent.builder()
-            .operation(DmlEvent.DmlOperation.UPDATE)
-            .tableName("configuration")
-            .entityClassName("org.hisp.dhis.configuration.Configuration")
-            .entityId(1L)
-            .timestamp(Instant.now())
-            .connectionId("conn-1")
-            .build();
+        new DmlEvent(
+            DmlOperation.UPDATE,
+            "configuration",
+            "org.hisp.dhis.configuration.Configuration",
+            Instant.now(),
+            "conn-1");
 
     bridge.onDmlObserved(new DmlObservedEvent(this, List.of(event), null));
 
@@ -215,14 +192,12 @@ class DmlCacheInvalidationBridgeTest {
   @Test
   void testFileResourceEntityTracked() {
     DmlEvent event =
-        DmlEvent.builder()
-            .operation(DmlEvent.DmlOperation.UPDATE)
-            .tableName("fileresource")
-            .entityClassName("org.hisp.dhis.fileresource.FileResource")
-            .entityId(1L)
-            .timestamp(Instant.now())
-            .connectionId("conn-1")
-            .build();
+        new DmlEvent(
+            DmlOperation.UPDATE,
+            "fileresource",
+            "org.hisp.dhis.fileresource.FileResource",
+            Instant.now(),
+            "conn-1");
 
     bridge.onDmlObserved(new DmlObservedEvent(this, List.of(event), null));
 
@@ -233,41 +208,33 @@ class DmlCacheInvalidationBridgeTest {
   @Test
   void testSettingsAndDatastoreEntitiesTracked() {
     DmlEvent systemSettingEvent =
-        DmlEvent.builder()
-            .operation(DmlEvent.DmlOperation.UPDATE)
-            .tableName("systemsetting")
-            .entityClassName("org.hisp.dhis.setting.SystemSetting")
-            .entityId(1L)
-            .timestamp(Instant.now())
-            .connectionId("conn-1")
-            .build();
+        new DmlEvent(
+            DmlOperation.UPDATE,
+            "systemsetting",
+            SystemSetting.class.getName(),
+            Instant.now(),
+            "conn-1");
     DmlEvent userSettingEvent =
-        DmlEvent.builder()
-            .operation(DmlEvent.DmlOperation.UPDATE)
-            .tableName("usersetting")
-            .entityClassName(UserSetting.class.getName())
-            .entityId(1L)
-            .timestamp(Instant.now())
-            .connectionId("conn-1")
-            .build();
+        new DmlEvent(
+            DmlOperation.UPDATE,
+            "usersetting",
+            UserSetting.class.getName(),
+            Instant.now(),
+            "conn-1");
     DmlEvent datastoreEvent =
-        DmlEvent.builder()
-            .operation(DmlEvent.DmlOperation.UPDATE)
-            .tableName("keyjsonvalue")
-            .entityClassName(DatastoreEntry.class.getName())
-            .entityId(1L)
-            .timestamp(Instant.now())
-            .connectionId("conn-1")
-            .build();
+        new DmlEvent(
+            DmlOperation.UPDATE,
+            "keyjsonvalue",
+            DatastoreEntry.class.getName(),
+            Instant.now(),
+            "conn-1");
     DmlEvent userDatastoreEvent =
-        DmlEvent.builder()
-            .operation(DmlEvent.DmlOperation.UPDATE)
-            .tableName("userkeyjsonvalue")
-            .entityClassName(UserDatastoreEntry.class.getName())
-            .entityId(1L)
-            .timestamp(Instant.now())
-            .connectionId("conn-1")
-            .build();
+        new DmlEvent(
+            DmlOperation.UPDATE,
+            "userkeyjsonvalue",
+            UserDatastoreEntry.class.getName(),
+            Instant.now(),
+            "conn-1");
 
     bridge.onDmlObserved(
         new DmlObservedEvent(
@@ -285,23 +252,19 @@ class DmlCacheInvalidationBridgeTest {
   @Test
   void testDataStatisticsEntitiesTracked() {
     DmlEvent dataStatisticsEvent =
-        DmlEvent.builder()
-            .operation(DmlEvent.DmlOperation.INSERT)
-            .tableName("datastatistics")
-            .entityClassName(DataStatistics.class.getName())
-            .entityId(1L)
-            .timestamp(Instant.now())
-            .connectionId("conn-1")
-            .build();
+        new DmlEvent(
+            DmlOperation.INSERT,
+            "datastatistics",
+            DataStatistics.class.getName(),
+            Instant.now(),
+            "conn-1");
     DmlEvent dataStatisticsFavoriteEvent =
-        DmlEvent.builder()
-            .operation(DmlEvent.DmlOperation.INSERT)
-            .tableName("datastatisticsevent")
-            .entityClassName(DataStatisticsEvent.class.getName())
-            .entityId(1L)
-            .timestamp(Instant.now())
-            .connectionId("conn-1")
-            .build();
+        new DmlEvent(
+            DmlOperation.INSERT,
+            "datastatisticsevent",
+            DataStatisticsEvent.class.getName(),
+            Instant.now(),
+            "conn-1");
 
     bridge.onDmlObserved(
         new DmlObservedEvent(
@@ -320,14 +283,12 @@ class DmlCacheInvalidationBridgeTest {
         .incrementEntityTypeVersion(DataElement.class);
 
     DmlEvent event =
-        DmlEvent.builder()
-            .operation(DmlEvent.DmlOperation.UPDATE)
-            .tableName("dataelement")
-            .entityClassName("org.hisp.dhis.dataelement.DataElement")
-            .entityId(1L)
-            .timestamp(Instant.now())
-            .connectionId("conn-1")
-            .build();
+        new DmlEvent(
+            DmlOperation.UPDATE,
+            "dataelement",
+            "org.hisp.dhis.dataelement.DataElement",
+            Instant.now(),
+            "conn-1");
 
     assertDoesNotThrow(
         () -> bridge.onDmlObserved(new DmlObservedEvent(this, List.of(event), null)),

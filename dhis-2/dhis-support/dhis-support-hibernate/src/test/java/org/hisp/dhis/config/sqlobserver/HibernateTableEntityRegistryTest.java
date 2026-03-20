@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.config.sqlobserver;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -68,8 +67,9 @@ class HibernateTableEntityRegistryTest {
 
     TableInfo info = registry.getTableInfo("dataelement");
     assertNotNull(info);
-    assertEquals(TestEntity.class, info.getEntityClass());
-    assertArrayEquals(new String[] {"dataelementid"}, info.getPkColumnNames());
+    assertEquals(TestEntity.class, info.entityClass());
+    assertEquals(java.util.List.of("dataelementid"), info.pkColumnNames());
+    assertEquals("dataelement", info.tableName());
   }
 
   @Test
@@ -85,7 +85,7 @@ class HibernateTableEntityRegistryTest {
 
     TableInfo info = registry.getTableInfo("dataelement");
     assertNotNull(info);
-    assertEquals(TestEntity.class, info.getEntityClass());
+    assertEquals(TestEntity.class, info.entityClass());
   }
 
   @Test

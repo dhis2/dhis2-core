@@ -56,7 +56,7 @@ class NoCacheEndpointTest extends CacheApiTest {
     return List.of(
         new NoCacheRoute(CacheProbeUser.SUPERUSER, "/system/info"),
         new NoCacheRoute(CacheProbeUser.SUPERUSER, "/system/uid"),
-        new NoCacheRoute(CacheProbeUser.SUPERUSER, "/dashboards/search?query=ANC"),
+        new NoCacheRoute(CacheProbeUser.SUPERUSER, "/dashboards/search?q=ANC"),
         new NoCacheRoute(CacheProbeUser.SUPERUSER, "/dimensions/recommendations?dimension=dx"),
         new NoCacheRoute(
             CacheProbeUser.SUPERUSER, "/dataStatistics/favorites?eventType=VISUALIZATION_VIEW"),
