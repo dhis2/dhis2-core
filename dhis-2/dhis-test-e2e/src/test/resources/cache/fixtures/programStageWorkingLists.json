@@ -1,0 +1,28 @@
+{
+  "programs": [
+    {
+      "id": "CchPrgPSW01",
+      "name": "Cache Program for PSW",
+      "shortName": "Cache PSW Prog",
+      "programType": "WITHOUT_REGISTRATION",
+      "organisationUnits": [
+        { "id": "DiszpKrYNg8" }
+      ]
+    }
+  ],
+  "programStages": [
+    {
+      "id": "CchPSWST001",
+      "name": "Cache Stage for PSW",
+      "program": { "id": "CchPrgPSW01" }
+    }
+  ],
+  "programStageWorkingLists": [
+    {
+      "id": "CchPSW00001",
+      "name": "Cache Test PSW List",
+      "program": { "id": "CchPrgPSW01" },
+      "programStage": { "id": "CchPSWST001" }
+    }
+  ]
+}

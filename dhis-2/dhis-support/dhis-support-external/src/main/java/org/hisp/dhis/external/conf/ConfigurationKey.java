@@ -719,6 +719,9 @@ public enum ConfigurationKey {
   /** Redis based cache invalidation feature. Enable or disable. */
   REDIS_CACHE_INVALIDATION_ENABLED("redis.cache.invalidation.enabled", Constants.OFF, false),
 
+  /** SQL DML observer for JDBC-level audit and cache invalidation. Enable or disable. */
+  SQL_DML_OBSERVER_ENABLED("sql.dml.observer.enabled", Constants.ON, false),
+
   /** Content Security Policy feature. Enable or disable the feature. (sensitive) */
   CSP_ENABLED("csp.enabled", Constants.ON, true),
 
@@ -806,6 +809,20 @@ public enum ConfigurationKey {
   MONITORING_EHCACHE_ENABLED("monitoring.ehcache.enabled", Constants.OFF, false),
 
   CACHE_EHCACHE_CONFIG_FILE("cache.ehcache.config.file", "classpath:ehcache.xml", false),
+
+  /**
+   * Enable conditional ETag caching for API responses. This provides efficient HTTP caching where
+   * ETags are validated BEFORE heavy computations, using local in-memory version tracking for cache
+   * invalidation. (default: on)
+   */
+  CACHE_API_ETAG_ENABLED("cache.api.etag.enabled", Constants.ON, false),
+
+  /**
+   * TTL window in minutes for conditional ETag caching. This is the maximum time a cached response
+   * can be considered valid without checking for data changes. Acts as a safety net to ensure
+   * periodic refresh even if a DML event is missed. (default: 10)
+   */
+  CACHE_API_ETAG_TTL_MINUTES("cache.api.etag.ttl.minutes", "10", false),
 
   // Enable saved requests, this will save the URL the user tries to access before they are logged
   // in, and redirect to that URL after they are logged in.

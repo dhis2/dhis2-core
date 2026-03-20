@@ -1,0 +1,11 @@
+{
+  "oAuth2Clients": [
+    {
+      "id": "CchOA200001",
+      "name": "Cache Test OAuth2 Client",
+      "clientId": "cache-test-client-id",
+      "secret": "cache-test-secret-1234",
+      "grantTypes": ["password", "authorization_code"]
+    }
+  ]
+}
