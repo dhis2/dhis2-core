@@ -31,6 +31,60 @@
       <version>${gatling.version}</version>
     </dependency>
 
+    <!-- Synthea for synthetic patient generation (used by SyntheaToNdjson CLI tool) -->
+    <dependency>
+      <groupId>org.mitre.synthea</groupId>
+      <artifactId>synthea</artifactId>
+      <version>4.0.0</version>
+      <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>ca.uhn.hapi.fhir</groupId>
+          <artifactId>hapi-fhir-structures-dstu2</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>ca.uhn.hapi.fhir</groupId>
+          <artifactId>hapi-fhir-structures-dstu3</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>ca.uhn.hapi.fhir</groupId>
+          <artifactId>hapi-fhir-client</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>ca.uhn.hapi.fhir</groupId>
+          <artifactId>hapi-fhir-validation</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>ca.uhn.hapi.fhir</groupId>
+          <artifactId>hapi-fhir-validation-resources-r4</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>ca.uhn.hapi.fhir</groupId>
+          <artifactId>hapi-fhir-validation-resources-dstu3</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>ca.uhn.hapi.fhir</groupId>
+          <artifactId>hapi-fhir-validation-resources-dstu2</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>guru.nidi</groupId>
+          <artifactId>graphviz-java</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.freemarker</groupId>
+          <artifactId>freemarker</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.graalvm.js</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.graalvm.sdk</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+
     <!-- Raw test dependencies - only for JSON-driven tests -->
     <dependency>
       <groupId>org.hisp.dhis.integration.sdk</groupId>
