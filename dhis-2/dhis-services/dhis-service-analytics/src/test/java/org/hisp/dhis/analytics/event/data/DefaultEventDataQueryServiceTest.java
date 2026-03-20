@@ -419,6 +419,39 @@ class DefaultEventDataQueryServiceTest {
         Set.of(EnrollmentStatus.ACTIVE, EnrollmentStatus.COMPLETED), params.getEnrollmentStatus());
   }
 
+  @Test
+  void getFromRequestAcceptsDescendingCreatedSortForEnrollmentEndpoint() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT).desc(Set.of("created")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getDesc().size());
+    assertEquals("created", params.getDesc().get(0).getItemId());
+  }
+
+  @Test
+  void getFromRequestAcceptsAscendingCompletedSortForEnrollmentEndpoint() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT).asc(Set.of("completed")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getAsc().size());
+    assertEquals("completeddate", params.getAsc().get(0).getItemId());
+  }
+
+  @Test
+  void getFromRequestAcceptsDescendingCreatedSortForEventEndpoint() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).desc(Set.of("created")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getDesc().size());
+    assertEquals("created", params.getDesc().get(0).getItemId());
+  }
+
   private QueryItem createDateQueryItem(String columnName) {
     return new QueryItem(
         new BaseDimensionalItemObject(columnName),
