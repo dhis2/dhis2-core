@@ -34,7 +34,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import org.hisp.dhis.cache.ETagVersionService;
+import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -59,25 +59,25 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class CompositeETagIterationOrderTest {
 
-  @Mock private ETagVersionService eTagVersionService;
+  @Mock private ETagService eTagService;
 
   private UserDetails userDetails;
   private ConditionalETagService service;
 
   @BeforeEach
   void setUp() {
-    service = new ConditionalETagService(eTagVersionService);
+    service = new ConditionalETagService(eTagService);
     User user = new User();
     user.setUid("testUser123");
     user.setUsername("testuser");
     userDetails = UserDetails.fromUser(user);
 
-    when(eTagVersionService.getAllCacheVersion()).thenReturn(7L);
-    when(eTagVersionService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(10L);
-    when(eTagVersionService.getEntityTypeVersion(User.class)).thenReturn(20L);
-    when(eTagVersionService.getEntityTypeVersion(UserRole.class)).thenReturn(30L);
-    when(eTagVersionService.getEntityTypeVersion(UserGroup.class)).thenReturn(40L);
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.getAllCacheVersion()).thenReturn(7L);
+    when(eTagService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(10L);
+    when(eTagService.getEntityTypeVersion(User.class)).thenReturn(20L);
+    when(eTagService.getEntityTypeVersion(UserRole.class)).thenReturn(30L);
+    when(eTagService.getEntityTypeVersion(UserGroup.class)).thenReturn(40L);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
   }
 
   @Test

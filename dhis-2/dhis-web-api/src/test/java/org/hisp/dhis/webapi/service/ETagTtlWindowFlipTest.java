@@ -38,7 +38,7 @@ import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import org.hisp.dhis.cache.ETagVersionService;
+import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -69,10 +69,12 @@ class ETagTtlWindowFlipTest {
   private static final int TTL_MINUTES = 60;
   private static final long TTL_MILLIS = TimeUnit.MINUTES.toMillis(TTL_MINUTES);
 
-  private static final Instant BUCKET_BOUNDARY =
-      Instant.ofEpochMilli((System.currentTimeMillis() / TTL_MILLIS) * TTL_MILLIS);
+  /**
+   * A fixed instant at exactly 12:00:00 UTC on 2025-01-01 — right on a 60-minute bucket boundary.
+   */
+  private static final Instant BUCKET_BOUNDARY = Instant.parse("2025-01-01T12:00:00Z");
 
-  @Mock private ETagVersionService eTagVersionService;
+  @Mock private ETagService eTagVersionService;
 
   private UserDetails userDetails;
 

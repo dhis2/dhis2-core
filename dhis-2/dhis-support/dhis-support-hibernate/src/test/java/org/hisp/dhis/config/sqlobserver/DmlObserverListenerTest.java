@@ -32,7 +32,6 @@ package org.hisp.dhis.config.sqlobserver;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -48,10 +47,9 @@ import net.ttddyy.dsproxy.ConnectionInfo;
 import net.ttddyy.dsproxy.ExecutionInfo;
 import net.ttddyy.dsproxy.QueryInfo;
 import net.ttddyy.dsproxy.listener.MethodExecutionContext;
-import org.hisp.dhis.audit.DmlEvent;
-import org.hisp.dhis.audit.DmlEvent.DmlOperation;
-import org.hisp.dhis.audit.DmlObservedEvent;
-import org.hisp.dhis.audit.DmlOrigin;
+import org.hisp.dhis.dml.DmlObservedEvent;
+import org.hisp.dhis.dml.DmlOperation;
+import org.hisp.dhis.dml.DmlOrigin;
 import org.hisp.dhis.log.MdcKeys;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -139,8 +137,8 @@ class DmlObserverListenerTest {
     verify(eventPublisher).publishEvent(captor.capture());
     DmlObservedEvent event = captor.getValue();
     assertEquals(1, event.getEvents().size());
-    assertEquals(DmlOperation.INSERT, event.getEvents().get(0).getOperation());
-    assertEquals("dataelement", event.getEvents().get(0).getTableName());
+    assertEquals(DmlOperation.INSERT, event.getEvents().get(0).operation());
+    assertEquals("dataelement", event.getEvents().get(0).tableName());
   }
 
   @Test
@@ -204,10 +202,10 @@ class DmlObserverListenerTest {
 
     List<DmlObservedEvent> published = captor.getAllValues();
     assertEquals(2, published.size());
-    assertEquals(DmlOperation.INSERT, published.get(0).getEvents().get(0).getOperation());
-    assertEquals("dataelement", published.get(0).getEvents().get(0).getTableName());
-    assertEquals(DmlOperation.UPDATE, published.get(1).getEvents().get(0).getOperation());
-    assertEquals("organisationunit", published.get(1).getEvents().get(0).getTableName());
+    assertEquals(DmlOperation.INSERT, published.get(0).getEvents().get(0).operation());
+    assertEquals("dataelement", published.get(0).getEvents().get(0).tableName());
+    assertEquals(DmlOperation.UPDATE, published.get(1).getEvents().get(0).operation());
+    assertEquals("organisationunit", published.get(1).getEvents().get(0).tableName());
   }
 
   @Test
@@ -222,8 +220,8 @@ class DmlObserverListenerTest {
     verify(eventPublisher).publishEvent(captor.capture());
     DmlObservedEvent event = captor.getValue();
     assertEquals(1, event.getEvents().size());
-    assertEquals(DmlOperation.DELETE, event.getEvents().get(0).getOperation());
-    assertEquals("dataelement", event.getEvents().get(0).getTableName());
+    assertEquals(DmlOperation.DELETE, event.getEvents().get(0).operation());
+    assertEquals("dataelement", event.getEvents().get(0).tableName());
   }
 
   @Test
@@ -270,38 +268,6 @@ class DmlObserverListenerTest {
     assertNotNull(origin);
     assertEquals("OrgUnitController", origin.controller());
     assertEquals("req-456", origin.requestId());
-  }
-
-  @Test
-  void afterQuery_updateCapturesUpdatedColumns() {
-    ExecutionInfo execInfo = createSuccessExecutionInfo(true);
-    List<QueryInfo> queries =
-        List.of(
-            createQueryInfo(
-                "UPDATE dataelement SET name = ?, shortname = ? WHERE dataelementid = ?"));
-
-    listener.afterQuery(execInfo, queries);
-
-    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
-    verify(eventPublisher).publishEvent(captor.capture());
-    DmlEvent event = captor.getValue().getEvents().get(0);
-    assertEquals(DmlOperation.UPDATE, event.getOperation());
-    assertTrue(event.getUpdatedColumns().contains("name"));
-    assertTrue(event.getUpdatedColumns().contains("shortname"));
-    assertEquals(2, event.getUpdatedColumns().size());
-  }
-
-  @Test
-  void afterQuery_insertHasEmptyUpdatedColumns() {
-    ExecutionInfo execInfo = createSuccessExecutionInfo(true);
-    List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
-
-    listener.afterQuery(execInfo, queries);
-
-    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
-    verify(eventPublisher).publishEvent(captor.capture());
-    DmlEvent event = captor.getValue().getEvents().get(0);
-    assertTrue(event.getUpdatedColumns().isEmpty());
   }
 
   @Test
@@ -361,8 +327,8 @@ class DmlObserverListenerTest {
     verify(eventPublisher).publishEvent(captor.capture());
     DmlObservedEvent event = captor.getValue();
     assertEquals(1, event.getEvents().size(), "100 INSERTs to same table should dedup to 1 event");
-    assertEquals(DmlOperation.INSERT, event.getEvents().get(0).getOperation());
-    assertEquals("dataelement", event.getEvents().get(0).getTableName());
+    assertEquals(DmlOperation.INSERT, event.getEvents().get(0).operation());
+    assertEquals("dataelement", event.getEvents().get(0).tableName());
   }
 
   @Test

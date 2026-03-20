@@ -27,37 +27,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.audit;
+package org.hisp.dhis.dml;
 
-import java.util.List;
+import java.time.Instant;
+import java.util.Objects;
 import javax.annotation.CheckForNull;
-import org.springframework.context.ApplicationEvent;
+import javax.annotation.Nonnull;
 
 /**
- * Spring application event published when a JDBC transaction commits, carrying all DML events
- * observed during that transaction. Rolled-back transactions do not produce this event.
+ * Represents a single DML (INSERT/UPDATE/DELETE) operation intercepted at the JDBC level via
+ * datasource-proxy. Captures the SQL table name and optional mapped entity class.
  */
-public class DmlObservedEvent extends ApplicationEvent {
-
-  private final transient List<DmlEvent> events;
-  private final transient DmlOrigin origin;
-
-  public DmlObservedEvent(Object source, List<DmlEvent> events) {
-    this(source, events, null);
-  }
-
-  public DmlObservedEvent(Object source, List<DmlEvent> events, DmlOrigin origin) {
-    super(source);
-    this.events = List.copyOf(events);
-    this.origin = origin;
-  }
-
-  public List<DmlEvent> getEvents() {
-    return events;
-  }
-
-  @CheckForNull
-  public DmlOrigin getOrigin() {
-    return origin;
+public record DmlEvent(
+    @Nonnull DmlOperation operation,
+    @Nonnull String tableName,
+    @CheckForNull String entityClassName,
+    @Nonnull Instant timestamp,
+    @Nonnull String connectionId) {
+  public DmlEvent {
+    Objects.requireNonNull(operation);
+    Objects.requireNonNull(tableName);
+    Objects.requireNonNull(timestamp);
+    Objects.requireNonNull(connectionId);
   }
 }

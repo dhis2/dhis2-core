@@ -35,7 +35,7 @@ import static org.mockito.Mockito.*;
 import com.google.common.net.HttpHeaders;
 import java.util.Optional;
 import java.util.Set;
-import org.hisp.dhis.cache.ETagVersionService;
+import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
@@ -62,7 +62,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 @ExtendWith(MockitoExtension.class)
 class ConditionalETagServiceTest {
 
-  @Mock private ETagVersionService eTagVersionService;
+  @Mock private ETagService eTagService;
 
   private UserDetails userDetails;
 
@@ -70,7 +70,7 @@ class ConditionalETagServiceTest {
 
   @BeforeEach
   void setUp() {
-    service = new ConditionalETagService(eTagVersionService);
+    service = new ConditionalETagService(eTagService);
 
     // Create a real User and convert to UserDetails
     User user = new User();
@@ -82,7 +82,7 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Should return false when ETag caching is disabled")
   void testIsEnabled_WhenDisabled() {
-    when(eTagVersionService.isEnabled()).thenReturn(false);
+    when(eTagService.isEnabled()).thenReturn(false);
 
     assertFalse(service.isEnabled());
   }
@@ -90,7 +90,7 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Should return true when ETag caching is enabled")
   void testIsEnabled_WhenEnabled() {
-    when(eTagVersionService.isEnabled()).thenReturn(true);
+    when(eTagService.isEnabled()).thenReturn(true);
 
     assertTrue(service.isEnabled());
   }
@@ -98,8 +98,8 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Should generate hashed ETag that is deterministic")
   void testGenerateETag() {
-    when(eTagVersionService.getAllCacheVersion()).thenReturn(7L);
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.getAllCacheVersion()).thenReturn(7L);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
 
     String etag = service.generateETag(userDetails);
 
@@ -114,9 +114,9 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Should return 304 when ETag matches")
   void testWithConditionalETagCaching_Match() {
-    when(eTagVersionService.isEnabled()).thenReturn(true);
+    when(eTagService.isEnabled()).thenReturn(true);
 
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
 
     String currentETag = service.generateETag(userDetails);
 
@@ -133,9 +133,9 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Should return 200 with body when ETag does not match")
   void testWithConditionalETagCaching_NoMatch() {
-    when(eTagVersionService.isEnabled()).thenReturn(true);
+    when(eTagService.isEnabled()).thenReturn(true);
 
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
 
     MockHttpServletRequest request = new MockHttpServletRequest();
     request.addHeader(HttpHeaders.IF_NONE_MATCH, "\"old-etag-value\"");
@@ -150,9 +150,9 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Should return 200 with body when no If-None-Match header")
   void testWithConditionalETagCaching_NoHeader() {
-    when(eTagVersionService.isEnabled()).thenReturn(true);
+    when(eTagService.isEnabled()).thenReturn(true);
 
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
 
     MockHttpServletRequest request = new MockHttpServletRequest();
 
@@ -166,7 +166,7 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Should return body directly when ETag caching is disabled")
   void testWithConditionalETagCaching_Disabled() {
-    when(eTagVersionService.isEnabled()).thenReturn(false);
+    when(eTagService.isEnabled()).thenReturn(false);
 
     MockHttpServletRequest request = new MockHttpServletRequest();
 
@@ -180,7 +180,7 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Should return empty Optional when ETag caching is disabled")
   void testCheckNotModifiedResponse_Disabled() {
-    when(eTagVersionService.isEnabled()).thenReturn(false);
+    when(eTagService.isEnabled()).thenReturn(false);
 
     MockHttpServletRequest request = new MockHttpServletRequest();
 
@@ -193,9 +193,9 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Should return 304 response when ETag matches")
   void testCheckNotModifiedResponse_Match() {
-    when(eTagVersionService.isEnabled()).thenReturn(true);
+    when(eTagService.isEnabled()).thenReturn(true);
 
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
 
     String currentETag = service.generateETag(userDetails);
 
@@ -212,9 +212,9 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Should return empty Optional when ETag does not match")
   void testCheckNotModifiedResponse_NoMatch() {
-    when(eTagVersionService.isEnabled()).thenReturn(true);
+    when(eTagService.isEnabled()).thenReturn(true);
 
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
 
     MockHttpServletRequest request = new MockHttpServletRequest();
     request.addHeader(HttpHeaders.IF_NONE_MATCH, "\"old-etag-value\"");
@@ -228,9 +228,9 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Should set ETag headers on response")
   void testSetETagHeaders() {
-    when(eTagVersionService.isEnabled()).thenReturn(true);
+    when(eTagService.isEnabled()).thenReturn(true);
 
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
 
     MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -244,7 +244,7 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Should not set headers when disabled")
   void testSetETagHeaders_Disabled() {
-    when(eTagVersionService.isEnabled()).thenReturn(false);
+    when(eTagService.isEnabled()).thenReturn(false);
 
     MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -270,9 +270,9 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Should handle weak ETag format")
   void testCheckNotModified_WeakETag() {
-    when(eTagVersionService.isEnabled()).thenReturn(true);
+    when(eTagService.isEnabled()).thenReturn(true);
 
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
 
     String currentETag = service.generateETag(userDetails);
 
@@ -291,9 +291,9 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Should generate hashed entity-type-specific ETag that is deterministic")
   void testGenerateETag_WithEntityType() {
-    when(eTagVersionService.getAllCacheVersion()).thenReturn(7L);
-    when(eTagVersionService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(99L);
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.getAllCacheVersion()).thenReturn(7L);
+    when(eTagService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(99L);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
 
     String etag = service.generateETag(userDetails, OrganisationUnit.class);
 
@@ -306,9 +306,9 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Should return 304 when entity-type-specific ETag matches")
   void testWithConditionalETagCaching_EntityType_Match() {
-    when(eTagVersionService.isEnabled()).thenReturn(true);
-    when(eTagVersionService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(99L);
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.isEnabled()).thenReturn(true);
+    when(eTagService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(99L);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
 
     String currentETag = service.generateETag(userDetails, OrganisationUnit.class);
 
@@ -326,9 +326,9 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Should return 200 with body when entity-type-specific ETag does not match")
   void testWithConditionalETagCaching_EntityType_NoMatch() {
-    when(eTagVersionService.isEnabled()).thenReturn(true);
-    when(eTagVersionService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(99L);
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.isEnabled()).thenReturn(true);
+    when(eTagService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(99L);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
 
     MockHttpServletRequest request = new MockHttpServletRequest();
     request.addHeader(HttpHeaders.IF_NONE_MATCH, "\"old-etag-value\"");
@@ -344,9 +344,9 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Should return 304 for entity-type checkNotModifiedResponse when ETag matches")
   void testCheckNotModifiedResponse_EntityType_Match() {
-    when(eTagVersionService.isEnabled()).thenReturn(true);
-    when(eTagVersionService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(99L);
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.isEnabled()).thenReturn(true);
+    when(eTagService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(99L);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
 
     String currentETag = service.generateETag(userDetails, OrganisationUnit.class);
 
@@ -363,9 +363,9 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Should set entity-type-specific ETag headers on response")
   void testSetETagHeaders_EntityType() {
-    when(eTagVersionService.isEnabled()).thenReturn(true);
-    when(eTagVersionService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(99L);
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.isEnabled()).thenReturn(true);
+    when(eTagService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(99L);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
 
     MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -383,9 +383,9 @@ class ConditionalETagServiceTest {
   @DisplayName("Entity-type-specific version change should NOT invalidate other entity type caches")
   void testEntityTypeGranularity_DifferentVersions() {
     // Simulate: OrganisationUnit version is 99, but a different entity type changed
-    when(eTagVersionService.isEnabled()).thenReturn(true);
-    when(eTagVersionService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(99L);
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.isEnabled()).thenReturn(true);
+    when(eTagService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(99L);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
 
     // First request - get the ETag
     String orgUnitETag = service.generateETag(userDetails, OrganisationUnit.class);
@@ -407,10 +407,10 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Should generate hashed composite ETag that is deterministic")
   void testGenerateETag_Composite() {
-    when(eTagVersionService.getAllCacheVersion()).thenReturn(7L);
-    when(eTagVersionService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(10L);
-    when(eTagVersionService.getEntityTypeVersion(User.class)).thenReturn(20L);
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.getAllCacheVersion()).thenReturn(7L);
+    when(eTagService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(10L);
+    when(eTagService.getEntityTypeVersion(User.class)).thenReturn(20L);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
 
     Set<Class<?>> types = Set.of(OrganisationUnit.class, User.class);
     String etag = service.generateETag(userDetails, types);
@@ -424,10 +424,10 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Should set composite ETag headers on response")
   void testSetETagHeaders_Composite() {
-    when(eTagVersionService.isEnabled()).thenReturn(true);
-    when(eTagVersionService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(10L);
-    when(eTagVersionService.getEntityTypeVersion(User.class)).thenReturn(20L);
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.isEnabled()).thenReturn(true);
+    when(eTagService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(10L);
+    when(eTagService.getEntityTypeVersion(User.class)).thenReturn(20L);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
 
     MockHttpServletResponse response = new MockHttpServletResponse();
 
@@ -445,17 +445,17 @@ class ConditionalETagServiceTest {
   @DisplayName("Changing all-cache version should invalidate global, entity, and composite ETags")
   void testAllCacheVersionChangesAllEtagFamilies() {
 
-    when(eTagVersionService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(10L);
-    when(eTagVersionService.getEntityTypeVersion(User.class)).thenReturn(20L);
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(10L);
+    when(eTagService.getEntityTypeVersion(User.class)).thenReturn(20L);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
 
-    when(eTagVersionService.getAllCacheVersion()).thenReturn(7L);
+    when(eTagService.getAllCacheVersion()).thenReturn(7L);
     String globalEtag1 = service.generateETag(userDetails);
     String entityEtag1 = service.generateETag(userDetails, OrganisationUnit.class);
     String compositeEtag1 =
         service.generateETag(userDetails, Set.of(OrganisationUnit.class, User.class));
 
-    when(eTagVersionService.getAllCacheVersion()).thenReturn(8L);
+    when(eTagService.getAllCacheVersion()).thenReturn(8L);
     String globalEtag2 = service.generateETag(userDetails);
     String entityEtag2 = service.generateETag(userDetails, OrganisationUnit.class);
     String compositeEtag2 =
@@ -469,16 +469,16 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Changing user role version should invalidate metadata-style composite ETags")
   void testMetadataCompositeInvalidatesWhenUserRoleVersionChanges() {
-    when(eTagVersionService.getAllCacheVersion()).thenReturn(7L);
-    when(eTagVersionService.getEntityTypeVersion(User.class)).thenReturn(10L);
-    when(eTagVersionService.getEntityTypeVersion(UserRole.class)).thenReturn(20L);
-    when(eTagVersionService.getEntityTypeVersion(UserGroup.class)).thenReturn(30L);
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.getAllCacheVersion()).thenReturn(7L);
+    when(eTagService.getEntityTypeVersion(User.class)).thenReturn(10L);
+    when(eTagService.getEntityTypeVersion(UserRole.class)).thenReturn(20L);
+    when(eTagService.getEntityTypeVersion(UserGroup.class)).thenReturn(30L);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
 
     Set<Class<?>> metadataTypes = Set.of(User.class, UserRole.class, UserGroup.class);
     String etag1 = service.generateETag(userDetails, metadataTypes);
 
-    when(eTagVersionService.getEntityTypeVersion(UserRole.class)).thenReturn(21L);
+    when(eTagService.getEntityTypeVersion(UserRole.class)).thenReturn(21L);
     String etag2 = service.generateETag(userDetails, metadataTypes);
 
     assertNotEquals(etag1, etag2);
@@ -488,18 +488,18 @@ class ConditionalETagServiceTest {
   @DisplayName(
       "Changing user group version should invalidate shareable metadata-style composite ETags")
   void testMetadataCompositeInvalidatesWhenUserGroupVersionChanges() {
-    when(eTagVersionService.getAllCacheVersion()).thenReturn(7L);
-    when(eTagVersionService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(10L);
-    when(eTagVersionService.getEntityTypeVersion(User.class)).thenReturn(20L);
-    when(eTagVersionService.getEntityTypeVersion(UserRole.class)).thenReturn(30L);
-    when(eTagVersionService.getEntityTypeVersion(UserGroup.class)).thenReturn(40L);
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.getAllCacheVersion()).thenReturn(7L);
+    when(eTagService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(10L);
+    when(eTagService.getEntityTypeVersion(User.class)).thenReturn(20L);
+    when(eTagService.getEntityTypeVersion(UserRole.class)).thenReturn(30L);
+    when(eTagService.getEntityTypeVersion(UserGroup.class)).thenReturn(40L);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
 
     Set<Class<?>> metadataTypes =
         Set.of(OrganisationUnit.class, User.class, UserRole.class, UserGroup.class);
     String etag1 = service.generateETag(userDetails, metadataTypes);
 
-    when(eTagVersionService.getEntityTypeVersion(UserGroup.class)).thenReturn(41L);
+    when(eTagService.getEntityTypeVersion(UserGroup.class)).thenReturn(41L);
     String etag2 = service.generateETag(userDetails, metadataTypes);
 
     assertNotEquals(etag1, etag2);
@@ -508,14 +508,14 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Different TTL window values should produce different ETags")
   void testTtlWindowChangeProducesDifferentETag() {
-    when(eTagVersionService.getAllCacheVersion()).thenReturn(7L);
+    when(eTagService.getAllCacheVersion()).thenReturn(7L);
 
     // With 60-minute TTL
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
     String etag60 = service.generateETag(userDetails);
 
     // With 10-minute TTL — different window granularity produces different time buckets
-    when(eTagVersionService.getTtlMinutes()).thenReturn(10);
+    when(eTagService.getTtlMinutes()).thenReturn(10);
     String etag10 = service.generateETag(userDetails);
 
     // Different TTL values should produce different ETags (different time window buckets)
@@ -525,8 +525,8 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Same TTL window should produce same ETag within same window")
   void testSameTtlWindowProducesSameETag() {
-    when(eTagVersionService.getAllCacheVersion()).thenReturn(7L);
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.getAllCacheVersion()).thenReturn(7L);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
 
     String etag1 = service.generateETag(userDetails);
     String etag2 = service.generateETag(userDetails);
@@ -538,13 +538,13 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("TTL window also affects entity-type-specific ETags")
   void testTtlWindowAffectsEntityTypeETag() {
-    when(eTagVersionService.getAllCacheVersion()).thenReturn(7L);
-    when(eTagVersionService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(10L);
+    when(eTagService.getAllCacheVersion()).thenReturn(7L);
+    when(eTagService.getEntityTypeVersion(OrganisationUnit.class)).thenReturn(10L);
 
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
     String etag60 = service.generateETag(userDetails, OrganisationUnit.class);
 
-    when(eTagVersionService.getTtlMinutes()).thenReturn(10);
+    when(eTagService.getTtlMinutes()).thenReturn(10);
     String etag10 = service.generateETag(userDetails, OrganisationUnit.class);
 
     assertNotEquals(etag60, etag10);
@@ -553,16 +553,16 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Changing file resource version should invalidate metadata-style composite ETags")
   void testMetadataCompositeInvalidatesWhenFileResourceVersionChanges() {
-    when(eTagVersionService.getAllCacheVersion()).thenReturn(7L);
-    when(eTagVersionService.getEntityTypeVersion(User.class)).thenReturn(10L);
-    when(eTagVersionService.getEntityTypeVersion(UserRole.class)).thenReturn(20L);
-    when(eTagVersionService.getEntityTypeVersion(FileResource.class)).thenReturn(30L);
-    when(eTagVersionService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.getAllCacheVersion()).thenReturn(7L);
+    when(eTagService.getEntityTypeVersion(User.class)).thenReturn(10L);
+    when(eTagService.getEntityTypeVersion(UserRole.class)).thenReturn(20L);
+    when(eTagService.getEntityTypeVersion(FileResource.class)).thenReturn(30L);
+    when(eTagService.getTtlMinutes()).thenReturn(60);
 
     Set<Class<?>> metadataTypes = Set.of(User.class, UserRole.class, FileResource.class);
     String etag1 = service.generateETag(userDetails, metadataTypes);
 
-    when(eTagVersionService.getEntityTypeVersion(FileResource.class)).thenReturn(31L);
+    when(eTagService.getEntityTypeVersion(FileResource.class)).thenReturn(31L);
     String etag2 = service.generateETag(userDetails, metadataTypes);
 
     assertNotEquals(etag1, etag2);

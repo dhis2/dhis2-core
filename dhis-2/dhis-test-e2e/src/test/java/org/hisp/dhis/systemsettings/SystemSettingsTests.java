@@ -320,7 +320,7 @@ class SystemSettingsTests extends ApiTest {
   }
 
   @Test
-  @Disabled
+  @Disabled("Cache-Control headers now managed by conditional ETag mechanism")
   @DisplayName(
       "A call to the system settings endpoint returns expected cache control header values")
   void getSystemSettingsCheckCacheControl() {

@@ -33,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.cache.ETagVersionService;
+import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.InitializingBean;
@@ -42,15 +42,15 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 /**
- * In-memory implementation of {@link ETagVersionService} backed by a ConcurrentHashMap. Independent
- * of Redis; suitable for single-instance deployments.
+ * In-memory implementation of {@link ETagService} backed by a ConcurrentHashMap. Independent of
+ * Redis; suitable for single-instance deployments.
  *
  * @author Morten Svanæs
  */
 @Slf4j
 @Service
 @Conditional(value = ETagCacheEnabledCondition.class)
-public class LocalETagVersionService implements ETagVersionService, InitializingBean {
+public class LocalETagService implements ETagService, InitializingBean {
 
   /** Entity type versions — bounded by the number of Hibernate-mapped entity classes (~200). */
   private final ConcurrentHashMap<String, AtomicLong> entityTypeVersions =

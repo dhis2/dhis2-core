@@ -27,32 +27,53 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation.sqlobserver;
+package org.hisp.dhis.cache;
 
-import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import javax.annotation.Nonnull;
 
 /**
- * Spring condition that is satisfied when both the SQL DML observer and the ETag cache are enabled.
- * The bridge is only useful when both layers are active: the observer produces DML events and the
- * ETag cache consumes them for version-based cache invalidation.
+ * Manages ETag version counters used for conditional HTTP caching. Versions are incremented when
+ * data changes are detected (e.g., via the DML observer layer), invalidating stale cached
+ * responses.
+ *
+ * @author Morten Svanæs
  */
-public class DmlCacheInvalidationCondition extends PropertiesAwareConfigurationCondition {
+public interface ETagService {
 
-  @Override
-  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    if (SystemUtils.isTestRun(context.getEnvironment().getActiveProfiles())) {
-      return false;
-    }
-    return getConfiguration().isEnabled(ConfigurationKey.SQL_DML_OBSERVER_ENABLED)
-        && getConfiguration().isEnabled(ConfigurationKey.CACHE_API_ETAG_ENABLED);
-  }
+  /** Returns the all-cache version. Incrementing this invalidates every API ETag family at once. */
+  long getAllCacheVersion();
 
-  @Override
-  public ConfigurationPhase getConfigurationPhase() {
-    return ConfigurationPhase.REGISTER_BEAN;
-  }
+  /**
+   * Increments the all-cache version. Use for deliberate broad cache invalidation, not for ordinary
+   * entity-type changes.
+   *
+   * @return the new version number after increment
+   */
+  long incrementAllCacheVersion();
+
+  /**
+   * Returns the ETag version for the given entity type.
+   *
+   * @param entityType the entity class (e.g., OrganisationUnit.class)
+   * @return the current version number, or 0 if none exists
+   */
+  long getEntityTypeVersion(@Nonnull Class<?> entityType);
+
+  /**
+   * Increments the ETag version for the given entity type.
+   *
+   * @param entityType the entity class (e.g., OrganisationUnit.class)
+   * @return the new version number after increment
+   */
+  long incrementEntityTypeVersion(@Nonnull Class<?> entityType);
+
+  /** Returns {@code true} if ETag caching is enabled. */
+  boolean isEnabled();
+
+  /**
+   * Returns the TTL window in minutes. Cached responses are revalidated at most this often.
+   *
+   * @return the TTL window in minutes
+   */
+  int getTtlMinutes();
 }

@@ -51,7 +51,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.cache.ETagVersionService;
+import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
@@ -72,7 +72,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class ConditionalETagService {
 
-  private final ETagVersionService eTagVersionService;
+  private final ETagService eTagVersionService;
 
   /** Build revision loaded once at startup. Changes on server upgrade, invalidating all ETags. */
   private final String buildRevision;
@@ -81,12 +81,12 @@ public class ConditionalETagService {
   private final Clock clock;
 
   @Autowired
-  public ConditionalETagService(ETagVersionService eTagVersionService) {
+  public ConditionalETagService(ETagService eTagVersionService) {
     this(eTagVersionService, Clock.systemUTC());
   }
 
   /** Test constructor that accepts a custom clock for deterministic TTL window testing. */
-  ConditionalETagService(ETagVersionService eTagVersionService, Clock clock) {
+  ConditionalETagService(ETagService eTagVersionService, Clock clock) {
     this.eTagVersionService = eTagVersionService;
     this.clock = clock;
     this.buildRevision = loadBuildRevision();

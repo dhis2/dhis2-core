@@ -45,7 +45,7 @@ import net.ttddyy.dsproxy.ConnectionInfo;
 import net.ttddyy.dsproxy.ExecutionInfo;
 import net.ttddyy.dsproxy.QueryInfo;
 import net.ttddyy.dsproxy.listener.MethodExecutionContext;
-import org.hisp.dhis.audit.DmlObservedEvent;
+import org.hisp.dhis.dml.DmlObservedEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -167,7 +167,7 @@ class DmlObserverListenerConnectionIdTest {
     ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
     verify(eventPublisher).publishEvent(captor.capture());
     assertEquals(1, captor.getValue().getEvents().size());
-    assertEquals("dataelement", captor.getValue().getEvents().get(0).getTableName());
+    assertEquals("dataelement", captor.getValue().getEvents().get(0).tableName());
 
     // conn-Y still pending — rollback it
     listener.afterMethod(createMethodCtx("conn-Y", "rollback"));

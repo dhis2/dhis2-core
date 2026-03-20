@@ -49,11 +49,10 @@ import net.ttddyy.dsproxy.QueryInfo;
 import net.ttddyy.dsproxy.listener.MethodExecutionContext;
 import net.ttddyy.dsproxy.listener.MethodExecutionListener;
 import net.ttddyy.dsproxy.listener.QueryExecutionListener;
-import org.hisp.dhis.audit.DmlEvent;
-import org.hisp.dhis.audit.DmlObservedEvent;
-import org.hisp.dhis.audit.DmlOrigin;
-import org.hisp.dhis.config.sqlobserver.DmlSqlParser.DmlParseResult;
 import org.hisp.dhis.config.sqlobserver.HibernateTableEntityRegistry.TableInfo;
+import org.hisp.dhis.dml.DmlEvent;
+import org.hisp.dhis.dml.DmlObservedEvent;
+import org.hisp.dhis.dml.DmlOrigin;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -170,36 +169,30 @@ public class DmlObserverListener
         continue;
       }
 
-      Optional<DmlParseResult> parsed = DmlSqlParser.parse(query);
+      Optional<DmlSqlParser.DmlFastResult> parsed = DmlSqlParser.parseFast(query);
       if (parsed.isEmpty()) {
         if (statementsSkippedNonDml != null) statementsSkippedNonDml.increment();
         continue;
       }
 
-      DmlParseResult result = parsed.get();
+      DmlSqlParser.DmlFastResult result = parsed.get();
 
       // Check exclusions
-      if (DmlObserverExclusions.isExcluded(result.getTableName())) {
+      if (DmlObserverExclusions.isExcluded(result.tableName())) {
         if (statementsSkippedExcluded != null) statementsSkippedExcluded.increment();
         continue;
       }
 
       // Map table → entity
-      TableInfo tableInfo = registry.getTableInfo(result.getTableName());
-      String entityClassName = tableInfo != null ? tableInfo.getEntityClass().getName() : null;
+      TableInfo tableInfo = registry.getTableInfo(result.tableName());
+      String entityClassName = tableInfo != null ? tableInfo.entityClass().getName() : null;
 
       // Dedup key: "tablename:OPERATION" — one event per table/operation combo per transaction.
-      String dedupeKey = result.getTableName() + ":" + result.getOperation();
+      String dedupeKey = result.tableName() + ":" + result.operation();
 
       DmlEvent event =
-          DmlEvent.builder()
-              .operation(result.getOperation())
-              .tableName(result.getTableName())
-              .entityClassName(entityClassName)
-              .updatedColumns(result.getUpdatedColumns())
-              .timestamp(Instant.now())
-              .connectionId(connectionId)
-              .build();
+          new DmlEvent(
+              result.operation(), result.tableName(), entityClassName, Instant.now(), connectionId);
 
       if (statementsObserved != null) statementsObserved.increment();
 
@@ -207,9 +200,9 @@ public class DmlObserverListener
       if (autoCommit) {
         log.debug(
             "DML observed (auto-commit): op={}, table={}, entity={}",
-            event.getOperation(),
-            event.getTableName(),
-            event.getEntityClassName());
+            event.operation(),
+            event.tableName(),
+            event.entityClassName());
         eventPublisher.publishEvent(
             new DmlObservedEvent(this, List.of(event), DmlOrigin.fromMdc()));
       } else {
@@ -231,9 +224,9 @@ public class DmlObserverListener
                 batch.events().add(event);
                 log.debug(
                     "DML observed: op={}, table={}, entity={}",
-                    event.getOperation(),
-                    event.getTableName(),
-                    event.getEntityClassName());
+                    event.operation(),
+                    event.tableName(),
+                    event.entityClassName());
               }
               return batch;
             });

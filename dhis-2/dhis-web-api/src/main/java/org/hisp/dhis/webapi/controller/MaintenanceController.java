@@ -40,7 +40,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.cache.ETagVersionService;
+import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionComboGenerateService;
 import org.hisp.dhis.category.CategoryService;
@@ -86,7 +86,7 @@ public class MaintenanceController {
   private final AppManager appManager;
   private final CategoryService categoryService;
   private final CategoryOptionComboGenerateService categoryOptionComboGenerateService;
-  private final ETagVersionService eTagVersionService;
+  private final ETagService eTagVersionService;
 
   @RequestMapping(
       value = "/analyticsTablesClear",

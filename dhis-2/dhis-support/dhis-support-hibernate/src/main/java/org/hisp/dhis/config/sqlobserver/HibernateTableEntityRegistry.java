@@ -30,9 +30,10 @@
 package org.hisp.dhis.config.sqlobserver;
 
 import jakarta.persistence.EntityManagerFactory;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
@@ -47,10 +48,12 @@ import org.springframework.beans.factory.ObjectProvider;
 @Slf4j
 public class HibernateTableEntityRegistry {
 
-  @Value
-  public static class TableInfo {
-    Class<?> entityClass;
-    String[] pkColumnNames;
+  public record TableInfo(String tableName, Class<?> entityClass, List<String> pkColumnNames) {
+    public TableInfo {
+      Objects.requireNonNull(tableName);
+      Objects.requireNonNull(entityClass);
+      pkColumnNames = List.copyOf(pkColumnNames);
+    }
   }
 
   private final ObjectProvider<EntityManagerFactory> emfProvider;
@@ -96,14 +99,13 @@ public class HibernateTableEntityRegistry {
           }
 
           String[] pkColumns = aep.getIdentifierColumnNames();
-          // Lowercase PK column names for consistent matching
-          String[] lowerPkColumns = new String[pkColumns.length];
-          for (int i = 0; i < pkColumns.length; i++) {
-            lowerPkColumns[i] = pkColumns[i].toLowerCase();
+          List<String> lowerPkColumns = new java.util.ArrayList<>(pkColumns.length);
+          for (String pkColumn : pkColumns) {
+            lowerPkColumns.add(pkColumn.toLowerCase());
           }
 
           Class<?> entityClass = persister.getMappedClass();
-          map.put(tableName, new TableInfo(entityClass, lowerPkColumns));
+          map.put(tableName, new TableInfo(tableName, entityClass, lowerPkColumns));
         }
       }
 

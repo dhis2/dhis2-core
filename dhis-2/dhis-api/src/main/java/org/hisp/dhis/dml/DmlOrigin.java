@@ -27,46 +27,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.audit;
+package org.hisp.dhis.dml;
 
-import java.io.Serializable;
-import java.time.Instant;
-import java.util.Set;
-import lombok.Builder;
-import lombok.Value;
+import javax.annotation.CheckForNull;
+import org.hisp.dhis.log.MdcKeys;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.slf4j.MDC;
 
 /**
- * Represents a single DML (INSERT/UPDATE/DELETE) operation intercepted at the JDBC level via
- * datasource-proxy. Captures the SQL table name, optional mapped entity class, and primary key
- * value.
+ * Captures the origin context of a DML operation from the current thread. All fields are nullable
+ * since async jobs won't have controller/method and unauthenticated requests won't have a username.
  */
-@Value
-@Builder
-public class DmlEvent {
+public record DmlOrigin(
+    @CheckForNull String username,
+    @CheckForNull String controller,
+    @CheckForNull String method,
+    @CheckForNull String requestId,
+    @CheckForNull String sessionId) {
 
-  public enum DmlOperation {
-    INSERT,
-    UPDATE,
-    DELETE
+  /** Snapshot the current MDC values and authenticated user into a {@link DmlOrigin}. */
+  public static DmlOrigin fromMdc() {
+    return new DmlOrigin(
+        CurrentUserUtil.hasCurrentUser() ? CurrentUserUtil.getCurrentUsername() : null,
+        MDC.get(MdcKeys.MDC_CONTROLLER),
+        MDC.get(MdcKeys.MDC_METHOD),
+        MDC.get(MdcKeys.MDC_REQUEST_ID),
+        MDC.get(MdcKeys.MDC_SESSION_ID));
   }
-
-  DmlOperation operation;
-
-  /** Raw SQL table name as it appears in the DML statement. */
-  String tableName;
-
-  /**
-   * Fully-qualified entity class name, or null if the table is not mapped to a Hibernate entity.
-   */
-  String entityClassName;
-
-  /** Extracted primary key value, or null if not extractable from the SQL parameters. */
-  Serializable entityId;
-
-  /** Column names from the SET clause for UPDATE operations. Empty for INSERT/DELETE. */
-  @Builder.Default Set<String> updatedColumns = Set.of();
-
-  Instant timestamp;
-
-  String connectionId;
 }

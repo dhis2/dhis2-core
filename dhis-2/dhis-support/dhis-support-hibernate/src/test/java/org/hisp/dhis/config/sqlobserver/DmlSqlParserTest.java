@@ -36,8 +36,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import org.hisp.dhis.audit.DmlEvent.DmlOperation;
 import org.hisp.dhis.config.sqlobserver.DmlSqlParser.DmlParseResult;
+import org.hisp.dhis.dml.DmlOperation;
 import org.junit.jupiter.api.Test;
 
 class DmlSqlParserTest {
@@ -237,5 +237,78 @@ class DmlSqlParserTest {
     assertEquals(
         "INSERT INTO foo (a) VALUES (?)",
         DmlSqlParser.stripLeadingComment("INSERT INTO foo (a) VALUES (?)"));
+  }
+
+  // ── parseFast tests ──
+
+  @Test
+  void parseFast_insert() {
+    var result = DmlSqlParser.parseFast("INSERT INTO dataelement (uid) VALUES (?)");
+    assertTrue(result.isPresent());
+    assertEquals(DmlOperation.INSERT, result.get().operation());
+    assertEquals("dataelement", result.get().tableName());
+  }
+
+  @Test
+  void parseFast_update() {
+    var result = DmlSqlParser.parseFast("UPDATE dataelement SET name = ? WHERE uid = ?");
+    assertTrue(result.isPresent());
+    assertEquals(DmlOperation.UPDATE, result.get().operation());
+    assertEquals("dataelement", result.get().tableName());
+  }
+
+  @Test
+  void parseFast_delete() {
+    var result = DmlSqlParser.parseFast("DELETE FROM dataelement WHERE uid = ?");
+    assertTrue(result.isPresent());
+    assertEquals(DmlOperation.DELETE, result.get().operation());
+    assertEquals("dataelement", result.get().tableName());
+  }
+
+  @Test
+  void parseFast_withMdcComment() {
+    var result =
+        DmlSqlParser.parseFast(
+            "/* controller='MetadataController' */ INSERT INTO dataelement (uid) VALUES (?)");
+    assertTrue(result.isPresent());
+    assertEquals(DmlOperation.INSERT, result.get().operation());
+    assertEquals("dataelement", result.get().tableName());
+  }
+
+  @Test
+  void parseFast_schemaPrefix() {
+    var result = DmlSqlParser.parseFast("INSERT INTO public.dataelement (uid) VALUES (?)");
+    assertTrue(result.isPresent());
+    assertEquals("dataelement", result.get().tableName());
+  }
+
+  @Test
+  void parseFast_caseInsensitive() {
+    var insert = DmlSqlParser.parseFast("insert into foo (a) values (?)");
+    assertTrue(insert.isPresent());
+    assertEquals(DmlOperation.INSERT, insert.get().operation());
+
+    var update = DmlSqlParser.parseFast("update foo set a = ?");
+    assertTrue(update.isPresent());
+    assertEquals(DmlOperation.UPDATE, update.get().operation());
+
+    var delete = DmlSqlParser.parseFast("delete from foo where id = ?");
+    assertTrue(delete.isPresent());
+    assertEquals(DmlOperation.DELETE, delete.get().operation());
+  }
+
+  @Test
+  void parseFast_selectReturnsEmpty() {
+    assertFalse(DmlSqlParser.parseFast("SELECT * FROM dataelement").isPresent());
+  }
+
+  @Test
+  void parseFast_nullReturnsEmpty() {
+    assertFalse(DmlSqlParser.parseFast(null).isPresent());
+  }
+
+  @Test
+  void parseFast_emptyReturnsEmpty() {
+    assertFalse(DmlSqlParser.parseFast("").isPresent());
   }
 }
