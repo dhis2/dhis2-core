@@ -87,6 +87,7 @@ import org.hisp.dhis.analytics.event.data.stage.StageHeaderClassifier;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
 import org.hisp.dhis.analytics.table.AbstractJdbcTableManager;
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.util.sql.Condition;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
@@ -203,6 +204,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           useExperimentalAnalyticsQueryEngine()
               ? buildAnalyticsQuery(params, maxLimit)
               : getAggregatedEnrollmentsSql(params, maxLimit);
+      System.out.println(sql);
     }
     if (params.analyzeOnly()) {
       withExceptionHandling(
@@ -1470,7 +1472,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         EnrollmentAnalyticsColumnName.STORED_BY_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.CREATED_BY_DISPLAY_NAME_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.LAST_UPDATED_BY_DISPLAY_NAME_COLUMN_NAME,
-        EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME);
+        EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
+        EventAnalyticsColumnName.CREATED_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME);
 
     if (sqlBuilder.supportsGeospatialData()) {
       columns.add(
