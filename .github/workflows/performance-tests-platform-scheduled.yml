@@ -1,6 +1,6 @@
-# Scheduled performance tests - runs a matrix of tests on a schedule
-name: Performance tests scheduled
-run-name: Performance tests scheduled
+# Scheduled performance tests for platform - runs a matrix of tests on a schedule
+name: Performance tests platform scheduled
+run-name: Performance tests platform scheduled
 
 on:
   # NOTE: workflow_dispatch is only to test this workflow! Use ./performance-tests.yml to test a
@@ -8,8 +8,8 @@ on:
   # version against a candidate
   workflow_dispatch:
   schedule:
-    # Run at 1 AM UTC every day
-    - cron: "0 1 * * *"
+    # Run at 3 AM UTC every day (offset from tracker tests at 1 AM to avoid runner contention)
+    - cron: "0 3 * * *"
 
 jobs:
   run-scheduled-tests:
@@ -19,19 +19,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: tracker-smoke
-            env: |
-              DHIS2_IMAGE=dhis2/core-dev:latest
-              SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
-              WARMUP=2
-              MVN_ARGS=-Dprofile=smoke
-            slack_webhook_secret: SLACK_WEBHOOK_TRACKER_BACKEND
-          - name: tracker-load
-            env: |
-              DHIS2_IMAGE=dhis2/core-dev:latest
-              SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
-              MVN_ARGS=-Dprofile=load
-            slack_webhook_secret: SLACK_WEBHOOK_TRACKER_BACKEND
           - name: users-smoke
             env: |
               DHIS2_IMAGE=dhis2/core-dev:latest
