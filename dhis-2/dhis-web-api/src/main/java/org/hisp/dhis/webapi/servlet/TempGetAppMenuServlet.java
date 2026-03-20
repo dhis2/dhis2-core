@@ -44,9 +44,7 @@ public class TempGetAppMenuServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest req, HttpServletResponse resp)
       throws IOException, ServletException {
-    resp.setContentType("application/json");
-    resp.setStatus(HttpServletResponse.SC_OK);
     RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/api/apps/menu");
-    dispatcher.include(req, resp);
+    dispatcher.forward(req, resp);
   }
 }

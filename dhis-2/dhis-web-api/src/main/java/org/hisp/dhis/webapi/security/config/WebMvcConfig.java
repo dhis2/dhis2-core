@@ -48,6 +48,7 @@ import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolv
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
+import org.hisp.dhis.webapi.mvc.interceptor.ConditionalETagInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.HandlerMethodInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.TrailingSlashInterceptor;
@@ -58,6 +59,7 @@ import org.hisp.dhis.webapi.mvc.messageconverter.MetadataExportParamsMessageConv
 import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlPathMappingJackson2XmlHttpMessageConverter;
+import org.hisp.dhis.webapi.staticresource.StaticCacheInterceptor;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -117,6 +119,10 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Autowired private AuthorityInterceptor authorityInterceptor;
 
   @Autowired private SystemSettingsInterceptor settingsInterceptor;
+
+  @Autowired private ConditionalETagInterceptor conditionalETagInterceptor;
+
+  @Autowired private StaticCacheInterceptor staticCacheInterceptor;
 
   @Autowired private NodeService nodeService;
 
@@ -251,6 +257,10 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     registry.addInterceptor(authorityInterceptor);
     registry.addInterceptor(settingsInterceptor);
     registry.addInterceptor(new TrailingSlashInterceptor()).excludePathPatterns("/api/**");
+    registry.addInterceptor(conditionalETagInterceptor).addPathPatterns("/api/**");
+    registry
+        .addInterceptor(staticCacheInterceptor)
+        .addPathPatterns("/dhis-web-*/**", "/icons/**", "/images/**", "/favicon.ico");
   }
 
   @Override

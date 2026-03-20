@@ -40,11 +40,14 @@ import org.hisp.dhis.apphub.AppHubService;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilder;
 import org.hisp.dhis.cache.DefaultCacheBuilderProvider;
+import org.hisp.dhis.cache.ETagVersionService;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.datastore.DatastoreService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.locale.LocaleManager;
+import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -70,6 +73,9 @@ class DefaultAppManagerTest {
   @Mock private I18nManager i18nManager;
   @Mock private BundledAppManager bundledAppInstaller;
   @Mock private LocaleManager localeManager;
+  @Mock private SystemSettingsProvider settingsProvider;
+  @Mock private ETagVersionService eTagVersionService;
+  @Mock private SystemSettings systemSettings;
 
   private AppManager appManager;
 
@@ -120,6 +126,7 @@ class DefaultAppManagerTest {
     doReturn(cacheBuilder).when(cacheBuilder).forRegion("appCache");
     doReturn(appCache).when(cacheBuilder).build();
     doReturn(new Locale("en")).when(localeManager).getCurrentLocale();
+    doReturn(systemSettings).when(settingsProvider).getCurrentSettings();
 
     appManager =
         new DefaultAppManager(
@@ -130,7 +137,9 @@ class DefaultAppManagerTest {
             cacheBuilderProvider,
             i18nManager,
             localeManager,
-            bundledAppInstaller);
+            bundledAppInstaller,
+            settingsProvider,
+            eTagVersionService);
   }
 
   /**

@@ -27,33 +27,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.audit;
 
-import jakarta.servlet.RequestDispatcher;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import org.hisp.dhis.appmanager.AppManager;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
+import java.io.Serializable;
+import java.time.Instant;
+import java.util.Set;
+import lombok.Builder;
+import lombok.Value;
 
 /**
- * Controller for handling the login app.
- *
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Represents a single DML (INSERT/UPDATE/DELETE) operation intercepted at the JDBC level via
+ * datasource-proxy. Captures the SQL table name, optional mapped entity class, and primary key
+ * value.
  */
-@Controller
-public class LoginAppController {
+@Value
+@Builder
+public class DmlEvent {
 
-  @GetMapping("/login/**")
-  public void getLoginApp(HttpServletRequest request, HttpServletResponse response)
-      throws ServletException, IOException {
-    String contextRelativePath =
-        request.getRequestURI().substring(request.getContextPath().length());
-    String forwardPath =
-        "/" + AppManager.INSTALLED_APP_PREFIX + contextRelativePath.replaceFirst("/", "");
-    RequestDispatcher dispatcher = request.getServletContext().getRequestDispatcher(forwardPath);
-    dispatcher.forward(request, response);
+  public enum DmlOperation {
+    INSERT,
+    UPDATE,
+    DELETE
   }
+
+  DmlOperation operation;
+
+  /** Raw SQL table name as it appears in the DML statement. */
+  String tableName;
+
+  /**
+   * Fully-qualified entity class name, or null if the table is not mapped to a Hibernate entity.
+   */
+  String entityClassName;
+
+  /** Extracted primary key value, or null if not extractable from the SQL parameters. */
+  Serializable entityId;
+
+  /** Column names from the SET clause for UPDATE operations. Empty for INSERT/DELETE. */
+  @Builder.Default Set<String> updatedColumns = Set.of();
+
+  Instant timestamp;
+
+  String connectionId;
 }

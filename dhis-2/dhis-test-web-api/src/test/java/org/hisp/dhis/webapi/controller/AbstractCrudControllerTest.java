@@ -458,7 +458,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         POST("/constants/", "{'name':'answer', 'shortName': 'answer', 'value': 42}");
     assertWebMessage("Created", 201, "OK", null, response.content(HttpStatus.CREATED));
     assertEquals(
-        "http://localhost/api/constants/" + assertStatus(HttpStatus.CREATED, response),
+        "http://localhost:8080/api/constants/" + assertStatus(HttpStatus.CREATED, response),
         response.header("Location"));
   }
 

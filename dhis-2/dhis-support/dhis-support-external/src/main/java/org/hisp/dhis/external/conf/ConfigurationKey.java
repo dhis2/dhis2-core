@@ -719,6 +719,9 @@ public enum ConfigurationKey {
   /** Redis based cache invalidation feature. Enable or disable. */
   REDIS_CACHE_INVALIDATION_ENABLED("redis.cache.invalidation.enabled", Constants.OFF, false),
 
+  /** SQL DML observer for JDBC-level audit and cache invalidation. Enable or disable. */
+  SQL_DML_OBSERVER_ENABLED("sql.dml.observer.enabled", Constants.ON, false),
+
   /** Content Security Policy feature. Enable or disable the feature. (sensitive) */
   CSP_ENABLED("csp.enabled", Constants.ON, true),
 
@@ -807,6 +810,20 @@ public enum ConfigurationKey {
 
   CACHE_EHCACHE_CONFIG_FILE("cache.ehcache.config.file", "classpath:ehcache.xml", false),
 
+  /**
+   * Enable conditional ETag caching for API responses. This provides efficient HTTP caching where
+   * ETags are validated BEFORE heavy computations, using local in-memory version tracking for cache
+   * invalidation. (default: off)
+   */
+  CACHE_API_ETAG_ENABLED("cache.api.etag.enabled", Constants.ON, false),
+
+  /**
+   * TTL window in minutes for conditional ETag caching. This is the maximum time a cached response
+   * can be considered valid without checking for data changes. Acts as a safety net to ensure
+   * periodic refresh even if a DML event is missed. (default: 10)
+   */
+  CACHE_API_ETAG_TTL_MINUTES("cache.api.etag.ttl.minutes", "10", false),
+
   // Enable saved requests, this will save the URL the user tries to access before they are logged
   // in, and redirect to that URL after they are logged in.
   LOGIN_SAVED_REQUESTS_ENABLE("login.saved.requests.enable", Constants.ON, false),
@@ -816,7 +833,35 @@ public enum ConfigurationKey {
   OIDC_DHIS2_INTERNAL_CLIENT_ID("oidc.provider.dhis2.client_id", "dhis2-internal", false),
   OIDC_DHIS2_INTERNAL_CLIENT_SECRET("oidc.provider.dhis2.client_secret", "secret", false),
   OIDC_DHIS2_INTERNAL_MAPPING_CLAIM("oidc.provider.dhis2.mapping_claim", "username", false),
-  OIDC_DHIS2_INTERNAL_SERVER_URL("oidc.provider.dhis2.server_url", "", false);
+  OIDC_DHIS2_INTERNAL_SERVER_URL("oidc.provider.dhis2.server_url", "", false),
+
+  /** Whether static resource caching is enabled. (default: true) */
+  STATIC_CACHE_ENABLED("dhis2.static.cache.enabled", Constants.ON, false),
+
+  /** Default max-age in seconds for static resources (JS, CSS, images, fonts). (default: 3600) */
+  STATIC_CACHE_DEFAULT_MAX_AGE("dhis2.static.cache.default_max_age", "3600", false),
+
+  /** Max-age in seconds for HTML entry points (index.html, plugin.html). (default: 300) */
+  STATIC_CACHE_HTML_MAX_AGE("dhis2.static.cache.html_max_age", "300", false),
+
+  /** Max-age in seconds for immutable/hashed static resources. (default: 31536000 = 1 year) */
+  STATIC_CACHE_IMMUTABLE_MAX_AGE("dhis2.static.cache.immutable_max_age", "31536000", false),
+
+  /**
+   * Comma-separated Ant-style patterns for paths that should always get no-cache headers. (default:
+   * common HTML entry points and manifests)
+   */
+  STATIC_CACHE_ALWAYS_NO_CACHE_PATTERNS(
+      "dhis2.static.cache.always_no_cache_patterns",
+      "**/*.html,**/index.*,**/manifest.*,**/config.*,**/plugin.html",
+      false),
+
+  /** Force no-store on all static resources (dev mode). (default: off) */
+  STATIC_CACHE_DEV_MODE_FORCE_NO_CACHE(
+      "dhis2.static.cache.dev_mode_force_no_cache", Constants.OFF, false),
+
+  /** Whether HTML cache-busting rewrite is enabled. (default: on) */
+  STATIC_CACHE_HTML_REWRITE_ENABLED("dhis2.static.cache.html_rewrite_enabled", Constants.ON, false);
 
   private final String key;
 
