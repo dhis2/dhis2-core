@@ -265,6 +265,20 @@ public record DataEntryGroup(
           values);
     }
 
+    public Input withDataSet(@CheckForNull String dataSet) {
+      return new Input(
+          ids,
+          dataSet,
+          completionDate,
+          dataElement,
+          orgUnit,
+          period,
+          attributeOptionCombo,
+          attributeOptions,
+          deletion,
+          values);
+    }
+
     public Input withDeletion(@CheckForNull DataEntryGroup.Input.Scope deletion) {
       return new Input(
           ids,
