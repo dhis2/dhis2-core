@@ -49,6 +49,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OrderColumn;
@@ -62,6 +63,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -79,6 +81,8 @@ import org.hisp.dhis.eventvisualization.EventVisualization;
 import org.hisp.dhis.interpretation.Interpretation;
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.report.Report;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
@@ -129,7 +133,8 @@ public class DashboardItem implements IdentifiableObject, EmbeddedObject {
   @JoinColumn(name = "eventreport")
   private EventReport eventReport;
 
-  @Column(name = "textcontent")
+  @Column(name = "textcontent", columnDefinition = "TEXT")
+  @Type(type = "text")
   private String text;
 
   @ManyToMany
@@ -391,6 +396,7 @@ public class DashboardItem implements IdentifiableObject, EmbeddedObject {
 
   @JsonProperty
   @JacksonXmlProperty(namespace = DXF_2_0)
+  @Property(PropertyType.TEXT)
   public String getText() {
     return text;
   }
