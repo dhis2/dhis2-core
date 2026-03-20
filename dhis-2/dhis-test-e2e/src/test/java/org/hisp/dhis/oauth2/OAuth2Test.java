@@ -69,6 +69,7 @@ import org.springframework.http.ResponseEntity;
 @Tag("oauth2tests")
 @Disabled("Started failing on master. testGetAccessToken times out, needs investigation")
 @Slf4j
+@Disabled
 class OAuth2Test extends BaseE2ETest {
 
   private static WebDriver driver;
