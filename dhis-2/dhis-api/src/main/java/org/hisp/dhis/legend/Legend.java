@@ -40,6 +40,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -109,7 +110,7 @@ public class Legend implements IdentifiableObject, EmbeddedObject {
   @Temporal(TemporalType.TIMESTAMP)
   protected Date lastUpdated;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "lastupdatedby")
   protected User lastUpdatedBy;
 
@@ -137,7 +138,7 @@ public class Legend implements IdentifiableObject, EmbeddedObject {
   @Column(name = "image")
   private String image;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "maplegendsetid")
   private LegendSet legendSet;
 

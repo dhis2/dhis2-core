@@ -41,6 +41,7 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.program.EnrollmentStatus.ACTIVE;
 import static org.hisp.dhis.program.EnrollmentStatus.COMPLETED;
+import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
@@ -48,8 +49,10 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
@@ -175,7 +178,8 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
             organisationUnitResolver,
             columnMapper,
             filterBuilder,
-            stageQuerySqlFacade);
+            stageQuerySqlFacade,
+            new DateFieldPeriodBucketColumnResolver(new PostgreSqlBuilder()));
   }
 
   @Test
@@ -393,10 +397,13 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
             noEof(
                 """
                 inner join (
-                    select distinct ev.enrollment
+                    select
+                        ev.enrollment,
+                        max(ev."occurreddate") as event_occurreddate
                     from analytics_event_%s ev
                     where ev.eventstatus != 'SCHEDULE'
                       and ev."occurreddate" >= '2022-09-01' and ev."occurreddate" < '2023-09-01'
+                    group by ev.enrollment
                 ) evf on evf.enrollment = ax.enrollment
                 """
                     .formatted(programA.getUid()))));
@@ -421,15 +428,120 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
             noEof(
                 """
                 inner join (
-                    select distinct ev.enrollment
+                    select
+                        ev.enrollment,
+                        max(ev."occurreddate") as event_occurreddate
                     from analytics_event_%s ev
                     where ev.eventstatus != 'SCHEDULE'
                       and ev."occurreddate" >= '2022-09-01' and ev."occurreddate" < '2023-09-01'
+                    group by ev.enrollment
                 ) evf on evf.enrollment = ax.enrollment
                 """
                     .formatted(programA.getUid()))));
     assertThat(generatedSql, not(containsString("where (((occurreddate >=")));
     assertThat(generatedSql, not(containsString("enrollmentdate >=")));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentRequestEventDateHeaderUsesLatestEventAlias() {
+    EventQueryParams params = createAggregateEnrollmentWithRequestEventDateParams();
+
+    ListGrid grid = new ListGrid();
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+    grid.addHeader(new GridHeader("eventdate", "Event date", ValueType.DATE, false, false));
+
+    subject.getEnrollments(params, grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+
+    assertThat(
+        generatedSql,
+        containsString(
+            noEof(
+                """
+                select
+                    ev.enrollment,
+                    max(ev."occurreddate") as event_occurreddate
+                from analytics_event_%s ev
+                """
+                    .formatted(programA.getUid()))));
+    assertThat(generatedSql, containsString(eventDateJoinProjection()));
+    assertThat(generatedSql, not(containsString(", \"eventdate\" from analytics_enrollment")));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentIncidentDateHeaderMapsToOccurredDateAlias() {
+    EventQueryParams params = createAggregateEnrollmentWithIncidentDateHeaderParams();
+
+    ListGrid grid = new ListGrid();
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+    grid.addHeader(new GridHeader("incidentdate", "Incident date", ValueType.DATE, false, false));
+
+    subject.getEnrollments(params, grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+
+    assertThat(generatedSql, containsString("occurreddate as \"incidentdate\""));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentUsesEnrollmentDateBucketForNonDefaultPeriodDimension() {
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    List<org.hisp.dhis.period.PeriodDimension> periods = createPeriodDimensions("202001");
+    periods.forEach(period -> period.setDateField(TimeField.ENROLLMENT_DATE.name()));
+
+    params.withPeriods(periods, "monthly");
+    params.withEndpointAction(AGGREGATE);
+
+    subject.getEnrollments(params.build(), new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+
+    assertThat(generatedSql, containsString("enrollment_aggr_base as ("));
+    assertThat(generatedSql, containsString("ax.enrollment"));
+    assertThat(generatedSql, containsString("enrollmentdate"));
+    assertThat(
+        generatedSql,
+        containsString(
+            "(select \"monthly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('month', eb.\"enrollmentdate\")::date) as \"monthly\""));
+    assertThat(
+        generatedSql,
+        containsString(
+            ", (select \"monthly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('month', eb.\"enrollmentdate\")::date)"));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentRequestCreatedDateUsesCreatedColumn() {
+    EventQueryParams params = createAggregateEnrollmentWithRequestCreatedDateParams();
+
+    subject.getEnrollments(params, new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+
+    assertThat(
+        generatedSql, containsString("(created >= '2022-09-01' and created < '2023-09-01')"));
+    assertThat(generatedSql, not(containsString("enrollmentdate >= '2022-09-01'")));
+    assertThat(generatedSql, not(containsString("occurreddate >= '2022-09-01'")));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentRequestCompletedDateUsesCompletedDateColumn() {
+    EventQueryParams params = createAggregateEnrollmentWithRequestCompletedDateParams();
+
+    subject.getEnrollments(params, new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+
+    assertThat(
+        generatedSql,
+        containsString("(completeddate >= '2022-09-01' and completeddate < '2023-09-01')"));
+    assertThat(generatedSql, not(containsString("enrollmentdate >= '2022-09-01'")));
+    assertThat(generatedSql, not(containsString("occurreddate >= '2022-09-01'")));
   }
 
   private EventQueryParams createAggregateEnrollmentWithStageDateParams() {
@@ -471,6 +583,33 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
         java.util.List.of(PeriodDimension.of("2022Sep").setDateField("EVENT_DATE")), "yearly");
     params.withEndpointAction(AGGREGATE);
     return new EventQueryParams.Builder(params.build()).withStartEndDatesForPeriods().build();
+  }
+
+  private EventQueryParams createAggregateEnrollmentWithIncidentDateHeaderParams() {
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.withEndpointAction(AGGREGATE);
+    params.withTimeField(TimeField.INCIDENT_DATE.name());
+    return params.build();
+  }
+
+  private EventQueryParams createAggregateEnrollmentWithRequestCreatedDateParams() {
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.withPeriods(
+        java.util.List.of(PeriodDimension.of("2022Sep").setDateField("CREATED")), "yearly");
+    params.withEndpointAction(AGGREGATE);
+    return new EventQueryParams.Builder(params.build()).withStartEndDatesForPeriods().build();
+  }
+
+  private EventQueryParams createAggregateEnrollmentWithRequestCompletedDateParams() {
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.withPeriods(
+        java.util.List.of(PeriodDimension.of("2022Sep").setDateField("COMPLETED")), "yearly");
+    params.withEndpointAction(AGGREGATE);
+    return new EventQueryParams.Builder(params.build()).withStartEndDatesForPeriods().build();
+  }
+
+  private String eventDateJoinProjection() {
+    return noEof("evf.event_occurreddate as \"eventdate\"");
   }
 
   private EventQueryParams createStageOuRequestParams() {

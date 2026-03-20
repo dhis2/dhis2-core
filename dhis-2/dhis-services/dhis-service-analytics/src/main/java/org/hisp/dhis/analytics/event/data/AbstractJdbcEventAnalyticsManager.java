@@ -279,6 +279,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   protected final StageQuerySqlFacade stageQuerySqlFacade;
 
+  private final DateFieldPeriodBucketColumnResolver dateFieldPeriodBucketColumnResolver;
+
   static final String ANALYTICS_EVENT = "analytics_event_";
 
   static final String COLUMN_ENROLLMENT_GEOMETRY_GEOJSON =
@@ -596,6 +598,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     OrgUnitSqlCoordinator.addDimensionSelectColumns(
         columns, params, isGroupByClause, isAggregated, getAnalyticsType());
+
+    if (params.hasEnrollmentStatuses() && params.isEnrollmentAggregateQuery()) {
+      columns.add(ColumnAndAlias.ofColumn(ENROLLMENT_STATUS_COLUMN_NAME).asSql());
+    }
   }
 
   private void addItemSelectColumns(
@@ -1148,6 +1154,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private String getTableAndColumn(
       EventQueryParams params, DimensionalObject dimension, boolean isGroupByClause) {
     String col = dimension.getDimensionName();
+    Optional<String> dynamicPeriodBucket =
+        dateFieldPeriodBucketColumnResolver.resolve(getAnalyticsType(), dimension, isGroupByClause);
+
+    if (dynamicPeriodBucket.isPresent()) {
+      return dynamicPeriodBucket.get();
+    }
 
     if (params.hasTimeField() && DimensionType.PERIOD == dimension.getDimensionType()) {
       return sqlBuilder.quote(DATE_PERIOD_STRUCT_ALIAS, col);
@@ -1166,6 +1178,15 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     } else {
       return quoteAlias(col);
     }
+  }
+
+  protected Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression>
+      resolveDateFieldPeriodBucket(DimensionalObject dimension, String tableAlias) {
+    return dateFieldPeriodBucketColumnResolver.resolve(getAnalyticsType(), dimension, tableAlias);
+  }
+
+  protected Optional<String> resolveDateFieldPeriodSourceColumn(DimensionalObject dimension) {
+    return dateFieldPeriodBucketColumnResolver.resolveSourceColumn(getAnalyticsType(), dimension);
   }
 
   /**
