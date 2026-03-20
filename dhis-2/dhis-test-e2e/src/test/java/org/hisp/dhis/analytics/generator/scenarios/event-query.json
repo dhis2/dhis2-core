@@ -237,7 +237,43 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "scheduledDateAsDimension",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?asc=eventdate&headers=oucode,scheduleddate&displayProperty=NAME&pageSize=10&page=1&dimension=SCHEDULED_DATE:2021&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "lastUpdatedAsDimension",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?asc=eventdate&headers=oucode,lastupdated&displayProperty=NAME&pageSize=10&page=1&dimension=LAST_UPDATED:2017&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "createdDateAsDimension",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?asc=eventdate&headers=oucode,created&displayProperty=NAME&pageSize=10&page=1&dimension=CREATED:2017&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "completedDateAsDimension",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?asc=eventdate&headers=oucode,completed&displayProperty=NAME&pageSize=10&page=1&dimension=COMPLETED:2022&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "incidentDateAsDimension",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?asc=eventdate&headers=oucode,incidentdate&displayProperty=NAME&pageSize=10&page=1&dimension=INCIDENT_DATE:2021&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
     }
+
 
   ]
 }
