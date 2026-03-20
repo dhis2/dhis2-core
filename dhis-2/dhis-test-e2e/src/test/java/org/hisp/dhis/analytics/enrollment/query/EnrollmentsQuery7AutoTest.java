@@ -1127,7 +1127,6 @@ public class EnrollmentsQuery7AutoTest extends AnalyticsApiTest {
 
       // When
       ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
-      System.out.println(response.prettyPrint());
       // Then
       // 1. Validate Response Structure (Counts, Headers, Height/Width)
       //    This helper checks basic counts and dimensions, adapting based on the runtime
