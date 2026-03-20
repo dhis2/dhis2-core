@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
@@ -144,6 +145,15 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
   /** Returns all data elements part of this program stage. */
   public Set<DataElement> getDataElements() {
     return programStageDataElements.stream()
+        .map(ProgramStageDataElement::getDataElement)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+  }
+
+  /** Returns all non-skipped data elements part of this program stage. */
+  public Set<DataElement> getNonSkippedDataElements() {
+    return programStageDataElements.stream()
+        .filter(programStageDataElement -> !programStageDataElement.getSkipAnalytics())
         .map(ProgramStageDataElement::getDataElement)
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
@@ -270,7 +280,7 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Program getProgram() {
     return program;

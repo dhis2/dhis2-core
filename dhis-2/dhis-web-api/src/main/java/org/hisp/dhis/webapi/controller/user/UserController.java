@@ -30,7 +30,6 @@
 package org.hisp.dhis.webapi.controller.user;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUidsAsSet;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
@@ -49,10 +48,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -102,6 +102,7 @@ import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.RestoreOptions;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
@@ -243,7 +244,8 @@ public class UserController
         || params.isUserOrgUnits()
         || params.getOrgUnitBoundary() != null
         || params.getOu() != null
-        || params.isIncludeChildren();
+        || params.isIncludeChildren()
+        || params.getInvitationStatus() == UserInvitationStatus.EXPIRED;
   }
 
   private void addSimpleFilters(GetUserObjectListParams params, List<Filter> filters) {
@@ -266,12 +268,6 @@ public class UserController
     if (params.getInvitationStatus() == UserInvitationStatus.ALL) {
       filters.add(Filters.eq("invitation", true));
     }
-    if (params.getInvitationStatus() == UserInvitationStatus.EXPIRED) {
-      filters.add(Filters.eq("invitation", true));
-      filters.add(Filters.isNotNull("restoreToken"));
-      filters.add(Filters.isNotNull("restoreExpiry"));
-      filters.add(Filters.lt("restoreExpiry", new Date()));
-    }
   }
 
   private UserQueryParams toUserQueryParams(GetUserObjectListParams params) {
@@ -291,13 +287,14 @@ public class UserController
     }
     UserOrgUnitType boundary = params.getOrgUnitBoundary();
     if (boundary != null) res.setOrgUnitBoundary(boundary);
+    res.setInvitationStatus(params.getInvitationStatus());
     return res;
   }
 
   @Override
   @Nonnull
-  protected User getEntity(String uid) throws NotFoundException {
-    User user = userService.getUser(uid);
+  protected User getEntity(@Nonnull UID uid) throws NotFoundException {
+    User user = userService.getUser(uid.getValue());
     if (user == null) {
       throw new NotFoundException(User.class, uid);
     }
@@ -308,25 +305,25 @@ public class UserController
   @GetMapping("/{uid}/{property}")
   @OpenApi.Document(group = OpenApi.Document.GROUP_QUERY)
   public @ResponseBody ResponseEntity<ObjectNode> getObjectProperty(
-      @OpenApi.Param(UID.class) @PathVariable("uid") String pvUid,
-      @OpenApi.Param(OpenApi.PropertyNames.class) @PathVariable("property") String pvProperty,
+      @OpenApi.Param({UID.class, User.class}) @PathVariable("uid") UID uid,
+      @OpenApi.Param(OpenApi.PropertyNames.class) @PathVariable("property") String property,
       @RequestParam(required = false) List<String> fields,
       @CurrentUser UserDetails currentUser,
       HttpServletResponse response)
       throws ForbiddenException, NotFoundException {
 
-    if ("dataApprovalWorkflows".equals(pvProperty)) {
-      return getDataApprovalWorkflows(pvUid, currentUser);
+    if ("dataApprovalWorkflows".equals(property)) {
+      return getDataApprovalWorkflows(uid, currentUser);
     } else {
-      return super.getObjectProperty(pvUid, pvProperty, fields, currentUser, response);
+      return super.getObjectProperty(uid, property, fields, currentUser, response);
     }
   }
 
-  private ResponseEntity<ObjectNode> getDataApprovalWorkflows(String pvUid, UserDetails currentUser)
+  private ResponseEntity<ObjectNode> getDataApprovalWorkflows(UID id, UserDetails currentUser)
       throws NotFoundException, ForbiddenException {
-    User user = userService.getUser(pvUid);
+    User user = userService.getUser(id.getValue());
     if (user == null) {
-      throw new NotFoundException("User not found: " + pvUid);
+      throw new NotFoundException("User not found: " + id);
     }
     if (!aclService.canRead(currentUser, user)) {
       throw new ForbiddenException("You don't have the proper permissions to access this user.");
@@ -579,15 +576,15 @@ public class UserController
       produces = APPLICATION_JSON_VALUE)
   @ResponseBody
   public WebMessage putJsonObject(
-      @PathVariable("uid") String pvUid,
+      @PathVariable("uid") UID uid,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request)
       throws IOException, ConflictException, ForbiddenException, NotFoundException {
     User inputUser = renderService.fromJson(request.getInputStream(), getEntityClass());
-    return importReport(updateUser(pvUid, inputUser));
+    return importReport(updateUser(uid, inputUser));
   }
 
-  protected ImportReport updateUser(String userUid, User inputUser)
+  protected ImportReport updateUser(UID userUid, User inputUser)
       throws ConflictException, ForbiddenException, NotFoundException {
     User user = getEntity(userUid);
 
@@ -603,7 +600,7 @@ public class UserController
     currentUser.getAllAuthorities();
 
     inputUser.setId(user.getId());
-    inputUser.setUid(userUid);
+    inputUser.setUid(userUid.getValue());
     mergeLastLoginAttribute(user, inputUser);
 
     boolean isPasswordChangeAttempt = inputUser.getPassword() != null;
@@ -627,7 +624,7 @@ public class UserController
 
     // import was successful
     if (importReport.getStatus() == Status.OK && importReport.getStats().updated() == 1) {
-      updateUserGroups(userUid, inputUser, currentUser);
+      updateUserGroups(userUid.getValue(), inputUser, currentUser);
 
       // If it was a pw change attempt (input.pw != null) and update was
       // success we assume password has changed...
@@ -653,7 +650,7 @@ public class UserController
       currentUser = CurrentUserUtil.getCurrentUserDetails();
     }
 
-    Collection<String> uids = getUidsAsSet(parsed.getGroups());
+    Set<UID> uids = parsed.getGroups().stream().map(UserGroup::getUID).collect(Collectors.toSet());
 
     userGroupService.updateUserGroups(user, uids, currentUser);
   }
@@ -865,11 +862,11 @@ public class UserController
       String opName = op.getOp();
       if (StringUtils.equalsAny(
           opName, JsonPatchOperation.ADD_OPERATION, JsonPatchOperation.REPLACE_OPERATION)) {
-        List<String> groupIds = new ArrayList<>();
+        List<UID> groupIds = new ArrayList<>();
         ((AddOperation) op)
             .getValue()
             .elements()
-            .forEachRemaining(node -> groupIds.add(node.get("id").asText()));
+            .forEachRemaining(node -> groupIds.add(UID.of(node.get("id").asText())));
 
         userGroupService.updateUserGroups(user, groupIds, CurrentUserUtil.getCurrentUserDetails());
       }

@@ -30,6 +30,8 @@ show_usage() {
   echo "  HEALTHCHECK_TIMEOUT   Max wait time for DHIS2 startup in seconds (default: 300 = 5min)"
   echo "  WARMUP                Number of warmup iterations before actual test (default: 1)"
   echo "  REPORT_SUFFIX         Suffix to append to Gatling report directory name (default: empty)"
+  echo "  CAPTURE_DHIS2_LOGS    Capture DHIS2 application logs from the web container"
+  echo "                        Set to any non-empty value to enable (default: disabled)"
   echo "  CAPTURE_SQL_LOGS      Capture and analyze SQL logs for non-warmup runs"
   echo "                        Set to any non-empty value to enable (default: disabled)"
   echo "                        Analysis requires pgbadger: https://github.com/darold/pgbadger"
@@ -96,6 +98,7 @@ ANALYTICS_TIMEOUT=${ANALYTICS_TIMEOUT:-900} # default of 15min
 HEALTHCHECK_TIMEOUT=${HEALTHCHECK_TIMEOUT:-300} # default of 5min
 WARMUP=${WARMUP:-1}
 REPORT_SUFFIX=${REPORT_SUFFIX:-""}
+CAPTURE_DHIS2_LOGS=${CAPTURE_DHIS2_LOGS:-""}
 CAPTURE_SQL_LOGS=${CAPTURE_SQL_LOGS:-""}
 PROF_ARGS=${PROF_ARGS:=""}
 MVN_ARGS=${MVN_ARGS:-""}
@@ -291,6 +294,29 @@ save_profiler_data() {
   else
     echo "failed"
     echo "Warning: Failed to copy profiler data from container"
+    return 1
+  fi
+}
+
+save_dhis2_logs() {
+  local gatling_dir="$1"
+  local warmup_num="${2:-0}"
+
+  if [ -z "$CAPTURE_DHIS2_LOGS" ] || [ "$warmup_num" -gt 0 ]; then
+    return 0
+  fi
+
+  if [ ! -d "$gatling_dir" ]; then
+    echo "Warning: Cannot save DHIS2 logs - directory does not exist: $gatling_dir"
+    return 1
+  fi
+
+  printf "Saving DHIS2 logs... "
+  if docker compose logs --no-color --timestamps web > "$gatling_dir/dhis.log" 2>/dev/null; then
+    echo "done"
+  else
+    echo "failed"
+    echo "Warning: Failed to save DHIS2 logs"
     return 1
   fi
 }
@@ -599,6 +625,7 @@ generate_metadata() {
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
     echo "WARMUP=$WARMUP"
     echo "REPORT_SUFFIX=$REPORT_SUFFIX"
+    echo "CAPTURE_DHIS2_LOGS=$CAPTURE_DHIS2_LOGS"
     echo "CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS"
     echo "PROF_ARGS=\"$PROF_ARGS\""
     echo "MVN_ARGS=\"$MVN_ARGS\""
@@ -636,6 +663,7 @@ print_output_summary() {
   [ -f "$dir/index.html" ]     && files+=("index.html|Gatling report")
   [ -f "$dir/simulation.csv" ] && files+=("simulation.csv|Gatling data")
   [ -f "$dir/profile.html" ]   && files+=("profile.html|Profiler flamegraph")
+  [ -f "$dir/dhis.log" ]       && files+=("dhis.log|DHIS2 application log")
   [ -f "$dir/pgbadger.html" ]  && files+=("pgbadger.html|SQL analysis")
 
   if [ ${#files[@]} -gt 0 ]; then
@@ -724,6 +752,7 @@ run_simulation() {
 
     # Post-process results for this run
     save_profiler_data "$gatling_run_dir" || echo "Warning: Failed to save profiler data"
+    save_dhis2_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to save DHIS2 logs"
     save_sql_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to save SQL logs"
     post_process_profiler_data "$gatling_run_dir" || echo "Warning: Failed to post-process profiler data"
     post_process_sql_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to post-process SQL logs"

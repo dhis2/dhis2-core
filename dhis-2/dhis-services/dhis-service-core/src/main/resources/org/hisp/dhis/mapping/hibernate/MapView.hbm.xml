@@ -216,7 +216,9 @@
     <property name="eventPointColor" />
 
     <property name="eventPointRadius" />
-    
+
+    <property name="eventCoordinateFieldFallback" length="15"/>
+
     <property name="thematicMapType" length="50" column="thematicmaptype">
       <type name="org.hibernate.type.EnumType">
         <param name="enumClass">org.hisp.dhis.mapping.ThematicMapType</param>

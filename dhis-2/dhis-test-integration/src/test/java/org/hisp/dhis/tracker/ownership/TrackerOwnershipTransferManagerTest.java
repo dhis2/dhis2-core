@@ -595,6 +595,11 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
   void shouldNotTransferOwnershipWhenOrgUnitNotAssociatedToProgram() {
     OrganisationUnit notAssociatedOrgUnit = createOrganisationUnit('C');
     organisationUnitService.addOrganisationUnit(notAssociatedOrgUnit);
+    User admin = getAdminUser();
+    admin.setTeiSearchOrganisationUnits(Set.of(notAssociatedOrgUnit));
+    manager.update(admin);
+    injectSecurityContextUser(admin);
+
     Exception exception =
         assertThrows(
             ForbiddenException.class,
@@ -618,6 +623,22 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
                     trackedEntityA1, UID.of(programA), madeUpOrgUnit));
     assertEquals(
         "Tracked entity not transferred. Org unit supplied does not exist.",
+        exception.getMessage());
+  }
+
+  @Test
+  void shouldNotTransferOwnershipWhenOrgUnitNotInUserEffectiveSearchScope() {
+    OrganisationUnit outOfScopeOrgUnit = createOrganisationUnit('C');
+    organisationUnitService.addOrganisationUnit(outOfScopeOrgUnit);
+
+    Exception exception =
+        assertThrows(
+            ForbiddenException.class,
+            () ->
+                trackerOwnershipManager.transferOwnership(
+                    trackedEntityA1, UID.of(programA), outOfScopeOrgUnit.getUID()));
+    assertEquals(
+        "Tracked entity not transferred. Org unit supplied is not in the user scope.",
         exception.getMessage());
   }
 

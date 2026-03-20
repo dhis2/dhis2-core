@@ -32,37 +32,25 @@ summary_sql: >-
   select
   COUNT(*) as value,
   100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM category), 0) as percent
-  from category where categoryid
-  in (
-  SELECT categoryid
-  FROM category where datadimension = TRUE
-  AND categoryid NOT IN (
-  SELECT categoryid from
-  categorydimension where categorydimensionid IN (
-  SELECT categorydimensionid
-  from eventvisualization_categorydimensions
-  UNION
-  SELECT categorydimensionid
-  from mapview_categorydimensions
-  UNION
-  SELECT categorydimensionid
-  FROM visualization_categorydimensions
-  )));
+  from category c where c.datadimension = TRUE
+  AND NOT EXISTS (
+    SELECT 1 FROM categorydimension cd WHERE cd.categoryid = c.categoryid
+    AND (
+      EXISTS (SELECT 1 FROM eventvisualization_categorydimensions WHERE categorydimensionid = cd.categorydimensionid)
+      OR EXISTS (SELECT 1 FROM mapview_categorydimensions WHERE categorydimensionid = cd.categorydimensionid)
+      OR EXISTS (SELECT 1 FROM visualization_categorydimensions WHERE categorydimensionid = cd.categorydimensionid)
+    )
+  );
 details_sql: >-
   SELECT uid,name,datadimensiontype as comment
-  FROM category where datadimension = TRUE
-  AND categoryid NOT IN (
-  SELECT categoryid from
-  categorydimension where categorydimensionid IN (
-  SELECT categorydimensionid
-  from eventvisualization_categorydimensions
-  UNION
-  SELECT categorydimensionid
-  from mapview_categorydimensions
-  UNION
-  SELECT categorydimensionid
-  FROM visualization_categorydimensions
-  )
+  FROM category c WHERE c.datadimension = TRUE
+  AND NOT EXISTS (
+    SELECT 1 FROM categorydimension cd WHERE cd.categoryid = c.categoryid
+    AND (
+      EXISTS (SELECT 1 FROM eventvisualization_categorydimensions WHERE categorydimensionid = cd.categorydimensionid)
+      OR EXISTS (SELECT 1 FROM mapview_categorydimensions WHERE categorydimensionid = cd.categorydimensionid)
+      OR EXISTS (SELECT 1 FROM visualization_categorydimensions WHERE categorydimensionid = cd.categorydimensionid)
+    )
   );
 details_id_type: categories
 severity: WARNING

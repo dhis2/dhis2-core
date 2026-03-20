@@ -67,6 +67,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
@@ -149,13 +150,25 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   @Spy
   private PostgreSqlAnalyticsSqlBuilder analyticsSqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
-  private static final String DEFAULT_COLUMNS_WITH_REGISTRATION =
+  private static final String BASE_COLUMNS =
       "event,ps,occurreddate,storedby,"
-          + "createdbydisplayname"
-          + ","
-          + "lastupdatedbydisplayname"
-          + ",lastupdated,scheduleddate,enrollmentdate,enrollmentoccurreddate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,ST_AsGeoJSON(coalesce(enrollmentgeometry), 6) as enrollmentgeometry,longitude,latitude,ouname,ounamehierarchy,"
-          + "oucode,enrollmentstatus,eventstatus";
+          + "createdbydisplayname,lastupdatedbydisplayname,"
+          + "lastupdated,created,completeddate,scheduleddate";
+
+  private static final String REGISTRATION_COLUMNS =
+      ",enrollmentdate,enrollmentoccurreddate,trackedentity,enrollment";
+
+  private static final String GEO_AND_OU_COLUMNS =
+      ",ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\","
+          + "ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,"
+          + "ST_AsGeoJSON(coalesce(ax.enrollmentgeometry), 6) as enrollmentgeometry,"
+          + "longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,eventstatus";
+
+  private static final String DEFAULT_COLUMNS_WITH_REGISTRATION =
+      BASE_COLUMNS + REGISTRATION_COLUMNS + GEO_AND_OU_COLUMNS;
+
+  private static final String DEFAULT_COLUMNS_WITHOUT_REGISTRATION =
+      BASE_COLUMNS + GEO_AND_OU_COLUMNS;
 
   @BeforeEach
   public void setUp() {
@@ -190,7 +203,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             organisationUnitResolver,
             columnMapper,
             filterBuilder,
-            stageQuerySqlFacade);
+            stageQuerySqlFacade,
+            new DateFieldPeriodBucketColumnResolver(new PostgreSqlBuilder()));
 
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
@@ -209,12 +223,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String expected =
-        "select event,ps,occurreddate,storedby,"
-            + "createdbydisplayname"
-            + ","
-            + "lastupdatedbydisplayname"
-            + ",lastupdated,scheduleddate,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,ST_AsGeoJSON(coalesce(enrollmentgeometry), 6) as enrollmentgeometry,"
-            + "longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,eventstatus,ax.\"quarterly\",ax.\"ou\"  from "
+        "select "
+            + DEFAULT_COLUMNS_WITHOUT_REGISTRATION
+            + ",ax.\"quarterly\",ax.\"ou\"  from "
             + getTable(programA.getUid())
             + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
 
@@ -270,13 +281,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String expected =
-        "select event,ps,occurreddate,storedby,"
-            + "createdbydisplayname"
-            + ","
-            + "lastupdatedbydisplayname"
-            + ",lastupdated,scheduleddate,enrollmentdate,"
-            + "enrollmentoccurreddate,trackedentity,enrollment,ST_AsGeoJSON(coalesce(ax.\"eventgeometry\",ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\"), 6) as geometry,ST_AsGeoJSON(coalesce(enrollmentgeometry), 6) as enrollmentgeometry,longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,"
-            + "eventstatus,ax.\"quarterly\",ax.\"ou\",\""
+        "select "
+            + DEFAULT_COLUMNS_WITH_REGISTRATION
+            + ",ax.\"quarterly\",ax.\"ou\",\""
             + dataElement.getUid()
             + "_name"
             + "\"  from "
@@ -725,6 +732,35 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     assertThat(
         sql.getValue().trim(),
         containsString("round(count(ax.\"event\"), 10) < ('20.0')::numeric(38,10)"));
+  }
+
+  @Test
+  void verifyGetAggregatedEventQueryUsesDatePeriodStructureForNonDefaultMonthlyPeriodDimension() {
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
+    mockEmptyRowSet();
+
+    List<PeriodDimension> periods = createPeriodDimensions("202001");
+    periods.forEach(period -> period.setDateField(TimeField.ENROLLMENT_DATE.name()));
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams(programStage, ValueType.INTEGER))
+            .withPeriods(periods, "monthly")
+            .build();
+
+    subject.getAggregatedEventData(params, createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertThat(
+        sql.getValue(),
+        containsString(
+            "(select \"monthly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('month', ax.\"enrollmentdate\")::date) as \"monthly\""));
+    assertThat(
+        sql.getValue(),
+        containsString(
+            "group by (select \"monthly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('month', ax.\"enrollmentdate\")::date), ax.\"ou\", ax.\"fWIAEtYVEGk\""));
   }
 
   private void verifyFirstOrLastAggregationTypeSubquery(

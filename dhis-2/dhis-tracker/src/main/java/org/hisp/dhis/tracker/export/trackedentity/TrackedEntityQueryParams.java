@@ -156,6 +156,10 @@ public class TrackedEntityQueryParams {
 
   @Getter private QuerySearchScope querySearchScope;
 
+  @Getter private Date skipChangedBefore;
+
+  @Getter private boolean synchronizationQuery;
+
   // -------------------------------------------------------------------------
   // Constructors
   // -------------------------------------------------------------------------
@@ -325,6 +329,16 @@ public class TrackedEntityQueryParams {
 
   public TrackedEntityQueryParams setEnrolledInTrackerProgram(Program enrolledInTrackerProgram) {
     this.enrolledInTrackerProgram = enrolledInTrackerProgram;
+    return this;
+  }
+
+  public TrackedEntityQueryParams setSynchronizationQuery(boolean synchronizationQuery) {
+    this.synchronizationQuery = synchronizationQuery;
+    return this;
+  }
+
+  public TrackedEntityQueryParams setSkipChangedBefore(Date skipChangedBefore) {
+    this.skipChangedBefore = skipChangedBefore;
     return this;
   }
 

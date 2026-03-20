@@ -48,6 +48,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.security.core.session.SessionInformation;
@@ -866,7 +867,9 @@ public interface UserService {
    * @param password the password for the new user
    * @return the newly created user replica
    * @throws ConflictException if validation fails
+   * @throws ForbiddenException if the current user lacks permission to manage any of the source
+   *     user's groups
    */
   User replicateUser(User existingUser, String username, String password)
-      throws ConflictException, NotFoundException, BadRequestException;
+      throws ConflictException, NotFoundException, BadRequestException, ForbiddenException;
 }

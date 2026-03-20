@@ -33,9 +33,15 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataexchange.aggregate.Api;
 import org.hisp.dhis.dataexchange.aggregate.SourceRequest;
@@ -43,6 +49,10 @@ import org.hisp.dhis.dataexchange.aggregate.TargetType;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.period.PeriodDimension;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.RelativePeriodEnum;
+import org.hisp.dhis.period.RelativePeriods;
 import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -58,6 +68,8 @@ public class AggregateDataExchangeObjectBundleHook
 
   @Qualifier(AES_128_STRING_ENCRYPTOR)
   private final PooledPBEStringEncryptor encryptor;
+
+  private final DimensionService dimensionService;
 
   @Override
   public void validate(
@@ -110,6 +122,90 @@ public class AggregateDataExchangeObjectBundleHook
 
       if (isEmpty(request.getDx()) || isEmpty(request.getPe()) || isEmpty(request.getOu())) {
         addReports.accept(new ErrorReport(AggregateDataExchange.class, ErrorCode.E6303));
+      }
+
+      validateSourceDxItemTypes(request, addReports);
+      validatePeriods(request, addReports);
+    }
+  }
+
+  /**
+   * Validates that source request data items are of allowed types.
+   *
+   * @param request the {@link SourceRequest}.
+   * @param addReports the list of {@link ErrorReport}.
+   */
+  private void validateSourceDxItemTypes(SourceRequest request, Consumer<ErrorReport> addReports) {
+    IdScheme idScheme =
+        request.getInputIdScheme() != null ? IdScheme.of(request.getInputIdScheme()) : IdScheme.UID;
+
+    for (String item : request.getDx()) {
+      DimensionalItemObject dxObject =
+          dimensionService.getDataDimensionalItemObject(idScheme, item);
+
+      if (dxObject != null
+          && !AggregateDataExchange.ALLOWED_DX_ITEM_TYPES.contains(
+              dxObject.getDimensionItemType())) {
+        addReports.accept(
+            new ErrorReport(
+                AggregateDataExchange.class,
+                ErrorCode.E6307,
+                dxObject.getDimensionItemType(),
+                AggregateDataExchange.ALLOWED_DX_ITEM_TYPES));
+      }
+    }
+  }
+
+  /**
+   * Validates that all periods in the source request are of the same type. Mixed period types (e.g.
+   * quarterly and monthly) will likely fail on versions 2.43+. Therefore, it does not make sense to
+   * allow for requests to contain mixed period types, as the data exchange is broken by
+   * construction.
+   *
+   * @param request the {@link SourceRequest}.
+   * @param addReports the list of {@link ErrorReport}.
+   */
+  private void validatePeriods(SourceRequest request, Consumer<ErrorReport> addReports) {
+    List<String> periods = request.getPe();
+    if (isEmpty(periods)) {
+      return;
+    }
+
+    Set<String> periodTypeNames = new HashSet<>();
+    String firstPeriod = null;
+    String firstPeriodTypeName = null;
+
+    for (String period : periods) {
+      PeriodType periodType;
+      if (RelativePeriodEnum.contains(period)) {
+        periodType =
+            RelativePeriods.getRelativePeriodsFromEnum(RelativePeriodEnum.valueOf(period), null)
+                .stream()
+                .findFirst()
+                .map(PeriodDimension::getPeriodType)
+                .orElse(null);
+      } else {
+        periodType = PeriodType.getPeriodTypeFromIsoString(period);
+      }
+
+      if (periodType == null) {
+        continue;
+      }
+
+      periodTypeNames.add(periodType.getName());
+
+      if (firstPeriod == null) {
+        firstPeriod = period;
+        firstPeriodTypeName = periodType.getName();
+      } else if (periodTypeNames.size() > 1) {
+        addReports.accept(
+            new ErrorReport(
+                AggregateDataExchange.class,
+                ErrorCode.E6306,
+                firstPeriod,
+                firstPeriodTypeName,
+                period));
+        return;
       }
     }
   }

@@ -491,11 +491,14 @@ class QueryItemLocatorTest {
   }
 
   @Test
-  void verifyEventDateWithoutProgramStageThrows() {
-    assertThrows(
-        IllegalQueryException.class,
-        () -> subject.getQueryItemFromDimension("EVENT_DATE", programA, EventOutputType.ENROLLMENT),
-        "Item identifier does not reference any data element, attribute or indicator part of the program");
+  void verifyEventDateWithoutProgramStageReturnsQueryItem() {
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension("EVENT_DATE", programA, EventOutputType.ENROLLMENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItemId(), is(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME));
+    assertThat(queryItem.getValueType(), is(ValueType.DATE));
+    assertThat(queryItem.getProgramStage(), is(nullValue()));
   }
 
   @Test
@@ -542,8 +545,7 @@ class QueryItemLocatorTest {
         subject.getQueryItemFromDimension("INCIDENT_DATE", programA, EventOutputType.EVENT);
 
     assertThat(queryItem, is(notNullValue()));
-    assertThat(
-        queryItem.getItemId(), is(EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME));
+    assertThat(queryItem.getItemId(), is(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME));
     assertThat(queryItem.getValueType(), is(ValueType.DATE));
     assertThat(queryItem.getProgramStage(), is(nullValue()));
   }
@@ -616,10 +618,14 @@ class QueryItemLocatorTest {
   }
 
   @Test
-  void verifyCreatedDimensionIsNotSupportedForEnrollmentOutput() {
-    assertThrows(
-        IllegalQueryException.class,
-        () -> subject.getQueryItemFromDimension("CREATED", programA, EventOutputType.ENROLLMENT));
+  void verifyCreatedDimensionReturnsEnrollmentColumnForEnrollmentOutput() {
+    QueryItem queryItem =
+        subject.getQueryItemFromDimension("CREATED", programA, EventOutputType.ENROLLMENT);
+
+    assertThat(queryItem, is(notNullValue()));
+    assertThat(queryItem.getItemId(), is(EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME));
+    assertThat(queryItem.getValueType(), is(ValueType.DATE));
+    assertThat(queryItem.getProgramStage(), is(nullValue()));
   }
 
   @Test

@@ -98,7 +98,7 @@ public class TrackedEntity extends BaseTrackerObject
 
   private boolean deleted = false;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "lastupdatedby")
   @Setter
   protected User lastUpdatedBy;

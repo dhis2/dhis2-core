@@ -80,6 +80,7 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.export.Geometries;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.OrderJdbcClause;
 import org.hisp.dhis.tracker.export.OrgUnitQueryBuilder;
 import org.hisp.dhis.tracker.export.UserInfoSnapshots;
 import org.hisp.dhis.tracker.model.SingleEvent;
@@ -114,7 +115,9 @@ class JdbcSingleEventStore {
        on evn.noteid = n.noteid\
        left join userinfo on n.lastupdatedby = userinfo.userinfoid\s""";
 
-  private static final String DEFAULT_ORDER = "ev_id desc";
+  private static final String DEFAULT_ORDER = "ev_occurreddate desc, ev_id desc";
+
+  private static final String PK_COLUMN = "ev_id";
 
   /**
    * Events can be ordered by given fields which correspond to fields on {@link SingleEvent}. Maps
@@ -366,7 +369,7 @@ class JdbcSingleEventStore {
 
     String sql =
         """
-                UPDATE event SET lastsynchronized = :lastSynchronized WHERE uid IN (:uids)
+                UPDATE singleevent SET lastsynchronized = :lastSynchronized WHERE uid IN (:uids)
                 """;
 
     MapSqlParameterSource parameters =
@@ -915,7 +918,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String getOrderQuery(SingleEventQueryParams params) {
-    ArrayList<String> orderFields = new ArrayList<>();
+    List<OrderJdbcClause.SqlOrder> orderFields = new ArrayList<>();
 
     for (Order order : params.getOrder()) {
       if (order.getField() instanceof String field) {
@@ -927,11 +930,11 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
                   field, String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
         }
 
-        orderFields.add(ORDERABLE_FIELDS.get(field) + " " + order.getDirection());
+        orderFields.add(OrderJdbcClause.SqlOrder.of(ORDERABLE_FIELDS.get(field), order));
       } else if (order.getField() instanceof TrackedEntityAttribute tea) {
-        orderFields.add(tea.getUid() + "_value " + order.getDirection());
+        orderFields.add(OrderJdbcClause.SqlOrder.of(tea.getUid() + "_value", order));
       } else if (order.getField() instanceof DataElement de) {
-        orderFields.add(de.getUid() + " " + order.getDirection());
+        orderFields.add(OrderJdbcClause.SqlOrder.of(de.getUid(), order));
       } else {
         throw new IllegalArgumentException(
             String.format(
@@ -942,11 +945,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       }
     }
 
-    if (!orderFields.isEmpty()) {
-      return "order by " + StringUtils.join(orderFields, ',') + ", " + DEFAULT_ORDER + " ";
-    } else {
-      return "order by " + DEFAULT_ORDER + " ";
-    }
+    return OrderJdbcClause.of(orderFields, DEFAULT_ORDER, PK_COLUMN);
   }
 
   private boolean isNotSuperUser(UserDetails user) {
@@ -968,31 +967,41 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    * synchronization" configuration of the ProgramStageDataElements. This logic applies only during
    * single event synchronization.
    */
-  /**
-   * Returns the event data values projection for the SELECT clause. During synchronization, data
-   * elements marked as "skip sync" are filtered out. Since the program stage is always known for
-   * sync queries, the skip-sync data elements are looked up directly without a CASE expression.
-   */
   private String getEventDataValuesProjectionForSelectClause(
       SingleEventQueryParams params, MapSqlParameterSource sqlParameters) {
     if (!params.isSynchronizationQuery()
         || params.getSkipSyncDataElementsByProgramStage() == null
         || params.getSkipSyncDataElementsByProgramStage().isEmpty()) {
+
       return "ev.eventdatavalues";
     }
 
-    String programStageUid = params.getProgramStage().getUid();
-    Set<String> dataElementUids =
-        params.getSkipSyncDataElementsByProgramStage().get(programStageUid);
+    StringBuilder caseStatement = new StringBuilder("case ");
 
-    if (dataElementUids == null || dataElementUids.isEmpty()) {
-      return "ev.eventdatavalues";
+    int caseCounter = 0;
+    for (Map.Entry<String, Set<String>> entry :
+        params.getSkipSyncDataElementsByProgramStage().entrySet()) {
+      String programStageUid = entry.getKey();
+      Set<String> dataElementUids = entry.getValue();
+
+      if (!dataElementUids.isEmpty()) {
+        String paramName = "filter_de_" + caseCounter++;
+        sqlParameters.addValue(paramName, dataElementUids);
+
+        caseStatement
+            .append("when ps.uid = '")
+            .append(programStageUid)
+            .append("' then ")
+            .append("(select jsonb_object_agg(key, value) ")
+            .append("from jsonb_each(ev.eventdatavalues) ")
+            .append("where key not in (:")
+            .append(paramName)
+            .append(")) ");
+      }
     }
 
-    sqlParameters.addValue("skipSyncDataElements", dataElementUids);
-    return """
-        (SELECT jsonb_object_agg(key, value)
-        FROM jsonb_each(ev.eventdatavalues)
-        WHERE key NOT IN (:skipSyncDataElements))""";
+    caseStatement.append("else ev.eventdatavalues end");
+
+    return caseStatement.toString();
   }
 }

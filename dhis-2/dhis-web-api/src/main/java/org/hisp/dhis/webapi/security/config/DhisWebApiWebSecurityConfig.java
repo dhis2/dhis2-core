@@ -60,6 +60,7 @@ import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.DhisCorsProcessor;
+import org.hisp.dhis.webapi.filter.SessionTimeoutHeaderFilter;
 import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
@@ -92,6 +93,7 @@ import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler
 import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
+import org.springframework.security.web.session.SessionManagementFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StringUtils;
@@ -265,6 +267,8 @@ public class DhisWebApiWebSecurityConfig {
     configureApiTokenAuthorizationFilter(http);
     configureOAuthTokenFilters(http);
 
+    http.addFilterAfter(new SessionTimeoutHeaderFilter(), SessionManagementFilter.class);
+
     setHttpHeaders(http);
 
     return http.build();
@@ -286,7 +290,9 @@ public class DhisWebApiWebSecurityConfig {
         web.debug(false)
             .ignoring()
             .requestMatchers(
-                new AntPathRequestMatcher("/api/ping"), new AntPathRequestMatcher("/favicon.ico"));
+                new AntPathRequestMatcher("/api/ping"),
+                new AntPathRequestMatcher("/api/system/ping"),
+                new AntPathRequestMatcher("/favicon.ico"));
   }
 
   private void configureMatchers(HttpSecurity http) throws Exception {
@@ -429,7 +435,7 @@ public class DhisWebApiWebSecurityConfig {
         .logout()
         .logoutUrl("/dhis-web-commons-security/logout.action")
         .logoutSuccessHandler(dhisOidcLogoutSuccessHandler)
-        .deleteCookies("JSESSIONID")
+        .deleteCookies("JSESSIONID", "SESSION_EXPIRE")
         .and()
         ////////////////////
         .sessionManagement()

@@ -100,7 +100,7 @@ public class UniquenessCheck implements ObjectValidationCheck {
     Map<String, Map<Object, String>> uniquenessMap =
         preheat.getUniquenessMap().computeIfAbsent(objType, key -> new HashMap<>());
 
-    Schema schema = ctx.getSchemaService().getDynamicSchema(objType);
+    Schema schema = ctx.getSchemaService().getSchema(objType);
     List<Property> uniqueProperties =
         schema.getProperties().stream()
             .filter(p -> p.isPersisted() && p.isOwner() && p.isUnique() && p.isSimple())

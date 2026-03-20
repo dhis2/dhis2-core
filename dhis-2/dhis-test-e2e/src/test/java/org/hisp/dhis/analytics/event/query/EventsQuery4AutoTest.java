@@ -400,11 +400,11 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("headers", hasSize(equalTo(expectPostgis ? 18 : 14)))
+        .body("headers", hasSize(equalTo(expectPostgis ? 20 : 16)))
         .body("rows", hasSize(equalTo(4)))
         .body("height", equalTo(4))
-        .body("width", equalTo(expectPostgis ? 18 : 14))
-        .body("headerWidth", equalTo(expectPostgis ? 18 : 14));
+        .body("width", equalTo(expectPostgis ? 20 : 16))
+        .body("headerWidth", equalTo(expectPostgis ? 20 : 16));
 
     // Assert metaData.
     String expectedMetaData =
@@ -449,7 +449,7 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
         true);
     validateHeader(
         response,
-        7,
+        9,
         "scheduleddate",
         "Scheduled date",
         "DATETIME",
@@ -457,10 +457,10 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
         false,
         true);
     if (expectPostgis) {
-      validateHeader(response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+      validateHeader(response, 10, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
       validateHeader(
           response,
-          9,
+          11,
           "enrollmentgeometry",
           "Enrollment geometry",
           "TEXT",
@@ -468,9 +468,9 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
           false,
           true);
       validateHeader(
-          response, 10, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
+          response, 12, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
       validateHeader(
-          response, 11, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
+          response, 13, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
     }
     validateHeaderPropertiesByName(
         response,
@@ -526,7 +526,24 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
         "java.lang.String",
         false,
         true);
-
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "created",
+        "Created on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "completed",
+        "Completed on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     // Assert rows.
     validateRow(
         response,
@@ -540,6 +557,8 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
                 ",  ()",
                 ",  ()",
                 "2018-08-04 15:17:39.87",
+                "2017-08-04 15:17:39.87",
+                "",
                 "",
                 "{\"type\":\"Point\",\"coordinates\":[-12.267675,8.200319]}",
                 "",
@@ -565,6 +584,8 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
                 ",  ()",
                 ",  ()",
                 "2018-08-04 15:17:10.722",
+                "2017-08-04 15:16:17.762",
+                "",
                 "",
                 "{\"type\":\"Point\",\"coordinates\":[-12.38522,8.214034]}",
                 "",
@@ -589,6 +610,8 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
                 ",  ()",
                 ",  ()",
                 "2018-08-04 15:15:50.672",
+                "2017-08-04 15:15:26.974",
+                "",
                 "",
                 "{\"type\":\"Point\",\"coordinates\":[-12.182307,8.244543]}",
                 "",
@@ -613,6 +636,8 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
                 ",  ()",
                 ",  ()",
                 "2018-01-15 18:15:59.488",
+                "2017-01-15 18:15:59.488",
+                "",
                 "",
                 "{\"type\":\"Point\",\"coordinates\":[-12.92643,8.431033]}",
                 "",
@@ -650,11 +675,11 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("headers", hasSize(equalTo(expectPostgis ? 18 : 14)))
+        .body("headers", hasSize(equalTo(expectPostgis ? 20 : 16)))
         .body("rows", hasSize(equalTo(0)))
         .body("height", equalTo(0))
         .body("width", equalTo(0))
-        .body("headerWidth", equalTo(expectPostgis ? 18 : 14));
+        .body("headerWidth", equalTo(expectPostgis ? 20 : 16));
 
     // Assert metaData.
     String expectedMetaData =
@@ -692,7 +717,7 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
         true);
     validateHeader(
         response,
-        7,
+        9,
         "scheduleddate",
         "Scheduled date",
         "DATETIME",
@@ -700,10 +725,10 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
         false,
         true);
     if (expectPostgis) {
-      validateHeader(response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+      validateHeader(response, 10, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
       validateHeader(
           response,
-          9,
+          11,
           "enrollmentgeometry",
           "Enrollment geometry",
           "TEXT",
@@ -711,9 +736,9 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
           false,
           true);
       validateHeader(
-          response, 10, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
+          response, 12, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
       validateHeader(
-          response, 11, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
+          response, 13, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
     }
     validateHeaderPropertiesByName(
         response,
@@ -769,7 +794,24 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
         "org.hisp.dhis.organisationunit.OrganisationUnit",
         false,
         true);
-
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "created",
+        "Created on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "completed",
+        "Completed on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
     // Assert rows.
   }
 
@@ -798,11 +840,11 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("headers", hasSize(equalTo(expectPostgis ? 18 : 14)))
+        .body("headers", hasSize(equalTo(expectPostgis ? 20 : 16)))
         .body("rows", hasSize(equalTo(0)))
         .body("height", equalTo(0))
         .body("width", equalTo(0))
-        .body("headerWidth", equalTo(expectPostgis ? 18 : 14));
+        .body("headerWidth", equalTo(expectPostgis ? 20 : 16));
 
     // Assert metaData.
     String expectedMetaData =
@@ -840,7 +882,7 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
         true);
     validateHeader(
         response,
-        7,
+        9,
         "scheduleddate",
         "Scheduled date",
         "DATETIME",
@@ -848,10 +890,10 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
         false,
         true);
     if (expectPostgis) {
-      validateHeader(response, 8, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+      validateHeader(response, 10, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
       validateHeader(
           response,
-          9,
+          11,
           "enrollmentgeometry",
           "Enrollment geometry",
           "TEXT",
@@ -859,9 +901,9 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
           false,
           true);
       validateHeader(
-          response, 10, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
+          response, 12, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
       validateHeader(
-          response, 11, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
+          response, 13, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
     }
     validateHeaderPropertiesByName(
         response,
@@ -915,6 +957,24 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
         "Inpatient Place of Infection",
         "ORGANISATION_UNIT",
         "org.hisp.dhis.organisationunit.OrganisationUnit",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "created",
+        "Created on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "completed",
+        "Completed on",
+        "DATETIME",
+        "java.time.LocalDateTime",
         false,
         true);
   }
