@@ -55,7 +55,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Enrico Colasante
  */
-class CategoryComboPreProcessorTest {
+class CategoryComboPreprocessorTest {
 
   private static final String PROGRAM_STAGE_WITH_REGISTRATION = "PROGRAM_STAGE_WITH_REGISTRATION";
 
@@ -63,13 +63,9 @@ class CategoryComboPreProcessorTest {
 
   private TrackerPreheat preheat;
 
-  private CategoryComboPreProcessor preprocessor;
-
   @BeforeEach
   void setUp() {
     preheat = mock(TrackerPreheat.class);
-
-    this.preprocessor = new CategoryComboPreProcessor();
   }
 
   @Test
@@ -102,7 +98,7 @@ class CategoryComboPreProcessorTest {
             .preheat(preheat)
             .build();
 
-    preprocessor.process(bundle);
+    CategoryComboPreprocessor.process(bundle);
 
     assertEquals(
         MetadataIdentifier.ofCode(categoryOptionCombo),
@@ -139,7 +135,7 @@ class CategoryComboPreProcessorTest {
             .preheat(preheat)
             .build();
 
-    preprocessor.process(bundle);
+    CategoryComboPreprocessor.process(bundle);
 
     assertEquals(
         MetadataIdentifier.EMPTY_CODE, bundle.getEvents().get(0).getAttributeOptionCombo());
@@ -173,7 +169,7 @@ class CategoryComboPreProcessorTest {
             .preheat(preheat)
             .build();
 
-    preprocessor.process(bundle);
+    CategoryComboPreprocessor.process(bundle);
 
     assertEquals(MetadataIdentifier.EMPTY_UID, bundle.getEvents().get(0).getAttributeOptionCombo());
     assertEquals(
@@ -208,7 +204,7 @@ class CategoryComboPreProcessorTest {
             .preheat(preheat)
             .build();
 
-    preprocessor.process(bundle);
+    CategoryComboPreprocessor.process(bundle);
 
     assertEquals(
         MetadataIdentifier.ofCode("9871"), bundle.getEvents().get(0).getAttributeOptionCombo());
@@ -242,7 +238,7 @@ class CategoryComboPreProcessorTest {
             .preheat(preheat)
             .build();
 
-    preprocessor.process(bundle);
+    CategoryComboPreprocessor.process(bundle);
 
     assertEquals(
         MetadataIdentifier.ofCode("9871"), bundle.getEvents().get(0).getAttributeOptionCombo());
@@ -269,7 +265,7 @@ class CategoryComboPreProcessorTest {
             .preheat(preheat)
             .build();
 
-    preprocessor.process(bundle);
+    CategoryComboPreprocessor.process(bundle);
 
     assertEquals(MetadataIdentifier.EMPTY_UID, bundle.getEvents().get(0).getAttributeOptionCombo());
     assertTrue(bundle.getEvents().get(0).getAttributeCategoryOptions().isEmpty());
