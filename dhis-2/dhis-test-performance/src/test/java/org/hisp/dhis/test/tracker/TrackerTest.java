@@ -563,27 +563,38 @@ public class TrackerTest extends Simulation {
             "Get one event");
 
     var exportRequests =
-        group("Get ANC events")
-            .on(
-                exec(goToFirstPage.action().check(jsonPath("$.events[*]").count().gte(1)))
-                    .exec(goToSecondPage.action().check(jsonPath("$.events[*]").count().gte(1)))
-                    .exec(
-                        searchEventsNotAssigned
-                            .action()
-                            .check(jsonPath("$.events[*]").count().gte(1)))
-                    .exec(
-                        searchEventsByDateRange
-                            .action()
-                            .check(jsonPath("$.events[*]").count().gte(1))
-                            .check(jsonPath("$.events[0].event").saveAs("eventUid")))
-                    .exitHereIfFailed()
-                    .group("Get one event")
+        exec(session -> session.remove("eventUid"))
+            .exec(
+                group("Get ANC events")
                     .on(
-                        exec(getFirstEvent.action().check(jsonPath("$.event").exists()))
+                        exec(goToFirstPage.action().check(jsonPath("$.events[*]").count().gte(1)))
                             .exec(
-                                getRelationshipsForFirstEvent
+                                goToSecondPage
                                     .action()
-                                    .check(jsonPath("$.relationships[*]").count().is(0)))));
+                                    .check(jsonPath("$.events[*]").count().gte(1)))
+                            .exec(
+                                searchEventsNotAssigned
+                                    .action()
+                                    .check(jsonPath("$.events[*]").count().gte(1)))
+                            .exec(
+                                searchEventsByDateRange
+                                    .action()
+                                    .check(jsonPath("$.events[*]").count().gte(1))
+                                    .check(jsonPath("$.events[0].event").saveAs("eventUid")))
+                            .doIf(session -> session.contains("eventUid"))
+                            .then(
+                                group("Get one event")
+                                    .on(
+                                        exec(getFirstEvent
+                                                .action()
+                                                .check(jsonPath("$.event").exists()))
+                                            .exec(
+                                                getRelationshipsForFirstEvent
+                                                    .action()
+                                                    .check(
+                                                        jsonPath("$.relationships[*]")
+                                                            .count()
+                                                            .is(0)))))));
 
     ScenarioBuilder scenarioBuilder =
         scenario("ANC Events export")
@@ -756,79 +767,117 @@ public class TrackerTest extends Simulation {
             "Get one event");
 
     var exportRequests =
-        group("Get Child Programme TEs")
-            .on(
-                exec(notFoundTeByNameWithLikeOperator
-                        .action()
-                        .check(jsonPath("$.trackedEntities[*]").count().is(0)))
-                    .exec(
-                        notFoundTeByNameWithEqOperator
-                            .action()
-                            .check(jsonPath("$.trackedEntities[*]").count().is(0)))
-                    .exec(
-                        searchTeByNameWithLikeOperator
-                            .action()
-                            .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
-                    .exec(
-                        searchTeByNameWithEqOperator
-                            .action()
-                            .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
-                    .exec(
-                        searchBirthEventsByStage
-                            .action()
-                            .check(jsonPath("$.events[*]").count().gte(1))
-                            .check(
-                                jsonPath("$.events[*].trackedEntity")
-                                    .findAll()
-                                    .transform(
-                                        list -> String.join(",", list.stream().distinct().toList()))
-                                    .saveAs("trackedEntityUids")))
-                    .exitHereIfFailed()
-                    .exec(
-                        getTrackedEntitiesForEvents
-                            .action()
-                            .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
-                    .exec(
-                        getFirstPageOfTEs
-                            .action()
-                            .check(jsonPath("$.trackedEntities[*]").count().gte(1))
-                            .check(
-                                jsonPath("$.trackedEntities[0].trackedEntity")
-                                    .saveAs("trackedEntityUid")))
-                    .exitHereIfFailed()
-                    .group("Go to single enrollment")
+        exec(session ->
+                session
+                    .remove("trackedEntityUids")
+                    .remove("trackedEntityUid")
+                    .remove("enrollmentUid")
+                    .remove("eventUid"))
+            .exec(
+                group("Get Child Programme TEs")
                     .on(
-                        exec(getFirstTrackedEntity
+                        exec(notFoundTeByNameWithLikeOperator
                                 .action()
-                                .check(jsonPath("$.enrollments[*]").count().gte(1))
-                                .check(
-                                    jsonPath("$.enrollments[0].enrollment").saveAs("enrollmentUid"))
-                                .check(jsonPath("$.enrollments[0].events[*]").count().gte(1))
-                                .check(
-                                    jsonPath("$.enrollments[0].events[0].event")
-                                        .saveAs("eventUid")))
-                            .exitHereIfFailed()
+                                .check(jsonPath("$.trackedEntities[*]").count().is(0)))
                             .exec(
-                                getFirstEnrollment
+                                notFoundTeByNameWithEqOperator
                                     .action()
-                                    .check(jsonPath("$.enrollment").exists()))
+                                    .check(jsonPath("$.trackedEntities[*]").count().is(0)))
                             .exec(
-                                getRelationshipsForTrackedEntity
+                                searchTeByNameWithLikeOperator
                                     .action()
-                                    .check(jsonPath("$.relationships[*]").count().is(0)))
-                            .group("Get one event")
-                            .on(
-                                exec(getFirstEventFromEnrollment
+                                    .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
+                            .exec(
+                                searchTeByNameWithEqOperator
+                                    .action()
+                                    .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
+                            .exec(
+                                searchBirthEventsByStage
+                                    .action()
+                                    .check(jsonPath("$.events[*]").count().gte(1))
+                                    .check(
+                                        jsonPath("$.events[*].trackedEntity")
+                                            .findAll()
+                                            .transform(
+                                                list ->
+                                                    String.join(
+                                                        ",", list.stream().distinct().toList()))
+                                            .saveAs("trackedEntityUids")))
+                            .doIf(session -> session.contains("trackedEntityUids"))
+                            .then(
+                                exec(getTrackedEntitiesForEvents
                                         .action()
-                                        .check(jsonPath("$.event").exists()))
+                                        .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
                                     .exec(
-                                        getRelationshipsForEvent
+                                        getFirstPageOfTEs
                                             .action()
-                                            .check(jsonPath("$.relationships[*]").count().is(0)))))
-                    .exec(
-                        getTEsWithEnrollmentStatus
-                            .action()
-                            .check(jsonPath("$.trackedEntities[*]").count().gte(1))));
+                                            .check(jsonPath("$.trackedEntities[*]").count().gte(1))
+                                            .check(
+                                                jsonPath("$.trackedEntities[0].trackedEntity")
+                                                    .saveAs("trackedEntityUid")))
+                                    .doIf(session -> session.contains("trackedEntityUid"))
+                                    .then(
+                                        group("Go to single enrollment")
+                                            .on(
+                                                exec(getFirstTrackedEntity
+                                                        .action()
+                                                        .check(
+                                                            jsonPath("$.enrollments[*]")
+                                                                .count()
+                                                                .gte(1))
+                                                        .check(
+                                                            jsonPath("$.enrollments[0].enrollment")
+                                                                .saveAs("enrollmentUid"))
+                                                        .check(
+                                                            jsonPath("$.enrollments[0].events[*]")
+                                                                .count()
+                                                                .gte(1))
+                                                        .check(
+                                                            jsonPath(
+                                                                    "$.enrollments[0].events[0].event")
+                                                                .saveAs("eventUid")))
+                                                    .doIf(
+                                                        session ->
+                                                            session.contains("enrollmentUid"))
+                                                    .then(
+                                                        exec(getFirstEnrollment
+                                                                .action()
+                                                                .check(
+                                                                    jsonPath("$.enrollment")
+                                                                        .exists()))
+                                                            .exec(
+                                                                getRelationshipsForTrackedEntity
+                                                                    .action()
+                                                                    .check(
+                                                                        jsonPath(
+                                                                                "$.relationships[*]")
+                                                                            .count()
+                                                                            .is(0)))
+                                                            .doIf(
+                                                                session ->
+                                                                    session.contains("eventUid"))
+                                                            .then(
+                                                                group("Get one event")
+                                                                    .on(
+                                                                        exec(getFirstEventFromEnrollment
+                                                                                .action()
+                                                                                .check(
+                                                                                    jsonPath(
+                                                                                            "$.event")
+                                                                                        .exists()))
+                                                                            .exec(
+                                                                                getRelationshipsForEvent
+                                                                                    .action()
+                                                                                    .check(
+                                                                                        jsonPath(
+                                                                                                "$.relationships[*]")
+                                                                                            .count()
+                                                                                            .is(
+                                                                                                0)))))))))
+                            .exec(
+                                getTEsWithEnrollmentStatus
+                                    .action()
+                                    .check(jsonPath("$.trackedEntities[*]").count().gte(1)))));
 
     ScenarioBuilder scenarioBuilder =
         scenario("Child Programme export")
