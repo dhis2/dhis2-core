@@ -821,14 +821,22 @@ public enum ConfigurationKey {
   /** Whether static resource caching is enabled. (default: true) */
   STATIC_CACHE_ENABLED("dhis2.static.cache.enabled", Constants.ON, false),
 
-  /** Default max-age in seconds for static resources (JS, CSS, images, fonts). (default: 3600) */
-  STATIC_CACHE_DEFAULT_MAX_AGE("dhis2.static.cache.default_max_age", "3600", false),
+  /**
+   * Default max-age in seconds for static resources (JS, CSS, images, fonts). (default: 3600
+   * seconds = 1 hour)
+   */
+  STATIC_CACHE_DEFAULT_MAX_AGE_SECONDS("dhis2.static.cache.default_max_age", "3600", false),
 
-  /** Max-age in seconds for HTML entry points (index.html, plugin.html). (default: 300) */
-  STATIC_CACHE_HTML_MAX_AGE("dhis2.static.cache.html_max_age", "300", false),
+  /**
+   * Max-age in seconds for HTML entry points (index.html, plugin.html). (default: 300 seconds = 5
+   * minutes)
+   */
+  STATIC_CACHE_HTML_MAX_AGE_SECONDS("dhis2.static.cache.html_max_age", "300", false),
 
-  /** Max-age in seconds for immutable/hashed static resources. (default: 31536000 = 1 year) */
-  STATIC_CACHE_IMMUTABLE_MAX_AGE("dhis2.static.cache.immutable_max_age", "31536000", false),
+  /**
+   * Max-age in seconds for immutable/hashed static resources. (default: 31536000 seconds = 1 year)
+   */
+  STATIC_CACHE_IMMUTABLE_MAX_AGE_SECONDS("dhis2.static.cache.immutable_max_age", "31536000", false),
 
   /**
    * Comma-separated Ant-style patterns for paths that should always get no-cache headers. (default:

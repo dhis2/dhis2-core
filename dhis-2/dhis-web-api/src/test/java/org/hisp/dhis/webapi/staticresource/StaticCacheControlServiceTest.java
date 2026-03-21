@@ -69,13 +69,13 @@ class StaticCacheControlServiceTest {
         .when(config.isEnabled(ConfigurationKey.STATIC_CACHE_DEV_MODE_FORCE_NO_CACHE))
         .thenReturn(false);
     lenient()
-        .when(config.getProperty(ConfigurationKey.STATIC_CACHE_DEFAULT_MAX_AGE))
+        .when(config.getProperty(ConfigurationKey.STATIC_CACHE_DEFAULT_MAX_AGE_SECONDS))
         .thenReturn("3600");
     lenient()
-        .when(config.getProperty(ConfigurationKey.STATIC_CACHE_HTML_MAX_AGE))
+        .when(config.getProperty(ConfigurationKey.STATIC_CACHE_HTML_MAX_AGE_SECONDS))
         .thenReturn("300");
     lenient()
-        .when(config.getProperty(ConfigurationKey.STATIC_CACHE_IMMUTABLE_MAX_AGE))
+        .when(config.getProperty(ConfigurationKey.STATIC_CACHE_IMMUTABLE_MAX_AGE_SECONDS))
         .thenReturn("31536000");
     lenient()
         .when(config.getProperty(ConfigurationKey.STATIC_CACHE_ALWAYS_NO_CACHE_PATTERNS))

@@ -243,15 +243,17 @@ public class StaticCacheControlService {
   }
 
   private long getDefaultMaxAgeSeconds() {
-    return Long.parseLong(config.getProperty(ConfigurationKey.STATIC_CACHE_DEFAULT_MAX_AGE));
+    return Long.parseLong(
+        config.getProperty(ConfigurationKey.STATIC_CACHE_DEFAULT_MAX_AGE_SECONDS));
   }
 
   private long getHtmlMaxAgeSeconds() {
-    return Long.parseLong(config.getProperty(ConfigurationKey.STATIC_CACHE_HTML_MAX_AGE));
+    return Long.parseLong(config.getProperty(ConfigurationKey.STATIC_CACHE_HTML_MAX_AGE_SECONDS));
   }
 
   private long getImmutableMaxAgeSeconds() {
-    return Long.parseLong(config.getProperty(ConfigurationKey.STATIC_CACHE_IMMUTABLE_MAX_AGE));
+    return Long.parseLong(
+        config.getProperty(ConfigurationKey.STATIC_CACHE_IMMUTABLE_MAX_AGE_SECONDS));
   }
 
   private String getDhis2Version() {
