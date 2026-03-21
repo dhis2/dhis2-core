@@ -49,7 +49,6 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.imports.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationResult;
 import org.hisp.dhis.tracker.imports.validation.ValidationService;
@@ -71,8 +70,6 @@ class TrackerImporterServiceTest {
 
   @Mock private ValidationService validationService;
 
-  @Mock private TrackerPreprocessService trackerPreprocessService;
-
   @Mock private ValidationResult validationResult;
 
   private DefaultTrackerImportService subject;
@@ -85,9 +82,7 @@ class TrackerImporterServiceTest {
 
   @BeforeEach
   public void setUp() {
-    subject =
-        new DefaultTrackerImportService(
-            trackerBundleService, validationService, trackerPreprocessService);
+    subject = new DefaultTrackerImportService(trackerBundleService, validationService);
 
     injectSecurityContextNoSettings(user);
 
@@ -101,13 +96,6 @@ class TrackerImporterServiceTest {
     when(validationService.validate(any(TrackerBundle.class))).thenReturn(validationResult);
     when(validationService.validateRuleEngine(any(TrackerBundle.class)))
         .thenReturn(validationResult);
-    when(trackerPreprocessService.preprocess(any(TrackerBundle.class)))
-        .thenReturn(
-            ParamsConverter.convert(
-                params,
-                TrackerObjects.builder().enrollments(enrollments).build(),
-                user,
-                new TrackerPreheat()));
   }
 
   @Test
@@ -118,7 +106,7 @@ class TrackerImporterServiceTest {
         TrackerObjects.builder().enrollments(trackerObjects.getEnrollments()).build();
 
     when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
-        .thenReturn(ParamsConverter.convert(parameters, objects, user, new TrackerPreheat()));
+        .thenReturn(bundleWithPreheat(parameters, objects));
     when(trackerBundleService.commit(any(TrackerBundle.class)))
         .thenReturn(PersistenceReport.emptyReport());
 
@@ -133,7 +121,7 @@ class TrackerImporterServiceTest {
         TrackerObjects.builder().enrollments(trackerObjects.getEnrollments()).build();
     doAnswer(invocationOnMock -> null).when(trackerBundleService).sendNotifications(anyList());
     when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
-        .thenReturn(ParamsConverter.convert(params, objects, user, new TrackerPreheat()));
+        .thenReturn(bundleWithPreheat(params, objects));
     when(trackerBundleService.commit(any(TrackerBundle.class)))
         .thenReturn(PersistenceReport.emptyReport());
 
@@ -147,7 +135,7 @@ class TrackerImporterServiceTest {
     TrackerObjects objects =
         TrackerObjects.builder().enrollments(trackerObjects.getEnrollments()).build();
     when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
-        .thenReturn(ParamsConverter.convert(params, objects, user, new TrackerPreheat()));
+        .thenReturn(bundleWithPreheat(params, objects));
     when(trackerBundleService.commit(any(TrackerBundle.class)))
         .thenThrow(new IllegalArgumentException("ERROR"));
 
@@ -157,5 +145,12 @@ class TrackerImporterServiceTest {
             IllegalArgumentException.class,
             () -> subject.importTracker(params, trackerObjects, transitory));
     assertEquals("ERROR", ex.getMessage());
+  }
+
+  private TrackerBundle bundleWithPreheat(TrackerImportParams params, TrackerObjects objects) {
+    TrackerPreheat preheat = new TrackerPreheat();
+    TrackerBundle bundle = ParamsConverter.convert(params, objects, user, preheat);
+    bundle.setPreheat(preheat);
+    return bundle;
   }
 }

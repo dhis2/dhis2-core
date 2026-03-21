@@ -29,39 +29,38 @@
  */
 package org.hisp.dhis.tracker.imports.preprocess;
 
-import java.util.Objects;
-import java.util.Optional;
+import java.util.List;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
-import org.hisp.dhis.tracker.imports.domain.User;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 
 /**
- * This preprocessor is responsible to fill the assigned user with missing information.
- *
- * @author Enrico Colasante
+ * Initializes attribute option combo with the default one from the program if no attribute option
+ * combo is provided.
  */
-@Component
-public class AssignedUserPreProcessor implements BundlePreProcessor {
-  @Override
-  public void process(TrackerBundle bundle) {
-    for (Event event : bundle.getEvents()) {
-      User assignedUser = event.getAssignedUser();
+class CategoryComboPreprocessor {
 
-      if (Objects.isNull(assignedUser)) {
-        return;
-      }
+  private CategoryComboPreprocessor() {
+    throw new UnsupportedOperationException("utility class");
+  }
 
-      if (Objects.isNull(assignedUser.getUid())) {
-        Optional<org.hisp.dhis.user.User> user =
-            bundle.getPreheat().getUserByUsername(assignedUser.getUsername());
-        user.ifPresent(u -> assignedUser.setUid(u.getUid()));
-      }
-      if (Objects.isNull(assignedUser.getUsername())) {
-        Optional<org.hisp.dhis.user.User> user =
-            bundle.getPreheat().getUserByUid(assignedUser.getUid());
-        user.ifPresent(u -> assignedUser.setUsername(u.getUsername()));
-      }
+  static void process(TrackerBundle bundle) {
+    TrackerPreheat preheat = bundle.getPreheat();
+    List<Event> events =
+        bundle.getEvents().stream()
+            .filter(
+                e ->
+                    e.getAttributeOptionCombo().isBlank()
+                        && !e.getAttributeCategoryOptions().isEmpty())
+            .filter(e -> preheat.getProgram(e.getProgram()) != null)
+            .toList();
+
+    for (Event e : events) {
+      Program program = preheat.getProgram(e.getProgram());
+      e.setAttributeOptionCombo(
+          preheat.getCategoryOptionComboIdentifier(
+              program.getCategoryCombo(), e.getAttributeCategoryOptions()));
     }
   }
 }
