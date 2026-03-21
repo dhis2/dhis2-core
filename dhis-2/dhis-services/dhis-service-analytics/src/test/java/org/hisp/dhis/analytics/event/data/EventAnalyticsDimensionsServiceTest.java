@@ -116,7 +116,7 @@ class EventAnalyticsDimensionsServiceTest {
   }
 
   @Test
-  void testQueryDoesntContainDisallowedValueTypes() {
+  void testQueryDoesNotContainDisallowedValueTypes() {
     List<IdentifiableObject> analyticsDimensions =
         eventAnalyticsDimensionsService
             .getQueryDimensionsByProgramStageId(PROGRAM_UID, "anUid")

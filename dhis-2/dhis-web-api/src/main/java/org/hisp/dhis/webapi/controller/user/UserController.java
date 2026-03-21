@@ -30,7 +30,6 @@
 package org.hisp.dhis.webapi.controller.user;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUidsAsSet;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.badRequest;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
@@ -49,10 +48,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -102,6 +102,7 @@ import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.RestoreOptions;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
@@ -243,7 +244,8 @@ public class UserController
         || params.isUserOrgUnits()
         || params.getOrgUnitBoundary() != null
         || params.getOu() != null
-        || params.isIncludeChildren();
+        || params.isIncludeChildren()
+        || params.getInvitationStatus() == UserInvitationStatus.EXPIRED;
   }
 
   private void addSimpleFilters(GetUserObjectListParams params, List<Filter> filters) {
@@ -266,12 +268,6 @@ public class UserController
     if (params.getInvitationStatus() == UserInvitationStatus.ALL) {
       filters.add(Filters.eq("invitation", true));
     }
-    if (params.getInvitationStatus() == UserInvitationStatus.EXPIRED) {
-      filters.add(Filters.eq("invitation", true));
-      filters.add(Filters.isNotNull("restoreToken"));
-      filters.add(Filters.isNotNull("restoreExpiry"));
-      filters.add(Filters.lt("restoreExpiry", new Date()));
-    }
   }
 
   private UserQueryParams toUserQueryParams(GetUserObjectListParams params) {
@@ -291,6 +287,7 @@ public class UserController
     }
     UserOrgUnitType boundary = params.getOrgUnitBoundary();
     if (boundary != null) res.setOrgUnitBoundary(boundary);
+    res.setInvitationStatus(params.getInvitationStatus());
     return res;
   }
 
@@ -653,7 +650,7 @@ public class UserController
       currentUser = CurrentUserUtil.getCurrentUserDetails();
     }
 
-    Collection<String> uids = getUidsAsSet(parsed.getGroups());
+    Set<UID> uids = parsed.getGroups().stream().map(UserGroup::getUID).collect(Collectors.toSet());
 
     userGroupService.updateUserGroups(user, uids, currentUser);
   }
@@ -865,11 +862,11 @@ public class UserController
       String opName = op.getOp();
       if (StringUtils.equalsAny(
           opName, JsonPatchOperation.ADD_OPERATION, JsonPatchOperation.REPLACE_OPERATION)) {
-        List<String> groupIds = new ArrayList<>();
+        List<UID> groupIds = new ArrayList<>();
         ((AddOperation) op)
             .getValue()
             .elements()
-            .forEachRemaining(node -> groupIds.add(node.get("id").asText()));
+            .forEachRemaining(node -> groupIds.add(UID.of(node.get("id").asText())));
 
         userGroupService.updateUserGroups(user, groupIds, CurrentUserUtil.getCurrentUserDetails());
       }

@@ -48,7 +48,9 @@ import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 
 import com.google.common.base.MoreObjects;
@@ -1098,6 +1100,20 @@ public class EventQueryParams extends DataQueryParams {
     return MapUtils.isNotEmpty(getTimeDateRanges());
   }
 
+  public Map<TimeField, List<DateRange>> getTimeDateRanges(Set<TimeField> timeFields) {
+    Map<TimeField, List<DateRange>> matchingRanges = new EnumMap<>(TimeField.class);
+
+    timeFields.forEach(
+        timeField -> {
+          List<DateRange> ranges = getTimeDateRanges().get(timeField);
+          if (ranges != null && !ranges.isEmpty()) {
+            matchingRanges.put(timeField, List.copyOf(ranges));
+          }
+        });
+
+    return matchingRanges;
+  }
+
   /** Returns true if multiple time dimensions are active (have date ranges or constraints). */
   public boolean hasMultipleTimeDimensions() {
     return getActiveTimeDimensions().size() > 1;
@@ -1332,9 +1348,14 @@ public class EventQueryParams extends DataQueryParams {
     return DESC == sortOrder ? 1 : 0;
   }
 
-  /** Returns true when parameters are incoming from analytics enrollments/aggregate entry point */
+  /** Returns true when the request is incoming from analytics enrollments/aggregate end point. */
   public boolean isAggregatedEnrollments() {
-    return endpointAction == EndpointAction.AGGREGATE && endpointItem == EndpointItem.ENROLLMENT;
+    return endpointAction == EndpointAction.AGGREGATE && endpointItem == ENROLLMENT;
+  }
+
+  /** Returns true when the request is incoming from analytics events/aggregate end point. */
+  public boolean isAggregatedEvents() {
+    return endpointAction == AGGREGATE && endpointItem == EndpointItem.EVENT;
   }
 
   @Override
@@ -1460,6 +1481,10 @@ public class EventQueryParams extends DataQueryParams {
 
   public boolean isComingFromQuery() {
     return endpointAction == QUERY;
+  }
+
+  public boolean isEnrollmentAggregateQuery() {
+    return endpointAction == AGGREGATE && endpointItem == ENROLLMENT;
   }
 
   public Long getClusterSize() {
@@ -1802,6 +1827,13 @@ public class EventQueryParams extends DataQueryParams {
 
     public Builder withStartEndDatesForPeriods() {
       this.params.replacePeriodsWithDates();
+      return this;
+    }
+
+    public Builder withoutTimeDateRanges(Set<TimeField> timeFields) {
+      if (timeFields != null) {
+        timeFields.forEach(this.params.getTimeDateRanges()::remove);
+      }
       return this;
     }
 

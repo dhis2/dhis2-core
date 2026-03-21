@@ -42,6 +42,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -123,7 +124,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   @Temporal(TemporalType.TIMESTAMP)
   private Date lastUpdated;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "lastupdatedby")
   private User lastUpdatedBy;
 
@@ -132,7 +133,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
 
   @Embedded private TranslationProperty translations = new TranslationProperty();
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "datasetid", nullable = false)
   private DataSet dataSet;
 

@@ -30,6 +30,8 @@
 package org.hisp.dhis.analytics.common.processing;
 
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.DIMENSIONS;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.FILTERS;
+import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamType.SORTING;
 import static org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset.emptyElementWithOffset;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -49,6 +51,7 @@ import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.common.CommonRequestParams;
 import org.hisp.dhis.analytics.common.params.CommonParsedParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
+import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.params.dimension.StringUid;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
@@ -343,5 +346,141 @@ class CommonRequestParamsParserTest {
     // Then - should call dataQueryService.getDimension() for regular OU
     verify(dataQueryService)
         .getDimension(eq("ou"), anyList(), any(), anyList(), anyBoolean(), any(), any());
+  }
+
+  @Test
+  void testStageScopedOuNameInSortingShouldNotThrow() {
+    // Given - a stage-specific ouname dimension used for sorting
+    Program program = new Program("Test Program");
+    program.setUid("IpHINAT79UW");
+    ProgramStage programStage = new ProgramStage("Test Stage", program);
+    programStage.setUid("A03MvHHogjR");
+    program.setProgramStages(Set.of(programStage));
+
+    DimensionIdentifier<StringUid> stageScopedOuName =
+        DimensionIdentifier.of(
+            ElementWithOffset.of(program, null),
+            ElementWithOffset.of(programStage, null),
+            StringUid.of("ouname"));
+
+    when(dimensionIdentifierConverter.fromString(anyList(), eq("IpHINAT79UW.A03MvHHogjR.ouname")))
+        .thenReturn(stageScopedOuName);
+
+    // When/Then - stage-scoped ouname in SORTING should not throw E7253
+    DimensionIdentifier<DimensionParam> result =
+        commonRequestParamsParser.toDimIdentifiers(
+            "IpHINAT79UW.A03MvHHogjR.ouname",
+            SORTING,
+            null,
+            DisplayProperty.NAME,
+            IdScheme.UID,
+            List.of(program),
+            List.of());
+
+    assertEquals("ouname", result.getDimension().getUid());
+  }
+
+  @Test
+  void testStageScopedOuNameShortFormatInSortingShouldNotThrow() {
+    // Given - a stage-specific ouname using short format (stageUid.ouname)
+    Program program = new Program("Test Program");
+    program.setUid("IpHINAT79UW");
+    ProgramStage programStage = new ProgramStage("Test Stage", program);
+    programStage.setUid("A03MvHHogjR");
+    program.setProgramStages(Set.of(programStage));
+
+    DimensionIdentifier<StringUid> stageScopedOuName =
+        DimensionIdentifier.of(
+            ElementWithOffset.of(program, null),
+            ElementWithOffset.of(programStage, null),
+            StringUid.of("ouname"));
+
+    when(dimensionIdentifierConverter.fromString(anyList(), eq("A03MvHHogjR.ouname")))
+        .thenReturn(stageScopedOuName);
+
+    // When/Then - short format stage-scoped ouname in SORTING should not throw E7253
+    DimensionIdentifier<DimensionParam> result =
+        commonRequestParamsParser.toDimIdentifiers(
+            "A03MvHHogjR.ouname",
+            SORTING,
+            null,
+            DisplayProperty.NAME,
+            IdScheme.UID,
+            List.of(program),
+            List.of());
+
+    assertEquals("ouname", result.getDimension().getUid());
+  }
+
+  @Test
+  void testStageScopedOuNameInDimensionsShouldThrow() {
+    // Given - a stage-specific ouname dimension used as a query dimension
+    Program program = new Program("Test Program");
+    program.setUid("IpHINAT79UW");
+    ProgramStage programStage = new ProgramStage("Test Stage", program);
+    programStage.setUid("A03MvHHogjR");
+    program.setProgramStages(Set.of(programStage));
+
+    DimensionIdentifier<StringUid> stageScopedOuName =
+        DimensionIdentifier.of(
+            ElementWithOffset.of(program, null),
+            ElementWithOffset.of(programStage, null),
+            StringUid.of("ouname"));
+
+    when(dimensionIdentifierConverter.fromString(anyList(), eq("IpHINAT79UW.A03MvHHogjR.ouname")))
+        .thenReturn(stageScopedOuName);
+
+    // When/Then - stage-scoped ouname in DIMENSIONS should throw E7253
+    IllegalQueryException exception =
+        assertThrows(
+            IllegalQueryException.class,
+            () ->
+                commonRequestParamsParser.toDimIdentifiers(
+                    "IpHINAT79UW.A03MvHHogjR.ouname",
+                    DIMENSIONS,
+                    null,
+                    DisplayProperty.NAME,
+                    IdScheme.UID,
+                    List.of(program),
+                    List.of()));
+
+    assertTrue(exception.getMessage().contains("ouname"));
+    assertTrue(exception.getMessage().contains("A03MvHHogjR"));
+  }
+
+  @Test
+  void testStageScopedOuNameInFiltersShouldThrow() {
+    // Given - a stage-specific ouname dimension used as a filter
+    Program program = new Program("Test Program");
+    program.setUid("IpHINAT79UW");
+    ProgramStage programStage = new ProgramStage("Test Stage", program);
+    programStage.setUid("A03MvHHogjR");
+    program.setProgramStages(Set.of(programStage));
+
+    DimensionIdentifier<StringUid> stageScopedOuName =
+        DimensionIdentifier.of(
+            ElementWithOffset.of(program, null),
+            ElementWithOffset.of(programStage, null),
+            StringUid.of("ouname"));
+
+    when(dimensionIdentifierConverter.fromString(anyList(), eq("IpHINAT79UW.A03MvHHogjR.ouname")))
+        .thenReturn(stageScopedOuName);
+
+    // When/Then - stage-scoped ouname in FILTERS should throw E7253
+    IllegalQueryException exception =
+        assertThrows(
+            IllegalQueryException.class,
+            () ->
+                commonRequestParamsParser.toDimIdentifiers(
+                    "IpHINAT79UW.A03MvHHogjR.ouname",
+                    FILTERS,
+                    null,
+                    DisplayProperty.NAME,
+                    IdScheme.UID,
+                    List.of(program),
+                    List.of()));
+
+    assertTrue(exception.getMessage().contains("ouname"));
+    assertTrue(exception.getMessage().contains("A03MvHHogjR"));
   }
 }

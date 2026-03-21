@@ -473,8 +473,8 @@ public class CommonRequestParamsParser implements Parser<CommonRequestParams, Co
       DimensionParamType dimensionParamType,
       DimensionIdentifier<StringUid> stringDimensionIdentifier,
       StaticDimension staticDimension) {
-    // stageUid.ouname is a header-only syntax for stage-specific OU display name.
-    // It must not be accepted as a query dimension/filter/sort field.
+    // stageUid.ouname is supported for headers and sorting.
+    // It must not be accepted as a query dimension or filter field.
     if (isStageScopedOuNameInNonHeader(
         dimensionParamType, stringDimensionIdentifier, staticDimension)) {
       throw new IllegalQueryException(
@@ -596,6 +596,7 @@ public class CommonRequestParamsParser implements Parser<CommonRequestParams, Co
       DimensionIdentifier<StringUid> stringDimensionIdentifier,
       StaticDimension staticDimension) {
     return dimensionParamType != HEADERS
+        && dimensionParamType != SORTING
         && stringDimensionIdentifier.hasProgramStage()
         && staticDimension == StaticDimension.OUNAME;
   }

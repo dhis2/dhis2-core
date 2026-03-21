@@ -44,6 +44,7 @@ import static org.hisp.dhis.common.IdCoder.ObjectType.OU;
 import static org.hisp.dhis.feedback.DataEntrySummary.error;
 import static org.hisp.dhis.security.Authorities.F_EDIT_EXPIRED;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
+import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUsername;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -67,6 +68,7 @@ import org.hisp.dhis.common.IdCoder;
 import org.hisp.dhis.common.IdProperty;
 import org.hisp.dhis.common.IndirectTransactional;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataset.DataSetCompletion;
 import org.hisp.dhis.dataset.LockStatus;
@@ -98,6 +100,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
 
   private final DataEntryStore store;
   private final IdCoder idCoder;
+  private final DataEntryAuditService audit;
 
   @Override
   @Transactional(readOnly = true)
@@ -402,6 +405,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   }
 
   @Override
+  @UsageTestOnly
   @IndirectTransactional
   public int upsertValuesForJdbcTest(DataValue... values) {
     if (values == null || values.length == 0) return 0;
@@ -409,6 +413,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   }
 
   @Override
+  @UsageTestOnly
   @Transactional
   public int upsertValues(DataValue... values) {
     if (values == null || values.length == 0) return 0;
@@ -416,6 +421,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   }
 
   @Override
+  @UsageTestOnly
   @Transactional
   public int upsertValues(DataEntryValue... values) {
     if (values == null || values.length == 0) return 0;
@@ -423,6 +429,7 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
   }
 
   @Override
+  @UsageTestOnly
   @Transactional
   public int upsertValues(DataEntryValue.Input... values) throws BadRequestException {
     if (values == null || values.length == 0) return 0;
@@ -437,7 +444,9 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     ValidationSource source = new ValuesValidationSource(List.of(value));
     DataEntryGroup valid = validate(force, dataSet, source, errors);
     if (valid.values().isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
-    store.upsertValues(List.of(value));
+    int n = store.upsertValues(List.of(value));
+    if (n > 0)
+      audit.auditUpsert(valid, new DataEntrySummary(1, 1, 1, 0, List.of()), getCurrentUsername());
   }
 
   @Override
@@ -499,8 +508,9 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
           progress.runStage(
               0, () -> options.dryRun() ? drySucceeded : store.upsertValues(validValues));
     }
-
-    return new DataEntrySummary(entered, attempted, succeeded, deleted, errors);
+    DataEntrySummary summary = new DataEntrySummary(entered, attempted, succeeded, deleted, errors);
+    audit.auditUpsert(group, summary, getCurrentUsername());
+    return summary;
   }
 
   @Override
@@ -524,7 +534,10 @@ public class DefaultDataEntryService implements DataEntryService, DataDumpServic
     ValidationSource source = new ValuesValidationSource(List.of(value));
     DataEntryGroup valid = validate(force, dataSet, source, errors);
     if (valid.values().isEmpty()) throw new BadRequestException(errors.get(0).code(), value);
-    return store.deleteByKeys(List.of(key)) > 0;
+    boolean deleted = store.deleteByKeys(List.of(key)) > 0;
+    if (deleted)
+      audit.auditUpsert(valid, new DataEntrySummary(1, 1, 1, 1, List.of()), getCurrentUsername());
+    return deleted;
   }
 
   @Override
