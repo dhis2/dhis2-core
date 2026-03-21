@@ -179,7 +179,7 @@ public class ProgramDataElementDimensionItem extends BaseDimensionalItemObject
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   @Property(value = PropertyType.REFERENCE, required = Property.Value.TRUE)
   public DataElement getDataElement() {

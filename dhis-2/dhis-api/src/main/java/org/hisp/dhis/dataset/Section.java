@@ -271,7 +271,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlElementWrapper(localName = "dataElements", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "dataElement", namespace = DxfNamespaces.DXF_2_0)
   public List<DataElement> getDataElements() {
