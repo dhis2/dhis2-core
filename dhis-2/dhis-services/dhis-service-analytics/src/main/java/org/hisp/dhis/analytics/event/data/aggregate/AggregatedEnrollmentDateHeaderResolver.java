@@ -94,8 +94,6 @@ public final class AggregatedEnrollmentDateHeaderResolver {
    */
   public boolean isDerivedStaticPeriodHeader(EventQueryParams params, String headerName) {
     return getStaticPeriodHeaderName(params)
-        .filter(name -> !EVENT_DATE_HEADER.equalsIgnoreCase(name))
-        .filter(name -> !SCHEDULED_DATE_HEADER.equalsIgnoreCase(name))
         .filter(name -> name.equalsIgnoreCase(headerName))
         .isPresent();
   }

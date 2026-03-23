@@ -77,6 +77,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.replaceStringBetween;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
@@ -1183,6 +1184,22 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression>
       resolveDateFieldPeriodBucket(DimensionalObject dimension, String tableAlias) {
     return dateFieldPeriodBucketColumnResolver.resolve(getAnalyticsType(), dimension, tableAlias);
+  }
+
+  protected Optional<DateFieldPeriodBucketColumnResolver.JoinClause>
+      resolveDateFieldPeriodBucketJoin(EventQueryParams params, String tableAlias) {
+    if (!params.isAggregation()) {
+      return Optional.empty();
+    }
+
+    DimensionalObject periodDimension = params.getDimension(PERIOD_DIM_ID);
+
+    if (periodDimension == null) {
+      return Optional.empty();
+    }
+
+    return resolveDateFieldPeriodBucket(periodDimension, tableAlias)
+        .flatMap(DateFieldPeriodBucketColumnResolver.ResolvedExpression::joinClause);
   }
 
   protected Optional<String> resolveDateFieldPeriodSourceColumn(DimensionalObject dimension) {
