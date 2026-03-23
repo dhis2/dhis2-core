@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.apache.commons.lang3.StringUtils.countMatches;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
@@ -52,6 +53,7 @@ import static org.hisp.dhis.test.TestBase.createOrganisationUnitGroup;
 import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramIndicator;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -67,6 +69,7 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -78,7 +81,9 @@ import org.hisp.dhis.analytics.event.data.stage.DefaultStageOrgUnitSqlService;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageQueryItemClassifier;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageQuerySqlFacade;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.Grid;
@@ -87,6 +92,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -149,6 +155,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private DefaultDhisConfigurationProvider config;
 
+  @Mock private SystemSettings mockSettings;
+
   @Spy
   private PostgreSqlAnalyticsSqlBuilder analyticsSqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
@@ -180,7 +188,6 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
-    SystemSettings mockSettings = mock(SystemSettings.class);
     when(systemSettingsService.getCurrentSettings()).thenReturn(mockSettings);
   }
 
@@ -284,6 +291,132 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
     assertSql(expected, sql.getValue());
     assertTrue(grid.hasLastDataRow());
+  }
+
+  @Test
+  void verifyGetEventSqlKeepsNonStageTimeFiltersWithStageSpecificEventDate() {
+    mockEmptyRowSet();
+
+    QueryItem stageEventDateItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
+            programA,
+            null,
+            ValueType.DATE,
+            AggregationType.NONE,
+            null);
+    stageEventDateItem.setProgramStage(programStage);
+    stageEventDateItem.addFilter(new QueryFilter(QueryOperator.GE, "2026-01-01"));
+    stageEventDateItem.addFilter(new QueryFilter(QueryOperator.LT, "2027-01-01"));
+
+    PeriodDimension createdPeriod = createPeriodDimensions("2017").get(0).setDateField("CREATED");
+    PeriodDimension lastUpdatedPeriod =
+        createPeriodDimensions("2022").get(0).setDateField("LAST_UPDATED");
+
+    EventQueryParams params =
+        createRequestParamsBuilder()
+            .withEndpointItem(EndpointItem.EVENT)
+            .withEndpointAction(QUERY)
+            .withOutputType(EventOutputType.EVENT)
+            .withPeriods(List.of(createdPeriod, lastUpdatedPeriod), "yearly")
+            .addItem(stageEventDateItem)
+            .withStartEndDatesForPeriods()
+            .build();
+
+    subject.getEvents(params, createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertThat(sql.getValue(), containsString("ax.\"created\" >= '2017-01-01'"));
+    assertThat(sql.getValue(), containsString("ax.\"created\" < '2018-01-01'"));
+    assertThat(sql.getValue(), containsString("ax.\"lastupdated\" >= '2022-01-01'"));
+    assertThat(sql.getValue(), containsString("ax.\"lastupdated\" < '2023-01-01'"));
+    assertThat(sql.getValue(), containsString("ax.\"occurreddate\" >= '2026-01-01'"));
+    assertThat(sql.getValue(), containsString("ax.\"occurreddate\" < '2027-01-01'"));
+    assertThat(sql.getValue(), containsString("ax.\"ps\" = '" + programStage.getUid() + "'"));
+  }
+
+  @Test
+  void verifyExperimentalQueryDoesNotDuplicateStageSpecificDateCondition() {
+    mockEmptyRowSet();
+    when(mockSettings.getUseExperimentalAnalyticsQueryEngine()).thenReturn(true);
+
+    QueryItem stageEventDateItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
+            programA,
+            null,
+            ValueType.DATE,
+            AggregationType.NONE,
+            null);
+    stageEventDateItem.setProgramStage(programStage);
+    stageEventDateItem.addFilter(new QueryFilter(QueryOperator.GE, "2026-01-01"));
+    stageEventDateItem.addFilter(new QueryFilter(QueryOperator.LE, "2026-12-31"));
+
+    PeriodDimension createdPeriod = createPeriodDimensions("2017").get(0).setDateField("CREATED");
+    PeriodDimension lastUpdatedPeriod =
+        createPeriodDimensions("2022").get(0).setDateField("LAST_UPDATED");
+
+    EventQueryParams params =
+        createRequestParamsBuilder()
+            .withEndpointItem(EndpointItem.EVENT)
+            .withEndpointAction(QUERY)
+            .withOutputType(EventOutputType.EVENT)
+            .withPeriods(List.of(createdPeriod, lastUpdatedPeriod), "yearly")
+            .addItem(stageEventDateItem)
+            .withStartEndDatesForPeriods()
+            .build();
+
+    subject.getEvents(params, createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertEquals(1, countMatches(sql.getValue(), "ax.\"created\" >= '2017-01-01'"));
+    assertEquals(1, countMatches(sql.getValue(), "ax.\"lastupdated\" >= '2022-01-01'"));
+    assertEquals(1, countMatches(sql.getValue(), "ax.\"occurreddate\" >= '2026-01-01'"));
+    assertEquals(1, countMatches(sql.getValue(), "ax.\"occurreddate\" <= '2026-12-31'"));
+    assertEquals(1, countMatches(sql.getValue(), "ax.\"ps\" = '" + programStage.getUid() + "'"));
+  }
+
+  @Test
+  void verifyExperimentalQueryKeepsScheduledDateWithStageSpecificEventDate() {
+    mockEmptyRowSet();
+    when(mockSettings.getUseExperimentalAnalyticsQueryEngine()).thenReturn(true);
+
+    QueryItem stageEventDateItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
+            programA,
+            null,
+            ValueType.DATE,
+            AggregationType.NONE,
+            null);
+    stageEventDateItem.setProgramStage(programStage);
+    stageEventDateItem.addFilter(new QueryFilter(QueryOperator.GE, "2026-01-01"));
+    stageEventDateItem.addFilter(new QueryFilter(QueryOperator.LE, "2026-12-31"));
+
+    PeriodDimension scheduledDatePeriod =
+        createPeriodDimensions("2022").get(0).setDateField(TimeField.SCHEDULED_DATE.name());
+
+    EventQueryParams params =
+        createRequestParamsBuilder()
+            .withEndpointItem(EndpointItem.EVENT)
+            .withEndpointAction(QUERY)
+            .withOutputType(EventOutputType.EVENT)
+            .withPeriods(List.of(scheduledDatePeriod), "yearly")
+            .addItem(stageEventDateItem)
+            .withStartEndDatesForPeriods()
+            .build();
+
+    subject.getEvents(params, createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertEquals(1, countMatches(sql.getValue(), "ax.\"scheduleddate\" >= '2022-01-01'"));
+    assertEquals(1, countMatches(sql.getValue(), "ax.\"scheduleddate\" < '2023-01-01'"));
+    assertEquals(1, countMatches(sql.getValue(), "ax.\"occurreddate\" >= '2026-01-01'"));
+    assertEquals(1, countMatches(sql.getValue(), "ax.\"occurreddate\" <= '2026-12-31'"));
+    assertEquals(1, countMatches(sql.getValue(), "ax.\"ps\" = '" + programStage.getUid() + "'"));
   }
 
   @Test

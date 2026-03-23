@@ -44,7 +44,6 @@ import org.hisp.dhis.period.PeriodDimension;
 /** Utility class for checking period dimensions in event analytics queries. */
 @UtilityClass
 public class EventPeriodUtils {
-
   /**
    * Returns true if all period items have no date field set or have the date field set to
    * OCCURRED_DATE
@@ -80,6 +79,24 @@ public class EventPeriodUtils {
 
   public static boolean hasPeriodDimension(EventQueryParams eventQueryParams) {
     return Objects.nonNull(getPeriodDimension(eventQueryParams));
+  }
+
+  public static boolean hasConflictingStageDatePeriodDimension(EventQueryParams params) {
+    DimensionalObject period = getPeriodDimension(params);
+
+    if (period == null) {
+      return false;
+    }
+
+    return period.getItems().stream().anyMatch(EventPeriodUtils::isDefaultPeriod);
+  }
+
+  public static EventQueryParams sanitizeTimeFiltersForStageDateItems(EventQueryParams params) {
+    if (!params.hasStageDateItem()) {
+      return params;
+    }
+
+    return new EventQueryParams.Builder(params).withStartDate(null).withEndDate(null).build();
   }
 
   private static DimensionalObject getPeriodDimension(EventQueryParams eventQueryParams) {
