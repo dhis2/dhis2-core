@@ -35,11 +35,13 @@ Test results are saved to `target/gatling/<simulation-class>-<timestamp>/`:
 * `profile.collapsed` - Collapsed stack traces (if profiling enabled with `PROF_ARGS)`
 * `postgresql.log` - SQL logs (if enabled with `CAPTURE_SQL_LOGS)`
 * `pgbadger.html` - SQL analysis report (if `CAPTURE_SQL_LOGS` enabled and `pgbadger` installed)
+* `gc.log` - JVM GC and safepoint logs (always captured)
 
 ### Analysis
 
 * Look at Gatling's own `index.html`
-* if it doesn't provide the analysis you need, try [gatling-statistics](https://github.com/dhis2/gatling-statistics)
+* If it doesn't provide the analysis you need, try [gatling-statistics](https://github.com/dhis2/gatling-statistics)
+* Analyze `gc.log` with [Eclipse Jifa](https://github.com/eclipse-jifa/jifa) (`bash jifa.sh gc.log`)
 * To compare two runs (e.g. baseline vs feature branch), use `scripts/compare-gatling-runs.sh`:
 
 ```sh
