@@ -182,8 +182,7 @@ public class Legend implements IdentifiableObject, EmbeddedObject {
     return image;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @JsonIgnore
   public LegendSet getLegendSet() {
     return legendSet;
   }
