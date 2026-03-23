@@ -31,6 +31,8 @@ package org.hisp.dhis.webapi.mvc.interceptor;
 
 import static org.hisp.dhis.dml.DmlETagMetrics.ENDPOINT_COMPOSITE;
 import static org.hisp.dhis.dml.DmlETagMetrics.ENDPOINT_METADATA;
+import static org.hisp.dhis.dml.DmlETagMetrics.ENDPOINT_NAMED_KEY;
+import static org.hisp.dhis.dml.DmlETagMetrics.ETAG_CACHE_ENDPOINT_TYPE;
 import static org.hisp.dhis.dml.DmlETagMetrics.ETAG_CACHE_REQUESTS;
 import static org.hisp.dhis.dml.DmlETagMetrics.RESULT_HIT;
 import static org.hisp.dhis.dml.DmlETagMetrics.RESULT_MISS;
@@ -237,16 +239,16 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
               .tag(TAG_RESULT, RESULT_SKIP)
               .register(effectiveRegistry);
       endpointComposite =
-          Counter.builder(ETAG_CACHE_REQUESTS)
+          Counter.builder(ETAG_CACHE_ENDPOINT_TYPE)
               .tag(TAG_ENDPOINT_TYPE, ENDPOINT_COMPOSITE)
               .register(effectiveRegistry);
       endpointMetadata =
-          Counter.builder(ETAG_CACHE_REQUESTS)
+          Counter.builder(ETAG_CACHE_ENDPOINT_TYPE)
               .tag(TAG_ENDPOINT_TYPE, ENDPOINT_METADATA)
               .register(effectiveRegistry);
       endpointNamedKey =
-          Counter.builder("dhis2_etag_cache_requests_total")
-              .tag("endpoint_type", "named_key")
+          Counter.builder(ETAG_CACHE_ENDPOINT_TYPE)
+              .tag(TAG_ENDPOINT_TYPE, ENDPOINT_NAMED_KEY)
               .register(effectiveRegistry);
     } else {
       cacheHit = null;

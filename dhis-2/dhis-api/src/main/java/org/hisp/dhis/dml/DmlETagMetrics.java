@@ -75,8 +75,11 @@ public final class DmlETagMetrics {
   // ETag Cache metrics (ConditionalETagInterceptor)
   // ---------------------------------------------------------------------------
 
-  /** Per-request counter with tags {@link #TAG_RESULT} and {@link #TAG_ENDPOINT_TYPE}. */
+  /** Per-request counter with tag {@link #TAG_RESULT}. */
   public static final String ETAG_CACHE_REQUESTS = "dhis2_etag_cache_requests_total";
+
+  /** Per-request counter with tag {@link #TAG_ENDPOINT_TYPE}. */
+  public static final String ETAG_CACHE_ENDPOINT_TYPE = "dhis2_etag_cache_endpoint_type_total";
 
   // ---------------------------------------------------------------------------
   // Tag keys
@@ -112,4 +115,5 @@ public final class DmlETagMetrics {
   public static final String RESULT_SKIP = "skip";
   public static final String ENDPOINT_COMPOSITE = "composite";
   public static final String ENDPOINT_METADATA = "metadata";
+  public static final String ENDPOINT_NAMED_KEY = "named_key";
 }
