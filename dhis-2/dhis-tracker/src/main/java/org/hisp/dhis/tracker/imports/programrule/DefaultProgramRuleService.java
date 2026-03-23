@@ -36,7 +36,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -54,7 +53,6 @@ import org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.tracker.imports.programrule.engine.RuleEngineEffects;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
-import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -104,6 +102,14 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
   private RuleEngineEffects calculateEnrollmentRuleEffects(
       TrackerBundle bundle, TrackerPreheat preheat) {
+    Set<UID> enrollmentUids =
+        bundle.getEnrollments().stream()
+            .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getUID)
+            .collect(Collectors.toSet());
+
+    Map<UID, List<RuleEvent>> savedEventsByEnrollment =
+        fetchSavedRuleEventsByEnrollment(enrollmentUids, bundle, preheat);
+
     return bundle.getEnrollments().stream()
         .map(
             e -> {
@@ -111,12 +117,15 @@ class DefaultProgramRuleService implements ProgramRuleService {
                   getAttributes(e.getEnrollment(), e.getTrackedEntity(), bundle, preheat);
               RuleEnrollment enrollment =
                   RuleEngineMapper.mapPayloadEnrollment(preheat, e, attributes);
-
               Program program = preheat.getProgram(e.getProgram());
 
               return programRuleEngine.evaluateEnrollmentAndTrackerEvents(
                   enrollment,
-                  getEventsFromEnrollment(e.getUID(), program.getUID(), bundle, preheat),
+                  buildRuleEvents(
+                      e.getUID(),
+                      savedEventsByEnrollment.getOrDefault(e.getUID(), List.of()),
+                      bundle,
+                      preheat),
                   program,
                   bundle.getUser());
             })
@@ -132,6 +141,12 @@ class DefaultProgramRuleService implements ProgramRuleService {
             .map(event -> preheat.getEnrollment(event.getEnrollment()))
             .collect(Collectors.toSet());
 
+    Set<UID> enrollmentUids =
+        enrollments.stream().map(Enrollment::getUID).collect(Collectors.toSet());
+
+    Map<UID, List<RuleEvent>> savedEventsByEnrollment =
+        fetchSavedRuleEventsByEnrollment(enrollmentUids, bundle, preheat);
+
     return enrollments.stream()
         .map(
             e -> {
@@ -140,7 +155,11 @@ class DefaultProgramRuleService implements ProgramRuleService {
               RuleEnrollment enrollment = RuleEngineMapper.mapSavedEnrollment(e, attributes);
               return programRuleEngine.evaluateEnrollmentAndTrackerEvents(
                   enrollment,
-                  getEventsFromEnrollment(e.getUID(), e.getProgram().getUID(), bundle, preheat),
+                  buildRuleEvents(
+                      e.getUID(),
+                      savedEventsByEnrollment.getOrDefault(e.getUID(), List.of()),
+                      bundle,
+                      preheat),
                   e.getProgram(),
                   bundle.getUser());
             })
@@ -206,35 +225,43 @@ class DefaultProgramRuleService implements ProgramRuleService {
     return Stream.concat(payloadAttributes.stream(), dbAttributesNotPresentInPayload).toList();
   }
 
-  // Get all the events linked to enrollment from the payload and the DB,
-  // using the one from payload if they are present in both places
-  @Nonnull
-  private List<RuleEvent> getEventsFromEnrollment(
-      UID enrollmentUid, UID programUid, TrackerBundle bundle, TrackerPreheat preheat) {
-    Stream<TrackerEvent> events;
+  // Fetch all saved events for the given enrollments in a single DB query and group by enrollment.
+  // Payload events (already in the bundle) are excluded since they will be added in
+  // buildRuleEvents.
+  private Map<UID, List<RuleEvent>> fetchSavedRuleEventsByEnrollment(
+      Set<UID> enrollmentUids, TrackerBundle bundle, TrackerPreheat preheat) {
+    if (enrollmentUids.isEmpty()) {
+      return Map.of();
+    }
     try {
-      events =
-          trackerEventService
-              .findEvents(
-                  TrackerEventOperationParams.builderForProgram(programUid)
-                      .enrollments(Set.of(enrollmentUid))
-                      .build())
-              .stream()
-              .filter(e -> bundle.findTrackerEventByUid(e.getUID()).isEmpty());
+      return trackerEventService
+          .findEvents(TrackerEventOperationParams.builderForEnrollments(enrollmentUids).build())
+          .stream()
+          .filter(e -> bundle.findTrackerEventByUid(e.getUID()).isEmpty())
+          .collect(
+              Collectors.groupingBy(
+                  e -> e.getEnrollment().getUID(),
+                  Collectors.collectingAndThen(
+                      Collectors.toList(), RuleEngineMapper::mapSavedEvents)));
     } catch (BadRequestException | ForbiddenException e) {
       throw new RuntimeException(e);
     }
+  }
 
-    List<RuleEvent> ruleEvents =
+  // Combine pre-fetched saved events with payload events for a single enrollment.
+  private List<RuleEvent> buildRuleEvents(
+      UID enrollmentUid,
+      List<RuleEvent> savedRuleEvents,
+      TrackerBundle bundle,
+      TrackerPreheat preheat) {
+    List<RuleEvent> payloadRuleEvents =
         RuleEngineMapper.mapPayloadTrackerEvents(
             preheat,
             bundle.getTrackerEvents().stream()
                 .filter(e -> e.getEnrollment().equals(enrollmentUid))
                 .toList());
 
-    return Stream.concat(
-            RuleEngineMapper.mapSavedEvents(events.toList()).stream(), ruleEvents.stream())
-        .toList();
+    return Stream.concat(savedRuleEvents.stream(), payloadRuleEvents.stream()).toList();
   }
 
   private List<Attribute> filterNullAttributes(List<Attribute> attributes) {
