@@ -90,7 +90,7 @@ class ConditionalETagInterceptorTest {
 
   @BeforeEach
   void setUp() {
-    interceptor = new ConditionalETagInterceptor(conditionalETagService, schemaService, null);
+    interceptor = new ConditionalETagInterceptor(conditionalETagService, schemaService, null, null);
 
     userDetails = mock(UserDetails.class);
     lenient().when(userDetails.getUid()).thenReturn("userUid123");

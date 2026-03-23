@@ -40,6 +40,8 @@ import static org.hisp.dhis.dml.DmlETagMetrics.TAG_RESULT;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
@@ -212,29 +214,40 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
   public ConditionalETagInterceptor(
       ConditionalETagService conditionalETagService,
       SchemaService schemaService,
-      @Autowired(required = false) MeterRegistry meterRegistry) {
+      @Autowired(required = false) MeterRegistry meterRegistry,
+      @Autowired(required = false) DhisConfigurationProvider config) {
     this.conditionalETagService = conditionalETagService;
     this.schemaService = schemaService;
+    MeterRegistry effectiveRegistry =
+        config != null && config.isEnabled(ConfigurationKey.MONITORING_CACHE_ETAG_ENABLED)
+            ? meterRegistry
+            : null;
 
-    if (meterRegistry != null) {
+    if (effectiveRegistry != null) {
       cacheHit =
-          Counter.builder(ETAG_CACHE_REQUESTS).tag(TAG_RESULT, RESULT_HIT).register(meterRegistry);
+          Counter.builder(ETAG_CACHE_REQUESTS)
+              .tag(TAG_RESULT, RESULT_HIT)
+              .register(effectiveRegistry);
       cacheMiss =
-          Counter.builder(ETAG_CACHE_REQUESTS).tag(TAG_RESULT, RESULT_MISS).register(meterRegistry);
+          Counter.builder(ETAG_CACHE_REQUESTS)
+              .tag(TAG_RESULT, RESULT_MISS)
+              .register(effectiveRegistry);
       cacheSkip =
-          Counter.builder(ETAG_CACHE_REQUESTS).tag(TAG_RESULT, RESULT_SKIP).register(meterRegistry);
+          Counter.builder(ETAG_CACHE_REQUESTS)
+              .tag(TAG_RESULT, RESULT_SKIP)
+              .register(effectiveRegistry);
       endpointComposite =
           Counter.builder(ETAG_CACHE_REQUESTS)
               .tag(TAG_ENDPOINT_TYPE, ENDPOINT_COMPOSITE)
-              .register(meterRegistry);
+              .register(effectiveRegistry);
       endpointMetadata =
           Counter.builder(ETAG_CACHE_REQUESTS)
               .tag(TAG_ENDPOINT_TYPE, ENDPOINT_METADATA)
-              .register(meterRegistry);
+              .register(effectiveRegistry);
       endpointNamedKey =
           Counter.builder("dhis2_etag_cache_requests_total")
               .tag("endpoint_type", "named_key")
-              .register(meterRegistry);
+              .register(effectiveRegistry);
     } else {
       cacheHit = null;
       cacheMiss = null;

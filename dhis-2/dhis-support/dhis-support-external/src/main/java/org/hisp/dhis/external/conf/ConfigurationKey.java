@@ -584,6 +584,9 @@ public enum ConfigurationKey {
   /** CPU monitoring. (default: off) */
   MONITORING_CPU_ENABLED("monitoring.cpu.enabled", Constants.OFF, false),
 
+  /** DML/ETag cache monitoring. (default: off) */
+  MONITORING_CACHE_ETAG_ENABLED("monitoring.cache.etag.enabled", Constants.OFF, false),
+
   /** AppHub base URL. (default: https://apps.dhis2.org). */
   APPHUB_BASE_URL("apphub.base.url", "https://apps.dhis2.org", false),
 

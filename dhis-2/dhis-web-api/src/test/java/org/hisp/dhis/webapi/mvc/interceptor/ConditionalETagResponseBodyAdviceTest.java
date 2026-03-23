@@ -87,7 +87,7 @@ class ConditionalETagResponseBodyAdviceTest {
     mockMvc =
         MockMvcBuilders.standaloneSetup(controller)
             .addInterceptors(
-                new ConditionalETagInterceptor(conditionalETagService, schemaService, null))
+                new ConditionalETagInterceptor(conditionalETagService, schemaService, null, null))
             .setControllerAdvice(new ConditionalETagResponseBodyAdvice(conditionalETagService))
             .build();
   }

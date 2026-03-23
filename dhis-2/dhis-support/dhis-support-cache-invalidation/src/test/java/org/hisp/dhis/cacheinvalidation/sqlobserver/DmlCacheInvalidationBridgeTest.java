@@ -66,7 +66,7 @@ class DmlCacheInvalidationBridgeTest {
 
   @BeforeEach
   void setUp() {
-    bridge = new DmlCacheInvalidationBridge(eTagVersionService, null);
+    bridge = new DmlCacheInvalidationBridge(eTagVersionService, null, null);
   }
 
   @Test

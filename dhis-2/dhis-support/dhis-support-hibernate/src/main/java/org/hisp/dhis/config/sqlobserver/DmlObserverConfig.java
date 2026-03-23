@@ -32,6 +32,8 @@ package org.hisp.dhis.config.sqlobserver;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.persistence.EntityManagerFactory;
 import org.hisp.dhis.external.conf.ApiCacheEnabledCondition;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -57,7 +59,12 @@ public class DmlObserverConfig {
   public DmlObserverListener dmlObserverListener(
       HibernateTableEntityRegistry registry,
       ApplicationEventPublisher eventPublisher,
-      @Autowired(required = false) MeterRegistry meterRegistry) {
-    return new DmlObserverListener(registry, eventPublisher, meterRegistry);
+      @Autowired(required = false) MeterRegistry meterRegistry,
+      @Autowired(required = false) DhisConfigurationProvider config) {
+    MeterRegistry effectiveRegistry =
+        config != null && config.isEnabled(ConfigurationKey.MONITORING_CACHE_ETAG_ENABLED)
+            ? meterRegistry
+            : null;
+    return new DmlObserverListener(registry, eventPublisher, effectiveRegistry);
   }
 }

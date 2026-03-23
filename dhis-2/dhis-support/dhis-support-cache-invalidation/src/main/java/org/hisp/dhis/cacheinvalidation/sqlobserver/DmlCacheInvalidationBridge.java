@@ -48,6 +48,8 @@ import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.dml.DmlEvent;
 import org.hisp.dhis.dml.DmlObservedEvent;
 import org.hisp.dhis.external.conf.ApiCacheEnabledCondition;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.event.EventListener;
@@ -85,23 +87,29 @@ public class DmlCacheInvalidationBridge {
 
   @Autowired
   public DmlCacheInvalidationBridge(
-      ETagService eTagService, @Autowired(required = false) MeterRegistry meterRegistry) {
+      ETagService eTagService,
+      @Autowired(required = false) MeterRegistry meterRegistry,
+      @Autowired(required = false) DhisConfigurationProvider config) {
     this.eTagService = eTagService;
-    this.meterRegistry = meterRegistry;
+    MeterRegistry effectiveRegistry =
+        config != null && config.isEnabled(ConfigurationKey.MONITORING_CACHE_ETAG_ENABLED)
+            ? meterRegistry
+            : null;
+    this.meterRegistry = effectiveRegistry;
 
-    if (meterRegistry != null) {
+    if (effectiveRegistry != null) {
       eventsProcessed =
           Counter.builder(ETAG_BRIDGE_EVENTS)
               .tag(TAG_STATUS, STATUS_PROCESSED)
-              .register(meterRegistry);
+              .register(effectiveRegistry);
       eventsSkippedUntracked =
           Counter.builder(ETAG_BRIDGE_EVENTS)
               .tag(TAG_STATUS, STATUS_SKIPPED_UNTRACKED)
-              .register(meterRegistry);
+              .register(effectiveRegistry);
       eventsSkippedNull =
           Counter.builder(ETAG_BRIDGE_EVENTS)
               .tag(TAG_STATUS, STATUS_SKIPPED_NULL)
-              .register(meterRegistry);
+              .register(effectiveRegistry);
     } else {
       eventsProcessed = null;
       eventsSkippedUntracked = null;
