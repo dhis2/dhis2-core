@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.imports.validation;
 import static org.hisp.dhis.tracker.Assertions.assertHasErrors;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.tracker.imports.validation.Users.USER_11;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_2;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_4;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_5;
@@ -147,7 +148,28 @@ class EnrollmentImportValidationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldFailWhenUpdatingEnrollmentIfUserHasNoSearchScopeAccessToOrgUnit() throws IOException {
+  void shouldUpdateEnrollmentOrgUnitWhenUserHasCaptureScopeAccessToPayloadOrgUnit()
+      throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    assertNoErrors(
+        trackerImportService.importTracker(
+            params,
+            testSetup.fromJson("tracker/validations/enrollments_te_enrollments-data_2.json")));
+    User user = userService.getUser(USER_11);
+    injectSecurityContextUser(user);
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            params,
+            testSetup.fromJson(
+                "tracker/validations/enrollments_te_enrollments-data_2-update.json"));
+
+    assertNoErrors(importReport);
+  }
+
+  @Test
+  void shouldFailWhenUpdatingEnrollmentOrgUnitIfUserHasNoCaptureScopeAccessToPayloadOrgUnit()
+      throws IOException {
     TrackerImportParams params = TrackerImportParams.builder().build();
     assertNoErrors(
         trackerImportService.importTracker(
@@ -162,7 +184,7 @@ class EnrollmentImportValidationTest extends PostgresIntegrationTestBase {
             testSetup.fromJson(
                 "tracker/validations/enrollments_te_enrollments-data_2-update.json"));
 
-    assertHasErrors(importReport, 1, ValidationCode.E1131);
+    assertHasErrors(importReport, 1, ValidationCode.E1000);
   }
 
   @Test

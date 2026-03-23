@@ -158,6 +158,14 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
 
     if (strategy.isCreateOrUpdate()) {
       enrollmentOrgUnit = bundle.getPreheat().getOrganisationUnit(enrollment.getOrgUnit());
+
+      if (strategy.isUpdate()) {
+        OrganisationUnit databaseOrgUnit =
+            bundle.getPreheat().getEnrollment(enrollment.getUID()).getOrganisationUnit();
+        if (!enrollmentOrgUnit.getUid().equals(databaseOrgUnit.getUid())) {
+          checkOrgUnitInCaptureScope(reporter, enrollment, enrollmentOrgUnit, user);
+        }
+      }
     } else {
       enrollmentOrgUnit =
           bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getOrganisationUnit();
@@ -165,8 +173,6 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
 
     if (strategy.isCreate() || strategy.isDelete()) {
       checkOrgUnitInCaptureScope(reporter, enrollment, enrollmentOrgUnit, user);
-    } else {
-      checkOrgUnitInSearchScope(reporter, enrollment, enrollmentOrgUnit, user);
     }
   }
 
@@ -179,13 +185,6 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit, UserDetails user) {
     if (!user.isInUserHierarchy(orgUnit.getStoredPath())) {
       reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
-    }
-  }
-
-  private void checkOrgUnitInSearchScope(
-      Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit, UserDetails user) {
-    if (!user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath())) {
-      reporter.addError(dto, ValidationCode.E1131, user, orgUnit);
     }
   }
 
