@@ -27,11 +27,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.config.sqlobserver;
+package org.hisp.dhis.external.conf;
 
-import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
+import java.util.Arrays;
 import org.hisp.dhis.external.config.ServiceConfig;
 import org.hisp.dhis.external.location.DefaultLocationManager;
 import org.springframework.context.annotation.ConditionContext;
@@ -39,14 +37,20 @@ import org.springframework.context.annotation.ConfigurationCondition;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * Spring condition that is satisfied when the SQL DML observer is enabled via {@link
- * ConfigurationKey#SQL_DML_OBSERVER_ENABLED}.
+ * Unified Spring condition that gates both the SQL DML observer and the ETag API cache. These two
+ * features are tightly coupled: the ETag cache relies on the DML observer for real-time
+ * invalidation, and the DML observer serves no purpose without the ETag cache.
+ *
+ * <p>Satisfied when {@link ConfigurationKey#CACHE_API_ETAG_ENABLED} is {@code on} and the active
+ * Spring profile is not {@code "test"}.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class DmlObserverEnabledCondition implements ConfigurationCondition {
+public class ApiCacheEnabledCondition implements ConfigurationCondition {
 
   @Override
   public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    if (SystemUtils.isTestRun(context.getEnvironment().getActiveProfiles())) {
+    if (Arrays.asList(context.getEnvironment().getActiveProfiles()).contains("test")) {
       return false;
     }
     DefaultLocationManager locationManager =
@@ -54,7 +58,7 @@ public class DmlObserverEnabledCondition implements ConfigurationCondition {
     locationManager.init();
     DefaultDhisConfigurationProvider config = new DefaultDhisConfigurationProvider(locationManager);
     config.init();
-    return config.isEnabled(ConfigurationKey.SQL_DML_OBSERVER_ENABLED);
+    return config.isEnabled(ConfigurationKey.CACHE_API_ETAG_ENABLED);
   }
 
   @Override

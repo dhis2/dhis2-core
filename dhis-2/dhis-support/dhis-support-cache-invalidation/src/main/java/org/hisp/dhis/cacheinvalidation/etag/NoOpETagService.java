@@ -31,6 +31,7 @@ package org.hisp.dhis.cacheinvalidation.etag;
 
 import javax.annotation.Nonnull;
 import org.hisp.dhis.cache.ETagService;
+import org.hisp.dhis.external.conf.ApiCacheDisabledCondition;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +42,7 @@ import org.springframework.stereotype.Service;
  * @author Morten Svanæs
  */
 @Service
-@Conditional(value = ETagCacheDisabledCondition.class)
+@Conditional(value = ApiCacheDisabledCondition.class)
 public class NoOpETagService implements ETagService {
 
   @Override

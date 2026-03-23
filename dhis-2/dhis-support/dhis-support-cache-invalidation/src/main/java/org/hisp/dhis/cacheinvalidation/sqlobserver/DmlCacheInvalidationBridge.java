@@ -29,6 +29,14 @@
  */
 package org.hisp.dhis.cacheinvalidation.sqlobserver;
 
+import static org.hisp.dhis.dml.DmlETagMetrics.ETAG_BRIDGE_EVENTS;
+import static org.hisp.dhis.dml.DmlETagMetrics.ETAG_VERSION_BUMPS;
+import static org.hisp.dhis.dml.DmlETagMetrics.STATUS_PROCESSED;
+import static org.hisp.dhis.dml.DmlETagMetrics.STATUS_SKIPPED_NULL;
+import static org.hisp.dhis.dml.DmlETagMetrics.STATUS_SKIPPED_UNTRACKED;
+import static org.hisp.dhis.dml.DmlETagMetrics.TAG_ENTITY_TYPE;
+import static org.hisp.dhis.dml.DmlETagMetrics.TAG_STATUS;
+
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.HashSet;
@@ -37,9 +45,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.ETagObservedEntityTypes;
 import org.hisp.dhis.cache.ETagService;
-import org.hisp.dhis.cacheinvalidation.etag.ETagCacheEnabledCondition;
 import org.hisp.dhis.dml.DmlEvent;
 import org.hisp.dhis.dml.DmlObservedEvent;
+import org.hisp.dhis.external.conf.ApiCacheEnabledCondition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.event.EventListener;
@@ -58,17 +66,18 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-@Conditional(ETagCacheEnabledCondition.class)
+@Conditional(ApiCacheEnabledCondition.class)
 public class DmlCacheInvalidationBridge {
 
   private static final Class<?> UNRESOLVABLE = Void.class;
 
-  private final ETagService eTagVersionService;
-  private final MeterRegistry meterRegistry;
-
+  // Metrics counters
   private final Counter eventsProcessed;
   private final Counter eventsSkippedUntracked;
   private final Counter eventsSkippedNull;
+
+  private final ETagService eTagService;
+  private final MeterRegistry meterRegistry;
 
   private final ConcurrentHashMap<String, Class<?>> classCache = new ConcurrentHashMap<>();
   private final ConcurrentHashMap<String, Counter> entityTypeBumpCounters =
@@ -76,22 +85,22 @@ public class DmlCacheInvalidationBridge {
 
   @Autowired
   public DmlCacheInvalidationBridge(
-      ETagService eTagVersionService, @Autowired(required = false) MeterRegistry meterRegistry) {
-    this.eTagVersionService = eTagVersionService;
+      ETagService eTagService, @Autowired(required = false) MeterRegistry meterRegistry) {
+    this.eTagService = eTagService;
     this.meterRegistry = meterRegistry;
 
     if (meterRegistry != null) {
       eventsProcessed =
-          Counter.builder("dhis2_etag_bridge_events_total")
-              .tag("status", "processed")
+          Counter.builder(ETAG_BRIDGE_EVENTS)
+              .tag(TAG_STATUS, STATUS_PROCESSED)
               .register(meterRegistry);
       eventsSkippedUntracked =
-          Counter.builder("dhis2_etag_bridge_events_total")
-              .tag("status", "skipped_untracked")
+          Counter.builder(ETAG_BRIDGE_EVENTS)
+              .tag(TAG_STATUS, STATUS_SKIPPED_UNTRACKED)
               .register(meterRegistry);
       eventsSkippedNull =
-          Counter.builder("dhis2_etag_bridge_events_total")
-              .tag("status", "skipped_null")
+          Counter.builder(ETAG_BRIDGE_EVENTS)
+              .tag(TAG_STATUS, STATUS_SKIPPED_NULL)
               .register(meterRegistry);
     } else {
       eventsProcessed = null;
@@ -126,15 +135,15 @@ public class DmlCacheInvalidationBridge {
 
         // Deduplicate within batch: one version bump per entity type per transaction
         if (bumpedTypes.add(entityClass)) {
-          eTagVersionService.incrementEntityTypeVersion(entityClass);
+          eTagService.incrementEntityTypeVersion(entityClass);
           if (eventsProcessed != null) eventsProcessed.increment();
           if (meterRegistry != null) {
             entityTypeBumpCounters
                 .computeIfAbsent(
                     entityClass.getSimpleName(),
                     name ->
-                        Counter.builder("dhis2_etag_version_bumps_total")
-                            .tag("entity_type", name)
+                        Counter.builder(ETAG_VERSION_BUMPS)
+                            .tag(TAG_ENTITY_TYPE, name)
                             .register(meterRegistry))
                 .increment();
           }

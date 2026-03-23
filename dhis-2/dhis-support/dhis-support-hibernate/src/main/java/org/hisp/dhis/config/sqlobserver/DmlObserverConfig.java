@@ -31,6 +31,7 @@ package org.hisp.dhis.config.sqlobserver;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.persistence.EntityManagerFactory;
+import org.hisp.dhis.external.conf.ApiCacheEnabledCondition;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -52,7 +53,7 @@ public class DmlObserverConfig {
   }
 
   @Bean
-  @Conditional(DmlObserverEnabledCondition.class)
+  @Conditional(ApiCacheEnabledCondition.class)
   public DmlObserverListener dmlObserverListener(
       HibernateTableEntityRegistry registry,
       ApplicationEventPublisher eventPublisher,

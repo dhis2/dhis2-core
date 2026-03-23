@@ -29,6 +29,16 @@
  */
 package org.hisp.dhis.config.sqlobserver;
 
+import static org.hisp.dhis.dml.DmlETagMetrics.DML_OBSERVER_BATCHES_DISCARDED;
+import static org.hisp.dhis.dml.DmlETagMetrics.DML_OBSERVER_BATCHES_PUBLISHED;
+import static org.hisp.dhis.dml.DmlETagMetrics.DML_OBSERVER_BATCH_SIZE;
+import static org.hisp.dhis.dml.DmlETagMetrics.DML_OBSERVER_STALE_SWEEPS;
+import static org.hisp.dhis.dml.DmlETagMetrics.DML_OBSERVER_STATEMENTS;
+import static org.hisp.dhis.dml.DmlETagMetrics.RESULT_OBSERVED;
+import static org.hisp.dhis.dml.DmlETagMetrics.RESULT_SKIPPED_EXCLUDED;
+import static org.hisp.dhis.dml.DmlETagMetrics.RESULT_SKIPPED_NON_DML;
+import static org.hisp.dhis.dml.DmlETagMetrics.TAG_RESULT;
+
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -64,17 +74,15 @@ import org.springframework.context.event.ContextRefreshedEvent;
  *
  * <p>Implements both {@link QueryExecutionListener} (for SQL interception) and {@link
  * MethodExecutionListener} (for commit/rollback detection).
+ *
+ * @author Morten Svanæs
  */
 @Slf4j
 public class DmlObserverListener
     implements QueryExecutionListener,
         MethodExecutionListener,
         ApplicationListener<ContextRefreshedEvent> {
-
-  private final HibernateTableEntityRegistry registry;
-  private final ApplicationEventPublisher eventPublisher;
-
-  // Pre-built counters (null when meterRegistry is null)
+  // Metrics counters (null when meterRegistry is null)
   private final Counter statementsObserved;
   private final Counter statementsSkippedNonDml;
   private final Counter statementsSkippedExcluded;
@@ -82,6 +90,9 @@ public class DmlObserverListener
   private final Counter batchesDiscarded;
   private final Counter staleSweeps;
   private final DistributionSummary batchSize;
+
+  private final HibernateTableEntityRegistry registry;
+  private final ApplicationEventPublisher eventPublisher;
 
   /**
    * Accumulated DML events and origin context for one connection. {@code seenTableOps} deduplicates
@@ -115,25 +126,21 @@ public class DmlObserverListener
 
     if (meterRegistry != null) {
       statementsObserved =
-          Counter.builder("dhis2_dml_observer_statements_total")
-              .tag("result", "observed")
+          Counter.builder(DML_OBSERVER_STATEMENTS)
+              .tag(TAG_RESULT, RESULT_OBSERVED)
               .register(meterRegistry);
       statementsSkippedNonDml =
-          Counter.builder("dhis2_dml_observer_statements_total")
-              .tag("result", "skipped_non_dml")
+          Counter.builder(DML_OBSERVER_STATEMENTS)
+              .tag(TAG_RESULT, RESULT_SKIPPED_NON_DML)
               .register(meterRegistry);
       statementsSkippedExcluded =
-          Counter.builder("dhis2_dml_observer_statements_total")
-              .tag("result", "skipped_excluded")
+          Counter.builder(DML_OBSERVER_STATEMENTS)
+              .tag(TAG_RESULT, RESULT_SKIPPED_EXCLUDED)
               .register(meterRegistry);
-      batchesPublished =
-          Counter.builder("dhis2_dml_observer_batches_published_total").register(meterRegistry);
-      batchesDiscarded =
-          Counter.builder("dhis2_dml_observer_batches_discarded_total").register(meterRegistry);
-      staleSweeps =
-          Counter.builder("dhis2_dml_observer_stale_sweeps_total").register(meterRegistry);
-      batchSize =
-          DistributionSummary.builder("dhis2_dml_observer_batch_size").register(meterRegistry);
+      batchesPublished = Counter.builder(DML_OBSERVER_BATCHES_PUBLISHED).register(meterRegistry);
+      batchesDiscarded = Counter.builder(DML_OBSERVER_BATCHES_DISCARDED).register(meterRegistry);
+      staleSweeps = Counter.builder(DML_OBSERVER_STALE_SWEEPS).register(meterRegistry);
+      batchSize = DistributionSummary.builder(DML_OBSERVER_BATCH_SIZE).register(meterRegistry);
     } else {
       statementsObserved = null;
       statementsSkippedNonDml = null;

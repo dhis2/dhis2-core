@@ -43,14 +43,15 @@ public class DmlObserverExclusions {
    * Tables excluded from DML observation:
    *
    * <ul>
-   *   <li>{@code audit} — self-referential: observing audit writes would create infinite loops
+   *   <li>{@code audit} — is never observed in the system, only externaly
    *   <li>{@code flyway_schema_history} — schema migration bookkeeping, not application data
    *   <li>{@code jobconfiguration} — updated on every job execution (heartbeats), very high churn
    *   <li>{@code hibernate_sequence} — sequence generator, not meaningful for cache invalidation
    *   <li>{@code spring_session*} — session store, not application data
    *   <li>{@code icon} — static reference data, rarely changes
    *   <li>{@code messageconversation_*} — messaging join tables, high churn, not cached in API
-   *   <li>{@code datavalue} — highest-volume table in DHIS2 (millions of rows during imports)
+   *   <li>{@code datavalue} — highest-volume table in DHIS2 (possibly millions of rows during
+   *       imports)
    *   <li>{@code trackedentityattributevalue}, {@code eventdatavalue} — tracker data, very high
    *       volume
    *   <li>{@code programstageinstance}, {@code programinstance} — tracker event/enrollment tables

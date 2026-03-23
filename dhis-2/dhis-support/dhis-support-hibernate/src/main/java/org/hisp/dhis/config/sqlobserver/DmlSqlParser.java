@@ -29,35 +29,12 @@
  */
 package org.hisp.dhis.config.sqlobserver;
 
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import lombok.Builder;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.expression.BinaryExpression;
-import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.JdbcParameter;
-import net.sf.jsqlparser.expression.RowConstructor;
-import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
-import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
-import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
-import net.sf.jsqlparser.expression.operators.relational.ItemsList;
-import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.schema.Column;
-import net.sf.jsqlparser.schema.Table;
-import net.sf.jsqlparser.statement.Statement;
-import net.sf.jsqlparser.statement.delete.Delete;
-import net.sf.jsqlparser.statement.insert.Insert;
-import net.sf.jsqlparser.statement.select.Select;
-import net.sf.jsqlparser.statement.select.SelectBody;
-import net.sf.jsqlparser.statement.select.SetOperationList;
-import net.sf.jsqlparser.statement.update.Update;
-import net.sf.jsqlparser.statement.update.UpdateSet;
-import net.sf.jsqlparser.statement.values.ValuesStatement;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.dml.DmlOperation;
@@ -74,12 +51,6 @@ public class DmlSqlParser {
    * distinct SQL templates, so 512 entries provides ample headroom.
    */
   private static final int PARSE_CACHE_MAX_SIZE = 512;
-
-  private static final Cache<String, Optional<DmlParseResult>> PARSE_CACHE =
-      new Cache2kBuilder<String, Optional<DmlParseResult>>() {}.entryCapacity(PARSE_CACHE_MAX_SIZE)
-          .eternal(true)
-          .permitNullValues(true)
-          .build();
 
   private static final Cache<String, Optional<DmlFastResult>> FAST_PARSE_CACHE =
       new Cache2kBuilder<String, Optional<DmlFastResult>>() {}.entryCapacity(PARSE_CACHE_MAX_SIZE)
@@ -129,10 +100,9 @@ public class DmlSqlParser {
         }
         yield Optional.empty();
       }
-      case "UPDATE" -> {
-        // UPDATE tablename SET ...
-        yield Optional.of(new DmlFastResult(DmlOperation.UPDATE, normalizeTableName(tokens[1])));
-      }
+      case "UPDATE" -> // UPDATE tablename SET ...
+          Optional.of(new DmlFastResult(DmlOperation.UPDATE, normalizeTableName(tokens[1])));
+
       case "DELETE" -> {
         // DELETE FROM tablename ...
         if (tokens.length >= 3 && tokens[1].toUpperCase(java.util.Locale.ROOT).equals("FROM")) {
@@ -207,233 +177,6 @@ public class DmlSqlParser {
     // Check first 3 characters to distinguish INSERT/UPDATE/DELETE from DROP/DESCRIBE/IF etc.
     String prefix = query.substring(i, Math.min(i + 3, len)).toUpperCase(java.util.Locale.ROOT);
     return prefix.startsWith("INS") || prefix.startsWith("UPD") || prefix.startsWith("DEL");
-  }
-
-  // Retained for future cache-invalidation feature (replacing Redis/pub-sub Hibernate-event-based
-  // invalidation) where per-row PK extraction and column-level change tracking are needed.
-  /**
-   * Parses a DML SQL statement and extracts operation, table name, and column-to-parameter
-   * mappings. Returns empty for non-DML or unparseable statements.
-   */
-  public static Optional<DmlParseResult> parse(String query) {
-    if (query == null || query.isEmpty()) {
-      return Optional.empty();
-    }
-
-    // Check cache first — Hibernate reuses the same SQL template for prepared statements
-    if (PARSE_CACHE.containsKey(query)) {
-      return PARSE_CACHE.peek(query);
-    }
-
-    // Strip leading MDC comment for parsing
-    String sqlToParse = stripLeadingComment(query);
-
-    Optional<DmlParseResult> result;
-    try {
-      Statement stmt = CCJSqlParserUtil.parse(sqlToParse);
-
-      if (stmt instanceof Insert insert) {
-        result = parseInsert(insert);
-      } else if (stmt instanceof Update update) {
-        result = parseUpdate(update);
-      } else if (stmt instanceof Delete delete) {
-        result = parseDelete(delete);
-      } else {
-        result = Optional.empty();
-      }
-    } catch (Exception e) {
-      log.trace("Failed to parse SQL: {}", query, e);
-      result = Optional.empty();
-    }
-
-    PARSE_CACHE.put(query, result);
-    return result;
-  }
-
-  private static Optional<DmlParseResult> parseInsert(Insert insert) {
-    String tableName = extractTableName(insert.getTable());
-    Map<String, Integer> columnToParam = new HashMap<>();
-
-    List<Column> columns = insert.getColumns();
-    if (columns != null && insert.getSelect() != null) {
-      // Map columns to JDBC param positions. Mixed literal/parameter VALUES means column
-      // position may differ from param position.
-      List<Expression> valuesExpressions = extractValuesExpressions(insert);
-      if (!valuesExpressions.isEmpty() && valuesExpressions.size() == columns.size()) {
-        int paramIndex = 0;
-        for (int i = 0; i < columns.size(); i++) {
-          if (valuesExpressions.get(i) instanceof JdbcParameter) {
-            paramIndex++;
-            columnToParam.put(columns.get(i).getColumnName().toLowerCase(), paramIndex);
-          }
-        }
-      } else {
-        // Fallback: assume all columns are parameterized
-        for (int i = 0; i < columns.size(); i++) {
-          columnToParam.put(columns.get(i).getColumnName().toLowerCase(), i + 1);
-        }
-      }
-    }
-
-    return Optional.of(
-        DmlParseResult.builder()
-            .operation(DmlOperation.INSERT)
-            .tableName(tableName)
-            .columnToParamIndex(columnToParam)
-            .build());
-  }
-
-  /**
-   * Extracts expressions from the first VALUES row of an INSERT. Returns an empty list if the
-   * structure cannot be navigated (e.g., INSERT ... SELECT).
-   */
-  private static List<Expression> extractValuesExpressions(Insert insert) {
-    try {
-      Select sel = insert.getSelect();
-      if (sel == null) return List.of();
-      SelectBody body = sel.getSelectBody();
-      if (!(body instanceof SetOperationList sol)) return List.of();
-      for (SelectBody sb : sol.getSelects()) {
-        if (sb instanceof ValuesStatement vs) {
-          ItemsList items = vs.getExpressions();
-          if (items instanceof ExpressionList el && !el.getExpressions().isEmpty()) {
-            Expression first = el.getExpressions().get(0);
-            if (first instanceof RowConstructor rc && rc.getExprList() != null) {
-              return rc.getExprList().getExpressions();
-            }
-          }
-        }
-      }
-    } catch (Exception e) {
-      log.trace("Could not extract VALUES expressions from INSERT", e);
-    }
-    return List.of();
-  }
-
-  private static Optional<DmlParseResult> parseUpdate(Update update) {
-    String tableName = extractTableName(update.getTable());
-
-    // Count SET clause params first to offset WHERE params correctly
-    int setParamCount = countSetParams(update);
-    Map<String, Integer> columnToParam = extractWhereColumnParams(update.getWhere(), setParamCount);
-    Set<String> updatedColumns = extractSetColumns(update);
-
-    return Optional.of(
-        DmlParseResult.builder()
-            .operation(DmlOperation.UPDATE)
-            .tableName(tableName)
-            .columnToParamIndex(columnToParam)
-            .updatedColumns(updatedColumns)
-            .build());
-  }
-
-  private static Optional<DmlParseResult> parseDelete(Delete delete) {
-    String tableName = extractTableName(delete.getTable());
-    Map<String, Integer> columnToParam = extractWhereColumnParams(delete.getWhere(), 0);
-
-    return Optional.of(
-        DmlParseResult.builder()
-            .operation(DmlOperation.DELETE)
-            .tableName(tableName)
-            .columnToParamIndex(columnToParam)
-            .build());
-  }
-
-  /** Extracts the table name, stripping any schema prefix. */
-  static String extractTableName(Table table) {
-    return table.getName().toLowerCase();
-  }
-
-  /**
-   * Counts the number of JDBC parameter placeholders in UPDATE SET clauses. Uses {@code
-   * getUpdateSets()} to iterate over each SET assignment. This is needed to correctly offset WHERE
-   * clause parameter positions.
-   */
-  private static int countSetParams(Update update) {
-    int count = 0;
-    List<UpdateSet> updateSets = update.getUpdateSets();
-    if (updateSets != null) {
-      for (UpdateSet updateSet : updateSets) {
-        if (updateSet.getExpressions() != null) {
-          for (Expression expr : updateSet.getExpressions()) {
-            if (expr instanceof JdbcParameter) {
-              count++;
-            }
-          }
-        }
-      }
-    }
-    return count;
-  }
-
-  /** Extracts the column names from the SET clause of an UPDATE statement. */
-  private static Set<String> extractSetColumns(Update update) {
-    Set<String> columns = new LinkedHashSet<>();
-    List<UpdateSet> updateSets = update.getUpdateSets();
-    if (updateSets != null) {
-      for (UpdateSet updateSet : updateSets) {
-        if (updateSet.getColumns() != null) {
-          for (Column col : updateSet.getColumns()) {
-            columns.add(col.getColumnName().toLowerCase());
-          }
-        }
-      }
-    }
-    return Set.copyOf(columns);
-  }
-
-  /**
-   * Extracts column-to-parameter-index mappings from WHERE clause. Only handles simple {@code
-   * column = ?} predicates joined by AND. Parameter positions are 1-based and offset by any
-   * preceding SET clause params.
-   */
-  private static Map<String, Integer> extractWhereColumnParams(Expression where, int paramOffset) {
-    Map<String, Integer> result = new HashMap<>();
-    if (where == null) {
-      return result;
-    }
-    collectEqualsParams(where, result, new int[] {paramOffset});
-    return result;
-  }
-
-  /**
-   * Recursively walks the expression tree collecting {@code column = ?} bindings. Tracks a running
-   * JDBC parameter counter in {@code counter[0]}. Non-equality comparisons consume parameter slots
-   * but are not mapped.
-   */
-  private static void collectEqualsParams(
-      Expression expr, Map<String, Integer> result, int[] counter) {
-    if (expr instanceof EqualsTo equalsTo) {
-      handleEquals(equalsTo, result, counter);
-    } else if (expr instanceof ComparisonOperator comp) {
-      // Non-equality comparison — count ? params but don't map columns.
-      countJdbcParams(comp.getLeftExpression(), counter);
-      countJdbcParams(comp.getRightExpression(), counter);
-    } else if (expr instanceof BinaryExpression binExpr) {
-      // Handle AND/OR by recursing into both sides
-      collectEqualsParams(binExpr.getLeftExpression(), result, counter);
-      collectEqualsParams(binExpr.getRightExpression(), result, counter);
-    }
-  }
-
-  /** Counts JdbcParameter instances in an expression, incrementing the running counter. */
-  private static void countJdbcParams(Expression expr, int[] counter) {
-    if (expr instanceof JdbcParameter) {
-      counter[0]++;
-    }
-  }
-
-  private static void handleEquals(EqualsTo equalsTo, Map<String, Integer> result, int[] counter) {
-    Expression left = equalsTo.getLeftExpression();
-    Expression right = equalsTo.getRightExpression();
-
-    if (left instanceof Column col && right instanceof JdbcParameter) {
-      counter[0]++;
-      result.put(col.getColumnName().toLowerCase(), counter[0]);
-    } else if (right instanceof Column col && left instanceof JdbcParameter) {
-      counter[0]++;
-      result.put(col.getColumnName().toLowerCase(), counter[0]);
-    }
   }
 
   /** Strips a leading SQL block comment (e.g. MDC context) from the query. */

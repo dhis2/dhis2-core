@@ -26,8 +26,7 @@ Examples:
 
 Notes:
   - Pass the API base URL, typically ending in /api
-  - The target server must run with cache.api.etag.enabled=on
-  - Invalidation probes also require sql.dml.observer.enabled=on
+  - The target server must run with cache.api.etag.enabled=on (this also enables the DML observer)
 EOF
 }
 

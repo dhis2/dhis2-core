@@ -27,28 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation.etag;
+package org.hisp.dhis.external.conf;
 
-import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
-import org.hisp.dhis.external.conf.ConfigurationKey;
+import java.util.Arrays;
+import org.hisp.dhis.external.config.ServiceConfig;
+import org.hisp.dhis.external.location.DefaultLocationManager;
 import org.springframework.context.annotation.ConditionContext;
+import org.springframework.context.annotation.ConfigurationCondition;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
+ * Inverse of {@link ApiCacheEnabledCondition}. Satisfied when the API cache feature is disabled or
+ * the active Spring profile is {@code "test"}.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ETagCacheDisabledCondition extends PropertiesAwareConfigurationCondition {
+public class ApiCacheDisabledCondition implements ConfigurationCondition {
+
   @Override
   public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    if (SystemUtils.isTestRun(context.getEnvironment().getActiveProfiles())) {
+    if (Arrays.asList(context.getEnvironment().getActiveProfiles()).contains("test")) {
       return true;
     }
-    return !getConfiguration().isEnabled(ConfigurationKey.CACHE_API_ETAG_ENABLED);
+    DefaultLocationManager locationManager =
+        (DefaultLocationManager) new ServiceConfig().locationManager();
+    locationManager.init();
+    DefaultDhisConfigurationProvider config = new DefaultDhisConfigurationProvider(locationManager);
+    config.init();
+    return !config.isEnabled(ConfigurationKey.CACHE_API_ETAG_ENABLED);
   }
 
   @Override
   public ConfigurationPhase getConfigurationPhase() {
-    return ConfigurationPhase.PARSE_CONFIGURATION;
+    return ConfigurationPhase.REGISTER_BEAN;
   }
 }

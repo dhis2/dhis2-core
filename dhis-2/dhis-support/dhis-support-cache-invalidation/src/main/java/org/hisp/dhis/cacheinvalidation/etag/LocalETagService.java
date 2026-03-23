@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.cache.ETagService;
+import org.hisp.dhis.external.conf.ApiCacheEnabledCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.InitializingBean;
@@ -49,7 +50,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-@Conditional(value = ETagCacheEnabledCondition.class)
+@Conditional(value = ApiCacheEnabledCondition.class)
 public class LocalETagService implements ETagService, InitializingBean {
 
   /** Entity type versions — bounded by the number of Hibernate-mapped entity classes (~200). */
@@ -63,15 +64,6 @@ public class LocalETagService implements ETagService, InitializingBean {
   @Override
   public void afterPropertiesSet() {
     validateTtlMinutes();
-
-    if (!configurationProvider.isEnabled(ConfigurationKey.SQL_DML_OBSERVER_ENABLED)) {
-      log.warn(
-          "ETag cache is enabled but SQL DML observer is disabled. "
-              + "Cache invalidation will rely solely on the TTL safety window ({} min). "
-              + "Enable {} for real-time invalidation.",
-          getTtlMinutes(),
-          ConfigurationKey.SQL_DML_OBSERVER_ENABLED.getKey());
-    }
   }
 
   private void validateTtlMinutes() {

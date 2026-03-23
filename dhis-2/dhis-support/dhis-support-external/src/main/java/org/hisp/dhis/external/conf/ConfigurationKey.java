@@ -719,7 +719,11 @@ public enum ConfigurationKey {
   /** Redis based cache invalidation feature. Enable or disable. */
   REDIS_CACHE_INVALIDATION_ENABLED("redis.cache.invalidation.enabled", Constants.OFF, false),
 
-  /** SQL DML observer for JDBC-level audit and cache invalidation. Enable or disable. */
+  /**
+   * @deprecated Use {@link #CACHE_API_ETAG_ENABLED} instead. Both the SQL DML observer and ETag
+   *     cache are now controlled by a single flag.
+   */
+  @Deprecated
   SQL_DML_OBSERVER_ENABLED("sql.dml.observer.enabled", Constants.ON, false),
 
   /** Content Security Policy feature. Enable or disable the feature. (sensitive) */
@@ -811,9 +815,10 @@ public enum ConfigurationKey {
   CACHE_EHCACHE_CONFIG_FILE("cache.ehcache.config.file", "classpath:ehcache.xml", false),
 
   /**
-   * Enable conditional ETag caching for API responses. This provides efficient HTTP caching where
-   * ETags are validated BEFORE heavy computations, using local in-memory version tracking for cache
-   * invalidation. (default: on)
+   * Enable conditional ETag caching for API responses and the SQL DML observer that drives
+   * real-time cache invalidation. This provides efficient HTTP caching where ETags are validated
+   * BEFORE heavy computations, using local in-memory version tracking for cache invalidation.
+   * (default: on)
    */
   CACHE_API_ETAG_ENABLED("cache.api.etag.enabled", Constants.ON, false),
 

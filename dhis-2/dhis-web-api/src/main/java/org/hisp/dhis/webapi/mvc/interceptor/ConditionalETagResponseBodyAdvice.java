@@ -49,6 +49,8 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
  *
  * <p>This advice is intentionally broad and only acts when {@link ConditionalETagInterceptor}
  * marked the request as cacheable.
+ *
+ * @author Morten Svanæs
  */
 @ControllerAdvice(basePackages = "org.hisp.dhis.webapi")
 @RequiredArgsConstructor

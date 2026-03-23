@@ -58,7 +58,6 @@ class LocalETagServiceConcurrencyTest {
   void setUp() throws ReflectiveOperationException {
     DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
     when(config.isEnabled(ConfigurationKey.CACHE_API_ETAG_ENABLED)).thenReturn(true);
-    when(config.isEnabled(ConfigurationKey.SQL_DML_OBSERVER_ENABLED)).thenReturn(true);
     when(config.getPropertyOrDefault(
             ConfigurationKey.CACHE_API_ETAG_TTL_MINUTES,
             ConfigurationKey.CACHE_API_ETAG_TTL_MINUTES.getDefaultValue()))

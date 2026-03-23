@@ -44,6 +44,8 @@ import org.springframework.beans.factory.ObjectProvider;
 /**
  * Maps SQL table names to Hibernate entity classes and their PK column names. Populated lazily to
  * break the circular dependency between DataSource and EntityManagerFactory.
+ *
+ * @author Morten Svanæs
  */
 @Slf4j
 public class HibernateTableEntityRegistry {

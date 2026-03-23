@@ -29,6 +29,15 @@
  */
 package org.hisp.dhis.webapi.mvc.interceptor;
 
+import static org.hisp.dhis.dml.DmlETagMetrics.ENDPOINT_COMPOSITE;
+import static org.hisp.dhis.dml.DmlETagMetrics.ENDPOINT_METADATA;
+import static org.hisp.dhis.dml.DmlETagMetrics.ETAG_CACHE_REQUESTS;
+import static org.hisp.dhis.dml.DmlETagMetrics.RESULT_HIT;
+import static org.hisp.dhis.dml.DmlETagMetrics.RESULT_MISS;
+import static org.hisp.dhis.dml.DmlETagMetrics.RESULT_SKIP;
+import static org.hisp.dhis.dml.DmlETagMetrics.TAG_ENDPOINT_TYPE;
+import static org.hisp.dhis.dml.DmlETagMetrics.TAG_RESULT;
+
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.http.HttpServletRequest;
@@ -171,6 +180,7 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
   private final ConditionalETagService conditionalETagService;
   private final SchemaService schemaService;
 
+  // Metrics counters
   private final Counter cacheHit;
   private final Counter cacheMiss;
   private final Counter cacheSkip;
@@ -187,24 +197,18 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
 
     if (meterRegistry != null) {
       cacheHit =
-          Counter.builder("dhis2_etag_cache_requests_total")
-              .tag("result", "hit")
-              .register(meterRegistry);
+          Counter.builder(ETAG_CACHE_REQUESTS).tag(TAG_RESULT, RESULT_HIT).register(meterRegistry);
       cacheMiss =
-          Counter.builder("dhis2_etag_cache_requests_total")
-              .tag("result", "miss")
-              .register(meterRegistry);
+          Counter.builder(ETAG_CACHE_REQUESTS).tag(TAG_RESULT, RESULT_MISS).register(meterRegistry);
       cacheSkip =
-          Counter.builder("dhis2_etag_cache_requests_total")
-              .tag("result", "skip")
-              .register(meterRegistry);
+          Counter.builder(ETAG_CACHE_REQUESTS).tag(TAG_RESULT, RESULT_SKIP).register(meterRegistry);
       endpointComposite =
-          Counter.builder("dhis2_etag_cache_requests_total")
-              .tag("endpoint_type", "composite")
+          Counter.builder(ETAG_CACHE_REQUESTS)
+              .tag(TAG_ENDPOINT_TYPE, ENDPOINT_COMPOSITE)
               .register(meterRegistry);
       endpointMetadata =
-          Counter.builder("dhis2_etag_cache_requests_total")
-              .tag("endpoint_type", "metadata")
+          Counter.builder(ETAG_CACHE_REQUESTS)
+              .tag(TAG_ENDPOINT_TYPE, ENDPOINT_METADATA)
               .register(meterRegistry);
     } else {
       cacheHit = null;
@@ -566,11 +570,6 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
   /** Returns the composite entity types for the given pattern key. Visible for testing. */
   static Set<Class<?>> getCompositeEndpointTypes(String pattern) {
     return COMPOSITE_ENDPOINTS.get(pattern);
-  }
-
-  /** Returns the metadata override types for the given key. Visible for testing. */
-  static Set<Class<?>> getMetadataEndpointOverrideTypes(String pattern) {
-    return METADATA_ENDPOINT_OVERRIDES.get(pattern);
   }
 
   private record CompositeEndpointPattern(

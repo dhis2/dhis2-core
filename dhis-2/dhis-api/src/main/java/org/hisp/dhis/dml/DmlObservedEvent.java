@@ -42,10 +42,6 @@ public class DmlObservedEvent extends ApplicationEvent {
   private final transient List<DmlEvent> events;
   private final transient DmlOrigin origin;
 
-  public DmlObservedEvent(Object source, List<DmlEvent> events) {
-    this(source, events, null);
-  }
-
   public DmlObservedEvent(Object source, List<DmlEvent> events, DmlOrigin origin) {
     super(source);
     this.events = List.copyOf(events);
