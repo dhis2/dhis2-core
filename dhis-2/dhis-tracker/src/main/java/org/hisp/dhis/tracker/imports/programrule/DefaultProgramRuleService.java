@@ -231,8 +231,10 @@ class DefaultProgramRuleService implements ProgramRuleService {
       return payloadAttributes;
     }
 
-    List<String> payloadAttributeValuesIds =
-        payloadAttributes.stream().map(RuleAttributeValue::getTrackedEntityAttribute).toList();
+    Set<String> payloadAttributeValuesIds =
+        payloadAttributes.stream()
+            .map(RuleAttributeValue::getTrackedEntityAttribute)
+            .collect(Collectors.toSet());
 
     Stream<RuleAttributeValue> dbAttributesNotPresentInPayload =
         trackedEntity.getTrackedEntityAttributeValues().stream()
@@ -266,10 +268,9 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
   // Combine pre-fetched saved events with payload events for a single enrollment.
   private List<RuleEvent> buildRuleEvents(
-      List<RuleEvent> savedRuleEvents,
-      List<TrackerEvent> payloadEvents,
-      TrackerPreheat preheat) {
-    List<RuleEvent> payloadRuleEvents = RuleEngineMapper.mapPayloadTrackerEvents(preheat, payloadEvents);
+      List<RuleEvent> savedRuleEvents, List<TrackerEvent> payloadEvents, TrackerPreheat preheat) {
+    List<RuleEvent> payloadRuleEvents =
+        RuleEngineMapper.mapPayloadTrackerEvents(preheat, payloadEvents);
     return Stream.concat(savedRuleEvents.stream(), payloadRuleEvents.stream()).toList();
   }
 

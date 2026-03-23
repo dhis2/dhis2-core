@@ -52,9 +52,9 @@ public interface ProgramRuleEngine {
       @Nonnull UserDetails user);
 
   /**
-   * Evaluate program rules for multiple enrollments belonging to the same {@link Program},
-   * building the rule engine context once. Rules are evaluated under the authorization of given
-   * {@link UserDetails}.
+   * Evaluate program rules for multiple enrollments belonging to the same {@link Program}, building
+   * the rule engine context once. Rules are evaluated under the authorization of given {@link
+   * UserDetails}.
    */
   RuleEngineEffects evaluateEnrollmentsAndTrackerEvents(
       @Nonnull List<Map.Entry<RuleEnrollment, List<RuleEvent>>> enrollmentsWithEvents,
