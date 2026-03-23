@@ -29,7 +29,10 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.hisp.dhis.analytics.TimeField.EVENT_DATE;
+import static org.hisp.dhis.analytics.TimeField.INCIDENT_DATE;
 import static org.hisp.dhis.analytics.TimeField.OCCURRED_DATE;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 
 import java.util.List;
@@ -91,8 +94,27 @@ public class EventPeriodUtils {
     return period.getItems().stream().anyMatch(EventPeriodUtils::isDefaultPeriod);
   }
 
+  /**
+   * Removes the implicit default event-date start/end range when it would conflict with
+   * stage-specific date query items.
+   *
+   * <p>Stage-specific date items such as {@code stageUid.EVENT_DATE} and {@code
+   * stageUid.SCHEDULED_DATE} already contribute their own stage-constrained date predicates. In
+   * that case, a global {@code startDate}/{@code endDate} range on the default event-date path
+   * would incorrectly add an extra event-date restriction and must be removed.
+   *
+   * <p>Explicit non-conflicting time fields, for example {@code LAST_UPDATED} or {@code
+   * SCHEDULED_DATE}, are preserved so their caller-selected date ranges continue to be intersected
+   * with the stage-specific predicates.
+   *
+   * @param params the query parameters to sanitize
+   * @return the original params when no sanitization is needed, otherwise a copy with {@code
+   *     startDate} and {@code endDate} cleared
+   */
   public static EventQueryParams sanitizeTimeFiltersForStageDateItems(EventQueryParams params) {
-    if (!params.hasStageDateItem()) {
+    if (!params.hasStageDateItem()
+        || !params.hasStartEndDate()
+        || hasExplicitNonConflictingTimeField(params)) {
       return params;
     }
 
@@ -105,5 +127,15 @@ public class EventPeriodUtils {
 
   private static boolean isDefaultPeriod(DimensionalItemObject dimensionalItemObject) {
     return ((PeriodDimension) dimensionalItemObject).isDefault();
+  }
+
+  private static boolean hasExplicitNonConflictingTimeField(EventQueryParams params) {
+    String timeField = params.getTimeField();
+
+    return timeField != null
+        && !EVENT_DATE.name().equals(timeField)
+        && !OCCURRED_DATE.name().equals(timeField)
+        && !INCIDENT_DATE.name().equals(timeField)
+        && !OCCURRED_DATE_COLUMN_NAME.equals(timeField);
   }
 }

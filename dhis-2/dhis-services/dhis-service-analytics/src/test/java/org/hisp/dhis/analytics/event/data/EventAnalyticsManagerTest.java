@@ -53,6 +53,7 @@ import static org.hisp.dhis.test.TestBase.createOrganisationUnitGroup;
 import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramIndicator;
+import static org.hisp.dhis.test.TestBase.getDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -331,6 +332,82 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     assertThat(sql.getValue(), containsString("ax.\"created\" < '2018-01-01'"));
     assertThat(sql.getValue(), containsString("ax.\"lastupdated\" >= '2022-01-01'"));
     assertThat(sql.getValue(), containsString("ax.\"lastupdated\" < '2023-01-01'"));
+    assertThat(sql.getValue(), containsString("ax.\"occurreddate\" >= '2026-01-01'"));
+    assertThat(sql.getValue(), containsString("ax.\"occurreddate\" < '2027-01-01'"));
+    assertThat(sql.getValue(), containsString("ax.\"ps\" = '" + programStage.getUid() + "'"));
+  }
+
+  @Test
+  void verifyGetEventSqlKeepsExplicitLastUpdatedTimeFieldWithStageSpecificEventDate() {
+    mockEmptyRowSet();
+
+    QueryItem stageEventDateItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
+            programA,
+            null,
+            ValueType.DATE,
+            AggregationType.NONE,
+            null);
+    stageEventDateItem.setProgramStage(programStage);
+    stageEventDateItem.addFilter(new QueryFilter(QueryOperator.GE, "2026-01-01"));
+    stageEventDateItem.addFilter(new QueryFilter(QueryOperator.LT, "2027-01-01"));
+
+    EventQueryParams params =
+        createRequestParamsBuilder()
+            .withEndpointItem(EndpointItem.EVENT)
+            .withEndpointAction(QUERY)
+            .withOutputType(EventOutputType.EVENT)
+            .withStartDate(getDate(2017, 1, 1))
+            .withEndDate(getDate(2017, 12, 31))
+            .withTimeField(TimeField.LAST_UPDATED.name())
+            .addItem(stageEventDateItem)
+            .build();
+
+    subject.getEvents(params, createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertThat(sql.getValue(), containsString("ax.\"lastupdated\" >= '2017-01-01'"));
+    assertThat(sql.getValue(), containsString("ax.\"lastupdated\" < '2018-01-01'"));
+    assertThat(sql.getValue(), containsString("ax.\"occurreddate\" >= '2026-01-01'"));
+    assertThat(sql.getValue(), containsString("ax.\"occurreddate\" < '2027-01-01'"));
+    assertThat(sql.getValue(), containsString("ax.\"ps\" = '" + programStage.getUid() + "'"));
+  }
+
+  @Test
+  void verifyGetEventSqlKeepsExplicitScheduledDateTimeFieldWithStageSpecificEventDate() {
+    mockEmptyRowSet();
+
+    QueryItem stageEventDateItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
+            programA,
+            null,
+            ValueType.DATE,
+            AggregationType.NONE,
+            null);
+    stageEventDateItem.setProgramStage(programStage);
+    stageEventDateItem.addFilter(new QueryFilter(QueryOperator.GE, "2026-01-01"));
+    stageEventDateItem.addFilter(new QueryFilter(QueryOperator.LT, "2027-01-01"));
+
+    EventQueryParams params =
+        createRequestParamsBuilder()
+            .withEndpointItem(EndpointItem.EVENT)
+            .withEndpointAction(QUERY)
+            .withOutputType(EventOutputType.EVENT)
+            .withStartDate(getDate(2017, 1, 1))
+            .withEndDate(getDate(2017, 12, 31))
+            .withTimeField(TimeField.SCHEDULED_DATE.name())
+            .addItem(stageEventDateItem)
+            .build();
+
+    subject.getEvents(params, createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertThat(sql.getValue(), containsString("ax.\"scheduleddate\" >= '2017-01-01'"));
+    assertThat(sql.getValue(), containsString("ax.\"scheduleddate\" < '2018-01-01'"));
     assertThat(sql.getValue(), containsString("ax.\"occurreddate\" >= '2026-01-01'"));
     assertThat(sql.getValue(), containsString("ax.\"occurreddate\" < '2027-01-01'"));
     assertThat(sql.getValue(), containsString("ax.\"ps\" = '" + programStage.getUid() + "'"));
