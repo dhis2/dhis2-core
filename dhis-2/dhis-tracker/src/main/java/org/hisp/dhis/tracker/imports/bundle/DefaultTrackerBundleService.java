@@ -36,6 +36,7 @@ import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Session;
@@ -48,6 +49,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.bundle.persister.CommitService;
 import org.hisp.dhis.tracker.imports.bundle.persister.PersistenceException;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
+import org.hisp.dhis.tracker.imports.bundle.persister.TrackerPersister.PersistResult;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
@@ -111,28 +113,36 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   @Nonnull
   @Override
   @Transactional
-  public PersistenceReport commit(@Nonnull TrackerBundle bundle) {
+  public CommitResult commit(@Nonnull TrackerBundle bundle) {
     if (TrackerBundleMode.VALIDATE == bundle.getImportMode()) {
-      return PersistenceReport.emptyReport();
+      return new CommitResult(PersistenceReport.emptyReport(), List.of());
     }
 
-    TrackerTypeReport trackedEntitiesReport =
+    PersistResult trackedEntities =
         commitService.getTrackerPersister().persist(entityManager, bundle);
-    TrackerTypeReport enrollmentsReport =
+    PersistResult enrollments =
         commitService.getEnrollmentPersister().persist(entityManager, bundle);
-    TrackerTypeReport trackerEventsReport =
+    PersistResult trackerEvents =
         commitService.getTrackerEventPersister().persist(entityManager, bundle);
-    TrackerTypeReport singleEventsReport =
+    PersistResult singleEvents =
         commitService.getSingleEventPersister().persist(entityManager, bundle);
-    TrackerTypeReport relationshipsReport =
+    PersistResult relationships =
         commitService.getRelationshipPersister().persist(entityManager, bundle);
 
-    return new PersistenceReport(
-        trackedEntitiesReport,
-        enrollmentsReport,
-        trackerEventsReport,
-        singleEventsReport,
-        relationshipsReport);
+    PersistenceReport report =
+        new PersistenceReport(
+            trackedEntities.report(),
+            enrollments.report(),
+            trackerEvents.report(),
+            singleEvents.report(),
+            relationships.report());
+
+    List<TrackerNotificationDataBundle> notificationBundles =
+        Stream.of(trackedEntities, enrollments, trackerEvents, singleEvents, relationships)
+            .flatMap(r -> r.notificationBundles().stream())
+            .toList();
+
+    return new CommitResult(report, notificationBundles);
   }
 
   @Override
