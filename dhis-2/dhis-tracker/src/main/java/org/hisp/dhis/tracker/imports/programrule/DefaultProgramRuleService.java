@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.tracker.imports.programrule;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -47,7 +45,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.rules.models.RuleAttributeValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
-import org.hisp.dhis.tracker.export.trackerevent.TrackerEventFields;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -220,8 +217,6 @@ class DefaultProgramRuleService implements ProgramRuleService {
           trackerEventService
               .findEvents(
                   TrackerEventOperationParams.builderForProgram(programUid)
-                      .fields(TrackerEventFields.all())
-                      .orgUnitMode(ACCESSIBLE)
                       .enrollments(Set.of(enrollmentUid))
                       .build())
               .stream()
