@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.imports.programrule.engine;
 
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SERVER_SUPPORTED_TYPES;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -131,6 +132,31 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
       @Nonnull Program program,
       @Nonnull UserDetails user) {
     return evaluateEnrollmentAndEvents(enrollment, events, program, user);
+  }
+
+  @Override
+  public RuleEngineEffects evaluateEnrollmentsAndTrackerEvents(
+      @Nonnull List<Map.Entry<RuleEnrollment, List<RuleEvent>>> enrollmentsWithEvents,
+      @Nonnull Program program,
+      @Nonnull UserDetails user) {
+    if (enrollmentsWithEvents.isEmpty()) {
+      return RuleEngineEffects.of(Collections.emptyList());
+    }
+    List<ProgramRule> rules =
+        programRuleService.getProgramRulesByActionTypes(program, SERVER_SUPPORTED_TYPES);
+    if (rules.isEmpty()) {
+      return RuleEngineEffects.of(Collections.emptyList());
+    }
+    RuleEngineContext context = getRuleEngineContext(program, rules, user);
+    List<RuleEffects> allEffects = new ArrayList<>();
+    for (Map.Entry<RuleEnrollment, List<RuleEvent>> entry : enrollmentsWithEvents) {
+      try {
+        allEffects.addAll(ruleEngine.evaluateAll(entry.getKey(), entry.getValue(), context));
+      } catch (Exception e) {
+        log.error(DebugUtils.getStackTrace(e));
+      }
+    }
+    return RuleEngineEffects.of(allEffects);
   }
 
   @Override

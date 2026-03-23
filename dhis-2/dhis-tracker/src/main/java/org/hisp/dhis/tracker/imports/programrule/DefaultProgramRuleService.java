@@ -29,7 +29,9 @@
  */
 package org.hisp.dhis.tracker.imports.programrule;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -48,6 +50,7 @@ import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.tracker.imports.programrule.engine.RuleEngineEffects;
@@ -110,25 +113,30 @@ class DefaultProgramRuleService implements ProgramRuleService {
     Map<UID, List<RuleEvent>> savedEventsByEnrollment =
         fetchSavedRuleEventsByEnrollment(enrollmentUids, bundle, preheat);
 
-    return bundle.getEnrollments().stream()
-        .map(
-            e -> {
-              List<RuleAttributeValue> attributes =
-                  getAttributes(e.getEnrollment(), e.getTrackedEntity(), bundle, preheat);
-              RuleEnrollment enrollment =
-                  RuleEngineMapper.mapPayloadEnrollment(preheat, e, attributes);
-              Program program = preheat.getProgram(e.getProgram());
+    Map<UID, List<TrackerEvent>> payloadEventsByEnrollment =
+        bundle.getTrackerEvents().stream()
+            .collect(Collectors.groupingBy(TrackerEvent::getEnrollment));
 
-              return programRuleEngine.evaluateEnrollmentAndTrackerEvents(
-                  enrollment,
-                  buildRuleEvents(
-                      e.getUID(),
-                      savedEventsByEnrollment.getOrDefault(e.getUID(), List.of()),
-                      bundle,
-                      preheat),
-                  program,
-                  bundle.getUser());
-            })
+    Map<Program, List<Map.Entry<RuleEnrollment, List<RuleEvent>>>> byProgram = new HashMap<>();
+    for (org.hisp.dhis.tracker.imports.domain.Enrollment e : bundle.getEnrollments()) {
+      List<RuleAttributeValue> attributes =
+          getAttributes(e.getEnrollment(), e.getTrackedEntity(), bundle, preheat);
+      RuleEnrollment enrollment = RuleEngineMapper.mapPayloadEnrollment(preheat, e, attributes);
+      List<RuleEvent> events =
+          buildRuleEvents(
+              savedEventsByEnrollment.getOrDefault(e.getUID(), List.of()),
+              payloadEventsByEnrollment.getOrDefault(e.getUID(), List.of()),
+              preheat);
+      byProgram
+          .computeIfAbsent(preheat.getProgram(e.getProgram()), k -> new ArrayList<>())
+          .add(Map.entry(enrollment, events));
+    }
+
+    return byProgram.entrySet().stream()
+        .map(
+            entry ->
+                programRuleEngine.evaluateEnrollmentsAndTrackerEvents(
+                    entry.getValue(), entry.getKey(), bundle.getUser()))
         .reduce(RuleEngineEffects::merge)
         .orElse(RuleEngineEffects.empty());
   }
@@ -147,22 +155,30 @@ class DefaultProgramRuleService implements ProgramRuleService {
     Map<UID, List<RuleEvent>> savedEventsByEnrollment =
         fetchSavedRuleEventsByEnrollment(enrollmentUids, bundle, preheat);
 
-    return enrollments.stream()
+    Map<UID, List<TrackerEvent>> payloadEventsByEnrollment =
+        bundle.getTrackerEvents().stream()
+            .collect(Collectors.groupingBy(TrackerEvent::getEnrollment));
+
+    Map<Program, List<Map.Entry<RuleEnrollment, List<RuleEvent>>>> byProgram = new HashMap<>();
+    for (Enrollment e : enrollments) {
+      List<RuleAttributeValue> attributes =
+          getAttributes(e.getUID(), e.getTrackedEntity().getUID(), bundle, preheat);
+      RuleEnrollment enrollment = RuleEngineMapper.mapSavedEnrollment(e, attributes);
+      List<RuleEvent> events =
+          buildRuleEvents(
+              savedEventsByEnrollment.getOrDefault(e.getUID(), List.of()),
+              payloadEventsByEnrollment.getOrDefault(e.getUID(), List.of()),
+              preheat);
+      byProgram
+          .computeIfAbsent(e.getProgram(), k -> new ArrayList<>())
+          .add(Map.entry(enrollment, events));
+    }
+
+    return byProgram.entrySet().stream()
         .map(
-            e -> {
-              List<RuleAttributeValue> attributes =
-                  getAttributes(e.getUID(), e.getTrackedEntity().getUID(), bundle, preheat);
-              RuleEnrollment enrollment = RuleEngineMapper.mapSavedEnrollment(e, attributes);
-              return programRuleEngine.evaluateEnrollmentAndTrackerEvents(
-                  enrollment,
-                  buildRuleEvents(
-                      e.getUID(),
-                      savedEventsByEnrollment.getOrDefault(e.getUID(), List.of()),
-                      bundle,
-                      preheat),
-                  e.getProgram(),
-                  bundle.getUser());
-            })
+            entry ->
+                programRuleEngine.evaluateEnrollmentsAndTrackerEvents(
+                    entry.getValue(), entry.getKey(), bundle.getUser()))
         .reduce(RuleEngineEffects::merge)
         .orElse(RuleEngineEffects.empty());
   }
@@ -250,17 +266,10 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
   // Combine pre-fetched saved events with payload events for a single enrollment.
   private List<RuleEvent> buildRuleEvents(
-      UID enrollmentUid,
       List<RuleEvent> savedRuleEvents,
-      TrackerBundle bundle,
+      List<TrackerEvent> payloadEvents,
       TrackerPreheat preheat) {
-    List<RuleEvent> payloadRuleEvents =
-        RuleEngineMapper.mapPayloadTrackerEvents(
-            preheat,
-            bundle.getTrackerEvents().stream()
-                .filter(e -> e.getEnrollment().equals(enrollmentUid))
-                .toList());
-
+    List<RuleEvent> payloadRuleEvents = RuleEngineMapper.mapPayloadTrackerEvents(preheat, payloadEvents);
     return Stream.concat(savedRuleEvents.stream(), payloadRuleEvents.stream()).toList();
   }
 
