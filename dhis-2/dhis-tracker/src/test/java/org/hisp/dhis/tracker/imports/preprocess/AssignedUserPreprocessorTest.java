@@ -53,12 +53,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class AssignedUserPreProcessorTest extends TrackerTestBase {
+class AssignedUserPreprocessorTest extends TrackerTestBase {
   private static final String USER_UID = "User uid";
 
   private static final String USERNAME = "Username";
-
-  private final AssignedUserPreProcessor preProcessorToTest = new AssignedUserPreProcessor();
 
   @Mock private TrackerPreheat preheat;
 
@@ -74,7 +72,7 @@ class AssignedUserPreProcessorTest extends TrackerTestBase {
 
     when(preheat.getUserByUid(USER_UID)).thenReturn(Optional.of(completeUser()));
 
-    preProcessorToTest.process(bundle);
+    AssignedUserPreprocessor.process(bundle);
 
     verify(preheat, times(0)).getUserByUsername(anyString());
     verify(preheat, times(1)).getUserByUid(anyString());
@@ -95,7 +93,7 @@ class AssignedUserPreProcessorTest extends TrackerTestBase {
 
     when(preheat.getUserByUsername(USERNAME)).thenReturn(Optional.of(completeUser()));
 
-    preProcessorToTest.process(bundle);
+    AssignedUserPreprocessor.process(bundle);
 
     verify(preheat, times(1)).getUserByUsername(anyString());
     verify(preheat, times(0)).getUserByUid(anyString());
@@ -114,7 +112,7 @@ class AssignedUserPreProcessorTest extends TrackerTestBase {
             .preheat(preheat)
             .build();
 
-    preProcessorToTest.process(bundle);
+    AssignedUserPreprocessor.process(bundle);
 
     verify(preheat, times(0)).getUserByUsername(anyString());
     verify(preheat, times(0)).getUserByUid(anyString());

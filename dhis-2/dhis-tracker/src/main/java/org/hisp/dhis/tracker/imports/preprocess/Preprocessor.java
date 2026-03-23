@@ -29,26 +29,38 @@
  */
 package org.hisp.dhis.tracker.imports.preprocess;
 
-import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import java.util.List;
+import java.util.function.Consumer;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 
-/**
- * Interface for classes responsible of preprocessing the payload prior to validation.
- *
- * <p>The validation stage is not supposed to change the payload. A pre-processor can modify the
- * payload content and add data to the preheat if needed. Note that the pre-processing stage takes
- * place after the preheat and before the validation.
- *
- * @author Luciano Fiandesio
- */
-public interface BundlePreProcessor {
-  void process(TrackerBundle bundle);
+/** Preprocesses the tracker bundle before validation. Preprocessors run in declaration order. */
+public class Preprocessor {
 
-  default boolean needsToRun(TrackerImportStrategy strategy) {
-    return !strategy.isDelete();
+  private static final List<Consumer<TrackerBundle>> PREPROCESSORS =
+      List.of(
+          EventProgramPreprocessor
+              ::process, // must run before CategoryComboPreprocessor because the latter depends on
+          // events having their program set.
+          CategoryComboPreprocessor::process,
+          EventStatusPreprocessor::process,
+          AssignedUserPreprocessor::process,
+          DuplicateRelationshipsPreprocessor::process);
+
+  private Preprocessor() {
+    throw new UnsupportedOperationException("utility class");
   }
 
-  default int getPriority() {
-    return 0;
+  @Nonnull
+  public static TrackerBundle preprocess(@Nonnull TrackerBundle bundle) {
+    // StrategyPreprocessor runs for all strategies including DELETE since every object needs its
+    // per-object strategy (CREATE/UPDATE/DELETE) resolved before validation and persistence.
+    StrategyPreprocessor.process(bundle);
+    if (!bundle.getImportStrategy().isDelete()) {
+      for (Consumer<TrackerBundle> preprocessor : PREPROCESSORS) {
+        preprocessor.accept(bundle);
+      }
+    }
+    return bundle;
   }
 }
