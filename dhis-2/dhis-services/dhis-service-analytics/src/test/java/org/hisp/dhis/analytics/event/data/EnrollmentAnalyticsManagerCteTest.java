@@ -72,8 +72,10 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.ClickHouseAnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.DorisAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -149,37 +151,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
         .thenReturn(
             new OrganisationUnitResolver.StageOuCteContext(
                 "\"ou\"", "", "\"ouname\" as ev_ouname, \"oucode\" as ev_oucode,"));
-    DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
-        new DefaultProgramIndicatorSubqueryBuilder(
-            programIndicatorService,
-            systemSettingsService,
-            new PostgreSqlBuilder(),
-            dataElementService);
-    ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
-    filterBuilder = new QueryItemFilterBuilder(organisationUnitResolver, sqlBuilder);
-    StageQuerySqlFacade stageQuerySqlFacade =
-        new DefaultStageQuerySqlFacade(
-            new DefaultStageQueryItemClassifier(),
-            new DefaultStageDatePeriodBucketSqlRenderer(sqlBuilder),
-            new DefaultStageOrgUnitSqlService(organisationUnitResolver, sqlBuilder));
-
-    subject =
-        new JdbcEnrollmentAnalyticsManager(
-            jdbcTemplate,
-            programIndicatorService,
-            programIndicatorSubqueryBuilder,
-            piDisagInfoInitializer,
-            piDisagQueryGenerator,
-            enrollmentTimeFieldSqlRenderer,
-            executionPlanStore,
-            systemSettingsService,
-            config,
-            sqlBuilder,
-            organisationUnitResolver,
-            columnMapper,
-            filterBuilder,
-            stageQuerySqlFacade,
-            new DateFieldPeriodBucketColumnResolver(new PostgreSqlBuilder()));
+    subject = createEnrollmentAnalyticsManager(sqlBuilder, "postgresql");
   }
 
   @Test
@@ -511,6 +483,165 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
         generatedSql,
         containsString(
             ", (select \"monthly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('month', eb.\"enrollmentdate\")::date)"));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentUsesJoinBasedPeriodLookupForDoris() {
+    DorisAnalyticsSqlBuilder dorisBuilder =
+        new DorisAnalyticsSqlBuilder("internal", "doris-jdbc.jar");
+    JdbcEnrollmentAnalyticsManager dorisSubject =
+        createEnrollmentAnalyticsManager(dorisBuilder, "doris");
+
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    List<org.hisp.dhis.period.PeriodDimension> periods = createPeriodDimensions("202001");
+    periods.forEach(period -> period.setDateField(TimeField.ENROLLMENT_DATE.name()));
+
+    params.withPeriods(periods, "monthly");
+    params.withEndpointAction(AGGREGATE);
+
+    dorisSubject.getEnrollments(params.build(), new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+
+    assertThat(
+        generatedSql,
+        containsString(
+            "left join analytics_rs_dateperiodstructure dps_period_eb_enrollmentdate on dps_period_eb_enrollmentdate.`dateperiod` = cast(date_trunc(cast(eb.`enrollmentdate` as date), 'month') as date)"));
+    assertThat(generatedSql, containsString("dps_period_eb_enrollmentdate.`monthly` as `monthly`"));
+    assertThat(generatedSql, containsString(", dps_period_eb_enrollmentdate.`monthly`"));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentUsesClickHouseBucketLookupWithoutPostgresFallback() {
+    ClickHouseAnalyticsSqlBuilder clickHouseBuilder = new ClickHouseAnalyticsSqlBuilder("dhis2");
+    JdbcEnrollmentAnalyticsManager clickHouseSubject =
+        createEnrollmentAnalyticsManager(clickHouseBuilder, "clickhouse");
+
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    List<org.hisp.dhis.period.PeriodDimension> periods = createPeriodDimensions("202001");
+    periods.forEach(period -> period.setDateField(TimeField.ENROLLMENT_DATE.name()));
+
+    params.withPeriods(periods, "monthly");
+    params.withEndpointAction(AGGREGATE);
+
+    clickHouseSubject.getEnrollments(params.build(), new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+
+    assertThat(
+        generatedSql,
+        containsString(
+            "(select \"monthly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = toDate(date_trunc('month', toDate(eb.\"enrollmentdate\")))) as \"monthly\""));
+    assertThat(
+        generatedSql,
+        containsString(
+            ", (select \"monthly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = toDate(date_trunc('month', toDate(eb.\"enrollmentdate\"))))"));
+    assertThat(generatedSql, not(containsString("::date")));
+    assertThat(generatedSql, not(containsString(" interval ")));
+    assertThat(generatedSql, not(containsString("make_date")));
+    assertThat(
+        generatedSql,
+        not(
+            containsString(
+                "left join analytics_rs_dateperiodstructure dps_period_eb_enrollmentdate")));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentDorisLastUpdatedFinancialPeriodDoesNotProjectLegacyPeriodColumn() {
+    DorisAnalyticsSqlBuilder dorisBuilder =
+        new DorisAnalyticsSqlBuilder("internal", "doris-jdbc.jar");
+    JdbcEnrollmentAnalyticsManager dorisSubject =
+        createEnrollmentAnalyticsManager(dorisBuilder, "doris");
+
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    List<org.hisp.dhis.period.PeriodDimension> periods = createPeriodDimensions("2018Sep");
+    periods.forEach(period -> period.setDateField(TimeField.LAST_UPDATED.name()));
+
+    params.withPeriods(periods, "financialsep");
+    params.withEndpointAction(AGGREGATE);
+
+    dorisSubject.getEnrollments(params.build(), new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+
+    assertThat(
+        generatedSql,
+        containsString(
+            "left join analytics_rs_dateperiodstructure as dps_period_ax_lastupdated on dps_period_ax_lastupdated.`dateperiod` = date_add(makedate(case when month(cast(ax.`lastupdated` as date)) >= 9 then year(cast(ax.`lastupdated` as date)) else year(cast(ax.`lastupdated` as date)) - 1 end, 1), interval (9 - 1) month)"));
+    assertThat(generatedSql, containsString("ax.enrollment"));
+    assertThat(generatedSql, containsString("lastupdated from analytics_enrollment"));
+    assertThat(generatedSql, not(containsString(", FinancialSep,")));
+    assertThat(
+        generatedSql, containsString("dps_period_eb_lastupdated.`financialsep` as `financialsep`"));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentEventDatePeriodDoesNotProjectEventDateAsStandaloneColumn() {
+    // When EVENT_DATE is the period date field (EVENT_DATE:2022Sep),
+    // the eventdate header should NOT appear as a standalone column in the final SELECT/GROUP BY.
+    // Instead, the period bucket should handle it.
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    List<org.hisp.dhis.period.PeriodDimension> periods = createPeriodDimensions("2022Sep");
+    periods.forEach(period -> period.setDateField(TimeField.EVENT_DATE.name()));
+    params.withPeriods(periods, "financialsep");
+    params.withEndpointAction(AGGREGATE);
+
+    ListGrid grid = new ListGrid();
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+    grid.addHeader(new GridHeader("ou", "Organisation unit", ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader("eventdate", "Event date", ValueType.TEXT, false, true));
+
+    subject.getEnrollments(params.build(), grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+
+    // The period bucket for financialsep should be present
+    assertThat(generatedSql, containsString("\"financialsep\""));
+
+    // eventdate should NOT appear as a standalone column in the outer query
+    // when EVENT_DATE is the period date field — the period bucket already covers it.
+    // The eventdate column in the base CTE is fine, but the outer query must not
+    // project it as a separate dimension.
+    String outerQuery = generatedSql.substring(generatedSql.indexOf("from enrollment_aggr_base"));
+    assertThat(outerQuery, not(containsString("\"eventdate\"")));
+  }
+
+  private JdbcEnrollmentAnalyticsManager createEnrollmentAnalyticsManager(
+      AnalyticsSqlBuilder builder, String analyticsDatabase) {
+    when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn(analyticsDatabase);
+
+    DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
+        new DefaultProgramIndicatorSubqueryBuilder(
+            programIndicatorService, systemSettingsService, builder, dataElementService);
+    ColumnMapper columnMapper = new ColumnMapper(builder, systemSettingsService);
+    filterBuilder = new QueryItemFilterBuilder(organisationUnitResolver, builder);
+    EnrollmentTimeFieldSqlRenderer timeFieldRenderer = new EnrollmentTimeFieldSqlRenderer(builder);
+    StageQuerySqlFacade stageQuerySqlFacade =
+        new DefaultStageQuerySqlFacade(
+            new DefaultStageQueryItemClassifier(),
+            new DefaultStageDatePeriodBucketSqlRenderer(builder),
+            new DefaultStageOrgUnitSqlService(organisationUnitResolver, builder));
+
+    return new JdbcEnrollmentAnalyticsManager(
+        jdbcTemplate,
+        programIndicatorService,
+        programIndicatorSubqueryBuilder,
+        piDisagInfoInitializer,
+        piDisagQueryGenerator,
+        timeFieldRenderer,
+        executionPlanStore,
+        systemSettingsService,
+        config,
+        builder,
+        organisationUnitResolver,
+        columnMapper,
+        filterBuilder,
+        stageQuerySqlFacade,
+        new DateFieldPeriodBucketColumnResolver(builder));
   }
 
   @Test
