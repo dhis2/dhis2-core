@@ -1580,6 +1580,43 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     assertThat(sql, containsString("enrl.\"oulevel\" in (4)"));
   }
 
+  @Test
+  void testGetEventCountIncludesStageDateFiltersForExperimentalEngine() {
+    when(systemSettings.getUseExperimentalAnalyticsQueryEngine()).thenReturn(true);
+    when(jdbcTemplate.queryForObject(any(String.class), eq(Long.class))).thenReturn(1L);
+
+    ProgramStage ps = createProgramStage('A', programA);
+    ps.setUid("Zj7UnCAulEk");
+
+    QueryItem queryItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME));
+    queryItem.setProgramStage(ps);
+    queryItem.setValueType(ValueType.DATE);
+    queryItem.addFilter(new QueryFilter(QueryOperator.GE, "2021-03-01"));
+    queryItem.addFilter(new QueryFilter(QueryOperator.LE, "2021-05-31"));
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .withOrganisationUnits(List.of(createOrganisationUnit('A')))
+            .addItemFilter(queryItem)
+            .build();
+
+    eventSubject.getEventCount(params);
+
+    ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+    verify(jdbcTemplate).queryForObject(sqlCaptor.capture(), eq(Long.class));
+
+    String sql = sqlCaptor.getValue();
+    assertThat(sql, containsString("\"occurreddate\" >= '2021-03-01'"));
+    assertThat(sql, containsString("\"occurreddate\" <= '2021-05-31'"));
+    assertThat(sql, containsString("\"ps\" = 'Zj7UnCAulEk'"));
+  }
+
   private EventQueryParams getEventQueryParamsForCoordinateFieldsTest(
       List<String> coordinateFields) {
     DataElement deA = createDataElement('A', TEXT, AggregationType.NONE);
