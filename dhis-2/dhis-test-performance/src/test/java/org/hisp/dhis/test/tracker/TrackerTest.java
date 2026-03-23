@@ -32,23 +32,24 @@ package org.hisp.dhis.test.tracker;
 import static io.gatling.javaapi.core.CoreDsl.StringBody;
 import static io.gatling.javaapi.core.CoreDsl.atOnceUsers;
 import static io.gatling.javaapi.core.CoreDsl.constantConcurrentUsers;
-import static io.gatling.javaapi.core.CoreDsl.constantUsersPerSec;
 import static io.gatling.javaapi.core.CoreDsl.details;
+import static io.gatling.javaapi.core.CoreDsl.during;
 import static io.gatling.javaapi.core.CoreDsl.exec;
 import static io.gatling.javaapi.core.CoreDsl.feed;
 import static io.gatling.javaapi.core.CoreDsl.forAll;
 import static io.gatling.javaapi.core.CoreDsl.group;
-import static io.gatling.javaapi.core.CoreDsl.incrementUsersPerSec;
+import static io.gatling.javaapi.core.CoreDsl.incrementConcurrentUsers;
 import static io.gatling.javaapi.core.CoreDsl.jsonPath;
-import static io.gatling.javaapi.core.CoreDsl.rampUsersPerSec;
+import static io.gatling.javaapi.core.CoreDsl.rampConcurrentUsers;
+import static io.gatling.javaapi.core.CoreDsl.repeat;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
 
 import io.gatling.javaapi.core.Assertion;
+import io.gatling.javaapi.core.ChainBuilder;
 import io.gatling.javaapi.core.ClosedInjectionStep;
 import io.gatling.javaapi.core.FeederBuilder;
-import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.PopulationBuilder;
 import io.gatling.javaapi.core.ScenarioBuilder;
 import io.gatling.javaapi.core.Simulation;
@@ -123,12 +124,13 @@ import org.slf4j.LoggerFactory;
  *       Example: {@code -Dprofile=smoke -Drepeat=50}
  *   <li><b>load</b> - Gradual ramp-up to sustained load <br>
  *       Shape: ___/‾‾‾‾‾‾‾‾‾ <br>
- *       Uses: usersPerSec, rampDurationSec (ramp-up), durationSec (sustained), repeat (default: 1)
- *       <br>
+ *       Uses the closed injection model: a fixed pool of concurrent users log in once and loop via
+ *       {@code during()} for the injection duration. <br>
+ *       Uses: concurrentUsers, rampDurationSec (ramp-up), durationSec (sustained) <br>
  *       Default: 30s ramp -> 3min sustained (3.5min total) <br>
- *       Example: {@code -Dprofile=load -DusersPerSec=4 -DrampDurationSec=30 -DdurationSec=180}
- *       <p>For soak testing, use load with longer duration: {@code -Dprofile=load -DusersPerSec=4
- *       -DdurationSec=3600}
+ *       Example: {@code -Dprofile=load -DconcurrentUsers=4 -DrampDurationSec=30 -DdurationSec=180}
+ *       <p>For soak testing, use load with longer duration: {@code -Dprofile=load
+ *       -DconcurrentUsers=4 -DdurationSec=3600}
  *   <li><b>capacity</b> - Staircase pattern to find maximum sustainable users <br>
  *       Shape: <br>
  *       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;...
@@ -136,10 +138,12 @@ import org.slf4j.LoggerFactory;
  *       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/‾‾ <br>
  *       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/‾‾ <br>
  *       __/‾‾ <br>
- *       Uses: usersPerSec (target), rampDurationSec (between steps), durationSec (per step), steps,
- *       repeat (default: 1) <br>
+ *       Uses the closed injection model: concurrent users log in once and loop via {@code during()}
+ *       for the injection duration. <br>
+ *       Uses: concurrentUsers (target), rampDurationSec (between steps), durationSec (per step),
+ *       steps <br>
  *       Default: 5 steps x 30s with 10s ramps (3.2min total) <br>
- *       Example: {@code -Dprofile=capacity -DusersPerSec=10 -Dsteps=5 -DrampDurationSec=10
+ *       Example: {@code -Dprofile=capacity -DconcurrentUsers=10 -Dsteps=5 -DrampDurationSec=10
  *       -DdurationSec=30}
  * </ul>
  *
@@ -164,7 +168,7 @@ public class TrackerTest extends Simulation {
   private final String replicaUser;
   private final String replicaPassword;
   private final int provisionUsers;
-  private final int usersPerSec;
+  private final int concurrentUsers;
   private final int repeat;
   private final int durationSec;
   private final int rampDurationSec;
@@ -237,7 +241,7 @@ public class TrackerTest extends Simulation {
     this.replicaPassword = System.getProperty("replicaPassword", "Tracker123@");
 
     record ProfileDefaults(
-        int usersPerSec,
+        int concurrentUsers,
         int provisionUsers,
         int repeat,
         int rampDurationSec,
@@ -249,10 +253,10 @@ public class TrackerTest extends Simulation {
     ProfileDefaults defaults =
         switch (this.profile) {
           case SMOKE -> new ProfileDefaults(1, 1, 100, 1, 1, 1, 50, 500, 1);
-          case LOAD -> new ProfileDefaults(2, 100, 1, 30, 180, 1, 500, 30_000, 4);
-          case CAPACITY -> new ProfileDefaults(8, 100, 1, 10, 30, 4, 500, 30_000, 4);
+          case LOAD -> new ProfileDefaults(4, 4, 1, 15, 180, 1, 500, 30_000, 4);
+          case CAPACITY -> new ProfileDefaults(8, 8, 1, 10, 30, 4, 500, 30_000, 4);
         };
-    this.usersPerSec = Integer.getInteger("usersPerSec", defaults.usersPerSec());
+    this.concurrentUsers = Integer.getInteger("concurrentUsers", defaults.concurrentUsers());
     this.repeat = Integer.getInteger("repeat", defaults.repeat());
     this.provisionUsers = Integer.getInteger("provisionUsers", defaults.provisionUsers());
     this.rampDurationSec = Integer.getInteger("rampDurationSec", defaults.rampDurationSec());
@@ -499,18 +503,11 @@ public class TrackerTest extends Simulation {
 
   private PopulationBuilder exportScenarios(
       ScenarioWithRequests eventScenario, ScenarioWithRequests trackerScenario) {
-    if (this.profile == Profile.SMOKE) {
-      ClosedInjectionStep closedInjection = constantConcurrentUsers(1).during(1);
-      return eventScenario
-          .scenario()
-          .injectClosed(closedInjection)
-          .andThen(trackerScenario.scenario().injectClosed(closedInjection));
-    }
-    List<OpenInjectionStep> injectionProfile = buildInjectionProfile();
+    List<ClosedInjectionStep> closedProfile = buildClosedInjectionProfile();
     return eventScenario
         .scenario()
-        .injectOpen(injectionProfile)
-        .andThen(trackerScenario.scenario().injectOpen(injectionProfile));
+        .injectClosed(closedProfile)
+        .andThen(trackerScenario.scenario().injectClosed(closedProfile));
   }
 
   private ScenarioWithRequests eventProgramScenario() {
@@ -535,25 +532,25 @@ public class TrackerTest extends Simulation {
     Request goToSecondPage =
         new Request(
             getEventsUrl + "&page=2",
-            new EnumMap<>(Map.of(Profile.SMOKE, 84, Profile.LOAD, 25)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 84, Profile.LOAD, 58)),
             "Go to second page",
             "Get ANC events");
     Request searchEventsByDateRange =
         new Request(
             getEventsUrl + "&occurredAfter=2020-01-01&occurredBefore=2025-12-31",
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 54)),
             "Search by date range",
             "Get ANC events");
     Request searchEventsNotAssigned =
         new Request(
             getEventsUrl + "&assignedUserMode=NONE",
-            new EnumMap<>(Map.of(Profile.SMOKE, 82, Profile.LOAD, 25)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 82, Profile.LOAD, 56)),
             "Search not assigned",
             "Get ANC events");
     Request getFirstEvent =
         new Request(
             singleEventUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 44, Profile.LOAD, 47)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 44, Profile.LOAD, 119)),
             "Get first event",
             "Get ANC events",
             "Get one event");
@@ -565,38 +562,56 @@ public class TrackerTest extends Simulation {
             "Get ANC events",
             "Get one event");
 
-    ScenarioBuilder scenarioBuilder =
-        scenario("ANC Events export")
-            .feed(userFeeder)
-            .exec(login())
-            .exitHereIfFailed()
-            .repeat(this.repeat)
-            .on(
+    var exportRequests =
+        exec(session -> session.remove("eventUid"))
+            .exec(
                 group("Get ANC events")
                     .on(
+                        // User opens event list
                         exec(goToFirstPage.action().check(jsonPath("$.events[*]").count().gte(1)))
+                            .pause(1, 3) // user reads the list
+                            // User paginates
                             .exec(
                                 goToSecondPage
                                     .action()
                                     .check(jsonPath("$.events[*]").count().gte(1)))
+                            .pause(1, 3) // user reads page 2
+                            // User filters by unassigned
                             .exec(
                                 searchEventsNotAssigned
                                     .action()
                                     .check(jsonPath("$.events[*]").count().gte(1)))
+                            .pause(1, 3) // user reads filtered results
+                            // User filters by date range
                             .exec(
                                 searchEventsByDateRange
                                     .action()
                                     .check(jsonPath("$.events[*]").count().gte(1))
                                     .check(jsonPath("$.events[0].event").saveAs("eventUid")))
-                            .exitHereIfFailed()
-                            .group("Get one event")
-                            .on(
-                                exec(getFirstEvent.action().check(jsonPath("$.event").exists()))
-                                    .exec(
-                                        getRelationshipsForFirstEvent
-                                            .action()
-                                            .check(
-                                                jsonPath("$.relationships[*]").count().is(0))))));
+                            .pause(1, 3) // user reads results, picks an event
+                            // User clicks on an event -- Capture fires event + relationships
+                            // together
+                            .doIf(session -> session.contains("eventUid"))
+                            .then(
+                                group("Get one event")
+                                    .on(
+                                        exec(getFirstEvent
+                                                .action()
+                                                .check(jsonPath("$.event").exists()))
+                                            .exec(
+                                                getRelationshipsForFirstEvent
+                                                    .action()
+                                                    .check(
+                                                        jsonPath("$.relationships[*]")
+                                                            .count()
+                                                            .is(0)))))));
+
+    ScenarioBuilder scenarioBuilder =
+        scenario("ANC Events export")
+            .feed(userFeeder)
+            .exec(login())
+            .exitHereIfFailed()
+            .exec(loopForProfile(exportRequests));
 
     return new ScenarioWithRequests(
         scenarioBuilder,
@@ -678,31 +693,31 @@ public class TrackerTest extends Simulation {
     Request notFoundTeByNameWithLikeOperator =
         new Request(
             notFoundTEByName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 101)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 103)),
             "Not found TE by name with like operator",
             "Get Child Programme TEs");
     Request notFoundTeByNameWithEqOperator =
         new Request(
             notFoundTEByExactName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 33)),
             "Not found TE by name with eq operator",
             "Get Child Programme TEs");
     Request searchTeByNameWithLikeOperator =
         new Request(
             searchTEByName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 36, Profile.LOAD, 118)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 36, Profile.LOAD, 184)),
             "Search TE by name with like operator",
             "Get Child Programme TEs");
     Request searchTeByNameWithEqOperator =
         new Request(
             searchTEByExactName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 32)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 136)),
             "Search TE by name with eq operator",
             "Get Child Programme TEs");
     Request searchBirthEventsByStage =
         new Request(
             searchBirthEvents,
-            new EnumMap<>(Map.of(Profile.SMOKE, 38, Profile.LOAD, 110)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 38, Profile.LOAD, 169)),
             "Search Birth events",
             "Get Child Programme TEs");
     Request getTrackedEntitiesForEvents =
@@ -714,26 +729,26 @@ public class TrackerTest extends Simulation {
     Request getFirstPageOfTEs =
         new Request(
             getTEsUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 40, Profile.LOAD, 102)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 40, Profile.LOAD, 153)),
             "Get first page of TEs",
             "Get Child Programme TEs");
     Request getTEsWithEnrollmentStatus =
         new Request(
             getTEsWithEnrollmentStatusUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 52, Profile.LOAD, 143)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 52, Profile.LOAD, 193)),
             "Get TEs with enrollment status",
             "Get Child Programme TEs");
     Request getFirstTrackedEntity =
         new Request(
             singleTrackedEntityUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 33, Profile.LOAD, 34)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 33, Profile.LOAD, 128)),
             "Get first tracked entity",
             "Get Child Programme TEs",
             "Go to single enrollment");
     Request getFirstEnrollment =
         new Request(
             singleEnrollmentUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 26, Profile.LOAD, 26)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 26, Profile.LOAD, 46)),
             "Get first enrollment",
             "Get Child Programme TEs",
             "Go to single enrollment");
@@ -747,7 +762,7 @@ public class TrackerTest extends Simulation {
     Request getFirstEventFromEnrollment =
         new Request(
             eventUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 64, Profile.LOAD, 80)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 64, Profile.LOAD, 143)),
             "Get first event from enrollment",
             "Get Child Programme TEs",
             "Go to single enrollment",
@@ -761,30 +776,38 @@ public class TrackerTest extends Simulation {
             "Go to single enrollment",
             "Get one event");
 
-    ScenarioBuilder scenarioBuilder =
-        scenario("Child Programme export")
-            .feed(userFeeder)
-            .exec(login())
-            .exitHereIfFailed()
-            .repeat(this.repeat)
-            .on(
+    var exportRequests =
+        exec(session ->
+                session
+                    .remove("trackedEntityUids")
+                    .remove("trackedEntityUid")
+                    .remove("enrollmentUid")
+                    .remove("eventUid"))
+            .exec(
                 group("Get Child Programme TEs")
                     .on(
+                        // User searches for TE -- tries different searches
                         exec(notFoundTeByNameWithLikeOperator
                                 .action()
                                 .check(jsonPath("$.trackedEntities[*]").count().is(0)))
+                            .pause(1, 3) // user reads "no results", tries exact match
                             .exec(
                                 notFoundTeByNameWithEqOperator
                                     .action()
                                     .check(jsonPath("$.trackedEntities[*]").count().is(0)))
+                            .pause(1, 3) // user reads "no results", tries different name
                             .exec(
                                 searchTeByNameWithLikeOperator
                                     .action()
                                     .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
+                            .pause(1, 3) // user reads results, refines search
                             .exec(
                                 searchTeByNameWithEqOperator
                                     .action()
                                     .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
+                            .pause(1, 3) // user reads results
+                            // User opens event working list (Birth stage)
+                            // Capture fires events first, then enriches with TE data (sequential)
                             .exec(
                                 searchBirthEventsByStage
                                     .action()
@@ -797,11 +820,14 @@ public class TrackerTest extends Simulation {
                                                     String.join(
                                                         ",", list.stream().distinct().toList()))
                                             .saveAs("trackedEntityUids")))
-                            .exitHereIfFailed()
-                            .exec(
-                                getTrackedEntitiesForEvents
-                                    .action()
-                                    .check(jsonPath("$.trackedEntities[*]").count().gte(1)))
+                            .doIf(session -> session.contains("trackedEntityUids"))
+                            .then(
+                                exec(
+                                    getTrackedEntitiesForEvents
+                                        .action()
+                                        .check(jsonPath("$.trackedEntities[*]").count().gte(1))))
+                            .pause(1, 3) // user reads event list
+                            // User opens TE working list
                             .exec(
                                 getFirstPageOfTEs
                                     .action()
@@ -809,45 +835,70 @@ public class TrackerTest extends Simulation {
                                     .check(
                                         jsonPath("$.trackedEntities[0].trackedEntity")
                                             .saveAs("trackedEntityUid")))
-                            .exitHereIfFailed()
-                            .group("Go to single enrollment")
-                            .on(
-                                exec(getFirstTrackedEntity
-                                        .action()
-                                        .check(jsonPath("$.enrollments[*]").count().gte(1))
-                                        .check(
-                                            jsonPath("$.enrollments[0].enrollment")
-                                                .saveAs("enrollmentUid"))
-                                        .check(
-                                            jsonPath("$.enrollments[0].events[*]").count().gte(1))
-                                        .check(
-                                            jsonPath("$.enrollments[0].events[0].event")
-                                                .saveAs("eventUid")))
-                                    .exitHereIfFailed()
-                                    .exec(
-                                        getFirstEnrollment
-                                            .action()
-                                            .check(jsonPath("$.enrollment").exists()))
-                                    .exec(
-                                        getRelationshipsForTrackedEntity
-                                            .action()
-                                            .check(jsonPath("$.relationships[*]").count().is(0)))
-                                    .group("Get one event")
+                            .pause(1, 3) // user reads TE list, picks one
+                            // User clicks on TE -- Capture loads TE + enrollment + relationships
+                            // together
+                            .doIf(session -> session.contains("trackedEntityUid"))
+                            .then(
+                                group("Go to single enrollment")
                                     .on(
-                                        exec(getFirstEventFromEnrollment
+                                        exec(getFirstTrackedEntity
                                                 .action()
-                                                .check(jsonPath("$.event").exists()))
-                                            .exec(
-                                                getRelationshipsForEvent
-                                                    .action()
-                                                    .check(
-                                                        jsonPath("$.relationships[*]")
-                                                            .count()
-                                                            .is(0)))))
+                                                .check(jsonPath("$.enrollments[*]").count().gte(1))
+                                                .check(
+                                                    jsonPath("$.enrollments[0].enrollment")
+                                                        .saveAs("enrollmentUid"))
+                                                .check(
+                                                    jsonPath("$.enrollments[0].events[*]")
+                                                        .count()
+                                                        .gte(1))
+                                                .check(
+                                                    jsonPath("$.enrollments[0].events[0].event")
+                                                        .saveAs("eventUid")))
+                                            .doIf(session -> session.contains("enrollmentUid"))
+                                            .then(
+                                                exec(getFirstEnrollment
+                                                        .action()
+                                                        .check(jsonPath("$.enrollment").exists()))
+                                                    .exec(
+                                                        getRelationshipsForTrackedEntity
+                                                            .action()
+                                                            .check(
+                                                                jsonPath("$.relationships[*]")
+                                                                    .count()
+                                                                    .is(0)))
+                                                    .pause(1, 3) // user reads enrollment details
+                                                    // User clicks on event within enrollment
+                                                    .doIf(session -> session.contains("eventUid"))
+                                                    .then(
+                                                        group("Get one event")
+                                                            .on(
+                                                                exec(getFirstEventFromEnrollment
+                                                                        .action()
+                                                                        .check(
+                                                                            jsonPath("$.event")
+                                                                                .exists()))
+                                                                    .exec(
+                                                                        getRelationshipsForEvent
+                                                                            .action()
+                                                                            .check(
+                                                                                jsonPath(
+                                                                                        "$.relationships[*]")
+                                                                                    .count()
+                                                                                    .is(0))))))))
+                            .pause(1, 3) // user goes back to list
+                            // User opens filtered TE list (enrollment status)
                             .exec(
                                 getTEsWithEnrollmentStatus
                                     .action()
                                     .check(jsonPath("$.trackedEntities[*]").count().gte(1)))));
+
+    ScenarioBuilder scenarioBuilder =
+        scenario("Child Programme export")
+            .feed(userFeeder)
+            .exec(login())
+            .exitHereIfFailed()
+            .exec(loopForProfile(exportRequests));
 
     return new ScenarioWithRequests(
         scenarioBuilder,
@@ -868,36 +919,57 @@ public class TrackerTest extends Simulation {
   }
 
   /**
-   * Builds the open injection profile for load and capacity test types based on test configuration.
+   * Builds the closed injection profile for all profiles. A fixed pool of concurrent users stays
+   * alive for the injection duration, each logging in once and looping via {@code during()}.
    *
    * @see <a
    *     href="https://docs.gatling.io/guides/optimize-scripts/writing-realistic-tests/#injection-profiles">Gatling
    *     Injection Profiles</a>
-   * @return List of OpenInjectionStep for the configured profile
+   * @return List of ClosedInjectionStep for the configured profile
    */
-  private List<OpenInjectionStep> buildInjectionProfile() {
+  private List<ClosedInjectionStep> buildClosedInjectionProfile() {
     return switch (this.profile) {
+      case SMOKE -> List.of(constantConcurrentUsers(1).during(1));
       case LOAD ->
-          // Load Testing: Gradual ramp-up -> Sustained peak
           List.of(
-              rampUsersPerSec(1)
-                  .to(this.usersPerSec)
+              rampConcurrentUsers(0)
+                  .to(this.concurrentUsers)
                   .during(Duration.ofSeconds(this.rampDurationSec)),
-              constantUsersPerSec(this.usersPerSec).during(Duration.ofSeconds(this.durationSec)));
-
+              constantConcurrentUsers(this.concurrentUsers)
+                  .during(Duration.ofSeconds(this.durationSec)));
       case CAPACITY ->
-          // Capacity Testing: Stepped progressive increases (staircase pattern)
           List.of(
-              incrementUsersPerSec((double) this.usersPerSec / this.steps)
+              incrementConcurrentUsers(this.concurrentUsers / this.steps)
                   .times(this.steps)
                   .eachLevelLasting(Duration.ofSeconds(this.durationSec))
                   .separatedByRampsLasting(Duration.ofSeconds(this.rampDurationSec))
-                  .startingFrom((double) this.usersPerSec / this.steps));
-
-      case SMOKE ->
-          throw new IllegalArgumentException(
-              "SMOKE profile uses closed injection, not open injection");
+                  .startingFrom(this.concurrentUsers / this.steps));
     };
+  }
+
+  /**
+   * Returns the total injection duration in seconds for the current profile. Used as the {@code
+   * during()} loop duration to keep virtual users alive for the full injection period.
+   */
+  private long injectionDurationSec() {
+    return switch (this.profile) {
+      case SMOKE -> throw new IllegalArgumentException("SMOKE profile uses repeat, not during");
+      case LOAD -> this.rampDurationSec + this.durationSec;
+      case CAPACITY ->
+          (long) this.steps * this.durationSec + (long) (this.steps - 1) * this.rampDurationSec;
+    };
+  }
+
+  /**
+   * Returns either a {@code repeat()} or {@code during()} loop wrapping the given chain, depending
+   * on the profile. SMOKE uses {@code repeat()} for deterministic iteration count. LOAD and
+   * CAPACITY use {@code during()} to keep users alive for the full injection duration.
+   */
+  private ChainBuilder loopForProfile(ChainBuilder chain) {
+    if (this.profile == Profile.SMOKE) {
+      return exec(repeat(this.repeat).on(chain));
+    }
+    return exec(during(Duration.ofSeconds(injectionDurationSec())).on(chain));
   }
 
   /**
