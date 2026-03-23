@@ -66,6 +66,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -120,6 +121,8 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDimension;
@@ -130,6 +133,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -162,6 +166,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Mock private DataElementService dataElementService;
 
   @Mock private SystemSettingsService systemSettingsService;
+
+  @Mock private DefaultDhisConfigurationProvider config;
+
+  @Mock private SystemSettings systemSettings;
 
   @Mock private OrganisationUnitResolver organisationUnitResolver;
 
@@ -207,6 +215,12 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     dataElementA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     dataElementA.setUid("fWIAEtYVEGk");
 
+    lenient()
+        .when(config.getPropertyOrDefault(ConfigurationKey.ANALYTICS_DATABASE, ""))
+        .thenReturn("postgresql");
+    lenient().when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
+    lenient().when(systemSettings.getUseExperimentalAnalyticsQueryEngine()).thenReturn(false);
+
     ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
     QueryItemFilterBuilder filterBuilder =
         new QueryItemFilterBuilder(organisationUnitResolver, sqlBuilder);
@@ -226,7 +240,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             eventTimeFieldSqlRenderer,
             executionPlanStore,
             systemSettingsService,
-            null,
+            config,
             sqlBuilder,
             organisationUnitResolver,
             columnMapper,
@@ -244,7 +258,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             enrollmentTimeFieldSqlRenderer,
             executionPlanStore,
             systemSettingsService,
-            null,
+            config,
             sqlBuilder,
             organisationUnitResolver,
             columnMapper,
