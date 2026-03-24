@@ -347,7 +347,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
 
   @Test
   @DisplayName("Validate period dimension with stage-specific date dimension is rejected")
-  public void validateStageAndStageSpecificDimenionRejected2() {
+  public void validateStageAndStageSpecificDimensionRejected2() {
 
     // Given
     QueryParamsBuilder params =
