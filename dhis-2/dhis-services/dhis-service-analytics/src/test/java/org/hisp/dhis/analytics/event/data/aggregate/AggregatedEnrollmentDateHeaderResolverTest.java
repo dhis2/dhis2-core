@@ -107,10 +107,10 @@ class AggregatedEnrollmentDateHeaderResolverTest {
   }
 
   @Test
-  void shouldIgnoreEventDateAsDerivedStaticPeriodHeader() {
+  void shouldRecognizeEventDateAsDerivedStaticPeriodHeader() {
     EventQueryParams params = createAggregateParamsWithStaticDatePeriod("EVENT_DATE");
 
-    assertFalse(subject.isDerivedStaticPeriodHeader(params, "eventdate"));
+    assertTrue(subject.isDerivedStaticPeriodHeader(params, "eventdate"));
   }
 
   private EventQueryParams createAggregateParamsWithStaticDatePeriod(String dateField) {
