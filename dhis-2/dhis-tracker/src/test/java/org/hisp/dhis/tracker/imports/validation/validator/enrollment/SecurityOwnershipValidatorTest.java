@@ -181,8 +181,11 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity);
-    when(aclService.canDataWrite(user, program)).thenReturn(true);
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
+    when(preheat.getEnrollment(enrollment.getEnrollment()))
+        .thenReturn(getEnrollment(enrollment.getEnrollment()));
+    UserDetails userDetails = setUpUserWithOrgUnit();
+    when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -419,6 +422,8 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity);
+    when(preheat.getEnrollment(enrollment.getEnrollment()))
+        .thenReturn(getEnrollment(enrollment.getEnrollment()));
     when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo)))
         .thenReturn(categoryOptionCombo);
     when(aclService.canDataWrite(user, program)).thenReturn(true);
