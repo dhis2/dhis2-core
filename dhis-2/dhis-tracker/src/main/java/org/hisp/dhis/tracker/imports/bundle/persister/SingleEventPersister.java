@@ -34,9 +34,9 @@ import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 
 import jakarta.persistence.EntityManager;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,6 +50,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
@@ -57,7 +59,6 @@ import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
-import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
@@ -88,12 +89,32 @@ public class SingleEventPersister
   }
 
   @Override
+  protected boolean isBeingCompleted(
+      TrackerPreheat preheat,
+      org.hisp.dhis.tracker.imports.domain.SingleEvent entity,
+      boolean isNew) {
+    if (entity.getStatus() != EventStatus.COMPLETED) {
+      return false;
+    }
+    if (isNew) {
+      return true;
+    }
+    SingleEvent persisted = preheat.getSingleEvent(entity.getUID());
+    return persisted != null && persisted.getStatus() != EventStatus.COMPLETED;
+  }
+
+  @Override
   protected TrackerNotificationDataBundle handleNotifications(
-      TrackerBundle bundle, SingleEvent event, List<NotificationTrigger> triggers) {
-    boolean hasTemplates = hasMatchingNotificationTemplates(event.getProgramStage(), triggers);
+      TrackerBundle bundle, SingleEvent event, boolean isNew, boolean completedInThisImport) {
+    Set<ProgramNotificationTemplate> matchedTemplates =
+        completedInThisImport
+            ? filterTemplates(
+                event.getProgramStage().getNotificationTemplates(),
+                EnumSet.of(NotificationTrigger.COMPLETION))
+            : Set.of();
     List<Notification> ruleEngineNotifications =
         bundle.getSingleEventNotifications().getOrDefault(event.getUID(), List.of());
-    if (!hasTemplates && ruleEngineNotifications.isEmpty()) {
+    if (matchedTemplates.isEmpty() && ruleEngineNotifications.isEmpty()) {
       return null;
     }
 
@@ -105,30 +126,8 @@ public class SingleEventPersister
         .accessedBy(bundle.getUser().getUsername())
         .singleEvent(event)
         .program(event.getProgramStage().getProgram())
-        .triggers(hasTemplates ? triggers : List.of())
+        .matchedTemplates(matchedTemplates)
         .build();
-  }
-
-  @Override
-  protected List<NotificationTrigger> determineNotificationTriggers(
-      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.SingleEvent entity) {
-    SingleEvent persistedEvent = preheat.getSingleEvent(entity.getUID());
-    List<NotificationTrigger> triggers = new ArrayList<>();
-    // If the event is new and has been completed
-    if (persistedEvent == null && entity.getStatus() == EventStatus.COMPLETED) {
-      triggers.add(NotificationTrigger.SINGLE_EVENT_COMPLETION);
-      return triggers;
-    }
-
-    // If the event is existing and its status has changed to completed
-    if (persistedEvent != null
-        && persistedEvent.getStatus() != entity.getStatus()
-        && entity.getStatus() == EventStatus.COMPLETED) {
-      triggers.add(NotificationTrigger.SINGLE_EVENT_COMPLETION);
-      return triggers;
-    }
-
-    return triggers;
   }
 
   @Override

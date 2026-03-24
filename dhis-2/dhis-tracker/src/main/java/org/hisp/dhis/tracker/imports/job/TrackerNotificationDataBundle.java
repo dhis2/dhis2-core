@@ -29,17 +29,15 @@
  */
 package org.hisp.dhis.tracker.imports.job;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
-import org.hisp.dhis.artemis.Message;
-import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
@@ -48,53 +46,39 @@ import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 
 /**
- * Class holding data necessary for implementation of notifications.
- *
- * @author Zubair Asghar
+ * Data passed from tracker import persisters to async notification tasks. Contains the persisted
+ * entity, pre-matched notification templates, and rule engine notifications.
  */
 @Data
-@Builder(builderClassName = "TrackerNotificationBundleBuilder")
-@JsonDeserialize(builder = TrackerNotificationDataBundle.TrackerNotificationBundleBuilder.class)
-public class TrackerNotificationDataBundle implements Message {
-  @JsonProperty private String uid;
+@Builder
+public class TrackerNotificationDataBundle {
+  private String uid;
 
-  @JsonProperty private Class<? extends IdentifiableObject> klass;
+  private Class<? extends IdentifiableObject> klass;
 
-  @JsonProperty private String object;
+  private String object;
 
-  @JsonProperty private JobConfiguration jobConfiguration;
+  private JobConfiguration jobConfiguration;
 
-  @JsonProperty private Program program;
+  private Program program;
 
-  @JsonProperty private Enrollment enrollment;
+  private Enrollment enrollment;
 
-  @JsonProperty private TrackerEvent event;
+  private TrackerEvent event;
 
-  @JsonProperty private SingleEvent singleEvent;
+  private SingleEvent singleEvent;
 
-  @JsonProperty private List<NotificationTrigger> triggers = new ArrayList<>();
+  @Builder.Default private Set<ProgramNotificationTemplate> matchedTemplates = new HashSet<>();
 
-  @JsonProperty @Builder.Default
-  private List<Notification> enrollmentNotifications = new ArrayList<>();
+  @Builder.Default private List<Notification> enrollmentNotifications = new ArrayList<>();
 
-  @JsonProperty @Builder.Default
-  private List<Notification> trackerEventNotifications = new ArrayList<>();
+  @Builder.Default private List<Notification> trackerEventNotifications = new ArrayList<>();
 
-  @JsonProperty @Builder.Default
-  private List<Notification> singleEventNotifications = new ArrayList<>();
+  @Builder.Default private List<Notification> singleEventNotifications = new ArrayList<>();
 
-  @JsonProperty private TrackerImportStrategy importStrategy;
+  private TrackerImportStrategy importStrategy;
 
-  @JsonProperty private String accessedBy;
+  private String accessedBy;
 
-  @JsonProperty private String jobId;
-
-  @Override
-  @JsonProperty
-  public MessageType getMessageType() {
-    return MessageType.TRACKER_SIDE_EFFECT;
-  }
-
-  @JsonPOJOBuilder(withPrefix = "")
-  public static final class TrackerNotificationBundleBuilder {}
+  private String jobId;
 }

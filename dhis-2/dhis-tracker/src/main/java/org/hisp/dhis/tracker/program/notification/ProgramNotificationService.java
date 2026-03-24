@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.program.notification;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.tracker.model.Enrollment;
@@ -129,6 +130,27 @@ public interface ProgramNotificationService {
    * @param enrollment the Enrollment id.
    */
   void sendEnrollmentNotifications(long enrollment);
+
+  /**
+   * Send notifications for the given enrollment using pre-resolved templates. Skips entity loading
+   * and template resolution.
+   */
+  void sendEnrollmentNotifications(
+      Enrollment enrollment, Set<ProgramNotificationTemplate> templates);
+
+  /**
+   * Send completion notifications for the given tracker event using pre-resolved templates. Skips
+   * entity loading and template resolution.
+   */
+  void sendTrackerEventCompletionNotifications(
+      TrackerEvent event, Set<ProgramNotificationTemplate> templates);
+
+  /**
+   * Send completion notifications for the given single event using pre-resolved templates. Skips
+   * entity loading and template resolution.
+   */
+  void sendSingleEventCompletionNotifications(
+      SingleEvent event, Set<ProgramNotificationTemplate> templates);
 
   /**
    * Get all events which have notifications with the given ProgramNotificationTemplate scheduled on

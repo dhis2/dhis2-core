@@ -45,5 +45,15 @@ public interface ProgramNotificationTemplateMapper
   @Mapping(target = "id")
   @Mapping(target = "uid")
   @Mapping(target = "notificationTrigger")
+  @Mapping(target = "notificationRecipient")
+  @Mapping(target = "subjectTemplate")
+  @Mapping(target = "messageTemplate")
+  @Mapping(target = "deliveryChannels")
+  @Mapping(target = "notifyUsersInHierarchyOnly")
+  @Mapping(target = "notifyParentOrganisationUnitOnly")
+  @Mapping(target = "sendRepeatable")
+  @Mapping(target = "recipientUserGroup")
+  @Mapping(target = "recipientProgramAttribute")
+  @Mapping(target = "recipientDataElement")
   ProgramNotificationTemplate map(ProgramNotificationTemplate template);
 }

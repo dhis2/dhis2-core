@@ -38,7 +38,5 @@ import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
  * @author Zubair Asghar
  */
 public interface NotificationHandlerService {
-  void handleNotification(TrackerNotificationDataBundle notificationDataBundle);
-
   void handleNotifications(List<TrackerNotificationDataBundle> notificationDataBundles);
 }

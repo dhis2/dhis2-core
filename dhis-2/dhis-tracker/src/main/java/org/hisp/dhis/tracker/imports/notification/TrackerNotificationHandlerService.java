@@ -44,12 +44,7 @@ public class TrackerNotificationHandlerService implements NotificationHandlerSer
   private final TrackerNotificationMessageManager trackerNotificationMessageManager;
 
   @Override
-  public void handleNotification(TrackerNotificationDataBundle notificationDataBundle) {
-    trackerNotificationMessageManager.sendNotifications(notificationDataBundle);
-  }
-
-  @Override
   public void handleNotifications(List<TrackerNotificationDataBundle> notificationDataBundles) {
-    notificationDataBundles.forEach(this::handleNotification);
+    notificationDataBundles.forEach(trackerNotificationMessageManager::sendNotifications);
   }
 }

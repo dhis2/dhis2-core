@@ -44,12 +44,7 @@ public class RuleEngineNotificationHandlerService implements NotificationHandler
   private final TrackerRuleEngineMessageManager trackerRuleEngineMessageManager;
 
   @Override
-  public void handleNotification(TrackerNotificationDataBundle notificationDataBundle) {
-    trackerRuleEngineMessageManager.sendRuleEngineNotifications(notificationDataBundle);
-  }
-
-  @Override
   public void handleNotifications(List<TrackerNotificationDataBundle> notificationDataBundles) {
-    notificationDataBundles.forEach(this::handleNotification);
+    notificationDataBundles.forEach(trackerRuleEngineMessageManager::sendRuleEngineNotifications);
   }
 }

@@ -37,6 +37,7 @@ import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,6 +54,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -65,7 +67,6 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
-import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.report.Entity;
@@ -110,13 +111,11 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
     for (T trackerDto : dtos) {
 
       Entity objectReport = new Entity(getType(), trackerDto.getUID());
-      // Determine triggers before convert() because convert() mutates the preheat entity
-      // (e.g. sets status on the preheat enrollment), which would make the before/after
-      // comparison in determineNotificationTriggers() see the new status on both sides.
-      List<NotificationTrigger> triggers =
-          bundle.isSkipSideEffects()
-              ? List.of()
-              : determineNotificationTriggers(bundle.getPreheat(), trackerDto);
+      boolean isNewEntity = isNew(bundle, trackerDto);
+      // Capture before convert() which mutates the preheat entity's status
+      boolean completedInThisImport =
+          !bundle.isSkipSideEffects()
+              && isBeingCompleted(bundle.getPreheat(), trackerDto, isNewEntity);
       try {
         V originalEntity = cloneEntityProperties(bundle.getPreheat(), trackerDto);
 
@@ -170,7 +169,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
         if (!bundle.isSkipSideEffects()) {
           TrackerNotificationDataBundle notificationBundle =
-              handleNotifications(bundle, convertedDto, triggers);
+              handleNotifications(bundle, convertedDto, isNewEntity, completedInThisImport);
           if (notificationBundle != null) {
             notificationDataBundles.add(notificationBundle);
           }
@@ -252,57 +251,41 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
   protected abstract void updatePreheat(TrackerPreheat preheat, V convertedDto);
 
   /**
-   * Creates a notification bundle for the persisted entity if any notification templates on the
-   * entity's program (for enrollments) or program stage (for events) match the given triggers.
-   * Returns {@code null} if no templates match or the entity type does not support notifications.
-   * Override in persisters that support notifications (enrollments, events).
+   * Creates a notification bundle for the persisted entity if any notification templates match.
+   * Returns {@code null} if no templates match and no rule engine notifications exist. Override in
+   * persisters that support notifications (enrollments, events).
+   *
+   * @param bundle the tracker bundle
+   * @param entity the persisted entity
+   * @param isNew whether the entity was newly created
+   * @param completedInThisImport whether the entity is being completed in this import
    */
   protected TrackerNotificationDataBundle handleNotifications(
-      TrackerBundle bundle, V entity, List<NotificationTrigger> triggers) {
+      TrackerBundle bundle, V entity, boolean isNew, boolean completedInThisImport) {
     return null;
   }
 
   /**
-   * Determines the notification triggers based on the enrollment/event status. Returns an empty
-   * list by default. Override in persisters that support notifications (enrollments, events).
+   * Returns true if the entity is being set to completed status in this import. Must be called
+   * before convert() which mutates the preheat entity. Returns false by default.
    */
-  protected List<NotificationTrigger> determineNotificationTriggers(
-      TrackerPreheat preheat, T entity) {
-    return List.of();
+  protected boolean isBeingCompleted(TrackerPreheat preheat, T trackerDto, boolean isNew) {
+    return false;
   }
 
   /** Get the Tracker Type for which the current Persister is responsible for. */
   protected abstract TrackerType getType();
 
-  /**
-   * Checks if any notification template on the given identifiable object (Program or ProgramStage)
-   * has a trigger matching one of the given import triggers.
-   */
-  protected static boolean hasMatchingNotificationTemplates(
-      IdentifiableObject programOrStage, List<NotificationTrigger> triggers) {
-    Set<org.hisp.dhis.program.notification.NotificationTrigger> templateTriggers =
-        triggers.stream()
-            .map(NotificationTrigger::toTemplateTrigger)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet());
-    if (templateTriggers.isEmpty()) {
-      return false;
+  /** Returns notification templates that match any of the given triggers. */
+  protected static Set<ProgramNotificationTemplate> filterTemplates(
+      Set<ProgramNotificationTemplate> templates,
+      EnumSet<org.hisp.dhis.program.notification.NotificationTrigger> triggers) {
+    if (templates == null || templates.isEmpty() || triggers.isEmpty()) {
+      return Set.of();
     }
-
-    Set<org.hisp.dhis.program.notification.ProgramNotificationTemplate> templates;
-    if (programOrStage instanceof org.hisp.dhis.program.Program p) {
-      templates = p.getNotificationTemplates();
-    } else if (programOrStage instanceof org.hisp.dhis.program.ProgramStage ps) {
-      templates = ps.getNotificationTemplates();
-    } else {
-      return false;
-    }
-
-    if (templates == null || templates.isEmpty()) {
-      return false;
-    }
-
-    return templates.stream().anyMatch(t -> templateTriggers.contains(t.getNotificationTrigger()));
+    return templates.stream()
+        .filter(t -> triggers.contains(t.getNotificationTrigger()))
+        .collect(Collectors.toSet());
   }
 
   protected boolean isNew(TrackerBundle bundle, TrackerDto trackerDto) {

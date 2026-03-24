@@ -343,6 +343,60 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
 
   @Override
   @Transactional
+  public void sendEnrollmentNotifications(
+      Enrollment enrollment, Set<ProgramNotificationTemplate> templates) {
+    if (enrollment == null || templates == null || templates.isEmpty()) {
+      return;
+    }
+    for (ProgramNotificationTemplate preheatTemplate : templates) {
+      ProgramNotificationTemplate template =
+          preheatTemplate.getNotificationRecipient().isExternalRecipient()
+              ? preheatTemplate
+              : manager.get(ProgramNotificationTemplate.class, preheatTemplate.getId());
+      if (template != null) {
+        sendAll(createEnrollmentMessageBatch(template, List.of(enrollment)));
+      }
+    }
+  }
+
+  @Override
+  @Transactional
+  public void sendTrackerEventCompletionNotifications(
+      TrackerEvent event, Set<ProgramNotificationTemplate> templates) {
+    if (event == null || templates == null || templates.isEmpty()) {
+      return;
+    }
+    for (ProgramNotificationTemplate preheatTemplate : templates) {
+      ProgramNotificationTemplate template =
+          preheatTemplate.getNotificationRecipient().isExternalRecipient()
+              ? preheatTemplate
+              : manager.get(ProgramNotificationTemplate.class, preheatTemplate.getId());
+      if (template != null) {
+        sendAll(createTrackerEventMessageBatch(template, List.of(event)));
+      }
+    }
+  }
+
+  @Override
+  @Transactional
+  public void sendSingleEventCompletionNotifications(
+      SingleEvent event, Set<ProgramNotificationTemplate> templates) {
+    if (event == null || templates == null || templates.isEmpty()) {
+      return;
+    }
+    for (ProgramNotificationTemplate preheatTemplate : templates) {
+      ProgramNotificationTemplate template =
+          preheatTemplate.getNotificationRecipient().isExternalRecipient()
+              ? preheatTemplate
+              : manager.get(ProgramNotificationTemplate.class, preheatTemplate.getId());
+      if (template != null) {
+        sendAll(createSingleEventMessageBatch(template, List.of(event)));
+      }
+    }
+  }
+
+  @Override
+  @Transactional
   public void sendProgramRuleTriggeredNotifications(
       ProgramNotificationTemplate template, Enrollment enrollment) {
     MessageBatch messageBatch =

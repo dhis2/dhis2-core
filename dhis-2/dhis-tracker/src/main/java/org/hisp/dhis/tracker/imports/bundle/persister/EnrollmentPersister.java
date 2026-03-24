@@ -30,18 +30,19 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import jakarta.persistence.EntityManager;
-import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.EnrollmentStatus;
+import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
-import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
@@ -91,12 +92,36 @@ public class EnrollmentPersister
   }
 
   @Override
+  protected boolean isBeingCompleted(
+      TrackerPreheat preheat,
+      org.hisp.dhis.tracker.imports.domain.Enrollment entity,
+      boolean isNew) {
+    if (entity.getStatus() != EnrollmentStatus.COMPLETED) {
+      return false;
+    }
+    if (isNew) {
+      return true;
+    }
+    Enrollment persisted = preheat.getEnrollment(entity.getUID());
+    return persisted != null && persisted.getStatus() != EnrollmentStatus.COMPLETED;
+  }
+
+  @Override
   protected TrackerNotificationDataBundle handleNotifications(
-      TrackerBundle bundle, Enrollment enrollment, List<NotificationTrigger> triggers) {
-    boolean hasTemplates = hasMatchingNotificationTemplates(enrollment.getProgram(), triggers);
+      TrackerBundle bundle, Enrollment enrollment, boolean isNew, boolean completedInThisImport) {
+    EnumSet<NotificationTrigger> applicableTriggers = EnumSet.noneOf(NotificationTrigger.class);
+    if (isNew) {
+      applicableTriggers.add(NotificationTrigger.ENROLLMENT);
+    }
+    if (completedInThisImport) {
+      applicableTriggers.add(NotificationTrigger.COMPLETION);
+    }
+    Set<ProgramNotificationTemplate> matchedTemplates =
+        filterTemplates(enrollment.getProgram().getNotificationTemplates(), applicableTriggers);
+
     List<Notification> ruleEngineNotifications =
         bundle.getEnrollmentNotifications().getOrDefault(enrollment.getUID(), List.of());
-    if (!hasTemplates && ruleEngineNotifications.isEmpty()) {
+    if (matchedTemplates.isEmpty() && ruleEngineNotifications.isEmpty()) {
       return null;
     }
 
@@ -108,33 +133,8 @@ public class EnrollmentPersister
         .accessedBy(bundle.getUser().getUsername())
         .enrollment(enrollment)
         .program(enrollment.getProgram())
-        .triggers(hasTemplates ? triggers : List.of())
+        .matchedTemplates(matchedTemplates)
         .build();
-  }
-
-  @Override
-  protected List<NotificationTrigger> determineNotificationTriggers(
-      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Enrollment entity) {
-    Enrollment persistedEnrollment = preheat.getEnrollment(entity.getUID());
-    List<NotificationTrigger> triggers = new ArrayList<>();
-
-    if (persistedEnrollment == null) {
-      // New enrollment
-      triggers.add(NotificationTrigger.ENROLLMENT);
-
-      // New enrollment that is completed
-      if (entity.getStatus() == EnrollmentStatus.COMPLETED) {
-        triggers.add(NotificationTrigger.ENROLLMENT_COMPLETION);
-      }
-    } else {
-      // Existing enrollment that has changed to completed
-      if (persistedEnrollment.getStatus() != entity.getStatus()
-          && entity.getStatus() == EnrollmentStatus.COMPLETED) {
-        triggers.add(NotificationTrigger.ENROLLMENT_COMPLETION);
-      }
-    }
-
-    return triggers;
   }
 
   @Override

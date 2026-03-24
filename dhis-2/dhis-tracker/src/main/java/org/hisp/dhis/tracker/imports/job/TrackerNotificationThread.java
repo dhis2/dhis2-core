@@ -29,10 +29,6 @@
  */
 package org.hisp.dhis.tracker.imports.job;
 
-import java.util.Map;
-import java.util.function.Consumer;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
@@ -42,37 +38,24 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * Class represents a thread which will be triggered as soon as tracker notification consumer
- * consumes a message from tracker notification queue.
+ * Async task that sends template-based notifications for a tracker entity. Uses pre-resolved
+ * entities and templates from the {@link TrackerNotificationDataBundle} to avoid redundant template
+ * resolution.
  *
  * @author Zubair Asghar
  */
 @Component
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 public class TrackerNotificationThread extends SecurityContextRunnable {
+  private final ProgramNotificationService programNotificationService;
   private final Notifier notifier;
 
   private TrackerNotificationDataBundle notificationDataBundle;
 
-  private final IdentifiableObjectManager manager;
-
-  private final Map<NotificationTrigger, Consumer<Long>> serviceMapper;
-
   public TrackerNotificationThread(
-      ProgramNotificationService programNotificationService,
-      Notifier notifier,
-      IdentifiableObjectManager manager) {
+      ProgramNotificationService programNotificationService, Notifier notifier) {
+    this.programNotificationService = programNotificationService;
     this.notifier = notifier;
-    this.manager = manager;
-    this.serviceMapper =
-        Map.of(
-            NotificationTrigger.ENROLLMENT, programNotificationService::sendEnrollmentNotifications,
-            NotificationTrigger.TRACKER_EVENT_COMPLETION,
-                programNotificationService::sendTrackerEventCompletionNotifications,
-            NotificationTrigger.SINGLE_EVENT_COMPLETION,
-                programNotificationService::sendSingleEventCompletionNotifications,
-            NotificationTrigger.ENROLLMENT_COMPLETION,
-                programNotificationService::sendEnrollmentCompletionNotifications);
   }
 
   @Override
@@ -81,13 +64,16 @@ public class TrackerNotificationThread extends SecurityContextRunnable {
       return;
     }
 
-    for (NotificationTrigger trigger : notificationDataBundle.getTriggers()) {
-      if (serviceMapper.containsKey(trigger)) {
-        IdentifiableObject object =
-            manager.get(notificationDataBundle.getKlass(), notificationDataBundle.getObject());
-        if (object != null) {
-          serviceMapper.get(trigger).accept(object.getId());
-        }
+    if (!notificationDataBundle.getMatchedTemplates().isEmpty()) {
+      if (notificationDataBundle.getEnrollment() != null) {
+        programNotificationService.sendEnrollmentNotifications(
+            notificationDataBundle.getEnrollment(), notificationDataBundle.getMatchedTemplates());
+      } else if (notificationDataBundle.getEvent() != null) {
+        programNotificationService.sendTrackerEventCompletionNotifications(
+            notificationDataBundle.getEvent(), notificationDataBundle.getMatchedTemplates());
+      } else if (notificationDataBundle.getSingleEvent() != null) {
+        programNotificationService.sendSingleEventCompletionNotifications(
+            notificationDataBundle.getSingleEvent(), notificationDataBundle.getMatchedTemplates());
       }
     }
 

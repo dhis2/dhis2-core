@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.model.Enrollment;
@@ -64,7 +63,6 @@ class TrackerSideValidationEffectDataBundleTest {
     assertTrue(bundle.getEnrollmentNotifications().isEmpty());
     assertTrue(bundle.getTrackerEventNotifications().isEmpty());
     assertEquals(TrackerImportStrategy.CREATE, bundle.getImportStrategy());
-    assertEquals(MessageType.TRACKER_SIDE_EFFECT, bundle.getMessageType());
   }
 
   @Test
