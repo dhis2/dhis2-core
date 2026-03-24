@@ -44,6 +44,7 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
@@ -92,16 +93,22 @@ public class EnrollmentPersister
   @Override
   protected TrackerNotificationDataBundle handleNotifications(
       TrackerBundle bundle, Enrollment enrollment, List<NotificationTrigger> triggers) {
+    boolean hasTemplates = hasMatchingNotificationTemplates(enrollment.getProgram(), triggers);
+    List<Notification> ruleEngineNotifications =
+        bundle.getEnrollmentNotifications().getOrDefault(enrollment.getUID(), List.of());
+    if (!hasTemplates && ruleEngineNotifications.isEmpty()) {
+      return null;
+    }
 
     return TrackerNotificationDataBundle.builder()
         .klass(Enrollment.class)
-        .enrollmentNotifications(bundle.getEnrollmentNotifications().get(enrollment.getUID()))
+        .enrollmentNotifications(ruleEngineNotifications)
         .object(enrollment.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUser().getUsername())
         .enrollment(enrollment)
         .program(enrollment.getProgram())
-        .triggers(triggers)
+        .triggers(hasTemplates ? triggers : List.of())
         .build();
   }
 

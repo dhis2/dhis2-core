@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,56 +29,21 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(
-    uses = {
-      TrackedEntityTypeMapper.class,
-      AttributeValuesMapper.class,
-      SharingMapper.class,
-      ProgramStageDataElementMapper.class,
-      ProgramNotificationTemplateMapper.class,
-    })
-public interface ProgramStageMapper extends PreheatMapper<ProgramStage> {
-  ProgramStageMapper INSTANCE = Mappers.getMapper(ProgramStageMapper.class);
+@Mapper
+public interface ProgramNotificationTemplateMapper
+    extends PreheatMapper<ProgramNotificationTemplate> {
+  ProgramNotificationTemplateMapper INSTANCE =
+      Mappers.getMapper(ProgramNotificationTemplateMapper.class);
 
   @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "id")
   @Mapping(target = "uid")
-  @Mapping(target = "code")
-  @Mapping(target = "name")
-  @Mapping(target = "attributeValues")
-  @Mapping(target = "user")
-  @Mapping(target = "program", qualifiedByName = "program")
-  @Mapping(target = "repeatable")
-  @Mapping(target = "referral")
-  @Mapping(target = "programStageDataElements")
-  @Mapping(target = "enableUserAssignment")
-  @Mapping(target = "validationStrategy")
-  @Mapping(target = "featureType")
-  @Mapping(target = "sharing")
-  @Mapping(target = "notificationTemplates")
-  ProgramStage map(ProgramStage programStage);
-
-  @Named("program")
-  @BeanMapping(ignoreByDefault = true)
-  @Mapping(target = "id")
-  @Mapping(target = "uid")
-  @Mapping(target = "code")
-  @Mapping(target = "name")
-  @Mapping(target = "attributeValues")
-  @Mapping(target = "trackedEntityType")
-  @Mapping(target = "programType")
-  @Mapping(target = "categoryCombo")
-  @Mapping(target = "enrollmentCategoryCombo")
-  @Mapping(target = "sharing")
-  @Mapping(target = "accessLevel")
-  @Mapping(target = "enableChangeLog")
-  Program mapProgram(Program p);
+  @Mapping(target = "notificationTrigger")
+  ProgramNotificationTemplate map(ProgramNotificationTemplate template);
 }

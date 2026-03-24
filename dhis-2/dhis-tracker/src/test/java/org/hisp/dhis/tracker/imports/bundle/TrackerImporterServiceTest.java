@@ -108,7 +108,8 @@ class TrackerImporterServiceTest {
     when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
         .thenReturn(bundleWithPreheat(parameters, objects));
     when(trackerBundleService.commit(any(TrackerBundle.class)))
-        .thenReturn(PersistenceReport.emptyReport());
+        .thenReturn(
+            new TrackerBundleService.CommitResult(PersistenceReport.emptyReport(), List.of()));
 
     subject.importTracker(parameters, trackerObjects, JobProgress.noop());
 
@@ -123,7 +124,8 @@ class TrackerImporterServiceTest {
     when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
         .thenReturn(bundleWithPreheat(params, objects));
     when(trackerBundleService.commit(any(TrackerBundle.class)))
-        .thenReturn(PersistenceReport.emptyReport());
+        .thenReturn(
+            new TrackerBundleService.CommitResult(PersistenceReport.emptyReport(), List.of()));
 
     subject.importTracker(params, trackerObjects, JobProgress.noop());
 
