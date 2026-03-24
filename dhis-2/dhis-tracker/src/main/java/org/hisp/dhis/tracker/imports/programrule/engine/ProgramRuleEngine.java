@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.imports.programrule.engine;
 
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -41,12 +42,12 @@ import org.hisp.dhis.user.UserDetails;
 
 public interface ProgramRuleEngine {
   /**
-   * Evaluate program rules for {@link Program} for enrollment and tracker events. Rules are
-   * evaluated under the authorization of given {@link UserDetails}.
+   * Evaluate program rules for multiple enrollments belonging to the same {@link Program}, building
+   * the rule engine context once. Rules are evaluated under the authorization of given {@link
+   * UserDetails}.
    */
-  RuleEngineEffects evaluateEnrollmentAndTrackerEvents(
-      @Nonnull RuleEnrollment enrollment,
-      @Nonnull List<RuleEvent> events,
+  RuleEngineEffects evaluateEnrollmentsAndTrackerEvents(
+      @Nonnull Map<RuleEnrollment, List<RuleEvent>> enrollmentsWithEvents,
       @Nonnull Program program,
       @Nonnull UserDetails user);
 
