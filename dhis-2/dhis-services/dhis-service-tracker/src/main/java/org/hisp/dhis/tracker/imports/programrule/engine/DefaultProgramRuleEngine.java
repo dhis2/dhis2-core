@@ -31,15 +31,14 @@ package org.hisp.dhis.tracker.imports.programrule.engine;
 
 import static org.hisp.dhis.programrule.ProgramRuleActionType.SERVER_SUPPORTED_TYPES;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.Program;
@@ -125,25 +124,33 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
   }
 
   @Override
-  public RuleEngineEffects evaluateEnrollmentAndTrackerEvents(
-      @Nonnull RuleEnrollment enrollment,
-      @Nonnull List<RuleEvent> events,
+  public RuleEngineEffects evaluateEnrollmentsAndTrackerEvents(
+      @Nonnull Map<RuleEnrollment, List<RuleEvent>> enrollmentsWithEvents,
       @Nonnull Program program,
       @Nonnull UserDetails user) {
-    return evaluateEnrollmentAndEvents(enrollment, events, program, user);
+    if (enrollmentsWithEvents.isEmpty()) {
+      return RuleEngineEffects.of(Collections.emptyList());
+    }
+    List<ProgramRule> rules =
+        programRuleService.getProgramRulesByActionTypes(program, SERVER_SUPPORTED_TYPES);
+    if (rules.isEmpty()) {
+      return RuleEngineEffects.of(Collections.emptyList());
+    }
+    RuleEngineContext context = getRuleEngineContext(program, rules, user);
+    List<RuleEffects> allEffects = new ArrayList<>();
+    for (Map.Entry<RuleEnrollment, List<RuleEvent>> entry : enrollmentsWithEvents.entrySet()) {
+      try {
+        allEffects.addAll(ruleEngine.evaluateAll(entry.getKey(), entry.getValue(), context));
+      } catch (Exception e) {
+        log.error("Call to rule-engine failed", e);
+      }
+    }
+    return RuleEngineEffects.of(allEffects);
   }
 
   @Override
   public RuleEngineEffects evaluateProgramEvents(
       @Nonnull List<RuleEvent> events, @Nonnull Program program, @Nonnull UserDetails user) {
-    return evaluateEnrollmentAndEvents(null, events, program, user);
-  }
-
-  private RuleEngineEffects evaluateEnrollmentAndEvents(
-      @CheckForNull RuleEnrollment enrollment,
-      @Nonnull List<RuleEvent> events,
-      @Nonnull Program program,
-      @Nonnull UserDetails user) {
     List<ProgramRule> rules =
         programRuleService.getProgramRulesByActionTypes(program, SERVER_SUPPORTED_TYPES);
 
@@ -151,23 +158,12 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
       return RuleEngineEffects.of(Collections.emptyList());
     }
 
-    List<RuleEffects> ruleEffects =
-        evaluateProgramRulesForMultipleTrackerObjects(enrollment, program, events, rules, user);
-    return RuleEngineEffects.of(ruleEffects);
-  }
-
-  private List<RuleEffects> evaluateProgramRulesForMultipleTrackerObjects(
-      @CheckForNull RuleEnrollment ruleEnrollment,
-      @Nonnull Program program,
-      @Nonnull List<RuleEvent> ruleEvents,
-      @Nonnull List<ProgramRule> rules,
-      @Nonnull UserDetails user) {
+    RuleEngineContext ruleEngineContext = getRuleEngineContext(program, rules, user);
     try {
-      RuleEngineContext ruleEngineContext = getRuleEngineContext(program, rules, user);
-      return ruleEngine.evaluateAll(ruleEnrollment, ruleEvents, ruleEngineContext);
+      return RuleEngineEffects.of(ruleEngine.evaluateAll(null, events, ruleEngineContext));
     } catch (Exception e) {
-      log.error(DebugUtils.getStackTrace(e));
-      return Collections.emptyList();
+      log.error("Call to rule-engine failed", e);
+      return RuleEngineEffects.of(List.of());
     }
   }
 

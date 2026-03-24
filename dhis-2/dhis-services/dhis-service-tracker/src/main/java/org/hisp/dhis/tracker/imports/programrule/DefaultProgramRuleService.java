@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.imports.programrule;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -107,19 +108,24 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
   private RuleEngineEffects calculateEnrollmentRuleEffects(
       TrackerBundle bundle, TrackerPreheat preheat) {
-    return bundle.getEnrollments().stream()
-        .map(
-            e -> {
-              List<RuleAttributeValue> attributes =
-                  getAttributes(e.getEnrollment(), e.getTrackedEntity(), bundle, preheat);
-              RuleEnrollment enrollment =
-                  RuleEngineMapper.mapPayloadEnrollment(preheat, e, attributes);
+    Map<Program, List<org.hisp.dhis.tracker.imports.domain.Enrollment>> byProgram =
+        bundle.getEnrollments().stream()
+            .collect(Collectors.groupingBy(e -> preheat.getProgram(e.getProgram())));
 
-              return programRuleEngine.evaluateEnrollmentAndTrackerEvents(
-                  enrollment,
-                  getEventsFromEnrollment(e.getUid(), bundle, preheat),
-                  preheat.getProgram(e.getProgram()),
-                  bundle.getUser());
+    return byProgram.entrySet().stream()
+        .map(
+            entry -> {
+              Map<RuleEnrollment, List<RuleEvent>> enrollmentsWithEvents = new HashMap<>();
+              for (org.hisp.dhis.tracker.imports.domain.Enrollment e : entry.getValue()) {
+                List<RuleAttributeValue> attributes =
+                    getAttributes(e.getEnrollment(), e.getTrackedEntity(), bundle, preheat);
+                RuleEnrollment enrollment =
+                    RuleEngineMapper.mapPayloadEnrollment(preheat, e, attributes);
+                enrollmentsWithEvents.put(
+                    enrollment, getEventsFromEnrollment(e.getUid(), bundle, preheat));
+              }
+              return programRuleEngine.evaluateEnrollmentsAndTrackerEvents(
+                  enrollmentsWithEvents, entry.getKey(), bundle.getUser());
             })
         .reduce(RuleEngineEffects::merge)
         .orElse(RuleEngineEffects.empty());
@@ -134,17 +140,22 @@ class DefaultProgramRuleService implements ProgramRuleService {
             .map(event -> preheat.getEnrollment(event.getEnrollment()))
             .collect(Collectors.toSet());
 
-    return enrollments.stream()
+    Map<Program, List<Enrollment>> byProgram =
+        enrollments.stream().collect(Collectors.groupingBy(Enrollment::getProgram));
+
+    return byProgram.entrySet().stream()
         .map(
-            e -> {
-              List<RuleAttributeValue> attributes =
-                  getAttributes(UID.of(e), UID.of(e.getTrackedEntity()), bundle, preheat);
-              RuleEnrollment enrollment = RuleEngineMapper.mapSavedEnrollment(e, attributes);
-              return programRuleEngine.evaluateEnrollmentAndTrackerEvents(
-                  enrollment,
-                  getEventsFromEnrollment(UID.of(e), bundle, preheat),
-                  e.getProgram(),
-                  bundle.getUser());
+            entry -> {
+              Map<RuleEnrollment, List<RuleEvent>> enrollmentsWithEvents = new HashMap<>();
+              for (Enrollment e : entry.getValue()) {
+                List<RuleAttributeValue> attributes =
+                    getAttributes(UID.of(e), UID.of(e.getTrackedEntity()), bundle, preheat);
+                RuleEnrollment enrollment = RuleEngineMapper.mapSavedEnrollment(e, attributes);
+                enrollmentsWithEvents.put(
+                    enrollment, getEventsFromEnrollment(UID.of(e), bundle, preheat));
+              }
+              return programRuleEngine.evaluateEnrollmentsAndTrackerEvents(
+                  enrollmentsWithEvents, entry.getKey(), bundle.getUser());
             })
         .reduce(RuleEngineEffects::merge)
         .orElse(RuleEngineEffects.empty());
@@ -161,7 +172,6 @@ class DefaultProgramRuleService implements ProgramRuleService {
         .map(
             entry -> {
               List<RuleEvent> events = RuleEngineMapper.mapPayloadEvents(preheat, entry.getValue());
-
               return programRuleEngine.evaluateProgramEvents(
                   events, entry.getKey(), bundle.getUser());
             })
