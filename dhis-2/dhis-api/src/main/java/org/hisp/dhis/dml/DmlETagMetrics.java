@@ -62,7 +62,7 @@ public final class DmlETagMetrics {
   public static final String DML_OBSERVER_BATCH_SIZE = "dhis2_dml_observer_batch_size";
 
   // ---------------------------------------------------------------------------
-  // ETag Bridge metrics (DmlCacheInvalidationBridge)
+  // ETag version bump metrics (DmlObserverListener)
   // ---------------------------------------------------------------------------
 
   /** Per-event counter with tag {@link #TAG_STATUS}. */

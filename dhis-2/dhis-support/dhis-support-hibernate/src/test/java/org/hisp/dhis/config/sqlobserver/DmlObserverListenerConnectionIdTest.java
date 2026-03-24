@@ -29,10 +29,10 @@
  */
 package org.hisp.dhis.config.sqlobserver;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -45,30 +45,38 @@ import net.ttddyy.dsproxy.ConnectionInfo;
 import net.ttddyy.dsproxy.ExecutionInfo;
 import net.ttddyy.dsproxy.QueryInfo;
 import net.ttddyy.dsproxy.listener.MethodExecutionContext;
-import org.hisp.dhis.dml.DmlObservedEvent;
+import org.hisp.dhis.cache.ETagService;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.support.StaticApplicationContext;
 
 /**
  * Tests that connection IDs from afterQuery (ExecutionInfo) and afterMethod
  * (MethodExecutionContext) match for the same connection lifecycle, ensuring the pending batch is
- * correctly published on commit and discarded on rollback.
+ * correctly processed on commit and discarded on rollback.
  */
 class DmlObserverListenerConnectionIdTest {
 
   private HibernateTableEntityRegistry registry;
-  private ApplicationEventPublisher eventPublisher;
+  private ETagService eTagService;
   private DmlObserverListener listener;
 
   @BeforeEach
   void setUp() {
     registry = mock(HibernateTableEntityRegistry.class);
-    eventPublisher = mock(ApplicationEventPublisher.class);
-    listener = new DmlObserverListener(registry, eventPublisher, null);
+    eTagService = mock(ETagService.class);
+    when(registry.getTableInfo("dataelement"))
+        .thenReturn(
+            new HibernateTableEntityRegistry.TableInfo(
+                "dataelement", DataElement.class, List.of()));
+    when(registry.getTableInfo("organisationunit"))
+        .thenReturn(
+            new HibernateTableEntityRegistry.TableInfo(
+                "organisationunit", OrganisationUnit.class, List.of()));
+    listener = new DmlObserverListener(registry, eTagService, null);
     listener.onApplicationEvent(new ContextRefreshedEvent(new StaticApplicationContext()));
   }
 
@@ -79,15 +87,13 @@ class DmlObserverListenerConnectionIdTest {
     // afterQuery with connection ID from ExecutionInfo
     ExecutionInfo execInfo = createExecInfo(connId, false);
     listener.afterQuery(execInfo, List.of(createDml("INSERT INTO dataelement (uid) VALUES (?)")));
-    verify(eventPublisher, never()).publishEvent(any());
+    verify(eTagService, never()).incrementEntityTypeVersion(any());
 
     // afterMethod with same connection ID from MethodExecutionContext
     MethodExecutionContext commitCtx = createMethodCtx(connId, "commit");
     listener.afterMethod(commitCtx);
 
-    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
-    verify(eventPublisher).publishEvent(captor.capture());
-    assertEquals(1, captor.getValue().getEvents().size());
+    verify(eTagService, times(1)).incrementEntityTypeVersion(DataElement.class);
   }
 
   @Test
@@ -100,12 +106,12 @@ class DmlObserverListenerConnectionIdTest {
     MethodExecutionContext rollbackCtx = createMethodCtx(connId, "rollback");
     listener.afterMethod(rollbackCtx);
 
-    // Rollback should discard, not publish
-    verify(eventPublisher, never()).publishEvent(any());
+    // Rollback should discard, not bump
+    verify(eTagService, never()).incrementEntityTypeVersion(any());
   }
 
   @Test
-  void mismatchedConnectionId_doesNotPublishBatch() throws Exception {
+  void mismatchedConnectionId_doesNotBumpVersion() throws Exception {
     // afterQuery uses one connection ID
     ExecutionInfo execInfo = createExecInfo("conn-A", false);
     listener.afterQuery(execInfo, List.of(createDml("INSERT INTO dataelement (uid) VALUES (?)")));
@@ -114,8 +120,8 @@ class DmlObserverListenerConnectionIdTest {
     MethodExecutionContext commitCtx = createMethodCtx("conn-B", "commit");
     listener.afterMethod(commitCtx);
 
-    // The batch for conn-A is still pending, conn-B has no batch to publish
-    verify(eventPublisher, never()).publishEvent(any());
+    // The batch for conn-A is still pending, conn-B has no batch to process
+    verify(eTagService, never()).incrementEntityTypeVersion(any());
   }
 
   @Test
@@ -132,8 +138,8 @@ class DmlObserverListenerConnectionIdTest {
 
     listener.afterMethod(ctx);
 
-    // Should not publish because connection ID couldn't be resolved
-    verify(eventPublisher, never()).publishEvent(any());
+    // Should not bump because connection ID couldn't be resolved
+    verify(eTagService, never()).incrementEntityTypeVersion(any());
   }
 
   @Test
@@ -147,9 +153,7 @@ class DmlObserverListenerConnectionIdTest {
     MethodExecutionContext commitCtx = createMethodCtx(connId, "commit");
     listener.afterMethod(commitCtx);
 
-    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
-    verify(eventPublisher).publishEvent(captor.capture());
-    assertEquals(1, captor.getValue().getEvents().size());
+    verify(eTagService, times(1)).incrementEntityTypeVersion(DataElement.class);
   }
 
   @Test
@@ -164,15 +168,13 @@ class DmlObserverListenerConnectionIdTest {
     // Commit conn-X only
     listener.afterMethod(createMethodCtx("conn-X", "commit"));
 
-    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
-    verify(eventPublisher).publishEvent(captor.capture());
-    assertEquals(1, captor.getValue().getEvents().size());
-    assertEquals("dataelement", captor.getValue().getEvents().get(0).tableName());
+    verify(eTagService, times(1)).incrementEntityTypeVersion(DataElement.class);
+    verify(eTagService, never()).incrementEntityTypeVersion(OrganisationUnit.class);
 
     // conn-Y still pending — rollback it
     listener.afterMethod(createMethodCtx("conn-Y", "rollback"));
-    // Should still be only 1 event published total
-    verify(eventPublisher, org.mockito.Mockito.times(1)).publishEvent(any());
+    // OrganisationUnit should NOT have been bumped
+    verify(eTagService, never()).incrementEntityTypeVersion(OrganisationUnit.class);
   }
 
   // ── Helpers ──

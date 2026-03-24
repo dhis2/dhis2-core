@@ -34,10 +34,17 @@ import static org.hisp.dhis.dml.DmlETagMetrics.DML_OBSERVER_BATCHES_PUBLISHED;
 import static org.hisp.dhis.dml.DmlETagMetrics.DML_OBSERVER_BATCH_SIZE;
 import static org.hisp.dhis.dml.DmlETagMetrics.DML_OBSERVER_STALE_SWEEPS;
 import static org.hisp.dhis.dml.DmlETagMetrics.DML_OBSERVER_STATEMENTS;
+import static org.hisp.dhis.dml.DmlETagMetrics.ETAG_BRIDGE_EVENTS;
+import static org.hisp.dhis.dml.DmlETagMetrics.ETAG_VERSION_BUMPS;
 import static org.hisp.dhis.dml.DmlETagMetrics.RESULT_OBSERVED;
 import static org.hisp.dhis.dml.DmlETagMetrics.RESULT_SKIPPED_EXCLUDED;
 import static org.hisp.dhis.dml.DmlETagMetrics.RESULT_SKIPPED_NON_DML;
+import static org.hisp.dhis.dml.DmlETagMetrics.STATUS_PROCESSED;
+import static org.hisp.dhis.dml.DmlETagMetrics.STATUS_SKIPPED_NULL;
+import static org.hisp.dhis.dml.DmlETagMetrics.STATUS_SKIPPED_UNTRACKED;
+import static org.hisp.dhis.dml.DmlETagMetrics.TAG_ENTITY_TYPE;
 import static org.hisp.dhis.dml.DmlETagMetrics.TAG_RESULT;
+import static org.hisp.dhis.dml.DmlETagMetrics.TAG_STATUS;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.DistributionSummary;
@@ -59,18 +66,17 @@ import net.ttddyy.dsproxy.QueryInfo;
 import net.ttddyy.dsproxy.listener.MethodExecutionContext;
 import net.ttddyy.dsproxy.listener.MethodExecutionListener;
 import net.ttddyy.dsproxy.listener.QueryExecutionListener;
+import org.hisp.dhis.cache.ETagObservedEntityTypes;
+import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.config.sqlobserver.HibernateTableEntityRegistry.TableInfo;
 import org.hisp.dhis.dml.DmlEvent;
-import org.hisp.dhis.dml.DmlObservedEvent;
-import org.hisp.dhis.dml.DmlOrigin;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 
 /**
  * Intercepts all DML statements (INSERT/UPDATE/DELETE) at the JDBC level via datasource-proxy.
- * Accumulates events per connection and publishes them as a batch on transaction commit. Discards
- * on rollback.
+ * Accumulates events per connection and bumps ETag versions on transaction commit. Discards on
+ * rollback.
  *
  * <p>Implements both {@link QueryExecutionListener} (for SQL interception) and {@link
  * MethodExecutionListener} (for commit/rollback detection).
@@ -82,7 +88,10 @@ public class DmlObserverListener
     implements QueryExecutionListener,
         MethodExecutionListener,
         ApplicationListener<ContextRefreshedEvent> {
-  // Metrics counters (null when meterRegistry is null)
+
+  private static final Class<?> UNRESOLVABLE = Void.class;
+
+  // DML Observer metrics
   private final Counter statementsObserved;
   private final Counter statementsSkippedNonDml;
   private final Counter statementsSkippedExcluded;
@@ -91,16 +100,25 @@ public class DmlObserverListener
   private final Counter staleSweeps;
   private final DistributionSummary batchSize;
 
+  // ETag version bump metrics
+  private final Counter eventsProcessed;
+  private final Counter eventsSkippedUntracked;
+  private final Counter eventsSkippedNull;
+
   private final HibernateTableEntityRegistry registry;
-  private final ApplicationEventPublisher eventPublisher;
+  private final ETagService eTagService;
+  private final MeterRegistry meterRegistry;
+
+  private final ConcurrentHashMap<String, Class<?>> classCache = new ConcurrentHashMap<>();
+  private final ConcurrentHashMap<String, Counter> entityTypeBumpCounters =
+      new ConcurrentHashMap<>();
 
   /**
-   * Accumulated DML events and origin context for one connection. {@code seenTableOps} deduplicates
-   * by table+operation so a bulk import produces at most one event per table/operation combo,
-   * bounding memory by distinct tables touched rather than row count.
+   * Accumulated DML events for one connection. {@code seenTableOps} deduplicates by table+operation
+   * so a bulk import produces at most one event per table/operation combo, bounding memory by
+   * distinct tables touched rather than row count.
    */
-  record PendingBatch(
-      List<DmlEvent> events, Set<String> seenTableOps, DmlOrigin origin, long createdAtNanos) {}
+  record PendingBatch(List<DmlEvent> events, Set<String> seenTableOps, long createdAtNanos) {}
 
   /** Max age for pending batches before they are evicted as stale (5 minutes). */
   private static final long STALE_BATCH_NANOS = 5 * 60 * 1_000_000_000L;
@@ -118,11 +136,10 @@ public class DmlObserverListener
   private volatile boolean observingEnabled;
 
   public DmlObserverListener(
-      HibernateTableEntityRegistry registry,
-      ApplicationEventPublisher eventPublisher,
-      MeterRegistry meterRegistry) {
+      HibernateTableEntityRegistry registry, ETagService eTagService, MeterRegistry meterRegistry) {
     this.registry = registry;
-    this.eventPublisher = eventPublisher;
+    this.eTagService = eTagService;
+    this.meterRegistry = meterRegistry;
 
     if (meterRegistry != null) {
       statementsObserved =
@@ -141,6 +158,19 @@ public class DmlObserverListener
       batchesDiscarded = Counter.builder(DML_OBSERVER_BATCHES_DISCARDED).register(meterRegistry);
       staleSweeps = Counter.builder(DML_OBSERVER_STALE_SWEEPS).register(meterRegistry);
       batchSize = DistributionSummary.builder(DML_OBSERVER_BATCH_SIZE).register(meterRegistry);
+
+      eventsProcessed =
+          Counter.builder(ETAG_BRIDGE_EVENTS)
+              .tag(TAG_STATUS, STATUS_PROCESSED)
+              .register(meterRegistry);
+      eventsSkippedUntracked =
+          Counter.builder(ETAG_BRIDGE_EVENTS)
+              .tag(TAG_STATUS, STATUS_SKIPPED_UNTRACKED)
+              .register(meterRegistry);
+      eventsSkippedNull =
+          Counter.builder(ETAG_BRIDGE_EVENTS)
+              .tag(TAG_STATUS, STATUS_SKIPPED_NULL)
+              .register(meterRegistry);
     } else {
       statementsObserved = null;
       statementsSkippedNonDml = null;
@@ -149,6 +179,9 @@ public class DmlObserverListener
       batchesDiscarded = null;
       staleSweeps = null;
       batchSize = null;
+      eventsProcessed = null;
+      eventsSkippedUntracked = null;
+      eventsSkippedNull = null;
     }
   }
 
@@ -203,15 +236,14 @@ public class DmlObserverListener
 
       if (statementsObserved != null) statementsObserved.increment();
 
-      // For auto-commit connections, publish immediately
+      // For auto-commit connections, bump ETag versions immediately
       if (autoCommit) {
         log.debug(
             "DML observed (auto-commit): op={}, table={}, entity={}",
             event.operation(),
             event.tableName(),
             event.entityClassName());
-        eventPublisher.publishEvent(
-            new DmlObservedEvent(this, List.of(event), DmlOrigin.fromMdc()));
+        bumpETagVersions(List.of(event));
       } else {
         // compute() holds the segment lock, preventing a race between
         // publishAndClear() and batch creation/event addition.
@@ -224,7 +256,6 @@ public class DmlObserverListener
                       : new PendingBatch(
                           Collections.synchronizedList(new ArrayList<>()),
                           Collections.synchronizedSet(new HashSet<>()),
-                          DmlOrigin.fromMdc(),
                           System.nanoTime());
               // Only add if we haven't seen this table+operation combo yet in this transaction
               if (batch.seenTableOps().add(dedupeKey)) {
@@ -273,7 +304,7 @@ public class DmlObserverListener
     switch (methodName) {
       case "commit" -> publishAndClear(connectionId);
       case "rollback" -> discardAndClear(connectionId);
-      // close() returns the connection to the pool; publish any remaining events rather than
+      // close() returns the connection to the pool; process any remaining events rather than
       // silently discarding them.
       case "close" -> publishAndClear(connectionId);
       default -> {
@@ -296,14 +327,10 @@ public class DmlObserverListener
   private void publishAndClear(String connectionId) {
     PendingBatch batch = pendingBatches.remove(connectionId);
     if (batch != null && !batch.events().isEmpty()) {
-      log.debug("Publishing {} DML events for connection {}", batch.events().size(), connectionId);
+      log.debug("Processing {} DML events for connection {}", batch.events().size(), connectionId);
       if (batchesPublished != null) batchesPublished.increment();
       if (batchSize != null) batchSize.record(batch.events().size());
-      try {
-        eventPublisher.publishEvent(new DmlObservedEvent(this, batch.events(), batch.origin()));
-      } catch (Exception e) {
-        log.warn("Failed to publish DmlObservedEvent", e);
-      }
+      bumpETagVersions(batch.events());
     }
   }
 
@@ -316,6 +343,69 @@ public class DmlObserverListener
           batch.events().size(),
           connectionId);
     }
+  }
+
+  /**
+   * Resolves entity classes from DML events, filters to observed types, deduplicates by entity
+   * type, and bumps ETag versions. Exceptions are caught to prevent failures from propagating to
+   * the JDBC layer.
+   */
+  private void bumpETagVersions(List<DmlEvent> events) {
+    try {
+      Set<Class<?>> bumpedTypes = new HashSet<>();
+      for (DmlEvent event : events) {
+        String entityClassName = event.entityClassName();
+        if (entityClassName == null) {
+          if (eventsSkippedNull != null) eventsSkippedNull.increment();
+          continue;
+        }
+
+        Class<?> entityClass = resolveEntityClass(entityClassName);
+        if (entityClass == null) {
+          if (eventsSkippedNull != null) eventsSkippedNull.increment();
+          continue;
+        }
+
+        if (!ETagObservedEntityTypes.isObservedType(entityClass)) {
+          if (eventsSkippedUntracked != null) eventsSkippedUntracked.increment();
+          continue;
+        }
+
+        // Deduplicate within batch: one version bump per entity type per transaction
+        if (bumpedTypes.add(entityClass)) {
+          eTagService.incrementEntityTypeVersion(entityClass);
+          if (eventsProcessed != null) eventsProcessed.increment();
+          if (meterRegistry != null) {
+            entityTypeBumpCounters
+                .computeIfAbsent(
+                    entityClass.getSimpleName(),
+                    name ->
+                        Counter.builder(ETAG_VERSION_BUMPS)
+                            .tag(TAG_ENTITY_TYPE, name)
+                            .register(meterRegistry))
+                .increment();
+          }
+          log.debug("Bumped ETag version for entity type: {}", entityClass.getSimpleName());
+        }
+      }
+    } catch (Exception e) {
+      log.error("Failed to bump ETag versions for DML events", e);
+    }
+  }
+
+  private Class<?> resolveEntityClass(String className) {
+    Class<?> cached =
+        classCache.computeIfAbsent(
+            className,
+            name -> {
+              try {
+                return Class.forName(name);
+              } catch (ClassNotFoundException e) {
+                log.warn("Could not resolve entity class: {}", name);
+                return UNRESOLVABLE;
+              }
+            });
+    return cached == UNRESOLVABLE ? null : cached;
   }
 
   /**

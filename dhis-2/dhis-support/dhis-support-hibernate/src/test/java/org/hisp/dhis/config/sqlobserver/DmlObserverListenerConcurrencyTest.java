@@ -31,6 +31,7 @@ package org.hisp.dhis.config.sqlobserver;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -39,20 +40,21 @@ import java.sql.Connection;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import net.ttddyy.dsproxy.ConnectionInfo;
 import net.ttddyy.dsproxy.ExecutionInfo;
 import net.ttddyy.dsproxy.QueryInfo;
 import net.ttddyy.dsproxy.listener.MethodExecutionContext;
-import org.hisp.dhis.dml.DmlObservedEvent;
+import org.hisp.dhis.cache.ETagService;
+import org.hisp.dhis.dataelement.DataElement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.context.ApplicationEventPublisher;
+import org.mockito.invocation.InvocationOnMock;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.support.StaticApplicationContext;
 
@@ -63,16 +65,28 @@ import org.springframework.context.support.StaticApplicationContext;
 class DmlObserverListenerConcurrencyTest {
 
   private HibernateTableEntityRegistry registry;
-  private List<DmlObservedEvent> publishedEvents;
+  private AtomicInteger bumpCount;
   private DmlObserverListener listener;
 
   @BeforeEach
   void setUp() {
     registry = mock(HibernateTableEntityRegistry.class);
-    publishedEvents = new CopyOnWriteArrayList<>();
+    // Map all tables to DataElement so version bumps happen
+    when(registry.getTableInfo(any()))
+        .thenReturn(
+            new HibernateTableEntityRegistry.TableInfo(
+                "dataelement", DataElement.class, List.of()));
 
-    ApplicationEventPublisher publisher = event -> publishedEvents.add((DmlObservedEvent) event);
-    listener = new DmlObserverListener(registry, publisher, null);
+    bumpCount = new AtomicInteger();
+    ETagService eTagService = mock(ETagService.class);
+    when(eTagService.incrementEntityTypeVersion(any()))
+        .thenAnswer(
+            (InvocationOnMock inv) -> {
+              bumpCount.incrementAndGet();
+              return 1L;
+            });
+
+    listener = new DmlObserverListener(registry, eTagService, null);
     listener.onApplicationEvent(new ContextRefreshedEvent(new StaticApplicationContext()));
   }
 
@@ -114,20 +128,16 @@ class DmlObserverListenerConcurrencyTest {
     pool.shutdown();
     assertTrue(pool.awaitTermination(10, TimeUnit.SECONDS));
 
-    // No events published yet (non-auto-commit, no commit call)
-    assertEquals(0, publishedEvents.size());
+    // No bumps yet (non-auto-commit, no commit call)
+    assertEquals(0, bumpCount.get());
 
-    // Now commit — should publish all accumulated events
+    // Now commit — should bump version for DataElement (all events map to same entity type)
     Connection conn = createMockConnection();
     MethodExecutionContext commitCtx = createMethodContext(conn, "commit", connectionId);
     listener.afterMethod(commitCtx);
 
-    assertEquals(1, publishedEvents.size());
-    int totalEvents = publishedEvents.get(0).getEvents().size();
-    assertEquals(
-        threadCount * eventsPerThread,
-        totalEvents,
-        "Expected " + (threadCount * eventsPerThread) + " events, got " + totalEvents);
+    // All events map to DataElement; entity-type dedup means exactly 1 bump per batch
+    assertEquals(1, bumpCount.get(), "One batch commit should produce exactly 1 entity-type bump");
   }
 
   @RepeatedTest(5)
@@ -168,16 +178,12 @@ class DmlObserverListenerConcurrencyTest {
     pool.shutdown();
     assertTrue(pool.awaitTermination(10, TimeUnit.SECONDS));
 
-    // Each connection should have published exactly one batch
-    assertEquals(connectionCount, publishedEvents.size());
-
-    // Total events across all batches
-    int totalEvents = publishedEvents.stream().mapToInt(e -> e.getEvents().size()).sum();
-    assertEquals(connectionCount * eventsPerConnection, totalEvents);
+    // Each connection should produce 1 bump (entity-type dedup within each batch)
+    assertEquals(connectionCount, bumpCount.get());
   }
 
   @Test
-  void concurrentCommitAndAccumulation_noLostEvents() throws InterruptedException {
+  void concurrentCommitAndAccumulation_noLostBumps() throws InterruptedException {
     // Simulate a race: one thread accumulating, another committing
     String connectionId = "conn-race-1";
     int iterations = 100;
@@ -222,12 +228,9 @@ class DmlObserverListenerConcurrencyTest {
     MethodExecutionContext commitCtx = createMethodContext(conn, "commit", connectionId);
     listener.afterMethod(commitCtx);
 
-    // All events should have been published (across multiple batches)
-    int totalEvents = publishedEvents.stream().mapToInt(e -> e.getEvents().size()).sum();
-    assertEquals(
-        iterations,
-        totalEvents,
-        "Total events published should equal iterations, no events should be lost");
+    // Each commit with events produces 1 bump (entity-type dedup).
+    // At least 1 bump must have occurred (events were accumulated and committed).
+    assertTrue(bumpCount.get() >= 1, "At least one version bump should have occurred");
   }
 
   @Test
@@ -249,7 +252,6 @@ class DmlObserverListenerConcurrencyTest {
             go.await();
             for (int i = 0; i < autoCommitCount; i++) {
               ExecutionInfo execInfo = createSuccessExecutionInfo(true, "conn-auto-" + i);
-              // Each auto-commit uses a unique connection, so dedup doesn't apply across them
               List<QueryInfo> queries =
                   List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
               listener.afterQuery(execInfo, queries);
@@ -282,19 +284,18 @@ class DmlObserverListenerConcurrencyTest {
     pool.shutdown();
     assertTrue(pool.awaitTermination(10, TimeUnit.SECONDS));
 
-    // Auto-commit events published immediately (one event per publish)
-    int autoCommitPublished =
-        (int) publishedEvents.stream().filter(e -> e.getEvents().size() == 1).count();
-    assertEquals(autoCommitCount, autoCommitPublished);
+    // Auto-commit: each auto-commit call bumps DataElement once = 50 bumps
+    int autoCommitBumps = bumpCount.get();
+    assertEquals(autoCommitCount, autoCommitBumps, "Each auto-commit should produce 1 bump");
 
     // Now commit the batch
     Connection conn = createMockConnection();
     MethodExecutionContext commitCtx = createMethodContext(conn, "commit", batchConnId);
     listener.afterMethod(commitCtx);
 
-    // Total should be autoCommitCount individual publishes + 1 batch publish
-    int totalEvents = publishedEvents.stream().mapToInt(e -> e.getEvents().size()).sum();
-    assertEquals(autoCommitCount + batchCount, totalEvents);
+    // Batch: all events map to DataElement, entity-type dedup = 1 bump
+    // Total: autoCommitCount + 1 batch bump
+    assertEquals(autoCommitCount + 1, bumpCount.get());
   }
 
   @lombok.SneakyThrows

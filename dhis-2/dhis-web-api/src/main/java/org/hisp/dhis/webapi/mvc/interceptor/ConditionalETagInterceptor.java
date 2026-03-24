@@ -260,7 +260,18 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
     }
   }
 
-  /** Lazily initialized, thread-safe supplier for metadata endpoint types. */
+  /**
+   * Lazily initialized, thread-safe supplier for metadata endpoint types. This is the using the
+   * Double-Checked Locking idiom for lazy initialization, from Effective Java Item 83: "Use lazy
+   * initialization judiciously" (3rd edition), discussion and latest erreta:
+   * https://stackoverflow.com/questions/3578604/how-to-solve-the-double-checked-locking-is-broken-declaration-in-java
+   * https://x.com/joshbloch/status/964327677816532992
+   *
+   * <p>Reason why we are not using @PostContruct here is The SchemaService.getMetadataSchemas()
+   * call depends on Hibernate metadata being fully initialized, and there's a known ordering issue
+   * — @PostConstruct on an interceptor can fire before Hibernate's SessionFactory has finished
+   * scanning all entity mappings. The schema list would be empty or incomplete at that point.
+   */
   private final Supplier<Map<String, Set<Class<?>>>> metadataEndpointTypesSupplier =
       new Supplier<>() {
         private volatile Map<String, Set<Class<?>>> value;

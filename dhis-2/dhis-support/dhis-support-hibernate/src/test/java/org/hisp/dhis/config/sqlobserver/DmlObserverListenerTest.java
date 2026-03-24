@@ -29,13 +29,14 @@
  */
 package org.hisp.dhis.config.sqlobserver;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Method;
@@ -47,98 +48,91 @@ import net.ttddyy.dsproxy.ConnectionInfo;
 import net.ttddyy.dsproxy.ExecutionInfo;
 import net.ttddyy.dsproxy.QueryInfo;
 import net.ttddyy.dsproxy.listener.MethodExecutionContext;
-import org.hisp.dhis.dml.DmlObservedEvent;
-import org.hisp.dhis.dml.DmlOperation;
-import org.hisp.dhis.dml.DmlOrigin;
-import org.hisp.dhis.log.MdcKeys;
-import org.junit.jupiter.api.AfterEach;
+import org.hisp.dhis.cache.ETagService;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.slf4j.MDC;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.support.StaticApplicationContext;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 
 class DmlObserverListenerTest {
 
   private HibernateTableEntityRegistry registry;
-  private ApplicationEventPublisher eventPublisher;
+  private ETagService eTagService;
   private DmlObserverListener listener;
 
   @BeforeEach
   void setUp() {
     registry = mock(HibernateTableEntityRegistry.class);
-    eventPublisher = mock(ApplicationEventPublisher.class);
-    listener = new DmlObserverListener(registry, eventPublisher, null);
+    eTagService = mock(ETagService.class);
+    when(registry.getTableInfo("dataelement"))
+        .thenReturn(
+            new HibernateTableEntityRegistry.TableInfo(
+                "dataelement", DataElement.class, List.of()));
+    when(registry.getTableInfo("organisationunit"))
+        .thenReturn(
+            new HibernateTableEntityRegistry.TableInfo(
+                "organisationunit", OrganisationUnit.class, List.of()));
+    when(registry.getTableInfo("datavalue"))
+        .thenReturn(
+            new HibernateTableEntityRegistry.TableInfo("datavalue", DataValue.class, List.of()));
+    listener = new DmlObserverListener(registry, eTagService, null);
     activateListener(listener);
   }
 
-  @AfterEach
-  void tearDown() {
-    MDC.clear();
-    SecurityContextHolder.clearContext();
-  }
-
   @Test
-  void afterQuery_selectDoesNotProduceEvents() {
+  void afterQuery_selectDoesNotBumpVersions() {
     ExecutionInfo execInfo = createSuccessExecutionInfo(true);
     List<QueryInfo> queries = List.of(createQueryInfo("SELECT * FROM dataelement"));
 
     listener.afterQuery(execInfo, queries);
 
-    verify(eventPublisher, never()).publishEvent(any());
+    verifyNoInteractions(eTagService);
   }
 
   @Test
-  void afterQuery_failedExecutionDoesNotProduceEvents() {
+  void afterQuery_failedExecutionDoesNotBumpVersions() {
     ExecutionInfo execInfo = mock(ExecutionInfo.class);
     when(execInfo.isSuccess()).thenReturn(false);
     List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
 
     listener.afterQuery(execInfo, queries);
 
-    verify(eventPublisher, never()).publishEvent(any());
+    verifyNoInteractions(eTagService);
   }
 
   @Test
   void afterQuery_ignoresDmlBeforeContextRefresh() {
-    DmlObserverListener inactiveListener = new DmlObserverListener(registry, eventPublisher, null);
+    DmlObserverListener inactiveListener = new DmlObserverListener(registry, eTagService, null);
     ExecutionInfo execInfo = createSuccessExecutionInfo(true);
     List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
 
     inactiveListener.afterQuery(execInfo, queries);
 
-    verify(eventPublisher, never()).publishEvent(any());
+    verifyNoInteractions(eTagService);
     verify(registry, never()).getTableInfo(any());
   }
 
   @Test
-  void afterQuery_excludedTableDoesNotProduceEvents() {
+  void afterQuery_excludedTableDoesNotBumpVersions() {
     ExecutionInfo execInfo = createSuccessExecutionInfo(true);
     List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO audit (data) VALUES (?)"));
 
     listener.afterQuery(execInfo, queries);
 
-    verify(eventPublisher, never()).publishEvent(any());
+    verifyNoInteractions(eTagService);
   }
 
   @Test
-  void afterQuery_insertOnAutoCommitPublishesImmediately() {
+  void afterQuery_insertOnAutoCommitBumpsVersionImmediately() {
     ExecutionInfo execInfo = createSuccessExecutionInfo(true);
     List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
 
     listener.afterQuery(execInfo, queries);
 
-    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
-    verify(eventPublisher).publishEvent(captor.capture());
-    DmlObservedEvent event = captor.getValue();
-    assertEquals(1, event.getEvents().size());
-    assertEquals(DmlOperation.INSERT, event.getEvents().get(0).operation());
-    assertEquals("dataelement", event.getEvents().get(0).tableName());
+    verify(eTagService, times(1)).incrementEntityTypeVersion(DataElement.class);
   }
 
   @Test
@@ -148,12 +142,12 @@ class DmlObserverListenerTest {
 
     listener.afterQuery(execInfo, queries);
 
-    // No event published yet (waiting for commit)
-    verify(eventPublisher, never()).publishEvent(any());
+    // No version bump yet (waiting for commit)
+    verifyNoInteractions(eTagService);
   }
 
   @Test
-  void commitPublishesAccumulatedEvents() throws java.sql.SQLException {
+  void commitBumpsVersionsForAccumulatedEvents() throws java.sql.SQLException {
     // Accumulate an event
     ExecutionInfo execInfo = createSuccessExecutionInfo(false);
     List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
@@ -164,14 +158,11 @@ class DmlObserverListenerTest {
     MethodExecutionContext commitCtx = createMethodContext(conn, "commit");
     listener.afterMethod(commitCtx);
 
-    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
-    verify(eventPublisher).publishEvent(captor.capture());
-    DmlObservedEvent event = captor.getValue();
-    assertEquals(1, event.getEvents().size());
+    verify(eTagService, times(1)).incrementEntityTypeVersion(DataElement.class);
   }
 
   @Test
-  void rollbackDiscardsAccumulatedEvents() throws java.sql.SQLException {
+  void rollbackDoesNotBumpVersions() throws java.sql.SQLException {
     // Accumulate an event
     ExecutionInfo execInfo = createSuccessExecutionInfo(false);
     List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
@@ -182,12 +173,12 @@ class DmlObserverListenerTest {
     MethodExecutionContext rollbackCtx = createMethodContext(conn, "rollback");
     listener.afterMethod(rollbackCtx);
 
-    // No event should be published
-    verify(eventPublisher, never()).publishEvent(any());
+    // No version bump should happen
+    verifyNoInteractions(eTagService);
   }
 
   @Test
-  void afterQuery_multipleDmlInBatch() {
+  void afterQuery_multipleDmlOnAutoCommitBumpsForEachEntityType() {
     ExecutionInfo execInfo = createSuccessExecutionInfo(true);
     List<QueryInfo> queries =
         List.of(
@@ -196,114 +187,19 @@ class DmlObserverListenerTest {
 
     listener.afterQuery(execInfo, queries);
 
-    // Auto-commit publishes one event per DML statement
-    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
-    verify(eventPublisher, org.mockito.Mockito.times(2)).publishEvent(captor.capture());
-
-    List<DmlObservedEvent> published = captor.getAllValues();
-    assertEquals(2, published.size());
-    assertEquals(DmlOperation.INSERT, published.get(0).getEvents().get(0).operation());
-    assertEquals("dataelement", published.get(0).getEvents().get(0).tableName());
-    assertEquals(DmlOperation.UPDATE, published.get(1).getEvents().get(0).operation());
-    assertEquals("organisationunit", published.get(1).getEvents().get(0).tableName());
+    verify(eTagService, times(1)).incrementEntityTypeVersion(DataElement.class);
+    verify(eTagService, times(1)).incrementEntityTypeVersion(OrganisationUnit.class);
   }
 
   @Test
-  void afterQuery_deleteOnAutoCommitPublishesImmediately() {
+  void afterQuery_deleteOnAutoCommitBumpsVersionImmediately() {
     ExecutionInfo execInfo = createSuccessExecutionInfo(true);
     List<QueryInfo> queries =
         List.of(createQueryInfo("DELETE FROM dataelement WHERE dataelementid = ?"));
 
     listener.afterQuery(execInfo, queries);
 
-    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
-    verify(eventPublisher).publishEvent(captor.capture());
-    DmlObservedEvent event = captor.getValue();
-    assertEquals(1, event.getEvents().size());
-    assertEquals(DmlOperation.DELETE, event.getEvents().get(0).operation());
-    assertEquals("dataelement", event.getEvents().get(0).tableName());
-  }
-
-  @Test
-  void afterQuery_autoCommitCapturesOriginFromMdc() {
-    MDC.put(MdcKeys.MDC_CONTROLLER, "DataElementController");
-    MDC.put(MdcKeys.MDC_METHOD, "postJsonObject");
-    MDC.put(MdcKeys.MDC_REQUEST_ID, "req-123");
-    MDC.put(MdcKeys.MDC_SESSION_ID, "sess-abc");
-
-    ExecutionInfo execInfo = createSuccessExecutionInfo(true);
-    List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
-
-    listener.afterQuery(execInfo, queries);
-
-    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
-    verify(eventPublisher).publishEvent(captor.capture());
-    DmlOrigin origin = captor.getValue().getOrigin();
-    assertNotNull(origin);
-    assertEquals("DataElementController", origin.controller());
-    assertEquals("postJsonObject", origin.method());
-    assertEquals("req-123", origin.requestId());
-    assertEquals("sess-abc", origin.sessionId());
-  }
-
-  @Test
-  void commitCapturesOriginFromMdcAtAccumulationTime() throws java.sql.SQLException {
-    MDC.put(MdcKeys.MDC_CONTROLLER, "OrgUnitController");
-    MDC.put(MdcKeys.MDC_REQUEST_ID, "req-456");
-
-    ExecutionInfo execInfo = createSuccessExecutionInfo(false);
-    List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
-    listener.afterQuery(execInfo, queries);
-
-    // Clear MDC before commit to prove origin was captured at accumulation time
-    MDC.clear();
-
-    Connection conn = execInfo.getStatement().getConnection();
-    MethodExecutionContext commitCtx = createMethodContext(conn, "commit");
-    listener.afterMethod(commitCtx);
-
-    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
-    verify(eventPublisher).publishEvent(captor.capture());
-    DmlOrigin origin = captor.getValue().getOrigin();
-    assertNotNull(origin);
-    assertEquals("OrgUnitController", origin.controller());
-    assertEquals("req-456", origin.requestId());
-  }
-
-  @Test
-  void afterQuery_capturesAuthenticatedUsername() {
-    User principal = new User("admin", "password", List.of());
-    SecurityContextHolder.getContext()
-        .setAuthentication(new UsernamePasswordAuthenticationToken(principal, null, List.of()));
-
-    ExecutionInfo execInfo = createSuccessExecutionInfo(true);
-    List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
-
-    listener.afterQuery(execInfo, queries);
-
-    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
-    verify(eventPublisher).publishEvent(captor.capture());
-    DmlOrigin origin = captor.getValue().getOrigin();
-    assertNotNull(origin);
-    assertEquals("admin", origin.username());
-  }
-
-  @Test
-  void afterQuery_emptyMdcProducesOriginWithNulls() {
-    ExecutionInfo execInfo = createSuccessExecutionInfo(true);
-    List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
-
-    listener.afterQuery(execInfo, queries);
-
-    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
-    verify(eventPublisher).publishEvent(captor.capture());
-    DmlOrigin origin = captor.getValue().getOrigin();
-    assertNotNull(origin);
-    assertNull(origin.username());
-    assertNull(origin.controller());
-    assertNull(origin.method());
-    assertNull(origin.requestId());
-    assertNull(origin.sessionId());
+    verify(eTagService, times(1)).incrementEntityTypeVersion(DataElement.class);
   }
 
   @Test
@@ -322,43 +218,30 @@ class DmlObserverListenerTest {
     MethodExecutionContext commitCtx = createMethodContext(conn, "commit");
     listener.afterMethod(commitCtx);
 
-    // Only 1 event should be published (deduped by table:operation)
-    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
-    verify(eventPublisher).publishEvent(captor.capture());
-    DmlObservedEvent event = captor.getValue();
-    assertEquals(1, event.getEvents().size(), "100 INSERTs to same table should dedup to 1 event");
-    assertEquals(DmlOperation.INSERT, event.getEvents().get(0).operation());
-    assertEquals("dataelement", event.getEvents().get(0).tableName());
+    // Only 1 version bump (deduped by table:operation AND by entity type)
+    verify(eTagService, times(1)).incrementEntityTypeVersion(DataElement.class);
   }
 
   @Test
-  void afterQuery_differentTablesNotDeduplicated() throws java.sql.SQLException {
+  void afterQuery_differentEntityTypesHaveSeparateVersionBumps() throws java.sql.SQLException {
     ExecutionInfo execInfo = createSuccessExecutionInfo(false);
     listener.afterQuery(
         execInfo, List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)")));
     listener.afterQuery(
         execInfo, List.of(createQueryInfo("INSERT INTO organisationunit (uid) VALUES (?)")));
-    listener.afterQuery(
-        execInfo, List.of(createQueryInfo("UPDATE dataelement SET name = ? WHERE uid = ?")));
 
     // Commit
     Connection conn = execInfo.getStatement().getConnection();
     MethodExecutionContext commitCtx = createMethodContext(conn, "commit");
     listener.afterMethod(commitCtx);
 
-    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
-    verify(eventPublisher).publishEvent(captor.capture());
-    DmlObservedEvent event = captor.getValue();
-    // 3 distinct table:operation combos: dataelement:INSERT, organisationunit:INSERT,
-    // dataelement:UPDATE
-    assertEquals(
-        3,
-        event.getEvents().size(),
-        "Different table:operation combos should produce separate events");
+    verify(eTagService, times(1)).incrementEntityTypeVersion(DataElement.class);
+    verify(eTagService, times(1)).incrementEntityTypeVersion(OrganisationUnit.class);
   }
 
   @Test
-  void afterQuery_sameTableDifferentOperationsNotDeduplicated() throws java.sql.SQLException {
+  void afterQuery_sameEntityTypeDifferentOperationsDeduplicatedByEntityType()
+      throws java.sql.SQLException {
     ExecutionInfo execInfo = createSuccessExecutionInfo(false);
     listener.afterQuery(
         execInfo, List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)")));
@@ -372,13 +255,8 @@ class DmlObserverListenerTest {
     MethodExecutionContext commitCtx = createMethodContext(conn, "commit");
     listener.afterMethod(commitCtx);
 
-    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
-    verify(eventPublisher).publishEvent(captor.capture());
-    DmlObservedEvent event = captor.getValue();
-    assertEquals(
-        3,
-        event.getEvents().size(),
-        "INSERT, UPDATE, DELETE on same table should be 3 distinct events");
+    // 3 DmlEvents in batch (different operations), but only 1 entity-type version bump
+    verify(eTagService, times(1)).incrementEntityTypeVersion(DataElement.class);
   }
 
   @Test
@@ -398,11 +276,44 @@ class DmlObserverListenerTest {
         execInfo, List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)")));
     listener.afterMethod(commitCtx);
 
-    ArgumentCaptor<DmlObservedEvent> captor = ArgumentCaptor.forClass(DmlObservedEvent.class);
-    verify(eventPublisher, org.mockito.Mockito.times(2)).publishEvent(captor.capture());
-    // Both transactions should have published 1 event each
-    assertEquals(1, captor.getAllValues().get(0).getEvents().size());
-    assertEquals(1, captor.getAllValues().get(1).getEvents().size());
+    // Both transactions should have bumped the version
+    verify(eTagService, times(2)).incrementEntityTypeVersion(DataElement.class);
+  }
+
+  @Test
+  void afterQuery_nonMetadataEntityDoesNotBumpVersion() {
+    ExecutionInfo execInfo = createSuccessExecutionInfo(true);
+    List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO datavalue (value) VALUES (?)"));
+
+    listener.afterQuery(execInfo, queries);
+
+    // DataValue is not a MetadataObject and not in the observed types list
+    verify(eTagService, never()).incrementEntityTypeVersion(any());
+  }
+
+  @Test
+  void afterQuery_unmappedTableDoesNotBumpVersion() {
+    // Table with no registry mapping (entityClassName will be null)
+    ExecutionInfo execInfo = createSuccessExecutionInfo(true);
+    List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO unknowntable (uid) VALUES (?)"));
+
+    listener.afterQuery(execInfo, queries);
+
+    verify(eTagService, never()).incrementEntityTypeVersion(any());
+  }
+
+  @Test
+  void afterQuery_exceptionInVersionBumpDoesNotPropagate() {
+    doThrow(new RuntimeException("Simulated version service failure"))
+        .when(eTagService)
+        .incrementEntityTypeVersion(DataElement.class);
+
+    ExecutionInfo execInfo = createSuccessExecutionInfo(true);
+    List<QueryInfo> queries = List.of(createQueryInfo("INSERT INTO dataelement (uid) VALUES (?)"));
+
+    assertDoesNotThrow(
+        () -> listener.afterQuery(execInfo, queries),
+        "Version bump failure should not propagate to JDBC layer");
   }
 
   @lombok.SneakyThrows
