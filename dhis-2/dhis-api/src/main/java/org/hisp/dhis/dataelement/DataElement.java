@@ -51,6 +51,7 @@ import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -197,7 +198,7 @@ public class DataElement extends BaseMetadataObject
    * combination could be overridden by data set elements which this data element is part of, see
    * {@link DataSetElement}.
    */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "categorycomboid",
       nullable = false,
@@ -235,12 +236,12 @@ public class DataElement extends BaseMetadataObject
 
   /** The option set for data values linked to this data element, can be null. */
   @AuditAttribute
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "optionsetid", foreignKey = @ForeignKey(name = "fk_dataelement_optionsetid"))
   private OptionSet optionSet;
 
   /** The option set for comments linked to this data element, can be null. */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(
       name = "commentoptionsetid",
       foreignKey = @ForeignKey(name = "fk_dataelement_commentoptionsetid"))
