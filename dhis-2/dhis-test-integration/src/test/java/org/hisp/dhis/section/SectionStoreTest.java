@@ -30,6 +30,8 @@
 package org.hisp.dhis.section;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -77,6 +79,48 @@ class SectionStoreTest extends PostgresIntegrationTestBase {
             .flatMap(s -> s.getDataElements().stream())
             .toList()
             .containsAll(List.of(deW, deX, deY)));
+  }
+
+  @Test
+  @DisplayName("section names can be the same across different data sets")
+  void sectionNameCanBeSameAcrossDataSets() {
+    DataSet dataSetA = createDataSet('A', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
+    DataSet dataSetB = createDataSet('B', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
+    manager.save(dataSetA);
+    manager.save(dataSetB);
+
+    Section sectionInA = new Section();
+    sectionInA.setName("First Section");
+    sectionInA.setDataSet(dataSetA);
+    manager.save(sectionInA);
+
+    Section sectionInB = new Section();
+    sectionInB.setName("First Section");
+    sectionInB.setDataSet(dataSetB);
+    manager.save(sectionInB);
+    entityManager.flush();
+
+    assertNotNull(manager.get(Section.class,sectionInA.getId()));
+    assertNotNull(manager.get(Section.class,sectionInB.getId()));
+  }
+
+  @Test
+  @DisplayName("section names must be unique within a data set")
+  void sectionNameMustBeUniqueWithinDataSet() {
+    DataSet dataSet = createDataSet('C', PeriodType.getPeriodType(PeriodTypeEnum.DAILY));
+    manager.save(dataSet);
+
+    Section section1 = new Section();
+    section1.setName("First Section");
+    section1.setDataSet(dataSet);
+    manager.save(section1);
+
+    Section section2 = new Section();
+    section2.setName("First Section");
+    section2.setDataSet(dataSet);
+    manager.save(section2);
+
+    assertThrows(Exception.class, () -> entityManager.flush());
   }
 
   private DataElement createDataElementAndSave(char c) {
