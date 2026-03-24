@@ -29,20 +29,13 @@
  */
 package org.hisp.dhis.config.sqlobserver;
 
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import lombok.Builder;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.dml.DmlOperation;
 
-/**
- * Utility for parsing DML SQL statements and extracting table name, operation type, and
- * parameter-to-column position mappings for PK extraction.
- */
+/** Utility for parsing DML SQL statements and extracting table name and operation type. */
 @Slf4j
 public class DmlSqlParser {
 
@@ -57,6 +50,20 @@ public class DmlSqlParser {
           .eternal(true)
           .permitNullValues(true)
           .build();
+
+  /**
+   * When {@code true}, SQL statements may carry a leading {@code /* MDC context *\/} block comment
+   * that must be stripped before parsing. Set to {@code true} when {@link
+   * org.hisp.dhis.external.conf.ConfigurationKey#MONITORING_SQL_CONTEXT} is enabled. When {@code
+   * false} (the default), comment-stripping is skipped on the hot path.
+   */
+  private static volatile boolean sqlCommentsEnabled;
+
+  /** Called at startup to inform the parser whether SQL MDC comments are being injected. */
+  public static void setSqlCommentsEnabled(boolean enabled) {
+    sqlCommentsEnabled = enabled;
+    FAST_PARSE_CACHE.clear();
+  }
 
   private DmlSqlParser() {}
 
@@ -79,7 +86,7 @@ public class DmlSqlParser {
       return FAST_PARSE_CACHE.peek(query);
     }
 
-    String sql = stripLeadingComment(query);
+    String sql = sqlCommentsEnabled ? stripLeadingComment(query) : query;
     Optional<DmlFastResult> result = doParseFast(sql);
     FAST_PARSE_CACHE.put(query, result);
     return result;
@@ -124,22 +131,6 @@ public class DmlSqlParser {
     return name;
   }
 
-  @Value
-  @Builder
-  public static class DmlParseResult {
-    DmlOperation operation;
-    String tableName;
-
-    /**
-     * Maps column names in WHERE clause (for UPDATE/DELETE) or INSERT column list to 1-based JDBC
-     * parameter position. Only populated for simple {@code column = ?} equality predicates.
-     */
-    Map<String, Integer> columnToParamIndex;
-
-    /** Column names from the SET clause of an UPDATE statement. Empty for INSERT/DELETE. */
-    @Builder.Default Set<String> updatedColumns = Set.of();
-  }
-
   /**
    * Returns {@code true} if the query is possibly a DML statement (INSERT/UPDATE/DELETE). Strips a
    * leading block comment but not line comments.
@@ -157,8 +148,8 @@ public class DmlSqlParser {
       i++;
     }
 
-    // Skip leading /* MDC comment */
-    if (i + 1 < len && query.charAt(i) == '/' && query.charAt(i + 1) == '*') {
+    // Skip leading /* MDC comment */ — only when SQL context comments are enabled
+    if (sqlCommentsEnabled && i + 1 < len && query.charAt(i) == '/' && query.charAt(i + 1) == '*') {
       int endComment = query.indexOf("*/", i + 2);
       if (endComment < 0) {
         return false;

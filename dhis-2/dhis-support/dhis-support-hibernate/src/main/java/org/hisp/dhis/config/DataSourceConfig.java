@@ -56,6 +56,7 @@ import net.ttddyy.dsproxy.transform.TransformInfo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.config.sqlobserver.DmlObserverListener;
+import org.hisp.dhis.config.sqlobserver.DmlSqlParser;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.datasource.ReadOnlyDataSourceManager;
 import org.hisp.dhis.datasource.model.DbPoolConfig;
@@ -162,6 +163,7 @@ public class DataSourceConfig {
       DmlObserverListener dmlObserverListener) {
     boolean queryLogging = dhisConfig.isEnabled(ConfigurationKey.LOGGING_QUERY);
     boolean queryComments = dhisConfig.isEnabled(ConfigurationKey.MONITORING_SQL_CONTEXT);
+    DmlSqlParser.setSqlCommentsEnabled(queryComments);
     boolean hasDmlObserver = dmlObserverListener != null;
 
     if (!queryLogging && !queryComments && !hasDmlObserver) {

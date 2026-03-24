@@ -34,9 +34,15 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.dml.DmlOperation;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 class DmlSqlParserTest {
+
+  @AfterEach
+  void resetSqlCommentsFlag() {
+    DmlSqlParser.setSqlCommentsEnabled(false);
+  }
 
   @Test
   void isPossibleDml_insertReturnsTrue() {
@@ -70,6 +76,7 @@ class DmlSqlParserTest {
 
   @Test
   void isPossibleDml_withMdcComment_insertReturnsTrue() {
+    DmlSqlParser.setSqlCommentsEnabled(true);
     assertTrue(
         DmlSqlParser.isPossibleDml(
             "/* controller='MetadataController',method='POST' */ INSERT INTO foo (a) VALUES (?)"));
@@ -77,9 +84,18 @@ class DmlSqlParserTest {
 
   @Test
   void isPossibleDml_withMdcComment_selectReturnsFalse() {
+    DmlSqlParser.setSqlCommentsEnabled(true);
     assertFalse(
         DmlSqlParser.isPossibleDml(
             "/* controller='MetadataController',method='GET' */ SELECT * FROM foo"));
+  }
+
+  @Test
+  void isPossibleDml_withMdcComment_commentsDisabled_returnsFalse() {
+    // When SQL comments are disabled, a commented DML is not recognized
+    assertFalse(
+        DmlSqlParser.isPossibleDml(
+            "/* controller='MetadataController',method='POST' */ INSERT INTO foo (a) VALUES (?)"));
   }
 
   @Test
@@ -131,12 +147,22 @@ class DmlSqlParserTest {
 
   @Test
   void parseFast_withMdcComment() {
+    DmlSqlParser.setSqlCommentsEnabled(true);
     var result =
         DmlSqlParser.parseFast(
             "/* controller='MetadataController' */ INSERT INTO dataelement (uid) VALUES (?)");
     assertTrue(result.isPresent());
     assertEquals(DmlOperation.INSERT, result.get().operation());
     assertEquals("dataelement", result.get().tableName());
+  }
+
+  @Test
+  void parseFast_withMdcComment_commentsDisabled_returnsEmpty() {
+    // When SQL comments are disabled, parseFast does not strip the comment
+    var result =
+        DmlSqlParser.parseFast(
+            "/* controller='MetadataController' */ INSERT INTO dataelement (uid) VALUES (?)");
+    assertFalse(result.isPresent());
   }
 
   @Test
