@@ -275,6 +275,7 @@ public class JCloudsAppStorageService implements AppStorageService {
    */
   private String getInstallationFolder(App app) {
     String appKey = app.getKey();
+    // Limit folder name length to avoid issues with file systems that have a maximum path length
     int maxFileNameLength = 32;
     String folderName =
         appKey.length() > maxFileNameLength
@@ -290,6 +291,7 @@ public class JCloudsAppStorageService implements AppStorageService {
       while (entries.hasMoreElements()) {
         ZipEntry zipEntry = entries.nextElement();
         String filePath = getFilePath(installationFolder, topLevelFolder, zipEntry);
+        // If it's the root folder, skip
         if (filePath == null) continue;
         try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
           blobStore.putBlob(filePath, zipInputStream, zipEntry.getSize(), null);
@@ -331,6 +333,7 @@ public class JCloudsAppStorageService implements AppStorageService {
     blobStore.deleteBlob(folderName + File.separator + MANIFEST_WEBAPP_FILENAME);
 
     if (blobStore.isFilesystem()) {
+      // Delete all files related to app (works for local filestore)
       blobStore.deleteDirectory(folderName);
     } else {
       // S3: deleteDirectory is not recursive, so enumerate and delete individually
