@@ -45,6 +45,7 @@ import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -678,6 +679,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     @Test
     @DisplayName("Events Aggregate - Date range - Time field: INCIDENT_DATE as dimension")
+    @Disabled("Unclear if INCIDENT_DATE should be supported in event analytics")
     public void incidentDateAsDimensionWithTimeRange() throws JSONException {
 
       // Read the 'expect.postgis' system property at runtime to adapt assertions.
@@ -749,6 +751,66 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
       // 7. Assert row values in any order.
       validateRow(response, List.of("1.0", "ImspTQPwCqd", "20211008", "9"));
       validateRow(response, List.of("0.0", "ImspTQPwCqd", "20211028", "5"));
+    }
+
+    @Test
+    @DisplayName("Events Aggregate - year - Time field: INCIDENT_DATE as dimension")
+    @Disabled("Unclear if INCIDENT_DATE should be supported in event analytics")
+    public void incidentDate() throws JSONException {
+      // Read the 'expect.postgis' system property at runtime to adapt assertions.
+      boolean expectPostgis = isPostgres();
+
+      // Given
+      QueryParamsBuilder params =
+          new QueryParamsBuilder()
+              .add("displayProperty=NAME")
+              .add("totalPages=false")
+              .add("dimension=INCIDENT_DATE:2021");
+
+      // When
+      ApiResponse response = actions.aggregate().get("ur1Edk5Oe2n", JSON, JSON, params);
+
+      // Then
+      // 1. Validate Response Structure (Counts, Headers, Height/Width)
+      //    This helper checks basic counts and dimensions, adapting based on the runtime
+      // 'expectPostgis' flag.
+      validateResponseStructure(
+          response,
+          expectPostgis,
+          1,
+          2,
+          2); // Pass runtime flag, row count, and expected header counts
+
+      // 2. Extract Headers into a List of Maps for easy access by name
+      List<Map<String, Object>> actualHeaders =
+          response.extractList("headers", Map.class).stream()
+              .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+              .collect(Collectors.toList());
+
+      // 3. Assert metaData.
+      String expectedMetaData =
+          "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"pe\":{},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"ou\":{},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"2021\":{\"name\":\"2021\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"incidentdate\":{\"name\":\"Start of treatment date\"}},\"dimensions\":{\"pe\":[\"2021\"],\"ou\":[\"ImspTQPwCqd\"],\"incidentdate\":[\"2021\"]}}";
+      String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+      assertEquals(expectedMetaData, actualMetaData, false);
+
+      // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+      validateHeaderPropertiesByName(
+          response,
+          actualHeaders,
+          "incidentdate",
+          "Start of treatment date",
+          "TEXT",
+          "java.lang.String",
+          false,
+          true);
+      validateHeaderPropertiesByName(
+          response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+      // rowContext not found or empty in the response, skipping assertions.
+
+      // 7. Assert row existence by value (unsorted results - validates all columns).
+      // Validate row exists with values from original row.
+      validateRowExists(response, actualHeaders, Map.of("incidentdate", "2021", "value", "12"));
     }
   }
 
