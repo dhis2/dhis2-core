@@ -208,8 +208,6 @@ public class EventsQuery3AutoTest extends AnalyticsApiTest {
     String expectedMetaData =
         "{\"items\":{\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"USER_ORGUNIT\":{\"organisationUnits\":[\"ImspTQPwCqd\"]},\"ou\":{\"name\":\"Organisation unit\"},\"LAST_5_YEARS\":{\"name\":\"Last 5 years\"},\"LAST_MONTH\":{\"name\":\"Last month\"},\"THIS_MONTH\":{\"name\":\"This month\"},\"cejWyOfXge6\":{\"name\":\"Gender\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"LAST_10_YEARS\":{\"name\":\"Last 10 years\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"A03MvHHogjR.UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"},\"pC3N9N77UmT\":{\"uid\":\"pC3N9N77UmT\",\"name\":\"Gender\",\"options\":[{\"uid\":\"Mnp3oXrpAbK\",\"code\":\"Female\"}]},\"p2Zxg0wcPQ3\":{\"name\":\"BCG doses\"},\"UXz7xuGCEhU\":{\"name\":\"MCH Weight (g)\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"A03MvHHogjR.UXz7xuGCEhU\":[],\"p2Zxg0wcPQ3\":[],\"cejWyOfXge6\":[\"Mnp3oXrpAbK\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
-    System.out.println(expectedMetaData);
-    System.out.println(actualMetaData);
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // Assert headers.
