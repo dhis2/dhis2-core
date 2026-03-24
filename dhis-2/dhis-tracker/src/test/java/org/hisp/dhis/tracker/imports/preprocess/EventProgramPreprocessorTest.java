@@ -56,7 +56,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Enrico Colasante
  */
-class EventProgramPreProcessorTest {
+class EventProgramPreprocessorTest {
 
   private static final String PROGRAM_STAGE_WITH_REGISTRATION = "PROGRAM_STAGE_WITH_REGISTRATION";
 
@@ -69,13 +69,9 @@ class EventProgramPreProcessorTest {
 
   private TrackerPreheat preheat;
 
-  private EventProgramPreProcessor preprocessor;
-
   @BeforeEach
   void setUp() {
     preheat = mock(TrackerPreheat.class);
-
-    this.preprocessor = new EventProgramPreProcessor();
   }
 
   @Test
@@ -91,7 +87,7 @@ class EventProgramPreProcessorTest {
             .preheat(preheat)
             .build();
 
-    preprocessor.process(bundle);
+    EventProgramPreprocessor.process(bundle);
 
     verify(preheat).put(programWithRegistration());
     assertEquals(
@@ -112,7 +108,7 @@ class EventProgramPreProcessorTest {
             .preheat(preheat)
             .build();
 
-    preprocessor.process(bundle);
+    EventProgramPreprocessor.process(bundle);
 
     verify(preheat).put(programWithoutRegistration());
     assertEquals(
@@ -132,7 +128,7 @@ class EventProgramPreProcessorTest {
             .preheat(preheat)
             .build();
 
-    preprocessor.process(bundle);
+    EventProgramPreprocessor.process(bundle);
 
     verify(preheat, never()).getProgram(PROGRAM_WITH_REGISTRATION);
     verify(preheat, never()).getProgramStage(PROGRAM_STAGE_WITH_REGISTRATION);
@@ -164,7 +160,7 @@ class EventProgramPreProcessorTest {
             .preheat(preheat)
             .build();
 
-    preprocessor.process(bundle);
+    EventProgramPreprocessor.process(bundle);
 
     verify(preheat, never()).put(programStage.getProgram());
   }
@@ -182,7 +178,7 @@ class EventProgramPreProcessorTest {
             .preheat(preheat)
             .build();
 
-    preprocessor.process(bundle);
+    EventProgramPreprocessor.process(bundle);
 
     verify(preheat).put(programStageWithoutRegistration());
     assertEquals(
@@ -203,7 +199,7 @@ class EventProgramPreProcessorTest {
             .preheat(preheat)
             .build();
 
-    preprocessor.process(bundle);
+    EventProgramPreprocessor.process(bundle);
 
     assertEquals(
         MetadataIdentifier.ofUid(PROGRAM_WITH_REGISTRATION),
@@ -220,7 +216,7 @@ class EventProgramPreProcessorTest {
             .preheat(preheat)
             .build();
 
-    preprocessor.process(bundle);
+    EventProgramPreprocessor.process(bundle);
 
     verify(preheat, never()).getProgram(PROGRAM_WITH_REGISTRATION);
     verify(preheat, never()).getProgramStage(PROGRAM_STAGE_WITH_REGISTRATION);
@@ -240,7 +236,7 @@ class EventProgramPreProcessorTest {
             .preheat(preheat)
             .build();
 
-    preprocessor.process(bundle);
+    EventProgramPreprocessor.process(bundle);
 
     verify(preheat, never()).getProgram(PROGRAM_WITHOUT_REGISTRATION);
     verify(preheat, never()).getProgramStage(PROGRAM_STAGE_WITHOUT_REGISTRATION);
