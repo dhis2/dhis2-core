@@ -100,8 +100,8 @@ class SectionStoreTest extends PostgresIntegrationTestBase {
     manager.save(sectionInB);
     entityManager.flush();
 
-    assertNotNull(sectionInA.getId());
-    assertNotNull(sectionInB.getId());
+    assertNotNull(manager.get(Section.class,sectionInA.getId()));
+    assertNotNull(manager.get(Section.class,sectionInB.getId()));
   }
 
   @Test
