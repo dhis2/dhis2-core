@@ -100,7 +100,11 @@ class SecurityTrackerEventValidator
       checkEventOrgUnitWriteAccess(
           reporter, trackerEvent, organisationUnit, isCreatableInSearchScope, bundle.getUser());
     } else {
-      checkOrgUnitInSearchScope(reporter, trackerEvent, organisationUnit, bundle.getUser());
+      OrganisationUnit databaseOrgUnit =
+          bundle.getPreheat().getTrackerEvent(trackerEvent.getUID()).getOrganisationUnit();
+      if (!organisationUnit.equals(databaseOrgUnit)) {
+        checkOrgUnitInCaptureScope(reporter, trackerEvent, organisationUnit, bundle.getUser());
+      }
     }
     checkProgramStageWriteAccess(reporter, trackerEvent, programStage, bundle.getUser());
     checkProgramReadAccess(reporter, trackerEvent, programStage.getProgram(), bundle.getUser());
@@ -195,19 +199,17 @@ class SecurityTrackerEventValidator
       boolean isCreatableInSearchScope,
       UserDetails user) {
     String path = eventOrgUnit.getStoredPath();
-    if (isCreatableInSearchScope) {
-      if (!user.isInUserEffectiveSearchOrgUnitHierarchy(path)) {
-        reporter.addError(event, ValidationCode.E1131, user, eventOrgUnit);
-      }
-    } else if (!user.isInUserHierarchy(path)) {
+    if (isCreatableInSearchScope
+        ? !user.isInUserEffectiveSearchOrgUnitHierarchy(path)
+        : !user.isInUserHierarchy(path)) {
       reporter.addError(event, ValidationCode.E1000, user, eventOrgUnit);
     }
   }
 
-  private void checkOrgUnitInSearchScope(
+  private void checkOrgUnitInCaptureScope(
       Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit, UserDetails user) {
-    if (!user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath())) {
-      reporter.addError(dto, ValidationCode.E1131, user, orgUnit);
+    if (!user.isInUserHierarchy(orgUnit.getStoredPath())) {
+      reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
     }
   }
 
