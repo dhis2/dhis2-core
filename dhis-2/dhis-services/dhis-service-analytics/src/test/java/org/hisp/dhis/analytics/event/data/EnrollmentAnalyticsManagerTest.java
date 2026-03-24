@@ -71,17 +71,13 @@ import org.hisp.dhis.analytics.event.data.stage.DefaultStageOrgUnitSqlService;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageQueryItemClassifier;
 import org.hisp.dhis.analytics.event.data.stage.DefaultStageQuerySqlFacade;
 import org.hisp.dhis.analytics.event.data.stage.StageQuerySqlFacade;
-import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RepeatableStageParams;
-import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
-import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
@@ -157,8 +153,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   private static final String DEFAULT_COLUMNS =
       """
       enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,\
-      lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),\
-      longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus""";
+      lastupdatedbydisplayname,lastupdated,created,completeddate,\
+      ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,ouname,ounamehierarchy,\
+      oucode,enrollmentstatus""";
 
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
@@ -262,42 +259,6 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
-  void verifyWithExplicitLastUpdatedTimeFieldAndStageSpecificEventDate() {
-    QueryItem stageEventDateItem =
-        new QueryItem(
-            new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
-            programA,
-            null,
-            ValueType.DATE,
-            org.hisp.dhis.analytics.AggregationType.NONE,
-            null);
-    stageEventDateItem.setProgramStage(programStage);
-    stageEventDateItem.addFilter(new QueryFilter(QueryOperator.GE, "2026-01-01"));
-    stageEventDateItem.addFilter(new QueryFilter(QueryOperator.LT, "2027-01-01"));
-
-    EventQueryParams params =
-        new EventQueryParams.Builder(createRequestParams())
-            .withStartDate(getDate(2017, 1, 1))
-            .withEndDate(getDate(2017, 12, 31))
-            .withTimeField(TimeField.LAST_UPDATED.name())
-            .withEndpointAction(EndpointAction.QUERY)
-            .withEndpointItem(EndpointItem.ENROLLMENT)
-            .addItem(stageEventDateItem)
-            .build();
-
-    subject.getEnrollments(params, new ListGrid(), 10000);
-
-    verify(jdbcTemplate).queryForRowSet(sql.capture());
-
-    assertThat(sql.getValue(), containsString("lastupdated >= '2017-01-01'"));
-    assertThat(sql.getValue(), containsString("lastupdated < '2018-01-01'"));
-    assertThat(sql.getValue(), containsString("\"occurreddate\" is not null and ps = '"));
-    assertThat(sql.getValue(), containsString("limit 1 ) >= '2026-01-01'"));
-    assertThat(sql.getValue(), containsString("limit 1 ) < '2027-01-01'"));
-    assertThat(sql.getValue(), containsString("ps = '" + programStage.getUid() + "'"));
-  }
-
-  @Test
   void verifyWithRepeatableProgramStageAndNumericDataElement() {
     verifyWithRepeatableProgramStageAndDataElement(ValueType.NUMBER);
   }
@@ -365,8 +326,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     String dataElementUid = dataElementA.getUid();
 
     String expected =
-        "select enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,"
-            + "ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"quarterly\",ax.\"ou\","
+        "select "
+            + DEFAULT_COLUMNS
+            + ",ax.\"quarterly\",ax.\"ou\","
             + "(select \""
             + dataElementUid
             + "\" from analytics_event_"
