@@ -42,22 +42,12 @@ import org.hisp.dhis.user.UserDetails;
 
 public interface ProgramRuleEngine {
   /**
-   * Evaluate program rules for {@link Program} for enrollment and tracker events. Rules are
-   * evaluated under the authorization of given {@link UserDetails}.
-   */
-  RuleEngineEffects evaluateEnrollmentAndTrackerEvents(
-      @Nonnull RuleEnrollment enrollment,
-      @Nonnull List<RuleEvent> events,
-      @Nonnull Program program,
-      @Nonnull UserDetails user);
-
-  /**
    * Evaluate program rules for multiple enrollments belonging to the same {@link Program}, building
    * the rule engine context once. Rules are evaluated under the authorization of given {@link
    * UserDetails}.
    */
   RuleEngineEffects evaluateEnrollmentsAndTrackerEvents(
-      @Nonnull List<Map.Entry<RuleEnrollment, List<RuleEvent>>> enrollmentsWithEvents,
+      @Nonnull Map<RuleEnrollment, List<RuleEvent>> enrollmentsWithEvents,
       @Nonnull Program program,
       @Nonnull UserDetails user);
 
