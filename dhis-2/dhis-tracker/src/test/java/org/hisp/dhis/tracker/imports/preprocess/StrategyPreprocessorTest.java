@@ -57,7 +57,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class StrategyPreProcessorTest extends TrackerTestBase {
+class StrategyPreprocessorTest extends TrackerTestBase {
 
   private static final UID TE_UID = UID.generate();
 
@@ -98,8 +98,6 @@ class StrategyPreProcessorTest extends TrackerTestBase {
   private org.hisp.dhis.tracker.imports.domain.Relationship payloadRelationship;
 
   private org.hisp.dhis.tracker.imports.domain.Relationship newPayloadRelationship;
-
-  private final StrategyPreProcessor preProcessorToTest = new StrategyPreProcessor();
 
   @Mock private TrackerPreheat preheat;
 
@@ -145,7 +143,7 @@ class StrategyPreProcessorTest extends TrackerTestBase {
             .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
             .preheat(preheat)
             .build();
-    preProcessorToTest.process(bundle);
+    StrategyPreprocessor.process(bundle);
 
     assertEquals(UPDATE, getStrategy(bundle, TRACKED_ENTITY, TE_UID));
     assertEquals(CREATE, getStrategy(bundle, TRACKED_ENTITY, NEW_TE_UID));
@@ -168,7 +166,7 @@ class StrategyPreProcessorTest extends TrackerTestBase {
             .importStrategy(DELETE)
             .preheat(preheat)
             .build();
-    preProcessorToTest.process(bundle);
+    StrategyPreprocessor.process(bundle);
 
     assertEquals(DELETE, getStrategy(bundle, TRACKED_ENTITY, TE_UID));
     assertEquals(DELETE, getStrategy(bundle, TRACKED_ENTITY, NEW_TE_UID));

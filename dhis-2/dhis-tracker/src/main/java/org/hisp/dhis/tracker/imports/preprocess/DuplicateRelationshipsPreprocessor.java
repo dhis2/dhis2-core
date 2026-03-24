@@ -40,19 +40,16 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.model.RelationshipKey;
-import org.springframework.stereotype.Component;
 
-/**
- * This preprocessor is responsible for removing duplicated relationships from the Tracker import
- * payload.
- *
- * @author Luciano Fiandesio
- */
-@Component
-public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor {
+/** Removes duplicate relationships from the import payload, keeping the first occurrence. */
+class DuplicateRelationshipsPreprocessor {
+
+  private DuplicateRelationshipsPreprocessor() {
+    throw new UnsupportedOperationException("utility class");
+  }
 
   /**
-   * Process the bundle's relationships collection and remove relationships that are duplicated. to
+   * Process the bundle's relationships collection and remove relationships that are duplicated. To
    * preserve the order, always the second one to appear is removed.
    *
    * <p>There are 4 cases (all cases assume the same relationship type):
@@ -94,7 +91,6 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor {
    *
    * result:  REL 2 has to be removed
    *
-   *
    * case 4:
    *
    * REL 1 --- TE A
@@ -106,11 +102,9 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor {
    * TYPE  --- bi = true
    *
    * result:  REL 2 has to be removed
-   *
    * </pre>
    */
-  @Override
-  public void process(TrackerBundle bundle) {
+  static void process(TrackerBundle bundle) {
     List<Relationship> distinctRelationships = new ArrayList<>();
     for (Relationship relationship : bundle.getRelationships()) {
       RelationshipType relationshipType =
@@ -124,7 +118,7 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor {
     bundle.setRelationships(distinctRelationships);
   }
 
-  public boolean isDuplicate(
+  private static boolean isDuplicate(
       Relationship relationship,
       RelationshipType relationshipType,
       List<Relationship> distinctRelationships) {
@@ -141,7 +135,7 @@ public class DuplicateRelationshipsPreProcessor implements BundlePreProcessor {
         .anyMatch(relationshipKeys::contains);
   }
 
-  public boolean isInvalidRelationship(
+  private static boolean isInvalidRelationship(
       Relationship relationship, RelationshipType relationshipType) {
     return relationshipType == null || !hasRelationshipKey(relationship, relationshipType);
   }
