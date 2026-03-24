@@ -114,6 +114,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -252,6 +253,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private static final Collector<CharSequence, ?, String> OR_JOINER = joining(OR, "(", ")");
 
   private static final Collector<CharSequence, ?, String> AND_JOINER = joining(AND);
+
+  private static final Pattern LEADING_WHERE_PATTERN = Pattern.compile("^where\\s+");
 
   @Qualifier("analyticsReadOnlyJdbcTemplate")
   protected final JdbcTemplate jdbcTemplate;
@@ -881,7 +884,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     return StringUtils.isNotBlank(existingWhereClause)
-        ? queryItemFilterClause.replaceFirst("^where\\s+", "and ")
+        ? LEADING_WHERE_PATTERN.matcher(queryItemFilterClause).replaceFirst("and ")
         : queryItemFilterClause;
   }
 
