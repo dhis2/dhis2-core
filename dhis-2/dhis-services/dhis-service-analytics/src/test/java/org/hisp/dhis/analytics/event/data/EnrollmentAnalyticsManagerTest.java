@@ -153,7 +153,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   private static final String DEFAULT_COLUMNS =
       """
       enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,\
-      lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),\
+      lastupdatedbydisplayname,lastupdated,created,completeddate,\
+      ST_AsGeoJSON(enrollmentgeometry),\
       longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus""";
 
   private final BeanRandomizer rnd = BeanRandomizer.create();
@@ -244,6 +245,20 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void verifySortsByCreatedDescending() {
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .addDescSortItem(new QueryItem(new BaseDimensionalItemObject("created")))
+            .build();
+
+    subject.getEnrollments(params, new ListGrid(), 10000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertThat(sql.getValue(), containsString("order by \"created\" desc nulls last"));
+  }
+
+  @Test
   void verifyWithRepeatableProgramStageAndNumericDataElement() {
     verifyWithRepeatableProgramStageAndDataElement(ValueType.NUMBER);
   }
@@ -311,7 +326,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     String dataElementUid = dataElementA.getUid();
 
     String expected =
-        "select enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,"
+        "select enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,created,completeddate,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,"
             + "ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"quarterly\",ax.\"ou\","
             + "(select \""
             + dataElementUid
