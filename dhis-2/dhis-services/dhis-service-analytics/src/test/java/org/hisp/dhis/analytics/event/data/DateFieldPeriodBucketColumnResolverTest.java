@@ -30,6 +30,7 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -40,7 +41,9 @@ import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionConstants;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.ClickHouseAnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.DorisAnalyticsSqlBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
@@ -51,7 +54,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 class DateFieldPeriodBucketColumnResolverTest {
   private final DateFieldPeriodBucketColumnResolver subject =
-      new DateFieldPeriodBucketColumnResolver(new PostgreSqlBuilder());
+      new DateFieldPeriodBucketColumnResolver(new PostgreSqlAnalyticsSqlBuilder());
 
   @Test
   void shouldResolveSelectExpressionForEnrollmentDateYearlyBucket() {
@@ -380,6 +383,61 @@ class DateFieldPeriodBucketColumnResolverTest {
             + " where dps_period.\"dateperiod\" = date_trunc('month', ax.\"enrollmentdate\")::date)"
             + " as \"pe\"",
         sql);
+  }
+
+  @Test
+  void shouldResolveDorisJoinBackedMonthlyBucket() {
+    DateFieldPeriodBucketColumnResolver dorisSubject =
+        new DateFieldPeriodBucketColumnResolver(
+            new DorisAnalyticsSqlBuilder("internal", "doris-jdbc.jar"));
+
+    DateFieldPeriodBucketColumnResolver.ResolvedExpression resolved =
+        dorisSubject
+            .resolve(
+                AnalyticsType.EVENT,
+                periodDimension("202301", TimeField.ENROLLMENT_DATE.name()),
+                "ax")
+            .orElseThrow();
+
+    assertEquals("dps_period_ax_enrollmentdate.`monthly` as `pe`", resolved.selectExpression());
+    assertEquals("dps_period_ax_enrollmentdate.`monthly`", resolved.groupByExpression());
+    assertFalse(resolved.joinClause().isEmpty());
+    assertEquals("analytics_rs_dateperiodstructure", resolved.joinClause().orElseThrow().table());
+    assertEquals("dps_period_ax_enrollmentdate", resolved.joinClause().orElseThrow().alias());
+    assertTrue(
+        resolved
+            .joinClause()
+            .orElseThrow()
+            .condition()
+            .contains("cast(date_trunc(cast(ax.`enrollmentdate` as date), 'month') as date)"));
+  }
+
+  @Test
+  void shouldResolveClickHouseCorrelatedMonthlyBucketWithoutLegacyPostgresSyntax() {
+    DateFieldPeriodBucketColumnResolver clickHouseSubject =
+        new DateFieldPeriodBucketColumnResolver(new ClickHouseAnalyticsSqlBuilder("dhis2"));
+
+    DateFieldPeriodBucketColumnResolver.ResolvedExpression resolved =
+        clickHouseSubject
+            .resolve(
+                AnalyticsType.EVENT,
+                periodDimension("202301", TimeField.ENROLLMENT_DATE.name()),
+                "ax")
+            .orElseThrow();
+
+    assertEquals(
+        "(select \"monthly\" from analytics_rs_dateperiodstructure as dps_period"
+            + " where dps_period.\"dateperiod\" = toDate(date_trunc('month', toDate(ax.\"enrollmentdate\"))))"
+            + " as \"pe\"",
+        resolved.selectExpression());
+    assertEquals(
+        "(select \"monthly\" from analytics_rs_dateperiodstructure as dps_period"
+            + " where dps_period.\"dateperiod\" = toDate(date_trunc('month', toDate(ax.\"enrollmentdate\"))))",
+        resolved.groupByExpression());
+    assertTrue(resolved.joinClause().isEmpty());
+    assertFalse(resolved.selectExpression().contains("::date"));
+    assertFalse(resolved.selectExpression().contains(" interval "));
+    assertFalse(resolved.selectExpression().contains("make_date"));
   }
 
   private static DimensionalObject periodDimension(String isoPeriod, String dateField) {

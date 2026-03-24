@@ -139,6 +139,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "financialYear2022WithEventDateAsDimension",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?includeMetadataDetails=true&displayProperty=NAME&totalPages=false&rowContext=true&pageSize=100&page=1&dimension=ou:USER_ORGUNIT,GxdhnY5wmHq,EVENT_DATE:2022Sep",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

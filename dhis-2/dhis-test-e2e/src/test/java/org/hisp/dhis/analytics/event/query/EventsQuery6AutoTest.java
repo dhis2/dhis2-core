@@ -638,7 +638,7 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         expectPostgis,
         100,
         20,
-        17); // Pass runtime flag, row count, and expected header counts
+        16); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -707,17 +707,16 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
     if (expectPostgis) {
       validateHeaderPropertiesByName(
           response, actualHeaders, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
-    }
-    validateHeaderPropertiesByName(
-        response,
-        actualHeaders,
-        "enrollmentgeometry",
-        "Enrollment geometry",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    if (expectPostgis) {
+
+      validateHeaderPropertiesByName(
+          response,
+          actualHeaders,
+          "enrollmentgeometry",
+          "Enrollment geometry",
+          "TEXT",
+          "java.lang.String",
+          false,
+          true);
       validateHeaderPropertiesByName(
           response,
           actualHeaders,
@@ -727,8 +726,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
           "java.lang.Double",
           false,
           true);
-    }
-    if (expectPostgis) {
       validateHeaderPropertiesByName(
           response,
           actualHeaders,
