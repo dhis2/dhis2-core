@@ -49,9 +49,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Luciano Fiandesio
  */
-class DuplicateRelationshipsPreProcessorTest {
-
-  private DuplicateRelationshipsPreProcessor preProcessor;
+class DuplicateRelationshipsPreprocessorTest {
 
   private TrackerPreheat preheat;
 
@@ -69,7 +67,6 @@ class DuplicateRelationshipsPreProcessorTest {
     relationshipTypeNonBidirectional.setUid(REL_TYPE_NONBIDIRECTIONAL_UID);
     preheat.put(TrackerIdSchemeParam.UID, relationshipTypeBidirectional);
     preheat.put(TrackerIdSchemeParam.UID, relationshipTypeNonBidirectional);
-    this.preProcessor = new DuplicateRelationshipsPreProcessor();
   }
 
   @Test
@@ -96,7 +93,7 @@ class DuplicateRelationshipsPreProcessorTest {
             .preheat(this.preheat)
             .relationships(Lists.newArrayList(relationship1, relationship2))
             .build();
-    preProcessor.process(bundle);
+    DuplicateRelationshipsPreprocessor.process(bundle);
     assertThat(bundle.getRelationships(), hasSize(2));
   }
 
@@ -133,7 +130,7 @@ class DuplicateRelationshipsPreProcessorTest {
             .preheat(this.preheat)
             .relationships(Lists.newArrayList(relationship1, relationship2))
             .build();
-    preProcessor.process(bundle);
+    DuplicateRelationshipsPreprocessor.process(bundle);
     assertThat(bundle.getRelationships(), hasSize(1));
   }
 
@@ -162,7 +159,7 @@ class DuplicateRelationshipsPreProcessorTest {
             .preheat(this.preheat)
             .relationships(Lists.newArrayList(relationship1, relationship2))
             .build();
-    preProcessor.process(bundle);
+    DuplicateRelationshipsPreprocessor.process(bundle);
     assertThat(bundle.getRelationships(), hasSize(1));
     assertEquals(relationship1Uid, bundle.getRelationships().get(0).getRelationship());
   }
@@ -197,7 +194,7 @@ class DuplicateRelationshipsPreProcessorTest {
             .preheat(this.preheat)
             .relationships(Lists.newArrayList(relationship1, relationship2))
             .build();
-    preProcessor.process(bundle);
+    DuplicateRelationshipsPreprocessor.process(bundle);
     assertThat(bundle.getRelationships(), hasSize(2));
   }
 
@@ -232,7 +229,7 @@ class DuplicateRelationshipsPreProcessorTest {
             .preheat(this.preheat)
             .relationships(Lists.newArrayList(relationship1, relationship2))
             .build();
-    preProcessor.process(bundle);
+    DuplicateRelationshipsPreprocessor.process(bundle);
     assertThat(bundle.getRelationships(), hasSize(2));
   }
 
@@ -269,7 +266,7 @@ class DuplicateRelationshipsPreProcessorTest {
             .preheat(this.preheat)
             .relationships(Lists.newArrayList(relationship1, relationship2))
             .build();
-    preProcessor.process(bundle);
+    DuplicateRelationshipsPreprocessor.process(bundle);
     assertThat(bundle.getRelationships(), hasSize(1));
   }
 
@@ -306,7 +303,7 @@ class DuplicateRelationshipsPreProcessorTest {
             .preheat(this.preheat)
             .relationships(Lists.newArrayList(relationship1, relationship2))
             .build();
-    preProcessor.process(bundle);
+    DuplicateRelationshipsPreprocessor.process(bundle);
     assertThat(bundle.getRelationships(), hasSize(1));
   }
 
