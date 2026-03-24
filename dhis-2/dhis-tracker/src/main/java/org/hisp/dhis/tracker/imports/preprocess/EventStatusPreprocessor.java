@@ -29,57 +29,22 @@
  */
 package org.hisp.dhis.tracker.imports.preprocess;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.util.Collections;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
-import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.model.Enrollment;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.hisp.dhis.tracker.imports.domain.Event;
 
-/**
- * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- */
-class EventStatusPreProcessorTest {
+/** Converts event VISITED status to ACTIVE. */
+class EventStatusPreprocessor {
 
-  private EventStatusPreProcessor preProcessorToTest;
-
-  @BeforeEach
-  void setUp() {
-    this.preProcessorToTest = new EventStatusPreProcessor();
+  private EventStatusPreprocessor() {
+    throw new UnsupportedOperationException("utility class");
   }
 
-  @Test
-  void testVisitedStatusIsConvertedToActive() {
-    // Given
-    Enrollment enrollment = new Enrollment();
-    enrollment.setUid("enrollmentUid");
-    Program program = new Program();
-    program.setUid("programUid");
-    ProgramStage programStage = new ProgramStage();
-    programStage.setUid("programStageUid");
-    programStage.setProgram(program);
-    TrackerPreheat preheat = new TrackerPreheat();
-    preheat.put(programStage);
-    TrackerEvent event =
-        TrackerEvent.builder()
-            .event(UID.generate())
-            .status(EventStatus.VISITED)
-            .programStage(MetadataIdentifier.ofUid("programStageUid"))
-            .build();
-    TrackerBundle bundle =
-        TrackerBundle.builder().trackerEvents(Collections.singletonList(event)).build();
-    bundle.setPreheat(preheat);
-    // When
-    preProcessorToTest.process(bundle);
-    // Then
-    assertEquals(EventStatus.ACTIVE, bundle.getEvents().get(0).getStatus());
+  static void process(TrackerBundle bundle) {
+    for (Event event : bundle.getEvents()) {
+      if (event.getStatus() == EventStatus.VISITED) {
+        event.setStatus(EventStatus.ACTIVE);
+      }
+    }
   }
 }

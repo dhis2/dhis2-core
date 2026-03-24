@@ -66,6 +66,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -120,6 +121,8 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDimension;
@@ -130,6 +133,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -162,6 +166,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   @Mock private DataElementService dataElementService;
 
   @Mock private SystemSettingsService systemSettingsService;
+
+  @Mock private DefaultDhisConfigurationProvider config;
+
+  @Mock private SystemSettings systemSettings;
 
   @Mock private OrganisationUnitResolver organisationUnitResolver;
 
@@ -207,6 +215,12 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     dataElementA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     dataElementA.setUid("fWIAEtYVEGk");
 
+    lenient()
+        .when(config.getPropertyOrDefault(ConfigurationKey.ANALYTICS_DATABASE, ""))
+        .thenReturn("postgresql");
+    lenient().when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
+    lenient().when(systemSettings.getUseExperimentalAnalyticsQueryEngine()).thenReturn(false);
+
     ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
     QueryItemFilterBuilder filterBuilder =
         new QueryItemFilterBuilder(organisationUnitResolver, sqlBuilder);
@@ -226,13 +240,13 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             eventTimeFieldSqlRenderer,
             executionPlanStore,
             systemSettingsService,
-            null,
+            config,
             sqlBuilder,
             organisationUnitResolver,
             columnMapper,
             filterBuilder,
             stageQuerySqlFacade,
-            new DateFieldPeriodBucketColumnResolver(new PostgreSqlBuilder()));
+            new DateFieldPeriodBucketColumnResolver(new PostgreSqlAnalyticsSqlBuilder()));
 
     enrollmentSubject =
         new JdbcEnrollmentAnalyticsManager(
@@ -244,13 +258,13 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             enrollmentTimeFieldSqlRenderer,
             executionPlanStore,
             systemSettingsService,
-            null,
+            config,
             sqlBuilder,
             organisationUnitResolver,
             columnMapper,
             filterBuilder,
             stageQuerySqlFacade,
-            new DateFieldPeriodBucketColumnResolver(new PostgreSqlBuilder()));
+            new DateFieldPeriodBucketColumnResolver(new PostgreSqlAnalyticsSqlBuilder()));
   }
 
   @Test
@@ -1179,7 +1193,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     String select = enrollmentSubject.getSelectClause(params);
     // Then
     assertEquals(
-        "select enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"yearly\" ",
+        "select enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,created,completeddate,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"yearly\" ",
         select);
   }
 
@@ -1564,6 +1578,43 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     String sql = sqlCaptor.getValue();
     assertThat(sql, containsString("inner join analytics_enrollment_"));
     assertThat(sql, containsString("enrl.\"oulevel\" in (4)"));
+  }
+
+  @Test
+  void testGetEventCountIncludesStageDateFiltersForExperimentalEngine() {
+    when(systemSettings.getUseExperimentalAnalyticsQueryEngine()).thenReturn(true);
+    when(jdbcTemplate.queryForObject(any(String.class), eq(Long.class))).thenReturn(1L);
+
+    ProgramStage ps = createProgramStage('A', programA);
+    ps.setUid("Zj7UnCAulEk");
+
+    QueryItem queryItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME));
+    queryItem.setProgramStage(ps);
+    queryItem.setValueType(ValueType.DATE);
+    queryItem.addFilter(new QueryFilter(QueryOperator.GE, "2021-03-01"));
+    queryItem.addFilter(new QueryFilter(QueryOperator.LE, "2021-05-31"));
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .withOrganisationUnits(List.of(createOrganisationUnit('A')))
+            .addItemFilter(queryItem)
+            .build();
+
+    eventSubject.getEventCount(params);
+
+    ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+    verify(jdbcTemplate).queryForObject(sqlCaptor.capture(), eq(Long.class));
+
+    String sql = sqlCaptor.getValue();
+    assertThat(sql, containsString("\"occurreddate\" >= '2021-03-01'"));
+    assertThat(sql, containsString("\"occurreddate\" <= '2021-05-31'"));
+    assertThat(sql, containsString("\"ps\" = 'Zj7UnCAulEk'"));
   }
 
   private EventQueryParams getEventQueryParamsForCoordinateFieldsTest(

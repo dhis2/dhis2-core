@@ -50,7 +50,6 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundleService;
-import org.hisp.dhis.tracker.imports.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.ValidationService;
 import org.junit.jupiter.api.Test;
@@ -67,8 +66,6 @@ class TrackerBundleImportReportTest {
   @Mock private TrackerBundleService trackerBundleService;
 
   @Mock private ValidationService validationService;
-
-  @Mock private TrackerPreprocessService trackerPreprocessService;
 
   @Mock private Notifier notifier;
 

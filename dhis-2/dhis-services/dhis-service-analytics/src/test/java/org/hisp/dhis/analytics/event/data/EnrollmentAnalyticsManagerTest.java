@@ -153,8 +153,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
   private static final String DEFAULT_COLUMNS =
       """
       enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,\
-      lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),\
-      longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus""";
+      lastupdatedbydisplayname,lastupdated,created,completeddate,\
+      ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,ouname,ounamehierarchy,\
+      oucode,enrollmentstatus""";
 
   private final BeanRandomizer rnd = BeanRandomizer.create();
 
@@ -195,7 +196,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             columnMapper,
             filterBuilder,
             stageQuerySqlFacade,
-            new DateFieldPeriodBucketColumnResolver(new PostgreSqlBuilder()));
+            new DateFieldPeriodBucketColumnResolver(new PostgreSqlAnalyticsSqlBuilder()));
   }
 
   @Test
@@ -241,6 +242,20 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             + " as ax where (((lastupdated >= '2017-01-01' and lastupdated < '2018-01-01'))) and (ax.\"uidlevel1\" = 'ouabcdefghA') limit 10001";
 
     assertSql(sql.getValue(), expected);
+  }
+
+  @Test
+  void verifySortsByCreatedDescending() {
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .addDescSortItem(new QueryItem(new BaseDimensionalItemObject("created")))
+            .build();
+
+    subject.getEnrollments(params, new ListGrid(), 10000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertThat(sql.getValue(), containsString("order by \"created\" desc nulls last"));
   }
 
   @Test
@@ -311,8 +326,9 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     String dataElementUid = dataElementA.getUid();
 
     String expected =
-        "select enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,"
-            + "ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"quarterly\",ax.\"ou\","
+        "select "
+            + DEFAULT_COLUMNS
+            + ",ax.\"quarterly\",ax.\"ou\","
             + "(select \""
             + dataElementUid
             + "\" from analytics_event_"

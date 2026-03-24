@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,38 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preprocess;
+package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-/**
- * @author Enrico Colasante
- */
-@Service
-public class DefaultTrackerPreprocessService implements TrackerPreprocessService {
-  private List<BundlePreProcessor> preProcessors = new ArrayList<>();
+@Mapper
+public interface ProgramNotificationTemplateMapper
+    extends PreheatMapper<ProgramNotificationTemplate> {
+  ProgramNotificationTemplateMapper INSTANCE =
+      Mappers.getMapper(ProgramNotificationTemplateMapper.class);
 
-  @Autowired(required = false)
-  public void setPreProcessors(List<BundlePreProcessor> preProcessors) {
-    this.preProcessors = preProcessors;
-  }
-
-  @Nonnull
-  @Override
-  public TrackerBundle preprocess(@Nonnull TrackerBundle bundle) {
-    preProcessors.sort(Comparator.comparingInt(BundlePreProcessor::getPriority));
-    for (BundlePreProcessor preProcessor : preProcessors) {
-      if (preProcessor.needsToRun(bundle.getImportStrategy())) {
-        preProcessor.process(bundle);
-      }
-    }
-
-    return bundle;
-  }
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "notificationTrigger")
+  ProgramNotificationTemplate map(ProgramNotificationTemplate template);
 }
