@@ -39,7 +39,6 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.Program;
@@ -143,7 +142,7 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
       try {
         allEffects.addAll(ruleEngine.evaluateAll(entry.getKey(), entry.getValue(), context));
       } catch (Exception e) {
-        log.error(DebugUtils.getStackTrace(e));
+        log.error("Call to rule-engine failed", e);
       }
     }
     return RuleEngineEffects.of(allEffects);
@@ -163,7 +162,7 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
     try {
       return RuleEngineEffects.of(ruleEngine.evaluateAll(null, events, ruleEngineContext));
     } catch (Exception e) {
-      log.error(DebugUtils.getStackTrace(e));
+      log.error("Call to rule-engine failed", e);
       return RuleEngineEffects.of(List.of());
     }
   }
