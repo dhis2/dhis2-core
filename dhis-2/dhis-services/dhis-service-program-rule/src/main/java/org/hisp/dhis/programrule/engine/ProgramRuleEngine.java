@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.programrule.engine;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +61,15 @@ import org.hisp.dhis.user.UserDetails;
 @RequiredArgsConstructor
 public class ProgramRuleEngine {
   private static final String ERROR = "Program cannot be null";
+
+  /**
+   * Holds an enrollment together with its related events and tracked entity attribute values, used
+   * as input for batch rule evaluation.
+   */
+  public record EnrollmentWithEvents(
+      Enrollment enrollment,
+      Set<Event> events,
+      List<TrackedEntityAttributeValue> attributeValues) {}
 
   private final ProgramRuleEntityMapperService programRuleEntityMapperService;
 
@@ -122,6 +132,36 @@ public class ProgramRuleEngine {
         getRuleEvents(events, null),
         rules,
         user);
+  }
+
+  /**
+   * Evaluate program rules for multiple enrollments belonging to the same {@link Program}, building
+   * the rule engine context once. Rules are evaluated under the authorization of given {@link
+   * UserDetails}.
+   */
+  public List<RuleEffects> evaluateEnrollmentsAndTrackerEvents(
+      List<EnrollmentWithEvents> enrollmentsWithEvents, Program program, UserDetails user) {
+    if (enrollmentsWithEvents.isEmpty()) {
+      return Collections.emptyList();
+    }
+    List<ProgramRule> rules = implementableRuleService.getProgramRules(program);
+    if (rules.isEmpty()) {
+      return Collections.emptyList();
+    }
+    RuleEngineContext context = getRuleEngineContext(program, rules, user);
+    List<RuleEffects> allEffects = new ArrayList<>();
+    for (EnrollmentWithEvents ewc : enrollmentsWithEvents) {
+      try {
+        allEffects.addAll(
+            ruleEngine.evaluateAll(
+                getRuleEnrollment(ewc.enrollment(), ewc.attributeValues()),
+                getRuleEvents(ewc.events(), null),
+                context));
+      } catch (Exception e) {
+        log.error(DebugUtils.getStackTrace(e));
+      }
+    }
+    return allEffects;
   }
 
   public List<RuleEffects> evaluateProgramEvents(

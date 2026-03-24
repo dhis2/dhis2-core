@@ -119,18 +119,29 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
   private List<RuleEffects> calculateEnrollmentRuleEffects(
       TrackerBundle bundle, TrackerPreheat preheat) {
-    return bundle.getEnrollments().stream()
-        .flatMap(
-            e -> {
-              Enrollment enrollment =
-                  enrollmentTrackerConverterService.fromForRuleEngine(preheat, e);
+    Map<Program, List<org.hisp.dhis.tracker.imports.domain.Enrollment>> byProgram =
+        bundle.getEnrollments().stream()
+            .collect(Collectors.groupingBy(e -> preheat.getProgram(e.getProgram())));
 
+    return byProgram.entrySet().stream()
+        .flatMap(
+            entry -> {
+              List<ProgramRuleEngine.EnrollmentWithEvents> enrollmentsWithEvents =
+                  entry.getValue().stream()
+                      .map(
+                          e -> {
+                            Enrollment enrollment =
+                                enrollmentTrackerConverterService.fromForRuleEngine(preheat, e);
+                            return new ProgramRuleEngine.EnrollmentWithEvents(
+                                enrollment,
+                                getEventsFromEnrollment(enrollment.getUid(), bundle, preheat),
+                                getAttributes(
+                                    e.getEnrollment(), e.getTrackedEntity(), bundle, preheat));
+                          })
+                      .toList();
               return programRuleEngine
-                  .evaluateEnrollmentAndTrackerEvents(
-                      enrollment,
-                      getEventsFromEnrollment(enrollment.getUid(), bundle, preheat),
-                      getAttributes(e.getEnrollment(), e.getTrackedEntity(), bundle, preheat),
-                      UserDetails.fromUser(bundle.getUser()))
+                  .evaluateEnrollmentsAndTrackerEvents(
+                      enrollmentsWithEvents, entry.getKey(), UserDetails.fromUser(bundle.getUser()))
                   .stream();
             })
         .toList();
@@ -145,20 +156,27 @@ class DefaultProgramRuleService implements ProgramRuleService {
             .map(event -> preheat.getEnrollment(event.getEnrollment()))
             .collect(Collectors.toSet());
 
-    return enrollments.stream()
+    Map<Program, List<Enrollment>> byProgram =
+        enrollments.stream().collect(Collectors.groupingBy(Enrollment::getProgram));
+
+    return byProgram.entrySet().stream()
         .flatMap(
-            enrollment ->
-                programRuleEngine
-                    .evaluateEnrollmentAndTrackerEvents(
-                        enrollment,
-                        getEventsFromEnrollment(enrollment.getUid(), bundle, preheat),
-                        getAttributes(
-                            enrollment.getUid(),
-                            enrollment.getTrackedEntity().getUid(),
-                            bundle,
-                            preheat),
-                        UserDetails.fromUser(bundle.getUser()))
-                    .stream())
+            entry -> {
+              List<ProgramRuleEngine.EnrollmentWithEvents> enrollmentsWithEvents =
+                  entry.getValue().stream()
+                      .map(
+                          e ->
+                              new ProgramRuleEngine.EnrollmentWithEvents(
+                                  e,
+                                  getEventsFromEnrollment(e.getUid(), bundle, preheat),
+                                  getAttributes(
+                                      e.getUid(), e.getTrackedEntity().getUid(), bundle, preheat)))
+                      .toList();
+              return programRuleEngine
+                  .evaluateEnrollmentsAndTrackerEvents(
+                      enrollmentsWithEvents, entry.getKey(), UserDetails.fromUser(bundle.getUser()))
+                  .stream();
+            })
         .toList();
   }
 
