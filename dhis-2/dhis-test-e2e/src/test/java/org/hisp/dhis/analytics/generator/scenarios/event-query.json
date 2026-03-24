@@ -265,7 +265,15 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "incidentDateAsDimension",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?asc=eventdate&headers=oucode,incidentdate&displayProperty=NAME&pageSize=10&page=1&dimension=INCIDENT_DATE:2021&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
     }
+
 
   ]
 }
