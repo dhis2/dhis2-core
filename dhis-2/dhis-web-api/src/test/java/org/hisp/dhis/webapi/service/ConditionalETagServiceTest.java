@@ -48,7 +48,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -256,6 +255,7 @@ class ConditionalETagServiceTest {
   @Test
   @DisplayName("Should set headers from an already computed ETag value")
   void testSetETagHeaders_WithStoredValue() {
+    when(eTagService.getStaleWhileRevalidateSeconds()).thenReturn(60);
     MockHttpServletResponse response = new MockHttpServletResponse();
 
     service.setETagHeaders(response, "stored-etag-value");
@@ -263,7 +263,7 @@ class ConditionalETagServiceTest {
     assertEquals("\"stored-etag-value\"", response.getHeader(HttpHeaders.ETAG));
     assertEquals("Cookie, Authorization", response.getHeader(HttpHeaders.VARY));
     assertEquals(
-        CacheControl.noCache().cachePrivate().mustRevalidate().getHeaderValue(),
+        "max-age=0, private, stale-while-revalidate=60",
         response.getHeader(HttpHeaders.CACHE_CONTROL));
   }
 

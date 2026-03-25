@@ -84,4 +84,9 @@ public class NoOpETagService implements ETagService {
   public int getTtlMinutes() {
     return 0;
   }
+
+  @Override
+  public int getStaleWhileRevalidateSeconds() {
+    return 0;
+  }
 }

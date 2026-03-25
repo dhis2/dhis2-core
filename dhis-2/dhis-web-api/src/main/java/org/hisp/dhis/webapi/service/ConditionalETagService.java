@@ -242,6 +242,15 @@ public class ConditionalETagService {
     return clock.millis() / ttlMillis;
   }
 
+  private CacheControl buildCacheControl() {
+    int staleSeconds = eTagVersionService.getStaleWhileRevalidateSeconds();
+    CacheControl cc = CacheControl.maxAge(0, TimeUnit.SECONDS).cachePrivate();
+    if (staleSeconds > 0) {
+      cc = cc.staleWhileRevalidate(staleSeconds, TimeUnit.SECONDS);
+    }
+    return cc;
+  }
+
   /**
    * Checks if the request's If-None-Match header matches the current ETag. If it matches, the
    * cached response is still valid.
@@ -338,7 +347,7 @@ public class ConditionalETagService {
     if (checkNotModified(request, currentETag)) {
       log.debug("ETag match - returning 304 Not Modified for user {}", userDetails.getUid());
       return ResponseEntity.status(HttpStatus.NOT_MODIFIED)
-          .cacheControl(CacheControl.noCache().cachePrivate().mustRevalidate())
+          .cacheControl(buildCacheControl())
           .eTag(quote(currentETag))
           .header(HttpHeaders.VARY, "Cookie", "Authorization")
           .build();
@@ -348,7 +357,7 @@ public class ConditionalETagService {
     T body = bodySupplier.get();
 
     return ResponseEntity.ok()
-        .cacheControl(CacheControl.noCache().cachePrivate().mustRevalidate())
+        .cacheControl(buildCacheControl())
         .eTag(quote(currentETag))
         .header(HttpHeaders.VARY, "Cookie", "Authorization")
         .body(body);
@@ -409,7 +418,7 @@ public class ConditionalETagService {
       log.debug("ETag match - returning 304 Not Modified for user {}", userDetails.getUid());
       ResponseEntity<T> response =
           ResponseEntity.status(HttpStatus.NOT_MODIFIED)
-              .cacheControl(CacheControl.noCache().cachePrivate().mustRevalidate())
+              .cacheControl(buildCacheControl())
               .eTag(quote(currentETag))
               .header(HttpHeaders.VARY, "Cookie", "Authorization")
               .build();
@@ -491,8 +500,7 @@ public class ConditionalETagService {
     response.setHeader(HttpHeaders.ETAG, quote(currentETag));
     response.setHeader(HttpHeaders.VARY, "Cookie, Authorization");
 
-    String cacheControlValue =
-        CacheControl.noCache().cachePrivate().mustRevalidate().getHeaderValue();
+    String cacheControlValue = buildCacheControl().getHeaderValue();
     Collection<String> existing = response.getHeaders(HttpHeaders.CACHE_CONTROL);
     if (!existing.isEmpty()) {
       log.debug(

@@ -142,4 +142,12 @@ public class LocalETagService implements ETagService, InitializingBean {
             ConfigurationKey.CACHE_API_ETAG_TTL_MINUTES,
             ConfigurationKey.CACHE_API_ETAG_TTL_MINUTES.getDefaultValue()));
   }
+
+  @Override
+  public int getStaleWhileRevalidateSeconds() {
+    return Integer.parseInt(
+        configurationProvider.getPropertyOrDefault(
+            ConfigurationKey.CACHE_API_ETAG_STALE_SECONDS,
+            ConfigurationKey.CACHE_API_ETAG_STALE_SECONDS.getDefaultValue()));
+  }
 }

@@ -94,4 +94,13 @@ public interface ETagService {
    * @return the TTL window in minutes
    */
   int getTtlMinutes();
+
+  /**
+   * Returns the stale-while-revalidate duration in seconds. When positive, the browser can serve
+   * stale cached responses instantly while revalidating in the background. When 0, synchronous
+   * revalidation is enforced.
+   *
+   * @return the stale-while-revalidate window in seconds
+   */
+  int getStaleWhileRevalidateSeconds();
 }
