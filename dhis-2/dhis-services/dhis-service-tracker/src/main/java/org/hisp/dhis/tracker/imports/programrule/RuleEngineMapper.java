@@ -165,11 +165,18 @@ class RuleEngineMapper {
         programStage.getName(),
         RuleEventStatus.valueOf(eventToEvaluate.getStatus().toString()),
         eventToEvaluate.getOccurredAt() != null
-            ? DateUtils.toRuleInstant(eventToEvaluate.getOccurredAt())
-            : DateUtils.toRuleInstant(eventToEvaluate.getScheduledAt()),
+            ? DateUtils.toRuleLocalDate(eventToEvaluate.getOccurredAt())
+            : DateUtils.toRuleLocalDate(eventToEvaluate.getScheduledAt()),
         createdDate,
-        eventToEvaluate.getScheduledAt() == null ? null : getDate(eventToEvaluate.getScheduledAt()),
-        eventToEvaluate.getCompletedAt() == null ? null : getDate(eventToEvaluate.getCompletedAt()),
+        eventToEvaluate.getCreatedAtClient() == null
+            ? null
+            : DateUtils.toRuleInstant(eventToEvaluate.getCreatedAtClient()),
+        eventToEvaluate.getScheduledAt() == null
+            ? null
+            : DateUtils.toRuleLocalDate(eventToEvaluate.getScheduledAt()),
+        eventToEvaluate.getCompletedAt() == null
+            ? null
+            : DateUtils.toRuleLocalDate(eventToEvaluate.getCompletedAt()),
         organisationUnit.getUid(),
         organisationUnit.getCode(),
         eventToEvaluate.getDataValues().stream()
@@ -193,12 +200,15 @@ class RuleEngineMapper {
         eventToEvaluate.getProgramStage().getName(),
         RuleEventStatus.valueOf(eventToEvaluate.getStatus().toString()),
         eventToEvaluate.getOccurredDate() != null
-            ? DateUtils.toRuleInstant(eventToEvaluate.getOccurredDate())
-            : DateUtils.toRuleInstant(eventToEvaluate.getScheduledDate()),
+            ? DateUtils.toRuleLocalDate(eventToEvaluate.getOccurredDate())
+            : DateUtils.toRuleLocalDate(eventToEvaluate.getScheduledDate()),
         DateUtils.toRuleInstant(eventToEvaluate.getCreated()),
+        eventToEvaluate.getCreatedAtClient() == null
+            ? null
+            : DateUtils.toRuleInstant(eventToEvaluate.getCreatedAtClient()),
         eventToEvaluate.getScheduledDate() == null
             ? null
-            : getDate(eventToEvaluate.getScheduledDate()),
+            : DateUtils.toRuleLocalDate(eventToEvaluate.getScheduledDate()),
         eventToEvaluate.getCompletedDate() == null
             ? null
             : getDate(eventToEvaluate.getCompletedDate()),
