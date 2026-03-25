@@ -114,7 +114,10 @@ public class PrometheusMonitoringConfig {
             .help("Build Info")
             .labelNames("revision", "build_time")
             .register(prometheusRegistry);
-    buildInfo.addLabelValues(systemInfo.getRevision(), systemInfo.getBuildTime().toString());
+
+    String buildTime =
+        systemInfo.getBuildTime() == null ? "" : systemInfo.getBuildTime().toString();
+    buildInfo.addLabelValues(systemInfo.getRevision(), buildTime);
 
     Info envInfo =
         Info.builder()
