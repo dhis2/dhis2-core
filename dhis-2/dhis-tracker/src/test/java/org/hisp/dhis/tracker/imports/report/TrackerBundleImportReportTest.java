@@ -45,11 +45,11 @@ import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
 import org.hisp.dhis.tracker.imports.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundleService;
+import org.hisp.dhis.tracker.imports.notification.NotificationDispatcher;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.ValidationService;
 import org.junit.jupiter.api.Test;
@@ -67,7 +67,7 @@ class TrackerBundleImportReportTest {
 
   @Mock private ValidationService validationService;
 
-  @Mock private Notifier notifier;
+  @Mock private NotificationDispatcher notificationDispatcher;
 
   @InjectMocks private DefaultTrackerImportService trackerImportService;
 

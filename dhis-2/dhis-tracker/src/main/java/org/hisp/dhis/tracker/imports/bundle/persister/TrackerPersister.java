@@ -33,18 +33,17 @@ import jakarta.persistence.EntityManager;
 import java.util.List;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
+import org.hisp.dhis.tracker.imports.notification.EntityNotifications;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 
 /**
- * Interface for classes responsible of persisting Tracker objects to the persistence engine.
+ * Interface for classes responsible for persisting Tracker objects to the persistence engine.
  *
  * @author Luciano Fiandesio
  */
 public interface TrackerPersister<T extends TrackerDto, V> {
 
-  record PersistResult(
-      TrackerTypeReport report, List<TrackerNotificationDataBundle> notificationBundles) {}
+  record PersistResult(TrackerTypeReport report, List<EntityNotifications> notifications) {}
 
   /**
    * Persist one of the collections in the provided Tracker Bundle. Each class implementing this
@@ -52,7 +51,7 @@ public interface TrackerPersister<T extends TrackerDto, V> {
    *
    * @param entityManager a valid EntityManager
    * @param bundle the Bundle to persist
-   * @return a {@link PersistResult} containing the report and any notification bundles
+   * @return a {@link PersistResult} containing the report and any notifications
    */
   PersistResult persist(EntityManager entityManager, TrackerBundle bundle);
 }

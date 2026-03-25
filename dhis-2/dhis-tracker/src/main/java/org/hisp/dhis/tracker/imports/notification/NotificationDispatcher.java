@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,40 +27,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.job;
+package org.hisp.dhis.tracker.imports.notification;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Producer and consumer for handling program rule actions.
- *
- * @author Zubair Asghar
+ * Dispatches all notifications for tracker import side effects. Submits one {@link
+ * NotificationTask} per entity to the async task executor.
  */
 @Component
 @RequiredArgsConstructor
-public class TrackerRuleEngineMessageManager {
-  private final ObjectFactory<TrackerRuleEngineThread> trackerRuleEngineThreadObjectFactory;
+public class NotificationDispatcher {
+  private final ObjectFactory<NotificationTask> taskFactory;
   private final AsyncTaskExecutor taskExecutor;
 
-  public void sendRuleEngineNotifications(TrackerNotificationDataBundle bundle) {
-    if (bundle == null) {
-      return;
+  public void sendNotifications(List<EntityNotifications> notifications) {
+    for (EntityNotifications entityNotifications : notifications) {
+      NotificationTask task = taskFactory.getObject();
+      task.setEntityNotifications(entityNotifications);
+      taskExecutor.executeTask(task);
     }
-
-    JobConfiguration jobConfiguration =
-        new JobConfiguration("", JobType.TRACKER_IMPORT_RULE_ENGINE_JOB, bundle.getAccessedBy());
-
-    bundle.setJobConfiguration(jobConfiguration);
-
-    TrackerRuleEngineThread notificationThread = trackerRuleEngineThreadObjectFactory.getObject();
-
-    notificationThread.setNotificationDataBundle(bundle);
-
-    taskExecutor.executeTask(notificationThread);
   }
 }
