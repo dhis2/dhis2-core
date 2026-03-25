@@ -51,7 +51,7 @@ import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionServi
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerPersister.PersistResult;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.notification.TrackerNotificationDataBundle;
+import org.hisp.dhis.tracker.imports.notification.EntityNotifications;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleService;
@@ -127,12 +127,12 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
             singleEvents.report(),
             relationships.report());
 
-    List<TrackerNotificationDataBundle> notificationBundles =
+    List<EntityNotifications> notifications =
         Stream.of(trackedEntities, enrollments, trackerEvents, singleEvents, relationships)
-            .flatMap(r -> r.notificationBundles().stream())
+            .flatMap(r -> r.notifications().stream())
             .toList();
 
-    return new CommitResult(report, notificationBundles);
+    return new CommitResult(report, notifications);
   }
 
   @Override
