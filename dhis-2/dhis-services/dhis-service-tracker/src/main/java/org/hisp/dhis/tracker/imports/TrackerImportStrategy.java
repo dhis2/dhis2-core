@@ -65,4 +65,8 @@ public enum TrackerImportStrategy {
   public boolean isUpdateOrDelete() {
     return UPDATE == this || DELETE == this;
   }
+
+  public boolean isCreateOrUpdate() {
+    return CREATE == this || UPDATE == this;
+  }
 }

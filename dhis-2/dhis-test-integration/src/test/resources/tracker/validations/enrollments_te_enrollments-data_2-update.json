@@ -10,14 +10,13 @@
       "status": "COMPLETED",
       "orgUnit": {
         "idScheme": "UID",
-        "identifier": "QfUVllTs6cZ"
+        "identifier": "QfUVllTs6cW"
       },
-      "enrolledAt": "2019-08-19T00:00:00.000",
-      "occurredAt": "2019-08-19T00:00:00.000",
+      "enrolledAt": "2021-08-19T00:00:00.000",
+      "occurredAt": "2021-08-19T00:00:00.000",
       "followUp": false,
       "deleted": false,
       "storedBy": "admin"
     }
-  ],
-  "username": "system-process"
+  ]
 }

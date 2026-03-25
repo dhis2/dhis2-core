@@ -173,6 +173,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity);
+    when(preheat.getEnrollment(enrollment.getEnrollment()))
+        .thenReturn(getEnrollment(enrollment.getEnrollment()));
     when(aclService.canDataWrite(user, program)).thenReturn(true);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
