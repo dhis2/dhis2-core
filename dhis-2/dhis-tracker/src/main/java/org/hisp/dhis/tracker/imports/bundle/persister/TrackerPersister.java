@@ -33,7 +33,7 @@ import jakarta.persistence.EntityManager;
 import java.util.List;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
+import org.hisp.dhis.tracker.imports.notification.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 
 /**

@@ -27,40 +27,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.job;
+package org.hisp.dhis.tracker.imports.notification;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Producer and consumer for handling program rule actions.
- *
- * @author Zubair Asghar
+ * Dispatches notifications triggered by program rule evaluation (SENDMESSAGE/SCHEDULEMESSAGE
+ * actions). Submits a {@link RuleEngineNotificationTask} per bundle to the async task executor.
  */
 @Component
 @RequiredArgsConstructor
-public class TrackerRuleEngineMessageManager {
-  private final ObjectFactory<TrackerRuleEngineThread> trackerRuleEngineThreadObjectFactory;
+public class RuleEngineNotificationDispatcher {
+  private final ObjectFactory<RuleEngineNotificationTask> trackerRuleEngineThreadObjectFactory;
   private final AsyncTaskExecutor taskExecutor;
 
-  public void sendRuleEngineNotifications(TrackerNotificationDataBundle bundle) {
+  public void sendNotifications(List<TrackerNotificationDataBundle> bundles) {
+    bundles.forEach(this::sendRuleEngineNotification);
+  }
+
+  private void sendRuleEngineNotification(TrackerNotificationDataBundle bundle) {
     if (bundle == null) {
       return;
     }
 
-    JobConfiguration jobConfiguration =
-        new JobConfiguration("", JobType.TRACKER_IMPORT_RULE_ENGINE_JOB, bundle.getAccessedBy());
-
-    bundle.setJobConfiguration(jobConfiguration);
-
-    TrackerRuleEngineThread notificationThread = trackerRuleEngineThreadObjectFactory.getObject();
-
-    notificationThread.setNotificationDataBundle(bundle);
-
-    taskExecutor.executeTask(notificationThread);
+    RuleEngineNotificationTask task = trackerRuleEngineThreadObjectFactory.getObject();
+    task.setNotificationDataBundle(bundle);
+    taskExecutor.executeTask(task);
   }
 }
