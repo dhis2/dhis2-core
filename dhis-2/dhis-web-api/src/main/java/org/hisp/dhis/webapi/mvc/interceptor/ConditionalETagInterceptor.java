@@ -112,6 +112,7 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
 
   private static final String ETAG_ATTR = ConditionalETagInterceptor.class.getName() + ".etag";
   private static final Pattern API_PATH_PATTERN = Pattern.compile("^/api(?:/\\d{2})?(?:/(.*))?$");
+  private static final Set<String> FORMAT_EXTENSIONS = Set.of(".json", ".xml", ".csv", ".xls");
   private static final PathPatternParser PATH_PATTERN_PARSER = new PathPatternParser();
 
   private static final List<PathPattern> UNCACHED_PATH_PATTERNS =
@@ -650,6 +651,14 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
 
     while (normalizedPath.endsWith("/")) {
       normalizedPath = normalizedPath.substring(0, normalizedPath.length() - 1);
+    }
+
+    // Strip format extensions (e.g. me.json → me, organisationUnits.xml → organisationUnits)
+    for (String ext : FORMAT_EXTENSIONS) {
+      if (normalizedPath.endsWith(ext)) {
+        normalizedPath = normalizedPath.substring(0, normalizedPath.length() - ext.length());
+        break;
+      }
     }
 
     return normalizedPath.isEmpty() ? null : normalizedPath;
