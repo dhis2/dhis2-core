@@ -47,8 +47,7 @@ import org.hisp.dhis.tracker.imports.ParamsConverter;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.notification.LifecycleNotificationDispatcher;
-import org.hisp.dhis.tracker.imports.notification.RuleEngineNotificationDispatcher;
+import org.hisp.dhis.tracker.imports.notification.NotificationDispatcher;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationResult;
@@ -73,9 +72,7 @@ class TrackerImporterServiceTest {
 
   @Mock private ValidationResult validationResult;
 
-  @Mock private LifecycleNotificationDispatcher lifecycleNotificationDispatcher;
-
-  @Mock private RuleEngineNotificationDispatcher ruleEngineNotificationDispatcher;
+  @Mock private NotificationDispatcher notificationDispatcher;
 
   private DefaultTrackerImportService subject;
 
@@ -89,10 +86,7 @@ class TrackerImporterServiceTest {
   public void setUp() {
     subject =
         new DefaultTrackerImportService(
-            trackerBundleService,
-            validationService,
-            lifecycleNotificationDispatcher,
-            ruleEngineNotificationDispatcher);
+            trackerBundleService, validationService, notificationDispatcher);
 
     injectSecurityContextNoSettings(user);
 
@@ -123,8 +117,7 @@ class TrackerImporterServiceTest {
 
     subject.importTracker(parameters, trackerObjects, JobProgress.noop());
 
-    verify(lifecycleNotificationDispatcher, times(0)).sendNotifications(anyList());
-    verify(ruleEngineNotificationDispatcher, times(0)).sendNotifications(anyList());
+    verify(notificationDispatcher, times(0)).sendNotifications(anyList());
   }
 
   @Test
@@ -139,8 +132,7 @@ class TrackerImporterServiceTest {
 
     subject.importTracker(params, trackerObjects, JobProgress.noop());
 
-    verify(lifecycleNotificationDispatcher, times(1)).sendNotifications(anyList());
-    verify(ruleEngineNotificationDispatcher, times(1)).sendNotifications(anyList());
+    verify(notificationDispatcher, times(1)).sendNotifications(anyList());
   }
 
   @Test
