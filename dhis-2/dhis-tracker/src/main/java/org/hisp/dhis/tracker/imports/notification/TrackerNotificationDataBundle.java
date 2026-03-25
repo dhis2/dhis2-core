@@ -29,27 +29,41 @@
  */
 package org.hisp.dhis.tracker.imports.notification;
 
+import java.util.ArrayList;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
-import org.hisp.dhis.tracker.imports.job.TrackerRuleEngineMessageManager;
-import org.springframework.stereotype.Service;
+import lombok.Builder;
+import lombok.Data;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 
 /**
- * @author Zubair Asghar
+ * Data passed from tracker import persisters to async notification tasks. Contains the persisted
+ * entity, notification triggers, and rule engine notifications.
  */
-@RequiredArgsConstructor
-@Service
-public class RuleEngineNotificationHandlerService implements NotificationHandlerService {
-  private final TrackerRuleEngineMessageManager trackerRuleEngineMessageManager;
+@Data
+@Builder
+public class TrackerNotificationDataBundle {
+  private Class<? extends IdentifiableObject> klass;
 
-  @Override
-  public void handleNotification(TrackerNotificationDataBundle notificationDataBundle) {
-    trackerRuleEngineMessageManager.sendRuleEngineNotifications(notificationDataBundle);
-  }
+  private String object;
 
-  @Override
-  public void handleNotifications(List<TrackerNotificationDataBundle> notificationDataBundles) {
-    notificationDataBundles.forEach(this::handleNotification);
-  }
+  private Program program;
+
+  private Enrollment enrollment;
+
+  private TrackerEvent event;
+
+  private SingleEvent singleEvent;
+
+  private List<NotificationTrigger> triggers = new ArrayList<>();
+
+  @Builder.Default private List<Notification> enrollmentNotifications = new ArrayList<>();
+
+  @Builder.Default private List<Notification> trackerEventNotifications = new ArrayList<>();
+
+  @Builder.Default private List<Notification> singleEventNotifications = new ArrayList<>();
 }
