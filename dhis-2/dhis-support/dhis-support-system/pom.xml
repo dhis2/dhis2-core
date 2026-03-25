@@ -268,6 +268,10 @@
     </dependency>
     <dependency>
       <groupId>io.prometheus</groupId>
+      <artifactId>prometheus-metrics-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.prometheus</groupId>
       <artifactId>prometheus-metrics-model</artifactId>
     </dependency>
     <dependency>

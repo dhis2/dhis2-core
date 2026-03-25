@@ -108,8 +108,7 @@ public class SendUsageMetricsCheckJob implements Job {
             usageMetricsConsents.get(0).getDbSystemIdentifier(),
             currentDbSystemIdentifier);
       }
-    } else if (openTelemetryExporter != null
-        && (usageMetricsConsents.isEmpty() || !usageMetricsConsents.get(0).getConsent())) {
+    } else if (usageMetricsConsents.isEmpty() || !usageMetricsConsents.get(0).getConsent()) {
       closeMetricsExporter();
     }
   }
@@ -128,7 +127,9 @@ public class SendUsageMetricsCheckJob implements Job {
   }
 
   protected void closeMetricsExporter() {
-    openTelemetryExporter.close();
-    openTelemetryExporter = null;
+    if (openTelemetryExporter != null) {
+      openTelemetryExporter.close();
+      openTelemetryExporter = null;
+    }
   }
 }

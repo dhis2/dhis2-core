@@ -133,10 +133,10 @@ public class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExecuteDoesNotScheduleRegularMetricsExportWhenSendUsageMetricsConsentIsFalse() {
+  void testExecuteDoesNotScheduleRegularMetricsExportWhenSendUsageMetricsConsentIsMissing() {
     sendUsageMetricsCheckJob.setExportInterval(1);
     sendUsageMetricsCheckJob.setOtelEndpoint(
-        "http://" + "localhost:" + otelCollectorMockServerContainer.getFirstMappedPort());
+        "http://localhost:" + otelCollectorMockServerContainer.getFirstMappedPort());
     sendUsageMetricsCheckJob.execute(null, null);
     await()
         .atMost(Duration.ofSeconds(10))
@@ -145,6 +145,54 @@ public class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
                 assertThrows(
                     AssertionError.class,
                     () -> otelCollectorMockServerClient.verify(request().withPath("/v1/metrics"))));
+  }
+
+  @Test
+  void testExecuteDoesNotScheduleRegularMetricsExportWhenSendUsageMetricsConsentIsFalse() {
+    UsageMetricsConsent usageMetricsConsent = new UsageMetricsConsent();
+    usageMetricsConsent.setDbSystemIdentifier(
+        jdbcTemplate
+            .queryForList("SELECT system_identifier FROM pg_control_system()")
+            .get(0)
+            .get("system_identifier")
+            .toString());
+    usageMetricsConsent.setConsent(false);
+    usageMetricsConsentStore.save(usageMetricsConsent);
+
+    sendUsageMetricsCheckJob.setExportInterval(1);
+    sendUsageMetricsCheckJob.setOtelEndpoint(
+        "http://localhost:" + otelCollectorMockServerContainer.getFirstMappedPort());
+    sendUsageMetricsCheckJob.execute(null, null);
+    await()
+        .atMost(Duration.ofSeconds(10))
+        .untilAsserted(
+            () ->
+                assertThrows(
+                    AssertionError.class,
+                    () -> otelCollectorMockServerClient.verify(request().withPath("/v1/metrics"))));
+  }
+
+  @Test
+  void
+      testExecuteRemovesConsentWhenDbSystemIdentifierAtTimeOfConsentIsDifferentThanCurrentDbSystemIdentifier() {
+    UsageMetricsConsent usageMetricsConsent = new UsageMetricsConsent();
+    usageMetricsConsent.setDbSystemIdentifier("abc");
+    usageMetricsConsent.setConsent(true);
+    usageMetricsConsentStore.save(usageMetricsConsent);
+
+    sendUsageMetricsCheckJob.setExportInterval(1);
+    sendUsageMetricsCheckJob.setOtelEndpoint(
+        "http://localhost:" + otelCollectorMockServerContainer.getFirstMappedPort());
+    sendUsageMetricsCheckJob.execute(null, null);
+    await()
+        .atMost(Duration.ofSeconds(10))
+        .untilAsserted(
+            () ->
+                assertThrows(
+                    AssertionError.class,
+                    () -> otelCollectorMockServerClient.verify(request().withPath("/v1/metrics"))));
+
+    assertTrue(usageMetricsConsentStore.getAll().isEmpty());
   }
 
   private void assertBuildInfoMetric(Metric buildInfoMetrics) throws ParseException {
