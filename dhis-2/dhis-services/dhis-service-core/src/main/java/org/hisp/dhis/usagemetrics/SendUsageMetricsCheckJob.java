@@ -39,6 +39,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -54,19 +56,18 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SendUsageMetricsCheckJob implements Job {
 
-  private final SystemService systemService;
-  private final JdbcTemplate jdbcTemplate;
-  private final UsageMetricsConsentStore usageMetricsConsentStore;
-  private OpenTelemetryExporter openTelemetryExporter;
-
   @Qualifier("sendUsageMetricsRegistry")
   private final PrometheusRegistry prometheusRegistry;
 
+  private final SystemService systemService;
+  private final JdbcTemplate jdbcTemplate;
+  private final UsageMetricsConsentStore usageMetricsConsentStore;
+  private final DhisConfigurationProvider dhisConfig;
+
   private SystemInfo systemInfo;
-
-  @Setter private String otelEndpoint = "https://otel.dhis2.org/v1/metrics";
-
-  @Setter private int exportInterval = 5;
+  private OpenTelemetryExporter openTelemetryExporter;
+  private String otelEndpoint;
+  @Setter private int exportIntervalSeconds = 604800; // weekly interval
 
   @Override
   public JobType getJobType() {
@@ -76,6 +77,7 @@ public class SendUsageMetricsCheckJob implements Job {
   @PostConstruct
   public void postConstruct() {
     systemInfo = systemService.getSystemInfo();
+    otelEndpoint = dhisConfig.getProperty(ConfigurationKey.USAGE_METRICS_ENDPIONT);
   }
 
   @Override
@@ -97,7 +99,7 @@ public class SendUsageMetricsCheckJob implements Job {
                 .serviceName("dhis2-core")
                 .serviceNamespace("DHIS2")
                 .serviceVersion(systemInfo.getVersion())
-                .intervalSeconds(exportInterval)
+                .intervalSeconds(exportIntervalSeconds)
                 .registry(prometheusRegistry)
                 .buildAndStart();
       } else {

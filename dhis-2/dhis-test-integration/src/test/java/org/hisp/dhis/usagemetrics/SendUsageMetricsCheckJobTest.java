@@ -46,7 +46,11 @@ import io.opentelemetry.proto.metrics.v1.ScopeMetrics;
 import java.text.ParseException;
 import java.time.Duration;
 import java.util.List;
+import java.util.Properties;
 import org.apache.commons.lang3.time.DateUtils;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -54,12 +58,16 @@ import org.junit.jupiter.api.Test;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.model.BinaryBody;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 
 @Transactional
+@ContextConfiguration(
+    classes = {SendUsageMetricsCheckJobTest.DhisConfigurationProviderTestConfig.class})
 public class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
 
   private static GenericContainer<?> otelCollectorMockServerContainer;
@@ -70,6 +78,21 @@ public class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
   @Autowired private UsageMetricsConsentStore usageMetricsConsentStore;
 
   @Autowired private JdbcTemplate jdbcTemplate;
+
+  public static class DhisConfigurationProviderTestConfig {
+    @Bean
+    public DhisConfigurationProvider dhisConfigurationProvider() {
+      Properties override = new Properties();
+      override.put(
+          ConfigurationKey.USAGE_METRICS_ENDPIONT.getKey(),
+          "http://localhost:" + otelCollectorMockServerContainer.getFirstMappedPort());
+
+      PostgresDhisConfigurationProvider postgresDhisConfigurationProvider =
+          new PostgresDhisConfigurationProvider(null);
+      postgresDhisConfigurationProvider.addProperties(override);
+      return postgresDhisConfigurationProvider;
+    }
+  }
 
   @BeforeAll
   static void beforeAll() {
@@ -103,9 +126,7 @@ public class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
     usageMetricsConsent.setConsent(true);
     usageMetricsConsentStore.save(usageMetricsConsent);
 
-    sendUsageMetricsCheckJob.setExportInterval(1);
-    sendUsageMetricsCheckJob.setOtelEndpoint(
-        "http://localhost:" + otelCollectorMockServerContainer.getFirstMappedPort());
+    sendUsageMetricsCheckJob.setExportIntervalSeconds(1);
     sendUsageMetricsCheckJob.execute(null, null);
 
     await()
@@ -134,9 +155,7 @@ public class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
 
   @Test
   void testExecuteDoesNotScheduleRegularMetricsExportWhenSendUsageMetricsConsentIsMissing() {
-    sendUsageMetricsCheckJob.setExportInterval(1);
-    sendUsageMetricsCheckJob.setOtelEndpoint(
-        "http://localhost:" + otelCollectorMockServerContainer.getFirstMappedPort());
+    sendUsageMetricsCheckJob.setExportIntervalSeconds(1);
     sendUsageMetricsCheckJob.execute(null, null);
     await()
         .atMost(Duration.ofSeconds(10))
@@ -159,9 +178,7 @@ public class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
     usageMetricsConsent.setConsent(false);
     usageMetricsConsentStore.save(usageMetricsConsent);
 
-    sendUsageMetricsCheckJob.setExportInterval(1);
-    sendUsageMetricsCheckJob.setOtelEndpoint(
-        "http://localhost:" + otelCollectorMockServerContainer.getFirstMappedPort());
+    sendUsageMetricsCheckJob.setExportIntervalSeconds(1);
     sendUsageMetricsCheckJob.execute(null, null);
     await()
         .atMost(Duration.ofSeconds(10))
@@ -180,9 +197,7 @@ public class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
     usageMetricsConsent.setConsent(true);
     usageMetricsConsentStore.save(usageMetricsConsent);
 
-    sendUsageMetricsCheckJob.setExportInterval(1);
-    sendUsageMetricsCheckJob.setOtelEndpoint(
-        "http://localhost:" + otelCollectorMockServerContainer.getFirstMappedPort());
+    sendUsageMetricsCheckJob.setExportIntervalSeconds(1);
     sendUsageMetricsCheckJob.execute(null, null);
     await()
         .atMost(Duration.ofSeconds(10))
