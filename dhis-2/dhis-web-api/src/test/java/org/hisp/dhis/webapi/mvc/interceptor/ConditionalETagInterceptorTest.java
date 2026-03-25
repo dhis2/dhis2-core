@@ -196,7 +196,7 @@ class ConditionalETagInterceptorTest {
                     "organisationUnits", OrganisationUnit.class, Set.of(), true, false, false)));
 
     assertEquals(
-        Set.of(OrganisationUnit.class, User.class, UserRole.class, UserGroup.class),
+        Set.of(OrganisationUnit.class, UserGroup.class),
         ConditionalETagInterceptor.resolveMetadataEndpointTypes(
             "organisationUnits", metadataEndpointTypes));
   }
@@ -210,7 +210,7 @@ class ConditionalETagInterceptorTest {
                     "organisationUnits", OrganisationUnit.class, Set.of(), false, false, false)));
 
     assertEquals(
-        Set.of(OrganisationUnit.class, User.class, UserRole.class),
+        Set.of(OrganisationUnit.class),
         ConditionalETagInterceptor.resolveMetadataEndpointTypes(
             "organisationUnits", metadataEndpointTypes));
   }
@@ -223,8 +223,7 @@ class ConditionalETagInterceptorTest {
                 metadataSchema("programs", OrganisationUnit.class, Set.of(), true, false, true)));
 
     assertEquals(
-        Set.of(
-            OrganisationUnit.class, User.class, UserRole.class, UserGroup.class, Attribute.class),
+        Set.of(OrganisationUnit.class, UserGroup.class, Attribute.class),
         ConditionalETagInterceptor.resolveMetadataEndpointTypes("programs", metadataEndpointTypes));
   }
 
@@ -237,11 +236,10 @@ class ConditionalETagInterceptorTest {
                 metadataSchema("visualizations", User.class, Set.of(), true, false, false)));
 
     assertEquals(
-        Set.of(
-            User.class, UserRole.class, UserGroup.class, OrganisationUnit.class, Attribute.class),
+        Set.of(User.class, UserGroup.class, OrganisationUnit.class, Attribute.class),
         ConditionalETagInterceptor.resolveMetadataEndpointTypes("maps", metadataEndpointTypes));
     assertEquals(
-        Set.of(User.class, UserRole.class, UserGroup.class, OrganisationUnit.class),
+        Set.of(User.class, UserGroup.class, OrganisationUnit.class),
         ConditionalETagInterceptor.resolveMetadataEndpointTypes(
             "visualizations", metadataEndpointTypes));
   }
@@ -625,12 +623,9 @@ class ConditionalETagInterceptorTest {
                 "organisationUnits", OrganisationUnit.class, Set.of(), false, false, false));
     when(schemaService.getMetadataSchemas()).thenReturn(metadataSchemas);
 
-    Set<Class<?>> expectedTypes =
-        ConditionalETagInterceptor.resolveMetadataEndpointTypes(
-            "organisationUnits",
-            ConditionalETagInterceptor.buildMetadataEndpointTypes(metadataSchemas));
+    // Single-type set → interceptor uses single-class generateETag overload
     String etag = "userUid123-c-42-7";
-    when(conditionalETagService.generateETag(userDetails, expectedTypes)).thenReturn(etag);
+    when(conditionalETagService.generateETag(userDetails, OrganisationUnit.class)).thenReturn(etag);
     when(conditionalETagService.checkNotModified(request, etag)).thenReturn(false);
 
     boolean preResult = interceptor.preHandle(request, response, new Object());
@@ -656,12 +651,9 @@ class ConditionalETagInterceptorTest {
                 "organisationUnits", OrganisationUnit.class, Set.of(), false, false, false));
     when(schemaService.getMetadataSchemas()).thenReturn(metadataSchemas);
 
-    Set<Class<?>> expectedTypes =
-        ConditionalETagInterceptor.resolveMetadataEndpointTypes(
-            "organisationUnits",
-            ConditionalETagInterceptor.buildMetadataEndpointTypes(metadataSchemas));
+    // Single-type set → interceptor uses single-class generateETag overload
     String etag = "userUid123-c-42-7";
-    when(conditionalETagService.generateETag(userDetails, expectedTypes)).thenReturn(etag);
+    when(conditionalETagService.generateETag(userDetails, OrganisationUnit.class)).thenReturn(etag);
     when(conditionalETagService.checkNotModified(any(), anyString())).thenReturn(false);
 
     boolean preResult = interceptor.preHandle(request, response, new Object());
@@ -683,12 +675,10 @@ class ConditionalETagInterceptorTest {
     when(schemaService.getMetadataSchemas()).thenReturn(metadataSchemas);
     when(conditionalETagService.isEnabled()).thenReturn(true);
 
-    Set<Class<?>> expectedTypes =
-        ConditionalETagInterceptor.resolveMetadataEndpointTypes(
-            "organisationUnits",
-            ConditionalETagInterceptor.buildMetadataEndpointTypes(metadataSchemas));
+    // Single-type set → interceptor uses single-class generateETag overload
     String baseEtag = "userUid123-c-42-7";
-    when(conditionalETagService.generateETag(userDetails, expectedTypes)).thenReturn(baseEtag);
+    when(conditionalETagService.generateETag(userDetails, OrganisationUnit.class))
+        .thenReturn(baseEtag);
     when(conditionalETagService.checkNotModified(any(), anyString())).thenReturn(false);
 
     MockHttpServletRequest request1 = new MockHttpServletRequest("GET", "/api/organisationUnits");
@@ -793,7 +783,7 @@ class ConditionalETagInterceptorTest {
     ConditionalETagInterceptor.NamedEndpointDeps deps =
         ConditionalETagInterceptor.getNamedEndpointDeps("apps/menu");
     assertNotNull(deps);
-    assertTrue(deps.entityTypes().contains(User.class));
+    assertFalse(deps.entityTypes().contains(User.class));
     assertTrue(deps.entityTypes().contains(UserRole.class));
     assertTrue(deps.namedKeys().contains("installedApps"));
   }

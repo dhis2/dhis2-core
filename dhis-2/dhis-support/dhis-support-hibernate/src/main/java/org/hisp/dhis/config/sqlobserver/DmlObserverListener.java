@@ -203,6 +203,12 @@ public class DmlObserverListener
     for (QueryInfo queryInfo : queryInfoList) {
       String query = queryInfo.getQuery();
 
+      // Skip statements explicitly marked to bypass DML observation
+      if (DmlSqlParser.isDmlSkipMarked(query)) {
+        if (statementsSkippedExcluded != null) statementsSkippedExcluded.increment();
+        continue;
+      }
+
       // Fast-path: skip non-DML
       if (!DmlSqlParser.isPossibleDml(query)) {
         if (statementsSkippedNonDml != null) statementsSkippedNonDml.increment();

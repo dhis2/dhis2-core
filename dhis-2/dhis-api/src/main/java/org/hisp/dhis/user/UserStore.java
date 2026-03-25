@@ -124,6 +124,16 @@ public interface UserStore extends IdentifiableObjectStore<User> {
   int disableUsersInactiveSince(Date inactiveSince);
 
   /**
+   * Updates only the {@code lastlogin} and {@code lastupdated} columns for the user with the given
+   * username. This is a lightweight native SQL update that bypasses Hibernate's full entity update
+   * and is invisible to the DML observer (uses dml-skip marker).
+   *
+   * @param username the username of the user to update
+   * @return the number of rows updated (0 or 1)
+   */
+  int updateLastLogin(@Nonnull String username);
+
+  /**
    * Selects all not disabled users where the {@link User#getLastLogin()} is within the given
    * time-frame and which have an email address.
    *

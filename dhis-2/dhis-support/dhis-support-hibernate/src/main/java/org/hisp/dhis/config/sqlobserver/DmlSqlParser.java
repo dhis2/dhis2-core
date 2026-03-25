@@ -40,6 +40,17 @@ import org.hisp.dhis.dml.DmlOperation;
 public class DmlSqlParser {
 
   /**
+   * SQL comment marker that causes the DML observer to skip this statement entirely. Prefix any SQL
+   * with this marker to prevent it from triggering ETag version bumps.
+   */
+  public static final String DML_SKIP_MARKER = "/* dml-skip */";
+
+  /** Returns {@code true} if the query starts with the {@link #DML_SKIP_MARKER} comment. */
+  public static boolean isDmlSkipMarked(String query) {
+    return query != null && query.startsWith(DML_SKIP_MARKER);
+  }
+
+  /**
    * Bounded LRU cache for parse results keyed by SQL string. Hibernate typically uses ~200-300
    * distinct SQL templates, so 512 entries provides ample headroom.
    */

@@ -128,8 +128,7 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
   /** Non-CRUD endpoints mapped to their entity-type dependencies. */
   private static final Map<String, Set<Class<?>>> COMPOSITE_ENDPOINTS =
       Map.ofEntries(
-          Map.entry(
-              "me", Set.of(User.class, UserRole.class, UserGroup.class, OrganisationUnit.class)),
+          Map.entry("me", Set.of(OrganisationUnit.class)),
           Map.entry(
               "systemSettings",
               Set.of(SystemSetting.class, DatastoreEntry.class, UserSetting.class)),
@@ -141,25 +140,20 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
           Map.entry("userDataStore/**", Set.of(UserDatastoreEntry.class)),
           Map.entry("me/settings", Set.of(UserSetting.class, SystemSetting.class)),
           Map.entry("me/settings/*", Set.of(UserSetting.class, SystemSetting.class)),
-          Map.entry("me/authorization", Set.of(User.class, UserRole.class, UserGroup.class)),
-          Map.entry("me/authorization/*", Set.of(User.class, UserRole.class, UserGroup.class)),
-          Map.entry("me/authorities", Set.of(User.class, UserRole.class, UserGroup.class)),
-          Map.entry("me/authorities/*", Set.of(User.class, UserRole.class, UserGroup.class)),
+          Map.entry("me/authorization", Set.of(UserRole.class, UserGroup.class)),
+          Map.entry("me/authorization/*", Set.of(UserRole.class, UserGroup.class)),
+          Map.entry("me/authorities", Set.of(UserRole.class, UserGroup.class)),
+          Map.entry("me/authorities/*", Set.of(UserRole.class, UserGroup.class)),
           Map.entry(
               "me/dataApprovalLevels",
-              Set.of(
-                  DataApprovalLevel.class,
-                  OrganisationUnitLevel.class,
-                  OrganisationUnit.class,
-                  User.class)),
+              Set.of(DataApprovalLevel.class, OrganisationUnitLevel.class, OrganisationUnit.class)),
           Map.entry(
               "me/dataApprovalWorkflows",
               Set.of(
                   DataApprovalWorkflow.class,
                   DataApprovalLevel.class,
                   OrganisationUnit.class,
-                  SystemSetting.class,
-                  User.class)),
+                  SystemSetting.class)),
           Map.entry(
               "dimensions",
               Set.of(
@@ -176,7 +170,8 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
               "dataStatistics/favorites/*", Set.of(DataStatisticsEvent.class, SystemSetting.class)),
           Map.entry(
               "loginConfig",
-              Set.of(SystemSetting.class, DatastoreEntry.class, Configuration.class)));
+              Set.of(SystemSetting.class, DatastoreEntry.class, Configuration.class)),
+          Map.entry("dataStore/**", Set.of(DatastoreEntry.class)));
 
   /**
    * Named-key endpoints whose data is not tied to a single JPA entity type. These depend on a mix
@@ -191,9 +186,17 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
           "schemas",
           new NamedEndpointDeps(Set.of(), Set.of()),
           "apps",
-          new NamedEndpointDeps(Set.of(User.class, UserRole.class), Set.of("installedApps")),
+          new NamedEndpointDeps(Set.of(UserRole.class), Set.of("installedApps")),
           "apps/menu",
-          new NamedEndpointDeps(Set.of(User.class, UserRole.class), Set.of("installedApps")));
+          new NamedEndpointDeps(Set.of(UserRole.class), Set.of("installedApps")),
+          "apps/**",
+          new NamedEndpointDeps(Set.of(UserRole.class), Set.of("installedApps")),
+          "staticContent/**",
+          new NamedEndpointDeps(Set.of(), Set.of("staticContent")),
+          "locales/db",
+          new NamedEndpointDeps(Set.of(), Set.of()),
+          "locales/ui",
+          new NamedEndpointDeps(Set.of(), Set.of()));
 
   private static final List<NamedEndpointPattern> NAMED_KEY_PATH_PATTERNS =
       compileNamedEndpointPatterns(NAMED_KEY_ENDPOINTS);
@@ -404,11 +407,9 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
       addObservedMetadataDependency(dependencyTypes, schema.getKlass());
 
       for (Class<?> referenceType : schema.getReferences()) {
+        if (referenceType == User.class) continue;
         addObservedMetadataDependency(dependencyTypes, referenceType);
       }
-
-      dependencyTypes.add(User.class);
-      dependencyTypes.add(UserRole.class);
 
       if (schema.isShareable() || schema.isDataShareable()) {
         dependencyTypes.add(UserGroup.class);
@@ -491,7 +492,10 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
       return false;
     }
 
-    if (cacheMiss != null) cacheMiss.increment();
+    if (cacheMiss != null) {
+      cacheMiss.increment();
+    }
+
     storeETag(request, currentETag);
     return true;
   }
