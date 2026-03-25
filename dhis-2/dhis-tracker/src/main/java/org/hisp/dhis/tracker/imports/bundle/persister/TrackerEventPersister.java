@@ -58,9 +58,10 @@ import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
-import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
+import org.hisp.dhis.tracker.imports.notification.NotificationTrigger;
+import org.hisp.dhis.tracker.imports.notification.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
@@ -90,16 +91,20 @@ public class TrackerEventPersister
   @Override
   protected TrackerNotificationDataBundle handleNotifications(
       TrackerBundle bundle, TrackerEvent event, List<NotificationTrigger> triggers) {
+    boolean hasTemplates = hasMatchingNotificationTemplates(event.getProgramStage(), triggers);
+    List<Notification> ruleEngineNotifications =
+        bundle.getTrackerEventNotifications().getOrDefault(event.getUID(), List.of());
+    if (!hasTemplates && ruleEngineNotifications.isEmpty()) {
+      return null;
+    }
 
     return TrackerNotificationDataBundle.builder()
         .klass(TrackerEvent.class)
-        .trackerEventNotifications(bundle.getTrackerEventNotifications().get(event.getUID()))
+        .trackerEventNotifications(ruleEngineNotifications)
         .object(event.getUid())
-        .importStrategy(bundle.getImportStrategy())
-        .accessedBy(bundle.getUser().getUsername())
         .event(event)
         .program(event.getProgramStage().getProgram())
-        .triggers(triggers)
+        .triggers(hasTemplates ? triggers : List.of())
         .build();
   }
 

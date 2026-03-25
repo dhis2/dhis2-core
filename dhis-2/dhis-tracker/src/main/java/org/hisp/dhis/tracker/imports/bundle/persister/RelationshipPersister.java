@@ -40,8 +40,6 @@ import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
-import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
@@ -87,14 +85,6 @@ public class RelationshipPersister
   }
 
   @Override
-  protected TrackerNotificationDataBundle handleNotifications(
-      TrackerBundle bundle,
-      org.hisp.dhis.tracker.model.Relationship entity,
-      List<NotificationTrigger> triggers) {
-    return TrackerNotificationDataBundle.builder().build();
-  }
-
-  @Override
   protected TrackerType getType() {
     return TrackerType.RELATIONSHIP;
   }
@@ -134,11 +124,5 @@ public class RelationshipPersister
       TrackerPreheat preheat, Relationship trackerDto) {
     return null;
     // NO NEED TO CLONE RELATIONSHIP PROPERTIES
-  }
-
-  @Override
-  protected List<NotificationTrigger> determineNotificationTriggers(
-      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Relationship entity) {
-    return List.of();
   }
 }

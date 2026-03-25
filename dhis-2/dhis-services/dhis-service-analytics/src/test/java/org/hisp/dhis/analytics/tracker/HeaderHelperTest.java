@@ -62,6 +62,7 @@ import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -123,6 +124,28 @@ class HeaderHelperTest {
     assertEquals("Period", headers.get(1).getColumn());
     assertEquals("deUidA001", headers.get(2).getName());
     assertEquals("Item A", headers.get(2).getColumn());
+  }
+
+  @Test
+  @DisplayName("should use date field header for period dimensions with static date field")
+  void shouldUseDateFieldHeaderForPeriodDimensionWithStaticDateField() {
+    Grid grid = new ListGrid();
+
+    PeriodDimension periodDimension = PeriodDimension.of("2018Sep").setDateField("LAST_UPDATED");
+    BaseDimensionalObject period =
+        new BaseDimensionalObject(
+            "pe", DimensionType.PERIOD, "pe", "Period", List.of(periodDimension));
+
+    EventQueryParams params =
+        new EventQueryParams.Builder().withDisplayProperty(DisplayProperty.NAME).build();
+
+    HeaderHelper.addCommonHeaders(grid, params, List.of(period));
+
+    List<GridHeader> headers = grid.getHeaders();
+
+    assertEquals(1, headers.size());
+    assertEquals("lastupdated", headers.get(0).getName());
+    assertEquals("Last updated", headers.get(0).getColumn());
   }
 
   @Test

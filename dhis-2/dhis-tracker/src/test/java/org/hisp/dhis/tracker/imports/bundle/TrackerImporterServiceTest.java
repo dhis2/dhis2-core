@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -48,8 +47,9 @@ import org.hisp.dhis.tracker.imports.ParamsConverter;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
+import org.hisp.dhis.tracker.imports.notification.LifecycleNotificationDispatcher;
+import org.hisp.dhis.tracker.imports.notification.RuleEngineNotificationDispatcher;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.imports.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationResult;
 import org.hisp.dhis.tracker.imports.validation.ValidationService;
@@ -71,9 +71,11 @@ class TrackerImporterServiceTest {
 
   @Mock private ValidationService validationService;
 
-  @Mock private TrackerPreprocessService trackerPreprocessService;
-
   @Mock private ValidationResult validationResult;
+
+  @Mock private LifecycleNotificationDispatcher lifecycleNotificationDispatcher;
+
+  @Mock private RuleEngineNotificationDispatcher ruleEngineNotificationDispatcher;
 
   private DefaultTrackerImportService subject;
 
@@ -87,7 +89,10 @@ class TrackerImporterServiceTest {
   public void setUp() {
     subject =
         new DefaultTrackerImportService(
-            trackerBundleService, validationService, trackerPreprocessService);
+            trackerBundleService,
+            validationService,
+            lifecycleNotificationDispatcher,
+            ruleEngineNotificationDispatcher);
 
     injectSecurityContextNoSettings(user);
 
@@ -101,13 +106,6 @@ class TrackerImporterServiceTest {
     when(validationService.validate(any(TrackerBundle.class))).thenReturn(validationResult);
     when(validationService.validateRuleEngine(any(TrackerBundle.class)))
         .thenReturn(validationResult);
-    when(trackerPreprocessService.preprocess(any(TrackerBundle.class)))
-        .thenReturn(
-            ParamsConverter.convert(
-                params,
-                TrackerObjects.builder().enrollments(enrollments).build(),
-                user,
-                new TrackerPreheat()));
   }
 
   @Test
@@ -118,28 +116,31 @@ class TrackerImporterServiceTest {
         TrackerObjects.builder().enrollments(trackerObjects.getEnrollments()).build();
 
     when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
-        .thenReturn(ParamsConverter.convert(parameters, objects, user, new TrackerPreheat()));
+        .thenReturn(bundleWithPreheat(parameters, objects));
     when(trackerBundleService.commit(any(TrackerBundle.class)))
-        .thenReturn(PersistenceReport.emptyReport());
+        .thenReturn(
+            new TrackerBundleService.CommitResult(PersistenceReport.emptyReport(), List.of()));
 
     subject.importTracker(parameters, trackerObjects, JobProgress.noop());
 
-    verify(trackerBundleService, times(0)).sendNotifications(anyList());
+    verify(lifecycleNotificationDispatcher, times(0)).sendNotifications(anyList());
+    verify(ruleEngineNotificationDispatcher, times(0)).sendNotifications(anyList());
   }
 
   @Test
   void testWithSideEffects() {
     TrackerObjects objects =
         TrackerObjects.builder().enrollments(trackerObjects.getEnrollments()).build();
-    doAnswer(invocationOnMock -> null).when(trackerBundleService).sendNotifications(anyList());
     when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
-        .thenReturn(ParamsConverter.convert(params, objects, user, new TrackerPreheat()));
+        .thenReturn(bundleWithPreheat(params, objects));
     when(trackerBundleService.commit(any(TrackerBundle.class)))
-        .thenReturn(PersistenceReport.emptyReport());
+        .thenReturn(
+            new TrackerBundleService.CommitResult(PersistenceReport.emptyReport(), List.of()));
 
     subject.importTracker(params, trackerObjects, JobProgress.noop());
 
-    verify(trackerBundleService, times(1)).sendNotifications(anyList());
+    verify(lifecycleNotificationDispatcher, times(1)).sendNotifications(anyList());
+    verify(ruleEngineNotificationDispatcher, times(1)).sendNotifications(anyList());
   }
 
   @Test
@@ -147,7 +148,7 @@ class TrackerImporterServiceTest {
     TrackerObjects objects =
         TrackerObjects.builder().enrollments(trackerObjects.getEnrollments()).build();
     when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
-        .thenReturn(ParamsConverter.convert(params, objects, user, new TrackerPreheat()));
+        .thenReturn(bundleWithPreheat(params, objects));
     when(trackerBundleService.commit(any(TrackerBundle.class)))
         .thenThrow(new IllegalArgumentException("ERROR"));
 
@@ -157,5 +158,12 @@ class TrackerImporterServiceTest {
             IllegalArgumentException.class,
             () -> subject.importTracker(params, trackerObjects, transitory));
     assertEquals("ERROR", ex.getMessage());
+  }
+
+  private TrackerBundle bundleWithPreheat(TrackerImportParams params, TrackerObjects objects) {
+    TrackerPreheat preheat = new TrackerPreheat();
+    TrackerBundle bundle = ParamsConverter.convert(params, objects, user, preheat);
+    bundle.setPreheat(preheat);
+    return bundle;
   }
 }

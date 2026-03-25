@@ -71,11 +71,13 @@ import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.STAGE_
 import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.STAGE_OU_NAME_COLUMN;
 import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_GEOMETRY_COL_POSTFIX;
 import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_NAME_COL_POSTFIX;
+import static org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValue;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.replaceStringBetween;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
@@ -112,6 +114,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -251,6 +254,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   private static final Collector<CharSequence, ?, String> AND_JOINER = joining(AND);
 
+  private static final Pattern LEADING_WHERE_PATTERN = Pattern.compile("^where\\s+");
+
   @Qualifier("analyticsReadOnlyJdbcTemplate")
   protected final JdbcTemplate jdbcTemplate;
 
@@ -277,6 +282,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   protected final QueryItemFilterBuilder filterBuilder;
 
   protected final StageQuerySqlFacade stageQuerySqlFacade;
+
+  private final DateFieldPeriodBucketColumnResolver dateFieldPeriodBucketColumnResolver;
 
   static final String ANALYTICS_EVENT = "analytics_event_";
 
@@ -595,6 +602,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     OrgUnitSqlCoordinator.addDimensionSelectColumns(
         columns, params, isGroupByClause, isAggregated, getAnalyticsType());
+
+    if (params.hasEnrollmentStatuses() && params.isEnrollmentAggregateQuery()) {
+      columns.add(ColumnAndAlias.ofColumn(ENROLLMENT_STATUS_COLUMN_NAME).asSql());
+    }
   }
 
   private void addItemSelectColumns(
@@ -612,6 +623,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (!isGroupByClause) {
         handleRowContext(columns, params, queryItem, columnAndAlias);
       }
+    }
+
+    if (params.hasEnrollmentStatuses() && params.isAggregatedEvents()) {
+      columns.add(ColumnAndAlias.ofColumn(quote(ENROLLMENT_STATUS_COLUMN_NAME)).asSql());
     }
   }
 
@@ -798,7 +813,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     sql += getFromClause(params);
 
-    sql += getWhereClause(params);
+    String whereClause = getWhereClause(params);
+    sql += whereClause;
+    sql += getAdditionalQueryItemWhereClause(params, whereClause);
 
     sql += getGroupByClause(params);
 
@@ -840,6 +857,35 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           () -> getAggregatedEventData(grid, params, finalSqlValue), params.isMultipleQueries());
     }
     return grid;
+  }
+
+  /**
+   * Returns the SQL fragment for QueryItem filters that must be appended after the base WHERE
+   * clause.
+   *
+   * <p>The event aggregate and count paths build their SQL directly from {@code getFromClause(..)}
+   * and {@code getWhereClause(..)}. Under the current query builder, QueryItem filters are not
+   * always included inside {@code getWhereClause(..)}, so they must be appended separately here.
+   *
+   * @param params the query parameters
+   * @param existingWhereClause the already-rendered base WHERE clause
+   * @return the SQL fragment to append, or an empty string when no extra filter is needed
+   */
+  protected String getAdditionalQueryItemWhereClause(
+      EventQueryParams params, String existingWhereClause) {
+    if (!useExperimentalAnalyticsQueryEngine()) {
+      return StringUtils.EMPTY;
+    }
+
+    String queryItemFilterClause = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
+
+    if (StringUtils.isBlank(queryItemFilterClause)) {
+      return StringUtils.EMPTY;
+    }
+
+    return StringUtils.isNotBlank(existingWhereClause)
+        ? LEADING_WHERE_PATTERN.matcher(queryItemFilterClause).replaceFirst("and ")
+        : queryItemFilterClause;
   }
 
   /**
@@ -1143,6 +1189,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private String getTableAndColumn(
       EventQueryParams params, DimensionalObject dimension, boolean isGroupByClause) {
     String col = dimension.getDimensionName();
+    Optional<String> dynamicPeriodBucket =
+        dateFieldPeriodBucketColumnResolver.resolve(getAnalyticsType(), dimension, isGroupByClause);
+
+    if (dynamicPeriodBucket.isPresent()) {
+      return dynamicPeriodBucket.get();
+    }
 
     if (params.hasTimeField() && DimensionType.PERIOD == dimension.getDimensionType()) {
       return sqlBuilder.quote(DATE_PERIOD_STRUCT_ALIAS, col);
@@ -1161,6 +1213,31 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     } else {
       return quoteAlias(col);
     }
+  }
+
+  protected Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression>
+      resolveDateFieldPeriodBucket(DimensionalObject dimension, String tableAlias) {
+    return dateFieldPeriodBucketColumnResolver.resolve(getAnalyticsType(), dimension, tableAlias);
+  }
+
+  protected Optional<DateFieldPeriodBucketColumnResolver.JoinClause>
+      resolveDateFieldPeriodBucketJoin(EventQueryParams params, String tableAlias) {
+    if (!params.isAggregation()) {
+      return Optional.empty();
+    }
+
+    DimensionalObject periodDimension = params.getDimension(PERIOD_DIM_ID);
+
+    if (periodDimension == null) {
+      return Optional.empty();
+    }
+
+    return resolveDateFieldPeriodBucket(periodDimension, tableAlias)
+        .flatMap(DateFieldPeriodBucketColumnResolver.ResolvedExpression::joinClause);
+  }
+
+  protected Optional<String> resolveDateFieldPeriodSourceColumn(DimensionalObject dimension) {
+    return dateFieldPeriodBucketColumnResolver.resolveSourceColumn(getAnalyticsType(), dimension);
   }
 
   /**

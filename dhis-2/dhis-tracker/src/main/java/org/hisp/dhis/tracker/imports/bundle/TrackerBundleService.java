@@ -35,7 +35,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
+import org.hisp.dhis.tracker.imports.notification.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.user.UserDetails;
 
@@ -43,6 +43,10 @@ import org.hisp.dhis.user.UserDetails;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface TrackerBundleService {
+
+  record CommitResult(
+      PersistenceReport report, List<TrackerNotificationDataBundle> notificationBundles) {}
+
   /**
    * Creates and prepares tracker bundle.
    *
@@ -67,16 +71,10 @@ public interface TrackerBundleService {
    * Commits objects from bundle into persistence store if bundle mode COMMIT is enabled.
    *
    * @param bundle TrackerBundle to commit.
+   * @return a {@link CommitResult} containing the persistence report and notification bundles
    */
   @Nonnull
-  PersistenceReport commit(@Nonnull TrackerBundle bundle);
-
-  /**
-   * Carry out notifications for TrackerImporter.
-   *
-   * @param bundles {@link TrackerNotificationDataBundle} to hold data for notifications.
-   */
-  void sendNotifications(@Nonnull List<TrackerNotificationDataBundle> bundles);
+  CommitResult commit(@Nonnull TrackerBundle bundle);
 
   /**
    * Deletes objects in the bundle from persistence store if bundle mode DELETE is enabled.
