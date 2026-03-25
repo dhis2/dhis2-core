@@ -64,7 +64,6 @@ public class NotificationSender {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
     NotificationValidationResult result = validate(template, enrollment);
-
     if (!result.isValid()) {
       return;
     }
@@ -73,10 +72,9 @@ public class NotificationSender {
       ProgramNotificationInstance notificationInstance =
           createNotificationInstance(template, notification.scheduledAt());
       notificationInstance.setEnrollment(enrollment);
-
       programNotificationInstanceService.save(notificationInstance);
     } else {
-      programNotificationService.sendProgramRuleTriggeredNotifications(template, enrollment);
+      programNotificationService.sendNotification(template, enrollment);
     }
     if (result.needsToCreateLogEntry()) {
       createLogEntry(template, enrollment);
@@ -88,7 +86,6 @@ public class NotificationSender {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
     NotificationValidationResult result = validate(template, event.getEnrollment());
-
     if (!result.isValid()) {
       return;
     }
@@ -97,10 +94,9 @@ public class NotificationSender {
       ProgramNotificationInstance notificationInstance =
           createNotificationInstance(template, notification.scheduledAt());
       notificationInstance.setTrackerEvent(event);
-
       programNotificationInstanceService.save(notificationInstance);
     } else {
-      programNotificationService.sendProgramRuleTriggeredEventNotifications(template, event);
+      programNotificationService.sendNotification(template, event);
     }
 
     if (result.needsToCreateLogEntry()) {
@@ -115,12 +111,10 @@ public class NotificationSender {
     if (notification.scheduledAt() != null) {
       ProgramNotificationInstance notificationInstance =
           createNotificationInstance(template, notification.scheduledAt());
-
       notificationInstance.setSingleEvent(singleEvent);
-
       programNotificationInstanceService.save(notificationInstance);
     } else {
-      programNotificationService.sendProgramRuleTriggeredEventNotifications(template, singleEvent);
+      programNotificationService.sendNotification(template, singleEvent);
     }
   }
 
@@ -132,7 +126,6 @@ public class NotificationSender {
     entry.setNotificationTemplateUid(template.getUid());
     entry.setNotificationTriggeredBy(NotificationTriggerEvent.PROGRAM);
     entry.setAllowMultiple(template.isSendRepeatable());
-
     notificationLoggingService.save(entry);
   }
 
@@ -153,7 +146,6 @@ public class NotificationSender {
 
     ExternalNotificationLogEntry logEntry =
         notificationLoggingService.getByKey(generateKey(template, enrollment));
-
     // template has already been delivered and repeated delivery not allowed
     if (logEntry != null && !logEntry.isAllowMultiple()) {
       return NotificationValidationResult.invalid();
@@ -176,7 +168,6 @@ public class NotificationSender {
     notificationInstance.setScheduledAt(date);
     notificationInstance.setProgramNotificationTemplateSnapshot(
         NotificationTemplateMapper.toProgramNotificationTemplateSnapshot(template));
-
     return notificationInstance;
   }
 }

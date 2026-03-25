@@ -41,8 +41,7 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.notification.LifecycleNotificationDispatcher;
-import org.hisp.dhis.tracker.imports.notification.RuleEngineNotificationDispatcher;
+import org.hisp.dhis.tracker.imports.notification.NotificationDispatcher;
 import org.hisp.dhis.tracker.imports.preprocess.Preprocessor;
 import org.hisp.dhis.tracker.imports.report.Error;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
@@ -65,9 +64,7 @@ public class DefaultTrackerImportService implements TrackerImportService {
 
   @Nonnull private final ValidationService validationService;
 
-  @Nonnull private final LifecycleNotificationDispatcher lifecycleNotificationDispatcher;
-
-  @Nonnull private final RuleEngineNotificationDispatcher ruleEngineNotificationDispatcher;
+  @Nonnull private final NotificationDispatcher notificationDispatcher;
 
   private PersistenceReport commit(TrackerImportParams params, TrackerBundle trackerBundle)
       throws ForbiddenException, NotFoundException {
@@ -184,8 +181,7 @@ public class DefaultTrackerImportService implements TrackerImportService {
     TrackerBundleService.CommitResult result = trackerBundleService.commit(trackerBundle);
 
     if (!trackerBundle.isSkipSideEffects()) {
-      lifecycleNotificationDispatcher.sendNotifications(result.notificationBundles());
-      ruleEngineNotificationDispatcher.sendNotifications(result.notificationBundles());
+      notificationDispatcher.sendNotifications(result.notifications());
     }
 
     return result.report();
