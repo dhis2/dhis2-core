@@ -33,7 +33,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import jakarta.persistence.EntityManager;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Stream;
@@ -52,15 +51,13 @@ import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionServi
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerPersister.PersistResult;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
-import org.hisp.dhis.tracker.imports.notification.NotificationHandlerService;
+import org.hisp.dhis.tracker.imports.notification.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleService;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.user.UserDetails;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -81,13 +78,6 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   private final TrackerObjectDeletionService deletionService;
 
   private final ObjectMapper mapper;
-
-  private List<NotificationHandlerService> notificationHandlers = new ArrayList<>();
-
-  @Autowired(required = false)
-  public void setNotificationHandlers(List<NotificationHandlerService> notificationHandlers) {
-    this.notificationHandlers = notificationHandlers;
-  }
 
   @Nonnull
   @Override
@@ -182,11 +172,6 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
     } catch (JsonProcessingException e) {
       throw new PersistenceException(e);
     }
-  }
-
-  @Override
-  public void sendNotifications(@Nonnull List<TrackerNotificationDataBundle> bundles) {
-    notificationHandlers.forEach(handler -> handler.handleNotifications(bundles));
   }
 
   @Nonnull

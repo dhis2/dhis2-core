@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,27 +29,26 @@
  */
 package org.hisp.dhis.tracker.imports.notification;
 
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationMessageManager;
-import org.springframework.stereotype.Service;
-
 /**
  * @author Zubair Asghar
  */
-@RequiredArgsConstructor
-@Service
-public class TrackerNotificationHandlerService implements NotificationHandlerService {
-  private final TrackerNotificationMessageManager trackerNotificationMessageManager;
+public enum NotificationTrigger {
+  ENROLLMENT,
+  ENROLLMENT_COMPLETION,
+  TRACKER_EVENT_COMPLETION,
+  SINGLE_EVENT_COMPLETION,
+  NONE;
 
-  @Override
-  public void handleNotification(TrackerNotificationDataBundle notificationDataBundle) {
-    trackerNotificationMessageManager.sendNotifications(notificationDataBundle);
-  }
-
-  @Override
-  public void handleNotifications(List<TrackerNotificationDataBundle> notificationDataBundles) {
-    notificationDataBundles.forEach(this::handleNotification);
+  /**
+   * Returns the corresponding {@link org.hisp.dhis.program.notification.NotificationTrigger} used
+   * on {@link org.hisp.dhis.program.notification.ProgramNotificationTemplate}.
+   */
+  public org.hisp.dhis.program.notification.NotificationTrigger toTemplateTrigger() {
+    return switch (this) {
+      case ENROLLMENT -> org.hisp.dhis.program.notification.NotificationTrigger.ENROLLMENT;
+      case ENROLLMENT_COMPLETION, TRACKER_EVENT_COMPLETION, SINGLE_EVENT_COMPLETION ->
+          org.hisp.dhis.program.notification.NotificationTrigger.COMPLETION;
+      case NONE -> null;
+    };
   }
 }

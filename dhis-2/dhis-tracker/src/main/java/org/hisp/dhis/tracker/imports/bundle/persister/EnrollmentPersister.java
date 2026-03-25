@@ -41,8 +41,8 @@ import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
-import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
+import org.hisp.dhis.tracker.imports.notification.NotificationTrigger;
+import org.hisp.dhis.tracker.imports.notification.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.model.Enrollment;
@@ -104,8 +104,6 @@ public class EnrollmentPersister
         .klass(Enrollment.class)
         .enrollmentNotifications(ruleEngineNotifications)
         .object(enrollment.getUid())
-        .importStrategy(bundle.getImportStrategy())
-        .accessedBy(bundle.getUser().getUsername())
         .enrollment(enrollment)
         .program(enrollment.getProgram())
         .triggers(hasTemplates ? triggers : List.of())
