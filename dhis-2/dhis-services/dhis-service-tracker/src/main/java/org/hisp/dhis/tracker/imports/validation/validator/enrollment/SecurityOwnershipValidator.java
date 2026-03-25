@@ -149,15 +149,21 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       UserDetails user) {
     OrganisationUnit enrollmentOrgUnit;
 
-    if (strategy.isUpdateOrDelete()) {
+    if (strategy.isCreateOrUpdate()) {
+      enrollmentOrgUnit = bundle.getPreheat().getOrganisationUnit(enrollment.getOrgUnit());
+
+      if (strategy.isUpdate()) {
+        OrganisationUnit databaseOrgUnit =
+            bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getOrganisationUnit();
+        if (!enrollmentOrgUnit.getUid().equals(databaseOrgUnit.getUid())) {
+          checkOrgUnitInCaptureScope(reporter, enrollment, enrollmentOrgUnit, user);
+        }
+      }
+    } else {
       enrollmentOrgUnit =
           bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getOrganisationUnit();
-    } else {
-      enrollmentOrgUnit = bundle.getPreheat().getOrganisationUnit(enrollment.getOrgUnit());
     }
 
-    // If enrollment is newly created, or going to be deleted, capture scope
-    // has to be checked
     if (strategy.isCreate() || strategy.isDelete()) {
       checkOrgUnitInCaptureScope(reporter, enrollment, enrollmentOrgUnit, user);
     }
@@ -175,23 +181,6 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     }
   }
 
-  private void checkTeTypeAndTeProgramAccess(
-      Reporter reporter,
-      TrackerDto dto,
-      String trackedEntity,
-      OrganisationUnit ownerOrganisationUnit,
-      Program program,
-      UserDetails user) {
-    if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
-      reporter.addError(dto, ValidationCode.E1104, user, program, program.getTrackedEntityType());
-    }
-
-    if (ownerOrganisationUnit != null
-        && !ownershipAccessManager.hasAccess(user, trackedEntity, ownerOrganisationUnit, program)) {
-      reporter.addError(dto, ValidationCode.E1102, user, trackedEntity, program);
-    }
-  }
-
   private void checkWriteEnrollmentAccess(
       Reporter reporter,
       Enrollment enrollment,
@@ -199,15 +188,18 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       OrganisationUnit ownerOrgUnit,
       String trackedEntity,
       UserDetails user) {
-    checkProgramWriteAccess(reporter, enrollment, program, user);
-
-    checkTeTypeAndTeProgramAccess(reporter, enrollment, trackedEntity, ownerOrgUnit, program, user);
-  }
-
-  private void checkProgramWriteAccess(
-      Reporter reporter, TrackerDto dto, Program program, UserDetails user) {
     if (!aclService.canDataWrite(user, program)) {
-      reporter.addError(dto, ValidationCode.E1091, user, program);
+      reporter.addError(enrollment, ValidationCode.E1091, user, program);
+    }
+
+    if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
+      reporter.addError(
+          enrollment, ValidationCode.E1104, user, program, program.getTrackedEntityType());
+    }
+
+    if (ownerOrgUnit != null
+        && !ownershipAccessManager.hasAccess(user, trackedEntity, ownerOrgUnit, program)) {
+      reporter.addError(enrollment, ValidationCode.E1102, user, trackedEntity, program);
     }
   }
 }
