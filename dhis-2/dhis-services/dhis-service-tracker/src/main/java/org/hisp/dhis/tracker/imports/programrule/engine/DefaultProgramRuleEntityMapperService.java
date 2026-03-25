@@ -176,7 +176,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                   FIELD,
                   getAssignedParameter(pra),
                   ATTRIBUTE_TYPE,
-                  getAttributeType(pra).name()));
+                  getAttributeType(pra).name()),
+              0);
       case SHOWWARNING ->
           new RuleAction(
               pra.getData(),
@@ -187,7 +188,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                   FIELD,
                   getAssignedParameter(pra),
                   ATTRIBUTE_TYPE,
-                  getAttributeType(pra).name()));
+                  getAttributeType(pra).name()),
+              0);
       case WARNINGONCOMPLETE ->
           new RuleAction(
               pra.getData(),
@@ -198,7 +200,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                   FIELD,
                   getAssignedParameter(pra),
                   ATTRIBUTE_TYPE,
-                  getAttributeType(pra).name()));
+                  getAttributeType(pra).name()),
+              0);
       case SHOWERROR ->
           new RuleAction(
               pra.getData(),
@@ -209,7 +212,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                   FIELD,
                   getAssignedParameter(pra),
                   ATTRIBUTE_TYPE,
-                  getAttributeType(pra).name()));
+                  getAttributeType(pra).name()),
+              0);
       case ERRORONCOMPLETE ->
           new RuleAction(
               pra.getData(),
@@ -220,21 +224,24 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                   FIELD,
                   getAssignedParameter(pra),
                   ATTRIBUTE_TYPE,
-                  getAttributeType(pra).name()));
+                  getAttributeType(pra).name()),
+              0);
       case SETMANDATORYFIELD ->
           new RuleAction(
               null,
               SETMANDATORYFIELD.name(),
               createValues(
-                  FIELD, getAssignedParameter(pra), ATTRIBUTE_TYPE, getAttributeType(pra).name()));
+                  FIELD, getAssignedParameter(pra), ATTRIBUTE_TYPE, getAttributeType(pra).name()),
+              0);
       case SENDMESSAGE ->
           new RuleAction(
-              null, SENDMESSAGE.name(), createValues(NOTIFICATION, pra.getTemplateUid()));
+              null, SENDMESSAGE.name(), createValues(NOTIFICATION, pra.getTemplateUid()), 0);
       case SCHEDULEMESSAGE ->
           new RuleAction(
               pra.getData(),
               SCHEDULEMESSAGE.name(),
-              createValues(NOTIFICATION, pra.getTemplateUid()));
+              createValues(NOTIFICATION, pra.getTemplateUid()),
+              0);
       default -> null;
     };
   }
