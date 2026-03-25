@@ -27,41 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.job;
+package org.hisp.dhis.tracker.imports.notification;
 
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Producer and consumer for handling tracker notifications.
- *
- * @author Zubair Asghar
+ * Dispatches notifications triggered by entity lifecycle events (enrollment creation,
+ * enrollment/event completion). Submits a {@link LifecycleNotificationTask} per bundle to the async
+ * task executor.
  */
 @Component
 @RequiredArgsConstructor
-public class TrackerNotificationMessageManager {
-  private final ObjectFactory<TrackerNotificationThread> trackerNotificationThreadObjectFactory;
+public class LifecycleNotificationDispatcher {
+  private final ObjectFactory<LifecycleNotificationTask> trackerNotificationThreadObjectFactory;
   private final AsyncTaskExecutor taskExecutor;
 
-  public void sendNotifications(TrackerNotificationDataBundle bundle) {
+  public void sendNotifications(List<TrackerNotificationDataBundle> bundles) {
+    bundles.forEach(this::sendNotification);
+  }
+
+  private void sendNotification(TrackerNotificationDataBundle bundle) {
     if (bundle == null) {
       return;
     }
 
-    JobConfiguration jobConfiguration =
-        new JobConfiguration("", JobType.TRACKER_IMPORT_NOTIFICATION_JOB, bundle.getAccessedBy());
-
-    bundle.setJobConfiguration(jobConfiguration);
-
-    TrackerNotificationThread notificationThread =
-        trackerNotificationThreadObjectFactory.getObject();
-
-    notificationThread.setNotificationDataBundle(bundle);
-
-    taskExecutor.executeTask(notificationThread);
+    LifecycleNotificationTask task = trackerNotificationThreadObjectFactory.getObject();
+    task.setNotificationDataBundle(bundle);
+    taskExecutor.executeTask(task);
   }
 }

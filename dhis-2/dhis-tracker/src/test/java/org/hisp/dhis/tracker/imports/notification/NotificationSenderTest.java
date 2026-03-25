@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.job;
+package org.hisp.dhis.tracker.imports.notification;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;

@@ -27,42 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.job;
+package org.hisp.dhis.tracker.imports.notification;
 
 import java.util.Map;
 import java.util.function.Consumer;
+import lombok.Setter;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.security.SecurityContextRunnable;
-import org.hisp.dhis.system.notification.NotificationLevel;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.program.notification.ProgramNotificationService;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * Class represents a thread which will be triggered as soon as tracker notification consumer
- * consumes a message from tracker notification queue.
- *
- * @author Zubair Asghar
+ * Async task that sends notifications for entity lifecycle events (enrollment creation,
+ * enrollment/event completion). Loads the entity by ID and dispatches to {@link
+ * org.hisp.dhis.tracker.program.notification.ProgramNotificationService} based on the notification
+ * triggers in the bundle.
  */
 @Component
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
-public class TrackerNotificationThread extends SecurityContextRunnable {
-  private final Notifier notifier;
-
-  private TrackerNotificationDataBundle notificationDataBundle;
+public class LifecycleNotificationTask extends SecurityContextRunnable {
+  @Setter private TrackerNotificationDataBundle notificationDataBundle;
 
   private final IdentifiableObjectManager manager;
 
   private final Map<NotificationTrigger, Consumer<Long>> serviceMapper;
 
-  public TrackerNotificationThread(
-      ProgramNotificationService programNotificationService,
-      Notifier notifier,
-      IdentifiableObjectManager manager) {
-    this.notifier = notifier;
+  public LifecycleNotificationTask(
+      ProgramNotificationService programNotificationService, IdentifiableObjectManager manager) {
     this.manager = manager;
     this.serviceMapper =
         Map.of(
@@ -90,14 +84,5 @@ public class TrackerNotificationThread extends SecurityContextRunnable {
         }
       }
     }
-
-    notifier.notify(
-        notificationDataBundle.getJobConfiguration(),
-        NotificationLevel.DEBUG,
-        "Tracker notification handling completed");
-  }
-
-  public void setNotificationDataBundle(TrackerNotificationDataBundle notificationDataBundle) {
-    this.notificationDataBundle = notificationDataBundle;
   }
 }
