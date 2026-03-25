@@ -199,15 +199,15 @@ public class TrackerBundle {
   }
 
   public Map<UID, List<Notification>> getEnrollmentNotifications() {
-    return Map.copyOf(enrollmentNotifications);
+    return enrollmentNotifications;
   }
 
   public Map<UID, List<Notification>> getTrackerEventNotifications() {
-    return Map.copyOf(trackerEventNotifications);
+    return trackerEventNotifications;
   }
 
   public Map<UID, List<Notification>> getSingleEventNotifications() {
-    return Map.copyOf(singleEventNotifications);
+    return singleEventNotifications;
   }
 
   public void setStrategy(TrackerDto dto, TrackerImportStrategy strategy) {
