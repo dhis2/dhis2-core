@@ -38,11 +38,20 @@ import io.micrometer.core.instrument.config.MeterFilter;
 import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
 import io.micrometer.prometheusmetrics.PrometheusConfig;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
+import io.prometheus.metrics.core.metrics.GaugeWithCallback;
+import io.prometheus.metrics.core.metrics.Info;
 import io.prometheus.metrics.model.registry.PrometheusRegistry;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
+import org.hisp.dhis.appmanager.App;
+import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.datasource.DatabasePoolUtils.DbPoolType;
+import org.hisp.dhis.datastatistics.DataStatisticsService;
+import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.system.SystemInfo;
+import org.hisp.dhis.system.SystemService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -92,8 +101,145 @@ public class PrometheusMonitoringConfig {
   }
 
   @Bean(name = "sendUsageMetricsRegistry")
-  public PrometheusRegistry sendUsageMetricsRegistry() {
-    return new PrometheusRegistry();
+  public PrometheusRegistry sendUsageMetricsRegistry(
+      SystemService systemService,
+      DataStatisticsService dataStatisticsService,
+      AppManager appManager) {
+    PrometheusRegistry prometheusRegistry = new PrometheusRegistry();
+    SystemInfo systemInfo = systemService.getSystemInfo();
+
+    Info buildInfo =
+        Info.builder()
+            .name("build_info")
+            .help("Build Info")
+            .labelNames("revision", "build_time")
+            .register(prometheusRegistry);
+    buildInfo.addLabelValues(systemInfo.getRevision(), systemInfo.getBuildTime().toString());
+
+    Info envInfo =
+        Info.builder()
+            .name("environment_info")
+            .help("Environment")
+            .labelNames(
+                "os",
+                "jvm_mem_mb_total",
+                "cpu_cores",
+                "postgres_version",
+                "java_version",
+                "java_vendor")
+            .register(prometheusRegistry);
+
+    envInfo.addLabelValues(
+        systemInfo.getOsArchitecture(),
+        String.valueOf((Runtime.getRuntime().totalMemory() / (1024 * 1024))),
+        String.valueOf(systemInfo.getCpuCores()),
+        systemInfo.getDatabaseInfo().getDatabaseVersion(),
+        systemInfo.getJavaVersion(),
+        systemInfo.getJavaVendor());
+
+    GaugeWithCallback.builder()
+        .name("dhis2_users")
+        .help("DHIS2 Users")
+        .labelNames("statistics")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              Map<Integer, Integer> activeUsers = dataSummary.getActiveUsers();
+              callback.call(activeUsers.get(0), "active_users_last_hour");
+              callback.call(activeUsers.get(1), "active_users_today");
+              callback.call(activeUsers.get(2), "active_users_last_2_days");
+              callback.call(activeUsers.get(7), "active_users_last_7_days");
+              callback.call(activeUsers.get(30), "active_users_last_30_days");
+              callback.call(dataSummary.getObjectCounts().get("user"), "users");
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
+        .name("tracker_programs")
+        .help("Tracker Programs")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              callback.call(dataSummary.getObjectCounts().get("program"));
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
+        .name("organisation_units")
+        .help("Organisation Units")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              callback.call(dataSummary.getObjectCounts().get("organisationUnit"));
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
+        .name("dashboards")
+        .help("Dashboards")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              callback.call(dataSummary.getObjectCounts().get("dashboard"));
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
+        .name("maps")
+        .help("Maps")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              callback.call(dataSummary.getObjectCounts().get("map"));
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
+        .name("data_sets")
+        .help("Data Sets")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              callback.call(dataSummary.getObjectCounts().get("dataSet"));
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
+        .name("visualizations")
+        .help("Visualizations")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              callback.call(dataSummary.getObjectCounts().get("visualization"));
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
+        .name("tracked_entities")
+        .help("Tracked Entities")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              callback.call(dataSummary.getObjectCounts().get("trackedEntity"));
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
+        .name("core_apps")
+        .help("Core Apps")
+        .labelNames("name", "version")
+        .callback(
+            callback -> {
+              List<App> apps = appManager.getApps(null);
+              for (App app : apps) {
+                if (app.isCoreApp()) {
+                  callback.call(1, app.getName(), app.getVersion());
+                }
+              }
+            })
+        .register(prometheusRegistry);
+
+    return prometheusRegistry;
   }
 
   /**

@@ -47,7 +47,6 @@ import java.text.ParseException;
 import java.time.Duration;
 import java.util.List;
 import org.apache.commons.lang3.time.DateUtils;
-import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -55,6 +54,7 @@ import org.junit.jupiter.api.Test;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.model.BinaryBody;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
@@ -67,7 +67,9 @@ public class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
 
   @Autowired private SendUsageMetricsCheckJob sendUsageMetricsCheckJob;
 
-  @Autowired private SystemSettingsService systemSettingsService;
+  @Autowired private UsageMetricsConsentStore usageMetricsConsentStore;
+
+  @Autowired private JdbcTemplate jdbcTemplate;
 
   @BeforeAll
   static void beforeAll() {
@@ -89,10 +91,17 @@ public class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExecuteSchedulesRegularMetricsExportWhenOptInSendUsageMetricsSystemSettingIsTrue()
+  void testExecuteSchedulesRegularMetricsExportWhenSendUsageMetricsConsentIsTrue()
       throws InvalidProtocolBufferException, ParseException {
-    systemSettingsService.put("optInSendUsageMetrics", true);
-    systemSettingsService.clearCurrentSettings();
+    UsageMetricsConsent usageMetricsConsent = new UsageMetricsConsent();
+    usageMetricsConsent.setDbSystemIdentifier(
+        jdbcTemplate
+            .queryForList("SELECT system_identifier FROM pg_control_system()")
+            .get(0)
+            .get("system_identifier")
+            .toString());
+    usageMetricsConsent.setConsent(true);
+    usageMetricsConsentStore.save(usageMetricsConsent);
 
     sendUsageMetricsCheckJob.setExportInterval(1);
     sendUsageMetricsCheckJob.setOtelEndpoint(
@@ -124,11 +133,7 @@ public class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExecuteDoesNotScheduleRegularMetricsExportWhenOptInSendUsageMetricsSystemSettingIsFalse()
-      throws InvalidProtocolBufferException, ParseException {
-    systemSettingsService.put("optInSendUsageMetrics", false);
-    systemSettingsService.clearCurrentSettings();
-
+  void testExecuteDoesNotScheduleRegularMetricsExportWhenSendUsageMetricsConsentIsFalse() {
     sendUsageMetricsCheckJob.setExportInterval(1);
     sendUsageMetricsCheckJob.setOtelEndpoint(
         "http://" + "localhost:" + otelCollectorMockServerContainer.getFirstMappedPort());

@@ -313,24 +313,34 @@ public class WebMvcMetricsConfig implements WebMvcConfigurer {
         if (HttpStatus.resolve(response.getStatus()).is5xxServerError()) {
           counter
               .labelValues(
-                  StreamSupport.stream(
-                          this.tagsProvider.getTags(request, response, null, null).spliterator(),
-                          false)
-                      .map(Tag::getValue)
-                      .toArray(String[]::new))
+                  collectMetricLabelValues(
+                      this.tagsProvider.getTags(request, response, null, null), request))
               .inc();
         }
       } catch (Exception exception) {
         counter
             .labelValues(
-                StreamSupport.stream(
-                        this.tagsProvider.getTags(request, response, null, exception).spliterator(),
-                        false)
-                    .map(Tag::getValue)
-                    .toArray(String[]::new))
+                collectMetricLabelValues(
+                    this.tagsProvider.getTags(request, response, null, null), request))
             .inc();
         throw exception;
       }
+    }
+
+    protected String[] collectMetricLabelValues(Iterable<Tag> tags, HttpServletRequest request) {
+      return StreamSupport.stream(tags.spliterator(), false)
+          .map(
+              t -> {
+                if (t.getKey().equals("uri")
+                    && request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE)
+                        == null) {
+                  return "no-uri-pattern";
+                } else {
+                  return t.getValue();
+                }
+              })
+          .toList()
+          .toArray(String[]::new);
     }
   }
 

@@ -31,27 +31,18 @@ package org.hisp.dhis.usagemetrics;
 
 import static org.hisp.dhis.scheduling.JobType.SEND_USAGE_METRICS_CHECK;
 
-import io.prometheus.metrics.core.metrics.GaugeWithCallback;
-import io.prometheus.metrics.core.metrics.Info;
 import io.prometheus.metrics.exporter.opentelemetry.OpenTelemetryExporter;
 import io.prometheus.metrics.model.registry.PrometheusRegistry;
 import java.util.List;
-import java.util.Map;
 import javax.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.hisp.dhis.appmanager.App;
-import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.datastatistics.DataStatisticsService;
-import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobEntry;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.setting.SystemSettings;
-import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -63,12 +54,9 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SendUsageMetricsCheckJob implements Job {
 
-  private final DataStatisticsService dataStatisticsService;
-  private final AppManager appManager;
   private final SystemService systemService;
   private final JdbcTemplate jdbcTemplate;
-  private final SystemSettingsService systemSettingsService;
-
+  private final UsageMetricsConsentStore usageMetricsConsentStore;
   private OpenTelemetryExporter openTelemetryExporter;
 
   @Qualifier("sendUsageMetricsRegistry")
@@ -76,7 +64,7 @@ public class SendUsageMetricsCheckJob implements Job {
 
   private SystemInfo systemInfo;
 
-  @Setter private String otelEndpoint = "http://host.docker.internal:4318/v1/metrics";
+  @Setter private String otelEndpoint = "https://otel.dhis2.org/v1/metrics";
 
   @Setter private int exportInterval = 5;
 
@@ -92,167 +80,14 @@ public class SendUsageMetricsCheckJob implements Job {
 
   @Override
   public void execute(JobEntry config, JobProgress progress) {
-    SystemSettings systemSettings = systemSettingsService.getCurrentSettings();
-    if (systemSettings.getOptInSendUsageMetrics()) {
-      if (openTelemetryExporter == null) {
-        String currentDbSystemIdentifier =
-            jdbcTemplate
-                .queryForList("SELECT system_identifier FROM pg_control_system()")
-                .get(0)
-                .get("system_identifier")
-                .toString();
-        List<Map<String, Object>> sendUsageMetricsSettings =
-            jdbcTemplate.queryForList(
-                "SELECT dbsystemidentifier FROM sendusagemetricsoptinsettings");
-        if (sendUsageMetricsSettings.isEmpty()) {
-          jdbcTemplate.update(
-              "INSERT INTO sendusagemetricsoptinsettings (dbSystemIdentifier) VALUES (?)",
-              currentDbSystemIdentifier);
-        } else {
-          String optedInDbSystemIdentifier =
-              sendUsageMetricsSettings.get(0).get("dbsystemidentifier").toString();
-          if (!currentDbSystemIdentifier.equals(optedInDbSystemIdentifier)) {
-            systemSettingsService.put("optInSendUsageMetrics", false);
-            jdbcTemplate.update("DELETE FROM sendusagemetricsoptinsettings");
-            log.warn(
-                "Opted-in to sending usage metrics but detected environment mismatch due to different DB system identifiers. DB system identifier was [{}] but now [{}]. Opt-in again to send DHIS2 usage metrics",
-                optedInDbSystemIdentifier,
-                currentDbSystemIdentifier);
-            return;
-          }
-        }
+    List<UsageMetricsConsent> usageMetricsConsents = usageMetricsConsentStore.getAll();
+    if (!usageMetricsConsents.isEmpty()
+        && usageMetricsConsents.get(0).getConsent()
+        && openTelemetryExporter == null) {
+      String currentDbSystemIdentifier = getCurrentDbSystemIdentifier();
 
-        Info buildInfo =
-            Info.builder()
-                .name("build_info")
-                .help("Build Info")
-                .labelNames("revision", "build_time")
-                .register(prometheusRegistry);
-        buildInfo.addLabelValues(systemInfo.getRevision(), systemInfo.getBuildTime().toString());
-
-        Info envInfo =
-            Info.builder()
-                .name("environment_info")
-                .help("Environment")
-                .labelNames(
-                    "os",
-                    "jvm_mem_mb_total",
-                    "cpu_cores",
-                    "postgres_version",
-                    "java_version",
-                    "java_vendor")
-                .register(prometheusRegistry);
-
-        envInfo.addLabelValues(
-            systemInfo.getOsArchitecture(),
-            String.valueOf((Runtime.getRuntime().totalMemory() / (1024 * 1024))),
-            String.valueOf(systemInfo.getCpuCores()),
-            systemInfo.getDatabaseInfo().getDatabaseVersion(),
-            systemInfo.getJavaVersion(),
-            systemInfo.getJavaVendor());
-
-        GaugeWithCallback.builder()
-            .name("dhis2_users")
-            .help("DHIS2 Users")
-            .labelNames("statistics")
-            .callback(
-                callback -> {
-                  DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
-                  Map<Integer, Integer> activeUsers = dataSummary.getActiveUsers();
-                  callback.call(activeUsers.get(0), "active_users_last_hour");
-                  callback.call(activeUsers.get(1), "active_users_today");
-                  callback.call(activeUsers.get(2), "active_users_last_2_days");
-                  callback.call(activeUsers.get(7), "active_users_last_7_days");
-                  callback.call(activeUsers.get(30), "active_users_last_30_days");
-                  callback.call(dataSummary.getObjectCounts().get("user"), "users");
-                })
-            .register(prometheusRegistry);
-
-        GaugeWithCallback.builder()
-            .name("tracker_programs")
-            .help("Tracker Programs")
-            .callback(
-                callback -> {
-                  DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
-                  callback.call(dataSummary.getObjectCounts().get("program"));
-                })
-            .register(prometheusRegistry);
-
-        GaugeWithCallback.builder()
-            .name("organisation_units")
-            .help("Organisation Units")
-            .callback(
-                callback -> {
-                  DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
-                  callback.call(dataSummary.getObjectCounts().get("organisationUnit"));
-                })
-            .register(prometheusRegistry);
-
-        GaugeWithCallback.builder()
-            .name("dashboards")
-            .help("Dashboards")
-            .callback(
-                callback -> {
-                  DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
-                  callback.call(dataSummary.getObjectCounts().get("dashboard"));
-                })
-            .register(prometheusRegistry);
-
-        GaugeWithCallback.builder()
-            .name("maps")
-            .help("Maps")
-            .callback(
-                callback -> {
-                  DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
-                  callback.call(dataSummary.getObjectCounts().get("map"));
-                })
-            .register(prometheusRegistry);
-
-        GaugeWithCallback.builder()
-            .name("data_sets")
-            .help("Data Sets")
-            .callback(
-                callback -> {
-                  DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
-                  callback.call(dataSummary.getObjectCounts().get("dataSet"));
-                })
-            .register(prometheusRegistry);
-
-        GaugeWithCallback.builder()
-            .name("visualizations")
-            .help("Visualizations")
-            .callback(
-                callback -> {
-                  DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
-                  callback.call(dataSummary.getObjectCounts().get("visualization"));
-                })
-            .register(prometheusRegistry);
-
-        GaugeWithCallback.builder()
-            .name("tracked_entities")
-            .help("Tracked Entities")
-            .callback(
-                callback -> {
-                  DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
-                  callback.call(dataSummary.getObjectCounts().get("trackedEntity"));
-                })
-            .register(prometheusRegistry);
-
-        GaugeWithCallback.builder()
-            .name("core_apps")
-            .help("Core Apps")
-            .labelNames("name", "version")
-            .callback(
-                callback -> {
-                  List<App> apps = appManager.getApps(null);
-                  for (App app : apps) {
-                    if (app.isCoreApp()) {
-                      callback.call(1, app.getName(), app.getVersion());
-                    }
-                  }
-                })
-            .register(prometheusRegistry);
-
+      if (isEnvMatch(
+          currentDbSystemIdentifier, usageMetricsConsents.get(0).getDbSystemIdentifier())) {
         openTelemetryExporter =
             OpenTelemetryExporter.builder()
                 .endpoint(otelEndpoint)
@@ -265,13 +100,35 @@ public class SendUsageMetricsCheckJob implements Job {
                 .intervalSeconds(exportInterval)
                 .registry(prometheusRegistry)
                 .buildAndStart();
+      } else {
+        usageMetricsConsentStore.delete(usageMetricsConsents.get(0));
+        closeMetricsExporter();
+        log.warn(
+            "Opted-in to sending usage metrics but detected environment mismatch due to different DB system identifiers. Expected DB system identifier was [{}] but actual DB system identifier is [{}]. Opt-in again to send DHIS2 usage metrics",
+            usageMetricsConsents.get(0).getDbSystemIdentifier(),
+            currentDbSystemIdentifier);
       }
-    } else {
-      if (openTelemetryExporter != null) {
-        openTelemetryExporter.close();
-        openTelemetryExporter = null;
-        jdbcTemplate.update("DELETE FROM sendusagemetricsoptinsettings");
-      }
+    } else if (openTelemetryExporter != null
+        && (usageMetricsConsents.isEmpty() || !usageMetricsConsents.get(0).getConsent())) {
+      closeMetricsExporter();
     }
+  }
+
+  protected boolean isEnvMatch(
+      String currentDbSystemIdentifier, String expectedDbSystemIdentifier) {
+    return currentDbSystemIdentifier.equals(expectedDbSystemIdentifier);
+  }
+
+  protected String getCurrentDbSystemIdentifier() {
+    return jdbcTemplate
+        .queryForList("SELECT system_identifier FROM pg_control_system()")
+        .get(0)
+        .get("system_identifier")
+        .toString();
+  }
+
+  protected void closeMetricsExporter() {
+    openTelemetryExporter.close();
+    openTelemetryExporter = null;
   }
 }

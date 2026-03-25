@@ -102,7 +102,7 @@ class SystemSettingsTest {
   @Test
   void testKeysWithDefaults() {
     Set<String> keys = SystemSettings.keysWithDefaults();
-    assertEquals(150, keys.size());
+    assertEquals(149, keys.size());
     // just check some at random
     assertTrue(keys.contains("syncSkipSyncForDataChangedBefore"));
     assertTrue(keys.contains("keyTrackerDashboardLayout"));
@@ -287,10 +287,5 @@ class SystemSettingsTest {
     assertEquals("en_EN_Latn", settings.format("keyUiLocale", "en_EN_Latn"));
     assertEquals("en_EN", settings.format("keyUiLocale", "en-EN"));
     assertEquals("en_EN_Latn", settings.format("keyUiLocale", "en-Latn-EN"));
-  }
-
-  @Test
-  void testGetOptInSendUsageMetricsDefaultIsFalse() {
-    assertFalse(SystemSettings.of(Map.of()).getOptInSendUsageMetrics());
   }
 }
