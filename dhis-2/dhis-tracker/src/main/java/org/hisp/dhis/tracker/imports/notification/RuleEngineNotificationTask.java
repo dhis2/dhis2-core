@@ -27,13 +27,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.job;
+package org.hisp.dhis.tracker.imports.notification;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.security.SecurityContextRunnable;
-import org.hisp.dhis.system.notification.NotificationLevel;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.SingleEvent;
@@ -43,18 +41,14 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * Class represents a thread which will be triggered as soon as tracker rule engine consumer
- * consumes a message from tracker rule engine queue. It loops through the list of notifications and
- * implement it if it has an associated rule implementer class.
- *
- * @author Zubair Asghar
+ * Async task that sends notifications triggered by program rule evaluation. Iterates the rule
+ * engine notification effects in the bundle and delegates to {@link NotificationSender}.
  */
 @Component
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class TrackerRuleEngineThread extends SecurityContextRunnable {
+public class RuleEngineNotificationTask extends SecurityContextRunnable {
   private final NotificationSender notificationSender;
-  private final Notifier notifier;
 
   @Setter private TrackerNotificationDataBundle notificationDataBundle;
 
@@ -81,10 +75,5 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable {
       event.getProgramStage().setProgram(notificationDataBundle.getProgram());
       this.notificationSender.send(effect, event);
     }
-
-    notifier.notify(
-        notificationDataBundle.getJobConfiguration(),
-        NotificationLevel.DEBUG,
-        "Tracker Rule-engine notifications completed");
   }
 }

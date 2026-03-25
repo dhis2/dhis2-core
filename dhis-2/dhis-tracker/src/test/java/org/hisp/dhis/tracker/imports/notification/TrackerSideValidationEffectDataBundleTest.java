@@ -27,15 +27,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.job;
+package org.hisp.dhis.tracker.imports.notification;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.junit.jupiter.api.Test;
@@ -54,8 +52,6 @@ class TrackerSideValidationEffectDataBundleTest {
     TrackerNotificationDataBundle bundle =
         TrackerNotificationDataBundle.builder()
             .enrollmentNotifications(List.of())
-            .accessedBy("testUser")
-            .importStrategy(TrackerImportStrategy.CREATE)
             .object(enrollmentUid.getValue())
             .klass(Enrollment.class)
             .build();
@@ -63,8 +59,6 @@ class TrackerSideValidationEffectDataBundleTest {
     assertEquals(Enrollment.class, bundle.getKlass());
     assertTrue(bundle.getEnrollmentNotifications().isEmpty());
     assertTrue(bundle.getTrackerEventNotifications().isEmpty());
-    assertEquals(TrackerImportStrategy.CREATE, bundle.getImportStrategy());
-    assertEquals(MessageType.TRACKER_SIDE_EFFECT, bundle.getMessageType());
   }
 
   @Test
