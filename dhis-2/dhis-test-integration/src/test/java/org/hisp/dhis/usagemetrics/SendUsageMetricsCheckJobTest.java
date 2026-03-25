@@ -52,8 +52,8 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockserver.client.MockServerClient;
 import org.mockserver.model.BinaryBody;
@@ -103,14 +103,15 @@ public class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
     otelCollectorMockServerContainer.start();
     otelCollectorMockServerClient =
         new MockServerClient("localhost", otelCollectorMockServerContainer.getFirstMappedPort());
+  }
+
+  @BeforeEach
+  void beforeEach() {
+    sendUsageMetricsCheckJob.closeMetricsExporter();
+    otelCollectorMockServerClient.reset();
     otelCollectorMockServerClient
         .when(request().withPath("/v1/metrics"))
         .respond(org.mockserver.model.HttpResponse.response().withStatusCode(200));
-  }
-
-  @AfterEach
-  void afterEach() {
-    otelCollectorMockServerClient.reset();
   }
 
   @Test
@@ -180,6 +181,7 @@ public class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
 
     sendUsageMetricsCheckJob.setExportIntervalSeconds(1);
     sendUsageMetricsCheckJob.execute(null, null);
+
     await()
         .atMost(Duration.ofSeconds(10))
         .untilAsserted(
