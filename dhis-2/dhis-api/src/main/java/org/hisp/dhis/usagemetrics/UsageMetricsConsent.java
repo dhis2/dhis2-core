@@ -40,7 +40,7 @@ import org.hisp.dhis.common.MetadataObject;
 @Setter
 @JsonIgnoreProperties({"favorite", "favorites", "sharing", "attributeValues"})
 public class UsageMetricsConsent extends BaseIdentifiableObject implements MetadataObject {
-  private long id = 1;
+  @Setter protected long id = 1;
 
   private String dbSystemIdentifier;
 
