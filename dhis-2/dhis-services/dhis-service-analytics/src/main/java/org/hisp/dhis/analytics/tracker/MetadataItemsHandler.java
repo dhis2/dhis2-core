@@ -522,6 +522,7 @@ public class MetadataItemsHandler {
         .map(PeriodDimension.class::cast)
         .filter(pd -> pd.getDateField() != null)
         .map(PeriodDimension::getDateField)
+        .filter(dateField -> !TimeField.OCCURRED_DATE.name().equals(dateField))
         .distinct()
         .forEach(dateField -> addDateFieldMetadataEntry(metadataItemMap, dateField, params));
 
@@ -529,6 +530,7 @@ public class MetadataItemsHandler {
     // consumes periods and moves date field info to timeDateRanges)
     params.getTimeDateRanges().keySet().stream()
         .map(TimeField::name)
+        .filter(dateField -> !TimeField.OCCURRED_DATE.name().equals(dateField))
         .forEach(dateField -> addDateFieldMetadataEntry(metadataItemMap, dateField, params));
   }
 
@@ -687,7 +689,10 @@ public class MetadataItemsHandler {
     for (DimensionalItemObject item : periodItems) {
       PeriodDimension period = (PeriodDimension) item;
       String key =
-          period.getDateField() != null ? toDateFieldKey(period.getDateField()) : PERIOD_DIM_ID;
+          period.getDateField() != null
+                  && !TimeField.OCCURRED_DATE.name().equals(period.getDateField())
+              ? toDateFieldKey(period.getDateField())
+              : PERIOD_DIM_ID;
 
       String uid =
           calendar.isIso8601()

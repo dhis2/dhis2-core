@@ -43,6 +43,7 @@ import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.QueryPlanner;
+import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
@@ -51,7 +52,9 @@ import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.analytics.table.util.PartitionUtils;
+import org.hisp.dhis.common.DimensionConstants;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -198,7 +201,27 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
    * @return a list of {@link EventQueryParams}.
    */
   private List<EventQueryParams> groupByPeriodType(EventQueryParams params) {
+    if (hasMixedDateFields(params)) {
+      return List.of(params);
+    }
     return QueryPlannerUtils.convert(queryPlanner.groupByPeriodType(params));
+  }
+
+  private boolean hasMixedDateFields(EventQueryParams params) {
+    DimensionalObject periodDimension = params.getDimension(DimensionConstants.PERIOD_DIM_ID);
+    if (periodDimension == null) {
+      return false;
+    }
+
+    long distinctNonDefaultDateFields =
+        periodDimension.getItems().stream()
+            .filter(PeriodDimension.class::isInstance)
+            .map(PeriodDimension.class::cast)
+            .map(PeriodDimension::getDateField)
+            .filter(df -> df != null && !TimeField.OCCURRED_DATE.name().equals(df))
+            .distinct()
+            .count();
+    return distinctNonDefaultDateFields > 1;
   }
 
   /**
