@@ -148,7 +148,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       OrganisationUnitResolver organisationUnitResolver,
       ColumnMapper columnMapper,
       QueryItemFilterBuilder filterBuilder,
-      StageQuerySqlFacade stageQuerySqlFacade) {
+      StageQuerySqlFacade stageQuerySqlFacade,
+      DateFieldPeriodBucketColumnResolver dateFieldPeriodBucketColumnResolver) {
     super(
         jdbcTemplate,
         programIndicatorService,
@@ -162,7 +163,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         organisationUnitResolver,
         columnMapper,
         filterBuilder,
-        stageQuerySqlFacade);
+        stageQuerySqlFacade,
+        dateFieldPeriodBucketColumnResolver);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
@@ -282,7 +284,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     sql += getFromClause(params);
 
-    sql += getWhereClause(params);
+    String whereClause = getWhereClause(params);
+    sql += whereClause;
+    sql += getAdditionalQueryItemWhereClause(params, whereClause);
 
     long count = 0;
 
@@ -452,6 +456,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         EventAnalyticsColumnName.CREATED_BY_DISPLAYNAME_COLUMN_NAME,
         EventAnalyticsColumnName.LAST_UPDATED_BY_DISPLAYNAME_COLUMN_NAME,
         EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
+        EventAnalyticsColumnName.CREATED_COLUMN_NAME,
+        EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME,
         EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
 
     if (params.getProgram().isRegistration()) {
@@ -538,6 +544,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
           .append(" ");
     }
 
+    resolveDateFieldPeriodBucketJoin(params, ANALYTICS_TBL_ALIAS)
+        .ifPresent(join -> sql.append(join.toSql()).append(" "));
+
     OrgUnitSqlCoordinator.appendLegacyJoin(sql, params);
 
     return sql.append(joinOrgUnitTables(params, getAnalyticsType())).toString();
@@ -566,11 +575,10 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     // Periods
     // ---------------------------------------------------------------------
 
-    // Skip global time field filter when stage-specific date items are present,
-    // as they already include their own date filters with program stage conditions
-    if (!params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()
-        && !params.hasStageDateItem()) {
-      String timeFieldSql = timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
+    if (!params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
+      EventQueryParams timeFilterParams =
+          EventPeriodUtils.sanitizeTimeFiltersForStageDateItems(params);
+      String timeFieldSql = timeFieldSqlRenderer.renderPeriodTimeFieldSql(timeFilterParams);
       if (StringUtils.isNotBlank(timeFieldSql)) {
         sql += hlp.whereAnd() + " " + timeFieldSql;
       }
@@ -693,7 +701,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     // Query items and filters
     // ---------------------------------------------------------------------
 
-    sql += getQueryItemsAndFiltersWhereClause(params, hlp);
+    if (!useExperimentalAnalyticsQueryEngine()) {
+      sql += getQueryItemsAndFiltersWhereClause(params, hlp);
+    }
 
     sql += getOptionFilter(params, hlp);
 

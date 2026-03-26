@@ -273,4 +273,63 @@ public interface UserStore extends IdentifiableObjectStore<User> {
    */
   int deleteCatDimensionConstraintsWhenUserHasTarget(
       Set<Long> sourceCategoryIds, long targetCategoryId);
+
+  /**
+   * Creates a new userinfo row by copying all scalar fields from the source user. Identity fields
+   * (uid, uuid, username, password) and timestamps are supplied as parameters; security-sensitive
+   * fields (secret, openid, ldapid, restore*, idtoken, verifiedemail, emailverificationtoken) are
+   * cleared; externalauth is forced to false; twofactortype is reset to NOT_ENABLED; invitation is
+   * forced to false. The new row's userinfoid is assigned from the Hibernate sequence.
+   *
+   * <p>Collection memberships (roles, groups, org units, dimension constraints) are NOT copied by
+   * this method; use the dedicated copy methods for those.
+   *
+   * @param sourceUid UID of the user to copy
+   * @param newUid UID for the new user
+   * @param newUuid UUID for the new user
+   * @param username username for the new user
+   * @param encodedPassword pre-encoded bcrypt password for the new user
+   * @param actingUserUid UID of the user performing the replication
+   */
+  int insertUserCopy(
+      @Nonnull UID sourceUid,
+      @Nonnull UID newUid,
+      @Nonnull UUID newUuid,
+      @Nonnull String username,
+      @Nonnull String encodedPassword,
+      @Nonnull UID actingUserUid);
+
+  /**
+   * Copies all org unit memberships (capture, data-view, TEI-search) from the source user to the
+   * target user directly via SQL, without loading any collection into memory.
+   *
+   * @param sourceUserUid UID of the user to copy from
+   * @param targetUserUid UID of the user to copy to
+   */
+  void copyOrgUnitMemberships(@Nonnull UID sourceUserUid, @Nonnull UID targetUserUid);
+
+  /**
+   * Copies category option group set and category dimension constraints from the source user to the
+   * target user directly via SQL, without loading any collection into memory.
+   *
+   * @param sourceUserUid UID of the user to copy from
+   * @param targetUserUid UID of the user to copy to
+   */
+  void copyDimensionConstraints(@Nonnull UID sourceUserUid, @Nonnull UID targetUserUid);
+
+  /**
+   * Removes the given attribute UIDs from the attributevalues jsonb column of the specified user.
+   * Used to strip unique attributes from a replica so the uniqueness constraint is not violated.
+   *
+   * @param userUid UID of the user to update
+   * @param attributeUids attribute UIDs to remove from attributevalues
+   */
+  void removeAttributeValues(@Nonnull UID userUid, @Nonnull Collection<UID> attributeUids);
+
+  /**
+   * Evicts the {@code getUserByUsername} query cache region after a direct JDBC write, so that
+   * subsequent lookups by username reflect the new row rather than a stale cached result. Only the
+   * username query region is evicted; all other query cache regions are left intact.
+   */
+  void clearUserQueryCache();
 }

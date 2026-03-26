@@ -1,0 +1,27 @@
+{
+  "events": [
+    {
+      "event": "EvUsr11tst1",
+      "status": "ACTIVE",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "E8o1E9tAppy"
+      },
+      "programStage": {
+        "idScheme": "UID",
+        "identifier": "Qmqxq907VNz"
+      },
+      "enrollment": "EnUsr11tst1",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cZ"
+      },
+      "occurredAt": "2024-01-01T00:00:00.000",
+      "deleted": false,
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
+    }
+  ]
+}
