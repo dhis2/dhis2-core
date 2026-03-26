@@ -84,7 +84,7 @@ public class SendUsageMetricsCheckJob implements Job {
   public void execute(JobEntry config, JobProgress progress) {
     List<UsageMetricsConsent> usageMetricsConsents = usageMetricsConsentStore.getAll();
     if (!usageMetricsConsents.isEmpty()
-        && usageMetricsConsents.get(0).getConsent()
+        && usageMetricsConsents.get(0).isConsent()
         && openTelemetryExporter == null) {
       String currentDbSystemIdentifier = getCurrentDbSystemIdentifier();
 
@@ -110,7 +110,7 @@ public class SendUsageMetricsCheckJob implements Job {
             usageMetricsConsents.get(0).getDbSystemIdentifier(),
             currentDbSystemIdentifier);
       }
-    } else if (usageMetricsConsents.isEmpty() || !usageMetricsConsents.get(0).getConsent()) {
+    } else if (usageMetricsConsents.isEmpty() || !usageMetricsConsents.get(0).isConsent()) {
       closeMetricsExporter();
     }
   }

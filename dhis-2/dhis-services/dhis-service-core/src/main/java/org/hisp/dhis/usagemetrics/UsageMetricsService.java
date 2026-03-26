@@ -50,7 +50,7 @@ public class UsageMetricsService {
       usageMetricsConsentStore.save(usageMetricsConsent);
     } else {
       UsageMetricsConsent dbUsageMetricsConsent = usageMetricsConsents.get(0);
-      dbUsageMetricsConsent.setConsent(usageMetricsConsent.getConsent());
+      dbUsageMetricsConsent.setConsent(usageMetricsConsent.isConsent());
       dbUsageMetricsConsent.setDbSystemIdentifier(getDbSystemIdentifier());
       usageMetricsConsentStore.update(dbUsageMetricsConsent);
     }
