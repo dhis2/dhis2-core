@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.imports.validation;
 import static org.hisp.dhis.tracker.Assertions.assertHasError;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.tracker.imports.validation.Users.USER_11;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_3;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_4;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_5;
@@ -69,6 +70,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -122,6 +124,11 @@ class EventSecurityImportValidationTest extends TrackerTest {
   private ProgramStage programStageB;
 
   private TrackedEntityType trackedEntityType;
+
+  @BeforeEach
+  void resetSecurityContext() {
+    injectAdminUser();
+  }
 
   @Override
   protected void initTest() throws IOException {
@@ -284,6 +291,38 @@ class EventSecurityImportValidationTest extends TrackerTest {
     params.setImportStrategy(TrackerImportStrategy.CREATE);
     injectSecurityContextUser(userService.getUser(USER_5));
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
+
+    assertHasError(importReport, ValidationCode.E1000);
+  }
+
+  @Test
+  void shouldUpdateTrackerEventOrgUnitWhenUserHasCaptureScopeAccessToPayloadOrgUnit()
+      throws IOException {
+    assertNoErrors(
+        trackerImportService.importTracker(
+            new TrackerImportParams(),
+            fromJson("tracker/validations/event-with-orgunit-change-create-data.json")));
+    injectSecurityContextUser(userService.getUser(USER_11));
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            new TrackerImportParams(),
+            fromJson("tracker/validations/event-with-orgunit-change-update-data.json"));
+
+    assertNoErrors(importReport);
+  }
+
+  @Test
+  void shouldFailWhenUpdatingTrackerEventOrgUnitToOneOutsideUserCaptureScope() throws IOException {
+    assertNoErrors(
+        trackerImportService.importTracker(
+            new TrackerImportParams(),
+            fromJson("tracker/validations/event-with-orgunit-change-create-data.json")));
+    injectSecurityContextUser(userService.getUser(USER_5));
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            new TrackerImportParams(),
+            fromJson("tracker/validations/event-with-orgunit-change-update-data.json"));
 
     assertHasError(importReport, ValidationCode.E1000);
   }

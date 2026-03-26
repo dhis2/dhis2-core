@@ -33,8 +33,6 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1083;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1102;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Lists;
@@ -299,6 +297,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     Event preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
     when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
     when(preheat.getEnrollment(event.getEnrollment())).thenReturn(enrollment);
 
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
@@ -331,6 +331,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     Event preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
     when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
     when(preheat.getEnrollment(event.getEnrollment())).thenReturn(enrollment);
     when(preheat.getProgramOwner())
         .thenReturn(
@@ -377,6 +379,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     preheatEvent.setEnrollment(enrollment);
 
     when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
     when(preheat.getEnrollment(event.getEnrollment())).thenReturn(enrollment);
 
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
@@ -465,6 +469,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     Event preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
     when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
     when(preheat.getEnrollment(event.getEnrollment())).thenReturn(enrollment);
 
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
@@ -500,13 +506,14 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest {
     when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
     when(preheat.getEnrollment(event.getEnrollment())).thenReturn(enrollment);
 
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
     when(aclService.canDataRead(user, program)).thenReturn(true);
     when(aclService.canDataWrite(user, programStage)).thenReturn(true);
+    when(organisationUnitService.isInUserHierarchyCached(user, organisationUnit)).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
-
-    verify(organisationUnitService, times(0)).isInUserHierarchyCached(user, organisationUnit);
 
     assertIsEmpty(reporter.getErrors());
   }

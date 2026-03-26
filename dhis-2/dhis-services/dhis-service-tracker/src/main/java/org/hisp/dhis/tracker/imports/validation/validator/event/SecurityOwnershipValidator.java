@@ -103,7 +103,7 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
 
     OrganisationUnit organisationUnit;
 
-    if (strategy.isUpdateOrDelete()) {
+    if (strategy.isDelete()) {
       organisationUnit = preheatEvent.getOrganisationUnit();
     } else {
       checkNotNull(event.getOrgUnit(), ORGANISATION_UNIT_CANT_BE_NULL);
@@ -122,6 +122,12 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
                 ? event.isCreatableInSearchScope()
                 : preheatEvent.isCreatableInSearchScope(),
             bundle.getUser());
+      }
+    } else {
+      Event dbEvent = bundle.getPreheat().getEvent(event.getEvent());
+      OrganisationUnit databaseOrgUnit = dbEvent != null ? dbEvent.getOrganisationUnit() : null;
+      if (organisationUnit != null && !organisationUnit.equals(databaseOrgUnit)) {
+        checkOrgUnitInCaptureScope(reporter, event, organisationUnit, bundle.getUser());
       }
     }
 
@@ -382,6 +388,13 @@ class SecurityOwnershipValidator implements Validator<org.hisp.dhis.tracker.impo
       if (!aclService.canDataWrite(user, categoryOption)) {
         reporter.addError(dto, ValidationCode.E1099, user, categoryOption);
       }
+    }
+  }
+
+  private void checkOrgUnitInCaptureScope(
+      Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit, User user) {
+    if (!organisationUnitService.isInUserHierarchyCached(user, orgUnit)) {
+      reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
     }
   }
 }

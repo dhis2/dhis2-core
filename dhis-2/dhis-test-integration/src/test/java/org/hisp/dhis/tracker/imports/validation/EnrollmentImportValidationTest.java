@@ -30,8 +30,10 @@ package org.hisp.dhis.tracker.imports.validation;
 import static org.hisp.dhis.tracker.Assertions.assertHasErrors;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
+import static org.hisp.dhis.tracker.imports.validation.Users.USER_11;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_2;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_4;
+import static org.hisp.dhis.tracker.imports.validation.Users.USER_5;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -109,16 +111,15 @@ class EnrollmentImportValidationTest extends TrackerTest {
     secondTrackerObjects
         .getEnrollments()
         .forEach(
-            e -> {
-              assertTrue(
-                  e.getOrgUnit()
-                      .isEqualTo(
-                          preheat
-                              .getProgramOwner()
-                              .get(e.getTrackedEntity())
-                              .get(e.getProgram().getIdentifier())
-                              .getOrganisationUnit()));
-            });
+            e ->
+                assertTrue(
+                    e.getOrgUnit()
+                        .isEqualTo(
+                            preheat
+                                .getProgramOwner()
+                                .get(e.getTrackedEntity())
+                                .get(e.getProgram().getIdentifier())
+                                .getOrganisationUnit())));
   }
 
   @Test
@@ -139,6 +140,41 @@ class EnrollmentImportValidationTest extends TrackerTest {
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     assertHasErrors(importReport, 4, ValidationCode.E1000);
+  }
+
+  @Test
+  void shouldUpdateEnrollmentOrgUnitWhenUserHasCaptureScopeAccessToPayloadOrgUnit()
+      throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    assertNoErrors(
+        trackerImportService.importTracker(
+            params, fromJson("tracker/validations/enrollments_te_enrollments-data_2.json")));
+
+    User user = userService.getUser(USER_11);
+    injectSecurityContextUser(user);
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            params, fromJson("tracker/validations/enrollments_te_enrollments-data_2-update.json"));
+
+    assertNoErrors(importReport);
+  }
+
+  @Test
+  void shouldFailWhenUpdatingEnrollmentOrgUnitIfUserHasNoCaptureScopeAccessToPayloadOrgUnit()
+      throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    assertNoErrors(
+        trackerImportService.importTracker(
+            params, fromJson("tracker/validations/enrollments_te_enrollments-data_2.json")));
+    User user = userService.getUser(USER_5);
+    injectSecurityContextUser(user);
+
+    ImportReport importReport =
+        trackerImportService.importTracker(
+            params, fromJson("tracker/validations/enrollments_te_enrollments-data_2-update.json"));
+
+    assertHasErrors(importReport, 1, ValidationCode.E1000);
   }
 
   @Test

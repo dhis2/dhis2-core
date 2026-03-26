@@ -146,17 +146,21 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       Enrollment enrollment) {
     OrganisationUnit enrollmentOrgUnit;
 
-    if (strategy.isUpdateOrDelete()) {
+    if (strategy.isCreateOrUpdate()) {
+      enrollmentOrgUnit = bundle.getPreheat().getOrganisationUnit(enrollment.getOrgUnit());
+    } else {
       enrollmentOrgUnit =
           bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getOrganisationUnit();
-    } else {
-      enrollmentOrgUnit = bundle.getPreheat().getOrganisationUnit(enrollment.getOrgUnit());
     }
 
-    // If enrollment is newly created, or going to be deleted, capture scope
-    // has to be checked
     if (strategy.isCreate() || strategy.isDelete()) {
       checkOrgUnitInCaptureScope(reporter, bundle, enrollment, enrollmentOrgUnit);
+    } else {
+      OrganisationUnit databaseOrgUnit =
+          bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getOrganisationUnit();
+      if (!enrollmentOrgUnit.getUid().equals(databaseOrgUnit.getUid())) {
+        checkOrgUnitInCaptureScope(reporter, bundle, enrollment, enrollmentOrgUnit);
+      }
     }
   }
 
