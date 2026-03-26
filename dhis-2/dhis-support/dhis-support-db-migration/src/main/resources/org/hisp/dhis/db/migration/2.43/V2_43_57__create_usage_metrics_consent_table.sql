@@ -1,4 +1,4 @@
-create table if not exists usagemetricsconsent (
+create unlogged table if not exists usagemetricsconsent (
     usagemetricsconsentid int8 not null,
     dbsystemidentifier character varying not null,
     consent boolean not null,

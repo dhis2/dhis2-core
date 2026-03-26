@@ -48,16 +48,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 @Slf4j
 public class PrometheusScrapeEndpointController {
+  private static final String TEXT_FORMAT_CONTENT_TYPE = "text/plain; version=0.0.4; charset=utf-8";
   private final PrometheusMeterRegistry prometheusRegistry;
 
   public PrometheusScrapeEndpointController(PrometheusMeterRegistry prometheusRegistry) {
     this.prometheusRegistry = prometheusRegistry;
   }
 
-  @GetMapping(value = "/api/metrics", produces = "application/openmetrics-text")
+  @GetMapping(value = "/api/metrics", produces = TEXT_FORMAT_CONTENT_TYPE)
   public void scrape(HttpServletResponse response) {
     try {
-      response.setContentType("application/openmetrics-text");
+      response.setContentType(TEXT_FORMAT_CONTENT_TYPE);
       prometheusRegistry.scrape(response.getOutputStream());
     } catch (IOException ex) {
       // Client disconnected during metrics scraping (common with Prometheus)
