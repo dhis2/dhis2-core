@@ -131,7 +131,7 @@ public class NotificationSender {
 
   private ProgramNotificationTemplate getNotificationTemplate(Notification notification) {
     String uid = notification.template().getValue();
-    return programNotificationTemplateService.getByUid(uid);
+    return programNotificationTemplateService.getByUidCached(uid);
   }
 
   private NotificationValidationResult validate(
