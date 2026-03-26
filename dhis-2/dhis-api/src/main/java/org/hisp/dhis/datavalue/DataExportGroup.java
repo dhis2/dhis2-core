@@ -100,11 +100,6 @@ public record DataExportGroup(
           ids, dataSet, period, orgUnit, attributeOptionCombo, attributeOptions, deletion, values);
     }
 
-    public Output withDataSet(@CheckForNull String dataSet) {
-      return new Output(
-          ids, dataSet, period, orgUnit, attributeOptionCombo, attributeOptions, deletion, values);
-    }
-
     public Output withDeletion(@CheckForNull Scope deletion) {
       return new Output(
           ids, dataSet, period, orgUnit, attributeOptionCombo, attributeOptions, deletion, values);

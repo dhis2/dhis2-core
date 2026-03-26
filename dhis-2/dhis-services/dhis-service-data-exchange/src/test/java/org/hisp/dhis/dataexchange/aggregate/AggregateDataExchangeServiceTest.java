@@ -292,27 +292,28 @@ class AggregateDataExchangeServiceTest {
 
   @Test
   void testToDataEntryGroupDataSetIsNull() {
-    DataEntryGroup.Input group = AggregateDataExchangeService.toDataEntryGroup(emptyGrid());
+    DataEntryGroup.Input group = AggregateDataExchangeService.toDataEntryGroup(emptyGrid(), null);
     assertNull(group.dataSet());
   }
 
   @Test
   void testToDataEntryGroupWithDataSet() {
     DataEntryGroup.Input group =
-        AggregateDataExchangeService.toDataEntryGroup(emptyGrid()).withDataSet("myDataSetUid");
+        AggregateDataExchangeService.toDataEntryGroup(emptyGrid(), "myDataSetUid");
     assertEquals("myDataSetUid", group.dataSet());
   }
 
   @Test
   void testToDataExportGroupDataSetIsNull() {
-    DataExportGroup.Output group = AggregateDataExchangeService.toDataExportGroup(emptyGrid());
+    DataExportGroup.Output group =
+        AggregateDataExchangeService.toDataExportGroup(emptyGrid(), null);
     assertNull(group.dataSet());
   }
 
   @Test
   void testToDataExportGroupWithDataSet() {
     DataExportGroup.Output group =
-        AggregateDataExchangeService.toDataExportGroup(emptyGrid()).withDataSet("myDataSetUid");
+        AggregateDataExchangeService.toDataExportGroup(emptyGrid(), "myDataSetUid");
     assertEquals("myDataSetUid", group.dataSet());
   }
 
