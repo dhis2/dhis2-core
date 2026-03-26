@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -63,8 +64,13 @@ class UsageMetricsControllerTest extends PostgresControllerIntegrationTestBase {
 
     UsageMetricsConsent newUsageMetricsConsent = new UsageMetricsConsent();
     newUsageMetricsConsent.setConsent(true);
-    PUT("/usageMetrics", objectMapper.writeValueAsString(newUsageMetricsConsent))
-        .content(HttpStatus.FORBIDDEN);
+    assertWebMessage(
+        "Forbidden",
+        403,
+        "ERROR",
+        "Access is denied, requires one Authority from [ALL]",
+        PUT("/usageMetrics", objectMapper.writeValueAsString(newUsageMetricsConsent))
+            .content(HttpStatus.FORBIDDEN));
   }
 
   @Test

@@ -68,7 +68,7 @@ import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 @Transactional
 @ContextConfiguration(
     classes = {SendUsageMetricsCheckJobTest.DhisConfigurationProviderTestConfig.class})
-public class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
+class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
 
   private static GenericContainer<?> otelCollectorMockServerContainer;
   private static MockServerClient otelCollectorMockServerClient;
@@ -227,12 +227,12 @@ public class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
     assertEquals("abc1234", dataPoints.getAttributes(1).getValue().getStringValue());
   }
 
-  private void assertCoreAppsMetric(Metric coreAppsMetric) throws ParseException {
+  private void assertCoreAppsMetric(Metric coreAppsMetric) {
     assertEquals("core_apps", coreAppsMetric.getName());
     assertEquals("Core Apps", coreAppsMetric.getDescription());
   }
 
-  private void assertDataSummaryMetrics(ScopeMetrics scopeMetrics) throws ParseException {
+  private void assertDataSummaryMetrics(ScopeMetrics scopeMetrics) {
     assertEquals("dashboards", scopeMetrics.getMetrics(2).getName());
     assertEquals("Dashboards", scopeMetrics.getMetrics(2).getDescription());
 
@@ -278,7 +278,7 @@ public class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
     assertEquals("Visualizations", scopeMetrics.getMetrics(10).getDescription());
   }
 
-  private void assertEnvInfoMetric(Metric envMetric) throws ParseException {
+  private void assertEnvInfoMetric(Metric envMetric) {
     assertEquals("environment", envMetric.getName());
     assertEquals("Environment", envMetric.getDescription());
 

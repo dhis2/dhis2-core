@@ -45,5 +45,5 @@ public class UsageMetricsConsent extends BaseIdentifiableObject implements Metad
   private String dbSystemIdentifier;
 
   @JsonProperty(required = true)
-  private Boolean consent;
+  private boolean consent;
 }
