@@ -51,6 +51,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.OptionService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -62,6 +63,7 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Enrico Colasante
@@ -179,6 +181,15 @@ class DataValuesValidator implements Validator<Event> {
 
   private void validateOrgUnitValueType(
       Reporter reporter, TrackerBundle bundle, Event event, @Nonnull String value) {
-    reporter.addErrorIfNull(bundle.getPreheat().getOrganisationUnit(value), event, E1007, value);
+    OrganisationUnit orgUnit = bundle.getPreheat().get(OrganisationUnit.class, value);
+
+    UserDetails user = bundle.getUser();
+    if (orgUnit == null) {
+      reporter.addError(event, E1007, value);
+    } else if (!user.isSuper()
+        && !user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath())) {
+      reporter.addError(
+          event, E1007, "Organisation unit `" + value + "` is not in the user's search scope.");
+    }
   }
 }

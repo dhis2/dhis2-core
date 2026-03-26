@@ -54,6 +54,7 @@ import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.service.attribute.TrackedAttributeValidationService;
+import org.hisp.dhis.user.UserDetails;
 
 /**
  * @author Luciano Fiandesio
@@ -79,13 +80,17 @@ public abstract class AttributeValidator {
       TrackedEntityAttribute teAttr) {
     ValueType valueType = teAttr.getValueType();
 
-    String error;
+    String error = null;
 
     if (valueType.equals(ValueType.ORGANISATION_UNIT)) {
-      error =
-          bundle.getPreheat().getOrganisationUnit(attr.getValue()) == null
-              ? " Value " + attr.getValue() + " is not a valid org unit value"
-              : null;
+      OrganisationUnit orgUnit = bundle.getPreheat().getOrganisationUnit(attr.getValue());
+      UserDetails user = bundle.getUser();
+      if (orgUnit == null) {
+        error = "Value " + attr.getValue() + " is not a valid org unit value";
+      } else if (!user.isSuper()
+          && !user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath())) {
+        error = "Organisation unit `" + orgUnit.getUid() + "` is not in the user's search scope.";
+      }
     } else if (valueType.equals(ValueType.USERNAME)) {
       error =
           bundle.getPreheat().getUserByUsername(attr.getValue()).isPresent()
