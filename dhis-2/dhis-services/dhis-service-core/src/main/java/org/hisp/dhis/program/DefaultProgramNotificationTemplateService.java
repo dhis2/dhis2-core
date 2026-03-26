@@ -30,7 +30,11 @@
 package org.hisp.dhis.program;
 
 import java.util.List;
-import lombok.RequiredArgsConstructor;
+import java.util.Optional;
+import org.hibernate.Hibernate;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateOperationParams;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateOperationParamsMapper;
@@ -44,11 +48,20 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Zubair Asghar
  */
 @Service("org.hisp.dhis.program.ProgramNotificationTemplateService")
-@RequiredArgsConstructor
 public class DefaultProgramNotificationTemplateService
     implements ProgramNotificationTemplateService {
   private final ProgramNotificationTemplateStore store;
   private final ProgramNotificationTemplateOperationParamsMapper paramsMapper;
+  private final Cache<ProgramNotificationTemplate> templateCache;
+
+  public DefaultProgramNotificationTemplateService(
+      ProgramNotificationTemplateStore store,
+      ProgramNotificationTemplateOperationParamsMapper paramsMapper,
+      CacheProvider cacheProvider) {
+    this.store = store;
+    this.paramsMapper = paramsMapper;
+    this.templateCache = cacheProvider.createNotificationTemplateCache();
+  }
 
   @Override
   @Transactional(readOnly = true)
@@ -58,26 +71,56 @@ public class DefaultProgramNotificationTemplateService
 
   @Override
   @Transactional(readOnly = true)
-  public ProgramNotificationTemplate getByUid(String programNotificationTemplate) {
-    return store.getByUid(programNotificationTemplate);
+  public ProgramNotificationTemplate getByUid(String uid) {
+    return store.getByUid(uid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public ProgramNotificationTemplate getByUidCached(String uid) {
+    Optional<ProgramNotificationTemplate> cached = templateCache.getIfPresent(uid);
+    if (cached.isPresent()) {
+      return cached.get();
+    }
+
+    ProgramNotificationTemplate template = store.getByUid(uid);
+    if (template == null
+        || template.getNotificationRecipient() == ProgramNotificationRecipient.USER_GROUP) {
+      return template;
+    }
+
+    // Initialize lazy associations accessed by the async notification thread.
+    // The cached template is detached from any Hibernate session, so uninitialized
+    // proxies would throw LazyInitializationException.
+    // deliveryChannels: ElementCollection (separate table), checked for SMS/email routing
+    Hibernate.initialize(template.getDeliveryChannels());
+    // recipientDataElement: ManyToOne, used for DATA_ELEMENT recipient to match event data values
+    Hibernate.initialize(template.getRecipientDataElement());
+    // recipientProgramAttribute: ManyToOne, used for PROGRAM_ATTRIBUTE recipient to match TE attrs
+    Hibernate.initialize(template.getRecipientProgramAttribute());
+    templateCache.put(uid, template);
+    return template;
   }
 
   @Override
   @Transactional
   public void save(ProgramNotificationTemplate programNotificationTemplate) {
     store.save(programNotificationTemplate);
+    templateCache.invalidate(programNotificationTemplate.getUid());
   }
 
   @Override
   @Transactional
   public void update(ProgramNotificationTemplate programNotificationTemplate) {
     store.update(programNotificationTemplate);
+    templateCache.invalidate(programNotificationTemplate.getUid());
   }
 
   @Override
   @Transactional
   public void delete(ProgramNotificationTemplate programNotificationTemplate) {
     store.delete(programNotificationTemplate);
+    templateCache.invalidate(programNotificationTemplate.getUid());
   }
 
   @Override
