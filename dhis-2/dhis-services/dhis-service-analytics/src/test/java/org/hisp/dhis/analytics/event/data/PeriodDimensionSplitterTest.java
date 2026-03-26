@@ -144,9 +144,8 @@ class PeriodDimensionSplitterTest extends TestBase {
     assertSame(orgUnit, result.get(0));
     assertSame(dataElement, result.get(3));
     // Middle two are the split period dimensions
-    assertTrue(
-        result.stream().filter(d -> DimensionType.PERIOD.equals(d.getDimensionType())).count()
-            == 2);
+    assertEquals(
+        2, result.stream().filter(d -> DimensionType.PERIOD.equals(d.getDimensionType())).count());
   }
 
   @Test
