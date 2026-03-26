@@ -29,38 +29,37 @@
  */
 package org.hisp.dhis.tracker.imports.notification;
 
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.security.SecurityContextRunnable;
-import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.stereotype.Component;
+import java.util.Map;
+import java.util.Set;
 
 /**
- * Dispatches all notifications for tracker import side effects. Submits a single coordinator task
- * that batch-fetches notification dependencies, then dispatches one {@link NotificationTask} per
- * entity. All work runs async -- the import thread returns immediately.
+ * Pre-fetched notification dependencies. Built by the coordinator async task before dispatching
+ * per-entity notification tasks. Contains plain data (no Hibernate entities) that safely crosses
+ * thread boundaries.
+ *
+ * @param groupMembers user group members keyed by user group database ID. Only enabled users are
+ *     included (disabled users are filtered in the SQL query).
+ * @param keysToSkip repeatable flag keys (templateUid + enrollmentUid) for enrollments and tracker
+ *     events that have already been sent and should not be sent again. SingleEvents are excluded
+ *     (no enrollment, no repeatable check).
  */
-@Component
-@RequiredArgsConstructor
-public class NotificationDispatcher {
-  private final ObjectFactory<NotificationTask> taskFactory;
-  private final AsyncTaskExecutor taskExecutor;
-  private final NotificationContextFactory contextFactory;
+public record NotificationContext(
+    Map<Long, Set<GroupMemberInfo>> groupMembers, Set<String> keysToSkip) {
 
-  public void sendNotifications(List<EntityNotifications> notifications) {
-    taskExecutor.executeTask(
-        new SecurityContextRunnable() {
-          @Override
-          public void call() {
-            NotificationContext context = contextFactory.create(notifications);
-            for (EntityNotifications entityNotifications : notifications) {
-              NotificationTask task = taskFactory.getObject();
-              task.setEntityNotifications(entityNotifications);
-              task.setContext(context);
-              taskExecutor.executeTask(task);
-            }
-          }
-        });
+  public static final NotificationContext EMPTY = new NotificationContext(Map.of(), Set.of());
+
+  /** Key format for the repeatable flag check: templateUid + enrollmentUid. */
+  public static String repeatableKey(String templateUid, String enrollmentUid) {
+    return templateUid + enrollmentUid;
   }
+
+  /**
+   * Pre-fetched user group member data for notification recipient resolution. A user with multiple
+   * org units produces multiple entries (one per org unit). The hierarchy/parent filter checks all
+   * entries and the results are deduplicated by userId before creating User references.
+   *
+   * @param userId database ID for entityManager.getReference()
+   * @param orgUnitUid UID of one of the user's org units (for hierarchy/parent filter)
+   */
+  public record GroupMemberInfo(long userId, String orgUnitUid) {}
 }

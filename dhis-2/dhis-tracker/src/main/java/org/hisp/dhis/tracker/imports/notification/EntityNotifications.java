@@ -30,8 +30,11 @@
 package org.hisp.dhis.tracker.imports.notification;
 
 import java.util.Set;
+import javax.annotation.Nullable;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 
 /**
  * Notifications to send after an entity is persisted. Contains the entity and a deduplicated set of
@@ -43,4 +46,17 @@ import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
  *     and optionally a scheduled date. Notifications with {@code scheduledAt == null} are sent
  *     immediately.
  */
-public record EntityNotifications(IdentifiableObject entity, Set<Notification> notifications) {}
+public record EntityNotifications(IdentifiableObject entity, Set<Notification> notifications) {
+
+  /** Returns the enrollment UID for repeatable key generation, or null for SingleEvents. */
+  @Nullable
+  public String enrollmentUid() {
+    if (entity instanceof Enrollment enrollment) {
+      return enrollment.getUid();
+    }
+    if (entity instanceof TrackerEvent event && event.getEnrollment() != null) {
+      return event.getEnrollment().getUid();
+    }
+    return null;
+  }
+}

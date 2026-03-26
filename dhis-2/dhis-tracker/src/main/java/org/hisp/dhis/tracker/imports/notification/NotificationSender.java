@@ -49,7 +49,7 @@ import org.hisp.dhis.tracker.program.notification.ProgramNotificationService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Sends or schedules a notification to be sent as a result of a rule-engine evaluation. */
+/** Sends or schedules notifications as a side effect of tracker import. */
 @Slf4j
 @RequiredArgsConstructor
 @Component
@@ -60,10 +60,10 @@ public class NotificationSender {
   private final NotificationLoggingService notificationLoggingService;
 
   @Transactional
-  public void send(Notification notification, Enrollment enrollment) {
+  public void send(Notification notification, Enrollment enrollment, NotificationContext context) {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
-    NotificationValidationResult result = validate(template, enrollment);
+    NotificationValidationResult result = validate(template, enrollment, context);
     if (!result.isValid()) {
       return;
     }
@@ -74,7 +74,7 @@ public class NotificationSender {
       notificationInstance.setEnrollment(enrollment);
       programNotificationInstanceService.save(notificationInstance);
     } else {
-      programNotificationService.sendNotification(template, enrollment);
+      programNotificationService.sendNotification(template, enrollment, context);
     }
     if (result.needsToCreateLogEntry()) {
       createLogEntry(template, enrollment);
@@ -82,10 +82,10 @@ public class NotificationSender {
   }
 
   @Transactional
-  public void send(Notification notification, TrackerEvent event) {
+  public void send(Notification notification, TrackerEvent event, NotificationContext context) {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
-    NotificationValidationResult result = validate(template, event.getEnrollment());
+    NotificationValidationResult result = validate(template, event.getEnrollment(), context);
     if (!result.isValid()) {
       return;
     }
@@ -96,7 +96,7 @@ public class NotificationSender {
       notificationInstance.setTrackerEvent(event);
       programNotificationInstanceService.save(notificationInstance);
     } else {
-      programNotificationService.sendNotification(template, event);
+      programNotificationService.sendNotification(template, event, context);
     }
 
     if (result.needsToCreateLogEntry()) {
@@ -105,7 +105,8 @@ public class NotificationSender {
   }
 
   @Transactional
-  public void send(Notification notification, SingleEvent singleEvent) {
+  public void send(
+      Notification notification, SingleEvent singleEvent, NotificationContext context) {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
     if (notification.scheduledAt() != null) {
@@ -114,7 +115,7 @@ public class NotificationSender {
       notificationInstance.setSingleEvent(singleEvent);
       programNotificationInstanceService.save(notificationInstance);
     } else {
-      programNotificationService.sendNotification(template, singleEvent);
+      programNotificationService.sendNotification(template, singleEvent, context);
     }
   }
 
@@ -135,7 +136,7 @@ public class NotificationSender {
   }
 
   private NotificationValidationResult validate(
-      ProgramNotificationTemplate template, Enrollment enrollment) {
+      ProgramNotificationTemplate template, Enrollment enrollment, NotificationContext context) {
     if (template == null) {
       return NotificationValidationResult.invalid();
     }
@@ -144,20 +145,23 @@ public class NotificationSender {
       return NotificationValidationResult.validAndNoNeedForLogEntries();
     }
 
-    ExternalNotificationLogEntry logEntry =
-        notificationLoggingService.getByKey(generateKey(template, enrollment));
-    // template has already been delivered and repeated delivery not allowed
-    if (logEntry != null && !logEntry.isAllowMultiple()) {
+    // Skip repeatable check for templates that allow repeated sends
+    if (template.isSendRepeatable()) {
+      return NotificationValidationResult.validAndNoNeedForLogEntries();
+    }
+
+    // Use pre-fetched keys to skip DB query
+    String key = generateKey(template, enrollment);
+    if (context.keysToSkip().contains(key)) {
       return NotificationValidationResult.invalid();
     }
 
-    return logEntry == null
-        ? NotificationValidationResult.validAndNeedsLogEntries()
-        : NotificationValidationResult.validAndNoNeedForLogEntries();
+    // Not in pre-fetched skip set -- this is a new notification that needs a log entry
+    return NotificationValidationResult.validAndNeedsLogEntries();
   }
 
   private String generateKey(ProgramNotificationTemplate template, Enrollment enrollment) {
-    return template.getUid() + enrollment.getUid();
+    return NotificationContext.repeatableKey(template.getUid(), enrollment.getUid());
   }
 
   private ProgramNotificationInstance createNotificationInstance(

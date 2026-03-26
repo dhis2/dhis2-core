@@ -52,17 +52,18 @@ public class NotificationTask extends SecurityContextRunnable {
   private final NotificationSender notificationSender;
 
   @Setter private EntityNotifications entityNotifications;
+  @Setter private NotificationContext context;
 
   @Override
   public void call() {
     IdentifiableObject entity = entityNotifications.entity();
     for (Notification notification : entityNotifications.notifications()) {
       if (entity instanceof Enrollment enrollment) {
-        notificationSender.send(notification, enrollment);
+        notificationSender.send(notification, enrollment, context);
       } else if (entity instanceof TrackerEvent event) {
-        notificationSender.send(notification, event);
+        notificationSender.send(notification, event, context);
       } else if (entity instanceof SingleEvent singleEvent) {
-        notificationSender.send(notification, singleEvent);
+        notificationSender.send(notification, singleEvent, context);
       }
     }
   }
