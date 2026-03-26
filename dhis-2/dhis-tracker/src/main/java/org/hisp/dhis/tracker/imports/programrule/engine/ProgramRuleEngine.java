@@ -30,10 +30,12 @@
 package org.hisp.dhis.tracker.imports.programrule.engine;
 
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
 import org.hisp.dhis.rules.models.RuleValidationResult;
@@ -41,21 +43,29 @@ import org.hisp.dhis.user.UserDetails;
 
 public interface ProgramRuleEngine {
   /**
-   * Evaluate program rules for {@link Program} for enrollment and tracker events. Rules are
-   * evaluated under the authorization of given {@link UserDetails}.
+   * Evaluate program rules for multiple enrollments belonging to the same {@link Program}, building
+   * the rule engine context once. Rules are evaluated under the authorization of given {@link
+   * UserDetails}. {@code rules} and {@code constantMap} are pre-fetched by the caller so they are
+   * not re-queried inside the engine.
    */
-  RuleEngineEffects evaluateEnrollmentAndTrackerEvents(
-      @Nonnull RuleEnrollment enrollment,
-      @Nonnull List<RuleEvent> events,
+  RuleEngineEffects evaluateEnrollmentsAndTrackerEvents(
+      @Nonnull Map<RuleEnrollment, List<RuleEvent>> enrollmentsWithEvents,
       @Nonnull Program program,
-      @Nonnull UserDetails user);
+      @Nonnull UserDetails user,
+      @Nonnull Map<String, String> constantMap,
+      @Nonnull List<ProgramRule> rules);
 
   /**
    * Evaluate program rules as the given {@link UserDetails} for {@link Program} for program events.
-   * Rules are evaluated under the authorization of given {@link UserDetails}.
+   * {@code rules} and {@code constantMap} are pre-fetched by the caller so they are not re-queried
+   * inside the engine.
    */
   RuleEngineEffects evaluateSingleEvents(
-      @Nonnull List<RuleEvent> events, @Nonnull Program program, UserDetails user);
+      @Nonnull List<RuleEvent> events,
+      @Nonnull Program program,
+      @Nonnull UserDetails user,
+      @Nonnull Map<String, String> constantMap,
+      @Nonnull List<ProgramRule> rules);
 
   /**
    * To getDescription rule condition in order to fetch its description

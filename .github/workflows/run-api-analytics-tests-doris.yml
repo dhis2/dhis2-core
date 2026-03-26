@@ -34,7 +34,7 @@ jobs:
       SIERRA_LEONE_DB_VERSION: "2.39.6"
       GITHUB_TOKEN: ${{ secrets.DHIS2_BOT_GITHUB_TOKEN }}
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: contains(github.event.pull_request.labels.*.name, 'run-api-analytics-tests-doris') || (github.event_name == 'workflow_dispatch')
     steps:
       - uses: actions/checkout@v6
@@ -83,7 +83,7 @@ jobs:
           DORIS_VERSION=3.0.7 \
           docker compose -f docker-compose.yml -f docker-compose.doris.yml -f docker-compose.e2e.yml \
             -f docker-compose.e2e-analytics.yml -f docker-compose.doris-analytics.yml \
-            up --remove-orphans --exit-code-from test
+            up --attach test --remove-orphans --exit-code-from test
 
       - name: Push surefire reports to repository
         if: always()
@@ -95,7 +95,7 @@ jobs:
           TEST_TYPE=e2e-analytics \
           DB_TYPE=doris \
           docker compose -f docker-compose.yml -f docker-compose.doris.yml -f docker-compose.e2e.yml -f docker-compose.e2e-analytics.yml -f docker-compose.doris-analytics.yml --profile reports run reports-processor
-      
+
       - name: Add a comment to the pull request
         if: always()
         uses: peter-evans/create-or-update-comment@e8674b075228eee787fea43ef493e45ece1004c9
@@ -103,7 +103,6 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           body: |
             Surefire reports for analytics API tests against Doris have been pushed to the repository. [View reports](https://dhis2.github.io/dhis2-test-reports/reports/?component=core&testType=e2e-analytics)
-
 
       - name: Upload logs
         if: failure()
@@ -118,7 +117,7 @@ jobs:
           path: "~/logs.txt"
 
   send-slack-message:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     if: |
       always() &&
       contains(needs.*.result, 'failure') &&
@@ -132,4 +131,3 @@ jobs:
           SLACK_CHANNEL: "team-backend"
           SLACK_MESSAGE: "Latest analytics e2e test run against Doris on master failed and needs investigation :detective-duck:. \n Commit message: ${{ github.event.head_commit.message }}"
           SLACK_COLOR: "#ff0000"
-          

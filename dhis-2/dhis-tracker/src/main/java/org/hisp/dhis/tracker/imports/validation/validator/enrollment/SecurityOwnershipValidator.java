@@ -80,7 +80,6 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     CategoryOptionCombo categoryOptionCombo =
         bundle.getPreheat().getCategoryOptionCombo(enrollment.getAttributeOptionCombo());
     OrganisationUnit ownerOrgUnit = getOwnerOrganisationUnit(preheat, trackedEntity, program);
-    // TODO(tracker) Validate payload org unit in user scope
 
     checkEnrollmentOrgUnit(reporter, bundle, strategy, enrollment, user);
 
@@ -157,21 +156,21 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       UserDetails user) {
     OrganisationUnit enrollmentOrgUnit;
 
-    if (strategy.isUpdateOrDelete()) {
+    if (strategy.isCreateOrUpdate()) {
+      enrollmentOrgUnit = bundle.getPreheat().getOrganisationUnit(enrollment.getOrgUnit());
+
+      if (strategy.isUpdate()) {
+        OrganisationUnit databaseOrgUnit =
+            bundle.getPreheat().getEnrollment(enrollment.getUID()).getOrganisationUnit();
+        if (!enrollmentOrgUnit.getUid().equals(databaseOrgUnit.getUid())) {
+          checkOrgUnitInCaptureScope(reporter, enrollment, enrollmentOrgUnit, user);
+        }
+      }
+    } else {
       enrollmentOrgUnit =
           bundle.getPreheat().getEnrollment(enrollment.getEnrollment()).getOrganisationUnit();
-    } else {
-      enrollmentOrgUnit = bundle.getPreheat().getOrganisationUnit(enrollment.getOrgUnit());
     }
 
-    // TODO: Discuss with product how this should be fixed.
-    // At the moment we are checking capture scope for enrollment org unit
-    // only when we are creating or deleting an enrollment.
-    // When updating, ownership is enough.
-    // We need to understand what to do when updating the org unit.
-
-    // If enrollment is newly created, or going to be deleted, capture scope
-    // has to be checked
     if (strategy.isCreate() || strategy.isDelete()) {
       checkOrgUnitInCaptureScope(reporter, enrollment, enrollmentOrgUnit, user);
     }
@@ -189,23 +188,6 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     }
   }
 
-  private void checkTeTypeAndTeProgramAccess(
-      Reporter reporter,
-      TrackerDto dto,
-      String trackedEntity,
-      OrganisationUnit ownerOrganisationUnit,
-      Program program,
-      UserDetails user) {
-    if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
-      reporter.addError(dto, ValidationCode.E1104, user, program, program.getTrackedEntityType());
-    }
-
-    if (ownerOrganisationUnit != null
-        && !ownershipAccessManager.hasAccess(user, trackedEntity, ownerOrganisationUnit, program)) {
-      reporter.addError(dto, ValidationCode.E1102, user, trackedEntity, program);
-    }
-  }
-
   private void checkWriteEnrollmentAccess(
       Reporter reporter,
       Enrollment enrollment,
@@ -213,19 +195,22 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       OrganisationUnit ownerOrgUnit,
       String trackedEntity,
       UserDetails user) {
-    checkProgramWriteAccess(reporter, enrollment, program, user);
-
-    checkTeTypeAndTeProgramAccess(reporter, enrollment, trackedEntity, ownerOrgUnit, program, user);
-  }
-
-  private void checkProgramWriteAccess(
-      Reporter reporter, TrackerDto dto, Program program, UserDetails user) {
     if (!aclService.canDataWrite(user, program)) {
-      reporter.addError(dto, ValidationCode.E1091, user, program);
+      reporter.addError(enrollment, ValidationCode.E1091, user, program);
+    }
+
+    if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
+      reporter.addError(
+          enrollment, ValidationCode.E1104, user, program, program.getTrackedEntityType());
+    }
+
+    if (ownerOrgUnit != null
+        && !ownershipAccessManager.hasAccess(user, trackedEntity, ownerOrgUnit, program)) {
+      reporter.addError(enrollment, ValidationCode.E1102, user, trackedEntity, program);
     }
   }
 
-  public void checkWriteCategoryOptionComboAccess(
+  private void checkWriteCategoryOptionComboAccess(
       Reporter reporter,
       TrackerDto dto,
       CategoryOptionCombo categoryOptionCombo,

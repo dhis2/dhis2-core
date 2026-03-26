@@ -89,8 +89,8 @@ public class EnrollmentQueryTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         100,
-        17,
-        14); // Pass runtime flag, row count, and expected header counts
+        19,
+        16); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
