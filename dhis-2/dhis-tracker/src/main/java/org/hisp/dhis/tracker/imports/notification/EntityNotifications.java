@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,26 +29,18 @@
  */
 package org.hisp.dhis.tracker.imports.notification;
 
-/**
- * @author Zubair Asghar
- */
-public enum NotificationTrigger {
-  ENROLLMENT,
-  ENROLLMENT_COMPLETION,
-  TRACKER_EVENT_COMPLETION,
-  SINGLE_EVENT_COMPLETION,
-  NONE;
+import java.util.Set;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 
-  /**
-   * Returns the corresponding {@link org.hisp.dhis.program.notification.NotificationTrigger} used
-   * on {@link org.hisp.dhis.program.notification.ProgramNotificationTemplate}.
-   */
-  public org.hisp.dhis.program.notification.NotificationTrigger toTemplateTrigger() {
-    return switch (this) {
-      case ENROLLMENT -> org.hisp.dhis.program.notification.NotificationTrigger.ENROLLMENT;
-      case ENROLLMENT_COMPLETION, TRACKER_EVENT_COMPLETION, SINGLE_EVENT_COMPLETION ->
-          org.hisp.dhis.program.notification.NotificationTrigger.COMPLETION;
-      case NONE -> null;
-    };
-  }
-}
+/**
+ * Notifications to send after an entity is persisted. Contains the entity and a deduplicated set of
+ * notifications from both lifecycle triggers (enrollment creation, completion) and rule engine
+ * evaluation (SENDMESSAGE/SCHEDULEMESSAGE).
+ *
+ * @param entity the persisted entity (Enrollment, TrackerEvent, or SingleEvent)
+ * @param notifications deduplicated set of notifications to send. Each identifies a template by UID
+ *     and optionally a scheduled date. Notifications with {@code scheduledAt == null} are sent
+ *     immediately.
+ */
+public record EntityNotifications(IdentifiableObject entity, Set<Notification> notifications) {}

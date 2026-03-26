@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,26 +36,20 @@ import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Dispatches notifications triggered by program rule evaluation (SENDMESSAGE/SCHEDULEMESSAGE
- * actions). Submits a {@link RuleEngineNotificationTask} per bundle to the async task executor.
+ * Dispatches all notifications for tracker import side effects. Submits one {@link
+ * NotificationTask} per entity to the async task executor.
  */
 @Component
 @RequiredArgsConstructor
-public class RuleEngineNotificationDispatcher {
-  private final ObjectFactory<RuleEngineNotificationTask> trackerRuleEngineThreadObjectFactory;
+public class NotificationDispatcher {
+  private final ObjectFactory<NotificationTask> taskFactory;
   private final AsyncTaskExecutor taskExecutor;
 
-  public void sendNotifications(List<TrackerNotificationDataBundle> bundles) {
-    bundles.forEach(this::sendRuleEngineNotification);
-  }
-
-  private void sendRuleEngineNotification(TrackerNotificationDataBundle bundle) {
-    if (bundle == null) {
-      return;
+  public void sendNotifications(List<EntityNotifications> notifications) {
+    for (EntityNotifications entityNotifications : notifications) {
+      NotificationTask task = taskFactory.getObject();
+      task.setEntityNotifications(entityNotifications);
+      taskExecutor.executeTask(task);
     }
-
-    RuleEngineNotificationTask task = trackerRuleEngineThreadObjectFactory.getObject();
-    task.setNotificationDataBundle(bundle);
-    taskExecutor.executeTask(task);
   }
 }

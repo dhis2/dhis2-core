@@ -88,7 +88,7 @@ class NotificationSenderTest {
     notificationSender.send(scheduleMessage(), enrollment());
 
     verify(programNotificationInstanceService, never()).save(any());
-    verify(programNotificationService, never()).sendProgramRuleTriggeredNotifications(any(), any());
+    verify(programNotificationService, never()).sendNotification(any(), any(Enrollment.class));
     verify(notificationLoggingService, never()).save(any());
   }
 
@@ -102,7 +102,7 @@ class NotificationSenderTest {
     notificationSender.send(ruleEffect, enrollment());
 
     verify(programNotificationInstanceService, never()).save(any());
-    verify(programNotificationService, never()).sendProgramRuleTriggeredNotifications(any(), any());
+    verify(programNotificationService, never()).sendNotification(any(), any(Enrollment.class));
     verify(notificationLoggingService, never()).save(any());
   }
 
@@ -117,7 +117,7 @@ class NotificationSenderTest {
     notificationSender.send(ruleEffect, enrollment());
 
     verify(programNotificationInstanceService, times(1)).save(any());
-    verify(programNotificationService, never()).sendProgramRuleTriggeredNotifications(any(), any());
+    verify(programNotificationService, never()).sendNotification(any(), any(Enrollment.class));
     verify(notificationLoggingService, never()).save(any());
   }
 
@@ -131,8 +131,7 @@ class NotificationSenderTest {
     notificationSender.send(ruleEffect, enrollment());
 
     verify(programNotificationInstanceService, never()).save(any());
-    verify(programNotificationService, times(1))
-        .sendProgramRuleTriggeredNotifications(any(), any());
+    verify(programNotificationService, times(1)).sendNotification(any(), any(Enrollment.class));
     verify(notificationLoggingService, never()).save(any());
   }
 
@@ -146,7 +145,7 @@ class NotificationSenderTest {
     notificationSender.send(ruleEffect, enrollment());
 
     verify(programNotificationInstanceService, times(1)).save(any());
-    verify(programNotificationService, never()).sendProgramRuleTriggeredNotifications(any(), any());
+    verify(programNotificationService, never()).sendNotification(any(), any(Enrollment.class));
     verify(notificationLoggingService, times(1)).save(any());
   }
 
@@ -158,8 +157,7 @@ class NotificationSenderTest {
     notificationSender.send(ruleEffect, enrollment());
 
     verify(programNotificationInstanceService, never()).save(any());
-    verify(programNotificationService, times(1))
-        .sendProgramRuleTriggeredNotifications(any(), any());
+    verify(programNotificationService, times(1)).sendNotification(any(), any(Enrollment.class));
     verify(notificationLoggingService, times(1)).save(any());
   }
 
@@ -170,7 +168,7 @@ class NotificationSenderTest {
     notificationSender.send(scheduleMessage(), event());
 
     verify(programNotificationInstanceService, never()).save(any());
-    verify(programNotificationService, never()).sendProgramRuleTriggeredNotifications(any(), any());
+    verify(programNotificationService, never()).sendNotification(any(), any(TrackerEvent.class));
     verify(notificationLoggingService, never()).save(any());
   }
 
@@ -184,7 +182,7 @@ class NotificationSenderTest {
     notificationSender.send(ruleEffect, event());
 
     verify(programNotificationInstanceService, never()).save(any());
-    verify(programNotificationService, never()).sendProgramRuleTriggeredNotifications(any(), any());
+    verify(programNotificationService, never()).sendNotification(any(), any(TrackerEvent.class));
     verify(notificationLoggingService, never()).save(any());
   }
 
@@ -198,7 +196,7 @@ class NotificationSenderTest {
     notificationSender.send(ruleEffect, event());
 
     verify(programNotificationInstanceService, never()).save(any());
-    verify(programNotificationService, never()).sendProgramRuleTriggeredNotifications(any(), any());
+    verify(programNotificationService, never()).sendNotification(any(), any(TrackerEvent.class));
     verify(notificationLoggingService, never()).save(any());
   }
 
@@ -211,7 +209,7 @@ class NotificationSenderTest {
     notificationSender.send(ruleEffect, singleEvent());
 
     verify(programNotificationInstanceService, times(1)).save(any());
-    verify(programNotificationService, never()).sendProgramRuleTriggeredNotifications(any(), any());
+    verify(programNotificationService, never()).sendNotification(any(), any(SingleEvent.class));
     verify(notificationLoggingService, never()).save(any());
   }
 
@@ -224,8 +222,7 @@ class NotificationSenderTest {
     notificationSender.send(ruleEffect, singleEvent());
 
     verify(programNotificationInstanceService, never()).save(any());
-    verify(programNotificationService, times(1))
-        .sendProgramRuleTriggeredEventNotifications(any(), any(SingleEvent.class));
+    verify(programNotificationService, times(1)).sendNotification(any(), any(SingleEvent.class));
     verify(notificationLoggingService, never()).save(any());
   }
 
@@ -239,7 +236,7 @@ class NotificationSenderTest {
     notificationSender.send(ruleEffect, event());
 
     verify(programNotificationInstanceService, times(1)).save(any());
-    verify(programNotificationService, never()).sendProgramRuleTriggeredNotifications(any(), any());
+    verify(programNotificationService, never()).sendNotification(any(), any(TrackerEvent.class));
     verify(notificationLoggingService, never()).save(any());
   }
 
@@ -253,8 +250,7 @@ class NotificationSenderTest {
     notificationSender.send(ruleEffect, event());
 
     verify(programNotificationInstanceService, never()).save(any());
-    verify(programNotificationService, times(1))
-        .sendProgramRuleTriggeredEventNotifications(any(), any(TrackerEvent.class));
+    verify(programNotificationService, times(1)).sendNotification(any(), any(TrackerEvent.class));
     verify(notificationLoggingService, never()).save(any());
   }
 
@@ -268,7 +264,7 @@ class NotificationSenderTest {
     notificationSender.send(ruleEffect, event());
 
     verify(programNotificationInstanceService, times(1)).save(any());
-    verify(programNotificationService, never()).sendProgramRuleTriggeredNotifications(any(), any());
+    verify(programNotificationService, never()).sendNotification(any(), any(TrackerEvent.class));
     verify(notificationLoggingService, times(1)).save(any());
   }
 
@@ -282,7 +278,7 @@ class NotificationSenderTest {
     notificationSender.send(ruleEffect, event());
 
     verify(programNotificationInstanceService, never()).save(any());
-    verify(programNotificationService, never()).sendProgramRuleTriggeredNotifications(any(), any());
+    verify(programNotificationService, times(1)).sendNotification(any(), any(TrackerEvent.class));
     verify(notificationLoggingService, times(1)).save(any());
   }
 

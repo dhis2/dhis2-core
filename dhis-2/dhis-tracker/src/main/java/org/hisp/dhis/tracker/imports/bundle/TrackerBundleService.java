@@ -35,7 +35,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.notification.TrackerNotificationDataBundle;
+import org.hisp.dhis.tracker.imports.notification.EntityNotifications;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.user.UserDetails;
 
@@ -44,8 +44,7 @@ import org.hisp.dhis.user.UserDetails;
  */
 public interface TrackerBundleService {
 
-  record CommitResult(
-      PersistenceReport report, List<TrackerNotificationDataBundle> notificationBundles) {}
+  record CommitResult(PersistenceReport report, List<EntityNotifications> notifications) {}
 
   /**
    * Creates and prepares tracker bundle.
