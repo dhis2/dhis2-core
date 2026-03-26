@@ -197,6 +197,8 @@ public class ConditionalETagInterceptor implements HandlerInterceptor {
           "locales/db",
           new NamedEndpointDeps(Set.of(), Set.of()),
           "locales/ui",
+          new NamedEndpointDeps(Set.of(), Set.of()),
+          "periodTypes",
           new NamedEndpointDeps(Set.of(), Set.of()));
 
   private static final List<NamedEndpointPattern> NAMED_KEY_PATH_PATTERNS =
