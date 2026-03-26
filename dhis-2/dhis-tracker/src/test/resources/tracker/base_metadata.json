@@ -2035,7 +2035,10 @@
       "user": {
         "id": "FIgVWzUCkpw"
       },
-      "version": 2
+      "version": 2,
+      "sharing": {
+        "public": "rwrw----"
+      }
     },
     {
       "id": "cS7eutanDrT",

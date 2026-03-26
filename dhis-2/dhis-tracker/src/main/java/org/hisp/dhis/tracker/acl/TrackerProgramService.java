@@ -59,12 +59,44 @@ public class TrackerProgramService {
   @Nonnull private final AclService aclService;
 
   /**
-   * Returns the tracker program associated with the provided UID if it exists and is accessible to
-   * the current user.
+   * Returns the tracker program associated with the provided UID if it exists and the user has data
+   * read access to it.
    */
   @Transactional(readOnly = true)
-  public @Nonnull Program getTrackerProgram(@Nonnull UID programUid)
+  public @Nonnull Program getTrackerProgramWithDataReadAccess(@Nonnull UID programUid)
       throws BadRequestException, ForbiddenException {
+    Program program = getTrackerProgram(programUid);
+
+    if (!aclService.canDataRead(getCurrentUserDetails(), program)) {
+      throw new ForbiddenException(
+          String.format(
+              "Current user doesn't have data read access to the provided program %s.",
+              programUid));
+    }
+
+    return program;
+  }
+
+  /**
+   * Returns the tracker program associated with the provided UID if it exists and the user has data
+   * write access to it.
+   */
+  @Transactional(readOnly = true)
+  public @Nonnull Program getTrackerProgramWithDataWriteAccess(@Nonnull UID programUid)
+      throws BadRequestException, ForbiddenException {
+    Program program = getTrackerProgram(programUid);
+
+    if (!aclService.canDataWrite(getCurrentUserDetails(), program)) {
+      throw new ForbiddenException(
+          String.format(
+              "Current user doesn't have data write access to the provided program %s.",
+              programUid));
+    }
+
+    return program;
+  }
+
+  private Program getTrackerProgram(UID programUid) throws BadRequestException {
     Program program = programService.getProgram(programUid.getValue());
     if (program == null) {
       throw new BadRequestException(
@@ -74,18 +106,13 @@ public class TrackerProgramService {
       throw new BadRequestException(
           String.format("Provided program, %s, is not a tracker program.", programUid));
     }
-    if (!aclService.canDataRead(getCurrentUserDetails(), program)) {
-      throw new ForbiddenException(
-          String.format(
-              "Current user doesn't have access to the provided program %s.", programUid));
-    }
 
     return program;
   }
 
   /** Retrieves the list of tracker programs accessible to the current user. */
   @Transactional(readOnly = true)
-  public @Nonnull List<Program> getAccessibleTrackerPrograms() {
+  public @Nonnull List<Program> getTrackerProgramsWithDataReadAccess() {
     UserDetails user = getCurrentUserDetails();
 
     return programService.getAllPrograms().stream()
@@ -102,7 +129,7 @@ public class TrackerProgramService {
    * tracked entity type. It is assumed that the user has access to the supplied trackedEntityType.
    */
   @Transactional(readOnly = true)
-  public @Nonnull List<Program> getAccessibleTrackerPrograms(
+  public @Nonnull List<Program> getTrackerProgramsWithDataReadAccess(
       @Nonnull TrackedEntityType trackedEntityType) {
     UserDetails user = getCurrentUserDetails();
 
@@ -116,7 +143,7 @@ public class TrackerProgramService {
   }
 
   @Transactional(readOnly = true)
-  public @Nonnull List<ProgramStage> getAccessibleTrackerProgramStages(
+  public @Nonnull List<ProgramStage> getTrackerProgramStagesWithDataReadAccess(
       @Nonnull List<Program> program) {
     UserDetails user = getCurrentUserDetails();
 

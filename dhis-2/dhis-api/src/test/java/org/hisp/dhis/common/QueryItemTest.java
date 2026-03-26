@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
@@ -113,7 +114,7 @@ class QueryItemTest {
   @Test
   void testGetOptionSetQueryFilterItems() {
     QueryItem qiA = new QueryItem(deA, null, ValueType.TEXT, AggregationType.SUM, osA);
-    qiA.addFilter(new QueryFilter(QueryOperator.IN, "CODEA;CODEB"));
+    qiA.addFilter(new QueryFilter(IN, "CODEA;CODEB"));
     List<String> expected = Lists.newArrayList("UIDA", "UIDB");
     assertEquals(expected, qiA.getOptionSetFilterItemsOrAll());
     QueryItem qiB = new QueryItem(deA, null, ValueType.TEXT, AggregationType.SUM, osA);
@@ -124,7 +125,7 @@ class QueryItemTest {
   @Test
   void testGet() {
     QueryItem qiA = new QueryItem(deB, lsA, ValueType.TEXT, AggregationType.SUM, null);
-    qiA.addFilter(new QueryFilter(QueryOperator.IN, "UIDA;UIDB"));
+    qiA.addFilter(new QueryFilter(IN, "UIDA;UIDB"));
     qiA.setRepeatableStageParams(rspA);
     List<String> expected = Lists.newArrayList("UIDA", "UIDB");
     assertEquals(expected, qiA.getLegendSetFilterItemsOrAll());
@@ -169,5 +170,27 @@ class QueryItemTest {
         new QueryItem(deA, (Program) null, null, ValueType.TEXT, AggregationType.NONE, null);
 
     assertEquals(qiA.getKey(), qiB.getKey());
+  }
+
+  @Test
+  void testGetKeyNotTheSameWithFilters() {
+    QueryItem qiA = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    qiA.setFilters(List.of(new QueryFilter(IN)));
+
+    QueryItem qiB = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    qiB.setFilters(List.of(new QueryFilter(IN, "value")));
+
+    assertNotEquals(qiA.getKey(), qiB.getKey());
+  }
+
+  @Test
+  void testGetKeyNotTheSameWithDimensionValues() {
+    QueryItem qiA = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    qiA.setDimensionValues(List.of("value1"));
+
+    QueryItem qiB = new QueryItem(deA, prA, null, ValueType.TEXT, AggregationType.NONE, null);
+    qiB.setDimensionValues(List.of("value2"));
+
+    assertNotEquals(qiA.getKey(), qiB.getKey());
   }
 }

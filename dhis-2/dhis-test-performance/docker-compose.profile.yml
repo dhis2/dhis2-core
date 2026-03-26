@@ -12,6 +12,7 @@ services:
       JAVA_TOOL_OPTIONS:
         "-Dlog4j2.configurationFile=/opt/dhis2/log4j2.xml \
         -Xmx10000m -Xms10000m \
+        -Xlog:async -Xlog:gc*,safepoint:file=/tmp/gc.log:time,uptime,level,tags \
         -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081 \
         -XX:+UnlockDiagnosticVMOptions \
         -XX:+DebugNonSafepoints" # Accurate profiling at all code locations

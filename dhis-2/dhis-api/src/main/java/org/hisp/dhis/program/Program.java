@@ -70,6 +70,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.Cache;
+import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.ListIndexBase;
 import org.hibernate.annotations.Type;
 import org.hisp.dhis.attribute.AttributeValues;
@@ -123,6 +125,7 @@ import org.hisp.dhis.user.sharing.Sharing;
  */
 @Entity
 @Table(name = "program")
+@Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @JacksonXmlRootElement(localName = "program", namespace = DxfNamespaces.DXF_2_0)
 public class Program extends BaseMetadataObject
     implements IdentifiableObject, NameableObject, VersionedObject {
@@ -205,6 +208,7 @@ public class Program extends BaseMetadataObject
       name = "program_organisationunits",
       joinColumns = @JoinColumn(name = "programid"),
       inverseJoinColumns = @JoinColumn(name = "organisationunitid"))
+  @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
   private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
   @OneToMany
@@ -259,15 +263,15 @@ public class Program extends BaseMetadataObject
   @Column(name = "selectincidentdatesinfuture")
   private Boolean selectIncidentDatesInFuture = false;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "relatedprogramid")
   private Program relatedProgram;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "trackedentitytypeid")
   private TrackedEntityType trackedEntityType;
 
-  @ManyToOne(cascade = CascadeType.ALL)
+  @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JoinColumn(name = "dataentryformid")
   private DataEntryForm dataEntryForm;
 
@@ -276,12 +280,12 @@ public class Program extends BaseMetadataObject
   private ObjectStyle style;
 
   /** The CategoryCombo used for tracker and single events. */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "categorycomboid", nullable = false)
   private CategoryCombo categoryCombo;
 
   /** The CategoryCombo used for enrollments. */
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "enrollmentcategorycomboid", nullable = false)
   private CategoryCombo enrollmentCategoryCombo;
 

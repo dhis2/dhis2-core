@@ -35,6 +35,7 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.EVENT;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -59,6 +60,7 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
 import org.hisp.dhis.analytics.event.data.queryitem.QueryItemFilterHandlerRegistry;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -70,12 +72,12 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.jupiter.api.BeforeEach;
@@ -135,39 +137,61 @@ class DefaultEventDataQueryServiceTest {
   }
 
   @Test
-  void getFromRequestRejectsCreatedDimensionForEnrollmentAggregate() {
+  void getFromRequestAcceptsAndNormalizesCreatedDimensionForEnrollmentAggregate() {
     EventDataQueryRequest request =
         baseRequestBuilder(AGGREGATE, ENROLLMENT)
             .dimension(Set.of(Set.of("CREATED:LAST_12_MONTHS")))
             .build();
 
-    IllegalQueryException ex =
-        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
-    assertEquals(ErrorCode.E7222, ex.getErrorCode());
+    subject.getFromRequest(request);
+
+    verify(dataQueryService)
+        .getDimension(
+            eq("pe"),
+            eq(List.of("LAST_12_MONTHS:CREATED")),
+            eq(request),
+            anyList(),
+            eq(true),
+            any());
   }
 
   @Test
-  void getFromRequestRejectsCreatedFilterForEnrollmentAggregate() {
+  void getFromRequestAcceptsAndNormalizesCreatedFilterForEnrollmentAggregate() {
     EventDataQueryRequest request =
         baseRequestBuilder(AGGREGATE, ENROLLMENT)
             .filter(Set.of(Set.of("CREATED:LAST_12_MONTHS")))
             .build();
 
-    IllegalQueryException ex =
-        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
-    assertEquals(ErrorCode.E7222, ex.getErrorCode());
+    subject.getFromRequest(request);
+
+    verify(dataQueryService)
+        .getDimension(
+            eq("pe"),
+            eq(List.of("LAST_12_MONTHS:CREATED")),
+            eq(request.getRelativePeriodDate()),
+            anyList(),
+            eq(true),
+            eq(null),
+            any());
   }
 
   @Test
-  void getFromRequestRejectsCreatedDimensionForEventQueryEndpoint() {
+  void getFromRequestAcceptsAndNormalizesCreatedDimensionForEventQuery() {
     EventDataQueryRequest request =
         baseRequestBuilder(QUERY, EVENT)
             .dimension(Set.of(Set.of("CREATED:LAST_12_MONTHS")))
             .build();
 
-    IllegalQueryException ex =
-        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
-    assertEquals(ErrorCode.E7222, ex.getErrorCode());
+    subject.getFromRequest(request);
+
+    verify(dataQueryService)
+        .getDimension(
+            eq("pe"),
+            eq(List.of("LAST_12_MONTHS:CREATED")),
+            eq(request),
+            anyList(),
+            eq(true),
+            any());
   }
 
   @Test
@@ -225,6 +249,20 @@ class DefaultEventDataQueryServiceTest {
             anyList(),
             eq(true),
             any());
+  }
+
+  @Test
+  void getFromRequestAcceptsAndNormalizesEventDateDimensionForEnrollmentAggregate() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, ENROLLMENT)
+            .dimension(Set.of(Set.of("EVENT_DATE:2022Sep")))
+            .build();
+
+    subject.getFromRequest(request);
+
+    verify(dataQueryService)
+        .getDimension(
+            eq("pe"), eq(List.of("2022Sep:EVENT_DATE")), eq(request), anyList(), eq(true), any());
   }
 
   @Test
@@ -382,6 +420,39 @@ class DefaultEventDataQueryServiceTest {
 
     assertEquals(
         Set.of(EnrollmentStatus.ACTIVE, EnrollmentStatus.COMPLETED), params.getEnrollmentStatus());
+  }
+
+  @Test
+  void getFromRequestAcceptsDescendingCreatedSortForEnrollmentEndpoint() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT).desc(Set.of("created")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getDesc().size());
+    assertEquals("created", params.getDesc().get(0).getItemId());
+  }
+
+  @Test
+  void getFromRequestAcceptsAscendingCompletedSortForEnrollmentEndpoint() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT).asc(Set.of("completed")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getAsc().size());
+    assertEquals("completeddate", params.getAsc().get(0).getItemId());
+  }
+
+  @Test
+  void getFromRequestAcceptsDescendingCreatedSortForEventEndpoint() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).desc(Set.of("created")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getDesc().size());
+    assertEquals("created", params.getDesc().get(0).getItemId());
   }
 
   private QueryItem createDateQueryItem(String columnName) {
@@ -658,6 +729,44 @@ class DefaultEventDataQueryServiceTest {
             anyList(),
             anyBoolean(),
             any());
+  }
+
+  @Test
+  void getFromRequestDoesNotDuplicateStageDateDimensionAsFilter() {
+    ProgramStage programStage = createProgramStage('A', program);
+    QueryItem stageDateItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
+            program,
+            null,
+            ValueType.DATE,
+            AggregationType.NONE,
+            null);
+    stageDateItem.setProgramStage(programStage);
+
+    when(queryItemLocator.getQueryItemFromDimension(
+            eq(programStage.getUid() + ".EVENT_DATE"), eq(program), eq(EventOutputType.EVENT)))
+        .thenReturn(stageDateItem);
+    when(dataQueryService.getDimension(
+            eq(programStage.getUid() + ".EVENT_DATE"),
+            anyList(),
+            any(EventDataQueryRequest.class),
+            anyList(),
+            anyBoolean(),
+            any()))
+        .thenReturn(null);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT)
+            .dimension(Set.of(Set.of(programStage.getUid() + ".EVENT_DATE:THIS_YEAR")))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+    assertTrue(params.getItemFilters().isEmpty());
+    assertTrue(params.hasStageDateItem());
+    assertEquals(2, params.getItems().get(0).getFilters().size());
   }
 
   private EventDataQueryRequest.EventDataQueryRequestBuilder baseRequestBuilder(

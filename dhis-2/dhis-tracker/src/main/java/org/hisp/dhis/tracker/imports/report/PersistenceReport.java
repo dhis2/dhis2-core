@@ -87,12 +87,10 @@ public class PersistenceReport {
       TrackerTypeReport typeReport, TrackerTypeReport anotherTypeReport) {
     typeReport.getStats().merge(anotherTypeReport.getStats());
     typeReport.getEntityReport().addAll(anotherTypeReport.getEntityReport());
-    typeReport.getNotificationDataBundles().addAll(anotherTypeReport.getNotificationDataBundles());
 
     TrackerTypeReport trackerTypeReport = new TrackerTypeReport(TrackerType.EVENT);
     trackerTypeReport.setStats(typeReport.getStats());
     trackerTypeReport.setEntityReport(typeReport.getEntityReport());
-    trackerTypeReport.setNotificationDataBundles(typeReport.getNotificationDataBundles());
 
     return trackerTypeReport;
   }

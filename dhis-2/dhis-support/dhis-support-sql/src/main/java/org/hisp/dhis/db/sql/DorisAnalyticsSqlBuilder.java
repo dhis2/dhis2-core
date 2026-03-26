@@ -34,6 +34,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Optional;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.period.PeriodTypeEnum;
 
 public class DorisAnalyticsSqlBuilder extends DorisSqlBuilder implements AnalyticsSqlBuilder {
   private static final DateTimeFormatter SQL_DATETIME_FORMATTER =
@@ -95,6 +96,123 @@ public class DorisAnalyticsSqlBuilder extends DorisSqlBuilder implements Analyti
                   + ") as char))";
           default -> null;
         });
+  }
+
+  @Override
+  public Optional<String> renderDateFieldPeriodBucketDate(
+      String dateColumn, PeriodTypeEnum periodType) {
+    String dateExpr = castToDate(dateColumn);
+
+    return Optional.ofNullable(
+        switch (periodType) {
+          case DAILY -> dateExpr;
+          case YEARLY -> castToDate(dateTrunc("year", dateExpr));
+          case WEEKLY -> castToDate(dateTrunc("week", dateExpr));
+          case WEEKLY_WEDNESDAY -> dateShift(weekStart(dateShift(dateExpr, 5)), -5);
+          case WEEKLY_THURSDAY -> dateShift(weekStart(dateShift(dateExpr, 4)), -4);
+          case WEEKLY_FRIDAY -> dateShift(weekStart(dateShift(dateExpr, 3)), -3);
+          case WEEKLY_SATURDAY -> dateShift(weekStart(dateShift(dateExpr, 2)), -2);
+          case WEEKLY_SUNDAY -> dateShift(weekStart(dateShift(dateExpr, 1)), -1);
+          case BI_WEEKLY ->
+              dateShift(weekStart(dateExpr), "-((weekofyear(" + dateExpr + ") - 1) % 2) * 7");
+          case MONTHLY -> castToDate(dateTrunc("month", dateExpr));
+          case QUARTERLY -> castToDate(dateTrunc("quarter", dateExpr));
+          case QUARTERLY_NOV ->
+              dateShift(
+                  castToDate(dateTrunc("quarter", dateShift(dateExpr, -1, "MONTH"))), 1, "MONTH");
+          case BI_MONTHLY ->
+              firstDayOfMonth(year(dateExpr), "((month(" + dateExpr + ") - 1) / 2) * 2 + 1");
+          case SIX_MONTHLY ->
+              firstDayOfMonth(
+                  year(dateExpr), "case when month(" + dateExpr + ") <= 6 then 1 else 7 end");
+          case SIX_MONTHLY_APRIL ->
+              "case when month("
+                  + dateExpr
+                  + ") between 4 and 9 then "
+                  + firstDayOfMonth(year(dateExpr), "4")
+                  + " when month("
+                  + dateExpr
+                  + ") >= 10 then "
+                  + firstDayOfMonth(year(dateExpr), "10")
+                  + " else "
+                  + firstDayOfMonth(year(dateExpr) + " - 1", "10")
+                  + " end";
+          case SIX_MONTHLY_NOV ->
+              "case when month("
+                  + dateExpr
+                  + ") between 5 and 10 then "
+                  + firstDayOfMonth(year(dateExpr), "5")
+                  + " when month("
+                  + dateExpr
+                  + ") >= 11 then "
+                  + firstDayOfMonth(year(dateExpr), "11")
+                  + " else "
+                  + firstDayOfMonth(year(dateExpr) + " - 1", "11")
+                  + " end";
+          case FINANCIAL_FEB -> financialYearStart(dateExpr, 2);
+          case FINANCIAL_APRIL -> financialYearStart(dateExpr, 4);
+          case FINANCIAL_JULY -> financialYearStart(dateExpr, 7);
+          case FINANCIAL_AUG -> financialYearStart(dateExpr, 8);
+          case FINANCIAL_SEP -> financialYearStart(dateExpr, 9);
+          case FINANCIAL_OCT -> financialYearStart(dateExpr, 10);
+          case FINANCIAL_NOV -> financialYearStart(dateExpr, 11);
+          default -> null;
+        });
+  }
+
+  @Override
+  public boolean useJoinForDatePeriodStructureLookup() {
+    return true;
+  }
+
+  private String castToDate(String expression) {
+    return "cast(" + expression + " as date)";
+  }
+
+  private String weekStart(String expression) {
+    return castToDate(dateTrunc("week", expression));
+  }
+
+  private String dateShift(String expression, int amount) {
+    return dateShift(expression, Integer.toString(amount), "DAY");
+  }
+
+  private String dateShift(String expression, String amount) {
+    return dateShift(expression, amount, "DAY");
+  }
+
+  private String dateShift(String expression, int amount, String unit) {
+    return dateShift(expression, Integer.toString(amount), unit);
+  }
+
+  private String dateShift(String expression, String amount, String unit) {
+    return "date_add(" + expression + ", interval " + amount + " " + unit + ")";
+  }
+
+  private String year(String dateExpr) {
+    return "year(" + dateExpr + ")";
+  }
+
+  private String firstDayOfMonth(String yearExpression, String monthExpression) {
+    return "date_add(makedate("
+        + yearExpression
+        + ", 1), interval ("
+        + monthExpression
+        + " - 1) month)";
+  }
+
+  private String financialYearStart(String dateExpr, int startMonth) {
+    return firstDayOfMonth(
+        "case when month("
+            + dateExpr
+            + ") >= "
+            + startMonth
+            + " then year("
+            + dateExpr
+            + ") else year("
+            + dateExpr
+            + ") - 1 end",
+        Integer.toString(startMonth));
   }
 
   private LocalDateTime tryParseDateTime(String value) {
