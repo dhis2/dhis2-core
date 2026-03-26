@@ -314,6 +314,8 @@ class SecurityOwnershipValidatorTest extends TestBase {
     Event preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
     when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
 
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
     when(aclService.canDataRead(user, program)).thenReturn(true);
@@ -345,6 +347,8 @@ class SecurityOwnershipValidatorTest extends TestBase {
     Event preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
     when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
     when(preheat.getProgramOwner())
         .thenReturn(
             Collections.singletonMap(
@@ -393,6 +397,8 @@ class SecurityOwnershipValidatorTest extends TestBase {
     preheatEvent.setEnrollment(enrollment);
 
     when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
 
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
     when(aclService.canDataRead(userDetails, program)).thenReturn(true);
@@ -477,6 +483,8 @@ class SecurityOwnershipValidatorTest extends TestBase {
     Event preheatEvent = getEvent();
     preheatEvent.setEnrollment(enrollment);
     when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
 
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
     when(aclService.canDataRead(user, program)).thenReturn(true);
@@ -510,9 +518,12 @@ class SecurityOwnershipValidatorTest extends TestBase {
 
     when(preheat.getEvent(event.getEvent())).thenReturn(preheatEvent);
 
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
+    UserDetails userDetails = setUpUserWithOrgUnit();
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
+    when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
+    when(aclService.canDataRead(userDetails, program)).thenReturn(true);
+    when(aclService.canDataWrite(userDetails, programStage)).thenReturn(true);
 
     validator.validate(reporter, bundle, event);
 
