@@ -42,10 +42,6 @@ updates:
     commit-message:
       prefix: "chore"
       include: "scope"
-    ignore:
-      - dependency-name: "com.epam.reportportal:*" # It is breaking e2e tests for some reason
-        versions:
-          - ">= 5.3.0"
 
   # 2.43
   - package-ecosystem: "github-actions"
@@ -77,9 +73,6 @@ updates:
       include: "scope"
     target-branch: "2.43"
     ignore:
-      - dependency-name: "org.apache.struts:*" # will be removed from core (significant work involved in upgrade with the risk of regressions)
-        versions:
-          - ">= 3.0"
       - dependency-name: "org.springframework:*" # Spring framework 6 requires minimum JDK 17 so it will require more effort/time until we update it
         versions:
           - ">= 6.0"
@@ -128,10 +121,6 @@ updates:
       prefix: "chore"
       include: "scope"
     target-branch: "2.43"
-    ignore:
-      - dependency-name: "com.epam.reportportal:*" # It is breaking e2e tests for some reason
-        versions:
-          - ">= 5.3.0"
 
   # 2.42
   - package-ecosystem: "github-actions"
