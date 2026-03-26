@@ -40,20 +40,27 @@ import org.junit.jupiter.params.provider.MethodSource;
 class I18nFormatTest {
 
   @ParameterizedTest
-  @MethodSource("providePeriodData")
+  @MethodSource("provideWeekPeriodData")
   void testFormatPeriod(String period, String expected) {
     I18nFormat i18nFormat = new I18nFormat();
     assertEquals(expected, i18nFormat.formatPeriod(Period.of(period)));
   }
 
   @ParameterizedTest
-  @MethodSource("providePeriodDataShortVersion")
+  @MethodSource("provideWeekPeriodDataShortVersion")
   void testFormatPeriodShortVersion(String period, String expected) {
     I18nFormat i18nFormat = new I18nFormat();
     assertEquals(expected, i18nFormat.formatPeriod(Period.of(period), true));
   }
 
-  private static Stream<Arguments> providePeriodDataShortVersion() {
+  @ParameterizedTest
+  @MethodSource("provideBiWeekPeriodData")
+  void testFormatPeriodBiWeekVersion(String period, String expected) {
+    I18nFormat i18nFormat = new I18nFormat();
+    assertEquals(expected, i18nFormat.formatPeriod(Period.of(period), false));
+  }
+
+  private static Stream<Arguments> provideWeekPeriodDataShortVersion() {
     return Stream.of(
         Arguments.of("2024W1", "W1 - 2024-01-01 - 2024-01-07"),
         Arguments.of("2024W2", "W2 - 2024-01-08 - 2024-01-14"),
@@ -68,7 +75,7 @@ class I18nFormatTest {
         Arguments.of("2024SatW2", "W2 - 2024-01-06 - 2024-01-12"));
   }
 
-  private static Stream<Arguments> providePeriodData() {
+  private static Stream<Arguments> provideWeekPeriodData() {
     return Stream.of(
         Arguments.of("2024W1", "Week 1 - 2024-01-01 - 2024-01-07"),
         Arguments.of("2024W2", "Week 2 - 2024-01-08 - 2024-01-14"),
@@ -81,5 +88,12 @@ class I18nFormatTest {
         Arguments.of("2024WedW2", "Week 2 - 2024-01-10 - 2024-01-16"),
         Arguments.of("2024ThuW2", "Week 2 - 2024-01-11 - 2024-01-17"),
         Arguments.of("2024SatW2", "Week 2 - 2024-01-06 - 2024-01-12"));
+  }
+
+  private static Stream<Arguments> provideBiWeekPeriodData() {
+    return Stream.of(
+        Arguments.of("2024BiW1", "Bi-Week 1 - 2024-01-01 - 2024-01-14"),
+        Arguments.of("2024BiW2", "Bi-Week 2 - 2024-01-15 - 2024-01-28"),
+        Arguments.of("2024BiW3", "Bi-Week 3 - 2024-01-29 - 2024-02-11"));
   }
 }

@@ -78,9 +78,12 @@ public class I18nFormat {
 
   public static final String END_DATE_POSTFIX = ".endDate";
 
-  public static final String SHORT_PERIOD_NAME_FORMAT = "W%s - %d-%02d-%02d - %d-%02d-%02d";
+  public static final String PERIOD_SHORT_WEEK_NAME_FORMAT = "W%s - %d-%02d-%02d - %d-%02d-%02d";
 
-  public static final String PERIOD_NAME_FORMAT = "Week %s - %d-%02d-%02d - %d-%02d-%02d";
+  public static final String PERIOD_WEEK_NAME_FORMAT = "Week %s - %d-%02d-%02d - %d-%02d-%02d";
+
+  public static final String PERIOD_BI_WEEK_NAME_FORMAT =
+      "Bi-Week %s - %d-%02d-%02d - %d-%02d-%02d";
 
   private ResourceBundle resourceBundle;
 
@@ -295,7 +298,7 @@ public class I18nFormat {
       }
 
       return String.format(
-          shortVersion ? SHORT_PERIOD_NAME_FORMAT : PERIOD_NAME_FORMAT,
+          shortVersion ? PERIOD_SHORT_WEEK_NAME_FORMAT : PERIOD_WEEK_NAME_FORMAT,
           week,
           start.getYear(),
           start.getMonth(),
@@ -331,7 +334,7 @@ public class I18nFormat {
       }
 
       return String.format(
-          "Bi-Week %s %d-%02d-%02d - %d-%02d-%02d",
+          PERIOD_BI_WEEK_NAME_FORMAT,
           week,
           startDateTimeUnit.getYear(),
           startDateTimeUnit.getMonth(),
