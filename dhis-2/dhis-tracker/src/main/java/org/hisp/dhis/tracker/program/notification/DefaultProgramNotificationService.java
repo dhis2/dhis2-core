@@ -317,25 +317,6 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
 
   @Override
   @Transactional
-  public void sendTrackerEventCompletionNotifications(long eventId) {
-    sendTrackerEventNotifications(manager.get(TrackerEvent.class, eventId));
-  }
-
-  @Override
-  @Transactional
-  public void sendSingleEventCompletionNotifications(long eventId) {
-    sendSingleEventNotifications(manager.get(SingleEvent.class, eventId));
-  }
-
-  @Override
-  @Transactional
-  public void sendEnrollmentCompletionNotifications(long enrollment) {
-    sendEnrollmentNotifications(
-        manager.get(Enrollment.class, enrollment), NotificationTrigger.COMPLETION);
-  }
-
-  @Override
-  @Transactional
   public void sendEnrollmentNotifications(long enrollment) {
     sendEnrollmentNotifications(
         manager.get(Enrollment.class, enrollment), NotificationTrigger.ENROLLMENT);
@@ -343,8 +324,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
 
   @Override
   @Transactional
-  public void sendProgramRuleTriggeredNotifications(
-      ProgramNotificationTemplate template, Enrollment enrollment) {
+  public void sendNotification(ProgramNotificationTemplate template, Enrollment enrollment) {
     MessageBatch messageBatch =
         createEnrollmentMessageBatch(template, Collections.singletonList(enrollment));
     sendAll(messageBatch);
@@ -352,8 +332,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
 
   @Override
   @Transactional
-  public void sendProgramRuleTriggeredEventNotifications(
-      ProgramNotificationTemplate template, TrackerEvent event) {
+  public void sendNotification(ProgramNotificationTemplate template, TrackerEvent event) {
     MessageBatch messageBatch =
         createTrackerEventMessageBatch(template, Collections.singletonList(event));
     sendAll(messageBatch);
@@ -361,8 +340,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
 
   @Override
   @Transactional
-  public void sendProgramRuleTriggeredEventNotifications(
-      ProgramNotificationTemplate template, SingleEvent event) {
+  public void sendNotification(ProgramNotificationTemplate template, SingleEvent event) {
     MessageBatch messageBatch =
         createSingleEventMessageBatch(template, Collections.singletonList(event));
     sendAll(messageBatch);
@@ -477,40 +455,6 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
     return manager.getAll(ProgramNotificationTemplate.class).stream()
         .filter(n -> n.getNotificationTrigger().isScheduled())
         .collect(toList());
-  }
-
-  private void sendTrackerEventNotifications(TrackerEvent event) {
-    if (event == null) {
-      return;
-    }
-
-    Set<ProgramNotificationTemplate> templates = resolveTemplates(event);
-
-    if (templates.isEmpty()) {
-      return;
-    }
-
-    for (ProgramNotificationTemplate template : templates) {
-      MessageBatch batch = createTrackerEventMessageBatch(template, Lists.newArrayList(event));
-      sendAll(batch);
-    }
-  }
-
-  private void sendSingleEventNotifications(SingleEvent event) {
-    if (event == null) {
-      return;
-    }
-
-    Set<ProgramNotificationTemplate> templates = resolveTemplates(event);
-
-    if (templates.isEmpty()) {
-      return;
-    }
-
-    for (ProgramNotificationTemplate template : templates) {
-      MessageBatch batch = createSingleEventMessageBatch(template, List.of(event));
-      sendAll(batch);
-    }
   }
 
   private void sendEnrollmentNotifications(Enrollment enrollment, NotificationTrigger trigger) {
@@ -773,18 +717,6 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
       Enrollment enrollment, final NotificationTrigger trigger) {
     return enrollment.getProgram().getNotificationTemplates().stream()
         .filter(t -> t.getNotificationTrigger() == trigger)
-        .collect(Collectors.toSet());
-  }
-
-  private Set<ProgramNotificationTemplate> resolveTemplates(TrackerEvent event) {
-    return event.getProgramStage().getNotificationTemplates().stream()
-        .filter(t -> t.getNotificationTrigger() == NotificationTrigger.COMPLETION)
-        .collect(Collectors.toSet());
-  }
-
-  private Set<ProgramNotificationTemplate> resolveTemplates(SingleEvent event) {
-    return event.getProgramStage().getNotificationTemplates().stream()
-        .filter(t -> t.getNotificationTrigger() == NotificationTrigger.COMPLETION)
         .collect(Collectors.toSet());
   }
 

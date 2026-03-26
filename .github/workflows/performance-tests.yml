@@ -174,6 +174,7 @@ jobs:
         WARMUP_COUNT=$(grep "^WARMUP=" "$RUN_ENV" | cut -d= -f2-)
         MVN_ARGS_VALUE=$(grep "^MVN_ARGS=" "$RUN_ENV" | cut -d= -f2-)
         PROF_ARGS_VALUE=$(grep "^PROF_ARGS=" "$RUN_ENV" | cut -d= -f2-)
+        CAPTURE_DHIS2_LOGS_VALUE=$(grep "^CAPTURE_DHIS2_LOGS=" "$RUN_ENV" | cut -d= -f2-)
         CAPTURE_SQL_LOGS_VALUE=$(grep "^CAPTURE_SQL_LOGS=" "$RUN_ENV" | cut -d= -f2-)
         DB_TYPE=$(grep "^DB_TYPE=" "$RUN_ENV" | cut -d= -f2-)
         DB_VERSION=$(grep "^DB_VERSION=" "$RUN_ENV" | cut -d= -f2-)
@@ -195,6 +196,9 @@ jobs:
         fi
         if [ -n "$PROF_ARGS_VALUE" ]; then
           echo "* **Profiler arguments**: \`$PROF_ARGS_VALUE\`" >> $GITHUB_STEP_SUMMARY
+        fi
+        if [ -n "$CAPTURE_DHIS2_LOGS_VALUE" ]; then
+          echo "* **DHIS2 logging**: enabled" >> $GITHUB_STEP_SUMMARY
         fi
         if [ -n "$CAPTURE_SQL_LOGS_VALUE" ]; then
           echo "* **SQL logging**: enabled" >> $GITHUB_STEP_SUMMARY
@@ -249,6 +253,7 @@ jobs:
         echo "* \`profile.html\` - Flamegraph visualization (if profiling enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`profile.jfr\` - JFR profiler data (if profiling enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`profile.collapsed\` - Collapsed stack traces (if profiling enabled)" >> $GITHUB_STEP_SUMMARY
+        echo "* \`dhis.log\` - DHIS2 application log (if DHIS2 logging enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`postgresql.log\` - PostgreSQL query logs (if SQL logging enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`pgbadger.html\` - SQL log analysis report (if SQL logging enabled)" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY

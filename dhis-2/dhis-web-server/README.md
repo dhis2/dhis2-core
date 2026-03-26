@@ -21,7 +21,7 @@ The following shows the mapping of app repos to the DHIS2 versions that use the 
 |git@github.com:dhis2/maps-app.git|2.29|2.30|2.31|2.32|2.33|2.34|2.35|2.36|2.37|2.38|2.39|master|master|master|master|
 |git@github.com:dhis2/menu-management-app.git|v29|v30|v31|v32|v33|v34|v35|v36|v37|v38|v39|v40|master|master|master|
 |git@github.com:dhis2/messaging-app.git|master|master|master|master|master|master|master|master|master|master|master|master|master|master|master|
-|git@github.com:dhis2/metadata-management-app.git|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|main|
+|git@github.com:dhis2/metadata-management-app.git|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|n/a|master|
 |git@github.com:dhis2/reports-app.git|n/a|n/a|n/a|n/a|master|master|master|master|master|master|master|master|master|master|master|
 |git@github.com:dhis2/scheduler-app.git|2.29|2.30|2.31|2.32|2.33|2.34|2.35|100.x|100.x|100.x|100.x|master|master|master|master|
 |git@github.com:dhis2/settings-app.git|v29|v30|v31|v32|v33|v34|v35|v36|v37|v38|v39|v40|master|master|master|

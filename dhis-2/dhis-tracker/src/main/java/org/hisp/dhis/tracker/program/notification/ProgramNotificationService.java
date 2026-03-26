@@ -69,58 +69,28 @@ public interface ProgramNotificationService {
   void sendScheduledNotifications(JobProgress progress);
 
   /**
-   * Send completion notifications for tracker event. If the ProgramStage is not configured with
-   * suitable {@link ProgramNotificationTemplate templates}, nothing will happen.
-   *
-   * @param eventId the trackerEvent id.
-   */
-  void sendTrackerEventCompletionNotifications(long eventId);
-
-  /**
-   * Send completion notifications for single event. If the ProgramStage is not configured with
-   * suitable {@link ProgramNotificationTemplate templates}, nothing will happen.
-   *
-   * @param eventId the singleEvent id.
-   */
-  void sendSingleEventCompletionNotifications(long eventId);
-
-  /**
-   * Send completion notifications for the Enrollment triggered by ProgramRule evaluation. {@link
-   * ProgramNotificationTemplate templates}, nothing will happen.
+   * Send a notification for the given enrollment using the given template.
    *
    * @param template ProgramNotificationTemplate to send
    * @param enrollment the enrollment.
    */
-  void sendProgramRuleTriggeredNotifications(
-      ProgramNotificationTemplate template, Enrollment enrollment);
+  void sendNotification(ProgramNotificationTemplate template, Enrollment enrollment);
 
   /**
-   * Send completion notifications for the tracker event triggered by ProgramRule evaluation. {@link
-   * ProgramNotificationTemplate templates}, nothing will happen.
+   * Send a notification for the given tracker event using the given template.
    *
    * @param template ProgramNotificationTemplate to send
    * @param event the trackerEvent.
    */
-  void sendProgramRuleTriggeredEventNotifications(
-      ProgramNotificationTemplate template, TrackerEvent event);
+  void sendNotification(ProgramNotificationTemplate template, TrackerEvent event);
 
   /**
-   * Send completion notifications for the single event triggered by ProgramRule evaluation. {@link
-   * ProgramNotificationTemplate templates}, nothing will happen.
+   * Send a notification for the given single event using the given template.
    *
    * @param template ProgramNotificationTemplate to send
    * @param event the singleEvent.
    */
-  void sendProgramRuleTriggeredEventNotifications(
-      ProgramNotificationTemplate template, SingleEvent event);
-
-  /**
-   * Send completion notifications for the Enrollment. If the Program is not configured with
-   * suitable {@link ProgramNotificationTemplate templates}, nothing will happen.
-   *
-   * @param enrollment the Enrollment id.
-   */
-  void sendEnrollmentCompletionNotifications(long enrollment);
+  void sendNotification(ProgramNotificationTemplate template, SingleEvent event);
 
   /**
    * Send enrollment notifications for the Enrollment. If the Program is not configured with
