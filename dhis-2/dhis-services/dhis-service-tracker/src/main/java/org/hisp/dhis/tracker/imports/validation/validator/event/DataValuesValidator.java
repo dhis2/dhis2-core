@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
+import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1007;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1009;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1076;
@@ -49,6 +50,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.OptionService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -60,6 +62,7 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Enrico Colasante
@@ -177,6 +180,18 @@ class DataValuesValidator implements Validator<Event> {
 
   private void validateOrgUnitValueType(
       Reporter reporter, TrackerBundle bundle, Event event, @Nonnull String value) {
-    reporter.addErrorIfNull(bundle.getPreheat().getOrganisationUnit(value), event, E1007, value);
+    OrganisationUnit orgUnit = bundle.getPreheat().get(OrganisationUnit.class, value);
+
+    User user = bundle.getUser();
+    if (orgUnit == null) {
+      reporter.addError(event, E1007, ORGANISATION_UNIT, value);
+    } else if (!user.isSuper()
+        && !orgUnit.isDescendant(user.getTeiSearchOrganisationUnitsWithFallback())) {
+      reporter.addError(
+          event,
+          E1007,
+          ORGANISATION_UNIT,
+          "Organisation unit `" + value + "` is not in the user's search scope.");
+    }
   }
 }

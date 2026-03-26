@@ -44,6 +44,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -52,6 +53,7 @@ import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.service.attribute.TrackedAttributeValidationService;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Luciano Fiandesio
@@ -71,7 +73,7 @@ public abstract class AttributeValidator {
 
   protected void validateAttrValueType(
       Reporter reporter,
-      TrackerPreheat preheat,
+      TrackerBundle bundle,
       TrackerDto dto,
       Attribute attr,
       TrackedEntityAttribute teAttr) {
@@ -80,16 +82,21 @@ public abstract class AttributeValidator {
 
     ValueType valueType = teAttr.getValueType();
 
-    String error;
+    String error = null;
 
     if (valueType.equals(ValueType.ORGANISATION_UNIT)) {
-      error =
-          preheat.getOrganisationUnit(attr.getValue()) == null
-              ? " Value " + attr.getValue() + " is not a valid org unit value"
-              : null;
+      User user = bundle.getUser();
+      OrganisationUnit orgUnit = bundle.getPreheat().getOrganisationUnit(attr.getValue());
+
+      if (orgUnit == null) {
+        error = " Value " + attr.getValue() + " is not a valid org unit value";
+      } else if (!user.isSuper()
+          && !orgUnit.isDescendant(user.getTeiSearchOrganisationUnitsWithFallback())) {
+        error = "Organisation unit `" + orgUnit.getUid() + "` is not in the user's search scope.";
+      }
     } else if (valueType.equals(ValueType.USERNAME)) {
       error =
-          preheat.getUserByUsername(attr.getValue()).isPresent()
+          bundle.getPreheat().getUserByUsername(attr.getValue()).isPresent()
               ? null
               : " Value " + attr.getValue() + " is not a valid username value";
     } else {

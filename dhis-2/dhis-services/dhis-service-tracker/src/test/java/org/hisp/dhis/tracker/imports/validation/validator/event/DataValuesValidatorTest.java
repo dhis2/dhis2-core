@@ -27,14 +27,18 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.DhisConvenienceTest.makeUser;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;
+import static org.hisp.dhis.utils.Assertions.assertContains;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -61,6 +65,7 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -86,13 +91,15 @@ class DataValuesValidatorTest {
 
   private static final String dataElementUid = "dataElement";
 
-  private static final String organisationUnitUid = "organisationUnitUid";
-
   @Mock private TrackerBundle bundle;
 
   private Reporter reporter;
 
   private TrackerIdSchemeParams idSchemes;
+
+  private final User regularUser = Objects.requireNonNull(makeUser("B"));
+
+  private final User superUser = Objects.requireNonNull(makeUser("A", List.of("ALL")));
 
   public static Stream<Arguments> transactionsCreatingDataValues() {
     return Stream.of(
@@ -121,7 +128,7 @@ class DataValuesValidatorTest {
   }
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     validator = new DataValuesValidator(optionService);
 
     when(bundle.getPreheat()).thenReturn(preheat);
@@ -1024,7 +1031,6 @@ class DataValuesValidatorTest {
         .thenReturn(validDataElement);
 
     DataValue invalidDataValue = dataValue("invlaid_org_unit");
-    when(preheat.getOrganisationUnit(invalidDataValue.getValue())).thenReturn(null);
 
     ProgramStage programStage = programStage(validDataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
@@ -1044,20 +1050,72 @@ class DataValuesValidatorTest {
   }
 
   @Test
-  void succeedsValidationWhenOrgUnitValueIsValid() {
+  void succeedsValidationWhenOrgUnitValueIsValidAndInUserSearchScope() {
     DataElement validDataElement = dataElement(ValueType.ORGANISATION_UNIT);
     when(preheat.getDataElement(MetadataIdentifier.ofUid(dataElementUid)))
         .thenReturn(validDataElement);
-
-    OrganisationUnit validOrgUnit = organisationUnit();
-
+    OrganisationUnit validOrgUnit = createOrganisationUnit('A');
     DataValue validDataValue = dataValue(validOrgUnit.getUid());
-    when(preheat.getOrganisationUnit(validDataValue.getValue())).thenReturn(validOrgUnit);
+    when(bundle.getPreheat().get(OrganisationUnit.class, validOrgUnit.getUid()))
+        .thenReturn(validOrgUnit);
+    ProgramStage programStage = programStage(validDataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage.getUid())))
+        .thenReturn(programStage);
+    regularUser.getTeiSearchOrganisationUnits().add(validOrgUnit);
+    when(bundle.getUser()).thenReturn(regularUser);
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.ACTIVE)
+            .dataValues(Set.of(validDataValue))
+            .build();
 
+    validator.validate(reporter, bundle, event);
+
+    assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldFailWhenDataValueOrgUnitNotInUserSearchScope() {
+    DataElement validDataElement = dataElement(ValueType.ORGANISATION_UNIT);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(validDataElement.getUid())))
+        .thenReturn(validDataElement);
+    OrganisationUnit validOrgUnit = createOrganisationUnit('A');
+    DataValue validDataValue = dataValue(validOrgUnit.getUid());
+    when(bundle.getPreheat().get(OrganisationUnit.class, validDataValue.getValue()))
+        .thenReturn(validOrgUnit);
+    ProgramStage programStage = programStage(validDataElement);
+    when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStage.getUid())))
+        .thenReturn(programStage);
+    when(bundle.getUser()).thenReturn(regularUser);
+    Event event =
+        Event.builder()
+            .event(CodeGenerator.generateUid())
+            .programStage(idSchemes.toMetadataIdentifier(programStage))
+            .status(EventStatus.ACTIVE)
+            .dataValues(Set.of(validDataValue))
+            .build();
+
+    validator.validate(reporter, bundle, event);
+
+    assertHasError(reporter, event, ValidationCode.E1007);
+    assertContains("not in the user's search scope.", reporter.getErrors().get(0).getMessage());
+  }
+
+  @Test
+  void shouldPassValidationWhenDataValueOrgUnitNotInSuperUserSearchScope() {
+    DataElement validDataElement = dataElement(ValueType.ORGANISATION_UNIT);
+    when(preheat.getDataElement(MetadataIdentifier.ofUid(validDataElement.getUid())))
+        .thenReturn(validDataElement);
+    OrganisationUnit validOrgUnit = createOrganisationUnit('A');
+    DataValue validDataValue = dataValue(validOrgUnit.getUid());
     ProgramStage programStage = programStage(validDataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(programStageUid)))
         .thenReturn(programStage);
-
+    when(bundle.getPreheat().get(OrganisationUnit.class, validOrgUnit.getUid()))
+        .thenReturn(validOrgUnit);
+    when(bundle.getUser()).thenReturn(superUser);
     Event event =
         Event.builder()
             .programStage(idSchemes.toMetadataIdentifier(programStage))
@@ -1162,11 +1220,5 @@ class DataValuesValidatorTest {
         new ProgramStageDataElement(programStage, dataElement);
     programStageDataElement.setCompulsory(compulsory);
     return Set.of(programStageDataElement);
-  }
-
-  private OrganisationUnit organisationUnit() {
-    OrganisationUnit organisationUnit = new OrganisationUnit();
-    organisationUnit.setUid(organisationUnitUid);
-    return organisationUnit;
   }
 }
