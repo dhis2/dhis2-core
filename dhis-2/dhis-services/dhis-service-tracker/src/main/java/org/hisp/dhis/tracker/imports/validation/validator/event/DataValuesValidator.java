@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
+import static org.hisp.dhis.common.ValueType.ORGANISATION_UNIT;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1007;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1009;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1076;
@@ -185,11 +186,14 @@ class DataValuesValidator implements Validator<Event> {
 
     UserDetails user = bundle.getUser();
     if (orgUnit == null) {
-      reporter.addError(event, E1007, value);
+      reporter.addError(event, E1007, ORGANISATION_UNIT, value);
     } else if (!user.isSuper()
         && !user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath())) {
       reporter.addError(
-          event, E1007, "Organisation unit `" + value + "` is not in the user's search scope.");
+          event,
+          E1007,
+          ORGANISATION_UNIT,
+          "Organisation unit `" + value + "` is not in the user's search scope.");
     }
   }
 }
