@@ -175,7 +175,7 @@ class CompositeEndpointCacheTest extends CacheApiTest {
             CacheProbeUser.SUPERUSER,
             test -> "/me/dataApprovalLevels",
             test -> {},
-            CacheDependency.USER,
+            CacheDependency.DATA_APPROVAL_LEVEL,
             CacheDependency.USER_DATASTORE_ENTRY,
             true),
         new CompositeCacheScenario(
@@ -183,7 +183,7 @@ class CompositeEndpointCacheTest extends CacheApiTest {
             CacheProbeUser.SUPERUSER,
             test -> "/me/dataApprovalWorkflows",
             test -> {},
-            CacheDependency.USER,
+            CacheDependency.DATA_APPROVAL_WORKFLOW,
             CacheDependency.USER_DATASTORE_ENTRY,
             true),
         new CompositeCacheScenario(

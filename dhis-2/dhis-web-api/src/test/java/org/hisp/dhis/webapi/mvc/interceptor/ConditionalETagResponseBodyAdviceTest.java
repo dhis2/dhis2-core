@@ -49,7 +49,6 @@ import org.hisp.dhis.webapi.service.ConditionalETagService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -80,6 +79,7 @@ class ConditionalETagResponseBodyAdviceTest {
 
     when(eTagService.isEnabled()).thenReturn(true);
     when(eTagService.getTtlMinutes()).thenReturn(60);
+    when(eTagService.getStaleWhileRevalidateSeconds()).thenReturn(60);
     lenient().when(eTagService.getEntityTypeVersion(any())).thenReturn(1L);
 
     ConditionalETagService conditionalETagService = new ConditionalETagService(eTagService);
@@ -105,10 +105,7 @@ class ConditionalETagResponseBodyAdviceTest {
         .andExpect(header().exists("ETag"))
         .andExpect(header().string("Vary", "Cookie, Authorization"))
         .andExpect(
-            header()
-                .string(
-                    "Cache-Control",
-                    CacheControl.noCache().cachePrivate().mustRevalidate().getHeaderValue()));
+            header().string("Cache-Control", "max-age=0, private, stale-while-revalidate=60"));
   }
 
   @Test
@@ -122,10 +119,7 @@ class ConditionalETagResponseBodyAdviceTest {
         .andExpect(header().exists("ETag"))
         .andExpect(header().string("Vary", "Cookie, Authorization"))
         .andExpect(
-            header()
-                .string(
-                    "Cache-Control",
-                    CacheControl.noCache().cachePrivate().mustRevalidate().getHeaderValue()));
+            header().string("Cache-Control", "max-age=0, private, stale-while-revalidate=60"));
   }
 
   @Test
@@ -170,10 +164,7 @@ class ConditionalETagResponseBodyAdviceTest {
         .andExpect(header().exists("ETag"))
         .andExpect(header().string("Vary", "Cookie, Authorization"))
         .andExpect(
-            header()
-                .string(
-                    "Cache-Control",
-                    CacheControl.noCache().cachePrivate().mustRevalidate().getHeaderValue()));
+            header().string("Cache-Control", "max-age=0, private, stale-while-revalidate=60"));
   }
 
   @Controller
