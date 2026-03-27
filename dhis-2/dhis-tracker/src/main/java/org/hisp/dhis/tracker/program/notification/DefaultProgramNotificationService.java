@@ -39,7 +39,6 @@ import com.google.common.collect.Sets;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Root;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -73,6 +72,8 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.template.NotificationTemplateMapper;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.tracker.imports.notification.NotificationContext;
+import org.hisp.dhis.tracker.imports.notification.NotificationContext.GroupMemberInfo;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
@@ -324,26 +325,41 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
 
   @Override
   @Transactional
-  public void sendNotification(ProgramNotificationTemplate template, Enrollment enrollment) {
-    MessageBatch messageBatch =
-        createEnrollmentMessageBatch(template, Collections.singletonList(enrollment));
-    sendAll(messageBatch);
+  public void sendNotification(
+      ProgramNotificationTemplate template, Enrollment enrollment, NotificationContext context) {
+    MessageBatch batch = new MessageBatch();
+    if (template.getNotificationRecipient().isExternalRecipient()) {
+      batch.programMessages.add(createProgramMessage(enrollment, template));
+    } else {
+      batch.dhisMessages.add(createDhisMessage(enrollment, template, context));
+    }
+    sendAll(batch);
   }
 
   @Override
   @Transactional
-  public void sendNotification(ProgramNotificationTemplate template, TrackerEvent event) {
-    MessageBatch messageBatch =
-        createTrackerEventMessageBatch(template, Collections.singletonList(event));
-    sendAll(messageBatch);
+  public void sendNotification(
+      ProgramNotificationTemplate template, TrackerEvent event, NotificationContext context) {
+    MessageBatch batch = new MessageBatch();
+    if (template.getNotificationRecipient().isExternalRecipient()) {
+      batch.programMessages.add(createProgramMessage(event, template));
+    } else {
+      batch.dhisMessages.add(createDhisMessage(event, template, context));
+    }
+    sendAll(batch);
   }
 
   @Override
   @Transactional
-  public void sendNotification(ProgramNotificationTemplate template, SingleEvent event) {
-    MessageBatch messageBatch =
-        createSingleEventMessageBatch(template, Collections.singletonList(event));
-    sendAll(messageBatch);
+  public void sendNotification(
+      ProgramNotificationTemplate template, SingleEvent event, NotificationContext context) {
+    MessageBatch batch = new MessageBatch();
+    if (template.getNotificationRecipient().isExternalRecipient()) {
+      batch.programMessages.add(createProgramMessage(event, template));
+    } else {
+      batch.dhisMessages.add(createSingleEventDhisMessage(event, template));
+    }
+    sendAll(batch);
   }
 
   @Override
@@ -749,6 +765,75 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
         resolveDhisMessageRecipients(template, enrollment.getOrganisationUnit());
 
     return dhisMessage;
+  }
+
+  private DhisMessage createDhisMessage(
+      Enrollment enrollment, ProgramNotificationTemplate template, NotificationContext context) {
+    DhisMessage dhisMessage = new DhisMessage();
+    dhisMessage.message = programNotificationRenderer.render(enrollment, template);
+    dhisMessage.recipients =
+        resolveDhisMessageRecipients(template, enrollment.getOrganisationUnit(), context);
+    return dhisMessage;
+  }
+
+  private DhisMessage createDhisMessage(
+      TrackerEvent event, ProgramNotificationTemplate template, NotificationContext context) {
+    DhisMessage dhisMessage = new DhisMessage();
+    dhisMessage.message = programStageNotificationRenderer.render(event, template);
+    dhisMessage.recipients =
+        resolveDhisMessageRecipients(template, event.getOrganisationUnit(), context);
+    return dhisMessage;
+  }
+
+  private Set<User> resolveDhisMessageRecipients(
+      ProgramNotificationTemplate template, OrganisationUnit orgUnit, NotificationContext context) {
+    if (template.getNotificationRecipient() != ProgramNotificationRecipient.USER_GROUP
+        || template.getRecipientUserGroup() == null
+        || !context.groupMembers().containsKey(template.getRecipientUserGroup().getId())) {
+      return resolveDhisMessageRecipients(template, orgUnit);
+    }
+
+    Set<GroupMemberInfo> members =
+        context.groupMembers().get(template.getRecipientUserGroup().getId());
+
+    // Members are pre-fetched with disabled users already filtered out in SQL.
+    Set<GroupMemberInfo> filtered = filterByOrgUnit(template, orgUnit, members);
+
+    return filtered.stream()
+        .map(GroupMemberInfo::userId)
+        .distinct()
+        .map(id -> entityManager.getReference(User.class, id))
+        .collect(Collectors.toSet());
+  }
+
+  private static Set<GroupMemberInfo> filterByOrgUnit(
+      ProgramNotificationTemplate template,
+      OrganisationUnit orgUnit,
+      Set<GroupMemberInfo> members) {
+    if (BooleanUtils.toBoolean(template.getNotifyUsersInHierarchyOnly())) {
+      String entityPath = orgUnit.getStoredPath();
+      return members.stream()
+          .filter(
+              m ->
+                  m.orgUnitUid() != null && (entityPath + "/").contains("/" + m.orgUnitUid() + "/"))
+          .collect(Collectors.toSet());
+    }
+
+    if (BooleanUtils.toBoolean(template.getNotifyParentOrganisationUnitOnly())) {
+      String parentUid = extractParentUidFromPath(orgUnit.getStoredPath());
+      return members.stream()
+          .filter(m -> parentUid != null && parentUid.equals(m.orgUnitUid()))
+          .collect(Collectors.toSet());
+    }
+
+    return members;
+  }
+
+  private static String extractParentUidFromPath(String path) {
+    if (path == null) return null;
+    // path format: /uid1/uid2/uid3 -- parent is second to last
+    String[] parts = path.split("/");
+    return parts.length >= 3 ? parts[parts.length - 2] : null;
   }
 
   private void sendDhisMessages(Set<DhisMessage> messages) {

@@ -49,7 +49,7 @@ import org.hisp.dhis.tracker.program.notification.ProgramNotificationService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Sends or schedules a notification to be sent as a result of a rule-engine evaluation. */
+/** Sends or schedules notifications as a side effect of tracker import. */
 @Slf4j
 @RequiredArgsConstructor
 @Component
@@ -60,7 +60,7 @@ public class NotificationSender {
   private final NotificationLoggingService notificationLoggingService;
 
   @Transactional
-  public void send(Notification notification, Enrollment enrollment) {
+  public void send(Notification notification, Enrollment enrollment, NotificationContext context) {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
     NotificationValidationResult result = validate(template, enrollment);
@@ -74,7 +74,7 @@ public class NotificationSender {
       notificationInstance.setEnrollment(enrollment);
       programNotificationInstanceService.save(notificationInstance);
     } else {
-      programNotificationService.sendNotification(template, enrollment);
+      programNotificationService.sendNotification(template, enrollment, context);
     }
     if (result.needsToCreateLogEntry()) {
       createLogEntry(template, enrollment);
@@ -82,7 +82,7 @@ public class NotificationSender {
   }
 
   @Transactional
-  public void send(Notification notification, TrackerEvent event) {
+  public void send(Notification notification, TrackerEvent event, NotificationContext context) {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
     NotificationValidationResult result = validate(template, event.getEnrollment());
@@ -96,7 +96,7 @@ public class NotificationSender {
       notificationInstance.setTrackerEvent(event);
       programNotificationInstanceService.save(notificationInstance);
     } else {
-      programNotificationService.sendNotification(template, event);
+      programNotificationService.sendNotification(template, event, context);
     }
 
     if (result.needsToCreateLogEntry()) {
@@ -105,7 +105,8 @@ public class NotificationSender {
   }
 
   @Transactional
-  public void send(Notification notification, SingleEvent singleEvent) {
+  public void send(
+      Notification notification, SingleEvent singleEvent, NotificationContext context) {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
     if (notification.scheduledAt() != null) {
@@ -114,7 +115,7 @@ public class NotificationSender {
       notificationInstance.setSingleEvent(singleEvent);
       programNotificationInstanceService.save(notificationInstance);
     } else {
-      programNotificationService.sendNotification(template, singleEvent);
+      programNotificationService.sendNotification(template, singleEvent, context);
     }
   }
 
@@ -141,6 +142,10 @@ public class NotificationSender {
     }
 
     if (enrollment == null || enrollment.getProgram().isWithoutRegistration()) {
+      return NotificationValidationResult.validAndNoNeedForLogEntries();
+    }
+
+    if (template.isSendRepeatable()) {
       return NotificationValidationResult.validAndNoNeedForLogEntries();
     }
 

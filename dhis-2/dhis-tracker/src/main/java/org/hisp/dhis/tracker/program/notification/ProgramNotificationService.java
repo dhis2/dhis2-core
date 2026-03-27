@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.tracker.imports.notification.NotificationContext;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackerEvent;
@@ -74,23 +75,14 @@ public interface ProgramNotificationService {
    * @param template ProgramNotificationTemplate to send
    * @param enrollment the enrollment.
    */
-  void sendNotification(ProgramNotificationTemplate template, Enrollment enrollment);
+  void sendNotification(
+      ProgramNotificationTemplate template, Enrollment enrollment, NotificationContext context);
 
-  /**
-   * Send a notification for the given tracker event using the given template.
-   *
-   * @param template ProgramNotificationTemplate to send
-   * @param event the trackerEvent.
-   */
-  void sendNotification(ProgramNotificationTemplate template, TrackerEvent event);
+  void sendNotification(
+      ProgramNotificationTemplate template, TrackerEvent event, NotificationContext context);
 
-  /**
-   * Send a notification for the given single event using the given template.
-   *
-   * @param template ProgramNotificationTemplate to send
-   * @param event the singleEvent.
-   */
-  void sendNotification(ProgramNotificationTemplate template, SingleEvent event);
+  void sendNotification(
+      ProgramNotificationTemplate template, SingleEvent event, NotificationContext context);
 
   /**
    * Send enrollment notifications for the Enrollment. If the Program is not configured with

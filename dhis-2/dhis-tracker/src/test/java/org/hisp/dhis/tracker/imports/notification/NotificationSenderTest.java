@@ -37,7 +37,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.Date;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
@@ -57,16 +56,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class NotificationSenderTest {
-  private static final UID TEMPLATE_UID = UID.of("h4w96yEMlzO");
+  private static final String TEMPLATE_UID = "h4w96yEMlzO";
   private static final String ENROLLMENT_UID = "enrollmentUid";
-  private static final UID EVENT_UID = UID.generate();
 
   @Mock private ProgramNotificationTemplateService programNotificationTemplateService;
-
   @Mock private NotificationLoggingService notificationLoggingService;
-
   @Mock private ProgramNotificationService programNotificationService;
-
   @Mock private ProgramNotificationInstanceService programNotificationInstanceService;
 
   private NotificationSender notificationSender;
@@ -82,238 +77,129 @@ class NotificationSenderTest {
   }
 
   @Test
-  void shouldFailValidationForEnrollmentWhenTemplateIsNotFound() {
-    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID.getValue()))
-        .thenReturn(null);
+  void shouldNotSendWhenTemplateIsNull() {
+    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID)).thenReturn(null);
 
-    notificationSender.send(scheduleMessage(), enrollment());
+    notificationSender.send(sendMessage(), enrollment(), NotificationContext.EMPTY);
 
-    verify(programNotificationInstanceService, never()).save(any());
-    verify(programNotificationService, never()).sendNotification(any(), any(Enrollment.class));
+    verify(programNotificationService, never())
+        .sendNotification(any(), any(Enrollment.class), any());
     verify(notificationLoggingService, never()).save(any());
   }
 
   @Test
-  void shouldFailValidationForEnrollmentWhenNotRepeatableNotificationLogIsPresent() {
-    ProgramNotificationTemplate template = template();
-    Notification ruleEffect = scheduleMessage();
-    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID.getValue()))
-        .thenReturn(template);
-    when(notificationLoggingService.getByKey(TEMPLATE_UID.getValue().concat(ENROLLMENT_UID)))
-        .thenReturn(notRepeatableNotificationLog());
-    notificationSender.send(ruleEffect, enrollment());
+  void shouldSendAndCreateLogEntryForNonRepeatableTemplate() {
+    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID)).thenReturn(template());
 
-    verify(programNotificationInstanceService, never()).save(any());
-    verify(programNotificationService, never()).sendNotification(any(), any(Enrollment.class));
-    verify(notificationLoggingService, never()).save(any());
-  }
+    notificationSender.send(sendMessage(), enrollment(), NotificationContext.EMPTY);
 
-  @Test
-  void
-      shouldPassValidationForEnrollmentWhenSchedulingMessageAndRepeatableNotificationLogIsPresent() {
-    ProgramNotificationTemplate template = template();
-    Notification ruleEffect = scheduleMessage();
-    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID.getValue()))
-        .thenReturn(template);
-    when(notificationLoggingService.getByKey(TEMPLATE_UID.getValue().concat(ENROLLMENT_UID)))
-        .thenReturn(repeatableNotificationLog());
-    notificationSender.send(ruleEffect, enrollment());
-
-    verify(programNotificationInstanceService, times(1)).save(any());
-    verify(programNotificationService, never()).sendNotification(any(), any(Enrollment.class));
-    verify(notificationLoggingService, never()).save(any());
-  }
-
-  @Test
-  void shouldPassValidationForEnrollmentWhenSendingMessageAndRepeatableNotificationLogIsPresent() {
-    ProgramNotificationTemplate template = template();
-    Notification ruleEffect = sendMessage();
-    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID.getValue()))
-        .thenReturn(template);
-    when(notificationLoggingService.getByKey(TEMPLATE_UID.getValue().concat(ENROLLMENT_UID)))
-        .thenReturn(repeatableNotificationLog());
-    notificationSender.send(ruleEffect, enrollment());
-
-    verify(programNotificationInstanceService, never()).save(any());
-    verify(programNotificationService, times(1)).sendNotification(any(), any(Enrollment.class));
-    verify(notificationLoggingService, never()).save(any());
-  }
-
-  @Test
-  void shouldPassValidationForEnrollmentWhenSchedulingAndMessageNoNotificationLogIsPresent() {
-    ProgramNotificationTemplate template = template();
-    Notification ruleEffect = scheduleMessage();
-    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID.getValue()))
-        .thenReturn(template);
-    when(notificationLoggingService.getByKey(TEMPLATE_UID.getValue().concat(ENROLLMENT_UID)))
-        .thenReturn(null);
-    notificationSender.send(ruleEffect, enrollment());
-
-    verify(programNotificationInstanceService, times(1)).save(any());
-    verify(programNotificationService, never()).sendNotification(any(), any(Enrollment.class));
+    verify(programNotificationService, times(1))
+        .sendNotification(any(), any(Enrollment.class), any());
     verify(notificationLoggingService, times(1)).save(any());
   }
 
   @Test
-  void shouldPassValidationForEnrollmentWhenSendingMessageDateAndNoNotificationLogIsPresent() {
-    ProgramNotificationTemplate template = template();
-    Notification ruleEffect = sendMessage();
-    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID.getValue()))
-        .thenReturn(template);
-    notificationSender.send(ruleEffect, enrollment());
+  void shouldScheduleAndCreateLogEntryForNonRepeatableTemplate() {
+    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID)).thenReturn(template());
 
-    verify(programNotificationInstanceService, never()).save(any());
-    verify(programNotificationService, times(1)).sendNotification(any(), any(Enrollment.class));
+    notificationSender.send(scheduleMessage(), enrollment(), NotificationContext.EMPTY);
+
+    verify(programNotificationInstanceService, times(1)).save(any());
+    verify(programNotificationService, never())
+        .sendNotification(any(), any(Enrollment.class), any());
     verify(notificationLoggingService, times(1)).save(any());
   }
 
   @Test
-  void shouldFailValidationForEventWhenTemplateIsNotFound() {
-    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID.getValue()))
-        .thenReturn(null);
+  void shouldNotSendWhenLogEntryExistsAndNotRepeatable() {
+    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID)).thenReturn(template());
+    org.hisp.dhis.notification.logging.ExternalNotificationLogEntry logEntry =
+        new org.hisp.dhis.notification.logging.ExternalNotificationLogEntry();
+    logEntry.setAllowMultiple(false);
+    when(notificationLoggingService.getByKey(TEMPLATE_UID + ENROLLMENT_UID)).thenReturn(logEntry);
 
-    notificationSender.send(scheduleMessage(), event());
+    notificationSender.send(sendMessage(), enrollment(), NotificationContext.EMPTY);
 
-    verify(programNotificationInstanceService, never()).save(any());
-    verify(programNotificationService, never()).sendNotification(any(), any(TrackerEvent.class));
+    verify(programNotificationService, never())
+        .sendNotification(any(), any(Enrollment.class), any());
     verify(notificationLoggingService, never()).save(any());
   }
 
   @Test
-  void shouldFailValidationForEventWhenSchedulingMessageAndNotRepeatableNotificationLogIsPresent() {
-    ProgramNotificationTemplate template = template();
-    Notification ruleEffect = scheduleMessage();
-    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID.getValue()))
-        .thenReturn(template);
-    when(notificationLoggingService.getByKey(TEMPLATE_UID.getValue().concat(ENROLLMENT_UID)))
-        .thenReturn(notRepeatableNotificationLog());
-    notificationSender.send(ruleEffect, event());
+  void shouldSendWithoutLogEntryForRepeatableTemplate() {
+    ProgramNotificationTemplate t = template();
+    t.setSendRepeatable(true);
+    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID)).thenReturn(t);
 
-    verify(programNotificationInstanceService, never()).save(any());
-    verify(programNotificationService, never()).sendNotification(any(), any(TrackerEvent.class));
+    notificationSender.send(sendMessage(), enrollment(), NotificationContext.EMPTY);
+
+    verify(programNotificationService, times(1))
+        .sendNotification(any(), any(Enrollment.class), any());
     verify(notificationLoggingService, never()).save(any());
   }
 
   @Test
-  void shouldFailValidationForEventWhenSendingMessageAndNotRepeatableNotificationLogIsPresent() {
-    ProgramNotificationTemplate template = template();
-    Notification ruleEffect = sendMessage();
-    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID.getValue()))
-        .thenReturn(template);
-    when(notificationLoggingService.getByKey(TEMPLATE_UID.getValue().concat(ENROLLMENT_UID)))
-        .thenReturn(notRepeatableNotificationLog());
-    notificationSender.send(ruleEffect, event());
+  void shouldSendEventNotification() {
+    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID)).thenReturn(template());
 
-    verify(programNotificationInstanceService, never()).save(any());
-    verify(programNotificationService, never()).sendNotification(any(), any(TrackerEvent.class));
-    verify(notificationLoggingService, never()).save(any());
-  }
+    notificationSender.send(sendMessage(), event(), NotificationContext.EMPTY);
 
-  @Test
-  void
-      shouldPassValidationForSingleEventWhenSchedulingMessageAndNotRepeatableNotificationLogIsPresent() {
-    ProgramNotificationTemplate template = template();
-    Notification ruleEffect = scheduleMessage();
-    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID.getValue()))
-        .thenReturn(template);
-    notificationSender.send(ruleEffect, singleEvent());
-
-    verify(programNotificationInstanceService, times(1)).save(any());
-    verify(programNotificationService, never()).sendNotification(any(), any(SingleEvent.class));
-    verify(notificationLoggingService, never()).save(any());
-  }
-
-  @Test
-  void
-      shouldPassValidationForSingleEventWhenSendingMessageAndNotRepeatableNotificationLogIsPresent() {
-    ProgramNotificationTemplate template = template();
-    Notification ruleEffect = sendMessage();
-    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID.getValue()))
-        .thenReturn(template);
-    notificationSender.send(ruleEffect, singleEvent());
-
-    verify(programNotificationInstanceService, never()).save(any());
-    verify(programNotificationService, times(1)).sendNotification(any(), any(SingleEvent.class));
-    verify(notificationLoggingService, never()).save(any());
-  }
-
-  @Test
-  void shouldPassValidationForEventWhenScheduleMessageAndRepeatableNotificationLogIsPresent() {
-    ProgramNotificationTemplate template = template();
-    Notification ruleEffect = scheduleMessage();
-    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID.getValue()))
-        .thenReturn(template);
-    when(notificationLoggingService.getByKey(TEMPLATE_UID.getValue().concat(ENROLLMENT_UID)))
-        .thenReturn(repeatableNotificationLog());
-    notificationSender.send(ruleEffect, event());
-
-    verify(programNotificationInstanceService, times(1)).save(any());
-    verify(programNotificationService, never()).sendNotification(any(), any(TrackerEvent.class));
-    verify(notificationLoggingService, never()).save(any());
-  }
-
-  @Test
-  void shouldPassValidationForEventWhenSendingMessageAndRepeatableNotificationLogIsPresent() {
-    ProgramNotificationTemplate template = template();
-    Notification ruleEffect = sendMessage();
-    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID.getValue()))
-        .thenReturn(template);
-    when(notificationLoggingService.getByKey(TEMPLATE_UID.getValue().concat(ENROLLMENT_UID)))
-        .thenReturn(repeatableNotificationLog());
-    notificationSender.send(ruleEffect, event());
-
-    verify(programNotificationInstanceService, never()).save(any());
-    verify(programNotificationService, times(1)).sendNotification(any(), any(TrackerEvent.class));
-    verify(notificationLoggingService, never()).save(any());
-  }
-
-  @Test
-  void shouldPassValidationForEventWhenSchedulingMessageAndNoNotificationLogIsPresent() {
-    ProgramNotificationTemplate template = template();
-    Notification ruleEffect = scheduleMessage();
-    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID.getValue()))
-        .thenReturn(template);
-    when(notificationLoggingService.getByKey(TEMPLATE_UID.getValue().concat(ENROLLMENT_UID)))
-        .thenReturn(null);
-    notificationSender.send(ruleEffect, event());
-
-    verify(programNotificationInstanceService, times(1)).save(any());
-    verify(programNotificationService, never()).sendNotification(any(), any(TrackerEvent.class));
+    verify(programNotificationService, times(1))
+        .sendNotification(any(), any(TrackerEvent.class), any());
     verify(notificationLoggingService, times(1)).save(any());
   }
 
   @Test
-  void shouldPassValidationForEventWhenSendingMessageAndNoNotificationLogIsPresent() {
-    ProgramNotificationTemplate template = template();
-    Notification ruleEffect = sendMessage();
-    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID.getValue()))
-        .thenReturn(template);
-    when(notificationLoggingService.getByKey(TEMPLATE_UID.getValue().concat(ENROLLMENT_UID)))
-        .thenReturn(null);
-    notificationSender.send(ruleEffect, event());
+  void shouldScheduleEventNotification() {
+    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID)).thenReturn(template());
 
-    verify(programNotificationInstanceService, never()).save(any());
-    verify(programNotificationService, times(1)).sendNotification(any(), any(TrackerEvent.class));
-    verify(notificationLoggingService, times(1)).save(any());
+    notificationSender.send(scheduleMessage(), event(), NotificationContext.EMPTY);
+
+    verify(programNotificationInstanceService, times(1)).save(any());
+    verify(programNotificationService, never())
+        .sendNotification(any(), any(TrackerEvent.class), any());
   }
 
-  private ExternalNotificationLogEntry notRepeatableNotificationLog() {
-    ExternalNotificationLogEntry externalNotificationLogEntry = new ExternalNotificationLogEntry();
-    externalNotificationLogEntry.setAllowMultiple(false);
-    return externalNotificationLogEntry;
+  @Test
+  void shouldNotSendEventWhenLogEntryExistsAndNotRepeatable() {
+    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID)).thenReturn(template());
+    org.hisp.dhis.notification.logging.ExternalNotificationLogEntry logEntry =
+        new org.hisp.dhis.notification.logging.ExternalNotificationLogEntry();
+    logEntry.setAllowMultiple(false);
+    when(notificationLoggingService.getByKey(TEMPLATE_UID + ENROLLMENT_UID)).thenReturn(logEntry);
+
+    notificationSender.send(sendMessage(), event(), NotificationContext.EMPTY);
+
+    verify(programNotificationService, never())
+        .sendNotification(any(), any(TrackerEvent.class), any());
   }
 
-  private ExternalNotificationLogEntry repeatableNotificationLog() {
-    ExternalNotificationLogEntry externalNotificationLogEntry = new ExternalNotificationLogEntry();
-    externalNotificationLogEntry.setAllowMultiple(true);
-    return externalNotificationLogEntry;
+  @Test
+  void shouldSendSingleEventNotification() {
+    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID)).thenReturn(template());
+
+    notificationSender.send(sendMessage(), singleEvent(), NotificationContext.EMPTY);
+
+    verify(programNotificationService, times(1))
+        .sendNotification(any(), any(SingleEvent.class), any());
+  }
+
+  @Test
+  void shouldScheduleSingleEventNotification() {
+    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID)).thenReturn(template());
+
+    notificationSender.send(scheduleMessage(), singleEvent(), NotificationContext.EMPTY);
+
+    verify(programNotificationInstanceService, times(1)).save(any());
+    verify(programNotificationService, never())
+        .sendNotification(any(), any(SingleEvent.class), any());
   }
 
   private ProgramNotificationTemplate template() {
-    ProgramNotificationTemplate programNotificationTemplate = new ProgramNotificationTemplate();
-    programNotificationTemplate.setUid(TEMPLATE_UID.getValue());
-    programNotificationTemplate.setSendRepeatable(true);
-    return programNotificationTemplate;
+    ProgramNotificationTemplate t = new ProgramNotificationTemplate();
+    t.setUid(TEMPLATE_UID);
+    t.setSendRepeatable(false);
+    return t;
   }
 
   private Enrollment enrollment() {
@@ -326,27 +212,23 @@ class NotificationSenderTest {
   }
 
   private TrackerEvent event() {
-    Program program = new Program();
-    program.setProgramType(ProgramType.WITH_REGISTRATION);
     TrackerEvent event = new TrackerEvent();
-    event.setUid(EVENT_UID.getValue());
+    event.setUid(UID.generate().getValue());
     event.setEnrollment(enrollment());
     return event;
   }
 
   private SingleEvent singleEvent() {
-    Program program = new Program();
-    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
     SingleEvent event = new SingleEvent();
-    event.setUid(EVENT_UID.getValue());
+    event.setUid(UID.generate().getValue());
     return event;
   }
 
   private Notification sendMessage() {
-    return new Notification(TEMPLATE_UID, null);
+    return new Notification(UID.of(TEMPLATE_UID), null);
   }
 
   private Notification scheduleMessage() {
-    return new Notification(TEMPLATE_UID, new Date());
+    return new Notification(UID.of(TEMPLATE_UID), new Date());
   }
 }
