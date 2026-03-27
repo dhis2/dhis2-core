@@ -188,6 +188,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "stageValueWithBooleanDataElement",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?displayProperty=NAME&totalPages=false&dimension=A03MvHHogjR.EVENT_DATE:LAST_6_MONTHS&value=A03MvHHogjR.bx6fsa0t90x&relativePeriodDate=2021-07-01",
+      "version": {
+        "min": 43
+      }
     }
 
   ]
