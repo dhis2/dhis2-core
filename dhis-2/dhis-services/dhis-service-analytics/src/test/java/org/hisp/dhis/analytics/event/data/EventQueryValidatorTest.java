@@ -535,6 +535,28 @@ class EventQueryValidatorTest extends TestBase {
   }
 
   @Test
+  void validateAllowsStageInValueWithStageSpecificDimension() {
+    ProgramStage psA = createProgramStage('A', prA);
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withProgramStage(psA)
+            .withRequestValue(psA.getUid() + "." + deA.getUid())
+            .withOrganisationUnits(List.of(ouA))
+            .addItem(qi)
+            .build();
+
+    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
+
+    assertNull(error);
+  }
+
+  @Test
   void validateFailsWhenPeriodDimensionWithStageDateDimension() {
     ProgramStage psA = createProgramStage('A', prA);
     BaseDimensionalItemObject item =
