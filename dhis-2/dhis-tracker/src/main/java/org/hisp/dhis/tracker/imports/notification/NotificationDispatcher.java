@@ -32,14 +32,13 @@ package org.hisp.dhis.tracker.imports.notification;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.security.SecurityContextRunnable;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Dispatches all notifications for tracker import side effects. Submits a single coordinator task
- * that batch-fetches notification dependencies, then dispatches one {@link NotificationTask} per
- * entity. All work runs async -- the import thread returns immediately.
+ * Dispatches all notifications for tracker import side effects. Builds the {@link
+ * NotificationContext} synchronously (batch SQL queries), then submits one {@link NotificationTask}
+ * per entity to the async task executor.
  */
 @Component
 @RequiredArgsConstructor
@@ -49,18 +48,12 @@ public class NotificationDispatcher {
   private final NotificationContextFactory contextFactory;
 
   public void sendNotifications(List<EntityNotifications> notifications) {
-    taskExecutor.executeTask(
-        new SecurityContextRunnable() {
-          @Override
-          public void call() {
-            NotificationContext context = contextFactory.create(notifications);
-            for (EntityNotifications entityNotifications : notifications) {
-              NotificationTask task = taskFactory.getObject();
-              task.setEntityNotifications(entityNotifications);
-              task.setContext(context);
-              taskExecutor.executeTask(task);
-            }
-          }
-        });
+    NotificationContext context = contextFactory.create(notifications);
+    for (EntityNotifications entityNotifications : notifications) {
+      NotificationTask task = taskFactory.getObject();
+      task.setEntityNotifications(entityNotifications);
+      task.setContext(context);
+      taskExecutor.executeTask(task);
+    }
   }
 }

@@ -33,9 +33,9 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Pre-fetched notification dependencies. Built by the coordinator async task before dispatching
- * per-entity notification tasks. Contains plain data (no Hibernate entities) that safely crosses
- * thread boundaries.
+ * Pre-fetched notification dependencies. Built synchronously in the import thread before
+ * dispatching per-entity notification tasks. Contains plain data (no Hibernate entities) that
+ * safely crosses thread boundaries.
  *
  * @param groupMembers user group members keyed by user group database ID. Only enabled users are
  *     included (disabled users are filtered in the SQL query).

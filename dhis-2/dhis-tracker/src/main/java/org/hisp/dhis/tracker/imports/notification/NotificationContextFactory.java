@@ -41,9 +41,9 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * Batch-fetches notification dependencies before async dispatch. Runs in the coordinator async
- * task. Produces a {@link NotificationContext} containing plain data (no Hibernate entities) that
- * crosses thread boundaries safely.
+ * Batch-fetches notification dependencies before async dispatch. Runs in the import thread.
+ * Produces a {@link NotificationContext} containing plain data (no Hibernate entities) that crosses
+ * thread boundaries safely.
  *
  * <p>All data is fetched via SQL (no Hibernate). Template metadata (recipient type, user group ID)
  * is resolved by joining on the template UID directly, avoiding per-template Hibernate lookups.
