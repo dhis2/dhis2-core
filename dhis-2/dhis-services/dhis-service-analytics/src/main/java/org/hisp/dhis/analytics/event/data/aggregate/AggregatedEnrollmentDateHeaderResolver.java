@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.event.data.aggregate;
 
 import java.util.AbstractMap;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -119,7 +120,7 @@ public final class AggregatedEnrollmentDateHeaderResolver {
         .filter(org.hisp.dhis.period.PeriodDimension.class::isInstance)
         .map(org.hisp.dhis.period.PeriodDimension.class::cast)
         .map(org.hisp.dhis.period.PeriodDimension::getDateField)
-        .filter(df -> df != null && !TimeField.OCCURRED_DATE.name().equals(df))
+        .filter(Objects::nonNull)
         .map(PeriodDimensionSplitter::toDateFieldKey)
         .collect(Collectors.toSet());
   }

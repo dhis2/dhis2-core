@@ -43,7 +43,6 @@ import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.QueryPlanner;
-import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
@@ -218,7 +217,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
             .filter(PeriodDimension.class::isInstance)
             .map(PeriodDimension.class::cast)
             .map(PeriodDimension::getDateField)
-            .filter(df -> df != null && !TimeField.OCCURRED_DATE.name().equals(df))
+            .filter(df -> df != null)
             .distinct()
             .count();
     return distinctNonDefaultDateFields > 1;
