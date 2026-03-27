@@ -78,7 +78,8 @@ public class PeriodDimension extends BaseDimensionalItemObject {
 
   @Nonnull @EqualsAndHashCode.Include @JsonIgnore private final Period period;
 
-  @CheckForNull private final RelativePeriodEnum relativePeriod;
+  @EqualsAndHashCode.Include @JsonProperty @CheckForNull
+  private final RelativePeriodEnum relativePeriod;
 
   /** date field this period refers to */
   @EqualsAndHashCode.Include @JsonProperty private String dateField;
