@@ -64,6 +64,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -1332,7 +1333,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         .filter(PeriodDimension.class::isInstance)
         .map(PeriodDimension.class::cast)
         .map(PeriodDimension::getDateField)
-        .filter(df -> df != null && !TimeField.OCCURRED_DATE.name().equals(df))
+        .filter(Objects::nonNull)
         .map(PeriodDimensionSplitter::toDateFieldKey)
         .collect(Collectors.toSet());
   }
