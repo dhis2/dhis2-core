@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -152,17 +151,6 @@ class PeriodDimensionSplitterTest extends TestBase {
   void hasDefaultPeriodGroupDetectsNullDateField() {
     List<PeriodDimension> items = createPeriodDimensions("202301");
     // null dateField by default
-
-    BaseDimensionalObject dimension =
-        new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, items);
-
-    assertTrue(PeriodDimensionSplitter.hasDefaultPeriodGroup(dimension));
-  }
-
-  @Test
-  void hasDefaultPeriodGroupDetectsOccurredDate() {
-    List<PeriodDimension> items = createPeriodDimensions("202301");
-    items.get(0).setDateField(TimeField.OCCURRED_DATE.name());
 
     BaseDimensionalObject dimension =
         new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, items);

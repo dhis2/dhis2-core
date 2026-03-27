@@ -36,7 +36,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -104,7 +103,7 @@ public final class PeriodDimensionSplitter {
     return result;
   }
 
-  /** True if any PeriodDimension item has null or OCCURRED_DATE date field. */
+  /** True if any PeriodDimension item has a null date field (i.e. uses the default date column). */
   public static boolean hasDefaultPeriodGroup(DimensionalObject dimension) {
     if (!DimensionType.PERIOD.equals(dimension.getDimensionType())) {
       return false;
@@ -136,6 +135,6 @@ public final class PeriodDimensionSplitter {
   }
 
   private static boolean isDefaultDateField(String dateField) {
-    return dateField == null || TimeField.OCCURRED_DATE.name().equals(dateField);
+    return dateField == null;
   }
 }
