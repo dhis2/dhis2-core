@@ -177,6 +177,7 @@ public class TrackerTest extends Simulation {
   private final int importEntitiesPerRequest;
   private final int importMaxEntitiesPerProgram;
   private final int importUsers;
+  private final boolean skipSideEffects;
   private NdjsonFeeder mnchFeeder;
   private NdjsonFeeder childFeeder;
   private NdjsonFeeder ancFeeder;
@@ -268,6 +269,7 @@ public class TrackerTest extends Simulation {
     this.importMaxEntitiesPerProgram =
         Integer.getInteger("importMaxEntitiesPerProgram", defaults.importMaxEntitiesPerProgram());
     this.importUsers = Integer.getInteger("importUsers", defaults.importUsers());
+    this.skipSideEffects = Boolean.getBoolean("skipSideEffects");
 
     if (this.testMode != TestMode.EXPORT) {
       String s3Base =
@@ -287,6 +289,14 @@ public class TrackerTest extends Simulation {
       provisionUsers();
     } catch (Exception e) {
       throw new RuntimeException("User provisioning failed", e);
+    }
+
+    if (Boolean.getBoolean("setupNotifications")) {
+      try {
+        setupNotifications();
+      } catch (Exception e) {
+        throw new RuntimeException("Notification setup failed", e);
+      }
     }
 
     ScenarioWithRequests eventScenario = exportEnabled() ? eventProgramScenario() : null;
@@ -416,6 +426,175 @@ public class TrackerTest extends Simulation {
     }
   }
 
+  /**
+   * Creates notification templates and a program rule on the test programs so that notifications
+   * fire during import. Gated by {@code -DsetupNotifications=true}.
+   *
+   * <p>Uses individual API calls rather than bulk /api/metadata because notification templates must
+   * be created first, then linked to programs/stages via their collection endpoints.
+   */
+  private void setupNotifications() throws Exception {
+    logger.debug("Setting up notification templates on test programs...");
+
+    HttpClient client = HttpClient.newBuilder().build();
+    String auth =
+        Base64.getEncoder()
+            .encodeToString(
+                (this.adminUser + ":" + this.adminPassword).getBytes(StandardCharsets.UTF_8));
+
+    String mnchProgram = "uy2gU8kT1jF";
+    String[] mnchStages = {"eaDHS084uMp", "grIfo3oOf4Y", "Xgk8Wvl0jHr", "oRySG82BKE6"};
+    String childProgram = "IpHINAT79UW";
+    String[] childStages = {"A03MvHHogjR", "ZzYYXq4fJie"};
+    String ancStage = "dBwrot7S420";
+
+    // Create user group with admin user
+    String adminUserUid = apiGet(client, auth, "/api/me?fields=id", "id");
+    apiPost(
+        client,
+        auth,
+        "/api/userGroups",
+        "{\"id\":\"PerfNtGrp01\",\"name\":\"Perf Notification Group\","
+            + "\"users\":[{\"id\":\""
+            + adminUserUid
+            + "\"}]}");
+
+    int counter = 0;
+
+    // MNCH program templates
+    String mnchEnroll = createTemplate(client, auth, counter++, "MNCH enrollment", "ENROLLMENT");
+    String mnchCompl = createTemplate(client, auth, counter++, "MNCH completion", "COMPLETION");
+    linkTemplateToProgram(client, auth, mnchProgram, mnchEnroll);
+    linkTemplateToProgram(client, auth, mnchProgram, mnchCompl);
+
+    // MNCH stage templates
+    for (String stage : mnchStages) {
+      String uid = createTemplate(client, auth, counter++, "MNCH stage " + stage, "COMPLETION");
+      linkTemplateToProgramStage(client, auth, stage, uid);
+    }
+
+    // Child programme templates
+    String childEnroll = createTemplate(client, auth, counter++, "Child enrollment", "ENROLLMENT");
+    linkTemplateToProgram(client, auth, childProgram, childEnroll);
+    for (String stage : childStages) {
+      String uid = createTemplate(client, auth, counter++, "Child stage " + stage, "COMPLETION");
+      linkTemplateToProgramStage(client, auth, stage, uid);
+    }
+
+    // ANC stage template
+    String ancUid = createTemplate(client, auth, counter++, "ANC completion", "COMPLETION");
+    linkTemplateToProgramStage(client, auth, ancStage, ancUid);
+
+    // Rule engine: SENDMESSAGE on MNCH
+    String ruleTemplateUid =
+        createTemplate(client, auth, counter++, "MNCH rule engine", "PROGRAM_RULE");
+    linkTemplateToProgram(client, auth, mnchProgram, ruleTemplateUid);
+
+    // Program rule
+    apiPost(
+        client,
+        auth,
+        "/api/programRules",
+        "{\"id\":\"PerfPrRule1\",\"name\":\"Perf send message\","
+            + "\"program\":{\"id\":\""
+            + mnchProgram
+            + "\"},\"condition\":\"true\"}");
+
+    // Program rule action
+    apiPost(
+        client,
+        auth,
+        "/api/programRuleActions",
+        "{\"id\":\"PerfRlActn1\",\"programRuleActionType\":\"SENDMESSAGE\","
+            + "\"templateUid\":\""
+            + ruleTemplateUid
+            + "\","
+            + "\"notificationTemplate\":{\"id\":\""
+            + ruleTemplateUid
+            + "\"},"
+            + "\"programRule\":{\"id\":\"PerfPrRule1\"}}");
+
+    logger.debug("Notification setup complete: {} templates + 1 rule", counter);
+  }
+
+  private String createTemplate(
+      HttpClient client, String auth, int index, String name, String trigger) throws Exception {
+    String uid = "PerfNtTmp" + String.format("%02d", index);
+    apiPost(
+        client,
+        auth,
+        "/api/programNotificationTemplates",
+        "{\"id\":\""
+            + uid
+            + "\",\"name\":\""
+            + name
+            + "\","
+            + "\"notificationTrigger\":\""
+            + trigger
+            + "\","
+            + "\"notificationRecipient\":\"USER_GROUP\","
+            + "\"recipientUserGroup\":{\"id\":\"PerfNtGrp01\"},"
+            + "\"messageTemplate\":\"perf test\","
+            + "\"subjectTemplate\":\""
+            + name
+            + "\"}");
+    return uid;
+  }
+
+  private void linkTemplateToProgram(
+      HttpClient client, String auth, String programUid, String templateUid) throws Exception {
+    apiPost(
+        client, auth, "/api/programs/" + programUid + "/notificationTemplates/" + templateUid, "");
+  }
+
+  private void linkTemplateToProgramStage(
+      HttpClient client, String auth, String stageUid, String templateUid) throws Exception {
+    apiPost(
+        client,
+        auth,
+        "/api/programStages/" + stageUid + "/notificationTemplates/" + templateUid,
+        "");
+  }
+
+  private String apiGet(HttpClient client, String auth, String path, String field)
+      throws Exception {
+    HttpRequest request =
+        HttpRequest.newBuilder()
+            .uri(URI.create(this.instance + path))
+            .header("Authorization", "Basic " + auth)
+            .header("Accept", "application/json")
+            .GET()
+            .build();
+    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    if (response.statusCode() != 200) {
+      throw new RuntimeException("GET " + path + " failed: " + response.statusCode());
+    }
+    Pattern pattern = Pattern.compile("\"" + field + "\"\\s*:\\s*\"([^\"]+)\"");
+    Matcher matcher = pattern.matcher(response.body());
+    if (!matcher.find()) {
+      throw new RuntimeException("Field " + field + " not found in: " + response.body());
+    }
+    return matcher.group(1);
+  }
+
+  private void apiPost(HttpClient client, String auth, String path, String body) throws Exception {
+    HttpRequest.Builder builder =
+        HttpRequest.newBuilder()
+            .uri(URI.create(this.instance + path))
+            .header("Authorization", "Basic " + auth)
+            .header("Content-Type", "application/json");
+    HttpRequest request =
+        body.isEmpty()
+            ? builder.POST(HttpRequest.BodyPublishers.noBody()).build()
+            : builder.POST(HttpRequest.BodyPublishers.ofString(body)).build();
+    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+    int status = response.statusCode();
+    // Accept 2xx (created/ok) and 409 (already exists -- idempotent)
+    if ((status < 200 || status >= 300) && status != 409) {
+      throw new RuntimeException("POST " + path + " failed: " + status + " " + response.body());
+    }
+  }
+
   private HttpRequestActionBuilder login() {
     return http("Login")
         .post("/api/auth/login")
@@ -463,12 +642,13 @@ public class TrackerTest extends Simulation {
         Math.min(this.importMaxEntitiesPerProgram, availableEntities) / this.importUsers;
     int requestsPerUser = entitiesPerUser / this.importEntitiesPerRequest;
     logger.debug(
-        "Import {}: {} lines, {} lines/request, {} requests/user, {} users",
+        "Import {}: {} lines, {} lines/request, {} requests/user, {} users, skipSideEffects={}",
         name,
         feeder.lineCount(),
         linesPerRequest,
         requestsPerUser,
-        this.importUsers);
+        this.importUsers,
+        this.skipSideEffects);
     return scenario(name)
         .exec(
             session -> session.set("username", this.adminUser).set("password", this.adminPassword))
@@ -479,7 +659,9 @@ public class TrackerTest extends Simulation {
             feed(feeder, linesPerRequest)
                 .exec(
                     http(name)
-                        .post("/api/tracker?async=false&importStrategy=CREATE_AND_UPDATE")
+                        .post(
+                            "/api/tracker?async=false&importStrategy=CREATE_AND_UPDATE"
+                                + (skipSideEffects ? "&skipSideEffects=true" : ""))
                         .header("Content-Type", "application/json")
                         .header("X-Request-ID", session -> nextRequestId(name))
                         .body(
