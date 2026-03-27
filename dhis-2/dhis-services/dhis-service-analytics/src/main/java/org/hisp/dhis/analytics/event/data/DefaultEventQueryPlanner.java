@@ -36,6 +36,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AggregationType;
@@ -217,7 +218,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
             .filter(PeriodDimension.class::isInstance)
             .map(PeriodDimension.class::cast)
             .map(PeriodDimension::getDateField)
-            .filter(df -> df != null)
+            .filter(Objects::nonNull)
             .distinct()
             .count();
     return distinctNonDefaultDateFields > 1;
