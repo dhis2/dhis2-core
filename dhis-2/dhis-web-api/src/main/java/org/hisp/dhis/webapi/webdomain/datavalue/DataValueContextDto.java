@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.webapi.webdomain.datavalue;
 
+import static com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility.PUBLIC_ONLY;
+
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,5 +55,19 @@ import org.hisp.dhis.datavalue.DataValueChangelogEntry;
 public class DataValueContextDto {
 
   @JsonProperty private List<DataValueChangelogEntry> audits = new ArrayList<>();
-  @JsonProperty private List<DataExportValue> history = new ArrayList<>();
+  @JsonProperty private List<DataValueHistory> history = List.of();
+
+  public DataValueContextDto setHistory(List<DataExportValue> values) {
+    history =
+        values.stream()
+            .map(dv -> new DataValueHistory(dv.period().getIsoDate(), dv.value()))
+            .toList();
+    return this;
+  }
+
+  @JsonAutoDetect(
+      getterVisibility = PUBLIC_ONLY,
+      isGetterVisibility = PUBLIC_ONLY,
+      creatorVisibility = PUBLIC_ONLY)
+  public record DataValueHistory(String period, String value) {}
 }
