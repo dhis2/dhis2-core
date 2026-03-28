@@ -577,7 +577,7 @@ public enum ErrorCode {
   E7221("Coordinate field is invalid: `{0}`"),
   E7222("Query item or filter is invalid: `{0}`"),
   E7223(
-      "Value does not refer to a data element or attribute which are numeric and part of the program: `{0}`"),
+      "Value does not refer to a data element or attribute which are numeric or boolean and part of the program: `{0}`"),
   E7224(
       "Item identifier does not reference any data element, attribute or indicator part of the program: `{0}`"),
   E7225(
