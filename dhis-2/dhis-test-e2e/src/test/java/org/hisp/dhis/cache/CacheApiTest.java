@@ -71,9 +71,9 @@ abstract class CacheApiTest extends ApiTest {
     RestApiActions api = new RestApiActions(endpoint);
     for (String uid : uids) {
       try {
-        api.delete(uid);
+        api.delete(uid + "?force=true");
       } catch (Exception e) {
-        log.debug(
+        log.warn(
             "Cache test cleanup: could not delete {} {} (may not exist): {}",
             endpoint,
             uid,
