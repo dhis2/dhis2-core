@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -29,17 +29,14 @@
  */
 package org.hisp.dhis.cache;
 
-import java.util.List;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.test.e2e.actions.LoginActions;
-import org.hisp.dhis.test.e2e.actions.RestApiActions;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
 
-@Slf4j
 @Tag("cache")
+@Order(Integer.MAX_VALUE)
 abstract class CacheApiTest extends ApiTest {
   protected CacheProbe probe;
   protected LoginActions loginActions;
@@ -52,33 +49,5 @@ abstract class CacheApiTest extends ApiTest {
     loginActions = new LoginActions();
     resourceLocator = new CacheResourceLocator();
     mutators = new CacheMutatorRegistry(resourceLocator);
-  }
-
-  /**
-   * Cleans up entities created by cache test fixtures. These entities can pollute the database
-   * state and cause failures in other e2e tests (e.g. MetadataImportTest) that export and reimport
-   * all metadata.
-   */
-  @AfterAll
-  void cleanUpCacheFixtureEntities() {
-    loginActions.loginAsSuperUser();
-    deleteQuietly("/programStageWorkingLists", List.of("CchPSW00001"));
-    deleteQuietly("/programStages", List.of("CchPS000001", "CchPSWST001"));
-    deleteQuietly("/programs", List.of("CchPrgSTG01", "CchPrgPSW01"));
-  }
-
-  private static void deleteQuietly(String endpoint, List<String> uids) {
-    RestApiActions api = new RestApiActions(endpoint);
-    for (String uid : uids) {
-      try {
-        api.delete(uid + "?force=true");
-      } catch (Exception e) {
-        log.warn(
-            "Cache test cleanup: could not delete {} {} (may not exist): {}",
-            endpoint,
-            uid,
-            e.getMessage());
-      }
-    }
   }
 }
