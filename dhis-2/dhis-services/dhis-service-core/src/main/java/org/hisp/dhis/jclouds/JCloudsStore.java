@@ -238,7 +238,7 @@ public class JCloudsStore implements BlobStoreService {
 
   @Override
   @CheckForNull
-  public URI signedGetUrl(String key, long expirationSeconds) {
+  public URI signedGetUri(String key, long expirationSeconds) {
     BlobRequestSigner signer = blobStoreContext.getSigner();
     if (signer instanceof RequestSigningUnsupported || signer instanceof LocalBlobRequestSigner) {
       return null;

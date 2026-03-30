@@ -108,11 +108,11 @@ public interface BlobStoreService {
   Iterable<String> listKeys(String prefix);
 
   /**
-   * Returns a pre-signed GET URL valid for {@code expirationSeconds} seconds, or {@code null} if
+   * Returns a pre-signed GET URI valid for {@code expirationSeconds} seconds, or {@code null} if
    * the backend does not support request signing (e.g. local filesystem).
    */
   @CheckForNull
-  URI signedGetUrl(String key, long expirationSeconds);
+  URI signedGetUri(String key, long expirationSeconds);
 
   /** Returns the name of the container/bucket all blobs are stored in. */
   String container();

@@ -169,7 +169,7 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
   @Override
   @CheckForNull
   public URI getSignedGetContentUri(String key) {
-    return blobStore.signedGetUrl(key, FIVE_MINUTES_IN_SECONDS);
+    return blobStore.signedGetUri(key, FIVE_MINUTES_IN_SECONDS);
   }
 
   @Override
