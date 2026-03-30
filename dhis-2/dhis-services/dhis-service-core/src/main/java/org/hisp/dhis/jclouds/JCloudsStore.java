@@ -113,51 +113,6 @@ public class JCloudsStore implements BlobStoreService {
             .build(BlobStoreContext.class);
   }
 
-  private String validateProvider(String provider) {
-    if (!SUPPORTED_PROVIDERS.contains(provider)) {
-      throw new IllegalArgumentException(
-          "Configuration contains unsupported file store provider '"
-              + provider
-              + "'. Falling back to file system provider instead.");
-    }
-
-    if (JCLOUDS_PROVIDER_KEY_FILESYSTEM.equals(provider)
-        && !locationManager.externalDirectorySet()) {
-      throw new IllegalArgumentException(
-          "File system file store provider could not be configured; external directory is not set. ");
-    }
-
-    return provider;
-  }
-
-  private Properties configureOverrides(String provider, String endpoint) {
-    if (JCLOUDS_PROVIDER_KEY_FILESYSTEM.equals(provider)
-        && locationManager.externalDirectorySet()) {
-      Properties overrides = new Properties();
-      overrides.setProperty(
-          FilesystemConstants.PROPERTY_BASEDIR, locationManager.getExternalDirectoryPath());
-      return overrides;
-    }
-
-    if (JCLOUDS_PROVIDER_KEY_AWS_S3.equals(provider)) {
-      Properties overrides = new Properties();
-      overrides.setProperty(S3Constants.PROPERTY_S3_VIRTUAL_HOST_BUCKETS, "false");
-      return overrides;
-    }
-
-    if (JCLOUDS_PROVIDER_KEY_S3.equals(provider)) {
-      Properties overrides = new Properties();
-      overrides.setProperty(S3Constants.PROPERTY_S3_VIRTUAL_HOST_BUCKETS, "false");
-
-      if (StringUtils.isNotEmpty(endpoint)) {
-        overrides.setProperty(PROPERTY_ENDPOINT, endpoint);
-      }
-      return overrides;
-    }
-
-    return new Properties();
-  }
-
   @PostConstruct
   public void init() {
     Location location = createLocation(fileStoreConfig.provider, fileStoreConfig.location);
@@ -174,32 +129,6 @@ public class JCloudsStore implements BlobStoreService {
   public void cleanUp() {
     blobStoreContext.close();
   }
-
-  private static Location createLocation(String provider, String location) {
-    if (location == null) {
-      // some BlobStores allow specifying a location, such as US-EAST, where containers will exist.
-      // null will choose a default location.
-      return null;
-    }
-
-    Location parent =
-        new LocationBuilder()
-            .scope(LocationScope.PROVIDER)
-            .id(provider)
-            .description(provider)
-            .build();
-
-    return new LocationBuilder()
-        .scope(LocationScope.REGION)
-        .id(location)
-        .description(location)
-        .parent(parent)
-        .build();
-  }
-
-  private record FileStoreConfig(String provider, String location, String container) {}
-
-  // --- BlobStoreService implementation ---
 
   @Override
   public boolean blobExists(String key) {
@@ -333,7 +262,74 @@ public class JCloudsStore implements BlobStoreService {
     return JCLOUDS_PROVIDER_KEY_FILESYSTEM.equals(fileStoreConfig.provider());
   }
 
-  // --- Internal helpers (kept for BlobStoreContext lifecycle) ---
+  private String validateProvider(String provider) {
+    if (!SUPPORTED_PROVIDERS.contains(provider)) {
+      throw new IllegalArgumentException(
+          "Configuration contains unsupported file store provider '"
+              + provider
+              + "'. Falling back to file system provider instead.");
+    }
+
+    if (JCLOUDS_PROVIDER_KEY_FILESYSTEM.equals(provider)
+        && !locationManager.externalDirectorySet()) {
+      throw new IllegalArgumentException(
+          "File system file store provider could not be configured; external directory is not set. ");
+    }
+
+    return provider;
+  }
+
+  private Properties configureOverrides(String provider, String endpoint) {
+    if (JCLOUDS_PROVIDER_KEY_FILESYSTEM.equals(provider)
+        && locationManager.externalDirectorySet()) {
+      Properties overrides = new Properties();
+      overrides.setProperty(
+          FilesystemConstants.PROPERTY_BASEDIR, locationManager.getExternalDirectoryPath());
+      return overrides;
+    }
+
+    if (JCLOUDS_PROVIDER_KEY_AWS_S3.equals(provider)) {
+      Properties overrides = new Properties();
+      overrides.setProperty(S3Constants.PROPERTY_S3_VIRTUAL_HOST_BUCKETS, "false");
+      return overrides;
+    }
+
+    if (JCLOUDS_PROVIDER_KEY_S3.equals(provider)) {
+      Properties overrides = new Properties();
+      overrides.setProperty(S3Constants.PROPERTY_S3_VIRTUAL_HOST_BUCKETS, "false");
+
+      if (StringUtils.isNotEmpty(endpoint)) {
+        overrides.setProperty(PROPERTY_ENDPOINT, endpoint);
+      }
+      return overrides;
+    }
+
+    return new Properties();
+  }
+
+  private static Location createLocation(String provider, String location) {
+    if (location == null) {
+      // some BlobStores allow specifying a location, such as US-EAST, where containers will exist.
+      // null will choose a default location.
+      return null;
+    }
+
+    Location parent =
+        new LocationBuilder()
+            .scope(LocationScope.PROVIDER)
+            .id(provider)
+            .description(provider)
+            .build();
+
+    return new LocationBuilder()
+        .scope(LocationScope.REGION)
+        .id(location)
+        .description(location)
+        .parent(parent)
+        .build();
+  }
+
+  private record FileStoreConfig(String provider, String location, String container) {}
 
   private BlobStore getBlobStore() {
     return blobStoreContext.getBlobStore();
