@@ -317,7 +317,7 @@ public class MeController {
       value = {"/authorization", "/authorities"},
       produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Set<String>> getAuthorities(
-      @CurrentUser(required = true) User currentUser) {
+      @CurrentUser(required = true) UserDetails currentUser) {
     return ResponseEntity.ok().cacheControl(noStore()).body(currentUser.getAllAuthorities());
   }
 
@@ -325,7 +325,7 @@ public class MeController {
       value = {"/authorization/{authority}", "/authorities/{authority}"},
       produces = APPLICATION_JSON_VALUE)
   public ResponseEntity<Boolean> hasAuthority(
-      @PathVariable String authority, @CurrentUser(required = true) User currentUser) {
+      @PathVariable String authority, @CurrentUser(required = true) UserDetails currentUser) {
     return ResponseEntity.ok().cacheControl(noStore()).body(currentUser.isAuthorized(authority));
   }
 
@@ -374,7 +374,7 @@ public class MeController {
   @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/verifyPassword", consumes = "text/*")
   public @ResponseBody RootNode verifyPasswordText(
-      @RequestBody String password, @CurrentUser(required = true) User currentUser)
+      @RequestBody String password, @CurrentUser(required = true) UserDetails currentUser)
       throws ConflictException {
     return verifyPasswordInternal(password, currentUser);
   }
@@ -382,7 +382,7 @@ public class MeController {
   @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/validatePassword", consumes = "text/*")
   public @ResponseBody RootNode validatePasswordText(
-      @RequestBody String password, @CurrentUser(required = true) User currentUser)
+      @RequestBody String password, @CurrentUser(required = true) UserDetails currentUser)
       throws ConflictException {
     return validatePasswordInternal(password, currentUser);
   }
@@ -390,7 +390,7 @@ public class MeController {
   @OpenApi.Document(group = OpenApi.Document.GROUP_MANAGE)
   @PostMapping(value = "/verifyPassword", consumes = APPLICATION_JSON_VALUE)
   public @ResponseBody RootNode verifyPasswordJson(
-      @RequestBody Map<String, String> body, @CurrentUser(required = true) User currentUser)
+      @RequestBody Map<String, String> body, @CurrentUser(required = true) UserDetails currentUser)
       throws ConflictException {
     return verifyPasswordInternal(body.get("password"), currentUser);
   }
@@ -425,7 +425,7 @@ public class MeController {
   // Supportive methods
   // ------------------------------------------------------------------------------------------------
 
-  private RootNode verifyPasswordInternal(String password, User currentUser)
+  private RootNode verifyPasswordInternal(String password, UserDetails currentUser)
       throws ConflictException {
     if (password == null) {
       throw new ConflictException("Required attribute 'password' missing or null.");
@@ -439,7 +439,7 @@ public class MeController {
     return rootNode;
   }
 
-  private RootNode validatePasswordInternal(String password, User currentUser)
+  private RootNode validatePasswordInternal(String password, UserDetails currentUser)
       throws ConflictException {
     if (password == null) {
       throw new ConflictException("Required attribute 'password' missing or null.");

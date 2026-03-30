@@ -113,4 +113,6 @@ public interface CacheProvider {
   <V> Cache<V> createCorsWhitelistCache();
 
   <V> Cache<V> createNotificationTemplateCache();
+
+  <V> Cache<V> createUserOrgUnitUidsCache();
 }
