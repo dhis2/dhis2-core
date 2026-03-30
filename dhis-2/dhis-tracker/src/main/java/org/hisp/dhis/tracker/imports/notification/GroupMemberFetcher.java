@@ -41,21 +41,20 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * Batch-fetches notification dependencies before async dispatch. Runs in the coordinator async
- * task. Produces a {@link NotificationContext} containing plain data (no Hibernate entities) that
- * crosses thread boundaries safely.
+ * Batch-fetches USER_GROUP notification template members before async dispatch. Produces plain data
+ * (no Hibernate entities) that crosses thread boundaries safely.
  *
  * <p>All data is fetched via SQL (no Hibernate). Template metadata (recipient type, user group ID)
  * is resolved by joining on the template UID directly, avoiding per-template Hibernate lookups.
  */
 @Component
 @RequiredArgsConstructor
-public class NotificationContextFactory {
+public class GroupMemberFetcher {
   private final NamedParameterJdbcTemplate namedJdbcTemplate;
 
-  public NotificationContext create(List<EntityNotifications> notifications) {
+  public Map<Long, Set<GroupMemberInfo>> fetch(List<EntityNotifications> notifications) {
     if (notifications.isEmpty()) {
-      return NotificationContext.EMPTY;
+      return Map.of();
     }
 
     Set<String> templateUids = new HashSet<>();
@@ -65,9 +64,7 @@ public class NotificationContextFactory {
       }
     }
 
-    Map<Long, Set<NotificationContext.GroupMemberInfo>> groupMembers =
-        fetchGroupMembers(templateUids);
-    return new NotificationContext(groupMembers);
+    return fetchGroupMembers(templateUids);
   }
 
   /**
@@ -75,8 +72,7 @@ public class NotificationContextFactory {
    * query. Joins through programnotificationtemplate to resolve template UID -> user group ID
    * without Hibernate.
    */
-  private Map<Long, Set<NotificationContext.GroupMemberInfo>> fetchGroupMembers(
-      Set<String> templateUids) {
+  private Map<Long, Set<GroupMemberInfo>> fetchGroupMembers(Set<String> templateUids) {
     if (templateUids.isEmpty()) {
       return Map.of();
     }
@@ -95,15 +91,14 @@ public class NotificationContextFactory {
         """;
 
     MapSqlParameterSource params = new MapSqlParameterSource("templateUids", templateUids);
-    Map<Long, Set<NotificationContext.GroupMemberInfo>> result = new HashMap<>(templateUids.size());
+    Map<Long, Set<GroupMemberInfo>> result = new HashMap<>(templateUids.size());
     namedJdbcTemplate.query(
         sql,
         params,
         rs -> {
           long groupId = rs.getLong("usergroupid");
-          NotificationContext.GroupMemberInfo info =
-              new NotificationContext.GroupMemberInfo(
-                  rs.getLong("userinfoid"), rs.getString("ou_uid"));
+          GroupMemberInfo info =
+              new GroupMemberInfo(rs.getLong("userinfoid"), rs.getString("ou_uid"));
           result.computeIfAbsent(groupId, k -> new HashSet<>()).add(info);
         });
 

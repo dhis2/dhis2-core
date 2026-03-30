@@ -36,6 +36,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
+import java.util.Map;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.program.Program;
@@ -80,7 +81,7 @@ class NotificationSenderTest {
   void shouldNotSendWhenTemplateIsNull() {
     when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID)).thenReturn(null);
 
-    notificationSender.send(sendMessage(), enrollment(), NotificationContext.EMPTY);
+    notificationSender.send(sendMessage(), enrollment(), Map.of());
 
     verify(programNotificationService, never())
         .sendNotification(any(), any(Enrollment.class), any());
@@ -91,7 +92,7 @@ class NotificationSenderTest {
   void shouldSendAndCreateLogEntryForNonRepeatableTemplate() {
     when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID)).thenReturn(template());
 
-    notificationSender.send(sendMessage(), enrollment(), NotificationContext.EMPTY);
+    notificationSender.send(sendMessage(), enrollment(), Map.of());
 
     verify(programNotificationService, times(1))
         .sendNotification(any(), any(Enrollment.class), any());
@@ -102,7 +103,7 @@ class NotificationSenderTest {
   void shouldScheduleAndCreateLogEntryForNonRepeatableTemplate() {
     when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID)).thenReturn(template());
 
-    notificationSender.send(scheduleMessage(), enrollment(), NotificationContext.EMPTY);
+    notificationSender.send(scheduleMessage(), enrollment(), Map.of());
 
     verify(programNotificationInstanceService, times(1)).save(any());
     verify(programNotificationService, never())
@@ -118,7 +119,7 @@ class NotificationSenderTest {
     logEntry.setAllowMultiple(false);
     when(notificationLoggingService.getByKey(TEMPLATE_UID + ENROLLMENT_UID)).thenReturn(logEntry);
 
-    notificationSender.send(sendMessage(), enrollment(), NotificationContext.EMPTY);
+    notificationSender.send(sendMessage(), enrollment(), Map.of());
 
     verify(programNotificationService, never())
         .sendNotification(any(), any(Enrollment.class), any());
@@ -131,7 +132,7 @@ class NotificationSenderTest {
     t.setSendRepeatable(true);
     when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID)).thenReturn(t);
 
-    notificationSender.send(sendMessage(), enrollment(), NotificationContext.EMPTY);
+    notificationSender.send(sendMessage(), enrollment(), Map.of());
 
     verify(programNotificationService, times(1))
         .sendNotification(any(), any(Enrollment.class), any());
@@ -142,7 +143,7 @@ class NotificationSenderTest {
   void shouldSendEventNotification() {
     when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID)).thenReturn(template());
 
-    notificationSender.send(sendMessage(), event(), NotificationContext.EMPTY);
+    notificationSender.send(sendMessage(), event(), Map.of());
 
     verify(programNotificationService, times(1))
         .sendNotification(any(), any(TrackerEvent.class), any());
@@ -153,7 +154,7 @@ class NotificationSenderTest {
   void shouldScheduleEventNotification() {
     when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID)).thenReturn(template());
 
-    notificationSender.send(scheduleMessage(), event(), NotificationContext.EMPTY);
+    notificationSender.send(scheduleMessage(), event(), Map.of());
 
     verify(programNotificationInstanceService, times(1)).save(any());
     verify(programNotificationService, never())
@@ -168,7 +169,7 @@ class NotificationSenderTest {
     logEntry.setAllowMultiple(false);
     when(notificationLoggingService.getByKey(TEMPLATE_UID + ENROLLMENT_UID)).thenReturn(logEntry);
 
-    notificationSender.send(sendMessage(), event(), NotificationContext.EMPTY);
+    notificationSender.send(sendMessage(), event(), Map.of());
 
     verify(programNotificationService, never())
         .sendNotification(any(), any(TrackerEvent.class), any());
@@ -178,7 +179,7 @@ class NotificationSenderTest {
   void shouldSendSingleEventNotification() {
     when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID)).thenReturn(template());
 
-    notificationSender.send(sendMessage(), singleEvent(), NotificationContext.EMPTY);
+    notificationSender.send(sendMessage(), singleEvent(), Map.of());
 
     verify(programNotificationService, times(1))
         .sendNotification(any(), any(SingleEvent.class), any());
@@ -188,7 +189,7 @@ class NotificationSenderTest {
   void shouldScheduleSingleEventNotification() {
     when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID)).thenReturn(template());
 
-    notificationSender.send(scheduleMessage(), singleEvent(), NotificationContext.EMPTY);
+    notificationSender.send(scheduleMessage(), singleEvent(), Map.of());
 
     verify(programNotificationInstanceService, times(1)).save(any());
     verify(programNotificationService, never())

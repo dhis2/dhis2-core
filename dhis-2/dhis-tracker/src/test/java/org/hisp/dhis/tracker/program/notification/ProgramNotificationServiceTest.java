@@ -43,6 +43,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -67,7 +68,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.template.NotificationTemplateMapper;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.tracker.imports.notification.NotificationContext;
+import org.hisp.dhis.tracker.imports.notification.GroupMemberInfo;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
@@ -358,7 +359,7 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
     programNotificationTemplate.setRecipientDataElement(dataElement);
 
     programNotificationService.sendNotification(
-        programNotificationTemplate, trackerEvent, NotificationContext.EMPTY);
+        programNotificationTemplate, trackerEvent, Map.of());
 
     assertEquals(1, sentProgramMessages.size());
   }
@@ -381,7 +382,7 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
     programNotificationTemplate.setRecipientDataElement(dataElementEmail);
 
     programNotificationService.sendNotification(
-        programNotificationTemplate, trackerEvent, NotificationContext.EMPTY);
+        programNotificationTemplate, trackerEvent, Map.of());
 
     assertEquals(1, sentProgramMessages.size());
   }
@@ -403,8 +404,7 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
     programNotificationTemplate.setDeliveryChannels(Sets.newHashSet(DeliveryChannel.SMS));
     programNotificationTemplate.setRecipientDataElement(dataElement);
 
-    programNotificationService.sendNotification(
-        programNotificationTemplate, singleEvent, NotificationContext.EMPTY);
+    programNotificationService.sendNotification(programNotificationTemplate, singleEvent, Map.of());
 
     assertEquals(1, sentProgramMessages.size());
   }
@@ -426,8 +426,7 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
     programNotificationTemplate.setDeliveryChannels(Sets.newHashSet(DeliveryChannel.EMAIL));
     programNotificationTemplate.setRecipientDataElement(dataElementEmail);
 
-    programNotificationService.sendNotification(
-        programNotificationTemplate, singleEvent, NotificationContext.EMPTY);
+    programNotificationService.sendNotification(programNotificationTemplate, singleEvent, Map.of());
 
     assertEquals(1, sentProgramMessages.size());
   }
@@ -448,8 +447,10 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
     programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.USER_GROUP);
     programNotificationTemplate.setRecipientUserGroup(userGroup);
 
-    programNotificationService.sendNotification(
-        programNotificationTemplate, trackerEvent, NotificationContext.EMPTY);
+    Map<Long, Set<GroupMemberInfo>> context = userGroupContext(userGroup, userB);
+    when(entityManager.getReference(User.class, userB.getId())).thenReturn(userB);
+
+    programNotificationService.sendNotification(programNotificationTemplate, trackerEvent, context);
 
     assertEquals(1, sentInternalMessages.size());
     assertTrue(sentInternalMessages.iterator().next().users.contains(userB));
@@ -471,8 +472,7 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
     programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.USER_GROUP);
     programNotificationTemplate.setRecipientUserGroup(userGroup);
 
-    programNotificationService.sendNotification(
-        programNotificationTemplate, singleEvent, NotificationContext.EMPTY);
+    programNotificationService.sendNotification(programNotificationTemplate, singleEvent, Map.of());
 
     assertEquals(1, sentInternalMessages.size());
     assertTrue(sentInternalMessages.iterator().next().users.contains(userB));
@@ -507,6 +507,20 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
     programNotificationService.sendScheduledNotifications(JobProgress.noop());
 
     assertEquals(0, sentProgramMessages.size());
+  }
+
+  private static Map<Long, Set<GroupMemberInfo>> userGroupContext(UserGroup group, User... users) {
+    Set<GroupMemberInfo> members = new HashSet<>();
+    for (User u : users) {
+      if (u.isEnabled()) {
+        String ouUid =
+            u.getOrganisationUnits().isEmpty()
+                ? null
+                : u.getOrganisationUnits().iterator().next().getUid();
+        members.add(new GroupMemberInfo(u.getId(), ouUid));
+      }
+    }
+    return Map.of(group.getId(), members);
   }
 
   // -------------------------------------------------------------------------

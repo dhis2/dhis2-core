@@ -30,6 +30,8 @@
 package org.hisp.dhis.tracker.imports.notification;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.security.SecurityContextRunnable;
@@ -46,18 +48,18 @@ import org.springframework.stereotype.Component;
 public class NotificationDispatcher {
   private final ObjectFactory<NotificationTask> taskFactory;
   private final AsyncTaskExecutor taskExecutor;
-  private final NotificationContextFactory contextFactory;
+  private final GroupMemberFetcher groupMemberFetcher;
 
   public void sendNotifications(List<EntityNotifications> notifications) {
     taskExecutor.executeTask(
         new SecurityContextRunnable() {
           @Override
           public void call() {
-            NotificationContext context = contextFactory.create(notifications);
+            Map<Long, Set<GroupMemberInfo>> groupMembers = groupMemberFetcher.fetch(notifications);
             for (EntityNotifications entityNotifications : notifications) {
               NotificationTask task = taskFactory.getObject();
               task.setEntityNotifications(entityNotifications);
-              task.setContext(context);
+              task.setGroupMembers(groupMembers);
               taskExecutor.executeTask(task);
             }
           }

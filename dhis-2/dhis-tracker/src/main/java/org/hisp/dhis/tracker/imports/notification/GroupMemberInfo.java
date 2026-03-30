@@ -29,28 +29,12 @@
  */
 package org.hisp.dhis.tracker.imports.notification;
 
-import java.util.Map;
-import java.util.Set;
-
 /**
- * Pre-fetched notification dependencies. Built by the coordinator async task before dispatching
- * per-entity notification tasks. Contains plain data (no Hibernate entities) that safely crosses
- * thread boundaries.
+ * Pre-fetched user group member data for notification recipient resolution. A user with multiple
+ * org units produces multiple entries (one per org unit). The hierarchy/parent filter checks all
+ * entries and the results are deduplicated by userId before creating User references.
  *
- * @param groupMembers user group members keyed by user group database ID. Only enabled users are
- *     included (disabled users are filtered in the SQL query).
+ * @param userId database ID for entityManager.getReference()
+ * @param orgUnitUid UID of one of the user's org units (for hierarchy/parent filter)
  */
-public record NotificationContext(Map<Long, Set<GroupMemberInfo>> groupMembers) {
-
-  public static final NotificationContext EMPTY = new NotificationContext(Map.of());
-
-  /**
-   * Pre-fetched user group member data for notification recipient resolution. A user with multiple
-   * org units produces multiple entries (one per org unit). The hierarchy/parent filter checks all
-   * entries and the results are deduplicated by userId before creating User references.
-   *
-   * @param userId database ID for entityManager.getReference()
-   * @param orgUnitUid UID of one of the user's org units (for hierarchy/parent filter)
-   */
-  public record GroupMemberInfo(long userId, String orgUnitUid) {}
-}
+public record GroupMemberInfo(long userId, String orgUnitUid) {}

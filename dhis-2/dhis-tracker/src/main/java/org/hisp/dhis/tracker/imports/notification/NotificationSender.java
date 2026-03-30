@@ -30,6 +30,8 @@
 package org.hisp.dhis.tracker.imports.notification;
 
 import java.util.Date;
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
@@ -60,7 +62,10 @@ public class NotificationSender {
   private final NotificationLoggingService notificationLoggingService;
 
   @Transactional
-  public void send(Notification notification, Enrollment enrollment, NotificationContext context) {
+  public void send(
+      Notification notification,
+      Enrollment enrollment,
+      Map<Long, Set<GroupMemberInfo>> groupMembers) {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
     NotificationValidationResult result = validate(template, enrollment);
@@ -74,7 +79,7 @@ public class NotificationSender {
       notificationInstance.setEnrollment(enrollment);
       programNotificationInstanceService.save(notificationInstance);
     } else {
-      programNotificationService.sendNotification(template, enrollment, context);
+      programNotificationService.sendNotification(template, enrollment, groupMembers);
     }
     if (result.needsToCreateLogEntry()) {
       createLogEntry(template, enrollment);
@@ -82,7 +87,8 @@ public class NotificationSender {
   }
 
   @Transactional
-  public void send(Notification notification, TrackerEvent event, NotificationContext context) {
+  public void send(
+      Notification notification, TrackerEvent event, Map<Long, Set<GroupMemberInfo>> groupMembers) {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
     NotificationValidationResult result = validate(template, event.getEnrollment());
@@ -96,7 +102,7 @@ public class NotificationSender {
       notificationInstance.setTrackerEvent(event);
       programNotificationInstanceService.save(notificationInstance);
     } else {
-      programNotificationService.sendNotification(template, event, context);
+      programNotificationService.sendNotification(template, event, groupMembers);
     }
 
     if (result.needsToCreateLogEntry()) {
@@ -106,7 +112,9 @@ public class NotificationSender {
 
   @Transactional
   public void send(
-      Notification notification, SingleEvent singleEvent, NotificationContext context) {
+      Notification notification,
+      SingleEvent singleEvent,
+      Map<Long, Set<GroupMemberInfo>> groupMembers) {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
     if (notification.scheduledAt() != null) {
@@ -115,7 +123,7 @@ public class NotificationSender {
       notificationInstance.setSingleEvent(singleEvent);
       programNotificationInstanceService.save(notificationInstance);
     } else {
-      programNotificationService.sendNotification(template, singleEvent, context);
+      programNotificationService.sendNotification(template, singleEvent, groupMembers);
     }
   }
 

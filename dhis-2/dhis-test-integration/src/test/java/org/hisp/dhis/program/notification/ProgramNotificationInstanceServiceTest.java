@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -45,7 +46,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.imports.notification.NotificationContext;
 import org.hisp.dhis.tracker.imports.notification.NotificationSender;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.model.Enrollment;
@@ -98,7 +98,7 @@ class ProgramNotificationInstanceServiceTest extends PostgresIntegrationTestBase
 
     List<Notification> notifications = getNotifications();
     expectedNotifications = notifications.size();
-    notifications.forEach(n -> notificationSender.send(n, enrollment, NotificationContext.EMPTY));
+    notifications.forEach(n -> notificationSender.send(n, enrollment, Map.of()));
   }
 
   @Test
