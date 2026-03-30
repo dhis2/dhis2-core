@@ -121,11 +121,12 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
       @Nonnull Program program,
       @Nonnull UserDetails user,
       @Nonnull Map<String, String> constantMap,
-      @Nonnull List<ProgramRule> rules) {
+      @Nonnull List<ProgramRule> rules,
+      @Nonnull List<ProgramRuleVariable> variables) {
     if (enrollmentsWithEvents.isEmpty()) {
       return RuleEngineEffects.of(Collections.emptyList());
     }
-    RuleEngineContext context = getRuleEngineContext(program, rules, user, constantMap);
+    RuleEngineContext context = getRuleEngineContext(rules, variables, user, constantMap);
     List<RuleEffects> allEffects = new ArrayList<>();
     for (Map.Entry<RuleEnrollment, List<RuleEvent>> entry : enrollmentsWithEvents.entrySet()) {
       try {
@@ -143,8 +144,9 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
       @Nonnull Program program,
       @Nonnull UserDetails user,
       @Nonnull Map<String, String> constantMap,
-      @Nonnull List<ProgramRule> rules) {
-    RuleEngineContext ruleEngineContext = getRuleEngineContext(program, rules, user, constantMap);
+      @Nonnull List<ProgramRule> rules,
+      @Nonnull List<ProgramRuleVariable> variables) {
+    RuleEngineContext ruleEngineContext = getRuleEngineContext(rules, variables, user, constantMap);
     try {
       return RuleEngineEffects.of(ruleEngine.evaluateAll(null, events, ruleEngineContext));
     } catch (Exception e) {
@@ -154,13 +156,10 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
   }
 
   private RuleEngineContext getRuleEngineContext(
-      @Nonnull Program program,
       @Nonnull List<ProgramRule> programRules,
+      @Nonnull List<ProgramRuleVariable> programRuleVariables,
       @Nonnull UserDetails user,
       @Nonnull Map<String, String> constantMap) {
-    List<ProgramRuleVariable> programRuleVariables =
-        programRuleVariableService.getProgramRuleVariable(program);
-
     RuleSupplementaryData supplementaryData =
         supplementaryDataProvider.getSupplementaryData(programRules, user);
 
