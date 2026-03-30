@@ -232,7 +232,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
           new ErrorMessage(
               ValidationCode.E1104,
               user.getUid(),
-              List.of(user.getUid(), program.getTrackedEntityType().getUid())));
+              List.of(user.getUid(), program.getUid(), program.getTrackedEntityType().getUid())));
     }
 
     if (!ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
@@ -464,11 +464,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   @Transactional(readOnly = true)
-  public List<String> canCreate(@Nonnull UserDetails user, Relationship relationship) {
-    if (user.isSuper() || relationship == null) {
-      return List.of();
-    }
-    List<String> errors = new ArrayList<>(canDelete(user, relationship));
+  public List<String> canCreate(UserDetails user, Relationship relationship) {
+    if (user.isSuper() || relationship == null) return List.of();
+    List<String> errors = new ArrayList<>(canWriteRelationship(user, relationship));
     if (!relationship.getRelationshipType().isBidirectional()) {
       errors.addAll(canRead(user, relationship.getTo()));
     }
@@ -478,16 +476,18 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   @Override
   @Transactional(readOnly = true)
   public List<String> canDelete(UserDetails user, @Nonnull Relationship relationship) {
-    RelationshipType relationshipType = relationship.getRelationshipType();
+    if (user.isSuper()) return List.of();
+    return canWriteRelationship(user, relationship);
+  }
+
+  private List<String> canWriteRelationship(UserDetails user, Relationship relationship) {
+    RelationshipType type = relationship.getRelationshipType();
     List<String> errors = new ArrayList<>();
-
-    if (!aclService.canDataWrite(user, relationshipType)) {
-      errors.add("User has no data write access to relationshipType: " + relationshipType.getUid());
+    if (!aclService.canDataWrite(user, type)) {
+      errors.add("User has no data write access to relationshipType: " + type.getUid());
     }
-
     errors.addAll(canWrite(user, relationship.getFrom()));
-
-    if (relationshipType.isBidirectional()) {
+    if (type.isBidirectional()) {
       errors.addAll(canWrite(user, relationship.getTo()));
     }
     return errors;
@@ -532,7 +532,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
           .map(eo -> eo.validationCode().getMessage())
           .toList();
     if (item.getEnrollment() != null)
-      return canUpdate(user, item.getEnrollment()).stream().map(Record::toString).toList();
+      return canUpdate(user, item.getEnrollment()).stream()
+          .map(eo -> eo.validationCode().getMessage())
+          .toList();
     if (item.getTrackerEvent() != null) return canUpdate(user, item.getTrackerEvent());
     if (item.getSingleEvent() != null) return canCreate(user, item.getSingleEvent());
     return List.of();
