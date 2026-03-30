@@ -1,0 +1,117 @@
+{
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string"
+        },
+        "displayName": {
+            "type": "string"
+        },
+        "code": {
+            "type": "string"
+        },
+        "shortName": {
+            "type": "string"
+        },
+        "description": {
+            "type": "string"
+        },
+        "numerator": {
+            "type": "string"
+        },
+        "denominator": {
+            "type": "string"
+        },
+        "numeratorDescription": {
+            "type": "string"
+        },
+        "denominatorDescription": {
+            "type": "string"
+        },
+        "annualized": {
+            "type": "boolean"
+        },
+        "decimals": {
+            "type": "number"
+        },
+        "url": {
+            "type": "string",
+            "format": "uri"
+        },
+        "aggregateExportCategoryOptionCombo": {
+            "type": "string"
+        },
+        "aggregateExportAttributeOptionCombo": {
+            "type": "string"
+        },
+        "indicatorType": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            },
+            "required": ["id"],
+            "additionalProperties": true
+        },
+        "legendSets": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "string"
+                    }
+                },
+                "required": ["id"],
+                "additionalProperties": true
+            }
+        },
+        "attributeValues": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "type": "string"
+                    },
+                    "attribute": {
+                        "type": "object",
+                        "properties": {
+                            "id": {
+                                "type": "string"
+                            }
+                        },
+                        "required": ["id"],
+                        "additionalProperties": true
+                    }
+                },
+                "required": ["value", "attribute"],
+                "additionalProperties": true
+            }
+        },
+        "color": {
+            "type": "string"
+        },
+        "icon": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "id",
+        "name",
+        "shortName",
+        "numerator",
+        "denominator",
+        "numeratorDescription",
+        "denominatorDescription",
+        "annualized",
+        "indicatorType",
+        "legendSets",
+        "attributeValues"
+    ],
+    "additionalProperties": true
+}
