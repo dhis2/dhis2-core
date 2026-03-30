@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.tracker.imports.notification;
 
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -52,17 +54,18 @@ public class NotificationTask extends SecurityContextRunnable {
   private final NotificationSender notificationSender;
 
   @Setter private EntityNotifications entityNotifications;
+  @Setter private Map<Long, Set<GroupMemberInfo>> groupMembers;
 
   @Override
   public void call() {
     IdentifiableObject entity = entityNotifications.entity();
     for (Notification notification : entityNotifications.notifications()) {
       if (entity instanceof Enrollment enrollment) {
-        notificationSender.send(notification, enrollment);
+        notificationSender.send(notification, enrollment, groupMembers);
       } else if (entity instanceof TrackerEvent event) {
-        notificationSender.send(notification, event);
+        notificationSender.send(notification, event, groupMembers);
       } else if (entity instanceof SingleEvent singleEvent) {
-        notificationSender.send(notification, singleEvent);
+        notificationSender.send(notification, singleEvent, groupMembers);
       }
     }
   }
