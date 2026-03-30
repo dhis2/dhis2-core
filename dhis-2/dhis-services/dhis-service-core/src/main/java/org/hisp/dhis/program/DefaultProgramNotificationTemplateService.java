@@ -30,11 +30,9 @@
 package org.hisp.dhis.program;
 
 import java.util.List;
-import java.util.Optional;
 import org.hibernate.Hibernate;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateOperationParams;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateOperationParamsMapper;
@@ -78,27 +76,24 @@ public class DefaultProgramNotificationTemplateService
   @Override
   @Transactional(readOnly = true)
   public ProgramNotificationTemplate getByUidCached(String uid) {
-    Optional<ProgramNotificationTemplate> cached = templateCache.getIfPresent(uid);
-    if (cached.isPresent()) {
-      return cached.get();
-    }
+    return templateCache.get(uid, this::loadAndInitialize);
+  }
 
+  /**
+   * Loads the template and initializes lazy associations so the cached template can be used in
+   * async notification threads without a Hibernate session.
+   */
+  private ProgramNotificationTemplate loadAndInitialize(String uid) {
     ProgramNotificationTemplate template = store.getByUid(uid);
-    if (template == null
-        || template.getNotificationRecipient() == ProgramNotificationRecipient.USER_GROUP) {
-      return template;
+    if (template == null) {
+      return null;
     }
-
-    // Initialize lazy associations accessed by the async notification thread.
-    // The cached template is detached from any Hibernate session, so uninitialized
-    // proxies would throw LazyInitializationException.
     // deliveryChannels: ElementCollection (separate table), checked for SMS/email routing
     Hibernate.initialize(template.getDeliveryChannels());
     // recipientDataElement: ManyToOne, used for DATA_ELEMENT recipient to match event data values
     Hibernate.initialize(template.getRecipientDataElement());
-    // recipientProgramAttribute: ManyToOne, used for PROGRAM_ATTRIBUTE recipient to match TE attrs
+    // recipientProgramAttribute: ManyToOne, used for PROGRAM_ATTRIBUTE to match TE attributes
     Hibernate.initialize(template.getRecipientProgramAttribute());
-    templateCache.put(uid, template);
     return template;
   }
 
