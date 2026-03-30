@@ -31,8 +31,11 @@ package org.hisp.dhis.tracker.program.notification;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.tracker.imports.notification.GroupMemberInfo;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackerEvent;
@@ -74,23 +77,20 @@ public interface ProgramNotificationService {
    * @param template ProgramNotificationTemplate to send
    * @param enrollment the enrollment.
    */
-  void sendNotification(ProgramNotificationTemplate template, Enrollment enrollment);
+  void sendNotification(
+      ProgramNotificationTemplate template,
+      Enrollment enrollment,
+      Map<Long, Set<GroupMemberInfo>> groupMembers);
 
-  /**
-   * Send a notification for the given tracker event using the given template.
-   *
-   * @param template ProgramNotificationTemplate to send
-   * @param event the trackerEvent.
-   */
-  void sendNotification(ProgramNotificationTemplate template, TrackerEvent event);
+  void sendNotification(
+      ProgramNotificationTemplate template,
+      TrackerEvent event,
+      Map<Long, Set<GroupMemberInfo>> groupMembers);
 
-  /**
-   * Send a notification for the given single event using the given template.
-   *
-   * @param template ProgramNotificationTemplate to send
-   * @param event the singleEvent.
-   */
-  void sendNotification(ProgramNotificationTemplate template, SingleEvent event);
+  void sendNotification(
+      ProgramNotificationTemplate template,
+      SingleEvent event,
+      Map<Long, Set<GroupMemberInfo>> groupMembers);
 
   /**
    * Send enrollment notifications for the Enrollment. If the Program is not configured with
