@@ -41,7 +41,6 @@ import static org.mockito.Mockito.when;
 import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -53,7 +52,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.acl.DefaultTrackerAccessManager;
@@ -116,8 +114,6 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
 
   private TrackedEntity trackedEntity;
 
-  private Map<UID, Map<String, TrackedEntityProgramOwnerOrgUnit>> ownerOrgUnit;
-
   @BeforeEach
   public void setUp() {
     organisationUnit = createOrganisationUnit('A');
@@ -145,10 +141,6 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
 
     TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new Reporter(idSchemes);
-
-    TrackedEntityProgramOwnerOrgUnit owner =
-        new TrackedEntityProgramOwnerOrgUnit(TE_ID.getValue(), PROGRAM_ID, organisationUnit);
-    ownerOrgUnit = Map.of(TE_ID, Map.of(PROGRAM_ID, owner));
 
     CategoryOption categoryOption = createCategoryOption('A');
     CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo('A');
