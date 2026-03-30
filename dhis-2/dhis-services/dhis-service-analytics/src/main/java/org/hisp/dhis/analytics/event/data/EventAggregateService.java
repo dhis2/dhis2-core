@@ -264,6 +264,7 @@ public class EventAggregateService {
     addPaging(params, UNLIMITED_PAGING, grid);
     schemeIdHandler.applyScheme(grid, params);
     metadataHandler.addMetadata(grid, params, keywords);
+    removeRawPeriodDimensionMetadata(grid, params);
 
     return grid;
   }
@@ -333,7 +334,8 @@ public class EventAggregateService {
   }
 
   private void addDimensionHeaders(EventQueryParams params, Grid grid) {
-    for (DimensionalObject dimension : params.getDimensions()) {
+    for (DimensionalObject dimension :
+        PeriodDimensionSplitter.expandPeriodDimensions(params.getDimensions())) {
       String headerName = getDimensionHeaderName(dimension);
       String headerColumn = getDimensionHeaderColumn(dimension, params);
 
@@ -692,6 +694,23 @@ public class EventAggregateService {
           dimension ->
               grid.addValue(
                   displayObjects.get(dimension).getDisplayProperty(params.getDisplayProperty())));
+    }
+  }
+
+  /**
+   * Removes the raw "pe" key from the dimensions metadata when all period items use a non-default
+   * date field. Split dimensions already have their own keys (e.g. "enrollmentdate"), so the
+   * generic "pe" key would be redundant.
+   */
+  @SuppressWarnings("unchecked")
+  private void removeRawPeriodDimensionMetadata(Grid grid, EventQueryParams params) {
+    DimensionalObject periodDimension = params.getDimension(PERIOD_DIM_ID);
+    if (periodDimension == null || PeriodDimensionSplitter.hasDefaultPeriodGroup(periodDimension)) {
+      return;
+    }
+    Object dimensions = grid.getMetaData().get(DIMENSIONS.getKey());
+    if (dimensions instanceof Map<?, ?> dimensionMap) {
+      ((Map<String, Object>) dimensionMap).remove(PERIOD_DIM_ID);
     }
   }
 
