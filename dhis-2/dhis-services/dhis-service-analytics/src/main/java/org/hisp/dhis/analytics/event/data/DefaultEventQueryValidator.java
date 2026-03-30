@@ -154,8 +154,9 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
       return new ErrorMessage(ErrorCode.E7214);
     }
 
-    // Stage parameter cannot be used with stage-specific dimension identifiers
-    if (params.hasProgramStage() && params.hasStageSpecificItem()) {
+    // Only an explicit stage= parameter conflicts with stage-specific dimensions.
+    // A stage inferred from value=stageUid.dataElementUid remains valid.
+    if (params.hasProgramStage() && !params.hasStageInValue() && params.hasStageSpecificItem()) {
       return new ErrorMessage(ErrorCode.E7241);
     }
 
