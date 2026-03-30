@@ -29,40 +29,12 @@
  */
 package org.hisp.dhis.tracker.imports.notification;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.security.SecurityContextRunnable;
-import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.stereotype.Component;
-
 /**
- * Dispatches all notifications for tracker import side effects. Submits a single coordinator task
- * that batch-fetches notification dependencies, then dispatches one {@link NotificationTask} per
- * entity. All work runs async -- the import thread returns immediately.
+ * Pre-fetched user group member data for notification recipient resolution. A user with multiple
+ * org units produces multiple entries (one per org unit). The hierarchy/parent filter checks all
+ * entries and the results are deduplicated by userId before creating User references.
+ *
+ * @param userId database ID for entityManager.getReference()
+ * @param orgUnitUid UID of one of the user's org units (for hierarchy/parent filter)
  */
-@Component
-@RequiredArgsConstructor
-public class NotificationDispatcher {
-  private final ObjectFactory<NotificationTask> taskFactory;
-  private final AsyncTaskExecutor taskExecutor;
-  private final GroupMemberFetcher groupMemberFetcher;
-
-  public void sendNotifications(List<EntityNotifications> notifications) {
-    taskExecutor.executeTask(
-        new SecurityContextRunnable() {
-          @Override
-          public void call() {
-            Map<Long, Set<GroupMemberInfo>> groupMembers = groupMemberFetcher.fetch(notifications);
-            for (EntityNotifications entityNotifications : notifications) {
-              NotificationTask task = taskFactory.getObject();
-              task.setEntityNotifications(entityNotifications);
-              task.setGroupMembers(groupMembers);
-              taskExecutor.executeTask(task);
-            }
-          }
-        });
-  }
-}
+public record GroupMemberInfo(long userId, String orgUnitUid) {}
