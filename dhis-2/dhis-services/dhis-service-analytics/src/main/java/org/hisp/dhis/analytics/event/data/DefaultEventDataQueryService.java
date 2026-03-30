@@ -690,13 +690,13 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     DataElement de = dataElementService.getDataElement(dimValue);
 
-    if (de != null && de.isNumericType()) {
+    if (de != null && (de.isNumericType() || de.getValueType().isBoolean())) {
       return de;
     }
 
     TrackedEntityAttribute at = attributeService.getTrackedEntityAttribute(dimValue);
 
-    if (at != null && at.isNumericType()) {
+    if (at != null && (at.isNumericType() || at.getValueType().isBoolean())) {
       return at;
     }
 
