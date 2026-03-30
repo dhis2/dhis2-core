@@ -394,17 +394,17 @@ public class EventsQuery7AutoTest extends AnalyticsApiTest {
     validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
     validateRowValueByName(response, actualHeaders, 0, "lastupdated", "2018-09-14 22:24:18.195");
 
+    // Validate selected values for row index 1
+    validateRowValueByName(response, actualHeaders, 1, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 1, "lastupdated", "2018-09-14 21:52:47.515");
+
+    // Validate selected values for row index 2
+    validateRowValueByName(response, actualHeaders, 2, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 2, "lastupdated", "2018-09-14 21:50:14.769");
+
     // Validate selected values for row index 3
     validateRowValueByName(response, actualHeaders, 3, "ouname", "Ngelehun CHC");
     validateRowValueByName(response, actualHeaders, 3, "lastupdated", "2018-08-07 14:56:08.107");
-
-    // Validate selected values for row index 6
-    validateRowValueByName(response, actualHeaders, 6, "ouname", "Makaba MCHP");
-    validateRowValueByName(response, actualHeaders, 6, "lastupdated", "2018-08-06 21:20:52.78");
-
-    // Validate selected values for row index 9
-    validateRowValueByName(response, actualHeaders, 9, "ouname", "Sawuria CHP");
-    validateRowValueByName(response, actualHeaders, 9, "lastupdated", "2018-08-06 21:20:52.779");
   }
 
   @Test
@@ -478,17 +478,17 @@ public class EventsQuery7AutoTest extends AnalyticsApiTest {
     validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
     validateRowValueByName(response, actualHeaders, 0, "lastupdated", "2018-09-14 22:24:18.195");
 
+    // Validate selected values for row index 1
+    validateRowValueByName(response, actualHeaders, 1, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 1, "lastupdated", "2018-09-14 21:52:47.515");
+
+    // Validate selected values for row index 2
+    validateRowValueByName(response, actualHeaders, 2, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 2, "lastupdated", "2018-09-14 21:50:14.769");
+
     // Validate selected values for row index 3
     validateRowValueByName(response, actualHeaders, 3, "ouname", "Ngelehun CHC");
     validateRowValueByName(response, actualHeaders, 3, "lastupdated", "2018-08-07 14:56:08.107");
-
-    // Validate selected values for row index 6
-    validateRowValueByName(response, actualHeaders, 6, "ouname", "Makaba MCHP");
-    validateRowValueByName(response, actualHeaders, 6, "lastupdated", "2018-08-06 21:20:52.78");
-
-    // Validate selected values for row index 9
-    validateRowValueByName(response, actualHeaders, 9, "ouname", "Sawuria CHP");
-    validateRowValueByName(response, actualHeaders, 9, "lastupdated", "2018-08-06 21:20:52.779");
   }
 
   @Test
@@ -563,17 +563,17 @@ public class EventsQuery7AutoTest extends AnalyticsApiTest {
     validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
     validateRowValueByName(response, actualHeaders, 0, "lastupdated", "2018-09-14 22:24:18.195");
 
+    // Validate selected values for row index 1
+    validateRowValueByName(response, actualHeaders, 1, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 1, "lastupdated", "2018-09-14 21:52:47.515");
+
+    // Validate selected values for row index 2
+    validateRowValueByName(response, actualHeaders, 2, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 2, "lastupdated", "2018-09-14 21:50:14.769");
+
     // Validate selected values for row index 3
     validateRowValueByName(response, actualHeaders, 3, "ouname", "Ngelehun CHC");
     validateRowValueByName(response, actualHeaders, 3, "lastupdated", "2018-08-07 14:56:08.107");
-
-    // Validate selected values for row index 6
-    validateRowValueByName(response, actualHeaders, 6, "ouname", "Makaba MCHP");
-    validateRowValueByName(response, actualHeaders, 6, "lastupdated", "2018-08-06 21:20:52.78");
-
-    // Validate selected values for row index 9
-    validateRowValueByName(response, actualHeaders, 9, "ouname", "Sawuria CHP");
-    validateRowValueByName(response, actualHeaders, 9, "lastupdated", "2018-08-06 21:20:52.779");
   }
 
   @Test
