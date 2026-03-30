@@ -32,10 +32,10 @@ package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1091;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1099;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1104;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
@@ -56,7 +56,10 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.acl.DefaultTrackerAccessManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.acl.TrackerProgramService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -71,6 +74,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 /**
@@ -98,21 +102,19 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
 
   @Mock private TrackerOwnershipManager ownershipAccessManager;
 
+  @Mock private TrackerProgramService trackerProgramService;
+
+  @Spy private TrackerAccessManager trackerAccessManager;
+
   private UserDetails user;
 
   private Reporter reporter;
 
   private OrganisationUnit organisationUnit;
 
-  private TrackedEntityType trackedEntityType;
-
   private Program program;
 
   private TrackedEntity trackedEntity;
-
-  private CategoryOptionCombo categoryOptionCombo;
-
-  private CategoryOption categoryOption;
 
   private Map<UID, Map<String, TrackedEntityProgramOwnerOrgUnit>> ownerOrgUnit;
 
@@ -128,7 +130,7 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getUser()).thenReturn(user);
 
-    trackedEntityType = createTrackedEntityType('A');
+    TrackedEntityType trackedEntityType = createTrackedEntityType('A');
     trackedEntityType.setUid(TE_TYPE_ID);
     program = createProgram('A');
     program.setUid(PROGRAM_ID);
@@ -148,11 +150,16 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
         new TrackedEntityProgramOwnerOrgUnit(TE_ID.getValue(), PROGRAM_ID, organisationUnit);
     ownerOrgUnit = Map.of(TE_ID, Map.of(PROGRAM_ID, owner));
 
-    categoryOption = createCategoryOption('A');
-    categoryOptionCombo = createCategoryOptionCombo('A');
+    CategoryOption categoryOption = createCategoryOption('A');
+    CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo('A');
     categoryOptionCombo.setCategoryOptions(Set.of(categoryOption));
 
-    validator = new SecurityOwnershipValidator(aclService, ownershipAccessManager);
+    trackerAccessManager =
+        spy(
+            new DefaultTrackerAccessManager(
+                aclService, ownershipAccessManager, trackerProgramService));
+
+    validator = new SecurityOwnershipValidator(trackerAccessManager);
   }
 
   private UserDetails setUpUserWithOrgUnit(List<String> auths) {
@@ -175,70 +182,20 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
             .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
             .trackedEntity(TE_ID)
             .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .build();
-
-    when(bundle.getPreheat()).thenReturn(preheat);
-    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
-    when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity);
-    when(preheat.getEnrollment(enrollment.getEnrollment()))
-        .thenReturn(getEnrollment(enrollment.getEnrollment()));
-    UserDetails userDetails = setUpUserWithOrgUnit();
-    when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
-    when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
-
-    validator.validate(reporter, bundle, enrollment);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void verifyCaptureScopeIsCheckedForEnrollmentCreation() {
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(UID.generate())
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TE_ID)
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .status(EnrollmentStatus.ACTIVE)
+            .attributeOptionCombo(MetadataIdentifier.ofUid(UID.generate().getValue()))
             .build();
 
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE);
     when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity);
-    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
-        .thenReturn(organisationUnit);
-    UserDetails userDetails = setUpUserWithOrgUnit();
-    when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
-    when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
-
-    validator.validate(reporter, bundle, enrollment);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void verifyCaptureScopeIsCheckedForEnrollmentDeletion() {
-    UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(enrollmentUid)
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TE_ID)
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .build();
-
-    when(bundle.getPreheat()).thenReturn(preheat);
-    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
     when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
     UserDetails userDetails = setUpUserWithOrgUnit();
     when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
-    when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
-    when(ownershipAccessManager.hasAccess(
-            userDetails, enrollment.getTrackedEntity().getValue(), organisationUnit, program))
-        .thenReturn(true);
+    when(ownershipAccessManager.hasAccess(userDetails, trackedEntity, program)).thenReturn(true);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -263,10 +220,7 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
     UserDetails userDetails = setUpUserWithOrgUnit();
     when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
-    when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
-    when(ownershipAccessManager.hasAccess(
-            userDetails, enrollment.getTrackedEntity().getValue(), organisationUnit, program))
-        .thenReturn(true);
+    when(ownershipAccessManager.hasAccess(userDetails, trackedEntity, program)).thenReturn(true);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -294,10 +248,7 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
         setUpUserWithOrgUnit(List.of(Authorities.F_ENROLLMENT_CASCADE_DELETE.name()));
     when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
-    when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
-    when(ownershipAccessManager.hasAccess(
-            userDetails, enrollment.getTrackedEntity().getValue(), organisationUnit, program))
-        .thenReturn(true);
+    when(ownershipAccessManager.hasAccess(userDetails, trackedEntity, program)).thenReturn(true);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -321,7 +272,6 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
     when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
     when(aclService.canDataWrite(user, program)).thenReturn(true);
-    when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
     when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
 
     validator.validate(reporter, bundle, enrollment);
@@ -348,7 +298,6 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
     UserDetails userDetails = setUpUserWithOrgUnit();
     when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
-    when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -373,7 +322,6 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
     UserDetails userDetails = setUpUserWithOrgUnit();
     when(aclService.canDataWrite(userDetails, program)).thenReturn(false);
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
-    when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
 
     validator.validate(reporter, bundle, enrollment);
 
@@ -398,41 +346,10 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
     UserDetails userDetails = setUpUserWithOrgUnit();
     when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(false);
-    when(preheat.getProgramOwner()).thenReturn(ownerOrgUnit);
 
     validator.validate(reporter, bundle, enrollment);
 
     assertHasError(reporter, enrollment, E1104);
-  }
-
-  @Test
-  void shouldFailValidationWhenUserDoNotHaveWriteAccessToCategoryOptionForCreateStrategy() {
-    MetadataIdentifier attributeOptionComboUid =
-        MetadataIdentifier.ofUid(categoryOptionCombo.getUid());
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(UID.generate())
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TE_ID)
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .attributeOptionCombo(attributeOptionComboUid)
-            .build();
-
-    when(bundle.getPreheat()).thenReturn(preheat);
-    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.CREATE_AND_UPDATE);
-    when(preheat.getProgram(MetadataIdentifier.ofUid(PROGRAM_ID))).thenReturn(program);
-    when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity);
-    when(preheat.getEnrollment(enrollment.getEnrollment()))
-        .thenReturn(getEnrollment(enrollment.getEnrollment()));
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo)))
-        .thenReturn(categoryOptionCombo);
-    when(aclService.canDataWrite(user, program)).thenReturn(true);
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
-    when(aclService.canDataWrite(user, categoryOption)).thenReturn(false);
-
-    validator.validate(reporter, bundle, enrollment);
-
-    assertHasError(reporter, enrollment, E1099);
   }
 
   private TrackedEntity teWithNoEnrollments() {
