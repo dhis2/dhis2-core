@@ -33,20 +33,13 @@
                 "additionalProperties": true
             }
         },
-        "dataDimensionType": {
-            "type": "string",
-            "enum": ["DISAGGREGATION", "ATTRIBUTE"]
-        },
-        "shortName": {
+        "code": {
             "type": "string"
         },
         "description": {
             "type": "string"
         },
-        "dataDimension": {
-            "type": "boolean"
-        },
-        "categoryOptions": {
+        "indicators": {
             "type": "array",
             "items": {
                 "type": "object",
@@ -60,17 +53,11 @@
                 },
                 "required": ["id"],
                 "additionalProperties": true
-            }
+            },
+            "minItems": 1,
+            "default": []
         }
     },
-    "required": [
-        "id",
-        "name",
-        "attributeValues",
-        "dataDimensionType",
-        "shortName",
-        "dataDimension",
-        "categoryOptions"
-    ],
+    "required": ["id", "name", "attributeValues", "indicators"],
     "additionalProperties": true
 }

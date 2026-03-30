@@ -1,0 +1,7 @@
+{
+    "name": "indicator-group",
+    "httpMethod": "GET",
+    "requestUrl": "/indicatorGroups/{id}",
+    "responseStatus": 200,
+    "jsonSchema": "contracts/metadata-management-app/indicator-group/json-schema.json"
+}
