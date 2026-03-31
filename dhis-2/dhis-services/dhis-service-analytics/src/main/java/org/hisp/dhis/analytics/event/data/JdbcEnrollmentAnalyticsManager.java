@@ -64,6 +64,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -388,8 +389,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             .append(ANALYTICS_TBL_ALIAS)
             .append(" ");
 
-    resolveDateFieldPeriodBucketJoin(params, ANALYTICS_TBL_ALIAS)
-        .ifPresent(join -> sql.append(join.toSql()).append(" "));
+    resolveDateFieldPeriodBucketJoins(params, ANALYTICS_TBL_ALIAS)
+        .forEach(join -> sql.append(join.toSql()).append(" "));
 
     return sql.append(joinOrgUnitTables(params, getAnalyticsType())).toString();
   }
@@ -1007,8 +1008,14 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   private void addNonDefaultPeriodSourceColumns(SelectBuilder sb, EventQueryParams params) {
-    for (DimensionalObject dimension : params.getDimensions()) {
-      resolveDateFieldPeriodSourceColumn(dimension).ifPresent(sb::addColumnIfNotExist);
+    DimensionalObject periodDimension = params.getDimension(PERIOD_DIM_ID);
+    if (periodDimension == null) {
+      return;
+    }
+
+    for (DimensionalObject splitDim :
+        PeriodDimensionSplitter.splitPeriodDimension(periodDimension)) {
+      resolveDateFieldPeriodSourceColumn(splitDim).ifPresent(sb::addColumnIfNotExist);
     }
   }
 
@@ -1021,19 +1028,22 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    * duplicate the dimension and can produce conflicting projections in the outer aggregate query.
    */
   private void removeLegacyPeriodDimensionColumns(List<String> columns, EventQueryParams params) {
-    Optional.ofNullable(params.getDimension(PERIOD_DIM_ID))
-        .filter(
-            periodDimension ->
-                resolveDateFieldPeriodBucket(periodDimension, ANALYTICS_TBL_ALIAS).isPresent())
-        .ifPresent(
-            periodDimension ->
-                periodDimension.getItems().stream()
-                    .map(PeriodDimension.class::cast)
-                    .map(period -> period.getPeriodType().getPeriodTypeEnum().getName())
-                    .forEach(
-                        periodColumn ->
-                            columns.removeIf(
-                                column -> periodColumn.equalsIgnoreCase(column.trim()))));
+    DimensionalObject periodDimension = params.getDimension(PERIOD_DIM_ID);
+    if (periodDimension == null) {
+      return;
+    }
+
+    for (DimensionalObject splitDim :
+        PeriodDimensionSplitter.splitPeriodDimension(periodDimension)) {
+      if (resolveDateFieldPeriodBucket(splitDim, ANALYTICS_TBL_ALIAS).isPresent()) {
+        splitDim.getItems().stream()
+            .map(PeriodDimension.class::cast)
+            .map(period -> period.getPeriodType().getPeriodTypeEnum().getName())
+            .forEach(
+                periodColumn ->
+                    columns.removeIf(column -> periodColumn.equalsIgnoreCase(column.trim())));
+      }
+    }
   }
 
   /**
@@ -1227,8 +1237,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
 
     // 3. Build up the final SQL using dedicated sub-steps
     SelectBuilder sb = new SelectBuilder();
-    Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression> resolvedPeriodExpression =
-        resolveAggregateHeaderPeriodExpression(params);
+    List<PeriodProjection> periodProjections = resolveAggregatePeriodProjections(params);
 
     // 3.1: Append the WITH clause if needed
     addCteClause(sb, cteContext);
@@ -1240,12 +1249,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     //    4) header columns (headerColumns)
     sb.addColumn("count(eb.enrollment) as value");
     addOrgUnitAggregateColumns(sb, params);
-    addPeriodAggregateColumns(params, sb, resolvedPeriodExpression);
-    addHeaderAggregateColumns(headers, params, cteContext, sb, resolvedPeriodExpression);
+    addPeriodAggregateColumns(params, sb, periodProjections);
+    addHeaderAggregateColumns(headers, params, cteContext, sb, periodProjections);
 
     // 3.3: Append the FROM clause (the main enrollment analytics table)
     sb.from(ENROLLMENT_AGGR_BASE, ENROLLMENT_AGGR_BASE_ALIAS);
-    appendPeriodBucketJoin(sb, resolvedPeriodExpression);
+    appendPeriodBucketJoins(sb, periodProjections);
 
     // 3.4: Append JOINs for each relevant CTE definition
     for (String itemUid : cteContext.getCteKeysExcluding(ENROLLMENT_AGGR_BASE)) {
@@ -1277,9 +1286,15 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       EventQueryParams params,
       CteContext cteContext,
       SelectBuilder sb,
-      Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression> resolvedPeriodExpression) {
+      List<PeriodProjection> projections) {
+    Set<String> periodKeys =
+        projections.stream().map(PeriodProjection::responseKey).collect(Collectors.toSet());
+
+    // Also skip headers that match the date field key of a period projection source column
+    // (e.g. "eventdate" when EVENT_DATE is the date field for the period dimension)
+    collectPeriodDateFieldKeys(params).forEach(periodKeys::add);
+
     Set<String> headerColumns = new LinkedHashSet<>();
-    boolean periodAlreadyProjected = params.getDimension(PERIOD_DIM_ID) != null;
 
     for (GridHeader header : headers) {
       String name = dateHeaderResolver.normalizeHeaderKey(header.getName());
@@ -1287,8 +1302,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       if (isInfrastructureHeader(name)) {
         continue;
       }
-      if (tryProjectPeriodBucketHeader(
-          name, params, periodAlreadyProjected, resolvedPeriodExpression, sb)) {
+      if (periodKeys.stream().anyMatch(name::equalsIgnoreCase)) {
         continue;
       }
       headerColumns.add(resolveHeaderColumn(name));
@@ -1307,22 +1321,21 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   /**
-   * Handles headers that derive from the period bucket date field. Returns true if the header was
-   * claimed (whether or not a column was actually added to the builder).
+   * Collects the date field keys from all period dimension items that have a non-default date
+   * field. For example, period items with date field EVENT_DATE produce "eventdate".
    */
-  private boolean tryProjectPeriodBucketHeader(
-      String name,
-      EventQueryParams params,
-      boolean periodAlreadyProjected,
-      Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression> resolvedPeriodExpression,
-      SelectBuilder sb) {
-    if (!dateHeaderResolver.isDerivedStaticPeriodHeader(params, name)) {
-      return false;
+  private Set<String> collectPeriodDateFieldKeys(EventQueryParams params) {
+    DimensionalObject periodDimension = params.getDimension(PERIOD_DIM_ID);
+    if (periodDimension == null) {
+      return Set.of();
     }
-    if (!periodAlreadyProjected && resolvedPeriodExpression.isPresent()) {
-      sb.addColumn(resolvedPeriodExpression.get().groupByExpression(), "", quote(name));
-    }
-    return true;
+    return periodDimension.getItems().stream()
+        .filter(PeriodDimension.class::isInstance)
+        .map(PeriodDimension.class::cast)
+        .map(PeriodDimension::getDateField)
+        .filter(Objects::nonNull)
+        .map(PeriodDimensionSplitter::toDateFieldKey)
+        .collect(Collectors.toSet());
   }
 
   /** Maps header name to the corresponding database column name. */
@@ -1333,14 +1346,23 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     return quote(name);
   }
 
-  private Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression>
-      resolveAggregateHeaderPeriodExpression(EventQueryParams params) {
+  private record PeriodProjection(
+      String responseKey,
+      Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression> expression) {}
+
+  private List<PeriodProjection> resolveAggregatePeriodProjections(EventQueryParams params) {
     DimensionalObject periodDimension = params.getDimension(PERIOD_DIM_ID);
     if (periodDimension == null) {
-      return Optional.empty();
+      return List.of();
     }
 
-    return resolveDateFieldPeriodBucket(periodDimension, ENROLLMENT_AGGR_BASE_ALIAS);
+    return PeriodDimensionSplitter.splitPeriodDimension(periodDimension).stream()
+        .map(
+            dim ->
+                new PeriodProjection(
+                    dim.getDimensionName(),
+                    resolveDateFieldPeriodBucket(dim, ENROLLMENT_AGGR_BASE_ALIAS)))
+        .toList();
   }
 
   private Map<String, CteDefinition> collectCteDefinitions(CteContext cteContext) {
@@ -1392,39 +1414,37 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   private void addPeriodAggregateColumns(
-      EventQueryParams params,
-      SelectBuilder sb,
-      Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression> resolvedExpression) {
-    Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression> expression =
-        resolvedExpression.isPresent()
-            ? resolvedExpression
-            : Optional.ofNullable(params.getDimension(PERIOD_DIM_ID))
-                .flatMap(
-                    periodDimension ->
-                        resolveDateFieldPeriodBucket(periodDimension, ENROLLMENT_AGGR_BASE_ALIAS));
-
-    if (expression.isPresent()) {
-      sb.addColumn(expression.get().selectExpression());
-      sb.groupBy(expression.get().groupByExpression());
-      return;
-    }
-
-    Set<String> periodColumns = getPeriodColumns(params);
-    if (!periodColumns.isEmpty()) {
+      EventQueryParams params, SelectBuilder sb, List<PeriodProjection> projections) {
+    if (projections.isEmpty()) {
+      Set<String> periodColumns = getPeriodColumns(params);
       for (String periodColumn : periodColumns) {
         var col = SqlColumnParser.removeTableAlias(periodColumn.trim());
         sb.addColumn(col);
         sb.groupBy(col);
       }
+      return;
+    }
+
+    for (PeriodProjection projection : projections) {
+      if (projection.expression().isPresent()) {
+        DateFieldPeriodBucketColumnResolver.ResolvedExpression expr = projection.expression().get();
+        sb.addColumn(expr.selectExpression());
+        sb.groupBy(expr.groupByExpression());
+      } else {
+        String column = quote(projection.responseKey());
+        sb.addColumn(column);
+        sb.groupBy(column);
+      }
     }
   }
 
-  private void appendPeriodBucketJoin(
-      SelectBuilder sb,
-      Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression> resolvedExpression) {
-    resolvedExpression
-        .flatMap(DateFieldPeriodBucketColumnResolver.ResolvedExpression::joinClause)
-        .ifPresent(join -> sb.leftJoin(join.table(), join.alias(), tableAlias -> join.condition()));
+  private void appendPeriodBucketJoins(SelectBuilder sb, List<PeriodProjection> projections) {
+    projections.stream()
+        .map(PeriodProjection::expression)
+        .flatMap(Optional::stream)
+        .map(DateFieldPeriodBucketColumnResolver.ResolvedExpression::joinClause)
+        .flatMap(Optional::stream)
+        .forEach(join -> sb.leftJoin(join.table(), join.alias(), tableAlias -> join.condition()));
   }
 
   /**
