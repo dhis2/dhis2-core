@@ -86,17 +86,21 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
               () -> Assertions.fail("Problem reading API contracts")));
     }
 
+    JsonGenerator generator =
+        new JsonGenerator(GET("/schemas").content().getList("schemas", JsonSchema.class));
+
     return contracts.stream()
         .map(
             contract ->
                 DynamicTest.dynamicTest(
                     "Testing contract: " + contract.name(),
-                    () -> assertGetRequestContract(contract)));
+                    () -> assertGetRequestContract(contract, generator)));
   }
 
-  private void assertGetRequestContract(ApiContract contract) throws JsonProcessingException {
+  private void assertGetRequestContract(ApiContract contract, JsonGenerator generator)
+      throws JsonProcessingException {
     // Given an object exists
-    String uid = createType(contract);
+    String uid = createType(contract, generator);
     assertNotNull(uid, "Created UID should not be null for type being tested");
 
     // When a GET call is made for that object
@@ -119,17 +123,10 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
    * @param contract contract which contains type
    * @return UID of created type
    */
-  private String createType(ApiContract contract) {
+  private String createType(ApiContract contract, JsonGenerator generator) {
     String type = contract.name();
 
     JsonSchema schema = GET("/schemas/" + type).content().as(JsonSchema.class);
-    JsonGenerator generator =
-        new JsonGenerator(
-            schema,
-            property -> {
-              return GET("/schemas/" + property.getName()).content().as(JsonSchema.class);
-            });
-
     Map<String, String> objects = generator.generateObjects(schema);
 
     // create needed object(s)

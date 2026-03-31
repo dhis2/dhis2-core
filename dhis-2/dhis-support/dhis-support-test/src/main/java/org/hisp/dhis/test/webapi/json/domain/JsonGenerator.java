@@ -36,7 +36,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Function;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.period.PeriodType;
@@ -52,33 +51,18 @@ public class JsonGenerator {
 
   private final Map<String, JsonSchema> schemasByKlass = new HashMap<>();
 
-  /** Optional loader to fetch a schema on demand for a given REFERENCE property. */
-  private final Function<JsonProperty, JsonSchema> schemaLoader;
-
   public JsonGenerator(JsonList<JsonSchema> schemas) {
-    this.schemaLoader = null;
     for (JsonSchema s : schemas) {
-      register(s);
+      String endpoint = s.getRelativeApiEndpoint();
+      if (endpoint != null) {
+        schemasByEndpoint.put(endpoint, s);
+      }
+      // avoid triggering class loading by using getString
+      schemasByKlass.put(s.getString("klass").string(), s);
     }
   }
 
   public JsonGenerator(JsonSchema schema) {
-    this.schemaLoader = null;
-    register(schema);
-  }
-
-  /**
-   * Creates a generator that fetches dependency schemas on demand via the provided loader.
-   *
-   * <p>The loader receives the REFERENCE {@link JsonProperty} and should return the corresponding
-   * schema, or {@code null} if not available.
-   */
-  public JsonGenerator(JsonSchema schema, Function<JsonProperty, JsonSchema> schemaLoader) {
-    this.schemaLoader = schemaLoader;
-    register(schema);
-  }
-
-  private void register(JsonSchema schema) {
     String endpoint = schema.getRelativeApiEndpoint();
     if (endpoint != null) {
       schemasByEndpoint.put(endpoint, schema);
@@ -179,16 +163,6 @@ public class JsonGenerator {
         String object = objects.get(property.getRelativeApiEndpoint());
         if (object == null) {
           schema = schemasByEndpoint.get(property.getRelativeApiEndpoint());
-          if (schema == null && schemaLoader != null) {
-            schema = schemaLoader.apply(property);
-            if (schema != null) {
-              register(schema);
-            }
-          }
-          if (schema == null) {
-            json.append("null");
-            return;
-          }
           object = addObject(schema, true, objects);
         }
         if (object.isEmpty()) {
@@ -206,11 +180,15 @@ public class JsonGenerator {
   }
 
   private static String generateId(JsonProperty property) {
-    return switch (property.getName()) {
-      case "id", "uid", "code", "cid" -> CodeGenerator.generateUid();
-      default ->
-          throw new UnsupportedOperationException("id type not supported: " + property.getName());
-    };
+    switch (property.getName()) {
+      case "id":
+      case "uid":
+      case "code":
+      case "cid":
+        return CodeGenerator.generateUid();
+      default:
+        throw new UnsupportedOperationException("id type not supported: " + property.getName());
+    }
   }
 
   private static String generateDateString() {
@@ -218,15 +196,22 @@ public class JsonGenerator {
   }
 
   private static String generateString(JsonProperty property) {
-    return switch (property.getName()) {
-      case "url" -> "http://example.com";
-      case "cronExpression" -> "* * * * * *";
-      case "periodType" -> PeriodType.PERIOD_TYPES.get(0).getName();
-      case "name", "shortName" ->
-          // there are often unique constraints on TEXT attributes called name, so...
-          getUniqueString(property);
-      default -> getRandomString(property);
-    };
+    switch (property.getName()) {
+      case "url":
+        return "http://example.com";
+      case "cronExpression":
+        return "* * * * * *";
+      case "periodType":
+        return PeriodType.PERIOD_TYPES.get(0).getName();
+
+      case "name":
+      case "shortName":
+        // there are often unique constrains on TEXT attributes called name,
+        // so...
+        return getUniqueString(property);
+      default:
+        return getRandomString(property);
+    }
   }
 
   private static String getRandomString(JsonProperty property) {
