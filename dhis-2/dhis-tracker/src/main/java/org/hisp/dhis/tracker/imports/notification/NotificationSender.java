@@ -117,6 +117,10 @@ public class NotificationSender {
       Map<Long, Set<GroupMemberInfo>> groupMembers) {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
+    if (template == null) {
+      return;
+    }
+
     if (notification.scheduledAt() != null) {
       ProgramNotificationInstance notificationInstance =
           createNotificationInstance(template, notification.scheduledAt());

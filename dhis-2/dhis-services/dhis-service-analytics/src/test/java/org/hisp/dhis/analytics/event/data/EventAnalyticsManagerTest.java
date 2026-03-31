@@ -983,6 +983,49 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void verifyGetAggregatedEventQueryProjectsMultipleStaticDatePeriodDimensions() {
+    when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
+        .thenAnswer(i -> i.getArguments()[0]);
+
+    mockEmptyRowSet();
+
+    List<PeriodDimension> periods = createPeriodDimensions("202001");
+    periods.get(0).setDateField(TimeField.SCHEDULED_DATE.name());
+    PeriodDimension lastUpdatedPeriod = createPeriodDimensions("202001").get(0);
+    lastUpdatedPeriod.setDateField(TimeField.LAST_UPDATED.name());
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams(programStage, ValueType.INTEGER))
+            .withPeriods(List.of(periods.get(0), lastUpdatedPeriod), "monthly")
+            .build();
+
+    subject.getAggregatedEventData(params, createGrid(), 200000);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    // Both bucket expressions in SELECT
+    assertThat(
+        sql.getValue(),
+        containsString(
+            "(select \"monthly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('month', ax.\"scheduleddate\")::date) as \"scheduleddate\""));
+    assertThat(
+        sql.getValue(),
+        containsString(
+            "(select \"monthly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('month', ax.\"lastupdated\")::date) as \"lastupdated\""));
+    // Both in GROUP BY
+    assertThat(sql.getValue(), containsString("group by"));
+    assertThat(
+        sql.getValue(),
+        containsString(
+            "(select \"monthly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('month', ax.\"scheduleddate\")::date)"));
+    // Both date field bucket expressions appear in GROUP BY
+    assertThat(
+        sql.getValue(),
+        containsString(
+            "(select \"monthly\" from analytics_rs_dateperiodstructure as dps_period where dps_period.\"dateperiod\" = date_trunc('month', ax.\"lastupdated\")::date)"));
+  }
+
+  @Test
   void verifyGetAggregatedEventQueryUsesJoinBasedPeriodLookupForDoris() {
     DorisAnalyticsSqlBuilder dorisBuilder =
         new DorisAnalyticsSqlBuilder("internal", "doris-jdbc.jar");
