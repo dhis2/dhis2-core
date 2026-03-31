@@ -123,7 +123,8 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
     String type = contract.name();
 
     JsonSchema schema = GET("/schemas/" + type).content().as(JsonSchema.class);
-    JsonGenerator generator = new JsonGenerator(schema);
+    JsonGenerator generator =
+        new JsonGenerator(GET("/schemas").content().getList("schemas", JsonSchema.class));
 
     Map<String, String> objects = generator.generateObjects(schema);
 

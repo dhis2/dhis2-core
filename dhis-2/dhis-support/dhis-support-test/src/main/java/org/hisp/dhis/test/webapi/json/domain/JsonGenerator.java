@@ -180,15 +180,11 @@ public class JsonGenerator {
   }
 
   private static String generateId(JsonProperty property) {
-    switch (property.getName()) {
-      case "id":
-      case "uid":
-      case "code":
-      case "cid":
-        return CodeGenerator.generateUid();
-      default:
-        throw new UnsupportedOperationException("id type not supported: " + property.getName());
-    }
+    return switch (property.getName()) {
+      case "id", "uid", "code", "cid" -> CodeGenerator.generateUid();
+      default ->
+          throw new UnsupportedOperationException("id type not supported: " + property.getName());
+    };
   }
 
   private static String generateDateString() {
@@ -196,22 +192,15 @@ public class JsonGenerator {
   }
 
   private static String generateString(JsonProperty property) {
-    switch (property.getName()) {
-      case "url":
-        return "http://example.com";
-      case "cronExpression":
-        return "* * * * * *";
-      case "periodType":
-        return PeriodType.PERIOD_TYPES.get(0).getName();
-
-      case "name":
-      case "shortName":
-        // there are often unique constrains on TEXT attributes called name,
-        // so...
-        return getUniqueString(property);
-      default:
-        return getRandomString(property);
-    }
+    return switch (property.getName()) {
+      case "url" -> "http://example.com";
+      case "cronExpression" -> "* * * * * *";
+      case "periodType" -> PeriodType.PERIOD_TYPES.get(0).getName();
+      case "name", "shortName" ->
+          // there are often unique constraints on TEXT attributes called name, so...
+          getUniqueString(property);
+      default -> getRandomString(property);
+    };
   }
 
   private static String getRandomString(JsonProperty property) {
