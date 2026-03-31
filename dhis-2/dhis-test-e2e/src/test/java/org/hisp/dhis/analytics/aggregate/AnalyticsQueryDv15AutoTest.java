@@ -161,7 +161,7 @@ public class AnalyticsQueryDv15AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"HS9zqaBdOQ4\":{\"name\":\"IDSR Plague\"},\"THIS_WEEK\":{\"name\":\"This week\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"2022W5\":{\"name\":\"Week 5 2022-01-31 - 2022-02-06\"},\"dx\":{\"name\":\"Data\"},\"pe\":{\"name\":\"Period\"},\"ou\":{\"name\":\"Organisation unit\"},\"HllvX50cXC0\":{\"name\":\"default\"}},\"dimensions\":{\"dx\":[\"HS9zqaBdOQ4\"],\"pe\":[\"2022W5\"],\"ou\":[\"ImspTQPwCqd\"],\"co\":[\"HllvX50cXC0\"]}}";
+        "{\"items\":{\"HS9zqaBdOQ4\":{\"name\":\"IDSR Plague\"},\"THIS_WEEK\":{\"name\":\"This week\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"2022W5\":{\"name\":\"Week 5 - 2022-01-31 - 2022-02-06\"},\"dx\":{\"name\":\"Data\"},\"pe\":{\"name\":\"Period\"},\"ou\":{\"name\":\"Organisation unit\"},\"HllvX50cXC0\":{\"name\":\"default\"}},\"dimensions\":{\"dx\":[\"HS9zqaBdOQ4\"],\"pe\":[\"2022W5\"],\"ou\":[\"ImspTQPwCqd\"],\"co\":[\"HllvX50cXC0\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 

@@ -32,6 +32,19 @@ jobs:
               SIMULATION_CLASS=org.hisp.dhis.test.tracker.TrackerTest
               MVN_ARGS=-Dprofile=load
             slack_webhook_secret: SLACK_WEBHOOK_TRACKER_BACKEND
+          - name: users-smoke
+            env: |
+              DHIS2_IMAGE=dhis2/core-dev:latest
+              SIMULATION_CLASS=org.hisp.dhis.test.platform.UsersPerformanceTest
+              WARMUP=2
+              MVN_ARGS=-Diterations=3
+            slack_webhook_secret: SLACK_WEBHOOK_PLATFORM_PERFORMANCE
+          - name: users-load
+            env: |
+              DHIS2_IMAGE=dhis2/core-dev:latest
+              SIMULATION_CLASS=org.hisp.dhis.test.platform.UsersPerformanceTest
+              MVN_ARGS=-Diterations=10
+            slack_webhook_secret: SLACK_WEBHOOK_PLATFORM_PERFORMANCE
     uses: ./.github/workflows/performance-tests.yml
     with:
       perf_tests_git_ref: master

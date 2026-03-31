@@ -33,8 +33,10 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.EVENT;
+import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createProgram;
+import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -59,6 +61,7 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.QueryItemLocator;
 import org.hisp.dhis.analytics.event.data.queryitem.QueryItemFilterHandlerRegistry;
+import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -69,12 +72,15 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.junit.jupiter.api.BeforeEach;
@@ -726,6 +732,107 @@ class DefaultEventDataQueryServiceTest {
             anyList(),
             anyBoolean(),
             any());
+  }
+
+  @Test
+  void getFromRequestDoesNotDuplicateStageDateDimensionAsFilter() {
+    ProgramStage programStage = createProgramStage('A', program);
+    QueryItem stageDateItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
+            program,
+            null,
+            ValueType.DATE,
+            AggregationType.NONE,
+            null);
+    stageDateItem.setProgramStage(programStage);
+
+    when(queryItemLocator.getQueryItemFromDimension(
+            eq(programStage.getUid() + ".EVENT_DATE"), eq(program), eq(EventOutputType.EVENT)))
+        .thenReturn(stageDateItem);
+    when(dataQueryService.getDimension(
+            eq(programStage.getUid() + ".EVENT_DATE"),
+            anyList(),
+            any(EventDataQueryRequest.class),
+            anyList(),
+            anyBoolean(),
+            any()))
+        .thenReturn(null);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT)
+            .dimension(Set.of(Set.of(programStage.getUid() + ".EVENT_DATE:THIS_YEAR")))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+    assertTrue(params.getItemFilters().isEmpty());
+    assertTrue(params.hasStageDateItem());
+    assertEquals(2, params.getItems().get(0).getFilters().size());
+  }
+
+  @Test
+  void getFromRequestAcceptsBooleanValueWithStagePrefix() {
+    ProgramStage programStage = createProgramStage('S', program);
+    DataElement booleanElement = createDataElement('B', ValueType.BOOLEAN, AggregationType.SUM);
+
+    lenient()
+        .when(programStageService.getProgramStage(programStage.getUid()))
+        .thenReturn(programStage);
+    lenient()
+        .when(dataElementService.getDataElement(booleanElement.getUid()))
+        .thenReturn(booleanElement);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT)
+            .value(programStage.getUid() + "." + booleanElement.getUid())
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(programStage, params.getProgramStage());
+    assertEquals(booleanElement.getUid(), params.getValue().getUid());
+    assertTrue(params.hasBooleanValueDimension());
+  }
+
+  @Test
+  void getFromRequestAcceptsTrueOnlyValueWithoutStagePrefix() {
+    DataElement trueOnlyElement = createDataElement('T', ValueType.TRUE_ONLY, AggregationType.SUM);
+
+    lenient()
+        .when(dataElementService.getDataElement(trueOnlyElement.getUid()))
+        .thenReturn(trueOnlyElement);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).value(trueOnlyElement.getUid()).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(trueOnlyElement.getUid(), params.getValue().getUid());
+    assertTrue(params.hasBooleanValueDimension());
+  }
+
+  @Test
+  void getFromRequestRejectsNonNumericAndNonBooleanValueTypes() {
+    DataElement textElement = createDataElement('X', ValueType.TEXT, AggregationType.NONE);
+    DataElement dateElement = createDataElement('D', ValueType.DATE, AggregationType.NONE);
+
+    lenient().when(dataElementService.getDataElement(textElement.getUid())).thenReturn(textElement);
+    lenient().when(dataElementService.getDataElement(dateElement.getUid())).thenReturn(dateElement);
+
+    EventDataQueryRequest textRequest =
+        baseRequestBuilder(AGGREGATE, EVENT).value(textElement.getUid()).build();
+    EventDataQueryRequest dateRequest =
+        baseRequestBuilder(AGGREGATE, EVENT).value(dateElement.getUid()).build();
+
+    IllegalQueryException textException =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(textRequest));
+    IllegalQueryException dateException =
+        assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(dateRequest));
+
+    assertEquals(ErrorCode.E7223, textException.getErrorCode());
+    assertEquals(ErrorCode.E7223, dateException.getErrorCode());
   }
 
   private EventDataQueryRequest.EventDataQueryRequestBuilder baseRequestBuilder(

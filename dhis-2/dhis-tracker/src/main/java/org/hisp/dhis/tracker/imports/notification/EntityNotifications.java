@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,27 +29,18 @@
  */
 package org.hisp.dhis.tracker.imports.notification;
 
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationMessageManager;
-import org.springframework.stereotype.Service;
+import java.util.Set;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 
 /**
- * @author Zubair Asghar
+ * Notifications to send after an entity is persisted. Contains the entity and a deduplicated set of
+ * notifications from both lifecycle triggers (enrollment creation, completion) and rule engine
+ * evaluation (SENDMESSAGE/SCHEDULEMESSAGE).
+ *
+ * @param entity the persisted entity (Enrollment, TrackerEvent, or SingleEvent)
+ * @param notifications deduplicated set of notifications to send. Each identifies a template by UID
+ *     and optionally a scheduled date. Notifications with {@code scheduledAt == null} are sent
+ *     immediately.
  */
-@RequiredArgsConstructor
-@Service
-public class TrackerNotificationHandlerService implements NotificationHandlerService {
-  private final TrackerNotificationMessageManager trackerNotificationMessageManager;
-
-  @Override
-  public void handleNotification(TrackerNotificationDataBundle notificationDataBundle) {
-    trackerNotificationMessageManager.sendNotifications(notificationDataBundle);
-  }
-
-  @Override
-  public void handleNotifications(List<TrackerNotificationDataBundle> notificationDataBundles) {
-    notificationDataBundles.forEach(this::handleNotification);
-  }
-}
+public record EntityNotifications(IdentifiableObject entity, Set<Notification> notifications) {}

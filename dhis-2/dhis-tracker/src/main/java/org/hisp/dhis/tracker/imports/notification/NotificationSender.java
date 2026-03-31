@@ -27,9 +27,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.job;
+package org.hisp.dhis.tracker.imports.notification;
 
 import java.util.Date;
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
@@ -49,7 +51,7 @@ import org.hisp.dhis.tracker.program.notification.ProgramNotificationService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Sends or schedules a notification to be sent as a result of a rule-engine evaluation. */
+/** Sends or schedules notifications as a side effect of tracker import. */
 @Slf4j
 @RequiredArgsConstructor
 @Component
@@ -60,11 +62,13 @@ public class NotificationSender {
   private final NotificationLoggingService notificationLoggingService;
 
   @Transactional
-  public void send(Notification notification, Enrollment enrollment) {
+  public void send(
+      Notification notification,
+      Enrollment enrollment,
+      Map<Long, Set<GroupMemberInfo>> groupMembers) {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
     NotificationValidationResult result = validate(template, enrollment);
-
     if (!result.isValid()) {
       return;
     }
@@ -73,10 +77,9 @@ public class NotificationSender {
       ProgramNotificationInstance notificationInstance =
           createNotificationInstance(template, notification.scheduledAt());
       notificationInstance.setEnrollment(enrollment);
-
       programNotificationInstanceService.save(notificationInstance);
     } else {
-      programNotificationService.sendProgramRuleTriggeredNotifications(template, enrollment);
+      programNotificationService.sendNotification(template, enrollment, groupMembers);
     }
     if (result.needsToCreateLogEntry()) {
       createLogEntry(template, enrollment);
@@ -84,11 +87,11 @@ public class NotificationSender {
   }
 
   @Transactional
-  public void send(Notification notification, TrackerEvent event) {
+  public void send(
+      Notification notification, TrackerEvent event, Map<Long, Set<GroupMemberInfo>> groupMembers) {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
     NotificationValidationResult result = validate(template, event.getEnrollment());
-
     if (!result.isValid()) {
       return;
     }
@@ -97,10 +100,9 @@ public class NotificationSender {
       ProgramNotificationInstance notificationInstance =
           createNotificationInstance(template, notification.scheduledAt());
       notificationInstance.setTrackerEvent(event);
-
       programNotificationInstanceService.save(notificationInstance);
     } else {
-      programNotificationService.sendProgramRuleTriggeredEventNotifications(template, event);
+      programNotificationService.sendNotification(template, event, groupMembers);
     }
 
     if (result.needsToCreateLogEntry()) {
@@ -109,18 +111,19 @@ public class NotificationSender {
   }
 
   @Transactional
-  public void send(Notification notification, SingleEvent singleEvent) {
+  public void send(
+      Notification notification,
+      SingleEvent singleEvent,
+      Map<Long, Set<GroupMemberInfo>> groupMembers) {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
     if (notification.scheduledAt() != null) {
       ProgramNotificationInstance notificationInstance =
           createNotificationInstance(template, notification.scheduledAt());
-
       notificationInstance.setSingleEvent(singleEvent);
-
       programNotificationInstanceService.save(notificationInstance);
     } else {
-      programNotificationService.sendProgramRuleTriggeredEventNotifications(template, singleEvent);
+      programNotificationService.sendNotification(template, singleEvent, groupMembers);
     }
   }
 
@@ -132,13 +135,12 @@ public class NotificationSender {
     entry.setNotificationTemplateUid(template.getUid());
     entry.setNotificationTriggeredBy(NotificationTriggerEvent.PROGRAM);
     entry.setAllowMultiple(template.isSendRepeatable());
-
     notificationLoggingService.save(entry);
   }
 
   private ProgramNotificationTemplate getNotificationTemplate(Notification notification) {
     String uid = notification.template().getValue();
-    return programNotificationTemplateService.getByUid(uid);
+    return programNotificationTemplateService.getByUidCached(uid);
   }
 
   private NotificationValidationResult validate(
@@ -151,9 +153,12 @@ public class NotificationSender {
       return NotificationValidationResult.validAndNoNeedForLogEntries();
     }
 
+    if (template.isSendRepeatable()) {
+      return NotificationValidationResult.validAndNoNeedForLogEntries();
+    }
+
     ExternalNotificationLogEntry logEntry =
         notificationLoggingService.getByKey(generateKey(template, enrollment));
-
     // template has already been delivered and repeated delivery not allowed
     if (logEntry != null && !logEntry.isAllowMultiple()) {
       return NotificationValidationResult.invalid();
@@ -176,7 +181,6 @@ public class NotificationSender {
     notificationInstance.setScheduledAt(date);
     notificationInstance.setProgramNotificationTemplateSnapshot(
         NotificationTemplateMapper.toProgramNotificationTemplateSnapshot(template));
-
     return notificationInstance;
   }
 }

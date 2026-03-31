@@ -54,6 +54,7 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -72,6 +73,7 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.user.UserDetails;
 import org.locationtech.jts.geom.Geometry;
 
 /**
@@ -291,10 +293,19 @@ public class ValidationUtils {
                 bundle.getPreheat().get(FileResource.class, value) == null
                     ? "File resource `" + value + "` could not be found."
                     : validateImage(bundle, value);
-            case ORGANISATION_UNIT ->
-                bundle.getPreheat().getOrganisationUnit(value) == null
-                    ? "Organisation unit `" + value + "` could not be found."
-                    : null;
+            case ORGANISATION_UNIT -> {
+              OrganisationUnit orgUnit = bundle.getPreheat().getOrganisationUnit(value);
+              if (orgUnit == null) {
+                yield "Organisation unit `" + value + "` could not be found.";
+              }
+              UserDetails userDetails = bundle.getUser();
+              if (!userDetails.isSuper()
+                  && !userDetails.isInUserEffectiveSearchOrgUnitHierarchy(
+                      orgUnit.getStoredPath())) {
+                yield "Organisation unit `" + value + "` is not in the user's search scope.";
+              }
+              yield null;
+            }
             case USERNAME ->
                 bundle.getPreheat().getUserByUsername(value).isEmpty()
                     ? "Username `" + value + "` could not be found."
