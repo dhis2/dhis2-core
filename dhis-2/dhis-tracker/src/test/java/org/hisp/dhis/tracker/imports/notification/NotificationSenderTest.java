@@ -176,6 +176,25 @@ class NotificationSenderTest {
   }
 
   @Test
+  void shouldNotSendSingleEventWhenTemplateIsNull() {
+    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID)).thenReturn(null);
+
+    notificationSender.send(sendMessage(), singleEvent(), Map.of());
+
+    verify(programNotificationService, never())
+        .sendNotification(any(), any(SingleEvent.class), any());
+  }
+
+  @Test
+  void shouldNotScheduleSingleEventWhenTemplateIsNull() {
+    when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID)).thenReturn(null);
+
+    notificationSender.send(scheduleMessage(), singleEvent(), Map.of());
+
+    verify(programNotificationInstanceService, never()).save(any());
+  }
+
+  @Test
   void shouldSendSingleEventNotification() {
     when(programNotificationTemplateService.getByUidCached(TEMPLATE_UID)).thenReturn(template());
 
