@@ -38,7 +38,7 @@ import static org.mockserver.model.HttpRequest.request;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.opentelemetry.proto.collector.metrics.v1.ExportMetricsServiceRequest;
-import io.opentelemetry.proto.metrics.v1.Gauge;
+import io.opentelemetry.proto.metrics.v1.Histogram;
 import io.opentelemetry.proto.metrics.v1.Metric;
 import io.opentelemetry.proto.metrics.v1.NumberDataPoint;
 import io.opentelemetry.proto.metrics.v1.ResourceMetrics;
@@ -72,6 +72,8 @@ class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
 
   private static GenericContainer<?> otelCollectorMockServerContainer;
   private static MockServerClient otelCollectorMockServerClient;
+
+  @Autowired private ObserveUsageMetricsJob observeUsageMetricsJob;
 
   @Autowired private SendUsageMetricsCheckJob sendUsageMetricsCheckJob;
 
@@ -128,6 +130,7 @@ class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
     usageMetricsConsentStore.save(usageMetricsConsent);
 
     sendUsageMetricsCheckJob.setExportIntervalSeconds(1);
+    observeUsageMetricsJob.execute(null, null);
     sendUsageMetricsCheckJob.execute(null, null);
 
     await()
@@ -146,7 +149,7 @@ class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
         exportMetricsServiceRequest.getResourceMetricsList();
 
     ScopeMetrics scopeMetrics = resourceMetricsList.get(0).getScopeMetrics(0);
-    assertEquals(11, scopeMetrics.getMetricsCount());
+    assertEquals(12, scopeMetrics.getMetricsCount());
 
     assertBuildInfoMetric(scopeMetrics.getMetrics(0));
     assertCoreAppsMetric(scopeMetrics.getMetrics(1));
@@ -241,26 +244,26 @@ class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
 
     assertEquals("dhis2_users", scopeMetrics.getMetrics(4).getName());
     assertEquals("DHIS2 Users", scopeMetrics.getMetrics(4).getDescription());
-    Gauge dhis2UsersGauge = scopeMetrics.getMetrics(4).getGauge();
+    Histogram dhis2UsersHistogram = scopeMetrics.getMetrics(4).getHistogram();
 
-    assertEquals(6, dhis2UsersGauge.getDataPointsCount());
+    assertEquals(6, dhis2UsersHistogram.getDataPointsCount());
     assertEquals(
         "active_users_last_2_days",
-        dhis2UsersGauge.getDataPoints(0).getAttributes(0).getValue().getStringValue());
+        dhis2UsersHistogram.getDataPoints(0).getAttributes(0).getValue().getStringValue());
     assertEquals(
         "active_users_last_30_days",
-        dhis2UsersGauge.getDataPoints(1).getAttributes(0).getValue().getStringValue());
+        dhis2UsersHistogram.getDataPoints(1).getAttributes(0).getValue().getStringValue());
     assertEquals(
         "active_users_last_7_days",
-        dhis2UsersGauge.getDataPoints(2).getAttributes(0).getValue().getStringValue());
+        dhis2UsersHistogram.getDataPoints(2).getAttributes(0).getValue().getStringValue());
     assertEquals(
         "active_users_last_hour",
-        dhis2UsersGauge.getDataPoints(3).getAttributes(0).getValue().getStringValue());
+        dhis2UsersHistogram.getDataPoints(3).getAttributes(0).getValue().getStringValue());
     assertEquals(
         "active_users_today",
-        dhis2UsersGauge.getDataPoints(4).getAttributes(0).getValue().getStringValue());
+        dhis2UsersHistogram.getDataPoints(4).getAttributes(0).getValue().getStringValue());
     assertEquals(
-        "users", dhis2UsersGauge.getDataPoints(5).getAttributes(0).getValue().getStringValue());
+        "users", dhis2UsersHistogram.getDataPoints(5).getAttributes(0).getValue().getStringValue());
 
     assertEquals("maps", scopeMetrics.getMetrics(6).getName());
     assertEquals("Maps", scopeMetrics.getMetrics(6).getDescription());
@@ -271,11 +274,14 @@ class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
     assertEquals("tracked_entities", scopeMetrics.getMetrics(8).getName());
     assertEquals("Tracked Entities", scopeMetrics.getMetrics(8).getDescription());
 
-    assertEquals("tracker_programs", scopeMetrics.getMetrics(9).getName());
-    assertEquals("Tracker Programs", scopeMetrics.getMetrics(9).getDescription());
+    assertEquals("tracked_entity_types", scopeMetrics.getMetrics(9).getName());
+    assertEquals("Tracked Entity Types", scopeMetrics.getMetrics(9).getDescription());
 
-    assertEquals("visualizations", scopeMetrics.getMetrics(10).getName());
-    assertEquals("Visualizations", scopeMetrics.getMetrics(10).getDescription());
+    assertEquals("tracker_programs", scopeMetrics.getMetrics(10).getName());
+    assertEquals("Tracker Programs", scopeMetrics.getMetrics(10).getDescription());
+
+    assertEquals("visualizations", scopeMetrics.getMetrics(11).getName());
+    assertEquals("Visualizations", scopeMetrics.getMetrics(11).getDescription());
   }
 
   private void assertEnvInfoMetric(Metric envMetric) {
