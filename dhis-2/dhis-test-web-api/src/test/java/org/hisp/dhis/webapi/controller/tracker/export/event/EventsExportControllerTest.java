@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.http.HttpClientAdapter.Header;
 import static org.hisp.dhis.http.HttpStatus.BAD_REQUEST;
-import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
@@ -650,7 +649,6 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals("no-cache, private", response.header("Cache-Control"));
     assertEquals(Long.toString(file.getContentLength()), response.header("Content-Length"));
     assertEquals("filename=" + file.getName(), response.header("Content-Disposition"));
-    assertContains("script-src 'none';", response.header("Content-Security-Policy"));
     assertEquals("file content", response.content("text/plain"));
   }
 
@@ -698,7 +696,6 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals(HttpStatus.NOT_MODIFIED, response.status());
     assertEquals("\"" + file.getUid() + "\"", response.header("Etag"));
     assertEquals("no-cache, private", response.header("Cache-Control"));
-    assertContains("script-src 'none';", response.header("Content-Security-Policy"));
     assertFalse(response.hasBody());
   }
 

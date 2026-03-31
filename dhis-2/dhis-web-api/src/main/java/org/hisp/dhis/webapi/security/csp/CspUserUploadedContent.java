@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,26 +27,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.utils;
+package org.hisp.dhis.webapi.security.csp;
 
-public class CspConstants {
-  private CspConstants() {}
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-  public static final String SCRIPT_SOURCE_DEFAULT = "script-src 'none'; ";
-
-  public static final String CONTENT_SECURITY_POLICY_HEADER_NAME = "Content-Security-Policy";
-  public static final String FRAME_ANCESTORS_DEFAULT_CSP = "frame-ancestors 'self'";
-
-  /**
-   * Strict default CSP policy applied to all endpoints. This policy only allows resources from the
-   * same origin.
-   */
-  public static final String DEFAULT_CSP_POLICY =
-      "default-src 'self'; style-src 'self' 'unsafe-inline';";
-
-  /**
-   * CSP policy for endpoints serving user-uploaded content. This policy disables all unsafe sources
-   * to prevent injection attacks on potentially untrusted content.
-   */
-  public static final String USER_UPLOADED_CONTENT_CSP_POLICY = "default-src 'none';";
-}
+/**
+ * Marks controller handler methods serving user-uploaded content (files, images, documents, etc.)
+ * with a strict Content-Security-Policy that disables all unsafe sources.
+ *
+ * <p>Applied policy: {@code default-src 'none';}
+ *
+ * <p>This is a specialized decorator for endpoints serving user-uploaded content where maximum
+ * security is required to prevent injection attacks on potentially untrusted content.
+ *
+ * <p>Example usage:
+ *
+ * <pre>
+ *   &#64;CspUserUploadedContent
+ *   &#64;GetMapping("/{id}/file")
+ *   public ResponseEntity&lt;InputStreamResource&gt; getFile(&#64;PathVariable UID id) { ... }
+ * </pre>
+ *
+ * @see CustomCsp for custom CSP policies
+ * @see CspInterceptor for how this annotation is processed and applied to responses
+ */
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface CspUserUploadedContent {}
