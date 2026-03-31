@@ -36,6 +36,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.Function;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.period.PeriodType;
@@ -51,18 +52,33 @@ public class JsonGenerator {
 
   private final Map<String, JsonSchema> schemasByKlass = new HashMap<>();
 
+  /** Optional loader to fetch a schema on demand for a given REFERENCE property. */
+  private final Function<JsonProperty, JsonSchema> schemaLoader;
+
   public JsonGenerator(JsonList<JsonSchema> schemas) {
+    this.schemaLoader = null;
     for (JsonSchema s : schemas) {
-      String endpoint = s.getRelativeApiEndpoint();
-      if (endpoint != null) {
-        schemasByEndpoint.put(endpoint, s);
-      }
-      // avoid triggering class loading by using getString
-      schemasByKlass.put(s.getString("klass").string(), s);
+      register(s);
     }
   }
 
   public JsonGenerator(JsonSchema schema) {
+    this.schemaLoader = null;
+    register(schema);
+  }
+
+  /**
+   * Creates a generator that fetches dependency schemas on demand via the provided loader.
+   *
+   * <p>The loader receives the REFERENCE {@link JsonProperty} and should return the corresponding
+   * schema, or {@code null} if not available.
+   */
+  public JsonGenerator(JsonSchema schema, Function<JsonProperty, JsonSchema> schemaLoader) {
+    this.schemaLoader = schemaLoader;
+    register(schema);
+  }
+
+  private void register(JsonSchema schema) {
     String endpoint = schema.getRelativeApiEndpoint();
     if (endpoint != null) {
       schemasByEndpoint.put(endpoint, schema);
@@ -163,6 +179,16 @@ public class JsonGenerator {
         String object = objects.get(property.getRelativeApiEndpoint());
         if (object == null) {
           schema = schemasByEndpoint.get(property.getRelativeApiEndpoint());
+          if (schema == null && schemaLoader != null) {
+            schema = schemaLoader.apply(property);
+            if (schema != null) {
+              register(schema);
+            }
+          }
+          if (schema == null) {
+            json.append("null");
+            return;
+          }
           object = addObject(schema, true, objects);
         }
         if (object.isEmpty()) {

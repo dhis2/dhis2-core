@@ -50,6 +50,7 @@ import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonGenerator;
 import org.hisp.dhis.test.webapi.json.domain.JsonSchema;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
@@ -78,12 +79,12 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
   @DisplayName("Test API contracts")
   Stream<DynamicTest> apiContractTest() {
     Set<ApiContract> contracts = getContracts();
-    //    if (contracts.isEmpty()) {
-    //      return Stream.of(
-    //          DynamicTest.dynamicTest(
-    //              "Problem reading API contracts",
-    //              () -> Assertions.fail("Problem reading API contracts")));
-    //    }
+    if (contracts.isEmpty()) {
+      return Stream.of(
+          DynamicTest.dynamicTest(
+              "Problem reading API contracts",
+              () -> Assertions.fail("Problem reading API contracts")));
+    }
 
     return contracts.stream()
         .map(
@@ -119,12 +120,15 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
    * @return UID of created type
    */
   private String createType(ApiContract contract) {
-    // get type from contract
     String type = contract.name();
 
     JsonSchema schema = GET("/schemas/" + type).content().as(JsonSchema.class);
     JsonGenerator generator =
-        new JsonGenerator(GET("/schemas").content().getList("schemas", JsonSchema.class));
+        new JsonGenerator(
+            schema,
+            property -> {
+              return GET("/schemas/" + property.getName()).content().as(JsonSchema.class);
+            });
 
     Map<String, String> objects = generator.generateObjects(schema);
 
