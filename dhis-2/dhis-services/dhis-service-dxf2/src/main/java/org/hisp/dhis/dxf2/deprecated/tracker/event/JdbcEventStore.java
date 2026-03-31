@@ -189,6 +189,8 @@ public class JdbcEventStore implements EventStore {
 
   private static final String COLUMN_ORG_UNIT_PATH = "ou_path";
 
+  private static final String COLUMN_ORG_UNIT_ID = "ou_id";
+
   private static final String USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY =
       " ou.path like CONCAT(orgunit.path, '%') ";
 
@@ -2182,6 +2184,8 @@ public class JdbcEventStore implements EventStore {
   private String createSelectedSql(
       UserDetails user, EventSearchParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_ID, params.getOrgUnit().getId());
+    String directOrgUnitPredicate = " psi.organisationunitid = :" + COLUMN_ORG_UNIT_ID + AND;
 
     String orgUnitPathEqualsMatchQuery =
         " ou.path = :"
@@ -2192,11 +2196,13 @@ public class JdbcEventStore implements EventStore {
 
     if (isProgramRestricted(params.getProgram())) {
       String customSelectedClause = " and ou.path = :" + COLUMN_ORG_UNIT_PATH + " ";
-      return createCaptureScopeQuery(user, mapSqlParameterSource, customSelectedClause);
+      return directOrgUnitPredicate
+          + createCaptureScopeQuery(user, mapSqlParameterSource, customSelectedClause);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(orgUnitPathEqualsMatchQuery);
+    return directOrgUnitPredicate
+        + getSearchAndCaptureScopeOrgUnitPathMatchQuery(orgUnitPathEqualsMatchQuery);
   }
 
   private boolean isProgramRestricted(Program program) {
