@@ -86,6 +86,7 @@ class ApiContractTest extends H2ControllerIntegrationTestBase {
               () -> Assertions.fail("Problem reading API contracts")));
     }
 
+    // generator loads all schemas once, then use when needed later during JSON generation
     JsonGenerator generator =
         new JsonGenerator(GET("/schemas").content().getList("schemas", JsonSchema.class));
 
