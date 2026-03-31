@@ -178,6 +178,8 @@ class JdbcEventStore {
   private static final String COLUMN_USER_UID = "u_uid";
   private static final String DEFAULT_ORDER = COLUMN_EVENT_ID + " desc";
   private static final String COLUMN_ORG_UNIT_PATH = "ou_path";
+
+  private static final String COLUMN_ORG_UNIT_ID = "ou_id";
   private static final String USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY =
       " ou.path like CONCAT(orgunit.path, '%') ";
   private static final String CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY =
@@ -1136,6 +1138,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   private String createSelectedSql(
       UserDetails user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_ID, params.getOrgUnit().getId());
+    String directOrgUnitPredicate = " ev.organisationunitid = :" + COLUMN_ORG_UNIT_ID + AND;
 
     String orgUnitPathEqualsMatchQuery =
         " ou.path = :"
@@ -1146,11 +1150,13 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
     if (isProgramRestricted(params.getEnrolledInProgram())) {
       String customSelectedClause = AND + orgUnitPathEqualsMatchQuery;
-      return createCaptureScopeQuery(user, params, mapSqlParameterSource, customSelectedClause);
+      return directOrgUnitPredicate
+          + createCaptureScopeQuery(user, params, mapSqlParameterSource, customSelectedClause);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(user, params, orgUnitPathEqualsMatchQuery);
+    return directOrgUnitPredicate
+        + getSearchAndCaptureScopeOrgUnitPathMatchQuery(user, params, orgUnitPathEqualsMatchQuery);
   }
 
   /**
