@@ -69,14 +69,10 @@ class SecurityOwnershipValidator
     TrackedEntity preheatTrackedEntity =
         bundle.getPreheat().getTrackedEntity(payloadTrackedEntity.getTrackedEntity());
 
-    OrganisationUnit organisationUnit =
-        strategy.isUpdateOrDelete()
-            ? preheatTrackedEntity.getOrganisationUnit()
-            : bundle.getPreheat().getOrganisationUnit(payloadTrackedEntity.getOrgUnit());
-
     if (strategy.isCreate()) {
       handleCreate(bundle, payloadTrackedEntity, user, reporter);
     } else {
+      OrganisationUnit organisationUnit = preheatTrackedEntity.getOrganisationUnit();
       TrackedEntity mappedTrackedEntity =
           bundle.getPreheat().getTrackedEntity(payloadTrackedEntity.getTrackedEntity());
       mappedTrackedEntity.setOrganisationUnit(organisationUnit);

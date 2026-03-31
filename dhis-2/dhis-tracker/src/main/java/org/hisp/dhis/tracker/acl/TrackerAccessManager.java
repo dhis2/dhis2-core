@@ -72,11 +72,11 @@ public interface TrackerAccessManager {
 
   List<String> canRead(UserDetails user, Enrollment enrollment);
 
-  List<String> canCreate(UserDetails user, Enrollment enrollment);
+  List<ErrorMessage> canCreate(UserDetails user, Enrollment enrollment);
 
-  List<String> canUpdate(UserDetails user, Enrollment enrollment);
+  List<ErrorMessage> canUpdate(UserDetails user, Enrollment enrollment);
 
-  List<String> canDelete(UserDetails user, Enrollment enrollment);
+  List<ErrorMessage> canDelete(UserDetails user, Enrollment enrollment);
 
   List<String> canRead(UserDetails user, TrackerEvent event);
 
