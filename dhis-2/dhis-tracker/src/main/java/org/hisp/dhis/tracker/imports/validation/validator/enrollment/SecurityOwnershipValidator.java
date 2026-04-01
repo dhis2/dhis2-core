@@ -61,58 +61,52 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
   @Nonnull private final TrackerAccessManager trackerAccessManager;
 
   @Override
-  public void validate(Reporter reporter, TrackerBundle bundle, Enrollment payloadEnrollment) {
-    TrackerImportStrategy strategy = bundle.getStrategy(payloadEnrollment);
+  public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
+    TrackerImportStrategy strategy = bundle.getStrategy(enrollment);
     TrackerPreheat preheat = bundle.getPreheat();
     UserDetails user = bundle.getUser();
 
     if (strategy.isCreate()) {
-      handleCreate(reporter, user, preheat, payloadEnrollment);
+      handleCreate(reporter, user, preheat, enrollment);
     } else {
-      OrganisationUnit organisationUnit =
-          bundle.getPreheat().getEnrollment(payloadEnrollment.getUID()).getOrganisationUnit();
-      org.hisp.dhis.tracker.model.Enrollment mappedEnrollment =
-          bundle.getPreheat().getEnrollment(payloadEnrollment.getEnrollment());
+      org.hisp.dhis.tracker.model.Enrollment databaseEnrollment =
+          bundle.getPreheat().getEnrollment(enrollment.getEnrollment());
       CategoryOptionCombo aoc =
-          preheat.getCategoryOptionCombo(payloadEnrollment.getAttributeOptionCombo());
-      mappedEnrollment.setAttributeOptionCombo(aoc);
-      mappedEnrollment.setOrganisationUnit(organisationUnit);
+          preheat.getCategoryOptionCombo(enrollment.getAttributeOptionCombo());
+      databaseEnrollment.setAttributeOptionCombo(aoc);
 
       if (strategy.isUpdate()) {
-        handleUpdate(reporter, preheat, user, mappedEnrollment, payloadEnrollment);
+        handleUpdate(reporter, preheat, user, databaseEnrollment, enrollment);
       } else if (strategy.isDelete()) {
-        handleDelete(reporter, preheat, user, mappedEnrollment, payloadEnrollment);
+        handleDelete(reporter, preheat, user, databaseEnrollment, enrollment);
       }
     }
   }
 
   private void handleCreate(
-      Reporter reporter, UserDetails user, TrackerPreheat preheat, Enrollment payloadEnrollment) {
-    org.hisp.dhis.tracker.model.Enrollment mappedEnrollment = map(preheat, payloadEnrollment, user);
+      Reporter reporter, UserDetails user, TrackerPreheat preheat, Enrollment enrollment) {
+    org.hisp.dhis.tracker.model.Enrollment mappedEnrollment = map(preheat, enrollment, user);
 
     trackerAccessManager
         .canCreate(user, mappedEnrollment)
-        .forEach(
-            em -> reporter.addError(payloadEnrollment, em.validationCode(), em.args().toArray()));
+        .forEach(em -> reporter.addError(enrollment, em.validationCode(), em.args().toArray()));
   }
 
   private void handleUpdate(
       Reporter reporter,
       TrackerPreheat preheat,
       UserDetails user,
-      org.hisp.dhis.tracker.model.Enrollment mappedEnrollment,
-      Enrollment payloadEnrollment) {
+      org.hisp.dhis.tracker.model.Enrollment databaseEnrollment,
+      Enrollment enrollment) {
     trackerAccessManager
-        .canUpdate(user, mappedEnrollment)
-        .forEach(
-            em -> reporter.addError(payloadEnrollment, em.validationCode(), em.args().toArray()));
+        .canUpdate(user, databaseEnrollment)
+        .forEach(em -> reporter.addError(enrollment, em.validationCode(), em.args().toArray()));
 
-    OrganisationUnit enrollmentOrgUnit =
-        preheat.getOrganisationUnit(payloadEnrollment.getOrgUnit());
+    OrganisationUnit enrollmentOrgUnit = preheat.getOrganisationUnit(enrollment.getOrgUnit());
     OrganisationUnit databaseOrgUnit =
-        preheat.getEnrollment(payloadEnrollment.getUID()).getOrganisationUnit();
+        preheat.getEnrollment(enrollment.getUID()).getOrganisationUnit();
     if (!enrollmentOrgUnit.getUid().equals(databaseOrgUnit.getUid())) {
-      checkOrgUnitInCaptureScope(reporter, payloadEnrollment, enrollmentOrgUnit, user);
+      checkOrgUnitInCaptureScope(reporter, enrollment, enrollmentOrgUnit, user);
     }
   }
 
@@ -120,19 +114,18 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       Reporter reporter,
       TrackerPreheat preheat,
       UserDetails user,
-      org.hisp.dhis.tracker.model.Enrollment mappedEnrollment,
-      Enrollment payloadEnrollment) {
+      org.hisp.dhis.tracker.model.Enrollment databaseEnrollment,
+      Enrollment enrollment) {
     trackerAccessManager
-        .canDelete(user, mappedEnrollment)
-        .forEach(
-            eo -> reporter.addError(payloadEnrollment, eo.validationCode(), eo.args().toArray()));
+        .canDelete(user, databaseEnrollment)
+        .forEach(eo -> reporter.addError(enrollment, eo.validationCode(), eo.args().toArray()));
 
-    boolean hasNonDeletedEvents = enrollmentHasEvents(preheat, payloadEnrollment.getEnrollment());
+    boolean hasNonDeletedEvents = enrollmentHasEvents(preheat, enrollment.getEnrollment());
     boolean hasNotCascadeDeleteAuthority =
         !user.isAuthorized(Authorities.F_ENROLLMENT_CASCADE_DELETE.name());
 
     if (hasNonDeletedEvents && hasNotCascadeDeleteAuthority) {
-      reporter.addError(payloadEnrollment, E1103, user, payloadEnrollment.getEnrollment());
+      reporter.addError(enrollment, E1103, user, enrollment.getEnrollment());
     }
   }
 

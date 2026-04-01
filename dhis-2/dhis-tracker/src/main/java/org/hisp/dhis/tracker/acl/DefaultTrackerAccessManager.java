@@ -120,7 +120,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<ErrorMessage> canUpdate(UserDetails user, @Nonnull TrackedEntity trackedEntity) {
+  public List<ErrorMessage> canUpdate(
+      @Nonnull UserDetails user, @Nonnull TrackedEntity trackedEntity) {
     List<ErrorMessage> errors = new ArrayList<>();
     if (user.isSuper()) {
       return List.of();
@@ -151,7 +152,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<ErrorMessage> canDelete(UserDetails user, @Nonnull TrackedEntity trackedEntity) {
+  public List<ErrorMessage> canDelete(
+      @Nonnull UserDetails user, @Nonnull TrackedEntity trackedEntity) {
     if (user.isSuper()) {
       return List.of();
     }
