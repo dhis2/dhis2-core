@@ -52,7 +52,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.option.OptionService;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
@@ -251,23 +251,22 @@ public class ValidationUtils {
   }
 
   public static <T extends ValueTypedDimensionalItemObject> void validateOptionSet(
-      Reporter reporter,
-      TrackerDto dto,
-      T optionalObject,
-      @Nonnull String value,
-      OptionService optionService) {
+      Reporter reporter, TrackerDto dto, T optionalObject, @Nonnull String value) {
     if (!optionalObject.hasOptionSet()) {
       return;
     }
 
-    boolean isValid =
-        optionService.existsAllOptions(
-            optionalObject.getOptionSet().getUid(),
-            optionalObject.getValueType().isMultiText()
-                ? ValueType.splitMultiText(value)
-                : List.of(value));
+    Set<String> validCodes =
+        optionalObject.getOptionSet().getOptions().stream()
+            .map(Option::getCode)
+            .collect(Collectors.toSet());
 
-    if (!isValid) {
+    List<String> codes =
+        optionalObject.getValueType().isMultiText()
+            ? ValueType.splitMultiText(value)
+            : List.of(value);
+
+    if (!validCodes.containsAll(codes)) {
       reporter.addError(dto, ValidationCode.E1125, value, optionalObject.getOptionSet().getUid());
     }
   }
