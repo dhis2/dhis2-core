@@ -30,8 +30,6 @@
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
-import static org.hisp.dhis.test.TestBase.makeUser;
-import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;
@@ -40,7 +38,6 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -68,7 +65,6 @@ import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
-import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -93,17 +89,13 @@ class DataValuesValidatorTest {
 
   private static final String DATA_ELEMENT_UID = "dataElement";
 
+  private static final String ORGANISATION_UNIT_UID = UID.generate().getValue();
+
   @Mock private TrackerBundle bundle;
 
   private Reporter reporter;
 
   private TrackerIdSchemeParams idSchemes;
-
-  private final UserDetails regularUser =
-      Objects.requireNonNull(UserDetails.fromUser(makeUser("B")));
-
-  private final UserDetails superUser =
-      Objects.requireNonNull(UserDetails.fromUser(makeUser("A", List.of("ALL"))));
 
   public static Stream<Arguments> transactionsCreatingDataValues() {
     return Stream.of(
@@ -1041,69 +1033,16 @@ class DataValuesValidatorTest {
   }
 
   @Test
-  void succeedsValidationWhenOrgUnitValueIsValidAndInUserSearchScope() {
+  void succeedsValidationWhenOrgUnitValueIsValid() {
     DataElement validDataElement = dataElement(ValueType.ORGANISATION_UNIT);
     when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(validDataElement);
-    OrganisationUnit validOrgUnit = createOrganisationUnit('A');
+    OrganisationUnit validOrgUnit = organisationUnit();
     DataValue validDataValue = dataValue(validOrgUnit.getUid());
     when(preheat.getOrganisationUnit(validDataValue.getValue())).thenReturn(validOrgUnit);
     ProgramStage programStage = programStage(validDataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
-    regularUser.getUserEffectiveSearchOrgUnitIds().add(validOrgUnit.getUid());
-    when(bundle.getUser()).thenReturn(regularUser);
-    Event event =
-        TrackerEvent.builder()
-            .event(UID.generate())
-            .programStage(idSchemes.toMetadataIdentifier(programStage))
-            .status(EventStatus.ACTIVE)
-            .dataValues(Set.of(validDataValue))
-            .build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void shouldFailWhenDataValueOrgUnitNotInUserSearchScope() {
-    DataElement validDataElement = dataElement(ValueType.ORGANISATION_UNIT);
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
-        .thenReturn(validDataElement);
-    OrganisationUnit validOrgUnit = createOrganisationUnit('A');
-    DataValue validDataValue = dataValue(validOrgUnit.getUid());
-    when(preheat.getOrganisationUnit(validDataValue.getValue())).thenReturn(validOrgUnit);
-    ProgramStage programStage = programStage(validDataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
-        .thenReturn(programStage);
-    when(bundle.getUser()).thenReturn(regularUser);
-    Event event =
-        TrackerEvent.builder()
-            .event(UID.generate())
-            .programStage(idSchemes.toMetadataIdentifier(programStage))
-            .status(EventStatus.ACTIVE)
-            .dataValues(Set.of(validDataValue))
-            .build();
-
-    validator.validate(reporter, bundle, event);
-
-    assertHasError(reporter, event, ValidationCode.E1302);
-    assertContains("not in the user's search scope.", reporter.getErrors().get(0).getMessage());
-  }
-
-  @Test
-  void shouldPassValidationWhenDataValueOrgUnitNotInSuperUserSearchScope() {
-    DataElement validDataElement = dataElement(ValueType.ORGANISATION_UNIT);
-    when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
-        .thenReturn(validDataElement);
-    OrganisationUnit validOrgUnit = createOrganisationUnit('A');
-    DataValue validDataValue = dataValue(validOrgUnit.getUid());
-    when(preheat.getOrganisationUnit(validDataValue.getValue())).thenReturn(validOrgUnit);
-    ProgramStage programStage = programStage(validDataElement);
-    when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
-        .thenReturn(programStage);
-    when(bundle.getUser()).thenReturn(superUser);
     Event event =
         TrackerEvent.builder()
             .event(UID.generate())
@@ -1207,5 +1146,11 @@ class DataValuesValidatorTest {
         new ProgramStageDataElement(programStage, dataElement);
     programStageDataElement.setCompulsory(compulsory);
     return Set.of(programStageDataElement);
+  }
+
+  private OrganisationUnit organisationUnit() {
+    OrganisationUnit organisationUnit = createOrganisationUnit('A');
+    organisationUnit.setUid(ORGANISATION_UNIT_UID);
+    return organisationUnit;
   }
 }
