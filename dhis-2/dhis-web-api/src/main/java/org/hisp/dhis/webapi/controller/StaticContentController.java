@@ -167,8 +167,7 @@ public class StaticContentController {
     {
       try {
         response.setContentType(IMAGE_PNG_VALUE);
-        contentStore.copyContent(
-            makeKey(DEFAULT_RESOURCE_DOMAIN, key), response.getOutputStream());
+        contentStore.copyContent(makeKey(DEFAULT_RESOURCE_DOMAIN, key), response.getOutputStream());
       } catch (NoSuchElementException e) {
         throw new WebMessageException(notFound(e.getMessage()));
       } catch (IOException e) {

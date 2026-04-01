@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -33,8 +33,8 @@ import java.util.Objects;
 import javax.annotation.Nonnull;
 
 /**
- * A key prefix identifying a namespace (logical directory) within the blob store — used for
- * listing and bulk deletion (e.g. {@code apps/my-app_abc123}).
+ * A key prefix identifying a namespace (logical directory) within the blob store — used for listing
+ * and bulk deletion (e.g. {@code apps/my-app_abc123}).
  *
  * <p>Values do <em>not</em> carry a trailing {@code /}; implementations add it internally when the
  * underlying API requires it.

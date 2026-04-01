@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -122,9 +122,11 @@ public class JCloudsAppStorageService implements AppStorageService {
       app.setFolderName(folder.value());
       app.setManifestTranslations(
           readAppManifestTranslations(
-              blobStore.openStream(folder.resolve(AppStorageService.MANIFEST_TRANSLATION_FILENAME))));
+              blobStore.openStream(
+                  folder.resolve(AppStorageService.MANIFEST_TRANSLATION_FILENAME))));
 
-      InputStream bundledAppInfoStream = blobStore.openStream(folder.resolve(BUNDLED_APP_INFO_FILENAME));
+      InputStream bundledAppInfoStream =
+          blobStore.openStream(folder.resolve(BUNDLED_APP_INFO_FILENAME));
       if (bundledAppInfoStream != null) {
         try (InputStream bis = bundledAppInfoStream) {
           handler.accept(app, App.MAPPER.readValue(bis, BundledAppInfo.class));
@@ -277,7 +279,8 @@ public class JCloudsAppStorageService implements AppStorageService {
         // If it's the root folder, skip
         if (filePath == null) continue;
         try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
-          blobStore.putBlob(new BlobKey(filePath), zipInputStream, zipEntry.getSize(), null, null, null);
+          blobStore.putBlob(
+              new BlobKey(filePath), zipInputStream, zipEntry.getSize(), null, null, null);
         }
       }
     }

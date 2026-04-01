@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -36,8 +36,8 @@ import javax.annotation.Nonnull;
  * An exact key identifying a single blob in the store (e.g. {@code
  * dataValue/b38d3f6c-7e2a-4d1e-a9f0-12345678abcd}).
  *
- * <p>Keys are relative paths — they must not start with {@code /}. The constructor enforces this
- * so that {@code container + "/" + key.value()} is always safe without additional slash-cleaning.
+ * <p>Keys are relative paths — they must not start with {@code /}. The constructor enforces this so
+ * that {@code container + "/" + key.value()} is always safe without additional slash-cleaning.
  *
  * <p>Use {@link #of(String, String...)} to build a key from multiple path segments. Prefer it over
  * manual string concatenation to keep key construction readable and consistent.
@@ -58,8 +58,8 @@ public record BlobKey(String value) {
    * Builds a key by joining {@code first} and any additional {@code more} segments with {@code /}.
    * Prefer this over manual concatenation when assembling a key from multiple parts.
    *
-   * <p>Example: {@code BlobKey.of("apps", "my-app", "index.html")} →
-   * {@code "apps/my-app/index.html"}.
+   * <p>Example: {@code BlobKey.of("apps", "my-app", "index.html")} → {@code
+   * "apps/my-app/index.html"}.
    */
   public static BlobKey of(String first, String... more) {
     if (more.length == 0) return new BlobKey(first);

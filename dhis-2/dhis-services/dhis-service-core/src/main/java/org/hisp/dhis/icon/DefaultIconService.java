@@ -142,8 +142,7 @@ public class DefaultIconService implements IconService {
     try {
       List<Icon> icons = getIcons(params);
       for (Icon i : icons) {
-        if (!fileResourceContentStore.fileResourceContentExists(
-            i.getFileResource().asBlobKey())) {
+        if (!fileResourceContentStore.fileResourceContentExists(i.getFileResource().asBlobKey())) {
           try (InputStream image = getDefaultIconResource(i.getKey()).getInputStream()) {
             fileResourceService.syncSaveFileResource(i.getFileResource(), image);
           }

@@ -57,8 +57,8 @@ import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
-import org.hisp.dhis.storage.BlobKey;
 import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.storage.BlobKey;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.ObjectUtils;
 import org.joda.time.DateTime;
@@ -448,8 +448,7 @@ public class DefaultFileResourceService implements FileResourceService {
 
   private FileResource checkStorageStatus(FileResource fileResource) {
     if (fileResource != null) {
-      boolean exists =
-          fileResourceContentStore.fileResourceContentExists(fileResource.asBlobKey());
+      boolean exists = fileResourceContentStore.fileResourceContentExists(fileResource.asBlobKey());
 
       if (exists) {
         fileResource.setStorageStatus(FileResourceStorageStatus.STORED);
