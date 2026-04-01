@@ -30,6 +30,7 @@
 package org.hisp.dhis.fileresource;
 
 import java.util.Set;
+import org.hisp.dhis.storage.BlobKeyPrefix;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -55,6 +56,10 @@ public enum FileResourceDomain {
 
   public String getContainerName() {
     return containerName;
+  }
+
+  public BlobKeyPrefix asBlobKeyPrefix() {
+    return BlobKeyPrefix.of(containerName);
   }
 
   public static boolean isDomainForMultipleImages(FileResourceDomain domain) {

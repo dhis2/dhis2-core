@@ -118,8 +118,9 @@ public class StaticContentController {
       throws WebMessageException, NotFoundException {
 
     if (isUseCustomFile(key, settings)) {
-      final String storageKey = makeKey(DEFAULT_RESOURCE_DOMAIN, Optional.of(key));
-      final boolean customFileExists = contentStore.fileResourceContentExists(storageKey);
+      final boolean customFileExists =
+          contentStore.fileResourceContentExists(
+              makeKey(DEFAULT_RESOURCE_DOMAIN, Optional.of(key)).value());
 
       if (customFileExists) {
         final String blobEndpoint = getContextPath(request) + "/api/staticContent/" + key;
@@ -169,7 +170,8 @@ public class StaticContentController {
       try {
         response.setContentType(IMAGE_PNG_VALUE);
         contentStore.copyContent(
-            makeKey(DEFAULT_RESOURCE_DOMAIN, Optional.of(key)), response.getOutputStream());
+            makeKey(DEFAULT_RESOURCE_DOMAIN, Optional.of(key)).value(),
+            response.getOutputStream());
       } catch (NoSuchElementException e) {
         throw new WebMessageException(notFound(e.getMessage()));
       } catch (IOException e) {

@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.storage.BlobKey;
 import org.springframework.util.MimeTypeUtils;
 
 /**
@@ -106,7 +107,7 @@ public class FileResource extends BaseIdentifiableObject {
     this.contentLength = contentLength;
     this.contentMd5 = contentMd5;
     this.domain = domain;
-    this.storageKey = FileResourceKeyUtil.makeKey(domain, Optional.empty());
+    this.storageKey = FileResourceKeyUtil.makeKey(domain, Optional.empty()).value();
   }
 
   public FileResource(
@@ -121,7 +122,7 @@ public class FileResource extends BaseIdentifiableObject {
     this.contentLength = contentLength;
     this.contentMd5 = contentMd5;
     this.domain = domain;
-    this.storageKey = FileResourceKeyUtil.makeKey(domain, Optional.of(key));
+    this.storageKey = FileResourceKeyUtil.makeKey(domain, Optional.of(key)).value();
   }
 
   // -------------------------------------------------------------------------
@@ -186,6 +187,10 @@ public class FileResource extends BaseIdentifiableObject {
 
   public String getStorageKey() {
     return storageKey;
+  }
+
+  public BlobKey asBlobKey() {
+    return new BlobKey(storageKey);
   }
 
   public void setStorageKey(String storageKey) {

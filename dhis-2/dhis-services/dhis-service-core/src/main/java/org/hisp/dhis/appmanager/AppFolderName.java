@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.appmanager;
 
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.storage.BlobKey;
 import org.hisp.dhis.storage.BlobKeyPrefix;
@@ -71,6 +72,7 @@ public record AppFolderName(String value) {
     return new BlobKeyPrefix(value);
   }
 
+  @Nonnull
   @Override
   public String toString() {
     return value;
