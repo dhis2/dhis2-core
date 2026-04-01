@@ -30,14 +30,10 @@
 package org.hisp.dhis.tracker.program.notification;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyList;
-import static org.mockito.Mockito.anyLong;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
@@ -47,12 +43,14 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageConversationParams;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.notification.NotificationMessage;
@@ -70,6 +68,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.template.NotificationTemplateMapper;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.imports.notification.GroupMemberInfo;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
@@ -139,10 +138,6 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
 
   private final Set<Enrollment> enrollments = new HashSet<>();
 
-  private final Set<TrackerEvent> trackerEvents = new HashSet<>();
-
-  private final Set<SingleEvent> singleEvents = new HashSet<>();
-
   private final List<ProgramMessage> sentProgramMessages = new ArrayList<>();
 
   private final List<MockMessage> sentInternalMessages = new ArrayList<>();
@@ -152,22 +147,6 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
   private User userB;
 
   private UserGroup userGroup;
-
-  private User userLvlTwoLeftLeft;
-
-  private User userLvlTwoLeftLeftDisabled;
-
-  private User userLvlTwoLeftRight;
-
-  private User userLvlOneLeft;
-
-  private User userLvlOneRight;
-
-  private User userRoot;
-
-  private UserGroup userGroupBasedOnHierarchy;
-
-  private UserGroup userGroupBasedOnParent;
 
   private OrganisationUnit lvlTwoLeftLeft;
 
@@ -180,6 +159,10 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
   private TrackedEntityAttribute trackedEntityAttribute;
 
   private ProgramTrackedEntityAttribute programTrackedEntityAttribute;
+
+  private TrackerEvent trackerEvent;
+
+  private SingleEvent singleEvent;
 
   private NotificationMessage notificationMessage;
 
@@ -211,60 +194,6 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
   // -------------------------------------------------------------------------
 
   // -------------------------------------------------------------------------
-
-  @Test
-  void testIfEnrollmentIsNull() {
-    when(manager.get(eq(Enrollment.class), any(Long.class))).thenReturn(null);
-
-    programNotificationService.sendEnrollmentCompletionNotifications(0);
-
-    verify(manager, never()).getAll(any());
-  }
-
-  @Test
-  void testIfTrackerEventIsNull() {
-    when(manager.get(eq(TrackerEvent.class), anyLong())).thenReturn(null);
-
-    programNotificationService.sendTrackerEventCompletionNotifications(0);
-
-    verify(manager, never()).getAll(any());
-  }
-
-  @Test
-  void testIfSingleEventIsNull() {
-    when(manager.get(eq(SingleEvent.class), anyLong())).thenReturn(null);
-
-    programNotificationService.sendSingleEventCompletionNotifications(0);
-
-    verify(manager, never()).getAll(any());
-  }
-
-  @Test
-  void testSendCompletionNotification() {
-    when(manager.get(eq(Enrollment.class), any(Long.class)))
-        .thenReturn(enrollments.iterator().next());
-
-    when(programMessageService.sendMessages(anyList()))
-        .thenAnswer(
-            invocation -> {
-              sentProgramMessages.addAll((List<ProgramMessage>) invocation.getArguments()[0]);
-              return new BatchResponseStatus(Collections.emptyList());
-            });
-
-    when(programNotificationRenderer.render(any(Enrollment.class), any(NotificationTemplate.class)))
-        .thenReturn(notificationMessage);
-
-    programNotificationTemplate.setNotificationTrigger(NotificationTrigger.COMPLETION);
-    programNotificationService.sendEnrollmentCompletionNotifications(
-        enrollments.iterator().next().getId());
-
-    assertEquals(1, sentProgramMessages.size());
-
-    ProgramMessage programMessage = sentProgramMessages.iterator().next();
-
-    assertEquals(TrackedEntity.class, programMessage.getRecipients().getTrackedEntity().getClass());
-    assertEquals(te, programMessage.getRecipients().getTrackedEntity());
-  }
 
   @Test
   void testSendEnrollmentNotification() {
@@ -414,9 +343,6 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
 
   @Test
   void testDataElementRecipientWithSMSForTrackerEvent() {
-    when(manager.get(eq(TrackerEvent.class), anyLong()))
-        .thenReturn(trackerEvents.iterator().next());
-
     when(programMessageService.sendMessages(anyList()))
         .thenAnswer(
             invocation -> {
@@ -431,61 +357,15 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
     programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.DATA_ELEMENT);
     programNotificationTemplate.setDeliveryChannels(Sets.newHashSet(DeliveryChannel.SMS));
     programNotificationTemplate.setRecipientDataElement(dataElement);
-    programNotificationTemplate.setNotificationTrigger(NotificationTrigger.COMPLETION);
 
-    TrackerEvent event = trackerEvents.iterator().next();
-
-    programNotificationService.sendTrackerEventCompletionNotifications(event.getId());
-
-    // no message when no template is attached
-    assertEquals(0, sentProgramMessages.size());
-
-    event.getProgramStage().getNotificationTemplates().add(programNotificationTemplate);
-
-    programNotificationService.sendTrackerEventCompletionNotifications(event.getId());
-
-    assertEquals(1, sentProgramMessages.size());
-  }
-
-  @Test
-  void testDataElementRecipientWithSMSForSingleEvent() {
-    when(manager.get(eq(SingleEvent.class), anyLong())).thenReturn(singleEvents.iterator().next());
-
-    when(programMessageService.sendMessages(anyList()))
-        .thenAnswer(
-            invocation -> {
-              sentProgramMessages.addAll((List<ProgramMessage>) invocation.getArguments()[0]);
-              return new BatchResponseStatus(Collections.emptyList());
-            });
-
-    when(singleEventNotificationRenderer.render(
-            any(SingleEvent.class), any(NotificationTemplate.class)))
-        .thenReturn(notificationMessage);
-
-    programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.DATA_ELEMENT);
-    programNotificationTemplate.setDeliveryChannels(Sets.newHashSet(DeliveryChannel.SMS));
-    programNotificationTemplate.setRecipientDataElement(dataElement);
-    programNotificationTemplate.setNotificationTrigger(NotificationTrigger.COMPLETION);
-
-    SingleEvent event = singleEvents.iterator().next();
-
-    programNotificationService.sendSingleEventCompletionNotifications(event.getId());
-
-    // no message when no template is attached
-    assertEquals(0, sentProgramMessages.size());
-
-    event.getProgramStage().getNotificationTemplates().add(programNotificationTemplate);
-
-    programNotificationService.sendSingleEventCompletionNotifications(event.getId());
+    programNotificationService.sendNotification(
+        programNotificationTemplate, trackerEvent, Map.of());
 
     assertEquals(1, sentProgramMessages.size());
   }
 
   @Test
   void testDataElementRecipientWithEmailForTrackerEvent() {
-    when(manager.get(eq(TrackerEvent.class), anyLong()))
-        .thenReturn(trackerEvents.iterator().next());
-
     when(programMessageService.sendMessages(anyList()))
         .thenAnswer(
             invocation -> {
@@ -500,26 +380,37 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
     programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.DATA_ELEMENT);
     programNotificationTemplate.setDeliveryChannels(Sets.newHashSet(DeliveryChannel.EMAIL));
     programNotificationTemplate.setRecipientDataElement(dataElementEmail);
-    programNotificationTemplate.setNotificationTrigger(NotificationTrigger.COMPLETION);
 
-    TrackerEvent event = trackerEvents.iterator().next();
+    programNotificationService.sendNotification(
+        programNotificationTemplate, trackerEvent, Map.of());
 
-    programNotificationService.sendTrackerEventCompletionNotifications(event.getId());
+    assertEquals(1, sentProgramMessages.size());
+  }
 
-    // no message when no template is attached
-    assertEquals(0, sentProgramMessages.size());
+  @Test
+  void testDataElementRecipientWithSMSForSingleEvent() {
+    when(programMessageService.sendMessages(anyList()))
+        .thenAnswer(
+            invocation -> {
+              sentProgramMessages.addAll((List<ProgramMessage>) invocation.getArguments()[0]);
+              return new BatchResponseStatus(Collections.emptyList());
+            });
 
-    event.getProgramStage().getNotificationTemplates().add(programNotificationTemplate);
+    when(singleEventNotificationRenderer.render(
+            any(SingleEvent.class), any(NotificationTemplate.class)))
+        .thenReturn(notificationMessage);
 
-    programNotificationService.sendTrackerEventCompletionNotifications(event.getId());
+    programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.DATA_ELEMENT);
+    programNotificationTemplate.setDeliveryChannels(Sets.newHashSet(DeliveryChannel.SMS));
+    programNotificationTemplate.setRecipientDataElement(dataElement);
+
+    programNotificationService.sendNotification(programNotificationTemplate, singleEvent, Map.of());
 
     assertEquals(1, sentProgramMessages.size());
   }
 
   @Test
   void testDataElementRecipientWithEmailForSingleEvent() {
-    when(manager.get(eq(SingleEvent.class), anyLong())).thenReturn(singleEvents.iterator().next());
-
     when(programMessageService.sendMessages(anyList()))
         .thenAnswer(
             invocation -> {
@@ -534,27 +425,14 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
     programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.DATA_ELEMENT);
     programNotificationTemplate.setDeliveryChannels(Sets.newHashSet(DeliveryChannel.EMAIL));
     programNotificationTemplate.setRecipientDataElement(dataElementEmail);
-    programNotificationTemplate.setNotificationTrigger(NotificationTrigger.COMPLETION);
 
-    SingleEvent event = singleEvents.iterator().next();
-
-    programNotificationService.sendSingleEventCompletionNotifications(event.getId());
-
-    // no message when no template is attached
-    assertEquals(0, sentProgramMessages.size());
-
-    event.getProgramStage().getNotificationTemplates().add(programNotificationTemplate);
-
-    programNotificationService.sendSingleEventCompletionNotifications(event.getId());
+    programNotificationService.sendNotification(programNotificationTemplate, singleEvent, Map.of());
 
     assertEquals(1, sentProgramMessages.size());
   }
 
   @Test
-  void testDataElementRecipientWithInternalRecipientsWithOneDisabledUserForTrackerEvent() {
-    when(manager.get(eq(TrackerEvent.class), anyLong()))
-        .thenReturn(trackerEvents.iterator().next());
-
+  void testUserGroupRecipientForTrackerEvent() {
     when(messageService.sendMessage(any()))
         .thenAnswer(
             invocation -> {
@@ -567,41 +445,19 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
         .thenReturn(notificationMessage);
 
     programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.USER_GROUP);
-    programNotificationTemplate.setNotificationTrigger(NotificationTrigger.COMPLETION);
     programNotificationTemplate.setRecipientUserGroup(userGroup);
 
-    TrackerEvent event = trackerEvents.iterator().next();
-    programNotificationService.sendTrackerEventCompletionNotifications(event.getId());
-    // no message when no template is attached
-    assertEquals(0, sentInternalMessages.size());
-    event.getProgramStage().getNotificationTemplates().add(programNotificationTemplate);
+    Map<Long, Set<GroupMemberInfo>> context = userGroupContext(userGroup, userB);
+    when(entityManager.getReference(User.class, userB.getId())).thenReturn(userB);
 
-    programNotificationService.sendTrackerEventCompletionNotifications(event.getId());
-    assertEquals(1, sentInternalMessages.size());
-    assertFalse(sentInternalMessages.iterator().next().users.contains(userA));
-    assertTrue(sentInternalMessages.iterator().next().users.contains(userB));
-    sentInternalMessages.clear();
+    programNotificationService.sendNotification(programNotificationTemplate, trackerEvent, context);
 
-    programNotificationTemplate.setNotifyUsersInHierarchyOnly(true);
-    programNotificationService.sendTrackerEventCompletionNotifications(event.getId());
     assertEquals(1, sentInternalMessages.size());
-    assertFalse(sentInternalMessages.iterator().next().users.contains(userA));
     assertTrue(sentInternalMessages.iterator().next().users.contains(userB));
-    sentInternalMessages.clear();
-
-    programNotificationTemplate.setNotifyUsersInHierarchyOnly(false);
-    programNotificationTemplate.setNotifyParentOrganisationUnitOnly(true);
-    programNotificationService.sendTrackerEventCompletionNotifications(event.getId());
-    assertEquals(1, sentInternalMessages.size());
-    assertFalse(sentInternalMessages.iterator().next().users.contains(userA));
-    assertTrue(sentInternalMessages.iterator().next().users.contains(userB));
-    sentInternalMessages.clear();
   }
 
   @Test
-  void testDataElementRecipientWithInternalRecipientsWithOneDisabledUserForSingleEvent() {
-    when(manager.get(eq(SingleEvent.class), anyLong())).thenReturn(singleEvents.iterator().next());
-
+  void testUserGroupRecipientForSingleEvent() {
     when(messageService.sendMessage(any()))
         .thenAnswer(
             invocation -> {
@@ -614,241 +470,12 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
         .thenReturn(notificationMessage);
 
     programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.USER_GROUP);
-    programNotificationTemplate.setNotificationTrigger(NotificationTrigger.COMPLETION);
     programNotificationTemplate.setRecipientUserGroup(userGroup);
 
-    SingleEvent event = singleEvents.iterator().next();
-
-    programNotificationService.sendSingleEventCompletionNotifications(event.getId());
-
-    // no message when no template is attached
-    assertEquals(0, sentInternalMessages.size());
-
-    event.getProgramStage().getNotificationTemplates().add(programNotificationTemplate);
-
-    programNotificationService.sendSingleEventCompletionNotifications(event.getId());
+    programNotificationService.sendNotification(programNotificationTemplate, singleEvent, Map.of());
 
     assertEquals(1, sentInternalMessages.size());
-
     assertTrue(sentInternalMessages.iterator().next().users.contains(userB));
-  }
-
-  @Test
-  void testSendToParentForTrackerEvent() {
-    when(manager.get(eq(TrackerEvent.class), anyLong()))
-        .thenReturn(trackerEvents.iterator().next());
-
-    when(messageService.sendMessage(any()))
-        .thenAnswer(
-            invocation -> {
-              sentInternalMessages.add(new MockMessage(invocation.getArguments()));
-              return 40L;
-            });
-
-    when(programStageNotificationRenderer.render(
-            any(TrackerEvent.class), any(NotificationTemplate.class)))
-        .thenReturn(notificationMessage);
-
-    programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.USER_GROUP);
-    programNotificationTemplate.setNotificationTrigger(NotificationTrigger.COMPLETION);
-    programNotificationTemplate.setRecipientUserGroup(userGroupBasedOnParent);
-    programNotificationTemplate.setNotifyParentOrganisationUnitOnly(true);
-
-    TrackerEvent event = trackerEvents.iterator().next();
-    event.getProgramStage().getNotificationTemplates().add(programNotificationTemplate);
-
-    programNotificationService.sendTrackerEventCompletionNotifications(event.getId());
-
-    assertEquals(1, sentInternalMessages.size());
-
-    Set<User> users = sentInternalMessages.iterator().next().users;
-
-    assertEquals(1, users.size());
-    assertTrue(users.contains(userLvlOneLeft));
-  }
-
-  @Test
-  void testSendToParentForSingleEvent() {
-    when(manager.get(eq(SingleEvent.class), anyLong())).thenReturn(singleEvents.iterator().next());
-
-    when(messageService.sendMessage(any()))
-        .thenAnswer(
-            invocation -> {
-              sentInternalMessages.add(new MockMessage(invocation.getArguments()));
-              return 40L;
-            });
-
-    when(singleEventNotificationRenderer.render(
-            any(SingleEvent.class), any(NotificationTemplate.class)))
-        .thenReturn(notificationMessage);
-
-    programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.USER_GROUP);
-    programNotificationTemplate.setNotificationTrigger(NotificationTrigger.COMPLETION);
-    programNotificationTemplate.setRecipientUserGroup(userGroupBasedOnParent);
-    programNotificationTemplate.setNotifyParentOrganisationUnitOnly(true);
-
-    SingleEvent event = singleEvents.iterator().next();
-    event.getProgramStage().getNotificationTemplates().add(programNotificationTemplate);
-
-    programNotificationService.sendSingleEventCompletionNotifications(event.getId());
-
-    assertEquals(1, sentInternalMessages.size());
-
-    Set<User> users = sentInternalMessages.iterator().next().users;
-
-    assertEquals(1, users.size());
-    assertTrue(users.contains(userLvlOneLeft));
-  }
-
-  @Test
-  void testSendToHierarchyForTrackerEvent() {
-    when(manager.get(eq(TrackerEvent.class), anyLong()))
-        .thenReturn(trackerEvents.iterator().next());
-
-    when(messageService.sendMessage(any()))
-        .thenAnswer(
-            invocation -> {
-              sentInternalMessages.add(new MockMessage(invocation.getArguments()));
-              return 40L;
-            });
-
-    when(programStageNotificationRenderer.render(
-            any(TrackerEvent.class), any(NotificationTemplate.class)))
-        .thenReturn(notificationMessage);
-
-    programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.USER_GROUP);
-
-    programNotificationTemplate.setRecipientUserGroup(userGroupBasedOnHierarchy);
-    programNotificationTemplate.setNotifyUsersInHierarchyOnly(true);
-    programNotificationTemplate.setNotificationTrigger(NotificationTrigger.COMPLETION);
-
-    TrackerEvent event = trackerEvents.iterator().next();
-    event.getProgramStage().getNotificationTemplates().add(programNotificationTemplate);
-
-    programNotificationService.sendTrackerEventCompletionNotifications(event.getId());
-
-    assertEquals(1, sentInternalMessages.size());
-
-    Set<User> users = sentInternalMessages.iterator().next().users;
-
-    assertEquals(3, users.size());
-    assertTrue(users.contains(userLvlTwoLeftLeft));
-    assertTrue(users.contains(userLvlOneLeft));
-    assertTrue(users.contains(userRoot));
-
-    assertFalse(users.contains(userLvlTwoLeftLeftDisabled));
-    assertFalse(users.contains(userLvlTwoLeftRight));
-    assertFalse(users.contains(userLvlOneRight));
-  }
-
-  @Test
-  void testSendToHierarchy() {
-    when(manager.get(eq(SingleEvent.class), anyLong())).thenReturn(singleEvents.iterator().next());
-
-    when(messageService.sendMessage(any()))
-        .thenAnswer(
-            invocation -> {
-              sentInternalMessages.add(new MockMessage(invocation.getArguments()));
-              return 40L;
-            });
-
-    when(singleEventNotificationRenderer.render(
-            any(SingleEvent.class), any(NotificationTemplate.class)))
-        .thenReturn(notificationMessage);
-
-    programNotificationTemplate.setNotificationRecipient(ProgramNotificationRecipient.USER_GROUP);
-
-    programNotificationTemplate.setRecipientUserGroup(userGroupBasedOnHierarchy);
-    programNotificationTemplate.setNotifyUsersInHierarchyOnly(true);
-    programNotificationTemplate.setNotificationTrigger(NotificationTrigger.COMPLETION);
-
-    SingleEvent event = singleEvents.iterator().next();
-    event.getProgramStage().getNotificationTemplates().add(programNotificationTemplate);
-
-    programNotificationService.sendSingleEventCompletionNotifications(event.getId());
-
-    assertEquals(1, sentInternalMessages.size());
-
-    Set<User> users = sentInternalMessages.iterator().next().users;
-
-    assertEquals(3, users.size());
-    assertTrue(users.contains(userLvlTwoLeftLeft));
-    assertTrue(users.contains(userLvlOneLeft));
-    assertTrue(users.contains(userRoot));
-
-    assertFalse(users.contains(userLvlTwoLeftRight));
-    assertFalse(users.contains(userLvlOneRight));
-  }
-
-  @Test
-  void testSendToUsersAtOuForTrackerEvent() {
-    when(manager.get(eq(TrackerEvent.class), anyLong()))
-        .thenReturn(trackerEvents.iterator().next());
-
-    when(messageService.sendMessage(any()))
-        .thenAnswer(
-            invocation -> {
-              sentInternalMessages.add(new MockMessage(invocation.getArguments()));
-              return 40L;
-            });
-
-    when(programStageNotificationRenderer.render(
-            any(TrackerEvent.class), any(NotificationTemplate.class)))
-        .thenReturn(notificationMessage);
-
-    programNotificationTemplate.setNotificationRecipient(
-        ProgramNotificationRecipient.USERS_AT_ORGANISATION_UNIT);
-    programNotificationTemplate.setNotificationTrigger(NotificationTrigger.COMPLETION);
-
-    lvlTwoLeftLeft.getUsers().add(userLvlTwoLeftRight);
-
-    TrackerEvent event = trackerEvents.iterator().next();
-    event.getProgramStage().getNotificationTemplates().add(programNotificationTemplate);
-
-    programNotificationService.sendTrackerEventCompletionNotifications(event.getId());
-
-    assertEquals(1, sentInternalMessages.size());
-
-    Set<User> users = sentInternalMessages.iterator().next().users;
-
-    assertEquals(2, users.size());
-    assertTrue(users.contains(userLvlTwoLeftLeft));
-    assertTrue(users.contains(userLvlTwoLeftRight));
-  }
-
-  @Test
-  void testSendToUsersAtOuForSingleEvent() {
-    when(manager.get(eq(SingleEvent.class), anyLong())).thenReturn(singleEvents.iterator().next());
-
-    when(messageService.sendMessage(any()))
-        .thenAnswer(
-            invocation -> {
-              sentInternalMessages.add(new MockMessage(invocation.getArguments()));
-              return 40L;
-            });
-
-    when(singleEventNotificationRenderer.render(
-            any(SingleEvent.class), any(NotificationTemplate.class)))
-        .thenReturn(notificationMessage);
-
-    programNotificationTemplate.setNotificationRecipient(
-        ProgramNotificationRecipient.USERS_AT_ORGANISATION_UNIT);
-    programNotificationTemplate.setNotificationTrigger(NotificationTrigger.COMPLETION);
-
-    lvlTwoLeftLeft.getUsers().add(userLvlTwoLeftRight);
-
-    SingleEvent event = singleEvents.iterator().next();
-    event.getProgramStage().getNotificationTemplates().add(programNotificationTemplate);
-
-    programNotificationService.sendSingleEventCompletionNotifications(event.getId());
-
-    assertEquals(1, sentInternalMessages.size());
-
-    Set<User> users = sentInternalMessages.iterator().next().users;
-
-    assertEquals(2, users.size());
-    assertTrue(users.contains(userLvlTwoLeftLeft));
-    assertTrue(users.contains(userLvlTwoLeftRight));
   }
 
   @Test
@@ -880,6 +507,20 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
     programNotificationService.sendScheduledNotifications(JobProgress.noop());
 
     assertEquals(0, sentProgramMessages.size());
+  }
+
+  private static Map<Long, Set<GroupMemberInfo>> userGroupContext(UserGroup group, User... users) {
+    Set<GroupMemberInfo> members = new HashSet<>();
+    for (User u : users) {
+      if (u.isEnabled()) {
+        String ouUid =
+            u.getOrganisationUnits().isEmpty()
+                ? null
+                : u.getOrganisationUnits().iterator().next().getUid();
+        members.add(new GroupMemberInfo(u.getId(), ouUid));
+      }
+    }
+    return Map.of(group.getId(), members);
   }
 
   // -------------------------------------------------------------------------
@@ -916,16 +557,8 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
     programNotificationInstaceForToday.setAutoFields();
     programNotificationInstaceForToday.setScheduledAt(today);
 
-    OrganisationUnit root = createOrganisationUnit('R');
-    OrganisationUnit lvlOneLeft = createOrganisationUnit('1');
-    OrganisationUnit lvlOneRight = createOrganisationUnit('2');
     lvlTwoLeftLeft = createOrganisationUnit('3');
     lvlTwoLeftLeft.setPhoneNumber(OU_PHONE_NUMBER);
-    OrganisationUnit lvlTwoLeftRight = createOrganisationUnit('4');
-
-    configureHierarchy(root, lvlOneLeft, lvlOneRight, lvlTwoLeftLeft, lvlTwoLeftRight);
-
-    // User and UserGroup
 
     userA = makeUser("U");
     userA.setPhoneNumber(USERA_PHONE_NUMBER);
@@ -935,77 +568,22 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
     userB = makeUser("V");
     userB.setPhoneNumber(USERB_PHONE_NUMBER);
     userB.getOrganisationUnits().add(lvlTwoLeftLeft);
-    userB.getOrganisationUnits().add(lvlOneLeft);
 
     userGroup = createUserGroup('G', Sets.newHashSet(userA, userB));
 
-    // User based on hierarchy
-    userLvlTwoLeftLeftDisabled = makeUser("D");
-    userLvlTwoLeftLeftDisabled.setDisabled(true);
-    userLvlTwoLeftLeftDisabled.getOrganisationUnits().add(lvlTwoLeftLeft);
-    lvlTwoLeftLeft.getUsers().add(userLvlTwoLeftLeftDisabled);
-
-    userLvlTwoLeftLeft = makeUser("K");
-    userLvlTwoLeftLeft.getOrganisationUnits().add(lvlTwoLeftLeft);
-    lvlTwoLeftLeft.getUsers().add(userLvlTwoLeftLeft);
-
-    userLvlTwoLeftRight = makeUser("L");
-    userLvlTwoLeftRight.getOrganisationUnits().add(lvlTwoLeftRight);
-    lvlTwoLeftRight.getUsers().add(userLvlTwoLeftRight);
-
-    userLvlOneLeft = makeUser("M");
-    userLvlOneLeft.getOrganisationUnits().add(lvlOneLeft);
-    lvlOneLeft.getUsers().add(userLvlOneLeft);
-
-    userLvlOneRight = makeUser("N");
-    userLvlOneRight.getOrganisationUnits().add(lvlOneRight);
-    lvlOneRight.getUsers().add(userLvlOneLeft);
-
-    userRoot = makeUser("R");
-    userRoot.getOrganisationUnits().add(root);
-    root.getUsers().add(userRoot);
-
-    userGroupBasedOnHierarchy =
-        createUserGroup(
-            'H',
-            Sets.newHashSet(
-                userLvlOneLeft,
-                userLvlOneRight,
-                userLvlTwoLeftLeft,
-                userLvlTwoLeftRight,
-                userRoot));
-    userGroupBasedOnParent =
-        createUserGroup(
-            'H', Sets.newHashSet(userLvlTwoLeftLeft, userLvlTwoLeftRight, userLvlOneLeft));
-
-    // Program
     Program programA = createProgram('A');
     programA.setAutoFields();
-    programA.setOrganisationUnits(Sets.newHashSet(lvlTwoLeftLeft, lvlTwoLeftRight));
+    programA.setOrganisationUnits(Sets.newHashSet(lvlTwoLeftLeft));
     programA.setNotificationTemplates(
         Sets.newHashSet(programNotificationTemplate, programNotificationTemplateForToday));
     programA.getProgramAttributes().add(programTrackedEntityAttribute);
 
     trackedEntityAttribute = createTrackedEntityAttribute('T');
-    TrackedEntityAttribute trackedEntityAttributeEmail = createTrackedEntityAttribute('E');
-    trackedEntityAttribute.setValueType(ValueType.PHONE_NUMBER);
     trackedEntityAttribute.setValueType(ValueType.EMAIL);
     programTrackedEntityAttribute =
         createProgramTrackedEntityAttribute(programA, trackedEntityAttribute);
-    ProgramTrackedEntityAttribute programTrackedEntityAttributeEmail =
-        createProgramTrackedEntityAttribute(programA, trackedEntityAttributeEmail);
     programTrackedEntityAttribute.setAttribute(trackedEntityAttribute);
-    programTrackedEntityAttributeEmail.setAttribute(trackedEntityAttributeEmail);
 
-    // ProgramStage
-    ProgramStage programStage = createProgramStage('S', programA);
-
-    dataElement = createDataElement('D');
-    dataElementEmail = createDataElement('E');
-    dataElement.setValueType(ValueType.PHONE_NUMBER);
-    dataElementEmail.setValueType(ValueType.EMAIL);
-
-    // Enrollment & TE
     te = new TrackedEntity();
     te.setAutoFields();
     te.setOrganisationUnit(lvlTwoLeftLeft);
@@ -1019,26 +597,39 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
     te.getTrackedEntityAttributeValues().add(attributeValue);
     te.getTrackedEntityAttributeValues().add(attributeValueEmail);
 
+    // ProgramStage
+    ProgramStage programStage = createProgramStage('S', programA);
+
+    dataElement = createDataElement('D');
+    dataElementEmail = createDataElement('E');
+    dataElement.setValueType(ValueType.PHONE_NUMBER);
+    dataElementEmail.setValueType(ValueType.EMAIL);
+
     Enrollment enrollment = new Enrollment();
     enrollment.setAutoFields();
     enrollment.setProgram(programA);
     enrollment.setOrganisationUnit(lvlTwoLeftLeft);
     enrollment.setTrackedEntity(te);
 
-    TrackerEvent event = new TrackerEvent();
-    event.setAutoFields();
-    event.setEnrollment(enrollment);
-    event.setOrganisationUnit(lvlTwoLeftLeft);
-    event.setProgramStage(programStage);
+    trackerEvent = new TrackerEvent();
+    trackerEvent.setAutoFields();
+    trackerEvent.setEnrollment(enrollment);
+    trackerEvent.setOrganisationUnit(lvlTwoLeftLeft);
+    trackerEvent.setProgramStage(programStage);
+    trackerEvent.setEventDataValues(
+        Set.of(
+            new EventDataValue(dataElement.getUid(), ATT_PHONE_NUMBER),
+            new EventDataValue(dataElementEmail.getUid(), ATT_EMAIL)));
 
-    SingleEvent singleEvent = new SingleEvent();
+    singleEvent = new SingleEvent();
     singleEvent.setAutoFields();
     singleEvent.setOrganisationUnit(lvlTwoLeftLeft);
     singleEvent.setProgramStage(programStage);
+    singleEvent.setEventDataValues(
+        Set.of(
+            new EventDataValue(dataElement.getUid(), ATT_PHONE_NUMBER),
+            new EventDataValue(dataElementEmail.getUid(), ATT_EMAIL)));
 
-    // lists returned by stubs
-    singleEvents.add(singleEvent);
-    trackerEvents.add(event);
     enrollments.add(enrollment);
 
     programNotificationInstaceForToday.setEnrollment(enrollment);

@@ -37,6 +37,8 @@ import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,6 +55,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -65,9 +68,9 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
-import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
+import org.hisp.dhis.tracker.imports.notification.EntityNotifications;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.model.TrackedEntity;
@@ -94,13 +97,13 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
    * @return a {@link TrackerTypeReport}
    */
   @Override
-  public TrackerTypeReport persist(EntityManager entityManager, TrackerBundle bundle) {
+  public PersistResult persist(EntityManager entityManager, TrackerBundle bundle) {
     //
     // Init the report that will hold the results of the persist operation
     //
     TrackerTypeReport typeReport = new TrackerTypeReport(getType());
 
-    List<TrackerNotificationDataBundle> notificationDataBundles = new ArrayList<>();
+    List<EntityNotifications> notifications = new ArrayList<>();
 
     //
     // Extract the entities to persist from the Bundle
@@ -110,9 +113,11 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
     for (T trackerDto : dtos) {
 
       Entity objectReport = new Entity(getType(), trackerDto.getUID());
-      List<NotificationTrigger> triggers =
-          determineNotificationTriggers(bundle.getPreheat(), trackerDto);
-
+      boolean isNewEntity = isNew(bundle, trackerDto);
+      // Capture before convert() which mutates the preheat entity's status
+      boolean completedInThisImport =
+          !bundle.isSkipSideEffects()
+              && isBeingCompleted(bundle.getPreheat(), trackerDto, isNewEntity);
       try {
         V originalEntity = cloneEntityProperties(bundle.getPreheat(), trackerDto);
 
@@ -165,7 +170,11 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
         }
 
         if (!bundle.isSkipSideEffects()) {
-          notificationDataBundles.add(handleNotifications(bundle, convertedDto, triggers));
+          EntityNotifications entityNotifications =
+              collectNotifications(bundle, convertedDto, isNewEntity, completedInThisImport);
+          if (entityNotifications != null) {
+            notifications.add(entityNotifications);
+          }
         }
 
         //
@@ -197,9 +206,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       }
     }
 
-    typeReport.getNotificationDataBundles().addAll(notificationDataBundles);
-
-    return typeReport;
+    return new PersistResult(typeReport, notifications);
   }
 
   // // // // // // // //
@@ -245,26 +252,56 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
   /** Updates the {@link TrackerPreheat} object with the entity that has been persisted */
   protected abstract void updatePreheat(TrackerPreheat preheat, V convertedDto);
 
-  /** TODO add comment */
-  protected abstract TrackerNotificationDataBundle handleNotifications(
-      TrackerBundle bundle, V entity, List<NotificationTrigger> triggers);
-
-  /**
-   * Determines the notification triggers based on the enrollment/event status.
-   *
-   * @param preheat the enrollment/event fetched from the database
-   * @param entity the enrollment/event coming from the request payload
-   * @return a list of NotificationTriggers
-   */
-  protected abstract List<NotificationTrigger> determineNotificationTriggers(
-      TrackerPreheat preheat, T entity);
-
-  /** Get the Tracker Type for which the current Persister is responsible for. */
-  protected abstract TrackerType getType();
-
   protected boolean isNew(TrackerBundle bundle, TrackerDto trackerDto) {
     return bundle.getStrategy(trackerDto) == TrackerImportStrategy.CREATE;
   }
+
+  /**
+   * Returns true if the entity is being set to completed status in this import. Must be called
+   * before convert() which mutates the preheat entity. Returns false by default.
+   */
+  protected boolean isBeingCompleted(TrackerPreheat preheat, T trackerDto, boolean isNew) {
+    return false;
+  }
+
+  /**
+   * Collects notifications for the persisted entity. Merges lifecycle notifications (from template
+   * trigger matching) and rule engine notifications. Override in persisters that support
+   * notifications (enrollments, events). Returns null by default.
+   */
+  protected EntityNotifications collectNotifications(
+      TrackerBundle bundle, V entity, boolean isNew, boolean completedInThisImport) {
+    return null;
+  }
+
+  /** Returns notification templates that match any of the given triggers. */
+  protected static Set<ProgramNotificationTemplate> filterTemplates(
+      Set<ProgramNotificationTemplate> templates,
+      EnumSet<org.hisp.dhis.program.notification.NotificationTrigger> triggers) {
+    if (templates == null || templates.isEmpty() || triggers.isEmpty()) {
+      return Set.of();
+    }
+    return templates.stream()
+        .filter(t -> triggers.contains(t.getNotificationTrigger()))
+        .collect(Collectors.toSet());
+  }
+
+  /**
+   * Merges lifecycle templates and rule engine notifications into a single deduplicated set.
+   * Lifecycle templates produce immediate notifications (scheduledAt=null).
+   */
+  protected static Set<Notification> mergeNotifications(
+      Set<ProgramNotificationTemplate> lifecycleTemplates,
+      List<Notification> ruleEngineNotifications) {
+    Set<Notification> notifications = new LinkedHashSet<>(ruleEngineNotifications);
+    for (ProgramNotificationTemplate t : lifecycleTemplates) {
+      notifications.add(new Notification(UID.of(t.getUid()), null));
+    }
+    return notifications;
+  }
+
+  /** Get the Tracker Type for which the current Persister is responsible for. */
+  protected abstract TrackerType getType();
 
   @SuppressWarnings("unchecked")
   protected abstract List<T> getByType(TrackerBundle bundle);

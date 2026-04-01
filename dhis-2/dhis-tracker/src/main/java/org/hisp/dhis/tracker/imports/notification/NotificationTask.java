@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +27,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.job;
+package org.hisp.dhis.tracker.imports.notification;
 
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.security.SecurityContextRunnable;
-import org.hisp.dhis.system.notification.NotificationLevel;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.SingleEvent;
@@ -43,48 +44,29 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 /**
- * Class represents a thread which will be triggered as soon as tracker rule engine consumer
- * consumes a message from tracker rule engine queue. It loops through the list of notifications and
- * implement it if it has an associated rule implementer class.
- *
- * @author Zubair Asghar
+ * Async task that sends all notifications (lifecycle and rule engine) for a single tracker entity.
+ * Iterates the deduplicated notification list and delegates to {@link NotificationSender}.
  */
 @Component
 @Scope(BeanDefinition.SCOPE_PROTOTYPE)
 @RequiredArgsConstructor
-public class TrackerRuleEngineThread extends SecurityContextRunnable {
+public class NotificationTask extends SecurityContextRunnable {
   private final NotificationSender notificationSender;
-  private final Notifier notifier;
 
-  @Setter private TrackerNotificationDataBundle notificationDataBundle;
+  @Setter private EntityNotifications entityNotifications;
+  @Setter private Map<Long, Set<GroupMemberInfo>> groupMembers;
 
   @Override
   public void call() {
-    if (notificationDataBundle == null) {
-      return;
+    IdentifiableObject entity = entityNotifications.entity();
+    for (Notification notification : entityNotifications.notifications()) {
+      if (entity instanceof Enrollment enrollment) {
+        notificationSender.send(notification, enrollment, groupMembers);
+      } else if (entity instanceof TrackerEvent event) {
+        notificationSender.send(notification, event, groupMembers);
+      } else if (entity instanceof SingleEvent singleEvent) {
+        notificationSender.send(notification, singleEvent, groupMembers);
+      }
     }
-
-    for (Notification effect : notificationDataBundle.getEnrollmentNotifications()) {
-      Enrollment enrollment = notificationDataBundle.getEnrollment();
-      enrollment.setProgram(notificationDataBundle.getProgram());
-      this.notificationSender.send(effect, enrollment);
-    }
-
-    for (Notification effect : notificationDataBundle.getTrackerEventNotifications()) {
-      TrackerEvent event = notificationDataBundle.getEvent();
-      event.getProgramStage().setProgram(notificationDataBundle.getProgram());
-      this.notificationSender.send(effect, event);
-    }
-
-    for (Notification effect : notificationDataBundle.getSingleEventNotifications()) {
-      SingleEvent event = notificationDataBundle.getSingleEvent();
-      event.getProgramStage().setProgram(notificationDataBundle.getProgram());
-      this.notificationSender.send(effect, event);
-    }
-
-    notifier.notify(
-        notificationDataBundle.getJobConfiguration(),
-        NotificationLevel.DEBUG,
-        "Tracker Rule-engine notifications completed");
   }
 }
