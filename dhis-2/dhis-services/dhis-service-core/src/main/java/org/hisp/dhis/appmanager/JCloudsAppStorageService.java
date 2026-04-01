@@ -156,11 +156,11 @@ public class JCloudsAppStorageService implements AppStorageService {
     }
   }
 
-  private AppCacheConfig readAppCacheConfig(Blob cacheConfigBlob) {
-    if (cacheConfigBlob == null) {
+  private AppCacheConfig readAppCacheConfig(@CheckForNull InputStream cacheConfigStream) {
+    if (cacheConfigStream == null) {
       return null;
     }
-    try (InputStream inputStream = cacheConfigBlob.getPayload().openStream()) {
+    try (InputStream inputStream = cacheConfigStream) {
       return App.MAPPER.readValue(inputStream, AppCacheConfig.class);
     } catch (IOException e) {
       log.warn("Failed to read {}: {}", AppStorageService.CACHE_CONFIG_FILENAME, e.getMessage());
