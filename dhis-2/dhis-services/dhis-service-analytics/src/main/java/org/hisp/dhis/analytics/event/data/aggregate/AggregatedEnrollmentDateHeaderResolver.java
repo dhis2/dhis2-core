@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.event.data.aggregate;
 
 import java.util.AbstractMap;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,6 +39,7 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.PeriodDimensionSplitter;
 import org.hisp.dhis.common.AnalyticsDateFilter;
 import org.hisp.dhis.common.DimensionalObject;
 
@@ -93,9 +95,9 @@ public final class AggregatedEnrollmentDateHeaderResolver {
    * @return {@code true} when the header maps to the active static date period dimension
    */
   public boolean isDerivedStaticPeriodHeader(EventQueryParams params, String headerName) {
-    return getStaticPeriodHeaderName(params)
-        .filter(name -> name.equalsIgnoreCase(headerName))
-        .isPresent();
+    String normalizedHeader = normalizeHeaderKey(headerName);
+    return getStaticPeriodKeys(params).stream()
+        .anyMatch(name -> name.equalsIgnoreCase(normalizedHeader));
   }
 
   /**
@@ -108,25 +110,19 @@ public final class AggregatedEnrollmentDateHeaderResolver {
     return headerName.replace("\"", "").replace("`", "");
   }
 
-  private Optional<String> getStaticPeriodHeaderName(EventQueryParams params) {
+  private Set<String> getStaticPeriodKeys(EventQueryParams params) {
     DimensionalObject periodDimension = params.getDimension("pe");
     if (periodDimension == null || periodDimension.getItems().isEmpty()) {
-      return Optional.empty();
+      return Set.of();
     }
 
-    Set<String> dateFields =
-        periodDimension.getItems().stream()
-            .filter(org.hisp.dhis.period.PeriodDimension.class::isInstance)
-            .map(org.hisp.dhis.period.PeriodDimension.class::cast)
-            .map(org.hisp.dhis.period.PeriodDimension::getDateField)
-            .filter(StringUtils::isNotBlank)
-            .collect(Collectors.toSet());
-
-    if (dateFields.size() != 1) {
-      return Optional.empty();
-    }
-
-    return dateFields.stream().findFirst().map(this::toDateFieldKey);
+    return periodDimension.getItems().stream()
+        .filter(org.hisp.dhis.period.PeriodDimension.class::isInstance)
+        .map(org.hisp.dhis.period.PeriodDimension.class::cast)
+        .map(org.hisp.dhis.period.PeriodDimension::getDateField)
+        .filter(Objects::nonNull)
+        .map(PeriodDimensionSplitter::toDateFieldKey)
+        .collect(Collectors.toSet());
   }
 
   private Optional<String> resolveEnrollmentStaticHeaderSourceColumn(String headerName) {

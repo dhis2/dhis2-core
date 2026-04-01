@@ -68,6 +68,7 @@ import org.hisp.dhis.fileresource.SimpleImageResource;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.StyleManager;
 import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.webapi.staticresource.StaticCacheControlService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MimeType;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -96,6 +97,7 @@ public class StaticContentController {
   private final StyleManager styleManager;
   private final FileResourceContentStore contentStore;
   private final ETagService eTagService;
+  private final StaticCacheControlService staticCacheControlService;
   static final String LOGO_BANNER = "logo_banner";
   static final String LOGO_FRONT = "logo_front";
   private static final FileResourceDomain DEFAULT_RESOURCE_DOMAIN = DOCUMENT;
@@ -158,6 +160,8 @@ public class StaticContentController {
       HttpServletResponse response,
       SystemSettings settings)
       throws WebMessageException, NotFoundException {
+
+    staticCacheControlService.setHeaders(response, request.getRequestURI(), null, null);
 
     if (!isUseCustomFile(key, settings)) // Serve default
     {

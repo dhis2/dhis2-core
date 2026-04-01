@@ -435,7 +435,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   @Override
   void addFromClause(SelectBuilder sb, EventQueryParams params) {
     sb.from(params.getTableName(), ANALYTICS_TBL_ALIAS);
-    OrgUnitSqlCoordinator.addJoinIfNeeded(sb, params);
+    OrgUnitSqlCoordinator.addJoinIfNeeded(sb, params, sqlBuilder);
   }
 
   /**
@@ -544,10 +544,10 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
           .append(" ");
     }
 
-    resolveDateFieldPeriodBucketJoin(params, ANALYTICS_TBL_ALIAS)
-        .ifPresent(join -> sql.append(join.toSql()).append(" "));
+    resolveDateFieldPeriodBucketJoins(params, ANALYTICS_TBL_ALIAS)
+        .forEach(join -> sql.append(join.toSql()).append(" "));
 
-    OrgUnitSqlCoordinator.appendLegacyJoin(sql, params);
+    OrgUnitSqlCoordinator.appendLegacyJoin(sql, params, sqlBuilder);
 
     return sql.append(joinOrgUnitTables(params, getAnalyticsType())).toString();
   }
@@ -775,7 +775,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     }
 
     StringBuilder enrollmentOuSql = new StringBuilder();
-    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(enrollmentOuSql, hlp, params);
+    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(enrollmentOuSql, hlp, params, sqlBuilder);
     sql += enrollmentOuSql;
 
     if (params.hasBbox()) {
@@ -1078,7 +1078,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     List<String> columns = new ArrayList<>(getStandardColumns(params));
     addDimensionSelectColumns(columns, params, false, false);
-    OrgUnitSqlCoordinator.addQuerySelectColumns(columns, params);
+    OrgUnitSqlCoordinator.addQuerySelectColumns(columns, params, sqlBuilder);
     addEventsItemSelectColumns(columns, params, cteContext);
 
     columns.forEach(
