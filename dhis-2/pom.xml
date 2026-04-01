@@ -206,7 +206,7 @@
     <commons-email.version>1.6.0</commons-email.version>
     <jakarta-email.version>1.6.7</jakarta-email.version>
     <httpcomponents-core.version>5.3.6</httpcomponents-core.version>
-    <httpcomponents-client5.version>5.5.1</httpcomponents-client5.version>
+    <httpcomponents-client5.version>5.6</httpcomponents-client5.version>
     <kafka.version>4.0.0</kafka.version>
 
     <!-- Monitoring -->
@@ -215,7 +215,7 @@
     <prometheus-metrics-model.version>1.5.1</prometheus-metrics-model.version>
 
     <!-- Logging -->
-    <log4j.version>2.25.3</log4j.version>
+    <log4j.version>2.25.4</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
