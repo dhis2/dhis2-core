@@ -518,7 +518,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     return user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath());
   }
 
-  private List<String> canRead(@Nonnull UserDetails user, RelationshipItem item) {
+  private List<String> canRead(@Nonnull UserDetails user, @Nonnull RelationshipItem item) {
     if (item.getTrackedEntity() != null) return canRead(user, item.getTrackedEntity());
     if (item.getEnrollment() != null) return canRead(user, item.getEnrollment());
     if (item.getTrackerEvent() != null) return canRead(user, item.getTrackerEvent());
@@ -529,11 +529,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   private List<String> canWrite(@Nonnull UserDetails user, RelationshipItem item) {
     if (item.getTrackedEntity() != null)
       return canUpdate(user, item.getTrackedEntity()).stream()
-          .map(eo -> eo.validationCode().getMessage())
+          .map(em -> em.validationCode().getMessage())
           .toList();
     if (item.getEnrollment() != null)
       return canUpdate(user, item.getEnrollment()).stream()
-          .map(eo -> eo.validationCode().getMessage())
+          .map(em -> em.validationCode().getMessage())
           .toList();
     if (item.getTrackerEvent() != null) return canUpdate(user, item.getTrackerEvent());
     if (item.getSingleEvent() != null) return canCreate(user, item.getSingleEvent());

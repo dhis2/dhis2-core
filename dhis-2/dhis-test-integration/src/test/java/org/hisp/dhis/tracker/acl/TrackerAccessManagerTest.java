@@ -49,7 +49,6 @@ import com.google.common.collect.Sets;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import org.apache.commons.lang3.time.DateUtils;
@@ -352,7 +351,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     manager.update(trackedEntityType);
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitB));
     user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
-    UserDetails userDetails = Objects.requireNonNull(fromUser(user));
+    UserDetails userDetails = fromUser(user);
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, trackedEntityA.getUid());
     assertNotNull(trackedEntity);
     Enrollment enrollment = trackedEntity.getEnrollments().iterator().next();

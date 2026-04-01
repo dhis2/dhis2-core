@@ -67,9 +67,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     UserDetails user = bundle.getUser();
 
     if (strategy.isCreate()) {
-      org.hisp.dhis.tracker.model.Enrollment mappedEnrollment =
-          map(bundle.getPreheat(), payloadEnrollment, user);
-      handleCreate(reporter, user, mappedEnrollment, payloadEnrollment);
+      handleCreate(reporter, user, preheat, payloadEnrollment);
     } else {
       OrganisationUnit organisationUnit =
           bundle.getPreheat().getEnrollment(payloadEnrollment.getUID()).getOrganisationUnit();
@@ -89,14 +87,13 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
   }
 
   private void handleCreate(
-      Reporter reporter,
-      UserDetails user,
-      org.hisp.dhis.tracker.model.Enrollment mappedEnrollment,
-      Enrollment payloadEnrollment) {
+      Reporter reporter, UserDetails user, TrackerPreheat preheat, Enrollment payloadEnrollment) {
+    org.hisp.dhis.tracker.model.Enrollment mappedEnrollment = map(preheat, payloadEnrollment, user);
+
     trackerAccessManager
         .canCreate(user, mappedEnrollment)
         .forEach(
-            eo -> reporter.addError(payloadEnrollment, eo.validationCode(), eo.args().toArray()));
+            em -> reporter.addError(payloadEnrollment, em.validationCode(), em.args().toArray()));
   }
 
   private void handleUpdate(
@@ -108,7 +105,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     trackerAccessManager
         .canUpdate(user, mappedEnrollment)
         .forEach(
-            eo -> reporter.addError(payloadEnrollment, eo.validationCode(), eo.args().toArray()));
+            em -> reporter.addError(payloadEnrollment, em.validationCode(), em.args().toArray()));
 
     OrganisationUnit enrollmentOrgUnit =
         preheat.getOrganisationUnit(payloadEnrollment.getOrgUnit());
