@@ -124,7 +124,7 @@ class DataValuesValidatorTest {
   }
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     validator = new DataValuesValidator(optionService);
 
     when(bundle.getPreheat()).thenReturn(preheat);
@@ -1037,16 +1037,12 @@ class DataValuesValidatorTest {
     DataElement validDataElement = dataElement(ValueType.ORGANISATION_UNIT);
     when(preheat.getDataElement(MetadataIdentifier.ofUid(DATA_ELEMENT_UID)))
         .thenReturn(validDataElement);
-
     OrganisationUnit validOrgUnit = organisationUnit();
-
     DataValue validDataValue = dataValue(validOrgUnit.getUid());
     when(preheat.getOrganisationUnit(validDataValue.getValue())).thenReturn(validOrgUnit);
-
     ProgramStage programStage = programStage(validDataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
-
     Event event =
         TrackerEvent.builder()
             .event(UID.generate())

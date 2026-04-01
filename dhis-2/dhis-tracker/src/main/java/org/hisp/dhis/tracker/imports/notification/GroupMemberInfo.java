@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,41 +27,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.job;
-
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
-import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis.tracker.imports.notification;
 
 /**
- * Producer and consumer for handling tracker notifications.
+ * Pre-fetched user group member data for notification recipient resolution. A user with multiple
+ * org units produces multiple entries (one per org unit). The hierarchy/parent filter checks all
+ * entries and the results are deduplicated by userId before creating User references.
  *
- * @author Zubair Asghar
+ * @param userId database ID for entityManager.getReference()
+ * @param orgUnitUid UID of one of the user's org units (for hierarchy/parent filter)
  */
-@Component
-@RequiredArgsConstructor
-public class TrackerNotificationMessageManager {
-  private final ObjectFactory<TrackerNotificationThread> trackerNotificationThreadObjectFactory;
-  private final AsyncTaskExecutor taskExecutor;
-
-  public void sendNotifications(TrackerNotificationDataBundle bundle) {
-    if (bundle == null) {
-      return;
-    }
-
-    JobConfiguration jobConfiguration =
-        new JobConfiguration("", JobType.TRACKER_IMPORT_NOTIFICATION_JOB, bundle.getAccessedBy());
-
-    bundle.setJobConfiguration(jobConfiguration);
-
-    TrackerNotificationThread notificationThread =
-        trackerNotificationThreadObjectFactory.getObject();
-
-    notificationThread.setNotificationDataBundle(bundle);
-
-    taskExecutor.executeTask(notificationThread);
-  }
-}
+public record GroupMemberInfo(long userId, String orgUnitUid) {}

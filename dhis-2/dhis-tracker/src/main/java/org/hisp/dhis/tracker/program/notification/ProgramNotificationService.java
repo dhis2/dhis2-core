@@ -31,8 +31,11 @@ package org.hisp.dhis.tracker.program.notification;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.tracker.imports.notification.GroupMemberInfo;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackerEvent;
@@ -69,58 +72,25 @@ public interface ProgramNotificationService {
   void sendScheduledNotifications(JobProgress progress);
 
   /**
-   * Send completion notifications for tracker event. If the ProgramStage is not configured with
-   * suitable {@link ProgramNotificationTemplate templates}, nothing will happen.
-   *
-   * @param eventId the trackerEvent id.
-   */
-  void sendTrackerEventCompletionNotifications(long eventId);
-
-  /**
-   * Send completion notifications for single event. If the ProgramStage is not configured with
-   * suitable {@link ProgramNotificationTemplate templates}, nothing will happen.
-   *
-   * @param eventId the singleEvent id.
-   */
-  void sendSingleEventCompletionNotifications(long eventId);
-
-  /**
-   * Send completion notifications for the Enrollment triggered by ProgramRule evaluation. {@link
-   * ProgramNotificationTemplate templates}, nothing will happen.
+   * Send a notification for the given enrollment using the given template.
    *
    * @param template ProgramNotificationTemplate to send
    * @param enrollment the enrollment.
    */
-  void sendProgramRuleTriggeredNotifications(
-      ProgramNotificationTemplate template, Enrollment enrollment);
+  void sendNotification(
+      ProgramNotificationTemplate template,
+      Enrollment enrollment,
+      Map<Long, Set<GroupMemberInfo>> groupMembers);
 
-  /**
-   * Send completion notifications for the tracker event triggered by ProgramRule evaluation. {@link
-   * ProgramNotificationTemplate templates}, nothing will happen.
-   *
-   * @param template ProgramNotificationTemplate to send
-   * @param event the trackerEvent.
-   */
-  void sendProgramRuleTriggeredEventNotifications(
-      ProgramNotificationTemplate template, TrackerEvent event);
+  void sendNotification(
+      ProgramNotificationTemplate template,
+      TrackerEvent event,
+      Map<Long, Set<GroupMemberInfo>> groupMembers);
 
-  /**
-   * Send completion notifications for the single event triggered by ProgramRule evaluation. {@link
-   * ProgramNotificationTemplate templates}, nothing will happen.
-   *
-   * @param template ProgramNotificationTemplate to send
-   * @param event the singleEvent.
-   */
-  void sendProgramRuleTriggeredEventNotifications(
-      ProgramNotificationTemplate template, SingleEvent event);
-
-  /**
-   * Send completion notifications for the Enrollment. If the Program is not configured with
-   * suitable {@link ProgramNotificationTemplate templates}, nothing will happen.
-   *
-   * @param enrollment the Enrollment id.
-   */
-  void sendEnrollmentCompletionNotifications(long enrollment);
+  void sendNotification(
+      ProgramNotificationTemplate template,
+      SingleEvent event,
+      Map<Long, Set<GroupMemberInfo>> groupMembers);
 
   /**
    * Send enrollment notifications for the Enrollment. If the Program is not configured with

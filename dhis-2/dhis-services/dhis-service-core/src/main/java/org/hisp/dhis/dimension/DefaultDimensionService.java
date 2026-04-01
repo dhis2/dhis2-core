@@ -115,6 +115,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramDataElementOptionDimensionItem;
@@ -156,6 +157,8 @@ public class DefaultDimensionService implements DimensionService {
   private final DataDimensionExtractor dataDimensionExtractor;
 
   private final DataDimensionItemStore dataDimensionItemStore;
+
+  private final PeriodService periodService;
 
   // --------------------------------------------------------------------------
   // DimensionService implementation
@@ -573,6 +576,9 @@ public class DefaultDimensionService implements DimensionService {
 
             allPeriods.add(period);
           }
+
+          // Reload periods so it becomes non-transient.
+          periodService.reloadPeriods(periods.stream().map(PeriodDimension::getPeriod).toList());
 
           object.setRawPeriods(new ArrayList<>(allPeriods));
           object.setPeriods(periods);

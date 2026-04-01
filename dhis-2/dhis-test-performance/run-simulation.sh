@@ -321,6 +321,21 @@ save_dhis2_logs() {
   fi
 }
 
+save_gc_logs() {
+  local gatling_dir="$1"
+
+  if [ ! -d "$gatling_dir" ]; then
+    return 0
+  fi
+
+  printf "Saving GC logs... "
+  if docker compose cp web:/tmp/gc.log "$gatling_dir/gc.log" 2>/dev/null; then
+    echo "done"
+  else
+    echo "skipped (no GC log found)"
+  fi
+}
+
 save_sql_logs() {
   local gatling_dir="$1"
   local warmup_num="${2:-0}"
@@ -753,6 +768,7 @@ run_simulation() {
     # Post-process results for this run
     save_profiler_data "$gatling_run_dir" || echo "Warning: Failed to save profiler data"
     save_dhis2_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to save DHIS2 logs"
+    save_gc_logs "$gatling_run_dir" || echo "Warning: Failed to save GC logs"
     save_sql_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to save SQL logs"
     post_process_profiler_data "$gatling_run_dir" || echo "Warning: Failed to post-process profiler data"
     post_process_sql_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to post-process SQL logs"

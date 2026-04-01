@@ -690,13 +690,13 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     DataElement de = dataElementService.getDataElement(dimValue);
 
-    if (de != null && de.isNumericType()) {
+    if (de != null && (de.isNumericType() || de.getValueType().isBoolean())) {
       return de;
     }
 
     TrackedEntityAttribute at = attributeService.getTrackedEntityAttribute(dimValue);
 
-    if (at != null && at.isNumericType()) {
+    if (at != null && (at.isNumericType() || at.getValueType().isBoolean())) {
       return at;
     }
 
@@ -894,7 +894,12 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         ColumnHeader.EVENT_STATUS.getItem(), EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME),
     CREATED_BY_DISPLAY_NAME(ColumnHeader.CREATED_BY_DISPLAY_NAME.getItem()),
     LAST_UPDATED_BY_DISPLAY_NAME(ColumnHeader.LAST_UPDATED_BY_DISPLAY_NAME.getItem()),
-    LAST_UPDATED(ColumnHeader.LAST_UPDATED.getItem());
+    LAST_UPDATED(ColumnHeader.LAST_UPDATED.getItem()),
+    CREATED(ColumnHeader.CREATED.getItem(), EventAnalyticsColumnName.CREATED_COLUMN_NAME),
+    COMPLETED(
+        ColumnHeader.COMPLETED_DATE.getItem(),
+        EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME);
 
     private final String itemName;
 

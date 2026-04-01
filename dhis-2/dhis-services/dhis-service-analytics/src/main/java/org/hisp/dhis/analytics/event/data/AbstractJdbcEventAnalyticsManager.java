@@ -77,6 +77,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.replaceStringBetween;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
@@ -113,6 +114,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -251,6 +253,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private static final Collector<CharSequence, ?, String> OR_JOINER = joining(OR, "(", ")");
 
   private static final Collector<CharSequence, ?, String> AND_JOINER = joining(AND);
+
+  private static final Pattern LEADING_WHERE_PATTERN = Pattern.compile("^where\\s+");
 
   @Qualifier("analyticsReadOnlyJdbcTemplate")
   protected final JdbcTemplate jdbcTemplate;
@@ -538,66 +542,64 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       EventQueryParams params,
       boolean isGroupByClause,
       boolean isAggregated) {
-    params
-        .getDimensions()
-        .forEach(
-            dimension -> {
-              if (params.isAggregatedEnrollments()
-                  && dimension.getDimensionType() == DimensionType.PERIOD) {
-                for (DimensionalItemObject it : dimension.getItems()) {
-                  columns.add(((PeriodDimension) it).getPeriodType().getPeriodTypeEnum().getName());
-                }
-                return;
-              }
+    List<DimensionalObject> dimensions =
+        isAggregated
+            ? PeriodDimensionSplitter.expandPeriodDimensions(params.getDimensions())
+            : params.getDimensions();
+    dimensions.forEach(
+        dimension -> {
+          if (params.isAggregatedEnrollments()
+              && dimension.getDimensionType() == DimensionType.PERIOD) {
+            for (DimensionalItemObject it : dimension.getItems()) {
+              columns.add(((PeriodDimension) it).getPeriodType().getPeriodTypeEnum().getName());
+            }
+            return;
+          }
 
-              if (isGroupByClause
-                  && dimension.getDimensionType() == DimensionType.PERIOD
-                  && params.hasNonDefaultBoundaries()) {
-                return;
-              }
+          if (isGroupByClause
+              && dimension.getDimensionType() == DimensionType.PERIOD
+              && params.hasNonDefaultBoundaries()) {
+            return;
+          }
 
-              if (dimension.getDimensionType() == DimensionType.PERIOD
-                  && params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
-                if (!isGroupByClause) {
-                  String alias = quote(dimension.getDimensionName());
-                  columns.add(
-                      "cast('"
-                          + params.getLatestPeriod().getDimensionItem()
-                          + "' as text) as "
-                          + alias);
-                }
-              } else if (!params.hasNonDefaultBoundaries()
-                  || dimension.getDimensionType() != DimensionType.PERIOD) {
-                columns.add(getTableAndColumn(params, dimension, isGroupByClause));
-              } else if (params.hasSinglePeriod()) {
-                PeriodDimension period = (PeriodDimension) params.getPeriods().get(0);
-                columns.add(
-                    isGroupByClause
-                        ? singleQuote(period.getIsoDate())
-                        : singleQuote(period.getIsoDate())
-                            + " as "
-                            + period.getPeriodType().getName());
-              } else if (!params.hasPeriods() && params.hasFilterPeriods()) {
-                // Assuming same period type for all period filters, as the
-                // query planner splits into one query per period type
+          if (dimension.getDimensionType() == DimensionType.PERIOD
+              && params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
+            if (!isGroupByClause) {
+              String alias = quote(dimension.getDimensionName());
+              columns.add(
+                  "cast('"
+                      + params.getLatestPeriod().getDimensionItem()
+                      + "' as text) as "
+                      + alias);
+            }
+          } else if (!params.hasNonDefaultBoundaries()
+              || dimension.getDimensionType() != DimensionType.PERIOD) {
+            columns.add(getTableAndColumn(params, dimension, isGroupByClause));
+          } else if (params.hasSinglePeriod()) {
+            PeriodDimension period = (PeriodDimension) params.getPeriods().get(0);
+            columns.add(
+                isGroupByClause
+                    ? singleQuote(period.getIsoDate())
+                    : singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
+          } else if (!params.hasPeriods() && params.hasFilterPeriods()) {
+            // Assuming same period type for all period filters, as the
+            // query planner splits into one query per period type
 
-                PeriodDimension period = (PeriodDimension) params.getFilterPeriods().get(0);
-                columns.add(
-                    isGroupByClause
-                        ? singleQuote(period.getIsoDate())
-                        : singleQuote(period.getIsoDate())
-                            + " as "
-                            + period.getPeriodType().getName());
-              } else {
-                throw new IllegalStateException(
-                    """
+            PeriodDimension period = (PeriodDimension) params.getFilterPeriods().get(0);
+            columns.add(
+                isGroupByClause
+                    ? singleQuote(period.getIsoDate())
+                    : singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
+          } else {
+            throw new IllegalStateException(
+                """
                     Program indicator non-default boundary query must have \"
                     exactly one period, or no periods and a period filter""");
-              }
-            });
+          }
+        });
 
     OrgUnitSqlCoordinator.addDimensionSelectColumns(
-        columns, params, isGroupByClause, isAggregated, getAnalyticsType());
+        columns, params, isGroupByClause, isAggregated, getAnalyticsType(), sqlBuilder);
 
     if (params.hasEnrollmentStatuses() && params.isEnrollmentAggregateQuery()) {
       columns.add(ColumnAndAlias.ofColumn(ENROLLMENT_STATUS_COLUMN_NAME).asSql());
@@ -809,7 +811,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     sql += getFromClause(params);
 
-    sql += getWhereClause(params);
+    String whereClause = getWhereClause(params);
+    sql += whereClause;
+    sql += getAdditionalQueryItemWhereClause(params, whereClause);
 
     sql += getGroupByClause(params);
 
@@ -851,6 +855,35 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           () -> getAggregatedEventData(grid, params, finalSqlValue), params.isMultipleQueries());
     }
     return grid;
+  }
+
+  /**
+   * Returns the SQL fragment for QueryItem filters that must be appended after the base WHERE
+   * clause.
+   *
+   * <p>The event aggregate and count paths build their SQL directly from {@code getFromClause(..)}
+   * and {@code getWhereClause(..)}. Under the current query builder, QueryItem filters are not
+   * always included inside {@code getWhereClause(..)}, so they must be appended separately here.
+   *
+   * @param params the query parameters
+   * @param existingWhereClause the already-rendered base WHERE clause
+   * @return the SQL fragment to append, or an empty string when no extra filter is needed
+   */
+  protected String getAdditionalQueryItemWhereClause(
+      EventQueryParams params, String existingWhereClause) {
+    if (!useExperimentalAnalyticsQueryEngine()) {
+      return StringUtils.EMPTY;
+    }
+
+    String queryItemFilterClause = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
+
+    if (StringUtils.isBlank(queryItemFilterClause)) {
+      return StringUtils.EMPTY;
+    }
+
+    return StringUtils.isNotBlank(existingWhereClause)
+        ? LEADING_WHERE_PATTERN.matcher(queryItemFilterClause).replaceFirst("and ")
+        : queryItemFilterClause;
   }
 
   /**
@@ -1185,6 +1218,26 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return dateFieldPeriodBucketColumnResolver.resolve(getAnalyticsType(), dimension, tableAlias);
   }
 
+  protected List<DateFieldPeriodBucketColumnResolver.JoinClause> resolveDateFieldPeriodBucketJoins(
+      EventQueryParams params, String tableAlias) {
+    if (!params.isAggregation()) {
+      return List.of();
+    }
+
+    DimensionalObject periodDimension = params.getDimension(PERIOD_DIM_ID);
+
+    if (periodDimension == null) {
+      return List.of();
+    }
+
+    return PeriodDimensionSplitter.splitPeriodDimension(periodDimension).stream()
+        .map(dim -> resolveDateFieldPeriodBucket(dim, tableAlias))
+        .flatMap(Optional::stream)
+        .map(DateFieldPeriodBucketColumnResolver.ResolvedExpression::joinClause)
+        .flatMap(Optional::stream)
+        .toList();
+  }
+
   protected Optional<String> resolveDateFieldPeriodSourceColumn(DimensionalObject dimension) {
     return dateFieldPeriodBucketColumnResolver.resolveSourceColumn(getAnalyticsType(), dimension);
   }
@@ -1225,7 +1278,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     String whereClause = getWhereClause(params);
     String filterWhereClause = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
 
-    String headerColumns = String.join(",", getHeaderColumns(headers, sql));
+    String headerColumns = String.join(",", getHeaderColumns(headers, sql, sqlBuilder));
     String periodColumns = String.join(",", getPeriodColumns(params));
     String orgUnitColumns = String.join(",", getOrgUnitLevelColumns(params));
 

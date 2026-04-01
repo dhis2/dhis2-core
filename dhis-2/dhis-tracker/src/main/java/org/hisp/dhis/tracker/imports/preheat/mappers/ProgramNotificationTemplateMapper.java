@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,29 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.notification;
+package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import java.util.List;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
-import org.hisp.dhis.tracker.imports.job.TrackerRuleEngineMessageManager;
-import org.springframework.stereotype.Service;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-/**
- * @author Zubair Asghar
- */
-@RequiredArgsConstructor
-@Service
-public class RuleEngineNotificationHandlerService implements NotificationHandlerService {
-  private final TrackerRuleEngineMessageManager trackerRuleEngineMessageManager;
+@Mapper
+public interface ProgramNotificationTemplateMapper
+    extends PreheatMapper<ProgramNotificationTemplate> {
+  ProgramNotificationTemplateMapper INSTANCE =
+      Mappers.getMapper(ProgramNotificationTemplateMapper.class);
 
-  @Override
-  public void handleNotification(TrackerNotificationDataBundle notificationDataBundle) {
-    trackerRuleEngineMessageManager.sendRuleEngineNotifications(notificationDataBundle);
-  }
-
-  @Override
-  public void handleNotifications(List<TrackerNotificationDataBundle> notificationDataBundles) {
-    notificationDataBundles.forEach(this::handleNotification);
-  }
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "uid")
+  @Mapping(target = "notificationTrigger")
+  ProgramNotificationTemplate map(ProgramNotificationTemplate template);
 }
