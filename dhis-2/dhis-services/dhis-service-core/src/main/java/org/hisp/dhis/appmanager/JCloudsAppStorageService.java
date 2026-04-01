@@ -127,7 +127,7 @@ public class JCloudsAppStorageService implements AppStorageService {
 
       app.setCacheConfig(
           readAppCacheConfig(
-              blobStore.openStream(folderName + AppStorageService.CACHE_CONFIG_FILENAME)));
+              blobStore.openStream(folder.resolve(AppStorageService.CACHE_CONFIG_FILENAME))));
 
       InputStream bundledAppInfoStream =
           blobStore.openStream(folder.resolve(BUNDLED_APP_INFO_FILENAME));
