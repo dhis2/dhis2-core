@@ -8,7 +8,7 @@
             docker compose logs -t -f web
     -->
     <Properties>
-        <Property name="layout">%-5level %c [%t] %msg%n</Property>
+        <Property name="layout">%-5level %c [%t] %msg %X{sessionId} %X{requestId}%n</Property>
     </Properties>
 
     <Appenders>
