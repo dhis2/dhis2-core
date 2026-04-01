@@ -36,6 +36,12 @@ import javax.annotation.Nonnull;
  * An exact key identifying a single blob in the store (e.g. {@code
  * dataValue/b38d3f6c-7e2a-4d1e-a9f0-12345678abcd}).
  *
+ * <p>Keys are relative paths — they must not start with {@code /}. The constructor enforces this
+ * so that {@code container + "/" + key.value()} is always safe without additional slash-cleaning.
+ *
+ * <p>Use {@link #of(String, String...)} to build a key from multiple path segments. Prefer it over
+ * manual string concatenation to keep key construction readable and consistent.
+ *
  * <p>Distinct from {@link BlobKeyPrefix}, which identifies a namespace for listing or bulk
  * deletion.
  */
@@ -43,11 +49,17 @@ public record BlobKey(String value) {
 
   public BlobKey {
     Objects.requireNonNull(value, "BlobKey value must not be null");
+    if (value.startsWith("/")) {
+      throw new IllegalArgumentException("BlobKey value must not start with '/': " + value);
+    }
   }
 
   /**
-   * Constructs a key by joining {@code segments} with {@code /}. Useful when building keys from
-   * multiple path components without manual string concatenation.
+   * Builds a key by joining {@code first} and any additional {@code more} segments with {@code /}.
+   * Prefer this over manual concatenation when assembling a key from multiple parts.
+   *
+   * <p>Example: {@code BlobKey.of("apps", "my-app", "index.html")} →
+   * {@code "apps/my-app/index.html"}.
    */
   public static BlobKey of(String first, String... more) {
     if (more.length == 0) return new BlobKey(first);

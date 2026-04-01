@@ -31,12 +31,23 @@ package org.hisp.dhis.storage;
 
 import javax.annotation.Nonnull;
 
-/** The name of the bucket or container in which all DHIS2 blobs are stored. */
+/**
+ * The name of the S3 bucket or filesystem directory in which all DHIS2 blobs are stored.
+ *
+ * <p>The value must not be blank and must not end with {@code /}. This ensures that {@code
+ * name.value() + "/" + key.value()} always produces a clean path without any slash-cleaning.
+ *
+ * <p>Configured via {@link org.hisp.dhis.external.conf.ConfigurationKey#FILESTORE_CONTAINER} and
+ * resolved once at startup by {@link org.hisp.dhis.jclouds.JCloudsStore}.
+ */
 public record ContainerName(String value) {
 
   public ContainerName {
     if (value == null || value.isBlank()) {
       throw new IllegalArgumentException("Container name must not be null or blank");
+    }
+    if (value.endsWith("/")) {
+      throw new IllegalArgumentException("Container name must not end with '/': " + value);
     }
   }
 

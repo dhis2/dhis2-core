@@ -47,7 +47,6 @@ import static org.springframework.util.MimeTypeUtils.IMAGE_JPEG;
 import static org.springframework.util.MimeTypeUtils.IMAGE_PNG;
 
 import com.google.gson.JsonObject;
-import java.util.Optional;
 import org.hisp.dhis.fileresource.JCloudsFileResourceContentStore;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.webapi.WebSpringTestBase;
@@ -165,8 +164,7 @@ class StaticContentControllerTest extends WebSpringTestBase {
     final String theExpectedStatus = "ERROR";
     final String theExpectedMessage = "No custom file found.";
     // a non existing logo in the content store used during the fetch
-    fileResourceContentStore.deleteFileResourceContent(
-        makeKey(DOCUMENT, Optional.of(LOGO_BANNER)).value());
+    fileResourceContentStore.deleteFileResourceContent(makeKey(DOCUMENT, LOGO_BANNER));
     // When
     final ResultActions result =
         mvc.perform(get(URL + LOGO_BANNER).accept(APPLICATION_JSON).session(session));

@@ -31,8 +31,8 @@ package org.hisp.dhis.fileresource;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import java.util.Optional;
 import java.util.Set;
+import javax.annotation.Nonnull;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.storage.BlobKey;
@@ -49,7 +49,8 @@ public class FileResource extends BaseIdentifiableObject {
   public static final Set<String> IMAGE_CONTENT_TYPES =
       Set.of("image/jpg", "image/png", "image/jpeg");
 
-  public static FileResource ofKey(FileResourceDomain domain, String key, String contentType) {
+  public static FileResource ofKey(
+      FileResourceDomain domain, @Nonnull String key, String contentType) {
     return new FileResource(
         key, domain.getContainerName() + "_" + key, contentType, 0, null, domain);
   }
@@ -107,11 +108,11 @@ public class FileResource extends BaseIdentifiableObject {
     this.contentLength = contentLength;
     this.contentMd5 = contentMd5;
     this.domain = domain;
-    this.storageKey = FileResourceKeyUtil.makeKey(domain, Optional.empty()).value();
+    this.storageKey = FileResourceKeyUtil.makeKeyWithRandomUUID(domain).value();
   }
 
   public FileResource(
-      String key,
+      @Nonnull String key,
       String name,
       String contentType,
       long contentLength,
@@ -122,7 +123,7 @@ public class FileResource extends BaseIdentifiableObject {
     this.contentLength = contentLength;
     this.contentMd5 = contentMd5;
     this.domain = domain;
-    this.storageKey = FileResourceKeyUtil.makeKey(domain, Optional.of(key)).value();
+    this.storageKey = FileResourceKeyUtil.makeKey(domain, key).value();
   }
 
   // -------------------------------------------------------------------------
@@ -185,10 +186,20 @@ public class FileResource extends BaseIdentifiableObject {
     this.contentMd5 = contentMd5;
   }
 
+  /**
+   * Returns the raw storage key string as persisted in the database (e.g. {@code
+   * "dataValue/550e8400-e29b-41d4-a716-446655440000"}). Prefer {@link #asBlobKey()} when passing
+   * the key to blob-storage APIs.
+   */
   public String getStorageKey() {
     return storageKey;
   }
 
+  /**
+   * Returns the storage key as a typed {@link BlobKey}. Use this when calling {@link
+   * org.hisp.dhis.fileresource.FileResourceContentStore} methods, which accept {@link BlobKey}
+   * rather than {@link String}.
+   */
   public BlobKey asBlobKey() {
     return new BlobKey(storageKey);
   }

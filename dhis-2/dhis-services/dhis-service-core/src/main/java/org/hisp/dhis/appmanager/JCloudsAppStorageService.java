@@ -344,9 +344,9 @@ public class JCloudsAppStorageService implements AppStorageService {
       return new Redirect("/");
     }
 
-    String resolvedFileResource = useIndexHtmlIfDirCall(resource);
-    BlobKey key =
-        new BlobKey((app.getFolderName() + "/" + resolvedFileResource).replaceAll("/+", "/"));
+    String normalized = resource.startsWith("/") ? resource.substring(1) : resource;
+    String resolvedFileResource = useIndexHtmlIfDirCall(normalized);
+    BlobKey key = new BlobKey(app.getFolderName() + "/" + resolvedFileResource);
 
     log.debug("Checking if blob exists {} for App {}", key, app.getName());
     if (blobStore.blobExists(key)) {
@@ -365,11 +365,10 @@ public class JCloudsAppStorageService implements AppStorageService {
 
   private Resource getResource(@Nonnull BlobKey key) throws MalformedURLException {
     if (blobStore.isFilesystem()) {
-      String cleanedFilepath =
-          (blobStore.container().value() + "/" + key.value()).replaceAll("/+", "/");
-      return new FileSystemResource(locationManager.getFileForReading(cleanedFilepath));
+      return new FileSystemResource(
+          locationManager.getFileForReading(blobStore.container().value() + "/" + key.value()));
     } else {
-      URI uri = fileResourceContentStore.getSignedGetContentUri(key.value());
+      URI uri = fileResourceContentStore.getSignedGetContentUri(key);
       return new UrlResource(uri);
     }
   }

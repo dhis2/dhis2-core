@@ -58,6 +58,12 @@ public enum FileResourceDomain {
     return containerName;
   }
 
+  /**
+   * Returns a {@link BlobKeyPrefix} for this domain's storage namespace. Use this when listing or
+   * bulk-deleting all blobs that belong to this domain (e.g. to find all icon blobs, pass {@code
+   * FileResourceDomain.ICON.asBlobKeyPrefix()} to {@link
+   * org.hisp.dhis.storage.BlobStoreService#listKeys}).
+   */
   public BlobKeyPrefix asBlobKeyPrefix() {
     return BlobKeyPrefix.of(containerName);
   }

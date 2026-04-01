@@ -47,7 +47,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -58,6 +57,7 @@ import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
+import org.hisp.dhis.storage.BlobKey;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.ObjectUtils;
@@ -288,7 +288,7 @@ public class DefaultFileResourceService implements FileResourceService {
 
     FileDeletedEvent deleteFileEvent =
         new FileDeletedEvent(
-            existingResource.getStorageKey(),
+            existingResource.asBlobKey(),
             existingResource.getContentType(),
             existingResource.getDomain());
 
@@ -300,27 +300,26 @@ public class DefaultFileResourceService implements FileResourceService {
   @Override
   @Nonnull
   public InputStream getFileResourceContent(FileResource fileResource) throws ConflictException {
-    String key = fileResource.getStorageKey();
-    InputStream content = fileResourceContentStore.getFileResourceContent(key);
+    InputStream content = fileResourceContentStore.getFileResourceContent(fileResource.asBlobKey());
     if (content == null) throw new ConflictException(ErrorCode.E6103);
     return content;
   }
 
   @Override
   public long getFileResourceContentLength(FileResource fileResource) {
-    return fileResourceContentStore.getFileResourceContentLength(fileResource.getStorageKey());
+    return fileResourceContentStore.getFileResourceContentLength(fileResource.asBlobKey());
   }
 
   @Override
   public void copyFileResourceContent(FileResource fileResource, OutputStream outputStream)
       throws IOException, NoSuchElementException {
-    fileResourceContentStore.copyContent(fileResource.getStorageKey(), outputStream);
+    fileResourceContentStore.copyContent(fileResource.asBlobKey(), outputStream);
   }
 
   @Override
   public byte[] copyFileResourceContent(FileResource fileResource)
       throws IOException, NoSuchElementException {
-    return fileResourceContentStore.copyContent(fileResource.getStorageKey());
+    return fileResourceContentStore.copyContent(fileResource.asBlobKey());
   }
 
   @Override
@@ -337,7 +336,7 @@ public class DefaultFileResourceService implements FileResourceService {
   @Override
   public InputStream openContentStream(FileResource fileResource)
       throws IOException, NoSuchElementException {
-    return fileResourceContentStore.openStream(fileResource.getStorageKey());
+    return fileResourceContentStore.openStream(fileResource.asBlobKey());
   }
 
   @Override
@@ -374,8 +373,8 @@ public class DefaultFileResourceService implements FileResourceService {
         && FileResourceDomain.isDomainForMultipleImages(fileResource.getDomain());
   }
 
-  private static String imageKey(FileResource fileResource, ImageFileDimension imageDimension) {
-    return StringUtils.join(fileResource.getStorageKey(), imageDimension.getDimension());
+  private static BlobKey imageKey(FileResource fileResource, ImageFileDimension imageDimension) {
+    return new BlobKey(fileResource.getStorageKey() + imageDimension.getDimension());
   }
 
   @Override
@@ -399,7 +398,7 @@ public class DefaultFileResourceService implements FileResourceService {
       return null;
     }
 
-    return fileResourceContentStore.getSignedGetContentUri(fileResource.getStorageKey());
+    return fileResourceContentStore.getSignedGetContentUri(fileResource.asBlobKey());
   }
 
   @Override
@@ -409,7 +408,7 @@ public class DefaultFileResourceService implements FileResourceService {
       return null;
     }
 
-    return fileResourceContentStore.getSignedGetContentUri(fileResource.getStorageKey());
+    return fileResourceContentStore.getSignedGetContentUri(fileResource.asBlobKey());
   }
 
   @Override
@@ -450,7 +449,7 @@ public class DefaultFileResourceService implements FileResourceService {
   private FileResource checkStorageStatus(FileResource fileResource) {
     if (fileResource != null) {
       boolean exists =
-          fileResourceContentStore.fileResourceContentExists(fileResource.getStorageKey());
+          fileResourceContentStore.fileResourceContentExists(fileResource.asBlobKey());
 
       if (exists) {
         fileResource.setStorageStatus(FileResourceStorageStatus.STORED);

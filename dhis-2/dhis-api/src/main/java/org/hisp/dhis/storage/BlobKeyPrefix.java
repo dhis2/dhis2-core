@@ -47,13 +47,18 @@ public record BlobKeyPrefix(String value) {
     Objects.requireNonNull(value, "BlobKeyPrefix value must not be null");
   }
 
+  /**
+   * Factory equivalent to {@code new BlobKeyPrefix(value)}; prefer this for readability at
+   * call-sites where the intent is to create a prefix rather than a literal string.
+   */
   public static BlobKeyPrefix of(String value) {
     return new BlobKeyPrefix(value);
   }
 
   /**
-   * Returns the {@link BlobKey} for a file directly inside this prefix (i.e. {@code
-   * value/filename}).
+   * Returns the {@link BlobKey} for a named file directly inside this prefix (i.e. {@code
+   * value/filename}). Use this to address a specific file whose name is known, rather than
+   * constructing the key by hand.
    */
   public BlobKey resolve(String filename) {
     return new BlobKey(value + "/" + filename);

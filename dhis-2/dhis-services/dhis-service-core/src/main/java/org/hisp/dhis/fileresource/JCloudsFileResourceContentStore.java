@@ -45,7 +45,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.storage.BlobKey;
 import org.hisp.dhis.storage.BlobStoreService;
 import org.hisp.dhis.storage.ContentDisposition;
@@ -64,13 +63,13 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
   private final BlobStoreService blobStore;
 
   @Override
-  public InputStream getFileResourceContent(String key) {
-    return blobStore.openStream(new BlobKey(key));
+  public InputStream getFileResourceContent(BlobKey key) {
+    return blobStore.openStream(key);
   }
 
   @Override
-  public long getFileResourceContentLength(String key) {
-    return blobStore.contentLength(new BlobKey(key));
+  public long getFileResourceContentLength(BlobKey key) {
+    return blobStore.contentLength(key);
   }
 
   @Override
@@ -78,7 +77,7 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
   public String saveFileResourceContent(@Nonnull FileResource fr, @Nonnull byte[] bytes) {
     try {
       blobStore.putBlob(
-          new BlobKey(fr.getStorageKey()),
+          fr.asBlobKey(),
           new ByteArrayInputStream(bytes),
           bytes.length,
           fr.getContentType(),
@@ -98,7 +97,7 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
   public String saveFileResourceContent(@Nonnull FileResource fr, @Nonnull File file) {
     try (InputStream is = new FileInputStream(file)) {
       blobStore.putBlob(
-          new BlobKey(fr.getStorageKey()),
+          fr.asBlobKey(),
           is,
           file.length(),
           fr.getContentType(),
@@ -143,7 +142,7 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
 
       try (InputStream is = new FileInputStream(file)) {
         blobStore.putBlob(
-            new BlobKey(StringUtils.join(fr.getStorageKey(), dimension)),
+            new BlobKey(fr.getStorageKey() + dimension),
             is,
             file.length(),
             fr.getContentType(),
@@ -165,48 +164,48 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
   }
 
   @Override
-  public void deleteFileResourceContent(String key) {
-    blobStore.deleteBlob(new BlobKey(key));
+  public void deleteFileResourceContent(BlobKey key) {
+    blobStore.deleteBlob(key);
   }
 
   @Override
-  public boolean fileResourceContentExists(String key) {
-    return blobStore.blobExists(new BlobKey(key));
+  public boolean fileResourceContentExists(BlobKey key) {
+    return blobStore.blobExists(key);
   }
 
   @Override
   @CheckForNull
-  public URI getSignedGetContentUri(String key) {
-    return blobStore.signedGetUri(new BlobKey(key), FIVE_MINUTES_IN_SECONDS);
+  public URI getSignedGetContentUri(BlobKey key) {
+    return blobStore.signedGetUri(key, FIVE_MINUTES_IN_SECONDS);
   }
 
   @Override
-  public void copyContent(String key, OutputStream output)
+  public void copyContent(BlobKey key, OutputStream output)
       throws IOException, NoSuchElementException {
     ensureBlobExists(key);
 
-    try (InputStream in = blobStore.openStream(new BlobKey(key))) {
+    try (InputStream in = blobStore.openStream(key)) {
       IOUtils.copy(in, output);
     }
   }
 
   @Override
-  public byte[] copyContent(String key) throws IOException, NoSuchElementException {
+  public byte[] copyContent(BlobKey key) throws IOException, NoSuchElementException {
     ensureBlobExists(key);
 
-    try (InputStream in = blobStore.openStream(new BlobKey(key))) {
+    try (InputStream in = blobStore.openStream(key)) {
       return IOUtils.toByteArray(in);
     }
   }
 
   @Override
-  public InputStream openStream(String key) throws IOException, NoSuchElementException {
+  public InputStream openStream(BlobKey key) throws IOException, NoSuchElementException {
     ensureBlobExists(key);
-    return blobStore.openStream(new BlobKey(key));
+    return blobStore.openStream(key);
   }
 
-  private void ensureBlobExists(String key) {
-    if (!blobStore.blobExists(new BlobKey(key))) {
+  private void ensureBlobExists(BlobKey key) {
+    if (!blobStore.blobExists(key)) {
       throw new NoSuchElementException("key '" + key + "' not found.");
     }
   }

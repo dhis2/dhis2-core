@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +27,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource.events;
+package org.hisp.dhis.storage;
 
-import org.hisp.dhis.fileresource.FileResourceDomain;
-import org.hisp.dhis.storage.BlobKey;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/**
- * @Author david mackessy
- */
-public record FileDeletedEvent(BlobKey storageKey, String contentType, FileResourceDomain domain) {}
+import org.junit.jupiter.api.Test;
+
+class BlobKeyPrefixTest {
+
+  @Test
+  void nullValueIsRejected() {
+    assertThrows(NullPointerException.class, () -> new BlobKeyPrefix(null));
+  }
+
+  @Test
+  void validValueIsAccepted() {
+    BlobKeyPrefix prefix = BlobKeyPrefix.of("apps");
+    assertEquals("apps", prefix.value());
+  }
+
+  @Test
+  void toStringReturnValue() {
+    assertEquals("apps/my-app", BlobKeyPrefix.of("apps/my-app").toString());
+  }
+
+  @Test
+  void resolveProducesCorrectBlobKey() {
+    BlobKey key = BlobKeyPrefix.of("apps/my-app").resolve("manifest.webapp");
+    assertEquals("apps/my-app/manifest.webapp", key.value());
+  }
+}

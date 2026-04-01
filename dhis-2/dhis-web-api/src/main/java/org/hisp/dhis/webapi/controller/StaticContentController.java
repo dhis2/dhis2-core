@@ -52,7 +52,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -119,8 +118,7 @@ public class StaticContentController {
 
     if (isUseCustomFile(key, settings)) {
       final boolean customFileExists =
-          contentStore.fileResourceContentExists(
-              makeKey(DEFAULT_RESOURCE_DOMAIN, Optional.of(key)).value());
+          contentStore.fileResourceContentExists(makeKey(DEFAULT_RESOURCE_DOMAIN, key));
 
       if (customFileExists) {
         final String blobEndpoint = getContextPath(request) + "/api/staticContent/" + key;
@@ -170,8 +168,7 @@ public class StaticContentController {
       try {
         response.setContentType(IMAGE_PNG_VALUE);
         contentStore.copyContent(
-            makeKey(DEFAULT_RESOURCE_DOMAIN, Optional.of(key)).value(),
-            response.getOutputStream());
+            makeKey(DEFAULT_RESOURCE_DOMAIN, key), response.getOutputStream());
       } catch (NoSuchElementException e) {
         throw new WebMessageException(notFound(e.getMessage()));
       } catch (IOException e) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource.events;
+package org.hisp.dhis.storage;
 
-import org.hisp.dhis.fileresource.FileResourceDomain;
-import org.hisp.dhis.storage.BlobKey;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/**
- * @Author david mackessy
- */
-public record FileDeletedEvent(BlobKey storageKey, String contentType, FileResourceDomain domain) {}
+import org.junit.jupiter.api.Test;
+
+class ContainerNameTest {
+
+  @Test
+  void nullValueIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new ContainerName(null));
+  }
+
+  @Test
+  void blankValueIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new ContainerName("   "));
+  }
+
+  @Test
+  void trailingSlashIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new ContainerName("dhis2-filestore/"));
+  }
+
+  @Test
+  void validValueIsAccepted() {
+    ContainerName name = new ContainerName("dhis2-filestore");
+    assertEquals("dhis2-filestore", name.value());
+  }
+
+  @Test
+  void toStringReturnValue() {
+    assertEquals("my-bucket", new ContainerName("my-bucket").toString());
+  }
+}

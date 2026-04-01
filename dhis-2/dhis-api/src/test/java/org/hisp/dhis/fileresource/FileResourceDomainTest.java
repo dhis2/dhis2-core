@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +27,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource.events;
+package org.hisp.dhis.fileresource;
 
-import org.hisp.dhis.fileresource.FileResourceDomain;
-import org.hisp.dhis.storage.BlobKey;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/**
- * @Author david mackessy
- */
-public record FileDeletedEvent(BlobKey storageKey, String contentType, FileResourceDomain domain) {}
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
+
+class FileResourceDomainTest {
+
+  @ParameterizedTest
+  @EnumSource(FileResourceDomain.class)
+  void asBlobKeyPrefixMatchesContainerName(FileResourceDomain domain) {
+    assertEquals(domain.getContainerName(), domain.asBlobKeyPrefix().value());
+  }
+}

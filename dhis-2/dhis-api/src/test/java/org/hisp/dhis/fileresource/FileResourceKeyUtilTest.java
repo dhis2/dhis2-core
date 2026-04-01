@@ -34,7 +34,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Optional;
 import org.hisp.dhis.storage.BlobKey;
 import org.junit.jupiter.api.Test;
 
@@ -45,10 +44,10 @@ class FileResourceKeyUtilTest {
 
   @Test
   void verifyBuildKey() {
-    BlobKey key = FileResourceKeyUtil.makeKey(FileResourceDomain.DOCUMENT, Optional.empty());
+    BlobKey key = FileResourceKeyUtil.makeKeyWithRandomUUID(FileResourceDomain.DOCUMENT);
     assertThat(key.value(), startsWith("document/"));
     assertEquals(36, key.value().substring("document/".length()).length());
-    key = FileResourceKeyUtil.makeKey(FileResourceDomain.DOCUMENT, Optional.of("myKey"));
+    key = FileResourceKeyUtil.makeKey(FileResourceDomain.DOCUMENT, "myKey");
     assertThat(key.value(), is("document/myKey"));
   }
 }
