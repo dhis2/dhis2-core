@@ -56,7 +56,8 @@ class JCloudsStoreTest {
             IllegalArgumentException.class,
             () -> new JCloudsStore(configurationProvider, locationManager));
 
-    assertContains("unsupported file store provider", exception.getMessage());
+    assertContains(
+        "Unsupported file store provider 'rackspace-cloudfiles-us'", exception.getMessage());
   }
 
   @Test
