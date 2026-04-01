@@ -68,6 +68,7 @@ import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilderProvider;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.datastore.DatastoreNamespace;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
@@ -204,9 +205,17 @@ public class DefaultAppManager implements AppManager {
   private void cacheApp(@Nonnull App app) {
     if (app.getAppState() == AppStatus.OK) {
       app.setBundled(bundledAppManager.isBundledApp(app));
+      computeCacheBustKey(app);
       appCache.put(app.getKey(), app);
       registerDatastoreProtection(app);
     }
+  }
+
+  private void computeCacheBustKey(@Nonnull App app) {
+    if (app.getVersion() == null || app.getKey() == null) return;
+    String source = app.getKey() + "|" + app.getVersion();
+    app.setCacheBustKey(
+        HashUtils.hashMD5(source.getBytes(StandardCharsets.UTF_8)).substring(0, 16));
   }
 
   private Stream<App> getAppsStream() {
