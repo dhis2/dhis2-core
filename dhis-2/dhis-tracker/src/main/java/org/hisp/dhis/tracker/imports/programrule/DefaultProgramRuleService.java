@@ -136,15 +136,16 @@ class DefaultProgramRuleService implements ProgramRuleService {
             .map(TrackerEvent::getEnrollment)
             .collect(Collectors.toSet());
 
-    Set<Program> allPrograms = new HashSet<>();
+    trackerEventEnrollmentUids.stream()
+        .map(preheat::getEnrollment)
+        .filter(Objects::nonNull)
+        .forEach(e -> programIdentifiers.add(MetadataIdentifier.ofUid(e.getProgram())));
+
+    Set<Program> allPrograms = new HashSet<>(programIdentifiers.size());
     for (MetadataIdentifier identifier : programIdentifiers) {
-      Program p = preheat.getProgram(identifier);
-      if (p != null) allPrograms.add(p);
+      allPrograms.add(preheat.getProgram(identifier));
     }
-    for (UID uid : trackerEventEnrollmentUids) {
-      Enrollment e = preheat.getEnrollment(uid);
-      if (e != null) allPrograms.add(e.getProgram());
-    }
+
     return allPrograms;
   }
 
@@ -211,7 +212,6 @@ class DefaultProgramRuleService implements ProgramRuleService {
                       preheat);
               return programRuleEngine.evaluateEnrollmentsAndTrackerEvents(
                   enrollmentsWithEvents,
-                  program,
                   bundle.getUser(),
                   constantMap,
                   ctx.rules(),
@@ -225,12 +225,8 @@ class DefaultProgramRuleService implements ProgramRuleService {
    * Rules and variables for a single program, co-fetched once per program so that the engine does
    * not need to re-query variables during context construction.
    */
-  private record ProgramRuleContext(List<ProgramRule> rules, List<ProgramRuleVariable> variables) {
-    boolean needsTeAttributes() {
-      return variables.stream()
-          .anyMatch(v -> v.getSourceType() == ProgramRuleVariableSourceType.TEI_ATTRIBUTE);
-    }
-  }
+  private record ProgramRuleContext(
+      List<ProgramRule> rules, List<ProgramRuleVariable> variables, boolean needsTeAttributes) {}
 
   // Fetches rules and variables for each program; skips programs with no applicable rules.
   private Map<Program, ProgramRuleContext> getRulesForPrograms(Set<Program> programs) {
@@ -241,7 +237,10 @@ class DefaultProgramRuleService implements ProgramRuleService {
       if (!rules.isEmpty()) {
         List<ProgramRuleVariable> variables =
             programRuleVariableService.getProgramRuleVariable(program);
-        contextByProgram.put(program, new ProgramRuleContext(rules, variables));
+        boolean needsTeAttributes =
+            variables.stream()
+                .anyMatch(v -> v.getSourceType() == ProgramRuleVariableSourceType.TEI_ATTRIBUTE);
+        contextByProgram.put(program, new ProgramRuleContext(rules, variables, needsTeAttributes));
       }
     }
     return contextByProgram;
@@ -310,12 +309,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
                   RuleEngineMapper.mapPayloadSingleEvents(preheat, entry.getValue());
               return Stream.of(
                   programRuleEngine.evaluateSingleEvents(
-                      events,
-                      entry.getKey(),
-                      bundle.getUser(),
-                      constantMap,
-                      ctx.rules(),
-                      ctx.variables()));
+                      events, bundle.getUser(), constantMap, ctx.rules(), ctx.variables()));
             })
         .reduce(RuleEngineEffects::merge)
         .orElse(RuleEngineEffects.empty());

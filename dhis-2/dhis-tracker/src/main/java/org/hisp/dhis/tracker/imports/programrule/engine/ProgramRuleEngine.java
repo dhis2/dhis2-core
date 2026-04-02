@@ -51,7 +51,6 @@ public interface ProgramRuleEngine {
    */
   RuleEngineEffects evaluateEnrollmentsAndTrackerEvents(
       @Nonnull Map<RuleEnrollment, List<RuleEvent>> enrollmentsWithEvents,
-      @Nonnull Program program,
       @Nonnull UserDetails user,
       @Nonnull Map<String, String> constantMap,
       @Nonnull List<ProgramRule> rules,
@@ -64,7 +63,6 @@ public interface ProgramRuleEngine {
    */
   RuleEngineEffects evaluateSingleEvents(
       @Nonnull List<RuleEvent> events,
-      @Nonnull Program program,
       @Nonnull UserDetails user,
       @Nonnull Map<String, String> constantMap,
       @Nonnull List<ProgramRule> rules,

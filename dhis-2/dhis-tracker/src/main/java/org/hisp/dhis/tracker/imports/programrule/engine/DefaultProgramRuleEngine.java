@@ -118,7 +118,6 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
   @Override
   public RuleEngineEffects evaluateEnrollmentsAndTrackerEvents(
       @Nonnull Map<RuleEnrollment, List<RuleEvent>> enrollmentsWithEvents,
-      @Nonnull Program program,
       @Nonnull UserDetails user,
       @Nonnull Map<String, String> constantMap,
       @Nonnull List<ProgramRule> rules,
@@ -141,7 +140,6 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
   @Override
   public RuleEngineEffects evaluateSingleEvents(
       @Nonnull List<RuleEvent> events,
-      @Nonnull Program program,
       @Nonnull UserDetails user,
       @Nonnull Map<String, String> constantMap,
       @Nonnull List<ProgramRule> rules,
