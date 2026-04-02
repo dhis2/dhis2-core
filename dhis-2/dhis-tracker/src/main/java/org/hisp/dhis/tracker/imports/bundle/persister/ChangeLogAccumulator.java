@@ -103,6 +103,9 @@ class ChangeLogAccumulator {
       return;
     }
 
+    // Flush pending Hibernate entity INSERTs/UPDATEs first so that FK references
+    // (trackedentityid, eventid) exist in the DB before changelog rows reference them.
+    entityManager.flush();
     Session session = entityManager.unwrap(Session.class);
     session.doWork(this::insertAll);
     teChangeLogs.clear();
