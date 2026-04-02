@@ -42,7 +42,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -67,14 +66,10 @@ class AttributeValidator
     extends org.hisp.dhis.tracker.imports.validation.validator.AttributeValidator
     implements Validator<Enrollment> {
 
-  private final OptionService optionService;
-
   public AttributeValidator(
       TrackedAttributeValidationService teAttrService,
-      DhisConfigurationProvider dhisConfigurationProvider,
-      OptionService optionService) {
+      DhisConfigurationProvider dhisConfigurationProvider) {
     super(teAttrService, dhisConfigurationProvider);
-    this.optionService = optionService;
   }
 
   @Override
@@ -101,7 +96,7 @@ class AttributeValidator
         attributeValueMap.put(attribute.getAttribute(), attribute.getValue());
         validateAttributeValue(reporter, enrollment, teAttribute, attribute.getValue());
         validateAttrValueType(reporter, bundle.getPreheat(), enrollment, attribute, teAttribute);
-        validateOptionSet(reporter, enrollment, teAttribute, attribute.getValue(), optionService);
+        validateOptionSet(reporter, enrollment, teAttribute, attribute.getValue());
 
         validateAttributeUniqueness(
             reporter, preheat, enrollment, attribute.getValue(), teAttribute, te, orgUnit);
