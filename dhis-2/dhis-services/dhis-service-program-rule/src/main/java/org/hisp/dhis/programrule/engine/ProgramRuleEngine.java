@@ -194,6 +194,36 @@ public class ProgramRuleEngine {
     return allEffects;
   }
 
+  /**
+   * Evaluate program rules for multiple enrollments belonging to the same {@link Program}, building
+   * the rule engine context once. {@code rules}, {@code variables}, and {@code constantMap} are
+   * pre-fetched by the caller so they are not re-queried inside the engine.
+   */
+  public List<RuleEffects> evaluateEnrollmentsAndTrackerEvents(
+      List<EnrollmentWithEvents> enrollmentsWithEvents,
+      UserDetails user,
+      Map<String, String> constantMap,
+      List<ProgramRule> rules,
+      List<ProgramRuleVariable> variables) {
+    if (enrollmentsWithEvents.isEmpty() || rules.isEmpty()) {
+      return Collections.emptyList();
+    }
+    RuleEngineContext context = getRuleEngineContext(rules, variables, user, constantMap);
+    List<RuleEffects> allEffects = new ArrayList<>();
+    for (EnrollmentWithEvents ewc : enrollmentsWithEvents) {
+      try {
+        allEffects.addAll(
+            ruleEngine.evaluateAll(
+                getRuleEnrollment(ewc.enrollment(), ewc.attributeValues()),
+                getRuleEvents(ewc.events(), null),
+                context));
+      } catch (Exception e) {
+        log.error(DebugUtils.getStackTrace(e));
+      }
+    }
+    return allEffects;
+  }
+
   public List<RuleEffects> evaluateProgramEvents(
       Set<Event> events, Program program, UserDetails user) {
     List<ProgramRule> rules = implementableRuleService.getProgramRules(program);
@@ -213,6 +243,28 @@ public class ProgramRuleEngine {
       List<ProgramRule> rules) {
     try {
       RuleEngineContext ruleEngineContext = getRuleEngineContext(program, rules, user, constantMap);
+      return ruleEngine.evaluateAll(null, getRuleEvents(events, null), ruleEngineContext);
+    } catch (Exception e) {
+      log.error(DebugUtils.getStackTrace(e));
+      return Collections.emptyList();
+    }
+  }
+
+  /**
+   * Evaluate program rules for program events (without-registration). {@code rules}, {@code
+   * variables}, and {@code constantMap} are pre-fetched by the caller so they are not re-queried
+   * inside the engine.
+   */
+  public List<RuleEffects> evaluateProgramEvents(
+      Set<Event> events,
+      Program program,
+      UserDetails user,
+      Map<String, String> constantMap,
+      List<ProgramRule> rules,
+      List<ProgramRuleVariable> variables) {
+    try {
+      RuleEngineContext ruleEngineContext =
+          getRuleEngineContext(rules, variables, user, constantMap);
       return ruleEngine.evaluateAll(null, getRuleEvents(events, null), ruleEngineContext);
     } catch (Exception e) {
       log.error(DebugUtils.getStackTrace(e));
@@ -329,6 +381,21 @@ public class ProgramRuleEngine {
     List<ProgramRuleVariable> programRuleVariables =
         programRuleVariableService.getProgramRuleVariable(program);
 
+    RuleSupplementaryData supplementaryData =
+        supplementaryDataProvider.getSupplementaryData(programRules, user);
+
+    return new RuleEngineContext(
+        programRuleEntityMapperService.toMappedProgramRules(programRules),
+        programRuleEntityMapperService.toMappedProgramRuleVariables(programRuleVariables),
+        supplementaryData,
+        constantMap);
+  }
+
+  private RuleEngineContext getRuleEngineContext(
+      List<ProgramRule> programRules,
+      List<ProgramRuleVariable> programRuleVariables,
+      UserDetails user,
+      Map<String, String> constantMap) {
     RuleSupplementaryData supplementaryData =
         supplementaryDataProvider.getSupplementaryData(programRules, user);
 
