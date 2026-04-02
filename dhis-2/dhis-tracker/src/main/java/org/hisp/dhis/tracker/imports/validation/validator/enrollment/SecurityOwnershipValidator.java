@@ -30,14 +30,12 @@
 package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
 import static org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper.map;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
 
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -98,16 +96,11 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       UserDetails user,
       org.hisp.dhis.tracker.model.Enrollment databaseEnrollment,
       Enrollment enrollment) {
-    trackerAccessManager
-        .canUpdate(user, databaseEnrollment)
-        .forEach(em -> reporter.addError(enrollment, em.validationCode(), em.args().toArray()));
-
     OrganisationUnit enrollmentOrgUnit = preheat.getOrganisationUnit(enrollment.getOrgUnit());
-    OrganisationUnit databaseOrgUnit =
-        preheat.getEnrollment(enrollment.getUID()).getOrganisationUnit();
-    if (!enrollmentOrgUnit.getUid().equals(databaseOrgUnit.getUid())) {
-      checkOrgUnitInCaptureScope(reporter, enrollment, enrollmentOrgUnit, user);
-    }
+
+    trackerAccessManager
+        .canUpdate(user, databaseEnrollment, enrollmentOrgUnit)
+        .forEach(em -> reporter.addError(enrollment, em.validationCode(), em.args().toArray()));
   }
 
   private void handleDelete(
@@ -116,17 +109,11 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       UserDetails user,
       org.hisp.dhis.tracker.model.Enrollment databaseEnrollment,
       Enrollment enrollment) {
-    trackerAccessManager
-        .canDelete(user, databaseEnrollment)
-        .forEach(eo -> reporter.addError(enrollment, eo.validationCode(), eo.args().toArray()));
-
     boolean hasNonDeletedEvents = enrollmentHasEvents(preheat, enrollment.getEnrollment());
-    boolean hasNotCascadeDeleteAuthority =
-        !user.isAuthorized(Authorities.F_ENROLLMENT_CASCADE_DELETE.name());
 
-    if (hasNonDeletedEvents && hasNotCascadeDeleteAuthority) {
-      reporter.addError(enrollment, E1103, user, enrollment.getEnrollment());
-    }
+    trackerAccessManager
+        .canDelete(user, databaseEnrollment, hasNonDeletedEvents)
+        .forEach(eo -> reporter.addError(enrollment, eo.validationCode(), eo.args().toArray()));
   }
 
   private boolean enrollmentHasEvents(TrackerPreheat preheat, UID enrollmentUid) {

@@ -31,9 +31,12 @@ package org.hisp.dhis.tracker.acl;
 
 import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT;
 import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
@@ -43,6 +46,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.validation.ErrorMessage;
@@ -105,8 +109,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     if (!user.isInUserHierarchy(trackedEntity.getOrganisationUnit().getStoredPath())) {
       errors.add(
-          new ErrorMessage(
-              ValidationCode.E1000, user.getUid(), List.of(trackedEntity.getOrganisationUnit())));
+          new ErrorMessage(E1000, user.getUid(), List.of(trackedEntity.getOrganisationUnit())));
     }
 
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
@@ -161,8 +164,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     List<ErrorMessage> errors = new ArrayList<>();
     if (!user.isInUserHierarchy(trackedEntity.getOrganisationUnit().getStoredPath())) {
       errors.add(
-          new ErrorMessage(
-              ValidationCode.E1000, user.getUid(), List.of(trackedEntity.getOrganisationUnit())));
+          new ErrorMessage(E1000, user.getUid(), List.of(trackedEntity.getOrganisationUnit())));
     }
 
     errors.addAll(canUpdate(user, trackedEntity));
@@ -201,22 +203,60 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       return List.of();
     }
 
-    List<ErrorMessage> errors = new ArrayList<>(canUpdate(user, enrollment));
+    List<ErrorMessage> errors = new ArrayList<>(validateEnrollmentAccess(user, enrollment));
 
     OrganisationUnit enrollmentOrgUnit = enrollment.getOrganisationUnit();
     if (enrollmentOrgUnit != null && !user.isInUserHierarchy(enrollmentOrgUnit.getStoredPath())) {
       errors.add(
           new ErrorMessage(
-              ValidationCode.E1000,
-              user.getUid(),
-              List.of(user.getUid(), enrollmentOrgUnit.getUid())));
+              E1000, user.getUid(), List.of(user.getUid(), enrollmentOrgUnit.getUid())));
     }
 
     return errors;
   }
 
   @Override
-  public List<ErrorMessage> canUpdate(@Nonnull UserDetails user, @Nonnull Enrollment enrollment) {
+  public List<ErrorMessage> canUpdate(
+      @Nonnull UserDetails user,
+      @Nonnull Enrollment enrollment,
+      @CheckForNull OrganisationUnit payloadEnrollmentOrgUnit) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    List<ErrorMessage> errors = new ArrayList<>(validateEnrollmentAccess(user, enrollment));
+
+    if (payloadEnrollmentOrgUnit != null
+        && !payloadEnrollmentOrgUnit.getUid().equals(enrollment.getOrganisationUnit().getUid())) {
+      if (!user.isInUserHierarchy(payloadEnrollmentOrgUnit.getStoredPath())) {
+        errors.add(
+            new ErrorMessage(E1000, user.getUid(), List.of(payloadEnrollmentOrgUnit.getUid())));
+      }
+    }
+
+    return errors;
+  }
+
+  @Override
+  public List<ErrorMessage> canDelete(
+      @Nonnull UserDetails user, @Nonnull Enrollment enrollment, boolean hasNonDeletedEvents) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    List<ErrorMessage> errors = new ArrayList<>(canCreate(user, enrollment));
+    boolean hasNotCascadeDeleteAuthority =
+        !user.isAuthorized(Authorities.F_ENROLLMENT_CASCADE_DELETE.name());
+
+    if (hasNonDeletedEvents && hasNotCascadeDeleteAuthority) {
+      errors.add(new ErrorMessage(E1103, user.getUid(), List.of(enrollment.getUid())));
+    }
+
+    return errors;
+  }
+
+  private List<ErrorMessage> validateEnrollmentAccess(
+      @Nonnull UserDetails user, @Nonnull Enrollment enrollment) {
     if (user.isSuper()) {
       return List.of();
     }
@@ -248,15 +288,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     errors.addAll(canWriteCategoryOptionCombo(user, enrollment.getAttributeOptionCombo()));
 
     return errors;
-  }
-
-  @Override
-  public List<ErrorMessage> canDelete(@Nonnull UserDetails user, @Nonnull Enrollment enrollment) {
-    if (user.isSuper()) {
-      return List.of();
-    }
-
-    return new ArrayList<>(canCreate(user, enrollment));
   }
 
   @Override
@@ -534,7 +565,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
           .map(em -> em.validationCode().getMessage())
           .toList();
     if (item.getEnrollment() != null)
-      return canUpdate(user, item.getEnrollment()).stream()
+      return canUpdate(user, item.getEnrollment(), null).stream()
           .map(em -> em.validationCode().getMessage())
           .toList();
     if (item.getTrackerEvent() != null) return canUpdate(user, item.getTrackerEvent());
