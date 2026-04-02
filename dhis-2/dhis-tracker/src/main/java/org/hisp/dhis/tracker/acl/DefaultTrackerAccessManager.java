@@ -226,12 +226,13 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     List<ErrorMessage> errors = new ArrayList<>(validateEnrollmentAccess(user, enrollment));
 
-    if (payloadEnrollmentOrgUnit != null
-        && !payloadEnrollmentOrgUnit.getUid().equals(enrollment.getOrganisationUnit().getUid())) {
-      if (!user.isInUserHierarchy(payloadEnrollmentOrgUnit.getStoredPath())) {
-        errors.add(
-            new ErrorMessage(E1000, user.getUid(), List.of(payloadEnrollmentOrgUnit.getUid())));
-      }
+    boolean orgUnitChanged =
+        payloadEnrollmentOrgUnit != null
+            && !payloadEnrollmentOrgUnit.getUid().equals(enrollment.getOrganisationUnit().getUid());
+
+    if (orgUnitChanged && !user.isInUserHierarchy(payloadEnrollmentOrgUnit.getStoredPath())) {
+      errors.add(
+          new ErrorMessage(E1000, user.getUid(), List.of(payloadEnrollmentOrgUnit.getUid())));
     }
 
     return errors;
