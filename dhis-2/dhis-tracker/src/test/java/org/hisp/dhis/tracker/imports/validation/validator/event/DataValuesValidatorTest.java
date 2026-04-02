@@ -33,8 +33,6 @@ import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
@@ -48,7 +46,6 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.Option;
-import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStage;
@@ -82,7 +79,6 @@ class DataValuesValidatorTest {
 
   private DataValuesValidator validator;
 
-  @Mock OptionService optionService;
   @Mock TrackerPreheat preheat;
 
   private static final String PROGRAM_STAGE_UID = "programStageUid";
@@ -124,8 +120,8 @@ class DataValuesValidatorTest {
   }
 
   @BeforeEach
-  public void setUp() {
-    validator = new DataValuesValidator(optionService);
+  void setUp() {
+    validator = new DataValuesValidator();
 
     when(bundle.getPreheat()).thenReturn(preheat);
 
@@ -888,8 +884,6 @@ class DataValuesValidatorTest {
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
 
-    when(optionService.existsAllOptions(any(), anyList())).thenReturn(true);
-
     Event event =
         TrackerEvent.builder()
             .event(UID.generate())
@@ -957,8 +951,6 @@ class DataValuesValidatorTest {
     ProgramStage programStage = programStage(dataElement);
     when(preheat.getProgramStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID)))
         .thenReturn(programStage);
-
-    when(optionService.existsAllOptions(any(), anyList())).thenReturn(true);
 
     Event event =
         TrackerEvent.builder()
