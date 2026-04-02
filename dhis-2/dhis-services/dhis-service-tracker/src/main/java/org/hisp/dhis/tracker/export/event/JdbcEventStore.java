@@ -1139,7 +1139,10 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       UserDetails user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_ID, params.getOrgUnit().getId());
-    String directOrgUnitPredicate = " ev.organisationunitid = :" + COLUMN_ORG_UNIT_ID + AND;
+    String directOrgUnitPredicate =
+        params.getProgramType() == ProgramType.WITHOUT_REGISTRATION
+            ? " ev.organisationunitid = :" + COLUMN_ORG_UNIT_ID + AND
+            : " ou.organisationunitid = :" + COLUMN_ORG_UNIT_ID + AND;
 
     String orgUnitPathEqualsMatchQuery =
         " ou.path = :"
