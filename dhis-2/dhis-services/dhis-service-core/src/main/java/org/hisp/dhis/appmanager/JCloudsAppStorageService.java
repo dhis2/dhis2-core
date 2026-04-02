@@ -324,8 +324,8 @@ public class JCloudsAppStorageService implements AppStorageService {
   private void removeOtherAppsWithSameKey(@Nonnull App newApp) {
     discoverInstalledApps(
         (a, bai) -> {
-          if (newApp.getKey().equals(a.getKey())
-              && !newApp.getFolderName().equals(a.getFolderName())) deleteApp(a);
+          if (newApp.getKey().equals(a.getKey()) && !newApp.appFolder().equals(a.appFolder()))
+            deleteApp(a);
         });
   }
 
@@ -333,7 +333,7 @@ public class JCloudsAppStorageService implements AppStorageService {
   public void deleteApp(@Nonnull App app) {
     // Delete the manifest file first in case the system crashes during deletion
     // so the app cannot be re-discovered in a partially-deleted state.
-    AppFolderName folder = new AppFolderName(app.getFolderName());
+    AppFolderName folder = app.appFolder();
     blobStore.deleteBlob(folder.resolve(MANIFEST_WEBAPP_FILENAME));
 
     if (blobStore.isFilesystem()) {
@@ -365,7 +365,7 @@ public class JCloudsAppStorageService implements AppStorageService {
 
     String normalized = resource.startsWith("/") ? resource.substring(1) : resource;
     String resolvedFileResource = useIndexHtmlIfDirCall(normalized);
-    BlobKey key = new BlobKey(app.getFolderName() + "/" + resolvedFileResource);
+    BlobKey key = app.appFolder().resolve(resolvedFileResource);
 
     log.debug("Checking if blob exists {} for App {}", key, app.getName());
     if (blobStore.blobExists(key)) {
@@ -385,7 +385,7 @@ public class JCloudsAppStorageService implements AppStorageService {
   private Resource getResource(@Nonnull BlobKey key) throws MalformedURLException {
     if (blobStore.isFilesystem()) {
       return new FileSystemResource(
-          locationManager.getFileForReading(blobStore.container().value() + "/" + key.value()));
+          locationManager.getFileForReading(blobStore.container().resolve(key)));
     } else {
       URI uri = fileResourceContentStore.getSignedGetContentUri(key);
       return new UrlResource(uri);
@@ -408,7 +408,7 @@ public class JCloudsAppStorageService implements AppStorageService {
    * @return potentially-updated app resource
    */
   private String useIndexHtmlIfDirCall(@Nonnull String resource) {
-    if (resource.endsWith("/")) {
+    if (resource.isEmpty() || resource.endsWith("/")) {
       log.debug("Resource ends with '/', appending 'index.html' to {}", resource);
       return resource + "index.html";
     }

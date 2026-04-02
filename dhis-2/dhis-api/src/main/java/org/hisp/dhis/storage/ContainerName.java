@@ -34,8 +34,8 @@ import javax.annotation.Nonnull;
 /**
  * The name of the S3 bucket or filesystem directory in which all DHIS2 blobs are stored.
  *
- * <p>The value must not be blank and must not end with {@code /}. This ensures that {@code
- * name.value() + "/" + key.value()} always produces a clean path without any slash-cleaning.
+ * <p>The value must not be blank and must not end with {@code /}. This ensures that {@link
+ * #resolve(BlobKey)} always produces a clean path without any slash-cleaning.
  *
  * <p>Configured via {@link org.hisp.dhis.external.conf.ConfigurationKey#FILESTORE_CONTAINER} and
  * resolved once at startup by {@link org.hisp.dhis.jclouds.JCloudsStore}.
@@ -49,6 +49,12 @@ public record ContainerName(String value) {
     if (value.endsWith("/")) {
       throw new IllegalArgumentException("Container name must not end with '/': " + value);
     }
+  }
+
+  /** Returns the full filesystem/store path for {@code key}: {@code "<container>/<key>"}. */
+  @Nonnull
+  public String resolve(@Nonnull BlobKey key) {
+    return value + "/" + key.value();
   }
 
   @Nonnull

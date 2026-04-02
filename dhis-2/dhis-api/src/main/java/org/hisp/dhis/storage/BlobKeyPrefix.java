@@ -61,7 +61,7 @@ public record BlobKeyPrefix(String value) {
    * constructing the key by hand.
    */
   public BlobKey resolve(String filename) {
-    return new BlobKey(value + "/" + filename);
+    return BlobKey.of(value, filename);
   }
 
   @Nonnull

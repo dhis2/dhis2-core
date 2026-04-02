@@ -60,7 +60,7 @@ public record AppFolderName(String value) {
 
   /** Returns the exact {@link BlobKey} for a file directly inside this folder. */
   public BlobKey resolve(String filename) {
-    return new BlobKey(value + "/" + filename);
+    return BlobKey.of(value, filename);
   }
 
   /**
