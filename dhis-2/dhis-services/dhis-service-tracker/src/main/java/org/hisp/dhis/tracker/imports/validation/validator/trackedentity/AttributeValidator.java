@@ -44,7 +44,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -70,14 +69,10 @@ class AttributeValidator
     extends org.hisp.dhis.tracker.imports.validation.validator.AttributeValidator
     implements Validator<org.hisp.dhis.tracker.imports.domain.TrackedEntity> {
 
-  private final OptionService optionService;
-
   public AttributeValidator(
       TrackedAttributeValidationService teAttrService,
-      DhisConfigurationProvider dhisConfigurationProvider,
-      OptionService optionService) {
+      DhisConfigurationProvider dhisConfigurationProvider) {
     super(teAttrService, dhisConfigurationProvider);
-    this.optionService = optionService;
   }
 
   @Override
@@ -179,7 +174,7 @@ class AttributeValidator
 
       validateAttributeValue(reporter, trackedEntity, tea, attribute.getValue());
       validateAttrValueType(reporter, preheat, trackedEntity, attribute, tea);
-      validateOptionSet(reporter, trackedEntity, tea, attribute.getValue(), optionService);
+      validateOptionSet(reporter, trackedEntity, tea, attribute.getValue());
 
       validateAttributeUniqueness(
           reporter, preheat, trackedEntity, attribute.getValue(), tea, te, orgUnit);
