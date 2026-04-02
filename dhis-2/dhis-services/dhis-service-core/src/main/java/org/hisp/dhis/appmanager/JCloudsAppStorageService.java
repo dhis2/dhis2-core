@@ -363,9 +363,7 @@ public class JCloudsAppStorageService implements AppStorageService {
       return new Redirect("/");
     }
 
-    String normalized = resource.startsWith("/") ? resource.substring(1) : resource;
-    String resolvedFileResource = useIndexHtmlIfDirCall(normalized);
-    BlobKey key = app.appFolder().resolve(resolvedFileResource);
+    BlobKey key = app.appFolder().resolve(useIndexHtmlIfDirCall(resource));
 
     log.debug("Checking if blob exists {} for App {}", key, app.getName());
     if (blobStore.blobExists(key)) {
@@ -408,7 +406,7 @@ public class JCloudsAppStorageService implements AppStorageService {
    * @return potentially-updated app resource
    */
   private String useIndexHtmlIfDirCall(@Nonnull String resource) {
-    if (resource.isEmpty() || resource.endsWith("/")) {
+    if (resource.endsWith("/")) {
       log.debug("Resource ends with '/', appending 'index.html' to {}", resource);
       return resource + "index.html";
     }

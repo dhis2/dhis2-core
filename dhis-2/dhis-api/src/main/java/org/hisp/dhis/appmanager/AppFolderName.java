@@ -58,9 +58,14 @@ public record AppFolderName(String value) {
     return new AppFolderName(AppStorageService.APPS_DIR + "/" + segment);
   }
 
-  /** Returns the exact {@link BlobKey} for a file directly inside this folder. */
-  public BlobKey resolve(String filename) {
-    return BlobKey.of(value, filename);
+  /**
+   * Returns the {@link BlobKey} for a resource path relative to this folder. A leading {@code /} is
+   * stripped so that HTTP-style paths (e.g. {@code /index.html}) and bare paths (e.g. {@code
+   * index.html}) both resolve correctly.
+   */
+  public BlobKey resolve(String resource) {
+    String path = resource.startsWith("/") ? resource.substring(1) : resource;
+    return BlobKey.of(value, path);
   }
 
   /**
