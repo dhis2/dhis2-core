@@ -60,7 +60,6 @@ import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.FlushMode;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -195,11 +194,13 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
         updatePreheat(bundle.getPreheat(), convertedDto);
 
         if (FlushMode.OBJECT == bundle.getFlushMode()) {
-          changeLogs.flushAll(entityManager);
+          // Flush entity INSERTs/UPDATEs before changelog INSERTs so FK references
+          // (trackedentityid, eventid) exist before changelog rows reference them.
           entityManager.flush();
+          changeLogs.flushAll(entityManager);
         }
       } catch (Exception e) {
-        changeLogs.rollbackToMark(mark);
+        changeLogs.rollbackTo(mark);
 
         final String msg =
             "A Tracker Entity of type '"
@@ -221,7 +222,12 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       }
     }
 
-    changeLogs.flushAll(entityManager);
+    if (FlushMode.AUTO == bundle.getFlushMode()) {
+      // Flush entity INSERTs/UPDATEs before changelog INSERTs so FK references
+      // (trackedentityid, eventid) exist before changelog rows reference them.
+      entityManager.flush();
+      changeLogs.flushAll(entityManager);
+    }
     return new PersistResult(typeReport, notifications);
   }
 
@@ -458,17 +464,13 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
             ? trackedEntityAttributeValue
             : entityManager.merge(trackedEntityAttributeValue));
 
-    if (trackedEntity.getTrackedEntityType().isEnableChangeLog()) {
-      changeLogs.addTrackedEntityChangeLog(
-          new TrackedEntityChangeLog(
-              trackedEntity,
-              trackedEntityAttributeValue.getAttribute(),
-              trackedEntityAttributeValue.getPlainValue(),
-              null,
-              DELETE,
-              new Date(),
-              user.getUsername()));
-    }
+    changeLogs.addTrackedEntityChangeLog(
+        trackedEntity,
+        trackedEntityAttributeValue.getAttribute(),
+        trackedEntityAttributeValue.getPlainValue(),
+        null,
+        DELETE,
+        user.getUsername());
   }
 
   private void saveOrUpdate(
@@ -497,17 +499,13 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       changeLogType = UPDATE;
     }
 
-    if (trackedEntity.getTrackedEntityType().isEnableChangeLog()) {
-      changeLogs.addTrackedEntityChangeLog(
-          new TrackedEntityChangeLog(
-              trackedEntity,
-              trackedEntityAttributeValue.getAttribute(),
-              previousValue,
-              trackedEntityAttributeValue.getPlainValue(),
-              changeLogType,
-              new Date(),
-              user.getUsername()));
-    }
+    changeLogs.addTrackedEntityChangeLog(
+        trackedEntity,
+        trackedEntityAttributeValue.getAttribute(),
+        previousValue,
+        trackedEntityAttributeValue.getPlainValue(),
+        changeLogType,
+        user.getUsername());
   }
 
   private static boolean isFileResource(TrackedEntityAttributeValue trackedEntityAttributeValue) {
@@ -533,5 +531,20 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       reservedValueService.useReservedValue(
           attributeValue.getAttribute().getTextPattern(), attributeValue.getValue());
     }
+  }
+
+  protected static String formatDate(Date date) {
+    java.text.SimpleDateFormat formatter =
+        new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    return date != null ? formatter.format(date) : null;
+  }
+
+  protected static String formatGeometry(org.locationtech.jts.geom.Geometry geometry) {
+    if (geometry == null) {
+      return null;
+    }
+    return java.util.stream.Stream.of(geometry.getCoordinates())
+        .map(c -> String.format("(%f, %f)", c.x, c.y))
+        .collect(java.util.stream.Collectors.joining(", "));
   }
 }

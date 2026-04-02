@@ -36,53 +36,142 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import org.hibernate.Session;
+import org.hisp.dhis.changelog.ChangeLogType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLog;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLog;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLog;
+import org.hisp.dhis.tracker.model.SingleEvent;
+import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 
 /**
- * Collects changelog entries during the persist phase and batch-inserts them via JDBC at the end.
- * This avoids Hibernate's per-entity sequence round-trips and enables JDBC batching, grouping all
- * changelog INSERTs separately from entity INSERTs/UPDATEs.
+ * Collects changelog entries during the persist phase and inserts them via multi-row INSERT at the
+ * end. This avoids Hibernate's per-entity sequence round-trips and groups all changelog INSERTs
+ * separately from entity INSERTs/UPDATEs. Multi-row INSERT is processed by PostgreSQL as a single
+ * statement (one parse, one plan, one WAL entry batch) instead of individual per-row executes.
  */
 class ChangeLogAccumulator {
+
+  /**
+   * Maximum rows per multi-row INSERT statement. pgjdbc found that performance does not improve
+   * much beyond 128 rows per multi-valued INSERT. The hard upper limit is {@link Short#MAX_VALUE}
+   * (32,767) bind parameters per statement, which gives ~4,000 rows with 8 columns. 128 rows is
+   * well within that.
+   *
+   * @see <a
+   *     href="https://github.com/pgjdbc/pgjdbc/blob/c44a2a99/pgjdbc/src/main/java/org/postgresql/jdbc/PgPreparedStatement.java#L1815-L1821">PgPreparedStatement.java#L1815-L1821</a>
+   */
+  private static final int MAX_ROWS_PER_INSERT = 128;
+
+  private static final String TE_CHANGELOG_TUPLE = "(?,?,?,?,?,?,?)";
+  private static final String TE_CHANGELOG_VALUES =
+      multiRowValues(TE_CHANGELOG_TUPLE, MAX_ROWS_PER_INSERT);
   private static final String INSERT_TE_CHANGELOG =
-      """
-      insert into trackedentitychangelog
-        (trackedentityid, trackedentityattributeid, previousvalue, currentvalue,
-         changelogtype, created, createdby)
-      values (?, ?, ?, ?, ?, ?, ?)""";
+      "insert into trackedentitychangelog"
+          + " (trackedentityid, trackedentityattributeid, previousvalue, currentvalue,"
+          + " changelogtype, created, createdby) values ";
 
+  private static final String EVENT_CHANGELOG_TUPLE = "(?,?,?,?,?,?,?,?)";
+  private static final String EVENT_CHANGELOG_VALUES =
+      multiRowValues(EVENT_CHANGELOG_TUPLE, MAX_ROWS_PER_INSERT);
+  private static final String EVENT_CHANGELOG_COLUMNS =
+      " (eventid, dataelementid, eventfield, previousvalue, currentvalue,"
+          + " changelogtype, created, createdby) values ";
   private static final String INSERT_TRACKER_EVENT_CHANGELOG =
-      """
-      insert into trackereventchangelog
-        (eventid, dataelementid, eventfield, previousvalue, currentvalue,
-         changelogtype, created, createdby)
-      values (?, ?, ?, ?, ?, ?, ?, ?)""";
-
+      "insert into trackereventchangelog" + EVENT_CHANGELOG_COLUMNS;
   private static final String INSERT_SINGLE_EVENT_CHANGELOG =
-      """
-      insert into singleeventchangelog
-        (eventid, dataelementid, eventfield, previousvalue, currentvalue,
-         changelogtype, created, createdby)
-      values (?, ?, ?, ?, ?, ?, ?, ?)""";
+      "insert into singleeventchangelog" + EVENT_CHANGELOG_COLUMNS;
 
+  private final Date created = new Date();
   private final List<TrackedEntityChangeLog> teChangeLogs = new ArrayList<>();
   private final List<TrackerEventChangeLog> trackerEventChangeLogs = new ArrayList<>();
   private final List<SingleEventChangeLog> singleEventChangeLogs = new ArrayList<>();
 
-  void addTrackedEntityChangeLog(TrackedEntityChangeLog changeLog) {
-    teChangeLogs.add(changeLog);
+  /**
+   * Mirrors {@link
+   * org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService#addTrackedEntityChangeLog}
+   * -- keep in sync when tracked attribute value fields change.
+   */
+  void addTrackedEntityChangeLog(
+      @Nonnull TrackedEntity trackedEntity,
+      @Nonnull TrackedEntityAttribute attribute,
+      @CheckForNull String previousValue,
+      @CheckForNull String currentValue,
+      @Nonnull ChangeLogType type,
+      @Nonnull String username) {
+    if (trackedEntity.getTrackedEntityType().isEnableChangeLog()) {
+      teChangeLogs.add(
+          new TrackedEntityChangeLog(
+              trackedEntity, attribute, previousValue, currentValue, type, created, username));
+    }
   }
 
-  void addTrackerEventChangeLog(TrackerEventChangeLog changeLog) {
-    trackerEventChangeLogs.add(changeLog);
+  void addTrackerEventChangeLog(
+      @Nonnull TrackerEvent event,
+      @Nonnull DataElement dataElement,
+      @Nonnull Program program,
+      @CheckForNull String previousValue,
+      @CheckForNull String currentValue,
+      @Nonnull ChangeLogType type,
+      @Nonnull String username) {
+    if (program.isEnableChangeLog()) {
+      trackerEventChangeLogs.add(
+          new TrackerEventChangeLog(
+              event, dataElement, null, previousValue, currentValue, type, created, username));
+    }
   }
 
-  void addSingleEventChangeLog(SingleEventChangeLog changeLog) {
-    singleEventChangeLogs.add(changeLog);
+  void addTrackerEventFieldChangeLog(
+      @Nonnull TrackerEvent event,
+      @Nonnull String eventField,
+      @Nonnull Program program,
+      @CheckForNull String previousValue,
+      @CheckForNull String currentValue,
+      @Nonnull ChangeLogType type,
+      @Nonnull String username) {
+    if (program.isEnableChangeLog()) {
+      trackerEventChangeLogs.add(
+          new TrackerEventChangeLog(
+              event, null, eventField, previousValue, currentValue, type, created, username));
+    }
+  }
+
+  void addSingleEventChangeLog(
+      @Nonnull SingleEvent event,
+      @Nonnull DataElement dataElement,
+      @Nonnull Program program,
+      @CheckForNull String previousValue,
+      @CheckForNull String currentValue,
+      @Nonnull ChangeLogType type,
+      @Nonnull String username) {
+    if (program.isEnableChangeLog()) {
+      singleEventChangeLogs.add(
+          new SingleEventChangeLog(
+              event, dataElement, null, previousValue, currentValue, type, created, username));
+    }
+  }
+
+  void addSingleEventFieldChangeLog(
+      @Nonnull SingleEvent event,
+      @Nonnull String eventField,
+      @Nonnull Program program,
+      @CheckForNull String previousValue,
+      @CheckForNull String currentValue,
+      @Nonnull ChangeLogType type,
+      @Nonnull String username) {
+    if (program.isEnableChangeLog()) {
+      singleEventChangeLogs.add(
+          new SingleEventChangeLog(
+              event, null, eventField, previousValue, currentValue, type, created, username));
+    }
   }
 
   Mark mark() {
@@ -90,7 +179,7 @@ class ChangeLogAccumulator {
         teChangeLogs.size(), trackerEventChangeLogs.size(), singleEventChangeLogs.size());
   }
 
-  void rollbackToMark(Mark mark) {
+  void rollbackTo(Mark mark) {
     truncate(teChangeLogs, mark.teSize);
     truncate(trackerEventChangeLogs, mark.trackerEventSize);
     truncate(singleEventChangeLogs, mark.singleEventSize);
@@ -103,9 +192,6 @@ class ChangeLogAccumulator {
       return;
     }
 
-    // Flush pending Hibernate entity INSERTs/UPDATEs first so that FK references
-    // (trackedentityid, eventid) exist in the DB before changelog rows reference them.
-    entityManager.flush();
     Session session = entityManager.unwrap(Session.class);
     session.doWork(this::insertAll);
     teChangeLogs.clear();
@@ -114,62 +200,99 @@ class ChangeLogAccumulator {
   }
 
   private void insertAll(Connection connection) throws SQLException {
-    if (!teChangeLogs.isEmpty()) {
-      try (PreparedStatement ps = connection.prepareStatement(INSERT_TE_CHANGELOG)) {
-        for (TrackedEntityChangeLog cl : teChangeLogs) {
-          ps.setLong(1, cl.getTrackedEntity().getId());
-          ps.setLong(2, cl.getTrackedEntityAttribute().getId());
-          ps.setString(3, cl.getPreviousValue());
-          ps.setString(4, cl.getCurrentValue());
-          ps.setString(5, cl.getChangeLogType().name());
-          ps.setTimestamp(6, new Timestamp(cl.getCreated().getTime()));
-          ps.setString(7, cl.getCreatedByUsername());
-          ps.addBatch();
-        }
-        ps.executeBatch();
-      }
-    }
+    Timestamp timestamp = new Timestamp(created.getTime());
+    insertTeChangeLogs(connection, timestamp);
+    insertEventChangeLogs(
+        connection, INSERT_TRACKER_EVENT_CHANGELOG, trackerEventChangeLogs, timestamp);
+    insertEventChangeLogs(
+        connection, INSERT_SINGLE_EVENT_CHANGELOG, singleEventChangeLogs, timestamp);
+  }
 
-    if (!trackerEventChangeLogs.isEmpty()) {
-      try (PreparedStatement ps = connection.prepareStatement(INSERT_TRACKER_EVENT_CHANGELOG)) {
-        for (TrackerEventChangeLog cl : trackerEventChangeLogs) {
-          ps.setLong(1, cl.getEvent().getId());
-          setNullableLong(ps, 2, cl.getDataElement());
-          ps.setString(3, cl.getEventField());
-          ps.setString(4, cl.getPreviousValue());
-          ps.setString(5, cl.getCurrentValue());
-          ps.setString(6, cl.getChangeLogType().name());
-          ps.setTimestamp(7, new Timestamp(cl.getCreated().getTime()));
-          ps.setString(8, cl.getCreatedBy());
-          ps.addBatch();
-        }
-        ps.executeBatch();
-      }
-    }
+  private void insertTeChangeLogs(Connection connection, Timestamp timestamp) throws SQLException {
+    for (int offset = 0; offset < teChangeLogs.size(); offset += MAX_ROWS_PER_INSERT) {
+      int end = Math.min(offset + MAX_ROWS_PER_INSERT, teChangeLogs.size());
+      int batchSize = end - offset;
+      String values =
+          batchSize == MAX_ROWS_PER_INSERT
+              ? TE_CHANGELOG_VALUES
+              : multiRowValues(TE_CHANGELOG_TUPLE, batchSize);
+      String sql = INSERT_TE_CHANGELOG + values;
 
-    if (!singleEventChangeLogs.isEmpty()) {
-      try (PreparedStatement ps = connection.prepareStatement(INSERT_SINGLE_EVENT_CHANGELOG)) {
-        for (SingleEventChangeLog cl : singleEventChangeLogs) {
-          ps.setLong(1, cl.getEvent().getId());
-          setNullableLong(ps, 2, cl.getDataElement());
-          ps.setString(3, cl.getEventField());
-          ps.setString(4, cl.getPreviousValue());
-          ps.setString(5, cl.getCurrentValue());
-          ps.setString(6, cl.getChangeLogType().name());
-          ps.setTimestamp(7, new Timestamp(cl.getCreated().getTime()));
-          ps.setString(8, cl.getCreatedBy());
-          ps.addBatch();
+      try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        int idx = 1;
+        for (int i = offset; i < end; i++) {
+          TrackedEntityChangeLog cl = teChangeLogs.get(i);
+          ps.setLong(idx++, cl.getTrackedEntity().getId());
+          ps.setLong(idx++, cl.getTrackedEntityAttribute().getId());
+          ps.setString(idx++, cl.getPreviousValue());
+          ps.setString(idx++, cl.getCurrentValue());
+          ps.setString(idx++, cl.getChangeLogType().name());
+          ps.setTimestamp(idx++, timestamp);
+          ps.setString(idx++, cl.getCreatedByUsername());
         }
-        ps.executeBatch();
+        ps.executeUpdate();
       }
     }
   }
 
-  private static void setNullableLong(
-      PreparedStatement ps, int index, org.hisp.dhis.common.IdentifiableObject obj)
+  private <T> void insertEventChangeLogs(
+      Connection connection, String insertSql, List<T> changeLogs, Timestamp timestamp)
       throws SQLException {
-    if (obj != null) {
-      ps.setLong(index, obj.getId());
+    if (changeLogs.isEmpty()) {
+      return;
+    }
+
+    for (int offset = 0; offset < changeLogs.size(); offset += MAX_ROWS_PER_INSERT) {
+      int end = Math.min(offset + MAX_ROWS_PER_INSERT, changeLogs.size());
+      int batchSize = end - offset;
+      String values =
+          batchSize == MAX_ROWS_PER_INSERT
+              ? EVENT_CHANGELOG_VALUES
+              : multiRowValues(EVENT_CHANGELOG_TUPLE, batchSize);
+      String sql = insertSql + values;
+
+      try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        int idx = 1;
+        for (int i = offset; i < end; i++) {
+          idx = setEventChangeLogParams(ps, idx, changeLogs.get(i), timestamp);
+        }
+        ps.executeUpdate();
+      }
+    }
+  }
+
+  private static int setEventChangeLogParams(
+      PreparedStatement ps, int idx, Object cl, Timestamp timestamp) throws SQLException {
+    if (cl instanceof TrackerEventChangeLog e) {
+      ps.setLong(idx++, e.getEvent().getId());
+      setNullableLong(ps, idx++, e.getDataElement());
+      ps.setString(idx++, e.getEventField());
+      ps.setString(idx++, e.getPreviousValue());
+      ps.setString(idx++, e.getCurrentValue());
+      ps.setString(idx++, e.getChangeLogType().name());
+      ps.setTimestamp(idx++, timestamp);
+      ps.setString(idx++, e.getCreatedBy());
+    } else if (cl instanceof SingleEventChangeLog e) {
+      ps.setLong(idx++, e.getEvent().getId());
+      setNullableLong(ps, idx++, e.getDataElement());
+      ps.setString(idx++, e.getEventField());
+      ps.setString(idx++, e.getPreviousValue());
+      ps.setString(idx++, e.getCurrentValue());
+      ps.setString(idx++, e.getChangeLogType().name());
+      ps.setTimestamp(idx++, timestamp);
+      ps.setString(idx++, e.getCreatedBy());
+    }
+    return idx;
+  }
+
+  private static String multiRowValues(String tuple, int count) {
+    return (tuple + ",").repeat(count - 1) + tuple;
+  }
+
+  private static void setNullableLong(PreparedStatement ps, int index, Object obj)
+      throws SQLException {
+    if (obj instanceof org.hisp.dhis.common.IdentifiableObject io) {
+      ps.setLong(index, io.getId());
     } else {
       ps.setNull(index, Types.BIGINT);
     }

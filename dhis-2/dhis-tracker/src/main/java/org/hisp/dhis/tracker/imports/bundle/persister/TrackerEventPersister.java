@@ -58,8 +58,6 @@ import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLog;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
@@ -185,67 +183,36 @@ public class TrackerEventPersister
       UserDetails user,
       ChangeLogAccumulator changeLogs) {
     Program program = event.getProgramStage().getProgram();
+    String username = user.getUsername();
     Map<String, EventDataValue> dataValueDBMap =
         event.getEventDataValues().stream()
             .collect(Collectors.toMap(EventDataValue::getDataElement, Function.identity()));
-
     payloadDataValues.forEach(
         dataValue -> {
           DataElement dataElement = preheat.getDataElement(dataValue.getDataElement());
           EventDataValue dbDataValue = dataValueDBMap.get(dataElement.getUid());
 
           if (isNewDataValue(dbDataValue, dataValue)) {
-            addEventChangeLog(
-                changeLogs, event, dataElement, program, null, dataValue.getValue(), CREATE, user);
+            changeLogs.addTrackerEventChangeLog(
+                event, dataElement, program, null, dataValue.getValue(), CREATE, username);
             saveDataValue(dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isUpdate(dbDataValue, dataValue)) {
-            addEventChangeLog(
-                changeLogs,
+            changeLogs.addTrackerEventChangeLog(
                 event,
                 dataElement,
                 program,
                 dbDataValue.getValue(),
                 dataValue.getValue(),
                 UPDATE,
-                user);
+                username);
             updateDataValue(
                 dbDataValue, dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isDeletion(dbDataValue, dataValue)) {
-            addEventChangeLog(
-                changeLogs,
-                event,
-                dataElement,
-                program,
-                dbDataValue.getValue(),
-                null,
-                DELETE,
-                user);
+            changeLogs.addTrackerEventChangeLog(
+                event, dataElement, program, dbDataValue.getValue(), null, DELETE, username);
             deleteDataValue(dbDataValue, event, dataElement, entityManager, preheat);
           }
         });
-  }
-
-  private static void addEventChangeLog(
-      ChangeLogAccumulator changeLogs,
-      TrackerEvent event,
-      DataElement dataElement,
-      Program program,
-      String previousValue,
-      String currentValue,
-      ChangeLogType changeLogType,
-      UserDetails user) {
-    if (program.isEnableChangeLog()) {
-      changeLogs.addTrackerEventChangeLog(
-          new TrackerEventChangeLog(
-              event,
-              dataElement,
-              null,
-              previousValue,
-              currentValue,
-              changeLogType,
-              new Date(),
-              user.getUsername()));
-    }
   }
 
   private static void logFieldChanges(
@@ -254,30 +221,30 @@ public class TrackerEventPersister
       String username,
       ChangeLogAccumulator changeLogs) {
     Program program = payloadEntity.getProgramStage().getProgram();
-    if (!program.isEnableChangeLog()) {
-      return;
-    }
 
     logFieldChange(
         changeLogs,
         payloadEntity,
         "scheduledAt",
-        EventChangeLogService.formatDate(currentEntity.getScheduledDate()),
-        EventChangeLogService.formatDate(payloadEntity.getScheduledDate()),
+        formatDate(currentEntity.getScheduledDate()),
+        formatDate(payloadEntity.getScheduledDate()),
+        program,
         username);
     logFieldChange(
         changeLogs,
         payloadEntity,
         "occurredAt",
-        EventChangeLogService.formatDate(currentEntity.getOccurredDate()),
-        EventChangeLogService.formatDate(payloadEntity.getOccurredDate()),
+        formatDate(currentEntity.getOccurredDate()),
+        formatDate(payloadEntity.getOccurredDate()),
+        program,
         username);
     logFieldChange(
         changeLogs,
         payloadEntity,
         "geometry",
-        EventChangeLogService.formatGeometry(currentEntity.getGeometry()),
-        EventChangeLogService.formatGeometry(payloadEntity.getGeometry()),
+        formatGeometry(currentEntity.getGeometry()),
+        formatGeometry(payloadEntity.getGeometry()),
+        program,
         username);
   }
 
@@ -287,6 +254,7 @@ public class TrackerEventPersister
       String field,
       String currentValue,
       String newValue,
+      Program program,
       String username) {
     if (!Objects.equals(currentValue, newValue)) {
       ChangeLogType changeLogType;
@@ -297,9 +265,8 @@ public class TrackerEventPersister
       } else {
         changeLogType = UPDATE;
       }
-      changeLogs.addTrackerEventChangeLog(
-          new TrackerEventChangeLog(
-              event, null, field, currentValue, newValue, changeLogType, new Date(), username));
+      changeLogs.addTrackerEventFieldChangeLog(
+          event, field, program, currentValue, newValue, changeLogType, username);
     }
   }
 
