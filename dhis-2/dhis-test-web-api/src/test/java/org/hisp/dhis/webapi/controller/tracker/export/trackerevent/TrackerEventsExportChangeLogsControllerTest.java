@@ -412,6 +412,7 @@ class TrackerEventsExportChangeLogsControllerTest extends PostgresControllerInte
     eventA.setProgramStage(programStage);
     eventA.setEnrollment(enrollment);
     eventA.setOrganisationUnit(orgUnit);
+    eventA.setOwnerOrganisationUnit(orgUnit);
     eventA.setAttributeOptionCombo(coc);
     eventA.setOccurredDate(
         Date.from(LocalDate.of(2023, 1, 12).atStartOfDay().toInstant(ZoneOffset.UTC)));

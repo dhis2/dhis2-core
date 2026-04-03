@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.export.trackerevent;
 
 import static java.util.Map.entry;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
@@ -658,13 +659,20 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       SqlHelper hlp,
       boolean hasTrackedEntityJoin) {
     if (params.getOrgUnit() != null) {
-      buildOrgUnitModeClause(
-          sql,
-          sqlParams,
-          Set.of(params.getOrgUnit()),
-          params.getOrgUnitMode(),
-          "ou",
-          hlp.whereAnd());
+      if (params.getOrgUnitMode() == SELECTED) {
+        // Use denormalized ownerorganisationunitid for a direct index scan on trackerevent,
+        // bypassing the enrollment -> trackedentityprogramowner -> organisationunit join chain.
+        sqlParams.addValue("orgUnits", List.of(params.getOrgUnit().getId()));
+        sql.append(hlp.whereAnd()).append(" ev.ownerorganisationunitid in (:orgUnits) ");
+      } else {
+        buildOrgUnitModeClause(
+            sql,
+            sqlParams,
+            Set.of(params.getOrgUnit()),
+            params.getOrgUnitMode(),
+            "ou",
+            hlp.whereAnd());
+      }
     }
 
     if (params.hasEnrolledInTrackerProgram()) {
@@ -1080,13 +1088,20 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       TrackerEventQueryParams params,
       SqlHelper hlp) {
     if (params.getOrgUnit() != null) {
-      buildOrgUnitModeClause(
-          sql,
-          sqlParams,
-          Set.of(params.getOrgUnit()),
-          params.getOrgUnitMode(),
-          "ou",
-          hlp.whereAnd());
+      if (params.getOrgUnitMode() == SELECTED) {
+        // Use denormalized ownerorganisationunitid for a direct index scan on trackerevent,
+        // bypassing the enrollment -> trackedentityprogramowner -> organisationunit join chain.
+        sqlParams.addValue("orgUnits", List.of(params.getOrgUnit().getId()));
+        sql.append(hlp.whereAnd()).append(" ev.ownerorganisationunitid in (:orgUnits) ");
+      } else {
+        buildOrgUnitModeClause(
+            sql,
+            sqlParams,
+            Set.of(params.getOrgUnit()),
+            params.getOrgUnitMode(),
+            "ou",
+            hlp.whereAnd());
+      }
     }
 
     if (params.hasEnrolledInTrackerProgram()) {

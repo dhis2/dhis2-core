@@ -304,6 +304,7 @@ class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
     eventA.setEnrollment(enrollmentA);
     eventA.setProgramStage(stageA);
     eventA.setOrganisationUnit(organisationUnitA);
+    eventA.setOwnerOrganisationUnit(organisationUnitA);
     eventA.setScheduledDate(tomorrow);
     eventA.setAttributeOptionCombo(coA);
     manager.save(eventA);
@@ -311,6 +312,7 @@ class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
     eventB.setEnrollment(enrollmentB);
     eventB.setProgramStage(stageB);
     eventB.setOrganisationUnit(organisationUnitA);
+    eventB.setOwnerOrganisationUnit(organisationUnitA);
     eventB.setScheduledDate(today);
     eventB.setAttributeOptionCombo(coA);
     manager.save(eventB);
@@ -318,6 +320,7 @@ class ProgramNotificationServiceTest extends PostgresIntegrationTestBase {
     eventC.setEnrollment(enrollmentB);
     eventC.setProgramStage(stageC);
     eventC.setOrganisationUnit(organisationUnitA);
+    eventC.setOwnerOrganisationUnit(organisationUnitA);
     eventC.setScheduledDate(yesterday);
     eventC.setAttributeOptionCombo(coA);
     manager.save(eventC);

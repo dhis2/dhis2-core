@@ -234,6 +234,7 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
     eventA.setEnrollment(enrollment);
     eventA.setProgramStage(programStage);
     eventA.setOrganisationUnit(enrollment.getOrganisationUnit());
+    eventA.setOwnerOrganisationUnit(enrollment.getOrganisationUnit());
     eventA.setAttributeOptionCombo(coc);
     eventA.setAutoFields();
     manager.save(eventA);

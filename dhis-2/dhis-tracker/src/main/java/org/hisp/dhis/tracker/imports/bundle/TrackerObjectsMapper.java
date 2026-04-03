@@ -32,11 +32,13 @@ package org.hisp.dhis.tracker.imports.bundle;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -44,6 +46,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.util.RelationshipKeySupport;
@@ -206,7 +209,10 @@ public class TrackerObjectsMapper {
 
     OrganisationUnit organisationUnit = preheat.getOrganisationUnit(event.getOrgUnit());
     dbEvent.setOrganisationUnit(organisationUnit);
-    dbEvent.setEnrollment(preheat.getEnrollment(event.getEnrollment()));
+    Enrollment resolvedEnrollment = preheat.getEnrollment(event.getEnrollment());
+    dbEvent.setEnrollment(resolvedEnrollment);
+    dbEvent.setOwnerOrganisationUnit(
+        resolveOwnerOrganisationUnit(preheat, resolvedEnrollment, organisationUnit));
     ProgramStage programStage = preheat.getProgramStage(event.getProgramStage());
     dbEvent.setProgramStage(programStage);
 
@@ -402,6 +408,26 @@ public class TrackerObjectsMapper {
     dbNote.setNoteText(note.getValue());
 
     return dbNote;
+  }
+
+  /**
+   * Resolves the owner org unit for a tracker event from the preheat's program ownership map. Falls
+   * back to the event's own org unit when no TPO record exists (matching the COALESCE in the DB
+   * trigger and the backfill migration).
+   */
+  private static @Nonnull OrganisationUnit resolveOwnerOrganisationUnit(
+      @Nonnull TrackerPreheat preheat,
+      @CheckForNull Enrollment enrollment,
+      @Nonnull OrganisationUnit fallback) {
+    if (enrollment == null || enrollment.getTrackedEntity() == null) {
+      return fallback;
+    }
+    TrackedEntityProgramOwnerOrgUnit tpo =
+        preheat
+            .getProgramOwner()
+            .getOrDefault(UID.of(enrollment.getTrackedEntity().getUid()), Map.of())
+            .get(enrollment.getProgram().getUid());
+    return tpo != null ? tpo.getOrganisationUnit() : fallback;
   }
 
   // TODO(tracker): To remove when refactoring ProgramNotificationInstanceController

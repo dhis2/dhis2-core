@@ -217,6 +217,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     trackerEvent.setProgramStage(stageA);
     trackerEvent.setUid(UID.generate().getValue());
     trackerEvent.setOrganisationUnit(organisationUnit);
+    trackerEvent.setOwnerOrganisationUnit(organisationUnit);
     trackerEvent.setEnrollment(enrollment);
     trackerEvent.setOccurredDate(new Date());
     trackerEvent.setAttributeOptionCombo(coA);
@@ -233,6 +234,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     eventWithTeAssociation.setProgramStage(stageA);
     eventWithTeAssociation.setUid(UID.generate().getValue());
     eventWithTeAssociation.setOrganisationUnit(organisationUnit);
+    eventWithTeAssociation.setOwnerOrganisationUnit(organisationUnit);
     eventWithTeAssociation.setEnrollment(enrollmentWithTeAssociation);
     eventWithTeAssociation.setOccurredDate(new Date());
     eventWithTeAssociation.setAttributeOptionCombo(coA);
@@ -406,6 +408,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     eventA.setUid("UID-A");
     eventA.setAttributeOptionCombo(coA);
     eventA.setOrganisationUnit(organisationUnit);
+    eventA.setOwnerOrganisationUnit(organisationUnit);
     manager.save(eventA);
     trackerEventChangeLogService.addEventChangeLog(
         eventA,
@@ -467,6 +470,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     eventA.setUid(UID.generate().getValue());
     eventA.setAttributeOptionCombo(coA);
     eventA.setOrganisationUnit(organisationUnit);
+    eventA.setOwnerOrganisationUnit(organisationUnit);
     manager.save(eventA);
     UID idA = UID.of(eventA);
     Relationship r = new Relationship();

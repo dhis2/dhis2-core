@@ -468,6 +468,67 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
   }
 
   @Test
+  void shouldSetOwnerOrganisationUnitFromTpoWhenPresentInPreheat() {
+    OrganisationUnit ownerOU = createOrganisationUnit('B');
+    preheat.putEnrollments(List.of(event(EventStatus.ACTIVE).getEnrollment()));
+    preheat.addProgramOwner(TE_UID, PROGRAM_UID, ownerOU);
+
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
+            .event(EVENT_UID)
+            .enrollment(ENROLLMENT_UID)
+            .status(EventStatus.ACTIVE)
+            .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_UID))
+            .orgUnit(MetadataIdentifier.ofUid(ORGANISATION_UNIT_UID))
+            .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
+            .build();
+
+    TrackerEvent result = TrackerObjectsMapper.map(preheat, event, creatingUser);
+
+    assertEquals(ownerOU.getUid(), result.getOwnerOrganisationUnit().getUid());
+  }
+
+  @Test
+  void shouldFallBackToEventOrgUnitAsOwnerWhenNoTpoInPreheat() {
+    preheat.putEnrollments(List.of(event(EventStatus.ACTIVE).getEnrollment()));
+
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
+            .event(EVENT_UID)
+            .enrollment(ENROLLMENT_UID)
+            .status(EventStatus.ACTIVE)
+            .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_UID))
+            .orgUnit(MetadataIdentifier.ofUid(ORGANISATION_UNIT_UID))
+            .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
+            .build();
+
+    TrackerEvent result = TrackerObjectsMapper.map(preheat, event, creatingUser);
+
+    assertEquals(ORGANISATION_UNIT_UID, result.getOwnerOrganisationUnit().getUid());
+  }
+
+  @Test
+  void shouldFallBackToEventOrgUnitAsOwnerWhenEnrollmentIsNull() {
+    // No enrollment in preheat → resolvedEnrollment is null
+    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
+        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
+            .event(EVENT_UID)
+            .enrollment(ENROLLMENT_UID)
+            .status(EventStatus.ACTIVE)
+            .programStage(MetadataIdentifier.ofUid(PROGRAM_STAGE_UID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_UID))
+            .orgUnit(MetadataIdentifier.ofUid(ORGANISATION_UNIT_UID))
+            .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
+            .build();
+
+    TrackerEvent result = TrackerObjectsMapper.map(preheat, event, creatingUser);
+
+    assertEquals(ORGANISATION_UNIT_UID, result.getOwnerOrganisationUnit().getUid());
+  }
+
+  @Test
   void testMapRelationshipFromTEToEnrollment() {
     preheat.putTrackedEntities(List.of(trackedEntity()));
     preheat.putEnrollments(List.of(enrollment(ACTIVE)));

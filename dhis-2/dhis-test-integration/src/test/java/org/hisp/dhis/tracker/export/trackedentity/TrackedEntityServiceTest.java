@@ -364,6 +364,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     eventA.setEnrollment(enrollmentA);
     eventA.setProgramStage(programStageA1);
     eventA.setOrganisationUnit(orgUnitA);
+    eventA.setOwnerOrganisationUnit(orgUnitA);
     eventA.setAttributeOptionCombo(defaultCategoryOptionCombo);
     eventA.setOccurredDate(parseDate("2021-05-27T12:05:00.000"));
     eventA.setScheduledDate(parseDate("2021-02-27T12:05:00.000"));
@@ -389,6 +390,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     eventB.setEnrollment(enrollmentB);
     eventB.setProgramStage(programStageB1);
     eventB.setOrganisationUnit(orgUnitA);
+    eventB.setOwnerOrganisationUnit(orgUnitA);
     eventB.setAttributeOptionCombo(defaultCategoryOptionCombo);
     manager.save(eventB, false);
     enrollmentB.setEvents(Set.of(eventB));
@@ -406,6 +408,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     eventC.setEnrollment(enrollmentC);
     eventC.setProgramStage(programStageB1);
     eventC.setOrganisationUnit(orgUnitB);
+    eventC.setOwnerOrganisationUnit(orgUnitB);
     eventC.setAttributeOptionCombo(defaultCategoryOptionCombo);
     manager.save(eventC, false);
     enrollmentC.setEvents(Set.of(eventC));

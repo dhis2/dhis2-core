@@ -297,6 +297,7 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
     event.setEnrollment(enrollment);
     event.setProgramStage(programStage);
     event.setOrganisationUnit(enrollment.getOrganisationUnit());
+    event.setOwnerOrganisationUnit(enrollment.getOrganisationUnit());
     event.setAttributeOptionCombo(coc);
     event.setAutoFields();
     manager.save(event);

@@ -85,6 +85,7 @@ public abstract class TrackerTestBase extends TestBase {
     event.setProgramStage(programStage);
     event.setEnrollment(enrollment);
     event.setOrganisationUnit(organisationUnit);
+    event.setOwnerOrganisationUnit(organisationUnit);
     if (categoryService != null) {
       event.setAttributeOptionCombo(categoryService.getDefaultCategoryOptionCombo());
     }

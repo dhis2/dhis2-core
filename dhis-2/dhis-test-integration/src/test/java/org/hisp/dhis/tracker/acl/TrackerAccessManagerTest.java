@@ -193,6 +193,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     eventA.setEnrollment(enrollmentA);
     eventA.setProgramStage(programStageA);
     eventA.setOrganisationUnit(orgUnitA);
+    eventA.setOwnerOrganisationUnit(orgUnitA);
     eventA.setStatus(EventStatus.COMPLETED);
     eventA.setOccurredDate(new Date());
     eventA.setAttributeOptionCombo(coA);
@@ -202,6 +203,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     eventB.setEnrollment(enrollmentA);
     eventB.setProgramStage(programStageB);
     eventB.setOrganisationUnit(orgUnitB);
+    eventB.setOwnerOrganisationUnit(orgUnitA);
     eventB.setStatus(EventStatus.SCHEDULE);
     eventB.setScheduledDate(DateUtils.addDays(new Date(), 10));
     eventB.setAttributeOptionCombo(coA);

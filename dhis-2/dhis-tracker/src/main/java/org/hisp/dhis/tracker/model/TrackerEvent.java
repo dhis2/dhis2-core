@@ -76,6 +76,8 @@ public class TrackerEvent extends SoftDeletableObject {
 
   @AuditAttribute private OrganisationUnit organisationUnit;
 
+  private OrganisationUnit ownerOrganisationUnit;
+
   @AuditAttribute private CategoryOptionCombo attributeOptionCombo;
 
   private List<Note> notes = new ArrayList<>();
