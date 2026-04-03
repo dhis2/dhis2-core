@@ -46,49 +46,111 @@ import org.hisp.dhis.user.UserDetails;
  */
 public interface TrackerAccessManager {
   /**
-   * Checks the data read permissions and ownership of a tracked entity given the programs for which
-   * the user has metadata access to.
+   * Checks data read access to the TET and ownership of a tracked entity across programs for which
+   * the user has data read access.
    *
-   * @return No errors if a user has access to at least one program
+   * @return No errors if the user has TET data read access and ownership in at least one program.
    */
   List<ErrorMessage> canRead(UserDetails user, TrackedEntity trackedEntity);
 
   /**
-   * Checks the data write permissions to the TET of a given tracked entity.
+   * Checks capture scope and data write permissions to the TET of a given tracked entity.
    *
-   * @return No errors if the user has write access to the TET.
+   * @return No errors if the user has capture scope access and write access to the TET.
    */
   List<ErrorMessage> canCreate(@Nonnull UserDetails user, TrackedEntity trackedEntity);
 
   /**
-   * Checks the data write permissions to the TET and ownership of a tracked entity given the
-   * programs for which the user has metadata access to.
+   * Checks data write permissions to the TET and ownership of a tracked entity across programs for
+   * which the user has data write access.
    *
-   * @return No errors if a user has write access to the TET and access to at least one program
+   * @return No errors if the user has write access to the TET and ownership in at least one
+   *     program.
    */
   List<ErrorMessage> canUpdate(UserDetails user, TrackedEntity trackedEntity);
 
-  /** See {@link #canUpdate(UserDetails, TrackedEntity)}. */
+  /**
+   * Like {@link #canUpdate(UserDetails, TrackedEntity)}, but also requires capture scope access.
+   */
   List<ErrorMessage> canDelete(UserDetails user, TrackedEntity trackedEntity);
 
+  /**
+   * Checks data read access to the program and TET, and ownership of the enrollment.
+   *
+   * @return No errors if the user has data read access to the program and TET, and has ownership.
+   */
   List<ErrorMessage> canRead(UserDetails user, Enrollment enrollment);
 
+  /**
+   * Checks data write access to the program, data read access to the TET, ownership, capture scope,
+   * and category option combo write access for the enrollment.
+   *
+   * @return No errors if the user has all required access rights to create the enrollment.
+   */
   List<ErrorMessage> canCreate(UserDetails user, Enrollment enrollment);
 
-  List<ErrorMessage> canUpdate(UserDetails user, Enrollment enrollment);
+  /**
+   * Checks data write access to the program, data read access to the TET, ownership, and category
+   * option combo write access. When the payload org unit differs from the stored enrollment's org
+   * unit, capture scope access to the new org unit is also required.
+   *
+   * @param user the user whose access is being validated.
+   * @param enrollment the stored enrollment to update.
+   * @param payloadEnrollmentOrgUnit the org unit from the update payload; {@code null} if
+   *     unchanged.
+   * @return No errors if the user has all required access rights to update the enrollment.
+   */
+  List<ErrorMessage> canUpdate(
+      UserDetails user, Enrollment enrollment, OrganisationUnit payloadEnrollmentOrgUnit);
 
-  List<ErrorMessage> canDelete(UserDetails user, Enrollment enrollment);
+  /**
+   * Like {@link #canCreate(UserDetails, Enrollment)}, but also requires the {@code
+   * F_ENROLLMENT_CASCADE_DELETE} authority when the enrollment has non-deleted events.
+   *
+   * @param hasNonDeletedEvents whether the enrollment has at least one non-deleted event.
+   */
+  List<ErrorMessage> canDelete(
+      UserDetails user, Enrollment enrollment, boolean hasNonDeletedEvents);
 
+  /**
+   * Checks data read access to the program, program stage, and TET, ownership of the enrolled
+   * tracked entity, and data read access to the category option combo.
+   *
+   * @return No errors if the user has data read access to the program, program stage, and TET, has
+   *     ownership, and has data read access to the category option combo.
+   */
   List<ErrorMessage> canRead(UserDetails user, TrackerEvent event);
 
+  /**
+   * Checks data write access to the program stage, data read access to the program and TET,
+   * ownership, data write access to the category option combo, and org unit scope access. The org
+   * unit is checked against the search scope if the event is creatable in search scope, otherwise
+   * against the capture scope.
+   *
+   * @return No errors if the user has all required access rights to create the event.
+   */
   List<ErrorMessage> canCreate(UserDetails user, TrackerEvent event);
 
+  /**
+   * Checks data write access to the program stage, data read access to the program and TET,
+   * ownership, and data write access to the category option combo. When the payload org unit
+   * differs from the stored event's org unit, capture scope access to the new org unit is also
+   * required. When the event status is {@link EventStatus#COMPLETED} and the payload requests a
+   * different status, the {@code F_UNCOMPLETE_EVENT} authority is required.
+   *
+   * @param user the user whose access is being validated.
+   * @param event the stored event to update.
+   * @param payloadEventOrgUnit the org unit from the update payload; {@code null} if unchanged.
+   * @param payloadEventStatus the event status from the update payload; {@code null} if unchanged.
+   * @return No errors if the user has all required access rights to update the event.
+   */
   List<ErrorMessage> canUpdate(
       UserDetails user,
       TrackerEvent event,
       OrganisationUnit payloadEventOrgUnit,
       EventStatus payloadEventStatus);
 
+  /** Like {@link #canCreate(UserDetails, TrackerEvent)}. */
   List<ErrorMessage> canDelete(UserDetails user, TrackerEvent event);
 
   List<String> canRead(UserDetails user, SingleEvent event);

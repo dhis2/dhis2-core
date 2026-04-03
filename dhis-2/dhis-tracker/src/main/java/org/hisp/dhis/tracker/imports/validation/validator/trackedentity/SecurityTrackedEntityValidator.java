@@ -52,7 +52,7 @@ import org.springframework.stereotype.Component;
  * @author Ameen <ameen@dhis2.org>
  */
 @Component(
-    "org.hisp.dhis.tracker.imports.validation.validator.trackedentity.SecurityOwnershipValidator")
+    "org.hisp.dhis.tracker.imports.validation.validator.trackedentity.SecurityTrackedEntityValidator")
 @RequiredArgsConstructor
 class SecurityTrackedEntityValidator
     implements Validator<org.hisp.dhis.tracker.imports.domain.TrackedEntity> {
@@ -62,25 +62,20 @@ class SecurityTrackedEntityValidator
   public void validate(
       Reporter reporter,
       TrackerBundle bundle,
-      org.hisp.dhis.tracker.imports.domain.TrackedEntity payloadTrackedEntity) {
-    TrackerImportStrategy strategy = bundle.getStrategy(payloadTrackedEntity);
+      org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity) {
+    TrackerImportStrategy strategy = bundle.getStrategy(trackedEntity);
     UserDetails user = bundle.getUser();
 
-    TrackedEntity preheatTrackedEntity =
-        bundle.getPreheat().getTrackedEntity(payloadTrackedEntity.getTrackedEntity());
-
     if (strategy.isCreate()) {
-      handleCreate(bundle, payloadTrackedEntity, user, reporter);
+      handleCreate(bundle, trackedEntity, user, reporter);
     } else {
-      OrganisationUnit organisationUnit = preheatTrackedEntity.getOrganisationUnit();
-      TrackedEntity mappedTrackedEntity =
-          bundle.getPreheat().getTrackedEntity(payloadTrackedEntity.getTrackedEntity());
-      mappedTrackedEntity.setOrganisationUnit(organisationUnit);
+      TrackedEntity databaseTrackedEntity =
+          bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
 
       if (strategy.isUpdate()) {
-        handleUpdate(payloadTrackedEntity, mappedTrackedEntity, bundle, reporter);
+        handleUpdate(trackedEntity, databaseTrackedEntity, bundle, reporter);
       } else if (strategy.isDelete()) {
-        handleDelete(payloadTrackedEntity, mappedTrackedEntity, user, reporter);
+        handleDelete(trackedEntity, databaseTrackedEntity, user, reporter);
       }
     }
   }
@@ -92,55 +87,48 @@ class SecurityTrackedEntityValidator
 
   private void handleCreate(
       TrackerBundle bundle,
-      org.hisp.dhis.tracker.imports.domain.TrackedEntity payloadTrackedEntity,
+      org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity,
       UserDetails user,
       Reporter reporter) {
-    TrackedEntity mappedTrackedEntity = map(bundle.getPreheat(), payloadTrackedEntity, user);
+    TrackedEntity mappedTrackedEntity = map(bundle.getPreheat(), trackedEntity, user);
     trackerAccessManager
         .canCreate(user, mappedTrackedEntity)
         .forEach(
-            eo ->
-                reporter.addError(
-                    payloadTrackedEntity, eo.validationCode(), eo.userUid(), eo.args()));
+            eo -> reporter.addError(trackedEntity, eo.validationCode(), eo.userUid(), eo.args()));
   }
 
   private void handleUpdate(
-      org.hisp.dhis.tracker.imports.domain.TrackedEntity payloadTrackedEntity,
-      TrackedEntity mappedTrackedEntity,
+      org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity,
+      TrackedEntity databaseTrackedEntity,
       TrackerBundle bundle,
       Reporter reporter) {
     trackerAccessManager
-        .canUpdate(bundle.getUser(), mappedTrackedEntity)
+        .canUpdate(bundle.getUser(), databaseTrackedEntity)
         .forEach(
             eo ->
                 reporter.addError(
-                    payloadTrackedEntity,
-                    eo.validationCode(),
-                    bundle.getUser().getUid(),
-                    eo.args()));
+                    trackedEntity, eo.validationCode(), bundle.getUser().getUid(), eo.args()));
 
     OrganisationUnit payloadOrgUnit =
-        bundle.getPreheat().getOrganisationUnit(payloadTrackedEntity.getOrgUnit());
-    if (!mappedTrackedEntity.getOrganisationUnit().getUid().equals(payloadOrgUnit.getUid())) {
-      checkOrgUnitInCaptureScope(reporter, payloadTrackedEntity, payloadOrgUnit, bundle.getUser());
+        bundle.getPreheat().getOrganisationUnit(trackedEntity.getOrgUnit());
+    if (!databaseTrackedEntity.getOrganisationUnit().getUid().equals(payloadOrgUnit.getUid())) {
+      checkOrgUnitInCaptureScope(reporter, trackedEntity, payloadOrgUnit, bundle.getUser());
     }
   }
 
   private void handleDelete(
-      org.hisp.dhis.tracker.imports.domain.TrackedEntity payloadTrackedEntity,
-      TrackedEntity mappedTrackedEntity,
+      org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity,
+      TrackedEntity databaseTrackedEntity,
       UserDetails user,
       Reporter reporter) {
     trackerAccessManager
-        .canDelete(user, mappedTrackedEntity)
+        .canDelete(user, databaseTrackedEntity)
         .forEach(
-            eo ->
-                reporter.addError(
-                    payloadTrackedEntity, eo.validationCode(), user.getUid(), eo.args()));
+            eo -> reporter.addError(trackedEntity, eo.validationCode(), user.getUid(), eo.args()));
 
-    if (mappedTrackedEntity.getEnrollments().stream().anyMatch(e -> !e.isDeleted())
+    if (databaseTrackedEntity.getEnrollments().stream().anyMatch(e -> !e.isDeleted())
         && !user.isAuthorized(Authorities.F_TEI_CASCADE_DELETE.name())) {
-      reporter.addError(payloadTrackedEntity, E1100, user, mappedTrackedEntity);
+      reporter.addError(trackedEntity, E1100, user, databaseTrackedEntity);
     }
   }
 

@@ -151,12 +151,8 @@ public class TrackerProgramService {
       @Nonnull TrackedEntityType trackedEntityType) {
     UserDetails user = getCurrentUserDetails();
 
-    return programService.getAllPrograms().stream()
-        .filter(
-            p ->
-                p.isRegistration()
-                    && Objects.equals(p.getTrackedEntityType().getUid(), trackedEntityType.getUid())
-                    && aclService.canDataWrite(user, p))
+    return programService.getProgramsByTrackedEntityType(trackedEntityType).stream()
+        .filter(p -> p.isRegistration() && aclService.canDataWrite(user, p))
         .toList();
   }
 

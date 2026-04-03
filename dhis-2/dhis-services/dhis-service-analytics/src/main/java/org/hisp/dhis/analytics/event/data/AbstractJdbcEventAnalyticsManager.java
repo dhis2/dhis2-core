@@ -599,7 +599,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         });
 
     OrgUnitSqlCoordinator.addDimensionSelectColumns(
-        columns, params, isGroupByClause, isAggregated, getAnalyticsType());
+        columns, params, isGroupByClause, isAggregated, getAnalyticsType(), sqlBuilder);
 
     if (params.hasEnrollmentStatuses() && params.isEnrollmentAggregateQuery()) {
       columns.add(ColumnAndAlias.ofColumn(ENROLLMENT_STATUS_COLUMN_NAME).asSql());
@@ -1278,7 +1278,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     String whereClause = getWhereClause(params);
     String filterWhereClause = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
 
-    String headerColumns = String.join(",", getHeaderColumns(headers, sql));
+    String headerColumns = String.join(",", getHeaderColumns(headers, sql, sqlBuilder));
     String periodColumns = String.join(",", getPeriodColumns(params));
     String orgUnitColumns = String.join(",", getOrgUnitLevelColumns(params));
 

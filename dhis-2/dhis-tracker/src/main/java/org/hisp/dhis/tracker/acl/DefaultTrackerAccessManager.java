@@ -38,6 +38,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1097;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1098;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1099;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1102;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1105;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1324;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1325;
@@ -55,6 +56,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -173,10 +175,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       return List.of();
     }
 
-    List<ErrorMessage> errors = new ArrayList<>(canUpdate(user, enrollment));
+    List<ErrorMessage> errors = new ArrayList<>(validateEnrollmentAccess(user, enrollment));
+
     OrganisationUnit enrollmentOrgUnit = enrollment.getOrganisationUnit();
-    // TODO Do we need this guard clause
     if (enrollmentOrgUnit != null) {
+      // TODO Do we need this guard clause
       checkOrgUnitInCaptureScope(errors, user, enrollmentOrgUnit);
     }
 
@@ -184,7 +187,48 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<ErrorMessage> canUpdate(@Nonnull UserDetails user, @Nonnull Enrollment enrollment) {
+  public List<ErrorMessage> canUpdate(
+      @Nonnull UserDetails user,
+      @Nonnull Enrollment enrollment,
+      @CheckForNull OrganisationUnit payloadEnrollmentOrgUnit) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    List<ErrorMessage> errors = new ArrayList<>(validateEnrollmentAccess(user, enrollment));
+
+    boolean orgUnitChanged =
+        payloadEnrollmentOrgUnit != null
+            && !payloadEnrollmentOrgUnit.getUid().equals(enrollment.getOrganisationUnit().getUid());
+
+    if (orgUnitChanged && !user.isInUserHierarchy(payloadEnrollmentOrgUnit.getStoredPath())) {
+      errors.add(
+          new ErrorMessage(E1000, user.getUid(), List.of(payloadEnrollmentOrgUnit.getUid())));
+    }
+
+    return errors;
+  }
+
+  @Override
+  public List<ErrorMessage> canDelete(
+      @Nonnull UserDetails user, @Nonnull Enrollment enrollment, boolean hasNonDeletedEvents) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    List<ErrorMessage> errors = new ArrayList<>(canCreate(user, enrollment));
+    boolean hasNotCascadeDeleteAuthority =
+        !user.isAuthorized(Authorities.F_ENROLLMENT_CASCADE_DELETE.name());
+
+    if (hasNonDeletedEvents && hasNotCascadeDeleteAuthority) {
+      errors.add(new ErrorMessage(E1103, user.getUid(), List.of(enrollment.getUid())));
+    }
+
+    return errors;
+  }
+
+  private List<ErrorMessage> validateEnrollmentAccess(
+      @Nonnull UserDetails user, @Nonnull Enrollment enrollment) {
     if (user.isSuper()) {
       return List.of();
     }
@@ -197,15 +241,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     checkDataWriteAccessToCategoryOptionCombo(errors, user, enrollment.getAttributeOptionCombo());
 
     return errors;
-  }
-
-  @Override
-  public List<ErrorMessage> canDelete(@Nonnull UserDetails user, @Nonnull Enrollment enrollment) {
-    if (user.isSuper()) {
-      return List.of();
-    }
-
-    return canCreate(user, enrollment);
   }
 
   @Override
@@ -462,7 +497,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
           .map(em -> em.validationCode().getMessage())
           .toList();
     if (item.getEnrollment() != null)
-      return canUpdate(user, item.getEnrollment()).stream()
+      return canUpdate(user, item.getEnrollment(), null).stream()
           .map(em -> em.validationCode().getMessage())
           .toList();
     if (item.getTrackerEvent() != null)

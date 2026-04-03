@@ -49,14 +49,13 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 
 /** Helper class to support SQL/query handling for enrollments. */
 @NoArgsConstructor(access = PRIVATE)
 public class EnrollmentQueryHelper {
-
-  private static final String QUOTE = "\"";
 
   private static final String DOT = ".";
 
@@ -65,9 +64,12 @@ public class EnrollmentQueryHelper {
    * required alias.
    *
    * @param headers the list of {@link GridHeader}.
+   * @param sql the SQL query string.
+   * @param sqlBuilder database-specific SQL builder for column quoting.
    * @return the set of database columns.
    */
-  public static Set<String> getHeaderColumns(List<GridHeader> headers, String sql) {
+  public static Set<String> getHeaderColumns(
+      List<GridHeader> headers, String sql, SqlBuilder sqlBuilder) {
     Set<String> headerColumns = new LinkedHashSet<>();
 
     for (GridHeader header : headers) {
@@ -78,14 +80,14 @@ public class EnrollmentQueryHelper {
           && !headerName.equalsIgnoreCase(ORGUNIT_DIM_ID)) {
 
         if (sql.contains(headerName)) {
-          headerName = quote(headerName);
+          headerName = sqlBuilder.quote(headerName);
         } else if (headerName.contains(DOT)) {
           // Gets only the column name from the header in the URL.
           // This has to match the column of the analytics table.
           // ie.: A03MvHHogjR.a3kGcGDCuk6 -> a3kGcGDCuk6
-          headerName = quote(headerName.split("\\.")[1]);
+          headerName = sqlBuilder.quote(headerName.split("\\.")[1]);
         } else {
-          headerName = quote(headerName);
+          headerName = sqlBuilder.quote(headerName);
         }
 
         headerColumns.add(OUTER_SQL_ALIAS + DOT + headerName);
@@ -172,16 +174,5 @@ public class EnrollmentQueryHelper {
     }
 
     return periods;
-  }
-
-  /**
-   * It adds double quotes to the given value.
-   *
-   * @param value the value to quote.
-   * @return a double quoted value.
-   */
-  private static String quote(String value) {
-    String escaped = value.replace(QUOTE, (QUOTE + QUOTE));
-    return QUOTE + escaped + QUOTE;
   }
 }
