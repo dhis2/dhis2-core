@@ -57,7 +57,7 @@ import org.springframework.stereotype.Component;
 @Component(
     "org.hisp.dhis.tracker.imports.validation.validator.enrollment.SecurityOwnershipValidator")
 @RequiredArgsConstructor
-class SecurityOwnershipValidator implements Validator<Enrollment> {
+class SecurityEnrollmentValidator implements Validator<Enrollment> {
   @Nonnull private final TrackerAccessManager trackerAccessManager;
 
   @Override
@@ -96,7 +96,9 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     trackerAccessManager
         .canCreate(user, mappedEnrollment)
         .forEach(
-            eo -> reporter.addError(payloadEnrollment, eo.validationCode(), eo.args().toArray()));
+            eo ->
+                reporter.addError(
+                    payloadEnrollment, eo.validationCode(), eo.userUid(), eo.args().toArray()));
   }
 
   private void handleUpdate(
@@ -108,7 +110,9 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     trackerAccessManager
         .canUpdate(user, mappedEnrollment)
         .forEach(
-            eo -> reporter.addError(payloadEnrollment, eo.validationCode(), eo.args().toArray()));
+            eo ->
+                reporter.addError(
+                    payloadEnrollment, eo.validationCode(), eo.userUid(), eo.args().toArray()));
 
     OrganisationUnit enrollmentOrgUnit =
         preheat.getOrganisationUnit(payloadEnrollment.getOrgUnit());
@@ -128,14 +132,16 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
     trackerAccessManager
         .canDelete(user, mappedEnrollment)
         .forEach(
-            eo -> reporter.addError(payloadEnrollment, eo.validationCode(), eo.args().toArray()));
+            eo ->
+                reporter.addError(
+                    payloadEnrollment, eo.validationCode(), eo.userUid(), eo.args().toArray()));
 
     boolean hasNonDeletedEvents = enrollmentHasEvents(preheat, payloadEnrollment.getEnrollment());
     boolean hasNotCascadeDeleteAuthority =
         !user.isAuthorized(Authorities.F_ENROLLMENT_CASCADE_DELETE.name());
 
     if (hasNonDeletedEvents && hasNotCascadeDeleteAuthority) {
-      reporter.addError(payloadEnrollment, E1103, user, payloadEnrollment.getEnrollment());
+      reporter.addError(payloadEnrollment, E1103, user.getUid(), payloadEnrollment.getEnrollment());
     }
   }
 
@@ -151,7 +157,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
   private void checkOrgUnitInCaptureScope(
       Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit, UserDetails user) {
     if (!user.isInUserHierarchy(orgUnit.getStoredPath())) {
-      reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
+      reporter.addError(dto, ValidationCode.E1000, user.getUid(), orgUnit.getUid());
     }
   }
 }

@@ -79,7 +79,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Enrico Colasante
  */
 @ExtendWith(MockitoExtension.class)
-class SecurityOwnershipValidatorTest extends TrackerTestBase {
+class SecurityEnrollmentValidatorTest extends TrackerTestBase {
   private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 
   private static final UID TE_ID = UID.generate();
@@ -90,7 +90,7 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
 
   private static final String PS_ID = "PS_ID";
 
-  private SecurityOwnershipValidator validator;
+  private SecurityEnrollmentValidator validator;
 
   @Mock private TrackerBundle bundle;
 
@@ -151,7 +151,7 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
             new DefaultTrackerAccessManager(
                 aclService, ownershipAccessManager, trackerProgramService));
 
-    validator = new SecurityOwnershipValidator(trackerAccessManager);
+    validator = new SecurityEnrollmentValidator(trackerAccessManager);
   }
 
   private UserDetails setUpUserWithOrgUnit(List<String> auths) {

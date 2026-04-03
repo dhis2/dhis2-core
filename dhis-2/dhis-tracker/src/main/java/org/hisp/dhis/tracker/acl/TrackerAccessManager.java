@@ -32,7 +32,8 @@ package org.hisp.dhis.tracker.acl;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.tracker.imports.validation.ErrorMessage;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.Relationship;
 import org.hisp.dhis.tracker.model.SingleEvent;
@@ -50,7 +51,7 @@ public interface TrackerAccessManager {
    *
    * @return No errors if a user has access to at least one program
    */
-  List<String> canRead(UserDetails user, TrackedEntity trackedEntity);
+  List<ErrorMessage> canRead(UserDetails user, TrackedEntity trackedEntity);
 
   /**
    * Checks the data write permissions to the TET of a given tracked entity.
@@ -70,7 +71,7 @@ public interface TrackerAccessManager {
   /** See {@link #canUpdate(UserDetails, TrackedEntity)}. */
   List<ErrorMessage> canDelete(UserDetails user, TrackedEntity trackedEntity);
 
-  List<String> canRead(UserDetails user, Enrollment enrollment);
+  List<ErrorMessage> canRead(UserDetails user, Enrollment enrollment);
 
   List<ErrorMessage> canCreate(UserDetails user, Enrollment enrollment);
 
@@ -78,33 +79,27 @@ public interface TrackerAccessManager {
 
   List<ErrorMessage> canDelete(UserDetails user, Enrollment enrollment);
 
-  List<String> canRead(UserDetails user, TrackerEvent event);
+  List<ErrorMessage> canRead(UserDetails user, TrackerEvent event);
+
+  List<ErrorMessage> canCreate(UserDetails user, TrackerEvent event);
+
+  List<ErrorMessage> canUpdate(
+      UserDetails user,
+      TrackerEvent event,
+      OrganisationUnit payloadEventOrgUnit,
+      EventStatus payloadEventStatus);
+
+  List<ErrorMessage> canDelete(UserDetails user, TrackerEvent event);
 
   List<String> canRead(UserDetails user, SingleEvent event);
 
   List<String> canCreate(UserDetails user, SingleEvent event);
-
-  List<String> canCreate(UserDetails user, TrackerEvent event);
-
-  List<String> canUpdate(UserDetails user, TrackerEvent event);
-
-  List<String> canDelete(UserDetails user, TrackerEvent event);
 
   List<String> canRead(UserDetails user, Relationship relationship);
 
   List<String> canCreate(UserDetails user, Relationship relationship);
 
   List<String> canDelete(UserDetails user, @Nonnull Relationship relationship);
-
-  /**
-   * Checks the sharing read access to EventDataValue
-   *
-   * @param user User validated for write access
-   * @param event Event under which the EventDataValue belongs
-   * @param dataElement DataElement of EventDataValue
-   * @return Empty list if read access allowed, list of errors otherwise.
-   */
-  List<String> canRead(UserDetails user, TrackerEvent event, DataElement dataElement);
 
   /**
    * Checks the sharing read access to EventDataValue

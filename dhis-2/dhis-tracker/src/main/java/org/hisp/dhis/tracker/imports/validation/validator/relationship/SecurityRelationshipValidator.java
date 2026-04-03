@@ -44,7 +44,7 @@ import org.springframework.stereotype.Component;
 @Component(
     "org.hisp.dhis.tracker.imports.validation.validator.relationship.SecurityOwnershipValidator")
 @RequiredArgsConstructor
-class SecurityOwnershipValidator implements Validator<Relationship> {
+class SecurityRelationshipValidator implements Validator<Relationship> {
   private final TrackerAccessManager trackerAccessManager;
 
   @Override

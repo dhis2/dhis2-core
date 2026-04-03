@@ -59,9 +59,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class SecurityOwnershipValidatorTest extends TrackerTestBase {
+class SecurityRelationshipValidatorTest extends TrackerTestBase {
 
-  private SecurityOwnershipValidator validator;
+  private SecurityRelationshipValidator validator;
 
   @Mock private TrackerBundle bundle;
 
@@ -77,7 +77,7 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
 
   @BeforeEach
   public void setUp() {
-    validator = new SecurityOwnershipValidator(trackerAccessManager);
+    validator = new SecurityRelationshipValidator(trackerAccessManager);
     MetadataIdentifier relationshipTypeUid = MetadataIdentifier.ofUid("relationshipType");
 
     when(bundle.getPreheat()).thenReturn(preheat);
