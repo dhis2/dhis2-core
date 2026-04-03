@@ -182,7 +182,7 @@
     <sms-compression.version>0.3.2</sms-compression.version>
     <javacsv.version>2.0</javacsv.version>
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
-    <jsmpp.version>3.0.1</jsmpp.version>
+    <jsmpp.version>3.0.2</jsmpp.version>
     <json-path.version>2.9.0</json-path.version>
     <jsoup.version>1.21.1</jsoup.version>
 
