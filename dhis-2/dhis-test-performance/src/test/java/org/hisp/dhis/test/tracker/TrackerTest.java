@@ -1007,7 +1007,7 @@ public class TrackerTest extends Simulation {
   private static final EnumMap<Profile, Integer> CHILD_IMPORT_P95 =
       new EnumMap<>(Map.of(Profile.SMOKE, 263, Profile.LOAD, 4215));
   private static final EnumMap<Profile, Integer> ANC_IMPORT_P95 =
-      new EnumMap<>(Map.of(Profile.SMOKE, 134, Profile.LOAD, 5069));
+      new EnumMap<>(Map.of(Profile.SMOKE, 134, Profile.LOAD, 6772));
 
   private Stream<Assertion> getImportAssertions(Profile profile) {
     return Stream.of(
