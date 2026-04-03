@@ -201,9 +201,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
         payloadEnrollmentOrgUnit != null
             && !payloadEnrollmentOrgUnit.getUid().equals(enrollment.getOrganisationUnit().getUid());
 
-    if (orgUnitChanged && !user.isInUserHierarchy(payloadEnrollmentOrgUnit.getStoredPath())) {
-      errors.add(
-          new ErrorMessage(E1000, user.getUid(), List.of(payloadEnrollmentOrgUnit.getUid())));
+    if (orgUnitChanged) {
+      checkOrgUnitInCaptureScope(errors, user, payloadEnrollmentOrgUnit);
     }
 
     return errors;
