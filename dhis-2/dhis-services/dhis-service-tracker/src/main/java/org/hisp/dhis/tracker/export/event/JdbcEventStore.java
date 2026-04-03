@@ -178,6 +178,7 @@ class JdbcEventStore {
   private static final String COLUMN_USER_UID = "u_uid";
   private static final String DEFAULT_ORDER = COLUMN_EVENT_ID + " desc";
   private static final String COLUMN_ORG_UNIT_PATH = "ou_path";
+  private static final String COLUMN_ORG_UNIT_ID = "ou_id";
   private static final String USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY =
       " ou.path like CONCAT(orgunit.path, '%') ";
   private static final String CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY =
@@ -1112,6 +1113,16 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   private String createChildrenSql(
       UserDetails user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_ID, params.getOrgUnit().getId());
+
+    String directChildrenPredicate =
+        " (ev.organisationunitid = :"
+            + COLUMN_ORG_UNIT_ID
+            + " OR ev.organisationunitid IN ("
+            + "SELECT organisationunitid FROM organisationunit WHERE parentid = :"
+            + COLUMN_ORG_UNIT_ID
+            + "))"
+            + AND;
 
     String customChildrenQuery =
         " and (ou.hierarchylevel = "
@@ -1121,16 +1132,18 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             + " ) ";
 
     if (isProgramRestricted(params.getEnrolledInProgram())) {
-      return createCaptureScopeQuery(
-          user,
-          params,
-          mapSqlParameterSource,
-          AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
+      return directChildrenPredicate
+          + createCaptureScopeQuery(
+              user,
+              params,
+              mapSqlParameterSource,
+              AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
-        user, params, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
+    return directChildrenPredicate
+        + getSearchAndCaptureScopeOrgUnitPathMatchQuery(
+            user, params, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
   }
 
   private String createSelectedSql(
