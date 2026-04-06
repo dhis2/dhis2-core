@@ -106,6 +106,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     }
     updateTrackedEntityProgramOwner(teProgramOwner, orgUnit);
     trackedEntityProgramOwnerStore.update(teProgramOwner);
+    trackedEntityProgramOwnerStore.syncEventOwnerOrgUnit(trackedEntity, program, orgUnit);
     trackedEntity.setLastUpdated(new Date());
     trackedEntityStore.update(trackedEntity);
   }

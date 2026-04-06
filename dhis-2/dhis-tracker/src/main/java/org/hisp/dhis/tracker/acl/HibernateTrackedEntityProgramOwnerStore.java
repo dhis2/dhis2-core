@@ -123,4 +123,21 @@ public class HibernateTrackedEntityProgramOwnerStore
         getOwnershipCacheKey(
             trackedEntityProgramOwner.getTrackedEntity(), trackedEntityProgramOwner.getProgram()));
   }
+
+  @Override
+  public void syncEventOwnerOrgUnit(
+      TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit) {
+    jdbcTemplate.update(
+        """
+        update trackerevent ev
+        set ownerorganisationunitid = ?
+        from enrollment en
+        where ev.enrollmentid = en.enrollmentid
+          and en.trackedentityid = ?
+          and en.programid = ?
+        """,
+        orgUnit.getId(),
+        trackedEntity.getId(),
+        program.getId());
+  }
 }
