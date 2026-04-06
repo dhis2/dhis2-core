@@ -39,10 +39,10 @@ import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
 import io.micrometer.prometheusmetrics.PrometheusConfig;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 import io.prometheus.metrics.core.metrics.GaugeWithCallback;
-import io.prometheus.metrics.core.metrics.Histogram;
 import io.prometheus.metrics.core.metrics.Info;
 import io.prometheus.metrics.model.registry.PrometheusRegistry;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.appmanager.App;
@@ -53,7 +53,7 @@ import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.SystemInfo;
 import org.hisp.dhis.system.SystemService;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -102,89 +102,18 @@ public class PrometheusMonitoringConfig {
     return new PrometheusRegistry();
   }
 
-  @Bean(name = "orgUnitHistogram")
-  public Histogram orgUnitHistogram(
-      @Qualifier("sendUsageMetricsRegistry") PrometheusRegistry prometheusRegistry) {
-    return Histogram.builder()
-        .name("organisation_units")
-        .help("Organisation Units")
-        .classicOnly()
-        .classicExponentialUpperBounds(10, 2, 100)
-        .register(prometheusRegistry);
-  }
-
-  @Bean(name = "trackedEntityHistogram")
-  public Histogram trackedEntityHistogram(
-      @Qualifier("sendUsageMetricsRegistry") PrometheusRegistry prometheusRegistry) {
-    return Histogram.builder()
-        .name("tracked_entities")
-        .help("Tracked Entities")
-        .classicOnly()
-        .classicExponentialUpperBounds(10, 2, 100)
-        .register(prometheusRegistry);
-  }
-
-  @Bean(name = "mapHistogram")
-  public Histogram mapHistogram(
-      @Qualifier("sendUsageMetricsRegistry") PrometheusRegistry prometheusRegistry) {
-    return Histogram.builder()
-        .name("maps")
-        .help("Maps")
-        .classicOnly()
-        .classicExponentialUpperBounds(10, 2, 100)
-        .register(prometheusRegistry);
-  }
-
-  @Bean(name = "visualizationHistogram")
-  public Histogram visualizationHistogram(
-      @Qualifier("sendUsageMetricsRegistry") PrometheusRegistry prometheusRegistry) {
-    return Histogram.builder()
-        .name("visualizations")
-        .help("Visualizations")
-        .classicOnly()
-        .classicExponentialUpperBounds(10, 2, 100)
-        .register(prometheusRegistry);
-  }
-
-  @Bean(name = "dashboardHistogram")
-  public Histogram dashboardHistogram(
-      @Qualifier("sendUsageMetricsRegistry") PrometheusRegistry prometheusRegistry) {
-    return Histogram.builder()
-        .name("dashboards")
-        .help("Dashboards")
-        .classicOnly()
-        .classicExponentialUpperBounds(10, 2, 100)
-        .register(prometheusRegistry);
-  }
-
-  @Bean(name = "userHistogram")
-  public Histogram userHistogram(
-      @Qualifier("sendUsageMetricsRegistry") PrometheusRegistry prometheusRegistry) {
-    return Histogram.builder()
-        .name("dhis2_users")
-        .help("DHIS2 Users")
-        .labelNames("statistics")
-        .classicOnly()
-        .classicExponentialUpperBounds(10, 2, 100)
-        .register(prometheusRegistry);
-  }
-
-  @Bean(name = "trackedEntityTypeHistogram")
-  public Histogram trackedEntityTypeHistogram(
-      @Qualifier("sendUsageMetricsRegistry") PrometheusRegistry prometheusRegistry) {
-    return Histogram.builder()
-        .name("tracked_entity_types")
-        .help("Tracked Entity Types")
-        .classicOnly()
-        .classicExponentialUpperBounds(10, 2, 100)
-        .register(prometheusRegistry);
-  }
-
   @Bean(name = "sendUsageMetricsRegistry")
   public PrometheusRegistry sendUsageMetricsRegistry(
       SystemService systemService,
       DataStatisticsService dataStatisticsService,
-      AppManager appManager) {
+      AppManager appManager,
+      TrackedEntityTypeStore trackedEntityTypeStore) {
+    double[] bins = new double[100];
+    bins[0] = 0;
+    for (int i = 1; i < 100; i++) {
+      bins[i] = Math.pow(2, i);
+    }
+
     PrometheusRegistry prometheusRegistry = new PrometheusRegistry();
     SystemInfo systemInfo = systemService.getSystemInfo();
 
@@ -221,6 +150,23 @@ public class PrometheusMonitoringConfig {
         systemInfo.getJavaVendor());
 
     GaugeWithCallback.builder()
+        .name("dhis2_users")
+        .help("DHIS2 Users")
+        .labelNames("statistics", "bucket")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              Map<Integer, Integer> activeUsers = dataSummary.getActiveUsers();
+              bin(bins, activeUsers.get(1), callback, List.of("active_users_last_hour"));
+              bin(bins, activeUsers.get(1), callback, List.of("active_users_today"));
+              bin(bins, activeUsers.get(2), callback, List.of("active_users_last_2_days"));
+              bin(bins, activeUsers.get(7), callback, List.of("active_users_last_7_days"));
+              bin(bins, activeUsers.get(30), callback, List.of("active_users_last_30_days"));
+              bin(bins, dataSummary.getObjectCounts().get("user"), callback, List.of("users"));
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
         .name("tracker_programs")
         .help("Tracker Programs")
         .callback(
@@ -231,12 +177,67 @@ public class PrometheusMonitoringConfig {
         .register(prometheusRegistry);
 
     GaugeWithCallback.builder()
+        .name("organisation_units")
+        .help("Organisation Units")
+        .labelNames("bucket")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              bin(bins, dataSummary.getObjectCounts().get("organisationUnit"), callback);
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
+        .name("dashboards")
+        .help("Dashboards")
+        .labelNames("bucket")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              bin(bins, dataSummary.getObjectCounts().get("dashboard"), callback);
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
+        .name("maps")
+        .help("Maps")
+        .labelNames("bucket")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              bin(bins, dataSummary.getObjectCounts().get("map"), callback);
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
         .name("data_sets")
         .help("Data Sets")
         .callback(
             callback -> {
               DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
               callback.call(dataSummary.getObjectCounts().get("dataSet"));
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
+        .name("visualizations")
+        .help("Visualizations")
+        .labelNames("bucket")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              bin(bins, dataSummary.getObjectCounts().get("visualization"), callback);
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
+        .name("tracked_entities")
+        .help("Tracked Entities")
+        .labelNames("bucket")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              bin(bins, dataSummary.getObjectCounts().get("trackedEntity"), callback);
             })
         .register(prometheusRegistry);
 
@@ -255,7 +256,48 @@ public class PrometheusMonitoringConfig {
             })
         .register(prometheusRegistry);
 
+    GaugeWithCallback.builder()
+        .name("tracked_entity_types")
+        .help("Tracked Entity Types")
+        .callback(callback -> callback.call(trackedEntityTypeStore.getAll().size()))
+        .register(prometheusRegistry);
+
     return prometheusRegistry;
+  }
+
+  private void bin(double[] bins, long value, GaugeWithCallback.Callback callback) {
+    bin(bins, value, callback, List.of());
+  }
+
+  private void bin(
+      double[] bins,
+      long gaugeValue,
+      GaugeWithCallback.Callback callback,
+      List<String> labelValues) {
+    boolean binned = false;
+    List<String> newLabelValues;
+
+    for (int i = 0; i < bins.length; i++) {
+      String bucketLabelValue = String.format("%.0f", bins[i]);
+      newLabelValues = new ArrayList<>(labelValues);
+      newLabelValues.add(bucketLabelValue);
+      if (!binned && bins[i] >= gaugeValue) {
+        binned = true;
+        callback.call(1, newLabelValues.toArray(new String[] {}));
+      } else {
+        callback.call(0, newLabelValues.toArray(new String[] {}));
+      }
+
+      newLabelValues = new ArrayList<>(labelValues);
+      newLabelValues.add("+inf");
+      if (i == (bins.length - 1)) {
+        if (binned) {
+          callback.call(0, newLabelValues.toArray(new String[] {}));
+        } else {
+          callback.call(1, newLabelValues.toArray(new String[] {}));
+        }
+      }
+    }
   }
 
   /**
