@@ -372,15 +372,4 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
             (programTempOwnerStore.getValidTempOwnerCount(program, trackedEntity.getUid(), user)
                 > 0));
   }
-
-  private boolean hasTemporaryAccessWithUid(
-      String trackedEntityUid, Program program, UserDetails user) {
-    if (canSkipOwnershipCheck(user, program) || trackedEntityUid == null) {
-      return true;
-    }
-
-    return tempOwnerCache.get(
-        getTempOwnershipCacheKey(trackedEntityUid, program.getUid(), user.getUid()),
-        s -> programTempOwnerStore.getValidTempOwnerCount(program, trackedEntityUid, user) > 0);
-  }
 }

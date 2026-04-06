@@ -161,7 +161,7 @@ class SecurityTrackedEntityValidatorTest extends TrackerTestBase {
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.UPDATE);
     when(bundle.getPreheat().getOrganisationUnit(trackedEntity.getOrgUnit()))
         .thenReturn(organisationUnit);
-    doReturn(List.of()).when(trackerAccessManager).canUpdate(any(), eq(te));
+    doReturn(List.of()).when(trackerAccessManager).canUpdate(any(), eq(te), any());
     validator.validate(reporter, bundle, trackedEntity);
 
     assertIsEmpty(reporter.getErrors());
@@ -396,7 +396,6 @@ class SecurityTrackedEntityValidatorTest extends TrackerTestBase {
     TrackedEntity te = teWithEnrollments();
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.UPDATE);
-    doReturn(List.of()).when(trackerAccessManager).canUpdate(any(), eq(te));
     OrganisationUnit outOfScopeOrgUnit = createOrganisationUnit('B');
     outOfScopeOrgUnit.setUid("ORG_UNIT_UID");
     outOfScopeOrgUnit.updatePath();

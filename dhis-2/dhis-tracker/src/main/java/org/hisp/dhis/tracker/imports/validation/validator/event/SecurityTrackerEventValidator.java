@@ -84,10 +84,7 @@ class SecurityTrackerEventValidator
         map(bundle.getPreheat(), trackerEvent, bundle.getUser());
     trackerAccessManager
         .canCreate(bundle.getUser(), mappedEvent)
-        .forEach(
-            em ->
-                reporter.addError(
-                    trackerEvent, em.validationCode(), em.userUid(), em.args().toArray()));
+        .forEach(em -> reporter.addError(trackerEvent, em.validationCode(), em.args().toArray()));
   }
 
   private void handleUpdate(
@@ -101,10 +98,7 @@ class SecurityTrackerEventValidator
     trackerAccessManager
         .canUpdate(
             bundle.getUser(), databaseTrackerEvent, trackerEventOrgUnit, trackerEvent.getStatus())
-        .forEach(
-            em ->
-                reporter.addError(
-                    trackerEvent, em.validationCode(), em.userUid(), em.args().toArray()));
+        .forEach(em -> reporter.addError(trackerEvent, em.validationCode(), em.args().toArray()));
   }
 
   private void handleDelete(
@@ -114,10 +108,7 @@ class SecurityTrackerEventValidator
       TrackerEvent trackerEvent) {
     trackerAccessManager
         .canDelete(bundle.getUser(), databaseTrackerEvent)
-        .forEach(
-            em ->
-                reporter.addError(
-                    trackerEvent, em.validationCode(), em.userUid(), em.args().toArray()));
+        .forEach(em -> reporter.addError(trackerEvent, em.validationCode(), em.args().toArray()));
   }
 
   @Override

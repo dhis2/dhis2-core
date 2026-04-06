@@ -76,7 +76,7 @@ class SecurityRelationshipValidatorTest extends TrackerTestBase {
   private Relationship relationship;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     validator = new SecurityRelationshipValidator(trackerAccessManager);
     MetadataIdentifier relationshipTypeUid = MetadataIdentifier.ofUid("relationshipType");
 

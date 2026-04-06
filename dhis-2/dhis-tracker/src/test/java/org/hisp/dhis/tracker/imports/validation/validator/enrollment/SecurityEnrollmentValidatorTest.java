@@ -115,7 +115,7 @@ class SecurityEnrollmentValidatorTest extends TrackerTestBase {
   private TrackedEntity trackedEntity;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     organisationUnit = createOrganisationUnit('A');
     organisationUnit.setUid(ORG_UNIT_ID);
     organisationUnit.updatePath();
@@ -184,6 +184,8 @@ class SecurityEnrollmentValidatorTest extends TrackerTestBase {
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity);
     when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
     UserDetails userDetails = setUpUserWithOrgUnit();
     when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);

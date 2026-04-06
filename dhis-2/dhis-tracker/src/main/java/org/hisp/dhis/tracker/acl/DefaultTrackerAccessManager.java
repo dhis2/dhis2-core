@@ -37,6 +37,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1096;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1097;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1098;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1099;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1100;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1102;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1105;
@@ -97,7 +98,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     List<Program> tetPrograms =
         trackerProgramService.getTrackerProgramsWithDataReadAccess(trackedEntityType);
     if (tetPrograms.isEmpty()) {
-      errors.add(new ErrorMessage(E1325, user.getUid(), List.of()));
+      errors.add(new ErrorMessage(E1325, user.getUid(), List.of(user.getUid())));
     }
     checkTrackedEntityProgramAccess(errors, user, tetPrograms, trackedEntity);
 
@@ -107,10 +108,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   @Override
   public List<ErrorMessage> canCreate(
       @Nonnull UserDetails user, @Nonnull TrackedEntity trackedEntity) {
-    List<ErrorMessage> errors = new ArrayList<>();
     if (user.isSuper()) {
       return List.of();
     }
+
+    List<ErrorMessage> errors = new ArrayList<>();
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
     checkDataWriteAccessToTrackedEntityType(errors, user, trackedEntityType);
     checkOrgUnitInCaptureScope(errors, user, trackedEntity.getOrganisationUnit());
@@ -119,23 +121,24 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<ErrorMessage> canUpdate(UserDetails user, @Nonnull TrackedEntity trackedEntity) {
-    List<ErrorMessage> errors = new ArrayList<>();
+  public List<ErrorMessage> canUpdate(
+      UserDetails user,
+      @Nonnull TrackedEntity trackedEntity,
+      @CheckForNull OrganisationUnit payloadTrackedEntityOrgUnit) {
     if (user.isSuper()) {
       return List.of();
     }
 
-    TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
-    checkDataWriteAccessToTrackedEntityType(errors, user, trackedEntityType);
+    List<ErrorMessage> errors =
+        new ArrayList<>(validateExistingTrackedEntityAccess(user, trackedEntity));
 
-    List<Program> tetPrograms =
-        trackerProgramService.getTrackerProgramsWithDataWriteAccess(trackedEntityType);
-    if (tetPrograms.isEmpty()) {
-      errors.add(
-          new ErrorMessage(
-              ValidationCode.E1323, user.getUid(), List.of(trackedEntityType.getUid())));
-    } else {
-      checkTrackedEntityProgramAccess(errors, user, tetPrograms, trackedEntity);
+    boolean orgUnitChanged =
+        payloadTrackedEntityOrgUnit != null
+            && !payloadTrackedEntityOrgUnit
+                .getUid()
+                .equals(trackedEntity.getOrganisationUnit().getUid());
+    if (orgUnitChanged) {
+      checkOrgUnitInCaptureScope(errors, user, payloadTrackedEntityOrgUnit);
     }
 
     return errors;
@@ -147,9 +150,36 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       return List.of();
     }
 
-    List<ErrorMessage> errors = new ArrayList<>();
+    List<ErrorMessage> errors =
+        new ArrayList<>(validateExistingTrackedEntityAccess(user, trackedEntity));
     checkOrgUnitInCaptureScope(errors, user, trackedEntity.getOrganisationUnit());
-    errors.addAll(canUpdate(user, trackedEntity));
+
+    if (trackedEntity.getEnrollments().stream().anyMatch(e -> !e.isDeleted())
+        && !user.isAuthorized(Authorities.F_TEI_CASCADE_DELETE.name())) {
+      errors.add(
+          new ErrorMessage(E1100, user.getUid(), List.of(user.getUid(), trackedEntity.getUid())));
+    }
+
+    return errors;
+  }
+
+  private List<ErrorMessage> validateExistingTrackedEntityAccess(
+      @Nonnull UserDetails user, @Nonnull TrackedEntity trackedEntity) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    List<ErrorMessage> errors = new ArrayList<>();
+    TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
+    checkDataWriteAccessToTrackedEntityType(errors, user, trackedEntity.getTrackedEntityType());
+
+    List<Program> tetPrograms =
+        trackerProgramService.getTrackerProgramsWithDataWriteAccess(trackedEntityType);
+    if (tetPrograms.isEmpty()) {
+      errors.add(new ErrorMessage(ValidationCode.E1323, user.getUid(), List.of(user.getUid())));
+    } else {
+      checkTrackedEntityProgramAccess(errors, user, tetPrograms, trackedEntity);
+    }
 
     return errors;
   }
@@ -178,10 +208,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     List<ErrorMessage> errors = new ArrayList<>(validateEnrollmentAccess(user, enrollment));
 
     OrganisationUnit enrollmentOrgUnit = enrollment.getOrganisationUnit();
-    if (enrollmentOrgUnit != null) {
-      // TODO Do we need this guard clause
-      checkOrgUnitInCaptureScope(errors, user, enrollmentOrgUnit);
-    }
+    checkOrgUnitInCaptureScope(errors, user, enrollmentOrgUnit);
 
     return errors;
   }
@@ -220,7 +247,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
         !user.isAuthorized(Authorities.F_ENROLLMENT_CASCADE_DELETE.name());
 
     if (hasNonDeletedEvents && hasNotCascadeDeleteAuthority) {
-      errors.add(new ErrorMessage(E1103, user.getUid(), List.of(enrollment.getUid())));
+      errors.add(
+          new ErrorMessage(E1103, user.getUid(), List.of(user.getUid(), enrollment.getUid())));
     }
 
     return errors;
@@ -269,13 +297,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     List<ErrorMessage> errors = new ArrayList<>(validateTrackerEventAccess(user, event));
 
     OrganisationUnit orgUnit = event.getOrganisationUnit();
-    // TODO Do we need this guard clause
-    if (orgUnit != null) {
-      if (event.isCreatableInSearchScope()) {
-        checkOrgUnitInSearchScope(errors, user, orgUnit);
-      } else {
-        checkOrgUnitInCaptureScope(errors, user, orgUnit);
-      }
+    if (event.isCreatableInSearchScope()) {
+      checkOrgUnitInSearchScope(errors, user, orgUnit);
+    } else {
+      checkOrgUnitInCaptureScope(errors, user, orgUnit);
     }
 
     return errors;
@@ -304,7 +329,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
         && payloadEventStatus != null
         && payloadEventStatus != event.getStatus()
         && (!user.isSuper() && !user.isAuthorized(F_UNCOMPLETE_EVENT))) {
-      errors.add(new ErrorMessage(E1083, user.getUid(), List.of()));
+      errors.add(new ErrorMessage(E1083, user.getUid(), List.of(user.getUid())));
     }
 
     return errors;
@@ -449,13 +474,14 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   /**
-   * Checks if user has access to organisation unit under defined tracker program protection level
+   * Checks if the user has access to organisation unit under defined tracker program protection
+   * level
    *
    * @param user the user to check access for
    * @param program program to check against protection level
    * @param orgUnit the org unit to be checked under user's scope and program protection
-   * @return true if user has access to the org unit under the mentioned program context, otherwise
-   *     return false
+   * @return true if the user has access to the org unit under the mentioned program context,
+   *     otherwise return false
    */
   boolean canAccess(@Nonnull UserDetails user, Program program, OrganisationUnit orgUnit) {
     if (orgUnit == null) {
@@ -492,7 +518,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   private List<String> canWrite(@Nonnull UserDetails user, RelationshipItem item) {
     if (item.getTrackedEntity() != null)
-      return canUpdate(user, item.getTrackedEntity()).stream()
+      return canUpdate(user, item.getTrackedEntity(), null).stream()
           .map(em -> em.validationCode().getMessage())
           .toList();
     if (item.getEnrollment() != null)
@@ -510,14 +536,15 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   private void checkDataReadAccessToProgram(
       List<ErrorMessage> errors, UserDetails user, Program program) {
     if (!aclService.canDataRead(user, program)) {
-      errors.add(new ErrorMessage(E1096, user.getUid(), List.of(program.getUid())));
+      errors.add(new ErrorMessage(E1096, user.getUid(), List.of(user.getUid(), program.getUid())));
     }
   }
 
   private void checkDataReadAccessToProgramStage(
       List<ErrorMessage> errors, UserDetails user, ProgramStage programStage) {
     if (!aclService.canDataRead(user, programStage)) {
-      errors.add(new ErrorMessage(E1097, user.getUid(), List.of(programStage.getUid())));
+      errors.add(
+          new ErrorMessage(E1097, user.getUid(), List.of(user.getUid(), programStage.getUid())));
     }
   }
 
@@ -548,7 +575,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     if (!aclService.canDataWrite(user, trackedEntityType)) {
       errors.add(
           new ErrorMessage(
-              ValidationCode.E1001, user.getUid(), List.of(trackedEntityType.getUid())));
+              ValidationCode.E1001,
+              user.getUid(),
+              List.of(user.getUid(), trackedEntityType.getUid())));
     }
   }
 
@@ -578,7 +607,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
       if (!aclService.canDataRead(user, categoryOption)) {
-        errors.add(new ErrorMessage(E1098, user.getUid(), List.of(categoryOption.getUid())));
+        errors.add(
+            new ErrorMessage(
+                E1098, user.getUid(), List.of(user.getUid(), categoryOption.getUid())));
       }
     }
   }
@@ -608,7 +639,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
       if (!aclService.canDataWrite(user, categoryOption)) {
-        errors.add(new ErrorMessage(E1099, user.getUid(), List.of(categoryOption.getUid())));
+        errors.add(
+            new ErrorMessage(
+                E1099, user.getUid(), List.of(user.getUid(), categoryOption.getUid())));
       }
     }
   }
@@ -645,14 +678,14 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   private void checkOrgUnitInSearchScope(
       List<ErrorMessage> errors, UserDetails user, OrganisationUnit orgUnit) {
     if (!user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath())) {
-      errors.add(new ErrorMessage(E1105, user.getUid(), List.of(orgUnit.getUid())));
+      errors.add(new ErrorMessage(E1105, user.getUid(), List.of(user.getUid(), orgUnit.getUid())));
     }
   }
 
   private void checkOrgUnitInCaptureScope(
       List<ErrorMessage> errors, UserDetails user, OrganisationUnit orgUnit) {
     if (!user.isInUserHierarchy(orgUnit.getStoredPath())) {
-      errors.add(new ErrorMessage(E1000, user.getUid(), List.of(orgUnit.getUid())));
+      errors.add(new ErrorMessage(E1000, user.getUid(), List.of(user.getUid(), orgUnit.getUid())));
     }
   }
 
@@ -663,7 +696,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       TrackedEntity trackedEntity) {
     if (programs.stream()
         .noneMatch(p -> ownershipAccessManager.hasAccess(user, trackedEntity, p))) {
-      errors.add(new ErrorMessage(E1324, user.getUid(), List.of(trackedEntity.getUid())));
+      errors.add(
+          new ErrorMessage(E1324, user.getUid(), List.of(user.getUid(), trackedEntity.getUid())));
     }
   }
 }

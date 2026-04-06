@@ -85,10 +85,7 @@ class SecurityEnrollmentValidator implements Validator<Enrollment> {
 
     trackerAccessManager
         .canCreate(user, mappedEnrollment)
-        .forEach(
-            em ->
-                reporter.addError(
-                    enrollment, em.validationCode(), em.userUid(), em.args().toArray()));
+        .forEach(em -> reporter.addError(enrollment, em.validationCode(), em.args().toArray()));
   }
 
   private void handleUpdate(
@@ -101,10 +98,7 @@ class SecurityEnrollmentValidator implements Validator<Enrollment> {
 
     trackerAccessManager
         .canUpdate(user, databaseEnrollment, enrollmentOrgUnit)
-        .forEach(
-            em ->
-                reporter.addError(
-                    enrollment, em.validationCode(), em.userUid(), em.args().toArray()));
+        .forEach(em -> reporter.addError(enrollment, em.validationCode(), em.args().toArray()));
   }
 
   private void handleDelete(
@@ -117,10 +111,7 @@ class SecurityEnrollmentValidator implements Validator<Enrollment> {
 
     trackerAccessManager
         .canDelete(user, databaseEnrollment, hasNonDeletedEvents)
-        .forEach(
-            eo ->
-                reporter.addError(
-                    enrollment, eo.validationCode(), eo.userUid(), eo.args().toArray()));
+        .forEach(eo -> reporter.addError(enrollment, eo.validationCode(), eo.args().toArray()));
   }
 
   private boolean enrollmentHasEvents(TrackerPreheat preheat, UID enrollmentUid) {

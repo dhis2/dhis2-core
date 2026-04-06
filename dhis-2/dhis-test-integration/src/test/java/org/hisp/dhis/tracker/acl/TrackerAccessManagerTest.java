@@ -224,7 +224,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     // Can read te
     assertNoErrors(trackerAccessManager.canRead(userDetails, te));
     // can write te
-    assertNoErrorMessages(trackerAccessManager.canUpdate(userDetails, te));
+    assertNoErrorMessages(trackerAccessManager.canUpdate(userDetails, te, null));
   }
 
   @Test
@@ -242,7 +242,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     // Can Read
     assertNoErrors(trackerAccessManager.canRead(userDetails, te));
     // Can write
-    assertNoErrorMessages(trackerAccessManager.canUpdate(userDetails, te));
+    assertNoErrorMessages(trackerAccessManager.canUpdate(userDetails, te, null));
   }
 
   @Test
@@ -259,7 +259,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     // Cannot Read
     assertHasErrorMessage(trackerAccessManager.canRead(userDetails, te), E1324);
     // Cannot write
-    assertHasErrorMessage(trackerAccessManager.canUpdate(userDetails, te), E1324);
+    assertHasErrorMessage(trackerAccessManager.canUpdate(userDetails, te, null), E1324);
   }
 
   @Test
@@ -275,7 +275,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
 
     assertNoErrors(trackerAccessManager.canRead(userDetails, trackedEntityA));
     assertHasErrorMessage(
-        trackerAccessManager.canUpdate(userDetails, trackedEntityA), ValidationCode.E1001);
+        trackerAccessManager.canUpdate(userDetails, trackedEntityA, null), ValidationCode.E1001);
   }
 
   @Test
@@ -314,30 +314,6 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     assertHasErrorMessage(trackerAccessManager.canDelete(userDetails, enrollment, false), E1102);
     // Cannot read enrollment if not owner
     assertHasErrorMessage(trackerAccessManager.canRead(userDetails, enrollment), E1102);
-  }
-
-  @Test
-  void checkAccessPermissionForEnrollmentWhenOrgUnitIsNull() {
-    programA.setPublicAccess(AccessStringHelper.FULL);
-    programA.setProgramType(ProgramType.WITHOUT_REGISTRATION);
-    manager.update(programA);
-    trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
-    manager.update(trackedEntityType);
-    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
-    user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
-    UserDetails userDetails = fromUser(user);
-    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, trackedEntityA.getUid());
-    assertNotNull(trackedEntity);
-    Enrollment enrollment = trackedEntity.getEnrollments().iterator().next();
-    enrollment.setOrganisationUnit(null);
-    // Can create enrollment
-    assertNoErrors(trackerAccessManager.canCreate(userDetails, enrollment));
-    // Can update enrollment
-    assertNoErrors(trackerAccessManager.canUpdate(userDetails, enrollment, null));
-    // Can delete enrollment
-    assertNoErrors(trackerAccessManager.canDelete(userDetails, enrollment, false));
-    // Can read enrollment
-    assertNoErrors(trackerAccessManager.canRead(userDetails, enrollment));
   }
 
   @Test
@@ -561,22 +537,6 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
 
   private void assertNoErrorMessages(List<ErrorMessage> errors) {
     assertIsEmpty(errors);
-  }
-
-  private void assertHasError(List<String> errors, String error) {
-    assertFalse(errors.isEmpty(), "error not found since there are no errors");
-    assertAll(
-        () ->
-            assertEquals(
-                1,
-                errors.size(),
-                String.format(
-                    "mismatch in number of expected error(s), want 1, got %d: %s",
-                    errors.size(), errors)),
-        () ->
-            assertTrue(
-                errors.stream().anyMatch(err -> err.contains(error)),
-                String.format("error '%s' not found in error(s) %s", error, errors)));
   }
 
   private void assertHasErrorMessage(List<ErrorMessage> errors, ValidationCode validationCode) {

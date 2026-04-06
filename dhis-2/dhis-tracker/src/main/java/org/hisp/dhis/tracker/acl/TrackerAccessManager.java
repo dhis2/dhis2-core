@@ -61,16 +61,22 @@ public interface TrackerAccessManager {
   List<ErrorMessage> canCreate(@Nonnull UserDetails user, TrackedEntity trackedEntity);
 
   /**
-   * Checks data write permissions to the TET and ownership of a tracked entity across programs for
-   * which the user has data write access.
+   * Checks data write access to the TET and ownership of the tracked entity across programs for
+   * which the user has data write access. When the payload org unit differs from the stored tracked
+   * entity's org unit, capture scope access to the new org unit is also required.
    *
-   * @return No errors if the user has write access to the TET and ownership in at least one
-   *     program.
+   * @param user the user whose access is being validated.
+   * @param trackedEntity the stored tracked entity to update.
+   * @param payloadTrackedEntityOrgUnit the org unit from the update payload; {@code null} if
+   *     unchanged.
+   * @return No errors if the user has all required access rights to update the tracked entity.
    */
-  List<ErrorMessage> canUpdate(UserDetails user, TrackedEntity trackedEntity);
+  List<ErrorMessage> canUpdate(
+      UserDetails user, TrackedEntity trackedEntity, OrganisationUnit payloadTrackedEntityOrgUnit);
 
   /**
-   * Like {@link #canUpdate(UserDetails, TrackedEntity)}, but also requires capture scope access.
+   * Like {@link #canUpdate(UserDetails, TrackedEntity, OrganisationUnit)}, but also requires
+   * capture scope access.
    */
   List<ErrorMessage> canDelete(UserDetails user, TrackedEntity trackedEntity);
 
