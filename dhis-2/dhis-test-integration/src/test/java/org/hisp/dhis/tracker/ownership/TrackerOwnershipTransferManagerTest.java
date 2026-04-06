@@ -34,6 +34,7 @@ import static org.hisp.dhis.common.AccessLevel.CLOSED;
 import static org.hisp.dhis.common.AccessLevel.OPEN;
 import static org.hisp.dhis.common.AccessLevel.PROTECTED;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.program.ProgramType.WITHOUT_REGISTRATION;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
@@ -80,6 +81,7 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityFields;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityOperationParams;
+import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
@@ -687,6 +689,37 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
             String.format(
                 "The field lastUpdated for TrackedEntity %s should be updated after ownership transfer. ",
                 trackedEntityA1.getUid()));
+  }
+
+  @Test
+  void shouldSyncEventOwnerOrgUnitOnOwnershipTransfer()
+      throws ForbiddenException, BadRequestException, NotFoundException {
+    TrackerEventOperationParams beforeTransfer =
+        TrackerEventOperationParams.builderForProgram(UID.of(programA))
+            .orgUnit(UID.of(organisationUnitA))
+            .orgUnitMode(SELECTED)
+            .build();
+    assertContainsOnly(
+        List.of(event.getUid()),
+        uids(trackerEventService.findEvents(beforeTransfer)));
+
+    transferOwnership(trackedEntityA1, programA, organisationUnitB);
+
+    TrackerEventOperationParams afterTransferOldOu =
+        TrackerEventOperationParams.builderForProgram(UID.of(programA))
+            .orgUnit(UID.of(organisationUnitA))
+            .orgUnitMode(SELECTED)
+            .build();
+    assertIsEmpty(trackerEventService.findEvents(afterTransferOldOu));
+
+    TrackerEventOperationParams afterTransferNewOu =
+        TrackerEventOperationParams.builderForProgram(UID.of(programA))
+            .orgUnit(UID.of(organisationUnitB))
+            .orgUnitMode(SELECTED)
+            .build();
+    assertContainsOnly(
+        List.of(event.getUid()),
+        uids(trackerEventService.findEvents(afterTransferNewOu)));
   }
 
   @Test

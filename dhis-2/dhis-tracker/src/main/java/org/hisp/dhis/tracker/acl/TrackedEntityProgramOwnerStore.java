@@ -54,5 +54,6 @@ public interface TrackedEntityProgramOwnerStore extends GenericStore<TrackedEnti
    * program. Called after an ownership transfer so the denormalized column stays consistent with
    * trackedentityprogramowner.
    */
-  void syncEventOwnerOrgUnit(TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit);
+  void syncEventOwnerOrgUnit(
+      TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit);
 }
