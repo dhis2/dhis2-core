@@ -30,6 +30,7 @@
 package org.hisp.dhis.hibernate.jsonb.type;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -343,5 +344,102 @@ class JsonEventDataValueSetBinaryTypeTest {
     assertNull(restored.getStoredBy());
     // providedElsewhere defaults to false in EventDataValue field declaration
     assertEquals(false, restored.getProvidedElsewhere());
+  }
+
+  @Test
+  void equalsReturnsTrueForIdenticalSets() {
+    EventDataValue edv = new EventDataValue();
+    edv.setDataElement("de1");
+    edv.setValue("value1");
+    edv.setCreated(new Date(1000L));
+    edv.setLastUpdated(new Date(2000L));
+    edv.setStoredBy("admin");
+
+    Set<EventDataValue> set = Set.of(edv);
+
+    @SuppressWarnings("unchecked")
+    Set<EventDataValue> snapshot = (Set<EventDataValue>) type.deepCopy(set);
+
+    assertTrue(type.equals(snapshot, set));
+  }
+
+  @Test
+  void equalsReturnsFalseWhenValueChanged() {
+    EventDataValue edv = new EventDataValue();
+    edv.setDataElement("de1");
+    edv.setValue("value1");
+    edv.setCreated(new Date(1000L));
+    edv.setLastUpdated(new Date(2000L));
+
+    Set<EventDataValue> set = new HashSet<>();
+    set.add(edv);
+
+    @SuppressWarnings("unchecked")
+    Set<EventDataValue> snapshot = (Set<EventDataValue>) type.deepCopy(set);
+
+    // Simulate what TrackerEventPersister.updateDataValue does: modify value in-place
+    edv.setValue("modified");
+
+    assertFalse(type.equals(snapshot, set));
+  }
+
+  @Test
+  void equalsReturnsFalseWhenStoredByChanged() {
+    EventDataValue edv = new EventDataValue();
+    edv.setDataElement("de1");
+    edv.setValue("value1");
+    edv.setStoredBy("admin");
+
+    Set<EventDataValue> set = new HashSet<>();
+    set.add(edv);
+
+    @SuppressWarnings("unchecked")
+    Set<EventDataValue> snapshot = (Set<EventDataValue>) type.deepCopy(set);
+
+    edv.setStoredBy("other_user");
+
+    assertFalse(type.equals(snapshot, set));
+  }
+
+  @Test
+  void equalsReturnsFalseWhenDataValueAdded() {
+    EventDataValue edv1 = new EventDataValue();
+    edv1.setDataElement("de1");
+    edv1.setValue("value1");
+
+    Set<EventDataValue> set = new HashSet<>();
+    set.add(edv1);
+
+    @SuppressWarnings("unchecked")
+    Set<EventDataValue> snapshot = (Set<EventDataValue>) type.deepCopy(set);
+
+    EventDataValue edv2 = new EventDataValue();
+    edv2.setDataElement("de2");
+    edv2.setValue("value2");
+    set.add(edv2);
+
+    assertFalse(type.equals(snapshot, set));
+  }
+
+  @Test
+  void equalsReturnsFalseWhenDataValueRemoved() {
+    EventDataValue edv1 = new EventDataValue();
+    edv1.setDataElement("de1");
+    edv1.setValue("value1");
+
+    EventDataValue edv2 = new EventDataValue();
+    edv2.setDataElement("de2");
+    edv2.setValue("value2");
+
+    Set<EventDataValue> set = new HashSet<>();
+    set.add(edv1);
+    set.add(edv2);
+
+    @SuppressWarnings("unchecked")
+    Set<EventDataValue> snapshot = (Set<EventDataValue>) type.deepCopy(set);
+
+    set.remove(edv2);
+
+    assertFalse(type.equals(snapshot, set));
   }
 }
