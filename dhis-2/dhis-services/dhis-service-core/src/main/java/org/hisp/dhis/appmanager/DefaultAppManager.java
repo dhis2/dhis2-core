@@ -585,6 +585,14 @@ public class DefaultAppManager implements AppManager {
         ByteArrayResource byteArrayResource =
             toByteArrayResource(bout.toByteArray(), resourceFound.resource());
         return new ResourceResult.ResourceFound(byteArrayResource, "application/json");
+      } else if (pageName.endsWith(".html")
+          || (resourceFound.resource().getFilename() != null
+              && resourceFound.resource().getFilename().endsWith(".html"))) {
+        // Return raw HTML with correct mime type — AppHtmlTemplate is applied later
+        // by AppController after cache-busting rewrite, so the cache stores only
+        // request-independent content.
+        return new ResourceResult.ResourceFound(
+            resourceFound.resource(), "text/html;charset=UTF-8");
       } else if (pageName.endsWith(".js")
           || (resourceFound.resource().getFilename() != null
               && resourceFound.resource().getFilename().endsWith(".js"))) {
