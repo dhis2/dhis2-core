@@ -700,8 +700,7 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .build();
     assertContainsOnly(
-        List.of(event.getUid()),
-        uids(trackerEventService.findEvents(beforeTransfer)));
+        List.of(event.getUid()), uids(trackerEventService.findEvents(beforeTransfer)));
 
     transferOwnership(trackedEntityA1, programA, organisationUnitB);
 
@@ -718,8 +717,7 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .build();
     assertContainsOnly(
-        List.of(event.getUid()),
-        uids(trackerEventService.findEvents(afterTransferNewOu)));
+        List.of(event.getUid()), uids(trackerEventService.findEvents(afterTransferNewOu)));
   }
 
   @Test
