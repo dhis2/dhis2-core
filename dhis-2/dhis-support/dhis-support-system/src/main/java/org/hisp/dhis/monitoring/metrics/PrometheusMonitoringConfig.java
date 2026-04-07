@@ -278,7 +278,12 @@ public class PrometheusMonitoringConfig {
     List<String> newLabelValues;
 
     for (int i = 0; i < bins.length; i++) {
-      String bucketLabelValue = String.format("%.0f", bins[i]);
+      String bucketLabelValue;
+      if (i > 0) {
+        bucketLabelValue = String.format("%.0f - %.0f", bins[i - 1] + 1, bins[i]);
+      } else {
+        bucketLabelValue = String.format("%.0f", bins[i]);
+      }
       newLabelValues = new ArrayList<>(labelValues);
       newLabelValues.add(bucketLabelValue);
       if (!binned && bins[i] >= gaugeValue) {
