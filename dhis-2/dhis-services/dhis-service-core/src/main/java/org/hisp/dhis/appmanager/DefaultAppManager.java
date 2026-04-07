@@ -85,7 +85,6 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.util.AppHtmlTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ByteArrayResource;
@@ -586,15 +585,6 @@ public class DefaultAppManager implements AppManager {
         ByteArrayResource byteArrayResource =
             toByteArrayResource(bout.toByteArray(), resourceFound.resource());
         return new ResourceResult.ResourceFound(byteArrayResource, "application/json");
-      } else if (pageName.endsWith(".html")
-          || (resourceFound.resource().getFilename() != null
-              && resourceFound.resource().getFilename().endsWith(".html"))) {
-        AppHtmlTemplate template = new AppHtmlTemplate(contextPath, app);
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        template.apply(resourceFound.resource().getInputStream(), bout);
-        ByteArrayResource byteArrayResource =
-            toByteArrayResource(bout.toByteArray(), resourceFound.resource());
-        return new ResourceResult.ResourceFound(byteArrayResource, "text/html;charset=UTF-8");
       } else if (pageName.endsWith(".js")
           || (resourceFound.resource().getFilename() != null
               && resourceFound.resource().getFilename().endsWith(".js"))) {
