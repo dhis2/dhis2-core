@@ -30,7 +30,6 @@
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static java.lang.String.format;
-import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntityAttributeValue;
@@ -921,12 +920,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
   }
 
   private static void assertDataValues(Set<EventDataValue> expected, Set<EventDataValue> actual) {
-    // The current EventDataValues.equals implementation does not take the value/storedBy into
-    // account
-    // it does check the data element. So we first assert we have a data value for every data
-    // element we expect.
-    // We then assert on fields that are not covered by the equals implementation.
-    assertContainsOnly(expected, actual);
+    assertEquals(expected.size(), actual.size(), "number of data values");
     assertAll(
         "assert data values", expected.stream().map(e -> assertDataValue(e, actual)).toList());
   }
