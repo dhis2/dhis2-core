@@ -57,10 +57,19 @@ public class JsonEventDataValueSetBinaryType extends JsonBinaryType {
     writer = MAPPER.writerFor(new TypeReference<Map<String, EventDataValue>>() {});
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public Object deepCopy(Object value) throws HibernateException {
-    String json = convertObjectToJson(value);
-    return convertJsonToObject(json);
+    if (value == null) {
+      return null;
+    }
+
+    Set<EventDataValue> original = (Set<EventDataValue>) value;
+    Set<EventDataValue> copy = new HashSet<>();
+    for (EventDataValue edv : original) {
+      copy.add(new EventDataValue(edv));
+    }
+    return copy;
   }
 
   /**
