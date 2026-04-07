@@ -65,7 +65,7 @@ public class JsonEventDataValueSetBinaryType extends JsonBinaryType {
     }
 
     Set<EventDataValue> original = (Set<EventDataValue>) value;
-    Set<EventDataValue> copy = new HashSet<>();
+    Set<EventDataValue> copy = new HashSet<>(original.size());
     for (EventDataValue edv : original) {
       copy.add(new EventDataValue(edv));
     }
