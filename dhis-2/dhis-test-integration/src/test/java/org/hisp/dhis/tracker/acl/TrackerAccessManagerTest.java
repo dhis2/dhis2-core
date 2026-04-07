@@ -385,12 +385,24 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     manager.update(programStageA);
     manager.update(programStageB);
     manager.update(programA);
-    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
-    user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
-    UserDetails userDetails = fromUser(user);
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
     manager.update(trackedEntityType);
 
+    User user =
+        createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
+    UserDetails userDetails = fromUser(user);
+    // Can create events if event org unit and owner org unit in capture scope
+    assertNoErrors(trackerAccessManager.canCreate(userDetails, eventA));
+    // Can read events if owner org unit falls into users search scope
+    assertNoErrors(trackerAccessManager.canRead(userDetails, eventA));
+    // Can update events if owner org unit falls into users search scope
+    assertNoErrors(trackerAccessManager.canUpdate(userDetails, eventA, null, null));
+    // Can delete events if event org unit and owner org unit in capture scope
+    assertNoErrors(trackerAccessManager.canDelete(userDetails, eventA));
+
+    user.setOrganisationUnits(Sets.newHashSet(orgUnitA));
+    user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
+    userDetails = fromUser(user);
     // Can create scheduled events outside capture scope if user is owner
     assertNoErrors(trackerAccessManager.canCreate(userDetails, eventB));
     // Cannot create regular events outside capture scope even if user is
@@ -424,12 +436,24 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     manager.update(programStageA);
     manager.update(programStageB);
     manager.update(programA);
-    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitB));
-    user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
-    UserDetails userDetails = fromUser(user);
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
     manager.update(trackedEntityType);
 
+    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitB));
+    user.setOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
+    UserDetails userDetails = fromUser(user);
+    // Can create events if event org unit and owner org unit in capture scope
+    assertNoErrors(trackerAccessManager.canCreate(userDetails, eventA));
+    // Can read events if owner org unit falls into users search scope
+    assertNoErrors(trackerAccessManager.canRead(userDetails, eventA));
+    // Can update events if owner org unit falls into users search scope
+    assertNoErrors(trackerAccessManager.canUpdate(userDetails, eventA, null, null));
+    // Can delete events if event org unit and owner org unit in capture scope
+    assertNoErrors(trackerAccessManager.canDelete(userDetails, eventA));
+
+    user.setOrganisationUnits(Set.of());
+    user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
+    userDetails = fromUser(user);
     // Cannot create events with event ou outside capture scope
     assertHasErrorMessage(trackerAccessManager.canCreate(userDetails, eventA), E1000);
     // Can read events if ownerOu falls into users search scope
