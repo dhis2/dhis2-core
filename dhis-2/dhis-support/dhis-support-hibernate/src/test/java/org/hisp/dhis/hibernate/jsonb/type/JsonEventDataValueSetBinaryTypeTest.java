@@ -35,6 +35,9 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -187,5 +190,158 @@ class JsonEventDataValueSetBinaryTypeTest {
     String originalJson = type.convertObjectToJson(original);
     String copyJson = type.convertObjectToJson(copy);
     assertEquals(originalJson, copyJson);
+  }
+
+  @Test
+  void convertObjectToJsonProducesMapKeyedByDataElement() throws Exception {
+    EventDataValue edv = new EventDataValue();
+    edv.setDataElement("deABCDEF123");
+    edv.setValue("hello");
+    edv.setCreated(new Date(1000L));
+    edv.setLastUpdated(new Date(2000L));
+    edv.setStoredBy("admin");
+    edv.setProvidedElsewhere(false);
+
+    String json = type.convertObjectToJson(Set.of(edv));
+
+    ObjectMapper om = new ObjectMapper();
+    JsonNode root = om.readTree(json);
+    assertTrue(root.isObject());
+    assertTrue(root.has("deABCDEF123"));
+
+    JsonNode entry = root.get("deABCDEF123");
+    assertEquals("hello", entry.get("value").asText());
+    assertEquals("admin", entry.get("storedBy").asText());
+    assertEquals(false, entry.get("providedElsewhere").asBoolean());
+    // dataElement must NOT appear inside the value (it's the key)
+    assertNull(entry.get("dataElement"));
+  }
+
+  @Test
+  void convertObjectToJsonWithMultipleDataValues() throws Exception {
+    EventDataValue edv1 = new EventDataValue();
+    edv1.setDataElement("de1");
+    edv1.setValue("val1");
+    edv1.setCreated(new Date(1000L));
+    edv1.setLastUpdated(new Date(2000L));
+
+    EventDataValue edv2 = new EventDataValue();
+    edv2.setDataElement("de2");
+    edv2.setValue("val2");
+    edv2.setCreated(new Date(3000L));
+    edv2.setLastUpdated(new Date(4000L));
+
+    Set<EventDataValue> set = new HashSet<>();
+    set.add(edv1);
+    set.add(edv2);
+
+    String json = type.convertObjectToJson(set);
+
+    ObjectMapper om = new ObjectMapper();
+    JsonNode root = om.readTree(json);
+    assertEquals(2, root.size());
+    assertEquals("val1", root.get("de1").get("value").asText());
+    assertEquals("val2", root.get("de2").get("value").asText());
+  }
+
+  @Test
+  void convertObjectToJsonWithEmptySet() {
+    String json = type.convertObjectToJson(Collections.emptySet());
+    assertEquals("{}", json);
+  }
+
+  @Test
+  void convertObjectToJsonWithNullSet() {
+    String json = type.convertObjectToJson(null);
+    assertEquals("{}", json);
+  }
+
+  @Test
+  void convertObjectToJsonWithUserInfoSnapshot() throws Exception {
+    UserInfoSnapshot userInfo = UserInfoSnapshot.of(1L, "code", "uid", "admin", "Admin", "User");
+
+    EventDataValue edv = new EventDataValue();
+    edv.setDataElement("de1");
+    edv.setValue("value1");
+    edv.setCreated(new Date(1000L));
+    edv.setLastUpdated(new Date(2000L));
+    edv.setCreatedByUserInfo(userInfo);
+    edv.setLastUpdatedByUserInfo(userInfo);
+
+    String json = type.convertObjectToJson(Set.of(edv));
+
+    ObjectMapper om = new ObjectMapper();
+    JsonNode entry = om.readTree(json).get("de1");
+    JsonNode createdBy = entry.get("createdByUserInfo");
+    assertNotNull(createdBy);
+    assertEquals("admin", createdBy.get("username").asText());
+    assertEquals("Admin", createdBy.get("firstName").asText());
+    assertEquals("User", createdBy.get("surname").asText());
+    assertEquals("uid", createdBy.get("uid").asText());
+  }
+
+  @Test
+  void roundTripJsonPreservesAllFields() {
+    UserInfoSnapshot userInfo = UserInfoSnapshot.of(1L, "code", "uid", "admin", "Admin", "User");
+
+    EventDataValue edv = new EventDataValue();
+    edv.setDataElement("de1");
+    edv.setValue("value1");
+    edv.setCreated(new Date(1000L));
+    edv.setLastUpdated(new Date(2000L));
+    edv.setCreatedByUserInfo(userInfo);
+    edv.setLastUpdatedByUserInfo(userInfo);
+    edv.setStoredBy("admin");
+    edv.setProvidedElsewhere(true);
+
+    String json = type.convertObjectToJson(Set.of(edv));
+
+    @SuppressWarnings("unchecked")
+    Set<EventDataValue> result = (Set<EventDataValue>) type.convertJsonToObject(json);
+
+    assertEquals(1, result.size());
+    EventDataValue restored = result.iterator().next();
+    assertEquals("de1", restored.getDataElement());
+    assertEquals("value1", restored.getValue());
+    assertEquals(new Date(1000L), restored.getCreated());
+    assertEquals(new Date(2000L), restored.getLastUpdated());
+    assertEquals("admin", restored.getStoredBy());
+    assertTrue(restored.getProvidedElsewhere());
+    assertEquals("admin", restored.getCreatedByUserInfo().getUsername());
+    assertEquals("Admin", restored.getCreatedByUserInfo().getFirstName());
+    assertEquals("User", restored.getCreatedByUserInfo().getSurname());
+    assertEquals("uid", restored.getCreatedByUserInfo().getUid());
+  }
+
+  @Test
+  void roundTripJsonWithNullOptionalFields() {
+    EventDataValue edv = new EventDataValue();
+    edv.setDataElement("de1");
+    edv.setValue("value1");
+    edv.setCreated(null);
+    edv.setLastUpdated(null);
+    edv.setCreatedByUserInfo(null);
+    edv.setLastUpdatedByUserInfo(null);
+    edv.setStoredBy(null);
+    edv.setProvidedElsewhere(null);
+
+    String json = type.convertObjectToJson(Set.of(edv));
+
+    @SuppressWarnings("unchecked")
+    Set<EventDataValue> result = (Set<EventDataValue>) type.convertJsonToObject(json);
+
+    assertEquals(1, result.size());
+    EventDataValue restored = result.iterator().next();
+    assertEquals("de1", restored.getDataElement());
+    assertEquals("value1", restored.getValue());
+    // EventDataValue initializes created/lastUpdated to new Date() in its field declaration,
+    // so null dates are restored as current time after deserialization
+    assertNotNull(restored.getCreated());
+    assertNotNull(restored.getLastUpdated());
+    assertNull(restored.getCreatedByUserInfo());
+    assertNull(restored.getLastUpdatedByUserInfo());
+    assertNull(restored.getStoredBy());
+    // providedElsewhere defaults to false in EventDataValue field declaration
+    assertEquals(false, restored.getProvidedElsewhere());
   }
 }
