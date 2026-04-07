@@ -59,6 +59,7 @@ import org.apache.catalina.connector.Connector;
 import org.apache.catalina.loader.WebappLoader;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.startup.Tomcat.FixContextListener;
+import org.apache.catalina.valves.AccessLogValve;
 import org.apache.catalina.util.LifecycleBase;
 import org.apache.catalina.webresources.AbstractResourceSet;
 import org.apache.catalina.webresources.EmptyResource;
@@ -113,6 +114,22 @@ public class Main {
 
     Host host = tomcat.getHost();
     host.setAutoDeploy(false);
+
+    if (Boolean.parseBoolean(
+        ObjectUtils.firstNonNull(
+            System.getProperty("server.access-log.enabled"),
+            System.getenv("SERVER_ACCESS_LOG_ENABLED"),
+            "false"))) {
+      AccessLogValve accessLogValve = new AccessLogValve();
+      accessLogValve.setDirectory("/dev");
+      accessLogValve.setPrefix("stdout");
+      accessLogValve.setSuffix("");
+      accessLogValve.setRotatable(false);
+      accessLogValve.setBuffered(false);
+      accessLogValve.setPattern("%h %l %u %t \"%r\" %s %b %D");
+      host.getPipeline().addValve(accessLogValve);
+      log.info("Access logging enabled, writing to stdout");
+    }
 
     TomcatEmbeddedContext context = new TomcatEmbeddedContext();
     TomcatStarter starter = new TomcatStarter();
