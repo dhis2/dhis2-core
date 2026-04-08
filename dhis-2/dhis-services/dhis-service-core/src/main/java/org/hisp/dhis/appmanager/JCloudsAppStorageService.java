@@ -307,13 +307,15 @@ public class JCloudsAppStorageService implements AppStorageService {
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     jsonMapper.writerWithDefaultPrettyPrinter().writeValue(baos, bundledAppInfo);
     byte[] bundledAppInfoBytes = baos.toByteArray();
-    blobStore.putBlob(
-        folder.resolve(BUNDLED_APP_INFO_FILENAME),
-        new ByteArrayInputStream(bundledAppInfoBytes),
-        bundledAppInfoBytes.length,
-        null,
-        null,
-        null);
+    try (InputStream is = new ByteArrayInputStream(bundledAppInfoBytes)) {
+      blobStore.putBlob(
+          folder.resolve(BUNDLED_APP_INFO_FILENAME),
+          is,
+          bundledAppInfoBytes.length,
+          null,
+          null,
+          null);
+    }
   }
 
   /**

@@ -75,10 +75,10 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
   @Override
   @CheckForNull
   public String saveFileResourceContent(@Nonnull FileResource fr, @Nonnull byte[] bytes) {
-    try {
+    try (InputStream is = new ByteArrayInputStream(bytes)) {
       blobStore.putBlob(
           fr.asBlobKey(),
-          new ByteArrayInputStream(bytes),
+          is,
           bytes.length,
           fr.getContentType(),
           ContentDisposition.filename(fr.getName()),

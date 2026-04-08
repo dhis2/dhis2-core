@@ -57,8 +57,23 @@ public interface BlobStoreService {
   long contentLength(BlobKey key);
 
   /**
-   * Stores a streaming payload. {@code contentType}, {@code contentDisposition} and {@code
-   * contentHash} may be {@code null} when unknown.
+   * Stores a streaming payload under the given key.
+   *
+   * <p>The caller is responsible for closing {@code content} after this method returns.
+   *
+   * @param key identifies the blob within the container; acts as a path-like object-store key (e.g.
+   *     {@code apps/my-app/index.html})
+   * @param content the data to store; must be open and positioned at the start when passed in;
+   *     exactly {@code contentLength} bytes will be read
+   * @param contentLength the number of bytes in {@code content}; required by some backends (e.g.
+   *     S3) to set the {@code Content-Length} header — pass the file size, array length, or zip
+   *     entry size as appropriate
+   * @param contentType MIME type of the blob (e.g. {@code "image/png"}); pass {@code null} when
+   *     unknown and the backend will use a default
+   * @param contentDisposition how the blob should be presented when downloaded (e.g. {@code
+   *     attachment; filename="report.pdf"}); pass {@code null} when no disposition header is needed
+   * @param contentHash MD5 hash of the blob content used for integrity verification; pass {@code
+   *     null} when the hash is unavailable or verification is not required
    */
   void putBlob(
       BlobKey key,
