@@ -29,10 +29,18 @@
  */
 package org.hisp.dhis.analytics;
 
+import static org.hisp.dhis.analytics.AggregationType.MAX;
+import static org.hisp.dhis.analytics.AggregationType.MAX_SUM_ORG_UNIT;
+import static org.hisp.dhis.analytics.AggregationType.MIN;
+import static org.hisp.dhis.analytics.AggregationType.MIN_SUM_ORG_UNIT;
+
+import java.util.List;
 import java.util.Objects;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.util.ObjectUtils;
 
 /**
@@ -175,5 +183,39 @@ public class AnalyticsAggregationType {
    */
   public AggregationType getPeriodAggregationType() {
     return ObjectUtils.firstNonNull(periodAggregationType, aggregationType);
+  }
+
+  /**
+   * Based on the given org. units and dimension aggregation types, this method checks if there is
+   * any child in the hierarchy. If there is none, it returns MAX or MIN, depending on the given
+   * "aggregationType".
+   *
+   * @param allOrgUnits a list of org. units.
+   * @param aggregationType the current {@link AggregationType}.
+   * @param analyticsAggregationType the current {@link AnalyticsAggregationType}.
+   * @return the correct {@link AnalyticsAggregationType}.
+   */
+  public static AnalyticsAggregationType getMinOrMaxOrgUnitAggregationIfAny(
+      List<DimensionalItemObject> allOrgUnits,
+      AggregationType aggregationType,
+      AnalyticsAggregationType analyticsAggregationType) {
+    boolean hasAnyChild = false;
+    for (DimensionalItemObject dimensionalItemObject : allOrgUnits) {
+      OrganisationUnit organisationUnit = (OrganisationUnit) dimensionalItemObject;
+      hasAnyChild = organisationUnit.hasChild();
+    }
+
+    boolean isMaxOrgUnit = aggregationType == MAX_SUM_ORG_UNIT;
+    boolean isMinOrgUnit = aggregationType == MIN_SUM_ORG_UNIT;
+
+    if (isMaxOrgUnit && !hasAnyChild) {
+      analyticsAggregationType = new AnalyticsAggregationType(MAX, MAX);
+    }
+
+    if (isMinOrgUnit && !hasAnyChild) {
+      analyticsAggregationType = new AnalyticsAggregationType(MIN, MIN);
+    }
+
+    return analyticsAggregationType;
   }
 }

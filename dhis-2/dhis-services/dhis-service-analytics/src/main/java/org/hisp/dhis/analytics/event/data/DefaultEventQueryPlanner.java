@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.getMinOrMaxOrgUnitAggregationIfAny;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -260,14 +261,22 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
       }
 
       for (ProgramIndicator programIndicator : params.getItemProgramIndicators()) {
+        AnalyticsAggregationType aggregationType =
+            fromAggregationType(programIndicator.getAggregationTypeFallback());
+
+        aggregationType =
+            getMinOrMaxOrgUnitAggregationIfAny(
+                params.getAllOrganisationUnits(),
+                programIndicator.getAggregationType(),
+                aggregationType);
+
         EventQueryParams query =
             new EventQueryParams.Builder(params)
                 .removeItems()
                 .removeItemProgramIndicators()
                 .withProgramIndicator(programIndicator)
                 .withProgram(programIndicator.getProgram())
-                .withAggregationType(
-                    fromAggregationType(programIndicator.getAggregationTypeFallback()))
+                .withAggregationType(aggregationType)
                 .withOrgUnitField(new OrgUnitField(programIndicator.getOrgUnitField()))
                 .build();
 

@@ -38,6 +38,8 @@ import static org.hisp.dhis.analytics.AggregationType.MIN;
 import static org.hisp.dhis.analytics.AggregationType.STDDEV;
 import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.analytics.AggregationType.VARIANCE;
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.getMinOrMaxOrgUnitAggregationIfAny;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
@@ -48,6 +50,7 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.collection.CollectionUtils.concat;
+import static org.hisp.dhis.common.collection.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.hisp.dhis.util.SqlExceptionUtils.ERR_MSG_SILENT_FALLBACK;
 import static org.hisp.dhis.util.SqlExceptionUtils.relationDoesNotExist;
@@ -387,7 +390,31 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
     } else if (SIMPLE_AGGREGATION_TYPES.contains(aggType.getAggregationType())) {
       sql = resolveAggregationType(aggType.getAggregationType(), valueColumn);
     } else { // SUM and no value
-      sql = "sum(" + valueColumn + ")";
+      DimensionalObject dimensionalObject = params.getDimension("dx");
+      String function = "sum";
+
+      if (dimensionalObject != null) {
+        DimensionalItemObject itemObject =
+            isNotEmpty(dimensionalObject.getItems()) ? dimensionalObject.getItems().get(0) : null;
+        AnalyticsAggregationType analyticsAggregationType =
+            itemObject != null
+                    && itemObject.hasAggregationType()
+                    && itemObject.getAggregationType().isSqlCompatible()
+                ? fromAggregationType(itemObject.getAggregationType())
+                : null;
+
+        if (analyticsAggregationType != null) {
+          analyticsAggregationType =
+              getMinOrMaxOrgUnitAggregationIfAny(
+                  params.getAllOrganisationUnits(),
+                  itemObject.getAggregationType(),
+                  analyticsAggregationType);
+
+          function = analyticsAggregationType.getAggregationType().getValue();
+        }
+      }
+
+      sql = function + "(" + valueColumn + ")";
     }
 
     return sql;
