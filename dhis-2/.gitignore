@@ -63,3 +63,32 @@ http-client.private.env.json
 
 # Performance test env files
 run-simulation*.env
+
+
+# Local developer workspace (not for commit)
+/scripts/
+/http/
+/sql/
+/notes/
+/binaries/
+/doc/
+/nginx/
+/oauth2_cli_demo/
+/.agents/
+/.codex/
+/.agent/
+/artifacts/
+/___CURRENTPLAN___*
+/.sonarlint/
+/.jira-mcp
+/.github
+/jenkinsfiles
+/dhis-test-performance/ERRORS.md
+CLAUDE.md
+AGENTS.md
+.entire/
+# Performance test env files
+run-simulation*.env
+
+# Performance test env files
+run-simulation*.env
