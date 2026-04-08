@@ -36,8 +36,11 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.IOException;
 import java.util.Calendar;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.appmanager.AppManager;
+import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService;
 import org.hisp.dhis.security.twofa.TwoFactorAuthService.Email2FACode;
@@ -54,6 +57,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.core.session.SessionRegistry;
 
 /**
@@ -64,6 +68,7 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
   @Autowired private SystemSettingsService settingsService;
   @Autowired private SessionRegistry sessionRegistry;
+  @Autowired private AppManager appManager;
 
   @AfterEach
   void tearDown() {
@@ -78,6 +83,41 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
   void testSuccessfulLogin() {
     JsonLoginResponse response =
         POST("/auth/login", "{'username':'admin','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("SUCCESS", response.getLoginStatus());
+    assertEquals("/", response.getRedirectUrl());
+  }
+
+  @Test
+  void testRedirectToUsageMetricsAppOnSuccessfulLoginWithAllAuthority() throws IOException {
+    settingsService.put("usageMetricsAppName", "test");
+    assertEquals(
+        AppStatus.OK,
+        appManager.installApp(new ClassPathResource("app/test-app.zip").getFile()).getAppState());
+
+    JsonLoginResponse response =
+        POST("/auth/login", "{'username':'admin','password':'district'}")
+            .content(HttpStatus.OK)
+            .as(JsonLoginResponse.class);
+
+    assertEquals("SUCCESS", response.getLoginStatus());
+    assertEquals("/api/apps/test", response.getRedirectUrl());
+  }
+
+  @Test
+  void testRedirectToIndexOnSuccessfulLoginWithoutAllAuthority() throws IOException {
+    settingsService.put("usageMetricsAppName", "test");
+    assertEquals(
+        AppStatus.OK,
+        appManager.installApp(new ClassPathResource("app/test-app.zip").getFile()).getAppState());
+
+    User withoutAllAuthUser = createUserWithAuthority("alice");
+    userService.addUser(withoutAllAuthUser);
+
+    JsonLoginResponse response =
+        POST("/auth/login", String.format("{'username':'%s','password':'%s'}", "alice", "district"))
             .content(HttpStatus.OK)
             .as(JsonLoginResponse.class);
 
@@ -107,7 +147,9 @@ class AuthenticationControllerTest extends AuthenticationApiTestBase {
 
     clearSecurityContext();
     JsonWebMessage response =
-        POST("/auth/login", "{'username':'userb','password':'district9'}")
+        POST(
+                "/auth/login",
+                String.format("{'username':'userb','password':'%s'}", userA.getPassword()))
             .content(HttpStatus.UNAUTHORIZED)
             .as(JsonWebMessage.class);
 

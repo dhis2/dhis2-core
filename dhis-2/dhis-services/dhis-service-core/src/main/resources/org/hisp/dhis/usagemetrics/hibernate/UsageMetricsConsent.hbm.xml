@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+    [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
+    >
+
+<hibernate-mapping>
+
+  <class name="org.hisp.dhis.usagemetrics.UsageMetricsConsent" table="usagemetricsconsent">
+
+    <cache usage="read-write" />
+    <id name="id" column="usagemetricsconsentid">
+      <generator class="assigned"/>
+    </id>
+
+    <property name="dbSystemIdentifier" type="string" />
+    <property name="consent" type="boolean" />
+
+    <property name="created" type="timestamp" not-null="true" update="false" />
+    <property name="lastUpdated" type="timestamp" not-null="true"/>
+    <many-to-one name="lastUpdatedBy" class="org.hisp.dhis.user.User" column="lastupdatedby" foreign-key="fk_lastupdateby_userid" />
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid"
+                 foreign-key="fk_eventhook_userid_userinfoid"/>
+
+  </class>
+
+</hibernate-mapping>
