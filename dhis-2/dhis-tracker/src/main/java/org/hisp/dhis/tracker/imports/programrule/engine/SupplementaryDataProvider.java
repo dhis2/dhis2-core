@@ -42,8 +42,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.rules.api.RuleSupplementaryData;
+import org.hisp.dhis.rules.models.Rule;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -58,10 +58,9 @@ public class SupplementaryDataProvider {
 
   @Nonnull private final OrganisationUnitGroupService organisationUnitGroupService;
 
-  public RuleSupplementaryData getSupplementaryData(
-      List<ProgramRule> programRules, UserDetails user) {
+  public RuleSupplementaryData getSupplementaryData(List<Rule> rules, UserDetails user) {
 
-    Map<String, List<String>> orgUnitGroupData = extractOrgUnitGroups(programRules);
+    Map<String, List<String>> orgUnitGroupData = extractOrgUnitGroups(rules);
 
     return new RuleSupplementaryData(
         user.getUserGroupIds().stream().toList(),
@@ -69,12 +68,11 @@ public class SupplementaryDataProvider {
         orgUnitGroupData);
   }
 
-  private Map<String, List<String>> extractOrgUnitGroups(List<ProgramRule> programRules) {
+  private Map<String, List<String>> extractOrgUnitGroups(List<Rule> rules) {
     List<String> orgUnitGroups = new ArrayList<>();
-    for (ProgramRule programRule : programRules) {
+    for (Rule rule : rules) {
       Matcher matcher =
-          ORG_UNIT_GROUP_PATTERN.matcher(
-              StringUtils.defaultIfBlank(programRule.getCondition(), ""));
+          ORG_UNIT_GROUP_PATTERN.matcher(StringUtils.defaultIfBlank(rule.getCondition(), ""));
       while (matcher.find()) {
         orgUnitGroups.add(StringUtils.replace(matcher.group(1), "'", ""));
       }

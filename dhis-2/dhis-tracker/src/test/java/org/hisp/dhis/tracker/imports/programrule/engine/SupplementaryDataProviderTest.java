@@ -42,8 +42,8 @@ import java.util.Set;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.rules.api.RuleSupplementaryData;
+import org.hisp.dhis.rules.models.Rule;
 import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -105,7 +105,7 @@ class SupplementaryDataProviderTest extends TrackerTestBase {
     String unkwonOrgUnitGroup = "UnkwonOrgUnitGroup";
     RuleSupplementaryData supplementaryData =
         providerToTest.getSupplementaryData(
-            getProgramRule('C', "d2:inOrgUnitGroup('" + unkwonOrgUnitGroup + "')"), currentUser);
+            getProgramRule("d2:inOrgUnitGroup('" + unkwonOrgUnitGroup + "')"), currentUser);
     assertFalse(supplementaryData.getOrgUnitGroups().isEmpty());
     assertTrue(supplementaryData.getOrgUnitGroups().get(unkwonOrgUnitGroup).isEmpty());
   }
@@ -116,7 +116,7 @@ class SupplementaryDataProviderTest extends TrackerTestBase {
         .thenReturn(orgUnitGroup);
     RuleSupplementaryData supplementaryData =
         providerToTest.getSupplementaryData(
-            getProgramRule('C', "d2:inOrgUnitGroup('OrgUnitGroupId')"), currentUser);
+            getProgramRule("d2:inOrgUnitGroup('OrgUnitGroupId')"), currentUser);
     assertEquals(getUserRoleUids(), Set.copyOf(supplementaryData.getUserRoles()));
     assertFalse(supplementaryData.getOrgUnitGroups().isEmpty());
     assertEquals(
@@ -128,15 +128,13 @@ class SupplementaryDataProviderTest extends TrackerTestBase {
   void getUserGroupsSupplementaryData() {
     RuleSupplementaryData supplementaryData =
         providerToTest.getSupplementaryData(
-            getProgramRule('D', "d2:inUserGroup('UserGroupId')"), currentUser);
+            getProgramRule("d2:inUserGroup('UserGroupId')"), currentUser);
     assertFalse(supplementaryData.getUserGroups().isEmpty());
     assertTrue(supplementaryData.getUserGroups().contains(userGroupA.getUid()));
   }
 
-  private List<ProgramRule> getProgramRule(char ch, String condition) {
-    ProgramRule programRule = createProgramRule(ch, null);
-    programRule.setCondition(condition);
-    return Lists.newArrayList(programRule);
+  private List<Rule> getProgramRule(String condition) {
+    return Lists.newArrayList(new Rule(condition, List.of(), "", null, null, null));
   }
 
   private Set<String> getUserRoleUids() {

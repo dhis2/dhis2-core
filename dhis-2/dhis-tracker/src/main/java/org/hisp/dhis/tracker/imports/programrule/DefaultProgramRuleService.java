@@ -47,12 +47,14 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
+import org.hisp.dhis.rules.api.RuleContextRequirements;
+import org.hisp.dhis.rules.models.Rule;
 import org.hisp.dhis.rules.models.RuleAttributeValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
+import org.hisp.dhis.rules.models.RuleVariable;
+import org.hisp.dhis.rules.models.RuleVariableAttribute;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventOperationParams;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -61,6 +63,7 @@ import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleEngine;
+import org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleEntityMapperService;
 import org.hisp.dhis.tracker.imports.programrule.engine.RuleEngineEffects;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
@@ -74,6 +77,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 class DefaultProgramRuleService implements ProgramRuleService {
   private final ProgramRuleEngine programRuleEngine;
+
+  private final ProgramRuleEntityMapperService mapperService;
 
   private final TrackerEventService trackerEventService;
 
@@ -91,8 +96,19 @@ class DefaultProgramRuleService implements ProgramRuleService {
    * Calculates rule effects for all enrollments, tracker events, and single events in the payload.
    *
    * <p>Payload enrollments and tracker events whose enrollment is not in the payload are grouped by
-   * program so that {@link ProgramRuleEngine#evaluateEnrollmentsAndTrackerEvents} is called at most
-   * once per distinct program. Single events are evaluated separately per program.
+   * program so that the rule engine is called at most once per distinct program. Three evaluation
+   * paths are chosen based on the rule set's declared requirements:
+   *
+   * <ul>
+   *   <li>{@code !needsEnrollment} — evaluated as single events; no enrollment context or saved
+   *       events are loaded from the database.
+   *   <li>{@code needsEnrollment && !needsAllEvents} — evaluated with enrollment context; only
+   *       payload events are passed, so no saved events are fetched from the database.
+   *   <li>{@code needsEnrollment && needsAllEvents} — evaluated with full context; saved events are
+   *       fetched from the database and combined with payload events.
+   * </ul>
+   *
+   * <p>Single events are evaluated separately per program.
    */
   @Override
   @Transactional(readOnly = true)
@@ -176,17 +192,22 @@ class DefaultProgramRuleService implements ProgramRuleService {
       return RuleEngineEffects.empty();
     }
 
-    Set<UID> enrollmentUids =
+    // Saved events are only needed when the rule set references variables that depend on all events
+    // (e.g. newest-event, previous-event, event_count). Skipping this DB query for other programs
+    // is the main performance saving of the !needsAllEvents path.
+    Set<UID> enrollmentUidsNeedingAllEvents =
         Stream.concat(
-                payloadEnrollmentsByProgram.values().stream()
-                    .flatMap(List::stream)
+                payloadEnrollmentsByProgram.entrySet().stream()
+                    .filter(e -> contextByProgram.get(e.getKey()).needsAllEvents())
+                    .flatMap(e -> e.getValue().stream())
                     .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getUID),
-                savedEnrollmentsByProgram.values().stream()
-                    .flatMap(List::stream)
+                savedEnrollmentsByProgram.entrySet().stream()
+                    .filter(e -> contextByProgram.get(e.getKey()).needsAllEvents())
+                    .flatMap(e -> e.getValue().stream())
                     .map(Enrollment::getUID))
             .collect(Collectors.toSet());
     Map<UID, List<RuleEvent>> savedEventsByEnrollment =
-        fetchSavedRuleEventsByEnrollment(enrollmentUids, bundle);
+        fetchSavedRuleEventsByEnrollment(enrollmentUidsNeedingAllEvents, bundle);
     Map<UID, List<TrackerEvent>> payloadEventsByEnrollment =
         bundle.getTrackerEvents().stream()
             .collect(Collectors.groupingBy(TrackerEvent::getEnrollment));
@@ -210,6 +231,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
                       payloadEventsByEnrollment,
                       bundle,
                       preheat);
+
               return programRuleEngine.evaluateEnrollmentsAndTrackerEvents(
                   enrollmentsWithEvents,
                   bundle.getUser(),
@@ -222,25 +244,42 @@ class DefaultProgramRuleService implements ProgramRuleService {
   }
 
   /**
-   * Rules and variables for a single program, co-fetched once per program so that the engine does
-   * not need to re-query variables during context construction.
+   * Rules and variables for a single program, mapped to rule-engine types once so that neither the
+   * analyzer nor the evaluation calls need to re-convert them.
+   *
+   * <p>{@code needsEnrollment} is {@code true} when the rules reference enrollment context
+   * (enrollment-specific environment variables or TEI attributes), so the engine must be invoked
+   * with a full {@link RuleEnrollment} rather than as single events.
+   *
+   * <p>{@code needsAllEvents} is {@code true} when the rules reference variables that require
+   * knowledge of all events (newest-event or previous-event variables, or {@code V{event_count}}).
    */
   private record ProgramRuleContext(
-      List<ProgramRule> rules, List<ProgramRuleVariable> variables, boolean needsTeAttributes) {}
+      List<Rule> rules,
+      List<RuleVariable> variables,
+      boolean needsTeAttributes,
+      boolean needsAllEvents) {}
 
-  // Fetches rules and variables for each program; skips programs with no applicable rules.
+  // Fetches rules and variables for each program; maps them to rule-engine types once;
+  // skips programs with no applicable rules.
   private Map<Program, ProgramRuleContext> getRulesForPrograms(Set<Program> programs) {
     Map<Program, ProgramRuleContext> contextByProgram = new HashMap<>();
     for (Program program : programs) {
-      List<ProgramRule> rules =
+      List<ProgramRule> programRules =
           programRuleMetadataService.getProgramRulesByActionTypes(program, SERVER_SUPPORTED_TYPES);
-      if (!rules.isEmpty()) {
-        List<ProgramRuleVariable> variables =
-            programRuleVariableService.getProgramRuleVariable(program);
+      if (!programRules.isEmpty()) {
+        List<Rule> rules = mapperService.toRules(programRules);
+        List<RuleVariable> variables =
+            mapperService.toRuleVariables(
+                programRuleVariableService.getProgramRuleVariable(program));
+        RuleContextRequirements requirements =
+            programRuleEngine.analyzeContextRequirements(rules, variables);
         boolean needsTeAttributes =
-            variables.stream()
-                .anyMatch(v -> v.getSourceType() == ProgramRuleVariableSourceType.TEI_ATTRIBUTE);
-        contextByProgram.put(program, new ProgramRuleContext(rules, variables, needsTeAttributes));
+            variables.stream().anyMatch(v -> v instanceof RuleVariableAttribute);
+        contextByProgram.put(
+            program,
+            new ProgramRuleContext(
+                rules, variables, needsTeAttributes, requirements.getNeedsAllEvents()));
       }
     }
     return contextByProgram;

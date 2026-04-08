@@ -40,16 +40,17 @@ import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.rules.api.RuleContextRequirements;
 import org.hisp.dhis.rules.api.RuleEngine;
 import org.hisp.dhis.rules.api.RuleEngineContext;
 import org.hisp.dhis.rules.api.RuleSupplementaryData;
+import org.hisp.dhis.rules.models.Rule;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
 import org.hisp.dhis.rules.models.RuleValidationResult;
+import org.hisp.dhis.rules.models.RuleVariable;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -59,6 +60,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class DefaultProgramRuleEngine implements ProgramRuleEngine {
+
   private final ProgramRuleEntityMapperService programRuleEntityMapperService;
 
   private final ProgramRuleVariableService programRuleVariableService;
@@ -120,8 +122,8 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
       @Nonnull Map<RuleEnrollment, List<RuleEvent>> enrollmentsWithEvents,
       @Nonnull UserDetails user,
       @Nonnull Map<String, String> constantMap,
-      @Nonnull List<ProgramRule> rules,
-      @Nonnull List<ProgramRuleVariable> variables) {
+      @Nonnull List<Rule> rules,
+      @Nonnull List<RuleVariable> variables) {
     if (enrollmentsWithEvents.isEmpty()) {
       return RuleEngineEffects.of(Collections.emptyList());
     }
@@ -142,8 +144,8 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
       @Nonnull List<RuleEvent> events,
       @Nonnull UserDetails user,
       @Nonnull Map<String, String> constantMap,
-      @Nonnull List<ProgramRule> rules,
-      @Nonnull List<ProgramRuleVariable> variables) {
+      @Nonnull List<Rule> rules,
+      @Nonnull List<RuleVariable> variables) {
     RuleEngineContext ruleEngineContext = getRuleEngineContext(rules, variables, user, constantMap);
     try {
       return RuleEngineEffects.of(ruleEngine.evaluateAll(null, events, ruleEngineContext));
@@ -153,18 +155,20 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
     }
   }
 
+  @Override
+  @Nonnull
+  public RuleContextRequirements analyzeContextRequirements(
+      @Nonnull List<Rule> rules, @Nonnull List<RuleVariable> variables) {
+    return ruleEngine.analyzeContextRequirements(rules, variables);
+  }
+
   private RuleEngineContext getRuleEngineContext(
-      @Nonnull List<ProgramRule> programRules,
-      @Nonnull List<ProgramRuleVariable> programRuleVariables,
+      @Nonnull List<Rule> rules,
+      @Nonnull List<RuleVariable> variables,
       @Nonnull UserDetails user,
       @Nonnull Map<String, String> constantMap) {
     RuleSupplementaryData supplementaryData =
-        supplementaryDataProvider.getSupplementaryData(programRules, user);
-
-    return new RuleEngineContext(
-        programRuleEntityMapperService.toRules(programRules),
-        programRuleEntityMapperService.toRuleVariables(programRuleVariables),
-        supplementaryData,
-        constantMap);
+        supplementaryDataProvider.getSupplementaryData(rules, user);
+    return new RuleEngineContext(rules, variables, supplementaryData, constantMap);
   }
 }
