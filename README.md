@@ -1,134 +1,151 @@
 # DHIS2
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=dhis2_dhis2-core&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=dhis2_dhis2-core)
-[![Tests](https://github.com/dhis2/dhis2-core/actions/workflows/run-tests.yml/badge.svg)](https://github.com/dhis2/dhis2-core/actions/workflows/run-tests.yml)
-[![API tests](https://github.com/dhis2/dhis2-core/actions/workflows/run-api-tests.yml/badge.svg)](https://github.com/dhis2/dhis2-core/actions/workflows/run-api-tests.yml)
+DHIS2 is an open-source, flexible health information platform for data capture, management, validation, analytics, and visualization. It supports data collection across web browsers, Android devices, Java feature phones, and SMS. Analytics capabilities include dashboards, pivot tables, charts, and GIS maps. All data models and services are accessible via a RESTful Web API.
 
-DHIS2 is a flexible information system for data capture, management, validation, analytics and visualization. It allows for data capture through clients ranging from Web browsers, Android devices, Java feature phones and SMS. DHIS2 features data visualization apps for dashboards, pivot tables, charting and GIS. It provides metadata management and configuration. The data model and services are exposed through a RESTful Web API.
+The software is released under the [BSD 3-Clause License](https://opensource.org/license/bsd-3-clause).
 
-## Overview
+---
 
-Issues can be reported and browsed in [JIRA](https://jira.dhis2.org).
+## Table of Contents
 
-For documentation visit the [documentation portal](https://docs.dhis2.org/).
+- [Resources](#resources)
+- [Running DHIS2 with Docker](#running-dhis2-with-docker)
+  - [Pre-built Images](#pre-built-images)
+  - [Local Build](#local-build)
+  - [Demo Database](#demo-database)
+  - [Apache Doris](#apache-doris)
+  - [Instance Synchronization](#instance-synchronization)
+- [Build Process](#build-process)
+  - [Docker Image](#docker-image)
+  - [Customizations](#customizations)
+- [Contributing](#contributing)
 
-You can download pre-built WAR files from the [release site](https://releases.dhis2.org/).
+---
 
-You can explore various demos in the [play environment](https://play.dhis2.org/).
+## Resources
 
-For support and discussions visit the [community forum](https://community.dhis2.org/).
+| Resource | Link |
+|---|---|
+| Issue tracker | [JIRA](https://jira.dhis2.org) |
+| Documentation | [docs.dhis2.org](https://docs.dhis2.org/) |
+| Pre-built releases | [releases.dhis2.org](https://releases.dhis2.org/) |
+| Live demo | [play.dhis2.org](https://play.dhis2.org/) |
+| Community forum | [community.dhis2.org](https://community.dhis2.org/) |
+| Project website | [dhis2.org](https://www.dhis2.org/) |
+| OpenAPI docs | [Stoplight workspace](https://dhis2.stoplight.io/) |
+| Developer portal | [developers.dhis2.org](https://developers.dhis2.org/) |
+| Contributor guide | [How to contribute](https://developers.dhis2.org/community/contribute) |
 
-For general info visit the [project web page](https://www.dhis2.org/).
+---
 
-For OpenAPI documentation visit the [Stoplight workspace](https://dhis2.stoplight.io/).
+## Running DHIS2 with Docker
 
-For software developer resources visit the [developer portal](https://developers.dhis2.org/).
+> **Warning:** The Docker Compose setup in this repository is for local development only. For production deployments, use the [docker-deployment](https://github.com/dhis2/docker-deployment) repository.
 
-To contribute to the software read the [contributor guidelines](https://developers.dhis2.org/community/contribute).
+Prerequisites: [Docker Compose](https://docs.docker.com/compose/install/)
 
-The software is open source and released under the [BSD 3-Clause license](https://opensource.org/license/bsd-3-clause).
+Environment variables are required to run the Compose setup. Copy `.env.example` to `.env` and configure the variables before starting.
 
-## Run DHIS2 in Docker
+```sh
+cp .env.example .env
+```
 
-> [!WARNING]  
-> DO NOT use this Docker Compose file in production! There is a separate docker compose setup currently under development which is aimed at [running DHIS2 using docker](https://github.com/dhis2/docker-deployment) in production. Please check it out and provide feedback. 
-
-The following guides runs DHIS2 with [Docker Compose](https://docs.docker.com/compose/install/).
-
-Our Docker Compose file depends on various environment variables. See .env.example for a list of these. You can copy the file to .env and set the variables there.
-
-A database dump is downloaded automatically the first time you start DHIS2. If you switch between different DHIS2 versions or need to download a different DB dump, you will need to remove the shared volume `db-dump` with the following command.
+A database dump is downloaded automatically on the first run. If you change the DHIS2 version or need a different database dump, remove the shared volume before restarting.
 
 ```sh
 docker compose down --volumes
 ```
 
-### Pre-built images
+### Pre-built Images
 
-We push pre-built DHIS2 Docker images to Dockerhub. You can pick an `<image name>` from one of the following
-repositories:
+Pre-built images are published to Docker Hub across four repositories:
 
-* [`dhis2/core`](https://hub.docker.com/r/dhis2/core) - images of the release and release-candidate DHIS2 versions. These images represent the stable DHIS2 versions, meaning they won't be rebuilt in the future.
+| Repository | Purpose |
+|---|---|
+| [`dhis2/core`](https://hub.docker.com/r/dhis2/core) | Stable release and release-candidate images. Tags are immutable and will not be rebuilt. |
+| [`dhis2/core-dev`](https://hub.docker.com/r/dhis2/core-dev) | Latest development builds from `master` (tagged `latest`) and the three previously supported major versions. Tags are overwritten multiple times per day. |
+| [`dhis2/core-canary`](https://hub.docker.com/r/dhis2/core-canary) | Daily snapshots of `core-dev`. Each day's final image is tagged with a `yyyyMMdd` date suffix, e.g. `core-canary:latest-20230124`. |
+| [`dhis2/core-pr`](https://hub.docker.com/r/dhis2/core-pr) | Images built from pull requests originating from the main repository. Fork-based PRs are excluded due to access restrictions on organization secrets. |
 
-* [`dhis2/core-dev`](https://hub.docker.com/r/dhis2/core-dev) - images of _the latest development_ DHIS2 versions - branches `master` (tagged as `latest`) and the previous 3 supported major versions. Image tags in this repository will be overwritten multiple times a day.
-
-* [`dhis2/core-canary`](https://hub.docker.com/r/dhis2/core-canary) - images of _the latest daily development_ DHIS2 versions. We tag the last `core-dev` images for the day and add an extra tag with a "yyyyMMdd"-formatted date, like `core-canary:latest-20230124`.
-
-* [`dhis2/core-pr`](https://hub.docker.com/r/dhis2/core-pr) - images of PRs made from [dhis2-core](https://github.com/dhis2/dhis2-core/) and not from forks, as forks do not have access to our organizational secrets.
-
-To run DHIS2 from latest `master` branch (as it is on GitHub) run the command below.
+To start DHIS2 from the latest `master` build:
 
 ```sh
 DHIS2_IMAGE=dhis2/core-dev:latest docker compose up
 ```
 
-### Local image
+### Local Build
 
-Build a DHIS2 Docker image as described in [Docker image](#docker-image) and execute the following command.
+Build a local Docker image first (see [Docker Image](#docker-image)), then start the stack.
 
 ```sh
 docker compose up
 ```
 
-DHIS2 will become available at `http://localhost:8080` with the Sierra Leone Demo DB.
+DHIS2 will be available at `http://localhost:8080` with the Sierra Leone demo database loaded.
 
-### Demo DB
+### Demo Database
 
-If you want to start DHIS2 with a specific demo DB you can pass a URL like the below.
+To start with a specific database dump, pass the URL as an environment variable.
 
 ```sh
 DHIS2_DB_DUMP_URL=https://databases.dhis2.org/sierra-leone/2.39/dhis2-db-sierra-leone.sql.gz \
 docker compose up
 ```
 
-### Launch with Apache Doris
+### Apache Doris
+
+To run DHIS2 alongside Apache Doris, use the additional Compose file.
 
 ```sh
 DHIS2_IMAGE=dhis2/core-dev:local DORIS_VERSION=3.0.4 \
 docker compose -f docker-compose.yml -f docker-compose.doris.yml up
 ```
 
-When running compose up with multiple compose files, you need to pass the same files to compose down, e.g.
+When using multiple Compose files, pass the same files to `down` as well.
 
-```
+```sh
 docker compose -f docker-compose.yml -f docker-compose.doris.yml down
 ```
 
-### Synchronization between DHIS2 instances
+### Instance Synchronization
 
-You can run multiple DHIS2 instances to test data and metadata [synchronization](https://docs.dhis2.org/en/use/user-guides/dhis-core-version-master/exchanging-data/metadata-synchronization.html) by running the following command.
+To run two DHIS2 instances for testing [metadata synchronization](https://docs.dhis2.org/en/use/user-guides/dhis-core-version-master/exchanging-data/metadata-synchronization.html), use the `sync` profile.
 
 ```sh
 docker compose --profile sync up
 ```
 
-After that follow the [guide](https://github.com/dhis2/wow-backend/blob/master/guides/testing/metadata_sync_testing.md).
+After the instances are running, follow the [metadata sync testing guide](https://github.com/dhis2/wow-backend/blob/master/guides/testing/metadata_sync_testing.md).
 
-## Build process
+---
 
-This repository contains the source code for the server-side component of DHIS2, written in [Java](https://www.java.com/en/) and built with [Maven](https://maven.apache.org/). See the [contributing](./CONTRIBUTING.md) page to learn how to run the software locally.
+## Build Process
 
-### Docker image
+The server-side component is written in Java and built with Maven. See [CONTRIBUTING.md](./CONTRIBUTING.md) for instructions on running the project locally.
 
-The DHIS2 Docker image is built using [Jib](https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin). Start by building DHIS2 by executing the script below.
+### Docker Image
+
+DHIS2 Docker images are built using [Jib](https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin).
+
+Build the image using the provided script.
 
 ```sh
 ./dhis-2/build-dev.sh
 ```
 
-Start the image.
+Start the stack.
 
 ```sh
 docker compose up
 ```
 
-DHIS2 should now be available at `http://localhost:8080`.
+DHIS2 will be available at `http://localhost:8080`.
 
-#### Customizations
+### Customizations
 
-##### Docker tag
+#### Custom Docker Tag
 
-To build using a custom tag.
+To build the image with a custom tag:
 
 ```sh
 mvn clean package -DskipTests -Dmaven.test.skip=true --file dhis-2/pom.xml \
@@ -136,21 +153,23 @@ mvn clean package -DskipTests -Dmaven.test.skip=true --file dhis-2/pom.xml \
   -Djib.to.image=dhis2/core-dev:mytag
 ```
 
-For more configuration options related to Jib or Docker go to the [Jib documentation](https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin).
+For additional Jib and Docker configuration options, refer to the [Jib documentation](https://github.com/GoogleContainerTools/jib/tree/master/jib-maven-plugin).
 
-##### Context path
+#### Custom Context Path
 
-To deploy DHIS2 under a different context then root (`/`) configure the context path by setting the environment variable.
+To deploy DHIS2 under a path other than `/`, set the following environment variable.
 
-`CATALINA_OPTS: "-Dcontext.path='/dhis2'"`
+```sh
+CATALINA_OPTS: "-Dcontext.path='/dhis2'"
+```
 
-DHIS2 should be available at `http://localhost:8080/dhis2`.
+DHIS2 will then be available at `http://localhost:8080/dhis2`.
 
-##### Overriding default values
+#### Overriding Compose Defaults
 
-You can create a local file called `docker-compose.override.yml` and override values from the main `docker-compose.yml` file. As an example, you might want to use a different version of the Postgres database and run it on a different port.
+Create a `docker-compose.override.yml` file to override values in the base `docker-compose.yml` without modifying it directly. This is the recommended approach for environment-specific configuration.
 
-More extensive documentation of this feature is available at the Docker web [pages](https://docs.docker.com/compose/extends/). Using the override file you can customize values for your local environment.
+Example — using a different PostgreSQL version on a non-default port:
 
 ```yaml
 version: "3.8"
@@ -162,14 +181,27 @@ services:
       - 127.0.0.1:6432:5432
 ```
 
-##### DHIS2_HOME
+Full documentation for Compose overrides is available at the [Docker docs](https://docs.docker.com/compose/extends/).
 
-Previously, the Docker image was built with environment variable `DHIS2_HOME` set to `/DHIS2_home`. This is not the case anymore, instead `DHIS2_HOME` will fallback to `/opt/dhis2`. You can still run the Docker image with the old behavior by setting the environment variable `DHIS2_HOME` in a `docker-compose.override.yml` file.
+#### DHIS2_HOME
+
+The default value for `DHIS2_HOME` is `/opt/dhis2`. If you require the previous default of `/DHIS2_home`, set the variable explicitly in your override file.
 
 ```yaml
 environment:
   DHIS2_HOME: /DHIS2_home
 ```
 
-Alternatively, you can pass the system property `-Ddhis2.home` from the command line. You need to ensure that the `DHIS2_HOME` directory is writeable by the DHIS2 process.
+Alternatively, pass it as a system property at startup.
 
+```sh
+-Ddhis2.home=/DHIS2_home
+```
+
+Ensure the configured directory is writable by the DHIS2 process.
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full contributor guide, including how to set up the development environment, run tests, and submit changes.
