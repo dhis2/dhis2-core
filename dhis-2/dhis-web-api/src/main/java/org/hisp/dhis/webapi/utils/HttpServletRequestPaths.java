@@ -59,6 +59,7 @@ public class HttpServletRequestPaths {
     StringBuilder builder = new StringBuilder();
     String xForwardedProto = request.getHeader("X-Forwarded-Proto");
     String xForwardedPort = request.getHeader("X-Forwarded-Port");
+    String xForwardedHost = request.getHeader("X-Forwarded-Host");
 
     if (xForwardedProto != null
         && (xForwardedProto.equalsIgnoreCase("http")
@@ -68,7 +69,20 @@ public class HttpServletRequestPaths {
       builder.append(request.getScheme());
     }
 
-    builder.append("://").append(request.getServerName());
+    builder.append("://");
+
+    if (xForwardedHost != null && !xForwardedHost.isBlank()) {
+      // X-Forwarded-Host may contain "host:port" — extract just the host part
+      String host = xForwardedHost.split(",")[0].trim();
+      int colonIdx = host.indexOf(':');
+      if (colonIdx >= 0) {
+        builder.append(host, 0, colonIdx);
+      } else {
+        builder.append(host);
+      }
+    } else {
+      builder.append(request.getServerName());
+    }
 
     int port;
 
