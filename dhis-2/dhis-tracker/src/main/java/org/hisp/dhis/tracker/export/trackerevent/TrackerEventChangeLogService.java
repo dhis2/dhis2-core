@@ -29,10 +29,6 @@
  */
 package org.hisp.dhis.tracker.export.trackerevent;
 
-import java.util.Date;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.changelog.ChangeLogType;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.tracker.export.event.EventChangeLogService;
 import org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore;
 import org.hisp.dhis.tracker.model.TrackerEvent;
@@ -47,45 +43,5 @@ public class TrackerEventChangeLogService
       HibernateEventChangeLogStore<TrackerEventChangeLog, TrackerEvent>
           hibernateEventChangeLogStore) {
     super(trackerEventService, hibernateEventChangeLogStore);
-  }
-
-  @Override
-  public TrackerEventChangeLog buildEventChangeLog(
-      TrackerEvent event,
-      DataElement dataElement,
-      String eventField,
-      String previousValue,
-      String value,
-      ChangeLogType changeLogType,
-      Date created,
-      String userName) {
-    return new TrackerEventChangeLog(
-        event, dataElement, eventField, previousValue, value, changeLogType, created, userName);
-  }
-
-  @Override
-  public void addEntityFieldChangeLog(
-      @Nonnull TrackerEvent currentEvent, @Nonnull TrackerEvent event, @Nonnull String username) {
-    logIfChanged(
-        "scheduledAt",
-        TrackerEvent::getScheduledDate,
-        EventChangeLogService::formatDate,
-        currentEvent,
-        event,
-        username);
-    logIfChanged(
-        "occurredAt",
-        TrackerEvent::getOccurredDate,
-        EventChangeLogService::formatDate,
-        currentEvent,
-        event,
-        username);
-    logIfChanged(
-        "geometry",
-        TrackerEvent::getGeometry,
-        EventChangeLogService::formatGeometry,
-        currentEvent,
-        event,
-        username);
   }
 }
