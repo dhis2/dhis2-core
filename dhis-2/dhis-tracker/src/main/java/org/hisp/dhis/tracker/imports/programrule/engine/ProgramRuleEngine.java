@@ -36,6 +36,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.rules.api.RuleContextRequirements;
+import org.hisp.dhis.rules.api.RuleEngineContext;
 import org.hisp.dhis.rules.models.Rule;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
@@ -45,29 +46,23 @@ import org.hisp.dhis.user.UserDetails;
 
 public interface ProgramRuleEngine {
   /**
-   * Evaluate program rules for multiple enrollments belonging to the same {@link Program}, building
-   * the rule engine context once. Rules are evaluated under the authorization of given {@link
-   * UserDetails}. {@code rules}, {@code variables}, and {@code constantMap} are pre-mapped by the
-   * caller so they are not re-converted inside the engine.
+   * Evaluate program rules for multiple enrollments belonging to the same {@link Program}. The
+   * {@link RuleEngineContext} is pre-built by the caller and shared across all enrollments of the
+   * same program to avoid redundant context construction.
    */
   RuleEngineEffects evaluateEnrollmentsAndTrackerEvents(
       @Nonnull Map<RuleEnrollment, List<RuleEvent>> enrollmentsWithEvents,
       @Nonnull UserDetails user,
-      @Nonnull Map<String, String> constantMap,
-      @Nonnull List<Rule> rules,
-      @Nonnull List<RuleVariable> variables);
+      @Nonnull RuleEngineContext context);
 
   /**
-   * Evaluate program rules as the given {@link UserDetails} for {@link Program} for program events.
-   * {@code rules}, {@code variables}, and {@code constantMap} are pre-mapped by the caller so they
-   * are not re-converted inside the engine.
+   * Evaluate program rules for single events belonging to the same {@link Program}. The {@link
+   * RuleEngineContext} is pre-built by the caller and shared across all events of the same program.
    */
   RuleEngineEffects evaluateSingleEvents(
       @Nonnull List<RuleEvent> events,
       @Nonnull UserDetails user,
-      @Nonnull Map<String, String> constantMap,
-      @Nonnull List<Rule> rules,
-      @Nonnull List<RuleVariable> variables);
+      @Nonnull RuleEngineContext context);
 
   /** Analyses the given rule set and returns what evaluation context it requires. */
   @Nonnull
