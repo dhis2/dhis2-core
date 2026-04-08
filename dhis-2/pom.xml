@@ -91,7 +91,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.7.0</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.7.2</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.6</dhis-hisp-quick.version>
@@ -99,7 +99,7 @@
     <dhis-json-tree.version>1.8.1</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>6.5.0</spring-security.version>
+    <spring-security.version>6.5.4</spring-security.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <spring-authorization-server.version>1.5.2</spring-authorization-server.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
@@ -109,7 +109,7 @@
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>6.2.8</spring.version>
+    <spring.version>6.2.11</spring.version>
     <spring-session-core.version>3.5.1</spring-session-core.version>
     <spring-data-redis.version>2.7.18</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
@@ -133,7 +133,7 @@
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.11.0</datasource-proxy.version>
     <mysql-connector-j.version>9.3.0</mysql-connector-j.version>
-    <clickhouse-jdbc.version>0.9.2</clickhouse-jdbc.version>
+    <clickhouse-jdbc.version>0.9.8</clickhouse-jdbc.version>
 
     <!-- Servlet -->
     <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
@@ -163,7 +163,7 @@
     <jfreechart-common.version>1.0.23</jfreechart-common.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
-    <poi.version>5.4.1</poi.version>
+    <poi.version>5.5.1</poi.version>
     <itext.version>2.1.7</itext.version>
 
     <!-- GIS -->
@@ -190,7 +190,7 @@
     <guava.version>33.5.0-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
-    <google-api-client.version>2.8.1</google-api-client.version>
+    <google-api-client.version>2.9.0</google-api-client.version>
     <lombok.version>1.18.40</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.14.1</joda-time.version>

@@ -39,9 +39,9 @@ import com.google.common.collect.Sets;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.Root;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -73,6 +73,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.template.NotificationTemplateMapper;
 import org.hisp.dhis.scheduling.JobProgress;
+import org.hisp.dhis.tracker.imports.notification.GroupMemberInfo;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
@@ -324,26 +325,47 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
 
   @Override
   @Transactional
-  public void sendNotification(ProgramNotificationTemplate template, Enrollment enrollment) {
-    MessageBatch messageBatch =
-        createEnrollmentMessageBatch(template, Collections.singletonList(enrollment));
-    sendAll(messageBatch);
+  public void sendNotification(
+      ProgramNotificationTemplate template,
+      Enrollment enrollment,
+      Map<Long, Set<GroupMemberInfo>> groupMembers) {
+    MessageBatch batch = new MessageBatch();
+    if (template.getNotificationRecipient().isExternalRecipient()) {
+      batch.programMessages.add(createProgramMessage(enrollment, template));
+    } else {
+      batch.dhisMessages.add(createDhisMessage(enrollment, template, groupMembers));
+    }
+    sendAll(batch);
   }
 
   @Override
   @Transactional
-  public void sendNotification(ProgramNotificationTemplate template, TrackerEvent event) {
-    MessageBatch messageBatch =
-        createTrackerEventMessageBatch(template, Collections.singletonList(event));
-    sendAll(messageBatch);
+  public void sendNotification(
+      ProgramNotificationTemplate template,
+      TrackerEvent event,
+      Map<Long, Set<GroupMemberInfo>> groupMembers) {
+    MessageBatch batch = new MessageBatch();
+    if (template.getNotificationRecipient().isExternalRecipient()) {
+      batch.programMessages.add(createProgramMessage(event, template));
+    } else {
+      batch.dhisMessages.add(createDhisMessage(event, template, groupMembers));
+    }
+    sendAll(batch);
   }
 
   @Override
   @Transactional
-  public void sendNotification(ProgramNotificationTemplate template, SingleEvent event) {
-    MessageBatch messageBatch =
-        createSingleEventMessageBatch(template, Collections.singletonList(event));
-    sendAll(messageBatch);
+  public void sendNotification(
+      ProgramNotificationTemplate template,
+      SingleEvent event,
+      Map<Long, Set<GroupMemberInfo>> groupMembers) {
+    MessageBatch batch = new MessageBatch();
+    if (template.getNotificationRecipient().isExternalRecipient()) {
+      batch.programMessages.add(createProgramMessage(event, template));
+    } else {
+      batch.dhisMessages.add(createSingleEventDhisMessage(event, template));
+    }
+    sendAll(batch);
   }
 
   @Override
@@ -749,6 +771,99 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
         resolveDhisMessageRecipients(template, enrollment.getOrganisationUnit());
 
     return dhisMessage;
+  }
+
+  private DhisMessage createDhisMessage(
+      Enrollment enrollment,
+      ProgramNotificationTemplate template,
+      Map<Long, Set<GroupMemberInfo>> groupMembers) {
+    DhisMessage dhisMessage = new DhisMessage();
+    dhisMessage.message = programNotificationRenderer.render(enrollment, template);
+    dhisMessage.recipients =
+        resolveDhisMessageRecipients(template, enrollment.getOrganisationUnit(), groupMembers);
+    return dhisMessage;
+  }
+
+  private DhisMessage createDhisMessage(
+      TrackerEvent event,
+      ProgramNotificationTemplate template,
+      Map<Long, Set<GroupMemberInfo>> groupMembers) {
+    DhisMessage dhisMessage = new DhisMessage();
+    dhisMessage.message = programStageNotificationRenderer.render(event, template);
+    dhisMessage.recipients =
+        resolveDhisMessageRecipients(template, event.getOrganisationUnit(), groupMembers);
+    return dhisMessage;
+  }
+
+  private Set<User> resolveDhisMessageRecipients(
+      ProgramNotificationTemplate template,
+      OrganisationUnit orgUnit,
+      Map<Long, Set<GroupMemberInfo>> groupMembers) {
+    if (template.getNotificationRecipient() == ProgramNotificationRecipient.USER_GROUP) {
+      return resolveUserGroupRecipients(template, orgUnit, groupMembers);
+    }
+    return resolveDhisMessageRecipients(template, orgUnit);
+  }
+
+  private Set<User> resolveUserGroupRecipients(
+      ProgramNotificationTemplate template,
+      OrganisationUnit orgUnit,
+      Map<Long, Set<GroupMemberInfo>> groupMembers) {
+    if (template.getRecipientUserGroup() == null) {
+      return Set.of();
+    }
+
+    Set<GroupMemberInfo> members =
+        groupMembers.getOrDefault(template.getRecipientUserGroup().getId(), Set.of());
+
+    Set<GroupMemberInfo> filtered = filterByOrgUnit(template, orgUnit, members);
+
+    return filtered.stream()
+        .map(GroupMemberInfo::userId)
+        .distinct()
+        .map(id -> entityManager.getReference(User.class, id))
+        .collect(Collectors.toSet());
+  }
+
+  /**
+   * Filters group members by org unit based on template settings. The entity's org unit path (e.g.
+   * {@code /rootUid/parentUid/selfUid}) is used for hierarchy checks.
+   *
+   * <ul>
+   *   <li>{@code notifyUsersInHierarchyOnly}: keep members whose org unit appears anywhere in the
+   *       entity's path (the entity's org unit or any of its ancestors)
+   *   <li>{@code notifyParentOrganisationUnitOnly}: keep only members whose org unit matches the
+   *       entity's parent org unit (second-to-last UID in the path)
+   *   <li>neither flag set: keep all members
+   * </ul>
+   */
+  static Set<GroupMemberInfo> filterByOrgUnit(
+      ProgramNotificationTemplate template,
+      OrganisationUnit orgUnit,
+      Set<GroupMemberInfo> members) {
+    if (BooleanUtils.toBoolean(template.getNotifyUsersInHierarchyOnly())) {
+      Set<String> hierarchyUids = Set.of(orgUnit.getStoredPath().split("/"));
+      return members.stream()
+          .filter(m -> m.orgUnitUid() != null && hierarchyUids.contains(m.orgUnitUid()))
+          .collect(Collectors.toSet());
+    }
+
+    if (BooleanUtils.toBoolean(template.getNotifyParentOrganisationUnitOnly())) {
+      String parentUid = extractParentUidFromPath(orgUnit.getStoredPath());
+      return members.stream()
+          .filter(m -> Objects.equals(parentUid, m.orgUnitUid()))
+          .collect(Collectors.toSet());
+    }
+
+    return members;
+  }
+
+  static String extractParentUidFromPath(String path) {
+    if (path == null) return null;
+    // "/rootUid" splits to ["", "rootUid"] (length 2, no parent)
+    // "/parentUid/selfUid" splits to ["", "parentUid", "selfUid"] (length 3, parent at index 1)
+    String[] parts = path.split("/");
+    return parts.length >= 3 ? parts[parts.length - 2] : null;
   }
 
   private void sendDhisMessages(Set<DhisMessage> messages) {

@@ -30,6 +30,8 @@
 package org.hisp.dhis.tracker.imports.notification;
 
 import java.util.Date;
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
@@ -49,7 +51,7 @@ import org.hisp.dhis.tracker.program.notification.ProgramNotificationService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-/** Sends or schedules a notification to be sent as a result of a rule-engine evaluation. */
+/** Sends or schedules notifications as a side effect of tracker import. */
 @Slf4j
 @RequiredArgsConstructor
 @Component
@@ -60,7 +62,10 @@ public class NotificationSender {
   private final NotificationLoggingService notificationLoggingService;
 
   @Transactional
-  public void send(Notification notification, Enrollment enrollment) {
+  public void send(
+      Notification notification,
+      Enrollment enrollment,
+      Map<Long, Set<GroupMemberInfo>> groupMembers) {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
     NotificationValidationResult result = validate(template, enrollment);
@@ -74,7 +79,7 @@ public class NotificationSender {
       notificationInstance.setEnrollment(enrollment);
       programNotificationInstanceService.save(notificationInstance);
     } else {
-      programNotificationService.sendNotification(template, enrollment);
+      programNotificationService.sendNotification(template, enrollment, groupMembers);
     }
     if (result.needsToCreateLogEntry()) {
       createLogEntry(template, enrollment);
@@ -82,7 +87,8 @@ public class NotificationSender {
   }
 
   @Transactional
-  public void send(Notification notification, TrackerEvent event) {
+  public void send(
+      Notification notification, TrackerEvent event, Map<Long, Set<GroupMemberInfo>> groupMembers) {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
 
     NotificationValidationResult result = validate(template, event.getEnrollment());
@@ -96,7 +102,7 @@ public class NotificationSender {
       notificationInstance.setTrackerEvent(event);
       programNotificationInstanceService.save(notificationInstance);
     } else {
-      programNotificationService.sendNotification(template, event);
+      programNotificationService.sendNotification(template, event, groupMembers);
     }
 
     if (result.needsToCreateLogEntry()) {
@@ -105,8 +111,15 @@ public class NotificationSender {
   }
 
   @Transactional
-  public void send(Notification notification, SingleEvent singleEvent) {
+  public void send(
+      Notification notification,
+      SingleEvent singleEvent,
+      Map<Long, Set<GroupMemberInfo>> groupMembers) {
     ProgramNotificationTemplate template = getNotificationTemplate(notification);
+
+    if (template == null) {
+      return;
+    }
 
     if (notification.scheduledAt() != null) {
       ProgramNotificationInstance notificationInstance =
@@ -114,7 +127,7 @@ public class NotificationSender {
       notificationInstance.setSingleEvent(singleEvent);
       programNotificationInstanceService.save(notificationInstance);
     } else {
-      programNotificationService.sendNotification(template, singleEvent);
+      programNotificationService.sendNotification(template, singleEvent, groupMembers);
     }
   }
 
@@ -131,7 +144,7 @@ public class NotificationSender {
 
   private ProgramNotificationTemplate getNotificationTemplate(Notification notification) {
     String uid = notification.template().getValue();
-    return programNotificationTemplateService.getByUid(uid);
+    return programNotificationTemplateService.getByUidCached(uid);
   }
 
   private NotificationValidationResult validate(
@@ -141,6 +154,10 @@ public class NotificationSender {
     }
 
     if (enrollment == null || enrollment.getProgram().isWithoutRegistration()) {
+      return NotificationValidationResult.validAndNoNeedForLogEntries();
+    }
+
+    if (template.isSendRepeatable()) {
       return NotificationValidationResult.validAndNoNeedForLogEntries();
     }
 

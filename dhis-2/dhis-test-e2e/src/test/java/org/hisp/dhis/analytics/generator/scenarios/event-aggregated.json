@@ -188,7 +188,20 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "eventAggregateStagePeriodAndStaticPeriod",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?displayProperty=NAME&totalPages=false&dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6,SCHEDULED_DATE:LAST_5_FINANCIAL_YEARS,ENROLLMENT_DATE:202302;202302&relativePeriodDate=2025-09-29",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+       "name": "stageValueWithBooleanDataElement",
+       "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?displayProperty=NAME&totalPages=false&dimension=A03MvHHogjR.EVENT_DATE:LAST_6_MONTHS&value=A03MvHHogjR.bx6fsa0t90x&relativePeriodDate=2021-07-01",
+       "version": {
+        "min": 43
+      }
     }
-
   ]
 }
