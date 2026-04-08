@@ -312,7 +312,10 @@ public class TrackerTest extends Simulation {
             .check(status().is(200)); // global check for all requests
 
     List<Assertion> assertions = getAssertions(this.profile, eventScenario, trackerScenario);
-    setUp(populationBuilder).protocols(httpProtocolBuilder).assertions(assertions);
+    SetUp setUp = setUp(populationBuilder).protocols(httpProtocolBuilder).assertions(assertions);
+    if (this.profile == Profile.SMOKE) {
+      setUp.disablePauses();
+    }
   }
 
   /** Provisions test users by replicating a source user via DHIS2 API. */
