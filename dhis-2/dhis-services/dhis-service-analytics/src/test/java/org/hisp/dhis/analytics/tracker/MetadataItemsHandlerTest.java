@@ -1665,6 +1665,8 @@ class MetadataItemsHandlerTest {
       assertNotNull(items);
       assertTrue(items.containsKey(orgUnitA.getUid()));
       assertTrue(items.containsKey(orgUnitB.getUid()));
+      assertTrue(items.containsKey("enrollmentou"));
+      assertEquals("Enrollment org. unit", ((MetadataItem) items.get("enrollmentou")).getName());
     }
   }
 

@@ -29,29 +29,16 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
-import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
-import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.imports.domain.Event;
-import org.locationtech.jts.geom.Geometry;
 import org.springframework.transaction.annotation.Transactional;
 
 public abstract class EventChangeLogService<T, S extends SoftDeletableObject> {
@@ -64,16 +51,6 @@ public abstract class EventChangeLogService<T, S extends SoftDeletableObject> {
     this.eventService = eventService;
     this.hibernateEventChangeLogStore = hibernateEventChangeLogStore;
   }
-
-  public abstract T buildEventChangeLog(
-      S event,
-      DataElement dataElement,
-      String eventField,
-      String previousValue,
-      String value,
-      ChangeLogType changeLogType,
-      Date created,
-      String userName);
 
   @Nonnull
   @Transactional(readOnly = true)
@@ -97,38 +74,6 @@ public abstract class EventChangeLogService<T, S extends SoftDeletableObject> {
     hibernateEventChangeLogStore.deleteEventChangeLog(dataElement);
   }
 
-  @Transactional
-  public void addEventChangeLog(
-      S event,
-      DataElement dataElement,
-      Program program,
-      String previousValue,
-      String value,
-      ChangeLogType changeLogType,
-      String userName) {
-    if (program.isEnableChangeLog()) {
-      T eventChangeLog =
-          buildEventChangeLog(
-              event, dataElement, null, previousValue, value, changeLogType, new Date(), userName);
-
-      hibernateEventChangeLogStore.addEventChangeLog(eventChangeLog);
-    }
-  }
-
-  @Transactional
-  public void addFieldChangeLog(
-      @Nonnull S currentEvent,
-      @Nonnull S event,
-      @Nonnull Program program,
-      @Nonnull String username) {
-    if (program.isEnableChangeLog()) {
-      addEntityFieldChangeLog(currentEvent, event, username);
-    }
-  }
-
-  public abstract void addEntityFieldChangeLog(
-      @Nonnull S currentEvent, @Nonnull S event, @Nonnull String username);
-
   @Transactional(readOnly = true)
   public Set<String> getOrderableFields() {
     return hibernateEventChangeLogStore.getOrderableFields();
@@ -136,60 +81,5 @@ public abstract class EventChangeLogService<T, S extends SoftDeletableObject> {
 
   public Set<Pair<String, Class<?>>> getFilterableFields() {
     return hibernateEventChangeLogStore.getFilterableFields();
-  }
-
-  protected <V> void logIfChanged(
-      String field,
-      Function<S, V> valueExtractor,
-      Function<V, String> formatter,
-      S currentEvent,
-      S event,
-      String userName) {
-
-    String currentValue = formatter.apply(valueExtractor.apply(currentEvent));
-    String newValue = formatter.apply(valueExtractor.apply(event));
-
-    if (!Objects.equals(currentValue, newValue)) {
-      ChangeLogType changeLogType = getChangeLogType(currentValue, newValue);
-
-      T eventChangeLog =
-          buildEventChangeLog(
-              event, null, field, currentValue, newValue, changeLogType, new Date(), userName);
-
-      hibernateEventChangeLogStore.addEventChangeLog(eventChangeLog);
-    }
-  }
-
-  private static ChangeLogType getChangeLogType(String oldValue, String newValue) {
-    if (isFieldCreated(oldValue, newValue)) {
-      return CREATE;
-    } else if (isFieldUpdated(oldValue, newValue)) {
-      return UPDATE;
-    } else {
-      return DELETE;
-    }
-  }
-
-  private static boolean isFieldCreated(String originalValue, String payloadValue) {
-    return originalValue == null && payloadValue != null;
-  }
-
-  private static boolean isFieldUpdated(String originalValue, String payloadValue) {
-    return originalValue != null && payloadValue != null;
-  }
-
-  public static String formatDate(Date date) {
-    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-    return date != null ? formatter.format(date) : null;
-  }
-
-  public static String formatGeometry(Geometry geometry) {
-    if (geometry == null) {
-      return null;
-    }
-
-    return Stream.of(geometry.getCoordinates())
-        .map(c -> String.format("(%f, %f)", c.x, c.y))
-        .collect(Collectors.joining(", "));
   }
 }

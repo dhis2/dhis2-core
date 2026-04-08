@@ -260,7 +260,7 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
     String incidentDate = "2021-07-21_2021-08-01";
     String createdDateDimension = "createdDate";
     String createdDate = "2021-07-21_2021-08-01";
-    String completedDateDimension = "completedDate";
+    String completedDateDimension = "completed";
     String completedDate = "2021-07-21_2021-08-01";
     String eventDateBody =
         "{'dimension': '" + eventDateDimension + "', 'items': [{'id': '" + eventDate + "'}]}";

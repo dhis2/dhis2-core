@@ -31,9 +31,12 @@ package org.hisp.dhis.tracker.acl;
 
 import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT;
 import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
@@ -43,6 +46,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.validation.ErrorMessage;
@@ -70,9 +74,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   private final TrackerProgramService trackerProgramService;
 
   @Override
-  // TODO(tracker) Add @Nonnull annotation for TrackedEntity. We need to discuss this first.
-  public List<String> canRead(@Nonnull UserDetails user, TrackedEntity trackedEntity) {
-    if (user.isSuper() || trackedEntity == null) {
+  public List<String> canRead(@Nonnull UserDetails user, @Nonnull TrackedEntity trackedEntity) {
+    if (user.isSuper()) {
       return List.of();
     }
 
@@ -83,7 +86,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
 
     List<Program> tetPrograms =
-        trackerProgramService.getAccessibleTrackerPrograms(trackedEntityType);
+        trackerProgramService.getTrackerProgramsWithDataReadAccess(trackedEntityType);
     if (tetPrograms.isEmpty()) {
       return List.of("User has no access to any program");
     }
@@ -97,17 +100,16 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  // TODO(tracker) Add @Nonnull annotation for TrackedEntity. We need to discuss this first.
-  public List<ErrorMessage> canCreate(@Nonnull UserDetails user, TrackedEntity trackedEntity) {
+  public List<ErrorMessage> canCreate(
+      @Nonnull UserDetails user, @Nonnull TrackedEntity trackedEntity) {
     List<ErrorMessage> errors = new ArrayList<>();
-    if (user.isSuper() || trackedEntity == null) {
+    if (user.isSuper()) {
       return List.of();
     }
 
     if (!user.isInUserHierarchy(trackedEntity.getOrganisationUnit().getStoredPath())) {
       errors.add(
-          new ErrorMessage(
-              ValidationCode.E1000, user.getUid(), List.of(trackedEntity.getOrganisationUnit())));
+          new ErrorMessage(E1000, user.getUid(), List.of(trackedEntity.getOrganisationUnit())));
     }
 
     TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
@@ -121,10 +123,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  // TODO(tracker) Add @Nonnull annotation for TrackedEntity. We need to discuss this first.
-  public List<ErrorMessage> canUpdate(UserDetails user, TrackedEntity trackedEntity) {
+  public List<ErrorMessage> canUpdate(
+      @Nonnull UserDetails user, @Nonnull TrackedEntity trackedEntity) {
     List<ErrorMessage> errors = new ArrayList<>();
-    if (user.isSuper() || trackedEntity == null) {
+    if (user.isSuper()) {
       return List.of();
     }
 
@@ -137,13 +139,14 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
 
     List<Program> tetPrograms =
-        trackerProgramService.getAccessibleTrackerPrograms(trackedEntityType);
+        trackerProgramService.getTrackerProgramsWithDataWriteAccess(trackedEntityType);
 
     if (tetPrograms.isEmpty()) {
       errors.add(
           new ErrorMessage(
               ValidationCode.E1323, user.getUid(), List.of(trackedEntityType.getUid())));
-    } else if (tetPrograms.stream().noneMatch(p -> canWrite(user, trackedEntity, p))) {
+    } else if (tetPrograms.stream()
+        .noneMatch(p -> ownershipAccessManager.hasAccess(user, trackedEntity, p))) {
       errors.add(
           new ErrorMessage(ValidationCode.E1324, user.getUid(), List.of(trackedEntity.getUid())));
     }
@@ -152,17 +155,16 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  // TODO(tracker) Add @Nonnull annotation for TrackedEntity. We need to discuss this first.
-  public List<ErrorMessage> canDelete(UserDetails user, TrackedEntity trackedEntity) {
-    if (user.isSuper() || trackedEntity == null) {
+  public List<ErrorMessage> canDelete(
+      @Nonnull UserDetails user, @Nonnull TrackedEntity trackedEntity) {
+    if (user.isSuper()) {
       return List.of();
     }
 
     List<ErrorMessage> errors = new ArrayList<>();
     if (!user.isInUserHierarchy(trackedEntity.getOrganisationUnit().getStoredPath())) {
       errors.add(
-          new ErrorMessage(
-              ValidationCode.E1000, user.getUid(), List.of(trackedEntity.getOrganisationUnit())));
+          new ErrorMessage(E1000, user.getUid(), List.of(trackedEntity.getOrganisationUnit())));
     }
 
     errors.addAll(canUpdate(user, trackedEntity));
@@ -170,15 +172,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     return errors;
   }
 
-  /** Check Program data write access and Tracked Entity Program Ownership */
-  private boolean canWrite(UserDetails user, TrackedEntity trackedEntity, Program program) {
-    return aclService.canDataWrite(user, program)
-        && ownershipAccessManager.hasAccess(user, trackedEntity, program);
-  }
-
   @Override
-  public List<String> canRead(@Nonnull UserDetails user, Enrollment enrollment) {
-    if (user.isSuper() || enrollment == null) {
+  public List<String> canRead(@Nonnull UserDetails user, @Nonnull Enrollment enrollment) {
+    if (user.isSuper()) {
       return List.of();
     }
 
@@ -202,65 +198,97 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canCreate(@Nonnull UserDetails user, Enrollment enrollment) {
-    if (user.isSuper() || enrollment == null) {
+  public List<ErrorMessage> canCreate(@Nonnull UserDetails user, @Nonnull Enrollment enrollment) {
+    if (user.isSuper()) {
       return List.of();
     }
 
-    Program program = enrollment.getProgram();
-    List<String> errors = new ArrayList<>();
-    OrganisationUnit ou = enrollment.getOrganisationUnit();
-    if (ou != null && !user.isInUserHierarchy(ou.getStoredPath())) {
-      errors.add("User has no create access to organisation unit: " + ou.getUid());
-    }
+    List<ErrorMessage> errors = new ArrayList<>(validateEnrollmentAccess(user, enrollment));
 
-    if (!aclService.canDataWrite(user, program)) {
-      errors.add("User has no data write access to program: " + program.getUid());
-    }
-
-    if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
+    OrganisationUnit enrollmentOrgUnit = enrollment.getOrganisationUnit();
+    if (enrollmentOrgUnit != null && !user.isInUserHierarchy(enrollmentOrgUnit.getStoredPath())) {
       errors.add(
-          "User has no data read access to tracked entity type: "
-              + (program.getTrackedEntityType() != null
-                  ? program.getTrackedEntityType().getUid()
-                  : null));
-    }
-
-    if (!ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
-      errors.add(OWNERSHIP_ACCESS_DENIED);
+          new ErrorMessage(
+              E1000, user.getUid(), List.of(user.getUid(), enrollmentOrgUnit.getUid())));
     }
 
     return errors;
   }
 
   @Override
-  public List<String> canUpdate(@Nonnull UserDetails user, Enrollment enrollment) {
-    if (user.isSuper() || enrollment == null) {
+  public List<ErrorMessage> canUpdate(
+      @Nonnull UserDetails user,
+      @Nonnull Enrollment enrollment,
+      @CheckForNull OrganisationUnit payloadEnrollmentOrgUnit) {
+    if (user.isSuper()) {
       return List.of();
     }
 
-    Program program = enrollment.getProgram();
-    List<String> errors = new ArrayList<>();
-    if (!aclService.canDataWrite(user, program)) {
-      errors.add("User has no data write access to program: " + program.getUid());
-    }
+    List<ErrorMessage> errors = new ArrayList<>(validateEnrollmentAccess(user, enrollment));
 
-    if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
+    boolean orgUnitChanged =
+        payloadEnrollmentOrgUnit != null
+            && !payloadEnrollmentOrgUnit.getUid().equals(enrollment.getOrganisationUnit().getUid());
+
+    if (orgUnitChanged && !user.isInUserHierarchy(payloadEnrollmentOrgUnit.getStoredPath())) {
       errors.add(
-          "User has no data read access to tracked entity type: "
-              + program.getTrackedEntityType().getUid());
-    }
-
-    if (!ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
-      errors.add(OWNERSHIP_ACCESS_DENIED);
+          new ErrorMessage(E1000, user.getUid(), List.of(payloadEnrollmentOrgUnit.getUid())));
     }
 
     return errors;
   }
 
   @Override
-  public List<String> canDelete(@Nonnull UserDetails user, Enrollment enrollment) {
-    return canUpdate(user, enrollment);
+  public List<ErrorMessage> canDelete(
+      @Nonnull UserDetails user, @Nonnull Enrollment enrollment, boolean hasNonDeletedEvents) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    List<ErrorMessage> errors = new ArrayList<>(canCreate(user, enrollment));
+    boolean hasNotCascadeDeleteAuthority =
+        !user.isAuthorized(Authorities.F_ENROLLMENT_CASCADE_DELETE.name());
+
+    if (hasNonDeletedEvents && hasNotCascadeDeleteAuthority) {
+      errors.add(new ErrorMessage(E1103, user.getUid(), List.of(enrollment.getUid())));
+    }
+
+    return errors;
+  }
+
+  private List<ErrorMessage> validateEnrollmentAccess(
+      @Nonnull UserDetails user, @Nonnull Enrollment enrollment) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    Program program = enrollment.getProgram();
+    List<ErrorMessage> errors = new ArrayList<>();
+    if (!aclService.canDataWrite(user, program)) {
+      errors.add(
+          new ErrorMessage(
+              ValidationCode.E1091, user.getUid(), List.of(user.getUid(), program.getUid())));
+    }
+
+    if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
+      errors.add(
+          new ErrorMessage(
+              ValidationCode.E1104,
+              user.getUid(),
+              List.of(user.getUid(), program.getUid(), program.getTrackedEntityType().getUid())));
+    }
+
+    if (!ownershipAccessManager.hasAccess(user, enrollment.getTrackedEntity(), program)) {
+      errors.add(
+          new ErrorMessage(
+              ValidationCode.E1102,
+              user.getUid(),
+              List.of(user.getUid(), enrollment.getTrackedEntity().getUid(), program.getUid())));
+    }
+
+    errors.addAll(canWriteCategoryOptionCombo(user, enrollment.getAttributeOptionCombo()));
+
+    return errors;
   }
 
   @Override
@@ -462,58 +490,19 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     RelationshipItem from = relationship.getFrom();
     RelationshipItem to = relationship.getTo();
 
-    errors.addAll(canRead(user, from.getTrackedEntity()));
-    errors.addAll(canRead(user, from.getEnrollment()));
-    errors.addAll(canRead(user, from.getTrackerEvent()));
-    errors.addAll(canRead(user, from.getSingleEvent()));
-
-    errors.addAll(canRead(user, to.getTrackedEntity()));
-    errors.addAll(canRead(user, to.getEnrollment()));
-    errors.addAll(canRead(user, to.getTrackerEvent()));
-    errors.addAll(canRead(user, to.getSingleEvent()));
+    errors.addAll(canRead(user, from));
+    errors.addAll(canRead(user, to));
 
     return errors;
   }
 
   @Override
   @Transactional(readOnly = true)
-  public List<String> canCreate(@Nonnull UserDetails user, Relationship relationship) {
-    if (user.isSuper() || relationship == null) {
-      return List.of();
-    }
-
-    RelationshipType relationshipType = relationship.getRelationshipType();
-    List<String> errors = new ArrayList<>();
-
-    if (!aclService.canDataWrite(user, relationshipType)) {
-      errors.add("User has no data write access to relationshipType: " + relationshipType.getUid());
-    }
-
-    RelationshipItem from = relationship.getFrom();
-    RelationshipItem to = relationship.getTo();
-    boolean isBidirectional = relationshipType.isBidirectional();
-
-    errors.addAll(
-        canUpdate(user, from.getTrackedEntity()).stream()
-            .map(eo -> eo.validationCode().getMessage())
-            .toList());
-    errors.addAll(canUpdate(user, from.getEnrollment()));
-    errors.addAll(canUpdate(user, from.getTrackerEvent()));
-    errors.addAll(canCreate(user, from.getSingleEvent()));
-
-    if (isBidirectional) {
-      errors.addAll(
-          canUpdate(user, to.getTrackedEntity()).stream()
-              .map(eo -> eo.validationCode().getMessage())
-              .toList());
-      errors.addAll(canUpdate(user, to.getEnrollment()));
-      errors.addAll(canUpdate(user, to.getTrackerEvent()));
-      errors.addAll(canCreate(user, to.getSingleEvent()));
-    } else {
-      errors.addAll(canRead(user, to.getTrackedEntity()));
-      errors.addAll(canRead(user, to.getEnrollment()));
-      errors.addAll(canRead(user, to.getTrackerEvent()));
-      errors.addAll(canRead(user, to.getSingleEvent()));
+  public List<String> canCreate(UserDetails user, Relationship relationship) {
+    if (user.isSuper() || relationship == null) return List.of();
+    List<String> errors = new ArrayList<>(canWriteRelationship(user, relationship));
+    if (!relationship.getRelationshipType().isBidirectional()) {
+      errors.addAll(canRead(user, relationship.getTo()));
     }
     return errors;
   }
@@ -521,33 +510,19 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   @Override
   @Transactional(readOnly = true)
   public List<String> canDelete(UserDetails user, @Nonnull Relationship relationship) {
-    RelationshipType relationshipType = relationship.getRelationshipType();
+    if (user.isSuper()) return List.of();
+    return canWriteRelationship(user, relationship);
+  }
+
+  private List<String> canWriteRelationship(UserDetails user, Relationship relationship) {
+    RelationshipType type = relationship.getRelationshipType();
     List<String> errors = new ArrayList<>();
-
-    if (!aclService.canDataWrite(user, relationshipType)) {
-      errors.add("User has no data write access to relationshipType: " + relationshipType.getUid());
+    if (!aclService.canDataWrite(user, type)) {
+      errors.add("User has no data write access to relationshipType: " + type.getUid());
     }
-
-    RelationshipItem from = relationship.getFrom();
-    RelationshipItem to = relationship.getTo();
-    boolean isBidirectional = relationshipType.isBidirectional();
-
-    errors.addAll(
-        canUpdate(user, from.getTrackedEntity()).stream()
-            .map(eo -> eo.validationCode().getMessage())
-            .toList());
-    errors.addAll(canUpdate(user, from.getEnrollment()));
-    errors.addAll(canUpdate(user, from.getTrackerEvent()));
-    errors.addAll(canCreate(user, from.getSingleEvent()));
-
-    if (isBidirectional) {
-      errors.addAll(
-          canUpdate(user, to.getTrackedEntity()).stream()
-              .map(eo -> eo.validationCode().getMessage())
-              .toList());
-      errors.addAll(canUpdate(user, to.getEnrollment()));
-      errors.addAll(canUpdate(user, to.getTrackerEvent()));
-      errors.addAll(canCreate(user, to.getSingleEvent()));
+    errors.addAll(canWrite(user, relationship.getFrom()));
+    if (type.isBidirectional()) {
+      errors.addAll(canWrite(user, relationship.getTo()));
     }
     return errors;
   }
@@ -577,6 +552,28 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     return user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath());
   }
 
+  private List<String> canRead(@Nonnull UserDetails user, @Nonnull RelationshipItem item) {
+    if (item.getTrackedEntity() != null) return canRead(user, item.getTrackedEntity());
+    if (item.getEnrollment() != null) return canRead(user, item.getEnrollment());
+    if (item.getTrackerEvent() != null) return canRead(user, item.getTrackerEvent());
+    if (item.getSingleEvent() != null) return canRead(user, item.getSingleEvent());
+    return List.of();
+  }
+
+  private List<String> canWrite(@Nonnull UserDetails user, RelationshipItem item) {
+    if (item.getTrackedEntity() != null)
+      return canUpdate(user, item.getTrackedEntity()).stream()
+          .map(em -> em.validationCode().getMessage())
+          .toList();
+    if (item.getEnrollment() != null)
+      return canUpdate(user, item.getEnrollment(), null).stream()
+          .map(em -> em.validationCode().getMessage())
+          .toList();
+    if (item.getTrackerEvent() != null) return canUpdate(user, item.getTrackerEvent());
+    if (item.getSingleEvent() != null) return canCreate(user, item.getSingleEvent());
+    return List.of();
+  }
+
   private List<String> canRead(@Nonnull UserDetails user, CategoryOptionCombo categoryOptionCombo) {
     if (user.isSuper() || categoryOptionCombo == null) {
       return List.of();
@@ -586,6 +583,26 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
       if (!aclService.canDataRead(user, categoryOption)) {
         errors.add("User has no read access to category option: " + categoryOption.getUid());
+      }
+    }
+
+    return errors;
+  }
+
+  private List<ErrorMessage> canWriteCategoryOptionCombo(
+      @Nonnull UserDetails user, CategoryOptionCombo categoryOptionCombo) {
+    if (user.isSuper() || categoryOptionCombo == null) {
+      return List.of();
+    }
+
+    List<ErrorMessage> errors = new ArrayList<>();
+    for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
+      if (!aclService.canDataWrite(user, categoryOption)) {
+        errors.add(
+            new ErrorMessage(
+                ValidationCode.E1099,
+                user.getUid(),
+                List.of(user.getUid(), categoryOption.getUid())));
       }
     }
 

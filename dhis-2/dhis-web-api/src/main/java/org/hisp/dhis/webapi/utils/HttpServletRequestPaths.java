@@ -30,34 +30,14 @@
 package org.hisp.dhis.webapi.utils;
 
 import jakarta.servlet.http.HttpServletRequest;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class HttpServletRequestPaths {
   private static final Pattern API_VERSION = Pattern.compile("(/api/(\\d+)?/)");
 
-  /** Configured fallback from server.base.url in dhis.conf */
-  private static volatile String configuredFallbackBaseUrl;
-
-  /** Learned fallback from the first request that had X-Forwarded-Host headers */
-  private static volatile String learnedFallbackBaseUrl;
-
   private HttpServletRequestPaths() {
     throw new IllegalStateException("Utility class");
-  }
-
-  /**
-   * Set a fallback base URL (from server.base.url in dhis.conf) to use when X-Forwarded-Host is not
-   * present. This handles cases like internal RequestDispatcher forwards where proxy headers are
-   * lost.
-   */
-  public static void setFallbackBaseUrl(String url) {
-    if (url != null && !url.isEmpty()) {
-      // Strip trailing slash for consistency
-      configuredFallbackBaseUrl = url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
-    }
   }
 
   public static String getApiPath(HttpServletRequest request) {
@@ -76,21 +56,41 @@ public class HttpServletRequestPaths {
   }
 
   public static String getContextPath(HttpServletRequest request) {
-    boolean hasForwardedHeaders = hasForwardedHeaders(request);
+    StringBuilder builder = new StringBuilder();
+    String xForwardedProto = request.getHeader("X-Forwarded-Proto");
+    String xForwardedPort = request.getHeader("X-Forwarded-Port");
+    String xForwardedHost = request.getHeader("X-Forwarded-Host");
 
-    if (!hasForwardedHeaders) {
-      String fallback = resolveFallbackBaseUrl(getFallbackBaseUrl(), request.getContextPath());
-      if (fallback != null) {
-        return fallback;
-      }
+    if (xForwardedProto != null
+        && (xForwardedProto.equalsIgnoreCase("http")
+            || xForwardedProto.equalsIgnoreCase("https"))) {
+      builder.append(xForwardedProto);
+    } else {
+      builder.append(request.getScheme());
     }
 
-    String scheme = resolveScheme(request);
-    String hostname = resolveHostname(request, hasForwardedHeaders);
-    int port = resolvePort(request);
+    builder.append("://");
 
-    StringBuilder builder = new StringBuilder();
-    builder.append(scheme).append("://").append(hostname);
+    if (xForwardedHost != null && !xForwardedHost.isBlank()) {
+      // X-Forwarded-Host may contain "host:port" — extract just the host part
+      String host = xForwardedHost.split(",")[0].trim();
+      int colonIdx = host.indexOf(':');
+      if (colonIdx >= 0) {
+        builder.append(host, 0, colonIdx);
+      } else {
+        builder.append(host);
+      }
+    } else {
+      builder.append(request.getServerName());
+    }
+
+    int port;
+
+    try {
+      port = Integer.parseInt(xForwardedPort);
+    } catch (NumberFormatException e) {
+      port = request.getServerPort();
+    }
 
     if (port != 80 && port != 443) {
       builder.append(":").append(port);
@@ -98,106 +98,6 @@ public class HttpServletRequestPaths {
 
     builder.append(request.getContextPath());
 
-    String result = builder.toString();
-
-    if (hasForwardedHeaders && learnedFallbackBaseUrl == null) {
-      learnedFallbackBaseUrl = result;
-    }
-
-    return result;
-  }
-
-  static void resetFallbackBaseUrls() {
-    configuredFallbackBaseUrl = null;
-    learnedFallbackBaseUrl = null;
-  }
-
-  private static boolean hasForwardedHeaders(HttpServletRequest request) {
-    String xForwardedHost = request.getHeader("X-Forwarded-Host");
-    return xForwardedHost != null && !xForwardedHost.isEmpty();
-  }
-
-  /** Returns the configured or learned fallback base URL, or null if none is available. */
-  private static String getFallbackBaseUrl() {
-    if (configuredFallbackBaseUrl != null) {
-      return configuredFallbackBaseUrl;
-    }
-    return learnedFallbackBaseUrl;
-  }
-
-  private static String resolveFallbackBaseUrl(String fallbackBaseUrl, String contextPath) {
-    if (fallbackBaseUrl == null) {
-      return null;
-    }
-    if (contextPath == null || contextPath.isEmpty()) {
-      return fallbackBaseUrl;
-    }
-
-    try {
-      URI fallbackUri = URI.create(fallbackBaseUrl);
-      String fallbackPath = fallbackUri.getPath();
-      if (fallbackPath != null && !fallbackPath.isEmpty() && !"/".equals(fallbackPath)) {
-        return fallbackBaseUrl;
-      }
-
-      URI mergedUri =
-          new URI(
-              fallbackUri.getScheme(),
-              fallbackUri.getUserInfo(),
-              fallbackUri.getHost(),
-              fallbackUri.getPort(),
-              contextPath,
-              fallbackUri.getQuery(),
-              fallbackUri.getFragment());
-
-      return mergedUri.toString();
-    } catch (IllegalArgumentException | URISyntaxException ex) {
-      return fallbackBaseUrl;
-    }
-  }
-
-  /** Uses X-Forwarded-Proto if it's a valid HTTP scheme, otherwise falls back to request scheme. */
-  private static String resolveScheme(HttpServletRequest request) {
-    String xForwardedProto = request.getHeader("X-Forwarded-Proto");
-    if (xForwardedProto != null
-        && (xForwardedProto.equalsIgnoreCase("http")
-            || xForwardedProto.equalsIgnoreCase("https"))) {
-      return xForwardedProto;
-    }
-    return request.getScheme();
-  }
-
-  /**
-   * Extracts the hostname from X-Forwarded-Host (stripping any port suffix), or falls back to the
-   * server name when no forwarded headers are present. Handles IPv6 addresses in bracket notation.
-   */
-  private static String resolveHostname(HttpServletRequest request, boolean hasForwardedHeaders) {
-    if (!hasForwardedHeaders) {
-      return request.getServerName();
-    }
-
-    String host = request.getHeader("X-Forwarded-Host");
-
-    // IPv6 with port, e.g. "[::1]:8080" — strip the port after the closing bracket
-    if (host.contains("]:")) {
-      return host.substring(0, host.indexOf("]:") + 1);
-    }
-
-    // IPv4 or hostname with port, e.g. "example.com:8080" — strip the port
-    if (host.contains(":") && !host.startsWith("[")) {
-      return host.substring(0, host.indexOf(":"));
-    }
-
-    return host;
-  }
-
-  /** Uses X-Forwarded-Port if parseable, otherwise falls back to the server port. */
-  private static int resolvePort(HttpServletRequest request) {
-    String xForwardedPort = request.getHeader("X-Forwarded-Port");
-    try {
-      return Integer.parseInt(xForwardedPort);
-    } catch (NumberFormatException e) {
-      return request.getServerPort();
-    }
+    return builder.toString();
   }
 }

@@ -160,6 +160,48 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "eventAggregateWithRelativePeriodTimeField",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?stage=A03MvHHogjR&displayProperty=NAME&totalPages=false&scheduledDate=LAST_5_FINANCIAL_YEARS&outputType=EVENT&dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6&relativePeriodDate=2025-09-29",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "eventAggregateWithFixedPeriodTimeField_asDimension",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?stage=A03MvHHogjR&displayProperty=NAME&totalPages=false&outputType=EVENT&dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6,ENROLLMENT_DATE:202301;202402&relativePeriodDate=2025-09-29",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "createdDateAsDimensionWithTimeRange",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?stage=A03MvHHogjR&displayProperty=NAME&totalPages=false&dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6,CREATED:2016-07-30_2017-08-07&relativePeriodDate=2025-09-29",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "completedDateAsDimensionWithTimeRange",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?stage=A03MvHHogjR&displayProperty=NAME&totalPages=false&dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6,COMPLETED:2021-07-30_2022-08-07&relativePeriodDate=2025-09-29",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "eventAggregateStagePeriodAndStaticPeriod",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?displayProperty=NAME&totalPages=false&dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6,SCHEDULED_DATE:LAST_5_FINANCIAL_YEARS,ENROLLMENT_DATE:202302;202302&relativePeriodDate=2025-09-29",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+       "name": "stageValueWithBooleanDataElement",
+       "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?displayProperty=NAME&totalPages=false&dimension=A03MvHHogjR.EVENT_DATE:LAST_6_MONTHS&value=A03MvHHogjR.bx6fsa0t90x&relativePeriodDate=2021-07-01",
+       "version": {
+        "min": 43
+      }
     }
   ]
 }

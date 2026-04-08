@@ -159,7 +159,7 @@ public class StaticContentController {
       SystemSettings settings)
       throws WebMessageException, NotFoundException {
 
-    staticCacheControlService.setHeaders(response, request.getRequestURI(), null);
+    staticCacheControlService.setHeaders(response, request.getRequestURI(), null, null);
 
     if (!isUseCustomFile(key, settings)) // Serve default
     {

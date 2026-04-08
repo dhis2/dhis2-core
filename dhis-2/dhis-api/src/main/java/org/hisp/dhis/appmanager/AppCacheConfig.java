@@ -63,8 +63,8 @@ public class AppCacheConfig implements Serializable {
   private Boolean htmlRewriteEnabled;
 
   /**
-   * A single cache rule from {@code dhis2-cache.json}. Pattern uses Ant-style globs (e.g. {@code **
-   * /*.html}).
+   * A single cache rule from {@code dhis2-cache.json}. Pattern uses Ant-style globs (e.g. {@code
+   * **&#47;*.html}).
    */
   @Data
   @NoArgsConstructor

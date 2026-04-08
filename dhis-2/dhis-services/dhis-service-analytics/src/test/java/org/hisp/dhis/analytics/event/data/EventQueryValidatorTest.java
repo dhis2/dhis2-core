@@ -535,6 +535,28 @@ class EventQueryValidatorTest extends TestBase {
   }
 
   @Test
+  void validateAllowsStageInValueWithStageSpecificDimension() {
+    ProgramStage psA = createProgramStage('A', prA);
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withProgramStage(psA)
+            .withRequestValue(psA.getUid() + "." + deA.getUid())
+            .withOrganisationUnits(List.of(ouA))
+            .addItem(qi)
+            .build();
+
+    ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
+
+    assertNull(error);
+  }
+
+  @Test
   void validateFailsWhenPeriodDimensionWithStageDateDimension() {
     ProgramStage psA = createProgramStage('A', prA);
     BaseDimensionalItemObject item =
@@ -555,6 +577,98 @@ class EventQueryValidatorTest extends TestBase {
     ErrorMessage error = eventQueryValidator.validateForErrorMessage(params);
 
     assertEquals(ErrorCode.E7242, error.getErrorCode());
+  }
+
+  @Test
+  void validateAllowsCreatedPeriodDimensionWithStageDateDimension() {
+    ProgramStage psA = createProgramStage('A', prA);
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withOrganisationUnits(List.of(ouA))
+            .withPeriods(
+                createPeriodDimensions("202001").stream()
+                    .map(period -> period.setDateField(TimeField.CREATED.name()))
+                    .toList(),
+                "monthly")
+            .addItem(qi)
+            .build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
+  }
+
+  @Test
+  void validateAllowsLastUpdatedPeriodDimensionWithStageDateDimension() {
+    ProgramStage psA = createProgramStage('A', prA);
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withOrganisationUnits(List.of(ouA))
+            .withPeriods(
+                createPeriodDimensions("202001").stream()
+                    .map(period -> period.setDateField(TimeField.LAST_UPDATED.name()))
+                    .toList(),
+                "monthly")
+            .addItem(qi)
+            .build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
+  }
+
+  @Test
+  void validateAllowsEventDatePeriodDimensionWithStageDateDimension() {
+    ProgramStage psA = createProgramStage('A', prA);
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withOrganisationUnits(List.of(ouA))
+            .withPeriods(
+                createPeriodDimensions("202001").stream()
+                    .map(period -> period.setDateField(TimeField.EVENT_DATE.name()))
+                    .toList(),
+                "monthly")
+            .addItem(qi)
+            .build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
+  }
+
+  @Test
+  void validateAllowsScheduledDatePeriodDimensionWithStageDateDimension() {
+    ProgramStage psA = createProgramStage('A', prA);
+    BaseDimensionalItemObject item =
+        new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME);
+    QueryItem qi = new QueryItem(item, prA, null, ValueType.DATE, AggregationType.NONE, null);
+    qi.setProgramStage(psA);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(prA)
+            .withOrganisationUnits(List.of(ouA))
+            .withPeriods(
+                createPeriodDimensions("202001").stream()
+                    .map(period -> period.setDateField(TimeField.SCHEDULED_DATE.name()))
+                    .toList(),
+                "monthly")
+            .addItem(qi)
+            .build();
+
+    assertNull(eventQueryValidator.validateForErrorMessage(params));
   }
 
   @Test

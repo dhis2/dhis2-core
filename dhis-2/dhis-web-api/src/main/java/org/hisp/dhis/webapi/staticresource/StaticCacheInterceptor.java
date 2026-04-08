@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@ public class StaticCacheInterceptor implements HandlerInterceptor {
       HttpServletRequest request, HttpServletResponse response, Object handler) {
     String uri = request.getRequestURI();
     if (isCoreStaticPath(uri)) {
-      staticCacheControlService.setHeaders(response, uri, null);
+      staticCacheControlService.setHeaders(response, uri, request.getQueryString(), null);
     }
     return true;
   }

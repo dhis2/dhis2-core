@@ -39,6 +39,8 @@ import static org.hisp.dhis.security.Authorities.M_DHIS_WEB_APP_MANAGEMENT;
 import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -65,6 +67,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.util.AppHtmlTemplate;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.staticresource.HtmlCacheBustingService;
 import org.hisp.dhis.webapi.staticresource.StaticCacheControlService;
@@ -191,6 +194,17 @@ public class AppController {
           forbidden("User does not have access to app '" + appName + "'."));
     }
 
+    // Set cache headers early — applies to both 200 and 304 responses
+    String requestUri = request.getRequestURI();
+    String queryString = request.getQueryString();
+    staticCacheControlService.setHeaders(response, requestUri, queryString, application.getKey());
+
+    // Early 304 check — avoids resource I/O for cached responses
+    String etag = staticCacheControlService.generateETag(application, requestUri, queryString);
+    if (new ServletWebRequest(request, response).checkNotModified(etag)) {
+      return;
+    }
+
     // Get page requested
     String resource = getResourcePath(request.getPathInfo(), application, contextPath);
 
@@ -240,10 +254,9 @@ public class AppController {
 
     ResourceResult resourceResult = appManager.getAppResource(application, resource, baseUrl);
     if (resourceResult instanceof ResourceFound found) {
-      serveResource(request, response, found, application);
+      serveResource(request, response, found, application, baseUrl);
     } else if (resourceResult instanceof Redirect redirect) {
       String redirectUrl = TextUtils.cleanUrlPathOnly(application.getBaseUrl(), redirect.path());
-      String queryString = request.getQueryString();
       if (queryString != null) {
         redirectUrl += "?" + queryString;
       }
@@ -261,27 +274,23 @@ public class AppController {
     }
   }
 
+  /**
+   * Streams the resource content to the response. Cache headers and 304 are handled by the caller.
+   * For HTML entry points, the cache-busting rewrite is applied first (cached, request-independent)
+   * and then the {@link AppHtmlTemplate} is applied (per-request, injects the request-specific base
+   * URL into the HTML).
+   */
   private void serveResource(
       HttpServletRequest request,
       HttpServletResponse response,
       ResourceFound resourceResult,
-      App app)
+      App app,
+      String baseUrl)
       throws IOException {
     String filename = resourceResult.resource().getFilename();
     log.debug("Serving app resource, filename: {}", filename);
 
     String requestUri = request.getRequestURI();
-    staticCacheControlService.setHeaders(response, requestUri, app.getKey());
-
-    long lastModified = resourceResult.resource().lastModified();
-    String etag = staticCacheControlService.generateETag(app, lastModified, requestUri);
-
-    if (new ServletWebRequest(request, response).checkNotModified(etag, lastModified)) {
-      log.debug("Resource not modified (etag {}, uri {})", etag, requestUri);
-      response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-      return;
-    }
-
     String mimeType =
         resourceResult.mimeType() == null
             ? request.getSession().getServletContext().getMimeType(filename)
@@ -299,10 +308,17 @@ public class AppController {
     long contentLength;
 
     if (isHtmlEntry) {
-      inputStream =
+      // Step 1: cache-busting rewrite (cached, request-independent)
+      InputStream cacheBusted =
           htmlCacheBustingService.rewriteIfNeeded(
               resourceResult.resource().getInputStream(), app, requestUri);
-      contentLength = inputStream.available();
+
+      // Step 2: inject request-specific base URL (per-request, NOT cached)
+      ByteArrayOutputStream bout = new ByteArrayOutputStream();
+      new AppHtmlTemplate(baseUrl, app).apply(cacheBusted, bout);
+      byte[] htmlBytes = bout.toByteArray();
+      contentLength = htmlBytes.length;
+      inputStream = new ByteArrayInputStream(htmlBytes);
     } else {
       inputStream = resourceResult.resource().getInputStream();
       contentLength = appManager.getUriContentLength(resourceResult.resource());
@@ -313,21 +329,11 @@ public class AppController {
     }
 
     log.debug(
-        "Serving resource: {} (contentType: {}, contentLength: {}, lastModified: {}, etag: {})",
+        "Serving resource: {} (contentType: {}, contentLength: {})",
         filename,
         mimeType,
-        contentLength,
-        String.valueOf(lastModified),
-        etag);
-    try {
-      StreamUtils.copyThenCloseInputStream(inputStream, response.getOutputStream());
-    } catch (IOException e) {
-      if (isClientDisconnect(e)) {
-        log.debug("Client disconnected while streaming app resource: {}", filename);
-      } else {
-        throw e;
-      }
-    }
+        contentLength);
+    StreamUtils.copyThenCloseInputStream(inputStream, response.getOutputStream());
   }
 
   @DeleteMapping("/api/apps/{app}")

@@ -34,7 +34,6 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1001;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1100;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1323;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1324;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -110,8 +109,6 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
 
   private OrganisationUnit organisationUnit;
 
-  private Program program;
-
   private UserDetails user;
 
   private TrackedEntityType trackedEntityType;
@@ -131,7 +128,7 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
 
     trackedEntityType = createTrackedEntityType('A');
     trackedEntityType.setUid(TE_TYPE_ID);
-    program = createProgram('A');
+    Program program = createProgram('A');
     program.setUid(PROGRAM_ID);
     program.setProgramType(ProgramType.WITH_REGISTRATION);
     program.setTrackedEntityType(trackedEntityType);
@@ -409,36 +406,6 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
     validator.validate(reporter, bundle, trackedEntity);
 
     assertHasError(reporter, trackedEntity, E1000);
-  }
-
-  @Test
-  void shouldFailWhenUpdateAndUserDoesNotHaveDatabaseOrgUnitInCaptureScope() {
-    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
-        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-            .trackedEntity(TE_ID)
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID))
-            .build();
-
-    when(bundle.getPreheat()).thenReturn(preheat);
-    TrackedEntity te = teWithEnrollments();
-    OrganisationUnit outOfScopeOrgUnit = createOrganisationUnit('B');
-    outOfScopeOrgUnit.setUid("ORG_UNIT_UID");
-    outOfScopeOrgUnit.updatePath();
-    te.setOrganisationUnit(outOfScopeOrgUnit);
-    when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
-    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.UPDATE);
-    when(bundle.getPreheat().getOrganisationUnit(trackedEntity.getOrgUnit()))
-        .thenReturn(organisationUnit);
-    when(aclService.canDataWrite(user, trackedEntityType)).thenReturn(true);
-    when(trackerProgramService.getAccessibleTrackerPrograms(trackedEntityType))
-        .thenReturn(List.of(program));
-    when(aclService.canDataWrite(user, program)).thenReturn(true);
-    when(trackerOwnershipManager.hasAccess(user, te, program)).thenReturn(false);
-
-    validator.validate(reporter, bundle, trackedEntity);
-
-    assertHasError(reporter, trackedEntity, E1324);
   }
 
   private TrackedEntity teWithNoEnrollments() {
