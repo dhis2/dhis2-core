@@ -40,6 +40,7 @@ import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -66,6 +67,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.util.AppHtmlTemplate;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.staticresource.HtmlCacheBustingService;
 import org.hisp.dhis.webapi.staticresource.StaticCacheControlService;
@@ -212,7 +214,7 @@ public class AppController {
 
     ResourceResult resourceResult = appManager.getAppResource(application, resource, baseUrl);
     if (resourceResult instanceof ResourceFound found) {
-      serveResource(request, response, found, application);
+      serveResource(request, response, found, application, baseUrl);
     } else if (resourceResult instanceof Redirect redirect) {
       String redirectUrl = TextUtils.cleanUrlPathOnly(application.getBaseUrl(), redirect.path());
       if (queryString != null) {
@@ -234,12 +236,16 @@ public class AppController {
 
   /**
    * Streams the resource content to the response. Cache headers and 304 are handled by the caller.
+   * For HTML entry points, the cache-busting rewrite is applied first (cached, request-independent)
+   * and then the {@link AppHtmlTemplate} is applied (per-request, injects the request-specific base
+   * URL into the HTML).
    */
   private void serveResource(
       HttpServletRequest request,
       HttpServletResponse response,
       ResourceFound resourceResult,
-      App app)
+      App app,
+      String baseUrl)
       throws IOException {
     String filename = resourceResult.resource().getFilename();
     log.debug("Serving app resource, filename: {}", filename);
@@ -262,10 +268,15 @@ public class AppController {
     long contentLength;
 
     if (isHtmlEntry) {
-      InputStream raw =
+      // Step 1: cache-busting rewrite (cached, request-independent)
+      InputStream cacheBusted =
           htmlCacheBustingService.rewriteIfNeeded(
               resourceResult.resource().getInputStream(), app, requestUri);
-      byte[] htmlBytes = raw.readAllBytes();
+
+      // Step 2: inject request-specific base URL (per-request, NOT cached)
+      ByteArrayOutputStream bout = new ByteArrayOutputStream();
+      new AppHtmlTemplate(baseUrl, app).apply(cacheBusted, bout);
+      byte[] htmlBytes = bout.toByteArray();
       contentLength = htmlBytes.length;
       inputStream = new ByteArrayInputStream(htmlBytes);
     } else {
