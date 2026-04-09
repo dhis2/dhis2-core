@@ -203,8 +203,8 @@ class FileResourceServiceTest {
 
     FileDeletedEvent event = fileDeletedEventCaptor.getValue();
 
-    assertThat(event.getContentType(), is("application/pdf"));
-    assertThat(event.getDomain(), is(FileResourceDomain.DOCUMENT));
+    assertThat(event.contentType(), is("application/pdf"));
+    assertThat(event.domain(), is(FileResourceDomain.DOCUMENT));
   }
 
   @Test

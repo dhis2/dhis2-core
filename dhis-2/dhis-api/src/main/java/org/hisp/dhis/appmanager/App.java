@@ -403,6 +403,12 @@ public class App implements Serializable {
     this.folderName = folderName;
   }
 
+  /** Returns the blob-store folder for this app. Only valid after {@link #setFolderName}. */
+  @JsonIgnore
+  public AppFolderName appFolder() {
+    return new AppFolderName(folderName);
+  }
+
   @JsonProperty
   public String getLaunchUrl() {
     return launchUrl;

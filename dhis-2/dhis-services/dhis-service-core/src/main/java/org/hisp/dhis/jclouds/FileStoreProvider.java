@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,39 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.jclouds;
 
-import java.util.UUID;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.storage.BlobKey;
+import java.util.Arrays;
 
-/**
- * Factory methods for constructing typed {@link BlobKey} values for {@link FileResource} blobs.
- *
- * <p>Keys follow the pattern {@code <domainPrefix>/<identifier>}, where {@code domainPrefix} comes
- * from {@link FileResourceDomain#getContainerName()} (e.g. {@code "dataValue"}, {@code "icon"}).
- *
- * <p>Use {@link #makeKey(FileResourceDomain, String)} when the identifier is already known (e.g.
- * when creating an icon or a job-data resource with a fixed key). Use {@link
- * #makeKeyWithRandomUUID(FileResourceDomain)} when a new unique key is needed, such as when
- * uploading a new data-value file.
- */
-public class FileResourceKeyUtil {
-  private FileResourceKeyUtil() {}
+/** The set of JClouds blob-store providers supported by DHIS2. */
+public enum FileStoreProvider {
+  FILESYSTEM("filesystem"),
+  AWS_S3("aws-s3"),
+  S3("s3"),
+  TRANSIENT("transient");
 
-  /**
-   * Returns a {@link BlobKey} of the form {@code <domainPrefix>/<key>} for the given domain and
-   * known identifier.
-   */
-  public static BlobKey makeKey(@Nonnull FileResourceDomain domain, @Nonnull String key) {
-    return BlobKey.of(domain.getContainerName(), key);
+  private final String key;
+
+  FileStoreProvider(String key) {
+    this.key = key;
+  }
+
+  /** The configuration key used in {@code dhis.conf}. */
+  public String key() {
+    return key;
   }
 
   /**
-   * Returns a {@link BlobKey} of the form {@code <domainPrefix>/<uuid>} using a freshly generated
-   * random UUID as the identifier. Use this when no external identifier exists for the resource.
+   * Returns the provider matching {@code key}, or throws {@link IllegalArgumentException} if the
+   * key is not recognised.
    */
-  public static BlobKey makeKeyWithRandomUUID(@Nonnull FileResourceDomain domain) {
-    return BlobKey.of(domain.getContainerName(), UUID.randomUUID().toString());
+  public static FileStoreProvider of(String key) {
+    return Arrays.stream(values())
+        .filter(p -> p.key.equals(key))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "Unsupported file store provider '"
+                        + key
+                        + "'. Supported values are: filesystem, aws-s3, s3, transient."));
   }
 }
