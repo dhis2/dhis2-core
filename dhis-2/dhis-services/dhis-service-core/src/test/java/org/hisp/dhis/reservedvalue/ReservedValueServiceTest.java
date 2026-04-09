@@ -61,6 +61,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.transaction.support.TransactionCallback;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
@@ -73,6 +75,8 @@ class ReservedValueServiceTest {
   @Mock private ReservedValueStore reservedValueStore;
 
   @Mock private ValueGeneratorService valueGeneratorService;
+
+  @Mock private TransactionTemplate transactionTemplate;
 
   @Captor private ArgumentCaptor<ReservedValue> reservedValue;
 
@@ -90,7 +94,7 @@ class ReservedValueServiceTest {
   void setUpClass() {
     reservedValueService =
         new DefaultReservedValueService(
-            textPatternService, reservedValueStore, valueGeneratorService);
+            textPatternService, reservedValueStore, valueGeneratorService, transactionTemplate);
     Calendar calendar = Calendar.getInstance();
     calendar.add(DATE, 1);
     futureDate = calendar.getTime();
@@ -219,8 +223,12 @@ class ReservedValueServiceTest {
 
   @Test
   void shouldDeleteUsedOrExpiredReservedValues() {
+    when(transactionTemplate.execute(any()))
+        .thenAnswer(
+            invocation ->
+                invocation.<TransactionCallback<Integer>>getArgument(0).doInTransaction(null));
     reservedValueService.removeUsedOrExpiredReservations();
-    verify(reservedValueStore, times(1)).removeUsedOrExpiredReservations();
+    verify(reservedValueStore, times(1)).removeUsedOrExpiredValues();
   }
 
   private static TrackedEntityAttribute createTrackedEntityAttribute(
