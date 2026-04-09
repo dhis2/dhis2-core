@@ -112,6 +112,7 @@ public class DefaultAppManager implements AppManager {
   private final DatastoreService datastoreService;
   private final BundledAppManager bundledAppManager;
   private final I18nManager i18nManager;
+  private final SystemSettingsProvider settingsProvider;
 
   /**
    * In-memory storage of installed apps. Initially loaded on startup. Should not be cleared during

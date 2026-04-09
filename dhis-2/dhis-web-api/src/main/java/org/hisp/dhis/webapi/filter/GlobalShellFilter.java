@@ -349,7 +349,9 @@ public class GlobalShellFilter extends OncePerRequestFilter {
     }
 
     String requestUri = contextPath + GLOBAL_SHELL_PATH_PREFIX + globalShellAppName + "/index.html";
-    staticCacheControlService.setHeaders(response, requestUri, globalShellApp.getKey());
+    String queryString = request.getQueryString();
+    staticCacheControlService.setHeaders(
+        response, requestUri, queryString, globalShellApp.getKey());
 
     try (InputStream rawStream = found.resource().getInputStream()) {
       InputStream htmlStream =
