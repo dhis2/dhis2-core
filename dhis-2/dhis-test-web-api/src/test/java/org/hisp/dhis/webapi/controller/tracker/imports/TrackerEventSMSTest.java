@@ -919,6 +919,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
                 "mismatch in latitude"));
   }
 
+  // Assert only specific fields of data values since actual values from the DB have auto-generated
+  // fields (created, lastUpdated) that we cannot predict in expected.
   private static void assertDataValues(Set<EventDataValue> expected, Set<EventDataValue> actual) {
     assertEquals(expected.size(), actual.size(), "number of data values");
     assertAll(

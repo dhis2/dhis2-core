@@ -213,7 +213,7 @@ class JsonEventDataValueSetBinaryTypeTest {
     JsonNode entry = root.get("deABCDEF123");
     assertEquals("hello", entry.get("value").asText());
     assertEquals("admin", entry.get("storedBy").asText());
-    assertEquals(false, entry.get("providedElsewhere").asBoolean());
+    assertFalse(entry.get("providedElsewhere").asBoolean());
     // dataElement must NOT appear inside the value (it's the key)
     assertNull(entry.get("dataElement"));
   }
@@ -295,23 +295,13 @@ class JsonEventDataValueSetBinaryTypeTest {
     edv.setStoredBy("admin");
     edv.setProvidedElsewhere(true);
 
-    String json = type.convertObjectToJson(Set.of(edv));
+    Set<EventDataValue> expected = Set.of(edv);
+    String json = type.convertObjectToJson(expected);
 
     @SuppressWarnings("unchecked")
-    Set<EventDataValue> result = (Set<EventDataValue>) type.convertJsonToObject(json);
+    Set<EventDataValue> actual = (Set<EventDataValue>) type.convertJsonToObject(json);
 
-    assertEquals(1, result.size());
-    EventDataValue restored = result.iterator().next();
-    assertEquals("de1", restored.getDataElement());
-    assertEquals("value1", restored.getValue());
-    assertEquals(new Date(1000L), restored.getCreated());
-    assertEquals(new Date(2000L), restored.getLastUpdated());
-    assertEquals("admin", restored.getStoredBy());
-    assertTrue(restored.getProvidedElsewhere());
-    assertEquals("admin", restored.getCreatedByUserInfo().getUsername());
-    assertEquals("Admin", restored.getCreatedByUserInfo().getFirstName());
-    assertEquals("User", restored.getCreatedByUserInfo().getSurname());
-    assertEquals("uid", restored.getCreatedByUserInfo().getUid());
+    assertEquals(expected, actual);
   }
 
   @Test
@@ -343,7 +333,7 @@ class JsonEventDataValueSetBinaryTypeTest {
     assertNull(restored.getLastUpdatedByUserInfo());
     assertNull(restored.getStoredBy());
     // providedElsewhere defaults to false in EventDataValue field declaration
-    assertEquals(false, restored.getProvidedElsewhere());
+    assertFalse(restored.getProvidedElsewhere());
   }
 
   @Test
