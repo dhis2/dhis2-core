@@ -56,6 +56,7 @@ import org.springframework.stereotype.Repository;
 public class HibernateReservedValueStore extends HibernateGenericStore<ReservedValue>
     implements ReservedValueStore {
   private final BatchHandlerFactory batchHandlerFactory;
+  private static final int DELETE_BATCH_SIZE = 100_000;
 
   public HibernateReservedValueStore(
       EntityManager entityManager,
@@ -181,17 +182,28 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
   }
 
   @Override
-  public void removeUsedOrExpiredReservations() {
-    String deleteQuery =
-        "DELETE FROM ReservedValue r WHERE r.expiryDate < CURRENT_TIMESTAMP OR r.value IN ("
-            + "SELECT teav.plainValue FROM TrackedEntityAttributeValue teav JOIN teav.attribute tea "
-            + "WHERE r.ownerUid = tea.uid AND r.value = teav.plainValue"
-            + ")";
+  public int removeUsedOrExpiredValues() {
+    int totalRemoved = removeExpiredValues();
+    totalRemoved += removeUsedValues();
 
-    log.info("Starting deleting expired or used reserved values ....");
+    return totalRemoved;
+  }
 
-    getQuery(deleteQuery).executeUpdate();
+  private int removeExpiredValues() {
+    return jdbcTemplate.update(
+        "DELETE FROM reservedvalue WHERE reservedvalueid IN "
+            + "(SELECT reservedvalueid FROM reservedvalue WHERE expirydate < now() LIMIT ?)",
+        DELETE_BATCH_SIZE);
+  }
 
-    log.info("... Completed deleting expired or used reserved values");
+  private int removeUsedValues() {
+    return jdbcTemplate.update(
+        "DELETE FROM reservedvalue WHERE reservedvalueid IN ("
+            + "SELECT rv.reservedvalueid FROM reservedvalue rv "
+            + "JOIN trackedentityattribute tea ON rv.owneruid = tea.uid "
+            + "JOIN trackedentityattributevalue teav ON teav.trackedentityattributeid = tea.trackedentityattributeid "
+            + "AND lower(teav.value) = lower(rv.value) "
+            + "LIMIT ?)",
+        DELETE_BATCH_SIZE);
   }
 }

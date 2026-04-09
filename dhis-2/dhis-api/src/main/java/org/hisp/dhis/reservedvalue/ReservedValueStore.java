@@ -52,5 +52,5 @@ public interface ReservedValueStore extends GenericStore<ReservedValue> {
 
   boolean isReserved(String ownerObject, String ownerUID, String value);
 
-  void removeUsedOrExpiredReservations();
+  int removeUsedOrExpiredValues();
 }

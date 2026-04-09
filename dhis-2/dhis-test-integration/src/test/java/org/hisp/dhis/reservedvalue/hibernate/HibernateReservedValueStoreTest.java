@@ -211,15 +211,15 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     saveReservedValue(rv);
     assertTrue(
         reservedValueStore.isReserved(Objects.TRACKEDENTITYATTRIBUTE.name(), teaUid, prog001));
-    reservedValueStore.removeUsedOrExpiredReservations();
+    reservedValueStore.removeUsedOrExpiredValues();
     assertFalse(reservedValueStore.getAll().contains(rv));
   }
 
   @Test
-  void removeExpiredReservationsDoesNotRemoveAnythingIfNothingHasExpired() {
+  void removeExpiredReservationsDoesNotRemoveAnythingIfNothingIsExpiredOrUsed() {
     saveReservedValue(reservedValue.value(prog001).build());
     int num = reservedValueStore.getCount();
-    reservedValueStore.removeUsedOrExpiredReservations();
+    reservedValueStore.removeUsedOrExpiredValues();
     assertEquals(num, reservedValueStore.getCount());
   }
 
@@ -257,7 +257,7 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue('Z', trackedEntity, tea);
     teav.setValue(prog001);
     trackedEntityAttributeValueService.addTrackedEntityAttributeValue(teav);
-    reservedValueStore.removeUsedOrExpiredReservations();
+    reservedValueStore.removeUsedOrExpiredValues();
     assertFalse(
         reservedValueStore.isReserved(Objects.TRACKEDENTITYATTRIBUTE.name(), teaUid, prog001));
     assertEquals(0, reservedValueStore.getCount());
@@ -285,7 +285,7 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     trackedEntityAttributeValueService.addTrackedEntityAttributeValue(teav);
     ReservedValue rv = reservedValue.value(prog001).build();
     reservedValueStore.save(rv);
-    reservedValueStore.removeUsedOrExpiredReservations();
+    reservedValueStore.removeUsedOrExpiredValues();
     assertFalse(
         reservedValueStore.isReserved(Objects.TRACKEDENTITYATTRIBUTE.name(), teaUid, prog001));
     assertFalse(
