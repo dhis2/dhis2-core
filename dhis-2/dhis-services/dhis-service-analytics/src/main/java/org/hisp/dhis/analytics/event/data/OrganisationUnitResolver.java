@@ -31,6 +31,10 @@ package org.hisp.dhis.analytics.event.data;
 
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.substringAfterLast;
+import static org.hisp.dhis.analytics.AggregationType.MAX;
+import static org.hisp.dhis.analytics.AggregationType.MAX_SUM_ORG_UNIT;
+import static org.hisp.dhis.analytics.AggregationType.MIN;
+import static org.hisp.dhis.analytics.AggregationType.MIN_SUM_ORG_UNIT;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_LEVEL;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_ORGUNIT_GROUP;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
@@ -50,6 +54,8 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.data.DimensionalObjectProvider;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
@@ -67,9 +73,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
+@Transactional(readOnly = true)
 public class OrganisationUnitResolver {
 
   /** Column alias for stage.ou organisation unit name in CTE output. */
@@ -342,6 +350,40 @@ public class OrganisationUnitResolver {
         sortedLevels.size() > 1 ? "(" + conditions + ")" : conditions.toString();
 
     return new StageOuCteContext(valueColumn, filterCondition, additionalSelectColumns);
+  }
+
+  /**
+   * Based on the given org. units and dimension aggregation types, this method checks if there is
+   * any child in the hierarchy. If there is none, it returns MAX or MIN, depending on the given
+   * "aggregationType".
+   *
+   * @param allOrgUnits a list of org. units.
+   * @param aggregationType the current {@link AggregationType}.
+   * @param analyticsAggregationType the current {@link AnalyticsAggregationType}.
+   * @return the correct {@link AnalyticsAggregationType}.
+   */
+  public AnalyticsAggregationType getMinOrMaxOrgUnitAggregationIfAny(
+      List<DimensionalItemObject> allOrgUnits,
+      AggregationType aggregationType,
+      AnalyticsAggregationType analyticsAggregationType) {
+    boolean hasAnyChild = false;
+    for (DimensionalItemObject dimensionalItemObject : allOrgUnits) {
+      OrganisationUnit organisationUnit = (OrganisationUnit) dimensionalItemObject;
+      hasAnyChild = organisationUnit.hasChild();
+    }
+
+    boolean isMaxOrgUnit = aggregationType == MAX_SUM_ORG_UNIT;
+    boolean isMinOrgUnit = aggregationType == MIN_SUM_ORG_UNIT;
+
+    if (isMaxOrgUnit && !hasAnyChild) {
+      analyticsAggregationType = new AnalyticsAggregationType(MAX, MAX);
+    }
+
+    if (isMinOrgUnit && !hasAnyChild) {
+      analyticsAggregationType = new AnalyticsAggregationType(MIN, MIN);
+    }
+
+    return analyticsAggregationType;
   }
 
   /**

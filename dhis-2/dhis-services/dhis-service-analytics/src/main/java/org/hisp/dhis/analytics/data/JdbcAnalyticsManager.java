@@ -39,7 +39,6 @@ import static org.hisp.dhis.analytics.AggregationType.STDDEV;
 import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.analytics.AggregationType.VARIANCE;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
-import static org.hisp.dhis.analytics.AnalyticsAggregationType.getMinOrMaxOrgUnitAggregationIfAny;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.DataQueryParams.LEVEL_PREFIX;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
@@ -78,6 +77,7 @@ import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.event.data.OrganisationUnitResolver;
 import org.hisp.dhis.analytics.table.util.PartitionUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.DimensionType;
@@ -160,6 +160,8 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
   private final ExecutionPlanStore executionPlanStore;
 
   private final SqlBuilder sqlBuilder;
+
+  private final OrganisationUnitResolver organisationUnitResolver;
 
   // -------------------------------------------------------------------------
   // AnalyticsManager implementation
@@ -403,13 +405,13 @@ public class JdbcAnalyticsManager implements AnalyticsManager {
                 ? fromAggregationType(itemObject.getAggregationType())
                 : null;
 
-        if (analyticsAggregationType != null) {
-          analyticsAggregationType =
-              getMinOrMaxOrgUnitAggregationIfAny(
-                  params.getAllOrganisationUnits(),
-                  itemObject.getAggregationType(),
-                  analyticsAggregationType);
+        analyticsAggregationType =
+            organisationUnitResolver.getMinOrMaxOrgUnitAggregationIfAny(
+                params.getAllOrganisationUnits(),
+                itemObject.getAggregationType(),
+                analyticsAggregationType);
 
+        if (analyticsAggregationType != null) {
           function = analyticsAggregationType.getAggregationType().getValue();
         }
       }

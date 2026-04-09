@@ -49,7 +49,6 @@ import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
-import static org.hisp.dhis.analytics.AnalyticsAggregationType.getMinOrMaxOrgUnitAggregationIfAny;
 import static org.hisp.dhis.analytics.AnalyticsConstants.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.AnalyticsConstants.NULL;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
@@ -991,12 +990,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         AnalyticsAggregationType analyticsAggregationType = fromAggregationType(aggregationType);
 
         analyticsAggregationType =
-            getMinOrMaxOrgUnitAggregationIfAny(
+            organisationUnitResolver.getMinOrMaxOrgUnitAggregationIfAny(
                 params.getAllOrganisationUnits(),
                 params.getValue().getAggregationType(),
                 analyticsAggregationType);
 
-        function = analyticsAggregationType.getAggregationType().getValue();
+        if (analyticsAggregationType != null) {
+          function = analyticsAggregationType.getAggregationType().getValue();
+        }
       }
 
       String expression = quoteAlias(params.getValue().getUid());
@@ -1017,7 +1018,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         AnalyticsAggregationType analyticsAggregationType = fromAggregationType(aggregationType);
 
         analyticsAggregationType =
-            getMinOrMaxOrgUnitAggregationIfAny(
+            organisationUnitResolver.getMinOrMaxOrgUnitAggregationIfAny(
                 params.getAllOrganisationUnits(), aggregationType, analyticsAggregationType);
 
         function = analyticsAggregationType.getAggregationType().getValue();
