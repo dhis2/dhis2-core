@@ -182,21 +182,15 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
   }
 
   @Override
-  public int removeUsedOrExpiredValues() {
-    int totalRemoved = removeExpiredValues();
-    totalRemoved += removeUsedValues();
-
-    return totalRemoved;
-  }
-
-  private int removeExpiredValues() {
+  public int removeExpiredValues() {
     return jdbcTemplate.update(
         "DELETE FROM reservedvalue WHERE reservedvalueid IN "
             + "(SELECT reservedvalueid FROM reservedvalue WHERE expirydate < now() LIMIT ?)",
         DELETE_BATCH_SIZE);
   }
 
-  private int removeUsedValues() {
+  @Override
+  public int removeUsedValues() {
     return jdbcTemplate.update(
         "DELETE FROM reservedvalue WHERE reservedvalueid IN ("
             + "SELECT rv.reservedvalueid FROM reservedvalue rv "

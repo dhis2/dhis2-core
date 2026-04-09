@@ -61,8 +61,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.transaction.support.TransactionCallback;
-import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
@@ -76,7 +76,9 @@ class ReservedValueServiceTest {
 
   @Mock private ValueGeneratorService valueGeneratorService;
 
-  @Mock private TransactionTemplate transactionTemplate;
+  @Mock private PlatformTransactionManager transactionManager;
+
+  @Mock private TransactionStatus transactionStatus;
 
   @Captor private ArgumentCaptor<ReservedValue> reservedValue;
 
@@ -92,9 +94,10 @@ class ReservedValueServiceTest {
 
   @BeforeEach
   void setUpClass() {
+    when(transactionManager.getTransaction(any())).thenReturn(transactionStatus);
     reservedValueService =
         new DefaultReservedValueService(
-            textPatternService, reservedValueStore, valueGeneratorService, transactionTemplate);
+            textPatternService, reservedValueStore, valueGeneratorService, transactionManager);
     Calendar calendar = Calendar.getInstance();
     calendar.add(DATE, 1);
     futureDate = calendar.getTime();
@@ -223,12 +226,11 @@ class ReservedValueServiceTest {
 
   @Test
   void shouldDeleteUsedOrExpiredReservedValues() {
-    when(transactionTemplate.execute(any()))
-        .thenAnswer(
-            invocation ->
-                invocation.<TransactionCallback<Integer>>getArgument(0).doInTransaction(null));
+    when(reservedValueStore.removeExpiredValues()).thenReturn(0);
+    when(reservedValueStore.removeUsedValues()).thenReturn(0);
     reservedValueService.removeUsedOrExpiredReservations();
-    verify(reservedValueStore, times(1)).removeUsedOrExpiredValues();
+    verify(reservedValueStore, times(1)).removeExpiredValues();
+    verify(reservedValueStore, times(1)).removeUsedValues();
   }
 
   private static TrackedEntityAttribute createTrackedEntityAttribute(

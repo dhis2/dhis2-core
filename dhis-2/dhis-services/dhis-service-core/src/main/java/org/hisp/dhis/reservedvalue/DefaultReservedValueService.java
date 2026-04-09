@@ -41,7 +41,6 @@ import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternGenerationException;
@@ -51,6 +50,8 @@ import org.hisp.dhis.textpattern.TextPatternService;
 import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -59,7 +60,6 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @Slf4j
 @Service("org.hisp.dhis.reservedvalue.ReservedValueService")
-@RequiredArgsConstructor
 public class DefaultReservedValueService implements ReservedValueService {
   private static final int RESERVED_VALUE_GENERATION_ATTEMPT = 10;
   private static final long RESERVED_VALUE_GENERATION_TIMEOUT = (1000 * 30);
@@ -71,6 +71,18 @@ public class DefaultReservedValueService implements ReservedValueService {
   private final ValueGeneratorService valueGeneratorService;
 
   private final TransactionTemplate transactionTemplate;
+
+  public DefaultReservedValueService(
+      TextPatternService textPatternService,
+      ReservedValueStore reservedValueStore,
+      ValueGeneratorService valueGeneratorService,
+      PlatformTransactionManager transactionManager) {
+    this.textPatternService = textPatternService;
+    this.reservedValueStore = reservedValueStore;
+    this.valueGeneratorService = valueGeneratorService;
+    this.transactionTemplate = new TransactionTemplate(transactionManager);
+    this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+  }
 
   @Override
   @Transactional
@@ -283,10 +295,18 @@ public class DefaultReservedValueService implements ReservedValueService {
   public void removeUsedOrExpiredReservations() {
     int total = 0;
     int deleted;
+
     do {
       deleted =
           requireNonNullElse(
-              transactionTemplate.execute(s -> reservedValueStore.removeUsedOrExpiredValues()), 0);
+              transactionTemplate.execute(s -> reservedValueStore.removeExpiredValues()), 0);
+      total += deleted;
+    } while (deleted > 0);
+
+    do {
+      deleted =
+          requireNonNullElse(
+              transactionTemplate.execute(s -> reservedValueStore.removeUsedValues()), 0);
       total += deleted;
     } while (deleted > 0);
 
