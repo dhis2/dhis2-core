@@ -70,7 +70,7 @@ public class DefaultEventQueryPlanner implements EventQueryPlanner {
 
   private final PartitionManager partitionManager;
 
-  private OrganisationUnitResolver organisationUnitResolver;
+  private final OrganisationUnitResolver organisationUnitResolver;
 
   // -------------------------------------------------------------------------
   // EventQueryPlanner implementation
