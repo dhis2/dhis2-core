@@ -920,13 +920,10 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
                 "mismatch in latitude"));
   }
 
+  // Assert only specific fields of data values since actual values from the DB have auto-generated
+  // fields (created, lastUpdated) that we cannot predict in expected.
   private static void assertDataValues(Set<EventDataValue> expected, Set<EventDataValue> actual) {
-    // The current EventDataValues.equals implementation does not take the value/storedBy into
-    // account
-    // it does check the data element. So we first assert we have a data value for every data
-    // element we expect.
-    // We then assert on fields that are not covered by the equals implementation.
-    assertContainsOnly(expected, actual);
+    assertContainsOnly(expected, actual, EventDataValue::getDataElement);
     assertAll(
         "assert data values", expected.stream().map(e -> assertDataValue(e, actual)).toList());
   }
