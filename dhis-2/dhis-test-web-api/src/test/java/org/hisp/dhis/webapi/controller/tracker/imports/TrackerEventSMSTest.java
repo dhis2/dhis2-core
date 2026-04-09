@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
 import static java.lang.String.format;
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntityAttributeValue;
@@ -922,7 +923,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
   // Assert only specific fields of data values since actual values from the DB have auto-generated
   // fields (created, lastUpdated) that we cannot predict in expected.
   private static void assertDataValues(Set<EventDataValue> expected, Set<EventDataValue> actual) {
-    assertEquals(expected.size(), actual.size(), "number of data values");
+    assertContainsOnly(expected, actual, EventDataValue::getDataElement);
     assertAll(
         "assert data values", expected.stream().map(e -> assertDataValue(e, actual)).toList());
   }

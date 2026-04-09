@@ -295,13 +295,23 @@ class JsonEventDataValueSetBinaryTypeTest {
     edv.setStoredBy("admin");
     edv.setProvidedElsewhere(true);
 
-    Set<EventDataValue> expected = Set.of(edv);
-    String json = type.convertObjectToJson(expected);
+    String json = type.convertObjectToJson(Set.of(edv));
 
     @SuppressWarnings("unchecked")
-    Set<EventDataValue> actual = (Set<EventDataValue>) type.convertJsonToObject(json);
+    Set<EventDataValue> result = (Set<EventDataValue>) type.convertJsonToObject(json);
 
-    assertEquals(expected, actual);
+    assertEquals(1, result.size());
+    EventDataValue restored = result.iterator().next();
+    assertEquals("de1", restored.getDataElement());
+    assertEquals("value1", restored.getValue());
+    assertEquals(new Date(1000L), restored.getCreated());
+    assertEquals(new Date(2000L), restored.getLastUpdated());
+    assertEquals("admin", restored.getStoredBy());
+    assertTrue(restored.getProvidedElsewhere());
+    assertEquals("admin", restored.getCreatedByUserInfo().getUsername());
+    assertEquals("Admin", restored.getCreatedByUserInfo().getFirstName());
+    assertEquals("User", restored.getCreatedByUserInfo().getSurname());
+    assertEquals("uid", restored.getCreatedByUserInfo().getUid());
   }
 
   @Test
@@ -353,8 +363,12 @@ class JsonEventDataValueSetBinaryTypeTest {
     assertTrue(type.equals(snapshot, set));
   }
 
+  // EventDataValue.equals only compares dataElement, so in-place mutations to value or storedBy
+  // are not detected by the Hibernate dirty check. This does not cause a bug because TrackerEvent
+  // does not use @DynamicUpdate, so all columns are always included in UPDATE statements.
+  // See the "Dirty checking" section in the PR for details.
   @Test
-  void equalsReturnsFalseWhenValueChanged() {
+  void equalsMissesInPlaceValueChange() {
     EventDataValue edv = new EventDataValue();
     edv.setDataElement("de1");
     edv.setValue("value1");
@@ -367,14 +381,13 @@ class JsonEventDataValueSetBinaryTypeTest {
     @SuppressWarnings("unchecked")
     Set<EventDataValue> snapshot = (Set<EventDataValue>) type.deepCopy(set);
 
-    // Simulate what TrackerEventPersister.updateDataValue does: modify value in-place
     edv.setValue("modified");
 
-    assertFalse(type.equals(snapshot, set));
+    assertTrue(type.equals(snapshot, set));
   }
 
   @Test
-  void equalsReturnsFalseWhenStoredByChanged() {
+  void equalsMissesInPlaceStoredByChange() {
     EventDataValue edv = new EventDataValue();
     edv.setDataElement("de1");
     edv.setValue("value1");
@@ -388,7 +401,7 @@ class JsonEventDataValueSetBinaryTypeTest {
 
     edv.setStoredBy("other_user");
 
-    assertFalse(type.equals(snapshot, set));
+    assertTrue(type.equals(snapshot, set));
   }
 
   @Test

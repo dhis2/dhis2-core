@@ -130,15 +130,7 @@ public class EventDataValue implements Serializable {
       return false;
     }
 
-    EventDataValue other = (EventDataValue) object;
-    return Objects.equals(dataElement, other.dataElement)
-        && Objects.equals(value, other.value)
-        && Objects.equals(created, other.created)
-        && Objects.equals(lastUpdated, other.lastUpdated)
-        && Objects.equals(createdByUserInfo, other.createdByUserInfo)
-        && Objects.equals(lastUpdatedByUserInfo, other.lastUpdatedByUserInfo)
-        && Objects.equals(providedElsewhere, other.providedElsewhere)
-        && Objects.equals(storedBy, other.storedBy);
+    return dataElement.equals(((EventDataValue) object).dataElement);
   }
 
   // -------------------------------------------------------------------------
