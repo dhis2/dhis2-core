@@ -727,7 +727,7 @@ public non-sealed interface SystemSettings extends Settings {
    *     shell.
    */
   default boolean getCanonicalAppPaths() {
-    return getGlobalShellEnabled() && asBoolean("canonicalAppPaths", false);
+    return getGlobalShellEnabled() && asBoolean("canonicalAppPaths", true);
   }
 
   /**

@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.filter;
 
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.SessionCookieConfig;
@@ -47,6 +48,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
  *
  * <p>The header value is the session's {@code maxInactiveInterval} in seconds. The cookie value is
  * the epoch-second timestamp when the session will expire.
+ *
+ * <p>Skips FORWARD dispatches (e.g. static resource forwards from GlobalShellFilter) because adding
+ * Set-Cookie headers to cacheable static resources can prevent browsers from caching them.
  */
 public class SessionTimeoutHeaderFilter extends OncePerRequestFilter {
 
@@ -56,6 +60,13 @@ public class SessionTimeoutHeaderFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
+    if (request.getDispatcherType() != DispatcherType.FORWARD) {
+      addSessionExpiryCookie(request, response);
+    }
+    filterChain.doFilter(request, response);
+  }
+
+  private void addSessionExpiryCookie(HttpServletRequest request, HttpServletResponse response) {
     HttpSession session = request.getSession(false);
     if (session != null
         && session.getMaxInactiveInterval() > 0
@@ -77,6 +88,5 @@ public class SessionTimeoutHeaderFilter extends OncePerRequestFilter {
               .build();
       response.addHeader("Set-Cookie", cookie.toString());
     }
-    filterChain.doFilter(request, response);
   }
 }
