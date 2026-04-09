@@ -46,7 +46,7 @@ import org.hisp.dhis.storage.BlobKeyPrefix;
 public record AppFolderName(String path) {
 
   /** Maximum number of characters for the folder segment after {@code apps/}. */
-  static final int MAX_SEGMENT_LENGTH = 32;
+  static final int MAX_SEGMENT_LENGTH = 255;
 
   public AppFolderName {
     if (path == null || path.isBlank()) {
@@ -79,7 +79,7 @@ public record AppFolderName(String path) {
     } else {
       String token = CodeGenerator.getRandomSecureToken();
       int maxTokenLen = MAX_SEGMENT_LENGTH - appKey.length() - 1; // -1 for the "_" separator
-      segment = appKey + "_" + token.substring(0, maxTokenLen);
+      segment = appKey + "_" + token.substring(0, Math.min(maxTokenLen, token.length()));
     }
     return new AppFolderName(AppStorageService.APPS_DIR + "/" + segment);
   }

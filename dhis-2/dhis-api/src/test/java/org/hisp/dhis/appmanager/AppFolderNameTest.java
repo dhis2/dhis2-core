@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.appmanager;
 
+import static org.hisp.dhis.common.CodeGenerator.SECURE_RANDOM_TOKEN_MIN_SIZE;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -60,7 +61,7 @@ class AppFolderNameTest {
 
   @Test
   void pathTooLongIsRejected() {
-    // Max length = APPS_DIR.length() + 1 + MAX_SEGMENT_LENGTH = 4 + 1 + 32 = 37
+    // Max length = APPS_DIR.length() + 1 + MAX_SEGMENT_LENGTH = 4 + 1 + 255 = 260
     String tooLong = "apps/" + "a".repeat(AppFolderName.MAX_SEGMENT_LENGTH + 1);
     assertThrows(IllegalArgumentException.class, () -> new AppFolderName(tooLong));
   }
@@ -77,7 +78,7 @@ class AppFolderNameTest {
   }
 
   // -------------------------------------------------------------------------
-  // ofKey factory
+  // ofKey factory — short keys (key + "_" + full token fits within cap)
   // -------------------------------------------------------------------------
 
   @Test
@@ -87,22 +88,47 @@ class AppFolderNameTest {
   }
 
   @Test
-  void shortKeySegmentIsExactlyMaxLength() {
-    // Token is truncated so the segment after "apps/" is always MAX_SEGMENT_LENGTH chars
+  void shortKeyAppendsFullToken() {
+    // Key (6) + "_" (1) + token (44) = 51, well below MAX_SEGMENT_LENGTH (255),
+    // so the full token is used without truncation.
     AppFolderName folder = AppFolderName.ofKey("my-app");
     String segment = folder.path().substring("apps/".length());
-    assertEquals(AppFolderName.MAX_SEGMENT_LENGTH, segment.length());
+    assertEquals("my-app".length() + 1 + SECURE_RANDOM_TOKEN_MIN_SIZE, segment.length());
   }
 
   @Test
   void shortKeyAppendsRandomToken() {
     AppFolderName folder = AppFolderName.ofKey("my-app");
     String segment = folder.path().substring("apps/".length());
-    // Segment format is "key_<token>"
     assertTrue(segment.startsWith("my-app_"), segment);
-    // Token portion is non-empty
     assertTrue(segment.length() > "my-app_".length(), segment);
   }
+
+  @Test
+  void twoCallsForSameShortKeyProduceDifferentFolders() {
+    AppFolderName a = AppFolderName.ofKey("my-app");
+    AppFolderName b = AppFolderName.ofKey("my-app");
+    assertNotEquals(a.path(), b.path(), "Expected different folders but got: " + a.path());
+  }
+
+  // -------------------------------------------------------------------------
+  // ofKey factory — medium keys (token must be truncated to stay within cap)
+  // -------------------------------------------------------------------------
+
+  @Test
+  void mediumKeyTokenIsTruncatedToFitCap() {
+    // A key long enough that key + "_" + full-token would exceed MAX_SEGMENT_LENGTH.
+    // key.length() must be > MAX_SEGMENT_LENGTH - 1 - SECURE_RANDOM_TOKEN_MIN_SIZE = 210
+    String mediumKey =
+        "a".repeat(AppFolderName.MAX_SEGMENT_LENGTH - 1 - SECURE_RANDOM_TOKEN_MIN_SIZE + 1);
+    AppFolderName folder = AppFolderName.ofKey(mediumKey);
+    String segment = folder.path().substring("apps/".length());
+    assertEquals(AppFolderName.MAX_SEGMENT_LENGTH, segment.length());
+  }
+
+  // -------------------------------------------------------------------------
+  // ofKey factory — long keys (truncated to cap, no token)
+  // -------------------------------------------------------------------------
 
   @Test
   void longKeyIsTruncatedToMaxSegmentLength() {
@@ -114,18 +140,10 @@ class AppFolderNameTest {
 
   @Test
   void longKeySegmentIsExactPrefixOfOriginalKey() {
-    String longKey = "abcdefghij".repeat(5); // 50 chars
+    String longKey = "a".repeat(AppFolderName.MAX_SEGMENT_LENGTH + 10);
     AppFolderName folder = AppFolderName.ofKey(longKey);
     String segment = folder.path().substring("apps/".length());
     assertEquals(longKey.substring(0, AppFolderName.MAX_SEGMENT_LENGTH), segment);
-  }
-
-  @Test
-  void twoCallsForSameShortKeyProduceDifferentFolders() {
-    // Truncated token still has enough entropy to differ between calls
-    AppFolderName a = AppFolderName.ofKey("my-app");
-    AppFolderName b = AppFolderName.ofKey("my-app");
-    assertNotEquals(a.path(), b.path(), "Expected different folders but got: " + a.path());
   }
 
   // -------------------------------------------------------------------------
