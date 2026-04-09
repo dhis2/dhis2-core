@@ -366,14 +366,19 @@ public class OrganisationUnitResolver {
       List<DimensionalItemObject> allOrgUnits,
       AggregationType aggregationType,
       AnalyticsAggregationType analyticsAggregationType) {
-    boolean hasAnyChild = false;
-    for (DimensionalItemObject dimensionalItemObject : allOrgUnits) {
-      OrganisationUnit organisationUnit = (OrganisationUnit) dimensionalItemObject;
-      hasAnyChild = organisationUnit.hasChild();
+
+    if (aggregationType != MAX_SUM_ORG_UNIT && aggregationType != MIN_SUM_ORG_UNIT) {
+      return analyticsAggregationType;
     }
 
     boolean isMaxOrgUnit = aggregationType == MAX_SUM_ORG_UNIT;
     boolean isMinOrgUnit = aggregationType == MIN_SUM_ORG_UNIT;
+    boolean hasAnyChild = false;
+
+    for (DimensionalItemObject dimensionalItemObject : allOrgUnits) {
+      OrganisationUnit organisationUnit = (OrganisationUnit) dimensionalItemObject;
+      hasAnyChild = organisationUnit.hasChild();
+    }
 
     if (isMaxOrgUnit && !hasAnyChild) {
       analyticsAggregationType = new AnalyticsAggregationType(MAX, MAX);
