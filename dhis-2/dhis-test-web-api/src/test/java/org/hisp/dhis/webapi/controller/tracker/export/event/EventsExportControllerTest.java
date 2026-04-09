@@ -1112,6 +1112,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     result.setEnrollment(enrollment);
     result.setProgramStage(programStage);
     result.setOrganisationUnit(enrollment.getOrganisationUnit());
+    result.setOwnerOrganisationUnit(enrollment.getOrganisationUnit());
     result.setAttributeOptionCombo(coc);
     result.setAutoFields();
     manager.save(result);
@@ -1222,6 +1223,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     event.setUid(uid);
     event.getEventDataValues().add(eventDataValue);
     event.setOrganisationUnit(orgUnit);
+    event.setOwnerOrganisationUnit(orgUnit);
     event.setProgramStage(programStage);
     manager.update(event);
 

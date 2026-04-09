@@ -73,6 +73,12 @@ public class TrackerOrgUnitMergeHandler {
         request);
 
     migrate(
+        "update TrackerEvent ev "
+            + "set ev.ownerOrganisationUnit = :target "
+            + "where ev.ownerOrganisationUnit.id in (:sources)",
+        request);
+
+    migrate(
         "update Enrollment en "
             + "set en.organisationUnit = :target "
             + "where en.organisationUnit.id in (:sources)",

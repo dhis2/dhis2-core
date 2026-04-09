@@ -48,6 +48,9 @@
     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
       foreign-key="fk_trackerevent_organisationunitid" not-null="true"/>
 
+    <many-to-one name="ownerOrganisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit"
+      column="ownerorganisationunitid" foreign-key="fk_trackerevent_ownerorganisationunitid" not-null="true"/>
+
     <property name="status" column="status" type="org.hisp.dhis.program.EventStatusUserType" not-null="true" />
 
     <property name="completedBy" />

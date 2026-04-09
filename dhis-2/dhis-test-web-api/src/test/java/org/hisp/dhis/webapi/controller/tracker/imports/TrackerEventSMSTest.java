@@ -881,6 +881,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     event.setEnrollment(enrollment);
     event.setProgramStage(trackerProgramStage);
     event.setOrganisationUnit(enrollment.getOrganisationUnit());
+    event.setOwnerOrganisationUnit(enrollment.getOrganisationUnit());
     event.setAttributeOptionCombo(coc);
     event.setOccurredDate(new Date());
     event.setAutoFields();

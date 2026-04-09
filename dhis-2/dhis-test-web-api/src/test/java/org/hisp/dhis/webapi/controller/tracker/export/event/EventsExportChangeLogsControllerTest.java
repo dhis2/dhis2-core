@@ -456,6 +456,7 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
     eventA.setEnrollment(enrollment);
     eventA.setProgramStage(programStage);
     eventA.setOrganisationUnit(enrollment.getOrganisationUnit());
+    eventA.setOwnerOrganisationUnit(enrollment.getOrganisationUnit());
     eventA.setAttributeOptionCombo(coc);
     eventA.setAutoFields();
     manager.save(eventA);

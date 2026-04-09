@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.acl;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.tracker.model.TrackedEntity;
@@ -47,4 +48,12 @@ public interface TrackedEntityProgramOwnerStore extends GenericStore<TrackedEnti
   TrackedEntityProgramOwner getTrackedEntityProgramOwner(TrackedEntity te, Program program);
 
   List<TrackedEntityProgramOwnerOrgUnit> getTrackedEntityProgramOwnerOrgUnits(Set<Long> teIds);
+
+  /**
+   * Updates ownerorganisationunitid on all trackerevent rows for the given tracked entity and
+   * program. Called after an ownership transfer so the denormalized column stays consistent with
+   * trackedentityprogramowner.
+   */
+  void syncEventOwnerOrgUnit(
+      TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit);
 }
