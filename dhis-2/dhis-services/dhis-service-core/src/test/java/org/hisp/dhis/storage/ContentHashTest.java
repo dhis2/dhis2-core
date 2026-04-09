@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,39 +27,59 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.storage;
 
-import java.util.UUID;
-import javax.annotation.Nonnull;
-import org.hisp.dhis.storage.BlobKey;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/**
- * Factory methods for constructing typed {@link BlobKey} values for {@link FileResource} blobs.
- *
- * <p>Keys follow the pattern {@code <domainPrefix>/<identifier>}, where {@code domainPrefix} comes
- * from {@link FileResourceDomain#getContainerName()} (e.g. {@code "dataValue"}, {@code "icon"}).
- *
- * <p>Use {@link #makeKey(FileResourceDomain, String)} when the identifier is already known (e.g.
- * when creating an icon or a job-data resource with a fixed key). Use {@link
- * #makeKeyWithRandomUUID(FileResourceDomain)} when a new unique key is needed, such as when
- * uploading a new data-value file.
- */
-public class FileResourceKeyUtil {
-  private FileResourceKeyUtil() {}
+import org.junit.jupiter.api.Test;
 
-  /**
-   * Returns a {@link BlobKey} of the form {@code <domainPrefix>/<key>} for the given domain and
-   * known identifier.
-   */
-  public static BlobKey makeKey(@Nonnull FileResourceDomain domain, @Nonnull String key) {
-    return BlobKey.of(domain.getContainerName(), key);
+class ContentHashTest {
+
+  private static final String VALID_MD5 = "d41d8cd98f00b204e9800998ecf8427e";
+
+  @Test
+  void validMd5HexIsAccepted() {
+    ContentHash hash = new ContentHash(VALID_MD5);
+    assertEquals(VALID_MD5, hash.hex());
   }
 
-  /**
-   * Returns a {@link BlobKey} of the form {@code <domainPrefix>/<uuid>} using a freshly generated
-   * random UUID as the identifier. Use this when no external identifier exists for the resource.
-   */
-  public static BlobKey makeKeyWithRandomUUID(@Nonnull FileResourceDomain domain) {
-    return BlobKey.of(domain.getContainerName(), UUID.randomUUID().toString());
+  @Test
+  void uppercaseHexIsAccepted() {
+    String upper = VALID_MD5.toUpperCase();
+    assertEquals(upper, new ContentHash(upper).hex());
+  }
+
+  @Test
+  void tooShortHexIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new ContentHash("d41d8cd98f00b204"));
+  }
+
+  @Test
+  void nonHexCharactersAreRejected() {
+    assertThrows(
+        IllegalArgumentException.class, () -> new ContentHash("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"));
+  }
+
+  @Test
+  void ofNullableWithNullReturnsNull() {
+    assertNull(ContentHash.ofNullable(null));
+  }
+
+  @Test
+  void ofNullableWithBlankReturnsNull() {
+    assertNull(ContentHash.ofNullable("   "));
+  }
+
+  @Test
+  void ofNullableWithValidHexReturnsHash() {
+    ContentHash hash = ContentHash.ofNullable(VALID_MD5);
+    assertEquals(VALID_MD5, hash.hex());
+  }
+
+  @Test
+  void toStringReturnsHex() {
+    assertEquals(VALID_MD5, new ContentHash(VALID_MD5).toString());
   }
 }

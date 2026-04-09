@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,39 +27,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.storage;
 
-import java.util.UUID;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.storage.BlobKey;
 
 /**
- * Factory methods for constructing typed {@link BlobKey} values for {@link FileResource} blobs.
+ * The name of the S3 bucket or filesystem directory in which all DHIS2 blobs are stored.
  *
- * <p>Keys follow the pattern {@code <domainPrefix>/<identifier>}, where {@code domainPrefix} comes
- * from {@link FileResourceDomain#getContainerName()} (e.g. {@code "dataValue"}, {@code "icon"}).
+ * <p>The value must not be blank and must not end with {@code /}. This ensures that {@link
+ * #resolve(BlobKey)} always produces a clean path without any slash-cleaning.
  *
- * <p>Use {@link #makeKey(FileResourceDomain, String)} when the identifier is already known (e.g.
- * when creating an icon or a job-data resource with a fixed key). Use {@link
- * #makeKeyWithRandomUUID(FileResourceDomain)} when a new unique key is needed, such as when
- * uploading a new data-value file.
+ * <p>Configured via {@link org.hisp.dhis.external.conf.ConfigurationKey#FILESTORE_CONTAINER} and
+ * resolved once at startup by {@link org.hisp.dhis.jclouds.JCloudsStore}.
  */
-public class FileResourceKeyUtil {
-  private FileResourceKeyUtil() {}
+public record BlobContainerName(String value) {
 
-  /**
-   * Returns a {@link BlobKey} of the form {@code <domainPrefix>/<key>} for the given domain and
-   * known identifier.
-   */
-  public static BlobKey makeKey(@Nonnull FileResourceDomain domain, @Nonnull String key) {
-    return BlobKey.of(domain.getContainerName(), key);
+  public BlobContainerName {
+    if (value == null || value.isBlank()) {
+      throw new IllegalArgumentException("Container name must not be null or blank");
+    }
+    if (value.endsWith("/")) {
+      throw new IllegalArgumentException("Container name must not end with '/': " + value);
+    }
   }
 
-  /**
-   * Returns a {@link BlobKey} of the form {@code <domainPrefix>/<uuid>} using a freshly generated
-   * random UUID as the identifier. Use this when no external identifier exists for the resource.
-   */
-  public static BlobKey makeKeyWithRandomUUID(@Nonnull FileResourceDomain domain) {
-    return BlobKey.of(domain.getContainerName(), UUID.randomUUID().toString());
+  /** Returns the full filesystem/store path for {@code key}: {@code "<container>/<key>"}. */
+  @Nonnull
+  public String resolve(@Nonnull BlobKey key) {
+    return value + "/" + key.value();
+  }
+
+  @Nonnull
+  @Override
+  public String toString() {
+    return value;
   }
 }
