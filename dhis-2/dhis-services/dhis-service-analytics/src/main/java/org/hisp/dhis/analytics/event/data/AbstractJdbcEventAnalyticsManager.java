@@ -48,6 +48,7 @@ import static org.apache.commons.lang3.math.NumberUtils.createDouble;
 import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
+import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.AnalyticsConstants.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.AnalyticsConstants.NULL;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
@@ -128,6 +129,7 @@ import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.MeasureFilter;
 import org.hisp.dhis.analytics.SortOrder;
@@ -984,6 +986,20 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       String sql = function + "(value)";
       return AggregateClause.of(sql, aggregationType, "value");
     } else if (params.hasNumericValueDimension() || params.hasBooleanValueDimension()) {
+      if (params.getValue() != null && params.getValue().hasAggregationType()) {
+        AnalyticsAggregationType analyticsAggregationType = fromAggregationType(aggregationType);
+
+        analyticsAggregationType =
+            organisationUnitResolver.getMinOrMaxOrgUnitAggregationIfAny(
+                params.getAllOrganisationUnits(),
+                params.getValue().getAggregationType(),
+                analyticsAggregationType);
+
+        if (analyticsAggregationType != null) {
+          function = analyticsAggregationType.getAggregationType().getValue();
+        }
+      }
+
       String expression = quoteAlias(params.getValue().getUid());
       String sql = function + "(" + expression + ")";
       return AggregateClause.of(sql, aggregationType, expression);
@@ -995,6 +1011,19 @@ public abstract class AbstractJdbcEventAnalyticsManager {
               params.getProgramIndicator(),
               params.getEarliestStartDate(),
               params.getLatestEndDate());
+
+      aggregationType = params.getProgramIndicator().getAggregationType();
+
+      if (aggregationType != null && aggregationType.isSqlCompatible()) {
+        AnalyticsAggregationType analyticsAggregationType = fromAggregationType(aggregationType);
+
+        analyticsAggregationType =
+            organisationUnitResolver.getMinOrMaxOrgUnitAggregationIfAny(
+                params.getAllOrganisationUnits(), aggregationType, analyticsAggregationType);
+
+        function = analyticsAggregationType.getAggregationType().getValue();
+      }
+
       String sql = function + "(" + expression + ")";
       return AggregateClause.of(sql, aggregationType, expression);
     } else {
