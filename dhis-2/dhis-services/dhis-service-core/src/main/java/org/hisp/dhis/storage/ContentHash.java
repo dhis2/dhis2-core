@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,39 +27,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.storage;
 
-import java.util.UUID;
+import com.google.common.hash.HashCode;
+import java.util.regex.Pattern;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.storage.BlobKey;
 
 /**
- * Factory methods for constructing typed {@link BlobKey} values for {@link FileResource} blobs.
- *
- * <p>Keys follow the pattern {@code <domainPrefix>/<identifier>}, where {@code domainPrefix} comes
- * from {@link FileResourceDomain#getContainerName()} (e.g. {@code "dataValue"}, {@code "icon"}).
- *
- * <p>Use {@link #makeKey(FileResourceDomain, String)} when the identifier is already known (e.g.
- * when creating an icon or a job-data resource with a fixed key). Use {@link
- * #makeKeyWithRandomUUID(FileResourceDomain)} when a new unique key is needed, such as when
- * uploading a new data-value file.
+ * A hex-encoded MD5 content hash used for integrity verification on upload. Object stores such as
+ * S3 validate the received bytes against this value and reject the upload if they disagree.
  */
-public class FileResourceKeyUtil {
-  private FileResourceKeyUtil() {}
+public record ContentHash(String hex) {
 
-  /**
-   * Returns a {@link BlobKey} of the form {@code <domainPrefix>/<key>} for the given domain and
-   * known identifier.
-   */
-  public static BlobKey makeKey(@Nonnull FileResourceDomain domain, @Nonnull String key) {
-    return BlobKey.of(domain.getContainerName(), key);
+  private static final Pattern MD5_PATTERN = Pattern.compile("[0-9a-fA-F]{32}");
+
+  public ContentHash {
+    if (!MD5_PATTERN.matcher(hex).matches()) {
+      throw new IllegalArgumentException(
+          "contentHash must be a 32-character hex string, got: '" + hex + "'");
+    }
   }
 
   /**
-   * Returns a {@link BlobKey} of the form {@code <domainPrefix>/<uuid>} using a freshly generated
-   * random UUID as the identifier. Use this when no external identifier exists for the resource.
+   * Creates a {@link ContentHash} from a Guava {@link HashCode} (the common result of {@code
+   * Hashing.md5().hashBytes(...)} or {@code Files.asByteSource(f).hash(Hashing.md5())}). The hex
+   * conversion is done here so callers do not need to call {@code hashCode.toString()} themselves.
    */
-  public static BlobKey makeKeyWithRandomUUID(@Nonnull FileResourceDomain domain) {
-    return BlobKey.of(domain.getContainerName(), UUID.randomUUID().toString());
+  public static ContentHash of(@Nonnull HashCode hashCode) {
+    return new ContentHash(hashCode.toString());
+  }
+
+  /**
+   * Returns a {@code ContentHash} for the given hex string, or {@code null} if the string is {@code
+   * null} or blank. Use this when the hash may not be available.
+   */
+  @CheckForNull
+  public static ContentHash ofNullable(@CheckForNull String hex) {
+    return (hex == null || hex.isBlank()) ? null : new ContentHash(hex);
+  }
+
+  @Nonnull
+  @Override
+  public String toString() {
+    return hex;
   }
 }
