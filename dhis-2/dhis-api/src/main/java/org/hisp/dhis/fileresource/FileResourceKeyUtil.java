@@ -52,7 +52,7 @@ public class FileResourceKeyUtil {
    * known identifier.
    */
   public static BlobKey makeKey(@Nonnull FileResourceDomain domain, @Nonnull String key) {
-    return new BlobKey(domain.getContainerName() + "/" + key);
+    return BlobKey.of(domain.getContainerName(), key);
   }
 
   /**
@@ -60,6 +60,6 @@ public class FileResourceKeyUtil {
    * random UUID as the identifier. Use this when no external identifier exists for the resource.
    */
   public static BlobKey makeKeyWithRandomUUID(@Nonnull FileResourceDomain domain) {
-    return new BlobKey(domain.getContainerName() + "/" + UUID.randomUUID());
+    return BlobKey.of(domain.getContainerName(), UUID.randomUUID().toString());
   }
 }

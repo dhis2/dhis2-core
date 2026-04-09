@@ -36,15 +36,63 @@ import org.junit.jupiter.api.Test;
 
 class BlobKeyPrefixTest {
 
+  // -------------------------------------------------------------------------
+  // Constructor validation
+  // -------------------------------------------------------------------------
+
   @Test
   void nullValueIsRejected() {
     assertThrows(NullPointerException.class, () -> new BlobKeyPrefix(null));
   }
 
   @Test
+  void leadingSlashIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new BlobKeyPrefix("/apps/my-app"));
+  }
+
+  @Test
+  void trailingSlashIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new BlobKeyPrefix("apps/my-app/"));
+  }
+
+  @Test
   void validValueIsAccepted() {
-    BlobKeyPrefix prefix = BlobKeyPrefix.of("apps");
-    assertEquals("apps", prefix.value());
+    BlobKeyPrefix prefix = new BlobKeyPrefix("apps/my-app");
+    assertEquals("apps/my-app", prefix.value());
+  }
+
+  // -------------------------------------------------------------------------
+  // of() — normalisation
+  // -------------------------------------------------------------------------
+
+  @Test
+  void ofStripsTrailingSlash() {
+    assertEquals("apps/my-app", BlobKeyPrefix.of("apps/my-app/").value());
+  }
+
+  @Test
+  void ofStripsLeadingSlash() {
+    assertEquals("apps/my-app", BlobKeyPrefix.of("/apps/my-app").value());
+  }
+
+  @Test
+  void ofStripsLeadingAndTrailingSlash() {
+    assertEquals("apps/my-app", BlobKeyPrefix.of("/apps/my-app/").value());
+  }
+
+  @Test
+  void ofWithCleanValuePassesThroughUnchanged() {
+    assertEquals("apps/my-app", BlobKeyPrefix.of("apps/my-app").value());
+  }
+
+  // -------------------------------------------------------------------------
+  // resolve / toString
+  // -------------------------------------------------------------------------
+
+  @Test
+  void resolveProducesCorrectBlobKey() {
+    BlobKey key = BlobKeyPrefix.of("apps/my-app").resolve("manifest.webapp");
+    assertEquals("apps/my-app/manifest.webapp", key.value());
   }
 
   @Test
@@ -52,9 +100,12 @@ class BlobKeyPrefixTest {
     assertEquals("apps/my-app", BlobKeyPrefix.of("apps/my-app").toString());
   }
 
+  // -------------------------------------------------------------------------
+  // APPS constant
+  // -------------------------------------------------------------------------
+
   @Test
-  void resolveProducesCorrectBlobKey() {
-    BlobKey key = BlobKeyPrefix.of("apps/my-app").resolve("manifest.webapp");
-    assertEquals("apps/my-app/manifest.webapp", key.value());
+  void appsConstantHasCorrectValue() {
+    assertEquals("apps", BlobKeyPrefix.APPS.value());
   }
 }

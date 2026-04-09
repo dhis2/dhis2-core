@@ -31,6 +31,7 @@ package org.hisp.dhis.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.storage.BlobStoreService.ContentDisposition;
 import org.junit.jupiter.api.Test;
 
 class ContentDispositionTest {

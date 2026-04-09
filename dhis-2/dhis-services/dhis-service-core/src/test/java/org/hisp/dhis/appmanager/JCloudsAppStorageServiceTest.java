@@ -44,10 +44,10 @@ import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.fileresource.FileResourceContentStore;
+import org.hisp.dhis.storage.BlobContainerName;
 import org.hisp.dhis.storage.BlobKey;
 import org.hisp.dhis.storage.BlobKeyPrefix;
 import org.hisp.dhis.storage.BlobStoreService;
-import org.hisp.dhis.storage.ContainerName;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,7 +59,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class JCloudsAppStorageServiceTest {
 
   private static final String FOLDER = "apps/test-app_abc123";
-  private static final ContainerName CONTAINER = new ContainerName("dhis2-store");
+  private static final BlobContainerName CONTAINER = new BlobContainerName("dhis2-store");
 
   @Mock private BlobStoreService blobStore;
   @Mock private LocationManager locationManager;

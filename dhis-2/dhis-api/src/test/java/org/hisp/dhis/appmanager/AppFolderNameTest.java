@@ -29,49 +29,119 @@
  */
 package org.hisp.dhis.appmanager;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
 class AppFolderNameTest {
 
+  // -------------------------------------------------------------------------
+  // Constructor validation
+  // -------------------------------------------------------------------------
+
+  @Test
+  void nullPathIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new AppFolderName(null));
+  }
+
+  @Test
+  void blankPathIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new AppFolderName("   "));
+  }
+
+  @Test
+  void pathWithoutAppsPrefixIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new AppFolderName("other/my-app_abc123"));
+  }
+
+  @Test
+  void pathTooLongIsRejected() {
+    // Max length = APPS_DIR.length() + 1 + MAX_SEGMENT_LENGTH = 4 + 1 + 32 = 37
+    String tooLong = "apps/" + "a".repeat(AppFolderName.MAX_SEGMENT_LENGTH + 1);
+    assertThrows(IllegalArgumentException.class, () -> new AppFolderName(tooLong));
+  }
+
+  @Test
+  void pathAtExactMaxLengthIsAccepted() {
+    String exactMax = "apps/" + "a".repeat(AppFolderName.MAX_SEGMENT_LENGTH);
+    assertDoesNotThrow(() -> new AppFolderName(exactMax));
+  }
+
+  @Test
+  void validPathIsAccepted() {
+    assertDoesNotThrow(() -> new AppFolderName("apps/my-app_abc123"));
+  }
+
+  // -------------------------------------------------------------------------
+  // ofKey factory
+  // -------------------------------------------------------------------------
+
   @Test
   void shortKeyProducesFolderWithAppsPrefix() {
-    AppFolderName folder = AppFolderName.forApp("my-app");
-    assertTrue(folder.value().startsWith("apps/my-app_"), folder.value());
+    AppFolderName folder = AppFolderName.ofKey("my-app");
+    assertTrue(folder.path().startsWith("apps/my-app_"), folder.path());
+  }
+
+  @Test
+  void shortKeySegmentIsExactlyMaxLength() {
+    // Token is truncated so the segment after "apps/" is always MAX_SEGMENT_LENGTH chars
+    AppFolderName folder = AppFolderName.ofKey("my-app");
+    String segment = folder.path().substring("apps/".length());
+    assertEquals(AppFolderName.MAX_SEGMENT_LENGTH, segment.length());
   }
 
   @Test
   void shortKeyAppendsRandomToken() {
-    // The segment after "apps/" must be "key_<token>"; token is non-empty
-    AppFolderName folder = AppFolderName.forApp("my-app");
-    String segment = folder.value().substring("apps/".length());
-    assertTrue(segment.startsWith("my-app_"));
-    assertTrue(segment.length() > "my-app_".length());
+    AppFolderName folder = AppFolderName.ofKey("my-app");
+    String segment = folder.path().substring("apps/".length());
+    // Segment format is "key_<token>"
+    assertTrue(segment.startsWith("my-app_"), segment);
+    // Token portion is non-empty
+    assertTrue(segment.length() > "my-app_".length(), segment);
   }
 
   @Test
   void longKeyIsTruncatedToMaxSegmentLength() {
     String longKey = "a".repeat(AppFolderName.MAX_SEGMENT_LENGTH + 10);
-    AppFolderName folder = AppFolderName.forApp(longKey);
-    String segment = folder.value().substring("apps/".length());
+    AppFolderName folder = AppFolderName.ofKey(longKey);
+    String segment = folder.path().substring("apps/".length());
     assertEquals(AppFolderName.MAX_SEGMENT_LENGTH, segment.length());
   }
 
   @Test
   void longKeySegmentIsExactPrefixOfOriginalKey() {
     String longKey = "abcdefghij".repeat(5); // 50 chars
-    AppFolderName folder = AppFolderName.forApp(longKey);
-    String segment = folder.value().substring("apps/".length());
+    AppFolderName folder = AppFolderName.ofKey(longKey);
+    String segment = folder.path().substring("apps/".length());
     assertEquals(longKey.substring(0, AppFolderName.MAX_SEGMENT_LENGTH), segment);
   }
+
+  @Test
+  void twoCallsForSameShortKeyProduceDifferentFolders() {
+    // Truncated token still has enough entropy to differ between calls
+    AppFolderName a = AppFolderName.ofKey("my-app");
+    AppFolderName b = AppFolderName.ofKey("my-app");
+    assertNotEquals(a.path(), b.path(), "Expected different folders but got: " + a.path());
+  }
+
+  // -------------------------------------------------------------------------
+  // resolve / asPrefix / toString
+  // -------------------------------------------------------------------------
 
   @Test
   void resolveProducesCorrectBlobKey() {
     AppFolderName folder = new AppFolderName("apps/my-app_abc123");
     assertEquals("apps/my-app_abc123/manifest.webapp", folder.resolve("manifest.webapp").value());
+  }
+
+  @Test
+  void resolveStripsLeadingSlash() {
+    AppFolderName folder = new AppFolderName("apps/my-app_abc123");
+    assertEquals("apps/my-app_abc123/index.html", folder.resolve("/index.html").value());
   }
 
   @Test
@@ -81,10 +151,8 @@ class AppFolderNameTest {
   }
 
   @Test
-  void twoCallsForSameShortKeyProduceDifferentFolders() {
-    // Random token ensures uniqueness across installs of the same app
-    AppFolderName a = AppFolderName.forApp("my-app");
-    AppFolderName b = AppFolderName.forApp("my-app");
-    assertNotEquals(a.value(), b.value(), "Expected different folders but got: " + a.value());
+  void toStringReturnPath() {
+    AppFolderName folder = new AppFolderName("apps/my-app_abc123");
+    assertEquals("apps/my-app_abc123", folder.toString());
   }
 }

@@ -100,7 +100,7 @@ public class JCloudsAppStorageService implements AppStorageService {
   }
 
   private void discoverInstalledApps(BiConsumer<App, BundledAppInfo> handler) {
-    for (BlobKeyPrefix folder : blobStore.listFolders(BlobKeyPrefix.of(APPS_DIR))) {
+    for (BlobKeyPrefix folder : blobStore.listFolders(BlobKeyPrefix.APPS)) {
       BlobKey manifestKey = folder.resolve(MANIFEST_WEBAPP_FILENAME);
       InputStream manifestStream = blobStore.openStream(manifestKey);
       if (manifestStream == null) {
@@ -232,8 +232,8 @@ public class JCloudsAppStorageService implements AppStorageService {
     try {
       topLevelFolder = ZipFileUtils.getTopLevelFolder(file);
       app = AppManager.readAppManifest(file, this.jsonMapper, topLevelFolder);
-      folder = AppFolderName.forApp(app.getKey());
-      app.setFolderName(folder.value());
+      folder = AppFolderName.ofKey(app.getKey());
+      app.setFolderName(folder.path());
       app.setAppStorageSource(AppStorageSource.JCLOUDS);
     } catch (IOException e) {
       log.error("Failed to install app: Failure during reading manifest from zip file", e);
@@ -258,13 +258,13 @@ public class JCloudsAppStorageService implements AppStorageService {
     }
 
     try {
-      ZipFileUtils.validateZip(file, folder.value(), topLevelFolder);
+      ZipFileUtils.validateZip(file, folder.path(), topLevelFolder);
       unzipFile(file, folder, topLevelFolder);
 
       removeOtherAppsWithSameKey(app);
 
       app.setAppState(AppStatus.OK);
-      logInstallSuccess(app, folder.value());
+      logInstallSuccess(app, folder.path());
       return app;
 
     } catch (IOException e) {
@@ -291,7 +291,7 @@ public class JCloudsAppStorageService implements AppStorageService {
       Enumeration<? extends ZipEntry> entries = zipFile.entries();
       while (entries.hasMoreElements()) {
         ZipEntry zipEntry = entries.nextElement();
-        String filePath = getFilePath(folder.value(), topLevelFolder, zipEntry);
+        String filePath = getFilePath(folder.path(), topLevelFolder, zipEntry);
         // If it's the root folder, skip
         if (filePath == null) continue;
         try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {

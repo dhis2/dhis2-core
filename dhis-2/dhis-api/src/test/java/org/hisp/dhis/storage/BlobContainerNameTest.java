@@ -34,31 +34,31 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
-class ContainerNameTest {
+class BlobContainerNameTest {
 
   @Test
   void nullValueIsRejected() {
-    assertThrows(IllegalArgumentException.class, () -> new ContainerName(null));
+    assertThrows(IllegalArgumentException.class, () -> new BlobContainerName(null));
   }
 
   @Test
   void blankValueIsRejected() {
-    assertThrows(IllegalArgumentException.class, () -> new ContainerName("   "));
+    assertThrows(IllegalArgumentException.class, () -> new BlobContainerName("   "));
   }
 
   @Test
   void trailingSlashIsRejected() {
-    assertThrows(IllegalArgumentException.class, () -> new ContainerName("dhis2-filestore/"));
+    assertThrows(IllegalArgumentException.class, () -> new BlobContainerName("dhis2-filestore/"));
   }
 
   @Test
   void validValueIsAccepted() {
-    ContainerName name = new ContainerName("dhis2-filestore");
+    BlobContainerName name = new BlobContainerName("dhis2-filestore");
     assertEquals("dhis2-filestore", name.value());
   }
 
   @Test
   void toStringReturnValue() {
-    assertEquals("my-bucket", new ContainerName("my-bucket").toString());
+    assertEquals("my-bucket", new BlobContainerName("my-bucket").toString());
   }
 }

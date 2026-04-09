@@ -47,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.storage.BlobKey;
 import org.hisp.dhis.storage.BlobStoreService;
-import org.hisp.dhis.storage.ContentDisposition;
+import org.hisp.dhis.storage.BlobStoreService.ContentDisposition;
 import org.hisp.dhis.storage.ContentHash;
 import org.springframework.stereotype.Service;
 
@@ -133,8 +133,7 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
       ContentHash contentHash;
       try {
         contentHash =
-            new ContentHash(
-                com.google.common.io.Files.asByteSource(file).hash(Hashing.md5()).toString());
+            ContentHash.of(com.google.common.io.Files.asByteSource(file).hash(Hashing.md5()));
       } catch (IOException e) {
         log.error("Hashing error", e);
         return null;

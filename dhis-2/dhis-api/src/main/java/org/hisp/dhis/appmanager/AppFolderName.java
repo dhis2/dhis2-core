@@ -40,21 +40,47 @@ import org.hisp.dhis.storage.BlobKeyPrefix;
  * <p>The segment after {@code apps/} is capped at {@value #MAX_SEGMENT_LENGTH} characters so that
  * the full path stays well within filesystem limits. When the app key is shorter than the cap, a
  * random secure token is appended to avoid collisions between re-installs.
+ *
+ * <p>The {@code path} component must not be null or blank.
  */
-public record AppFolderName(String value) {
+public record AppFolderName(String path) {
 
   /** Maximum number of characters for the folder segment after {@code apps/}. */
   static final int MAX_SEGMENT_LENGTH = 32;
 
+  public AppFolderName {
+    if (path == null || path.isBlank()) {
+      throw new IllegalArgumentException("AppFolderName path must not be null or blank");
+    }
+    if (!path.startsWith(AppStorageService.APPS_DIR + "/")) {
+      throw new IllegalArgumentException(
+          "AppFolderName path must start with " + AppStorageService.APPS_DIR + "/");
+    }
+    if (path.length() > MAX_SEGMENT_LENGTH + AppStorageService.APPS_DIR.length() + 1) {
+      throw new IllegalArgumentException(
+          "AppFolderName path must not exceed " + MAX_SEGMENT_LENGTH + " characters");
+    }
+  }
+
   /**
-   * Derives an installation folder for the given app key. The result is unique per install because
-   * a random token is appended when the key fits within the length cap.
+   * Derives an installation folder for the given app key. The segment after {@code apps/} is always
+   * exactly {@value #MAX_SEGMENT_LENGTH} characters:
+   *
+   * <ul>
+   *   <li>Keys longer than the cap are truncated to exactly {@value #MAX_SEGMENT_LENGTH} chars.
+   *   <li>Shorter keys get {@code key_<token>} where the token is trimmed so the total segment
+   *       length is {@value #MAX_SEGMENT_LENGTH}, ensuring uniqueness across re-installs.
+   * </ul>
    */
-  public static AppFolderName forApp(String appKey) {
-    String segment =
-        appKey.length() > MAX_SEGMENT_LENGTH
-            ? appKey.substring(0, MAX_SEGMENT_LENGTH)
-            : appKey + "_" + CodeGenerator.getRandomSecureToken();
+  public static AppFolderName ofKey(@Nonnull String appKey) {
+    String segment;
+    if (appKey.length() >= MAX_SEGMENT_LENGTH) {
+      segment = appKey.substring(0, MAX_SEGMENT_LENGTH);
+    } else {
+      String token = CodeGenerator.getRandomSecureToken();
+      int maxTokenLen = MAX_SEGMENT_LENGTH - appKey.length() - 1; // -1 for the "_" separator
+      segment = appKey + "_" + token.substring(0, maxTokenLen);
+    }
     return new AppFolderName(AppStorageService.APPS_DIR + "/" + segment);
   }
 
@@ -64,8 +90,8 @@ public record AppFolderName(String value) {
    * index.html}) both resolve correctly.
    */
   public BlobKey resolve(String resource) {
-    String path = resource.startsWith("/") ? resource.substring(1) : resource;
-    return BlobKey.of(value, path);
+    String rel = resource.startsWith("/") ? resource.substring(1) : resource;
+    return BlobKey.of(path, rel);
   }
 
   /**
@@ -74,12 +100,12 @@ public record AppFolderName(String value) {
    * org.hisp.dhis.storage.BlobStoreService#deleteDirectory}.
    */
   public BlobKeyPrefix asPrefix() {
-    return new BlobKeyPrefix(value);
+    return new BlobKeyPrefix(path);
   }
 
   @Nonnull
   @Override
   public String toString() {
-    return value;
+    return path;
   }
 }

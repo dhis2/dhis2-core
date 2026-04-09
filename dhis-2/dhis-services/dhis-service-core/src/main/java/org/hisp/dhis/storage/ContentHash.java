@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.storage;
 
+import com.google.common.hash.HashCode;
 import java.util.regex.Pattern;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
@@ -46,6 +47,15 @@ public record ContentHash(String hex) {
       throw new IllegalArgumentException(
           "contentHash must be a 32-character hex string, got: '" + hex + "'");
     }
+  }
+
+  /**
+   * Creates a {@link ContentHash} from a Guava {@link HashCode} (the common result of {@code
+   * Hashing.md5().hashBytes(...)} or {@code Files.asByteSource(f).hash(Hashing.md5())}). The hex
+   * conversion is done here so callers do not need to call {@code hashCode.toString()} themselves.
+   */
+  public static ContentHash of(@Nonnull HashCode hashCode) {
+    return new ContentHash(hashCode.toString());
   }
 
   /**

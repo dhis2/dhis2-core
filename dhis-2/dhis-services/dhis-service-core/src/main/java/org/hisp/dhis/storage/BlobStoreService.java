@@ -32,6 +32,7 @@ package org.hisp.dhis.storage;
 import java.io.InputStream;
 import java.net.URI;
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 
 /**
  * Provider-agnostic abstraction over a blob/object store. Implementations exist for JClouds
@@ -42,6 +43,26 @@ import javax.annotation.CheckForNull;
  * path-like strings (e.g. {@code apps/my-app/index.html}).
  */
 public interface BlobStoreService {
+
+  /**
+   * The value of an HTTP {@code Content-Disposition} header stored alongside a blob — tells
+   * browsers how to handle a downloaded file.
+   */
+  record ContentDisposition(String value) {
+    /**
+     * Returns a {@code filename=<name>} disposition, which instructs browsers to save the file
+     * under the given name.
+     */
+    public static ContentDisposition filename(String name) {
+      return new ContentDisposition("filename=" + name);
+    }
+
+    @Nonnull
+    @Override
+    public String toString() {
+      return value;
+    }
+  }
 
   /** Returns {@code true} if a blob with the given key exists in the container. */
   boolean blobExists(BlobKey key);
@@ -112,7 +133,7 @@ public interface BlobStoreService {
   URI signedGetUri(BlobKey key, long expirationSeconds);
 
   /** Returns the name of the container/bucket all blobs are stored in. */
-  ContainerName container();
+  BlobContainerName container();
 
   /** Returns {@code true} if this service is backed by the local filesystem. */
   boolean isFilesystem();

@@ -46,11 +46,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
+import org.hisp.dhis.storage.BlobContainerName;
 import org.hisp.dhis.storage.BlobKey;
 import org.hisp.dhis.storage.BlobKeyPrefix;
 import org.hisp.dhis.storage.BlobStoreService;
-import org.hisp.dhis.storage.ContainerName;
-import org.hisp.dhis.storage.ContentDisposition;
+import org.hisp.dhis.storage.BlobStoreService.ContentDisposition;
 import org.hisp.dhis.storage.ContentHash;
 import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobRequestSigner;
@@ -192,13 +192,7 @@ public class JCloudsStore implements BlobStoreService {
     return getBlobStore()
         .list(fileStoreConfig.container, prefix(jcloudsPrefix).delimiter("/"))
         .stream()
-        .map(
-            m -> {
-              String name = m.getName();
-              // Strip the trailing "/" that JClouds appends to folder names
-              return new BlobKeyPrefix(
-                  name.endsWith("/") ? name.substring(0, name.length() - 1) : name);
-            })
+        .map(m -> BlobKeyPrefix.of(m.getName()))
         .toList();
   }
 
@@ -229,8 +223,8 @@ public class JCloudsStore implements BlobStoreService {
   }
 
   @Override
-  public ContainerName container() {
-    return new ContainerName(fileStoreConfig.container);
+  public BlobContainerName container() {
+    return new BlobContainerName(fileStoreConfig.container);
   }
 
   @Override

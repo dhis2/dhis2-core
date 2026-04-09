@@ -36,23 +36,46 @@ import javax.annotation.Nonnull;
  * A key prefix identifying a namespace (logical directory) within the blob store — used for listing
  * and bulk deletion (e.g. {@code apps/my-app_abc123}).
  *
- * <p>Values do <em>not</em> carry a trailing {@code /}; implementations add it internally when the
- * underlying API requires it.
+ * <p>Values must not start or end with {@code /}; the constructor enforces this. Implementations
+ * add the separator internally when the underlying store API requires it.
+ *
+ * <p>Prefer {@link #of(String)} over the canonical constructor at call-sites that receive raw
+ * strings (e.g. from store responses), as {@code of} normalises leading and trailing slashes before
+ * constructing the record.
  *
  * <p>Distinct from {@link BlobKey}, which identifies a single blob.
  */
-public record BlobKeyPrefix(String value) {
+public record BlobKeyPrefix(@Nonnull String value) {
+
+  /** Prefix covering all installed-app blobs (i.e. {@code apps/<folder>/…}). */
+  public static final BlobKeyPrefix APPS = new BlobKeyPrefix("apps");
 
   public BlobKeyPrefix {
     Objects.requireNonNull(value, "BlobKeyPrefix value must not be null");
+    if (value.startsWith("/") || value.endsWith("/")) {
+      throw new IllegalArgumentException(
+          "BlobKeyPrefix value must not start or end with '/': " + value);
+    }
   }
 
   /**
-   * Factory equivalent to {@code new BlobKeyPrefix(value)}; prefer this for readability at
-   * call-sites where the intent is to create a prefix rather than a literal string.
+   * Creates a {@link BlobKeyPrefix} from {@code value}, stripping any leading or trailing {@code /}
+   * before construction. Prefer this over the canonical constructor when the input may carry
+   * store-native separators (e.g. JClouds appends a trailing {@code /} to folder names).
+   *
+   * <p>Examples:
+   *
+   * <ul>
+   *   <li>{@code BlobKeyPrefix.of("apps/my-app/")} → {@code "apps/my-app"}
+   *   <li>{@code BlobKeyPrefix.of("/apps/my-app")} → {@code "apps/my-app"}
+   *   <li>{@code BlobKeyPrefix.of("apps/my-app")} → {@code "apps/my-app"} (no change)
+   * </ul>
    */
-  public static BlobKeyPrefix of(String value) {
-    return new BlobKeyPrefix(value);
+  public static BlobKeyPrefix of(@Nonnull String value) {
+    String trailingStripped = value.endsWith("/") ? value.substring(0, value.length() - 1) : value;
+    String cleanedVal =
+        trailingStripped.startsWith("/") ? trailingStripped.substring(1) : trailingStripped;
+    return new BlobKeyPrefix(cleanedVal);
   }
 
   /**

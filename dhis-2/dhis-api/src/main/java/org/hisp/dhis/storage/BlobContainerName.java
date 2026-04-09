@@ -40,9 +40,9 @@ import javax.annotation.Nonnull;
  * <p>Configured via {@link org.hisp.dhis.external.conf.ConfigurationKey#FILESTORE_CONTAINER} and
  * resolved once at startup by {@link org.hisp.dhis.jclouds.JCloudsStore}.
  */
-public record ContainerName(String value) {
+public record BlobContainerName(String value) {
 
-  public ContainerName {
+  public BlobContainerName {
     if (value == null || value.isBlank()) {
       throw new IllegalArgumentException("Container name must not be null or blank");
     }

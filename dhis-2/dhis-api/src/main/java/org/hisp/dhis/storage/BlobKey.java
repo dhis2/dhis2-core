@@ -47,10 +47,17 @@ import javax.annotation.Nonnull;
  */
 public record BlobKey(String value) {
 
+  /** Maximum number of characters for a blob key, aligned with S3's 1 024-byte object key limit. */
+  static final int MAX_KEY_LENGTH = 1024;
+
   public BlobKey {
     Objects.requireNonNull(value, "BlobKey value must not be null");
     if (value.startsWith("/")) {
       throw new IllegalArgumentException("BlobKey value must not start with '/': " + value);
+    }
+    if (value.length() > MAX_KEY_LENGTH) {
+      throw new IllegalArgumentException(
+          "BlobKey value must not exceed " + MAX_KEY_LENGTH + " characters: " + value);
     }
   }
 
