@@ -29,9 +29,6 @@
  */
 package org.hisp.dhis.analytics;
 
-import static org.hisp.dhis.analytics.AggregationType.MAX_SUM_ORG_UNIT;
-import static org.hisp.dhis.analytics.AggregationType.MIN_SUM_ORG_UNIT;
-
 import java.util.Objects;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
