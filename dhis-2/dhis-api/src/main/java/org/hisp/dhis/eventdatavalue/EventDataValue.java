@@ -76,6 +76,17 @@ public class EventDataValue implements Serializable {
 
   public EventDataValue() {}
 
+  public EventDataValue(EventDataValue other) {
+    this.dataElement = other.dataElement;
+    this.created = other.created == null ? null : new Date(other.created.getTime());
+    this.createdByUserInfo = other.createdByUserInfo;
+    this.lastUpdated = other.lastUpdated == null ? null : new Date(other.lastUpdated.getTime());
+    this.lastUpdatedByUserInfo = other.lastUpdatedByUserInfo;
+    this.value = other.value;
+    this.providedElsewhere = other.providedElsewhere;
+    this.storedBy = other.storedBy;
+  }
+
   public EventDataValue(String dataElement, String value) {
     this.dataElement = dataElement;
     setValue(value);
