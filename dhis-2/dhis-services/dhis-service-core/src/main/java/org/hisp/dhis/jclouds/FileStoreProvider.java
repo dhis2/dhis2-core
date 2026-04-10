@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.singleevent;
+package org.hisp.dhis.jclouds;
 
-import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore;
-import org.hisp.dhis.tracker.model.SingleEvent;
-import org.springframework.stereotype.Service;
+import java.util.Arrays;
 
-@Service("org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService")
-public class SingleEventChangeLogService
-    extends EventChangeLogService<SingleEventChangeLog, SingleEvent> {
+/** The set of JClouds blob-store providers supported by DHIS2. */
+public enum FileStoreProvider {
+  FILESYSTEM("filesystem"),
+  AWS_S3("aws-s3"),
+  S3("s3"),
+  TRANSIENT("transient");
 
-  protected SingleEventChangeLogService(
-      SingleEventService singleEventService,
-      HibernateEventChangeLogStore<SingleEventChangeLog, SingleEvent>
-          hibernateEventChangeLogStore) {
-    super(singleEventService, hibernateEventChangeLogStore);
+  private final String key;
+
+  FileStoreProvider(String key) {
+    this.key = key;
+  }
+
+  /** The configuration key used in {@code dhis.conf}. */
+  public String key() {
+    return key;
+  }
+
+  /**
+   * Returns the provider matching {@code key}, or throws {@link IllegalArgumentException} if the
+   * key is not recognised.
+   */
+  public static FileStoreProvider of(String key) {
+    return Arrays.stream(values())
+        .filter(p -> p.key.equals(key))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "Unsupported file store provider '"
+                        + key
+                        + "'. Supported values are: filesystem, aws-s3, s3, transient."));
   }
 }

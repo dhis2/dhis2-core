@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +27,59 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.singleevent;
+package org.hisp.dhis.storage;
 
-import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore;
-import org.hisp.dhis.tracker.model.SingleEvent;
-import org.springframework.stereotype.Service;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@Service("org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService")
-public class SingleEventChangeLogService
-    extends EventChangeLogService<SingleEventChangeLog, SingleEvent> {
+import org.junit.jupiter.api.Test;
 
-  protected SingleEventChangeLogService(
-      SingleEventService singleEventService,
-      HibernateEventChangeLogStore<SingleEventChangeLog, SingleEvent>
-          hibernateEventChangeLogStore) {
-    super(singleEventService, hibernateEventChangeLogStore);
+class ContentHashTest {
+
+  private static final String VALID_MD5 = "d41d8cd98f00b204e9800998ecf8427e";
+
+  @Test
+  void validMd5HexIsAccepted() {
+    ContentHash hash = new ContentHash(VALID_MD5);
+    assertEquals(VALID_MD5, hash.hex());
+  }
+
+  @Test
+  void uppercaseHexIsAccepted() {
+    String upper = VALID_MD5.toUpperCase();
+    assertEquals(upper, new ContentHash(upper).hex());
+  }
+
+  @Test
+  void tooShortHexIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new ContentHash("d41d8cd98f00b204"));
+  }
+
+  @Test
+  void nonHexCharactersAreRejected() {
+    assertThrows(
+        IllegalArgumentException.class, () -> new ContentHash("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"));
+  }
+
+  @Test
+  void ofNullableWithNullReturnsNull() {
+    assertNull(ContentHash.ofNullable(null));
+  }
+
+  @Test
+  void ofNullableWithBlankReturnsNull() {
+    assertNull(ContentHash.ofNullable("   "));
+  }
+
+  @Test
+  void ofNullableWithValidHexReturnsHash() {
+    ContentHash hash = ContentHash.ofNullable(VALID_MD5);
+    assertEquals(VALID_MD5, hash.hex());
+  }
+
+  @Test
+  void toStringReturnsHex() {
+    assertEquals(VALID_MD5, new ContentHash(VALID_MD5).toString());
   }
 }

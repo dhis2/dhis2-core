@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +27,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.singleevent;
+package org.hisp.dhis.storage;
 
-import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore;
-import org.hisp.dhis.tracker.model.SingleEvent;
-import org.springframework.stereotype.Service;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@Service("org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService")
-public class SingleEventChangeLogService
-    extends EventChangeLogService<SingleEventChangeLog, SingleEvent> {
+import org.junit.jupiter.api.Test;
 
-  protected SingleEventChangeLogService(
-      SingleEventService singleEventService,
-      HibernateEventChangeLogStore<SingleEventChangeLog, SingleEvent>
-          hibernateEventChangeLogStore) {
-    super(singleEventService, hibernateEventChangeLogStore);
+class BlobKeyTest {
+
+  @Test
+  void nullValueIsRejected() {
+    assertThrows(NullPointerException.class, () -> new BlobKey(null));
+  }
+
+  @Test
+  void leadingSlashIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new BlobKey("/apps/my-app/file.html"));
+  }
+
+  @Test
+  void validValueIsAccepted() {
+    BlobKey key = new BlobKey("apps/my-app/file.html");
+    assertEquals("apps/my-app/file.html", key.value());
+  }
+
+  @Test
+  void toStringReturnValue() {
+    assertEquals("dataValue/some-uuid", new BlobKey("dataValue/some-uuid").toString());
+  }
+
+  @Test
+  void ofSingleSegment() {
+    assertEquals("apps", BlobKey.of("apps").value());
+  }
+
+  @Test
+  void ofJoinsSegmentsWithSlash() {
+    assertEquals("apps/my-app/index.html", BlobKey.of("apps", "my-app", "index.html").value());
   }
 }

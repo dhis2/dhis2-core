@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.singleevent;
+package org.hisp.dhis.storage;
 
-import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore;
-import org.hisp.dhis.tracker.model.SingleEvent;
-import org.springframework.stereotype.Service;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Service("org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService")
-public class SingleEventChangeLogService
-    extends EventChangeLogService<SingleEventChangeLog, SingleEvent> {
+import org.hisp.dhis.storage.BlobStoreService.ContentDisposition;
+import org.junit.jupiter.api.Test;
 
-  protected SingleEventChangeLogService(
-      SingleEventService singleEventService,
-      HibernateEventChangeLogStore<SingleEventChangeLog, SingleEvent>
-          hibernateEventChangeLogStore) {
-    super(singleEventService, hibernateEventChangeLogStore);
+class ContentDispositionTest {
+
+  @Test
+  void filenameFactoryProducesCorrectHeaderValue() {
+    ContentDisposition cd = ContentDisposition.filename("report.pdf");
+    assertEquals("filename=report.pdf", cd.value());
+  }
+
+  @Test
+  void toStringReturnValue() {
+    assertEquals("filename=data.csv", ContentDisposition.filename("data.csv").toString());
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.export.singleevent;
+package org.hisp.dhis.storage;
 
-import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.tracker.export.event.HibernateEventChangeLogStore;
-import org.hisp.dhis.tracker.model.SingleEvent;
-import org.springframework.stereotype.Service;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@Service("org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService")
-public class SingleEventChangeLogService
-    extends EventChangeLogService<SingleEventChangeLog, SingleEvent> {
+import org.junit.jupiter.api.Test;
 
-  protected SingleEventChangeLogService(
-      SingleEventService singleEventService,
-      HibernateEventChangeLogStore<SingleEventChangeLog, SingleEvent>
-          hibernateEventChangeLogStore) {
-    super(singleEventService, hibernateEventChangeLogStore);
+class BlobContainerNameTest {
+
+  @Test
+  void nullValueIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new BlobContainerName(null));
+  }
+
+  @Test
+  void blankValueIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new BlobContainerName("   "));
+  }
+
+  @Test
+  void trailingSlashIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new BlobContainerName("dhis2-filestore/"));
+  }
+
+  @Test
+  void validValueIsAccepted() {
+    BlobContainerName name = new BlobContainerName("dhis2-filestore");
+    assertEquals("dhis2-filestore", name.value());
+  }
+
+  @Test
+  void toStringReturnValue() {
+    assertEquals("my-bucket", new BlobContainerName("my-bucket").toString());
   }
 }
