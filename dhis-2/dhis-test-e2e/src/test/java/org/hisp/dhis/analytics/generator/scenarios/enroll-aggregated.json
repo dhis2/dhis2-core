@@ -146,6 +146,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "stageAndStaticTimeField",
+      "query": "/api/analytics/enrollments/aggregate/WSGAb5XwJ3Y.json?includeMetadataDetails=true&totalPages=false&pageSize=100&page=1&dimension=ou:USER_ORGUNIT,PUZaKR0Jh2k.EVENT_DATE:202205,LAST_UPDATED:2018",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }

@@ -544,8 +544,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
           .append(" ");
     }
 
-    resolveDateFieldPeriodBucketJoin(params, ANALYTICS_TBL_ALIAS)
-        .ifPresent(join -> sql.append(join.toSql()).append(" "));
+    resolveDateFieldPeriodBucketJoins(params, ANALYTICS_TBL_ALIAS)
+        .forEach(join -> sql.append(join.toSql()).append(" "));
 
     OrgUnitSqlCoordinator.appendLegacyJoin(sql, params, sqlBuilder);
 
