@@ -302,6 +302,8 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     // But outer SELECT should NOT alias them with stage UID prefix
     assertThat(generatedSql, not(containsString(programStage.getUid() + ".ouname")));
     assertThat(generatedSql, not(containsString(programStage.getUid() + ".oucode")));
+    // Stage-specific filtering must stay on the event-side CTE, not leak to the enrollment alias
+    assertThat(generatedSql, not(containsString("ax.\"ps\"")));
   }
 
   @Test
