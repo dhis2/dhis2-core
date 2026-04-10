@@ -358,6 +358,24 @@ class HtmlCacheBustingServiceTest {
   }
 
   @Test
+  @DisplayName("Skips assets with all-lowercase Vite hash in filenames (deployed pattern)")
+  void skipsContentHashedViteAssetsAllLowercase() throws IOException {
+    String html =
+        "<html><head>"
+            + "<script type=\"module\" crossorigin src=\"./assets/main-zwggxcug.js\"></script>"
+            + "<link rel=\"stylesheet\" crossorigin href=\"./assets/main-Dmx4sX17.css\">"
+            + "</head></html>";
+    App app = appWithCacheBustKey("abc123");
+
+    String result = rewrite(html, app, "/apps/login/index.html");
+
+    assertThat(result, containsString("src=\"./assets/main-zwggxcug.js\""));
+    assertThat(result, not(containsString("main-zwggxcug.js?v=")));
+    assertThat(result, containsString("href=\"./assets/main-Dmx4sX17.css\""));
+    assertThat(result, not(containsString("main-Dmx4sX17.css?v=")));
+  }
+
+  @Test
   @DisplayName("Skips assets with content hashes in filenames (Webpack-style)")
   void skipsContentHashedWebpackAssets() throws IOException {
     String html =
