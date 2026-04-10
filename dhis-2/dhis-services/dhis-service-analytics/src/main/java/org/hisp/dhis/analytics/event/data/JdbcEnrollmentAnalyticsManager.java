@@ -68,6 +68,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
@@ -197,15 +198,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   public void getEnrollments(EventQueryParams params, Grid grid, int maxLimit) {
     String sql;
     if (params.isAggregatedEnrollments()) {
-      sql =
-          useExperimentalAnalyticsQueryEngine()
-              ? buildAggregatedEnrollmentQueryWithCte(grid.getHeaders(), params)
-              : getAggregatedEnrollmentsSql(grid.getHeaders(), params);
+      sql = buildAggregatedEnrollmentQueryWithCte(grid.getHeaders(), params);
     } else {
-      sql =
-          useExperimentalAnalyticsQueryEngine()
-              ? buildAnalyticsQuery(params, maxLimit)
-              : getAggregatedEnrollmentsSql(params, maxLimit);
+      sql = buildAnalyticsQuery(params, maxLimit);
     }
     if (params.analyzeOnly()) {
       withExceptionHandling(
@@ -375,6 +370,10 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     return count;
   }
 
+  private String addFiltersToWhereClause(EventQueryParams params) {
+    return getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
+  }
+
   /**
    * Returns a from SQL clause for the given analytics table partition.
    *
@@ -534,13 +533,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     // ---------------------------------------------------------------------
-    // Query items and filters
-    // ---------------------------------------------------------------------
-    if (!useExperimentalAnalyticsQueryEngine()) {
-      sql += getQueryItemsAndFiltersWhereClause(params, hlp);
-    }
-
-    // ---------------------------------------------------------------------
     // Filter expression
     // ---------------------------------------------------------------------
 
@@ -600,10 +592,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     return sql;
-  }
-
-  private String addFiltersToWhereClause(EventQueryParams params) {
-    return getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
   }
 
   @Override
@@ -1206,14 +1194,39 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   private String getBaseAggregationWhereClause(EventQueryParams params) {
-    if (!params.hasTimeDateRanges()) {
-      return getWhereClause(params);
+    EventQueryParams sanitizedParams =
+        EventPeriodUtils.sanitizeTimeFiltersForStageDateItems(params);
+    sanitizedParams = withoutProgramStageItems(sanitizedParams);
+    Set<QueryItem> aggregateEventDateFilters =
+        new LinkedHashSet<>(getAggregateEventDateFilters(params));
+
+    if (!aggregateEventDateFilters.isEmpty()) {
+      sanitizedParams =
+          withoutQueryItems(sanitizedParams, item -> aggregateEventDateFilters.contains(item));
     }
 
-    EventQueryParams sanitizedParams =
-        new EventQueryParams.Builder(params).withoutTimeDateRanges(EVENT_TIME_FIELDS).build();
+    if (sanitizedParams.hasTimeDateRanges()) {
+      sanitizedParams =
+          new EventQueryParams.Builder(sanitizedParams)
+              .withoutTimeDateRanges(EVENT_TIME_FIELDS)
+              .build();
+    }
 
     return getWhereClause(sanitizedParams);
+  }
+
+  private EventQueryParams withoutQueryItems(
+      EventQueryParams params, Predicate<QueryItem> predicate) {
+    EventQueryParams.Builder builder = new EventQueryParams.Builder(params);
+    List<QueryItem> filteredItems = params.getItems().stream().filter(predicate.negate()).toList();
+    List<QueryItem> filteredItemFilters =
+        params.getItemFilters().stream().filter(predicate.negate()).toList();
+
+    builder.removeItems().removeItemFilters();
+    filteredItems.forEach(builder::addItem);
+    filteredItemFilters.forEach(builder::addItemFilter);
+
+    return builder.build();
   }
 
   private boolean usesAggregateEventJoin(EventQueryParams params) {

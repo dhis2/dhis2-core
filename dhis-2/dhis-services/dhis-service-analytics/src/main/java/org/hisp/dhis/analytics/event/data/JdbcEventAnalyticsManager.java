@@ -170,10 +170,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
   @Override
   public Grid getEvents(EventQueryParams params, Grid grid, int maxLimit) {
-    String sql =
-        useExperimentalAnalyticsQueryEngine()
-            ? buildAnalyticsQuery(params, maxLimit)
-            : getAggregatedEnrollmentsSql(params, maxLimit);
+    String sql = buildAnalyticsQuery(params, maxLimit);
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql));
@@ -695,14 +692,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
               + " = '"
               + params.getProgramStage().getUid()
               + "' ";
-    }
-
-    // ---------------------------------------------------------------------
-    // Query items and filters
-    // ---------------------------------------------------------------------
-
-    if (!useExperimentalAnalyticsQueryEngine()) {
-      sql += getQueryItemsAndFiltersWhereClause(params, hlp);
     }
 
     sql += getOptionFilter(params, hlp);
