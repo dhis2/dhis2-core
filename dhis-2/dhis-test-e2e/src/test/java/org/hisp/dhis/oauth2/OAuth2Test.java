@@ -52,7 +52,6 @@ import org.hisp.dhis.uitest.ConsentPage;
 import org.hisp.dhis.uitest.LoginPage;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -67,7 +66,6 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 
 @Tag("oauth2tests")
-@Disabled("Started failing on master. testGetAccessToken times out, needs investigation")
 @Slf4j
 class OAuth2Test extends BaseE2ETest {
 
