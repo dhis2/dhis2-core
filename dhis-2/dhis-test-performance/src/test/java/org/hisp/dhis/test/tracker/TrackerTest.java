@@ -66,10 +66,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.EnumMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -290,6 +292,18 @@ public class TrackerTest extends Simulation {
       throw new RuntimeException("User provisioning failed", e);
     }
 
+    try {
+      setupProgramRuleVariables();
+    } catch (Exception e) {
+      throw new RuntimeException("Program rule variable setup failed", e);
+    }
+
+    try {
+      setupProgramRules();
+    } catch (Exception e) {
+      throw new RuntimeException("Program rule setup failed", e);
+    }
+
     ScenarioWithRequests eventScenario = exportEnabled() ? eventProgramScenario() : null;
     ScenarioWithRequests trackerScenario = exportEnabled() ? trackerProgramScenario() : null;
 
@@ -417,6 +431,209 @@ public class TrackerTest extends Simulation {
       Thread.sleep(pauseAfterProvisioningSec * 1000L);
       logger.debug("Starting test execution...");
     }
+  }
+
+  /**
+   * Sets the {@code sourceType} of all program rule variables for the event and tracker programs to
+   * {@code CURRENT_EVENT}. This ensures the rule engine takes the optimized path (no saved-event DB
+   * fetch) during the performance test, which is the scenario we want to measure.
+   */
+  private void setupProgramRuleVariables() throws Exception {
+    logger.debug(
+        "Setting up program rule variables for programs {} and {}...",
+        this.eventProgram,
+        this.trackerProgram);
+
+    HttpClient client = HttpClient.newBuilder().build();
+    String auth =
+        Base64.getEncoder()
+            .encodeToString(
+                (this.adminUser + ":" + this.adminPassword).getBytes(StandardCharsets.UTF_8));
+
+    HttpRequest getRequest =
+        HttpRequest.newBuilder()
+            .uri(
+                URI.create(
+                    this.instance
+                        + "/api/programRuleVariables?paging=false&fields=id"
+                        + "&filter=program.id:in:["
+                        + this.eventProgram
+                        + ","
+                        + this.trackerProgram
+                        + "]"))
+            .header("Authorization", "Basic " + auth)
+            .header("Accept", "application/json")
+            .GET()
+            .build();
+
+    HttpResponse<String> getResponse =
+        client.send(getRequest, HttpResponse.BodyHandlers.ofString());
+    if (getResponse.statusCode() != 200) {
+      throw new RuntimeException(
+          "Failed to fetch program rule variables: HTTP "
+              + getResponse.statusCode()
+              + " - "
+              + getResponse.body());
+    }
+
+    List<String> ids = new ArrayList<>();
+    Matcher matcher = Pattern.compile("\"id\"\\s*:\\s*\"([^\"]+)\"").matcher(getResponse.body());
+    while (matcher.find()) {
+      ids.add(matcher.group(1));
+    }
+    logger.debug("Found {} program rule variables to update", ids.size());
+
+    for (String id : ids) {
+      HttpRequest patchRequest =
+          HttpRequest.newBuilder()
+              .uri(URI.create(this.instance + "/api/programRuleVariables/" + id))
+              .header("Authorization", "Basic " + auth)
+              .header("Content-Type", "application/json-patch+json")
+              .method(
+                  "PATCH",
+                  HttpRequest.BodyPublishers.ofString(
+                      "[{\"op\":\"replace\",\"path\":\"/programRuleVariableSourceType\","
+                          + "\"value\":\"DATAELEMENT_CURRENT_EVENT\"}]"))
+              .build();
+
+      HttpResponse<String> patchResponse =
+          client.send(patchRequest, HttpResponse.BodyHandlers.ofString());
+      if (patchResponse.statusCode() != 200) {
+        throw new RuntimeException(
+            "Failed to update program rule variable "
+                + id
+                + ": HTTP "
+                + patchResponse.statusCode()
+                + " - "
+                + patchResponse.body());
+      }
+    }
+
+    logger.debug("Program rule variable setup complete: {} variables updated", ids.size());
+  }
+
+  /**
+   * Creates three program rules that use {@code d2:inOrgUnitGroup} so the rule engine exercises the
+   * supplementary-data (org-unit-group membership) path during the performance test. Two rules are
+   * added to the event program and one to the tracker program, each targeting a different org unit
+   * group from the Sierra Leone demo DB. Rules are created idempotently — any rule whose name is
+   * already present is skipped.
+   */
+  private void setupProgramRules() throws Exception {
+    record ProgramRuleSpec(String name, String programId, String orgUnitGroupUid) {}
+
+    List<ProgramRuleSpec> specs =
+        List.of(
+            new ProgramRuleSpec(
+                "Perf test - in Public facilities", this.eventProgram, "oRVt7g429ZO"),
+            new ProgramRuleSpec("Perf test - in Rural", this.eventProgram, "GGghZsfu7qV"),
+            new ProgramRuleSpec("Perf test - in Urban", this.trackerProgram, "f25dqv3Y7Z0"));
+
+    HttpClient client = HttpClient.newBuilder().build();
+    String auth =
+        Base64.getEncoder()
+            .encodeToString(
+                (this.adminUser + ":" + this.adminPassword).getBytes(StandardCharsets.UTF_8));
+
+    HttpRequest getRequest =
+        HttpRequest.newBuilder()
+            .uri(
+                URI.create(
+                    this.instance
+                        + "/api/programRules?paging=false&fields=name"
+                        + "&filter=program.id:in:["
+                        + this.eventProgram
+                        + ","
+                        + this.trackerProgram
+                        + "]"))
+            .header("Authorization", "Basic " + auth)
+            .header("Accept", "application/json")
+            .GET()
+            .build();
+
+    HttpResponse<String> getResponse =
+        client.send(getRequest, HttpResponse.BodyHandlers.ofString());
+    if (getResponse.statusCode() != 200) {
+      throw new RuntimeException(
+          "Failed to fetch existing program rules: HTTP "
+              + getResponse.statusCode()
+              + " - "
+              + getResponse.body());
+    }
+
+    Set<String> existingNames = new HashSet<>();
+    Matcher nameMatcher =
+        Pattern.compile("\"name\"\\s*:\\s*\"([^\"]+)\"").matcher(getResponse.body());
+    while (nameMatcher.find()) {
+      existingNames.add(nameMatcher.group(1));
+    }
+
+    for (ProgramRuleSpec spec : specs) {
+      if (existingNames.contains(spec.name())) {
+        logger.debug("Program rule '{}' already exists, skipping", spec.name());
+        continue;
+      }
+
+      String ruleBody =
+          "{\"name\":\"%s\",\"program\":{\"id\":\"%s\"},\"condition\":\"d2:inOrgUnitGroup('%s')\"}"
+              .formatted(spec.name(), spec.programId(), spec.orgUnitGroupUid());
+
+      HttpRequest createRuleRequest =
+          HttpRequest.newBuilder()
+              .uri(URI.create(this.instance + "/api/programRules"))
+              .header("Authorization", "Basic " + auth)
+              .header("Content-Type", "application/json")
+              .POST(HttpRequest.BodyPublishers.ofString(ruleBody))
+              .build();
+
+      HttpResponse<String> createRuleResponse =
+          client.send(createRuleRequest, HttpResponse.BodyHandlers.ofString());
+      if (createRuleResponse.statusCode() != 201) {
+        throw new RuntimeException(
+            "Failed to create program rule '"
+                + spec.name()
+                + "': HTTP "
+                + createRuleResponse.statusCode()
+                + " - "
+                + createRuleResponse.body());
+      }
+
+      Matcher uidMatcher =
+          Pattern.compile("\"uid\"\\s*:\\s*\"([^\"]+)\"").matcher(createRuleResponse.body());
+      if (!uidMatcher.find()) {
+        throw new RuntimeException(
+            "Could not extract UID from program rule response: " + createRuleResponse.body());
+      }
+      String ruleUid = uidMatcher.group(1);
+
+      String actionBody =
+          "{\"programRule\":{\"id\":\"%s\"},\"programRuleActionType\":\"SHOWWARNING\",\"content\":\"In org unit group %s\"}"
+              .formatted(ruleUid, spec.orgUnitGroupUid());
+
+      HttpRequest createActionRequest =
+          HttpRequest.newBuilder()
+              .uri(URI.create(this.instance + "/api/programRuleActions"))
+              .header("Authorization", "Basic " + auth)
+              .header("Content-Type", "application/json")
+              .POST(HttpRequest.BodyPublishers.ofString(actionBody))
+              .build();
+
+      HttpResponse<String> createActionResponse =
+          client.send(createActionRequest, HttpResponse.BodyHandlers.ofString());
+      if (createActionResponse.statusCode() != 201) {
+        throw new RuntimeException(
+            "Failed to create program rule action for '"
+                + spec.name()
+                + "': HTTP "
+                + createActionResponse.statusCode()
+                + " - "
+                + createActionResponse.body());
+      }
+
+      logger.debug("Created program rule '{}' with SHOWWARNING action", spec.name());
+    }
+
+    logger.debug("Program rule setup complete");
   }
 
   private HttpRequestActionBuilder login() {
