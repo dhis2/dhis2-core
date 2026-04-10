@@ -52,6 +52,7 @@ import java.util.Set;
 import lombok.NoArgsConstructor;
 import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.PeriodDimensionSplitter;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
@@ -134,7 +135,7 @@ public class HeaderHelper {
 
   private static void addDimensionHeaders(
       Grid grid, List<DimensionalObject> dimensions, Program program) {
-    for (DimensionalObject dimension : dimensions) {
+    for (DimensionalObject dimension : PeriodDimensionSplitter.expandPeriodDimensions(dimensions)) {
       grid.addHeader(
           new GridHeader(
               getDimensionHeaderName(dimension),
