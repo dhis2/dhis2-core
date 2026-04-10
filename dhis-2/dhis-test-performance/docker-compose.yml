@@ -48,7 +48,10 @@ services:
         POSTGRES_BASE_IMAGE: ghcr.io/baosystems/postgis:14-3.5
         DB_TYPE: "${DB_TYPE:-sierra-leone}"
         DB_VERSION: "${DB_VERSION:-dev}"
-    image: localhost/dhis2-postgres:14-3.5-${DB_TYPE:-sierra-leone}-${DB_VERSION:-dev}
+        # PERF_TEST=cleanup → seed-cleanup.sql, ReservedValueCleanupPerformanceTest (8M expired, default)
+        # PERF_TEST=reserve → seed-reserve.sql, ReserveValuesPerformanceTest        (1M expired)
+        PERF_TEST: "${PERF_TEST:-cleanup}"
+    image: localhost/dhis2-postgres:14-3.5-${DB_TYPE:-sierra-leone}-${DB_VERSION:-dev}-${PERF_TEST:-cleanup}
     cpus: 4
     mem_limit: 16gb
     shm_size: 6gb
@@ -69,12 +72,10 @@ services:
           "CMD-SHELL",
           'psql --quiet --host=127.0.0.1 --port=5432 --set=application_name=docker --command "/** docker healthcheck **/ SELECT ''ok''" > /dev/null',
         ]
-      start_period: 120s
+      start_period: 10s
       interval: 5s
       timeout: 3s
       retries: 5
-    ports:
-      - "127.0.0.1:5432:5432"
 
   # Prometheus for scraping DHIS2 metrics (HikariCP, JVM, etc.)
   prometheus:

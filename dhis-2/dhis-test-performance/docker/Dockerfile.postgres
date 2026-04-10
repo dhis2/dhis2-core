@@ -34,6 +34,12 @@ COPY docker-entrypoint-build.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint-build.sh && \
     gosu postgres /usr/local/bin/docker-entrypoint-build.sh
 
+ARG PERF_TEST=cleanup
+COPY seed-${PERF_TEST}.sql /tmp/seed.sql
+RUN gosu postgres pg_ctl -D "$PGDATA" -o "-c listen_addresses='' -p 5432" -w start && \
+    PGHOST= PGHOSTADDR= psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --no-password --no-psqlrc --dbname "$POSTGRES_DB" -f /tmp/seed.sql && \
+    gosu postgres pg_ctl -D "$PGDATA" -m fast -w stop
+
 # Final stage with pre-populated database
 FROM ghcr.io/baosystems/postgis:14-3.5
 
