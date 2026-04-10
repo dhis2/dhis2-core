@@ -1194,7 +1194,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   }
 
   private String getBaseAggregationWhereClause(EventQueryParams params) {
-    EventQueryParams sanitizedParams = withoutProgramStageItems(params);
+    EventQueryParams sanitizedParams =
+        EventPeriodUtils.sanitizeTimeFiltersForStageDateItems(params);
+    sanitizedParams = withoutProgramStageItems(sanitizedParams);
     Set<QueryItem> aggregateEventDateFilters =
         new LinkedHashSet<>(getAggregateEventDateFilters(params));
 

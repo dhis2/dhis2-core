@@ -324,7 +324,11 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     subject.getEnrollments(params, grid, 10000);
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
-    String generatedSql = sql.getValue();
+    String generatedSql = noEof(sql.getValue());
+    String baseCteSql =
+        generatedSql.substring(
+            generatedSql.indexOf("enrollment_aggr_base as ("),
+            generatedSql.indexOf("select count(eb.enrollment) as value"));
 
     // The SQL should contain a per-stage filter CTE
     assertThat(generatedSql, containsString("latest_events_" + programStage.getUid()));
@@ -336,6 +340,8 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
     // The filter CTE should use the ev_occurreddate alias for the date column
     assertThat(generatedSql, containsString("ev_occurreddate"));
+    // Stage event-date periods must not leak into the base enrollment-date filter
+    assertThat(baseCteSql, not(containsString("enrollmentdate >=")));
   }
 
   @Test
