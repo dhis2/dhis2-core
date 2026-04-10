@@ -694,12 +694,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
               + "' ";
     }
 
-    // ---------------------------------------------------------------------
-    // Query items and filters
-    // ---------------------------------------------------------------------
-
-    sql += getQueryItemsAndFiltersWhereClause(params, hlp);
-
     sql += getOptionFilter(params, hlp);
 
     // ---------------------------------------------------------------------
