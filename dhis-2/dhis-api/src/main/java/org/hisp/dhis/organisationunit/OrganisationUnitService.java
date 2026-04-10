@@ -469,6 +469,14 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
   List<String> getSearchOrganisationUnitsUidsByUser(String username);
 
   /**
+   * Evicts cached organisation unit UIDs for the given user. Call when a user's org unit
+   * assignments change.
+   *
+   * @param username the username whose cache entries to evict.
+   */
+  void evictUserOrganisationUnitUidsCache(String username);
+
+  /**
    * Returns all OrganisationUnits with refs to any of the CategoryOptions passed in.
    *
    * @param categoryOptions refs to search for.

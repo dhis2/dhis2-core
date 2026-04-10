@@ -74,7 +74,7 @@ public class TwoFactorController {
 
   @PostMapping(value = "/enrollTOTP2FA")
   @ResponseStatus(HttpStatus.OK)
-  public WebMessage enrollTOTP2FA(@CurrentUser User currentUser) throws ConflictException {
+  public WebMessage enrollTOTP2FA(@CurrentUser UserDetails currentUser) throws ConflictException {
     twoFactorAuthService.enrollTOTP2FA(currentUser.getUsername());
     return ok(
         "The user has enrolled in TOTP 2FA, call the QR code endpoint to continue the process");
@@ -82,7 +82,7 @@ public class TwoFactorController {
 
   @PostMapping(value = "/enrollEmail2FA")
   @ResponseStatus(HttpStatus.OK)
-  public WebMessage enrollEmail2FA(@CurrentUser User currentUser) throws ConflictException {
+  public WebMessage enrollEmail2FA(@CurrentUser UserDetails currentUser) throws ConflictException {
     twoFactorAuthService.enrollEmail2FA(currentUser.getUsername());
     return ok(
         "The user has enrolled in email-based 2FA, a code was generated and sent successfully to the user's email");
@@ -99,7 +99,7 @@ public class TwoFactorController {
       value = {"/qrCodePng"},
       produces = APPLICATION_OCTET_STREAM_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
-  public void qrCodePng(@CurrentUser User currentUser, HttpServletResponse response)
+  public void qrCodePng(@CurrentUser UserDetails currentUser, HttpServletResponse response)
       throws IOException, ConflictException {
     byte[] qrCode = twoFactorAuthService.generateQRCode(currentUser);
     response.getOutputStream().write(qrCode);
@@ -115,7 +115,7 @@ public class TwoFactorController {
       value = {"/qrCodeJson"},
       produces = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.OK)
-  public QRCode qrCodeJson(@CurrentUser User currentUser) throws ConflictException {
+  public QRCode qrCodeJson(@CurrentUser UserDetails currentUser) throws ConflictException {
     byte[] qrCode = twoFactorAuthService.generateQRCode(currentUser);
     return new QRCode(currentUser.getSecret(), Base64.getEncoder().encodeToString(qrCode));
   }
@@ -134,7 +134,7 @@ public class TwoFactorController {
       produces = APPLICATION_OCTET_STREAM_VALUE)
   @ResponseStatus(HttpStatus.ACCEPTED)
   @Deprecated(forRemoval = true, since = "2.42")
-  public void generateQRCode(@CurrentUser User currentUser, HttpServletResponse response)
+  public void generateQRCode(@CurrentUser UserDetails currentUser, HttpServletResponse response)
       throws IOException, ConflictException {
     twoFactorAuthService.enrollTOTP2FA(currentUser.getUsername());
     byte[] qrCode = twoFactorAuthService.generateQRCode(currentUser);
@@ -145,7 +145,7 @@ public class TwoFactorController {
       value = "/enabled",
       consumes = {"text/*", "application/*"})
   @ResponseStatus(HttpStatus.OK)
-  public boolean isEnabled(@CurrentUser(required = true) User currentUser) {
+  public boolean isEnabled(@CurrentUser(required = true) UserDetails currentUser) {
     return currentUser.isTwoFactorEnabled();
   }
 

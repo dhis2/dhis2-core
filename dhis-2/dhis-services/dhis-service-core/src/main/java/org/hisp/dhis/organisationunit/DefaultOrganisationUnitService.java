@@ -78,6 +78,7 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
   private final ConfigurationService configurationService;
 
   private final Cache<Boolean> inUserOrgUnitHierarchyCache;
+  private final Cache<List<String>> userOrgUnitUidsCache;
 
   public DefaultOrganisationUnitService(
       OrganisationUnitStore organisationUnitStore,
@@ -97,6 +98,7 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
     this.configurationService = configurationService;
 
     this.inUserOrgUnitHierarchyCache = cacheProvider.createInUserOrgUnitHierarchyCache();
+    this.userOrgUnitUidsCache = cacheProvider.createUserOrgUnitUidsCache();
   }
 
   // -------------------------------------------------------------------------
@@ -599,17 +601,29 @@ public class DefaultOrganisationUnitService implements OrganisationUnitService {
 
   @Override
   public List<String> getOrganisationUnitsUidsByUser(String username) {
-    return organisationUnitStore.getOrganisationUnitsUidsByUser(username);
+    return userOrgUnitUidsCache.get(
+        username + ":OU", k -> organisationUnitStore.getOrganisationUnitsUidsByUser(username));
   }
 
   @Override
   public List<String> getDataViewOrganisationUnitsUidsByUser(String username) {
-    return organisationUnitStore.getDataViewOrganisationUnitsUidsByUser(username);
+    return userOrgUnitUidsCache.get(
+        username + ":DATAVIEW",
+        k -> organisationUnitStore.getDataViewOrganisationUnitsUidsByUser(username));
   }
 
   @Override
   public List<String> getSearchOrganisationUnitsUidsByUser(String username) {
-    return organisationUnitStore.getSearchOrganisationUnitsUidsByUser(username);
+    return userOrgUnitUidsCache.get(
+        username + ":SEARCH",
+        k -> organisationUnitStore.getSearchOrganisationUnitsUidsByUser(username));
+  }
+
+  @Override
+  public void evictUserOrganisationUnitUidsCache(String username) {
+    userOrgUnitUidsCache.invalidate(username + ":OU");
+    userOrgUnitUidsCache.invalidate(username + ":SEARCH");
+    userOrgUnitUidsCache.invalidate(username + ":DATAVIEW");
   }
 
   @Override
