@@ -262,8 +262,7 @@ class ExpressionServiceTest extends TestBase {
             idObjectManager,
             i18nManager,
             cacheProvider,
-            sqlBuilder,
-            settingsService);
+            sqlBuilder);
 
     categoryOptionA = new CategoryOption("Under 5");
     categoryOptionB = new CategoryOption("Over 5");

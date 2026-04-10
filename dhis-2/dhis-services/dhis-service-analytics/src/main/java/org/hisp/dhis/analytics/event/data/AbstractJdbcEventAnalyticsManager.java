@@ -89,7 +89,6 @@ import static org.hisp.dhis.common.ValueType.REFERENCE;
 import static org.hisp.dhis.commons.collection.ListUtils.union;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.feedback.ErrorCode.E7149;
 import static org.hisp.dhis.system.util.MathUtils.getRoundedObject;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
@@ -871,9 +870,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   protected String getAdditionalQueryItemWhereClause(
       EventQueryParams params, String existingWhereClause) {
-    if (!useExperimentalAnalyticsQueryEngine()) {
-      return StringUtils.EMPTY;
-    }
 
     String queryItemFilterClause = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
 
@@ -1936,21 +1932,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         .flatMap(column -> ColumnUtils.splitColumns(column).stream())
         .distinct()
         .toList();
-  }
-
-  /**
-   * Determines if the experimental analytics query engine should be used. The experimental
-   * analytics query engine is used when the analytics database is set to Doris or when the setting
-   * is enabled. When the experimental analytics query engine is used, all enrollment and event
-   * queries are constructed using CTE (Common Table Expressions) instead of subqueries.
-   *
-   * @return true if the experimental analytics query engine should be used, false otherwise.
-   */
-  protected boolean useExperimentalAnalyticsQueryEngine() {
-    String analyticsDatabase = config.getPropertyOrDefault(ANALYTICS_DATABASE, "").trim();
-    return "doris".equalsIgnoreCase(analyticsDatabase)
-        || "clickhouse".equalsIgnoreCase(analyticsDatabase)
-        || this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
   }
 
   /**
