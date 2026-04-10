@@ -416,7 +416,6 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   @Test
   void verifyExperimentalQueryDoesNotDuplicateStageSpecificDateCondition() {
     mockEmptyRowSet();
-    when(mockSettings.getUseExperimentalAnalyticsQueryEngine()).thenReturn(true);
 
     QueryItem stageEventDateItem =
         new QueryItem(
@@ -458,7 +457,6 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   @Test
   void verifyExperimentalQueryKeepsScheduledDateWithStageSpecificEventDate() {
     mockEmptyRowSet();
-    when(mockSettings.getUseExperimentalAnalyticsQueryEngine()).thenReturn(true);
 
     QueryItem stageEventDateItem =
         new QueryItem(
@@ -776,7 +774,6 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   @Test
   void verifyExperimentalAggregatedEventQueryIncludesStageDateFilters() {
     mockEmptyRowSet();
-    when(mockSettings.getUseExperimentalAnalyticsQueryEngine()).thenReturn(true);
     when(piDisagInfoInitializer.getParamsWithDisaggregationInfo(any(EventQueryParams.class)))
         .thenAnswer(i -> i.getArguments()[0]);
 

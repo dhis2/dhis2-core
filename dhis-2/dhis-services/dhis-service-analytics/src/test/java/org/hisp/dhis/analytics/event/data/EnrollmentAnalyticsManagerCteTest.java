@@ -43,6 +43,7 @@ import static org.hisp.dhis.program.EnrollmentStatus.ACTIVE;
 import static org.hisp.dhis.program.EnrollmentStatus.COMPLETED;
 import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -52,6 +53,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -71,6 +73,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.ClickHouseAnalyticsSqlBuilder;
@@ -142,7 +145,6 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
   public void setUp() {
     when(jdbcTemplate.queryForRowSet(anyString())).thenReturn(this.rowSet);
     when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
-    when(systemSettings.getUseExperimentalAnalyticsQueryEngine()).thenReturn(true);
     when(systemSettings.getOrgUnitCentroidsInEventsAnalytics()).thenReturn(false);
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn("postgresql");
     when(rowSet.getMetaData()).thenReturn(rowSetMetaData);
@@ -332,6 +334,59 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
     // The filter CTE should use the ev_occurreddate alias for the date column
     assertThat(generatedSql, containsString("ev_occurreddate"));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentStageOrgUnitFilterStaysInFilterCte() {
+    DataElement orgUnitDataElement =
+        org.hisp.dhis.test.TestBase.createDataElement(
+            'O', ValueType.ORGANISATION_UNIT, AggregationType.NONE);
+    orgUnitDataElement.setUid("n1rtSHYf6O6");
+
+    QueryItem queryItem =
+        new QueryItem(
+            orgUnitDataElement,
+            programA,
+            null,
+            ValueType.ORGANISATION_UNIT,
+            orgUnitDataElement.getAggregationType(),
+            null);
+    queryItem.setProgram(programA);
+    queryItem.setProgramStage(programStage);
+    queryItem.addFilter(new QueryFilter(IN, "ImspTQPwCqd"));
+
+    when(organisationUnitResolver.resolveOrgUnits(any(QueryFilter.class), anyList()))
+        .thenReturn("ImspTQPwCqd");
+
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.withEndpointAction(AGGREGATE);
+    params.addItemFilter(queryItem);
+
+    ListGrid grid = new ListGrid();
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+
+    subject.getEnrollments(params.build(), grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+    String baseCteSql =
+        generatedSql.substring(
+            generatedSql.indexOf("enrollment_aggr_base as ("),
+            generatedSql.indexOf("select count(eb.enrollment) as value"));
+
+    assertThat(
+        generatedSql,
+        containsString(
+            noEof(
+                """
+                latest_events_%s as (
+                select enrollment, ev_n1rtSHYf6O6
+                from
+                """
+                    .formatted(programStage.getUid()))));
+    assertThat(generatedSql, containsString("\"n1rtSHYf6O6\" in ('ImspTQPwCqd')"));
+    assertThat(baseCteSql, containsString("inner join latest_events_" + programStage.getUid()));
+    assertThat(baseCteSql, not(containsString("and \"n1rtSHYf6O6\" in ('ImspTQPwCqd')")));
   }
 
   @Test

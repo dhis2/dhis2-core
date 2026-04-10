@@ -219,7 +219,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
         .when(config.getPropertyOrDefault(ConfigurationKey.ANALYTICS_DATABASE, ""))
         .thenReturn("postgresql");
     lenient().when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
-    lenient().when(systemSettings.getUseExperimentalAnalyticsQueryEngine()).thenReturn(false);
 
     ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
     QueryItemFilterBuilder filterBuilder =
@@ -1582,7 +1581,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Test
   void testGetEventCountIncludesStageDateFiltersForExperimentalEngine() {
-    when(systemSettings.getUseExperimentalAnalyticsQueryEngine()).thenReturn(true);
     when(jdbcTemplate.queryForObject(any(String.class), eq(Long.class))).thenReturn(1L);
 
     ProgramStage ps = createProgramStage('A', programA);

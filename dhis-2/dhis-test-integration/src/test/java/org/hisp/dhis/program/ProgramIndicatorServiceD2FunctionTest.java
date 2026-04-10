@@ -31,6 +31,7 @@ package org.hisp.dhis.program;
 
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -98,7 +99,6 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
 
   @BeforeAll
   void setUp() {
-    systemSettingsService.put("experimentalAnalyticsSqlEngineEnabled", false);
     systemSettingsService.clearCurrentSettings();
 
     OrganisationUnit organisationUnit = createOrganisationUnit('A');
@@ -184,11 +184,19 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
             + "nullif(cast((case when case when ax.\"ps\" = 'Program000B' then \"DataElmentB\" else null end >= 0 then 1 else 0 end) as double precision),0) end",
         getSql(
             "d2:condition( 'd2:hasValue(#{ProgrmStagA.DataElmentA})', 1+4, d2:zpvc(#{Program000B.DataElmentB}) )"));
-    assertEquals(
-        "case when (((select \"DataElmentA\" from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentA\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 ) is not null)) "
-            + "then 1::numeric + 4::numeric else nullif(cast((case when (select \"DataElmentB\" from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentB\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'Program000B' order by occurreddate desc limit 1 ) >= 0 then 1 else 0 end) as double precision),0) end",
+    String enrollmentSql =
         getSqlEnrollment(
-            "d2:condition( \"d2:hasValue(#{ProgrmStagA.DataElmentA})\", 1+4, d2:zpvc(#{Program000B.DataElmentB}) )"));
+            "d2:condition( \"d2:hasValue(#{ProgrmStagA.DataElmentA})\", 1+4, d2:zpvc(#{Program000B.DataElmentB}) )");
+    assertTrue(
+        enrollmentSql.contains(
+            "__PSDE_CTE_PLACEHOLDER__(psUid='ProgrmStagA', deUid='DataElmentA', offset='0', boundaryHash='noboundaries', piUid='"
+                + piB.getUid()
+                + "')"));
+    assertTrue(
+        enrollmentSql.contains(
+            "__PSDE_CTE_PLACEHOLDER__(psUid='Program000B', deUid='DataElmentB', offset='0', boundaryHash='noboundaries', piUid='"
+                + piB.getUid()
+                + "')"));
   }
 
   @Test
@@ -197,7 +205,9 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
         "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentA\" is not null and \"DataElmentA\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
         normalizeSql(getSql("d2:count(#{ProgrmStagA.DataElmentA})")));
     assertEquals(
-        "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentA\" is not null and \"DataElmentA\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
+        "__D2FUNC__(func='d2:count', ps='ProgrmStagA', de='DataElmentA', argType='none', arg64='', hash='noboundaries', pi='"
+            + piB.getUid()
+            + "')__",
         normalizeSql(getSqlEnrollment("d2:count(#{ProgrmStagA.DataElmentA})")));
   }
 
@@ -210,13 +220,14 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
         normalizeSql(
             getSql(
                 "d2:countIfCondition( #{ProgrmStagA.DataElmentA}, ' >= #{Program000B.DataElmentB}')")));
-    assertEquals(
-        "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentA\" is not null and \"DataElmentA\"::numeric >= coalesce("
-            + "(select \"DataElmentB\" from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentB\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'Program000B' order by occurreddate desc limit 1 )::numeric,0) "
-            + "and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
+    String enrollmentSql =
         normalizeSql(
             getSqlEnrollment(
-                "d2:countIfCondition( #{ProgrmStagA.DataElmentA}, \" >= #{Program000B.DataElmentB}\")")));
+                "d2:countIfCondition( #{ProgrmStagA.DataElmentA}, \" >= #{Program000B.DataElmentB}\")"));
+    assertTrue(
+        enrollmentSql.startsWith(
+            "__D2FUNC__(func='d2:countIfCondition', ps='ProgrmStagA', de='DataElmentA'"));
+    assertTrue(enrollmentSql.contains("pi='" + piB.getUid() + "')__"));
   }
 
   @Test
@@ -224,9 +235,12 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
     assertEquals(
         "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentA\" is not null and \"DataElmentA\" = 10::numeric and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
         normalizeSql(getSql("d2:countIfValue(#{ProgrmStagA.DataElmentA}, 10)")));
-    assertEquals(
-        "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentA\" is not null and \"DataElmentA\" = 10::numeric and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
-        normalizeSql(getSqlEnrollment("d2:countIfValue(#{ProgrmStagA.DataElmentA}, 10)")));
+    String enrollmentSql =
+        normalizeSql(getSqlEnrollment("d2:countIfValue(#{ProgrmStagA.DataElmentA}, 10)"));
+    assertTrue(
+        enrollmentSql.startsWith(
+            "__D2FUNC__(func='d2:countIfValue', ps='ProgrmStagA', de='DataElmentA'"));
+    assertTrue(enrollmentSql.contains("pi='" + piB.getUid() + "')__"));
   }
 
   @Test
@@ -234,10 +248,12 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
     assertEquals(
         "(cast(occurreddate as date) - cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentD\" else null end as date))",
         getSql("d2:daysBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)"));
-    assertEquals(
-        "(cast((select occurreddate from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and occurreddate is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 ) as date) "
-            + "- cast((select \"DataElmentD\" from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentD\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 ) as date))",
-        getSqlEnrollment("d2:daysBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)"));
+    assertTrue(
+        getSqlEnrollment("d2:daysBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)")
+            .contains(
+                "__PSDE_CTE_PLACEHOLDER__(psUid='ProgrmStagA', deUid='DataElmentD', offset='0', boundaryHash='noboundaries', piUid='"
+                    + piB.getUid()
+                    + "')"));
   }
 
   @Test
@@ -245,9 +261,12 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
     assertEquals(
         "(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end is not null)",
         getSql("d2:hasValue(#{ProgrmStagA.DataElmentA})"));
-    assertEquals(
-        "((select \"DataElmentA\" from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentA\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 ) is not null)",
-        getSqlEnrollment("d2:hasValue(#{ProgrmStagA.DataElmentA})"));
+    assertTrue(
+        getSqlEnrollment("d2:hasValue(#{ProgrmStagA.DataElmentA})")
+            .contains(
+                "__PSDE_CTE_PLACEHOLDER__(psUid='ProgrmStagA', deUid='DataElmentA', offset='0', boundaryHash='noboundaries', piUid='"
+                    + piB.getUid()
+                    + "')"));
   }
 
   @Test
@@ -267,11 +286,12 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
     assertEquals(
         "(extract(epoch from (cast(occurreddate as timestamp) - cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentD\" else null end as timestamp))) / 60)",
         getSql("d2:minutesBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)"));
-    assertEquals(
-        "(extract(epoch from (cast((select occurreddate from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and occurreddate is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 ) as timestamp) "
-            + "- cast((select \"DataElmentD\" from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentD\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 ) as timestamp))) / 60)",
-        getSqlEnrollment(
-            "d2:minutesBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)"));
+    assertTrue(
+        getSqlEnrollment("d2:minutesBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)")
+            .contains(
+                "__PSDE_CTE_PLACEHOLDER__(psUid='ProgrmStagA', deUid='DataElmentD', offset='0', boundaryHash='noboundaries', piUid='"
+                    + piB.getUid()
+                    + "')"));
   }
 
   @Test
@@ -292,12 +312,12 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
         "((date_part('year',age(cast(occurreddate as date), cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentD\" else null end as date)))) * 12 "
             + "+ date_part('month',age(cast(occurreddate as date), cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentD\" else null end as date))))",
         getSql("d2:monthsBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)"));
-    assertEquals(
-        "((date_part('year',age(cast((select occurreddate from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and occurreddate is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 ) as date), "
-            + "cast((select \"DataElmentD\" from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentD\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 ) as date)))) "
-            + "* 12 + date_part('month',age(cast((select occurreddate from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and occurreddate is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 ) as date), "
-            + "cast((select \"DataElmentD\" from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentD\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 ) as date))))",
-        getSqlEnrollment("d2:monthsBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)"));
+    assertTrue(
+        getSqlEnrollment("d2:monthsBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)")
+            .contains(
+                "__PSDE_CTE_PLACEHOLDER__(psUid='ProgrmStagA', deUid='DataElmentD', offset='0', boundaryHash='noboundaries', piUid='"
+                    + piB.getUid()
+                    + "')"));
   }
 
   @Test
@@ -309,9 +329,12 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
     assertEquals(
         "coalesce(case when case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end >= 0 then 1 else 0 end, 0)",
         getSql("d2:oizp(#{ProgrmStagA.DataElmentA})"));
-    assertEquals(
-        "coalesce(case when (select \"DataElmentA\" from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentA\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 ) >= 0 then 1 else 0 end, 0)",
-        getSqlEnrollment("d2:oizp(#{ProgrmStagA.DataElmentA})"));
+    assertTrue(
+        getSqlEnrollment("d2:oizp(#{ProgrmStagA.DataElmentA})")
+            .contains(
+                "__PSDE_CTE_PLACEHOLDER__(psUid='ProgrmStagA', deUid='DataElmentA', offset='0', boundaryHash='noboundaries', piUid='"
+                    + piB.getUid()
+                    + "')"));
   }
 
   @Test
@@ -352,10 +375,12 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
     assertEquals(
         "((cast(occurreddate as date) - cast(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end as date)) / 7)",
         getSql("d2:weeksBetween(#{ProgrmStagA.DataElmentA}, PS_EVENTDATE:ProgrmStagA)"));
-    assertEquals(
-        "((cast((select occurreddate from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and occurreddate is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 ) as date) "
-            + "- cast((select \"DataElmentD\" from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentD\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 ) as date)) / 7)",
-        getSqlEnrollment("d2:weeksBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)"));
+    assertTrue(
+        getSqlEnrollment("d2:weeksBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)")
+            .contains(
+                "__PSDE_CTE_PLACEHOLDER__(psUid='ProgrmStagA', deUid='DataElmentD', offset='0', boundaryHash='noboundaries', piUid='"
+                    + piB.getUid()
+                    + "')"));
   }
 
   @Test
@@ -365,15 +390,11 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
         getSql("d2:yearsBetween(#{ProgrmStagA.DataElmentA}, PS_EVENTDATE:ProgrmStagA)"));
     var enrol =
         getSqlEnrollment("d2:yearsBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)");
-    assertEquals(
-        "(date_part('year',age(cast((select occurreddate from analytics_event_Program000A "
-            + "where analytics_event_Program000A.enrollment = ax.enrollment and occurreddate is not null and occurreddate < "
-            + "cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' "
-            + "order by occurreddate desc limit 1 ) as date), "
-            + "cast((select \"DataElmentD\" from analytics_event_Program000A "
-            + "where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentD\" is not null and occurreddate < "
-            + "cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 ) as date))))",
-        enrol);
+    assertTrue(
+        enrol.contains(
+            "__PSDE_CTE_PLACEHOLDER__(psUid='ProgrmStagA', deUid='DataElmentD', offset='0', boundaryHash='noboundaries', piUid='"
+                + piB.getUid()
+                + "')"));
   }
 
   @Test
@@ -381,9 +402,12 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
     assertEquals(
         "greatest(0,coalesce(case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end::numeric,0) + 5::numeric)",
         getSql("d2:zing(#{ProgrmStagA.DataElmentA} + 5)"));
-    assertEquals(
-        "greatest(0,coalesce((select \"DataElmentA\" from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentA\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 )::numeric,0) + 5::numeric)",
-        getSqlEnrollment("d2:zing(#{ProgrmStagA.DataElmentA} + 5)"));
+    assertTrue(
+        getSqlEnrollment("d2:zing(#{ProgrmStagA.DataElmentA} + 5)")
+            .contains(
+                "__PSDE_CTE_PLACEHOLDER__(psUid='ProgrmStagA', deUid='DataElmentA', offset='0', boundaryHash='noboundaries', piUid='"
+                    + piB.getUid()
+                    + "')"));
   }
 
   @Test
@@ -392,10 +416,18 @@ class ProgramIndicatorServiceD2FunctionTest extends PostgresIntegrationTestBase 
         "nullif(cast((case when case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentA\" else null end >= 0 then 1 else 0 end "
             + "+ case when case when ax.\"ps\" = 'ProgrmStagA' then \"DataElmentB\" else null end >= 0 then 1 else 0 end) as double precision),0)",
         getSql("d2:zpvc(#{ProgrmStagA.DataElmentA},#{ProgrmStagA.DataElmentB})"));
-    assertEquals(
-        "nullif(cast((case when (select \"DataElmentA\" from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentA\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by occurreddate desc limit 1 ) >= 0 then 1 else 0 end "
-            + "+ case when (select \"DataElmentB\" from analytics_event_Program000A where analytics_event_Program000A.enrollment = ax.enrollment and \"DataElmentB\" is not null and occurreddate < cast( '2020-01-10' as date ) and occurreddate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagB' order by occurreddate desc limit 1 ) >= 0 then 1 else 0 end) as double precision),0)",
-        getSqlEnrollment("d2:zpvc(#{ProgrmStagA.DataElmentA},#{ProgrmStagB.DataElmentB})"));
+    String enrollmentSql =
+        getSqlEnrollment("d2:zpvc(#{ProgrmStagA.DataElmentA},#{ProgrmStagB.DataElmentB})");
+    assertTrue(
+        enrollmentSql.contains(
+            "__PSDE_CTE_PLACEHOLDER__(psUid='ProgrmStagA', deUid='DataElmentA', offset='0', boundaryHash='noboundaries', piUid='"
+                + piB.getUid()
+                + "')"));
+    assertTrue(
+        enrollmentSql.contains(
+            "__PSDE_CTE_PLACEHOLDER__(psUid='ProgrmStagB', deUid='DataElmentB', offset='0', boundaryHash='noboundaries', piUid='"
+                + piB.getUid()
+                + "')"));
   }
 
   private String normalizeSql(String sql) {
