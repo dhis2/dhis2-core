@@ -59,6 +59,7 @@ public interface AppManager {
 
   String BUNDLED_APP_PREFIX = "dhis-web-";
   String INSTALLED_APP_PREFIX = "api/apps/";
+  String CANONICAL_APP_PREFIX = "apps/";
 
   Set<String> ALWAYS_ACCESSIBLE_APPS = Set.of("login", "global-shell", "user-profile");
 

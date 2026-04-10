@@ -336,6 +336,64 @@ class HtmlCacheBustingServiceTest {
   }
 
   @Test
+  @DisplayName("Skips assets with content hashes in filenames (Vite-style)")
+  void skipsContentHashedViteAssets() throws IOException {
+    String html =
+        "<html><head>"
+            + "<script type=\"module\" crossorigin src=\"./assets/main-DBGta5R0.js\"></script>"
+            + "<link rel=\"stylesheet\" crossorigin href=\"./assets/main-Dmx4sX17.css\">"
+            + "</head><body>"
+            + "<img src=\"./assets/logo-BxK9a3Qp.png\">"
+            + "</body></html>";
+    App app = appWithCacheBustKey("abc123");
+
+    String result = rewrite(html, app, "/apps/my-app/index.html");
+
+    assertThat(result, containsString("src=\"./assets/main-DBGta5R0.js\""));
+    assertThat(result, not(containsString("main-DBGta5R0.js?v=")));
+    assertThat(result, containsString("href=\"./assets/main-Dmx4sX17.css\""));
+    assertThat(result, not(containsString("main-Dmx4sX17.css?v=")));
+    assertThat(result, containsString("src=\"./assets/logo-BxK9a3Qp.png\""));
+    assertThat(result, not(containsString("logo-BxK9a3Qp.png?v=")));
+  }
+
+  @Test
+  @DisplayName("Skips assets with content hashes in filenames (Webpack-style)")
+  void skipsContentHashedWebpackAssets() throws IOException {
+    String html =
+        "<html><head>"
+            + "<script src=\"static/js/main.abc123ef.js\"></script>"
+            + "<link href=\"static/css/main.9f3b1c2d.css\" rel=\"stylesheet\">"
+            + "</head></html>";
+    App app = appWithCacheBustKey("abc123");
+
+    String result = rewrite(html, app, "/apps/my-app/index.html");
+
+    assertThat(result, not(containsString("?v=")));
+  }
+
+  @Test
+  @DisplayName("Still rewrites non-hashed assets")
+  void rewritesNonHashedAssets() throws IOException {
+    String html =
+        "<html><head>"
+            + "<script src=\"app.js\"></script>"
+            + "<link href=\"style.css\" rel=\"stylesheet\">"
+            + "</head><body>"
+            + "<img src=\"favicon.ico\">"
+            + "<img src=\"favicon-48x48.png\">"
+            + "</body></html>";
+    App app = appWithCacheBustKey("abc123");
+
+    String result = rewrite(html, app, "/apps/my-app/index.html");
+
+    assertThat(result, containsString("src=\"app.js?v=abc123\""));
+    assertThat(result, containsString("href=\"style.css?v=abc123\""));
+    assertThat(result, containsString("src=\"favicon.ico?v=abc123\""));
+    assertThat(result, containsString("src=\"favicon-48x48.png?v=abc123\""));
+  }
+
+  @Test
   @DisplayName("invalidateAll clears the cache")
   void invalidateAllClearsCache() {
     service.invalidateAll();

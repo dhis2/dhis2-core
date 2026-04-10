@@ -46,6 +46,10 @@ public class AppBundleController {
   @GetMapping("/apps-bundle.json")
   public void getAppsBundle(HttpServletResponse response) throws IOException {
     InputStream appBundleInfoInputStream = BundledAppManager.getAppBundleInfoInputStream();
+    if (appBundleInfoInputStream == null) {
+      response.sendError(HttpServletResponse.SC_NOT_FOUND);
+      return;
+    }
     response.setContentType("application/json");
     StreamUtils.copyThenCloseInputStream(appBundleInfoInputStream, response.getOutputStream());
   }
