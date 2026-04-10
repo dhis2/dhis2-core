@@ -39,7 +39,6 @@ import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
@@ -58,10 +57,8 @@ public class EnrollmentPersister
 
   public EnrollmentPersister(
       ReservedValueService reservedValueService,
-      TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
-      TrackedEntityChangeLogService trackedEntityChangeLogService) {
-    super(reservedValueService, trackedEntityChangeLogService);
-
+      TrackedEntityProgramOwnerService trackedEntityProgramOwnerService) {
+    super(reservedValueService);
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
   }
 
@@ -71,13 +68,15 @@ public class EnrollmentPersister
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
       Enrollment enrollmentToPersist,
-      UserDetails user) {
+      UserDetails user,
+      ChangeLogAccumulator changeLogs) {
     handleTrackedEntityAttributeValues(
         entityManager,
         preheat,
         enrollment.getAttributes(),
         enrollmentToPersist.getTrackedEntity(),
-        user);
+        user,
+        changeLogs);
   }
 
   @Override
@@ -166,8 +165,9 @@ public class EnrollmentPersister
       org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto,
       Enrollment payloadEntity,
       Enrollment currentEntity,
-      UserDetails user) {
-    // DO NOTHING - TE HAVE NO DATA VALUES
+      UserDetails user,
+      ChangeLogAccumulator changeLogs) {
+    // DO NOTHING - ENROLLMENTS HAVE NO DATA VALUES
   }
 
   @Override

@@ -35,7 +35,6 @@ import java.util.Set;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
@@ -53,11 +52,8 @@ import org.springframework.stereotype.Component;
 public class RelationshipPersister
     extends AbstractTrackerPersister<Relationship, org.hisp.dhis.relationship.Relationship> {
 
-  public RelationshipPersister(
-      ReservedValueService reservedValueService,
-      TrackedEntityChangeLogService trackedEntityChangeLogService) {
-
-    super(reservedValueService, trackedEntityChangeLogService);
+  public RelationshipPersister(ReservedValueService reservedValueService) {
+    super(reservedValueService);
   }
 
   @Override
@@ -76,7 +72,8 @@ public class RelationshipPersister
       TrackerPreheat preheat,
       Relationship trackerDto,
       org.hisp.dhis.relationship.Relationship hibernateEntity,
-      UserDetails user) {
+      UserDetails user,
+      ChangeLogAccumulator changeLogs) {
     // NOTHING TO DO
   }
 
@@ -115,8 +112,9 @@ public class RelationshipPersister
       Relationship trackerDto,
       org.hisp.dhis.relationship.Relationship payloadEntity,
       org.hisp.dhis.relationship.Relationship currentEntity,
-      UserDetails user) {
-    // DO NOTHING - TE HAVE NO DATA VALUES
+      UserDetails user,
+      ChangeLogAccumulator changeLogs) {
+    // DO NOTHING - RELATIONSHIPS HAVE NO DATA VALUES
   }
 
   @Override
