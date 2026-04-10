@@ -219,7 +219,7 @@ public class StaticCacheControlService {
    * letter to distinguish hashes from normal dash-separated filenames like {@code
    * main-component.js}.
    */
-  private static boolean looksLikeHashedFilename(String uri) {
+  static boolean looksLikeHashedFilename(String uri) {
     if (WEBPACK_HASH.matcher(uri).find()) return true;
 
     Matcher m = VITE_HASH.matcher(uri);
