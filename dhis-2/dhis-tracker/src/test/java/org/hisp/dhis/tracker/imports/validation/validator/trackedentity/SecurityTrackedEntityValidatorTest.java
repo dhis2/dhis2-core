@@ -79,7 +79,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Enrico Colasante
  */
 @ExtendWith(MockitoExtension.class)
-class SecurityOwnershipValidatorTest extends TrackerTestBase {
+class SecurityTrackedEntityValidatorTest extends TrackerTestBase {
 
   private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 
@@ -91,7 +91,7 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
 
   private static final String PS_ID = "PS_ID";
 
-  private SecurityOwnershipValidator validator;
+  private SecurityTrackedEntityValidator validator;
 
   @Mock private TrackerBundle bundle;
 
@@ -143,7 +143,7 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
         spy(
             new DefaultTrackerAccessManager(
                 aclService, trackerOwnershipManager, trackerProgramService));
-    validator = new SecurityOwnershipValidator(trackerAccessManager);
+    validator = new SecurityTrackedEntityValidator(trackerAccessManager);
   }
 
   @Test
@@ -161,7 +161,7 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.UPDATE);
     when(bundle.getPreheat().getOrganisationUnit(trackedEntity.getOrgUnit()))
         .thenReturn(organisationUnit);
-    doReturn(List.of()).when(trackerAccessManager).canUpdate(any(), eq(te));
+    doReturn(List.of()).when(trackerAccessManager).canUpdate(any(), eq(te), any());
     validator.validate(reporter, bundle, trackedEntity);
 
     assertIsEmpty(reporter.getErrors());
@@ -396,7 +396,6 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
     TrackedEntity te = teWithEnrollments();
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
     when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.UPDATE);
-    doReturn(List.of()).when(trackerAccessManager).canUpdate(any(), eq(te));
     OrganisationUnit outOfScopeOrgUnit = createOrganisationUnit('B');
     outOfScopeOrgUnit.setUid("ORG_UNIT_UID");
     outOfScopeOrgUnit.updatePath();

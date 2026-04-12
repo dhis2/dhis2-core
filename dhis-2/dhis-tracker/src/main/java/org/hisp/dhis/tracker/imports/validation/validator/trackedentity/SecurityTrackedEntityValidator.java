@@ -30,18 +30,14 @@
 package org.hisp.dhis.tracker.imports.validation.validator.trackedentity;
 
 import static org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper.map;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1100;
 
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.user.UserDetails;
@@ -52,9 +48,9 @@ import org.springframework.stereotype.Component;
  * @author Ameen <ameen@dhis2.org>
  */
 @Component(
-    "org.hisp.dhis.tracker.imports.validation.validator.trackedentity.SecurityOwnershipValidator")
+    "org.hisp.dhis.tracker.imports.validation.validator.trackedentity.SecurityTrackedEntityValidator")
 @RequiredArgsConstructor
-class SecurityOwnershipValidator
+class SecurityTrackedEntityValidator
     implements Validator<org.hisp.dhis.tracker.imports.domain.TrackedEntity> {
   @Nonnull private final TrackerAccessManager trackerAccessManager;
 
@@ -93,8 +89,7 @@ class SecurityOwnershipValidator
     TrackedEntity mappedTrackedEntity = map(bundle.getPreheat(), trackedEntity, user);
     trackerAccessManager
         .canCreate(user, mappedTrackedEntity)
-        .forEach(
-            eo -> reporter.addError(trackedEntity, eo.validationCode(), eo.userUid(), eo.args()));
+        .forEach(eo -> reporter.addError(trackedEntity, eo.validationCode(), eo.args().toArray()));
   }
 
   private void handleUpdate(
@@ -102,18 +97,12 @@ class SecurityOwnershipValidator
       TrackedEntity databaseTrackedEntity,
       TrackerBundle bundle,
       Reporter reporter) {
-    trackerAccessManager
-        .canUpdate(bundle.getUser(), databaseTrackedEntity)
-        .forEach(
-            eo ->
-                reporter.addError(
-                    trackedEntity, eo.validationCode(), bundle.getUser().getUid(), eo.args()));
-
-    OrganisationUnit payloadOrgUnit =
+    OrganisationUnit trackedEntityOrgUnit =
         bundle.getPreheat().getOrganisationUnit(trackedEntity.getOrgUnit());
-    if (!databaseTrackedEntity.getOrganisationUnit().getUid().equals(payloadOrgUnit.getUid())) {
-      checkOrgUnitInCaptureScope(reporter, trackedEntity, payloadOrgUnit, bundle.getUser());
-    }
+
+    trackerAccessManager
+        .canUpdate(bundle.getUser(), databaseTrackedEntity, trackedEntityOrgUnit)
+        .forEach(eo -> reporter.addError(trackedEntity, eo.validationCode(), eo.args().toArray()));
   }
 
   private void handleDelete(
@@ -123,19 +112,6 @@ class SecurityOwnershipValidator
       Reporter reporter) {
     trackerAccessManager
         .canDelete(user, databaseTrackedEntity)
-        .forEach(
-            eo -> reporter.addError(trackedEntity, eo.validationCode(), user.getUid(), eo.args()));
-
-    if (databaseTrackedEntity.getEnrollments().stream().anyMatch(e -> !e.isDeleted())
-        && !user.isAuthorized(Authorities.F_TEI_CASCADE_DELETE.name())) {
-      reporter.addError(trackedEntity, E1100, user, databaseTrackedEntity);
-    }
-  }
-
-  private void checkOrgUnitInCaptureScope(
-      Reporter reporter, TrackerDto dto, OrganisationUnit eventOrgUnit, UserDetails user) {
-    if (!user.isInUserHierarchy(eventOrgUnit.getStoredPath())) {
-      reporter.addError(dto, ValidationCode.E1000, user, eventOrgUnit);
-    }
+        .forEach(eo -> reporter.addError(trackedEntity, eo.validationCode(), eo.args().toArray()));
   }
 }

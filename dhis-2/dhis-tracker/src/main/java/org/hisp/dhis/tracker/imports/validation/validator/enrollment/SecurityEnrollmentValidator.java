@@ -51,9 +51,9 @@ import org.springframework.stereotype.Component;
  * @author Ameen <ameen@dhis2.org>
  */
 @Component(
-    "org.hisp.dhis.tracker.imports.validation.validator.enrollment.SecurityOwnershipValidator")
+    "org.hisp.dhis.tracker.imports.validation.validator.enrollment.SecurityEnrollmentValidator")
 @RequiredArgsConstructor
-class SecurityOwnershipValidator implements Validator<Enrollment> {
+class SecurityEnrollmentValidator implements Validator<Enrollment> {
   @Nonnull private final TrackerAccessManager trackerAccessManager;
 
   @Override

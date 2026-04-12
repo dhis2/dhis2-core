@@ -27,8 +27,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.validation;
+package org.hisp.dhis.tracker.acl;
 
 import java.util.List;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 
 public record ErrorMessage(ValidationCode validationCode, String userUid, List<Object> args) {}

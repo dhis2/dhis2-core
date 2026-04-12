@@ -79,7 +79,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Enrico Colasante
  */
 @ExtendWith(MockitoExtension.class)
-class SecurityOwnershipValidatorTest extends TrackerTestBase {
+class SecurityEnrollmentValidatorTest extends TrackerTestBase {
   private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 
   private static final UID TE_ID = UID.generate();
@@ -90,7 +90,7 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
 
   private static final String PS_ID = "PS_ID";
 
-  private SecurityOwnershipValidator validator;
+  private SecurityEnrollmentValidator validator;
 
   @Mock private TrackerBundle bundle;
 
@@ -115,7 +115,7 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
   private TrackedEntity trackedEntity;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     organisationUnit = createOrganisationUnit('A');
     organisationUnit.setUid(ORG_UNIT_ID);
     organisationUnit.updatePath();
@@ -151,7 +151,7 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
             new DefaultTrackerAccessManager(
                 aclService, ownershipAccessManager, trackerProgramService));
 
-    validator = new SecurityOwnershipValidator(trackerAccessManager);
+    validator = new SecurityEnrollmentValidator(trackerAccessManager);
   }
 
   private UserDetails setUpUserWithOrgUnit(List<String> auths) {
@@ -184,6 +184,8 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity);
     when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
     UserDetails userDetails = setUpUserWithOrgUnit();
     when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);

@@ -32,8 +32,8 @@ package org.hisp.dhis.tracker.acl;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.tracker.imports.validation.ErrorMessage;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.Relationship;
 import org.hisp.dhis.tracker.model.SingleEvent;
@@ -51,7 +51,7 @@ public interface TrackerAccessManager {
    *
    * @return No errors if the user has TET data read access and ownership in at least one program.
    */
-  List<String> canRead(UserDetails user, TrackedEntity trackedEntity);
+  List<ErrorMessage> canRead(UserDetails user, TrackedEntity trackedEntity);
 
   /**
    * Checks capture scope and data write permissions to the TET of a given tracked entity.
@@ -61,16 +61,22 @@ public interface TrackerAccessManager {
   List<ErrorMessage> canCreate(@Nonnull UserDetails user, TrackedEntity trackedEntity);
 
   /**
-   * Checks data write permissions to the TET and ownership of a tracked entity across programs for
-   * which the user has data write access.
+   * Checks data write access to the TET and ownership of the tracked entity across programs for
+   * which the user has data write access. When the payload org unit differs from the stored tracked
+   * entity's org unit, capture scope access to the new org unit is also required.
    *
-   * @return No errors if the user has write access to the TET and ownership in at least one
-   *     program.
+   * @param user the user whose access is being validated.
+   * @param trackedEntity the stored tracked entity to update.
+   * @param payloadTrackedEntityOrgUnit the org unit from the update payload; {@code null} if
+   *     unchanged.
+   * @return No errors if the user has all required access rights to update the tracked entity.
    */
-  List<ErrorMessage> canUpdate(UserDetails user, TrackedEntity trackedEntity);
+  List<ErrorMessage> canUpdate(
+      UserDetails user, TrackedEntity trackedEntity, OrganisationUnit payloadTrackedEntityOrgUnit);
 
   /**
-   * Like {@link #canUpdate(UserDetails, TrackedEntity)}, but also requires capture scope access.
+   * Like {@link #canUpdate(UserDetails, TrackedEntity, OrganisationUnit)}, but also requires
+   * capture scope access.
    */
   List<ErrorMessage> canDelete(UserDetails user, TrackedEntity trackedEntity);
 
@@ -79,7 +85,7 @@ public interface TrackerAccessManager {
    *
    * @return No errors if the user has data read access to the program and TET, and has ownership.
    */
-  List<String> canRead(UserDetails user, Enrollment enrollment);
+  List<ErrorMessage> canRead(UserDetails user, Enrollment enrollment);
 
   /**
    * Checks data write access to the program, data read access to the TET, ownership, capture scope,
@@ -112,33 +118,56 @@ public interface TrackerAccessManager {
   List<ErrorMessage> canDelete(
       UserDetails user, Enrollment enrollment, boolean hasNonDeletedEvents);
 
-  List<String> canRead(UserDetails user, TrackerEvent event);
+  /**
+   * Checks data read access to the program, program stage, and TET, ownership of the enrolled
+   * tracked entity, and data read access to the category option combo.
+   *
+   * @return No errors if the user has data read access to the program, program stage, and TET, has
+   *     ownership, and has data read access to the category option combo.
+   */
+  List<ErrorMessage> canRead(UserDetails user, TrackerEvent event);
+
+  /**
+   * Checks data write access to the program stage, data read access to the program and TET,
+   * ownership, data write access to the category option combo, and org unit scope access. The org
+   * unit is checked against the search scope if the event is creatable in search scope, otherwise
+   * against the capture scope.
+   *
+   * @return No errors if the user has all required access rights to create the event.
+   */
+  List<ErrorMessage> canCreate(UserDetails user, TrackerEvent event);
+
+  /**
+   * Checks data write access to the program stage, data read access to the program and TET,
+   * ownership, and data write access to the category option combo. When the payload org unit
+   * differs from the stored event's org unit, capture scope access to the new org unit is also
+   * required. When the event status is {@link EventStatus#COMPLETED} and the payload requests a
+   * different status, the {@code F_UNCOMPLETE_EVENT} authority is required.
+   *
+   * @param user the user whose access is being validated.
+   * @param event the stored event to update.
+   * @param payloadEventOrgUnit the org unit from the update payload; {@code null} if unchanged.
+   * @param payloadEventStatus the event status from the update payload; {@code null} if unchanged.
+   * @return No errors if the user has all required access rights to update the event.
+   */
+  List<ErrorMessage> canUpdate(
+      UserDetails user,
+      TrackerEvent event,
+      OrganisationUnit payloadEventOrgUnit,
+      EventStatus payloadEventStatus);
+
+  /** Like {@link #canCreate(UserDetails, TrackerEvent)}. */
+  List<ErrorMessage> canDelete(UserDetails user, TrackerEvent event);
 
   List<String> canRead(UserDetails user, SingleEvent event);
 
   List<String> canCreate(UserDetails user, SingleEvent event);
-
-  List<String> canCreate(UserDetails user, TrackerEvent event);
-
-  List<String> canUpdate(UserDetails user, TrackerEvent event);
-
-  List<String> canDelete(UserDetails user, TrackerEvent event);
 
   List<String> canRead(UserDetails user, Relationship relationship);
 
   List<String> canCreate(UserDetails user, Relationship relationship);
 
   List<String> canDelete(UserDetails user, @Nonnull Relationship relationship);
-
-  /**
-   * Checks the sharing read access to EventDataValue
-   *
-   * @param user User validated for write access
-   * @param event Event under which the EventDataValue belongs
-   * @param dataElement DataElement of EventDataValue
-   * @return Empty list if read access allowed, list of errors otherwise.
-   */
-  List<String> canRead(UserDetails user, TrackerEvent event, DataElement dataElement);
 
   /**
    * Checks the sharing read access to EventDataValue

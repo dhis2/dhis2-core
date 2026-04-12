@@ -34,7 +34,6 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.tracker.model.TrackedEntity;
@@ -73,9 +72,6 @@ public interface TrackerOwnershipManager {
    * @return true if the user has access, false otherwise.
    */
   boolean hasAccess(UserDetails user, TrackedEntity trackedEntity, Program program);
-
-  boolean hasAccess(
-      UserDetails user, String trackedEntity, OrganisationUnit organisationUnit, Program program);
 
   /**
    * Ownership check can be skipped if the user is superuser or if the program type is without

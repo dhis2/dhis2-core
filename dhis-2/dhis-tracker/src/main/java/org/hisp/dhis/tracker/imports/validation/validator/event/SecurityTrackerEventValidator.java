@@ -29,32 +29,18 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
-import static org.hisp.dhis.security.Authorities.F_UNCOMPLETE_EVENT;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1083;
+import static org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper.map;
 
-import java.util.Map;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
-import org.hisp.dhis.tracker.acl.TrackerOwnershipManager;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.TrackerDto;
-import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.domain.TrackerEvent;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.tracker.model.Enrollment;
-import org.hisp.dhis.tracker.model.TrackerEvent;
-import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -66,8 +52,7 @@ import org.springframework.stereotype.Component;
 class SecurityTrackerEventValidator
     implements Validator<org.hisp.dhis.tracker.imports.domain.Event> {
 
-  @Nonnull private final AclService aclService;
-  @Nonnull private final TrackerOwnershipManager ownershipAccessManager;
+  @Nonnull private final TrackerAccessManager trackerAccessManager;
 
   @Override
   public void validate(
@@ -76,170 +61,58 @@ class SecurityTrackerEventValidator
       return;
     }
     TrackerImportStrategy strategy = bundle.getStrategy(event);
-    TrackerEvent preheatEvent = bundle.getPreheat().getTrackerEvent(trackerEvent.getEvent());
 
-    ProgramStage programStage =
-        strategy.isUpdateOrDelete()
-            ? preheatEvent.getProgramStage()
-            : bundle.getPreheat().getProgramStage(trackerEvent.getProgramStage());
-    OrganisationUnit organisationUnit =
-        strategy.isDelete()
-            ? preheatEvent.getOrganisationUnit()
-            : bundle.getPreheat().getOrganisationUnit(trackerEvent.getOrgUnit());
-    UID teUid = getTeUidFromEvent(bundle, trackerEvent);
-    CategoryOptionCombo categoryOptionCombo =
-        bundle.getPreheat().getCategoryOptionCombo(trackerEvent.getAttributeOptionCombo());
-    OrganisationUnit ownerOrgUnit =
-        getOwnerOrganisationUnit(bundle.getPreheat(), teUid, programStage.getProgram());
-    boolean isCreatableInSearchScope =
-        strategy.isCreate()
-            ? trackerEvent.isCreatableInSearchScope()
-            : preheatEvent.isCreatableInSearchScope();
-
-    if (strategy.isCreate() || strategy.isDelete()) {
-      checkEventOrgUnitWriteAccess(
-          reporter, trackerEvent, organisationUnit, isCreatableInSearchScope, bundle.getUser());
+    if (strategy.isCreate()) {
+      handleCreate(reporter, bundle, trackerEvent);
     } else {
-      OrganisationUnit databaseOrgUnit =
-          bundle.getPreheat().getTrackerEvent(trackerEvent.getUID()).getOrganisationUnit();
-      if (!organisationUnit.equals(databaseOrgUnit)) {
-        checkOrgUnitInCaptureScope(reporter, trackerEvent, organisationUnit, bundle.getUser());
+      org.hisp.dhis.tracker.model.TrackerEvent databaseTrackerEvent =
+          bundle.getPreheat().getTrackerEvent(trackerEvent.getUID());
+      CategoryOptionCombo aoc =
+          bundle.getPreheat().getCategoryOptionCombo(trackerEvent.getAttributeOptionCombo());
+      databaseTrackerEvent.setAttributeOptionCombo(aoc);
+
+      if (strategy.isUpdate()) {
+        handleUpdate(reporter, bundle, databaseTrackerEvent, trackerEvent);
+      } else if (strategy.isDelete()) {
+        handleDelete(reporter, bundle, databaseTrackerEvent, trackerEvent);
       }
     }
-    checkProgramStageWriteAccess(reporter, trackerEvent, programStage, bundle.getUser());
-    checkProgramReadAccess(reporter, trackerEvent, programStage.getProgram(), bundle.getUser());
-    checkTeTypeReadAccess(reporter, trackerEvent, programStage.getProgram(), bundle.getUser());
-    checkOwnership(
-        reporter, trackerEvent, teUid, ownerOrgUnit, programStage.getProgram(), bundle.getUser());
-    checkWriteCategoryOptionComboAccess(
-        reporter, trackerEvent, categoryOptionCombo, bundle.getUser());
-
-    if (strategy.isUpdate()) {
-      checkCompletablePermission(reporter, trackerEvent, preheatEvent, bundle.getUser());
-    }
   }
 
-  private void checkCompletablePermission(
+  private void handleCreate(Reporter reporter, TrackerBundle bundle, TrackerEvent trackerEvent) {
+    org.hisp.dhis.tracker.model.TrackerEvent mappedEvent =
+        map(bundle.getPreheat(), trackerEvent, bundle.getUser());
+    trackerAccessManager
+        .canCreate(bundle.getUser(), mappedEvent)
+        .forEach(em -> reporter.addError(trackerEvent, em.validationCode(), em.args().toArray()));
+  }
+
+  private void handleUpdate(
       Reporter reporter,
-      org.hisp.dhis.tracker.imports.domain.Event event,
-      TrackerEvent preheatEvent,
-      UserDetails user) {
-    if (EventStatus.COMPLETED == preheatEvent.getStatus()
-        && event.getStatus() != preheatEvent.getStatus()
-        && (!user.isSuper() && !user.isAuthorized(F_UNCOMPLETE_EVENT))) {
-      reporter.addError(event, E1083, user);
-    }
+      TrackerBundle bundle,
+      org.hisp.dhis.tracker.model.TrackerEvent databaseTrackerEvent,
+      TrackerEvent trackerEvent) {
+    OrganisationUnit trackerEventOrgUnit =
+        bundle.getPreheat().getOrganisationUnit(trackerEvent.getOrgUnit());
+
+    trackerAccessManager
+        .canUpdate(
+            bundle.getUser(), databaseTrackerEvent, trackerEventOrgUnit, trackerEvent.getStatus())
+        .forEach(em -> reporter.addError(trackerEvent, em.validationCode(), em.args().toArray()));
   }
 
-  @Nonnull
-  private UID getTeUidFromEvent(
-      TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.TrackerEvent event) {
-    if (bundle.getStrategy(event).isUpdateOrDelete()) {
-      return bundle
-          .getPreheat()
-          .getTrackerEvent(event.getUID())
-          .getEnrollment()
-          .getTrackedEntity()
-          .getUID();
-    }
-
-    Enrollment enrollment = bundle.getPreheat().getEnrollment(event.getEnrollment());
-
-    if (enrollment == null) {
-      return bundle
-          .findEnrollmentByUid(event.getEnrollment())
-          .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity)
-          .get();
-    }
-
-    return enrollment.getTrackedEntity().getUID();
-  }
-
-  private OrganisationUnit getOwnerOrganisationUnit(
-      TrackerPreheat preheat, UID teUid, Program program) {
-    Map<String, TrackedEntityProgramOwnerOrgUnit> programOwner =
-        preheat.getProgramOwner().get(teUid);
-    if (programOwner == null || programOwner.get(program.getUid()) == null) {
-      return null;
-    } else {
-      return programOwner.get(program.getUid()).getOrganisationUnit();
-    }
+  private void handleDelete(
+      Reporter reporter,
+      TrackerBundle bundle,
+      org.hisp.dhis.tracker.model.TrackerEvent databaseTrackerEvent,
+      TrackerEvent trackerEvent) {
+    trackerAccessManager
+        .canDelete(bundle.getUser(), databaseTrackerEvent)
+        .forEach(em -> reporter.addError(trackerEvent, em.validationCode(), em.args().toArray()));
   }
 
   @Override
   public boolean needsToRun(TrackerImportStrategy strategy) {
     return true;
-  }
-
-  private void checkTeTypeReadAccess(
-      Reporter reporter, TrackerDto dto, Program program, UserDetails user) {
-    if (!aclService.canDataRead(user, program.getTrackedEntityType())) {
-      reporter.addError(dto, ValidationCode.E1104, user, program, program.getTrackedEntityType());
-    }
-  }
-
-  private void checkOwnership(
-      Reporter reporter,
-      TrackerDto dto,
-      UID trackedEntity,
-      OrganisationUnit ownerOrganisationUnit,
-      Program program,
-      UserDetails user) {
-    if (ownerOrganisationUnit != null
-        && !ownershipAccessManager.hasAccess(
-            user, trackedEntity.getValue(), ownerOrganisationUnit, program)) {
-      reporter.addError(dto, ValidationCode.E1102, user, trackedEntity, program);
-    }
-  }
-
-  private void checkEventOrgUnitWriteAccess(
-      Reporter reporter,
-      org.hisp.dhis.tracker.imports.domain.Event event,
-      OrganisationUnit eventOrgUnit,
-      boolean isCreatableInSearchScope,
-      UserDetails user) {
-    String path = eventOrgUnit.getStoredPath();
-    if (isCreatableInSearchScope
-        ? !user.isInUserEffectiveSearchOrgUnitHierarchy(path)
-        : !user.isInUserHierarchy(path)) {
-      reporter.addError(event, ValidationCode.E1000, user, eventOrgUnit);
-    }
-  }
-
-  private void checkOrgUnitInCaptureScope(
-      Reporter reporter, TrackerDto dto, OrganisationUnit orgUnit, UserDetails user) {
-    if (!user.isInUserHierarchy(orgUnit.getStoredPath())) {
-      reporter.addError(dto, ValidationCode.E1000, user, orgUnit);
-    }
-  }
-
-  private void checkProgramReadAccess(
-      Reporter reporter, TrackerDto dto, Program program, UserDetails user) {
-    if (!aclService.canDataRead(user, program)) {
-      reporter.addError(dto, ValidationCode.E1096, user, program);
-    }
-  }
-
-  private void checkProgramStageWriteAccess(
-      Reporter reporter, TrackerDto dto, ProgramStage programStage, UserDetails user) {
-    if (!aclService.canDataWrite(user, programStage)) {
-      reporter.addError(dto, ValidationCode.E1095, user, programStage);
-    }
-  }
-
-  private void checkWriteCategoryOptionComboAccess(
-      Reporter reporter,
-      TrackerDto dto,
-      CategoryOptionCombo categoryOptionCombo,
-      UserDetails user) {
-    if (categoryOptionCombo == null) {
-      return;
-    }
-
-    for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
-      if (!aclService.canDataWrite(user, categoryOption)) {
-        reporter.addError(dto, ValidationCode.E1099, user, categoryOption);
-      }
-    }
   }
 }
