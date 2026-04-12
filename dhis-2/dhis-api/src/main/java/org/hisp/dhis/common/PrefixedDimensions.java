@@ -71,7 +71,7 @@ public class PrefixedDimensions {
   }
 
   public static Collection<PrefixedDimension> ofItemsWithProgram(
-      Program program, Collection<? extends BaseIdentifiableObject> objects) {
+      Program program, Collection<? extends IdentifiableObject> objects) {
     return objects.stream()
         .map(item -> PrefixedDimension.builder().item(item).program(program).build())
         .collect(Collectors.toList());

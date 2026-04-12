@@ -48,10 +48,7 @@ class DataElementMapperTest {
     asserter(
         new DataElementMapper(),
         DataElement::new,
-        List.of(
-            b -> b.setDimensionItemType(DIMENSION_ITEM_TYPE),
-            b -> b.setValueType(ValueType.TEXT),
-            b -> b.setUid("DE_ID")),
+        List.of(b -> b.setValueType(ValueType.TEXT), b -> b.setUid("DE_ID")),
         List.of(
             Pair.of(DimensionResponse::getDimensionType, DIMENSION_ITEM_TYPE),
             Pair.of(DimensionResponse::getId, "PROGRAM_STAGE_ID.DE_ID")),
