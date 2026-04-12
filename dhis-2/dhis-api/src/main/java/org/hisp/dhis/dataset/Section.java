@@ -55,6 +55,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
+import jakarta.persistence.UniqueConstraint;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -99,8 +100,13 @@ import org.hisp.dhis.user.sharing.Sharing;
 @JacksonXmlRootElement(localName = "section", namespace = DxfNamespaces.DXF_2_0)
 @Setter
 @Entity
-@Table(name = "section")
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
+@Table(
+    name = "section",
+    uniqueConstraints =
+        @UniqueConstraint(
+            name = "key_sectionnamedataset",
+            columnNames = {"name", "datasetid"}))
 public class Section extends BaseLinkableObject implements IdentifiableObject, MetadataObject {
 
   @Id
@@ -114,7 +120,7 @@ public class Section extends BaseLinkableObject implements IdentifiableObject, M
   @Column(unique = true, length = 50)
   private String code;
 
-  @Column(nullable = false, unique = true, length = 230)
+  @Column(nullable = false, length = 230)
   private String name;
 
   @Column(updatable = false)
