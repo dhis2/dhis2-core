@@ -1205,8 +1205,10 @@ class JdbcEventStore implements EventStore {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_ID, params.getOrgUnit().getId());
     String directOrgUnitPredicate =
-        params.getProgramType() == ProgramType.WITHOUT_REGISTRATION
-            ? " psi.organisationunitid = :" + COLUMN_ORG_UNIT_ID + AND
+        params.getEnrolledInProgram() != null
+                && params.getEnrolledInProgram().getProgramType()
+                    == ProgramType.WITHOUT_REGISTRATION
+            ? " ev.organisationunitid = :" + COLUMN_ORG_UNIT_ID + AND
             : " ou.organisationunitid = :" + COLUMN_ORG_UNIT_ID + AND;
 
     String orgUnitPathEqualsMatchQuery =

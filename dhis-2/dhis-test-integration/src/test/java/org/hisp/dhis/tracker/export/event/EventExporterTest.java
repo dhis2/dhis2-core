@@ -564,6 +564,24 @@ class EventExporterTest extends TrackerTest {
   }
 
   @Test
+  void shouldReturnEventsForWithoutRegistrationProgramGivenOrgUnitModeSelected()
+      throws ForbiddenException, BadRequestException {
+    EventOperationParams params =
+        operationParamsBuilder
+            .orgUnitUid("DiszpKrYNg8")
+            .orgUnitMode(SELECTED)
+            .programUid("iS7eutanDry")
+            .programStageUid("qLZC0lvvxQH")
+            .build();
+
+    List<String> events = getEvents(params);
+
+    assertContainsOnly(
+        List.of("QRYjLTiJTrA", "kWjSezkXHVp", "OTmjvJDn0Fu", "ck7DzdxqLqA", "lumVtWwwy0O", "cadc5eGj0j7"),
+        events);
+  }
+
+  @Test
   void shouldReturnEventsGivenIdSchemeAttribute() throws ForbiddenException, BadRequestException {
     IdSchemes idSchemes = new IdSchemes();
     idSchemes.setProgramIdScheme("ATTRIBUTE:j45AR9cBQKc");
