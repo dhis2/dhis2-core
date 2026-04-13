@@ -30,22 +30,28 @@
 package org.hisp.dhis.tracker.imports.programrule;
 
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
+import static org.hisp.dhis.programrule.ProgramRuleActionType.SERVER_SUPPORTED_TYPES;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.rules.models.RuleAttributeValue;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
@@ -55,6 +61,7 @@ import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.tracker.imports.programrule.engine.RuleEngineEffects;
@@ -71,30 +78,46 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
   private final EventService eventService;
 
+  private final ConstantService constantService;
+
+  private final org.hisp.dhis.programrule.ProgramRuleService programRuleMetadataService;
+
+  private final ProgramRuleVariableService programRuleVariableService;
+
   private final RuleActionEnrollmentMapper ruleActionEnrollmentMapper;
 
   private final RuleActionEventMapper ruleActionEventMapper;
 
   /**
-   * This is calculating the rule effects for all the enrollments and events present in the payload.
-   * First, this method is iterating over the enrollments present in the payload and related events
-   * (also the ones not present in the payload) and it is calculating rule effects for those. The,
-   * this method is iterating over events present in the payload and related enrollment (also if it
-   * is not present in the payload) and it is calculating rule effects for those. {@link
-   * #calculateTrackerEventRuleEffects(TrackerBundle, TrackerPreheat)} method makes sure that rule
-   * effects are calculated only once for every event. This ensures that there will be no duplicate
-   * effects. Finally, this method is iterating over all program events present in the payload, and
-   * it is calculating rule effects for those.
+   * Calculates rule effects for all enrollments, tracker events, and single events in the payload.
+   *
+   * <p>All programs referenced by the bundle are collected in a single pass and their rules fetched
+   * at once. The constant map is allocated only when at least one program has applicable rules.
+   * Enrollments and tracker events whose enrollment is not in the payload are grouped by program so
+   * that {@link ProgramRuleEngine#evaluateEnrollmentsAndTrackerEvents} is called at most once per
+   * distinct program. Single events are evaluated separately per program.
    */
   @Override
   @Transactional(readOnly = true)
   public void calculateRuleEffects(TrackerBundle bundle, TrackerPreheat preheat) {
+    // Deduplicate UIDs before hitting preheat: many enrollments/events typically share the same
+    // program, so look up each distinct program UID and enrollment UID at most once.
+    Set<Program> allPrograms = getAllProgramsFromPayload(bundle, preheat);
+
+    Map<Program, ProgramRuleContext> contextByProgram = getRulesForPrograms(allPrograms);
+    if (contextByProgram.isEmpty()) {
+      return;
+    }
+
+    Map<String, String> constantMap =
+        constantService.getConstantMap().entrySet().stream()
+            .collect(
+                Collectors.toMap(Map.Entry::getKey, v -> Double.toString(v.getValue().getValue())));
+
     RuleEngineEffects ruleEffects =
         RuleEngineEffects.merge(
-            RuleEngineEffects.merge(
-                calculateEnrollmentRuleEffects(bundle, preheat),
-                calculateTrackerEventRuleEffects(bundle, preheat)),
-            calculateProgramEventRuleEffects(bundle, preheat));
+            calculateEnrollmentRuleEffects(bundle, preheat, constantMap, contextByProgram),
+            calculateSingleEventRuleEffects(bundle, preheat, constantMap, contextByProgram));
 
     bundle.setEnrollmentNotifications(ruleEffects.getEnrollmentNotifications());
     bundle.setEventNotifications(ruleEffects.getEventNotifications());
@@ -105,65 +128,183 @@ class DefaultProgramRuleService implements ProgramRuleService {
         ruleActionEventMapper.mapRuleEffects(ruleEffects.getEventValidationEffects(), bundle));
   }
 
+  private static Set<Program> getAllProgramsFromPayload(
+      TrackerBundle bundle, TrackerPreheat preheat) {
+    // Deduplicate program identifiers before hitting preheat: many enrollments/events typically
+    // share the same program, so look up each distinct program identifier at most once.
+    Set<MetadataIdentifier> programIdentifiers = new HashSet<>();
+    bundle.getEnrollments().forEach(e -> programIdentifiers.add(e.getProgram()));
+    bundle.getEvents().forEach(e -> programIdentifiers.add(e.getProgram()));
+
+    Set<Program> allPrograms = new HashSet<>(programIdentifiers.size());
+    for (MetadataIdentifier identifier : programIdentifiers) {
+      Program p = preheat.getProgram(identifier);
+      if (p != null) allPrograms.add(p);
+    }
+    return allPrograms;
+  }
+
   private RuleEngineEffects calculateEnrollmentRuleEffects(
-      TrackerBundle bundle, TrackerPreheat preheat) {
-    return bundle.getEnrollments().stream()
-        .map(
-            e -> {
-              List<RuleAttributeValue> attributes =
-                  getAttributes(e.getEnrollment(), e.getTrackedEntity(), bundle, preheat);
-              RuleEnrollment enrollment =
-                  RuleEngineMapper.mapPayloadEnrollment(preheat, e, attributes);
-
-              return programRuleEngine.evaluateEnrollmentAndTrackerEvents(
-                  enrollment,
-                  getEventsFromEnrollment(e.getUid(), bundle, preheat),
-                  preheat.getProgram(e.getProgram()),
-                  bundle.getUser());
-            })
-        .reduce(RuleEngineEffects::merge)
-        .orElse(RuleEngineEffects.empty());
-  }
-
-  private RuleEngineEffects calculateTrackerEventRuleEffects(
-      TrackerBundle bundle, TrackerPreheat preheat) {
-    Set<Enrollment> enrollments =
-        bundle.getEvents().stream()
-            .filter(event -> bundle.findEnrollmentByUid(event.getEnrollment()).isEmpty())
-            .filter(event -> preheat.getProgram(event.getProgram()).isRegistration())
-            .map(event -> preheat.getEnrollment(event.getEnrollment()))
+      TrackerBundle bundle,
+      TrackerPreheat preheat,
+      Map<String, String> constantMap,
+      Map<Program, ProgramRuleContext> contextByProgram) {
+    Set<UID> payloadEnrollmentUids =
+        bundle.getEnrollments().stream()
+            .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getUid)
             .collect(Collectors.toSet());
-
-    return enrollments.stream()
-        .map(
-            e -> {
-              List<RuleAttributeValue> attributes =
-                  getAttributes(UID.of(e), UID.of(e.getTrackedEntity()), bundle, preheat);
-              RuleEnrollment enrollment = RuleEngineMapper.mapSavedEnrollment(e, attributes);
-              return programRuleEngine.evaluateEnrollmentAndTrackerEvents(
-                  enrollment,
-                  getEventsFromEnrollment(UID.of(e), bundle, preheat),
-                  e.getProgram(),
-                  bundle.getUser());
-            })
-        .reduce(RuleEngineEffects::merge)
-        .orElse(RuleEngineEffects.empty());
-  }
-
-  private RuleEngineEffects calculateProgramEventRuleEffects(
-      TrackerBundle bundle, TrackerPreheat preheat) {
-    Map<Program, List<org.hisp.dhis.tracker.imports.domain.Event>> programEvents =
+    Map<Program, List<org.hisp.dhis.tracker.imports.domain.Enrollment>>
+        payloadEnrollmentsByProgram =
+            bundle.getEnrollments().stream()
+                .filter(e -> contextByProgram.containsKey(preheat.getProgram(e.getProgram())))
+                .collect(Collectors.groupingBy(e -> preheat.getProgram(e.getProgram())));
+    Map<Program, List<Enrollment>> savedEnrollmentsByProgram =
         bundle.getEvents().stream()
-            .filter(event -> preheat.getProgram(event.getProgram()).isWithoutRegistration())
-            .collect(Collectors.groupingBy(event -> preheat.getProgram(event.getProgram())));
+            .filter(event -> preheat.getProgram(event.getProgram()).isRegistration())
+            .filter(event -> !payloadEnrollmentUids.contains(event.getEnrollment()))
+            .map(event -> preheat.getEnrollment(event.getEnrollment()))
+            .filter(Objects::nonNull)
+            .distinct()
+            .filter(e -> contextByProgram.containsKey(e.getProgram()))
+            .collect(Collectors.groupingBy(Enrollment::getProgram));
 
-    return programEvents.entrySet().stream()
+    if (payloadEnrollmentsByProgram.isEmpty() && savedEnrollmentsByProgram.isEmpty()) {
+      return RuleEngineEffects.empty();
+    }
+
+    Set<UID> enrollmentUids =
+        Stream.concat(
+                payloadEnrollmentsByProgram.values().stream()
+                    .flatMap(List::stream)
+                    .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getUid),
+                savedEnrollmentsByProgram.values().stream().flatMap(List::stream).map(UID::of))
+            .collect(Collectors.toSet());
+    Map<UID, List<RuleEvent>> savedEventsByEnrollment =
+        fetchSavedRuleEventsByEnrollment(enrollmentUids, bundle);
+    Map<UID, List<org.hisp.dhis.tracker.imports.domain.Event>> payloadEventsByEnrollment =
+        bundle.getEvents().stream()
+            .filter(event -> preheat.getProgram(event.getProgram()).isRegistration())
+            .collect(Collectors.groupingBy(e -> e.getEnrollment()));
+
+    return contextByProgram.entrySet().stream()
+        .filter(
+            entry ->
+                payloadEnrollmentsByProgram.containsKey(entry.getKey())
+                    || savedEnrollmentsByProgram.containsKey(entry.getKey()))
         .map(
             entry -> {
-              List<RuleEvent> events = RuleEngineMapper.mapPayloadEvents(preheat, entry.getValue());
+              Program program = entry.getKey();
+              ProgramRuleContext ctx = entry.getValue();
+              Map<RuleEnrollment, List<RuleEvent>> enrollmentsWithEvents =
+                  buildEnrollmentsWithEvents(
+                      program,
+                      ctx.needsTeAttributes(),
+                      payloadEnrollmentsByProgram,
+                      savedEnrollmentsByProgram,
+                      savedEventsByEnrollment,
+                      payloadEventsByEnrollment,
+                      bundle,
+                      preheat);
+              return programRuleEngine.evaluateEnrollmentsAndTrackerEvents(
+                  enrollmentsWithEvents,
+                  bundle.getUser(),
+                  constantMap,
+                  ctx.rules(),
+                  ctx.variables());
+            })
+        .reduce(RuleEngineEffects::merge)
+        .orElse(RuleEngineEffects.empty());
+  }
 
-              return programRuleEngine.evaluateProgramEvents(
-                  events, entry.getKey(), bundle.getUser());
+  /**
+   * Rules and variables for a single program, co-fetched once per program so that the engine does
+   * not need to re-query variables during context construction.
+   */
+  private record ProgramRuleContext(
+      List<ProgramRule> rules, List<ProgramRuleVariable> variables, boolean needsTeAttributes) {}
+
+  // Fetches rules and variables for each program; skips programs with no applicable rules.
+  private Map<Program, ProgramRuleContext> getRulesForPrograms(Set<Program> programs) {
+    Map<Program, ProgramRuleContext> contextByProgram = new HashMap<>();
+    for (Program program : programs) {
+      List<ProgramRule> rules =
+          programRuleMetadataService.getProgramRulesByActionTypes(program, SERVER_SUPPORTED_TYPES);
+      if (!rules.isEmpty()) {
+        List<ProgramRuleVariable> variables =
+            programRuleVariableService.getProgramRuleVariable(program);
+        boolean needsTeAttributes =
+            variables.stream()
+                .anyMatch(v -> v.getSourceType() == ProgramRuleVariableSourceType.TEI_ATTRIBUTE);
+        contextByProgram.put(program, new ProgramRuleContext(rules, variables, needsTeAttributes));
+      }
+    }
+    return contextByProgram;
+  }
+
+  // Builds the map of rule enrollments to rule events for a single program,
+  // combining payload and saved enrollments with their respective events.
+  // Attribute loading is skipped when the program has no TEI_ATTRIBUTE variables.
+  private Map<RuleEnrollment, List<RuleEvent>> buildEnrollmentsWithEvents(
+      Program program,
+      boolean needsTeAttributes,
+      Map<Program, List<org.hisp.dhis.tracker.imports.domain.Enrollment>> payloadByProgram,
+      Map<Program, List<Enrollment>> savedByProgram,
+      Map<UID, List<RuleEvent>> savedEventsByEnrollment,
+      Map<UID, List<org.hisp.dhis.tracker.imports.domain.Event>> payloadEventsByEnrollment,
+      TrackerBundle bundle,
+      TrackerPreheat preheat) {
+    Map<RuleEnrollment, List<RuleEvent>> enrollmentsWithEvents = new HashMap<>();
+
+    for (org.hisp.dhis.tracker.imports.domain.Enrollment e :
+        payloadByProgram.getOrDefault(program, List.of())) {
+      List<RuleAttributeValue> attributes =
+          needsTeAttributes
+              ? getAttributes(e.getEnrollment(), e.getTrackedEntity(), bundle, preheat)
+              : List.of();
+      enrollmentsWithEvents.put(
+          RuleEngineMapper.mapPayloadEnrollment(preheat, e, attributes),
+          buildRuleEvents(
+              savedEventsByEnrollment.getOrDefault(e.getUid(), List.of()),
+              payloadEventsByEnrollment.getOrDefault(e.getUid(), List.of()),
+              preheat));
+    }
+
+    for (Enrollment e : savedByProgram.getOrDefault(program, List.of())) {
+      List<RuleAttributeValue> attributes =
+          needsTeAttributes
+              ? getAttributes(UID.of(e), UID.of(e.getTrackedEntity()), bundle, preheat)
+              : List.of();
+      enrollmentsWithEvents.put(
+          RuleEngineMapper.mapSavedEnrollment(e, attributes),
+          buildRuleEvents(
+              savedEventsByEnrollment.getOrDefault(UID.of(e), List.of()),
+              payloadEventsByEnrollment.getOrDefault(UID.of(e), List.of()),
+              preheat));
+    }
+
+    return enrollmentsWithEvents;
+  }
+
+  private RuleEngineEffects calculateSingleEventRuleEffects(
+      TrackerBundle bundle,
+      TrackerPreheat preheat,
+      Map<String, String> constantMap,
+      Map<Program, ProgramRuleContext> contextByProgram) {
+    return bundle.getEvents().stream()
+        .filter(event -> preheat.getProgram(event.getProgram()).isWithoutRegistration())
+        .collect(Collectors.groupingBy(event -> preheat.getProgram(event.getProgram())))
+        .entrySet()
+        .stream()
+        .flatMap(
+            entry -> {
+              ProgramRuleContext ctx = contextByProgram.get(entry.getKey());
+              if (ctx == null) {
+                return Stream.empty();
+              }
+              List<RuleEvent> events = RuleEngineMapper.mapPayloadEvents(preheat, entry.getValue());
+              return Stream.of(
+                  programRuleEngine.evaluateSingleEvents(
+                      events, bundle.getUser(), constantMap, ctx.rules(), ctx.variables()));
             })
         .reduce(RuleEngineEffects::merge)
         .orElse(RuleEngineEffects.empty());
@@ -190,55 +331,66 @@ class DefaultProgramRuleService implements ProgramRuleService {
             .orElse(Collections.emptyList());
 
     TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid);
-    List<RuleAttributeValue> payloadAttributes =
-        Stream.concat(payloadTrackedEntityAttributes.stream(), payloadProgramAttributes.stream())
-            .toList();
-
     if (trackedEntity == null) {
-      return payloadAttributes;
+      return Stream.concat(
+              payloadTrackedEntityAttributes.stream(), payloadProgramAttributes.stream())
+          .toList();
     }
 
-    List<String> payloadAttributeValuesIds =
-        payloadAttributes.stream().map(RuleAttributeValue::getTrackedEntityAttribute).toList();
+    // Build the payload UID set directly from the two component lists to avoid materialising
+    // payloadAttributes into an intermediate List that is only streamed again below.
+    Set<String> payloadAttributeUids = new HashSet<>();
+    for (RuleAttributeValue a : payloadTrackedEntityAttributes)
+      payloadAttributeUids.add(a.getTrackedEntityAttribute());
+    for (RuleAttributeValue a : payloadProgramAttributes)
+      payloadAttributeUids.add(a.getTrackedEntityAttribute());
 
     Stream<RuleAttributeValue> dbAttributesNotPresentInPayload =
         trackedEntity.getTrackedEntityAttributeValues().stream()
-            .filter(av -> !payloadAttributeValuesIds.contains(av.getAttribute().getUid()))
+            .filter(av -> !payloadAttributeUids.contains(av.getAttribute().getUid()))
             .map(av -> new RuleAttributeValue(av.getAttribute().getUid(), av.getValue()));
-    return Stream.concat(payloadAttributes.stream(), dbAttributesNotPresentInPayload).toList();
+    return Stream.concat(
+            Stream.concat(
+                payloadTrackedEntityAttributes.stream(), payloadProgramAttributes.stream()),
+            dbAttributesNotPresentInPayload)
+        .toList();
   }
 
-  // Get all the events linked to enrollment from the payload and the DB,
-  // using the one from payload if they are present in both places
-  @Nonnull
-  private List<RuleEvent> getEventsFromEnrollment(
-      UID enrollmentUid, TrackerBundle bundle, TrackerPreheat preheat) {
-    Stream<Event> events;
+  // Fetch all saved events for the given enrollments in a single DB query and group by enrollment.
+  // Payload events (already in the bundle) are excluded since they will be added in
+  // buildRuleEvents.
+  private Map<UID, List<RuleEvent>> fetchSavedRuleEventsByEnrollment(
+      Set<UID> enrollmentUids, TrackerBundle bundle) {
+    if (enrollmentUids.isEmpty()) {
+      return Map.of();
+    }
     try {
-      events =
-          eventService
-              .findEvents(
-                  EventOperationParams.builder()
-                      .fields(EventFields.all())
-                      .orgUnitMode(ACCESSIBLE)
-                      .enrollments(Set.of(enrollmentUid))
-                      .build())
-              .stream()
-              .filter(e -> bundle.findEventByUid(UID.of(e)).isEmpty());
+      return eventService
+          .findEvents(
+              EventOperationParams.builder()
+                  .fields(EventFields.all())
+                  .orgUnitMode(ACCESSIBLE)
+                  .enrollments(enrollmentUids)
+                  .build())
+          .stream()
+          .filter(e -> bundle.findEventByUid(UID.of(e)).isEmpty())
+          .collect(
+              Collectors.groupingBy(
+                  e -> UID.of(e.getEnrollment()),
+                  Collectors.collectingAndThen(
+                      Collectors.toList(), RuleEngineMapper::mapSavedEvents)));
     } catch (BadRequestException | ForbiddenException e) {
       throw new RuntimeException(e);
     }
+  }
 
-    List<RuleEvent> ruleEvents =
-        RuleEngineMapper.mapPayloadEvents(
-            preheat,
-            bundle.getEvents().stream()
-                .filter(e -> e.getEnrollment().equals(enrollmentUid))
-                .toList());
-
-    return Stream.concat(
-            RuleEngineMapper.mapSavedEvents(events.toList()).stream(), ruleEvents.stream())
-        .toList();
+  // Combine pre-fetched saved events with payload events for a single enrollment.
+  private List<RuleEvent> buildRuleEvents(
+      List<RuleEvent> savedRuleEvents,
+      List<org.hisp.dhis.tracker.imports.domain.Event> payloadEvents,
+      TrackerPreheat preheat) {
+    List<RuleEvent> payloadRuleEvents = RuleEngineMapper.mapPayloadEvents(preheat, payloadEvents);
+    return Stream.concat(savedRuleEvents.stream(), payloadRuleEvents.stream()).toList();
   }
 
   private List<Attribute> filterNullAttributes(List<Attribute> attributes) {
