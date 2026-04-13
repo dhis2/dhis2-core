@@ -36,11 +36,7 @@ import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.QueryKey.NV;
-import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
-import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
 import static org.hisp.dhis.common.QueryOperator.EQ;
 import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
@@ -51,8 +47,6 @@ import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnitGroup;
 import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
-import static org.hisp.dhis.test.TestBase.createProgram;
-import static org.hisp.dhis.test.TestBase.createProgramIndicator;
 import static org.hisp.dhis.test.TestBase.getDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -68,8 +62,6 @@ import java.util.List;
 import java.util.function.Consumer;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
@@ -102,11 +94,8 @@ import org.hisp.dhis.db.sql.ClickHouseAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.DorisAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodTypeEnum;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.setting.SystemSettings;
@@ -862,59 +851,6 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
     assertThat(params.isAggregationType(AggregationType.LAST), is(true));
     assertThat(sql.getValue(), containsString(subquery));
-  }
-
-  @Test
-  void verifySortClauseHandlesProgramIndicators() {
-    Program program = createProgram('P');
-    ProgramIndicator piA = createProgramIndicator('A', program, ".", ".");
-    piA.setUid("TLKx7vllb1I");
-
-    ProgramIndicator piB = createProgramIndicator('B', program, ".", ".");
-    piA.setUid("CCKx3gllb2P");
-
-    OrganisationUnit ouA = createOrganisationUnit('A');
-    List<PeriodDimension> periods = createPeriodDimensions("201501");
-
-    DataElement deA = createDataElement('A');
-    deA.setUid("ZE4cgllb2P");
-
-    DataQueryParams params =
-        DataQueryParams.newBuilder()
-            .withDataType(DataType.NUMERIC)
-            .withTableName("analytics")
-            .withPeriodType(PeriodTypeEnum.QUARTERLY.getName())
-            .withAggregationType(
-                AnalyticsAggregationType.fromAggregationType(AggregationType.DEFAULT))
-            .addDimension(
-                new BaseDimensionalObject(
-                    DATA_X_DIM_ID, DimensionType.PROGRAM_INDICATOR, getList(piA, piB)))
-            .addFilter(
-                new BaseDimensionalObject(
-                    ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, getList(ouA)))
-            .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.DATA_X, periods))
-            .addDimension(new BaseDimensionalObject(PERIOD_DIM_ID, DimensionType.PERIOD, periods))
-            .build();
-
-    EventQueryParams.Builder eventQueryParamsBuilder =
-        new EventQueryParams.Builder(params)
-            .withProgram(program)
-            .addAscSortItem(new QueryItem(piA))
-            .addDescSortItem(new QueryItem(piB))
-            .addAscSortItem(new QueryItem(deA));
-
-    String sql = subject.getAggregatedEnrollmentsSql(eventQueryParamsBuilder.build(), 100);
-
-    assertThat(
-        sql,
-        containsString(
-            "order by \""
-                + piA.getUid()
-                + "\" asc nulls last,\""
-                + deA.getUid()
-                + "\" asc nulls last,\""
-                + piB.getUid()
-                + "\""));
   }
 
   @Test

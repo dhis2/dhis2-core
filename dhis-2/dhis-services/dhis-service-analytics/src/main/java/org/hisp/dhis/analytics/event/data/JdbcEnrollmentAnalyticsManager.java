@@ -36,7 +36,6 @@ import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.common.CteDefinition.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParam.StaticDimension.PROGRAM_STATUS;
-import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter;
 import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.isAggregateEnrollment;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
 import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
@@ -110,7 +109,6 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
@@ -592,22 +590,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     return sql;
-  }
-
-  @Override
-  protected String getSelectClause(EventQueryParams params) {
-    List<String> selectCols =
-        ListUtils.distinctUnion(
-            params.isAggregatedEnrollments() ? List.of("enrollment") : getStandardColumns(params),
-            getSelectColumns(params, false));
-
-    // Needs event prefix as we will join with the event table for filtering DataElement of type
-    // Org. Unit.
-    if (hasEnrollmentOrgUnitFilter(params)) {
-      selectCols = selectCols.stream().map(this::addEnrollmentPrefix).toList();
-    }
-
-    return "select " + StringUtils.join(selectCols, ",") + " ";
   }
 
   /**

@@ -61,11 +61,6 @@ import static org.hisp.dhis.analytics.common.CteDefinition.CteType.TOP_ENROLLMEN
 import static org.hisp.dhis.analytics.common.CteDefinition.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.event.data.AbstractJdbcEventAnalyticsManager.RepeatableStateStatus.NON_REPEATABLE;
 import static org.hisp.dhis.analytics.event.data.AbstractJdbcEventAnalyticsManager.RepeatableStateStatus.REPEATABLE;
-import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter;
-import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.isAggregateEnrollment;
-import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
-import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
-import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
 import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.STAGE_OU_CODE_COLUMN;
 import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.STAGE_OU_NAME_COLUMN;
@@ -150,7 +145,6 @@ import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.util.sql.ColumnUtils;
 import org.hisp.dhis.analytics.util.sql.Condition;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
-import org.hisp.dhis.analytics.util.sql.SqlConditionJoiner;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -289,29 +283,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   static final String COLUMN_ENROLLMENT_GEOMETRY_GEOJSON =
       String.format(
           "ST_AsGeoJSON(%s)", EnrollmentAnalyticsColumnName.ENROLLMENT_GEOMETRY_COLUMN_NAME);
-
-  /**
-   * Returns a SQL paging clause.
-   *
-   * @param params the {@link EventQueryParams}.
-   * @param maxLimit the configurable max limit of records.
-   */
-  protected String getPagingClause(EventQueryParams params, int maxLimit) {
-    String sql = "";
-
-    if (params.isPaging()) {
-      int limit =
-          params.isTotalPages()
-              ? params.getPageSizeWithDefault()
-              : params.getPageSizeWithDefault() + 1;
-
-      sql += LIMIT + " " + limit + " offset " + params.getOffset();
-    } else if (maxLimit > 0) {
-      sql += LIMIT + " " + (maxLimit + 1);
-    }
-
-    return sql;
-  }
 
   /**
    * Returns a SQL sort clause.
@@ -1239,84 +1210,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
-   * Template method that generates a SQL query for retrieving events or enrollments.
-   *
-   * @param params the {@link EventQueryParams} to drive the query generation.
-   * @param maxLimit max number of records to return.
-   * @return a SQL query.
-   */
-  protected String getAggregatedEnrollmentsSql(EventQueryParams params, int maxLimit) {
-    String sql = getSelectClause(params);
-
-    sql += getFromClause(params);
-
-    sql += getWhereClause(params);
-
-    sql += getSortClause(params);
-
-    sql += getPagingClause(params, maxLimit);
-
-    return sql;
-  }
-
-  /**
-   * Template method that generates a SQL query for retrieving aggregated enrollments.
-   *
-   * @param headers the {@link List<GridHeader>} to drive the query generation.
-   * @param params the {@link EventQueryParams} to drive the query generation.
-   * @return a SQL query.
-   */
-  protected String getAggregatedEnrollmentsSql(List<GridHeader> headers, EventQueryParams params) {
-    String sql = getSelectClause(params);
-
-    sql += getFromClause(params);
-
-    String whereClause = getWhereClause(params);
-    String filterWhereClause = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
-
-    String headerColumns = String.join(",", getHeaderColumns(headers, sql, sqlBuilder));
-    String periodColumns = String.join(",", getPeriodColumns(params));
-    String orgUnitColumns = String.join(",", getOrgUnitLevelColumns(params));
-
-    if (isBlank(orgUnitColumns) && !isAggregateEnrollment(params)) {
-      orgUnitColumns = ORGUNIT_DIM_ID;
-    }
-
-    List<String> list = Arrays.asList(orgUnitColumns, periodColumns, headerColumns);
-    String columns =
-        list.stream().filter(StringUtils::isNotBlank).collect(Collectors.joining(", "));
-
-    String join = EMPTY;
-    if (hasEnrollmentOrgUnitFilter(params)) {
-      join =
-          " join analytics_event_"
-              + params.getProgram().getUid()
-              + " ev on ev.enrollment = ax.enrollment "
-              + whereClause
-              + " and ev.eventstatus != 'SCHEDULE'"; // We work only with non-scheduled events.
-    } else {
-      sql += SqlConditionJoiner.joinSqlConditions(whereClause, filterWhereClause);
-    }
-
-    sql =
-        "select count(distinct "
-            + OUTER_SQL_ALIAS
-            + ".enrollment) as "
-            + COL_VALUE
-            + ", "
-            + columns
-            + " from ("
-            + sql
-            + join
-            + ") "
-            + OUTER_SQL_ALIAS
-            + " group by "
-            + columns;
-
-    return sql;
-  }
-
-  /**
    * Adds a value from the given row set to the grid.
    *
    * @param grid the {@link Grid}.
@@ -2027,13 +1920,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       QueryItem item, EventQueryParams params) {
     return organisationUnitResolver.buildStageOuCteContext(item, params);
   }
-
-  /**
-   * Returns a select SQL clause for the given query.
-   *
-   * @param params the {@link EventQueryParams}.
-   */
-  protected abstract String getSelectClause(EventQueryParams params);
 
   /** Returns the column name associated with the CTE */
   protected abstract String getColumnWithCte(
