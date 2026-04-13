@@ -50,7 +50,7 @@ class ChangeLogAccumulatorTest {
 
   @BeforeEach
   void setUp() {
-    accumulator = new ChangeLogAccumulator();
+    accumulator = new ChangeLogAccumulator(true);
 
     trackedEntity = new TrackedEntity();
     attribute = new TrackedEntityAttribute();
@@ -101,6 +101,19 @@ class ChangeLogAccumulatorTest {
     ChangeLogAccumulator.Mark afterRollback = accumulator.mark();
     assertEquals(1, afterRollback.teSize());
     assertEquals(1, afterRollback.eventSize());
+  }
+
+  @Test
+  void addIsNoOpWhenDisabled() {
+    ChangeLogAccumulator disabled = new ChangeLogAccumulator(false);
+
+    disabled.addTrackedEntityChangeLog(trackedEntity, attribute, null, "value", CREATE, "admin");
+    disabled.addEventChangeLog(event, dataElement, null, "value", CREATE, "admin");
+    disabled.addEventFieldChangeLog(event, "occurredAt", null, "2024-01-01", CREATE, "admin");
+
+    ChangeLogAccumulator.Mark mark = disabled.mark();
+    assertEquals(0, mark.teSize());
+    assertEquals(0, mark.eventSize());
   }
 
   @Test

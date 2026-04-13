@@ -33,6 +33,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
@@ -52,6 +53,7 @@ import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -82,6 +84,7 @@ public abstract class AbstractTrackerPersister<
         T extends TrackerDto, V extends BaseIdentifiableObject>
     implements TrackerPersister<T, V> {
   protected final ReservedValueService reservedValueService;
+  protected final DhisConfigurationProvider config;
 
   /**
    * Template method that can be used by classes extending this class to execute the persistence
@@ -99,7 +102,7 @@ public abstract class AbstractTrackerPersister<
     TrackerTypeReport typeReport = new TrackerTypeReport(getType());
 
     List<TrackerNotificationDataBundle> notificationDataBundles = new ArrayList<>();
-    ChangeLogAccumulator changeLogs = new ChangeLogAccumulator();
+    ChangeLogAccumulator changeLogs = new ChangeLogAccumulator(config.isEnabled(CHANGELOG_TRACKER));
 
     //
     // Extract the entities to persist from the Bundle

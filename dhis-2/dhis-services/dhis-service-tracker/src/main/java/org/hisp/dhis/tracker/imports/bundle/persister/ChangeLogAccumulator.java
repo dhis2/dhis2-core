@@ -68,6 +68,8 @@ class ChangeLogAccumulator {
    */
   private static final int MAX_ROWS_PER_INSERT = 128;
 
+  private final boolean enabled;
+
   private static final String TE_CHANGELOG_TUPLE = "(?,?,?,?,?,?,?)";
   private static final String TE_CHANGELOG_VALUES =
       multiRowValues(TE_CHANGELOG_TUPLE, MAX_ROWS_PER_INSERT);
@@ -88,6 +90,10 @@ class ChangeLogAccumulator {
   private final List<TrackedEntityChangeLog> teChangeLogs = new ArrayList<>();
   private final List<EventChangeLog> eventChangeLogs = new ArrayList<>();
 
+  ChangeLogAccumulator(boolean enabled) {
+    this.enabled = enabled;
+  }
+
   void addTrackedEntityChangeLog(
       @Nonnull TrackedEntity trackedEntity,
       @Nonnull TrackedEntityAttribute attribute,
@@ -95,6 +101,7 @@ class ChangeLogAccumulator {
       @CheckForNull String currentValue,
       @Nonnull ChangeLogType type,
       @Nonnull String username) {
+    if (!enabled) return;
     teChangeLogs.add(
         new TrackedEntityChangeLog(
             trackedEntity, attribute, previousValue, currentValue, type, created, username));
@@ -107,6 +114,7 @@ class ChangeLogAccumulator {
       @CheckForNull String currentValue,
       @Nonnull ChangeLogType type,
       @Nonnull String username) {
+    if (!enabled) return;
     eventChangeLogs.add(
         new EventChangeLog(
             event, dataElement, null, previousValue, currentValue, type, created, username));
@@ -119,6 +127,7 @@ class ChangeLogAccumulator {
       @CheckForNull String currentValue,
       @Nonnull ChangeLogType type,
       @Nonnull String username) {
+    if (!enabled) return;
     eventChangeLogs.add(
         new EventChangeLog(
             event, null, eventField, previousValue, currentValue, type, created, username));

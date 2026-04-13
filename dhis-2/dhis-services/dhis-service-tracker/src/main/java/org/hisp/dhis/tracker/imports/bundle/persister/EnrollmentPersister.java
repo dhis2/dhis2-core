@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
@@ -57,8 +58,9 @@ public class EnrollmentPersister
 
   public EnrollmentPersister(
       ReservedValueService reservedValueService,
+      DhisConfigurationProvider config,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService) {
-    super(reservedValueService);
+    super(reservedValueService, config);
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
   }
 
