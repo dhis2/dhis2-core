@@ -79,7 +79,7 @@ public class AppCacheFilter implements Filter {
 
       SystemInfoForAppCacheFilter systemInfo = systemService.getSystemInfoForAppCacheFilter();
 
-      writer.print(responseWrapper.toString());
+      writer.print(responseWrapper);
       writer.println("# DHIS2 " + systemInfo.version() + " r" + systemInfo.revision());
       writer.println("# User: " + CurrentUserUtil.getCurrentUsername());
       writer.println("# User UI Language: " + localeManager.getCurrentLocale());
