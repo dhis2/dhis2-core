@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
+import io.prometheus.client.exporter.common.TextFormat;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
@@ -48,17 +49,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 @Slf4j
 public class PrometheusScrapeEndpointController {
-  private static final String TEXT_FORMAT_CONTENT_TYPE = "text/plain; version=0.0.4; charset=utf-8";
   private final PrometheusMeterRegistry prometheusRegistry;
 
   public PrometheusScrapeEndpointController(PrometheusMeterRegistry prometheusRegistry) {
     this.prometheusRegistry = prometheusRegistry;
   }
 
-  @GetMapping(value = "/api/metrics", produces = TEXT_FORMAT_CONTENT_TYPE)
+  @GetMapping(value = "/api/metrics", produces = TextFormat.CONTENT_TYPE_004)
   public void scrape(HttpServletResponse response) {
     try {
-      response.setContentType(TEXT_FORMAT_CONTENT_TYPE);
+      response.setContentType(TextFormat.CONTENT_TYPE_004);
       prometheusRegistry.scrape(response.getOutputStream());
     } catch (IOException ex) {
       // Client disconnected during metrics scraping (common with Prometheus)

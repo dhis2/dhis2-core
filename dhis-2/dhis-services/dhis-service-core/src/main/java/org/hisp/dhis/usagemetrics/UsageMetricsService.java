@@ -31,6 +31,7 @@ package org.hisp.dhis.usagemetrics;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.system.SystemService;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UsageMetricsService {
 
+  private final SystemService systemServicee;
   private final UsageMetricsConsentStore usageMetricsConsentStore;
   private final JdbcTemplate jdbcTemplate;
 
@@ -46,22 +48,23 @@ public class UsageMetricsService {
   public void saveConsent(UsageMetricsConsent usageMetricsConsent) {
     List<UsageMetricsConsent> usageMetricsConsents = usageMetricsConsentStore.getAll();
     if (usageMetricsConsents.isEmpty()) {
-      usageMetricsConsent.setDbSystemIdentifier(getDbSystemIdentifier());
+      usageMetricsConsent.setImplementationId(getImplementationId());
       usageMetricsConsentStore.save(usageMetricsConsent);
     } else {
       UsageMetricsConsent dbUsageMetricsConsent = usageMetricsConsents.get(0);
       dbUsageMetricsConsent.setConsent(usageMetricsConsent.isConsent());
-      dbUsageMetricsConsent.setDbSystemIdentifier(getDbSystemIdentifier());
+      dbUsageMetricsConsent.setImplementationId(getImplementationId());
       usageMetricsConsentStore.update(dbUsageMetricsConsent);
     }
   }
 
-  protected String getDbSystemIdentifier() {
+  public String getImplementationId() {
     return jdbcTemplate
-        .queryForList("SELECT system_identifier FROM pg_control_system()")
-        .get(0)
-        .get("system_identifier")
-        .toString();
+            .queryForList("SELECT system_identifier FROM pg_control_system()")
+            .get(0)
+            .get("system_identifier")
+            .toString()
+        + systemServicee.getSystemInfo().getSystemId();
   }
 
   public UsageMetricsConsent getConsent() {
@@ -69,9 +72,17 @@ public class UsageMetricsService {
     if (usageMetricsConsents.isEmpty()) {
       UsageMetricsConsent usageMetricsConsent = new UsageMetricsConsent();
       usageMetricsConsent.setConsent(false);
+      usageMetricsConsent.setImplementationId(getImplementationId());
       return usageMetricsConsent;
     } else {
       return usageMetricsConsents.get(0);
+    }
+  }
+
+  public void removeConsent() {
+    List<UsageMetricsConsent> usageMetricsConsents = usageMetricsConsentStore.getAll();
+    if (!usageMetricsConsents.isEmpty()) {
+      usageMetricsConsentStore.delete(usageMetricsConsents.get(0));
     }
   }
 }

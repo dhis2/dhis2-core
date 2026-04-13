@@ -113,11 +113,11 @@ public enum JobType {
   DATAVALUE_IMPORT(ImportOptions.class),
   GEOJSON_IMPORT(GeoJsonImportJobParams.class),
   GML_IMPORT(),
+  SEND_USAGE_METRICS(),
 
   /*
   System Jobs
   */
-  SEND_USAGE_METRICS_CHECK(every(60, "CmeXZ8cPBlf", "Send Usage Metrics Check")),
   HOUSEKEEPING(every(20, "DHIS2rocks1", "Housekeeping")),
   DATA_VALUE_TRIM(daily1am("D2datatrim8", "Data value trim")),
   DATA_SET_NOTIFICATION(daily2am("YvAwAmrqAtN", "Dataset notification")),

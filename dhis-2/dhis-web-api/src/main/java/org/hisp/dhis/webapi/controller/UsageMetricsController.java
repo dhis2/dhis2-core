@@ -35,7 +35,14 @@ import static org.hisp.dhis.security.Authorities.ALL;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobStatus;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingType;
 import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.usagemetrics.SendUsageMetricsJob;
 import org.hisp.dhis.usagemetrics.UsageMetricsConsent;
 import org.hisp.dhis.usagemetrics.UsageMetricsService;
 import org.springframework.stereotype.Controller;
@@ -51,13 +58,34 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @OpenApi.Document(classifiers = {"team:extensibility", "purpose:support"})
 public class UsageMetricsController {
 
+  private static final int EXPORT_INTERVAL_SECONDS = 604800; // weekly interval
+
   private final UsageMetricsService usageMetricsConsentService;
+  private final JobConfigurationService jobConfigurationService;
 
   @PutMapping
   @RequiresAuthority(anyOf = ALL)
   @ResponseBody
-  public WebMessage updateConsent(@RequestBody UsageMetricsConsent usageMetricsConsent) {
+  public WebMessage updateConsent(@RequestBody UsageMetricsConsent usageMetricsConsent)
+      throws ConflictException {
     usageMetricsConsentService.saveConsent(usageMetricsConsent);
+    JobConfiguration sendUsageMetricsJobConfig =
+        jobConfigurationService.getJobConfigurationByUid(
+            SendUsageMetricsJob.COLLECT_USAGE_METRICS_JOB_ID);
+    if (usageMetricsConsent.isConsent() && sendUsageMetricsJobConfig == null) {
+      sendUsageMetricsJobConfig = new JobConfiguration();
+      sendUsageMetricsJobConfig.setName("Send Usage Metrics");
+      sendUsageMetricsJobConfig.setDelay(EXPORT_INTERVAL_SECONDS);
+      sendUsageMetricsJobConfig.setSchedulingType(SchedulingType.FIXED_DELAY);
+      sendUsageMetricsJobConfig.setUid(SendUsageMetricsJob.COLLECT_USAGE_METRICS_JOB_ID);
+      sendUsageMetricsJobConfig.setJobStatus(JobStatus.SCHEDULED);
+      sendUsageMetricsJobConfig.setJobType(JobType.SEND_USAGE_METRICS);
+
+      jobConfigurationService.create(sendUsageMetricsJobConfig);
+    } else if (!usageMetricsConsent.isConsent() && sendUsageMetricsJobConfig != null) {
+      jobConfigurationService.deleteJobConfiguration(sendUsageMetricsJobConfig);
+    }
+
     return ok();
   }
 

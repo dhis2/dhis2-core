@@ -14,7 +14,7 @@
       <generator class="assigned"/>
     </id>
 
-    <property name="dbSystemIdentifier" type="string" />
+    <property name="implementationId" type="string" />
     <property name="consent" type="boolean" />
 
     <property name="created" type="timestamp" not-null="true" update="false" />

@@ -42,7 +42,7 @@ import org.hisp.dhis.common.MetadataObject;
 public class UsageMetricsConsent extends BaseIdentifiableObject implements MetadataObject {
   @Setter protected long id = 1;
 
-  private String dbSystemIdentifier;
+  private String implementationId;
 
   @JsonProperty(required = true)
   private boolean consent;

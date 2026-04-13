@@ -33,6 +33,7 @@ import static org.hisp.dhis.config.HibernateConfig.getAdditionalProperties;
 import static org.hisp.dhis.config.HibernateConfig.loadResources;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
 import jakarta.persistence.EntityManagerFactory;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
@@ -113,5 +114,11 @@ public class H2TestConfig {
     H2SqlFunction.registerH2Functions(dbPool);
 
     return dbPool;
+  }
+
+  @Bean
+  @Primary
+  public OpenTelemetrySdk otelSdk() {
+    return OpenTelemetrySdk.builder().build();
   }
 }
