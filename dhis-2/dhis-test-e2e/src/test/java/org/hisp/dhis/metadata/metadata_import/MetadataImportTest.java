@@ -185,7 +185,7 @@ class MetadataImportTest extends ApiTest {
         .body("shortName", equalTo("ANC 1st visit_m update"));
   }
 
-  @Disabled("temporarily disabled to investigate potential issues with metadata import")
+  @Disabled("Started failing intermittently in GitHub, April 2026")
   @ParameterizedTest(name = "withImportStrategy[{0}]")
   @CsvSource({"CREATE, ignored, 409", "CREATE_AND_UPDATE, updated, 200"})
   void shouldUpdateExistingMetadata(
