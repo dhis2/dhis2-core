@@ -70,7 +70,6 @@ import org.hisp.dhis.test.e2e.utils.DataGenerator;
 import org.hisp.dhis.test.e2e.utils.SharingUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -78,7 +77,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Order(2)
 class MetadataImportTest extends ApiTest {
   private MetadataActions metadataActions;
   private RestApiActions dataElementActions;
