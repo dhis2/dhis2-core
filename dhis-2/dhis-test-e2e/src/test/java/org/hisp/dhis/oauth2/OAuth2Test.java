@@ -205,11 +205,13 @@ class OAuth2Test extends BaseE2ETest {
     // The redirect goes to localhost:9090 which doesn't exist, so Chrome will quickly
     // navigate to an error page — we must capture the URL in the same poll cycle that
     // detects it, not in a separate getCurrentUrl() call afterwards.
+    // IMPORTANT: use startsWith, not contains — the authorize URL itself contains
+    // the REDIRECT_URI as a query parameter value, so contains() would match it too.
     String redirectUrl =
         wait.until(
             d -> {
               String url = d.getCurrentUrl();
-              return url.contains(REDIRECT_URI) ? url : null;
+              return url.startsWith(REDIRECT_URI) ? url : null;
             });
     log.info("[{}] captured redirect URL: {}", testName, redirectUrl);
 
@@ -349,7 +351,7 @@ class OAuth2Test extends BaseE2ETest {
         wait.until(
             d -> {
               String url = d.getCurrentUrl();
-              return url.contains(REDIRECT_URI) ? url : null;
+              return url.startsWith(REDIRECT_URI) ? url : null;
             });
     log.info("[{}] captured redirect URL: {}", testName, redirectUrl);
 
