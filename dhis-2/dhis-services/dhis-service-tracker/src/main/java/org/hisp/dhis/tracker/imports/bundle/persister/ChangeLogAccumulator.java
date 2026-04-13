@@ -68,23 +68,25 @@ class ChangeLogAccumulator {
   private final boolean enabled;
 
   // trackedentityattributevalueaudit columns:
-  // trackedentityid, trackedentityattributeid, value, encryptedvalue, created, modifiedby,
-  // audittype
-  private static final String TE_AUDIT_TUPLE = "(?,?,?,?,?,?,?)";
+  // trackedentityattributevalueauditid, trackedentityid, trackedentityattributeid, value,
+  // encryptedvalue, created, modifiedby, audittype
+  private static final String TE_AUDIT_TUPLE = "(nextval('hibernate_sequence'),?,?,?,?,?,?,?)";
   private static final String TE_AUDIT_VALUES = multiRowValues(TE_AUDIT_TUPLE, MAX_ROWS_PER_INSERT);
   private static final String INSERT_TE_AUDIT =
       "insert into trackedentityattributevalueaudit"
-          + " (trackedentityid, trackedentityattributeid, value, encryptedvalue,"
-          + " created, modifiedby, audittype) values ";
+          + " (trackedentityattributevalueauditid, trackedentityid, trackedentityattributeid,"
+          + " value, encryptedvalue, created, modifiedby, audittype) values ";
 
   // trackedentitydatavalueaudit columns:
-  // eventid, dataelementid, value, providedelsewhere, created, modifiedby, audittype
-  private static final String EVENT_AUDIT_TUPLE = "(?,?,?,?,?,?,?)";
+  // trackedentitydatavalueauditid, eventid, dataelementid, value, providedelsewhere, created,
+  // modifiedby, audittype
+  private static final String EVENT_AUDIT_TUPLE =
+      "(nextval('trackedentitydatavalueaudit_sequence'),?,?,?,?,?,?,?)";
   private static final String EVENT_AUDIT_VALUES =
       multiRowValues(EVENT_AUDIT_TUPLE, MAX_ROWS_PER_INSERT);
   private static final String INSERT_EVENT_AUDIT =
       "insert into trackedentitydatavalueaudit"
-          + " (eventid, dataelementid, value, providedelsewhere,"
+          + " (trackedentitydatavalueauditid, eventid, dataelementid, value, providedelsewhere,"
           + " created, modifiedby, audittype) values ";
 
   private final PBEStringEncryptor encryptor;
