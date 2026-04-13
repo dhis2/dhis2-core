@@ -55,6 +55,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.JsonFileReader;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -62,6 +63,9 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
+@Disabled(
+    "Cleanup fails due to Conflict DTO missing @JsonIgnoreProperties, fixed on master in"
+        + " https://github.com/dhis2/dhis2-core/pull/21080")
 @Tag("category:aggregate")
 class DataImportTest extends ApiTest {
   private DataValueSetActions dataValueSetActions;
