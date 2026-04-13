@@ -71,12 +71,12 @@ import org.springframework.http.ResponseEntity;
 @Slf4j
 class OAuth2Test extends BaseE2ETest {
 
-  private static final String REDIRECT_URI =
-      "http://localhost:9090/oauth2/code/dhis2-client";
+  private static final String REDIRECT_URI = "http://localhost:9090/oauth2/code/dhis2-client";
 
   private static final String AUTHORIZE_PARAMS =
       "/oauth2/authorize?response_type=code&client_id=dhis2-client"
-          + "&redirect_uri=" + REDIRECT_URI
+          + "&redirect_uri="
+          + REDIRECT_URI
           + "&scope=openid%20email";
 
   private WebDriver driver;
@@ -101,8 +101,11 @@ class OAuth2Test extends BaseE2ETest {
     // When testing with docker, use this: http://host.docker.internal:8080
     serverHostUrl = TestConfiguration.get().baseUrl().replace("/api", "");
 
-    log.info("[setup] seleniumUrl={}, serverApiUrl={}, serverHostUrl={}",
-        seleniumUrl, serverApiUrl, serverHostUrl);
+    log.info(
+        "[setup] seleniumUrl={}, serverApiUrl={}, serverHostUrl={}",
+        seleniumUrl,
+        serverApiUrl,
+        serverHostUrl);
 
     orgUnitUID = createOrgUnit();
     log.info("[setup] created orgUnit uid={}", orgUnitUID);
@@ -152,8 +155,7 @@ class OAuth2Test extends BaseE2ETest {
   }
 
   @RepeatedTest(value = 10, name = "Get Access Token Test {currentRepetition}/{totalRepetitions}")
-  void testGetAccessToken(TestInfo testInfo)
-      throws MalformedURLException, JsonProcessingException {
+  void testGetAccessToken(TestInfo testInfo) throws MalformedURLException, JsonProcessingException {
     String testName = testInfo.getDisplayName();
     log.info("[{}] === START ===", testName);
 
@@ -191,9 +193,7 @@ class OAuth2Test extends BaseE2ETest {
     wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".form-check")));
     String consentPageUrl = driver.getCurrentUrl();
     log.info("[{}] consent page loaded, url={}", testName, consentPageUrl);
-    assertEquals(
-        serverHostUrl + AUTHORIZE_PARAMS,
-        consentPageUrl);
+    assertEquals(serverHostUrl + AUTHORIZE_PARAMS, consentPageUrl);
 
     // Give consent
     ConsentPage consentPage = new ConsentPage(driver);
@@ -205,18 +205,26 @@ class OAuth2Test extends BaseE2ETest {
     // The redirect goes to localhost:9090 which doesn't exist, so Chrome will quickly
     // navigate to an error page — we must capture the URL in the same poll cycle that
     // detects it, not in a separate getCurrentUrl() call afterwards.
-    String redirectUrl = wait.until(d -> {
-      String url = d.getCurrentUrl();
-      return url.contains(REDIRECT_URI) ? url : null;
-    });
+    String redirectUrl =
+        wait.until(
+            d -> {
+              String url = d.getCurrentUrl();
+              return url.contains(REDIRECT_URI) ? url : null;
+            });
     log.info("[{}] captured redirect URL: {}", testName, redirectUrl);
 
     String code = extractAuthorizationCode(redirectUrl, testName);
 
     log.info("[{}] authorization code extracted, length={}", testName, code.length());
-    assertEquals(128, code.length(),
-        "code has wrong size: '" + code + "', code length: " + code.length()
-            + ", full redirectUrl: " + redirectUrl);
+    assertEquals(
+        128,
+        code.length(),
+        "code has wrong size: '"
+            + code
+            + "', code length: "
+            + code.length()
+            + ", full redirectUrl: "
+            + redirectUrl);
 
     // Call the token endpoint with the authorization code and get access token
     log.info("[{}] exchanging code for access token", testName);
@@ -276,7 +284,8 @@ class OAuth2Test extends BaseE2ETest {
 
     // Create user with openId set to email so JWT bearer auth can find the user.
     // The JWT auth resolver maps the "email" claim to User.openId via getUserByOpenId().
-    log.info("[{}] creating user with openId mapping, username={}, email={}", testName, username, email);
+    log.info(
+        "[{}] creating user with openId mapping, username={}, email={}", testName, username, email);
     Map<String, Object> userMap =
         Map.of(
             "username",
@@ -297,8 +306,11 @@ class OAuth2Test extends BaseE2ETest {
             List.of(Map.of("id", orgUnitUID)));
 
     ResponseEntity<String> createResp = postWithAdminBasicAuth("/users", userMap);
-    log.info("[{}] user creation response: status={}, body={}",
-        testName, createResp.getStatusCode(), createResp.getBody());
+    log.info(
+        "[{}] user creation response: status={}, body={}",
+        testName,
+        createResp.getStatusCode(),
+        createResp.getBody());
     JsonNode createJson = objectMapper.readTree(createResp.getBody());
     String uid = createJson.get("response").get("uid").asText();
     assertNotNull(uid);
@@ -333,10 +345,12 @@ class OAuth2Test extends BaseE2ETest {
     log.info("[{}] consent submitted, waiting for redirect", testName);
 
     // Capture redirect URL atomically (see comment in testGetAccessToken)
-    String redirectUrl = wait.until(d -> {
-      String url = d.getCurrentUrl();
-      return url.contains(REDIRECT_URI) ? url : null;
-    });
+    String redirectUrl =
+        wait.until(
+            d -> {
+              String url = d.getCurrentUrl();
+              return url.contains(REDIRECT_URI) ? url : null;
+            });
     log.info("[{}] captured redirect URL: {}", testName, redirectUrl);
 
     String code = extractAuthorizationCode(redirectUrl, testName);
@@ -354,8 +368,11 @@ class OAuth2Test extends BaseE2ETest {
     // After the fix this should return 200 with the authenticated user's details.
     log.info("[{}] calling /me with bearer JWT", testName);
     ResponseEntity<String> response = getWithBearerJwt(serverApiUrl + "/me", accessToken);
-    log.info("[{}] /me response: status={}, body={}",
-        testName, response.getStatusCode(), response.getBody());
+    log.info(
+        "[{}] /me response: status={}, body={}",
+        testName,
+        response.getStatusCode(),
+        response.getBody());
     assertEquals(
         HttpStatus.OK,
         response.getStatusCode(),
@@ -374,8 +391,7 @@ class OAuth2Test extends BaseE2ETest {
     log.info("[getAccessToken] token endpoint response body: {}", body);
     JsonNode jsonNode = objectMapper.readTree(body);
     JsonNode accessToken = jsonNode.get("access_token");
-    assertNotNull(accessToken,
-        "No 'access_token' field in token response: " + body);
+    assertNotNull(accessToken, "No 'access_token' field in token response: " + body);
     return accessToken.asText();
   }
 
@@ -396,19 +412,19 @@ class OAuth2Test extends BaseE2ETest {
   }
 
   /**
-   * Extracts the authorization code from a redirect URL like
-   * {@code http://localhost:9090/oauth2/code/dhis2-client?code=XXXXX}.
+   * Extracts the authorization code from a redirect URL like {@code
+   * http://localhost:9090/oauth2/code/dhis2-client?code=XXXXX}.
    *
-   * <p>Parses the query string properly instead of using brittle indexOf, and logs
-   * diagnostics for CI debugging.
+   * <p>Parses the query string properly instead of using brittle indexOf, and logs diagnostics for
+   * CI debugging.
    */
   private static String extractAuthorizationCode(String redirectUrl, String testName) {
     assertNotNull(redirectUrl, "redirectUrl is null");
     assertFalse(redirectUrl.isBlank(), "redirectUrl is blank");
 
     int queryStart = redirectUrl.indexOf('?');
-    assertTrue(queryStart > 0,
-        "[" + testName + "] redirect URL has no query string: " + redirectUrl);
+    assertTrue(
+        queryStart > 0, "[" + testName + "] redirect URL has no query string: " + redirectUrl);
 
     String query = redirectUrl.substring(queryStart + 1);
     log.info("[{}] redirect query string: {}", testName, query);
@@ -422,9 +438,9 @@ class OAuth2Test extends BaseE2ETest {
       }
     }
 
-    assertNotNull(code,
-        "[" + testName + "] no 'code' parameter in redirect URL: " + redirectUrl);
-    assertFalse(code.isBlank(),
+    assertNotNull(code, "[" + testName + "] no 'code' parameter in redirect URL: " + redirectUrl);
+    assertFalse(
+        code.isBlank(),
         "[" + testName + "] 'code' parameter is blank in redirect URL: " + redirectUrl);
 
     return code;
