@@ -32,14 +32,12 @@ package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1091;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1104;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOption;
@@ -208,7 +206,6 @@ class SecurityEnrollmentValidatorTest extends TrackerTestBase {
 
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
-    when(preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent()).thenReturn(Collections.emptyList());
     when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
     UserDetails userDetails = setUpUserWithOrgUnit();
@@ -234,8 +231,6 @@ class SecurityEnrollmentValidatorTest extends TrackerTestBase {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
 
-    when(preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent())
-        .thenReturn(Collections.singletonList(enrollment.getEnrollment()));
     when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
     UserDetails userDetails =
@@ -262,7 +257,6 @@ class SecurityEnrollmentValidatorTest extends TrackerTestBase {
 
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
-    when(preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent()).thenReturn(Collections.emptyList());
     when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
     when(aclService.canDataWrite(user, program)).thenReturn(true);
@@ -271,31 +265,6 @@ class SecurityEnrollmentValidatorTest extends TrackerTestBase {
     validator.validate(reporter, bundle, enrollment);
 
     assertHasError(reporter, enrollment, E1000);
-  }
-
-  @Test
-  void verifyValidationFailsForEnrollmentUsingDeleteStrategyAndUserWithoutCascadeAuthority() {
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(UID.generate())
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TE_ID)
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .build();
-
-    when(bundle.getPreheat()).thenReturn(preheat);
-    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
-    when(preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent())
-        .thenReturn(Collections.singletonList(enrollment.getEnrollment()));
-    when(preheat.getEnrollment(enrollment.getEnrollment()))
-        .thenReturn(getEnrollment(enrollment.getEnrollment()));
-    UserDetails userDetails = setUpUserWithOrgUnit();
-    when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
-    when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
-
-    validator.validate(reporter, bundle, enrollment);
-
-    assertHasError(reporter, enrollment, E1103);
   }
 
   @Test

@@ -92,12 +92,13 @@ class SecurityTrackerEventValidator
       TrackerBundle bundle,
       org.hisp.dhis.tracker.model.TrackerEvent databaseTrackerEvent,
       TrackerEvent trackerEvent) {
-    OrganisationUnit trackerEventOrgUnit =
+    OrganisationUnit payloadOrgUnit =
         bundle.getPreheat().getOrganisationUnit(trackerEvent.getOrgUnit());
+    OrganisationUnit orgUnit =
+        payloadOrgUnit != null ? payloadOrgUnit : databaseTrackerEvent.getOrganisationUnit();
 
     trackerAccessManager
-        .canUpdate(
-            bundle.getUser(), databaseTrackerEvent, trackerEventOrgUnit, trackerEvent.getStatus())
+        .canUpdate(bundle.getUser(), databaseTrackerEvent, orgUnit)
         .forEach(em -> reporter.addError(trackerEvent, em.validationCode(), em.args().toArray()));
   }
 

@@ -32,7 +32,6 @@ package org.hisp.dhis.tracker.imports.validation.validator.trackedentity;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1001;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1100;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1323;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.mockito.ArgumentMatchers.any;
@@ -246,24 +245,6 @@ class SecurityTrackedEntityValidatorTest extends TrackerTestBase {
     validator.validate(reporter, bundle, trackedEntity);
 
     assertIsEmpty(reporter.getErrors());
-  }
-
-  @Test
-  void shouldFailWhenDeleteTEWithEnrollmentsAndUserHasWriteAccessAndNoDeleteCascadeAuthority() {
-    org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity =
-        org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
-            .trackedEntity(TE_ID)
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntityType(MetadataIdentifier.ofUid(TE_TYPE_ID))
-            .build();
-
-    when(bundle.getStrategy(trackedEntity)).thenReturn(TrackerImportStrategy.DELETE);
-    TrackedEntity te = teWithEnrollments();
-    when(preheat.getTrackedEntity(TE_ID)).thenReturn(te);
-
-    validator.validate(reporter, bundle, trackedEntity);
-
-    assertHasError(reporter, trackedEntity, E1100);
   }
 
   @Test

@@ -29,35 +29,28 @@
  */
 package org.hisp.dhis.tracker.acl;
 
-import static org.hisp.dhis.security.Authorities.F_UNCOMPLETE_EVENT;
 import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1083;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1096;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1097;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1098;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1099;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1100;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1102;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1105;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1324;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1325;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -122,9 +115,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<ErrorMessage> canUpdate(
-      UserDetails user,
-      @Nonnull TrackedEntity trackedEntity,
-      @CheckForNull OrganisationUnit payloadTrackedEntityOrgUnit) {
+      UserDetails user, @Nonnull TrackedEntity trackedEntity, @Nonnull OrganisationUnit orgUnit) {
     if (user.isSuper()) {
       return List.of();
     }
@@ -132,13 +123,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     List<ErrorMessage> errors =
         new ArrayList<>(validateExistingTrackedEntityAccess(user, trackedEntity));
 
-    boolean orgUnitChanged =
-        payloadTrackedEntityOrgUnit != null
-            && !payloadTrackedEntityOrgUnit
-                .getUid()
-                .equals(trackedEntity.getOrganisationUnit().getUid());
-    if (orgUnitChanged) {
-      checkOrgUnitInCaptureScope(errors, user, payloadTrackedEntityOrgUnit);
+    if (!orgUnit.getUid().equals(trackedEntity.getOrganisationUnit().getUid())) {
+      checkOrgUnitInCaptureScope(errors, user, orgUnit);
     }
 
     return errors;
@@ -153,12 +139,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     List<ErrorMessage> errors =
         new ArrayList<>(validateExistingTrackedEntityAccess(user, trackedEntity));
     checkOrgUnitInCaptureScope(errors, user, trackedEntity.getOrganisationUnit());
-
-    if (trackedEntity.getEnrollments().stream().anyMatch(e -> !e.isDeleted())
-        && !user.isAuthorized(Authorities.F_TEI_CASCADE_DELETE.name())) {
-      errors.add(
-          new ErrorMessage(E1100, user.getUid(), List.of(user.getUid(), trackedEntity.getUid())));
-    }
 
     return errors;
   }
@@ -217,41 +197,27 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   public List<ErrorMessage> canUpdate(
       @Nonnull UserDetails user,
       @Nonnull Enrollment enrollment,
-      @CheckForNull OrganisationUnit payloadEnrollmentOrgUnit) {
+      @Nonnull OrganisationUnit orgUnit) {
     if (user.isSuper()) {
       return List.of();
     }
 
     List<ErrorMessage> errors = new ArrayList<>(validateEnrollmentAccess(user, enrollment));
 
-    boolean orgUnitChanged =
-        payloadEnrollmentOrgUnit != null
-            && !payloadEnrollmentOrgUnit.getUid().equals(enrollment.getOrganisationUnit().getUid());
-
-    if (orgUnitChanged) {
-      checkOrgUnitInCaptureScope(errors, user, payloadEnrollmentOrgUnit);
+    if (!orgUnit.getUid().equals(enrollment.getOrganisationUnit().getUid())) {
+      checkOrgUnitInCaptureScope(errors, user, orgUnit);
     }
 
     return errors;
   }
 
   @Override
-  public List<ErrorMessage> canDelete(
-      @Nonnull UserDetails user, @Nonnull Enrollment enrollment, boolean hasNonDeletedEvents) {
+  public List<ErrorMessage> canDelete(@Nonnull UserDetails user, @Nonnull Enrollment enrollment) {
     if (user.isSuper()) {
       return List.of();
     }
 
-    List<ErrorMessage> errors = new ArrayList<>(canCreate(user, enrollment));
-    boolean hasNotCascadeDeleteAuthority =
-        !user.isAuthorized(Authorities.F_ENROLLMENT_CASCADE_DELETE.name());
-
-    if (hasNonDeletedEvents && hasNotCascadeDeleteAuthority) {
-      errors.add(
-          new ErrorMessage(E1103, user.getUid(), List.of(user.getUid(), enrollment.getUid())));
-    }
-
-    return errors;
+    return new ArrayList<>(canCreate(user, enrollment));
   }
 
   private List<ErrorMessage> validateEnrollmentAccess(
@@ -308,28 +274,15 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<ErrorMessage> canUpdate(
-      @Nonnull UserDetails user,
-      @Nonnull TrackerEvent event,
-      @CheckForNull OrganisationUnit payloadEventOrgUnit,
-      @CheckForNull EventStatus payloadEventStatus) {
+      @Nonnull UserDetails user, @Nonnull TrackerEvent event, @Nonnull OrganisationUnit orgUnit) {
     if (user.isSuper()) {
       return List.of();
     }
 
     List<ErrorMessage> errors = new ArrayList<>(validateTrackerEventAccess(user, event));
 
-    boolean orgUnitChanged =
-        payloadEventOrgUnit != null
-            && !payloadEventOrgUnit.getUid().equals(event.getOrganisationUnit().getUid());
-    if (orgUnitChanged) {
-      checkOrgUnitInCaptureScope(errors, user, payloadEventOrgUnit);
-    }
-
-    if (EventStatus.COMPLETED == event.getStatus()
-        && payloadEventStatus != null
-        && payloadEventStatus != event.getStatus()
-        && (!user.isSuper() && !user.isAuthorized(F_UNCOMPLETE_EVENT))) {
-      errors.add(new ErrorMessage(E1083, user.getUid(), List.of(user.getUid())));
+    if (!orgUnit.getUid().equals(event.getOrganisationUnit().getUid())) {
+      checkOrgUnitInCaptureScope(errors, user, orgUnit);
     }
 
     return errors;
@@ -341,7 +294,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       return List.of();
     }
 
-    return canCreate(user, event);
+    return new ArrayList<>(canCreate(user, event));
   }
 
   private List<ErrorMessage> validateTrackerEventAccess(
@@ -517,18 +470,24 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   private List<String> canWrite(@Nonnull UserDetails user, RelationshipItem item) {
-    if (item.getTrackedEntity() != null)
-      return canUpdate(user, item.getTrackedEntity(), null).stream()
+    if (item.getTrackedEntity() != null) {
+      TrackedEntity te = item.getTrackedEntity();
+      return canUpdate(user, te, te.getOrganisationUnit()).stream()
           .map(em -> em.validationCode().getMessage())
           .toList();
-    if (item.getEnrollment() != null)
-      return canUpdate(user, item.getEnrollment(), null).stream()
+    }
+    if (item.getEnrollment() != null) {
+      Enrollment enrollment = item.getEnrollment();
+      return canUpdate(user, enrollment, enrollment.getOrganisationUnit()).stream()
           .map(em -> em.validationCode().getMessage())
           .toList();
-    if (item.getTrackerEvent() != null)
-      return canUpdate(user, item.getTrackerEvent(), null, null).stream()
+    }
+    if (item.getTrackerEvent() != null) {
+      TrackerEvent event = item.getTrackerEvent();
+      return canUpdate(user, event, event.getOrganisationUnit()).stream()
           .map(em -> em.validationCode().getMessage())
           .toList();
+    }
     if (item.getSingleEvent() != null) return canCreate(user, item.getSingleEvent());
     return List.of();
   }

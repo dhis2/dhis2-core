@@ -32,7 +32,6 @@ package org.hisp.dhis.tracker.acl;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.Relationship;
@@ -62,17 +61,17 @@ public interface TrackerAccessManager {
 
   /**
    * Checks data write access to the TET and ownership of the tracked entity across programs for
-   * which the user has data write access. When the payload org unit differs from the stored tracked
-   * entity's org unit, capture scope access to the new org unit is also required.
+   * which the user has data write access. When {@code orgUnit} differs from the stored tracked
+   * entity's org unit, capture scope access to it is also required.
    *
    * @param user the user whose access is being validated.
    * @param trackedEntity the stored tracked entity to update.
-   * @param payloadTrackedEntityOrgUnit the org unit from the update payload; {@code null} if
-   *     unchanged.
+   * @param orgUnit the org unit the caller intends to move the entity to; if no org unit change is
+   *     intended, pass the entity's existing org unit.
    * @return No errors if the user has all required access rights to update the tracked entity.
    */
   List<ErrorMessage> canUpdate(
-      UserDetails user, TrackedEntity trackedEntity, OrganisationUnit payloadTrackedEntityOrgUnit);
+      UserDetails user, TrackedEntity trackedEntity, @Nonnull OrganisationUnit orgUnit);
 
   /**
    * Like {@link #canUpdate(UserDetails, TrackedEntity, OrganisationUnit)}, but also requires
@@ -97,26 +96,20 @@ public interface TrackerAccessManager {
 
   /**
    * Checks data write access to the program, data read access to the TET, ownership, and category
-   * option combo write access. When the payload org unit differs from the stored enrollment's org
-   * unit, capture scope access to the new org unit is also required.
+   * option combo write access. When {@code orgUnit} differs from the stored enrollment's org unit,
+   * capture scope access to it is also required.
    *
    * @param user the user whose access is being validated.
    * @param enrollment the stored enrollment to update.
-   * @param payloadEnrollmentOrgUnit the org unit from the update payload; {@code null} if
-   *     unchanged.
+   * @param orgUnit the org unit the caller intends to move the entity to; if no org unit change is
+   *     intended, pass the entity's existing org unit.
    * @return No errors if the user has all required access rights to update the enrollment.
    */
   List<ErrorMessage> canUpdate(
-      UserDetails user, Enrollment enrollment, OrganisationUnit payloadEnrollmentOrgUnit);
+      UserDetails user, Enrollment enrollment, @Nonnull OrganisationUnit orgUnit);
 
-  /**
-   * Like {@link #canCreate(UserDetails, Enrollment)}, but also requires the {@code
-   * F_ENROLLMENT_CASCADE_DELETE} authority when the enrollment has non-deleted events.
-   *
-   * @param hasNonDeletedEvents whether the enrollment has at least one non-deleted event.
-   */
-  List<ErrorMessage> canDelete(
-      UserDetails user, Enrollment enrollment, boolean hasNonDeletedEvents);
+  /** Like {@link #canCreate(UserDetails, Enrollment)}. */
+  List<ErrorMessage> canDelete(UserDetails user, Enrollment enrollment);
 
   /**
    * Checks data read access to the program, program stage, and TET, ownership of the enrolled
@@ -139,22 +132,17 @@ public interface TrackerAccessManager {
 
   /**
    * Checks data write access to the program stage, data read access to the program and TET,
-   * ownership, and data write access to the category option combo. When the payload org unit
-   * differs from the stored event's org unit, capture scope access to the new org unit is also
-   * required. When the event status is {@link EventStatus#COMPLETED} and the payload requests a
-   * different status, the {@code F_UNCOMPLETE_EVENT} authority is required.
+   * ownership, and data write access to the category option combo. When {@code orgUnit} differs
+   * from the stored event's org unit, capture scope access to it is also required.
    *
    * @param user the user whose access is being validated.
    * @param event the stored event to update.
-   * @param payloadEventOrgUnit the org unit from the update payload; {@code null} if unchanged.
-   * @param payloadEventStatus the event status from the update payload; {@code null} if unchanged.
+   * @param orgUnit the org unit the caller intends to move the entity to; if no org unit change is
+   *     intended, pass the entity's existing org unit.
    * @return No errors if the user has all required access rights to update the event.
    */
   List<ErrorMessage> canUpdate(
-      UserDetails user,
-      TrackerEvent event,
-      OrganisationUnit payloadEventOrgUnit,
-      EventStatus payloadEventStatus);
+      UserDetails user, TrackerEvent event, @Nonnull OrganisationUnit orgUnit);
 
   /** Like {@link #canCreate(UserDetails, TrackerEvent)}. */
   List<ErrorMessage> canDelete(UserDetails user, TrackerEvent event);

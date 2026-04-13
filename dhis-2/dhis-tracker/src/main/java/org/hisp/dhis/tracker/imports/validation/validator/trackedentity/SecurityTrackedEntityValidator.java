@@ -97,11 +97,13 @@ class SecurityTrackedEntityValidator
       TrackedEntity databaseTrackedEntity,
       TrackerBundle bundle,
       Reporter reporter) {
-    OrganisationUnit trackedEntityOrgUnit =
+    OrganisationUnit payloadOrgUnit =
         bundle.getPreheat().getOrganisationUnit(trackedEntity.getOrgUnit());
+    OrganisationUnit orgUnit =
+        payloadOrgUnit != null ? payloadOrgUnit : databaseTrackedEntity.getOrganisationUnit();
 
     trackerAccessManager
-        .canUpdate(bundle.getUser(), databaseTrackedEntity, trackedEntityOrgUnit)
+        .canUpdate(bundle.getUser(), databaseTrackedEntity, orgUnit)
         .forEach(eo -> reporter.addError(trackedEntity, eo.validationCode(), eo.args().toArray()));
   }
 

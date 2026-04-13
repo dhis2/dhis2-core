@@ -30,7 +30,6 @@
 package org.hisp.dhis.tracker.imports.validation.validator.event;
 
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1083;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1095;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1096;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1099;
@@ -911,37 +910,6 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, E1000);
-  }
-
-  @Test
-  void shouldFailValidationWhenUpdatingCompletedEventAndUserHasNoAuthorityToUncompleteEvent() {
-    UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
-        org.hisp.dhis.tracker.imports.domain.TrackerEvent.builder()
-            .event(UID.generate())
-            .enrollment(enrollmentUid)
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .programStage(MetadataIdentifier.ofUid(PS_ID))
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .status(EventStatus.ACTIVE)
-            .build();
-
-    when(bundle.getPreheat()).thenReturn(preheat);
-    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
-    Enrollment enrollment = getEnrollment(enrollmentUid);
-    TrackerEvent preheatEvent = getEvent();
-    preheatEvent.setEnrollment(enrollment);
-    when(preheat.getTrackerEvent(event.getEvent())).thenReturn(preheatEvent);
-    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
-        .thenReturn(organisationUnit);
-    when(aclService.canDataRead(user, program.getTrackedEntityType())).thenReturn(true);
-    when(aclService.canDataRead(user, program)).thenReturn(true);
-    when(aclService.canDataWrite(user, programStage)).thenReturn(true);
-    when(ownershipAccessManager.hasAccess(any(), any(), any())).thenReturn(true);
-
-    validator.validate(reporter, bundle, event);
-
-    assertHasError(reporter, event, E1083);
   }
 
   private TrackedEntity teWithNoEnrollments() {
