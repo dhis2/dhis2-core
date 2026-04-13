@@ -96,7 +96,6 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -170,10 +169,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
   @Override
   public Grid getEvents(EventQueryParams params, Grid grid, int maxLimit) {
-    String sql =
-        useExperimentalAnalyticsQueryEngine()
-            ? buildAnalyticsQuery(params, maxLimit)
-            : getAggregatedEnrollmentsSql(params, maxLimit);
+    String sql = buildAnalyticsQuery(params, maxLimit);
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql));
@@ -363,21 +359,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   // -------------------------------------------------------------------------
   // Supportive methods
   // -------------------------------------------------------------------------
-
-  /**
-   * Returns a select SQL clause for the given query.
-   *
-   * @param params the {@link EventQueryParams}.
-   */
-  @Override
-  protected String getSelectClause(EventQueryParams params) {
-    List<String> standardColumns = getStandardColumns(params);
-
-    List<String> selectCols =
-        ListUtils.distinctUnion(standardColumns, getSelectColumns(params, false));
-
-    return "select " + StringUtils.join(selectCols, ",") + " ";
-  }
 
   @Override
   protected String getColumnWithCte(
@@ -695,14 +676,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
               + " = '"
               + params.getProgramStage().getUid()
               + "' ";
-    }
-
-    // ---------------------------------------------------------------------
-    // Query items and filters
-    // ---------------------------------------------------------------------
-
-    if (!useExperimentalAnalyticsQueryEngine()) {
-      sql += getQueryItemsAndFiltersWhereClause(params, hlp);
     }
 
     sql += getOptionFilter(params, hlp);
