@@ -65,6 +65,7 @@ import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -88,16 +89,22 @@ public class EventPersister
   @Override
   protected TrackerNotificationDataBundle handleNotifications(
       TrackerBundle bundle, Event event, List<NotificationTrigger> triggers) {
+    boolean hasTemplates = hasMatchingNotificationTemplates(event.getProgramStage(), triggers);
+    List<Notification> ruleEngineNotifications =
+        bundle.getEventNotifications().getOrDefault(UID.of(event), List.of());
+    if (!hasTemplates && ruleEngineNotifications.isEmpty()) {
+      return null;
+    }
 
     return TrackerNotificationDataBundle.builder()
         .klass(Event.class)
-        .eventNotifications(bundle.getEventNotifications().get(UID.of(event)))
+        .eventNotifications(ruleEngineNotifications)
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUser().getUsername())
         .event(event)
         .program(event.getProgramStage().getProgram())
-        .triggers(triggers)
+        .triggers(hasTemplates ? triggers : List.of())
         .build();
   }
 

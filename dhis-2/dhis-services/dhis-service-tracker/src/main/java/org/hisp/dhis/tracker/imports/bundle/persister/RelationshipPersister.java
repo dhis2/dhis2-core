@@ -90,7 +90,7 @@ public class RelationshipPersister
       TrackerBundle bundle,
       org.hisp.dhis.relationship.Relationship entity,
       List<NotificationTrigger> triggers) {
-    return TrackerNotificationDataBundle.builder().build();
+    return null;
   }
 
   @Override

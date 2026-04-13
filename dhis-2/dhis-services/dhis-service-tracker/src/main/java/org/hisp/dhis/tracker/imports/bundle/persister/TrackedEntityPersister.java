@@ -90,7 +90,7 @@ public class TrackedEntityPersister
   @Override
   protected TrackerNotificationDataBundle handleNotifications(
       TrackerBundle bundle, TrackedEntity entity, List<NotificationTrigger> triggers) {
-    return TrackerNotificationDataBundle.builder().build();
+    return null;
   }
 
   @Override
