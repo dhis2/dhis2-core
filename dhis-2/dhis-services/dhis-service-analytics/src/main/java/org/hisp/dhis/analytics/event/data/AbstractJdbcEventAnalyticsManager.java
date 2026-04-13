@@ -2032,7 +2032,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     if (needsOptimizedCtes(params, cteContext)) {
       // 3.7 : Add shadow CTEs for optimized query
-      addShadowCtes(params, cteContext, selectColumns);
+      addShadowCtes(params, cteContext, selectColumns, maxLimit);
     }
 
     return sb.build();
@@ -2101,10 +2101,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param selectColumns The list of columns computed for the main SELECT statement. This is used
    *     when computing the main {@code top_enrollments} CTE to ensure that any missing column is
    *     used in the shadow CTEs.
+   * @param maxLimit
    */
-  void addShadowCtes(EventQueryParams params, CteContext cteContext, List<String> selectColumns) {
+  void addShadowCtes(
+      EventQueryParams params, CteContext cteContext, List<String> selectColumns, int maxLimit) {
 
-    addTopEnrollmentsCte(params, cteContext, selectColumns);
+    addTopEnrollmentsCte(params, cteContext, selectColumns, maxLimit);
     addShadowEnrollmentTableCte(params, cteContext);
     addShadowEventTableCte(params, cteContext);
   }
@@ -2143,7 +2145,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    *     to ensure correct ordering in the final SQL query.
    */
   void addTopEnrollmentsCte(
-      EventQueryParams params, CteContext cteContext, List<String> selectColumns) {
+      EventQueryParams params, CteContext cteContext, List<String> selectColumns, int maxLimit) {
     SelectBuilder topEnrollments = new SelectBuilder();
     Map<String, String> formulaAliases = getFormulaColumnAliases();
 
@@ -2191,7 +2193,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     topEnrollments.where(Condition.raw(getWhereClause(params)));
 
     // Apply pagination
-    addPagingToBuilder(topEnrollments, params);
+    addPagingToBuilder(topEnrollments, params, maxLimit);
 
     // Add to CTE context with special name and type
     cteContext.addShadowCte("top_enrollments", topEnrollments.build(), TOP_ENROLLMENTS);
@@ -2382,17 +2384,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return enrollmentColumns;
   }
 
-  private void addPagingToBuilder(SelectBuilder builder, EventQueryParams params) {
+  private void addPagingToBuilder(SelectBuilder builder, EventQueryParams params, int maxLimit) {
     if (params.isPaging()) {
       if (params.isTotalPages()) {
-        builder.limitWithMax(params.getPageSizeWithDefault(), 5000).offset(params.getOffset());
+        builder.limitWithMax(params.getPageSizeWithDefault(), maxLimit).offset(params.getOffset());
       } else {
         builder
-            .limitWithMaxPlusOne(params.getPageSizeWithDefault(), 5000)
+            .limitWithMaxPlusOne(params.getPageSizeWithDefault(), maxLimit)
             .offset(params.getOffset());
       }
-    } else {
-      builder.limitPlusOne(5000);
+    } else if (maxLimit > 0) {
+      builder.limitPlusOne(maxLimit);
     }
   }
 
@@ -2561,19 +2563,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     if (params.isSorting()) {
       builder.orderBy(getCteAwareSortClause(cteContext, params));
     }
-
-    // Paging with max limit of 5000
-    if (params.isPaging()) {
-      if (params.isTotalPages()) {
-        builder.limitWithMax(params.getPageSizeWithDefault(), maxLimit).offset(params.getOffset());
-      } else {
-        builder
-            .limitWithMaxPlusOne(params.getPageSizeWithDefault(), maxLimit)
-            .offset(params.getOffset());
-      }
-    } else {
-      builder.limitPlusOne(5000);
-    }
+    addPagingToBuilder(builder, params, maxLimit);
   }
 
   private void addCteJoins(SelectBuilder builder, CteContext cteContext) {

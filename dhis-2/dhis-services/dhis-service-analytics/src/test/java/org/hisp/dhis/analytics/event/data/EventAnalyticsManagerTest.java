@@ -196,7 +196,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + DEFAULT_COLUMNS_WITHOUT_REGISTRATION
             + ", ax.\"quarterly\", ax.\"ou\" from "
             + getTable(programA.getUid())
-            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') limit 5001";
+            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') limit 101";
 
     assertThat(sql.getValue(), is(expected));
   }
@@ -258,7 +258,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + "\" from "
             + getTable(programA.getUid())
             + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA')"
-            + " limit 5001";
+            + " limit 101";
 
     assertThat(sql.getValue(), is(expected));
   }
@@ -277,7 +277,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     String expected =
         "ax.\"quarterly\", ax.\"ou\" from "
             + getTable(programA.getUid())
-            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') limit 5001";
+            + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA')";
 
     assertSql(expected, sql.getValue());
     assertTrue(grid.hasLastDataRow());
@@ -496,7 +496,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + getTable(programA.getUid())
             + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
-            + "' limit 5001";
+            + "' limit 101";
 
     assertSql(expected, sql.getValue());
   }
@@ -514,7 +514,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + getTable(programA.getUid())
             + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
-            + "' limit 5001";
+            + "' limit 101";
 
     assertSql(expected, sql.getValue());
   }
@@ -533,7 +533,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + getTable(programA.getUid())
             + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
-            + "' and ax.\"fWIAEtYVEGk\" > '10' limit 5001";
+            + "' and ax.\"fWIAEtYVEGk\" > '10' limit 101";
 
     assertSql(expected, sql.getValue());
   }
@@ -550,7 +550,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
         "ax.\"quarterly\", ax.\"ou\" from "
             + getTable(programA.getUid())
             + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA')"
-            + " and enrollmentstatus in ('ACTIVE','COMPLETED') and eventstatus in ('SCHEDULE') limit 5001";
+            + " and enrollmentstatus in ('ACTIVE','COMPLETED') and eventstatus in ('SCHEDULE') limit 101";
 
     assertSql(expected, sql.getValue());
   }
@@ -568,7 +568,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + getTable(programA.getUid())
             + " as ax "
             + "where (ps.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" "
-            + "in ('ouabcdefghA') and enrollmentstatus in ('ACTIVE','COMPLETED') limit 5001";
+            + "in ('ouabcdefghA') and enrollmentstatus in ('ACTIVE','COMPLETED') limit 101";
 
     assertSql(expected, sql.getValue());
   }
@@ -586,7 +586,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + getTable(programA.getUid())
             + " as ax "
             + "where ((( ax.\"lastupdated\" >= '2000-01-01' and ax.\"lastupdated\" < '2000-04-01') )) and ax.\"uidlevel1\" "
-            + "in ('ouabcdefghA') and enrollmentstatus in ('ACTIVE','COMPLETED') limit 5001";
+            + "in ('ouabcdefghA') and enrollmentstatus in ('ACTIVE','COMPLETED') limit 101";
 
     assertSql(expected, sql.getValue());
   }
@@ -672,7 +672,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + getTable(programA.getUid())
             + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
-            + "' limit 5001";
+            + "' limit 101";
 
     assertSql(expected, sql.getValue());
   }
@@ -691,7 +691,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + getTable(programA.getUid())
             + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA') and ax.\"ps\" = '"
             + programStage.getUid()
-            + "' and ax.\"fWIAEtYVEGk\" > '10' limit 5001";
+            + "' and ax.\"fWIAEtYVEGk\" > '10' limit 101";
 
     assertSql(expected, sql.getValue());
   }
