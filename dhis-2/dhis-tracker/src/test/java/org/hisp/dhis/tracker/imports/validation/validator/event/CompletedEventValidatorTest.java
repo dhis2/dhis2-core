@@ -65,9 +65,6 @@ class CompletedEventValidatorTest {
 
   @BeforeEach
   void setUp() {
-    when(bundle.getPreheat()).thenReturn(preheat);
-    when(bundle.getUser()).thenReturn(user);
-
     TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new Reporter(idSchemes);
 
@@ -76,6 +73,8 @@ class CompletedEventValidatorTest {
 
   @Test
   void shouldPassWhenUserHasAuthorityToReopenCompletedEvent() {
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getUser()).thenReturn(user);
     org.hisp.dhis.tracker.model.TrackerEvent databaseEvent =
         mock(org.hisp.dhis.tracker.model.TrackerEvent.class);
     when(databaseEvent.getStatus()).thenReturn(EventStatus.COMPLETED);
@@ -95,6 +94,7 @@ class CompletedEventValidatorTest {
 
   @Test
   void shouldPassWhenEventNotCompleted() {
+    when(bundle.getPreheat()).thenReturn(preheat);
     org.hisp.dhis.tracker.model.TrackerEvent databaseEvent =
         mock(org.hisp.dhis.tracker.model.TrackerEvent.class);
     when(databaseEvent.getStatus()).thenReturn(EventStatus.ACTIVE);
@@ -113,6 +113,7 @@ class CompletedEventValidatorTest {
 
   @Test
   void shouldPassWhenPayloadEventStatusIsNull() {
+    when(bundle.getPreheat()).thenReturn(preheat);
     org.hisp.dhis.tracker.model.TrackerEvent databaseEvent =
         mock(org.hisp.dhis.tracker.model.TrackerEvent.class);
     when(databaseEvent.getStatus()).thenReturn(EventStatus.COMPLETED);
@@ -131,6 +132,7 @@ class CompletedEventValidatorTest {
 
   @Test
   void shouldPassWhenPayloadEventStatusSameAsDatabaseEventStatus() {
+    when(bundle.getPreheat()).thenReturn(preheat);
     org.hisp.dhis.tracker.model.TrackerEvent databaseEvent =
         mock(org.hisp.dhis.tracker.model.TrackerEvent.class);
     when(databaseEvent.getStatus()).thenReturn(EventStatus.COMPLETED);
@@ -149,6 +151,8 @@ class CompletedEventValidatorTest {
 
   @Test
   void shouldFailWhenUserNotAllowedToReopenCompletedEvent() {
+    when(bundle.getPreheat()).thenReturn(preheat);
+    when(bundle.getUser()).thenReturn(user);
     org.hisp.dhis.tracker.model.TrackerEvent databaseEvent =
         mock(org.hisp.dhis.tracker.model.TrackerEvent.class);
     when(databaseEvent.getStatus()).thenReturn(EventStatus.COMPLETED);
