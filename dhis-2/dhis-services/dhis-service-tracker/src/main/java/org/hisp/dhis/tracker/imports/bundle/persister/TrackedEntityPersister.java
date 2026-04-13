@@ -34,10 +34,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
@@ -55,9 +55,8 @@ public class TrackedEntityPersister
         org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity> {
 
   public TrackedEntityPersister(
-      ReservedValueService reservedValueService,
-      TrackedEntityChangeLogService trackedEntityChangeLogService) {
-    super(reservedValueService, trackedEntityChangeLogService);
+      ReservedValueService reservedValueService, DhisConfigurationProvider config) {
+    super(reservedValueService, config);
   }
 
   @Override
@@ -66,9 +65,10 @@ public class TrackedEntityPersister
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
       TrackedEntity te,
-      UserDetails user) {
+      UserDetails user,
+      ChangeLogAccumulator changeLogs) {
     handleTrackedEntityAttributeValues(
-        entityManager, preheat, trackerDto.getAttributes(), te, user);
+        entityManager, preheat, trackerDto.getAttributes(), te, user, changeLogs);
   }
 
   @Override
@@ -109,7 +109,8 @@ public class TrackedEntityPersister
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
       TrackedEntity payloadEntity,
       TrackedEntity currentEntity,
-      UserDetails user) {
+      UserDetails user,
+      ChangeLogAccumulator changeLogs) {
     // DO NOTHING - TE HAVE NO DATA VALUES
   }
 
