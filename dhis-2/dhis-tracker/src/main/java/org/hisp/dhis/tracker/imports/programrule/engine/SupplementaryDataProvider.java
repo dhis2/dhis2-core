@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.hisp.dhis.rules.api.RuleSupplementaryData;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,13 +46,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class SupplementaryDataProvider {
 
+  /**
+   * For each given org unit, returns the groups it belongs to. Keying by both {@code uid} and
+   * {@code code} lets rule expressions use either identifier in {@code d2:inOrgUnitGroup('...')}.
+   */
   private static final String ORG_UNIT_GROUP_MEMBERS_SQL =
       """
-      SELECT oug.uid, oug.name, ou.uid AS ou_uid
+      SELECT oug.uid, oug.code, ou.uid AS ou_uid
       FROM orgunitgroup oug
       JOIN orgunitgroupmembers ougm ON ougm.orgunitgroupid = oug.orgunitgroupid
       JOIN organisationunit ou ON ou.organisationunitid = ougm.organisationunitid
-      WHERE oug.uid = ANY(:identifiers) OR oug.name = ANY(:identifiers)
+      WHERE ou.uid = ANY(:orgUnitUids)
       """;
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
@@ -68,38 +71,38 @@ public class SupplementaryDataProvider {
     this.jdbcTemplate = jdbcTemplate;
   }
 
-  public RuleSupplementaryData getSupplementaryData(Set<String> orgUnitGroups, UserDetails user) {
+  /**
+   * Builds supplementary data for the rule engine.
+   *
+   * <p>When {@code needsOrgUnitGroups} is {@code true}, queries all org unit groups that contain
+   * any of the given {@code orgUnitUids} and returns a map keyed by both group UID and group code
+   * so that rule expressions can reference groups by either identifier.
+   */
+  public RuleSupplementaryData getSupplementaryData(
+      boolean needsOrgUnitGroups, Set<String> orgUnitUids, UserDetails user) {
     List<String> userGroups = user.getUserGroupIds().stream().toList();
     List<String> userRoles = user.getUserRoleIds().stream().toList();
 
-    if (orgUnitGroups.isEmpty()) {
+    if (!needsOrgUnitGroups || orgUnitUids.isEmpty()) {
       return new RuleSupplementaryData(userGroups, userRoles, Collections.emptyMap());
     }
 
-    String[] identifiers = orgUnitGroups.toArray(String[]::new);
-    MapSqlParameterSource params = new MapSqlParameterSource("identifiers", identifiers);
+    MapSqlParameterSource params =
+        new MapSqlParameterSource("orgUnitUids", orgUnitUids.toArray(String[]::new));
 
-    // Group member UIDs by whichever identifier (UID or name) was used in the rule expression.
-    // A UID takes precedence if it appears in the requested set; otherwise fall back to name.
-    Map<String, List<String>> resolved = new HashMap<>();
+    Map<String, List<String>> orgUnitGroupData = new HashMap<>();
     jdbcTemplate.query(
         ORG_UNIT_GROUP_MEMBERS_SQL,
         params,
         rs -> {
           String groupUid = rs.getString("uid");
-          String groupName = rs.getString("name");
-
-          if (orgUnitGroups.contains(groupUid)) {
-            resolved.computeIfAbsent(groupUid, k -> new ArrayList<>()).add(rs.getString("ou_uid"));
-          }
-          if (orgUnitGroups.contains(groupName)) {
-            resolved.computeIfAbsent(groupName, k -> new ArrayList<>()).add(rs.getString("ou_uid"));
+          String groupCode = rs.getString("code");
+          String ouUid = rs.getString("ou_uid");
+          orgUnitGroupData.computeIfAbsent(groupUid, k -> new ArrayList<>()).add(ouUid);
+          if (groupCode != null && !groupCode.isBlank()) {
+            orgUnitGroupData.computeIfAbsent(groupCode, k -> new ArrayList<>()).add(ouUid);
           }
         });
-
-    Map<String, List<String>> orgUnitGroupData =
-        orgUnitGroups.stream()
-            .collect(Collectors.toMap(id -> id, id -> resolved.getOrDefault(id, List.of())));
 
     return new RuleSupplementaryData(userGroups, userRoles, orgUnitGroupData);
   }

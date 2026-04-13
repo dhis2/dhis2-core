@@ -30,11 +30,12 @@
 package org.hisp.dhis.tracker.imports.programrule.engine;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import com.google.common.collect.Sets;
 import java.sql.ResultSet;
@@ -59,10 +60,9 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 class SupplementaryDataProviderTest extends TrackerTestBase {
 
   private static final String ORG_UNIT_GROUP_UID = "OrgUnitGroupId";
-  private static final String ORG_UNIT_GROUP_NAME = "OrganisationUnitGroupA";
+  private static final String ORG_UNIT_GROUP_CODE = "OrganisationUnitGroupCodeA";
   private static final String ORG_UNIT_UID = "OrgUnitIdAAA";
   private static final String USER_GROUP_UID = "UserGroupId";
-  private static final String NOT_NEEDED_ORG_UNIT_GROUP_UID = "NotNeededOrgUnitGroupId";
 
   @Mock private NamedParameterJdbcTemplate namedJdbcTemplate;
 
@@ -88,46 +88,45 @@ class SupplementaryDataProviderTest extends TrackerTestBase {
   }
 
   @Test
-  void shouldReturnEmtpyOrgUnitGroupIfGroupDoesNotExist() {
-    String unknownOrgUnitGroup = "UnknownOrgUnitGroup";
-    mockQueryRows(/* no rows */ );
+  void shouldReturnEmptyOrgUnitGroupsWhenNotNeeded() {
     RuleSupplementaryData supplementaryData =
-        providerToTest.getSupplementaryData(Set.of(unknownOrgUnitGroup), currentUser);
-    assertFalse(supplementaryData.getOrgUnitGroups().isEmpty());
-    assertTrue(supplementaryData.getOrgUnitGroups().get(unknownOrgUnitGroup).isEmpty());
+        providerToTest.getSupplementaryData(false, Set.of(ORG_UNIT_UID), currentUser);
+    assertTrue(supplementaryData.getOrgUnitGroups().isEmpty());
+    verify(namedJdbcTemplate, never())
+        .query(anyString(), any(SqlParameterSource.class), any(RowCallbackHandler.class));
   }
 
   @Test
-  void shouldReturnOrgUnitGroupMembersWhenLookedUpByUid() {
-    mockQueryRows(new String[] {ORG_UNIT_GROUP_UID, ORG_UNIT_GROUP_NAME, ORG_UNIT_UID});
+  void shouldReturnEmptyOrgUnitGroupsWhenNoOrgUnitsGiven() {
     RuleSupplementaryData supplementaryData =
-        providerToTest.getSupplementaryData(Set.of(ORG_UNIT_GROUP_UID), currentUser);
+        providerToTest.getSupplementaryData(true, Set.of(), currentUser);
+    assertTrue(supplementaryData.getOrgUnitGroups().isEmpty());
+    verify(namedJdbcTemplate, never())
+        .query(anyString(), any(SqlParameterSource.class), any(RowCallbackHandler.class));
+  }
+
+  @Test
+  void shouldReturnOrgUnitGroupMembersByBothUidAndCode() {
+    mockQueryRows(new String[] {ORG_UNIT_GROUP_UID, ORG_UNIT_GROUP_CODE, ORG_UNIT_UID});
+    RuleSupplementaryData supplementaryData =
+        providerToTest.getSupplementaryData(true, Set.of(ORG_UNIT_UID), currentUser);
     assertFalse(supplementaryData.getOrgUnitGroups().isEmpty());
     assertTrue(supplementaryData.getOrgUnitGroups().get(ORG_UNIT_GROUP_UID).contains(ORG_UNIT_UID));
-    assertNull(supplementaryData.getOrgUnitGroups().get(NOT_NEEDED_ORG_UNIT_GROUP_UID));
-  }
-
-  @Test
-  void shouldReturnOrgUnitGroupMembersWhenLookedUpByName() {
-    mockQueryRows(new String[] {ORG_UNIT_GROUP_UID, ORG_UNIT_GROUP_NAME, ORG_UNIT_UID});
-    RuleSupplementaryData supplementaryData =
-        providerToTest.getSupplementaryData(Set.of(ORG_UNIT_GROUP_NAME), currentUser);
-    assertFalse(supplementaryData.getOrgUnitGroups().isEmpty());
     assertTrue(
-        supplementaryData.getOrgUnitGroups().get(ORG_UNIT_GROUP_NAME).contains(ORG_UNIT_UID));
+        supplementaryData.getOrgUnitGroups().get(ORG_UNIT_GROUP_CODE).contains(ORG_UNIT_UID));
   }
 
   @Test
   void getUserGroupsSupplementaryData() {
     RuleSupplementaryData supplementaryData =
-        providerToTest.getSupplementaryData(Set.of(), currentUser);
+        providerToTest.getSupplementaryData(false, Set.of(), currentUser);
     assertFalse(supplementaryData.getUserGroups().isEmpty());
     assertTrue(supplementaryData.getUserGroups().contains(userGroupA.getUid()));
   }
 
   /**
    * Stubs the JDBC template to invoke the {@link RowCallbackHandler} once per supplied row. Each
-   * row is an array of three strings: {@code [uid, name, ou_uid]}.
+   * row is an array of three strings: {@code [uid, code, ou_uid]}.
    */
   private void mockQueryRows(String[]... rows) {
     doAnswer(
@@ -143,10 +142,10 @@ class SupplementaryDataProviderTest extends TrackerTestBase {
         .query(anyString(), any(SqlParameterSource.class), any(RowCallbackHandler.class));
   }
 
-  private ResultSet mockResultSet(String uid, String name, String ouUid) throws SQLException {
+  private ResultSet mockResultSet(String uid, String code, String ouUid) throws SQLException {
     ResultSet rs = org.mockito.Mockito.mock(ResultSet.class);
     org.mockito.Mockito.when(rs.getString("uid")).thenReturn(uid);
-    org.mockito.Mockito.when(rs.getString("name")).thenReturn(name);
+    org.mockito.Mockito.when(rs.getString("code")).thenReturn(code);
     org.mockito.Mockito.when(rs.getString("ou_uid")).thenReturn(ouUid);
     return rs;
   }

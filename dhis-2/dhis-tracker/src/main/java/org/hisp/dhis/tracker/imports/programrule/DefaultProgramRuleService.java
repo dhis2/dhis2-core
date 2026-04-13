@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -119,9 +120,10 @@ class DefaultProgramRuleService implements ProgramRuleService {
     // Deduplicate UIDs before hitting preheat: many enrollments/events typically share the same
     // program, so look up each distinct program UID and enrollment UID at most once.
     Set<Program> allPrograms = getAllProgramsFromPayload(bundle, preheat);
+    Set<String> orgUnitUids = collectOrgUnitUids(bundle, preheat);
 
     Map<Program, ProgramRuleContext> contextByProgram =
-        getRulesForPrograms(allPrograms, bundle.getUser());
+        getRulesForPrograms(allPrograms, bundle.getUser(), orgUnitUids);
     if (contextByProgram.isEmpty()) {
       return;
     }
@@ -138,6 +140,44 @@ class DefaultProgramRuleService implements ProgramRuleService {
             ruleEffects.getEnrollmentValidationEffects(), bundle));
     bundle.setEventRuleActionExecutors(
         ruleActionEventMapper.mapRuleEffects(ruleEffects.getEventValidationEffects(), bundle));
+  }
+
+  // Collects the UIDs of all org units referenced by payload enrollments, tracker events, single
+  // events, and preheat-resolved saved enrollments for tracker events whose enrollment is not in
+  // the payload. These UIDs drive the org unit group query in SupplementaryDataProvider.
+  private static Set<String> collectOrgUnitUids(TrackerBundle bundle, TrackerPreheat preheat) {
+    Set<String> uids = new HashSet<>();
+
+    bundle.getEnrollments().stream()
+        .map(e -> preheat.getOrganisationUnit(e.getOrgUnit()))
+        .filter(Objects::nonNull)
+        .map(BaseIdentifiableObject::getUid)
+        .forEach(uids::add);
+    bundle.getTrackerEvents().stream()
+        .map(e -> preheat.getOrganisationUnit(e.getOrgUnit()))
+        .filter(Objects::nonNull)
+        .map(BaseIdentifiableObject::getUid)
+        .forEach(uids::add);
+    bundle.getSingleEvents().stream()
+        .map(e -> preheat.getOrganisationUnit(e.getOrgUnit()))
+        .filter(Objects::nonNull)
+        .map(BaseIdentifiableObject::getUid)
+        .forEach(uids::add);
+
+    Set<UID> payloadEnrollmentUids =
+        bundle.getEnrollments().stream()
+            .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getUID)
+            .collect(Collectors.toSet());
+    bundle.getTrackerEvents().stream()
+        .filter(te -> !payloadEnrollmentUids.contains(te.getEnrollment()))
+        .map(te -> preheat.getEnrollment(te.getEnrollment()))
+        .filter(Objects::nonNull)
+        .map(Enrollment::getOrganisationUnit)
+        .filter(Objects::nonNull)
+        .map(BaseIdentifiableObject::getUid)
+        .forEach(uids::add);
+
+    return uids;
   }
 
   private static Set<Program> getAllProgramsFromPayload(
@@ -254,7 +294,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
 
   // Skips programs with no applicable rules.
   private Map<Program, ProgramRuleContext> getRulesForPrograms(
-      Set<Program> programs, UserDetails user) {
+      Set<Program> programs, UserDetails user, Set<String> orgUnitUids) {
     Map<String, String> constantMap =
         constantService.getConstantMap().entrySet().stream()
             .collect(
@@ -277,7 +317,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
                     rules,
                     variables,
                     supplementaryDataProvider.getSupplementaryData(
-                        requirements.getOrgUnitGroups(), user),
+                        requirements.getNeedsOrgUnitGroups(), orgUnitUids, user),
                     constantMap),
                 requirements.getNeedsAttributes(),
                 requirements.getNeedsAllEvents()));

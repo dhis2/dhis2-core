@@ -500,9 +500,9 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldNotImportWhenEventOrgUnitIsInOrgUnitGroupIdentifiedByName() throws IOException {
+  void shouldNotImportWhenEventOrgUnitIsInOrgUnitGroupIdentifiedByCode() throws IOException {
     OrganisationUnitGroup group = orgUnitGroupContaining("h4w96yEMlzO");
-    showErrorWhenOrgUnitInGroupRule(group.getName());
+    showErrorWhenOrgUnitInGroupRule(group.getCode());
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/programrule/te_enrollment_event_with_no_data_value.json");
 
@@ -513,9 +513,9 @@ class ProgramRuleTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldImportWhenEventOrgUnitIsNotInOrgUnitGroupIdentifiedByName() throws IOException {
+  void shouldImportWhenEventOrgUnitIsNotInOrgUnitGroupIdentifiedByCode() throws IOException {
     OrganisationUnitGroup group = orgUnitGroupContaining(/* no members */ );
-    showErrorWhenOrgUnitInGroupRule(group.getName());
+    showErrorWhenOrgUnitInGroupRule(group.getCode());
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/programrule/te_enrollment_event_with_no_data_value.json");
 
