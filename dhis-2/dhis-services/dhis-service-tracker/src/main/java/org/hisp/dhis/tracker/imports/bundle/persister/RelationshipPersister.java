@@ -31,8 +31,8 @@ import java.util.List;
 import java.util.Set;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
@@ -40,6 +40,8 @@ import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.job.SideEffectTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -53,11 +55,12 @@ public class RelationshipPersister
 
   public RelationshipPersister(
       ReservedValueService reservedValueService,
+      DhisConfigurationProvider config,
+      @Qualifier("aes128StringEncryptor") PBEStringEncryptor encryptor,
       TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship>
-          relationshipConverter,
-      TrackedEntityAttributeValueChangeLogService trackedEntityAttributeValueChangeLogService) {
+          relationshipConverter) {
 
-    super(reservedValueService, trackedEntityAttributeValueChangeLogService);
+    super(reservedValueService, config, encryptor);
     this.relationshipConverter = relationshipConverter;
   }
 
@@ -80,7 +83,8 @@ public class RelationshipPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       Relationship trackerDto,
-      org.hisp.dhis.relationship.Relationship hibernateEntity) {
+      org.hisp.dhis.relationship.Relationship hibernateEntity,
+      ChangeLogAccumulator changeLogs) {
     // NOTHING TO DO
   }
 
@@ -89,7 +93,8 @@ public class RelationshipPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       Relationship trackerDto,
-      org.hisp.dhis.relationship.Relationship hibernateEntity) {
+      org.hisp.dhis.relationship.Relationship hibernateEntity,
+      ChangeLogAccumulator changeLogs) {
     // NOTHING TO DO
   }
 
