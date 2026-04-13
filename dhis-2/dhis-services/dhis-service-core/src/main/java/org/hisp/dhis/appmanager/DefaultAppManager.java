@@ -82,9 +82,11 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.AppHtmlTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ByteArrayResource;
@@ -110,6 +112,7 @@ public class DefaultAppManager implements AppManager {
   private final DatastoreService datastoreService;
   private final BundledAppManager bundledAppManager;
   private final I18nManager i18nManager;
+  private final SystemSettingsProvider settingsProvider;
 
   /**
    * In-memory storage of installed apps. Initially loaded on startup. Should not be cleared during
@@ -126,7 +129,8 @@ public class DefaultAppManager implements AppManager {
       CacheBuilderProvider cacheBuilderProvider,
       I18nManager i18nManager,
       LocaleManager localeManager,
-      BundledAppManager bundledAppManager) {
+      BundledAppManager bundledAppManager,
+      SystemSettingsProvider settingsProvider) {
 
     checkNotNull(dhisConfigurationProvider);
     checkNotNull(jCloudsAppStorageService);
@@ -135,6 +139,7 @@ public class DefaultAppManager implements AppManager {
     checkNotNull(i18nManager);
     checkNotNull(bundledAppManager);
     checkNotNull(localeManager);
+    checkNotNull(settingsProvider);
 
     this.dhisConfigurationProvider = dhisConfigurationProvider;
     this.appHubService = appHubService;
@@ -144,6 +149,7 @@ public class DefaultAppManager implements AppManager {
     this.i18nManager = i18nManager;
     this.localeManager = localeManager;
     this.bundledAppManager = bundledAppManager;
+    this.settingsProvider = settingsProvider;
   }
 
   /**
@@ -283,11 +289,12 @@ public class DefaultAppManager implements AppManager {
     }
 
     Locale userLocale = localeManager.getCurrentLocale();
+    boolean canonicalPaths = settingsProvider.getCurrentSettings().getCanonicalAppPaths();
 
     return stream
         .map(
             app -> {
-              app.init(contextPath);
+              app.init(contextPath, canonicalPaths);
               try {
                 return app.localise(userLocale);
               } catch (RuntimeException e) {
@@ -588,11 +595,25 @@ public class DefaultAppManager implements AppManager {
       } else if (pageName.endsWith(".html")
           || (resourceFound.resource().getFilename() != null
               && resourceFound.resource().getFilename().endsWith(".html"))) {
-        // Return raw HTML with correct mime type — AppHtmlTemplate is applied later
-        // by AppController after cache-busting rewrite, so the cache stores only
-        // request-independent content.
-        return new ResourceResult.ResourceFound(
-            resourceFound.resource(), "text/html;charset=UTF-8");
+        AppHtmlTemplate template = new AppHtmlTemplate(contextPath, app);
+        ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        template.apply(resourceFound.resource().getInputStream(), bout);
+
+        // Old-style apps reference sibling resources via ../dhis-web-commons/
+        // etc. This resolves correctly from /dhis-web-{appName}/ (legacy) but
+        // breaks from /apps/{appName}/ (canonical) because ../ lands on /apps/
+        // instead of /. Adjust to ../../ so the path reaches the context root.
+        byte[] htmlBytes = bout.toByteArray();
+        boolean canonicalAppPaths = settingsProvider.getCurrentSettings().getCanonicalAppPaths();
+        if (canonicalAppPaths) {
+          String html = new String(htmlBytes, StandardCharsets.UTF_8);
+          html = html.replace("\"../dhis-web-", "\"../../dhis-web-");
+          htmlBytes = html.getBytes(StandardCharsets.UTF_8);
+        }
+
+        ByteArrayResource byteArrayResource =
+            toByteArrayResource(htmlBytes, resourceFound.resource());
+        return new ResourceResult.ResourceFound(byteArrayResource, "text/html;charset=UTF-8");
       } else if (pageName.endsWith(".js")
           || (resourceFound.resource().getFilename() != null
               && resourceFound.resource().getFilename().endsWith(".js"))) {
@@ -602,10 +623,17 @@ public class DefaultAppManager implements AppManager {
           originalJsContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
         }
 
+        // Apps are built with REACT_APP_DHIS2_BASE_URL:".." (one level up).
+        // The server serves apps at a deeper path, so we must adjust the
+        // relative URL to reach the context root:
+        //   Legacy path:    /contextPath/api/apps/{appName}/ → 3 levels up
+        //   Canonical path: /contextPath/apps/{appName}/     → 2 levels up
+        boolean canonicalAppPaths = settingsProvider.getCurrentSettings().getCanonicalAppPaths();
+        String relativePath = canonicalAppPaths ? "../.." : "../../..";
         String modifiedJsContent =
             originalJsContent.replace(
                 "REACT_APP_DHIS2_BASE_URL:\"..\"",
-                "REACT_APP_DHIS2_BASE_URL:\"" + "../../.." + "\"");
+                "REACT_APP_DHIS2_BASE_URL:\"" + relativePath + "\"");
 
         ByteArrayResource byteArrayResource =
             toByteArrayResource(

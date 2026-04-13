@@ -31,6 +31,7 @@ package org.hisp.dhis.security;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -67,4 +68,15 @@ public class LoginConfigResponse {
   @JsonProperty private boolean useCustomLogoFront;
 
   @JsonProperty private List<LoginOidcProvider> oidcProviders;
+
+  @JsonProperty private String buildRevision;
+  @JsonProperty private String buildTime;
+
+  @JsonProperty private String resolvedBaseUrl;
+  @JsonProperty private String serverName;
+  @JsonProperty private String xForwardedHost;
+  @JsonProperty private String xForwardedProto;
+  @JsonProperty private String xForwardedPort;
+
+  @JsonProperty private Map<String, String> lastLoginRender;
 }

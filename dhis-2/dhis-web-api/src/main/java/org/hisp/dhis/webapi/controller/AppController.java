@@ -81,7 +81,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -95,7 +94,6 @@ import org.springframework.web.multipart.MultipartFile;
     entity = App.class,
     classifiers = {"team:extensibility", "purpose:support"})
 @Controller
-@RequestMapping("/api/apps")
 @Slf4j
 public class AppController {
 
@@ -113,7 +111,7 @@ public class AppController {
 
   @Autowired private HtmlCacheBustingService htmlCacheBustingService;
 
-  @GetMapping(value = "/menu", produces = ContextUtils.CONTENT_TYPE_JSON)
+  @GetMapping(value = "/api/apps/menu", produces = ContextUtils.CONTENT_TYPE_JSON)
   public @ResponseBody Map<String, List<WebModule>> getWebModules(HttpServletRequest request) {
     String baseUrl = contextService.getContextPath();
 
@@ -121,7 +119,7 @@ public class AppController {
     return Map.of("modules", modules);
   }
 
-  @GetMapping(produces = ContextUtils.CONTENT_TYPE_JSON)
+  @GetMapping(value = "/api/apps", produces = ContextUtils.CONTENT_TYPE_JSON)
   public ResponseEntity<List<App>> getApps(@RequestParam(required = false) String key) {
     List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
     String baseUrl = contextService.getContextPath();
@@ -144,7 +142,7 @@ public class AppController {
     return ResponseEntity.ok(apps);
   }
 
-  @PostMapping(produces = ContextUtils.CONTENT_TYPE_JSON)
+  @PostMapping(value = "/api/apps", produces = ContextUtils.CONTENT_TYPE_JSON)
   @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
   public ResponseEntity<App> installApp(@RequestParam("file") MultipartFile file)
       throws IOException, WebMessageException {
@@ -164,7 +162,7 @@ public class AppController {
     return new ResponseEntity<>(installedApp, HttpStatus.CREATED);
   }
 
-  @PutMapping
+  @PutMapping("/api/apps")
   @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void reloadApps() {
@@ -172,7 +170,7 @@ public class AppController {
     htmlCacheBustingService.invalidateAll();
   }
 
-  @GetMapping("/{app}/**")
+  @GetMapping("/api/apps/{app}/**")
   public void renderApp(
       @PathVariable("app") String appName, HttpServletRequest request, HttpServletResponse response)
       throws IOException, WebMessageException {
@@ -210,6 +208,48 @@ public class AppController {
     // Get page requested
     String resource = getResourcePath(request.getPathInfo(), application, contextPath);
 
+    renderAppResource(application, resource, baseUrl, request, response);
+  }
+
+  /**
+   * Serves the login app directly without {@code RequestDispatcher.forward()}, which loses proxy
+   * headers (X-Forwarded-Host, etc.) in containerised deployments.
+   */
+  @GetMapping("/login/**")
+  public void renderLoginApp(HttpServletRequest request, HttpServletResponse response)
+      throws IOException, WebMessageException {
+    String baseUrl = contextService.getContextPath();
+
+    App app = appManager.getApp("login", baseUrl);
+    if (app == null) {
+      throw new WebMessageException(notFound("Login app not found."));
+    }
+    if (!appManager.isAccessible(app)) {
+      throw new WebMessageException(forbidden("User does not have access to the login app."));
+    }
+
+    // Extract resource path: /login/foo/bar.js → /foo/bar.js
+    String uri = request.getRequestURI();
+    String path = uri.substring(request.getContextPath().length());
+    String resource = path.startsWith("/login") ? path.substring("/login".length()) : path;
+    if (resource.isEmpty() || resource.equals("/")) {
+      resource = "/index.html";
+    }
+
+    // Validate and clean the resource path
+    resource = REGEX_REMOVE_PROTOCOL.matcher(resource).replaceAll("");
+    validateResourcePath(resource);
+
+    renderAppResource(app, resource, baseUrl, request, response);
+  }
+
+  private void renderAppResource(
+      App application,
+      String resource,
+      String baseUrl,
+      HttpServletRequest request,
+      HttpServletResponse response)
+      throws IOException, WebMessageException {
     log.debug("Rendering resource {} from app {}", resource, application.getKey());
 
     ResourceResult resourceResult = appManager.getAppResource(application, resource, baseUrl);
@@ -217,6 +257,7 @@ public class AppController {
       serveResource(request, response, found, application, baseUrl);
     } else if (resourceResult instanceof Redirect redirect) {
       String redirectUrl = TextUtils.cleanUrlPathOnly(application.getBaseUrl(), redirect.path());
+      String queryString = request.getQueryString();
       if (queryString != null) {
         redirectUrl += "?" + queryString;
       }
@@ -229,7 +270,7 @@ public class AppController {
       log.warn("Internal server error - no resource result.  This is a bug.");
       throw new WebMessageException(
           error(
-              "Failed to locate resource for app '" + appName + "'.",
+              "Failed to locate resource for app '" + application.getKey() + "'.",
               "AppManager should always return a ResourceResult, this is a bug."));
     }
   }
@@ -296,7 +337,7 @@ public class AppController {
     StreamUtils.copyThenCloseInputStream(inputStream, response.getOutputStream());
   }
 
-  @DeleteMapping("/{app}")
+  @DeleteMapping("/api/apps/{app}")
   @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteApp(
@@ -315,7 +356,7 @@ public class AppController {
   }
 
   @SuppressWarnings("unchecked")
-  @PostMapping(value = "/config", consumes = ContextUtils.CONTENT_TYPE_JSON)
+  @PostMapping(value = "/api/apps/config", consumes = ContextUtils.CONTENT_TYPE_JSON)
   @RequiresAuthority(anyOf = M_DHIS_WEB_APP_MANAGEMENT)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void setConfig(HttpServletRequest request) throws IOException, WebMessageException {
@@ -420,5 +461,13 @@ public class AppController {
       log.warn("Invalid path format detected: {}", e.getMessage());
       throw new WebMessageException(badRequest("Invalid resource path"));
     }
+  }
+
+  private static boolean isClientDisconnect(IOException e) {
+    String msg = e.getMessage();
+    if (msg != null && (msg.contains("Broken pipe") || msg.contains("Connection reset by peer"))) {
+      return true;
+    }
+    return e.getCause() instanceof IOException ioCause && isClientDisconnect(ioCause);
   }
 }
