@@ -542,63 +542,61 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       EventQueryParams params,
       boolean isGroupByClause,
       boolean isAggregated) {
-    params
-        .getDimensions()
-        .forEach(
-            dimension -> {
-              if (params.isAggregatedEnrollments()
-                  && dimension.getDimensionType() == DimensionType.PERIOD) {
-                for (DimensionalItemObject it : dimension.getItems()) {
-                  columns.add(((PeriodDimension) it).getPeriodType().getPeriodTypeEnum().getName());
-                }
-                return;
-              }
+    List<DimensionalObject> dimensions =
+        isAggregated
+            ? PeriodDimensionSplitter.expandPeriodDimensions(params.getDimensions())
+            : params.getDimensions();
+    dimensions.forEach(
+        dimension -> {
+          if (params.isAggregatedEnrollments()
+              && dimension.getDimensionType() == DimensionType.PERIOD) {
+            for (DimensionalItemObject it : dimension.getItems()) {
+              columns.add(((PeriodDimension) it).getPeriodType().getPeriodTypeEnum().getName());
+            }
+            return;
+          }
 
-              if (isGroupByClause
-                  && dimension.getDimensionType() == DimensionType.PERIOD
-                  && params.hasNonDefaultBoundaries()) {
-                return;
-              }
+          if (isGroupByClause
+              && dimension.getDimensionType() == DimensionType.PERIOD
+              && params.hasNonDefaultBoundaries()) {
+            return;
+          }
 
-              if (dimension.getDimensionType() == DimensionType.PERIOD
-                  && params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
-                if (!isGroupByClause) {
-                  String alias = quote(dimension.getDimensionName());
-                  columns.add(
-                      "cast('"
-                          + params.getLatestPeriod().getDimensionItem()
-                          + "' as text) as "
-                          + alias);
-                }
-              } else if (!params.hasNonDefaultBoundaries()
-                  || dimension.getDimensionType() != DimensionType.PERIOD) {
-                columns.add(getTableAndColumn(params, dimension, isGroupByClause));
-              } else if (params.hasSinglePeriod()) {
-                PeriodDimension period = (PeriodDimension) params.getPeriods().get(0);
-                columns.add(
-                    isGroupByClause
-                        ? singleQuote(period.getIsoDate())
-                        : singleQuote(period.getIsoDate())
-                            + " as "
-                            + period.getPeriodType().getName());
-              } else if (!params.hasPeriods() && params.hasFilterPeriods()) {
-                // Assuming same period type for all period filters, as the
-                // query planner splits into one query per period type
+          if (dimension.getDimensionType() == DimensionType.PERIOD
+              && params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
+            if (!isGroupByClause) {
+              String alias = quote(dimension.getDimensionName());
+              columns.add(
+                  "cast('"
+                      + params.getLatestPeriod().getDimensionItem()
+                      + "' as text) as "
+                      + alias);
+            }
+          } else if (!params.hasNonDefaultBoundaries()
+              || dimension.getDimensionType() != DimensionType.PERIOD) {
+            columns.add(getTableAndColumn(params, dimension, isGroupByClause));
+          } else if (params.hasSinglePeriod()) {
+            PeriodDimension period = (PeriodDimension) params.getPeriods().get(0);
+            columns.add(
+                isGroupByClause
+                    ? singleQuote(period.getIsoDate())
+                    : singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
+          } else if (!params.hasPeriods() && params.hasFilterPeriods()) {
+            // Assuming same period type for all period filters, as the
+            // query planner splits into one query per period type
 
-                PeriodDimension period = (PeriodDimension) params.getFilterPeriods().get(0);
-                columns.add(
-                    isGroupByClause
-                        ? singleQuote(period.getIsoDate())
-                        : singleQuote(period.getIsoDate())
-                            + " as "
-                            + period.getPeriodType().getName());
-              } else {
-                throw new IllegalStateException(
-                    """
+            PeriodDimension period = (PeriodDimension) params.getFilterPeriods().get(0);
+            columns.add(
+                isGroupByClause
+                    ? singleQuote(period.getIsoDate())
+                    : singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
+          } else {
+            throw new IllegalStateException(
+                """
                     Program indicator non-default boundary query must have \"
                     exactly one period, or no periods and a period filter""");
-              }
-            });
+          }
+        });
 
     OrgUnitSqlCoordinator.addDimensionSelectColumns(
         columns, params, isGroupByClause, isAggregated, getAnalyticsType(), sqlBuilder);
@@ -1220,20 +1218,24 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return dateFieldPeriodBucketColumnResolver.resolve(getAnalyticsType(), dimension, tableAlias);
   }
 
-  protected Optional<DateFieldPeriodBucketColumnResolver.JoinClause>
-      resolveDateFieldPeriodBucketJoin(EventQueryParams params, String tableAlias) {
+  protected List<DateFieldPeriodBucketColumnResolver.JoinClause> resolveDateFieldPeriodBucketJoins(
+      EventQueryParams params, String tableAlias) {
     if (!params.isAggregation()) {
-      return Optional.empty();
+      return List.of();
     }
 
     DimensionalObject periodDimension = params.getDimension(PERIOD_DIM_ID);
 
     if (periodDimension == null) {
-      return Optional.empty();
+      return List.of();
     }
 
-    return resolveDateFieldPeriodBucket(periodDimension, tableAlias)
-        .flatMap(DateFieldPeriodBucketColumnResolver.ResolvedExpression::joinClause);
+    return PeriodDimensionSplitter.splitPeriodDimension(periodDimension).stream()
+        .map(dim -> resolveDateFieldPeriodBucket(dim, tableAlias))
+        .flatMap(Optional::stream)
+        .map(DateFieldPeriodBucketColumnResolver.ResolvedExpression::joinClause)
+        .flatMap(Optional::stream)
+        .toList();
   }
 
   protected Optional<String> resolveDateFieldPeriodSourceColumn(DimensionalObject dimension) {

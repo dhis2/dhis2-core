@@ -610,6 +610,34 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     assertThat(outerQuery, not(containsString("\"eventdate\"")));
   }
 
+  @Test
+  void verifyAggregateEnrollmentProjectsMultipleDateFieldPeriodDimensions() {
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    List<PeriodDimension> periods = createPeriodDimensions("202001");
+    periods.get(0).setDateField(TimeField.SCHEDULED_DATE.name());
+    PeriodDimension lastUpdatedPeriod = createPeriodDimensions("202001").get(0);
+    lastUpdatedPeriod.setDateField(TimeField.LAST_UPDATED.name());
+
+    params.withPeriods(List.of(periods.get(0), lastUpdatedPeriod), "monthly");
+    params.withEndpointAction(AGGREGATE);
+
+    ListGrid grid = new ListGrid();
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+    grid.addHeader(new GridHeader("scheduleddate", "Scheduled date", ValueType.TEXT, false, true));
+    grid.addHeader(new GridHeader("lastupdated", "Last updated", ValueType.TEXT, false, true));
+
+    subject.getEnrollments(params.build(), grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+
+    // Both bucket expressions in SELECT with correct aliases
+    assertThat(generatedSql, containsString("as \"scheduleddate\""));
+    assertThat(generatedSql, containsString("as \"lastupdated\""));
+    // Both in GROUP BY
+    assertThat(generatedSql, containsString("group by"));
+  }
+
   private JdbcEnrollmentAnalyticsManager createEnrollmentAnalyticsManager(
       AnalyticsSqlBuilder builder, String analyticsDatabase) {
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn(analyticsDatabase);
