@@ -163,7 +163,7 @@ class ChangeLogAccumulator {
           TeAttributeAudit a = teAudits.get(i);
           ps.setLong(idx++, a.trackedEntity.getId());
           ps.setLong(idx++, a.attribute.getId());
-          if (a.attribute.getConfidential()) {
+          if (a.attribute.isConfidentialBool()) {
             ps.setNull(idx++, Types.VARCHAR); // value (plain) = null
             if (a.value != null) {
               ps.setString(idx++, encryptor.encrypt(a.value)); // encryptedvalue
