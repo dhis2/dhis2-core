@@ -153,7 +153,7 @@ class OAuth2Test extends BaseE2ETest {
 
   @RepeatedTest(value = 10, name = "Get Access Token Test {currentRepetition}/{totalRepetitions}")
   void testGetAccessToken(TestInfo testInfo)
-      throws MalformedURLException, JsonProcessingException, InterruptedException {
+      throws MalformedURLException, JsonProcessingException {
     String testName = testInfo.getDisplayName();
     log.info("[{}] === START ===", testName);
 
@@ -207,7 +207,6 @@ class OAuth2Test extends BaseE2ETest {
     // detects it, not in a separate getCurrentUrl() call afterwards.
     String redirectUrl = wait.until(d -> {
       String url = d.getCurrentUrl();
-      log.debug("[{}] polling redirect, currentUrl={}", testName, url);
       return url.contains(REDIRECT_URI) ? url : null;
     });
     log.info("[{}] captured redirect URL: {}", testName, redirectUrl);
@@ -215,8 +214,7 @@ class OAuth2Test extends BaseE2ETest {
     String code = extractAuthorizationCode(redirectUrl, testName);
 
     log.info("[{}] authorization code extracted, length={}", testName, code.length());
-    assertTrue(
-        code.length() == 128,
+    assertEquals(128, code.length(),
         "code has wrong size: '" + code + "', code length: " + code.length()
             + ", full redirectUrl: " + redirectUrl);
 
@@ -226,7 +224,7 @@ class OAuth2Test extends BaseE2ETest {
     assertNotNull(accessToken);
     log.info("[{}] access token received, length={}", testName, accessToken.length());
 
-    String actualIssuerUri = null;
+    String actualIssuerUri;
     String expectedIssuerUri = "http://web:8080/";
 
     // Decode the access_token
@@ -268,7 +266,7 @@ class OAuth2Test extends BaseE2ETest {
    */
   @Test
   void testBearerTokenAuthWithMatchingUser(TestInfo testInfo)
-      throws MalformedURLException, JsonProcessingException, InterruptedException {
+      throws MalformedURLException, JsonProcessingException {
     String testName = testInfo.getDisplayName();
     log.info("[{}] === START ===", testName);
 
@@ -337,7 +335,6 @@ class OAuth2Test extends BaseE2ETest {
     // Capture redirect URL atomically (see comment in testGetAccessToken)
     String redirectUrl = wait.until(d -> {
       String url = d.getCurrentUrl();
-      log.debug("[{}] polling redirect, currentUrl={}", testName, url);
       return url.contains(REDIRECT_URI) ? url : null;
     });
     log.info("[{}] captured redirect URL: {}", testName, redirectUrl);
