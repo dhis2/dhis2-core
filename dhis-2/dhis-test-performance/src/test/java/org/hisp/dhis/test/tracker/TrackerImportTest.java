@@ -82,8 +82,7 @@ import org.slf4j.LoggerFactory;
  *   <li>{@code -Dinstance} - DHIS2 instance URL (default: http://localhost:8080)
  *   <li>{@code -DtrackerFile} - JSON file to import from src/test/resources (default: tracker.json)
  *   <li>{@code -DtrackerArgs} - Additional query parameters for /api/tracker (default:
- *       skipRuleEngine=true). {@code async=false} is always set. Example: {@code
- *       -DtrackerArgs="skipRuleEngine=true&skipSideEffects=true"}
+ *       skipRuleEngine=true&amp;skipSideEffects=true). {@code async=false} is always set.
  *   <li>{@code -DconcurrentUsers} - Number of concurrent users (default: 4)
  *   <li>{@code -DrampDurationSec} - Ramp-up duration in seconds (default: 15)
  *   <li>{@code -DdurationSec} - Sustained load duration in seconds (default: 180)
@@ -107,7 +106,8 @@ public class TrackerImportTest extends Simulation {
     this.instance = System.getProperty("instance", "http://localhost:8080");
     this.adminUser = System.getProperty("adminUser", "admin");
     this.adminPassword = System.getProperty("adminPassword", "district");
-    this.trackerArgs = System.getProperty("trackerArgs", "skipRuleEngine=true");
+    this.trackerArgs =
+        System.getProperty("trackerArgs", "skipRuleEngine=true&skipSideEffects=true");
     this.trackerFile = System.getProperty("trackerFile", "tracker.json");
     this.concurrentUsers = Integer.getInteger("concurrentUsers", 4);
     this.rampDurationSec = Integer.getInteger("rampDurationSec", 15);
