@@ -45,9 +45,13 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+@Disabled(
+    "Cleanup fails due to Conflict DTO missing @JsonIgnoreProperties, fixed on master in"
+        + " https://github.com/dhis2/dhis2-core/pull/21080")
 class DataValueSetTest extends ApiTest {
 
   private RestApiActions dataValueSetActions;

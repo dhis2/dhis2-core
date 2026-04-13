@@ -257,7 +257,6 @@ public class ProgramRuleEngine {
    */
   public List<RuleEffects> evaluateProgramEvents(
       Set<Event> events,
-      Program program,
       UserDetails user,
       Map<String, String> constantMap,
       List<ProgramRule> rules,

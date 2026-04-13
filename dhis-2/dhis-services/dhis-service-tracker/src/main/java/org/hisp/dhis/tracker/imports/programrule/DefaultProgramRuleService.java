@@ -320,7 +320,6 @@ class DefaultProgramRuleService implements ProgramRuleService {
               return programRuleEngine
                   .evaluateProgramEvents(
                       new HashSet<>(events),
-                      entry.getKey(),
                       UserDetails.fromUser(bundle.getUser()),
                       constantMap,
                       ctx.rules(),
