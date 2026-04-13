@@ -112,6 +112,12 @@ public class EventPersister
   @Override
   protected TrackerSideEffectDataBundle handleSideEffects(
       TrackerBundle bundle, Event event, List<SideEffectTrigger> triggers) {
+    boolean hasTemplates = hasMatchingNotificationTemplates(event.getProgramStage(), triggers);
+    boolean hasRuleEffects = !bundle.getEventRuleEffects().isEmpty();
+    if (!hasTemplates && !hasRuleEffects) {
+      return null;
+    }
+
     return TrackerSideEffectDataBundle.builder()
         .klass(Event.class)
         .enrollmentRuleEffects(new HashMap<>())
@@ -121,7 +127,7 @@ public class EventPersister
         .accessedBy(bundle.getUsername())
         .event(event)
         .program(event.getProgramStage().getProgram())
-        .triggers(triggers)
+        .triggers(hasTemplates ? triggers : List.of())
         .build();
   }
 
