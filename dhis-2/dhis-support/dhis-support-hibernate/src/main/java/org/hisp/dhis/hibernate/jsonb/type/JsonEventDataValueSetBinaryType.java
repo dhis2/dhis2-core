@@ -27,10 +27,11 @@
  */
 package org.hisp.dhis.hibernate.jsonb.type;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
+import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -41,6 +42,9 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
  * @author David Katuscak
  */
 public class JsonEventDataValueSetBinaryType extends JsonBinaryType {
+  private static final ObjectWriter EVENT_DATA_VALUE_WRITER =
+      MAPPER.writerFor(EventDataValue.class);
+
   public JsonEventDataValueSetBinaryType() {
     super();
     writer = MAPPER.writerFor(new TypeReference<Map<String, EventDataValue>>() {});
@@ -55,32 +59,42 @@ public class JsonEventDataValueSetBinaryType extends JsonBinaryType {
     writer = MAPPER.writerFor(new TypeReference<Map<String, EventDataValue>>() {});
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public Object deepCopy(Object value) throws HibernateException {
-    String json = convertObjectToJson(value);
-    return convertJsonToObject(json);
+    if (value == null) {
+      return null;
+    }
+
+    Set<EventDataValue> original = (Set<EventDataValue>) value;
+    Set<EventDataValue> copy = new HashSet<>(original.size());
+    for (EventDataValue edv : original) {
+      copy.add(new EventDataValue(edv));
+    }
+    return copy;
   }
 
   /**
-   * Serializes an object to JSON.
-   *
-   * @param object the object to convert.
-   * @return JSON content.
+   * Serializes a {@code Set<EventDataValue>} to JSON, writing the Map-shaped structure ({@code
+   * {"dataElementUid": {...}, ...}}) directly from the Set without allocating an intermediate Map.
    */
   @SuppressWarnings("unchecked")
   @Override
   protected String convertObjectToJson(Object object) {
     try {
       Set<EventDataValue> eventDataValues =
-          object == null ? Collections.emptySet() : (Set<EventDataValue>) object;
+          object == null ? Set.of() : (Set<EventDataValue>) object;
 
-      Map<String, EventDataValue> tempMap = new HashMap<>();
-
-      for (EventDataValue eventDataValue : eventDataValues) {
-        tempMap.put(eventDataValue.getDataElement(), eventDataValue);
+      StringWriter sw = new StringWriter();
+      try (JsonGenerator gen = MAPPER.getFactory().createGenerator(sw)) {
+        gen.writeStartObject();
+        for (EventDataValue edv : eventDataValues) {
+          gen.writeFieldName(edv.getDataElement());
+          EVENT_DATA_VALUE_WRITER.writeValue(gen, edv);
+        }
+        gen.writeEndObject();
       }
-
-      return writer.writeValueAsString(tempMap);
+      return sw.toString();
     } catch (IOException e) {
       throw new IllegalArgumentException(e);
     }

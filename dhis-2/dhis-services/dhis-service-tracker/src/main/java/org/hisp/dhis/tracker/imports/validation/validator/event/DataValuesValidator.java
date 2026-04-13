@@ -43,12 +43,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -64,10 +62,7 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
 /**
  * @author Enrico Colasante
  */
-@RequiredArgsConstructor
 class DataValuesValidator implements Validator<Event> {
-
-  private final OptionService optionService;
 
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
@@ -121,7 +116,7 @@ class DataValuesValidator implements Validator<Event> {
     }
 
     if (dataElement.hasOptionSet()) {
-      validateOptionSet(reporter, event, dataElement, dataValue.getValue(), optionService);
+      validateOptionSet(reporter, event, dataElement, dataValue.getValue());
     } else if (dataElement.getValueType().isFile()) {
       validateFileNotAlreadyAssigned(reporter, bundle, event, dataValue.getValue());
     } else if (dataElement.getValueType().isOrganisationUnit()) {
