@@ -51,6 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -95,7 +96,7 @@ public abstract class AbstractTrackerPersister<
    * @return a {@link TrackerTypeReport}
    */
   @Override
-  public TrackerTypeReport persist(EntityManager entityManager, TrackerBundle bundle) {
+  public PersistResult persist(EntityManager entityManager, TrackerBundle bundle) {
     //
     // Init the report that will hold the results of the persist operation
     //
@@ -112,8 +113,13 @@ public abstract class AbstractTrackerPersister<
     for (T trackerDto : dtos) {
 
       Entity objectReport = new Entity(getType(), trackerDto.getUid());
+      // Determine triggers before convert() because convert() mutates the preheat entity
+      // (e.g. sets status on the preheat enrollment), which would make the before/after
+      // comparison in determineNotificationTriggers() see the new status on both sides.
       List<NotificationTrigger> triggers =
-          determineNotificationTriggers(bundle.getPreheat(), trackerDto);
+          bundle.isSkipSideEffects()
+              ? List.of()
+              : determineNotificationTriggers(bundle.getPreheat(), trackerDto);
 
       ChangeLogAccumulator.Mark mark = changeLogs.mark();
       try {
@@ -180,7 +186,11 @@ public abstract class AbstractTrackerPersister<
         }
 
         if (!bundle.isSkipSideEffects()) {
-          notificationDataBundles.add(handleNotifications(bundle, convertedDto, triggers));
+          TrackerNotificationDataBundle notificationBundle =
+              handleNotifications(bundle, convertedDto, triggers);
+          if (notificationBundle != null) {
+            notificationDataBundles.add(notificationBundle);
+          }
         }
 
         //
@@ -223,9 +233,7 @@ public abstract class AbstractTrackerPersister<
       entityManager.flush();
       changeLogs.flushAll(entityManager);
     }
-    typeReport.getNotificationDataBundles().addAll(notificationDataBundles);
-
-    return typeReport;
+    return new PersistResult(typeReport, notificationDataBundles);
   }
 
   // // // // // // // //
@@ -289,6 +297,33 @@ public abstract class AbstractTrackerPersister<
 
   /** Get the Tracker Type for which the current Persister is responsible for. */
   protected abstract TrackerType getType();
+
+  protected static boolean hasMatchingNotificationTemplates(
+      IdentifiableObject programOrStage, List<NotificationTrigger> triggers) {
+    Set<org.hisp.dhis.program.notification.NotificationTrigger> templateTriggers =
+        triggers.stream()
+            .map(NotificationTrigger::toTemplateTrigger)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+    if (templateTriggers.isEmpty()) {
+      return false;
+    }
+
+    Set<org.hisp.dhis.program.notification.ProgramNotificationTemplate> templates;
+    if (programOrStage instanceof org.hisp.dhis.program.Program p) {
+      templates = p.getNotificationTemplates();
+    } else if (programOrStage instanceof org.hisp.dhis.program.ProgramStage ps) {
+      templates = ps.getNotificationTemplates();
+    } else {
+      return false;
+    }
+
+    if (templates == null || templates.isEmpty()) {
+      return false;
+    }
+
+    return templates.stream().anyMatch(t -> templateTriggers.contains(t.getNotificationTrigger()));
+  }
 
   protected boolean isNew(TrackerBundle bundle, TrackerDto trackerDto) {
     return bundle.getStrategy(trackerDto) == TrackerImportStrategy.CREATE;
