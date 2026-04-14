@@ -292,7 +292,7 @@ public class DefaultReservedValueService implements ReservedValueService {
   }
 
   @Override
-  public void removeUsedOrExpiredReservations() {
+  public int removeUsedOrExpiredReservations() {
     int total = 0;
     int deleted;
 
@@ -310,6 +310,6 @@ public class DefaultReservedValueService implements ReservedValueService {
       total += deleted;
     } while (deleted > 0);
 
-    log.info("Deleted {} reserved values", total);
+    return total;
   }
 }
