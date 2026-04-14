@@ -135,7 +135,7 @@ class AttributeValidatorTest {
             invocation -> {
               Program p = invocation.getArgument(0);
               return p.getProgramAttributes().stream()
-                  .filter(ProgramTrackedEntityAttribute::isMandatory)
+                  .filter(pa -> Boolean.TRUE.equals(pa.isMandatory()))
                   .map(pa -> idSchemes.toMetadataIdentifier(pa.getAttribute()))
                   .collect(Collectors.toUnmodifiableSet());
             });

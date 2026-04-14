@@ -145,6 +145,11 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
     return mergeAttributes(teUniqueAttributes, enrollmentUniqueAttributes);
   }
 
+  /**
+   * Finds the tracked entity referenced by an enrollment. Checks the payload first, then falls back
+   * to building a minimal TE from preheat (DB). If the TE is not found in either, a stub with just
+   * the UID is returned; validation will report the error later.
+   */
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity getEntityForEnrollment(
       Map<UID, org.hisp.dhis.tracker.imports.domain.TrackedEntity> teByUid,
       TrackerPreheat preheat,
@@ -154,10 +159,11 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
       return payloadTe;
     }
 
-    TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid);
     org.hisp.dhis.tracker.imports.domain.TrackedEntity te =
         new org.hisp.dhis.tracker.imports.domain.TrackedEntity();
     te.setTrackedEntity(teUid);
+
+    TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid);
     if (trackedEntity != null) {
       te.setOrgUnit(
           preheat.getIdSchemes().toMetadataIdentifier(trackedEntity.getOrganisationUnit()));

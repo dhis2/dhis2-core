@@ -109,7 +109,7 @@ class AttributeValidator
       OrganisationUnit orgUnit,
       TrackedEntityType trackedEntityType) {
     TrackerPreheat preheat = bundle.getPreheat();
-    Set<MetadataIdentifier> mandatoryTetAttributes =
+    Set<MetadataIdentifier> mandatoryAttributes =
         preheat.getMandatoryTrackedEntityTypeAttributes(trackedEntityType);
 
     for (Attribute attribute : trackedEntity.getAttributes()) {
@@ -121,7 +121,7 @@ class AttributeValidator
       }
 
       if (attribute.getValue() == null) {
-        if (mandatoryTetAttributes.contains(attribute.getAttribute())) {
+        if (mandatoryAttributes.contains(attribute.getAttribute())) {
           reporter.addError(
               trackedEntity,
               E1076,

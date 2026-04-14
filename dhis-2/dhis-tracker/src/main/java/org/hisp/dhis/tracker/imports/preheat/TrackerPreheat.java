@@ -61,7 +61,6 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
@@ -646,24 +645,23 @@ public class TrackerPreheat {
     };
   }
 
-  private final Map<String, Set<MetadataIdentifier>> mandatoryProgramAttributeCache =
-      new HashMap<>();
+  private final Map<String, Set<MetadataIdentifier>> mandatoryProgramAttributes = new HashMap<>();
 
-  private final Map<String, Set<MetadataIdentifier>> mandatoryTetAttributeCache = new HashMap<>();
+  private final Map<String, Set<MetadataIdentifier>> mandatoryTetAttributes = new HashMap<>();
 
   public Set<MetadataIdentifier> getMandatoryProgramAttributes(Program program) {
-    return mandatoryProgramAttributeCache.computeIfAbsent(
+    return mandatoryProgramAttributes.computeIfAbsent(
         program.getUid(),
         uid ->
             program.getProgramAttributes().stream()
-                .filter(ProgramTrackedEntityAttribute::isMandatory)
+                .filter(pa -> Boolean.TRUE.equals(pa.isMandatory()))
                 .map(pa -> idSchemes.toMetadataIdentifier(pa.getAttribute()))
                 .collect(Collectors.toUnmodifiableSet()));
   }
 
   public Set<MetadataIdentifier> getMandatoryTrackedEntityTypeAttributes(
       TrackedEntityType trackedEntityType) {
-    return mandatoryTetAttributeCache.computeIfAbsent(
+    return mandatoryTetAttributes.computeIfAbsent(
         trackedEntityType.getUid(),
         uid ->
             trackedEntityType.getTrackedEntityTypeAttributes().stream()
