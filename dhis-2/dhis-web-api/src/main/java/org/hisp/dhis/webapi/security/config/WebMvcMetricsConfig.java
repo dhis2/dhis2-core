@@ -35,8 +35,10 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
-import io.prometheus.metrics.core.metrics.Counter;
-import io.prometheus.metrics.model.registry.PrometheusRegistry;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.api.metrics.LongCounter;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -47,7 +49,6 @@ import java.util.stream.StreamSupport;
 import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.monitoring.metrics.MetricsEnabler;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.context.annotation.Conditional;
@@ -196,12 +197,12 @@ public class WebMvcMetricsConfig implements WebMvcConfigurer {
 
     public WebMvcMetricsFilter(
         MeterRegistry meterRegistry,
-        PrometheusRegistry sendUsageMetricsRegistry,
+        OpenTelemetrySdk otelSdk,
         WebMvcTagsProvider tagsProvider,
         String metricName,
         boolean autoTimeRequests,
         HandlerMappingIntrospector handlerMappingIntrospector) {
-      super(sendUsageMetricsRegistry, tagsProvider);
+      super(otelSdk, tagsProvider);
       this.registry = meterRegistry;
       this.tagsProvider = tagsProvider;
       this.metricName = metricName;
@@ -267,12 +268,12 @@ public class WebMvcMetricsConfig implements WebMvcConfigurer {
   @Conditional(WebMvcMetricsConfig.WebMvcMetricsEnabledCondition.class)
   public WebMvcMetricsFilter webMetricsFilter(
       MeterRegistry metricsRegistry,
-      @Qualifier("sendUsageMetricsRegistry") PrometheusRegistry sendUsageMetricsRegistry,
+      OpenTelemetrySdk otelSdk,
       WebMvcTagsProvider tagsProvider,
       HandlerMappingIntrospector handlerMappingIntrospector) {
     return new WebMvcMetricsFilter(
         metricsRegistry,
-        sendUsageMetricsRegistry,
+        otelSdk,
         tagsProvider,
         "http_server_requests",
         true,
@@ -282,25 +283,23 @@ public class WebMvcMetricsConfig implements WebMvcConfigurer {
   @Bean(name = "webMetricsFilter")
   @Conditional(WebMvcMetricsDisabledCondition.class)
   public PushUsageMetricsWebMvcMetricsFilter pushUsageMetricsFilter(
-      @Qualifier("sendUsageMetricsRegistry") PrometheusRegistry sendUsageMetricsRegistry,
-      WebMvcTagsProvider tagsProvider) {
-    return new PushUsageMetricsWebMvcMetricsFilter(sendUsageMetricsRegistry, tagsProvider);
+      OpenTelemetrySdk otelSdk, WebMvcTagsProvider tagsProvider) {
+    return new PushUsageMetricsWebMvcMetricsFilter(otelSdk, tagsProvider);
   }
 
   public static class PushUsageMetricsWebMvcMetricsFilter extends OncePerRequestFilter {
-    private final Counter counter;
+    private final LongCounter counter;
     private final WebMvcTagsProvider tagsProvider;
 
     public PushUsageMetricsWebMvcMetricsFilter(
-        PrometheusRegistry prometheusRegistry, WebMvcTagsProvider tagsProvider) {
+        OpenTelemetrySdk otelSdk, WebMvcTagsProvider tagsProvider) {
 
       this.counter =
-          Counter.builder()
-              .name("http_errors")
-              .help("HTTP Errors")
-              .labelNames("exception", "method", "outcome", "status", "uri")
-              .register(prometheusRegistry);
-      counter.labelValues("", "", "", "", "").inc(0);
+          otelSdk
+              .getMeter("usage-metrics")
+              .counterBuilder("http_errors")
+              .setDescription("HTTP Errors")
+              .build();
       this.tagsProvider = tagsProvider;
     }
 
@@ -311,36 +310,34 @@ public class WebMvcMetricsConfig implements WebMvcConfigurer {
       try {
         filterChain.doFilter(request, response);
         if (HttpStatus.resolve(response.getStatus()).is5xxServerError()) {
-          counter
-              .labelValues(
-                  collectMetricLabelValues(
-                      this.tagsProvider.getTags(request, response, null, null), request))
-              .inc();
+          counter.add(
+              1,
+              collectAttributes(this.tagsProvider.getTags(request, response, null, null), request));
         }
       } catch (Exception exception) {
-        counter
-            .labelValues(
-                collectMetricLabelValues(
-                    this.tagsProvider.getTags(request, response, null, null), request))
-            .inc();
+        counter.add(
+            1,
+            collectAttributes(this.tagsProvider.getTags(request, response, null, null), request));
         throw exception;
       }
     }
 
-    protected String[] collectMetricLabelValues(Iterable<Tag> tags, HttpServletRequest request) {
-      return StreamSupport.stream(tags.spliterator(), false)
-          .map(
+    protected Attributes collectAttributes(Iterable<Tag> tags, HttpServletRequest request) {
+      AttributesBuilder attributesBuilder = Attributes.builder();
+      StreamSupport.stream(tags.spliterator(), false)
+          .forEach(
               t -> {
+                String attrValue;
                 if (t.getKey().equals("uri")
                     && request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE)
                         == null) {
-                  return "no-uri-pattern";
+                  attrValue = "no-uri-pattern";
                 } else {
-                  return t.getValue();
+                  attrValue = t.getValue();
                 }
-              })
-          .toList()
-          .toArray(String[]::new);
+                attributesBuilder.put(t.getKey(), attrValue);
+              });
+      return attributesBuilder.build();
     }
   }
 

@@ -213,7 +213,8 @@
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
     <micrometer.version>1.15.4</micrometer.version>
-    <prometheus-metrics-model.version>1.3.10</prometheus-metrics-model.version>
+    <prometheus-metrics-model.version>1.3.1</prometheus-metrics-model.version>
+    <otel.version>1.55.0</otel.version>
 
     <!-- Logging -->
     <log4j.version>2.25.3</log4j.version>
@@ -1731,16 +1732,6 @@
         <version>${prometheus-metrics-model.version}</version>
       </dependency>
       <dependency>
-        <groupId>io.prometheus</groupId>
-        <artifactId>prometheus-metrics-exporter-opentelemetry</artifactId>
-        <version>${prometheus-metrics-model.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.prometheus</groupId>
-        <artifactId>prometheus-metrics-core</artifactId>
-        <version>${prometheus-metrics-model.version}</version>
-      </dependency>
-      <dependency>
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-spring-legacy</artifactId>
         <version>${micrometer-spring-legacy.version}</version>
@@ -1759,6 +1750,11 @@
       <dependency>
         <groupId>io.micrometer</groupId>
         <artifactId>micrometer-registry-prometheus</artifactId>
+        <version>${micrometer.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.micrometer</groupId>
+        <artifactId>micrometer-registry-prometheus-simpleclient</artifactId>
         <version>${micrometer.version}</version>
       </dependency>
       <dependency>
@@ -1791,6 +1787,16 @@
         <groupId>org.mapstruct</groupId>
         <artifactId>mapstruct</artifactId>
         <version>${mapstruct.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.opentelemetry</groupId>
+        <artifactId>opentelemetry-api</artifactId>
+        <version>${otel.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.opentelemetry</groupId>
+        <artifactId>opentelemetry-sdk</artifactId>
+        <version>${otel.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -2096,7 +2102,6 @@ jasperreports.version=${jasperreports.version}
           <configuration>
             <failOnWarning>true</failOnWarning>
             <ignoredUnusedDeclaredDependencies>
-              <ignoredUnusedDeclaredDependency>io.prometheus:prometheus-metrics-exporter-opentelemetry</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>aopalliance:aopalliance</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.springframework.data:spring-data-redis:jar</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.geotools:gt-main</ignoredUnusedDeclaredDependency>

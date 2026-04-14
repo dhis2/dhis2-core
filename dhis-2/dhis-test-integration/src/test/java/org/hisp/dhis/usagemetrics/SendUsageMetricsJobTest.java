@@ -59,25 +59,23 @@ import org.mockserver.client.MockServerClient;
 import org.mockserver.model.BinaryBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 
 @Transactional
-@ContextConfiguration(
-    classes = {SendUsageMetricsCheckJobTest.DhisConfigurationProviderTestConfig.class})
-class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
+@ContextConfiguration(classes = {SendUsageMetricsJobTest.DhisConfigurationProviderTestConfig.class})
+class SendUsageMetricsJobTest extends PostgresIntegrationTestBase {
 
   private static GenericContainer<?> otelCollectorMockServerContainer;
   private static MockServerClient otelCollectorMockServerClient;
 
-  @Autowired private SendUsageMetricsCheckJob sendUsageMetricsCheckJob;
+  @Autowired private SendUsageMetricsJob sendUsageMetricsJob;
 
   @Autowired private UsageMetricsConsentStore usageMetricsConsentStore;
 
-  @Autowired private JdbcTemplate jdbcTemplate;
+  @Autowired private UsageMetricsService usageMetricsService;
 
   public static class DhisConfigurationProviderTestConfig {
     @Bean
@@ -85,7 +83,9 @@ class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
       Properties override = new Properties();
       override.put(
           ConfigurationKey.USAGE_METRICS_ENDPIONT.getKey(),
-          "http://localhost:" + otelCollectorMockServerContainer.getFirstMappedPort());
+          "http://localhost:"
+              + otelCollectorMockServerContainer.getFirstMappedPort()
+              + "/v1/metrics");
 
       PostgresDhisConfigurationProvider postgresDhisConfigurationProvider =
           new PostgresDhisConfigurationProvider(null);
@@ -107,7 +107,6 @@ class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void beforeEach() {
-    sendUsageMetricsCheckJob.closeMetricsExporter();
     otelCollectorMockServerClient.reset();
     otelCollectorMockServerClient
         .when(request().withPath("/v1/metrics"))
@@ -115,20 +114,13 @@ class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExecuteSchedulesRegularMetricsExportWhenSendUsageMetricsConsentIsTrue()
+  void testExecuteExportsMetricsWhenSendUsageMetricsConsentIsTrue()
       throws InvalidProtocolBufferException, ParseException {
     UsageMetricsConsent usageMetricsConsent = new UsageMetricsConsent();
-    usageMetricsConsent.setDbSystemIdentifier(
-        jdbcTemplate
-            .queryForList("SELECT system_identifier FROM pg_control_system()")
-            .get(0)
-            .get("system_identifier")
-            .toString());
     usageMetricsConsent.setConsent(true);
-    usageMetricsConsentStore.save(usageMetricsConsent);
+    usageMetricsService.saveConsent(usageMetricsConsent);
 
-    sendUsageMetricsCheckJob.setExportIntervalSeconds(1);
-    sendUsageMetricsCheckJob.execute(null, null);
+    sendUsageMetricsJob.execute(null, null);
 
     await()
         .atMost(Duration.ofSeconds(10))
@@ -146,18 +138,24 @@ class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
         exportMetricsServiceRequest.getResourceMetricsList();
 
     ScopeMetrics scopeMetrics = resourceMetricsList.get(0).getScopeMetrics(0);
-    assertEquals(12, scopeMetrics.getMetricsCount());
+    assertEquals(11, scopeMetrics.getMetricsCount());
 
-    assertBuildInfoMetric(scopeMetrics.getMetrics(0));
-    assertCoreAppsMetric(scopeMetrics.getMetrics(1));
+    assertBuildInfoMetric(
+        scopeMetrics.getMetricsList().stream()
+            .filter(m -> m.getName().equals("build"))
+            .findFirst()
+            .get());
     assertDataSummaryMetrics(scopeMetrics);
-    assertEnvInfoMetric(scopeMetrics.getMetrics(5));
+    assertEnvInfoMetric(
+        scopeMetrics.getMetricsList().stream()
+            .filter(m -> m.getName().equals("environment"))
+            .findFirst()
+            .get());
   }
 
   @Test
-  void testExecuteDoesNotScheduleRegularMetricsExportWhenSendUsageMetricsConsentIsMissing() {
-    sendUsageMetricsCheckJob.setExportIntervalSeconds(1);
-    sendUsageMetricsCheckJob.execute(null, null);
+  void testExecuteDoesNotExportMetricsWhenSendUsageMetricsConsentIsMissing() {
+    sendUsageMetricsJob.execute(null, null);
     await()
         .atMost(Duration.ofSeconds(10))
         .untilAsserted(
@@ -168,19 +166,12 @@ class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testExecuteDoesNotScheduleRegularMetricsExportWhenSendUsageMetricsConsentIsFalse() {
+  void testExecuteDoesNotExportMetricsWhenSendUsageMetricsConsentIsFalse() {
     UsageMetricsConsent usageMetricsConsent = new UsageMetricsConsent();
-    usageMetricsConsent.setDbSystemIdentifier(
-        jdbcTemplate
-            .queryForList("SELECT system_identifier FROM pg_control_system()")
-            .get(0)
-            .get("system_identifier")
-            .toString());
     usageMetricsConsent.setConsent(false);
-    usageMetricsConsentStore.save(usageMetricsConsent);
+    usageMetricsService.saveConsent(usageMetricsConsent);
 
-    sendUsageMetricsCheckJob.setExportIntervalSeconds(1);
-    sendUsageMetricsCheckJob.execute(null, null);
+    sendUsageMetricsJob.execute(null, null);
 
     await()
         .atMost(Duration.ofSeconds(10))
@@ -193,14 +184,13 @@ class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
 
   @Test
   void
-      testExecuteRemovesConsentWhenDbSystemIdentifierAtTimeOfConsentIsDifferentThanCurrentDbSystemIdentifier() {
+      testExecuteRemovesConsentWhenImplementationIdAtTimeOfConsentIsDifferentThanCurrentImplementationId() {
     UsageMetricsConsent usageMetricsConsent = new UsageMetricsConsent();
-    usageMetricsConsent.setDbSystemIdentifier("abc");
+    usageMetricsConsent.setImplementationId("abc");
     usageMetricsConsent.setConsent(true);
     usageMetricsConsentStore.save(usageMetricsConsent);
 
-    sendUsageMetricsCheckJob.setExportIntervalSeconds(1);
-    sendUsageMetricsCheckJob.execute(null, null);
+    sendUsageMetricsJob.execute(null, null);
     await()
         .atMost(Duration.ofSeconds(10))
         .untilAsserted(
@@ -213,9 +203,8 @@ class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
   }
 
   private void assertBuildInfoMetric(Metric buildInfoMetrics) throws ParseException {
-    assertEquals("build", buildInfoMetrics.getName());
     assertEquals("Build Info", buildInfoMetrics.getDescription());
-    NumberDataPoint dataPoints = buildInfoMetrics.getSum().getDataPoints(0);
+    NumberDataPoint dataPoints = buildInfoMetrics.getGauge().getDataPoints(0);
 
     assertEquals(2, dataPoints.getAttributesList().size());
 
@@ -227,64 +216,119 @@ class SendUsageMetricsCheckJobTest extends PostgresIntegrationTestBase {
     assertEquals("abc1234", dataPoints.getAttributes(1).getValue().getStringValue());
   }
 
-  private void assertCoreAppsMetric(Metric coreAppsMetric) {
-    assertEquals("core_apps", coreAppsMetric.getName());
-    assertEquals("Core Apps", coreAppsMetric.getDescription());
-  }
-
   private void assertDataSummaryMetrics(ScopeMetrics scopeMetrics) {
-    assertEquals("dashboards", scopeMetrics.getMetrics(2).getName());
-    assertEquals("Dashboards", scopeMetrics.getMetrics(2).getDescription());
+    assertEquals(
+        "Dashboards",
+        scopeMetrics.getMetricsList().stream()
+            .filter(m -> m.getName().equals("dashboards"))
+            .findFirst()
+            .get()
+            .getDescription());
+    assertEquals(
+        "Data Sets",
+        scopeMetrics.getMetricsList().stream()
+            .filter(m -> m.getName().equals("data_sets"))
+            .findFirst()
+            .get()
+            .getDescription());
+    Metric dhis2UsersMetric =
+        scopeMetrics.getMetricsList().stream()
+            .filter(m -> m.getName().equals("dhis2_users"))
+            .findFirst()
+            .get();
 
-    assertEquals("data_sets", scopeMetrics.getMetrics(3).getName());
-    assertEquals("Data Sets", scopeMetrics.getMetrics(3).getDescription());
+    assertEquals("DHIS2 Users", dhis2UsersMetric.getDescription());
+    Gauge dhis2UsersGauge = dhis2UsersMetric.getGauge();
 
-    assertEquals("dhis2_users", scopeMetrics.getMetrics(4).getName());
-    assertEquals("DHIS2 Users", scopeMetrics.getMetrics(4).getDescription());
-    Gauge dhis2UsersGauge = scopeMetrics.getMetrics(4).getGauge();
+    assertTrue(
+        dhis2UsersGauge.getDataPointsList().stream()
+            .anyMatch(
+                dp ->
+                    dp.getAttributes(1).getValue().getStringValue().equals("active_users_today")));
+    assertTrue(
+        dhis2UsersGauge.getDataPointsList().stream()
+            .anyMatch(dp -> dp.getAttributes(1).getValue().getStringValue().equals("users")));
+    assertTrue(
+        dhis2UsersGauge.getDataPointsList().stream()
+            .anyMatch(
+                dp ->
+                    dp.getAttributes(1)
+                        .getValue()
+                        .getStringValue()
+                        .equals("active_users_last_30_days")));
+    assertTrue(
+        dhis2UsersGauge.getDataPointsList().stream()
+            .anyMatch(
+                dp ->
+                    dp.getAttributes(1)
+                        .getValue()
+                        .getStringValue()
+                        .equals("active_users_last_7_days")));
+    assertTrue(
+        dhis2UsersGauge.getDataPointsList().stream()
+            .anyMatch(
+                dp ->
+                    dp.getAttributes(1)
+                        .getValue()
+                        .getStringValue()
+                        .equals("active_users_last_hour")));
+    assertTrue(
+        dhis2UsersGauge.getDataPointsList().stream()
+            .anyMatch(
+                dp ->
+                    dp.getAttributes(1)
+                        .getValue()
+                        .getStringValue()
+                        .equals("active_users_last_2_days")));
 
     assertEquals(
-        "active_users_last_2_days",
-        dhis2UsersGauge.getDataPoints(0).getAttributes(1).getValue().getStringValue());
+        "Maps",
+        scopeMetrics.getMetricsList().stream()
+            .filter(m -> m.getName().equals("maps"))
+            .findFirst()
+            .get()
+            .getDescription());
     assertEquals(
-        "active_users_last_30_days",
-        dhis2UsersGauge.getDataPoints(1).getAttributes(1).getValue().getStringValue());
+        "Organisation Units",
+        scopeMetrics.getMetricsList().stream()
+            .filter(m -> m.getName().equals("organisation_units"))
+            .findFirst()
+            .get()
+            .getDescription());
     assertEquals(
-        "active_users_last_7_days",
-        dhis2UsersGauge.getDataPoints(2).getAttributes(1).getValue().getStringValue());
+        "Tracked Entities",
+        scopeMetrics.getMetricsList().stream()
+            .filter(m -> m.getName().equals("tracked_entities"))
+            .findFirst()
+            .get()
+            .getDescription());
     assertEquals(
-        "active_users_last_hour",
-        dhis2UsersGauge.getDataPoints(3).getAttributes(1).getValue().getStringValue());
+        "Tracked Entity Types",
+        scopeMetrics.getMetricsList().stream()
+            .filter(m -> m.getName().equals("tracked_entity_types"))
+            .findFirst()
+            .get()
+            .getDescription());
     assertEquals(
-        "active_users_today",
-        dhis2UsersGauge.getDataPoints(4).getAttributes(1).getValue().getStringValue());
+        "Tracker Programs",
+        scopeMetrics.getMetricsList().stream()
+            .filter(m -> m.getName().equals("tracker_programs"))
+            .findFirst()
+            .get()
+            .getDescription());
     assertEquals(
-        "users", dhis2UsersGauge.getDataPoints(5).getAttributes(1).getValue().getStringValue());
-
-    assertEquals("maps", scopeMetrics.getMetrics(6).getName());
-    assertEquals("Maps", scopeMetrics.getMetrics(6).getDescription());
-
-    assertEquals("organisation_units", scopeMetrics.getMetrics(7).getName());
-    assertEquals("Organisation Units", scopeMetrics.getMetrics(7).getDescription());
-
-    assertEquals("tracked_entities", scopeMetrics.getMetrics(8).getName());
-    assertEquals("Tracked Entities", scopeMetrics.getMetrics(8).getDescription());
-
-    assertEquals("tracked_entity_types", scopeMetrics.getMetrics(9).getName());
-    assertEquals("Tracked Entity Types", scopeMetrics.getMetrics(9).getDescription());
-
-    assertEquals("tracker_programs", scopeMetrics.getMetrics(10).getName());
-    assertEquals("Tracker Programs", scopeMetrics.getMetrics(10).getDescription());
-
-    assertEquals("visualizations", scopeMetrics.getMetrics(11).getName());
-    assertEquals("Visualizations", scopeMetrics.getMetrics(11).getDescription());
+        "Visualizations",
+        scopeMetrics.getMetricsList().stream()
+            .filter(m -> m.getName().equals("visualizations"))
+            .findFirst()
+            .get()
+            .getDescription());
   }
 
   private void assertEnvInfoMetric(Metric envMetric) {
-    assertEquals("environment", envMetric.getName());
-    assertEquals("Environment", envMetric.getDescription());
+    assertEquals("Environment Info", envMetric.getDescription());
 
-    NumberDataPoint dataPoints = envMetric.getSum().getDataPoints(0);
+    NumberDataPoint dataPoints = envMetric.getGauge().getDataPoints(0);
     assertEquals(6, dataPoints.getAttributesList().size());
 
     assertEquals("cpu_cores", dataPoints.getAttributes(0).getKey());
