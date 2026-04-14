@@ -142,6 +142,20 @@ public class TrackerProgramService {
         .toList();
   }
 
+  /**
+   * Retrieves the list of tracker programs, the current user can write to, that match the given
+   * tracked entity type. It is assumed that the user has access to the supplied trackedEntityType.
+   */
+  @Transactional(readOnly = true)
+  public @Nonnull List<Program> getTrackerProgramsWithDataWriteAccess(
+      @Nonnull TrackedEntityType trackedEntityType) {
+    UserDetails user = getCurrentUserDetails();
+
+    return programService.getProgramsByTrackedEntityType(trackedEntityType).stream()
+        .filter(p -> p.isRegistration() && aclService.canDataWrite(user, p))
+        .toList();
+  }
+
   @Transactional(readOnly = true)
   public @Nonnull List<ProgramStage> getTrackerProgramStagesWithDataReadAccess(
       @Nonnull List<Program> program) {

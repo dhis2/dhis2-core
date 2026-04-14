@@ -29,9 +29,10 @@
  */
 package org.hisp.dhis.fileresource;
 
-import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -44,8 +45,10 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.storage.BlobKey;
 import org.hisp.dhis.storage.BlobStoreService;
+import org.hisp.dhis.storage.BlobStoreService.ContentDisposition;
+import org.hisp.dhis.storage.ContentHash;
 import org.springframework.stereotype.Service;
 
 /**
@@ -60,25 +63,26 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
   private final BlobStoreService blobStore;
 
   @Override
-  public InputStream getFileResourceContent(String key) {
+  public InputStream getFileResourceContent(BlobKey key) {
     return blobStore.openStream(key);
   }
 
   @Override
-  public long getFileResourceContentLength(String key) {
+  public long getFileResourceContentLength(BlobKey key) {
     return blobStore.contentLength(key);
   }
 
   @Override
   @CheckForNull
   public String saveFileResourceContent(@Nonnull FileResource fr, @Nonnull byte[] bytes) {
-    try {
+    try (InputStream is = new ByteArrayInputStream(bytes)) {
       blobStore.putBlob(
-          fr.getStorageKey(),
-          bytes,
+          fr.asBlobKey(),
+          is,
+          bytes.length,
           fr.getContentType(),
-          "filename=" + fr.getName(),
-          fr.getContentMd5());
+          ContentDisposition.filename(fr.getName()),
+          ContentHash.ofNullable(fr.getContentMd5()));
     } catch (Exception e) {
       log.error("File upload failed: ", e);
       return null;
@@ -91,13 +95,14 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
   @Override
   @CheckForNull
   public String saveFileResourceContent(@Nonnull FileResource fr, @Nonnull File file) {
-    try {
+    try (InputStream is = new FileInputStream(file)) {
       blobStore.putBlob(
-          fr.getStorageKey(),
-          file,
+          fr.asBlobKey(),
+          is,
+          file.length(),
           fr.getContentType(),
-          "filename=" + fr.getName(),
-          fr.getContentMd5());
+          ContentDisposition.filename(fr.getName()),
+          ContentHash.ofNullable(fr.getContentMd5()));
     } catch (Exception e) {
       log.error("File upload failed: ", e);
       return null;
@@ -125,22 +130,23 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
       File file = entry.getValue();
       String dimension = entry.getKey().getDimension();
 
-      String contentMd5;
+      ContentHash contentHash;
       try {
-        HashCode hash = com.google.common.io.Files.asByteSource(file).hash(Hashing.md5());
-        contentMd5 = hash.toString();
+        contentHash =
+            ContentHash.of(com.google.common.io.Files.asByteSource(file).hash(Hashing.md5()));
       } catch (IOException e) {
         log.error("Hashing error", e);
         return null;
       }
 
-      try {
+      try (InputStream is = new FileInputStream(file)) {
         blobStore.putBlob(
-            StringUtils.join(fr.getStorageKey(), dimension),
-            file,
+            new BlobKey(fr.getStorageKey() + dimension),
+            is,
+            file.length(),
             fr.getContentType(),
-            "filename=" + fr.getName() + dimension,
-            contentMd5);
+            ContentDisposition.filename(fr.getName() + dimension),
+            contentHash);
       } catch (Exception e) {
         log.error("Image file upload failed: ", e);
         return null;
@@ -157,23 +163,23 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
   }
 
   @Override
-  public void deleteFileResourceContent(String key) {
+  public void deleteFileResourceContent(BlobKey key) {
     blobStore.deleteBlob(key);
   }
 
   @Override
-  public boolean fileResourceContentExists(String key) {
+  public boolean fileResourceContentExists(BlobKey key) {
     return blobStore.blobExists(key);
   }
 
   @Override
   @CheckForNull
-  public URI getSignedGetContentUri(String key) {
+  public URI getSignedGetContentUri(BlobKey key) {
     return blobStore.signedGetUri(key, FIVE_MINUTES_IN_SECONDS);
   }
 
   @Override
-  public void copyContent(String key, OutputStream output)
+  public void copyContent(BlobKey key, OutputStream output)
       throws IOException, NoSuchElementException {
     ensureBlobExists(key);
 
@@ -183,7 +189,7 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
   }
 
   @Override
-  public byte[] copyContent(String key) throws IOException, NoSuchElementException {
+  public byte[] copyContent(BlobKey key) throws IOException, NoSuchElementException {
     ensureBlobExists(key);
 
     try (InputStream in = blobStore.openStream(key)) {
@@ -192,12 +198,12 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
   }
 
   @Override
-  public InputStream openStream(String key) throws IOException, NoSuchElementException {
+  public InputStream openStream(BlobKey key) throws IOException, NoSuchElementException {
     ensureBlobExists(key);
     return blobStore.openStream(key);
   }
 
-  private void ensureBlobExists(String key) {
+  private void ensureBlobExists(BlobKey key) {
     if (!blobStore.blobExists(key)) {
       throw new NoSuchElementException("key '" + key + "' not found.");
     }
