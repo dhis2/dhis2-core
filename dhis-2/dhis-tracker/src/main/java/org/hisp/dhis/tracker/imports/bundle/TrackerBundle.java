@@ -37,9 +37,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
@@ -113,6 +114,12 @@ public class TrackerBundle {
   /** Relationships to import. */
   @Builder.Default private List<Relationship> relationships = new ArrayList<>();
 
+  @JsonIgnore private transient Map<UID, TrackedEntity> trackedEntityByUid;
+  @JsonIgnore private transient Map<UID, Enrollment> enrollmentByUid;
+  @JsonIgnore private transient Map<UID, TrackerEvent> trackerEventByUid;
+  @JsonIgnore private transient Map<UID, SingleEvent> singleEventByUid;
+  @JsonIgnore private transient Map<UID, Relationship> relationshipByUid;
+
   /** Notifications for enrollments. */
   @Builder.Default private Map<UID, List<Notification>> enrollmentNotifications = new HashMap<>();
 
@@ -151,32 +158,95 @@ public class TrackerBundle {
 
   @Builder.Default @JsonIgnore private Set<UID> updatedTrackedEntities = new HashSet<>();
 
+  public void setTrackedEntities(List<TrackedEntity> trackedEntities) {
+    this.trackedEntities = trackedEntities;
+    this.trackedEntityByUid = null;
+  }
+
+  public void setEnrollments(List<Enrollment> enrollments) {
+    this.enrollments = enrollments;
+    this.enrollmentByUid = null;
+  }
+
+  public void setTrackerEvents(List<TrackerEvent> trackerEvents) {
+    this.trackerEvents = trackerEvents;
+    this.trackerEventByUid = null;
+  }
+
+  public void setSingleEvents(List<SingleEvent> singleEvents) {
+    this.singleEvents = singleEvents;
+    this.singleEventByUid = null;
+  }
+
+  public void setRelationships(List<Relationship> relationships) {
+    this.relationships = relationships;
+    this.relationshipByUid = null;
+  }
+
   public Optional<TrackedEntity> findTrackedEntityByUid(@Nonnull UID uid) {
-    return findById(this.trackedEntities, uid);
+    return Optional.ofNullable(getTrackedEntityByUid().get(uid));
   }
 
   public Optional<Enrollment> findEnrollmentByUid(@Nonnull UID uid) {
-    return findById(this.enrollments, uid);
+    return Optional.ofNullable(getEnrollmentByUid().get(uid));
   }
 
   public Optional<TrackerEvent> findTrackerEventByUid(@Nonnull UID uid) {
-    return findById(this.getTrackerEvents(), uid);
+    return Optional.ofNullable(getTrackerEventByUid().get(uid));
   }
 
   public Optional<SingleEvent> findSingleEventByUid(@Nonnull UID uid) {
-    return findById(this.getSingleEvents(), uid);
+    return Optional.ofNullable(getSingleEventByUid().get(uid));
   }
 
   public Optional<Event> findEventByUid(@Nonnull UID uid) {
-    return findById(this.getEvents(), uid);
+    TrackerEvent te = getTrackerEventByUid().get(uid);
+    if (te != null) return Optional.of(te);
+    return Optional.ofNullable(getSingleEventByUid().get(uid));
   }
 
   public Optional<Relationship> findRelationshipByUid(@Nonnull UID uid) {
-    return findById(this.relationships, uid);
+    return Optional.ofNullable(getRelationshipByUid().get(uid));
   }
 
-  private static <T extends TrackerDto> Optional<T> findById(List<T> entities, UID uid) {
-    return entities.stream().filter(e -> Objects.equals(e.getUID(), uid)).findFirst();
+  private Map<UID, TrackedEntity> getTrackedEntityByUid() {
+    if (trackedEntityByUid == null) {
+      trackedEntityByUid = indexByUid(trackedEntities);
+    }
+    return trackedEntityByUid;
+  }
+
+  private Map<UID, Enrollment> getEnrollmentByUid() {
+    if (enrollmentByUid == null) {
+      enrollmentByUid = indexByUid(enrollments);
+    }
+    return enrollmentByUid;
+  }
+
+  private Map<UID, TrackerEvent> getTrackerEventByUid() {
+    if (trackerEventByUid == null) {
+      trackerEventByUid = indexByUid(trackerEvents);
+    }
+    return trackerEventByUid;
+  }
+
+  private Map<UID, SingleEvent> getSingleEventByUid() {
+    if (singleEventByUid == null) {
+      singleEventByUid = indexByUid(singleEvents);
+    }
+    return singleEventByUid;
+  }
+
+  private Map<UID, Relationship> getRelationshipByUid() {
+    if (relationshipByUid == null) {
+      relationshipByUid = indexByUid(relationships);
+    }
+    return relationshipByUid;
+  }
+
+  private static <T extends TrackerDto> Map<UID, T> indexByUid(List<T> entities) {
+    return entities.stream()
+        .collect(Collectors.toMap(TrackerDto::getUID, Function.identity(), (a, b) -> a));
   }
 
   public Set<UID> getUpdatedTrackedEntities() {

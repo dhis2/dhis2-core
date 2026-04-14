@@ -41,7 +41,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
@@ -108,6 +107,14 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
           TrackerObjects trackerObjects,
           TrackerPreheat preheat,
           List<TrackedEntityAttribute> uniqueTrackedEntityAttributes) {
+    Map<UID, org.hisp.dhis.tracker.imports.domain.TrackedEntity> teByUid =
+        trackerObjects.getTrackedEntities().stream()
+            .collect(
+                toMap(
+                    org.hisp.dhis.tracker.imports.domain.TrackedEntity::getUID,
+                    Function.identity(),
+                    (a, b) -> a));
+
     Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>> teUniqueAttributes =
         trackerObjects.getTrackedEntities().stream()
             .collect(
@@ -120,8 +127,7 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
         enrollmentUniqueAttributes =
             trackerObjects.getEnrollments().stream()
                 .collect(
-                    groupingBy(
-                        e -> getEntityForEnrollment(trackerObjects, preheat, e.getTrackedEntity())))
+                    groupingBy(e -> getEntityForEnrollment(teByUid, preheat, e.getTrackedEntity())))
                 .entrySet()
                 .stream()
                 .collect(
@@ -140,32 +146,23 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier {
   }
 
   private org.hisp.dhis.tracker.imports.domain.TrackedEntity getEntityForEnrollment(
-      TrackerObjects trackerObjects, TrackerPreheat preheat, UID teUid) {
-    TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid);
+      Map<UID, org.hisp.dhis.tracker.imports.domain.TrackedEntity> teByUid,
+      TrackerPreheat preheat,
+      UID teUid) {
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity payloadTe = teByUid.get(teUid);
+    if (payloadTe != null) {
+      return payloadTe;
+    }
 
-    // Get te from Preheat
-    Optional<org.hisp.dhis.tracker.imports.domain.TrackedEntity> optionalTe =
-        trackerObjects.getTrackedEntities().stream()
-            .filter(te -> Objects.equals(te.getUID(), teUid))
-            .findAny();
-    if (optionalTe.isPresent()) {
-      return optionalTe.get();
-    } else if (trackedEntity != null) // Otherwise build it from Payload
-    {
-      org.hisp.dhis.tracker.imports.domain.TrackedEntity te =
-          new org.hisp.dhis.tracker.imports.domain.TrackedEntity();
-      te.setTrackedEntity(teUid);
+    TrackedEntity trackedEntity = preheat.getTrackedEntity(teUid);
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity te =
+        new org.hisp.dhis.tracker.imports.domain.TrackedEntity();
+    te.setTrackedEntity(teUid);
+    if (trackedEntity != null) {
       te.setOrgUnit(
           preheat.getIdSchemes().toMetadataIdentifier(trackedEntity.getOrganisationUnit()));
-      return te;
-    } else // TE is not present. but we do not fail here.
-    // A validation error will be thrown in validation phase
-    {
-      org.hisp.dhis.tracker.imports.domain.TrackedEntity te =
-          new org.hisp.dhis.tracker.imports.domain.TrackedEntity();
-      te.setTrackedEntity(teUid);
-      return te;
     }
+    return te;
   }
 
   private Map<org.hisp.dhis.tracker.imports.domain.TrackedEntity, Set<Attribute>> mergeAttributes(
