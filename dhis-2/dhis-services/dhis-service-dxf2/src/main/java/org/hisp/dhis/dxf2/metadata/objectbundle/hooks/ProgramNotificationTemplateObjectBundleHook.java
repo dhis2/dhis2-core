@@ -117,7 +117,7 @@ public class ProgramNotificationTemplateObjectBundleHook
     ValueType valueType = toValueType == null ? null : toValueType.apply(template);
 
     Set<DeliveryChannel> deliveryChannels =
-        valueType == null ? null : CHANNEL_MAPPER.get(valueType);
+        valueType == null ? template.getDeliveryChannels() : CHANNEL_MAPPER.get(valueType);
     template.setDeliveryChannels(deliveryChannels == null ? new HashSet<>() : deliveryChannels);
   }
 }
