@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -379,16 +380,12 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
       recipients = resolveExternalRecipients(template, registration);
     }
 
-    ProgramMessage programMessage =
-        ProgramMessage.builder()
-            .subject(message.getSubject())
-            .text(message.getMessage())
-            .recipients(recipients)
-            .build();
-
-    programMessage.setDeliveryChannels(template.getDeliveryChannels());
-
-    return programMessage;
+    return ProgramMessage.builder()
+        .subject(message.getSubject())
+        .text(message.getMessage())
+        .recipients(recipients)
+        .deliveryChannels(new HashSet<>(template.getDeliveryChannels()))
+        .build();
   }
 
   private DhisMessage createDhisMessage(
