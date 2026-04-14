@@ -114,11 +114,11 @@ public class TrackerBundle {
   /** Relationships to import. */
   @Builder.Default private List<Relationship> relationships = new ArrayList<>();
 
-  @JsonIgnore private transient Map<UID, TrackedEntity> trackedEntityByUid;
-  @JsonIgnore private transient Map<UID, Enrollment> enrollmentByUid;
-  @JsonIgnore private transient Map<UID, TrackerEvent> trackerEventByUid;
-  @JsonIgnore private transient Map<UID, SingleEvent> singleEventByUid;
-  @JsonIgnore private transient Map<UID, Relationship> relationshipByUid;
+  @JsonIgnore private Map<UID, TrackedEntity> trackedEntityByUid;
+  @JsonIgnore private Map<UID, Enrollment> enrollmentByUid;
+  @JsonIgnore private Map<UID, TrackerEvent> trackerEventByUid;
+  @JsonIgnore private Map<UID, SingleEvent> singleEventByUid;
+  @JsonIgnore private Map<UID, Relationship> relationshipByUid;
 
   /** Notifications for enrollments. */
   @Builder.Default private Map<UID, List<Notification>> enrollmentNotifications = new HashMap<>();

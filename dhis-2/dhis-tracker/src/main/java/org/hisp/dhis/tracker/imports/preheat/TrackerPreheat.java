@@ -61,10 +61,12 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -642,6 +644,33 @@ public class TrackerPreheat {
       case EVENT -> getTrackerEvent(uid) != null || getSingleEvent(uid) != null;
       case RELATIONSHIP -> getRelationship(uid) != null;
     };
+  }
+
+  private final Map<String, Set<MetadataIdentifier>> mandatoryProgramAttributeCache =
+      new HashMap<>();
+
+  private final Map<String, Set<MetadataIdentifier>> mandatoryTetAttributeCache = new HashMap<>();
+
+  public Set<MetadataIdentifier> getMandatoryProgramAttributes(Program program) {
+    return mandatoryProgramAttributeCache.computeIfAbsent(
+        program.getUid(),
+        uid ->
+            program.getProgramAttributes().stream()
+                .filter(ProgramTrackedEntityAttribute::isMandatory)
+                .map(pa -> idSchemes.toMetadataIdentifier(pa.getAttribute()))
+                .collect(Collectors.toUnmodifiableSet()));
+  }
+
+  public Set<MetadataIdentifier> getMandatoryTrackedEntityTypeAttributes(
+      TrackedEntityType trackedEntityType) {
+    return mandatoryTetAttributeCache.computeIfAbsent(
+        trackedEntityType.getUid(),
+        uid ->
+            trackedEntityType.getTrackedEntityTypeAttributes().stream()
+                .filter(a -> Boolean.TRUE.equals(a.isMandatory()))
+                .map(TrackedEntityTypeAttribute::getTrackedEntityAttribute)
+                .map(idSchemes::toMetadataIdentifier)
+                .collect(Collectors.toUnmodifiableSet()));
   }
 
   @Override
