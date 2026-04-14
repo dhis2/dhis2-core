@@ -64,6 +64,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -84,6 +85,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
 import org.hisp.dhis.i18n.I18n;
@@ -104,6 +106,7 @@ import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.springframework.stereotype.Service;
@@ -118,6 +121,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultDataIntegrityService implements DataIntegrityService {
   private static final String FORMULA_SEPARATOR = "#";
+
+  private static final Pattern TRAILING_SLASHES = Pattern.compile("/+$");
 
   private final I18nManager i18nManager;
 
@@ -148,6 +153,10 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   private final DataIntegrityStore dataIntegrityStore;
 
   private final SchemaService schemaService;
+
+  private final DhisConfigurationProvider dhisConfig;
+
+  private final SystemSettingsProvider settingsProvider;
 
   private Cache<DataIntegritySummary> summaryCache;
 
@@ -368,11 +377,56 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
     return issues;
   }
 
+  // -------------------------------------------------------------------------
+  // Configuration
+  // -------------------------------------------------------------------------
+
+  List<DataIntegrityIssue> getServerBaseUrlNotSet() {
+    String serverBaseUrl = dhisConfig.getServerBaseUrl();
+    if (serverBaseUrl == null || serverBaseUrl.isBlank()) {
+      return List.of(new DataIntegrityIssue(null, "server.base.url", null, List.of()));
+    }
+    return List.of();
+  }
+
+  List<DataIntegrityIssue> getServerBaseUrlMismatch() {
+    String configUrl = dhisConfig.getServerBaseUrl();
+    // If server.base.url is not set, the not-set check covers it — skip this one
+    if (configUrl == null || configUrl.isBlank()) return List.of();
+
+    String settingUrl = settingsProvider.getCurrentSettings().asString("keyInstanceBaseUrl", "");
+    // If the DB setting is absent, there is nothing to mismatch against
+    if (settingUrl.isBlank()) return List.of();
+
+    String normalizedConfig = TRAILING_SLASHES.matcher(configUrl).replaceAll("");
+    String normalizedSetting = TRAILING_SLASHES.matcher(settingUrl).replaceAll("");
+
+    if (!normalizedConfig.equalsIgnoreCase(normalizedSetting)) {
+      return List.of(
+          new DataIntegrityIssue(
+              null,
+              "keyInstanceBaseUrl",
+              "dhis.conf server.base.url: "
+                  + configUrl
+                  + ", systemsetting keyInstanceBaseUrl: "
+                  + settingUrl,
+              List.of()));
+    }
+    return List.of();
+  }
+
   private void registerNonDatabaseIntegrityCheck(
       DataIntegrityCheckType type,
       Class<? extends IdentifiableObject> issueIdType,
       Supplier<List<DataIntegrityIssue>> check) {
-    String name = type.getName();
+    registerNonDatabaseIntegrityCheck(type.getName(), issueIdType, check, true);
+  }
+
+  private void registerNonDatabaseIntegrityCheck(
+      String name,
+      Class<? extends IdentifiableObject> issueIdType,
+      Supplier<List<DataIntegrityIssue>> check,
+      boolean isSlow) {
     I18n i18n = i18nManager.getI18n(DataIntegrityService.class);
     BinaryOperator<String> info =
         (property, defaultValue) ->
@@ -386,7 +440,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
           DataIntegrityCheck.builder()
               .name(name)
               .displayName(info.apply("name", name.replace('_', ' ')))
-              .isSlow(true)
+              .isSlow(isSlow)
               .isProgrammatic(true)
               .severity(
                   DataIntegritySeverity.valueOf(
@@ -411,7 +465,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
                   })
               .build());
     } catch (Exception ex) {
-      log.error("Failed to register data integrity check " + type, ex);
+      log.error("Failed to register data integrity check " + name, ex);
     }
   }
 
@@ -481,6 +535,10 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         DataIntegrityCheckType.PROGRAM_RULE_ACTIONS_WITHOUT_STAGE_ID,
         ProgramRule.class,
         this::getProgramRuleActionsWithNoProgramStageId);
+    registerNonDatabaseIntegrityCheck(
+        "server_base_url_not_set", null, this::getServerBaseUrlNotSet, false);
+    registerNonDatabaseIntegrityCheck(
+        "server_base_url_mismatch", null, this::getServerBaseUrlMismatch, false);
   }
 
   Set<String> addSQLChecksToFlattedReport() {
