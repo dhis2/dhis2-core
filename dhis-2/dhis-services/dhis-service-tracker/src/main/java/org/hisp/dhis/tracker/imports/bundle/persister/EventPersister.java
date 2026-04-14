@@ -51,12 +51,10 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLog;
-import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
@@ -65,6 +63,8 @@ import org.hisp.dhis.tracker.imports.job.SideEffectTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.util.DateUtils;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -76,16 +76,13 @@ public class EventPersister
   private final TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event>
       eventConverter;
 
-  private final TrackedEntityDataValueChangeLogService trackedEntityDataValueAuditService;
-
   public EventPersister(
       ReservedValueService reservedValueService,
-      TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> eventConverter,
-      TrackedEntityAttributeValueChangeLogService trackedEntityAttributeValueChangeLogService,
-      TrackedEntityDataValueChangeLogService trackedEntityDataValueChangeLogService) {
-    super(reservedValueService, trackedEntityAttributeValueChangeLogService);
+      DhisConfigurationProvider config,
+      @Qualifier("aes128StringEncryptor") PBEStringEncryptor encryptor,
+      TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> eventConverter) {
+    super(reservedValueService, config, encryptor);
     this.eventConverter = eventConverter;
-    this.trackedEntityDataValueAuditService = trackedEntityDataValueChangeLogService;
   }
 
   @Override
@@ -168,7 +165,8 @@ public class EventPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Event event,
-      Event hibernateEntity) {
+      Event hibernateEntity,
+      ChangeLogAccumulator changeLogs) {
     // DO NOTHING - EVENT HAVE NO ATTRIBUTES
   }
 
@@ -177,15 +175,17 @@ public class EventPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Event event,
-      Event hibernateEntity) {
-    handleDataValues(entityManager, preheat, event.getDataValues(), hibernateEntity);
+      Event hibernateEntity,
+      ChangeLogAccumulator changeLogs) {
+    handleDataValues(entityManager, preheat, event.getDataValues(), hibernateEntity, changeLogs);
   }
 
   private void handleDataValues(
       EntityManager entityManager,
       TrackerPreheat preheat,
       Set<DataValue> payloadDataValues,
-      Event event) {
+      Event event,
+      ChangeLogAccumulator changeLogs) {
     Map<String, EventDataValue> dataValueDBMap =
         Optional.ofNullable(preheat.getEvent(event.getUid()))
             .map(
@@ -232,31 +232,20 @@ public class EventPersister
             event.getEventDataValues().add(eventDataValue);
           }
 
-          logTrackedEntityDataValueHistory(
-              preheat.getUsername(), dataElement, event, new Date(), valuesHolder);
+          if (valuesHolder.getChangeLogType() != null) {
+            changeLogs.addEventDataValueAudit(
+                event,
+                dataElement,
+                valuesHolder.getValue(),
+                valuesHolder.isProvidedElseWhere(),
+                valuesHolder.getChangeLogType(),
+                preheat.getUsername());
+          }
         });
   }
 
   private Date getFromOrNewDate(DataValue dv, Function<DataValue, Instant> dateGetter) {
     return Optional.of(dv).map(dateGetter).map(DateUtils::fromInstant).orElseGet(Date::new);
-  }
-
-  private void logTrackedEntityDataValueHistory(
-      String userName, DataElement de, Event event, Date created, ValuesHolder valuesHolder) {
-    ChangeLogType changeLogType = valuesHolder.getChangeLogType();
-
-    if (changeLogType != null) {
-      TrackedEntityDataValueChangeLog valueAudit = new TrackedEntityDataValueChangeLog();
-      valueAudit.setEvent(event);
-      valueAudit.setValue(valuesHolder.getValue());
-      valueAudit.setAuditType(changeLogType);
-      valueAudit.setDataElement(de);
-      valueAudit.setModifiedBy(userName);
-      valueAudit.setProvidedElsewhere(valuesHolder.isProvidedElseWhere());
-      valueAudit.setCreated(created);
-
-      trackedEntityDataValueAuditService.addTrackedEntityDataValueChangeLog(valueAudit);
-    }
   }
 
   @Override
