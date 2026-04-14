@@ -405,7 +405,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
       return List.of(
           new DataIntegrityIssue(
               null,
-              "keyInstanceBaseUrl",
+              settingUrl,
               "dhis.conf server.base.url: "
                   + configUrl
                   + ", systemsetting keyInstanceBaseUrl: "

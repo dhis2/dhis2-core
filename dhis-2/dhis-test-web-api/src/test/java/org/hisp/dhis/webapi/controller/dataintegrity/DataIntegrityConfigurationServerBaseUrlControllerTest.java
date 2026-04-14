@@ -97,8 +97,7 @@ class DataIntegrityConfigurationServerBaseUrlControllerTest
   void testServerBaseUrlMismatchDetected() {
     setConfigUrl(INSTANCE_URL);
     setDbUrl(OTHER_URL);
-    assertHasDataIntegrityIssues(
-        null, CHECK_MISMATCH, 0, (String) null, "keyInstanceBaseUrl", null, false);
+    assertHasDataIntegrityIssues(null, CHECK_MISMATCH, 0, (String) null, OTHER_URL, null, false);
   }
 
   @Test
