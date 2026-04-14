@@ -50,7 +50,6 @@ import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.rules.models.RuleVariable;
-import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
 /**
@@ -115,7 +114,6 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
   @Override
   public RuleEngineEffects evaluateEnrollmentsAndTrackerEvents(
       @Nonnull Map<RuleEnrollment, List<RuleEvent>> enrollmentsWithEvents,
-      @Nonnull UserDetails user,
       @Nonnull RuleEngineContext context) {
     if (enrollmentsWithEvents.isEmpty()) {
       return RuleEngineEffects.of(Collections.emptyList());
@@ -133,9 +131,7 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
 
   @Override
   public RuleEngineEffects evaluateSingleEvents(
-      @Nonnull List<RuleEvent> events,
-      @Nonnull UserDetails user,
-      @Nonnull RuleEngineContext context) {
+      @Nonnull List<RuleEvent> events, @Nonnull RuleEngineContext context) {
     try {
       return RuleEngineEffects.of(ruleEngine.evaluateAll(null, events, context));
     } catch (Exception e) {

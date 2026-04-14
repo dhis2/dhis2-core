@@ -42,7 +42,6 @@ import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.rules.models.RuleVariable;
-import org.hisp.dhis.user.UserDetails;
 
 public interface ProgramRuleEngine {
   /**
@@ -52,7 +51,6 @@ public interface ProgramRuleEngine {
    */
   RuleEngineEffects evaluateEnrollmentsAndTrackerEvents(
       @Nonnull Map<RuleEnrollment, List<RuleEvent>> enrollmentsWithEvents,
-      @Nonnull UserDetails user,
       @Nonnull RuleEngineContext context);
 
   /**
@@ -60,9 +58,7 @@ public interface ProgramRuleEngine {
    * RuleEngineContext} is pre-built by the caller and shared across all events of the same program.
    */
   RuleEngineEffects evaluateSingleEvents(
-      @Nonnull List<RuleEvent> events,
-      @Nonnull UserDetails user,
-      @Nonnull RuleEngineContext context);
+      @Nonnull List<RuleEvent> events, @Nonnull RuleEngineContext context);
 
   /** Analyses the given rule set and returns what evaluation context it requires. */
   @Nonnull

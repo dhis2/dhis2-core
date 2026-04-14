@@ -115,15 +115,14 @@ class DefaultProgramRuleService implements ProgramRuleService {
    * <p>Single events are always evaluated separately per program without enrollment context.
    */
   @Override
-  @Transactional
+  @Transactional(readOnly = true)
   public void calculateRuleEffects(TrackerBundle bundle, TrackerPreheat preheat) {
     // Deduplicate UIDs before hitting preheat: many enrollments/events typically share the same
     // program, so look up each distinct program UID and enrollment UID at most once.
     Set<Program> allPrograms = getAllProgramsFromPayload(bundle, preheat);
-    Set<String> orgUnitUids = collectOrgUnitUids(bundle, preheat);
 
     Map<Program, ProgramRuleContext> contextByProgram =
-        getRulesForPrograms(allPrograms, bundle.getUser(), orgUnitUids);
+        getRulesForPrograms(allPrograms, bundle.getUser(), bundle, preheat);
     if (contextByProgram.isEmpty()) {
       return;
     }
@@ -268,7 +267,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
                       preheat);
 
               return programRuleEngine.evaluateEnrollmentsAndTrackerEvents(
-                  enrollmentsWithEvents, bundle.getUser(), ctx.ruleEngineContext());
+                  enrollmentsWithEvents, ctx.ruleEngineContext());
             })
         .reduce(RuleEngineEffects::merge)
         .orElse(RuleEngineEffects.empty());
@@ -293,13 +292,16 @@ class DefaultProgramRuleService implements ProgramRuleService {
       boolean needsAllEvents) {}
 
   // Skips programs with no applicable rules.
+  // orgUnitUids is computed lazily — collected at most once, only when the first program with
+  // needsOrgUnitGroups = true is encountered.
   private Map<Program, ProgramRuleContext> getRulesForPrograms(
-      Set<Program> programs, UserDetails user, Set<String> orgUnitUids) {
+      Set<Program> programs, UserDetails user, TrackerBundle bundle, TrackerPreheat preheat) {
     Map<String, String> constantMap =
         constantService.getConstantMap().entrySet().stream()
             .collect(
                 Collectors.toMap(Map.Entry::getKey, v -> Double.toString(v.getValue().getValue())));
     Map<Program, ProgramRuleContext> contextByProgram = new HashMap<>();
+    Set<String> orgUnitUids = null;
     for (Program program : programs) {
       List<ProgramRule> programRules =
           programRuleMetadataService.getProgramRulesByActionTypes(program, SERVER_SUPPORTED_TYPES);
@@ -310,6 +312,9 @@ class DefaultProgramRuleService implements ProgramRuleService {
                 programRuleVariableService.getProgramRuleVariable(program));
         RuleContextRequirements requirements =
             programRuleEngine.analyzeContextRequirements(rules, variables);
+        if (requirements.getNeedsOrgUnitGroups() && orgUnitUids == null) {
+          orgUnitUids = collectOrgUnitUids(bundle, preheat);
+        }
         contextByProgram.put(
             program,
             new ProgramRuleContext(
@@ -317,7 +322,9 @@ class DefaultProgramRuleService implements ProgramRuleService {
                     rules,
                     variables,
                     supplementaryDataProvider.getSupplementaryData(
-                        requirements.getNeedsOrgUnitGroups(), orgUnitUids, user),
+                        requirements.getNeedsOrgUnitGroups(),
+                        orgUnitUids != null ? orgUnitUids : Set.of(),
+                        user),
                     constantMap),
                 requirements.getNeedsAttributes(),
                 requirements.getNeedsAllEvents()));
@@ -387,8 +394,7 @@ class DefaultProgramRuleService implements ProgramRuleService {
               List<RuleEvent> events =
                   RuleEngineMapper.mapPayloadSingleEvents(preheat, entry.getValue());
               return Stream.of(
-                  programRuleEngine.evaluateSingleEvents(
-                      events, bundle.getUser(), ctx.ruleEngineContext()));
+                  programRuleEngine.evaluateSingleEvents(events, ctx.ruleEngineContext()));
             })
         .reduce(RuleEngineEffects::merge)
         .orElse(RuleEngineEffects.empty());
