@@ -112,7 +112,7 @@ class AttributeValidatorTest {
   private Reporter reporter;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
 
     trackedEntityAttribute =
         new TrackedEntityAttribute("name", "description", ValueType.TEXT, false, false);

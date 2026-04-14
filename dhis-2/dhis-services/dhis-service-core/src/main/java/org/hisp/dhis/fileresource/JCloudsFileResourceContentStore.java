@@ -29,9 +29,10 @@
  */
 package org.hisp.dhis.fileresource;
 
-import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -44,15 +45,10 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.jclouds.JCloudsStore;
-import org.jclouds.blobstore.BlobRequestSigner;
-import org.jclouds.blobstore.ContainerNotFoundException;
-import org.jclouds.blobstore.LocalBlobRequestSigner;
-import org.jclouds.blobstore.domain.Blob;
-import org.jclouds.blobstore.internal.RequestSigningUnsupported;
-import org.jclouds.http.HttpRequest;
-import org.joda.time.Minutes;
+import org.hisp.dhis.storage.BlobKey;
+import org.hisp.dhis.storage.BlobStoreService;
+import org.hisp.dhis.storage.BlobStoreService.ContentDisposition;
+import org.hisp.dhis.storage.ContentHash;
 import org.springframework.stereotype.Service;
 
 /**
@@ -62,119 +58,104 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service("org.hisp.dhis.fileresource.FileResourceContentStore")
 public class JCloudsFileResourceContentStore implements FileResourceContentStore {
-  private static final long FIVE_MINUTES_IN_SECONDS =
-      Minutes.minutes(5).toStandardDuration().getStandardSeconds();
+  private static final long FIVE_MINUTES_IN_SECONDS = 300L;
 
-  private final JCloudsStore jCloudsStore;
+  private final BlobStoreService blobStore;
 
   @Override
-  public InputStream getFileResourceContent(String key) {
-    final Blob blob = jCloudsStore.getBlob(key);
-
-    if (blob == null) {
-      return null;
-    }
-
-    try {
-      return blob.getPayload().openStream();
-    } catch (IOException e) {
-      log.warn(
-          String.format(
-              "Unable to retrieve fileResource with key: %s. Message: %s", key, e.getMessage()));
-      return null;
-    }
+  public InputStream getFileResourceContent(BlobKey key) {
+    return blobStore.openStream(key);
   }
 
   @Override
-  public long getFileResourceContentLength(String key) {
-    final Blob blob = jCloudsStore.getBlob(key);
-
-    if (blob == null) {
-      return 0;
-    }
-
-    return blob.getMetadata().getContentMetadata().getContentLength();
+  public long getFileResourceContentLength(BlobKey key) {
+    return blobStore.contentLength(key);
   }
 
   @Override
-  public String saveFileResourceContent(@Nonnull FileResource fr, @Nonnull byte[] bytes) {
-    return saveFileResourceContent(fr, createBlob(fr, bytes), null);
-  }
-
-  @Override
-  public String saveFileResourceContent(@Nonnull FileResource fr, @Nonnull File file) {
-    return saveFileResourceContent(
-        fr,
-        createBlob(fr, StringUtils.EMPTY, file, fr.getContentMd5()),
-        () -> {
-          try {
-            Files.deleteIfExists(file.toPath());
-          } catch (IOException ioe) {
-            log.warn(
-                String.format("Temporary file '%s' could not be deleted.", file.toPath()), ioe);
-          }
-        });
-  }
-
   @CheckForNull
-  private String saveFileResourceContent(
-      @Nonnull FileResource fr, @CheckForNull Blob blob, @CheckForNull Runnable postPutCallback) {
-    if (blob == null) {
-      return null;
-    }
-
-    try {
-      jCloudsStore.putBlob(blob);
+  public String saveFileResourceContent(@Nonnull FileResource fr, @Nonnull byte[] bytes) {
+    try (InputStream is = new ByteArrayInputStream(bytes)) {
+      blobStore.putBlob(
+          fr.asBlobKey(),
+          is,
+          bytes.length,
+          fr.getContentType(),
+          ContentDisposition.filename(fr.getName()),
+          ContentHash.ofNullable(fr.getContentMd5()));
     } catch (Exception e) {
       log.error("File upload failed: ", e);
       return null;
     }
 
-    if (postPutCallback != null) {
-      postPutCallback.run();
-    }
-
     log.debug(String.format("File resource saved with key: %s", fr.getStorageKey()));
-
     return fr.getStorageKey();
   }
 
   @Override
+  @CheckForNull
+  public String saveFileResourceContent(@Nonnull FileResource fr, @Nonnull File file) {
+    try (InputStream is = new FileInputStream(file)) {
+      blobStore.putBlob(
+          fr.asBlobKey(),
+          is,
+          file.length(),
+          fr.getContentType(),
+          ContentDisposition.filename(fr.getName()),
+          ContentHash.ofNullable(fr.getContentMd5()));
+    } catch (Exception e) {
+      log.error("File upload failed: ", e);
+      return null;
+    }
+
+    try {
+      Files.deleteIfExists(file.toPath());
+    } catch (IOException ioe) {
+      log.warn(String.format("Temporary file '%s' could not be deleted.", file.toPath()), ioe);
+    }
+
+    log.debug(String.format("File resource saved with key: %s", fr.getStorageKey()));
+    return fr.getStorageKey();
+  }
+
+  @Override
+  @CheckForNull
   public String saveFileResourceContent(
       @Nonnull FileResource fr, @Nonnull Map<ImageFileDimension, File> imageFiles) {
     if (imageFiles.isEmpty()) {
       return null;
     }
 
-    Blob blob;
-
     for (Map.Entry<ImageFileDimension, File> entry : imageFiles.entrySet()) {
       File file = entry.getValue();
+      String dimension = entry.getKey().getDimension();
 
-      String contentMd5;
-
+      ContentHash contentHash;
       try {
-        HashCode hash = com.google.common.io.Files.asByteSource(file).hash(Hashing.md5());
-        contentMd5 = hash.toString();
+        contentHash =
+            ContentHash.of(com.google.common.io.Files.asByteSource(file).hash(Hashing.md5()));
       } catch (IOException e) {
         log.error("Hashing error", e);
         return null;
       }
 
-      blob = createBlob(fr, entry.getKey().getDimension(), file, contentMd5);
-
-      if (blob != null) {
-        try {
-          jCloudsStore.putBlob(blob);
-          Files.deleteIfExists(file.toPath());
-        } catch (ContainerNotFoundException e) {
-          log.error("Container not found", e);
-          return null;
-        } catch (IOException ioe) {
-          log.warn(String.format("Temporary file '%s' could not be deleted: ", file.toPath()), ioe);
-        }
-      } else {
+      try (InputStream is = new FileInputStream(file)) {
+        blobStore.putBlob(
+            new BlobKey(fr.getStorageKey() + dimension),
+            is,
+            file.length(),
+            fr.getContentType(),
+            ContentDisposition.filename(fr.getName() + dimension),
+            contentHash);
+      } catch (Exception e) {
+        log.error("Image file upload failed: ", e);
         return null;
+      }
+
+      try {
+        Files.deleteIfExists(file.toPath());
+      } catch (IOException ioe) {
+        log.warn(String.format("Temporary file '%s' could not be deleted: ", file.toPath()), ioe);
       }
     }
 
@@ -182,97 +163,49 @@ public class JCloudsFileResourceContentStore implements FileResourceContentStore
   }
 
   @Override
-  public void deleteFileResourceContent(String key) {
-    jCloudsStore.removeBlob(key);
+  public void deleteFileResourceContent(BlobKey key) {
+    blobStore.deleteBlob(key);
   }
 
   @Override
-  public boolean fileResourceContentExists(String key) {
-    return jCloudsStore.blobExists(key);
+  public boolean fileResourceContentExists(BlobKey key) {
+    return blobStore.blobExists(key);
   }
 
   @Override
-  public URI getSignedGetContentUri(String key) {
-    BlobRequestSigner signer = jCloudsStore.getBlobRequestSigner();
-
-    if (!requestSigningSupported(signer)) {
-      return null;
-    }
-
-    HttpRequest httpRequest;
-
-    try {
-      httpRequest =
-          signer.signGetBlob(jCloudsStore.getBlobContainer(), key, FIVE_MINUTES_IN_SECONDS);
-    } catch (UnsupportedOperationException uoe) {
-      return null;
-    }
-
-    return httpRequest.getEndpoint();
+  @CheckForNull
+  public URI getSignedGetContentUri(BlobKey key) {
+    return blobStore.signedGetUri(key, FIVE_MINUTES_IN_SECONDS);
   }
 
   @Override
-  public void copyContent(String key, OutputStream output)
+  public void copyContent(BlobKey key, OutputStream output)
       throws IOException, NoSuchElementException {
     ensureBlobExists(key);
 
-    try (InputStream in = jCloudsStore.getBlob(key).getPayload().openStream()) {
+    try (InputStream in = blobStore.openStream(key)) {
       IOUtils.copy(in, output);
     }
   }
 
   @Override
-  public byte[] copyContent(String key) throws IOException, NoSuchElementException {
+  public byte[] copyContent(BlobKey key) throws IOException, NoSuchElementException {
     ensureBlobExists(key);
 
-    try (InputStream in = jCloudsStore.getBlob(key).getPayload().openStream()) {
+    try (InputStream in = blobStore.openStream(key)) {
       return IOUtils.toByteArray(in);
     }
   }
 
   @Override
-  public InputStream openStream(String key) throws IOException, NoSuchElementException {
+  public InputStream openStream(BlobKey key) throws IOException, NoSuchElementException {
     ensureBlobExists(key);
-
-    return jCloudsStore.getBlob(key).getPayload().openStream();
+    return blobStore.openStream(key);
   }
 
-  private void ensureBlobExists(String key) {
-    if (!jCloudsStore.blobExists(key)) {
+  private void ensureBlobExists(BlobKey key) {
+    if (!blobStore.blobExists(key)) {
       throw new NoSuchElementException("key '" + key + "' not found.");
     }
-  }
-
-  private Blob createBlob(@Nonnull FileResource fileResource, @Nonnull byte[] bytes) {
-    return jCloudsStore
-        .getBlobStore()
-        .blobBuilder(fileResource.getStorageKey())
-        .payload(bytes)
-        .contentLength(bytes.length)
-        .contentMD5(HashCode.fromString(fileResource.getContentMd5()))
-        .contentType(fileResource.getContentType())
-        .contentDisposition("filename=" + fileResource.getName())
-        .build();
-  }
-
-  private Blob createBlob(
-      @Nonnull FileResource fileResource,
-      String fileDimension,
-      @Nonnull File file,
-      @Nonnull String contentMd5) {
-    return jCloudsStore
-        .getBlobStore()
-        .blobBuilder(StringUtils.join(fileResource.getStorageKey(), fileDimension))
-        .payload(file)
-        .contentLength(file.length())
-        .contentMD5(HashCode.fromString(contentMd5))
-        .contentType(fileResource.getContentType())
-        .contentDisposition("filename=" + fileResource.getName() + fileDimension)
-        .build();
-  }
-
-  private boolean requestSigningSupported(BlobRequestSigner signer) {
-    return !(signer instanceof RequestSigningUnsupported)
-        && !(signer instanceof LocalBlobRequestSigner);
   }
 }

@@ -47,7 +47,6 @@ import static org.hisp.dhis.analytics.util.AnalyticsUtils.illegalQueryExSupplier
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionConstants.DIMENSION_NAME_SEP;
-import static org.hisp.dhis.common.DimensionConstants.INCIDENT_DATE;
 import static org.hisp.dhis.common.DimensionConstants.STATIC_DATE_DIMENSIONS;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionFromParam;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionItemsFromParam;
@@ -418,8 +417,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       IdScheme idScheme,
       Set<EnrollmentStatus> enrollmentStatuses) {
     if (request.getFilter() != null) {
-      for (NormalizedDimensionInput input :
-          normalizeDimensionInputs(request.getFilter(), request)) {
+      for (NormalizedDimensionInput input : normalizeDimensionInputs(request.getFilter())) {
         if (ENROLLMENT_OU_DIMENSION.equals(input.dimensionId())) {
           resolveEnrollmentOuFilter(params, request, userOrgUnits, input.items(), idScheme);
           continue;
@@ -464,8 +462,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       IdScheme idScheme,
       Set<EnrollmentStatus> enrollmentStatuses) {
     if (request.getDimension() != null) {
-      for (NormalizedDimensionInput input :
-          normalizeDimensionInputs(request.getDimension(), request)) {
+      for (NormalizedDimensionInput input : normalizeDimensionInputs(request.getDimension())) {
         if (ENROLLMENT_OU_DIMENSION.equals(input.dimensionId())) {
           resolveEnrollmentOuDimension(params, request, userOrgUnits, input.items(), idScheme);
           continue;
@@ -549,14 +546,12 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
    *
    * @param rawDimension the raw dimension string
    * @param groupUUID the group UUID
-   * @param request the original data query request
    * @param normalizedInputs the list of normalized inputs to populate
    * @param peTracker the period dimension tracker
    */
   private void processDimension(
       String rawDimension,
       UUID groupUUID,
-      EventDataQueryRequest request,
       List<NormalizedDimensionInput> normalizedInputs,
       PeriodDimensionTracker peTracker) {
 
@@ -567,11 +562,6 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       normalizedInputs.add(
           new NormalizedDimensionInput(rawDimension, dimensionId, items, groupUUID));
       return;
-    }
-
-    if (INCIDENT_DATE.equals(dimensionId)
-        && RequestTypeAware.EndpointItem.EVENT.equals(request.getEndpointItem())) {
-      throwIllegalQueryEx(ErrorCode.E7222, rawDimension);
     }
 
     DimensionAndItems normalized = normalizeStaticDateDimension(dimensionId, items);
@@ -591,11 +581,10 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
    * needed.
    *
    * @param requestDimensions the raw request dimensions
-   * @param request the original data query request
    * @return the list of normalized dimension inputs
    */
   private List<NormalizedDimensionInput> normalizeDimensionInputs(
-      Set<Set<String>> requestDimensions, EventDataQueryRequest request) {
+      Set<Set<String>> requestDimensions) {
 
     List<NormalizedDimensionInput> normalizedInputs = new ArrayList<>();
     PeriodDimensionTracker peTracker = new PeriodDimensionTracker();
@@ -604,7 +593,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       UUID groupUUID = UUID.randomUUID();
 
       for (String rawDimension : dimensionGroup) {
-        processDimension(rawDimension, groupUUID, request, normalizedInputs, peTracker);
+        processDimension(rawDimension, groupUUID, normalizedInputs, peTracker);
       }
     }
 
@@ -701,13 +690,13 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     DataElement de = dataElementService.getDataElement(dimValue);
 
-    if (de != null && de.isNumericType()) {
+    if (de != null && (de.isNumericType() || de.getValueType().isBoolean())) {
       return de;
     }
 
     TrackedEntityAttribute at = attributeService.getTrackedEntityAttribute(dimValue);
 
-    if (at != null && at.isNumericType()) {
+    if (at != null && (at.isNumericType() || at.getValueType().isBoolean())) {
       return at;
     }
 
@@ -905,7 +894,12 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         ColumnHeader.EVENT_STATUS.getItem(), EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME),
     CREATED_BY_DISPLAY_NAME(ColumnHeader.CREATED_BY_DISPLAY_NAME.getItem()),
     LAST_UPDATED_BY_DISPLAY_NAME(ColumnHeader.LAST_UPDATED_BY_DISPLAY_NAME.getItem()),
-    LAST_UPDATED(ColumnHeader.LAST_UPDATED.getItem());
+    LAST_UPDATED(ColumnHeader.LAST_UPDATED.getItem()),
+    CREATED(ColumnHeader.CREATED.getItem(), EventAnalyticsColumnName.CREATED_COLUMN_NAME),
+    COMPLETED(
+        ColumnHeader.COMPLETED_DATE.getItem(),
+        EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME,
+        EnrollmentAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME);
 
     private final String itemName;
 

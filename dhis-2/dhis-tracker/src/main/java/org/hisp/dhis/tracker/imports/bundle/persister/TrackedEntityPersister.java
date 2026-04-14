@@ -36,11 +36,8 @@ import java.util.Set;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
-import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.user.UserDetails;
@@ -54,10 +51,8 @@ public class TrackedEntityPersister
     extends AbstractTrackerPersister<
         org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity> {
 
-  public TrackedEntityPersister(
-      ReservedValueService reservedValueService,
-      TrackedEntityChangeLogService trackedEntityChangeLogService) {
-    super(reservedValueService, trackedEntityChangeLogService);
+  public TrackedEntityPersister(ReservedValueService reservedValueService) {
+    super(reservedValueService);
   }
 
   @Override
@@ -66,9 +61,10 @@ public class TrackedEntityPersister
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
       TrackedEntity te,
-      UserDetails user) {
+      UserDetails user,
+      ChangeLogAccumulator changeLogs) {
     handleTrackedEntityAttributeValues(
-        entityManager, preheat, trackerDto.getAttributes(), te, user);
+        entityManager, preheat, trackerDto.getAttributes(), te, user, changeLogs);
   }
 
   @Override
@@ -94,12 +90,6 @@ public class TrackedEntityPersister
   }
 
   @Override
-  protected TrackerNotificationDataBundle handleNotifications(
-      TrackerBundle bundle, TrackedEntity entity, List<NotificationTrigger> triggers) {
-    return TrackerNotificationDataBundle.builder().build();
-  }
-
-  @Override
   protected void persistOwnership(
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
@@ -115,7 +105,8 @@ public class TrackedEntityPersister
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
       TrackedEntity payloadEntity,
       TrackedEntity currentEntity,
-      UserDetails user) {
+      UserDetails user,
+      ChangeLogAccumulator changeLogs) {
     // DO NOTHING - TE HAVE NO DATA VALUES
   }
 
@@ -129,11 +120,5 @@ public class TrackedEntityPersister
       TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto) {
     return null;
     // NO NEED TO CLONE RELATIONSHIP PROPERTIES
-  }
-
-  @Override
-  protected List<NotificationTrigger> determineNotificationTriggers(
-      TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.TrackedEntity entity) {
-    return List.of();
   }
 }

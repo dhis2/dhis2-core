@@ -45,7 +45,6 @@ import org.hisp.dhis.test.e2e.dto.ApiResponse;
 import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -53,6 +52,143 @@ import org.junit.jupiter.api.Test;
 /** Groups e2e tests for "/events/aggregate" endpoint. */
 public class EventsAggregate10AutoTest extends AnalyticsApiTest {
   private final AnalyticsEventActions actions = new AnalyticsEventActions();
+
+  @Nested
+  @DisplayName("Stage id time field with static field dimensions")
+  class MultipleTimePeriods {
+    @Test
+    @DisplayName("Events Aggregate - Multiple time periods with stage periods")
+    public void eventAggregateStagePeriodAndStaticPeriod() throws JSONException {
+      // Read the 'expect.postgis' system property at runtime to adapt assertions.
+      boolean expectPostgis = isPostgres();
+
+      // Given
+      QueryParamsBuilder params =
+          new QueryParamsBuilder()
+              .add("displayProperty=NAME")
+              .add("totalPages=false")
+              .add(
+                  "dimension=ou:ImspTQPwCqd,A03MvHHogjR.a3kGcGDCuk6,SCHEDULED_DATE:LAST_5_FINANCIAL_YEARS,ENROLLMENT_DATE:202302;202302")
+              .add("relativePeriodDate=2025-09-29");
+
+      // When
+      ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
+
+      // Then
+      // 1. Validate Response Structure (Counts, Headers, Height/Width)
+      //    This helper checks basic counts and dimensions, adapting based on the runtime
+      // 'expectPostgis' flag.
+      validateResponseStructure(
+          response,
+          expectPostgis,
+          5,
+          5,
+          5); // Pass runtime flag, row count, and expected header counts
+
+      // 2. Extract Headers into a List of Maps for easy access by name
+      List<Map<String, Object>> actualHeaders =
+          response.extractList("headers", Map.class).stream()
+              .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+              .collect(Collectors.toList());
+
+      // 3. Assert metaData.
+      String expectedMetaData =
+          "{\"items\":{\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{\"name\":\"Organisation unit\"},\"202302\":{\"name\":\"February 2023\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"2020Oct\":{\"name\":\"October 2020 - September 2021\"},\"pe\":{},\"2019Oct\":{\"name\":\"October 2019 - September 2020\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"2023Oct\":{\"name\":\"October 2023 - September 2024\"},\"2022Oct\":{\"name\":\"October 2022 - September 2023\"},\"2021Oct\":{\"name\":\"October 2021 - September 2022\"},\"scheduleddate\":{\"name\":\"Scheduled date\"},\"enrollmentdate\":{\"name\":\"Date of enrollment\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"enrollmentdate\":[\"202302\"],\"scheduleddate\":[\"2019Oct\",\"2020Oct\",\"2021Oct\",\"2022Oct\",\"2023Oct\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+      String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+      assertEquals(expectedMetaData, actualMetaData, false);
+
+      // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+      validateHeaderPropertiesByName(
+          response,
+          actualHeaders,
+          "A03MvHHogjR.a3kGcGDCuk6",
+          "MCH Apgar Score",
+          "NUMBER",
+          "java.lang.Double",
+          false,
+          true);
+      validateHeaderPropertiesByName(
+          response,
+          actualHeaders,
+          "ou",
+          "Organisation unit",
+          "TEXT",
+          "java.lang.String",
+          false,
+          true);
+      validateHeaderPropertiesByName(
+          response,
+          actualHeaders,
+          "scheduleddate",
+          "Scheduled date",
+          "TEXT",
+          "java.lang.String",
+          false,
+          true);
+      validateHeaderPropertiesByName(
+          response,
+          actualHeaders,
+          "enrollmentdate",
+          "Date of enrollment",
+          "TEXT",
+          "java.lang.String",
+          false,
+          true);
+      validateHeaderPropertiesByName(
+          response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+      // rowContext not found or empty in the response, skipping assertions.
+
+      // 7. Assert row existence by value (unsorted results - validates all columns).
+      // Validate row exists with values from original row index 0
+      validateRowExists(
+          response,
+          actualHeaders,
+          Map.of(
+              "A03MvHHogjR.a3kGcGDCuk6",
+              "0.0",
+              "ou",
+              "ImspTQPwCqd",
+              "scheduleddate",
+              "2021Oct",
+              "enrollmentdate",
+              "202302",
+              "value",
+              "204"));
+
+      // Validate row exists with values from original row index 2
+      validateRowExists(
+          response,
+          actualHeaders,
+          Map.of(
+              "A03MvHHogjR.a3kGcGDCuk6",
+              "2.0",
+              "ou",
+              "ImspTQPwCqd",
+              "scheduleddate",
+              "2021Oct",
+              "enrollmentdate",
+              "202302",
+              "value",
+              "206"));
+
+      // Validate row exists with values from original row index 4
+      validateRowExists(
+          response,
+          actualHeaders,
+          Map.of(
+              "A03MvHHogjR.a3kGcGDCuk6",
+              "",
+              "ou",
+              "ImspTQPwCqd",
+              "scheduleddate",
+              "2021Oct",
+              "enrollmentdate",
+              "202302",
+              "value",
+              "629"));
+    }
+  }
 
   @Nested
   @DisplayName("Scheduled date")
@@ -96,7 +232,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
       // 3. Assert metaData.
       String expectedMetaData =
-          "{\"items\":{\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"2020Oct\":{\"name\":\"October 2020 - September 2021\"},\"pe\":{},\"2019Oct\":{\"name\":\"October 2019 - September 2020\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"2023Oct\":{\"name\":\"October 2023 - September 2024\"},\"2022Oct\":{\"name\":\"October 2022 - September 2023\"},\"2021Oct\":{\"name\":\"October 2021 - September 2022\"},\"scheduleddate\":{\"name\":\"Scheduled date\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"scheduleddate\":[\"2019Oct\",\"2020Oct\",\"2021Oct\",\"2022Oct\",\"2023Oct\"],\"pe\":[\"2019Oct\",\"2020Oct\",\"2021Oct\",\"2022Oct\",\"2023Oct\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+          "{\"items\":{\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"2020Oct\":{\"name\":\"October 2020 - September 2021\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"pe\":{},\"ou\":{\"name\":\"Organisation unit\"},\"2019Oct\":{\"name\":\"October 2019 - September 2020\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"2023Oct\":{\"name\":\"October 2023 - September 2024\"},\"2022Oct\":{\"name\":\"October 2022 - September 2023\"},\"2021Oct\":{\"name\":\"October 2021 - September 2022\"},\"scheduleddate\":{\"name\":\"Scheduled date\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"ou\":[\"ImspTQPwCqd\"],\"scheduleddate\":[\"2019Oct\",\"2020Oct\",\"2021Oct\",\"2022Oct\",\"2023Oct\"]}}";
       String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
       assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -257,7 +393,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
       // 3. Assert metaData.
       String expectedMetaData =
-          "{\"items\":{\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"2020Oct\":{\"name\":\"October 2020 - September 2021\"},\"pe\":{},\"2019Oct\":{\"name\":\"October 2019 - September 2020\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"2023Oct\":{\"name\":\"October 2023 - September 2024\"},\"2022Oct\":{\"name\":\"October 2022 - September 2023\"},\"2021Oct\":{\"name\":\"October 2021 - September 2022\"},\"scheduleddate\":{\"name\":\"Scheduled date\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"scheduleddate\":[\"2019Oct\",\"2020Oct\",\"2021Oct\",\"2022Oct\",\"2023Oct\"],\"pe\":[\"2019Oct\",\"2020Oct\",\"2021Oct\",\"2022Oct\",\"2023Oct\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+          "{\"items\":{\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"2020Oct\":{\"name\":\"October 2020 - September 2021\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"pe\":{},\"ou\":{\"name\":\"Organisation unit\"},\"2019Oct\":{\"name\":\"October 2019 - September 2020\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"2023Oct\":{\"name\":\"October 2023 - September 2024\"},\"2022Oct\":{\"name\":\"October 2022 - September 2023\"},\"2021Oct\":{\"name\":\"October 2021 - September 2022\"},\"scheduleddate\":{\"name\":\"Scheduled date\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"ou\":[\"ImspTQPwCqd\"],\"scheduleddate\":[\"2019Oct\",\"2020Oct\",\"2021Oct\",\"2022Oct\",\"2023Oct\"]}}";
       String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
       assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -422,7 +558,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
       // 3. Assert metaData.
       String expectedMetaData =
-          "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"202402\":{\"name\":\"February 2024\"},\"202301\":{\"name\":\"January 2023\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[\"202301\",\"202402\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+          "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"enrollmentdate\":{\"name\":\"Date of enrollment\"},\"202402\":{\"name\":\"February 2024\"},\"202301\":{\"name\":\"January 2023\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"ou\":[\"ImspTQPwCqd\"],\"enrollmentdate\":[\"202301\",\"202402\"]}}";
       String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
       assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -503,7 +639,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
       // 3. Assert metaData.
       String expectedMetaData =
-          "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"enrollmentdate\":{\"name\":\"Date of enrollment\"},\"202402\":{\"name\":\"February 2024\"},\"202301\":{\"name\":\"January 2023\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"enrollmentdate\":[\"202301\",\"202402\"],\"pe\":[\"202301\",\"202402\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+          "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"enrollmentdate\":{\"name\":\"Date of enrollment\"},\"202402\":{\"name\":\"February 2024\"},\"202301\":{\"name\":\"January 2023\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"ou\":[\"ImspTQPwCqd\"],\"enrollmentdate\":[\"202301\",\"202402\"]}}";
       String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
       assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -597,6 +733,65 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
               "value",
               "1"));
     }
+
+    @DisplayName("Events Aggregate - ENROLLMENT_DATE dimension with period filter")
+    @Test
+    public void enrollmentDate() throws JSONException {
+      // Read the 'expect.postgis' system property at runtime to adapt assertions.
+      boolean expectPostgis = isPostgres();
+
+      // Given
+      QueryParamsBuilder params =
+          new QueryParamsBuilder()
+              .add("displayProperty=NAME")
+              .add("totalPages=false")
+              .add("dimension=ENROLLMENT_DATE:2021");
+
+      // When
+      ApiResponse response = actions.aggregate().get("ur1Edk5Oe2n", JSON, JSON, params);
+
+      // Then
+      // 1. Validate Response Structure (Counts, Headers, Height/Width)
+      //    This helper checks basic counts and dimensions, adapting based on the runtime
+      // 'expectPostgis' flag.
+      validateResponseStructure(
+          response,
+          expectPostgis,
+          1,
+          2,
+          2); // Pass runtime flag, row count, and expected header counts
+
+      // 2. Extract Headers into a List of Maps for easy access by name
+      List<Map<String, Object>> actualHeaders =
+          response.extractList("headers", Map.class).stream()
+              .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+              .collect(Collectors.toList());
+
+      // 3. Assert metaData.
+      String expectedMetaData =
+          "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"pe\":{},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"ou\":{},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"2021\":{\"name\":\"2021\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"enrollmentdate\":{\"name\":\"Start of treatment date\"}},\"dimensions\":{\"ou\":[\"ImspTQPwCqd\"],\"enrollmentdate\":[\"2021\"]}}";
+      String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+      assertEquals(expectedMetaData, actualMetaData, false);
+
+      // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+      validateHeaderPropertiesByName(
+          response,
+          actualHeaders,
+          "enrollmentdate",
+          "Start of treatment date",
+          "TEXT",
+          "java.lang.String",
+          false,
+          true);
+      validateHeaderPropertiesByName(
+          response, actualHeaders, "value", "Value", "NUMBER", "java.lang.Double", false, false);
+
+      // rowContext not found or empty in the response, skipping assertions.
+
+      // 7. Assert row existence by value (unsorted results - validates all columns).
+      // Validate row exists with values from original row index 0
+      validateRowExists(response, actualHeaders, Map.of("enrollmentdate", "2021", "value", "27"));
+    }
   }
 
   @Nested
@@ -641,7 +836,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
       // 3. Assert metaData.
       String expectedMetaData =
-          "{\"items\":{\"20210301\":{\"name\":\"2021-03-01\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[\"20210301\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+          "{\"items\":{\"20210301\":{\"name\":\"2021-03-01\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"incidentdate\":{\"name\":\"Date of birth\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"ou\":[\"ImspTQPwCqd\"],\"incidentdate\":[\"20210301\"]}}";
       String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
       assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -679,7 +874,6 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     @Test
     @DisplayName("Events Aggregate - Date range - Time field: INCIDENT_DATE as dimension")
-    @Disabled("Unclear if INCIDENT_DATE should be supported in event analytics")
     public void incidentDateAsDimensionWithTimeRange() throws JSONException {
 
       // Read the 'expect.postgis' system property at runtime to adapt assertions.
@@ -717,7 +911,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
       // 3. Assert metaData.
       String expectedMetaData =
-          "{\"items\":{\"20210301\":{\"name\":\"2021-03-01\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[\"20210301\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+          "{\"items\":{\"20210301\":{\"name\":\"2021-03-01\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"incidentdate\":{\"name\":\"Date of birth\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"ou\":[\"ImspTQPwCqd\"],\"incidentdate\":[\"20210301\"]}}";
       String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
       assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -755,7 +949,6 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     @Test
     @DisplayName("Events Aggregate - year - Time field: INCIDENT_DATE as dimension")
-    @Disabled("Unclear if INCIDENT_DATE should be supported in event analytics")
     public void incidentDate() throws JSONException {
       // Read the 'expect.postgis' system property at runtime to adapt assertions.
       boolean expectPostgis = isPostgres();
@@ -789,7 +982,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
       // 3. Assert metaData.
       String expectedMetaData =
-          "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"pe\":{},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"ou\":{},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"2021\":{\"name\":\"2021\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"incidentdate\":{\"name\":\"Start of treatment date\"}},\"dimensions\":{\"pe\":[\"2021\"],\"ou\":[\"ImspTQPwCqd\"],\"incidentdate\":[\"2021\"]}}";
+          "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"pe\":{},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"ou\":{},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"2021\":{\"name\":\"2021\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"incidentdate\":{\"name\":\"Start of treatment date\"}},\"dimensions\":{\"ou\":[\"ImspTQPwCqd\"],\"incidentdate\":[\"2021\"]}}";
       String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
       assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -859,7 +1052,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
       // 3. Assert metaData.
       String expectedMetaData =
-          "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"20180730\":{\"name\":\"2018-07-30\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[\"20180730\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+          "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"20180730\":{\"name\":\"2018-07-30\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"lastupdated\":{\"name\":\"Last updated\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"ou\":[\"ImspTQPwCqd\"],\"lastupdated\":[\"20180730\"]}}";
       String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
       assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -948,7 +1141,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
       // 3. Assert metaData.
       String expectedMetaData =
-          "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"20180730\":{\"name\":\"2018-07-30\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[\"20180730\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+          "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"20180730\":{\"name\":\"2018-07-30\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"lastupdated\":{\"name\":\"Last updated\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"ou\":[\"ImspTQPwCqd\"],\"lastupdated\":[\"20180730\"]}}";
       String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
       assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -1038,7 +1231,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
       // 3. Assert metaData.
       String expectedMetaData =
-          "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"20160730\":{\"name\":\"2016-07-30\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"created\":{\"name\":\"Created\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[\"20160730\"],\"created\":[\"20160730\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+          "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"20160730\":{\"name\":\"2016-07-30\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"created\":{\"name\":\"Created\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"created\":[\"20160730\"],\"ou\":[\"ImspTQPwCqd\"]}}";
       String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
       assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -1197,7 +1390,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
       // 3. Assert metaData.
       String expectedMetaData =
-          "{\"items\":{\"20210730\":{\"name\":\"2021-07-30\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"completed\":{\"name\":\"Completed\"},\"completeddate\":{\"name\":\"Completed date\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"completed\":[\"20210730\"],\"pe\":[\"20210730\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+          "{\"items\":{\"20210730\":{\"name\":\"2021-07-30\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"completed\":{\"name\":\"Completed\"},\"completeddate\":{\"name\":\"Completed date\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"ou\":[\"ImspTQPwCqd\"],\"completed\":[\"20210730\"]}}";
       String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
       assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -1350,7 +1543,7 @@ public class EventsAggregate10AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"2021S1\":{\"name\":\"January - June 2021\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"pe\":[\"2021S1\"],\"ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"A03MvHHogjR.a3kGcGDCuk6\":{\"name\":\"MCH Apgar Score\"},\"2021S1\":{\"name\":\"January - June 2021\"},\"pe\":{},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{\"name\":\"Organisation unit\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"eventdate\":{\"name\":\"Event date\"}},\"dimensions\":{\"A03MvHHogjR.a3kGcGDCuk6\":[],\"ou\":[\"ImspTQPwCqd\"],\"eventdate\":[\"2021S1\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 

@@ -265,7 +265,57 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "incidentDateAsDimension",
+      "query": "/api/analytics/events/query/ur1Edk5Oe2n.json?asc=eventdate&headers=oucode,incidentdate&displayProperty=NAME&pageSize=10&page=1&dimension=INCIDENT_DATE:2021&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "year2022WithCreated",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,created&displayProperty=NAME&totalPages=false&rowContext=true&pageSize=10&outputType=ENROLLMENT&page=1&dimension=ou:ImspTQPwCqd,CREATED:2017&desc=lastupdated,created,ouname",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "year2022WithCompleted",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,completed&displayProperty=NAME&totalPages=false&rowContext=true&pageSize=10&outputType=ENROLLMENT&page=1&dimension=ou:ImspTQPwCqd,COMPLETED:2023&desc=lastupdated,completed,ouname",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "createdAndLastUpdatedCanBeCombinedWithStageSpecificEventDate",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,lastupdated&displayProperty=NAME&totalPages=false&pageSize=10&page=1&desc=lastupdated&dimension=ou:ImspTQPwCqd,CREATED:2017,LAST_UPDATED:2018,A03MvHHogjR.EVENT_DATE:2021",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "createdCanBeCombinedWithStageSpecificEventDate",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,lastupdated&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=ou:ImspTQPwCqd,CREATED:2017,A03MvHHogjR.EVENT_DATE:2021&desc=lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "lastUpdatedCanBeCombinedWithStageSpecificEventDate",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,lastupdated&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=ou:ImspTQPwCqd,LAST_UPDATED:2018,A03MvHHogjR.EVENT_DATE:2021&desc=lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "scheduledDateCanBeCombinedWithStageSpecificEventDate",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,lastupdated&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=ou:ImspTQPwCqd,SCHEDULED_DATE:2021,A03MvHHogjR.EVENT_DATE:2021&desc=lastupdated",
+      "version": {
+        "min": 43
+      }
     }
+
 
   ]
 }

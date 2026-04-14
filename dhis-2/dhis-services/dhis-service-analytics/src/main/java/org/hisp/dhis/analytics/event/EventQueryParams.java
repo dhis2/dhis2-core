@@ -1617,6 +1617,11 @@ public class EventQueryParams extends DataQueryParams {
       return this;
     }
 
+    public Builder removeItemFilters() {
+      this.params.itemFilters.clear();
+      return this;
+    }
+
     public Builder addItemFilter(QueryItem item) {
       this.params.itemFilters.add(item);
       return this;
