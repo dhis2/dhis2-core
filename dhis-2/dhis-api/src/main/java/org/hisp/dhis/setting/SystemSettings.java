@@ -29,8 +29,6 @@
  */
 package org.hisp.dhis.setting;
 
-import static org.hisp.dhis.analytics.AnalyticsWeeklyStartKey.WEEKLY;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -238,12 +236,11 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   default AnalyticsFinancialYearStartKey getAnalyticsFinancialYearStart() {
-    return asEnum(
-        "analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER);
+    return asEnum("analyticsFinancialYearStart", AnalyticsFinancialYearStartKey.getDefault());
   }
 
   default AnalyticsWeeklyStartKey getAnalyticsWeeklyStart() {
-    return asEnum("analyticsWeeklyStart", WEEKLY);
+    return asEnum("analyticsWeeklyStart", AnalyticsWeeklyStartKey.getDefault());
   }
 
   default String getPhoneNumberAreaCode() {
@@ -478,10 +475,6 @@ public non-sealed interface SystemSettings extends Settings {
 
   default String getDateFormat() {
     return asString("keyDateFormat", "yyyy-MM-dd");
-  }
-
-  default String getStyle() {
-    return asString("keyStyle", "light_blue/light_blue.css");
   }
 
   default String getRemoteInstanceUrl() {
@@ -786,15 +779,6 @@ public non-sealed interface SystemSettings extends Settings {
   }
 
   /**
-   * @since 2.42
-   * @return true if the experimental analytics query engine should be used for analytics queries.
-   *     This engine is only required when using ClickHouse or Doris as the analytics database.
-   */
-  default boolean getUseExperimentalAnalyticsQueryEngine() {
-    return asBoolean("experimentalAnalyticsSqlEngineEnabled", true);
-  }
-
-  /**
    * @since 2.40
    * @return if true, the analytics event tables are created with a centroid value for each Data
    *     Element or TEA of type OU or ougeometry
@@ -845,5 +829,30 @@ public non-sealed interface SystemSettings extends Settings {
    */
   default int getDeviceEnrollmentIATTtlSeconds() {
     return asInt("deviceEnrollmentIATTtlSeconds", 60);
+  }
+
+  /**
+   * since 2.43
+   *
+   * @return custom color to use as the background for DHIS2 header bar
+   */
+  default String getCustomColor() {
+    return asString("keyCustomColor", "");
+  }
+
+  /**
+   * since 2.43
+   *
+   * @return custom color to use as the background for DHIS2 header bar for Android
+   */
+  default String getCustomColorMobile() {
+    return asString("keyCustomColorMobile", "");
+  }
+
+  /*
+   * @since 2.43
+   */
+  default Boolean getCustomTranslationsEnabled() {
+    return asBoolean("keyCustomTranslationsEnabled", false);
   }
 }

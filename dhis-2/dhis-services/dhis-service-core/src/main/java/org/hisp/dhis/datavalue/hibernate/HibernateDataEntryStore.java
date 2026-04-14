@@ -65,11 +65,11 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.UsageTestOnly;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.datavalue.DataEntryGroup;
-import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataEntryRow;
 import org.hisp.dhis.datavalue.DataEntryStore;
 import org.hisp.dhis.datavalue.DataEntryValue;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
@@ -793,10 +793,10 @@ public class HibernateDataEntryStore extends HibernateGenericStore<DataValue>
   }
 
   @Override
-  public int deleteByKeys(List<DataEntryKey> keys) {
+  public int deleteByKeys(List<DataValueKey> keys) {
     // ATM it does not seem worth it to make a dedicated implementation
     // instead we do...
-    return upsertValues(keys.stream().map(DataEntryKey::toDeletedValue).toList());
+    return upsertValues(keys.stream().map(DataValueKey::toDeletedValue).toList());
   }
 
   @Override

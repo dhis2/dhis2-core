@@ -102,6 +102,7 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals("Label for Enrollment Date", program.getEnrollmentDateLabel().string());
     assertEquals("Label for Enrollment", program.getEnrollmentLabel().string());
+    assertEquals("Label for Enrollments", program.getEnrollmentsLabel().string());
     assertEquals("Label for Follow Up", program.getFollowUpLabel().string());
     assertEquals("Label for Org Unit", program.getOrUnitLabel().string());
     assertEquals("Label for Relationship", program.getRelationshipLabel().string());
@@ -109,7 +110,19 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(
         "Label for Tracked Entity Attribute", program.getTrackedEntityAttributeLabel().string());
     assertEquals("Label for Program Stage", program.getProgramStageLabel().string());
+    assertEquals("Label for Program Stages", program.getProgramStagesLabel().string());
     assertEquals("Label for Event", program.getEventLabel().string());
+    assertEquals("Label for Events", program.getEventsLabel().string());
+  }
+
+  @Test
+  void shouldGetProgramStageLabels() {
+    JsonProgramStage programStage =
+        GET("/programStages/PSzMWi7rBga").content(HttpStatus.OK).as(JsonProgramStage.class);
+
+    assertEquals("Label for Program Stage PS", programStage.getProgramStageLabel().string());
+    assertEquals("Label for Event PS", programStage.getEventLabel().string());
+    assertEquals("Label for Events PS", programStage.getEventsLabel().string());
   }
 
   @Test
@@ -367,6 +380,65 @@ class ProgramControllerTest extends H2ControllerIntegrationTestBase {
     switchToNewUser("test1", "F_PROGRAM_PUBLIC_ADD", "F_PROGRAM_INDICATOR_PUBLIC_ADD");
 
     assertStatus(HttpStatus.NOT_FOUND, POST("/programs/%s/copy".formatted(PROGRAM_UID)));
+  }
+
+  @Test
+  void shouldCreateProgramAndPersistScalarFields() {
+    // language=JSON
+    String json =
+        """
+        {
+          "id": "Program1111",
+          "name": "scalar fields program",
+          "shortName": "scalar prog",
+          "programType": "WITHOUT_REGISTRATION",
+          "displayIncidentDate": false,
+          "onlyEnrollOnce": true,
+          "expiryDays": 5,
+          "completeEventsExpiryDays": 3,
+          "minAttributesRequiredToSearch": 2
+        }
+        """;
+    assertStatus(HttpStatus.CREATED, POST("/programs", json));
+
+    JsonProgram program = GET("/programs/Program1111").content(HttpStatus.OK).as(JsonProgram.class);
+
+    assertEquals("scalar fields program", program.getName());
+    assertEquals("scalar prog", program.getShortName());
+    assertEquals("WITHOUT_REGISTRATION", program.getString("programType").string());
+    assertFalse(program.getBoolean("displayIncidentDate").booleanValue());
+    assertTrue(program.getBoolean("onlyEnrollOnce").booleanValue());
+    assertEquals(5, program.getNumber("expiryDays").intValue());
+    assertEquals(3, program.getNumber("completeEventsExpiryDays").intValue());
+    assertEquals(2, program.getNumber("minAttributesRequiredToSearch").intValue());
+  }
+
+  @Test
+  void shouldUpdateProgramAndPersistChanges() {
+    // language=JSON
+    String json =
+        """
+        {
+          "id": "PrZMWi7rBga",
+          "name": "updated program name",
+          "shortName": "test program",
+          "programType": "WITH_REGISTRATION",
+          "description": "updated program description",
+          "onlyEnrollOnce": true,
+          "expiryDays": 10,
+          "enrollmentDateLabel": "Updated Enrollment Date"
+        }
+        """;
+    assertStatus(HttpStatus.OK, PUT("/programs/" + PROGRAM_UID, json));
+
+    JsonProgram program =
+        GET("/programs/{id}", PROGRAM_UID).content(HttpStatus.OK).as(JsonProgram.class);
+
+    assertEquals("updated program name", program.getName());
+    assertEquals("updated program description", program.getDescription());
+    assertTrue(program.getBoolean("onlyEnrollOnce").booleanValue());
+    assertEquals(10, program.getNumber("expiryDays").intValue());
+    assertEquals("Updated Enrollment Date", program.getEnrollmentDateLabel().string());
   }
 
   @Test

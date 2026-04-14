@@ -59,10 +59,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataDumpService;
-import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -398,7 +398,7 @@ class EventPredictionServiceTest extends PostgresIntegrationTestBase {
    * @return the value
    */
   private String getDataValue(DataElement dataElement, Period period) {
-    DataEntryKey key = new DataEntryKey(dataElement, period, orgUnitA, defaultCombo, defaultCombo);
+    DataValueKey key = new DataValueKey(dataElement, period, orgUnitA, defaultCombo, defaultCombo);
     try {
       DataExportValue dv = dataExportService.exportValue(key);
       if (dv != null) return dv.value();

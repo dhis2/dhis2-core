@@ -80,6 +80,7 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.export.Geometries;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.OrderJdbcClause;
 import org.hisp.dhis.tracker.export.OrgUnitQueryBuilder;
 import org.hisp.dhis.tracker.export.UserInfoSnapshots;
 import org.hisp.dhis.tracker.model.SingleEvent;
@@ -114,7 +115,9 @@ class JdbcSingleEventStore {
        on evn.noteid = n.noteid\
        left join userinfo on n.lastupdatedby = userinfo.userinfoid\s""";
 
-  private static final String DEFAULT_ORDER = "ev_id desc";
+  private static final String DEFAULT_ORDER = "ev_occurreddate desc, ev_id desc";
+
+  private static final String PK_COLUMN = "ev_id";
 
   /**
    * Events can be ordered by given fields which correspond to fields on {@link SingleEvent}. Maps
@@ -203,15 +206,6 @@ class JdbcSingleEventStore {
 
               event.setStatus(EventStatus.valueOf(resultSet.getString("ev_status")));
 
-              ProgramType programType = ProgramType.fromValue(resultSet.getString("p_type"));
-              Program program = new Program();
-              program.setUid(resultSet.getString("p_uid"));
-              program.setCode(resultSet.getString("p_code"));
-              program.setName(resultSet.getString("p_name"));
-              program.setAttributeValues(
-                  AttributeValues.of(resultSet.getString("p_attributevalues")));
-              program.setProgramType(programType);
-
               OrganisationUnit orgUnit = new OrganisationUnit();
               orgUnit.setUid(resultSet.getString("orgunit_uid"));
               orgUnit.setCode(resultSet.getString("orgunit_code"));
@@ -220,15 +214,46 @@ class JdbcSingleEventStore {
                   AttributeValues.of(resultSet.getString("orgunit_attributevalues")));
               event.setOrganisationUnit(orgUnit);
 
-              ProgramStage ps = new ProgramStage();
-              ps.setUid(resultSet.getString("ps_uid"));
-              ps.setCode(resultSet.getString("ps_code"));
-              ps.setName(resultSet.getString("ps_name"));
-              ps.setAttributeValues(AttributeValues.of(resultSet.getString("ps_attributevalues")));
-              ps.setProgram(program);
-              event.setDeleted(resultSet.getBoolean("ev_deleted"));
+              if (queryParams.getProgram() != null) {
+                Program program = new Program();
+                Program queryProgram = queryParams.getProgram();
+                program.setUid(queryProgram.getUid());
+                program.setCode(queryProgram.getCode());
+                program.setName(queryProgram.getName());
+                program.setAttributeValues(queryProgram.getAttributeValues());
+                program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
 
-              event.setProgramStage(ps);
+                ProgramStage ps = new ProgramStage();
+                ProgramStage queryProgramStage = queryParams.getProgramStage();
+                ps.setUid(queryProgramStage.getUid());
+                ps.setCode(queryProgramStage.getCode());
+                ps.setName(queryProgramStage.getName());
+                ps.setAttributeValues(queryProgramStage.getAttributeValues());
+                ps.setProgram(program);
+
+                event.setProgramStage(ps);
+              } else {
+                ProgramType programType = ProgramType.fromValue(resultSet.getString("p_type"));
+                Program program = new Program();
+                program.setUid(resultSet.getString("p_uid"));
+                program.setCode(resultSet.getString("p_code"));
+                program.setName(resultSet.getString("p_name"));
+                program.setAttributeValues(
+                    AttributeValues.of(resultSet.getString("p_attributevalues")));
+                program.setProgramType(programType);
+
+                ProgramStage ps = new ProgramStage();
+                ps.setUid(resultSet.getString("ps_uid"));
+                ps.setCode(resultSet.getString("ps_code"));
+                ps.setName(resultSet.getString("ps_name"));
+                ps.setAttributeValues(
+                    AttributeValues.of(resultSet.getString("ps_attributevalues")));
+                ps.setProgram(program);
+
+                event.setProgramStage(ps);
+              }
+
+              event.setDeleted(resultSet.getBoolean("ev_deleted"));
 
               CategoryOptionCombo coc = new CategoryOptionCombo();
               coc.setUid(resultSet.getString("coc_uid"));
@@ -344,7 +369,7 @@ class JdbcSingleEventStore {
 
     String sql =
         """
-                UPDATE event SET lastsynchronized = :lastSynchronized WHERE uid IN (:uids)
+                UPDATE singleevent SET lastsynchronized = :lastSynchronized WHERE uid IN (:uids)
                 """;
 
     MapSqlParameterSource parameters =
@@ -541,8 +566,8 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
    * <pre>
    * select ...
    * from singleevent ev
-   *   inner join programstage ps on ...
-   *   inner join program p on ...
+   *   inner join programstage ps on ...    -- conditional
+   *   inner join program p on ...          -- conditional
    *   inner join organisationunit ou on ...
    *   left join userinfo au on ...
    *   inner join (...) coc_agg on ...
@@ -554,8 +579,10 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     StringBuilder sql = new StringBuilder();
     addSelect(sql, params, sqlParams);
     sql.append(" from singleevent ev ");
-    addJoinOnProgramStage(sql);
-    addJoinOnProgram(sql);
+    if (params.getProgram() == null) {
+      addJoinOnProgramStage(sql);
+      addJoinOnProgram(sql);
+    }
     addJoinOnOrgUnit(sql);
     addLeftJoinOnAssignedUser(sql);
     addJoinOnCategoryOptionCombo(sql, user);
@@ -565,17 +592,29 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
   private void addSelect(
       StringBuilder sql, SingleEventQueryParams params, MapSqlParameterSource sqlParams) {
-    sql.append(
-        """
+    if (params.getProgram() != null) {
+      // program and programstage columns are not needed; the RowMapper
+      // reuses the already loaded Program and ProgramStage entities instead
+      sql.append(
+          """
+            select ev.uid as ev_uid,
+            ou.uid as orgunit_uid, ou.code as orgunit_code, ou.name as orgunit_name,
+            ou.attributevalues as orgunit_attributevalues,
+            ev.eventid as ev_id, ev.status as ev_status,
+            ev.occurreddate as ev_occurreddate,\s""");
+    } else {
+      sql.append(
+          """
             select ev.uid as ev_uid,
             ou.uid as orgunit_uid, ou.code as orgunit_code, ou.name as orgunit_name,
             ou.attributevalues as orgunit_attributevalues,
             p.uid as p_uid, p.code as p_code, p.name as p_name,
-            p.attributevalues as p_attributevalues,
+            p.attributevalues as p_attributevalues, p.type as p_type,
             ps.uid as ps_uid, ps.code as ps_code, ps.name as ps_name,
             ps.attributevalues as ps_attributevalues,
             ev.eventid as ev_id, ev.status as ev_status,
             ev.occurreddate as ev_occurreddate,\s""");
+    }
     sql.append(getEventDataValuesProjectionForSelectClause(params, sqlParams));
     sql.append(
         """
@@ -590,12 +629,13 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             au.uid as user_assigned,
             (au.firstName || ' ' || au.surName) as user_assigned_name,
             au.firstName as user_assigned_first_name, au.surName as user_assigned_surname,
-            au.username as user_assigned_username,
-            coc_agg.uid as coc_uid, coc_agg.code as coc_code, coc_agg.name as coc_name,
-            coc_agg.attributevalues as coc_attributevalues,
-            coc_agg.co_values as co_values, coc_agg.co_count as option_size,\s""");
+            au.username as user_assigned_username, \s""");
     addOrderFieldsToSelect(sql, params.getOrder());
-    sql.append("p.type as p_type ");
+    sql.append(
+        """
+            coc_agg.uid as coc_uid, coc_agg.code as coc_code, coc_agg.name as coc_name,
+                        coc_agg.attributevalues as coc_attributevalues,
+                        coc_agg.co_values as co_values, coc_agg.co_count as option_size""");
   }
 
   private void addOrderFieldsToSelect(StringBuilder sql, List<Order> orders) {
@@ -712,9 +752,6 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       SingleEventQueryParams params,
       SqlHelper hlp) {
     if (params.getProgram() != null) {
-      sqlParams.addValue("programid", params.getProgram().getId());
-      sql.append(hlp.whereAnd()).append(" p.programid = ").append(":programid ");
-
       sqlParams.addValue("programstageid", params.getProgramStage().getId());
       sql.append(hlp.whereAnd()).append(" ev.programstageid = :programstageid ");
     }
@@ -881,7 +918,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
   }
 
   private String getOrderQuery(SingleEventQueryParams params) {
-    ArrayList<String> orderFields = new ArrayList<>();
+    List<OrderJdbcClause.SqlOrder> orderFields = new ArrayList<>();
 
     for (Order order : params.getOrder()) {
       if (order.getField() instanceof String field) {
@@ -893,11 +930,11 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
                   field, String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
         }
 
-        orderFields.add(ORDERABLE_FIELDS.get(field) + " " + order.getDirection());
+        orderFields.add(OrderJdbcClause.SqlOrder.of(ORDERABLE_FIELDS.get(field), order));
       } else if (order.getField() instanceof TrackedEntityAttribute tea) {
-        orderFields.add(tea.getUid() + "_value " + order.getDirection());
+        orderFields.add(OrderJdbcClause.SqlOrder.of(tea.getUid() + "_value", order));
       } else if (order.getField() instanceof DataElement de) {
-        orderFields.add(de.getUid() + " " + order.getDirection());
+        orderFields.add(OrderJdbcClause.SqlOrder.of(de.getUid(), order));
       } else {
         throw new IllegalArgumentException(
             String.format(
@@ -908,11 +945,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       }
     }
 
-    if (!orderFields.isEmpty()) {
-      return "order by " + StringUtils.join(orderFields, ',') + ", " + DEFAULT_ORDER + " ";
-    } else {
-      return "order by " + DEFAULT_ORDER + " ";
-    }
+    return OrderJdbcClause.of(orderFields, DEFAULT_ORDER, PK_COLUMN);
   }
 
   private boolean isNotSuperUser(UserDetails user) {

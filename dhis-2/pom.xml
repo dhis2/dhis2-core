@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.hisp.dhis</groupId>
   <artifactId>dhis</artifactId>
-  <version>2.43-SNAPSHOT</version>
+  <version>2.44-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>DHIS2</name>
 
@@ -91,7 +91,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.6.0</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.7.2</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.6</dhis-hisp-quick.version>
@@ -99,17 +99,17 @@
     <dhis-json-tree.version>1.8.1</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>6.5.0</spring-security.version>
+    <spring-security.version>6.5.4</spring-security.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <spring-authorization-server.version>1.5.2</spring-authorization-server.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>10.5</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>10.8</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.3</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.3</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>6.2.8</spring.version>
+    <spring.version>6.2.11</spring.version>
     <spring-session-core.version>3.5.1</spring-session-core.version>
     <spring-data-redis.version>2.7.18</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.4</spring-session-data-redis.version>
@@ -124,16 +124,16 @@
     <flyway-database-postgresql.version>11.8.2</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.10.8</ehcache3.version>
-    <jaxb-runtime.version>4.0.6</jaxb-runtime.version>
+    <jaxb-runtime.version>4.0.7</jaxb-runtime.version>
     <hypersistence-utils.version>3.9.5</hypersistence-utils.version>
     <!-- Data sources,db pools and db drivers -->
-    <c3p0.version>0.11.1</c3p0.version>
+    <c3p0.version>0.12.0</c3p0.version>
     <HikariCP.version>7.0.2</HikariCP.version>
-    <postgresql-driver.version>42.7.7</postgresql-driver.version>
+    <postgresql-driver.version>42.7.10</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.11.0</datasource-proxy.version>
     <mysql-connector-j.version>9.3.0</mysql-connector-j.version>
-    <clickhouse-jdbc.version>0.9.2</clickhouse-jdbc.version>
+    <clickhouse-jdbc.version>0.9.8</clickhouse-jdbc.version>
 
     <!-- Servlet -->
     <jakarta.servlet-api.version>6.1.0</jakarta.servlet-api.version>
@@ -163,7 +163,7 @@
     <jfreechart-common.version>1.0.23</jfreechart-common.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
-    <poi.version>5.4.1</poi.version>
+    <poi.version>5.5.1</poi.version>
     <itext.version>2.1.7</itext.version>
 
     <!-- GIS -->
@@ -187,13 +187,13 @@
     <jsoup.version>1.21.1</jsoup.version>
 
     <!-- Div. utils -->
-    <guava.version>33.4.8-jre</guava.version>
+    <guava.version>33.5.0-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
-    <google-api-client.version>2.8.1</google-api-client.version>
+    <google-api-client.version>2.9.0</google-api-client.version>
     <lombok.version>1.18.40</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
-    <joda-time.version>2.14.0</joda-time.version>
+    <joda-time.version>2.14.1</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.5.0</commons-collections4.version>
     <commons-beanutils.version>1.11.0</commons-beanutils.version>
@@ -202,13 +202,13 @@
     <commons-fileupload.version>1.6.0</commons-fileupload.version>
     <commons-math3.version>3.6.1</commons-math3.version>
     <commons-validator.version>1.10.0</commons-validator.version>
-    <commons-io.version>2.20.0</commons-io.version>
+    <commons-io.version>2.21.0</commons-io.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
     <jakarta-email.version>1.6.7</jakarta-email.version>
     <httpcomponents-core.version>5.4</httpcomponents-core.version>
     <httpcomponents-client5.version>5.5</httpcomponents-client5.version>
-    <kafka.version>4.0.0</kafka.version>
+    <kafka.version>4.0.2</kafka.version>
 
     <!-- Monitoring -->
     <micrometer-spring-legacy.version>1.3.20</micrometer-spring-legacy.version>
@@ -216,7 +216,7 @@
     <prometheus-metrics-model.version>1.3.1</prometheus-metrics-model.version>
 
     <!-- Logging -->
-    <log4j.version>2.25.3</log4j.version>
+    <log4j.version>2.25.4</log4j.version>
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
@@ -227,7 +227,7 @@
     <testcontainers.version>1.21.4</testcontainers.version>
     <jsonassert.version>1.5.3</jsonassert.version>
     <awaitility.version>4.3.0</awaitility.version>
-    <swagger.version>2.1.34</swagger.version>
+    <swagger.version>2.1.39</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
     <h2.version>2.4.240</h2.version>
@@ -236,20 +236,20 @@
 
     <!-- Maven plugin versions -->
     <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
-    <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
+    <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
     <maven-exec-plugin.version>3.5.1</maven-exec-plugin.version>
     <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
     <maven-failsafe-plugin.version>3.5.4</maven-failsafe-plugin.version>
     <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
-    <maven-enforcer-plugin.version>3.6.1</maven-enforcer-plugin.version>
+    <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
     <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
     <maven-dependency-plugin.version>3.8.1</maven-dependency-plugin.version>
     <restrict-imports-enforcer.version>3.0.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.20.1</versions-maven-plugin.version>
     <dependency-check-maven.version>12.1.3</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.9.8.2</spotbugs-maven-plugin.version>
-    <spotless.version>2.46.1</spotless.version>
+    <spotless.version>3.4.0</spotless.version>
     <jacoco-maven-plugin.version>0.8.13</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.2.0</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.39</dhis-antlr-expression-parser.version>
@@ -839,7 +839,7 @@
       <dependency>
         <groupId>org.jetbrains</groupId>
         <artifactId>annotations</artifactId>
-        <version>26.0.2</version>
+        <version>26.1.0</version>
         <scope>compile</scope>
       </dependency>
 
@@ -1872,7 +1872,7 @@
         <plugin>
           <groupId>org.sonarsource.scanner.maven</groupId>
           <artifactId>sonar-maven-plugin</artifactId>
-          <version>5.1.0.4751</version>
+          <version>5.5.0.6356</version>
         </plugin>
         <plugin>
           <groupId>org.cyclonedx</groupId>

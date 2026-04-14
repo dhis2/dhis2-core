@@ -29,9 +29,11 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.springframework.http.CacheControl.noStore;
 import static org.springframework.http.HttpStatus.OK;
 
 import org.hisp.dhis.common.OpenApi;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,5 +47,10 @@ public class PingController {
   @CrossOrigin
   public void ping() {
     // Do nothing
+  }
+
+  @GetMapping("/api/system/ping")
+  public ResponseEntity<String> systemPing() {
+    return ResponseEntity.ok().cacheControl(noStore()).body("pong");
   }
 }

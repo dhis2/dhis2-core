@@ -629,18 +629,6 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
   }
 
   @Test
-  void testAggregateDataExchangeSuccess() {
-    POST("/metadata/", Path.of("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
-    JsonTypeReport typeReport =
-        POST("/aggregateDataExchanges/iFOyIpQciyk/exchange")
-            .content(HttpStatus.OK)
-            .get("response")
-            .as(JsonTypeReport.class);
-    JsonImportSummary report = typeReport.getImportSummaries().get(0).as(JsonImportSummary.class);
-    assertEquals("SUCCESS", report.getStatus());
-  }
-
-  @Test
   @DisplayName("Should not insert duplicate translation records when updating object")
   void testUpdateObjectWithTranslation() {
     POST(

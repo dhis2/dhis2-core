@@ -32,56 +32,124 @@ package org.hisp.dhis.analytics.event.data.enrollmentou;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.analytics.AnalyticsConstants.ORG_UNIT_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.common.ColumnHeader.ENROLLMENT_OU_NAME;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.ENROLLMENT_COLUMN_NAME;
 import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.ENROLLMENT_OU_COLUMN_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlFragments;
+import org.hisp.dhis.db.sql.DorisSqlBuilder;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.junit.jupiter.api.Test;
 
 class OrgUnitSqlFragmentsTest {
 
+  private final SqlBuilder pgSqlBuilder = new PostgreSqlBuilder();
+  private final SqlBuilder dorisSqlBuilder = new DorisSqlBuilder("pg_dhis", "postgresql.jar");
+
   @Test
   void testJoinCondition() {
     assertThat(
-        OrgUnitSqlFragments.joinCondition("ous"),
-        is("ax.\"enrollmentou\" = ous.\"organisationunituid\""));
+        OrgUnitSqlFragments.joinCondition("enrl", pgSqlBuilder),
+        is("ax.\"enrollment\" = enrl.\"enrollment\""));
+  }
+
+  @Test
+  void testJoinConditionDoris() {
+    assertThat(
+        OrgUnitSqlFragments.joinCondition("enrl", dorisSqlBuilder),
+        is("ax.`enrollment` = enrl.`enrollment`"));
   }
 
   @Test
   void testInnerJoinClause() {
     assertEquals(
-        "inner join analytics_rs_orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" ",
-        OrgUnitSqlFragments.innerJoinClause());
+        "inner join analytics_enrollment_abcdefghijk as enrl on ax.\"enrollment\" = enrl.\"enrollment\" ",
+        OrgUnitSqlFragments.innerJoinClause("analytics_enrollment_abcdefghijk", pgSqlBuilder));
+  }
+
+  @Test
+  void testInnerJoinClauseDoris() {
+    assertEquals(
+        "inner join analytics_enrollment_abcdefghijk as enrl on ax.`enrollment` = enrl.`enrollment` ",
+        OrgUnitSqlFragments.innerJoinClause("analytics_enrollment_abcdefghijk", dorisSqlBuilder));
   }
 
   @Test
   void testSelectEnrollmentOuUid() {
     assertEquals(
-        "ous.\"organisationunituid\" as enrollmentou",
-        OrgUnitSqlFragments.selectEnrollmentOuUid(false));
-    assertEquals("ous.\"organisationunituid\"", OrgUnitSqlFragments.selectEnrollmentOuUid(true));
+        "enrl.\"ou\" as enrollmentou",
+        OrgUnitSqlFragments.selectEnrollmentOuUid(false, pgSqlBuilder));
+    assertEquals("enrl.\"ou\"", OrgUnitSqlFragments.selectEnrollmentOuUid(true, pgSqlBuilder));
+  }
+
+  @Test
+  void testSelectEnrollmentOuUidDoris() {
+    assertEquals(
+        "enrl.`ou` as enrollmentou",
+        OrgUnitSqlFragments.selectEnrollmentOuUid(false, dorisSqlBuilder));
+    assertEquals("enrl.`ou`", OrgUnitSqlFragments.selectEnrollmentOuUid(true, dorisSqlBuilder));
   }
 
   @Test
   void testSelectEnrollmentOuName() {
-    assertEquals("ous.\"name\" as enrollmentouname", OrgUnitSqlFragments.selectEnrollmentOuName());
+    assertEquals(
+        "enrl.\"ouname\" as enrollmentouname",
+        OrgUnitSqlFragments.selectEnrollmentOuName(pgSqlBuilder));
   }
 
   @Test
-  void testPredicates() {
+  void testSelectEnrollmentOuNameDoris() {
     assertEquals(
-        " ous.\"organisationunituid\" in ('a','b') ",
-        OrgUnitSqlFragments.predicateByUids("'a','b'"));
-    assertEquals(" ous.\"level\" in (2,4) ", OrgUnitSqlFragments.predicateByLevels("2,4"));
+        "enrl.`ouname` as enrollmentouname",
+        OrgUnitSqlFragments.selectEnrollmentOuName(dorisSqlBuilder));
+  }
+
+  @Test
+  void testPredicateByUids() {
+    assertEquals(
+        " enrl.\"ou\" in ('a','b') ", OrgUnitSqlFragments.predicateByUids("'a','b'", pgSqlBuilder));
+  }
+
+  @Test
+  void testPredicateByUidsDoris() {
+    assertEquals(
+        " enrl.`ou` in ('a','b') ",
+        OrgUnitSqlFragments.predicateByUids("'a','b'", dorisSqlBuilder));
+  }
+
+  @Test
+  void testPredicateByLevels() {
+    assertEquals(
+        " enrl.\"oulevel\" in (2,4) ", OrgUnitSqlFragments.predicateByLevels("2,4", pgSqlBuilder));
+  }
+
+  @Test
+  void testPredicateByLevelsDoris() {
+    assertEquals(
+        " enrl.`oulevel` in (2,4) ", OrgUnitSqlFragments.predicateByLevels("2,4", dorisSqlBuilder));
+  }
+
+  @Test
+  void testPredicateByUidLevel() {
+    assertEquals(
+        "enrl.\"uidlevel3\" in ('uid1','uid2')",
+        OrgUnitSqlFragments.predicateByUidLevel(3, "'uid1','uid2'", pgSqlBuilder));
+  }
+
+  @Test
+  void testPredicateByUidLevelDoris() {
+    assertEquals(
+        "enrl.`uidlevel3` in ('uid1','uid2')",
+        OrgUnitSqlFragments.predicateByUidLevel(3, "'uid1','uid2'", dorisSqlBuilder));
   }
 
   @Test
   void testConstantsAreMappedFromSharedIdentifiers() {
     assertEquals(ANALYTICS_TBL_ALIAS, OrgUnitSqlConstants.EVENT_TABLE_ALIAS);
-    assertEquals(ORG_UNIT_STRUCT_ALIAS, OrgUnitSqlConstants.ORG_UNIT_STRUCTURE_ALIAS);
+    assertEquals(ENROLLMENT_COLUMN_NAME, OrgUnitSqlConstants.ENROLLMENT_JOIN_COLUMN);
     assertEquals(ENROLLMENT_OU_COLUMN_NAME, OrgUnitSqlConstants.EVENT_ENROLLMENT_OU_COLUMN);
     assertEquals(OrgUnitSqlConstants.ENROLLMENT_OU_NAME_RESULT_ALIAS, ENROLLMENT_OU_NAME.getItem());
   }

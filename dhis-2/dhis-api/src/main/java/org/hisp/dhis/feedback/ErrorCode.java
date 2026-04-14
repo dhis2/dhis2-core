@@ -466,6 +466,9 @@ public enum ErrorCode {
   E6304("Aggregate data exchange target API must be specified when target type is EXTERNAL"),
   E6305(
       "Aggregate data exchange target API must specify either access token or username and password"),
+  E6306("Aggregate data exchange source using periods of different types: `{0}` ({1}) vs `{2}`"),
+  E6307(
+      "Aggregate data exchange source request contains data item with unsupported type: `{0}`, allowed types are: {1}"),
 
   /*Analytics table hook*/
   E6400("Analytics table hook `{0}` is a duplicate of `{1}`"),
@@ -574,7 +577,7 @@ public enum ErrorCode {
   E7221("Coordinate field is invalid: `{0}`"),
   E7222("Query item or filter is invalid: `{0}`"),
   E7223(
-      "Value does not refer to a data element or attribute which are numeric and part of the program: `{0}`"),
+      "Value does not refer to a data element or attribute which are numeric or boolean and part of the program: `{0}`"),
   E7224(
       "Item identifier does not reference any data element, attribute or indicator part of the program: `{0}`"),
   E7225(
@@ -685,8 +688,8 @@ public enum ErrorCode {
       "Untimely data entry for attribute option combo ${combo:{0}} and period(s): `${periods:{1}}`"),
   E8033(
       "Untimely data entry (already approved) for attribute option combo ${combo:{0}}, org unit ${unit:{1}} and periods: `${periods:{2}}`"),
-  E8034("Data set deletion scope ID refers to a non-existing object: `${id:{1}}`"),
-  E8035("Data set deletion scope ID is not a valid UID: `${id:{1}}`"),
+  E8034("Data set deletion scope ID refers to a non-existing object: `${id:{0}}`"),
+  E8035("Data set deletion scope ID is not a valid UID: `${id:{0}}`"),
   // value level decoding and input issues
   E8100("Value #${index:{0}} period not defined in group or value: `${dv:{1}}`"),
   E8101("Value #${index:{0}} data set is required to decode category options: `${options:{1}}`"),

@@ -72,6 +72,7 @@ import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Geometries;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.OrderJdbcClause;
 import org.hisp.dhis.tracker.export.UserInfoSnapshots;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.TrackedEntity;
@@ -91,6 +92,7 @@ import org.springframework.stereotype.Component;
 class JdbcEnrollmentStore {
 
   private static final String DEFAULT_ORDER = "e.enrollmentid desc";
+  private static final String PK_COLUMN = "e.enrollmentid";
   private static final Set<String> ORDERABLE_FIELDS =
       Set.of(
           "completedDate",
@@ -454,7 +456,6 @@ class JdbcEnrollmentStore {
   }
 
   private void addOrderBy(StringBuilder sql, EnrollmentQueryParams params) {
-    sql.append(" order by ");
     sql.append(orderBy(params.getOrder()));
   }
 
@@ -589,19 +590,16 @@ class JdbcEnrollmentStore {
   }
 
   private static String orderBy(List<Order> orders) {
-    if (orders == null || orders.isEmpty()) {
-      return DEFAULT_ORDER;
+    if (orders == null) {
+      return " order by " + DEFAULT_ORDER + " ";
     }
 
-    StringBuilder orderBy = new StringBuilder();
+    List<OrderJdbcClause.SqlOrder> orderFields = new ArrayList<>();
     for (Order order : orders) {
-      if (!orderBy.isEmpty()) {
-        orderBy.append(", ");
-      }
-      orderBy.append("e.").append(order.getField()).append(" ").append(order.getDirection());
+      orderFields.add(OrderJdbcClause.SqlOrder.of("e." + order.getField(), order));
     }
 
-    return orderBy + ", " + DEFAULT_ORDER;
+    return OrderJdbcClause.of(orderFields, DEFAULT_ORDER, PK_COLUMN);
   }
 
   private static class EnrollmentRowMapper implements RowMapper<Enrollment> {

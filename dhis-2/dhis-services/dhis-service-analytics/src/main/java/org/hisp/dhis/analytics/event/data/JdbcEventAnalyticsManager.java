@@ -96,7 +96,6 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -148,7 +147,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       OrganisationUnitResolver organisationUnitResolver,
       ColumnMapper columnMapper,
       QueryItemFilterBuilder filterBuilder,
-      StageQuerySqlFacade stageQuerySqlFacade) {
+      StageQuerySqlFacade stageQuerySqlFacade,
+      DateFieldPeriodBucketColumnResolver dateFieldPeriodBucketColumnResolver) {
     super(
         jdbcTemplate,
         programIndicatorService,
@@ -162,16 +162,14 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         organisationUnitResolver,
         columnMapper,
         filterBuilder,
-        stageQuerySqlFacade);
+        stageQuerySqlFacade,
+        dateFieldPeriodBucketColumnResolver);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
   }
 
   @Override
   public Grid getEvents(EventQueryParams params, Grid grid, int maxLimit) {
-    String sql =
-        useExperimentalAnalyticsQueryEngine()
-            ? buildAnalyticsQuery(params, maxLimit)
-            : getAggregatedEnrollmentsSql(params, maxLimit);
+    String sql = buildAnalyticsQuery(params, maxLimit);
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql));
@@ -282,7 +280,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     sql += getFromClause(params);
 
-    sql += getWhereClause(params);
+    String whereClause = getWhereClause(params);
+    sql += whereClause;
+    sql += getAdditionalQueryItemWhereClause(params, whereClause);
 
     long count = 0;
 
@@ -360,21 +360,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   // Supportive methods
   // -------------------------------------------------------------------------
 
-  /**
-   * Returns a select SQL clause for the given query.
-   *
-   * @param params the {@link EventQueryParams}.
-   */
-  @Override
-  protected String getSelectClause(EventQueryParams params) {
-    List<String> standardColumns = getStandardColumns(params);
-
-    List<String> selectCols =
-        ListUtils.distinctUnion(standardColumns, getSelectColumns(params, false));
-
-    return "select " + StringUtils.join(selectCols, ",") + " ";
-  }
-
   @Override
   protected String getColumnWithCte(
       QueryItem item, CteContext cteContext, EventQueryParams params) {
@@ -431,7 +416,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   @Override
   void addFromClause(SelectBuilder sb, EventQueryParams params) {
     sb.from(params.getTableName(), ANALYTICS_TBL_ALIAS);
-    OrgUnitSqlCoordinator.addJoinIfNeeded(sb, params);
+    OrgUnitSqlCoordinator.addJoinIfNeeded(sb, params, sqlBuilder);
   }
 
   /**
@@ -452,6 +437,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         EventAnalyticsColumnName.CREATED_BY_DISPLAYNAME_COLUMN_NAME,
         EventAnalyticsColumnName.LAST_UPDATED_BY_DISPLAYNAME_COLUMN_NAME,
         EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
+        EventAnalyticsColumnName.CREATED_COLUMN_NAME,
+        EventAnalyticsColumnName.COMPLETED_DATE_COLUMN_NAME,
         EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME);
 
     if (params.getProgram().isRegistration()) {
@@ -486,7 +473,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
    * @return a coordinate coalesce select expression.
    */
   private String getEnrollmentCoordinateSelectExpression() {
-    String field = String.format("coalesce(%s)", ENROLLMENT_GEOMETRY.getValue());
+    String qualifiedColumn = ANALYTICS_TBL_ALIAS + "." + ENROLLMENT_GEOMETRY.getValue();
+    String field = String.format("coalesce(%s)", qualifiedColumn);
 
     return String.format("ST_AsGeoJSON(%s, 6) as %s", field, ENROLLMENT_GEOMETRY.getValue());
   }
@@ -537,7 +525,10 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
           .append(" ");
     }
 
-    OrgUnitSqlCoordinator.appendLegacyJoin(sql, params);
+    resolveDateFieldPeriodBucketJoins(params, ANALYTICS_TBL_ALIAS)
+        .forEach(join -> sql.append(join.toSql()).append(" "));
+
+    OrgUnitSqlCoordinator.appendLegacyJoin(sql, params, sqlBuilder);
 
     return sql.append(joinOrgUnitTables(params, getAnalyticsType())).toString();
   }
@@ -565,11 +556,10 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     // Periods
     // ---------------------------------------------------------------------
 
-    // Skip global time field filter when stage-specific date items are present,
-    // as they already include their own date filters with program stage conditions
-    if (!params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()
-        && !params.hasStageDateItem()) {
-      String timeFieldSql = timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
+    if (!params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
+      EventQueryParams timeFilterParams =
+          EventPeriodUtils.sanitizeTimeFiltersForStageDateItems(params);
+      String timeFieldSql = timeFieldSqlRenderer.renderPeriodTimeFieldSql(timeFilterParams);
       if (StringUtils.isNotBlank(timeFieldSql)) {
         sql += hlp.whereAnd() + " " + timeFieldSql;
       }
@@ -687,12 +677,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
               + params.getProgramStage().getUid()
               + "' ";
     }
-
-    // ---------------------------------------------------------------------
-    // Query items and filters
-    // ---------------------------------------------------------------------
-
-    sql += getQueryItemsAndFiltersWhereClause(params, hlp);
 
     sql += getOptionFilter(params, hlp);
 
@@ -1067,7 +1051,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     List<String> columns = new ArrayList<>(getStandardColumns(params));
     addDimensionSelectColumns(columns, params, false, false);
-    OrgUnitSqlCoordinator.addQuerySelectColumns(columns, params);
+    OrgUnitSqlCoordinator.addQuerySelectColumns(columns, params, sqlBuilder);
     addEventsItemSelectColumns(columns, params, cteContext);
 
     columns.forEach(

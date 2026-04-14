@@ -32,19 +32,17 @@ section_order: 3
 summary_sql: >-
     WITH options_sets_empty as (
     SELECT uid,name from
-    optionset where optionsetid
-    NOT IN (SELECT DISTINCT optionsetid
-    from optionvalue WHERE optionsetid IS NOT NULL)
+    optionset os WHERE NOT EXISTS (
+    SELECT 1 from optionvalue v WHERE v.optionsetid = os.optionsetid)
     )
-    SELECT 
+    SELECT
     COUNT(*) as value,
     100 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM optionset), 0) as percent
     from options_sets_empty;
 details_sql: >-
     SELECT uid,name from
-    optionset where optionsetid
-    NOT IN (SELECT DISTINCT optionsetid
-    from optionvalue WHERE optionsetid IS NOT NULL)
+    optionset os WHERE NOT EXISTS (
+    SELECT 1 from optionvalue v WHERE v.optionsetid = os.optionsetid)
     ORDER BY name;
 details_id_type: optionSets
 severity: WARNING

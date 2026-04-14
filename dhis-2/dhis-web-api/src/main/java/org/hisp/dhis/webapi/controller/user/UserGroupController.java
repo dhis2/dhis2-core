@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.user;
 
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -57,8 +58,8 @@ public class UserGroupController extends AbstractCrudController<UserGroup, GetOb
   }
 
   @Override
-  protected void postDeleteEntity(String entityUid) {
-    manager.removeUserGroupFromSharing(entityUid);
+  protected void postDeleteEntity(UID entityUid) {
+    manager.removeUserGroupFromSharing(entityUid.getValue());
     aclService.invalidateCurrentUserGroupInfoCache();
   }
 }

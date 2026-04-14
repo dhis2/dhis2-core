@@ -35,16 +35,173 @@ Test results are saved to `target/gatling/<simulation-class>-<timestamp>/`:
 * `profile.collapsed` - Collapsed stack traces (if profiling enabled with `PROF_ARGS)`
 * `postgresql.log` - SQL logs (if enabled with `CAPTURE_SQL_LOGS)`
 * `pgbadger.html` - SQL analysis report (if `CAPTURE_SQL_LOGS` enabled and `pgbadger` installed)
+* `gc.log` - JVM GC and safepoint logs (always captured)
 
 ### Analysis
 
-* look at Gatling's own `index.html`
-* if it doesn't provide the analysis you need, try
-[gatling-statistics](https://github.com/dhis2/gatling-statistics)
+* Look at Gatling's own `index.html`
+* If it doesn't provide the analysis you need, try [gatling-statistics](https://github.com/dhis2/gatling-statistics)
+* Analyze `gc.log` with [Eclipse Jifa](https://github.com/eclipse-jifa/jifa) (`bash jifa.sh gc.log`)
+* To compare two runs (e.g. baseline vs feature branch), use `scripts/compare-gatling-runs.sh`:
+
+```sh
+./scripts/compare-gatling-runs.sh \
+  target/gatling/usersperformancetest-20260217072013445 \
+  target/gatling/usersperformancetest-20260217073019128
+```
+
+
+This requires [gstat](https://github.com/dhis2/gatling-statistics) to be installed
+and prints a GitHub markdown table of p50/p95 differences between the two runs. This 
+table can be useful to include in your PR review. 
+
+The comparison script uses `gstat` output, not Gatling's `index.html`. The percentile values are
+good for relative baseline-vs-candidate comparison when both runs are processed the same way, but
+they may differ slightly from the numbers shown in Gatling's HTML report due to differences in
+percentile calculation. If exact parity with Gatling's UI matters, use `index.html` as the source
+of truth.
 
 Since Gatling 3.12, test results are written in binary format. The `run-simulation.sh` script
 automatically converts `simulation.log` to `simulation.csv` if
-[glog](https://github.com/dhis2/gatling/releases) is installed like in CI.
+[glog](https://github.com/dhis2/gatling/releases) is installed like in CI. 
+
+
+## Platform Tests
+
+The `platform` package (`org.hisp.dhis.test.platform`) contains focused CRUD performance tests.
+
+### UsersPerformanceTest
+
+Tests single-user CRUD operations on `/api/users` (POST, GET, PUT, PATCH, DELETE).
+
+All properties have defaults targeting the Sierra Leone demo DB on `localhost:8080`, so no
+configuration is needed for a local run:
+
+```sh
+mvn gatling:test -Dgatling.simulationClass=org.hisp.dhis.test.platform.UsersPerformanceTest \
+  --file dhis-2/pom.xml -pl dhis-test-performance
+```
+
+To run against a remote instance, create a local `.properties` file (do not commit credentials):
+
+```properties
+baseUrl=https://your-instance.example.org/dhis
+username=admin
+password=changeme
+
+# UIDs from your target DB — find them via /api/userRoles, /api/organisationUnits, /api/userGroups
+# Point userGroupUid at a large group (10k+ members) to amplify N+1 effects
+userRoleUid=<userRoleUid>
+orgUnitUid=<rootOrgUnitUid>
+userGroupUid=<largeUserGroupUid>
+
+iterations=10
+mode=sequential
+```
+
+Then pass it via `-DconfigFile`:
+
+```sh
+mvn gatling:test -Dgatling.simulationClass=org.hisp.dhis.test.platform.UsersPerformanceTest \
+  -DconfigFile=/path/to/my-instance.properties \
+  --file dhis-2/pom.xml -pl dhis-test-performance
+```
+
+Individual `-D` flags always override values from the config file. Available properties:
+
+| Property | Default | Description |
+|:---|:---|:---|
+| `configFile` | — | Path to a `.properties` file |
+| `baseUrl` | `http://localhost:8080` | DHIS2 base URL |
+| `username` | `admin` | API username |
+| `password` | `district` | API password |
+| `userRoleUid` | `Euq3XfEIEbx` | UID of the user role assigned to test users |
+| `orgUnitUid` | `ImspTQPwCqd` | UID of the org unit assigned to test users |
+| `userGroupUid` | `wl5cDMuUhmF` | UID of a user group to assign (leave blank to skip) |
+| `iterations` | `3` | Requests per scenario |
+| `mode` | `parallel` | `parallel` or `sequential` |
+
+### UserGroupMembershipPerformanceTest
+
+Tests the user-group membership workflow on `/api/userGroups`:
+
+* `POST` create a new group with an initial user set
+* `PATCH` replace the `users` collection with a larger set
+* `PUT` full-replace the group with another user set
+* `DELETE` remove the group
+
+The test discovers a small set of existing user IDs during setup and reuses them for every
+iteration, which keeps timings focused on membership updates rather than user creation.
+
+```sh
+mvn gatling:test -Dgatling.simulationClass=org.hisp.dhis.test.platform.UserGroupMembershipPerformanceTest \
+  --file dhis-2/pom.xml -pl dhis-test-performance
+```
+
+Available properties:
+
+| Property | Default | Description |
+|:---|:---|:---|
+| `configFile` | — | Path to a `.properties` file |
+| `baseUrl` | `http://localhost:8080` | DHIS2 base URL |
+| `username` | `admin` | API username |
+| `password` | `district` | API password |
+| `iterations` | `3` | Workflow iterations |
+| `initialUserCount` | `3` | Users included in the create request |
+| `patchUserCount` | `6` | Users included after the PATCH replace |
+| `putUserCount` | `9` | Users included after the PUT full replace |
+
+## Tracker Tests
+
+The `tracker` package (`org.hisp.dhis.test.tracker`) tests the Tracker API using three Sierra Leone
+demo DB programs:
+
+* **MNCH / PNC (Adult Woman)** (`uy2gU8kT1jF`) -- tracker program with 4 stages
+* **Child Programme** (`IpHINAT79UW`) -- tracker program with 2 stages
+* **Antenatal care visit** (`lxAQ7Zs9VYR`) -- event program
+
+Import data is pre-generated from [Synthea](https://github.com/synthetichealth/synthea) synthetic
+patient data (ndjson.gz, one JSON object per line). Files are stored in S3
+(`s3://databases.dhis2.org/tracker/synthea/import/`) and fetched automatically by TrackerTest
+with ETag-based caching (`~/.cache/dhis2/perf/tracker/`).
+
+### Generating import payloads
+
+Requires Synthea 4.0.0 installed to local Maven repo:
+
+```sh
+cd ~/code/dhis2/synthea && git checkout v4.0.0 && ./gradlew publishToMavenLocal
+```
+
+Then generate:
+
+```sh
+mvn test-compile exec:java \
+  -Dexec.mainClass=org.hisp.dhis.test.tracker.SyntheaToNdjson \
+  -Dexec.classpathScope=test \
+  -Dexec.args="--population 30000 --seed 12345 --output-dir src/test/resources/tracker"
+```
+
+To update the files used by CI, upload to S3:
+
+```sh
+for f in mnch child anc; do
+  aws s3 cp src/test/resources/tracker/$f.ndjson.gz \
+    s3://databases.dhis2.org/tracker/synthea/import/
+done
+```
+
+### Running
+
+```sh
+mvn gatling:test \
+  -Dgatling.simulationClass=org.hisp.dhis.test.tracker.TrackerTest \
+  -Dprofile=smoke
+```
+
+Run export only (skip import, DB must be seeded): `-DtestMode=export`
+
+See `TrackerTest.java` javadoc for all available profiles and parameters.
 
 ## Raw Tests (JSON-driven)
 
@@ -145,4 +302,3 @@ docker builder prune -a
 ```
 
 Use `-a` to remove all cache layers, not just unused ones.
-

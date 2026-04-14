@@ -82,8 +82,8 @@ class FieldsConverterTest {
     Schema classSchema = new Schema(ClassEntity.class, "classEntity", "classEntities");
     Schema methodSchema = new Schema(MethodEntity.class, "methodEntity", "methodEntities");
     schemaService = mock(SchemaService.class);
-    when(schemaService.getDynamicSchema(ClassEntity.class)).thenReturn(classSchema);
-    when(schemaService.getDynamicSchema(MethodEntity.class)).thenReturn(methodSchema);
+    when(schemaService.getSchema(ClassEntity.class)).thenReturn(classSchema);
+    when(schemaService.getSchema(MethodEntity.class)).thenReturn(methodSchema);
 
     SchemaFieldsPresets schemaFieldsPresets = new SchemaFieldsPresets(schemaService);
     formattingConversionService.addConverter(
@@ -102,7 +102,7 @@ class FieldsConverterTest {
         .andExpect(status().isOk())
         .andExpect(content().string(""));
 
-    verify(schemaService).getDynamicSchema(ClassEntity.class);
+    verify(schemaService).getSchema(ClassEntity.class);
   }
 
   @Test
@@ -116,7 +116,7 @@ class FieldsConverterTest {
         .andExpect(status().isOk())
         .andExpect(content().string(""));
 
-    verify(schemaService).getDynamicSchema(ClassEntity.class);
+    verify(schemaService).getSchema(ClassEntity.class);
   }
 
   @Test
@@ -126,7 +126,7 @@ class FieldsConverterTest {
         .andExpect(status().isOk())
         .andExpect(content().string(""));
 
-    verify(schemaService).getDynamicSchema(MethodEntity.class);
+    verify(schemaService).getSchema(MethodEntity.class);
   }
 
   @Test

@@ -125,7 +125,6 @@ import org.hisp.dhis.parser.expression.function.VectorStddevSamp;
 import org.hisp.dhis.parser.expression.function.VectorSum;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -151,8 +150,6 @@ public class DefaultExpressionService implements ExpressionService {
   private final IdentifiableObjectManager idObjectManager;
 
   private final I18nManager i18nManager;
-
-  private final SystemSettingsService settingsService;
 
   private final SqlBuilder sqlBuilder;
 
@@ -257,8 +254,7 @@ public class DefaultExpressionService implements ExpressionService {
       IdentifiableObjectManager idObjectManager,
       I18nManager i18nManager,
       CacheProvider cacheProvider,
-      SqlBuilder sqlBuilder,
-      SystemSettingsService settingService) {
+      SqlBuilder sqlBuilder) {
     checkNotNull(expressionStore);
     checkNotNull(constantService);
     checkNotNull(dimensionService);
@@ -266,7 +262,6 @@ public class DefaultExpressionService implements ExpressionService {
     checkNotNull(i18nManager);
     checkNotNull(cacheProvider);
     checkNotNull(sqlBuilder);
-    checkNotNull(settingService);
 
     this.expressionStore = expressionStore;
     this.constantService = constantService;
@@ -275,7 +270,6 @@ public class DefaultExpressionService implements ExpressionService {
     this.i18nManager = i18nManager;
     this.constantMapCache = cacheProvider.createAllConstantsCache();
     this.sqlBuilder = sqlBuilder;
-    this.settingsService = settingService;
   }
 
   // -------------------------------------------------------------------------
@@ -710,8 +704,6 @@ public class DefaultExpressionService implements ExpressionService {
         .info(params.getExpressionInfo())
         .state(initialParsingState)
         .sqlBuilder(sqlBuilder)
-        .useExperimentalSqlEngine(
-            this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine())
         .build();
   }
 

@@ -29,11 +29,17 @@
  */
 package org.hisp.dhis.tracker.acl;
 
+import static org.hisp.dhis.security.acl.AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1099;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1102;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1324;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
+import static org.hisp.dhis.user.UserDetails.fromUser;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -45,7 +51,9 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.BiFunction;
 import org.apache.commons.lang3.time.DateUtils;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.AccessLevel;
@@ -62,6 +70,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -199,7 +208,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     manager.save(eventB, false);
 
     User adminUser = getAdminUser();
-    adminUser.setTeiSearchOrganisationUnits(Set.of(orgUnitA));
+    adminUser.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB));
     adminUser.setOrganisationUnits(Set.of(orgUnitA));
     injectSecurityContextUser(adminUser);
   }
@@ -210,7 +219,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     programA.setPublicAccess(AccessStringHelper.FULL);
     manager.update(programA);
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
-    UserDetails userDetails = UserDetails.fromUser(user);
+    UserDetails userDetails = fromUser(user);
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
     manager.update(trackedEntityType);
     TrackedEntity te = trackedEntityService.getTrackedEntity(trackedEntityA.getUID());
@@ -228,7 +237,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     manager.update(programA);
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitB));
     user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
-    UserDetails userDetails = UserDetails.fromUser(user);
+    UserDetails userDetails = fromUser(user);
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
     manager.update(trackedEntityType);
     TrackedEntity te = trackedEntityService.getTrackedEntity(trackedEntityA.getUID());
@@ -245,7 +254,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     programA.setAccessLevel(AccessLevel.OPEN);
     manager.update(programA);
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitB));
-    UserDetails userDetails = UserDetails.fromUser(user);
+    UserDetails userDetails = fromUser(user);
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
     manager.update(trackedEntityType);
     TrackedEntity te = trackedEntityService.getTrackedEntity(trackedEntityA.getUID());
@@ -262,7 +271,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     manager.update(programA);
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitB));
     user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
-    UserDetails userDetails = UserDetails.fromUser(user);
+    UserDetails userDetails = fromUser(user);
     trackedEntityType.getSharing().setPublicAccess(AccessStringHelper.DATA_READ);
     manager.update(trackedEntityType);
 
@@ -280,36 +289,31 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     manager.update(trackedEntityType);
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
     user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
-    UserDetails userDetails = UserDetails.fromUser(user);
+    UserDetails userDetails = fromUser(user);
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, trackedEntityA.getUid());
     assertNotNull(trackedEntity);
     Enrollment enrollment = trackedEntity.getEnrollments().iterator().next();
     // Can create enrollment
     assertNoErrors(trackerAccessManager.canCreate(userDetails, enrollment));
     // Can update enrollment
-    assertNoErrors(trackerAccessManager.canUpdate(userDetails, enrollment));
-    // Cannot delete enrollment
-    assertNoErrors(trackerAccessManager.canDelete(userDetails, enrollment));
+    assertNoErrors(trackerAccessManager.canUpdate(userDetails, enrollment, null));
+    // Can delete enrollment
+    assertNoErrors(trackerAccessManager.canDelete(userDetails, enrollment, false));
     // Can read enrollment
     assertNoErrors(trackerAccessManager.canRead(userDetails, enrollment));
     // Cannot create enrollment if enrollmentOU is outside capture scope
     // even if user is owner.
     enrollment.setOrganisationUnit(orgUnitB);
-    assertHasError(
-        trackerAccessManager.canCreate(userDetails, enrollment),
-        "User has no create access to organisation unit:");
+    assertHasErrorMessage(trackerAccessManager.canCreate(userDetails, enrollment), E1000);
     enrollment.setOrganisationUnit(orgUnitA);
     // Transferring ownership to orgUnitB. user is no longer owner
     trackerOwnershipManager.transferOwnership(trackedEntity, programA.getUID(), orgUnitB.getUID());
     // Cannot create enrollment if not owner
-    assertHasError(
-        trackerAccessManager.canCreate(userDetails, enrollment), "OWNERSHIP_ACCESS_DENIED");
+    assertHasErrorMessage(trackerAccessManager.canCreate(userDetails, enrollment), E1102);
     // Cannot update enrollment if not owner
-    assertHasError(
-        trackerAccessManager.canUpdate(userDetails, enrollment), "OWNERSHIP_ACCESS_DENIED");
+    assertHasErrorMessage(trackerAccessManager.canUpdate(userDetails, enrollment, null), E1102);
     // Cannot delete enrollment if not owner
-    assertHasError(
-        trackerAccessManager.canDelete(userDetails, enrollment), "OWNERSHIP_ACCESS_DENIED");
+    assertHasErrorMessage(trackerAccessManager.canDelete(userDetails, enrollment, false), E1102);
     // Cannot read enrollment if not owner
     assertHasError(
         trackerAccessManager.canRead(userDetails, enrollment), "OWNERSHIP_ACCESS_DENIED");
@@ -324,7 +328,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     manager.update(trackedEntityType);
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
     user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
-    UserDetails userDetails = UserDetails.fromUser(user);
+    UserDetails userDetails = fromUser(user);
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, trackedEntityA.getUid());
     assertNotNull(trackedEntity);
     Enrollment enrollment = trackedEntity.getEnrollments().iterator().next();
@@ -332,9 +336,9 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     // Can create enrollment
     assertNoErrors(trackerAccessManager.canCreate(userDetails, enrollment));
     // Can update enrollment
-    assertNoErrors(trackerAccessManager.canUpdate(userDetails, enrollment));
-    // Cannot delete enrollment
-    assertNoErrors(trackerAccessManager.canDelete(userDetails, enrollment));
+    assertNoErrors(trackerAccessManager.canUpdate(userDetails, enrollment, null));
+    // Can delete enrollment
+    assertNoErrors(trackerAccessManager.canDelete(userDetails, enrollment, false));
     // Can read enrollment
     assertNoErrors(trackerAccessManager.canRead(userDetails, enrollment));
   }
@@ -349,47 +353,54 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     manager.update(trackedEntityType);
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitB));
     user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
-    UserDetails userDetails = UserDetails.fromUser(user);
+    UserDetails userDetails = fromUser(user);
     TrackedEntity trackedEntity = manager.get(TrackedEntity.class, trackedEntityA.getUid());
     assertNotNull(trackedEntity);
     Enrollment enrollment = trackedEntity.getEnrollments().iterator().next();
     // Cannot create enrollment if enrollmentOU falls outside capture scope
     assertHasError(trackerAccessManager.canCreate(userDetails, enrollment));
     // Can update enrollment if ownerOU falls inside search scope
-    assertNoErrors(trackerAccessManager.canUpdate(userDetails, enrollment));
-    // Can delete enrollment if ownerOU falls inside search scope
-    assertNoErrors(trackerAccessManager.canDelete(userDetails, enrollment));
+    assertNoErrors(trackerAccessManager.canUpdate(userDetails, enrollment, null));
+    // Cannot delete enrollment if enrollmentOU fails outside capture scope
+    assertHasError(trackerAccessManager.canDelete(userDetails, enrollment, false));
     // Can read enrollment if ownerOU falls inside search scope
     assertNoErrors(trackerAccessManager.canRead(userDetails, enrollment));
+
     // Transferring ownership to orgUnitB. user is now owner
     trackerOwnershipManager.transferOwnership(trackedEntity, programA.getUID(), orgUnitB.getUID());
     // Cannot create enrollment if enrollmentOU falls outside capture scope,
     // even if user is owner
-    assertHasError(
-        trackerAccessManager.canCreate(userDetails, enrollment),
-        "User has no create access to organisation unit:");
+    assertHasErrorMessage(trackerAccessManager.canCreate(userDetails, enrollment), E1000);
     // Can update enrollment
-    assertNoErrors(trackerAccessManager.canUpdate(userDetails, enrollment));
-    // Can delete enrollment
-    assertNoErrors(trackerAccessManager.canDelete(userDetails, enrollment));
+    assertNoErrors(trackerAccessManager.canUpdate(userDetails, enrollment, null));
+    // Cannot delete enrollment if enrollmentOU falls outside capture scope,
+    // even if user is owner
+    assertHasErrorMessage(trackerAccessManager.canDelete(userDetails, enrollment, false), E1000);
     // Can read enrollment
     assertNoErrors(trackerAccessManager.canRead(userDetails, enrollment));
-    // Transferring ownership to orgUnitB. user is now owner
+
+    // Transferring ownership to orgUnitA. user is now owner
     User adminUser = getAdminUser();
     adminUser.setOrganisationUnits(Set.of(orgUnitB));
     injectSecurityContextUser(adminUser);
     trackerOwnershipManager.transferOwnership(trackedEntity, programA.getUID(), orgUnitA.getUID());
     user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
+    userDetails.getUserSearchOrgUnitIds().addAll(List.of(orgUnitA.getUid(), orgUnitB.getUid()));
     // Cannot create enrollment if enrollment OU is outside capture scope
-    assertHasError(
-        trackerAccessManager.canCreate(userDetails, enrollment),
-        "User has no create access to organisation unit:");
+    assertHasErrorMessage(trackerAccessManager.canCreate(userDetails, enrollment), E1000);
     // Can update enrollment if ownerOU is in search scope
-    assertNoErrors(trackerAccessManager.canUpdate(userDetails, enrollment));
-    // Can delete enrollment if ownerOU is in search scope
-    assertNoErrors(trackerAccessManager.canDelete(userDetails, enrollment));
+    assertNoErrors(trackerAccessManager.canUpdate(userDetails, enrollment, null));
+    // Cannot delete enrollment if enrollment OU is outside capture scope
+    assertHasErrorMessage(trackerAccessManager.canDelete(userDetails, enrollment, false), E1000);
     // Can read enrollment if ownerOU is in search scope
     assertNoErrors(trackerAccessManager.canRead(userDetails, enrollment));
+
+    // Adding org unitA to user's capture scope
+    userDetails.getUserOrgUnitIds().add(orgUnitA.getUid());
+    // Can create enrollment if enrollment OU is in capture scope
+    assertNoErrors(trackerAccessManager.canCreate(userDetails, enrollment));
+    // Can delete enrollment if enrollment OU is in capture scope
+    assertNoErrors(trackerAccessManager.canDelete(userDetails, enrollment, false));
   }
 
   @Test
@@ -403,7 +414,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     manager.update(programA);
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
     user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
-    UserDetails userDetails = UserDetails.fromUser(user);
+    UserDetails userDetails = fromUser(user);
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
     manager.update(trackedEntityType);
 
@@ -447,7 +458,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     manager.update(programA);
     User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitB));
     user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
-    UserDetails userDetails = UserDetails.fromUser(user);
+    UserDetails userDetails = fromUser(user);
     trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
     manager.update(trackedEntityType);
 
@@ -476,7 +487,86 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     assertNoErrors(trackerAccessManager.canDelete(userDetails, eventA));
   }
 
-  private void assertNoErrors(List<String> errors) {
+  @Test
+  void shouldFailToCreateEnrollmentWhenUserLacksCategoryOptionWriteAccess() {
+    assertEnrollmentCategoryOptionAccessFails(
+        (userDetails, enrollment) -> trackerAccessManager.canCreate(userDetails, enrollment));
+  }
+
+  @Test
+  void shouldFailToUpdateEnrollmentWhenUserLacksAccess() {
+    assertEnrollmentCategoryOptionAccessFails(
+        (userDetails, enrollment) -> trackerAccessManager.canUpdate(userDetails, enrollment, null));
+  }
+
+  @Test
+  void shouldFailToDeleteEnrollmentWhenUserLacksAccess() {
+    assertEnrollmentCategoryOptionAccessFails(
+        (userDetails, enrollment) ->
+            trackerAccessManager.canDelete(userDetails, enrollment, false));
+  }
+
+  @Test
+  void shouldFailToDeleteEnrollmentWithNonDeletedEventsWhenUserLacksCascadeDeleteAuthority() {
+    programA.setPublicAccess(AccessStringHelper.FULL);
+    manager.update(programA);
+    trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
+    manager.update(trackedEntityType);
+    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
+    user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
+    UserDetails userDetails = fromUser(user);
+    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, trackedEntityA.getUid());
+    assertNotNull(trackedEntity);
+    Enrollment enrollment = trackedEntity.getEnrollments().iterator().next();
+
+    assertHasErrorMessage(trackerAccessManager.canDelete(userDetails, enrollment, true), E1103);
+  }
+
+  @Test
+  void shouldDeleteEnrollmentWithNonDeletedEventsWhenUserHasCascadeDeleteAuthority() {
+    programA.setPublicAccess(AccessStringHelper.FULL);
+    manager.update(programA);
+    trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
+    manager.update(trackedEntityType);
+    User user =
+        createUserWithAuth("user1", Authorities.F_ENROLLMENT_CASCADE_DELETE.name())
+            .setOrganisationUnits(Sets.newHashSet(orgUnitA));
+    user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
+    UserDetails userDetails = fromUser(user);
+    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, trackedEntityA.getUid());
+    assertNotNull(trackedEntity);
+    Enrollment enrollment = trackedEntity.getEnrollments().iterator().next();
+
+    assertNoErrors(trackerAccessManager.canDelete(userDetails, enrollment, true));
+  }
+
+  private void assertEnrollmentCategoryOptionAccessFails(
+      BiFunction<UserDetails, Enrollment, List<ErrorMessage>> accessCheck) {
+    TrackedEntity trackedEntity = manager.get(TrackedEntity.class, trackedEntityA.getUid());
+    assertNotNull(trackedEntity);
+
+    Enrollment enrollment = trackedEntity.getEnrollments().iterator().next();
+
+    programA.setPublicAccess(AccessStringHelper.FULL);
+    manager.update(programA);
+
+    trackedEntityType.setPublicAccess(AccessStringHelper.FULL);
+    manager.update(trackedEntityType);
+
+    CategoryOptionCombo coc = categoryService.getDefaultCategoryOptionCombo();
+    CategoryOption categoryOption = coc.getCategoryOptions().iterator().next();
+    categoryOption.getSharing().setPublicAccess(CATEGORY_NO_DATA_SHARING_DEFAULT);
+    manager.update(categoryOption);
+
+    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
+    user.setTeiSearchOrganisationUnits(Sets.newHashSet(orgUnitA, orgUnitB));
+    UserDetails userDetails = fromUser(user);
+
+    List<ErrorMessage> errorMessages = accessCheck.apply(userDetails, enrollment);
+    assertHasErrorMessage(errorMessages, E1099);
+  }
+
+  private void assertNoErrors(List<?> errors) {
     assertIsEmpty(errors);
   }
 
@@ -517,11 +607,11 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
                     "error '%s' not found in error(s) %s", validationCode.getMessage(), errors)));
   }
 
-  private void assertHasError(List<String> errors) {
+  private void assertHasError(List<?> errors) {
     assertEquals(1, errors.size());
   }
 
-  private void assertHasErrors(int errorNumber, List<String> errors) {
+  private void assertHasErrors(int errorNumber, List<?> errors) {
     assertEquals(errorNumber, errors.size());
   }
 }

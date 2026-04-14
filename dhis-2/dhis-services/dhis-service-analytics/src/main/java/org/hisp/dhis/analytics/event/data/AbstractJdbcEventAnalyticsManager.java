@@ -61,21 +61,18 @@ import static org.hisp.dhis.analytics.common.CteDefinition.CteType.TOP_ENROLLMEN
 import static org.hisp.dhis.analytics.common.CteDefinition.ENROLLMENT_AGGR_BASE;
 import static org.hisp.dhis.analytics.event.data.AbstractJdbcEventAnalyticsManager.RepeatableStateStatus.NON_REPEATABLE;
 import static org.hisp.dhis.analytics.event.data.AbstractJdbcEventAnalyticsManager.RepeatableStateStatus.REPEATABLE;
-import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.hasEnrollmentOrgUnitFilter;
-import static org.hisp.dhis.analytics.event.data.EnrollmentOrgUnitFilterHandler.isAggregateEnrollment;
-import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getHeaderColumns;
-import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getOrgUnitLevelColumns;
-import static org.hisp.dhis.analytics.event.data.EnrollmentQueryHelper.getPeriodColumns;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
 import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.STAGE_OU_CODE_COLUMN;
 import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.STAGE_OU_NAME_COLUMN;
 import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_GEOMETRY_COL_POSTFIX;
 import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_NAME_COL_POSTFIX;
+import static org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.getRoundedValue;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.replaceStringBetween;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
@@ -87,7 +84,6 @@ import static org.hisp.dhis.common.ValueType.REFERENCE;
 import static org.hisp.dhis.commons.collection.ListUtils.union;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.feedback.ErrorCode.E7149;
 import static org.hisp.dhis.system.util.MathUtils.getRoundedObject;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
@@ -112,6 +108,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -148,7 +145,6 @@ import org.hisp.dhis.analytics.table.util.ColumnMapper;
 import org.hisp.dhis.analytics.util.sql.ColumnUtils;
 import org.hisp.dhis.analytics.util.sql.Condition;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
-import org.hisp.dhis.analytics.util.sql.SqlConditionJoiner;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -251,6 +247,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   private static final Collector<CharSequence, ?, String> AND_JOINER = joining(AND);
 
+  private static final Pattern LEADING_WHERE_PATTERN = Pattern.compile("^where\\s+");
+
   @Qualifier("analyticsReadOnlyJdbcTemplate")
   protected final JdbcTemplate jdbcTemplate;
 
@@ -278,34 +276,13 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   protected final StageQuerySqlFacade stageQuerySqlFacade;
 
+  private final DateFieldPeriodBucketColumnResolver dateFieldPeriodBucketColumnResolver;
+
   static final String ANALYTICS_EVENT = "analytics_event_";
 
   static final String COLUMN_ENROLLMENT_GEOMETRY_GEOJSON =
       String.format(
           "ST_AsGeoJSON(%s)", EnrollmentAnalyticsColumnName.ENROLLMENT_GEOMETRY_COLUMN_NAME);
-
-  /**
-   * Returns a SQL paging clause.
-   *
-   * @param params the {@link EventQueryParams}.
-   * @param maxLimit the configurable max limit of records.
-   */
-  protected String getPagingClause(EventQueryParams params, int maxLimit) {
-    String sql = "";
-
-    if (params.isPaging()) {
-      int limit =
-          params.isTotalPages()
-              ? params.getPageSizeWithDefault()
-              : params.getPageSizeWithDefault() + 1;
-
-      sql += LIMIT + " " + limit + " offset " + params.getOffset();
-    } else if (maxLimit > 0) {
-      sql += LIMIT + " " + (maxLimit + 1);
-    }
-
-    return sql;
-  }
 
   /**
    * Returns a SQL sort clause.
@@ -535,66 +512,68 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       EventQueryParams params,
       boolean isGroupByClause,
       boolean isAggregated) {
-    params
-        .getDimensions()
-        .forEach(
-            dimension -> {
-              if (params.isAggregatedEnrollments()
-                  && dimension.getDimensionType() == DimensionType.PERIOD) {
-                for (DimensionalItemObject it : dimension.getItems()) {
-                  columns.add(((PeriodDimension) it).getPeriodType().getPeriodTypeEnum().getName());
-                }
-                return;
-              }
+    List<DimensionalObject> dimensions =
+        isAggregated
+            ? PeriodDimensionSplitter.expandPeriodDimensions(params.getDimensions())
+            : params.getDimensions();
+    dimensions.forEach(
+        dimension -> {
+          if (params.isAggregatedEnrollments()
+              && dimension.getDimensionType() == DimensionType.PERIOD) {
+            for (DimensionalItemObject it : dimension.getItems()) {
+              columns.add(((PeriodDimension) it).getPeriodType().getPeriodTypeEnum().getName());
+            }
+            return;
+          }
 
-              if (isGroupByClause
-                  && dimension.getDimensionType() == DimensionType.PERIOD
-                  && params.hasNonDefaultBoundaries()) {
-                return;
-              }
+          if (isGroupByClause
+              && dimension.getDimensionType() == DimensionType.PERIOD
+              && params.hasNonDefaultBoundaries()) {
+            return;
+          }
 
-              if (dimension.getDimensionType() == DimensionType.PERIOD
-                  && params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
-                if (!isGroupByClause) {
-                  String alias = quote(dimension.getDimensionName());
-                  columns.add(
-                      "cast('"
-                          + params.getLatestPeriod().getDimensionItem()
-                          + "' as text) as "
-                          + alias);
-                }
-              } else if (!params.hasNonDefaultBoundaries()
-                  || dimension.getDimensionType() != DimensionType.PERIOD) {
-                columns.add(getTableAndColumn(params, dimension, isGroupByClause));
-              } else if (params.hasSinglePeriod()) {
-                PeriodDimension period = (PeriodDimension) params.getPeriods().get(0);
-                columns.add(
-                    isGroupByClause
-                        ? singleQuote(period.getIsoDate())
-                        : singleQuote(period.getIsoDate())
-                            + " as "
-                            + period.getPeriodType().getName());
-              } else if (!params.hasPeriods() && params.hasFilterPeriods()) {
-                // Assuming same period type for all period filters, as the
-                // query planner splits into one query per period type
+          if (dimension.getDimensionType() == DimensionType.PERIOD
+              && params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
+            if (!isGroupByClause) {
+              String alias = quote(dimension.getDimensionName());
+              columns.add(
+                  "cast('"
+                      + params.getLatestPeriod().getDimensionItem()
+                      + "' as text) as "
+                      + alias);
+            }
+          } else if (!params.hasNonDefaultBoundaries()
+              || dimension.getDimensionType() != DimensionType.PERIOD) {
+            columns.add(getTableAndColumn(params, dimension, isGroupByClause));
+          } else if (params.hasSinglePeriod()) {
+            PeriodDimension period = (PeriodDimension) params.getPeriods().get(0);
+            columns.add(
+                isGroupByClause
+                    ? singleQuote(period.getIsoDate())
+                    : singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
+          } else if (!params.hasPeriods() && params.hasFilterPeriods()) {
+            // Assuming same period type for all period filters, as the
+            // query planner splits into one query per period type
 
-                PeriodDimension period = (PeriodDimension) params.getFilterPeriods().get(0);
-                columns.add(
-                    isGroupByClause
-                        ? singleQuote(period.getIsoDate())
-                        : singleQuote(period.getIsoDate())
-                            + " as "
-                            + period.getPeriodType().getName());
-              } else {
-                throw new IllegalStateException(
-                    """
+            PeriodDimension period = (PeriodDimension) params.getFilterPeriods().get(0);
+            columns.add(
+                isGroupByClause
+                    ? singleQuote(period.getIsoDate())
+                    : singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
+          } else {
+            throw new IllegalStateException(
+                """
                     Program indicator non-default boundary query must have \"
                     exactly one period, or no periods and a period filter""");
-              }
-            });
+          }
+        });
 
     OrgUnitSqlCoordinator.addDimensionSelectColumns(
-        columns, params, isGroupByClause, isAggregated, getAnalyticsType());
+        columns, params, isGroupByClause, isAggregated, getAnalyticsType(), sqlBuilder);
+
+    if (params.hasEnrollmentStatuses() && params.isEnrollmentAggregateQuery()) {
+      columns.add(ColumnAndAlias.ofColumn(ENROLLMENT_STATUS_COLUMN_NAME).asSql());
+    }
   }
 
   private void addItemSelectColumns(
@@ -612,6 +591,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (!isGroupByClause) {
         handleRowContext(columns, params, queryItem, columnAndAlias);
       }
+    }
+
+    if (params.hasEnrollmentStatuses() && params.isAggregatedEvents()) {
+      columns.add(ColumnAndAlias.ofColumn(quote(ENROLLMENT_STATUS_COLUMN_NAME)).asSql());
     }
   }
 
@@ -798,7 +781,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     sql += getFromClause(params);
 
-    sql += getWhereClause(params);
+    String whereClause = getWhereClause(params);
+    sql += whereClause;
+    sql += getAdditionalQueryItemWhereClause(params, whereClause);
 
     sql += getGroupByClause(params);
 
@@ -840,6 +825,32 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           () -> getAggregatedEventData(grid, params, finalSqlValue), params.isMultipleQueries());
     }
     return grid;
+  }
+
+  /**
+   * Returns the SQL fragment for QueryItem filters that must be appended after the base WHERE
+   * clause.
+   *
+   * <p>The event aggregate and count paths build their SQL directly from {@code getFromClause(..)}
+   * and {@code getWhereClause(..)}. Under the current query builder, QueryItem filters are not
+   * always included inside {@code getWhereClause(..)}, so they must be appended separately here.
+   *
+   * @param params the query parameters
+   * @param existingWhereClause the already-rendered base WHERE clause
+   * @return the SQL fragment to append, or an empty string when no extra filter is needed
+   */
+  protected String getAdditionalQueryItemWhereClause(
+      EventQueryParams params, String existingWhereClause) {
+
+    String queryItemFilterClause = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
+
+    if (StringUtils.isBlank(queryItemFilterClause)) {
+      return StringUtils.EMPTY;
+    }
+
+    return StringUtils.isNotBlank(existingWhereClause)
+        ? LEADING_WHERE_PATTERN.matcher(queryItemFilterClause).replaceFirst("and ")
+        : queryItemFilterClause;
   }
 
   /**
@@ -1143,6 +1154,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private String getTableAndColumn(
       EventQueryParams params, DimensionalObject dimension, boolean isGroupByClause) {
     String col = dimension.getDimensionName();
+    Optional<String> dynamicPeriodBucket =
+        dateFieldPeriodBucketColumnResolver.resolve(getAnalyticsType(), dimension, isGroupByClause);
+
+    if (dynamicPeriodBucket.isPresent()) {
+      return dynamicPeriodBucket.get();
+    }
 
     if (params.hasTimeField() && DimensionType.PERIOD == dimension.getDimensionType()) {
       return sqlBuilder.quote(DATE_PERIOD_STRUCT_ALIAS, col);
@@ -1163,82 +1180,33 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
   }
 
-  /**
-   * Template method that generates a SQL query for retrieving events or enrollments.
-   *
-   * @param params the {@link EventQueryParams} to drive the query generation.
-   * @param maxLimit max number of records to return.
-   * @return a SQL query.
-   */
-  protected String getAggregatedEnrollmentsSql(EventQueryParams params, int maxLimit) {
-    String sql = getSelectClause(params);
-
-    sql += getFromClause(params);
-
-    sql += getWhereClause(params);
-
-    sql += getSortClause(params);
-
-    sql += getPagingClause(params, maxLimit);
-
-    return sql;
+  protected Optional<DateFieldPeriodBucketColumnResolver.ResolvedExpression>
+      resolveDateFieldPeriodBucket(DimensionalObject dimension, String tableAlias) {
+    return dateFieldPeriodBucketColumnResolver.resolve(getAnalyticsType(), dimension, tableAlias);
   }
 
-  /**
-   * Template method that generates a SQL query for retrieving aggregated enrollments.
-   *
-   * @param headers the {@link List<GridHeader>} to drive the query generation.
-   * @param params the {@link EventQueryParams} to drive the query generation.
-   * @return a SQL query.
-   */
-  protected String getAggregatedEnrollmentsSql(List<GridHeader> headers, EventQueryParams params) {
-    String sql = getSelectClause(params);
-
-    sql += getFromClause(params);
-
-    String whereClause = getWhereClause(params);
-    String filterWhereClause = getQueryItemsAndFiltersWhereClause(params, new SqlHelper());
-
-    String headerColumns = String.join(",", getHeaderColumns(headers, sql));
-    String periodColumns = String.join(",", getPeriodColumns(params));
-    String orgUnitColumns = String.join(",", getOrgUnitLevelColumns(params));
-
-    if (isBlank(orgUnitColumns) && !isAggregateEnrollment(params)) {
-      orgUnitColumns = ORGUNIT_DIM_ID;
+  protected List<DateFieldPeriodBucketColumnResolver.JoinClause> resolveDateFieldPeriodBucketJoins(
+      EventQueryParams params, String tableAlias) {
+    if (!params.isAggregation()) {
+      return List.of();
     }
 
-    List<String> list = Arrays.asList(orgUnitColumns, periodColumns, headerColumns);
-    String columns =
-        list.stream().filter(StringUtils::isNotBlank).collect(Collectors.joining(", "));
+    DimensionalObject periodDimension = params.getDimension(PERIOD_DIM_ID);
 
-    String join = EMPTY;
-    if (hasEnrollmentOrgUnitFilter(params)) {
-      join =
-          " join analytics_event_"
-              + params.getProgram().getUid()
-              + " ev on ev.enrollment = ax.enrollment "
-              + whereClause
-              + " and ev.eventstatus != 'SCHEDULE'"; // We work only with non-scheduled events.
-    } else {
-      sql += SqlConditionJoiner.joinSqlConditions(whereClause, filterWhereClause);
+    if (periodDimension == null) {
+      return List.of();
     }
 
-    sql =
-        "select count(distinct "
-            + OUTER_SQL_ALIAS
-            + ".enrollment) as "
-            + COL_VALUE
-            + ", "
-            + columns
-            + " from ("
-            + sql
-            + join
-            + ") "
-            + OUTER_SQL_ALIAS
-            + " group by "
-            + columns;
+    return PeriodDimensionSplitter.splitPeriodDimension(periodDimension).stream()
+        .map(dim -> resolveDateFieldPeriodBucket(dim, tableAlias))
+        .flatMap(Optional::stream)
+        .map(DateFieldPeriodBucketColumnResolver.ResolvedExpression::joinClause)
+        .flatMap(Optional::stream)
+        .toList();
+  }
 
-    return sql;
+  protected Optional<String> resolveDateFieldPeriodSourceColumn(DimensionalObject dimension) {
+    return dateFieldPeriodBucketColumnResolver.resolveSourceColumn(getAnalyticsType(), dimension);
   }
 
   /**
@@ -1860,21 +1828,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
-   * Determines if the experimental analytics query engine should be used. The experimental
-   * analytics query engine is used when the analytics database is set to Doris or when the setting
-   * is enabled. When the experimental analytics query engine is used, all enrollment and event
-   * queries are constructed using CTE (Common Table Expressions) instead of subqueries.
-   *
-   * @return true if the experimental analytics query engine should be used, false otherwise.
-   */
-  protected boolean useExperimentalAnalyticsQueryEngine() {
-    String analyticsDatabase = config.getPropertyOrDefault(ANALYTICS_DATABASE, "").trim();
-    return "doris".equalsIgnoreCase(analyticsDatabase)
-        || "clickhouse".equalsIgnoreCase(analyticsDatabase)
-        || this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
-  }
-
-  /**
    * Returns the "having" clause for the aggregated query. The "having" clause is calculated based
    * on the measure criteria in the {@link EventQueryParams} and the existing aggregate clause. For
    * numeric aggregates, the expression is cast to a decimal type and then rounded to 10 decimal
@@ -1967,13 +1920,6 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       QueryItem item, EventQueryParams params) {
     return organisationUnitResolver.buildStageOuCteContext(item, params);
   }
-
-  /**
-   * Returns a select SQL clause for the given query.
-   *
-   * @param params the {@link EventQueryParams}.
-   */
-  protected abstract String getSelectClause(EventQueryParams params);
 
   /** Returns the column name associated with the CTE */
   protected abstract String getColumnWithCte(
@@ -2086,7 +2032,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
     if (needsOptimizedCtes(params, cteContext)) {
       // 3.7 : Add shadow CTEs for optimized query
-      addShadowCtes(params, cteContext, selectColumns);
+      addShadowCtes(params, cteContext, selectColumns, maxLimit);
     }
 
     return sb.build();
@@ -2155,10 +2101,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @param selectColumns The list of columns computed for the main SELECT statement. This is used
    *     when computing the main {@code top_enrollments} CTE to ensure that any missing column is
    *     used in the shadow CTEs.
+   * @param maxLimit
    */
-  void addShadowCtes(EventQueryParams params, CteContext cteContext, List<String> selectColumns) {
+  void addShadowCtes(
+      EventQueryParams params, CteContext cteContext, List<String> selectColumns, int maxLimit) {
 
-    addTopEnrollmentsCte(params, cteContext, selectColumns);
+    addTopEnrollmentsCte(params, cteContext, selectColumns, maxLimit);
     addShadowEnrollmentTableCte(params, cteContext);
     addShadowEventTableCte(params, cteContext);
   }
@@ -2197,7 +2145,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    *     to ensure correct ordering in the final SQL query.
    */
   void addTopEnrollmentsCte(
-      EventQueryParams params, CteContext cteContext, List<String> selectColumns) {
+      EventQueryParams params, CteContext cteContext, List<String> selectColumns, int maxLimit) {
     SelectBuilder topEnrollments = new SelectBuilder();
     Map<String, String> formulaAliases = getFormulaColumnAliases();
 
@@ -2245,7 +2193,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     topEnrollments.where(Condition.raw(getWhereClause(params)));
 
     // Apply pagination
-    addPagingToBuilder(topEnrollments, params);
+    addPagingToBuilder(topEnrollments, params, maxLimit);
 
     // Add to CTE context with special name and type
     cteContext.addShadowCte("top_enrollments", topEnrollments.build(), TOP_ENROLLMENTS);
@@ -2436,17 +2384,17 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return enrollmentColumns;
   }
 
-  private void addPagingToBuilder(SelectBuilder builder, EventQueryParams params) {
+  private void addPagingToBuilder(SelectBuilder builder, EventQueryParams params, int maxLimit) {
     if (params.isPaging()) {
       if (params.isTotalPages()) {
-        builder.limitWithMax(params.getPageSizeWithDefault(), 5000).offset(params.getOffset());
+        builder.limitWithMax(params.getPageSizeWithDefault(), maxLimit).offset(params.getOffset());
       } else {
         builder
-            .limitWithMaxPlusOne(params.getPageSizeWithDefault(), 5000)
+            .limitWithMaxPlusOne(params.getPageSizeWithDefault(), maxLimit)
             .offset(params.getOffset());
       }
-    } else {
-      builder.limitPlusOne(5000);
+    } else if (maxLimit > 0) {
+      builder.limitPlusOne(maxLimit);
     }
   }
 
@@ -2615,19 +2563,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     if (params.isSorting()) {
       builder.orderBy(getCteAwareSortClause(cteContext, params));
     }
-
-    // Paging with max limit of 5000
-    if (params.isPaging()) {
-      if (params.isTotalPages()) {
-        builder.limitWithMax(params.getPageSizeWithDefault(), maxLimit).offset(params.getOffset());
-      } else {
-        builder
-            .limitWithMaxPlusOne(params.getPageSizeWithDefault(), maxLimit)
-            .offset(params.getOffset());
-      }
-    } else {
-      builder.limitPlusOne(5000);
-    }
+    addPagingToBuilder(builder, params, maxLimit);
   }
 
   private void addCteJoins(SelectBuilder builder, CteContext cteContext) {

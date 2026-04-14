@@ -29,34 +29,42 @@
  */
 package org.hisp.dhis.security;
 
-import lombok.AllArgsConstructor;
+import java.util.Map;
+import org.slf4j.MDC;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Implementation of a runnable that makes sure the thread is run in the same security context as
- * the creator, you must implement the call method.
+ * the creator, you must implement the call method. Also propagates the MDC (Mapped Diagnostic
+ * Context) so that log output and SQL context comments from async tasks carry the originating
+ * request's diagnostic metadata (request ID, session ID, controller, method).
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@AllArgsConstructor
 public abstract class SecurityContextRunnable implements Runnable {
   private final SecurityContext securityContext;
+  private final Map<String, String> mdc;
 
   public SecurityContextRunnable() {
-    this(SecurityContextHolder.getContext());
+    this.securityContext = SecurityContextHolder.getContext();
+    this.mdc = MDC.getCopyOfContextMap();
   }
 
   @Override
   public final void run() {
     try {
       SecurityContextHolder.setContext(securityContext);
+      if (mdc != null) {
+        MDC.setContextMap(mdc);
+      }
       before();
       call();
     } catch (Throwable ex) {
       handleError(ex);
     } finally {
       after();
+      MDC.clear();
       SecurityContextHolder.clearContext();
     }
   }
