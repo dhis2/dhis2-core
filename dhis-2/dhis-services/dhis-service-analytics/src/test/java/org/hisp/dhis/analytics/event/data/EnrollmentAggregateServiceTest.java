@@ -217,6 +217,39 @@ class EnrollmentAggregateServiceTest {
   }
 
   @Test
+  void verifyMixedDefaultAndStaticPeriodsCreateSeparateHeaders() {
+    DataElement deA = createDataElement('A', NUMBER, COUNT);
+    PeriodDimension defaultPeriod = createPeriodDimensions("201809").get(0);
+    PeriodDimension lastUpdatedPeriod =
+        createPeriodDimensions("201810").get(0).setDateField("LAST_UPDATED");
+    DimensionalObject periods =
+        new BaseDimensionalObject(
+            PERIOD_DIM_ID, PERIOD, "pe", "Period", List.of(defaultPeriod, lastUpdatedPeriod));
+    QueryItem qiA = new QueryItem(deA, null, deA.getValueType(), deA.getAggregationType(), null);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(periods)
+            .addItem(qiA)
+            .withSkipData(true)
+            .withSkipMeta(false)
+            .build();
+
+    when(securityManager.withUserConstraints(any(EventQueryParams.class))).thenReturn(params);
+
+    Grid grid = service.getEnrollments(params);
+
+    List<GridHeader> headers = grid.getHeaders();
+    assertThat(headers, hasSize(4));
+    assertHeaderWithColumn(headers.get(0), "value", "Value", NUMBER, Double.class.getName());
+    assertHeaderWithColumn(headers.get(1), "pe", "Period", TEXT, String.class.getName());
+    assertHeaderWithColumn(
+        headers.get(2), "lastupdated", "Last updated", TEXT, String.class.getName());
+    assertHeaderWithColumn(
+        headers.get(3), deA.getUid(), deA.getName(), NUMBER, Double.class.getName());
+  }
+
+  @Test
   void verifyRawPeriodDimensionIsRemovedFromMetadataForStaticDateFieldPeriods() {
     DataElement deA = createDataElement('A', NUMBER, COUNT);
     PeriodDimension period = createPeriodDimensions("201809").get(0).setDateField("LAST_UPDATED");
