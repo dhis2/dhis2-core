@@ -126,7 +126,7 @@ public class RelationshipPersister
       TrackerBundle bundle,
       org.hisp.dhis.relationship.Relationship entity,
       List<SideEffectTrigger> triggers) {
-    return TrackerSideEffectDataBundle.builder().build();
+    return null;
   }
 
   @Override

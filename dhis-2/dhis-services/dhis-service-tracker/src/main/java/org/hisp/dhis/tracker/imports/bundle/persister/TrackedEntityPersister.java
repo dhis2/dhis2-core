@@ -113,7 +113,7 @@ public class TrackedEntityPersister
   @Override
   protected TrackerSideEffectDataBundle handleSideEffects(
       TrackerBundle bundle, TrackedEntity entity, List<SideEffectTrigger> triggers) {
-    return TrackerSideEffectDataBundle.builder().build();
+    return null;
   }
 
   @Override

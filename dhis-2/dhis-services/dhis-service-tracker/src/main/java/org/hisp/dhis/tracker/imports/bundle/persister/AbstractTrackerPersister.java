@@ -45,6 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
@@ -90,7 +91,7 @@ public abstract class AbstractTrackerPersister<
    * @return a {@link TrackerTypeReport}
    */
   @Override
-  public TrackerTypeReport persist(EntityManager entityManager, TrackerBundle bundle) {
+  public PersistResult persist(EntityManager entityManager, TrackerBundle bundle) {
     //
     // Init the report that will hold the results of the persist operation
     //
@@ -106,9 +107,13 @@ public abstract class AbstractTrackerPersister<
     for (T trackerDto : dtos) {
 
       Entity objectReport = new Entity(getType(), trackerDto.getUid());
-
+      // Determine triggers before convert() because convert() mutates the preheat entity
+      // (e.g. sets status on the preheat enrollment), which would make the before/after
+      // comparison in determineSideEffectTriggers() see the new status on both sides.
       List<SideEffectTrigger> triggers =
-          determineSideEffectTriggers(bundle.getPreheat(), trackerDto);
+          bundle.isSkipSideEffects()
+              ? List.of()
+              : determineSideEffectTriggers(bundle.getPreheat(), trackerDto);
 
       try {
         //
@@ -150,7 +155,11 @@ public abstract class AbstractTrackerPersister<
         }
 
         if (!bundle.isSkipSideEffects()) {
-          sideEffectDataBundles.add(handleSideEffects(bundle, convertedDto, triggers));
+          TrackerSideEffectDataBundle sideEffectBundle =
+              handleSideEffects(bundle, convertedDto, triggers);
+          if (sideEffectBundle != null) {
+            sideEffectDataBundles.add(sideEffectBundle);
+          }
         }
 
         //
@@ -182,9 +191,7 @@ public abstract class AbstractTrackerPersister<
       }
     }
 
-    typeReport.getSideEffectDataBundles().addAll(sideEffectDataBundles);
-
-    return typeReport;
+    return new PersistResult(typeReport, sideEffectDataBundles);
   }
 
   // // // // // // // //
@@ -228,6 +235,33 @@ public abstract class AbstractTrackerPersister<
    */
   protected boolean isUpdatable() {
     return true;
+  }
+
+  protected static boolean hasMatchingNotificationTemplates(
+      IdentifiableObject programOrStage, List<SideEffectTrigger> triggers) {
+    Set<org.hisp.dhis.program.notification.NotificationTrigger> templateTriggers =
+        triggers.stream()
+            .map(SideEffectTrigger::toTemplateTrigger)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+    if (templateTriggers.isEmpty()) {
+      return false;
+    }
+
+    Set<org.hisp.dhis.program.notification.ProgramNotificationTemplate> templates;
+    if (programOrStage instanceof org.hisp.dhis.program.Program p) {
+      templates = p.getNotificationTemplates();
+    } else if (programOrStage instanceof org.hisp.dhis.program.ProgramStage ps) {
+      templates = ps.getNotificationTemplates();
+    } else {
+      return false;
+    }
+
+    if (templates == null || templates.isEmpty()) {
+      return false;
+    }
+
+    return templates.stream().anyMatch(t -> templateTriggers.contains(t.getNotificationTrigger()));
   }
 
   /** Determines if the given trackerDto belongs to an existing entity */

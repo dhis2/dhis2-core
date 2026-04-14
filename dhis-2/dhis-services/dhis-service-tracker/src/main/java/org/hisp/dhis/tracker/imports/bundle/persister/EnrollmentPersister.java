@@ -123,6 +123,11 @@ public class EnrollmentPersister
   @Override
   protected TrackerSideEffectDataBundle handleSideEffects(
       TrackerBundle bundle, Enrollment enrollment, List<SideEffectTrigger> triggers) {
+    boolean hasTemplates = hasMatchingNotificationTemplates(enrollment.getProgram(), triggers);
+    boolean hasRuleEffects = !bundle.getEnrollmentRuleEffects().isEmpty();
+    if (!hasTemplates && !hasRuleEffects) {
+      return null;
+    }
 
     return TrackerSideEffectDataBundle.builder()
         .klass(Enrollment.class)
@@ -133,7 +138,7 @@ public class EnrollmentPersister
         .accessedBy(bundle.getUsername())
         .enrollment(enrollment)
         .program(enrollment.getProgram())
-        .triggers(triggers)
+        .triggers(hasTemplates ? triggers : List.of())
         .build();
   }
 
