@@ -915,12 +915,14 @@ class JdbcEventStore implements EventStore {
       fromBuilder.append(
           "inner join organisationunit ou on ev.organisationunitid=ou.organisationunitid ");
     } else {
+      // For tracker programs a TPO record is always created at enrollment time.
+      // Use INNER JOIN on po.organisationunitid directly — no COALESCE needed, and the
+      // join is sargable. Matches the master store which also uses INNER JOIN on TPO.
       fromBuilder
           .append(
-              "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
+              "inner join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
           .append(
-              "inner join organisationunit ou on (coalesce(po.organisationunitid,"
-                  + " ev.organisationunitid)=ou.organisationunitid) ");
+              "inner join organisationunit ou on po.organisationunitid=ou.organisationunitid ");
     }
     // evou is always ev.organisationunitid; kept unconditional for SELECT clause (evou.uid,
     // evou.code). For WITHOUT_REGISTRATION queries ou and evou resolve to the same row.
