@@ -36,7 +36,10 @@ import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.lang.reflect.Method;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -85,11 +88,39 @@ class EventAggregateServiceTest {
   }
 
   @Test
-  void shouldFallbackToPeHeaderWhenPeriodDateFieldsAreMixed() throws Exception {
-    GridHeader header = invokeAddDimensionHeaders(mixedPeriodDateFieldsParams());
+  void shouldExpandMixedPeriodDateFieldsIntoSeparateHeaders() throws Exception {
+    Grid grid = invokeDimensionHeadersGrid(mixedPeriodDateFieldsParams());
 
-    assertEquals("pe", header.getName());
-    assertEquals("Period", header.getColumn());
+    assertEquals(
+        List.of("enrollmentdate", "pe"),
+        grid.getHeaders().stream().map(GridHeader::getName).toList());
+    assertEquals(
+        List.of("Enrollment date", "Period"),
+        grid.getHeaders().stream().map(GridHeader::getColumn).toList());
+  }
+
+  @Test
+  void shouldRemoveRawPeMetadataWhenNoDefaultAggregatePeriodIsVisible() throws Exception {
+    Grid grid = new ListGrid();
+    grid.getMetaData()
+        .put(
+            AnalyticsMetaDataKey.DIMENSIONS.getKey(),
+            new LinkedHashMap<>(
+                Map.of("scheduleddate", List.of("2021"), PERIOD_DIM_ID, List.of("2021"))));
+
+    invokePrivate(
+        "removeRawPeriodDimensionMetadata",
+        Grid.class,
+        EventQueryParams.class,
+        grid,
+        singleDateFieldParams("SCHEDULED_DATE", new Program()));
+
+    @SuppressWarnings("unchecked")
+    Map<String, List<String>> dimensions =
+        (Map<String, List<String>>)
+            grid.getMetaData().get(AnalyticsMetaDataKey.DIMENSIONS.getKey());
+
+    assertEquals(List.of("scheduleddate"), dimensions.keySet().stream().toList());
   }
 
   @Test
@@ -109,9 +140,13 @@ class EventAggregateServiceTest {
   }
 
   private GridHeader invokeAddDimensionHeaders(EventQueryParams params) throws Exception {
+    return invokeDimensionHeadersGrid(params).getHeaders().get(0);
+  }
+
+  private Grid invokeDimensionHeadersGrid(EventQueryParams params) throws Exception {
     Grid grid = new ListGrid();
     invokePrivate("addDimensionHeaders", EventQueryParams.class, Grid.class, params, grid);
-    return grid.getHeaders().get(0);
+    return grid;
   }
 
   private void invokePrivate(

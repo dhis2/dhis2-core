@@ -39,6 +39,7 @@ import java.util.Map;
 import org.hibernate.event.spi.EventSource;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.schema.Property;
@@ -58,6 +59,8 @@ public class AuditHibernateListenerTest {
   @Mock private AuditManager auditManager;
 
   @Mock private AuditObjectFactory objectFactory;
+
+  @Mock private AuditMatrix auditMatrix;
 
   @Mock private UsernameSupplier usernameSupplier;
 

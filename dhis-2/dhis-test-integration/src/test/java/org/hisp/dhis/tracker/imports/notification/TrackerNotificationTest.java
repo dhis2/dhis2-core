@@ -125,6 +125,26 @@ class TrackerNotificationTest extends PostgresIntegrationTestBase {
   }
 
   @Test
+  void shouldSendEnrollmentNotificationToUsersAtOrgUnit() {
+    ProgramNotificationTemplate template =
+        addNotificationTemplate(
+            "org_unit_users_subject",
+            NotificationTrigger.ENROLLMENT,
+            ProgramNotificationRecipient.USERS_AT_ORGANISATION_UNIT,
+            null);
+    program.getNotificationTemplates().add(template);
+    manager.update(program);
+
+    importEnrollment(EnrollmentStatus.ACTIVE);
+
+    await()
+        .atMost(3, TimeUnit.SECONDS)
+        .until(() -> !manager.getAll(MessageConversation.class).isEmpty());
+
+    assertContainsOnly(List.of("org_unit_users_subject"), messageSubjects());
+  }
+
+  @Test
   void shouldSendEnrollmentCompletionNotification() {
     addLifecycleTemplate("enrollment_completion_subject", NotificationTrigger.COMPLETION, program);
 
@@ -342,6 +362,15 @@ class TrackerNotificationTest extends PostgresIntegrationTestBase {
 
   private ProgramNotificationTemplate addNotificationTemplate(
       String subject, NotificationTrigger trigger) {
+    return addNotificationTemplate(
+        subject, trigger, ProgramNotificationRecipient.USER_GROUP, userGroup);
+  }
+
+  private ProgramNotificationTemplate addNotificationTemplate(
+      String subject,
+      NotificationTrigger trigger,
+      ProgramNotificationRecipient recipient,
+      UserGroup group) {
     ProgramNotificationTemplate template = new ProgramNotificationTemplate();
     template.setAutoFields();
     template.setUid(CodeGenerator.generateUid());
@@ -349,8 +378,10 @@ class TrackerNotificationTest extends PostgresIntegrationTestBase {
     template.setSubjectTemplate(subject);
     template.setMessageTemplate("message");
     template.setNotificationTrigger(trigger);
-    template.setNotificationRecipient(ProgramNotificationRecipient.USER_GROUP);
-    template.setRecipientUserGroup(userGroup);
+    template.setNotificationRecipient(recipient);
+    if (group != null) {
+      template.setRecipientUserGroup(group);
+    }
     manager.save(template);
     return template;
   }

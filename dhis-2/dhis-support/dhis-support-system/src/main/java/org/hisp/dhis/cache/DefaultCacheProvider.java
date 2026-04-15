@@ -456,4 +456,14 @@ public class DefaultCacheProvider implements CacheProvider {
             .forceInMemory()
             .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_1))));
   }
+
+  @Override
+  public <V> Cache<V> createNotificationTemplateCache() {
+    return registerCache(
+        this.<V>newBuilder()
+            .forRegion(Region.notificationTemplateCache.name())
+            .expireAfterAccess(12, HOURS)
+            .forceInMemory()
+            .withMaximumSize(orZeroInTestRun(getActualSize(SIZE_100))));
+  }
 }

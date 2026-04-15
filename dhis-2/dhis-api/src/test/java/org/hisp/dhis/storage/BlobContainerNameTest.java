@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,45 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.filter;
+package org.hisp.dhis.storage;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.http.HttpMethod;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/**
- * Filter which enforces no cache for HTML pages like index pages to prevent stale versions being
- * rendered in clients.
- *
- * @author Kai Vandivier
- */
-@Component
-public class AppHtmlNoCacheFilter extends OncePerRequestFilter {
-  // Match paths with '/dhis-web-' or '/apps' that end with '.html' or '/'
-  // https://regex101.com/r/4QfxgS/1
-  public static final String HTML_PATH_REGEX = "\\/(dhis-web-|apps).*(\\.html|\\/)$";
-  public static final Pattern HTML_PATH_PATTERN = Pattern.compile(HTML_PATH_REGEX);
+import org.junit.jupiter.api.Test;
 
-  @Override
-  protected void doFilterInternal(
-      HttpServletRequest request, HttpServletResponse response, FilterChain chain)
-      throws IOException, ServletException {
+class BlobContainerNameTest {
 
-    String uri = request.getRequestURI();
-    Matcher m = HTML_PATH_PATTERN.matcher(uri);
+  @Test
+  void nullValueIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new BlobContainerName(null));
+  }
 
-    if (m.find() && HttpMethod.GET.matches(request.getMethod())) {
-      ContextUtils.setNoStore(response);
-    }
+  @Test
+  void blankValueIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new BlobContainerName("   "));
+  }
 
-    chain.doFilter(request, response);
+  @Test
+  void trailingSlashIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new BlobContainerName("dhis2-filestore/"));
+  }
+
+  @Test
+  void validValueIsAccepted() {
+    BlobContainerName name = new BlobContainerName("dhis2-filestore");
+    assertEquals("dhis2-filestore", name.value());
+  }
+
+  @Test
+  void toStringReturnValue() {
+    assertEquals("my-bucket", new BlobContainerName("my-bucket").toString());
   }
 }

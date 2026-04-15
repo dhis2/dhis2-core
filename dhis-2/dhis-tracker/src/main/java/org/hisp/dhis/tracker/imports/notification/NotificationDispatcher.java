@@ -30,26 +30,39 @@
 package org.hisp.dhis.tracker.imports.notification;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.AsyncTaskExecutor;
+import org.hisp.dhis.security.SecurityContextRunnable;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Dispatches all notifications for tracker import side effects. Submits one {@link
- * NotificationTask} per entity to the async task executor.
+ * Dispatches all notifications for tracker import side effects. Submits a single coordinator task
+ * that batch-fetches notification dependencies, then dispatches one {@link NotificationTask} per
+ * entity. All work runs async -- the import thread returns immediately.
  */
 @Component
 @RequiredArgsConstructor
 public class NotificationDispatcher {
   private final ObjectFactory<NotificationTask> taskFactory;
   private final AsyncTaskExecutor taskExecutor;
+  private final GroupMemberFetcher groupMemberFetcher;
 
   public void sendNotifications(List<EntityNotifications> notifications) {
-    for (EntityNotifications entityNotifications : notifications) {
-      NotificationTask task = taskFactory.getObject();
-      task.setEntityNotifications(entityNotifications);
-      taskExecutor.executeTask(task);
-    }
+    taskExecutor.executeTask(
+        new SecurityContextRunnable() {
+          @Override
+          public void call() {
+            Map<Long, Set<GroupMemberInfo>> groupMembers = groupMemberFetcher.fetch(notifications);
+            for (EntityNotifications entityNotifications : notifications) {
+              NotificationTask task = taskFactory.getObject();
+              task.setEntityNotifications(entityNotifications);
+              task.setGroupMembers(groupMembers);
+              taskExecutor.executeTask(task);
+            }
+          }
+        });
   }
 }

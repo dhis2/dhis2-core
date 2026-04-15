@@ -44,7 +44,6 @@ import static org.hisp.dhis.commons.util.TextUtils.EMPTY;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
@@ -54,10 +53,10 @@ import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.tracker.MetadataItemsHandler;
 import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Service;
@@ -179,7 +178,12 @@ public class EnrollmentAggregateService {
    */
   @SuppressWarnings("unchecked")
   private void removeRawPeriodDimensionMetadata(Grid grid, List<DimensionalObject> periods) {
-    if (hasDefaultPeriod(periods)) {
+    boolean hasDefault =
+        periods.stream()
+            .filter(dim -> DimensionType.PERIOD == dim.getDimensionType())
+            .anyMatch(PeriodDimensionSplitter::hasDefaultPeriodGroup);
+
+    if (hasDefault) {
       return;
     }
 
@@ -187,23 +191,5 @@ public class EnrollmentAggregateService {
     if (dimensions instanceof Map<?, ?> dimensionMap) {
       ((Map<String, Object>) dimensionMap).remove(PERIOD_DIM_ID);
     }
-  }
-
-  /**
-   * Returns {@code true} if any period in the given dimensions uses the default date field (i.e.
-   * {@link PeriodDimension#getDateField()} is {@code null}). A default period is one that is not
-   * bound to a specific date column like ENROLLMENT_DATE or INCIDENT_DATE, and is instead resolved
-   * against the standard event/occurrence date.
-   *
-   * @param periods the period dimensions to inspect.
-   * @return {@code true} if at least one period has a {@code null} date field.
-   */
-  private boolean hasDefaultPeriod(List<DimensionalObject> periods) {
-    return periods.stream()
-        .flatMap(period -> period.getItems().stream())
-        .filter(PeriodDimension.class::isInstance)
-        .map(PeriodDimension.class::cast)
-        .map(PeriodDimension::getDateField)
-        .anyMatch(Objects::isNull);
   }
 }
