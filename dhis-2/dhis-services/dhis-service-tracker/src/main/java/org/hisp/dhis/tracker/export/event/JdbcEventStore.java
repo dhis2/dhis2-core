@@ -921,8 +921,7 @@ class JdbcEventStore implements EventStore {
       fromBuilder
           .append(
               "inner join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
-          .append(
-              "inner join organisationunit ou on po.organisationunitid=ou.organisationunitid ");
+          .append("inner join organisationunit ou on po.organisationunitid=ou.organisationunitid ");
     }
     // evou is always ev.organisationunitid; kept unconditional for SELECT clause (evou.uid,
     // evou.code). For WITHOUT_REGISTRATION queries ou and evou resolve to the same row.
