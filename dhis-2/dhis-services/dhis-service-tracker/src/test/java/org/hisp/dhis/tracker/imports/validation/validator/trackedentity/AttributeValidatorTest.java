@@ -39,6 +39,7 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
@@ -96,6 +97,16 @@ class AttributeValidatorTest {
     bundle = TrackerBundle.builder().preheat(preheat).build();
     idSchemes = TrackerIdSchemeParams.builder().build();
     when(preheat.getIdSchemes()).thenReturn(idSchemes);
+    when(preheat.getMandatoryTrackedEntityTypeAttributes(any()))
+        .thenAnswer(
+            invocation -> {
+              TrackedEntityType tet = invocation.getArgument(0);
+              return tet.getTrackedEntityTypeAttributes().stream()
+                  .filter(a -> Boolean.TRUE.equals(a.isMandatory()))
+                  .map(TrackedEntityTypeAttribute::getTrackedEntityAttribute)
+                  .map(idSchemes::toMetadataIdentifier)
+                  .collect(Collectors.toUnmodifiableSet());
+            });
     reporter = new Reporter(idSchemes);
     when(dhisConfigurationProvider.getEncryptionStatus()).thenReturn(EncryptionStatus.OK);
   }

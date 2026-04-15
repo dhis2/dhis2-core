@@ -39,6 +39,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
@@ -116,8 +117,18 @@ class AttributeValidatorTest {
         new TrackedEntityAttribute("percentage", "percent", ValueType.PERCENTAGE, false, false);
     trackedEntityAttributeP.setUid(trackedAttributeP);
 
-    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    when(preheat.getIdSchemes()).thenReturn(idSchemes);
     when(preheat.getProgram((MetadataIdentifier) any())).thenReturn(program);
+    when(preheat.getMandatoryProgramAttributes(any()))
+        .thenAnswer(
+            invocation -> {
+              Program p = invocation.getArgument(0);
+              return p.getProgramAttributes().stream()
+                  .filter(pa -> Boolean.TRUE.equals(pa.isMandatory()))
+                  .map(pa -> idSchemes.toMetadataIdentifier(pa.getAttribute()))
+                  .collect(Collectors.toUnmodifiableSet());
+            });
     when(enrollment.getProgram()).thenReturn(MetadataIdentifier.ofUid("program"));
     when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid(trackedAttribute)))
         .thenReturn(trackedEntityAttribute);
@@ -137,7 +148,6 @@ class AttributeValidatorTest {
 
     bundle = TrackerBundle.builder().preheat(preheat).build();
 
-    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new Reporter(idSchemes);
   }
 
