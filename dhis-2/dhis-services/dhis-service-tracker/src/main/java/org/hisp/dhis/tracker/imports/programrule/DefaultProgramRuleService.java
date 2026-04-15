@@ -39,8 +39,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.ListUtils;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -50,8 +52,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
+import org.hisp.dhis.rules.api.RuleContextRequirements;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -102,11 +104,18 @@ class DefaultProgramRuleService implements ProgramRuleService {
   /**
    * Calculates rule effects for all enrollments, tracker events, and single events in the payload.
    *
-   * <p>All programs referenced by the bundle are collected in a single pass and their rules fetched
-   * at once. The constant map is allocated only when at least one program has applicable rules.
-   * Enrollments and tracker events whose enrollment is not in the payload are grouped by program so
-   * that {@link ProgramRuleEngine#evaluateEnrollmentsAndTrackerEvents} is called at most once per
-   * distinct program. Single events are evaluated separately per program.
+   * <p>Payload enrollments and tracker events whose enrollment is not in the payload are grouped by
+   * program so that the rule engine is called at most once per distinct program. Two evaluation
+   * paths are chosen for enrollments based on the rule set's declared requirements:
+   *
+   * <ul>
+   *   <li>{@code !needsAllEvents} — evaluated with enrollment context using only payload events; no
+   *       saved events are fetched from the database.
+   *   <li>{@code needsAllEvents} — evaluated with full context; saved events are fetched from the
+   *       database and combined with payload events.
+   * </ul>
+   *
+   * <p>Single events are always evaluated separately per program without enrollment context.
    */
   @Override
   @Transactional(readOnly = true)
@@ -115,7 +124,8 @@ class DefaultProgramRuleService implements ProgramRuleService {
     // program, so look up each distinct program identifier at most once.
     Set<Program> allPrograms = getAllProgramsFromPayload(bundle, preheat);
 
-    Map<Program, ProgramRuleContext> contextByProgram = getRulesForPrograms(allPrograms);
+    Map<Program, ProgramRuleContext> contextByProgram =
+        getRulesForPrograms(allPrograms, bundle, preheat);
     if (contextByProgram.isEmpty()) {
       return;
     }
@@ -139,6 +149,40 @@ class DefaultProgramRuleService implements ProgramRuleService {
     bundle.setEventRuleActionExecutors(ruleActionEventMapper.mapRuleEffects(ruleEffects, bundle));
   }
 
+  // Collects the UIDs of all org units referenced by payload enrollments, events,
+  // and preheat-resolved saved enrollments for events whose enrollment is not in
+  // the payload. These UIDs drive the org unit group query in SupplementaryDataProvider.
+  private static Set<String> collectOrgUnitUids(TrackerBundle bundle, TrackerPreheat preheat) {
+    Set<String> uids = new HashSet<>();
+
+    bundle.getEnrollments().stream()
+        .map(e -> preheat.getOrganisationUnit(e.getOrgUnit()))
+        .filter(Objects::nonNull)
+        .map(BaseIdentifiableObject::getUid)
+        .forEach(uids::add);
+    bundle.getEvents().stream()
+        .map(e -> preheat.getOrganisationUnit(e.getOrgUnit()))
+        .filter(Objects::nonNull)
+        .map(BaseIdentifiableObject::getUid)
+        .forEach(uids::add);
+
+    Set<String> payloadEnrollmentUids =
+        bundle.getEnrollments().stream()
+            .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getUid)
+            .collect(Collectors.toSet());
+    bundle.getEvents().stream()
+        .filter(e -> preheat.getProgram(e.getProgram()).isRegistration())
+        .filter(te -> !payloadEnrollmentUids.contains(te.getEnrollment()))
+        .map(te -> preheat.getEnrollment(te.getEnrollment()))
+        .filter(Objects::nonNull)
+        .map(Enrollment::getOrganisationUnit)
+        .filter(Objects::nonNull)
+        .map(BaseIdentifiableObject::getUid)
+        .forEach(uids::add);
+
+    return uids;
+  }
+
   private static Set<Program> getAllProgramsFromPayload(
       TrackerBundle bundle, TrackerPreheat preheat) {
     // Deduplicate program identifiers before hitting preheat: many enrollments/events typically
@@ -156,25 +200,53 @@ class DefaultProgramRuleService implements ProgramRuleService {
   }
 
   /**
-   * Rules and variables for a single program, co-fetched once per program so that the engine does
-   * not need to re-query variables during context construction.
+   * Pre-built evaluation context for a single program.
+   *
+   * <p>{@code needsTeAttributes} is {@code true} when the rules reference TEI-attribute variables,
+   * so attribute values must be loaded before building the enrollment.
+   *
+   * <p>{@code needsAllEvents} is {@code true} when the rules reference variables that require
+   * knowledge of all events (newest-event or previous-event variables, or {@code V{event_count}}),
+   * so saved events must be fetched from the database.
+   *
+   * <p>{@code orgUnitUids} contains the UIDs of org units in the payload that are needed for the
+   * org unit group supplementary data query; empty when the rule set does not use org unit groups.
    */
   private record ProgramRuleContext(
-      List<ProgramRule> rules, List<ProgramRuleVariable> variables, boolean needsTeAttributes) {}
+      @Nonnull List<ProgramRule> rules,
+      @Nonnull List<ProgramRuleVariable> variables,
+      boolean needsTeAttributes,
+      boolean needsAllEvents,
+      @Nonnull Set<String> orgUnitUids) {}
 
-  // Fetches rules and variables for each program; skips programs with no applicable rules.
-  private Map<Program, ProgramRuleContext> getRulesForPrograms(Set<Program> programs) {
+  // Skips programs with no applicable rules.
+  // orgUnitUids is computed lazily — collected at most once, only when the first program with
+  // needsOrgUnitGroups = true is encountered.
+  private Map<Program, ProgramRuleContext> getRulesForPrograms(
+      Set<Program> programs, TrackerBundle bundle, TrackerPreheat preheat) {
     Map<Program, ProgramRuleContext> contextByProgram = new HashMap<>();
+    Set<String> orgUnitUids = null;
     for (Program program : programs) {
-      List<ProgramRule> rules =
+      List<ProgramRule> programRules =
           programRuleMetadataService.getProgramRulesByActionTypes(program, SERVER_SUPPORTED_TYPES);
-      if (!rules.isEmpty()) {
+      if (!programRules.isEmpty()) {
         List<ProgramRuleVariable> variables =
             programRuleVariableService.getProgramRuleVariable(program);
-        boolean needsTeAttributes =
-            variables.stream()
-                .anyMatch(v -> v.getSourceType() == ProgramRuleVariableSourceType.TEI_ATTRIBUTE);
-        contextByProgram.put(program, new ProgramRuleContext(rules, variables, needsTeAttributes));
+        RuleContextRequirements requirements =
+            programRuleEngine.analyzeContextRequirements(programRules, variables);
+        if (requirements.getNeedsOrgUnitGroups() && orgUnitUids == null) {
+          orgUnitUids = collectOrgUnitUids(bundle, preheat);
+        }
+        contextByProgram.put(
+            program,
+            new ProgramRuleContext(
+                programRules,
+                variables,
+                requirements.getNeedsAttributes(),
+                requirements.getNeedsAllEvents(),
+                requirements.getNeedsOrgUnitGroups() && orgUnitUids != null
+                    ? orgUnitUids
+                    : Set.of()));
       }
     }
     return contextByProgram;
@@ -210,18 +282,20 @@ class DefaultProgramRuleService implements ProgramRuleService {
       return List.of();
     }
 
-    Set<String> enrollmentUids =
+    // Only fetch saved events for programs that need all events in context
+    Set<String> enrollmentUidsNeedingAllEvents =
         Stream.concat(
-                payloadEnrollmentsByProgram.values().stream()
-                    .flatMap(List::stream)
+                payloadEnrollmentsByProgram.entrySet().stream()
+                    .filter(e -> contextByProgram.get(e.getKey()).needsAllEvents())
+                    .flatMap(e -> e.getValue().stream())
                     .map(org.hisp.dhis.tracker.imports.domain.Enrollment::getUid),
-                savedEnrollmentsByProgram.values().stream()
-                    .flatMap(List::stream)
+                savedEnrollmentsByProgram.entrySet().stream()
+                    .filter(e -> contextByProgram.get(e.getKey()).needsAllEvents())
+                    .flatMap(e -> e.getValue().stream())
                     .map(Enrollment::getUid))
             .collect(Collectors.toSet());
-
     Map<String, Set<Event>> savedEventsByEnrollment =
-        fetchSavedEventsForEnrollments(enrollmentUids, bundle);
+        fetchSavedEventsForEnrollments(enrollmentUidsNeedingAllEvents, bundle);
 
     return contextByProgram.entrySet().stream()
         .filter(
@@ -247,7 +321,8 @@ class DefaultProgramRuleService implements ProgramRuleService {
                       UserDetails.fromUser(bundle.getUser()),
                       constantMap,
                       ctx.rules(),
-                      ctx.variables())
+                      ctx.variables(),
+                      ctx.orgUnitUids())
                   .stream();
             })
         .toList();
@@ -323,7 +398,8 @@ class DefaultProgramRuleService implements ProgramRuleService {
                       UserDetails.fromUser(bundle.getUser()),
                       constantMap,
                       ctx.rules(),
-                      ctx.variables())
+                      ctx.variables(),
+                      ctx.orgUnitUids())
                   .stream();
             })
         .toList();

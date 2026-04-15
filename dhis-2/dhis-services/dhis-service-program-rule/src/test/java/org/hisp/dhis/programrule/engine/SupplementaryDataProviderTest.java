@@ -27,92 +27,125 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import java.util.HashSet;
-import java.util.List;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Set;
-import java.util.stream.Collectors;
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.rules.api.RuleSupplementaryData;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 
 @ExtendWith(MockitoExtension.class)
 class SupplementaryDataProviderTest extends DhisConvenienceTest {
 
   private static final String ORG_UNIT_GROUP_UID = "OrgUnitGroupId";
+  private static final String ORG_UNIT_GROUP_CODE = "OrganisationUnitGroupCodeA";
+  private static final String ORG_UNIT_UID = "OrgUnitIdAAA";
+  private static final String USER_GROUP_UID = "UserGroupId";
 
-  private static final String NOT_NEEDED_ORG_UNIT_GROUP_UID = "NotNeededOrgUnitGroupId";
+  @Mock private NamedParameterJdbcTemplate namedJdbcTemplate;
 
-  @Mock private OrganisationUnitGroupService organisationUnitGroupService;
+  private SupplementaryDataProvider providerToTest;
 
-  @Mock private UserService userService;
+  private UserGroup userGroupA;
 
-  @InjectMocks private SupplementaryDataProvider providerToTest;
-
-  private OrganisationUnit orgUnitA;
-
-  private OrganisationUnit orgUnitB;
+  private UserDetails currentUser;
 
   @BeforeEach
   void setUp() {
+    providerToTest = new SupplementaryDataProvider(namedJdbcTemplate);
+
     User user = makeUser("A");
     user.setUsername("A");
     user.setUserRoles(getUserRoles());
 
-    injectSecurityContext(UserDetails.fromUser(user));
+    userGroupA = createUserGroup('G', Set.of(user));
+    userGroupA.setUid(USER_GROUP_UID);
 
-    orgUnitA = createOrganisationUnit('A');
-    orgUnitB = createOrganisationUnit('B');
-    OrganisationUnitGroup orgUnitGroup = createOrganisationUnitGroup('A');
-    orgUnitGroup.setUid(ORG_UNIT_GROUP_UID);
-    orgUnitGroup.setMembers(Sets.newHashSet(orgUnitA));
-    OrganisationUnitGroup notNeededOrgUnitGroup = createOrganisationUnitGroup('B');
-    notNeededOrgUnitGroup.setUid(NOT_NEEDED_ORG_UNIT_GROUP_UID);
-    notNeededOrgUnitGroup.setMembers(Sets.newHashSet(orgUnitB));
-    when(organisationUnitGroupService.getOrganisationUnitGroup(ORG_UNIT_GROUP_UID))
-        .thenReturn(orgUnitGroup);
+    user.getGroups().add(userGroupA);
+    currentUser = UserDetails.fromUser(user);
   }
 
   @Test
-  void getSupplementaryData() {
-    User user = new User();
-    user.setUserRoles(getUserRoles());
+  void shouldReturnEmptyOrgUnitGroupsWhenNotNeeded() {
     RuleSupplementaryData supplementaryData =
-        providerToTest.getSupplementaryData(getProgramRules(), UserDetails.fromUser(user));
-    assertEquals(getUserRoleUids(), new HashSet<>(supplementaryData.getUserRoles()));
-    assertFalse(supplementaryData.getOrgUnitGroups().get(ORG_UNIT_GROUP_UID).isEmpty());
-    assertEquals(
-        orgUnitA.getUid(), supplementaryData.getOrgUnitGroups().get(ORG_UNIT_GROUP_UID).get(0));
-    assertNull(supplementaryData.getOrgUnitGroups().get(NOT_NEEDED_ORG_UNIT_GROUP_UID));
+        providerToTest.getSupplementaryData(false, Set.of(ORG_UNIT_UID), currentUser);
+    assertTrue(supplementaryData.getOrgUnitGroups().isEmpty());
+    verify(namedJdbcTemplate, never())
+        .query(anyString(), any(SqlParameterSource.class), any(RowCallbackHandler.class));
   }
 
-  private List<ProgramRule> getProgramRules() {
-    ProgramRule programRule = createProgramRule('A', null);
-    programRule.setCondition("d2:inOrgUnitGroup('OrgUnitGroupId')");
-    return Lists.newArrayList(programRule);
+  @Test
+  void shouldReturnEmptyOrgUnitGroupsWhenNoOrgUnitsGiven() {
+    RuleSupplementaryData supplementaryData =
+        providerToTest.getSupplementaryData(true, Set.of(), currentUser);
+    assertTrue(supplementaryData.getOrgUnitGroups().isEmpty());
+    verify(namedJdbcTemplate, never())
+        .query(anyString(), any(SqlParameterSource.class), any(RowCallbackHandler.class));
   }
 
-  private Set<String> getUserRoleUids() {
-    return getUserRoles().stream().map(UserRole::getUid).collect(Collectors.toSet());
+  @Test
+  void shouldReturnOrgUnitGroupMembersByBothUidAndCode() {
+    mockQueryRows(new String[] {ORG_UNIT_GROUP_UID, ORG_UNIT_GROUP_CODE, ORG_UNIT_UID});
+    RuleSupplementaryData supplementaryData =
+        providerToTest.getSupplementaryData(true, Set.of(ORG_UNIT_UID), currentUser);
+    assertFalse(supplementaryData.getOrgUnitGroups().isEmpty());
+    assertTrue(supplementaryData.getOrgUnitGroups().get(ORG_UNIT_GROUP_UID).contains(ORG_UNIT_UID));
+    assertTrue(
+        supplementaryData.getOrgUnitGroups().get(ORG_UNIT_GROUP_CODE).contains(ORG_UNIT_UID));
+  }
+
+  @Test
+  void getUserGroupsSupplementaryData() {
+    RuleSupplementaryData supplementaryData =
+        providerToTest.getSupplementaryData(false, Set.of(), currentUser);
+    assertFalse(supplementaryData.getUserGroups().isEmpty());
+    assertTrue(supplementaryData.getUserGroups().contains(userGroupA.getUid()));
+  }
+
+  /**
+   * Stubs the JDBC template to invoke the {@link RowCallbackHandler} once per supplied row. Each
+   * row is an array of three strings: {@code [uid, code, ou_uid]}.
+   */
+  private void mockQueryRows(String[]... rows) {
+    doAnswer(
+            inv -> {
+              RowCallbackHandler handler = inv.getArgument(2);
+              for (String[] row : rows) {
+                ResultSet rs = mockResultSet(row[0], row[1], row[2]);
+                handler.processRow(rs);
+              }
+              return null;
+            })
+        .when(namedJdbcTemplate)
+        .query(anyString(), any(SqlParameterSource.class), any(RowCallbackHandler.class));
+  }
+
+  private ResultSet mockResultSet(String uid, String code, String ouUid) throws SQLException {
+    ResultSet rs = org.mockito.Mockito.mock(ResultSet.class);
+    org.mockito.Mockito.when(rs.getString("uid")).thenReturn(uid);
+    org.mockito.Mockito.when(rs.getString("code")).thenReturn(code);
+    org.mockito.Mockito.when(rs.getString("ou_uid")).thenReturn(ouUid);
+    return rs;
   }
 
   private Set<UserRole> getUserRoles() {
