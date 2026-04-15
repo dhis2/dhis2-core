@@ -46,6 +46,8 @@ import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -381,11 +383,30 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
   // Configuration
   // -------------------------------------------------------------------------
 
-  List<DataIntegrityIssue> getServerBaseUrlNotSet() {
+  List<DataIntegrityIssue> getServerBaseUrlInvalid() {
     String serverBaseUrl = dhisConfig.getServerBaseUrl();
+
     if (serverBaseUrl == null || serverBaseUrl.isBlank()) {
       return List.of(new DataIntegrityIssue(null, "server.base.url", null, List.of()));
     }
+
+    try {
+      URI uri = new URI(serverBaseUrl);
+      String scheme = uri.getScheme();
+      if (!"http".equals(scheme) && !"https".equals(scheme)) {
+        return List.of(new DataIntegrityIssue(null, serverBaseUrl, null, List.of()));
+      }
+      if (uri.getHost() == null || uri.getHost().isBlank()) {
+        return List.of(new DataIntegrityIssue(null, serverBaseUrl, null, List.of()));
+      }
+    } catch (URISyntaxException e) {
+      return List.of(new DataIntegrityIssue(null, serverBaseUrl, null, List.of()));
+    }
+
+    if (serverBaseUrl.endsWith("/")) {
+      return List.of(new DataIntegrityIssue(null, serverBaseUrl, null, List.of()));
+    }
+
     return List.of();
   }
 
@@ -536,7 +557,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
         ProgramRule.class,
         this::getProgramRuleActionsWithNoProgramStageId);
     registerNonDatabaseIntegrityCheck(
-        "server_base_url_not_set", null, this::getServerBaseUrlNotSet, false);
+        "server_base_url_invalid", null, this::getServerBaseUrlInvalid, false);
     registerNonDatabaseIntegrityCheck(
         "server_base_url_mismatch", null, this::getServerBaseUrlMismatch, false);
   }

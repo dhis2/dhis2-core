@@ -44,8 +44,9 @@ import org.springframework.test.util.ReflectionTestUtils;
  * Integrity checks for {@code server.base.url} configuration:
  *
  * <ol>
- *   <li>{@code server_base_url_not_set} — detects when {@code server.base.url} is absent from
- *       {@code dhis.conf}.
+ *   <li>{@code server_base_url_invalid} — detects when {@code server.base.url} is absent from
+ *       {@code dhis.conf}, is not a valid absolute HTTP or HTTPS URL, or ends with a trailing
+ *       slash.
  *   <li>{@code server_base_url_mismatch} — detects when {@code server.base.url} in {@code
  *       dhis.conf} and {@code keyInstanceBaseUrl} in the database system settings have different
  *       values.
@@ -56,7 +57,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 class DataIntegrityConfigurationServerBaseUrlControllerTest
     extends AbstractDataIntegrityIntegrationTest {
 
-  private static final String CHECK_NOT_SET = "server_base_url_not_set";
+  private static final String CHECK_INVALID = "server_base_url_invalid";
   private static final String CHECK_MISMATCH = "server_base_url_mismatch";
 
   private static final String INSTANCE_URL = "https://dhis2.example.org/dhis";
@@ -77,18 +78,51 @@ class DataIntegrityConfigurationServerBaseUrlControllerTest
     invalidateSettingsCache();
   }
 
-  // --- server_base_url_not_set ---
+  // --- server_base_url_invalid ---
 
   @Test
-  void testServerBaseUrlNotConfiguredDetected() {
+  void testServerBaseUrlNotSetDetected() {
     assertHasDataIntegrityIssues(
-        null, CHECK_NOT_SET, 0, (String) null, "server.base.url", null, false);
+        null, CHECK_INVALID, 0, (String) null, "server.base.url", null, false);
   }
 
   @Test
-  void testServerBaseUrlConfiguredNoIssue() {
+  void testServerBaseUrlNoSchemeDetected() {
+    setConfigUrl("dhis2.example.org/dhis");
+    assertHasDataIntegrityIssues(
+        null, CHECK_INVALID, 0, (String) null, "dhis2.example.org/dhis", null, false);
+  }
+
+  @Test
+  void testServerBaseUrlPlainStringDetected() {
+    setConfigUrl("123456");
+    assertHasDataIntegrityIssues(null, CHECK_INVALID, 0, (String) null, "123456", null, false);
+  }
+
+  @Test
+  void testServerBaseUrlNonHttpSchemeDetected() {
+    setConfigUrl("ftp://dhis2.example.org/dhis");
+    assertHasDataIntegrityIssues(
+        null, CHECK_INVALID, 0, (String) null, "ftp://dhis2.example.org/dhis", null, false);
+  }
+
+  @Test
+  void testServerBaseUrlTrailingSlashDetected() {
+    setConfigUrl(INSTANCE_URL + "/");
+    assertHasDataIntegrityIssues(
+        null, CHECK_INVALID, 0, (String) null, INSTANCE_URL + "/", null, false);
+  }
+
+  @Test
+  void testServerBaseUrlValidHttpsNoIssue() {
     setConfigUrl(INSTANCE_URL);
-    assertHasNoDataIntegrityIssues(null, CHECK_NOT_SET, false);
+    assertHasNoDataIntegrityIssues(null, CHECK_INVALID, false);
+  }
+
+  @Test
+  void testServerBaseUrlValidHttpNoIssue() {
+    setConfigUrl("http://dhis2.example.org/dhis");
+    assertHasNoDataIntegrityIssues(null, CHECK_INVALID, false);
   }
 
   // --- server_base_url_mismatch ---
