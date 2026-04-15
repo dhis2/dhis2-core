@@ -39,7 +39,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.Date;
 import java.util.List;
 import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.j2ee.servlets.BaseHttpServlet;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -268,9 +267,7 @@ public class ReportController extends AbstractCrudController<Report, GetObjectLi
               response.getOutputStream(), uid, period, organisationUnitUid, type);
 
       if (ReportType.HTML.name().equalsIgnoreCase(type)) {
-        request
-            .getSession()
-            .setAttribute(BaseHttpServlet.DEFAULT_JASPER_PRINT_SESSION_ATTRIBUTE, print);
+        request.getSession().setAttribute("net.sf.jasperreports.j2ee.jasper_print", print);
       }
     }
   }

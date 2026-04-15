@@ -32,11 +32,11 @@ package org.hisp.dhis.system.util;
 import java.io.OutputStream;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.export.JRPdfExporter;
-import net.sf.jasperreports.engine.export.JRXlsExporter;
+import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
 import net.sf.jasperreports.export.SimpleExporterInput;
 import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
-import net.sf.jasperreports.export.SimpleXlsReportConfiguration;
+import net.sf.jasperreports.export.SimpleXlsxReportConfiguration;
+import net.sf.jasperreports.pdf.JRPdfExporter;
 
 /**
  * Supports PDF, HMTL and XLS exports.
@@ -59,7 +59,7 @@ public class JRExportUtils {
   public static void export(String type, OutputStream out, JasperPrint jasperPrint)
       throws JRException {
     if (TYPE_XLS.equals(type)) {
-      SimpleXlsReportConfiguration config = new SimpleXlsReportConfiguration();
+      SimpleXlsxReportConfiguration config = new SimpleXlsxReportConfiguration();
 
       config.setDetectCellType(true);
       config.setRemoveEmptySpaceBetweenRows(true);
@@ -67,7 +67,7 @@ public class JRExportUtils {
       config.setCollapseRowSpan(true);
       config.setWhitePageBackground(false);
 
-      JRXlsExporter exporter = new JRXlsExporter();
+      JRXlsxExporter exporter = new JRXlsxExporter();
       exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
       exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(out));
       exporter.setConfiguration(config);

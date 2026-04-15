@@ -1182,6 +1182,11 @@
         <version>${jasperreports.version}</version>
       </dependency>
       <dependency>
+        <groupId>net.sf.jasperreports</groupId>
+        <artifactId>jasperreports-pdf</artifactId>
+        <version>${jasperreports.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.jfree</groupId>
         <artifactId>jcommon</artifactId>
         <version>${jfreechart-common.version}</version>
