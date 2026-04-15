@@ -908,14 +908,24 @@ class JdbcEventStore implements EventStore {
             .append("inner join program p on p.programid=en.programid ")
             .append("inner join programstage ps on ps.programstageid=ev.programstageid ");
 
-    fromBuilder
-        .append(
-            "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
-        .append(
-            "inner join organisationunit ou on (coalesce(po.organisationunitid,"
-                + " ev.organisationunitid)=ou.organisationunitid) ")
-        .append(
-            "inner join organisationunit evou on (ev.organisationunitid=evou.organisationunitid) ");
+    if (isWithoutRegistrationQuery(params)) {
+      // For single-event programs there are no tracked entity program owners.
+      // Join ou directly on ev.organisationunitid so the planner can use an index scan
+      // rather than resolving a COALESCE across a left-joined TPO row.
+      fromBuilder.append(
+          "inner join organisationunit ou on ev.organisationunitid=ou.organisationunitid ");
+    } else {
+      fromBuilder
+          .append(
+              "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
+          .append(
+              "inner join organisationunit ou on (coalesce(po.organisationunitid,"
+                  + " ev.organisationunitid)=ou.organisationunitid) ");
+    }
+    // evou is always ev.organisationunitid; kept unconditional for SELECT clause (evou.uid,
+    // evou.code). For WITHOUT_REGISTRATION queries ou and evou resolve to the same row.
+    fromBuilder.append(
+        "inner join organisationunit evou on (ev.organisationunitid=evou.organisationunitid) ");
 
     fromBuilder
         .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ")
@@ -1205,9 +1215,7 @@ class JdbcEventStore implements EventStore {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_ID, params.getOrgUnit().getId());
     String directOrgUnitPredicate =
-        params.getEnrolledInProgram() != null
-                && params.getEnrolledInProgram().getProgramType()
-                    == ProgramType.WITHOUT_REGISTRATION
+        isWithoutRegistrationQuery(params)
             ? " ev.organisationunitid = :" + COLUMN_ORG_UNIT_ID + AND
             : " ou.organisationunitid = :" + COLUMN_ORG_UNIT_ID + AND;
 
@@ -1276,6 +1284,11 @@ class JdbcEventStore implements EventStore {
         + AND
         + orgUnitMatcher
         + " )) ";
+  }
+
+  private boolean isWithoutRegistrationQuery(EventQueryParams params) {
+    return params.getEnrolledInProgram() != null
+        && params.getEnrolledInProgram().getProgramType() == ProgramType.WITHOUT_REGISTRATION;
   }
 
   private boolean isProgramRestricted(Program program) {
