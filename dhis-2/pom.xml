@@ -204,6 +204,7 @@
     <commons-io.version>2.21.0</commons-io.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.6.0</commons-email.version>
+    <commons-logging.version>1.3.5</commons-logging.version>
     <jakarta-email.version>1.6.7</jakarta-email.version>
     <httpcomponents-core.version>5.3.6</httpcomponents-core.version>
     <httpcomponents-client5.version>5.5.1</httpcomponents-client5.version>
@@ -921,6 +922,11 @@
             <artifactId>javax.activation-api</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>commons-logging</groupId>
+        <artifactId>commons-logging</artifactId>
+        <version>${commons-logging.version}</version>
       </dependency>
       <dependency>
         <groupId>com.sun.mail</groupId>
