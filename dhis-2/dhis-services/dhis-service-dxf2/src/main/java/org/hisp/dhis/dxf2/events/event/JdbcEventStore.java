@@ -208,6 +208,8 @@ public class JdbcEventStore implements EventStore {
 
   private static final String COLUMN_ORG_UNIT_PATH = "ou_path";
 
+  private static final String COLUMN_ORG_UNIT_ID = "ou_id";
+
   private static final String USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY =
       " ou.path like CONCAT(orgunit.path, '%') ";
 
@@ -1163,13 +1165,33 @@ public class JdbcEventStore implements EventStore {
             .append("inner join program p on p.programid=pi.programid ")
             .append("inner join programstage ps on ps.programstageid=psi.programstageid ");
 
-    fromBuilder
-        .append(
-            "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid and pi.programid=po.programid) ")
-        .append(
-            "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) ")
-        .append(
-            "inner join organisationunit psiou on (psi.organisationunitid=psiou.organisationunitid) ");
+    if (isWithoutRegistrationQuery(params)) {
+      // For single-event programs there are no tracked entity program owners.
+      // Join ou directly on psi.organisationunitid so the planner can use an index scan
+      // rather than resolving a COALESCE across a left-joined TPO row.
+      fromBuilder.append(
+          "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid ");
+    } else if (params.getProgram() != null) {
+      // For tracker (WITH_REGISTRATION) programs a TPO record is always created at enrollment
+      // time. INNER JOIN on po.organisationunitid is correct and sargable.
+      fromBuilder
+          .append(
+              "inner join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid and pi.programid=po.programid) ")
+          .append("inner join organisationunit ou on po.organisationunitid=ou.organisationunitid ");
+    } else {
+      // No program filter — result may contain both WITH and WITHOUT_REGISTRATION events.
+      // Use LEFT JOIN + COALESCE: TPO-owner OU for tracker events, psi.organisationunitid
+      // for single-event program events (which have no TPO row).
+      fromBuilder
+          .append(
+              "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid and pi.programid=po.programid) ")
+          .append(
+              "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) ");
+    }
+    // psiou is always psi.organisationunitid; kept unconditional for SELECT clause (psiou.uid,
+    // psiou.code). For WITHOUT_REGISTRATION queries ou and psiou resolve to the same row.
+    fromBuilder.append(
+        "inner join organisationunit psiou on (psi.organisationunitid=psiou.organisationunitid) ");
 
     fromBuilder
         .append(
@@ -1425,18 +1447,56 @@ public class JdbcEventStore implements EventStore {
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
+    // WITHOUT_REGISTRATION: filter directly on psi.organisationunitid so the planner can
+    // drive the scan from the composite index on (organisationunitid, executiondate).
+    // WITH_REGISTRATION: filter on ou.path which resolves to po.organisationunitid via the
+    // sargable INNER JOIN on TPO — psi.organisationunitid is provenance, not ownership.
+    String directDescendantsPredicate =
+        isWithoutRegistrationQuery(params)
+            ? " psi.organisationunitid IN ("
+                + "SELECT organisationunitid FROM organisationunit "
+                + "WHERE path LIKE CONCAT(:"
+                + COLUMN_ORG_UNIT_PATH
+                + ", '%'))"
+                + AND
+            : CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + AND;
+
     if (isProgramRestricted(params.getProgram())) {
-      return createCaptureScopeQuery(
-          user, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
+      return directDescendantsPredicate
+          + createCaptureScopeQuery(
+              user, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
+    return directDescendantsPredicate
+        + getSearchAndCaptureScopeOrgUnitPathMatchQuery(CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
   }
 
   private String createChildrenSql(
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_ID, params.getOrgUnit().getId());
+
+    // WITHOUT_REGISTRATION: filter directly on psi.organisationunitid so the planner can
+    // drive the scan from the composite index on (organisationunitid, executiondate).
+    // WITH_REGISTRATION: filter on ou.organisationunitid which resolves to po.organisationunitid
+    // via the sargable INNER JOIN on TPO — psi.organisationunitid is provenance, not ownership.
+    String directChildrenPredicate =
+        isWithoutRegistrationQuery(params)
+            ? " (psi.organisationunitid = :"
+                + COLUMN_ORG_UNIT_ID
+                + " OR psi.organisationunitid IN ("
+                + "SELECT organisationunitid FROM organisationunit WHERE parentid = :"
+                + COLUMN_ORG_UNIT_ID
+                + "))"
+                + AND
+            : " (ou.organisationunitid = :"
+                + COLUMN_ORG_UNIT_ID
+                + " OR ou.organisationunitid IN ("
+                + "SELECT organisationunitid FROM organisationunit WHERE parentid = :"
+                + COLUMN_ORG_UNIT_ID
+                + "))"
+                + AND;
 
     String customChildrenQuery =
         " AND (ou.hierarchylevel = "
@@ -1446,20 +1506,27 @@ public class JdbcEventStore implements EventStore {
             + " ) ";
 
     if (isProgramRestricted(params.getProgram())) {
-      return createCaptureScopeQuery(
-          user,
-          mapSqlParameterSource,
-          AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
+      return directChildrenPredicate
+          + createCaptureScopeQuery(
+              user,
+              mapSqlParameterSource,
+              AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
-        CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
+    return directChildrenPredicate
+        + getSearchAndCaptureScopeOrgUnitPathMatchQuery(
+            CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
   }
 
   private String createSelectedSql(
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_ID, params.getOrgUnit().getId());
+    String directOrgUnitPredicate =
+        isWithoutRegistrationQuery(params)
+            ? " psi.organisationunitid = :" + COLUMN_ORG_UNIT_ID + AND
+            : " ou.organisationunitid = :" + COLUMN_ORG_UNIT_ID + AND;
 
     String orgUnitPathEqualsMatchQuery =
         " ou.path = :"
@@ -1470,15 +1537,22 @@ public class JdbcEventStore implements EventStore {
 
     if (isProgramRestricted(params.getProgram())) {
       String customSelectedClause = " AND ou.path = :" + COLUMN_ORG_UNIT_PATH + " ";
-      return createCaptureScopeQuery(user, mapSqlParameterSource, customSelectedClause);
+      return directOrgUnitPredicate
+          + createCaptureScopeQuery(user, mapSqlParameterSource, customSelectedClause);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(orgUnitPathEqualsMatchQuery);
+    return directOrgUnitPredicate
+        + getSearchAndCaptureScopeOrgUnitPathMatchQuery(orgUnitPathEqualsMatchQuery);
   }
 
   private boolean isProgramRestricted(Program program) {
     return program != null && (program.isProtected() || program.isClosed());
+  }
+
+  private boolean isWithoutRegistrationQuery(EventQueryParams params) {
+    return params.getProgram() != null
+        && params.getProgram().getProgramType() == ProgramType.WITHOUT_REGISTRATION;
   }
 
   private static String getSearchAndCaptureScopeOrgUnitPathMatchQuery(String orgUnitMatcher) {
