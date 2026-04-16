@@ -56,7 +56,6 @@ import org.springframework.stereotype.Repository;
 public class HibernateReservedValueStore extends HibernateGenericStore<ReservedValue>
     implements ReservedValueStore {
   private final BatchHandlerFactory batchHandlerFactory;
-  private static final int DELETE_BATCH_SIZE = 500_000;
 
   public HibernateReservedValueStore(
       EntityManager entityManager,

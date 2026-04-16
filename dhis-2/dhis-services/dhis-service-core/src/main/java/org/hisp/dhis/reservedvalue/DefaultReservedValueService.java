@@ -186,11 +186,10 @@ public class DefaultReservedValueService implements ReservedValueService {
 
     } catch (TimeoutException ex) {
       log.warn(
-          String.format(
-              "Generation and reservation of values for %s wih uid %s timed out. %s values was reserved. You might be running low on available values",
-              textPattern.getOwnerObject().name(),
-              textPattern.getOwnerUid(),
-              reservedValues.size()));
+          "Generation and reservation of values for {} with uid {} timed out. {} values was reserved. You might be running low on available values",
+          textPattern.getOwnerObject().name(),
+          textPattern.getOwnerUid(),
+          reservedValues.size());
     }
 
     return reservedValues;
@@ -301,14 +300,14 @@ public class DefaultReservedValueService implements ReservedValueService {
           requireNonNullElse(
               transactionTemplate.execute(s -> reservedValueStore.removeExpiredValues()), 0);
       total += deleted;
-    } while (deleted > 0);
+    } while (deleted >= DELETE_BATCH_SIZE);
 
     do {
       deleted =
           requireNonNullElse(
               transactionTemplate.execute(s -> reservedValueStore.removeUsedValues()), 0);
       total += deleted;
-    } while (deleted > 0);
+    } while (deleted >= DELETE_BATCH_SIZE);
 
     return total;
   }

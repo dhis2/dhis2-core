@@ -37,6 +37,8 @@ import org.hisp.dhis.common.GenericStore;
  */
 public interface ReservedValueStore extends GenericStore<ReservedValue> {
 
+  int DELETE_BATCH_SIZE = 500_000;
+
   void bulkInsertReservedValues(List<ReservedValue> toAdd);
 
   void reserveValues(List<ReservedValue> toAdd);
