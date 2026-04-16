@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2024, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,47 +27,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.validation.validator.trackedentity;
+package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 
-import static org.hisp.dhis.tracker.imports.validation.validator.All.all;
-import static org.hisp.dhis.tracker.imports.validation.validator.Each.each;
-import static org.hisp.dhis.tracker.imports.validation.validator.Seq.seq;
-
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
+import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
+import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
+import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
-/** Validator to validate all {@link TrackedEntity}s in the {@link TrackerBundle}. */
 @Component(
-    "org.hisp.dhis.tracker.imports.validation.validator.trackedentity.TrackedEntityValidator")
-public class TrackedEntityValidator implements Validator<TrackerBundle> {
-  private final Validator<TrackerBundle> validator;
-
-  public TrackedEntityValidator(
-      SecurityTrackedEntityValidator securityTrackedEntityValidator,
-      AttributeValidator attributeValidator) {
-    validator =
-        each(
-            TrackerBundle::getTrackedEntities,
-            seq(
-                new ExistenceValidator(),
-                new MandatoryFieldsValidator(),
-                new MetaValidator(),
-                new UpdatableFieldsValidator(),
-                all(securityTrackedEntityValidator, new CascadeDeleteTrackedEntityValidator()),
-                all(attributeValidator)));
-  }
+    "org.hisp.dhis.tracker.imports.validation.validator.relationship.SecurityRelationshipValidator")
+@RequiredArgsConstructor
+class SecurityRelationshipValidator implements Validator<Relationship> {
+  private final TrackerAccessManager trackerAccessManager;
 
   @Override
-  public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
-    validator.validate(reporter, bundle, input);
+  public void validate(Reporter reporter, TrackerBundle bundle, Relationship relationship) {
+    TrackerImportStrategy strategy = bundle.getStrategy(relationship);
+    UserDetails user = bundle.getUser();
+
+    if (strategy.isDelete()
+        && (!trackerAccessManager
+            .canDelete(user, bundle.getPreheat().getRelationship(relationship))
+            .isEmpty())) {
+      reporter.addError(relationship, ValidationCode.E4020, user, relationship.getRelationship());
+    }
+
+    if (strategy.isCreate()
+        && (!trackerAccessManager
+            .canCreate(
+                user, TrackerObjectsMapper.map(bundle.getPreheat(), relationship, bundle.getUser()))
+            .isEmpty())) {
+      reporter.addError(relationship, ValidationCode.E4020, user, relationship.getRelationship());
+    }
   }
 
   @Override
   public boolean needsToRun(TrackerImportStrategy strategy) {
-    return true; // this main validator should always run
+    return true;
   }
 }

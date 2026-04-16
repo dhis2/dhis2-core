@@ -302,6 +302,7 @@ class OwnershipTest extends PostgresIntegrationTestBase {
         manager.get(TrackedEntity.class, "IOR1AXXl24H"),
         UID.of("BFcipDERJnf"),
         UID.of("B1nCbRV3qtP"));
+    injectSecurityContextUser(userService.getUser(nonSuperUser.getUid()));
     TrackerImportParams params = TrackerImportParams.builder().build();
     TrackerObjects trackerObjects = testSetup.fromJson("tracker/ownership_enrollment.json");
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);

@@ -27,47 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.validation.validator.trackedentity;
+package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
-import static org.hisp.dhis.tracker.imports.validation.validator.All.all;
-import static org.hisp.dhis.tracker.imports.validation.validator.Each.each;
-import static org.hisp.dhis.tracker.imports.validation.validator.Seq.seq;
+import static org.hisp.dhis.security.Authorities.F_ENROLLMENT_CASCADE_DELETE;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
 
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
+import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.user.UserDetails;
 
-/** Validator to validate all {@link TrackedEntity}s in the {@link TrackerBundle}. */
-@Component(
-    "org.hisp.dhis.tracker.imports.validation.validator.trackedentity.TrackedEntityValidator")
-public class TrackedEntityValidator implements Validator<TrackerBundle> {
-  private final Validator<TrackerBundle> validator;
-
-  public TrackedEntityValidator(
-      SecurityTrackedEntityValidator securityTrackedEntityValidator,
-      AttributeValidator attributeValidator) {
-    validator =
-        each(
-            TrackerBundle::getTrackedEntities,
-            seq(
-                new ExistenceValidator(),
-                new MandatoryFieldsValidator(),
-                new MetaValidator(),
-                new UpdatableFieldsValidator(),
-                all(securityTrackedEntityValidator, new CascadeDeleteTrackedEntityValidator()),
-                all(attributeValidator)));
-  }
+class CascadeDeleteEnrollmentValidator implements Validator<Enrollment> {
 
   @Override
-  public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
-    validator.validate(reporter, bundle, input);
+  public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
+    UserDetails user = bundle.getUser();
+    boolean hasNonDeletedEvents =
+        bundle
+            .getPreheat()
+            .getEnrollmentsWithOneOrMoreNonDeletedEvent()
+            .contains(enrollment.getEnrollment());
+
+    if (hasNonDeletedEvents && !user.isAuthorized(F_ENROLLMENT_CASCADE_DELETE)) {
+      reporter.addError(enrollment, E1103, user.getUid(), enrollment.getEnrollment());
+    }
   }
 
   @Override
   public boolean needsToRun(TrackerImportStrategy strategy) {
-    return true; // this main validator should always run
+    return strategy.isDelete();
   }
 }

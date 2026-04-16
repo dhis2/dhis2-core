@@ -32,14 +32,12 @@ package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1091;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1104;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOption;
@@ -79,7 +77,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Enrico Colasante
  */
 @ExtendWith(MockitoExtension.class)
-class SecurityOwnershipValidatorTest extends TrackerTestBase {
+class SecurityEnrollmentValidatorTest extends TrackerTestBase {
   private static final String ORG_UNIT_ID = "ORG_UNIT_ID";
 
   private static final UID TE_ID = UID.generate();
@@ -90,7 +88,7 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
 
   private static final String PS_ID = "PS_ID";
 
-  private SecurityOwnershipValidator validator;
+  private SecurityEnrollmentValidator validator;
 
   @Mock private TrackerBundle bundle;
 
@@ -115,7 +113,7 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
   private TrackedEntity trackedEntity;
 
   @BeforeEach
-  public void setUp() {
+  void setUp() {
     organisationUnit = createOrganisationUnit('A');
     organisationUnit.setUid(ORG_UNIT_ID);
     organisationUnit.updatePath();
@@ -151,7 +149,7 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
             new DefaultTrackerAccessManager(
                 aclService, ownershipAccessManager, trackerProgramService));
 
-    validator = new SecurityOwnershipValidator(trackerAccessManager);
+    validator = new SecurityEnrollmentValidator(trackerAccessManager);
   }
 
   private UserDetails setUpUserWithOrgUnit(List<String> auths) {
@@ -184,6 +182,8 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
     when(preheat.getTrackedEntity(TE_ID)).thenReturn(trackedEntity);
     when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
+    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
+        .thenReturn(organisationUnit);
     UserDetails userDetails = setUpUserWithOrgUnit();
     when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
     when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
@@ -206,7 +206,6 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
 
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
-    when(preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent()).thenReturn(Collections.emptyList());
     when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
     UserDetails userDetails = setUpUserWithOrgUnit();
@@ -232,8 +231,6 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
 
-    when(preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent())
-        .thenReturn(Collections.singletonList(enrollment.getEnrollment()));
     when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
     UserDetails userDetails =
@@ -260,7 +257,6 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
 
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
-    when(preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent()).thenReturn(Collections.emptyList());
     when(preheat.getEnrollment(enrollment.getEnrollment()))
         .thenReturn(getEnrollment(enrollment.getEnrollment()));
     when(aclService.canDataWrite(user, program)).thenReturn(true);
@@ -269,31 +265,6 @@ class SecurityOwnershipValidatorTest extends TrackerTestBase {
     validator.validate(reporter, bundle, enrollment);
 
     assertHasError(reporter, enrollment, E1000);
-  }
-
-  @Test
-  void verifyValidationFailsForEnrollmentUsingDeleteStrategyAndUserWithoutCascadeAuthority() {
-    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
-        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
-            .enrollment(UID.generate())
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .trackedEntity(TE_ID)
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .build();
-
-    when(bundle.getPreheat()).thenReturn(preheat);
-    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
-    when(preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent())
-        .thenReturn(Collections.singletonList(enrollment.getEnrollment()));
-    when(preheat.getEnrollment(enrollment.getEnrollment()))
-        .thenReturn(getEnrollment(enrollment.getEnrollment()));
-    UserDetails userDetails = setUpUserWithOrgUnit();
-    when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
-    when(aclService.canDataRead(userDetails, program.getTrackedEntityType())).thenReturn(true);
-
-    validator.validate(reporter, bundle, enrollment);
-
-    assertHasError(reporter, enrollment, E1103);
   }
 
   @Test
