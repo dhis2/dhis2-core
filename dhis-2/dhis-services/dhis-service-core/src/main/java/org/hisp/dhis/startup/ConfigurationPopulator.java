@@ -35,6 +35,7 @@ import static org.hisp.dhis.user.CurrentUserUtil.injectUserInSecurityContext;
 
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.encryption.EncryptionStatus;
@@ -92,13 +93,24 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
     }
   }
 
+  private static final String BASE_URL_HINT =
+      " Expected an absolute URL without a trailing slash,"
+          + " for example: 'https://dhis2.example.org/dhis'.";
+
   private void checkServerBaseUrl() {
-    if (dhisConfigurationProvider.getServerBaseUrl() == null) {
+    String baseUrl = dhisConfigurationProvider.getServerBaseUrl();
+    if (baseUrl == null) {
+      log.warn("'server.base.url' is not set in dhis.conf." + BASE_URL_HINT);
+      return;
+    }
+
+    UrlValidator urlValidator = new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS);
+    if (!urlValidator.isValid(baseUrl)) {
+      log.warn("'server.base.url' is not a valid URL: '{}'." + BASE_URL_HINT, baseUrl);
+
+    } else if (baseUrl.endsWith("/")) {
       log.warn(
-          "The 'server.base.url' property in dhis.conf is missing. "
-              + "It must be an absolute HTTP or HTTPS URL with a valid hostname and no trailing slash, "
-              + "for example: 'https://dhis2.example.org/dhis'. "
-              + "If absent, password recovery throws an error and is completely unavailable.");
+          "'server.base.url' must not end with a trailing slash: '{}'." + BASE_URL_HINT, baseUrl);
     }
   }
 }
