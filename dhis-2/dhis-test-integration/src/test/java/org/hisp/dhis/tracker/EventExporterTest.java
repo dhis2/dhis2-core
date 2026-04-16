@@ -1265,6 +1265,30 @@ class EventExporterTest extends TrackerTest {
         new HashSet<>(trackedEntities));
   }
 
+  @Test
+  void shouldReturnEventsForWithoutRegistrationProgramGivenOrgUnitModeSelected() {
+    OrganisationUnit ou = get(OrganisationUnit.class, "DiszpKrYNg8");
+    ProgramStage ps = get(ProgramStage.class, "qLZC0lvvxQH");
+
+    EventQueryParams params = new EventQueryParams();
+    params.setOrgUnit(ou);
+    params.setOrgUnitSelectionMode(SELECTED);
+    params.setProgramStage(ps);
+    params.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+
+    List<String> events = eventsFunction.apply(params);
+
+    assertContainsOnly(
+        List.of(
+            "QRYjLTiJTrA",
+            "kWjSezkXHVp",
+            "OTmjvJDn0Fu",
+            "ck7DzdxqLqA",
+            "lumVtWwwy0O",
+            "cadc5eGj0j7"),
+        events);
+  }
+
   private static void assertNotes(List<TrackedEntityComment> expected, List<Note> actual) {
     Map<String, TrackedEntityComment> expectedNotes =
         expected.stream()
