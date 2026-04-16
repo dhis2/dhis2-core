@@ -104,7 +104,8 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
       return;
     }
 
-    UrlValidator urlValidator = new UrlValidator(UrlValidator.ALLOW_LOCAL_URLS);
+    String[] schemes = new String[]{"http","https"};
+    UrlValidator urlValidator = new UrlValidator(schemes);
     if (!urlValidator.isValid(baseUrl)) {
       log.warn("'server.base.url' is not a valid URL: '{}'." + BASE_URL_HINT, baseUrl);
 
