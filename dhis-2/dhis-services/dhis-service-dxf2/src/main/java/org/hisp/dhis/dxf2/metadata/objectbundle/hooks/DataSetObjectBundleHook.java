@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.collection.CollectionUtils;
@@ -48,16 +47,16 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
 @Component
-@RequiredArgsConstructor
 public class DataSetObjectBundleHook extends AbstractObjectBundleHook<DataSet> {
 
-  private final PeriodService periodService;
+  @Autowired private PeriodService periodService;
 
   @Override
   public void validate(DataSet dataSet, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
