@@ -92,7 +92,6 @@ import org.hisp.dhis.schema.descriptors.DataElementGroupSetSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataElementOperandSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataElementSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataEntryFormSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.DataInputPeriodSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataSetElementSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataSetNotificationTemplateSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.DataSetSchemaDescriptor;
@@ -298,7 +297,6 @@ public class DefaultSchemaService implements SchemaService {
     register(new ProgramIndicatorGroupSchemaDescriptor());
     register(new OptionGroupSchemaDescriptor());
     register(new OptionGroupSetSchemaDescriptor());
-    register(new DataInputPeriodSchemaDescriptor());
     register(new ReportingRateSchemaDescriptor());
     register(new UserAccessSchemaDescriptor());
     register(new UserGroupAccessSchemaDescriptor());
