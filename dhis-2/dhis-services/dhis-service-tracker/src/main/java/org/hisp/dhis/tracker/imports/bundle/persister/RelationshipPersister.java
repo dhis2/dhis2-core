@@ -33,9 +33,9 @@ import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Set;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
@@ -54,10 +54,8 @@ public class RelationshipPersister
     extends AbstractTrackerPersister<Relationship, org.hisp.dhis.relationship.Relationship> {
 
   public RelationshipPersister(
-      ReservedValueService reservedValueService,
-      TrackedEntityChangeLogService trackedEntityChangeLogService) {
-
-    super(reservedValueService, trackedEntityChangeLogService);
+      ReservedValueService reservedValueService, DhisConfigurationProvider config) {
+    super(reservedValueService, config);
   }
 
   @Override
@@ -76,7 +74,8 @@ public class RelationshipPersister
       TrackerPreheat preheat,
       Relationship trackerDto,
       org.hisp.dhis.relationship.Relationship hibernateEntity,
-      UserDetails user) {
+      UserDetails user,
+      ChangeLogAccumulator changeLogs) {
     // NOTHING TO DO
   }
 
@@ -91,7 +90,7 @@ public class RelationshipPersister
       TrackerBundle bundle,
       org.hisp.dhis.relationship.Relationship entity,
       List<NotificationTrigger> triggers) {
-    return TrackerNotificationDataBundle.builder().build();
+    return null;
   }
 
   @Override
@@ -115,8 +114,9 @@ public class RelationshipPersister
       Relationship trackerDto,
       org.hisp.dhis.relationship.Relationship payloadEntity,
       org.hisp.dhis.relationship.Relationship currentEntity,
-      UserDetails user) {
-    // DO NOTHING - TE HAVE NO DATA VALUES
+      UserDetails user,
+      ChangeLogAccumulator changeLogs) {
+    // DO NOTHING - RELATIONSHIPS HAVE NO DATA VALUES
   }
 
   @Override

@@ -34,24 +34,20 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1076;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1090;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.getTrackedEntityAttributes;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateOptionSet;
+import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateValueType;
 
-import java.util.Optional;
 import java.util.Set;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.tracker.imports.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -62,14 +58,8 @@ class AttributeValidator
     extends org.hisp.dhis.tracker.imports.validation.validator.AttributeValidator
     implements Validator<org.hisp.dhis.tracker.imports.domain.TrackedEntity> {
 
-  private final OptionService optionService;
-
-  public AttributeValidator(
-      TrackedAttributeValidationService teAttrService,
-      DhisConfigurationProvider dhisConfigurationProvider,
-      OptionService optionService) {
-    super(teAttrService, dhisConfigurationProvider);
-    this.optionService = optionService;
+  public AttributeValidator(DhisConfigurationProvider dhisConfigurationProvider) {
+    super(dhisConfigurationProvider);
   }
 
   @Override
@@ -97,22 +87,18 @@ class AttributeValidator
     Set<MetadataIdentifier> trackedEntityAttributes =
         getTrackedEntityAttributes(bundle, trackedEntity.getUid());
 
-    TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
-    trackedEntityType.getTrackedEntityTypeAttributes().stream()
-        .filter(
-            trackedEntityTypeAttribute ->
-                Boolean.TRUE.equals(trackedEntityTypeAttribute.isMandatory()))
-        .map(TrackedEntityTypeAttribute::getTrackedEntityAttribute)
-        .map(idSchemes::toMetadataIdentifier)
-        .filter(mandatoryAttribute -> !trackedEntityAttributes.contains(mandatoryAttribute))
-        .forEach(
-            attribute ->
-                reporter.addError(
-                    trackedEntity,
-                    E1090,
-                    attribute,
-                    trackedEntityType.getUid(),
-                    trackedEntity.getTrackedEntity()));
+    Set<MetadataIdentifier> mandatoryAttributes =
+        bundle.getPreheat().getMandatoryTrackedEntityTypeAttributes(trackedEntityType);
+    for (MetadataIdentifier attribute : mandatoryAttributes) {
+      if (!trackedEntityAttributes.contains(attribute)) {
+        reporter.addError(
+            trackedEntity,
+            E1090,
+            attribute,
+            trackedEntityType.getUid(),
+            trackedEntity.getTrackedEntity());
+      }
+    }
   }
 
   protected void validateAttributes(
@@ -123,6 +109,8 @@ class AttributeValidator
       OrganisationUnit orgUnit,
       TrackedEntityType trackedEntityType) {
     TrackerPreheat preheat = bundle.getPreheat();
+    Set<MetadataIdentifier> mandatoryAttributes =
+        preheat.getMandatoryTrackedEntityTypeAttributes(trackedEntityType);
 
     for (Attribute attribute : trackedEntity.getAttributes()) {
       TrackedEntityAttribute tea = preheat.getTrackedEntityAttribute(attribute.getAttribute());
@@ -133,34 +121,19 @@ class AttributeValidator
       }
 
       if (attribute.getValue() == null) {
-        Optional<TrackedEntityTypeAttribute> optionalTea =
-            Optional.of(trackedEntityType)
-                .map(tet -> tet.getTrackedEntityTypeAttributes().stream())
-                .flatMap(
-                    tetAtts ->
-                        tetAtts
-                            .filter(
-                                teaAtt ->
-                                    attribute
-                                            .getAttribute()
-                                            .isEqualTo(teaAtt.getTrackedEntityAttribute())
-                                        && teaAtt.isMandatory() != null
-                                        && teaAtt.isMandatory())
-                            .findFirst());
-
-        if (optionalTea.isPresent())
+        if (mandatoryAttributes.contains(attribute.getAttribute())) {
           reporter.addError(
               trackedEntity,
               E1076,
               TrackedEntityAttribute.class.getSimpleName(),
               attribute.getAttribute());
-
+        }
         continue;
       }
 
       validateAttributeValue(reporter, trackedEntity, tea, attribute.getValue());
-      validateAttrValueType(reporter, bundle, trackedEntity, attribute, tea);
-      validateOptionSet(reporter, trackedEntity, tea, attribute.getValue(), optionService);
+      validateValueType(reporter, bundle, trackedEntity, attribute.getValue(), tea);
+      validateOptionSet(reporter, trackedEntity, tea, attribute.getValue());
 
       validateAttributeUniqueness(
           reporter, preheat, trackedEntity, attribute.getValue(), tea, te, orgUnit);
