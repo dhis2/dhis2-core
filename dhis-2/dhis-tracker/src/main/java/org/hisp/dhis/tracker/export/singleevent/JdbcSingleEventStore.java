@@ -30,6 +30,8 @@
 package org.hisp.dhis.tracker.export.singleevent;
 
 import static java.util.Map.entry;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.tracker.export.FilterJdbcPredicate.addPredicates;
@@ -56,6 +58,7 @@ import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.dataelement.DataElement;
@@ -800,13 +803,24 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       SingleEventQueryParams params,
       SqlHelper hlp) {
     if (params.getOrgUnit() != null) {
-      buildOrgUnitModeClause(
-          sql,
-          sqlParams,
-          Set.of(params.getOrgUnit()),
-          params.getOrgUnitMode(),
-          "ou",
-          hlp.whereAnd());
+      OrganisationUnitSelectionMode mode = params.getOrgUnitMode();
+      if (mode == DESCENDANTS) {
+        // Direct ev.organisationunitid predicate lets the planner use the composite index
+        // on (organisationunitid, occurreddate) rather than resolving a path LIKE on the
+        // joined ou table.
+        sqlParams.addValue("ouPath", params.getOrgUnit().getStoredPath() + "%");
+        sql.append(hlp.whereAnd())
+            .append(
+                " ev.organisationunitid IN (SELECT organisationunitid FROM organisationunit WHERE path LIKE :ouPath) ");
+      } else if (mode == CHILDREN) {
+        sqlParams.addValue("ouId", params.getOrgUnit().getId());
+        sql.append(hlp.whereAnd())
+            .append(
+                " ev.organisationunitid IN (SELECT organisationunitid FROM organisationunit WHERE organisationunitid = :ouId OR parentid = :ouId) ");
+      } else {
+        buildOrgUnitModeClause(
+            sql, sqlParams, Set.of(params.getOrgUnit()), mode, "ou", hlp.whereAnd());
+      }
     }
 
     if (params.getProgram() == null) {
