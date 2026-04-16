@@ -104,7 +104,7 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
       return;
     }
 
-    String[] schemes = new String[]{"http","https"};
+    String[] schemes = new String[] {"http", "https"};
     UrlValidator urlValidator = new UrlValidator(schemes);
     if (!urlValidator.isValid(baseUrl)) {
       log.warn("'server.base.url' is not a valid URL: '{}'." + BASE_URL_HINT, baseUrl);
