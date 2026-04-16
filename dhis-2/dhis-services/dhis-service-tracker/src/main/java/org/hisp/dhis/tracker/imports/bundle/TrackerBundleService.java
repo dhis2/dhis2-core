@@ -38,6 +38,9 @@ import org.hisp.dhis.user.User;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface TrackerBundleService {
+  record CommitResult(
+      PersistenceReport report, List<TrackerSideEffectDataBundle> sideEffectBundles) {}
+
   /**
    * Creates and prepares tracker bundle.
    *
@@ -58,7 +61,7 @@ public interface TrackerBundleService {
    *
    * @param bundle TrackerBundle to commit.
    */
-  PersistenceReport commit(TrackerBundle bundle);
+  CommitResult commit(TrackerBundle bundle);
 
   /**
    * Carry out side effect for TrackerImporter i.e audits, notifications and program rule actions.

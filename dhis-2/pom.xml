@@ -78,7 +78,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>3.7.1</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>3.8.0</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.6</dhis-hisp-quick.version>
@@ -91,7 +91,7 @@
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
     <jasypt.version>1.9.3</jasypt.version>
-    <nimbus.jose.jwt.version>10.6</nimbus.jose.jwt.version>
+    <nimbus.jose.jwt.version>10.9</nimbus.jose.jwt.version>
     <com.google.zxing.core.version>3.5.4</com.google.zxing.core.version>
     <com.google.zxing.javase.version>3.5.4</com.google.zxing.javase.version>
 
@@ -113,7 +113,7 @@
     <!-- Data sources,db pools and db drivers -->
     <c3p0.version>0.11.2</c3p0.version>
     <HikariCP.version>7.0.2</HikariCP.version>
-    <postgresql-driver.version>42.7.8</postgresql-driver.version>
+    <postgresql-driver.version>42.7.10</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.11.0</datasource-proxy.version>
 
@@ -165,7 +165,7 @@
     <sms-compression.version>0.3.2</sms-compression.version>
     <javacsv.version>2.0</javacsv.version>
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
-    <jsmpp.version>3.0.1</jsmpp.version>
+    <jsmpp.version>3.0.2</jsmpp.version>
     <json-path.version>2.10.0</json-path.version>
     <jsoup.version>1.22.1</jsoup.version>
     <jetty.version>10.0.24</jetty.version>
@@ -246,7 +246,7 @@
     <!--security issue in 2.10.6-->
     <ehcache.version>2.10.9.2</ehcache.version>
     <!--security issue in 0.20-->
-    <aircompressor.version>2.0.2</aircompressor.version>
+    <aircompressor.version>2.0.3</aircompressor.version>
   </properties>
 
   <dependencyManagement>

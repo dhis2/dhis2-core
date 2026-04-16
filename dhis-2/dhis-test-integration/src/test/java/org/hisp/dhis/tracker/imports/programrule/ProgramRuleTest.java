@@ -42,6 +42,10 @@ import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -79,6 +83,10 @@ class ProgramRuleTest extends TrackerTest {
   @Autowired private ProgramRuleVariableService programRuleVariableService;
 
   @Autowired private ConstantService constantService;
+
+  @Autowired private OrganisationUnitService organisationUnitService;
+
+  @Autowired private OrganisationUnitGroupService organisationUnitGroupService;
 
   private Program program;
 
@@ -404,6 +412,96 @@ class ProgramRuleTest extends TrackerTest {
     assertNoErrorsAndNoWarnings(importReport);
   }
 
+  @Test
+  void shouldImportWithNoWarningsWhenUserIsInUserGroup() throws IOException {
+    injectSecurityContextUser(userService.getUser("lPaILkLkgOM"));
+    showErrorWhenUserNotInGroupRule("xfHoY6IZSWI");
+    TrackerObjects trackerObjects =
+        fromJson("tracker/programrule/tei_enrollment_event_with_no_data_value.json");
+
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+
+    assertNoErrorsAndNoWarnings(importReport);
+  }
+
+  @Test
+  void shouldnotImportWhenUserIsNotInUserGroup() throws IOException {
+    injectSecurityContextUser(userService.getUser("lPaILkLkgOM"));
+    showErrorWhenUserNotInGroupRule("ruTop9IZjHu");
+    TrackerObjects trackerObjects =
+        fromJson("tracker/programrule/tei_enrollment_event_with_no_data_value.json");
+
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+
+    assertHasOnlyErrors(importReport, E1300);
+  }
+
+  @Test
+  void shouldNotImportUserIsNotPresentInAnyUserGroup() throws IOException {
+    showErrorWhenUserNotInGroupRule("ruTop9IZjHu");
+    TrackerObjects trackerObjects =
+        fromJson("tracker/programrule/tei_enrollment_event_with_no_data_value.json");
+
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+
+    assertHasOnlyErrors(importReport, E1300);
+  }
+
+  @Test
+  void shouldNotImportWhenEventOrgUnitIsInOrgUnitGroup() throws IOException {
+    OrganisationUnitGroup group = orgUnitGroupContaining("h4w96yEMlzO");
+    showErrorWhenOrgUnitInGroupRule(group.getUid());
+    TrackerObjects trackerObjects =
+        fromJson("tracker/programrule/tei_enrollment_event_with_no_data_value.json");
+
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+
+    assertHasOnlyErrors(importReport, E1300);
+  }
+
+  @Test
+  void shouldImportWhenEventOrgUnitIsNotInOrgUnitGroup() throws IOException {
+    OrganisationUnitGroup group = orgUnitGroupContaining(/* no members */ );
+    showErrorWhenOrgUnitInGroupRule(group.getUid());
+    TrackerObjects trackerObjects =
+        fromJson("tracker/programrule/tei_enrollment_event_with_no_data_value.json");
+
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+
+    assertNoErrorsAndNoWarnings(importReport);
+  }
+
+  @Test
+  void shouldNotImportWhenEventOrgUnitIsInOrgUnitGroupIdentifiedByCode() throws IOException {
+    OrganisationUnitGroup group = orgUnitGroupContaining("h4w96yEMlzO");
+    showErrorWhenOrgUnitInGroupRule(group.getCode());
+    TrackerObjects trackerObjects =
+        fromJson("tracker/programrule/tei_enrollment_event_with_no_data_value.json");
+
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+
+    assertHasOnlyErrors(importReport, E1300);
+  }
+
+  @Test
+  void shouldImportWhenEventOrgUnitIsNotInOrgUnitGroupIdentifiedByCode() throws IOException {
+    OrganisationUnitGroup group = orgUnitGroupContaining(/* no members */ );
+    showErrorWhenOrgUnitInGroupRule(group.getCode());
+    TrackerObjects trackerObjects =
+        fromJson("tracker/programrule/tei_enrollment_event_with_no_data_value.json");
+
+    ImportReport importReport =
+        trackerImportService.importTracker(new TrackerImportParams(), trackerObjects);
+
+    assertNoErrorsAndNoWarnings(importReport);
+  }
+
   private void alwaysTrueErrorProgramRule() {
     storeProgramRule('A', program, ProgramRuleActionType.SHOWERROR);
   }
@@ -473,6 +571,40 @@ class ProgramRuleTest extends TrackerTest {
     programRuleActionService.addProgramRuleAction(programRuleAction);
     programRule.getProgramRuleActions().add(programRuleAction);
     programRuleService.updateProgramRule(programRule);
+  }
+
+  private void showErrorWhenUserNotInGroupRule(String userGroup) {
+    ProgramRule programRule =
+        createProgramRule(
+            'M', program, programStageOnInsert, "!d2:inUserGroup('" + userGroup + "')");
+    programRuleService.addProgramRule(programRule);
+    ProgramRuleAction programRuleAction =
+        createProgramRuleAction(programRule, SHOWERROR, null, null);
+    programRuleActionService.addProgramRuleAction(programRuleAction);
+    programRule.getProgramRuleActions().add(programRuleAction);
+    programRuleService.updateProgramRule(programRule);
+  }
+
+  private void showErrorWhenOrgUnitInGroupRule(String orgUnitGroupUid) {
+    ProgramRule programRule =
+        createProgramRule(
+            'N', program, programStageOnInsert, "d2:inOrgUnitGroup('" + orgUnitGroupUid + "')");
+    programRuleService.addProgramRule(programRule);
+    ProgramRuleAction programRuleAction =
+        createProgramRuleAction(programRule, SHOWERROR, null, null);
+    programRuleActionService.addProgramRuleAction(programRuleAction);
+    programRule.getProgramRuleActions().add(programRuleAction);
+    programRuleService.updateProgramRule(programRule);
+  }
+
+  private OrganisationUnitGroup orgUnitGroupContaining(String... orgUnitUids) {
+    OrganisationUnitGroup group = createOrganisationUnitGroup('N');
+    for (String uid : orgUnitUids) {
+      OrganisationUnit ou = organisationUnitService.getOrganisationUnit(uid);
+      group.addOrganisationUnit(ou);
+    }
+    organisationUnitGroupService.addOrganisationUnitGroup(group);
+    return group;
   }
 
   private void storeProgramRule(

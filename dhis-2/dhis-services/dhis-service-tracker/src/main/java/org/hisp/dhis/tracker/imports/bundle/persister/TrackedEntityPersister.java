@@ -33,15 +33,17 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.persistence.EntityManager;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueChangeLogService;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.job.SideEffectTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 /**
@@ -58,10 +60,11 @@ public class TrackedEntityPersister
 
   public TrackedEntityPersister(
       ReservedValueService reservedValueService,
+      DhisConfigurationProvider config,
+      @Qualifier("aes128StringEncryptor") PBEStringEncryptor encryptor,
       TrackerConverterService<org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity>
-          teConverter,
-      TrackedEntityAttributeValueChangeLogService trackedEntityAttributeValueChangeLogService) {
-    super(reservedValueService, trackedEntityAttributeValueChangeLogService);
+          teConverter) {
+    super(reservedValueService, config, encryptor);
     this.teConverter = teConverter;
   }
 
@@ -70,8 +73,10 @@ public class TrackedEntityPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
-      TrackedEntity te) {
-    handleTrackedEntityAttributeValues(entityManager, preheat, trackerDto.getAttributes(), te);
+      TrackedEntity te,
+      ChangeLogAccumulator changeLogs) {
+    handleTrackedEntityAttributeValues(
+        entityManager, preheat, trackerDto.getAttributes(), te, changeLogs);
   }
 
   @Override
@@ -79,7 +84,8 @@ public class TrackedEntityPersister
       EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
-      TrackedEntity te) {
+      TrackedEntity te,
+      ChangeLogAccumulator changeLogs) {
     // DO NOTHING - TE HAVE NO DATA VALUES
   }
 
@@ -113,7 +119,7 @@ public class TrackedEntityPersister
   @Override
   protected TrackerSideEffectDataBundle handleSideEffects(
       TrackerBundle bundle, TrackedEntity entity, List<SideEffectTrigger> triggers) {
-    return TrackerSideEffectDataBundle.builder().build();
+    return null;
   }
 
   @Override

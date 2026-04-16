@@ -89,6 +89,6 @@ class ImportReportTest {
     teStats.setCreated(created);
     teStats.setUpdated(updated);
     teStats.setDeleted(deleted);
-    return new TrackerTypeReport(type, teStats, new ArrayList<>(), new ArrayList<>());
+    return new TrackerTypeReport(type, teStats, new ArrayList<>());
   }
 }
