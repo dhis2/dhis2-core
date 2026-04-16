@@ -30,7 +30,6 @@
 package org.hisp.dhis.reservedvalue;
 
 import static java.util.stream.Collectors.toUnmodifiableList;
-import static org.hisp.dhis.util.Constants.RANDOM_GENERATION_CHUNK;
 
 import java.math.BigInteger;
 import java.util.Collection;
@@ -45,19 +44,17 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class ValueGeneratorService {
+  public static final int RANDOM_GENERATION_CHUNK = 10;
   private final SequentialNumberCounterStore sequentialNumberCounterStore;
 
   public List<String> generateValues(
       TextPatternSegment segment, TextPattern textPattern, String key, int numberOfValues)
       throws ReserveValueException {
-    switch (segment.getMethod()) {
-      case SEQUENTIAL:
-        return generateSequentialValues(segment, textPattern, key, numberOfValues);
-      case RANDOM:
-        return generateRandomValues(segment, numberOfValues);
-      default:
-        return List.of();
-    }
+    return switch (segment.getMethod()) {
+      case SEQUENTIAL -> generateSequentialValues(segment, textPattern, key, numberOfValues);
+      case RANDOM -> generateRandomValues(segment, numberOfValues);
+      default -> List.of();
+    };
   }
 
   private List<String> generateSequentialValues(

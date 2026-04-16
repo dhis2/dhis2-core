@@ -61,6 +61,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
@@ -73,6 +75,10 @@ class ReservedValueServiceTest {
   @Mock private ReservedValueStore reservedValueStore;
 
   @Mock private ValueGeneratorService valueGeneratorService;
+
+  @Mock private PlatformTransactionManager transactionManager;
+
+  @Mock private TransactionStatus transactionStatus;
 
   @Captor private ArgumentCaptor<ReservedValue> reservedValue;
 
@@ -88,9 +94,10 @@ class ReservedValueServiceTest {
 
   @BeforeEach
   void setUpClass() {
+    when(transactionManager.getTransaction(any())).thenReturn(transactionStatus);
     reservedValueService =
         new DefaultReservedValueService(
-            textPatternService, reservedValueStore, valueGeneratorService);
+            textPatternService, reservedValueStore, valueGeneratorService, transactionManager);
     Calendar calendar = Calendar.getInstance();
     calendar.add(DATE, 1);
     futureDate = calendar.getTime();
@@ -219,8 +226,11 @@ class ReservedValueServiceTest {
 
   @Test
   void shouldDeleteUsedOrExpiredReservedValues() {
+    when(reservedValueStore.removeExpiredValues()).thenReturn(0);
+    when(reservedValueStore.removeUsedValues()).thenReturn(0);
     reservedValueService.removeUsedOrExpiredReservations();
-    verify(reservedValueStore, times(1)).removeUsedOrExpiredReservations();
+    verify(reservedValueStore, times(1)).removeExpiredValues();
+    verify(reservedValueStore, times(1)).removeUsedValues();
   }
 
   private static TrackedEntityAttribute createTrackedEntityAttribute(
