@@ -29,15 +29,20 @@
  */
 package org.hisp.dhis.startup;
 
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.stream.Stream;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -45,7 +50,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * Unit tests for {@link ConfigurationPopulator}.
  *
  * <p>The startup routine only logs warnings for misconfigured properties. These tests verify that
- * each validation path completes without error.
+ * each validation path completes without error and does not modify the existing configuration.
  */
 @ExtendWith(MockitoExtension.class)
 class ConfigurationPopulatorTest {
@@ -66,34 +71,23 @@ class ConfigurationPopulatorTest {
     when(configurationService.getConfiguration()).thenReturn(config);
   }
 
-  @Test
-  void testValidBaseUrl() {
-    when(dhisConfigurationProvider.getServerBaseUrl()).thenReturn("https://dhis2.example.org");
-    populator.executeInTransaction();
+  static Stream<Arguments> baseUrlScenarios() {
+    return Stream.of(
+        Arguments.of("valid URL", "https://dhis2.example.org"),
+        Arguments.of("valid URL with path", "https://dhis2.example.org/dhis"),
+        Arguments.of("missing URL", null),
+        Arguments.of("invalid URL", "not-a-url"),
+        Arguments.of("URL with trailing slash", "https://dhis2.example.org/dhis/"));
   }
 
-  @Test
-  void testValidBaseUrlWithPath() {
-    when(dhisConfigurationProvider.getServerBaseUrl()).thenReturn("https://dhis2.example.org/dhis");
-    populator.executeInTransaction();
-  }
+  @ParameterizedTest(name = "{0}: {1}")
+  @MethodSource("baseUrlScenarios")
+  void testBaseUrlValidation(String scenario, String baseUrl) {
+    when(dhisConfigurationProvider.getServerBaseUrl()).thenReturn(baseUrl);
 
-  @Test
-  void testMissingBaseUrl() {
-    when(dhisConfigurationProvider.getServerBaseUrl()).thenReturn(null);
     populator.executeInTransaction();
-  }
 
-  @Test
-  void testInvalidBaseUrl() {
-    when(dhisConfigurationProvider.getServerBaseUrl()).thenReturn("not-a-url");
-    populator.executeInTransaction();
-  }
-
-  @Test
-  void testBaseUrlWithTrailingSlash() {
-    when(dhisConfigurationProvider.getServerBaseUrl())
-        .thenReturn("https://dhis2.example.org/dhis/");
-    populator.executeInTransaction();
+    verify(dhisConfigurationProvider).getServerBaseUrl();
+    verify(configurationService, never()).setConfiguration(org.mockito.ArgumentMatchers.any());
   }
 }
