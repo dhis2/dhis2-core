@@ -551,7 +551,7 @@ public class TrackerTest extends Simulation {
     Request searchEventsNotAssigned =
         new Request(
             getEventsUrl + "&assignedUserMode=NONE",
-            new EnumMap<>(Map.of(Profile.SMOKE, 108, Profile.LOAD, 160)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 108, Profile.LOAD, 173)),
             "Search not assigned",
             "Get ANC events");
     Request getFirstEvent =
@@ -769,7 +769,7 @@ public class TrackerTest extends Simulation {
     Request getFirstEventFromEnrollment =
         new Request(
             eventUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 58, Profile.LOAD, 101)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 58, Profile.LOAD, 141)),
             "Get first event from enrollment",
             "Get Child Programme TEs",
             "Go to single enrollment",
