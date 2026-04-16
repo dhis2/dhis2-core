@@ -102,7 +102,8 @@ public abstract class ProgramCountFunction extends ProgramExpressionItem {
 
   @Override
   public final Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
-    if (!visitor.isUseExperimentalSqlEngine()) {
+    if (visitor.getProgParams().getProgramIndicator().getAnalyticsType()
+        != org.hisp.dhis.program.AnalyticsType.ENROLLMENT) {
       return getSqlLegacy(ctx, visitor);
     }
     validateCountFunctionArgs(ctx);

@@ -570,7 +570,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
               SUBQUERY_TABLE_ALIAS, relationshipType, programIndicator.getAnalyticsType());
     } else {
       if (AnalyticsType.ENROLLMENT == outerSqlEntity) {
-        condition = useExperimentalAnalyticsQueryEngine() ? "" : "enrollment = ax.enrollment";
+        condition = "";
       } else {
         if (AnalyticsType.EVENT == programIndicator.getAnalyticsType()) {
           condition = "event = ax.event";
@@ -593,10 +593,6 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
         earliestStartDate,
         latestDate,
         SUBQUERY_TABLE_ALIAS);
-  }
-
-  protected boolean useExperimentalAnalyticsQueryEngine() {
-    return this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
   }
 
   private String findKeyForAlias(String alias, CteContext cteContext) {

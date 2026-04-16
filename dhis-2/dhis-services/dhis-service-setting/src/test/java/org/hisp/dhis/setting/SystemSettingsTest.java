@@ -106,7 +106,6 @@ class SystemSettingsTest {
     // just check some at random
     assertTrue(keys.contains("syncSkipSyncForDataChangedBefore"));
     assertTrue(keys.contains("keyTrackerDashboardLayout"));
-    assertTrue(keys.contains("experimentalAnalyticsSqlEngineEnabled"));
     assertTrue(keys.contains("notifierGistOverview"));
     assertTrue(keys.contains("keyCustomTranslationsEnabled"));
     assertTrue(keys.contains(("keyCustomColor")));
