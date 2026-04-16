@@ -29,21 +29,43 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.awaitility.Awaitility.await;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockserver.model.HttpRequest.request;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.util.Properties;
 import org.hisp.dhis.common.auth.ApiTokenAuthScheme;
 import org.hisp.dhis.common.auth.HttpBasicAuthScheme;
 import org.hisp.dhis.eventhook.targets.WebhookTarget;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.mockserver.client.MockServerClient;
+import org.springframework.context.annotation.Bean;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.transaction.TestTransaction;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.wait.strategy.HttpWaitStrategy;
 
 /**
  * Tests the {@link EventHookController} using (mocked) REST requests.
@@ -51,7 +73,83 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Morten Olav Hansen
  */
 @Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ContextConfiguration(classes = {EventHookControllerTest.DhisConfigurationProviderTestConfig.class})
 class EventHookControllerTest extends PostgresControllerIntegrationTestBase {
+
+  private static GenericContainer<?> targetMockServerContainer;
+  private MockServerClient targetMockServerClient;
+
+  @BeforeAll
+  static void beforeAll() {
+    targetMockServerContainer =
+        new GenericContainer<>("mockserver/mockserver")
+            .waitingFor(new HttpWaitStrategy().forStatusCode(404))
+            .withExposedPorts(1080);
+    targetMockServerContainer.start();
+  }
+
+  @BeforeEach
+  void beforeEach() {
+    targetMockServerClient =
+        new MockServerClient("localhost", targetMockServerContainer.getFirstMappedPort());
+  }
+
+  @AfterEach
+  void afterEach() {
+    targetMockServerClient.reset();
+  }
+
+  @AfterAll
+  static void afterAll() {
+    targetMockServerContainer.stop();
+  }
+
+  public static class DhisConfigurationProviderTestConfig {
+    @Bean
+    public DhisConfigurationProvider dhisConfigurationProvider() {
+      Properties override = new Properties();
+      override.put(ConfigurationKey.EVENT_HOOKS_ENABLED.getKey(), "on");
+
+      PostgresDhisConfigurationProvider postgresDhisConfigurationProvider =
+          new PostgresDhisConfigurationProvider(null);
+      postgresDhisConfigurationProvider.addProperties(override);
+      return postgresDhisConfigurationProvider;
+    }
+  }
+
+  @Test
+  void testWebHookTarget() throws IOException, URISyntaxException {
+    targetMockServerClient
+        .when(request().withPath("/api/gateway"))
+        .respond(org.mockserver.model.HttpResponse.response().withStatusCode(200));
+
+    String body =
+        Files.readString(
+                Path.of(
+                    EventHookControllerTest.class
+                        .getClassLoader()
+                        .getResource("event-hook/webhook.json")
+                        .toURI()),
+                StandardCharsets.UTF_8)
+            .replace("<PORT>", targetMockServerContainer.getFirstMappedPort().toString());
+
+    assertStatus(HttpStatus.CREATED, POST("/eventHooks", body));
+
+    TestTransaction.flagForCommit();
+    HttpResponse post =
+        POST(
+            "/dataElements",
+            "{'name':'A', 'shortName':'A', 'valueType':'NUMBER','domainType':'AGGREGATE','aggregationType':'SUM'"
+                + " }");
+
+    TestTransaction.end();
+    assertTrue(post.success());
+    await()
+        .atMost(Duration.ofSeconds(5))
+        .untilAsserted(() -> targetMockServerClient.verify(request().withPath("/api/gateway")));
+  }
+
   @Test
   void testGetEventHooks() {
     JsonObject eventHooks = GET("/eventHooks").content(HttpStatus.OK);
