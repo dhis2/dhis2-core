@@ -30,6 +30,7 @@
 package org.hisp.dhis.reservedvalue;
 
 import static java.util.Objects.requireNonNullElse;
+import static org.hisp.dhis.reservedvalue.ReservedValueStore.DELETE_BATCH_SIZE;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
