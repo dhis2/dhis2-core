@@ -492,6 +492,26 @@ public interface UserService {
   UserDetails createUserDetailsSafe(@Nonnull String userUid);
 
   /**
+   * Creates {@link UserDetails} for the user with the given username. The user lookup and details
+   * creation happen within a single transaction, ensuring lazy collections are accessible.
+   *
+   * @param username the username to look up
+   * @return the {@link UserDetails} or {@code null} if no user with the given username exists
+   */
+  @CheckForNull
+  UserDetails createUserDetailsByUsername(@Nonnull String username);
+
+  /**
+   * Creates {@link UserDetails} for the user with the given OpenID. The user lookup and details
+   * creation happen within a single transaction, ensuring lazy collections are accessible.
+   *
+   * @param openId the OpenID to look up
+   * @return the {@link UserDetails} or {@code null} if no user with the given OpenID exists
+   */
+  @CheckForNull
+  UserDetails createUserDetailsByOpenId(@Nonnull String openId);
+
+  /**
    * It creates a CurrentUserDetailsImpl object from a User object. It also fetches the users locked
    * and credentials expired status.
    *
