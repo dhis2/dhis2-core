@@ -1117,19 +1117,45 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       UserDetails user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
+    // Prepend a direct predicate on ev.organisationunitid so the planner can drive the scan
+    // from idx_event_ou_occurreddate before evaluating the correlated scope EXISTS subqueries.
+    String directDescendantsPredicate =
+        " ev.organisationunitid IN ("
+            + "SELECT organisationunitid FROM organisationunit "
+            + "WHERE path LIKE CONCAT(:"
+            + COLUMN_ORG_UNIT_PATH
+            + ", '%'))"
+            + AND;
+
     if (isProgramRestricted(params.getEnrolledInProgram())) {
-      return createCaptureScopeQuery(
-          user, params, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
+      return directDescendantsPredicate
+          + createCaptureScopeQuery(
+              user, params, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
-        user, params, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
+    return directDescendantsPredicate
+        + getSearchAndCaptureScopeOrgUnitPathMatchQuery(
+            user, params, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
   }
 
   private String createChildrenSql(
       UserDetails user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_ID, params.getOrgUnit().getId());
+
+    // Prepend a direct predicate on ev.organisationunitid so the planner can drive the scan
+    // from idx_event_ou_occurreddate before evaluating the correlated scope EXISTS subqueries.
+    // The path LIKE and hierarchylevel checks are retained inside the scope EXISTS for ACL
+    // correctness.
+    String directChildrenPredicate =
+        " (ev.organisationunitid = :"
+            + COLUMN_ORG_UNIT_ID
+            + " OR ev.organisationunitid IN ("
+            + "SELECT organisationunitid FROM organisationunit WHERE parentid = :"
+            + COLUMN_ORG_UNIT_ID
+            + "))"
+            + AND;
 
     String customChildrenQuery =
         " and (ou.hierarchylevel = "
@@ -1139,16 +1165,18 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             + " ) ";
 
     if (isProgramRestricted(params.getEnrolledInProgram())) {
-      return createCaptureScopeQuery(
-          user,
-          params,
-          mapSqlParameterSource,
-          AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
+      return directChildrenPredicate
+          + createCaptureScopeQuery(
+              user,
+              params,
+              mapSqlParameterSource,
+              AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
-        user, params, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
+    return directChildrenPredicate
+        + getSearchAndCaptureScopeOrgUnitPathMatchQuery(
+            user, params, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
   }
 
   private String createSelectedSql(
