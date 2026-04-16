@@ -803,14 +803,30 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             .append("inner join program p on p.programid=en.programid ")
             .append("inner join programstage ps on ps.programstageid=ev.programstageid ");
 
-    fromBuilder
-        .append(
-            "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
-        .append(
-            "inner join organisationunit ou on (coalesce(po.organisationunitid,"
-                + " ev.organisationunitid)=ou.organisationunitid) ")
-        .append(
-            "inner join organisationunit evou on (ev.organisationunitid=evou.organisationunitid) ");
+    if (isWithoutRegistrationQuery(params)) {
+      // No TPO exists for single-event programs; join ou directly on ev.organisationunitid.
+      // Eliminates the LEFT JOIN on trackedentityprogramowner and the non-sargable COALESCE.
+      fromBuilder.append(
+          "inner join organisationunit ou on ev.organisationunitid=ou.organisationunitid ");
+    } else if (params.hasEnrolledInProgram()) {
+      // TPO record is always created at enrollment time. INNER JOIN is correct and sargable.
+      // ou represents the ownership org unit (from TPO) — correct for access control.
+      fromBuilder
+          .append(
+              "inner join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
+          .append("inner join organisationunit ou on po.organisationunitid=ou.organisationunitid ");
+    } else {
+      // No program filter: result may contain both program types.
+      // LEFT JOIN + COALESCE handles both: TPO-owner OU for tracker events,
+      // ev.organisationunitid for single-event program events.
+      fromBuilder
+          .append(
+              "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
+          .append(
+              "inner join organisationunit ou on (COALESCE(po.organisationunitid,ev.organisationunitid)=ou.organisationunitid) ");
+    }
+    fromBuilder.append(
+        "inner join organisationunit evou on (ev.organisationunitid=evou.organisationunitid) ");
 
     fromBuilder
         .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ")
@@ -1140,7 +1156,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_ID, params.getOrgUnit().getId());
     String directOrgUnitPredicate =
-        params.getProgramType() == ProgramType.WITHOUT_REGISTRATION
+        isWithoutRegistrationQuery(params)
             ? " ev.organisationunitid = :" + COLUMN_ORG_UNIT_ID + AND
             : " ou.organisationunitid = :" + COLUMN_ORG_UNIT_ID + AND;
 
@@ -1246,6 +1262,12 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
     }
 
     return sql;
+  }
+
+  private boolean isWithoutRegistrationQuery(EventQueryParams params) {
+    return params.hasEnrolledInProgram()
+        && params.getEnrolledInProgram().getProgramType()
+            == ProgramType.WITHOUT_REGISTRATION;
   }
 
   private boolean isProgramRestricted(Program program) {
