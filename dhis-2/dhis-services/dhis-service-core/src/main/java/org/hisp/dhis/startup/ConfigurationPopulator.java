@@ -97,7 +97,7 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
       log.warn(
           "The 'server.base.url' property in dhis.conf is missing. "
               + "It must be an absolute HTTP or HTTPS URL with a valid hostname and no trailing slash, "
-              + "for example https://dhis2.example.org/dhis. "
+              + "for example: 'https://dhis2.example.org/dhis'. "
               + "If absent, password recovery throws an error and is completely unavailable.");
     }
   }
