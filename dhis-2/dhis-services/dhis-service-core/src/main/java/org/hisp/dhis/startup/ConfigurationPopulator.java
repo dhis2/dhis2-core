@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -68,6 +68,7 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
     }
 
     checkSecurityConfiguration();
+    checkServerBaseUrl();
 
     Configuration config = configurationService.getConfiguration();
 
@@ -88,6 +89,16 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
       log.warn("Encryption not configured: " + status.getKey());
     } else {
       log.info("Encryption is available");
+    }
+  }
+
+  private void checkServerBaseUrl() {
+    if (dhisConfigurationProvider.getServerBaseUrl() == null) {
+      log.warn(
+          "The 'server.base.url' property in dhis.conf is missing. "
+              + "It must be an absolute HTTP or HTTPS URL with a valid hostname and no trailing slash, "
+              + "for example https://dhis2.example.org/dhis. "
+              + "If absent, password recovery throws an error and is completely unavailable.");
     }
   }
 }
