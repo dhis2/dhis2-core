@@ -1117,20 +1117,30 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       UserDetails user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
+    // Prepend a direct path predicate before the access-scope EXISTS subqueries.
+    // ou.path resolves to the event's effective OU (ev.organisationunitid for
+    // WITHOUT_REGISTRATION, po.organisationunitid for WITH_REGISTRATION) via the join
+    // structure in getFromWhereClause(). This gives the planner a direct filter it can
+    // apply before evaluating the correlated EXISTS, reducing the candidate event set.
+    String directPredicate = CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + AND;
+
     if (isProgramRestricted(params.getEnrolledInProgram())) {
-      return createCaptureScopeQuery(
-          user, params, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
+      return directPredicate
+          + createCaptureScopeQuery(
+              user, params, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
-        user, params, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
+    return directPredicate
+        + getSearchAndCaptureScopeOrgUnitPathMatchQuery(
+            user, params, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
   }
 
   private String createChildrenSql(
       UserDetails user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
+    String directPredicate = CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + AND;
     String customChildrenQuery =
         " and (ou.hierarchylevel = "
             + params.getOrgUnit().getHierarchyLevel()
@@ -1139,16 +1149,18 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             + " ) ";
 
     if (isProgramRestricted(params.getEnrolledInProgram())) {
-      return createCaptureScopeQuery(
-          user,
-          params,
-          mapSqlParameterSource,
-          AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
+      return directPredicate
+          + createCaptureScopeQuery(
+              user,
+              params,
+              mapSqlParameterSource,
+              AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
-        user, params, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
+    return directPredicate
+        + getSearchAndCaptureScopeOrgUnitPathMatchQuery(
+            user, params, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
   }
 
   private String createSelectedSql(
@@ -1266,8 +1278,7 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
 
   private boolean isWithoutRegistrationQuery(EventQueryParams params) {
     return params.hasEnrolledInProgram()
-        && params.getEnrolledInProgram().getProgramType()
-            == ProgramType.WITHOUT_REGISTRATION;
+        && params.getEnrolledInProgram().getProgramType() == ProgramType.WITHOUT_REGISTRATION;
   }
 
   private boolean isProgramRestricted(Program program) {
