@@ -1117,19 +1117,57 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
       UserDetails user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
+    // WITHOUT_REGISTRATION: filter directly on ev.organisationunitid so the planner can
+    // drive the scan from idx_event_ou_occurreddate.
+    // WITH_REGISTRATION: filter on ou.path which resolves to po.organisationunitid via the
+    // sargable INNER JOIN on TPO — ev.organisationunitid is provenance, not ownership.
+    String directDescendantsPredicate =
+        isWithoutRegistrationQuery(params)
+            ? " ev.organisationunitid IN ("
+                + "SELECT organisationunitid FROM organisationunit "
+                + "WHERE path LIKE CONCAT(:"
+                + COLUMN_ORG_UNIT_PATH
+                + ", '%'))"
+                + AND
+            : CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + AND;
+
     if (isProgramRestricted(params.getEnrolledInProgram())) {
-      return createCaptureScopeQuery(
-          user, params, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
+      return directDescendantsPredicate
+          + createCaptureScopeQuery(
+              user, params, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
-        user, params, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
+    return directDescendantsPredicate
+        + getSearchAndCaptureScopeOrgUnitPathMatchQuery(
+            user, params, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
   }
 
   private String createChildrenSql(
       UserDetails user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_ID, params.getOrgUnit().getId());
+
+    // WITHOUT_REGISTRATION: filter directly on ev.organisationunitid so the planner can
+    // drive the scan from idx_event_ou_occurreddate.
+    // WITH_REGISTRATION: filter on ou.organisationunitid which resolves to po.organisationunitid
+    // via the sargable INNER JOIN on TPO — ev.organisationunitid is provenance, not ownership.
+    String directChildrenPredicate =
+        isWithoutRegistrationQuery(params)
+            ? " (ev.organisationunitid = :"
+                + COLUMN_ORG_UNIT_ID
+                + " OR ev.organisationunitid IN ("
+                + "SELECT organisationunitid FROM organisationunit WHERE parentid = :"
+                + COLUMN_ORG_UNIT_ID
+                + "))"
+                + AND
+            : " (ou.organisationunitid = :"
+                + COLUMN_ORG_UNIT_ID
+                + " OR ou.organisationunitid IN ("
+                + "SELECT organisationunitid FROM organisationunit WHERE parentid = :"
+                + COLUMN_ORG_UNIT_ID
+                + "))"
+                + AND;
 
     String customChildrenQuery =
         " and (ou.hierarchylevel = "
@@ -1139,16 +1177,18 @@ left join dataelement de on de.uid = eventdatavalue.dataelement_uid
             + " ) ";
 
     if (isProgramRestricted(params.getEnrolledInProgram())) {
-      return createCaptureScopeQuery(
-          user,
-          params,
-          mapSqlParameterSource,
-          AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
+      return directChildrenPredicate
+          + createCaptureScopeQuery(
+              user,
+              params,
+              mapSqlParameterSource,
+              AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
-        user, params, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
+    return directChildrenPredicate
+        + getSearchAndCaptureScopeOrgUnitPathMatchQuery(
+            user, params, CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
   }
 
   private String createSelectedSql(
