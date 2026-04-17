@@ -4,6 +4,18 @@ ARG TZ
 ENV TZ="$TZ"
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Empty default - if not passed, we skip the mirror replacement
+ARG UBUNTU_MIRROR=""
+
+RUN if [ -n "$UBUNTU_MIRROR" ]; then \
+        echo "Using custom Ubuntu mirror: $UBUNTU_MIRROR"; \
+        MIRROR="${UBUNTU_MIRROR%/}"; \
+        sed -i -E "s|^URIs:.*|URIs: ${MIRROR}|" \
+            /etc/apt/sources.list.d/ubuntu.sources; \
+    else \
+        echo "Using default Ubuntu mirror"; \
+    fi
+
 # Create non-root user
 ARG USERNAME=vscode
 ARG USER_UID=1000
