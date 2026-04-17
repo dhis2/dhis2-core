@@ -88,7 +88,7 @@ public class ImageServlet extends HttpServlet {
       JRPrintImage image = HtmlExporter.getImage(jasperPrintList, imageName);
       Renderable renderer = image.getRenderer();
       Dimension dimension = new Dimension(image.getWidth(), image.getHeight());
-      Color backcolor = ModeEnum.OPAQUE == image.getModeValue() ? image.getBackcolor() : null;
+      Color backcolor = ModeEnum.OPAQUE == image.getMode() ? image.getBackcolor() : null;
       RendererUtil rendererUtil = RendererUtil.getInstance(this.getJasperReportsContext());
 
       try {
@@ -97,8 +97,7 @@ public class ImageServlet extends HttpServlet {
         Exception e = var15;
 
         try {
-          Renderable onErrorRenderer =
-              rendererUtil.handleImageError(e, image.getOnErrorTypeValue());
+          Renderable onErrorRenderer = rendererUtil.handleImageError(e, image.getOnErrorType());
           if (onErrorRenderer != null) {
             imageData = this.process(onErrorRenderer, dimension, backcolor);
           }
