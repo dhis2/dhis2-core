@@ -250,6 +250,14 @@
       <groupId>org.jetbrains</groupId>
       <artifactId>annotations</artifactId>
     </dependency>
+    <dependency>
+      <groupId>io.prometheus</groupId>
+      <artifactId>prometheus-metrics-exporter-opentelemetry</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.prometheus</groupId>
+      <artifactId>prometheus-metrics-model</artifactId>
+    </dependency>
 
     <!-- Apache JClouds -->
 
