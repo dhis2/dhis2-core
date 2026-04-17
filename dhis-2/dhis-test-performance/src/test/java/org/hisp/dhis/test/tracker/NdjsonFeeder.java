@@ -36,14 +36,17 @@ import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Gatling feeder that streams pre-generated ndjson.gz payloads for tracker bulk imports.
+ * Circular Gatling feeder that loads pre-generated ndjson.gz payloads into memory for tracker bulk
+ * imports.
  *
  * <h3>How chunking works</h3>
  *
@@ -53,15 +56,12 @@ import org.slf4j.LoggerFactory;
  * {@code List<String>} of JSON strings, which {@code wrapPayload} joins into the tracker import
  * envelope: {@code {"trackedEntities":[line1,line2,...lineN]}}.
  *
- * <p>The caller must ensure that the total number of lines consumed ({@code linesPerRequest *
- * requestsPerUser * importUsers}) does not exceed {@code lineCount()}. If the feeder runs out of
- * lines mid-request, Gatling crashes and stops the entire simulation.
+ * <h3>Circular behavior</h3>
  *
- * <h3>Line counting</h3>
- *
- * The constructor decompresses the gzip file twice: once to count lines, once to open the streaming
- * reader. This is needed because Gatling's {@code feed(feeder, N)} requires exactly N records per
- * call, and we must know the total to calculate the repeat count.
+ * All lines are loaded into memory on construction. The feeder wraps around when it reaches the
+ * end, so it never runs out of data. This allows duration-based import scenarios ({@code during()})
+ * to run indefinitely. Since the payloads contain no entity UIDs, DHIS2 generates new UIDs for each
+ * import request, so replayed data always creates new entities.
  *
  * <h3>Thread safety</h3>
  *
@@ -74,57 +74,42 @@ class NdjsonFeeder implements Iterator<Map<String, Object>> {
 
   private static final Logger logger = LoggerFactory.getLogger(NdjsonFeeder.class);
 
-  private final int lineCount;
-  private final BufferedReader reader;
-  private String pendingLine;
+  private final List<String> lines;
+  private int index;
 
   NdjsonFeeder(Path ndjsonGzFile) {
-    try {
-      // First pass: count lines so we can calculate how many chunk-sized requests fit.
-      // This decompresses the gzip once without retaining the data. Avoids needing a sidecar
-      // metadata file or coupling chunk size to generation time.
-      int count = 0;
-      try (var countReader =
-          new BufferedReader(
-              new InputStreamReader(
-                  new GZIPInputStream(new FileInputStream(ndjsonGzFile.toFile())),
-                  StandardCharsets.UTF_8))) {
-        while (countReader.readLine() != null) count++;
+    try (var reader =
+        new BufferedReader(
+            new InputStreamReader(
+                new GZIPInputStream(new FileInputStream(ndjsonGzFile.toFile())),
+                StandardCharsets.UTF_8))) {
+      List<String> loaded = new ArrayList<>();
+      String line;
+      while ((line = reader.readLine()) != null) {
+        loaded.add(line);
       }
-      this.lineCount = count;
-
-      // Second pass: open for streaming. Records are read one at a time by Gatling's
-      // FeedActor as import requests are built.
-      this.reader =
-          new BufferedReader(
-              new InputStreamReader(
-                  new GZIPInputStream(new FileInputStream(ndjsonGzFile.toFile())),
-                  StandardCharsets.UTF_8));
-      this.pendingLine = reader.readLine();
-      logger.debug("ndjson feeder initialized: {} ({} lines)", ndjsonGzFile, lineCount);
+      this.lines = loaded;
+      this.index = 0;
+      logger.debug("ndjson feeder initialized: {} ({} lines)", ndjsonGzFile, lines.size());
     } catch (IOException e) {
-      throw new UncheckedIOException("Failed to open ndjson feeder: " + ndjsonGzFile, e);
+      throw new UncheckedIOException("Failed to load ndjson feeder: " + ndjsonGzFile, e);
     }
   }
 
   /** Total number of lines (records) in the file. */
   int lineCount() {
-    return lineCount;
+    return lines.size();
   }
 
   @Override
   public boolean hasNext() {
-    return pendingLine != null;
+    return !lines.isEmpty();
   }
 
   @Override
   public Map<String, Object> next() {
-    String line = pendingLine;
-    try {
-      pendingLine = reader.readLine();
-    } catch (IOException e) {
-      throw new UncheckedIOException("Failed to read ndjson line", e);
-    }
+    String line = lines.get(index);
+    index = (index + 1) % lines.size();
     return Map.of("payload", line);
   }
 }
