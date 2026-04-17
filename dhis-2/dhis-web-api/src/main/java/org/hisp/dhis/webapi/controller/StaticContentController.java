@@ -55,6 +55,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.cache.ETagService;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -94,6 +95,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class StaticContentController {
   private final StyleManager styleManager;
   private final FileResourceContentStore contentStore;
+  private final ETagService eTagService;
   private final StaticCacheControlService staticCacheControlService;
   static final String LOGO_BANNER = "logo_banner";
   static final String LOGO_FRONT = "logo_front";
@@ -219,6 +221,7 @@ public class StaticContentController {
         throw new BadRequestException("The resource was not saved");
       } else {
         log.info(format("File [%s] uploaded. Storage key: [%s]", file.getName(), fileKey));
+        eTagService.incrementNamedVersion("staticContent");
       }
     } catch (Exception e) {
       throw new WebMessageException(error(e.getMessage()));

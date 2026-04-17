@@ -634,12 +634,7 @@ public class DefaultUserService implements UserService {
   @Override
   @Transactional
   public void setLastLogin(String username) {
-    User user = getUserByUsername(username);
-
-    if (user != null) {
-      user.setLastLogin(new Date());
-      updateUser(user);
-    }
+    userStore.updateLastLogin(username);
   }
 
   @Override
