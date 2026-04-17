@@ -45,7 +45,9 @@ import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -53,6 +55,9 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class DataSetObjectBundleHook extends AbstractObjectBundleHook<DataSet> {
+
+  @Autowired private PeriodService periodService;
+
   @Override
   public void validate(DataSet dataSet, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
     Set<DataInputPeriod> inputPeriods = dataSet.getDataInputPeriods();
@@ -68,13 +73,24 @@ public class DataSetObjectBundleHook extends AbstractObjectBundleHook<DataSet> {
   }
 
   @Override
+  public void preCreate(DataSet object, ObjectBundle bundle) {
+    reloadPeriods(object);
+  }
+
+  @Override
   public void preUpdate(DataSet object, DataSet persistedObject, ObjectBundle bundle) {
     if (object == null || !object.getClass().isAssignableFrom(DataSet.class)) return;
 
+    reloadPeriods(object);
     deleteRemovedDataElementFromSection(persistedObject, object);
     deleteRemovedIndicatorFromSectionsIndicators(persistedObject, object);
     deleteRemovedSection(persistedObject, object, bundle);
     deleteCompulsoryDataElementOperands(object);
+  }
+
+  private void reloadPeriods(DataSet object) {
+    for (DataInputPeriod p : object.getDataInputPeriods())
+      p.setPeriod(periodService.reloadPeriod(p.getPeriod()));
   }
 
   /**
