@@ -223,6 +223,7 @@ public class DefaultUserService implements UserService {
   @Transactional
   public void updateUser(User user) {
     userStore.update(user);
+    organisationUnitService.evictUserOrganisationUnitUidsCache(user.getUsername());
 
     AuditLogUtil.infoWrapper(
         log, CurrentUserUtil.getCurrentUsername(), user, AuditLogUtil.ACTION_UPDATE);
@@ -232,6 +233,7 @@ public class DefaultUserService implements UserService {
   @Transactional
   public void updateUser(User user, UserDetails actingUser) {
     userStore.update(user, actingUser);
+    organisationUnitService.evictUserOrganisationUnitUidsCache(user.getUsername());
 
     AuditLogUtil.infoWrapper(log, actingUser.getUsername(), user, AuditLogUtil.ACTION_UPDATE);
   }
@@ -242,6 +244,7 @@ public class DefaultUserService implements UserService {
     AuditLogUtil.infoWrapper(
         log, CurrentUserUtil.getCurrentUsername(), user, AuditLogUtil.ACTION_DELETE);
 
+    organisationUnitService.evictUserOrganisationUnitUidsCache(user.getUsername());
     userStore.delete(user);
   }
 
