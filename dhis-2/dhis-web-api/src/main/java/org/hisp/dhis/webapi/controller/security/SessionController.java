@@ -32,13 +32,18 @@ package org.hisp.dhis.webapi.controller.security;
 import static org.hisp.dhis.security.Authorities.ALL;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
@@ -64,6 +69,7 @@ public class SessionController {
 
   private final SessionRegistry sessionRegistry;
   private final UserService userService;
+  private final DhisConfigurationProvider config;
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
   @RequiresAuthority(anyOf = ALL)
@@ -75,6 +81,48 @@ public class SessionController {
                 s ->
                     ((UserDetails) s.getPrincipal()).getUsername()
                         + (s.isExpired() ? ", (inactive)" : ", (active)")));
+  }
+
+  @GetMapping(value = "/debug", produces = APPLICATION_JSON_VALUE)
+  @RequiresAuthority(anyOf = ALL)
+  public Map<String, Object> debugSessions() {
+    int sessionTimeoutSeconds = config.getIntProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT);
+    List<SessionInformation> sessions = listAllUserSessions();
+    Instant now = Instant.now();
+
+    List<Map<String, Object>> sessionDetails = new ArrayList<>();
+    for (SessionInformation si : sessions) {
+      String username = ((UserDetails) si.getPrincipal()).getUsername();
+      Instant lastRequest = si.getLastRequest().toInstant();
+      Instant expiresAt = lastRequest.plusSeconds(sessionTimeoutSeconds);
+      long remainingSeconds = Duration.between(now, expiresAt).getSeconds();
+
+      Map<String, Object> entry = new LinkedHashMap<>();
+      entry.put("sessionIdHash", si.getSessionId().getBytes());
+      entry.put("username", username);
+      entry.put("expired", si.isExpired());
+      entry.put("lastRequest", lastRequest.toString());
+      entry.put("expiresAt", expiresAt.toString());
+      entry.put("remainingSeconds", Math.max(remainingSeconds, 0));
+      entry.put("remainingFormatted", formatDuration(remainingSeconds));
+      entry.put("sessionTimeoutSeconds", sessionTimeoutSeconds);
+      sessionDetails.add(entry);
+    }
+
+    Map<String, Object> result = new LinkedHashMap<>();
+    result.put("serverTime", now.toString());
+    result.put("configuredTimeoutSeconds", sessionTimeoutSeconds);
+    result.put("totalSessions", sessions.size());
+    result.put("sessions", sessionDetails);
+    return result;
+  }
+
+  private static String formatDuration(long totalSeconds) {
+    if (totalSeconds <= 0) return "expired";
+    long hours = totalSeconds / 3600;
+    long minutes = (totalSeconds % 3600) / 60;
+    long seconds = totalSeconds % 60;
+    return String.format("%dh %dm %ds", hours, minutes, seconds);
   }
 
   private List<SessionInformation> listAllUserSessions() {
