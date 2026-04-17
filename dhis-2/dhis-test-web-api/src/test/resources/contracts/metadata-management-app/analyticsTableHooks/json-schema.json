@@ -1,0 +1,57 @@
+{
+    "type": "object",
+    "properties": {
+        "id": {
+            "type": "string"
+        },
+        "name": {
+            "type": "string"
+        },
+        "displayName": {
+            "type": "string"
+        },
+        "sql": {
+            "type": "string"
+        },
+        "analyticsTableType": {
+            "type": "string",
+            "enum": [
+                "DATA_VALUE",
+                "COMPLETENESS",
+                "COMPLETENESS_TARGET",
+                "ORG_UNIT_TARGET",
+                "EVENT",
+                "ENROLLMENT",
+                "OWNERSHIP",
+                "VALIDATION_RESULT",
+                "TRACKED_ENTITY_INSTANCE_EVENTS",
+                "TRACKED_ENTITY_INSTANCE_ENROLLMENTS",
+                "TRACKED_ENTITY_INSTANCE"
+            ]
+        },
+        "phase": {
+            "type": "string",
+            "enum": ["RESOURCE_TABLE_POPULATED", "ANALYTICS_TABLE_POPULATED"]
+        },
+        "resourceTableType": {
+            "type": "string",
+            "enum": [
+                "ORG_UNIT_STRUCTURE",
+                "DATA_SET_ORG_UNIT_CATEGORY",
+                "CATEGORY_OPTION_COMBO_NAME",
+                "DATA_ELEMENT_GROUP_SET_STRUCTURE",
+                "INDICATOR_GROUP_SET_STRUCTURE",
+                "ORG_UNIT_GROUP_SET_STRUCTURE",
+                "CATEGORY_STRUCTURE",
+                "DATA_ELEMENT_STRUCTURE",
+                "PERIOD_STRUCTURE",
+                "DATE_PERIOD_STRUCTURE",
+                "DATA_ELEMENT_CATEGORY_OPTION_COMBO",
+                "DATA_APPROVAL_REMAP_LEVEL",
+                "DATA_APPROVAL_MIN_LEVEL"
+            ]
+        }
+    },
+    "required": ["id", "name", "sql", "phase"],
+    "additionalProperties": true
+}
