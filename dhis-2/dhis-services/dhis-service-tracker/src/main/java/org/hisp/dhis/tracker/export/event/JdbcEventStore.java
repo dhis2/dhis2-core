@@ -909,31 +909,21 @@ class JdbcEventStore implements EventStore {
             .append("inner join programstage ps on ps.programstageid=ev.programstageid ");
 
     if (isWithoutRegistrationQuery(params)) {
-      // For single-event programs there are no tracked entity program owners.
-      // Join ou directly on ev.organisationunitid so the planner can use an index scan
-      // rather than resolving a COALESCE across a left-joined TPO row.
       fromBuilder.append(
           "inner join organisationunit ou on ev.organisationunitid=ou.organisationunitid ");
     } else if (params.getEnrolledInProgram() != null) {
-      // For tracker (WITH_REGISTRATION) programs a TPO record is always created at enrollment
-      // time. INNER JOIN on po.organisationunitid is correct and sargable.
-      // Matches the master (2.43+) JdbcTrackerEventStore.
       fromBuilder
           .append(
               "inner join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
           .append("inner join organisationunit ou on po.organisationunitid=ou.organisationunitid ");
     } else {
-      // No program filter — result may contain both WITH and WITHOUT_REGISTRATION events.
-      // Use LEFT JOIN + COALESCE: TPO-owner OU for tracker events, ev.organisationunitid
-      // for single-event program events (which have no TPO row).
+      // No program filter
       fromBuilder
           .append(
               "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
           .append(
               "inner join organisationunit ou on (COALESCE(po.organisationunitid,ev.organisationunitid)=ou.organisationunitid) ");
     }
-    // evou is always ev.organisationunitid; kept unconditional for SELECT clause (evou.uid,
-    // evou.code). For WITHOUT_REGISTRATION queries ou and evou resolve to the same row.
     fromBuilder.append(
         "inner join organisationunit evou on (ev.organisationunitid=evou.organisationunitid) ");
 
@@ -1188,10 +1178,6 @@ class JdbcEventStore implements EventStore {
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
-    // WITHOUT_REGISTRATION: filter directly on ev.organisationunitid so the planner can
-    // drive the scan from idx_event_ou_occurreddate.
-    // WITH_REGISTRATION: filter on ou.path which resolves to po.organisationunitid via the
-    // sargable INNER JOIN on TPO — ev.organisationunitid is provenance, not ownership.
     String directDescendantsPredicate =
         isWithoutRegistrationQuery(params)
             ? " ev.organisationunitid IN ("
@@ -1218,10 +1204,6 @@ class JdbcEventStore implements EventStore {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_ID, params.getOrgUnit().getId());
 
-    // WITHOUT_REGISTRATION: filter directly on ev.organisationunitid so the planner can
-    // drive the scan from idx_event_ou_occurreddate.
-    // WITH_REGISTRATION: filter on ou.organisationunitid which resolves to po.organisationunitid
-    // via the sargable INNER JOIN on TPO — ev.organisationunitid is provenance, not ownership.
     String directChildrenPredicate =
         isWithoutRegistrationQuery(params)
             ? " (ev.organisationunitid = :"
