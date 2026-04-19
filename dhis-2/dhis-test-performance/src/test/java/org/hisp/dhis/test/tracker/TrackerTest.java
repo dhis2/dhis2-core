@@ -113,19 +113,19 @@ import org.slf4j.LoggerFactory;
  *   <li>{@code -DimportUsers} -- concurrent import users (default: 4 for load, 1 for smoke)
  * </ul>
  *
- * <p><b>Import parameters (smoke only, repeat-based):</b>
+ * <p><b>Import parameters (mutually exclusive):</b>
  *
  * <ul>
  *   <li>{@code -DimportRequestsPerUser} -- how many import requests each user makes per program
- *       (default: 10). Setting this on load/capacity profiles fails the simulation.
+ *       (default: 10 on smoke, 15 on load/capacity). Repeat-based: deterministic count regardless
+ *       of wall time. Same workload across versions; wall time varies. Default path.
+ *   <li>{@code -DimportDurationSec} -- how long each program's import phase runs. Duration-based:
+ *       each user loops for the given duration; the circular feeder replays data as needed. Same
+ *       wall time across versions; workload varies. Opt in by setting this; setting it disables
+ *       {@code importRequestsPerUser}.
  * </ul>
  *
- * <p><b>Import parameters (load/capacity only, duration-based):</b>
- *
- * <ul>
- *   <li>{@code -DimportDurationSec} -- how long each program's import phase runs (default: 180).
- *       The circular feeder replays data as needed. Setting this on smoke fails the simulation.
- * </ul>
+ * <p>Setting both fails the simulation.
  *
  * <p><b>Profiles:</b>
  *
@@ -267,8 +267,8 @@ public class TrackerTest extends Simulation {
     ProfileDefaults defaults =
         switch (this.profile) {
           case SMOKE -> new ProfileDefaults(1, 1, 100, 1, 1, 1, 50, 10, 0, 1);
-          case LOAD -> new ProfileDefaults(4, 4, 1, 15, 180, 1, 500, 0, 180, 4);
-          case CAPACITY -> new ProfileDefaults(8, 8, 1, 10, 30, 4, 500, 0, 180, 4);
+          case LOAD -> new ProfileDefaults(4, 4, 1, 15, 180, 1, 500, 15, 0, 4);
+          case CAPACITY -> new ProfileDefaults(8, 8, 1, 10, 30, 4, 500, 15, 0, 4);
         };
     this.concurrentUsers = Integer.getInteger("concurrentUsers", defaults.concurrentUsers());
     this.repeat = Integer.getInteger("repeat", defaults.repeat());
@@ -284,13 +284,10 @@ public class TrackerTest extends Simulation {
     this.importDurationSec = Integer.getInteger("importDurationSec", defaults.importDurationSec());
     this.importUsers = Integer.getInteger("importUsers", defaults.importUsers());
 
-    if (this.profile == Profile.SMOKE && System.getProperty("importDurationSec") != null) {
+    if (System.getProperty("importRequestsPerUser") != null
+        && System.getProperty("importDurationSec") != null) {
       throw new IllegalArgumentException(
-          "importDurationSec is for load/capacity profiles. Use importRequestsPerUser for smoke.");
-    }
-    if (this.profile != Profile.SMOKE && System.getProperty("importRequestsPerUser") != null) {
-      throw new IllegalArgumentException(
-          "importRequestsPerUser is for smoke profile. Use importDurationSec for load/capacity.");
+          "importRequestsPerUser and importDurationSec are mutually exclusive.");
     }
 
     if (this.testMode != TestMode.EXPORT) {
@@ -489,7 +486,7 @@ public class TrackerTest extends Simulation {
         feeder.lineCount(),
         linesPerRequest,
         this.importUsers,
-        this.profile == Profile.SMOKE
+        this.importRequestsPerUser > 0
             ? "repeat=" + this.importRequestsPerUser
             : "duration=" + this.importDurationSec + "s");
 
@@ -512,7 +509,7 @@ public class TrackerTest extends Simulation {
             .exec(login())
             .exitHereIfFailed();
 
-    if (this.profile == Profile.SMOKE) {
+    if (this.importRequestsPerUser > 0) {
       return scenario
           .repeat(this.importRequestsPerUser)
           .on(importRequest)
