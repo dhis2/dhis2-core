@@ -113,19 +113,19 @@ import org.slf4j.LoggerFactory;
  *   <li>{@code -DimportUsers} -- concurrent import users (default: 4 for load, 1 for smoke)
  * </ul>
  *
- * <p><b>Import parameters (smoke only, repeat-based):</b>
+ * <p><b>Import parameters (mutually exclusive):</b>
  *
  * <ul>
  *   <li>{@code -DimportRequestsPerUser} -- how many import requests each user makes per program
- *       (default: 10). Setting this on load/capacity profiles fails the simulation.
+ *       (smoke default: 10). Repeat-based: deterministic count regardless of wall time. Useful for
+ *       seeding a known DB state before export tests.
+ *   <li>{@code -DimportDurationSec} -- how long each program's import phase runs (load/capacity
+ *       default: 180). Duration-based: each user loops for the given duration; the circular feeder
+ *       replays data as needed.
  * </ul>
  *
- * <p><b>Import parameters (load/capacity only, duration-based):</b>
- *
- * <ul>
- *   <li>{@code -DimportDurationSec} -- how long each program's import phase runs (default: 180).
- *       The circular feeder replays data as needed. Setting this on smoke fails the simulation.
- * </ul>
+ * <p>The default for each profile picks one, but either can be used with any profile as long as
+ * only one is set. Setting both fails the simulation.
  *
  * <p><b>Profiles:</b>
  *
@@ -284,13 +284,10 @@ public class TrackerTest extends Simulation {
     this.importDurationSec = Integer.getInteger("importDurationSec", defaults.importDurationSec());
     this.importUsers = Integer.getInteger("importUsers", defaults.importUsers());
 
-    if (this.profile == Profile.SMOKE && System.getProperty("importDurationSec") != null) {
+    if (System.getProperty("importRequestsPerUser") != null
+        && System.getProperty("importDurationSec") != null) {
       throw new IllegalArgumentException(
-          "importDurationSec is for load/capacity profiles. Use importRequestsPerUser for smoke.");
-    }
-    if (this.profile != Profile.SMOKE && System.getProperty("importRequestsPerUser") != null) {
-      throw new IllegalArgumentException(
-          "importRequestsPerUser is for smoke profile. Use importDurationSec for load/capacity.");
+          "importRequestsPerUser and importDurationSec are mutually exclusive.");
     }
 
     if (this.testMode != TestMode.EXPORT) {
@@ -489,7 +486,7 @@ public class TrackerTest extends Simulation {
         feeder.lineCount(),
         linesPerRequest,
         this.importUsers,
-        this.profile == Profile.SMOKE
+        this.importRequestsPerUser > 0
             ? "repeat=" + this.importRequestsPerUser
             : "duration=" + this.importDurationSec + "s");
 
@@ -512,7 +509,7 @@ public class TrackerTest extends Simulation {
             .exec(login())
             .exitHereIfFailed();
 
-    if (this.profile == Profile.SMOKE) {
+    if (this.importRequestsPerUser > 0) {
       return scenario
           .repeat(this.importRequestsPerUser)
           .on(importRequest)
