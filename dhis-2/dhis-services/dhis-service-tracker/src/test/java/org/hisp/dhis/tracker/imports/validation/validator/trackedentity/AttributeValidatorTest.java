@@ -39,13 +39,13 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.Option;
-import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -61,7 +61,6 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
-import org.hisp.dhis.tracker.imports.validation.service.attribute.TrackedAttributeValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -87,10 +86,6 @@ class AttributeValidatorTest {
 
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
-  @Mock private TrackedAttributeValidationService teAttrService;
-
-  @Mock private OptionService optionService;
-
   private TrackerBundle bundle;
 
   private Reporter reporter;
@@ -102,6 +97,16 @@ class AttributeValidatorTest {
     bundle = TrackerBundle.builder().preheat(preheat).build();
     idSchemes = TrackerIdSchemeParams.builder().build();
     when(preheat.getIdSchemes()).thenReturn(idSchemes);
+    when(preheat.getMandatoryTrackedEntityTypeAttributes(any()))
+        .thenAnswer(
+            invocation -> {
+              TrackedEntityType tet = invocation.getArgument(0);
+              return tet.getTrackedEntityTypeAttributes().stream()
+                  .filter(a -> Boolean.TRUE.equals(a.isMandatory()))
+                  .map(TrackedEntityTypeAttribute::getTrackedEntityAttribute)
+                  .map(idSchemes::toMetadataIdentifier)
+                  .collect(Collectors.toUnmodifiableSet());
+            });
     reporter = new Reporter(idSchemes);
     when(dhisConfigurationProvider.getEncryptionStatus()).thenReturn(EncryptionStatus.OK);
   }
@@ -382,17 +387,6 @@ class AttributeValidatorTest {
   }
 
   @Test
-  void shouldFailDataValueIsValid() {
-    TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
-    trackedEntityAttribute.setValueType(ValueType.NUMBER);
-
-    TrackedEntity te = TrackedEntity.builder().trackedEntity(CodeGenerator.generateUid()).build();
-    validator.validateAttributeValue(reporter, te, trackedEntityAttribute, "value");
-
-    assertHasError(reporter, te, ValidationCode.E1085);
-  }
-
-  @Test
   void shouldFailEncryptionStatus() {
     TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
     trackedEntityAttribute.setValueType(ValueType.AGE);
@@ -445,7 +439,6 @@ class AttributeValidatorTest {
         .thenReturn(trackedEntityAttribute);
     when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
         .thenReturn(new TrackedEntityType());
-    when(optionService.existsAllOptions(any(), any())).thenReturn(true);
 
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
@@ -497,7 +490,6 @@ class AttributeValidatorTest {
         .thenReturn(trackedEntityAttribute);
     when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
         .thenReturn(new TrackedEntityType());
-    when(optionService.existsAllOptions(any(), any())).thenReturn(true);
 
     TrackedEntity trackedEntity =
         TrackedEntity.builder()

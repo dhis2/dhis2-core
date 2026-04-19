@@ -65,18 +65,31 @@ class RuleActionEventMapper {
       List<RuleEffects> ruleEffects, TrackerBundle bundle) {
     return ruleEffects.stream()
         .filter(RuleEffects::isEvent)
-        .filter(e -> bundle.findEventByUid(e.getTrackerObjectUid()).isPresent())
-        .collect(
-            Collectors.toMap(
-                e -> bundle.findEventByUid(e.getTrackerObjectUid()).get(),
-                e ->
-                    mapRuleEffects(
-                        bundle.findEventByUid(e.getTrackerObjectUid()).get(), e, bundle)));
+        .flatMap(
+            e ->
+                bundle
+                    .findEventByUid(e.getTrackerObjectUid())
+                    .map(event -> Map.entry(event, mapRuleEffects(event, e, bundle)))
+                    .stream())
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   private List<RuleActionExecutor<Event>> mapRuleEffects(
       Event event, RuleEffects ruleEffects, TrackerBundle bundle) {
     ProgramStage programStage = bundle.getPreheat().getProgramStage(event.getProgramStage());
+
+    // needsToValidateDataValues depends only on event+programStage, not on individual effects;
+    // hoist the check to avoid evaluating it once per effect and short-circuit early.
+    if (!needsToValidateDataValues(event, programStage)) {
+      return List.of();
+    }
+
+    // Pre-build the set of data element UIDs for this program stage so that
+    // isDataElementPartOfProgramStage does not stream over the collection per effect.
+    Set<String> stageDataElementUids =
+        programStage.getDataElements().stream()
+            .map(IdentifiableObject::getUid)
+            .collect(Collectors.toSet());
 
     return ruleEffects.getRuleEffects().stream()
         .map(
@@ -88,8 +101,8 @@ class RuleActionEventMapper {
                     event.getDataValues()))
         .filter(Objects::nonNull)
         .filter(
-            executor -> isDataElementPartOfProgramStage(executor.getDataElementUid(), programStage))
-        .filter(executor -> needsToValidateDataValues(event, programStage))
+            executor ->
+                isDataElementPartOfProgramStage(executor.getDataElementUid(), stageDataElementUids))
         .toList();
   }
 
@@ -125,13 +138,7 @@ class RuleActionEventMapper {
   }
 
   private boolean isDataElementPartOfProgramStage(
-      String dataElementUid, ProgramStage programStage) {
-    if (StringUtils.isEmpty(dataElementUid)) {
-      return true;
-    }
-
-    return programStage.getDataElements().stream()
-        .map(IdentifiableObject::getUid)
-        .anyMatch(de -> de.equals(dataElementUid));
+      String dataElementUid, Set<String> stageDataElementUids) {
+    return StringUtils.isEmpty(dataElementUid) || stageDataElementUids.contains(dataElementUid);
   }
 }

@@ -102,10 +102,11 @@ class TrackerImporterServiceTest {
             .trackedEntities(new ArrayList<>())
             .build();
 
-    PersistenceReport persistenceReport = PersistenceReport.emptyReport();
     when(trackerUserService.getUser(anyString())).thenReturn(getUser());
 
-    when(trackerBundleService.commit(any(TrackerBundle.class))).thenReturn(persistenceReport);
+    when(trackerBundleService.commit(any(TrackerBundle.class)))
+        .thenReturn(
+            new TrackerBundleService.CommitResult(PersistenceReport.emptyReport(), List.of()));
 
     when(validationService.validate(any(TrackerBundle.class))).thenReturn(validationResult);
     when(validationService.validateRuleEngine(any(TrackerBundle.class)))

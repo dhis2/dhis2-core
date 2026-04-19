@@ -28,13 +28,11 @@
 package org.hisp.dhis.tracker.imports.report;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -44,8 +42,6 @@ public class TrackerTypeReport {
   @JsonProperty private final TrackerType trackerType;
 
   @JsonProperty private Stats stats = new Stats();
-
-  @JsonIgnore private List<TrackerSideEffectDataBundle> sideEffectDataBundles = new ArrayList<>();
 
   private List<Entity> entityReport = new ArrayList<>();
 
@@ -57,12 +53,9 @@ public class TrackerTypeReport {
   public TrackerTypeReport(
       @JsonProperty("trackerType") TrackerType trackerType,
       @JsonProperty("stats") Stats stats,
-      @JsonProperty("sideEffectDataBundles")
-          List<TrackerSideEffectDataBundle> sideEffectDataBundles,
       @JsonProperty("objectReports") List<Entity> entityReport) {
     this.trackerType = trackerType;
     this.stats = stats;
-    this.sideEffectDataBundles = sideEffectDataBundles;
     this.entityReport = entityReport;
   }
 
@@ -90,9 +83,5 @@ public class TrackerTypeReport {
 
   private List<Error> getErrorReports() {
     return entityReport.stream().flatMap(e -> e.getErrorReports().stream()).toList();
-  }
-
-  public List<TrackerSideEffectDataBundle> getSideEffectDataBundles() {
-    return sideEffectDataBundles;
   }
 }

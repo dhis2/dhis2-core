@@ -38,7 +38,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -111,6 +113,12 @@ public class TrackerBundle {
   /** Relationships to import. */
   @Builder.Default private List<Relationship> relationships = new ArrayList<>();
 
+  // Lazily-built indexes for O(1) lookups. Invalidated when entity lists change.
+  private Map<String, TrackedEntity> trackedEntityByUid;
+  private Map<String, Enrollment> enrollmentByUid;
+  private Map<String, Event> eventByUid;
+  private Map<String, Relationship> relationshipByUid;
+
   /** Rule effects for Enrollments. */
   @Builder.Default private List<RuleEffects> ruleEffects = new ArrayList<>();
 
@@ -152,24 +160,73 @@ public class TrackerBundle {
 
   @Builder.Default @JsonIgnore private Set<UID> updatedTrackedEntities = new HashSet<>();
 
-  public Optional<TrackedEntity> findTrackedEntityByUid(String uid) {
-    return findById(this.trackedEntities, uid);
+  public void setTrackedEntities(List<TrackedEntity> trackedEntities) {
+    this.trackedEntities = trackedEntities;
+    this.trackedEntityByUid = null;
   }
 
-  public Optional<Enrollment> findEnrollmentByUid(String uid) {
-    return findById(this.enrollments, uid);
+  public void setEnrollments(List<Enrollment> enrollments) {
+    this.enrollments = enrollments;
+    this.enrollmentByUid = null;
   }
 
-  public Optional<Event> findEventByUid(String uid) {
-    return findById(this.events, uid);
+  public void setEvents(List<Event> events) {
+    this.events = events;
+    this.eventByUid = null;
   }
 
-  public Optional<Relationship> findRelationshipByUid(String uid) {
-    return findById(this.relationships, uid);
+  public void setRelationships(List<Relationship> relationships) {
+    this.relationships = relationships;
+    this.relationshipByUid = null;
   }
 
-  private static <T extends TrackerDto> Optional<T> findById(List<T> entities, String uid) {
-    return entities.stream().filter(e -> Objects.equals(e.getUid(), uid)).findFirst();
+  public Optional<TrackedEntity> findTrackedEntityByUid(@Nonnull String uid) {
+    return Optional.ofNullable(getTrackedEntityByUid().get(uid));
+  }
+
+  public Optional<Enrollment> findEnrollmentByUid(@Nonnull String uid) {
+    return Optional.ofNullable(getEnrollmentByUid().get(uid));
+  }
+
+  public Optional<Event> findEventByUid(@Nonnull String uid) {
+    return Optional.ofNullable(getEventByUid().get(uid));
+  }
+
+  public Optional<Relationship> findRelationshipByUid(@Nonnull String uid) {
+    return Optional.ofNullable(getRelationshipByUid().get(uid));
+  }
+
+  private Map<String, TrackedEntity> getTrackedEntityByUid() {
+    if (trackedEntityByUid == null) {
+      trackedEntityByUid = indexByUid(trackedEntities);
+    }
+    return trackedEntityByUid;
+  }
+
+  private Map<String, Enrollment> getEnrollmentByUid() {
+    if (enrollmentByUid == null) {
+      enrollmentByUid = indexByUid(enrollments);
+    }
+    return enrollmentByUid;
+  }
+
+  private Map<String, Event> getEventByUid() {
+    if (eventByUid == null) {
+      eventByUid = indexByUid(events);
+    }
+    return eventByUid;
+  }
+
+  private Map<String, Relationship> getRelationshipByUid() {
+    if (relationshipByUid == null) {
+      relationshipByUid = indexByUid(relationships);
+    }
+    return relationshipByUid;
+  }
+
+  private static <T extends TrackerDto> Map<String, T> indexByUid(List<T> entities) {
+    return entities.stream()
+        .collect(Collectors.toMap(TrackerDto::getUid, Function.identity(), (a, b) -> a));
   }
 
   public Map<String, List<RuleEffect>> getEnrollmentRuleEffects() {

@@ -45,6 +45,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.bundle.persister.CommitService;
 import org.hisp.dhis.tracker.imports.bundle.persister.PersistenceException;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
+import org.hisp.dhis.tracker.imports.bundle.persister.TrackerPersister;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -111,23 +112,28 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
 
   @Override
   @Transactional
-  public PersistenceReport commit(TrackerBundle bundle) {
+  public CommitResult commit(TrackerBundle bundle) {
     if (TrackerBundleMode.VALIDATE == bundle.getImportMode()) {
-      return PersistenceReport.emptyReport();
+      return new CommitResult(PersistenceReport.emptyReport(), List.of());
     }
 
-    Map<TrackerType, TrackerTypeReport> reportMap =
-        Map.of(
-            TrackerType.TRACKED_ENTITY,
+    List<TrackerPersister.PersistResult> results =
+        List.of(
             commitService.getTrackerPersister().persist(entityManager, bundle),
-            TrackerType.ENROLLMENT,
             commitService.getEnrollmentPersister().persist(entityManager, bundle),
-            TrackerType.EVENT,
             commitService.getEventPersister().persist(entityManager, bundle),
-            TrackerType.RELATIONSHIP,
             commitService.getRelationshipPersister().persist(entityManager, bundle));
 
-    return new PersistenceReport(reportMap);
+    Map<TrackerType, TrackerTypeReport> reportMap =
+        results.stream()
+            .collect(
+                java.util.stream.Collectors.toMap(
+                    r -> r.report().getTrackerType(), TrackerPersister.PersistResult::report));
+
+    List<TrackerSideEffectDataBundle> sideEffectBundles =
+        results.stream().flatMap(r -> r.sideEffectBundles().stream()).toList();
+
+    return new CommitResult(new PersistenceReport(reportMap), sideEffectBundles);
   }
 
   @Override

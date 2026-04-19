@@ -95,8 +95,7 @@ public enum ValidationCode {
   E1081("Enrollment: `{0}`, do not exist."),
   E1082("Event: `{0}`, is already deleted and cannot be modified."),
   E1083("User: `{0}`, is not authorized to modify completed events."),
-  E1084("File resource: `{0}`, reference could not be found."),
-  E1085("Attribute: `{0}`, value does not match value type: `{1}`."),
+
   E1089("Event: `{0}`, references a Program Stage `{1}` that does not belong to Program `{2}`."),
   E1090(
       "Attribute: `{0}`, is mandatory in tracked entity type `{1}` but not declared in tracked entity `{2}`."),

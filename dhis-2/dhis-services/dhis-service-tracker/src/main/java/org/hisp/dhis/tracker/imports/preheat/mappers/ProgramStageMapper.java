@@ -40,7 +40,8 @@ import org.mapstruct.factory.Mappers;
       DebugMapper.class,
       TrackedEntityTypeMapper.class,
       AttributeValueMapper.class,
-      SharingMapper.class
+      SharingMapper.class,
+      ProgramNotificationTemplateMapper.class,
     })
 public interface ProgramStageMapper extends PreheatMapper<ProgramStage> {
   ProgramStageMapper INSTANCE = Mappers.getMapper(ProgramStageMapper.class);
@@ -60,6 +61,7 @@ public interface ProgramStageMapper extends PreheatMapper<ProgramStage> {
   @Mapping(target = "validationStrategy")
   @Mapping(target = "featureType")
   @Mapping(target = "sharing")
+  @Mapping(target = "notificationTemplates")
   ProgramStage map(ProgramStage programStage);
 
   @Named("program")

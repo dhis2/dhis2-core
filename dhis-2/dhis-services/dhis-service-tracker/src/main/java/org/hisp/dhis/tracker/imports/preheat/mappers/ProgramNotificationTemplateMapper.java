@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,53 +27,21 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import java.util.Set;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(
-    uses = {
-      DebugMapper.class,
-      OrganisationUnitMapper.class,
-      CategoryComboMapper.class,
-      TrackedEntityTypeMapper.class,
-      ProgramStageMapper.class,
-      ProgramTrackedEntityAttributeMapper.class,
-      ProgramNotificationTemplateMapper.class,
-      AttributeValueMapper.class,
-      SharingMapper.class
-    })
-public interface ProgramMapper extends PreheatMapper<Program> {
-  ProgramMapper INSTANCE = Mappers.getMapper(ProgramMapper.class);
+@Mapper
+public interface ProgramNotificationTemplateMapper
+    extends PreheatMapper<ProgramNotificationTemplate> {
+  ProgramNotificationTemplateMapper INSTANCE =
+      Mappers.getMapper(ProgramNotificationTemplateMapper.class);
 
   @BeanMapping(ignoreByDefault = true)
   @Mapping(target = "id")
   @Mapping(target = "uid")
-  @Mapping(target = "code")
-  @Mapping(target = "name")
-  @Mapping(target = "attributeValues")
-  @Mapping(target = "trackedEntityType")
-  @Mapping(target = "programType")
-  @Mapping(target = "programAttributes")
-  @Mapping(target = "programStages")
-  @Mapping(target = "onlyEnrollOnce")
-  @Mapping(target = "featureType")
-  @Mapping(target = "categoryCombo")
-  @Mapping(target = "selectEnrollmentDatesInFuture")
-  @Mapping(target = "selectIncidentDatesInFuture")
-  @Mapping(target = "displayIncidentDate")
-  @Mapping(target = "ignoreOverdueEvents")
-  @Mapping(target = "expiryDays")
-  @Mapping(target = "expiryPeriodType")
-  @Mapping(target = "completeEventsExpiryDays")
-  @Mapping(target = "sharing")
-  @Mapping(target = "accessLevel")
-  @Mapping(target = "notificationTemplates")
-  Program map(Program program);
-
-  Set<ProgramStage> mapProgramStages(Set<ProgramStage> programStages);
+  @Mapping(target = "notificationTrigger")
+  ProgramNotificationTemplate map(ProgramNotificationTemplate template);
 }

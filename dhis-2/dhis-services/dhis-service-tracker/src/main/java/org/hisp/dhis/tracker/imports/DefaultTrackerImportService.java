@@ -27,12 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.IndirectTransactional;
@@ -41,12 +36,10 @@ import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.imports.preprocess.TrackerPreprocessService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.Status;
-import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.tracker.imports.validation.ValidationResult;
 import org.hisp.dhis.tracker.imports.validation.ValidationService;
@@ -150,28 +143,13 @@ public class DefaultTrackerImportService implements TrackerImportService {
   }
 
   protected PersistenceReport commitBundle(TrackerBundle trackerBundle) {
-    PersistenceReport persistenceReport = trackerBundleService.commit(trackerBundle);
+    TrackerBundleService.CommitResult result = trackerBundleService.commit(trackerBundle);
 
     if (!trackerBundle.isSkipSideEffects()) {
-      List<TrackerSideEffectDataBundle> sideEffectDataBundles =
-          Stream.of(TrackerType.ENROLLMENT, TrackerType.EVENT)
-              .map(trackerType -> safelyGetSideEffectsDataBundles(persistenceReport, trackerType))
-              .flatMap(Collection::stream)
-              .toList();
-
-      trackerBundleService.handleTrackerSideEffects(sideEffectDataBundles);
+      trackerBundleService.handleTrackerSideEffects(result.sideEffectBundles());
     }
 
-    return persistenceReport;
-  }
-
-  private List<TrackerSideEffectDataBundle> safelyGetSideEffectsDataBundles(
-      PersistenceReport persistenceReport, TrackerType trackerType) {
-    return Optional.ofNullable(persistenceReport)
-        .map(PersistenceReport::getTypeReportMap)
-        .map(reportMap -> reportMap.get(trackerType))
-        .map(TrackerTypeReport::getSideEffectDataBundles)
-        .orElse(Collections.emptyList());
+    return result.report();
   }
 
   protected PersistenceReport deleteBundle(TrackerBundle trackerBundle) {

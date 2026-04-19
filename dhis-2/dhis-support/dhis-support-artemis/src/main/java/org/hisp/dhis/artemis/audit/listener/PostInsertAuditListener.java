@@ -35,6 +35,7 @@ import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.artemis.audit.AuditableEntity;
+import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
@@ -51,9 +52,10 @@ public class PostInsertAuditListener extends AbstractHibernateListener
   public PostInsertAuditListener(
       AuditManager auditManager,
       AuditObjectFactory auditObjectFactory,
+      AuditMatrix auditMatrix,
       UsernameSupplier userNameSupplier,
       SchemaService schemaService) {
-    super(auditManager, auditObjectFactory, userNameSupplier, schemaService);
+    super(auditManager, auditObjectFactory, auditMatrix, userNameSupplier, schemaService);
   }
 
   @Override

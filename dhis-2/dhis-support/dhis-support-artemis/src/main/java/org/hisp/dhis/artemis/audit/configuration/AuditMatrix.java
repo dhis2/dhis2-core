@@ -27,9 +27,8 @@
  */
 package org.hisp.dhis.artemis.audit.configuration;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Map;
+import java.util.Set;
 import org.hisp.dhis.artemis.audit.Audit;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
@@ -40,25 +39,22 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class AuditMatrix {
-  private Map<AuditScope, Map<AuditType, Boolean>> matrix;
+  private final Map<AuditScope, Set<AuditType>> matrix;
 
   public AuditMatrix(AuditMatrixConfigurer auditMatrixConfigurer) {
-    checkNotNull(auditMatrixConfigurer);
-
-    matrix = auditMatrixConfigurer.configure();
+    this.matrix = auditMatrixConfigurer.configure();
   }
 
   public boolean isEnabled(Audit audit) {
-    return matrix.get(audit.getAuditScope()).getOrDefault(audit.getAuditType(), false);
+    return matrix.get(audit.getAuditScope()).contains(audit.getAuditType());
   }
 
   public boolean isEnabled(AuditScope auditScope, AuditType auditType) {
-    return matrix.get(auditScope).getOrDefault(auditType, false);
+    return matrix.get(auditScope).contains(auditType);
   }
 
   public boolean isReadEnabled() {
-    final AuditScope[] auditScopes = AuditScope.values();
-    for (AuditScope auditScope : auditScopes) {
+    for (AuditScope auditScope : AuditScope.values()) {
       if (isEnabled(auditScope, AuditType.READ)) {
         return true;
       }
