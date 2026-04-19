@@ -105,16 +105,27 @@ import org.slf4j.LoggerFactory;
  *   <li>{@code export} -- export only, skip import (DB must be seeded)
  * </ul>
  *
- * <p><b>Import parameters:</b>
+ * <p><b>Import parameters (common):</b>
  *
  * <ul>
  *   <li>{@code -DimportEntitiesPerRequest} -- target entities (TEs + enrollments + events) per HTTP
  *       request (default: 500 for load, 50 for smoke)
- *   <li>{@code -DimportMaxEntitiesPerProgram} -- cap on entities imported per program. The actual
- *       count may be lower due to integer division rounding -- this is a cap, not a target.
- *       (default: 30,000 for load, 500 for smoke)
  *   <li>{@code -DimportUsers} -- concurrent import users (default: 4 for load, 1 for smoke)
  * </ul>
+ *
+ * <p><b>Import parameters (mutually exclusive):</b>
+ *
+ * <ul>
+ *   <li>{@code -DimportRequestsPerUser} -- how many import requests each user makes per program
+ *       (smoke default: 10). Repeat-based: deterministic count regardless of wall time. Useful for
+ *       seeding a known DB state before export tests.
+ *   <li>{@code -DimportDurationSec} -- how long each program's import phase runs (load/capacity
+ *       default: 180). Duration-based: each user loops for the given duration; the circular feeder
+ *       replays data as needed.
+ * </ul>
+ *
+ * <p>The default for each profile picks one, but either can be used with any profile as long as
+ * only one is set. Setting both fails the simulation.
  *
  * <p><b>Profiles:</b>
  *
@@ -176,7 +187,8 @@ public class TrackerTest extends Simulation {
   private final int steps;
   private final TestMode testMode;
   private final int importEntitiesPerRequest;
-  private final int importMaxEntitiesPerProgram;
+  private final int importRequestsPerUser;
+  private final int importDurationSec;
   private final int importUsers;
   private NdjsonFeeder mnchFeeder;
   private NdjsonFeeder childFeeder;
@@ -249,13 +261,14 @@ public class TrackerTest extends Simulation {
         int durationSec,
         int steps,
         int importEntitiesPerRequest,
-        int importMaxEntitiesPerProgram,
+        int importRequestsPerUser,
+        int importDurationSec,
         int importUsers) {}
     ProfileDefaults defaults =
         switch (this.profile) {
-          case SMOKE -> new ProfileDefaults(1, 1, 100, 1, 1, 1, 50, 500, 1);
-          case LOAD -> new ProfileDefaults(4, 4, 1, 15, 180, 1, 500, 30_000, 4);
-          case CAPACITY -> new ProfileDefaults(8, 8, 1, 10, 30, 4, 500, 30_000, 4);
+          case SMOKE -> new ProfileDefaults(1, 1, 100, 1, 1, 1, 50, 10, 0, 1);
+          case LOAD -> new ProfileDefaults(4, 4, 1, 15, 180, 1, 500, 0, 180, 4);
+          case CAPACITY -> new ProfileDefaults(8, 8, 1, 10, 30, 4, 500, 0, 180, 4);
         };
     this.concurrentUsers = Integer.getInteger("concurrentUsers", defaults.concurrentUsers());
     this.repeat = Integer.getInteger("repeat", defaults.repeat());
@@ -266,9 +279,16 @@ public class TrackerTest extends Simulation {
     this.testMode = TestMode.fromString(System.getProperty("testMode", "all"));
     this.importEntitiesPerRequest =
         Integer.getInteger("importEntitiesPerRequest", defaults.importEntitiesPerRequest());
-    this.importMaxEntitiesPerProgram =
-        Integer.getInteger("importMaxEntitiesPerProgram", defaults.importMaxEntitiesPerProgram());
+    this.importRequestsPerUser =
+        Integer.getInteger("importRequestsPerUser", defaults.importRequestsPerUser());
+    this.importDurationSec = Integer.getInteger("importDurationSec", defaults.importDurationSec());
     this.importUsers = Integer.getInteger("importUsers", defaults.importUsers());
+
+    if (System.getProperty("importRequestsPerUser") != null
+        && System.getProperty("importDurationSec") != null) {
+      throw new IllegalArgumentException(
+          "importRequestsPerUser and importDurationSec are mutually exclusive.");
+    }
 
     if (this.testMode != TestMode.EXPORT) {
       String s3Base =
@@ -445,55 +465,63 @@ public class TrackerTest extends Simulation {
   }
 
   /**
-   * Builds an import scenario for a single program. Each ndjson line may contain multiple entities
-   * (e.g. 1 TE + enrollments + events). The number of import requests per user is derived from
-   * {@code importMaxEntitiesPerProgram}, {@code importEntitiesPerRequest}, and {@code importUsers}.
-   * The actual number of imported entities is capped at {@code importMaxEntitiesPerProgram} but may
-   * undershoot due to integer division rounding -- it is not a target.
+   * Builds an import scenario for a single program. Each ndjson line is a complete JSON object (one
+   * tracked entity or one event). Lines are batched into requests of {@code
+   * importEntitiesPerRequest} entities.
    *
-   * <p>Example for MNCH (entitiesPerLine=9, feeder lineCount=94538) with
-   * importEntitiesPerRequest=500, importMaxEntitiesPerProgram=5000, importUsers=4:
+   * <p>On load/capacity profiles, the scenario uses {@code during(importDurationSec)} with a closed
+   * injection model: a fixed pool of {@code importUsers} concurrent users loop for the given
+   * duration. The circular {@link NdjsonFeeder} replays data as needed since payloads contain no
+   * entity UIDs (DHIS2 generates them), so every request creates new entities.
    *
-   * <pre>
-   *   linesPerRequest   = importEntitiesPerRequest / entitiesPerLine     = 500 / 9              = 55
-   *   availableEntities = feeder.lineCount * entitiesPerLine             = 94538 * 9            = 850842
-   *   entitiesPerUser   = min(importMaxEntitiesPerProgram, available) / importUsers = min(5000, 850842) / 4 = 1250
-   *   requestsPerUser   = entitiesPerUser / importEntitiesPerRequest     = 1250 / 500           = 2
-   *   actual entities   = requestsPerUser * linesPerRequest * entitiesPerLine * importUsers = 2 * 55 * 9 * 4 = 3960
-   * </pre>
+   * <p>On smoke, the scenario uses {@code repeat(importRequestsPerUser)} for deterministic
+   * iteration counts.
    */
   private PopulationBuilder importProgram(
       String name, NdjsonFeeder feeder, int entitiesPerLine, String wrapperKey) {
     int linesPerRequest = this.importEntitiesPerRequest / entitiesPerLine;
-    int availableEntities = feeder.lineCount() * entitiesPerLine;
-    int entitiesPerUser =
-        Math.min(this.importMaxEntitiesPerProgram, availableEntities) / this.importUsers;
-    int requestsPerUser = entitiesPerUser / this.importEntitiesPerRequest;
     logger.debug(
-        "Import {}: {} lines, {} lines/request, {} requests/user, {} users",
+        "Import {}: {} lines, {} lines/request, {} users, {}",
         name,
         feeder.lineCount(),
         linesPerRequest,
-        requestsPerUser,
-        this.importUsers);
-    return scenario(name)
-        .exec(
-            session -> session.set("username", this.adminUser).set("password", this.adminPassword))
-        .exec(login())
-        .exitHereIfFailed()
-        .repeat(requestsPerUser)
-        .on(
-            feed(feeder, linesPerRequest)
-                .exec(
-                    http(name)
-                        .post("/api/tracker?async=false&importStrategy=CREATE_AND_UPDATE")
-                        .header("Content-Type", "application/json")
-                        .header("X-Request-ID", session -> nextRequestId(name))
-                        .body(
-                            StringBody(
-                                session -> wrapPayload(session.getList("payload"), wrapperKey)))
-                        .check(status().is(200))))
-        .injectOpen(atOnceUsers(this.importUsers));
+        this.importUsers,
+        this.importRequestsPerUser > 0
+            ? "repeat=" + this.importRequestsPerUser
+            : "duration=" + this.importDurationSec + "s");
+
+    ChainBuilder importRequest =
+        feed(feeder, linesPerRequest)
+            .exec(
+                http(name)
+                    .post("/api/tracker?async=false")
+                    .header("Content-Type", "application/json")
+                    .header("X-Request-ID", session -> nextRequestId(name))
+                    .body(
+                        StringBody(session -> wrapPayload(session.getList("payload"), wrapperKey)))
+                    .check(status().is(200)));
+
+    ScenarioBuilder scenario =
+        scenario(name)
+            .exec(
+                session ->
+                    session.set("username", this.adminUser).set("password", this.adminPassword))
+            .exec(login())
+            .exitHereIfFailed();
+
+    if (this.importRequestsPerUser > 0) {
+      return scenario
+          .repeat(this.importRequestsPerUser)
+          .on(importRequest)
+          .injectOpen(atOnceUsers(this.importUsers));
+    }
+
+    return scenario
+        .during(Duration.ofSeconds(this.importDurationSec))
+        .on(importRequest)
+        .injectClosed(
+            constantConcurrentUsers(this.importUsers)
+                .during(Duration.ofSeconds(this.importDurationSec)));
   }
 
   /** Wraps a list of pre-built JSON objects into a tracker import envelope. */
