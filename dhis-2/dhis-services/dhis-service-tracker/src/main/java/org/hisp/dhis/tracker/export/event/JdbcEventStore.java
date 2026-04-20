@@ -902,23 +902,34 @@ class JdbcEventStore implements EventStore {
       User user,
       SqlHelper hlp,
       StringBuilder dataElementAndFiltersSql) {
-    StringBuilder fromBuilder =
-        new StringBuilder(" from event ev ")
-            .append("inner join enrollment en on en.enrollmentid=ev.enrollmentid ")
-            .append("inner join program p on p.programid=en.programid ")
-            .append("inner join programstage ps on ps.programstageid=ev.programstageid ");
+    StringBuilder fromBuilder = new StringBuilder(" from event ev ");
 
     if (isWithoutRegistrationQuery(params)) {
-      fromBuilder.append(
-          "inner join organisationunit ou on ev.organisationunitid=ou.organisationunitid ");
+      // For WITHOUT_REGISTRATION programs: derive program via programstage and demote enrollment
+      // to LEFT JOIN. Enrollment is always present but carries no filter role here — program
+      // identity comes from the programstage FK. Demoting to LEFT JOIN prevents the planner from
+      // using enrollment as the Nested Loop outer, which causes a catastrophic BitmapAnd via the
+      // enrollmentid index on programs where a single enrollment owns the majority of events.
+      // Master applies the same pattern in JdbcSingleEventStore.
+      fromBuilder
+          .append("inner join programstage ps on ps.programstageid=ev.programstageid ")
+          .append("inner join program p on p.programid=ps.programid ")
+          .append("left join enrollment en on en.enrollmentid=ev.enrollmentid ")
+          .append("inner join organisationunit ou on ev.organisationunitid=ou.organisationunitid ");
     } else if (params.getEnrolledInProgram() != null) {
       fromBuilder
+          .append("inner join enrollment en on en.enrollmentid=ev.enrollmentid ")
+          .append("inner join program p on p.programid=en.programid ")
+          .append("inner join programstage ps on ps.programstageid=ev.programstageid ")
           .append(
               "inner join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
           .append("inner join organisationunit ou on po.organisationunitid=ou.organisationunitid ");
     } else {
       // No program filter
       fromBuilder
+          .append("inner join enrollment en on en.enrollmentid=ev.enrollmentid ")
+          .append("inner join program p on p.programid=en.programid ")
+          .append("inner join programstage ps on ps.programstageid=ev.programstageid ")
           .append(
               "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
           .append(
