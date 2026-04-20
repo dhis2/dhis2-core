@@ -239,7 +239,9 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             columnMapper,
             filterBuilder,
             stageQuerySqlFacade,
-            new DateFieldPeriodBucketColumnResolver(new PostgreSqlAnalyticsSqlBuilder()));
+            new DateFieldPeriodBucketColumnResolver(new PostgreSqlAnalyticsSqlBuilder()),
+            new FirstOrLastValueSubqueryRenderer(
+                sqlBuilder, eventTimeFieldSqlRenderer, programIndicatorService));
   }
 
   @Test
