@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,33 +27,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.mappers;
+package org.hisp.dhis.tracker.acl;
 
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import java.util.List;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 
-@Mapper(uses = {OptionSetMapper.class, AttributeValuesMapper.class})
-public interface TrackedEntityAttributeMapper extends PreheatMapper<TrackedEntityAttribute> {
-  TrackedEntityAttributeMapper INSTANCE = Mappers.getMapper(TrackedEntityAttributeMapper.class);
-
-  @Override
-  @BeanMapping(ignoreByDefault = true)
-  @Mapping(target = "id")
-  @Mapping(target = "uid")
-  @Mapping(target = "code")
-  @Mapping(target = "name")
-  @Mapping(target = "attributeValues")
-  @Mapping(target = "confidential")
-  @Mapping(target = "unique")
-  @Mapping(target = "generated")
-  @Mapping(target = "pattern")
-  @Mapping(target = "textPattern")
-  @Mapping(target = "skipSynchronization")
-  @Mapping(target = "valueType")
-  @Mapping(target = "orgunitScope")
-  @Mapping(target = "optionSet")
-  TrackedEntityAttribute map(TrackedEntityAttribute trackedEntityAttribute);
-}
+public record ErrorMessage(ValidationCode validationCode, String userUid, List<Object> args) {}
