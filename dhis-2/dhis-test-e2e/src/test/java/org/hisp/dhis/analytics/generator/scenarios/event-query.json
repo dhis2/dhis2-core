@@ -314,8 +314,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "validateProgramStatusWithEnrollmentOu",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=ENROLLMENT_OU:O6uvpzGd5pu&dimension=PROGRAM_STATUS:ACTIVE&headers=enrollmentouname,programstatus,enrollmentdate&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
     }
-
-
   ]
 }
