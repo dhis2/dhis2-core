@@ -231,8 +231,8 @@ class ResponseHelperTest {
     }
 
     @Test
-    @DisplayName("should resolve stage-prefixed alias to base grid column")
-    void shouldResolveStagePrefixedAliasToBaseGridColumn() {
+    @DisplayName("should resolve stage-prefixed alias and keep stage prefix in response header")
+    void shouldResolveStagePrefixedAliasAndKeepStagePrefixInResponseHeader() {
       Grid grid = new ListGrid();
       grid.addHeader(new GridHeader("eventdate", "Event date", ValueType.DATETIME, false, true))
           .addHeader(
@@ -244,7 +244,31 @@ class ResponseHelperTest {
       ResponseHelper.applyHeaders(grid, params);
 
       assertEquals(1, grid.getHeaders().size());
-      assertEquals("eventdate", grid.getHeaders().get(0).getName());
+      assertEquals("Zj7UnCAulEk.eventdate", grid.getHeaders().get(0).getName());
+    }
+
+    @Test
+    @DisplayName(
+        "should keep stage prefix on fallback-resolved header alongside direct stage-prefixed header")
+    void shouldKeepStagePrefixOnFallbackResolvedHeaderAlongsideDirectStagePrefixedHeader() {
+      Grid grid = new ListGrid();
+      grid.addHeader(
+              new GridHeader(
+                  "A03MvHHogjR.ouname", "Organisation unit name", ValueType.TEXT, false, true))
+          .addHeader(new GridHeader("eventstatus", "Event status", ValueType.TEXT, false, true))
+          .addHeader(new GridHeader("eventdate", "Event date", ValueType.DATETIME, false, true));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withHeaders(
+                  new LinkedHashSet<>(List.of("A03MvHHogjR.ouname", "A03MvHHogjR.eventstatus")))
+              .build();
+
+      ResponseHelper.applyHeaders(grid, params);
+
+      assertEquals(2, grid.getHeaders().size());
+      assertEquals("A03MvHHogjR.ouname", grid.getHeaders().get(0).getName());
+      assertEquals("A03MvHHogjR.eventstatus", grid.getHeaders().get(1).getName());
     }
 
     @Test

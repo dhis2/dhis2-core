@@ -81,7 +81,10 @@ public class ResponseHelper {
    *   <li>case-insensitive match against an existing grid header name;
    *   <li>case-insensitive match against a {@link ColumnHeader} enum name or item;
    *   <li>if the input contains an interior dot (e.g. {@code {stageUid}.eventDate}), the suffix
-   *       after the last dot is retried against steps 1 and 2.
+   *       after the last dot is retried against steps 1 and 2. When this fallback succeeds, the
+   *       matching grid header is renamed to {@code {stagePrefix}.{canonicalItem}} so the response
+   *       echoes the stage-prefixed form the client requested — mirroring the header naming used
+   *       when a stage-prefixed dimension materialises the column.
    * </ol>
    *
    * <p>If nothing resolves, the input is returned unchanged, which lets {@link
@@ -103,17 +106,37 @@ public class ResponseHelper {
 
   /**
    * Handles the {@code {stageUid}.suffix} alias case: if the input contains an interior dot, try
-   * resolving the substring after the last dot against the grid and {@link ColumnHeader} enum.
+   * resolving the substring after the last dot against the grid and {@link ColumnHeader} enum. On a
+   * successful match, the matching grid header is renamed in place to {@code
+   * {stagePrefix}.{canonicalItem}} so the response preserves the stage-prefixed alias the client
+   * asked for.
    *
    * @param header the raw header value.
    * @param grid the grid whose headers are the resolution target.
-   * @return the canonical name resolved from the suffix, or {@code null} if the input has no
+   * @return the stage-prefixed name to return and retain, or {@code null} if the input has no
    *     interior dot or the suffix does not resolve.
    */
   private static String resolveAfterStagePrefix(String header, Grid grid) {
     int dot = header.lastIndexOf('.');
     if (dot <= 0 || dot >= header.length() - 1) return null;
-    return resolveHeader(header.substring(dot + 1), grid);
+    String resolvedSuffix = resolveHeader(header.substring(dot + 1), grid);
+    if (resolvedSuffix == null) return null;
+    String stagePrefixed = header.substring(0, dot + 1) + resolvedSuffix;
+    renameGridHeader(grid, resolvedSuffix, stagePrefixed);
+    return stagePrefixed;
+  }
+
+  /**
+   * Renames the first grid header whose name equals {@code from} (case-insensitive) to {@code to}.
+   * No-op if no header matches.
+   */
+  private static void renameGridHeader(Grid grid, String from, String to) {
+    for (GridHeader h : grid.getHeaders()) {
+      if (h.getName().equalsIgnoreCase(from)) {
+        h.setName(to);
+        return;
+      }
+    }
   }
 
   /**
