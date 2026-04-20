@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,49 +27,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.validation.validator.relationship;
+package org.hisp.dhis.tracker.imports.validation.validator.trackedentity;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.tracker.acl.TrackerAccessManager;
+import static org.hisp.dhis.security.Authorities.F_TEI_CASCADE_DELETE;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1100;
+
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
-import org.hisp.dhis.tracker.imports.domain.Relationship;
+import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.hisp.dhis.user.UserDetails;
-import org.springframework.stereotype.Component;
 
-@Component(
-    "org.hisp.dhis.tracker.imports.validation.validator.relationship.SecurityOwnershipValidator")
-@RequiredArgsConstructor
-class SecurityOwnershipValidator implements Validator<Relationship> {
-  private final TrackerAccessManager trackerAccessManager;
+class CascadeDeleteTrackedEntityValidator implements Validator<TrackedEntity> {
 
   @Override
-  public void validate(Reporter reporter, TrackerBundle bundle, Relationship relationship) {
-    TrackerImportStrategy strategy = bundle.getStrategy(relationship);
+  public void validate(Reporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity) {
     UserDetails user = bundle.getUser();
+    org.hisp.dhis.tracker.model.TrackedEntity databaseTrackedEntity =
+        bundle.getPreheat().getTrackedEntity(trackedEntity.getTrackedEntity());
 
-    if (strategy.isDelete()
-        && (!trackerAccessManager
-            .canDelete(user, bundle.getPreheat().getRelationship(relationship))
-            .isEmpty())) {
-      reporter.addError(relationship, ValidationCode.E4020, user, relationship.getRelationship());
-    }
-
-    if (strategy.isCreate()
-        && (!trackerAccessManager
-            .canCreate(
-                user, TrackerObjectsMapper.map(bundle.getPreheat(), relationship, bundle.getUser()))
-            .isEmpty())) {
-      reporter.addError(relationship, ValidationCode.E4020, user, relationship.getRelationship());
+    if (databaseTrackedEntity.getEnrollments().stream().anyMatch(e -> !e.isDeleted())
+        && !user.isAuthorized(F_TEI_CASCADE_DELETE)) {
+      reporter.addError(trackedEntity, E1100, user.getUid(), trackedEntity.getTrackedEntity());
     }
   }
 
   @Override
   public boolean needsToRun(TrackerImportStrategy strategy) {
-    return true;
+    return strategy.isDelete();
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,24 +27,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.storage;
 
-import org.hisp.dhis.dataset.DataInputPeriod;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import javax.annotation.Nonnull;
 
 /**
- * @author Stian Sandvold
+ * The name of the S3 bucket or filesystem directory in which all DHIS2 blobs are stored.
+ *
+ * <p>The value must not be blank and must not end with {@code /}. This ensures that {@link
+ * #resolve(BlobKey)} always produces a clean path without any slash-cleaning.
+ *
+ * <p>Configured via {@link org.hisp.dhis.external.conf.ConfigurationKey#FILESTORE_CONTAINER} and
+ * resolved once at startup by {@link org.hisp.dhis.jclouds.JCloudsStore}.
  */
-public class DataInputPeriodSchemaDescriptor implements SchemaDescriptor {
-  public static final String SINGULAR = "dataInputPeriod";
+public record BlobContainerName(String value) {
 
-  public static final String PLURAL = "dataInputPeriods";
+  public BlobContainerName {
+    if (value == null || value.isBlank()) {
+      throw new IllegalArgumentException("Container name must not be null or blank");
+    }
+    if (value.endsWith("/")) {
+      throw new IllegalArgumentException("Container name must not end with '/': " + value);
+    }
+  }
 
-  public static final String API_ENDPOINT = "/" + PLURAL;
+  /** Returns the full filesystem/store path for {@code key}: {@code "<container>/<key>"}. */
+  @Nonnull
+  public String resolve(@Nonnull BlobKey key) {
+    return value + "/" + key.value();
+  }
 
+  @Nonnull
   @Override
-  public Schema getSchema() {
-    return new Schema(DataInputPeriod.class, SINGULAR, PLURAL);
+  public String toString() {
+    return value;
   }
 }

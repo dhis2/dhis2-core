@@ -146,7 +146,11 @@ public class HtmlCacheBustingService {
 
   private void rewriteAttribute(Element el, String attr, String param) {
     String url = el.attr(attr).trim();
-    if (url.isEmpty() || isExternal(url) || url.contains("?v=") || url.contains("&v=")) {
+    if (url.isEmpty()
+        || isExternal(url)
+        || url.contains("?v=")
+        || url.contains("&v=")
+        || hasContentHash(url)) {
       return;
     }
     // Split off fragment (#...) — query params must come before the fragment
@@ -158,6 +162,16 @@ public class HtmlCacheBustingService {
     }
     String separator = url.contains("?") ? "&" : "?";
     el.attr(attr, url + separator + param + fragment);
+  }
+
+  /**
+   * Returns {@code true} if the URL contains a content hash from a bundler, making {@code ?v=}
+   * cache-busting redundant. Critically, for ES modules adding {@code ?v=} to the HTML {@code
+   * <script>} tag but not to inter-chunk {@code import()} statements inside the JS causes the
+   * browser to treat them as different modules and fetch+execute the bundle twice.
+   */
+  private static boolean hasContentHash(String url) {
+    return StaticCacheControlService.looksLikeHashedFilename(url);
   }
 
   private boolean isExternal(String url) {

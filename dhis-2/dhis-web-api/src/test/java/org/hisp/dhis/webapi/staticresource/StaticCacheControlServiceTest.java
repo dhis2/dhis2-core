@@ -181,12 +181,14 @@ class StaticCacheControlServiceTest {
   }
 
   @Test
-  @DisplayName("Normal dash-separated filename (all lowercase) is NOT treated as hashed")
-  void dashSeparated_allLowercase_notHashed() {
+  @DisplayName("All-lowercase Vite hash gets immutable treatment")
+  void viteHash_allLowercase_getsImmutable() {
     MockHttpServletResponse response = new MockHttpServletResponse();
-    service.setHeaders(response, "/apps/dashboard/main-component.js", null, null);
+    service.setHeaders(response, "/apps/login/assets/main-zwggxcug.js", null, null);
 
-    assertThat(response.getHeader("Cache-Control"), containsString("max-age=3600"));
+    String cc = response.getHeader("Cache-Control");
+    assertThat(cc, containsString("max-age=31536000"));
+    assertThat(cc, containsString("immutable"));
   }
 
   @Test

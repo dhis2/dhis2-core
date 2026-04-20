@@ -97,7 +97,6 @@ class ProgramItemStageElementTest extends TestBase {
 
     when(visitor.getProgParams()).thenReturn(progParams);
     when(visitor.getState()).thenReturn(expressionState);
-    when(visitor.isUseExperimentalSqlEngine()).thenReturn(true);
 
     startDate = dateFormat.parse("2024-01-01");
     endDate = dateFormat.parse("2024-12-31");

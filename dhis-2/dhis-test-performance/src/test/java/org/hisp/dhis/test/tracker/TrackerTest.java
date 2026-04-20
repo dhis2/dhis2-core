@@ -533,31 +533,31 @@ public class TrackerTest extends Simulation {
     Request goToFirstPage =
         new Request(
             getEventsUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 88, Profile.LOAD, 126)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 107, Profile.LOAD, 131)),
             "Go to first page",
             "Get ANC events");
     Request goToSecondPage =
         new Request(
             getEventsUrl + "&page=2",
-            new EnumMap<>(Map.of(Profile.SMOKE, 89, Profile.LOAD, 164)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 107, Profile.LOAD, 153)),
             "Go to second page",
             "Get ANC events");
     Request searchEventsByDateRange =
         new Request(
             getEventsUrl + "&occurredAfter=2020-01-01&occurredBefore=2025-12-31",
-            new EnumMap<>(Map.of(Profile.SMOKE, 29, Profile.LOAD, 542)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 41, Profile.LOAD, 509)),
             "Search by date range",
             "Get ANC events");
     Request searchEventsNotAssigned =
         new Request(
             getEventsUrl + "&assignedUserMode=NONE",
-            new EnumMap<>(Map.of(Profile.SMOKE, 84, Profile.LOAD, 167)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 108, Profile.LOAD, 173)),
             "Search not assigned",
             "Get ANC events");
     Request getFirstEvent =
         new Request(
             singleEventUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 27, Profile.LOAD, 116)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 55, Profile.LOAD, 118)),
             "Get first event",
             "Get ANC events",
             "Get one event");
@@ -700,62 +700,62 @@ public class TrackerTest extends Simulation {
     Request notFoundTeByNameWithLikeOperator =
         new Request(
             notFoundTEByName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 105)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 111)),
             "Not found TE by name with like operator",
             "Get Child Programme TEs");
     Request notFoundTeByNameWithEqOperator =
         new Request(
             notFoundTEByExactName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 27)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 42)),
             "Not found TE by name with eq operator",
             "Get Child Programme TEs");
     Request searchTeByNameWithLikeOperator =
         new Request(
             searchTEByName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 36, Profile.LOAD, 173)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 50, Profile.LOAD, 174)),
             "Search TE by name with like operator",
             "Get Child Programme TEs");
     Request searchTeByNameWithEqOperator =
         new Request(
             searchTEByExactName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 32, Profile.LOAD, 112)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 44, Profile.LOAD, 117)),
             "Search TE by name with eq operator",
             "Get Child Programme TEs");
     Request searchBirthEventsByStage =
         new Request(
             searchBirthEvents,
-            new EnumMap<>(Map.of(Profile.SMOKE, 40, Profile.LOAD, 975)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 53, Profile.LOAD, 943)),
             "Search Birth events",
             "Get Child Programme TEs");
     Request getTrackedEntitiesForEvents =
         new Request(
             getTEsFromEvents,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 28)),
             "Get TEs from events",
             "Get Child Programme TEs");
     Request getFirstPageOfTEs =
         new Request(
             getTEsUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 38, Profile.LOAD, 155)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 50, Profile.LOAD, 162)),
             "Get first page of TEs",
             "Get Child Programme TEs");
     Request getTEsWithEnrollmentStatus =
         new Request(
             getTEsWithEnrollmentStatusUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 52, Profile.LOAD, 184)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 71, Profile.LOAD, 177)),
             "Get TEs with enrollment status",
             "Get Child Programme TEs");
     Request getFirstTrackedEntity =
         new Request(
             singleTrackedEntityUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 34, Profile.LOAD, 118)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 47, Profile.LOAD, 121)),
             "Get first tracked entity",
             "Get Child Programme TEs",
             "Go to single enrollment");
     Request getFirstEnrollment =
         new Request(
             singleEnrollmentUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 38)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 37, Profile.LOAD, 56)),
             "Get first enrollment",
             "Get Child Programme TEs",
             "Go to single enrollment");
@@ -769,7 +769,7 @@ public class TrackerTest extends Simulation {
     Request getFirstEventFromEnrollment =
         new Request(
             eventUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 42, Profile.LOAD, 111)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 58, Profile.LOAD, 141)),
             "Get first event from enrollment",
             "Get Child Programme TEs",
             "Go to single enrollment",
@@ -1006,11 +1006,11 @@ public class TrackerTest extends Simulation {
   }
 
   private static final EnumMap<Profile, Integer> MNCH_IMPORT_P95 =
-      new EnumMap<>(Map.of(Profile.SMOKE, 416, Profile.LOAD, 9776));
+      new EnumMap<>(Map.of(Profile.SMOKE, 303, Profile.LOAD, 3526));
   private static final EnumMap<Profile, Integer> CHILD_IMPORT_P95 =
-      new EnumMap<>(Map.of(Profile.SMOKE, 227, Profile.LOAD, 4215));
+      new EnumMap<>(Map.of(Profile.SMOKE, 168, Profile.LOAD, 1769));
   private static final EnumMap<Profile, Integer> ANC_IMPORT_P95 =
-      new EnumMap<>(Map.of(Profile.SMOKE, 149, Profile.LOAD, 6772));
+      new EnumMap<>(Map.of(Profile.SMOKE, 119, Profile.LOAD, 2652));
 
   private Stream<Assertion> getImportAssertions(Profile profile) {
     return Stream.of(

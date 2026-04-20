@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,38 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+package org.hisp.dhis.storage;
 
-import lombok.AllArgsConstructor;
-import org.hisp.dhis.dataset.DataInputPeriod;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
-import org.springframework.stereotype.Component;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-/**
- * @author Stian Sandvold
- */
-@Component
-@AllArgsConstructor
-public class DataInputPeriodObjectBundleHook extends AbstractObjectBundleHook<DataInputPeriod> {
-  private final PeriodService periodService;
+import org.junit.jupiter.api.Test;
 
-  @Override
-  public void preCreate(DataInputPeriod object, ObjectBundle bundle) {
-    setPeriod(object);
+class BlobContainerNameTest {
+
+  @Test
+  void nullValueIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new BlobContainerName(null));
   }
 
-  @Override
-  public void preUpdate(
-      DataInputPeriod object, DataInputPeriod persistedObject, ObjectBundle bundle) {
-    setPeriod(object);
+  @Test
+  void blankValueIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new BlobContainerName("   "));
   }
 
-  private void setPeriod(DataInputPeriod dataInputPeriod) {
-    Period period = periodService.getPeriod(dataInputPeriod.getPeriod().getIsoDate());
+  @Test
+  void trailingSlashIsRejected() {
+    assertThrows(IllegalArgumentException.class, () -> new BlobContainerName("dhis2-filestore/"));
+  }
 
-    dataInputPeriod.setPeriod(period);
-    getSession().save(period);
+  @Test
+  void validValueIsAccepted() {
+    BlobContainerName name = new BlobContainerName("dhis2-filestore");
+    assertEquals("dhis2-filestore", name.value());
+  }
+
+  @Test
+  void toStringReturnValue() {
+    assertEquals("my-bucket", new BlobContainerName("my-bucket").toString());
   }
 }
