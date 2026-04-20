@@ -230,7 +230,10 @@ public class Dhis2OAuth2ClientServiceImpl
       entity.setUid(CodeGenerator.generateUid());
     }
 
-    entity.setName(registeredClient.getClientName());
+    entity.setName(
+        registeredClient.getClientName() != null
+            ? registeredClient.getClientName()
+            : registeredClient.getClientId());
     entity.setClientId(registeredClient.getClientId());
     entity.setClientIdIssuedAt(
         registeredClient.getClientIdIssuedAt() != null

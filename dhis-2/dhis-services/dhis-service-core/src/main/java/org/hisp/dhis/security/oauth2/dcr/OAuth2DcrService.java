@@ -124,6 +124,7 @@ public class OAuth2DcrService {
       this.registeredClient =
           RegisteredClient.withId(CodeGenerator.generateUid())
               .clientId(SYSTEM_REGISTRAR_CLIENTID)
+              .clientName(SYSTEM_REGISTRAR_CLIENTID)
               .clientAuthenticationMethod(ClientAuthenticationMethod.NONE)
               .redirectUris(
                   l ->
