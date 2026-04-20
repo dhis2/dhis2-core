@@ -30,7 +30,6 @@
 package org.hisp.dhis.reservedvalue.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.Objects.TRACKEDENTITYATTRIBUTE;
 import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 
 import jakarta.persistence.EntityManager;
@@ -95,8 +94,7 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
   }
 
   private List<String> getIfAvailable(ReservedValue reservedValue, List<String> values) {
-
-    List<?> teavOrReservedValues =
+    List<?> takenValues =
         getSession()
             .createNamedQuery("getRandomGeneratedValuesNotAvailableNamedQuery")
             .setParameter("teaId", reservedValue.getTrackedEntityAttributeId())
@@ -106,7 +104,9 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
             .setParameter("values", values.stream().map(String::toLowerCase).toList())
             .list();
 
-    return values.stream().filter(rv -> !teavOrReservedValues.contains(rv)).toList();
+    return values.stream()
+        .filter(v -> takenValues.stream().noneMatch(tv -> v.equalsIgnoreCase(tv.toString())))
+        .toList();
   }
 
   @Override
@@ -123,39 +123,38 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
   @Override
   public int getNumberOfUsedValues(ReservedValue reservedValue) {
     Query<Long> query =
-        getTypedQuery("SELECT count(*) FROM ReservedValue WHERE owneruid = :uid AND key = :key");
+        getTypedQuery(
+            "SELECT count(*) FROM ReservedValue WHERE ownerobject = :ownerobject AND owneruid = :uid AND key = :key");
 
     Long count =
         query
+            .setParameter("ownerobject", Objects.TRACKEDENTITYATTRIBUTE)
             .setParameter("uid", reservedValue.getOwnerUid())
             .setParameter("key", reservedValue.getKey())
             .getSingleResult();
 
-    if (Objects.valueOf(reservedValue.getOwnerObject()).equals(TRACKEDENTITYATTRIBUTE)) {
-      Query<Long> attrQuery =
-          getTypedQuery(
-              "SELECT count(*) "
-                  + "FROM TrackedEntityAttributeValue "
-                  + "WHERE attribute = "
-                  + "( FROM TrackedEntityAttribute "
-                  + "WHERE uid = :uid ) "
-                  + "AND value LIKE :value ");
+    String valueKey = reservedValue.getValue();
+    boolean hasFixedContent = valueKey != null && !valueKey.equals("%");
+    String hql =
+        "SELECT count(*) FROM TrackedEntityAttributeValue WHERE attribute.uid = :uid"
+            + (hasFixedContent ? " AND value LIKE :value" : "");
 
-      count +=
-          attrQuery
-              .setParameter("uid", reservedValue.getOwnerUid())
-              .setParameter("value", reservedValue.getValue())
-              .getSingleResult();
+    Query<Long> attrQuery = getTypedQuery(hql);
+    attrQuery.setParameter("uid", reservedValue.getOwnerUid());
+    if (hasFixedContent) {
+      attrQuery.setParameter("value", valueKey);
     }
+
+    count += attrQuery.getSingleResult();
 
     return count.intValue();
   }
 
   @Override
   public boolean useReservedValue(String ownerUID, String value) {
-    return getQuery("DELETE FROM ReservedValue WHERE owneruid = :uid AND value = :value")
+    return getQuery("DELETE FROM ReservedValue WHERE owneruid = :uid AND lower(value) = :value")
             .setParameter("uid", ownerUID)
-            .setParameter("value", value)
+            .setParameter("value", value.toLowerCase())
             .executeUpdate()
         == 1;
   }
@@ -170,13 +169,12 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
   @Override
   public boolean isReserved(String ownerObject, String ownerUID, String value) {
     String hql =
-        "from ReservedValue rv where rv.ownerObject =:ownerObject and rv.ownerUid =:ownerUid "
-            + "and rv.value =:value";
+        "from ReservedValue rv where rv.ownerObject =:ownerObject and rv.ownerUid =:ownerUid and lower(rv.value) =:value";
 
     return !getQuery(hql)
         .setParameter("ownerObject", ownerObject)
         .setParameter("ownerUid", ownerUID)
-        .setParameter("value", value)
+        .setParameter("value", value.toLowerCase())
         .getResultList()
         .isEmpty();
   }

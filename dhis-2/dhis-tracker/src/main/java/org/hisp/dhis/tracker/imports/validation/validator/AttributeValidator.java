@@ -96,7 +96,8 @@ public abstract class AttributeValidator {
               || uniqueAttributeValue.getOrgUnit().isEqualTo(organisationUnit);
 
       boolean isTheSameTea = uniqueAttributeValue.getAttribute().isEqualTo(trackedEntityAttribute);
-      boolean hasTheSameValue = Objects.equals(uniqueAttributeValue.getValue(), value);
+      boolean hasTheSameValue =
+          value != null && value.equalsIgnoreCase(uniqueAttributeValue.getValue());
       boolean isNotSameTei =
           trackedEntity == null
               || !Objects.equals(trackedEntity.getUID(), uniqueAttributeValue.getTe());

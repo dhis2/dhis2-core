@@ -31,7 +31,7 @@
         WHERE
         teav.trackedentityattributeid = :teaId
         and LOWER(teav.value) in (:values)
-        UNION
+        UNION ALL
         SELECT value FROM reservedvalue rv
         WHERE
         rv.ownerObject = :ownerObject

@@ -63,6 +63,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 public class DefaultReservedValueService implements ReservedValueService {
   private static final int RESERVED_VALUE_GENERATION_ATTEMPT = 10;
   private static final long RESERVED_VALUE_GENERATION_TIMEOUT = (1000 * 30);
+  private static final long MIN_POOL_SIZE_FOR_EXHAUSTION_CHECK = 100_000_000;
 
   private final TextPatternService textPatternService;
 
@@ -123,7 +124,10 @@ public class DefaultReservedValueService implements ReservedValueService {
             .expiryDate(expires)
             .build();
 
-    checkIfEnoughValues(numberOfReservations, generatedSegment, reservedValue);
+    if (TextPatternValidationUtils.getTotalValuesPotential(generatedSegment)
+        < MIN_POOL_SIZE_FOR_EXHAUSTION_CHECK) {
+      checkIfEnoughValues(numberOfReservations, generatedSegment, reservedValue);
+    }
 
     if (generatedSegment == null) {
       if (numberOfReservations == 1) {
@@ -176,7 +180,6 @@ public class DefaultReservedValueService implements ReservedValueService {
         saveGeneratedValues(
             numberOfReservations - reservedValues.size(),
             reservedValues,
-            textPattern,
             reservedValue,
             isPersistable,
             resolvedPatterns);
@@ -240,7 +243,6 @@ public class DefaultReservedValueService implements ReservedValueService {
   private void saveGeneratedValues(
       int remainingValuesToReserve,
       List<ReservedValue> resultList,
-      TextPattern textPattern,
       ReservedValue reservedValue,
       boolean isPersistable,
       List<String> resolvedPatterns) {
@@ -249,7 +251,7 @@ public class DefaultReservedValueService implements ReservedValueService {
           reservedValueStore.getAvailableValues(
               reservedValue,
               resolvedPatterns.stream().distinct().collect(Collectors.toList()),
-              textPattern.getOwnerObject().name());
+              reservedValue.getOwnerObject());
 
       List<ReservedValue> requiredValues =
           availableValues.subList(0, Math.min(availableValues.size(), remainingValuesToReserve));

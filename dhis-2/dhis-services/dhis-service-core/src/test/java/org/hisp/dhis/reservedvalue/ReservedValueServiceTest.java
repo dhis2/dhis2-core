@@ -225,6 +225,24 @@ class ReservedValueServiceTest {
   }
 
   @Test
+  void shouldSkipPreFlightCheckWhenPatternPoolExceedsThreshold()
+      throws TextPatternParser.TextPatternParsingException,
+          TextPatternGenerationException,
+          ReserveValueException {
+    String largeRandomText = "RANDOM(XXXXXX)";
+    when(reservedValueStore.getAvailableValues(any(), any(), any()))
+        .thenReturn(Arrays.asList(ReservedValue.builder().build()));
+
+    reservedValueService.reserve(
+        createTrackedEntityAttribute(Objects.TRACKEDENTITYATTRIBUTE, ownerUid, largeRandomText),
+        1,
+        new HashMap<>(),
+        futureDate);
+
+    verify(reservedValueStore, times(0)).getNumberOfUsedValues(any());
+  }
+
+  @Test
   void shouldDeleteUsedOrExpiredReservedValues() {
     when(reservedValueStore.removeExpiredValues()).thenReturn(0);
     when(reservedValueStore.removeUsedValues()).thenReturn(0);
