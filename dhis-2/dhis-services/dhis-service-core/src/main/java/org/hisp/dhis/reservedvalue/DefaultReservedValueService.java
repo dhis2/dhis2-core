@@ -30,6 +30,7 @@
 package org.hisp.dhis.reservedvalue;
 
 import static java.util.Objects.requireNonNullElse;
+import static org.hisp.dhis.reservedvalue.ReservedValueStore.DELETE_BATCH_SIZE;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.ArrayList;
@@ -189,11 +190,10 @@ public class DefaultReservedValueService implements ReservedValueService {
 
     } catch (TimeoutException ex) {
       log.warn(
-          String.format(
-              "Generation and reservation of values for %s wih uid %s timed out. %s values was reserved. You might be running low on available values",
-              textPattern.getOwnerObject().name(),
-              textPattern.getOwnerUid(),
-              reservedValues.size()));
+          "Generation and reservation of values for {} with uid {} timed out. {} values was reserved. You might be running low on available values",
+          textPattern.getOwnerObject().name(),
+          textPattern.getOwnerUid(),
+          reservedValues.size());
     }
 
     return reservedValues;
@@ -294,7 +294,7 @@ public class DefaultReservedValueService implements ReservedValueService {
   }
 
   @Override
-  public void removeUsedOrExpiredReservations() {
+  public int removeUsedOrExpiredReservations() {
     int total = 0;
     int deleted;
 
@@ -303,15 +303,15 @@ public class DefaultReservedValueService implements ReservedValueService {
           requireNonNullElse(
               transactionTemplate.execute(s -> reservedValueStore.removeExpiredValues()), 0);
       total += deleted;
-    } while (deleted > 0);
+    } while (deleted >= DELETE_BATCH_SIZE);
 
     do {
       deleted =
           requireNonNullElse(
               transactionTemplate.execute(s -> reservedValueStore.removeUsedValues()), 0);
       total += deleted;
-    } while (deleted > 0);
+    } while (deleted >= DELETE_BATCH_SIZE);
 
-    log.info("Deleted {} reserved values", total);
+    return total;
   }
 }
