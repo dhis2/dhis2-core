@@ -42,6 +42,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -54,20 +55,33 @@ import java.util.concurrent.TimeUnit;
 /**
  * Performance test for {@code GET /api/trackedEntityAttributes/{uid}/generateAndReserve}.
  *
- * <p>Measures how long it takes for a single user to reserve {@code valuesToReserve} (default: 100)
- * values from a {@code RANDOM(####)} pattern (10 000 possible values) against a realistically
- * loaded database:
+ * <p>Two complementary scenarios:
+ *
+ * <ul>
+ *   <li><b>degradation</b> — 1 user, {@code degradationIterations} (default: 90) sequential
+ *       requests of {@code valuesToReserve} (default: 100) values from a {@code RANDOM(####)}
+ *       pattern (10 000-value pool). By the end, 90% of the pool is consumed; latency should climb
+ *       visibly as available values thin out.
+ *   <li><b>concurrency</b> — ramp to {@code concurrencyUsers} (default: 20) concurrent users, each
+ *       making a single reservation request per virtual-user iteration, against a {@code
+ *       RANDOM(XXXXXX)} pattern (≈308 M-value pool that never exhausts). Measures throughput and
+ *       p95 under concurrent load.
+ *   <li><b>both</b> (default) — runs degradation first, then concurrency.
+ * </ul>
+ *
+ * <p>Background load applied to both scenarios:
  *
  * <ul>
  *   <li>{@code backgroundReservedValues} (default: 5 000 000) reserved values for a different
  *       attribute, to stress-test table-size sensitivity
  *   <li>{@code backgroundTrackedEntities} (default: 10 000) tracked entities
  *   <li>{@code backgroundTeaCount} (default: 1 000) background tracked entity attributes
+ *   <li>{@code backgroundTeavCount} (default: 10 000 000) tracked entity attribute values
  * </ul>
  *
- * <p>Background reserved values are seeded via {@code psql} inside the running Docker container
- * ({@code dockerContainer} property). Seeding is skipped with a warning if the container or {@code
- * psql} is unreachable.
+ * <p>Background reserved values and TEAVs are seeded via {@code psql} inside the running Docker
+ * container ({@code dockerContainer} property). Seeding is skipped with a warning if the container
+ * or {@code psql} is unreachable.
  *
  * <p>Run:
  *
@@ -75,7 +89,7 @@ import java.util.concurrent.TimeUnit;
  * mvn gatling:test \
  *   -Dgatling.simulationClass=org.hisp.dhis.test.platform.ReserveValuesPerformanceTest \
  *   -DbaseUrl=http://localhost:8080 \
- *   --file dhis-2/pom.xml -pl dhis-test-performance
+ *   -f dhis-2/dhis-test-performance/pom.xml
  * }</pre>
  *
  * <p>Available properties (all optional — Sierra Leone demo DB defaults apply):
@@ -90,10 +104,17 @@ import java.util.concurrent.TimeUnit;
  *   <li>{@code backgroundReservedValues} (default: {@code 5000000})
  *   <li>{@code backgroundTrackedEntities} (default: {@code 10000})
  *   <li>{@code backgroundTeaCount} (default: {@code 1000})
+ *   <li>{@code backgroundTeavCount} (default: {@code 10000000})
  *   <li>{@code valuesToReserve} (default: {@code 100})
  *   <li>{@code dockerContainer} (default: {@code dhis2-core-db-1})
  *   <li>{@code dbUser} (default: {@code dhis})
  *   <li>{@code dbName} (default: {@code dhis})
+ *   <li>{@code mode} (default: {@code both}; options: {@code degradation}, {@code concurrency},
+ *       {@code both})
+ *   <li>{@code degradationIterations} (default: {@code 90})
+ *   <li>{@code concurrencyUsers} (default: {@code 20})
+ *   <li>{@code concurrencyRampSeconds} (default: {@code 30})
+ *   <li>{@code concurrencySustainSeconds} (default: {@code 60})
  * </ul>
  */
 public class ReserveValuesPerformanceTest extends Simulation {
@@ -131,6 +152,8 @@ public class ReserveValuesPerformanceTest extends Simulation {
   private static final String TE_TYPE_UID = prop("teTypeUid", "nEenWmSyUEp");
   private static final int BACKGROUND_RESERVED_VALUES =
       Integer.parseInt(prop("backgroundReservedValues", "5000000"));
+  private static final int BACKGROUND_TEAV_COUNT =
+      Integer.parseInt(prop("backgroundTeavCount", "10000000"));
   private static final int BACKGROUND_TRACKED_ENTITIES =
       Integer.parseInt(prop("backgroundTrackedEntities", "10000"));
   private static final int BACKGROUND_TEA_COUNT =
@@ -139,11 +162,20 @@ public class ReserveValuesPerformanceTest extends Simulation {
   private static final String DOCKER_CONTAINER = prop("dockerContainer", "dhis2-core-db-1");
   private static final String DB_USER = prop("dbUser", "dhis");
   private static final String DB_NAME = prop("dbName", "dhis");
+  private static final String MODE = prop("mode", "both");
+  private static final int DEGRADATION_ITERATIONS =
+      Integer.parseInt(prop("degradationIterations", "95"));
+  private static final int CONCURRENCY_USERS =
+      Integer.parseInt(prop("concurrencyUsers", "20"));
+  private static final int CONCURRENCY_RAMP_SECONDS =
+      Integer.parseInt(prop("concurrencyRampSeconds", "30"));
+  private static final int CONCURRENCY_SUSTAIN_SECONDS =
+      Integer.parseInt(prop("concurrencySustainSeconds", "60"));
 
-  private static final String RESERVE_REQUEST =
-      "GET generateAndReserve - " + VALUES_TO_RESERVE + " values";
-
-  private static volatile String teaUid;
+  private static volatile String degradationRandomTeaUid;
+  private static volatile String degradationSequentialTeaUid;
+  private static volatile String concurrencyRandomTeaUid;
+  private static volatile String concurrencySequentialTeaUid;
 
   private static String auth;
   private static HttpClient httpClient;
@@ -161,24 +193,26 @@ public class ReserveValuesPerformanceTest extends Simulation {
     return httpClient.send(req, HttpResponse.BodyHandlers.ofString()).body();
   }
 
-  private static String createGeneratedTea() throws Exception {
+  private static String createGeneratedTea(
+      String pattern, String namePrefix, String shortPrefix) throws Exception {
+    String suffix = String.valueOf(System.currentTimeMillis() % 100_000);
     String body =
         """
         {
-          "name": "PerfTest RANDOM(####) attr",
-          "shortName": "PerfTestRandAttr",
+          "name": "%s %s",
+          "shortName": "%s%s",
           "valueType": "TEXT",
           "aggregationType": "NONE",
           "generated": true,
-          "textPattern": {
-            "segments": [{"segmentType": "RANDOM", "rawSegment": "RANDOM(####)"}]
-          }
+          "pattern": "%s"
         }
-        """;
+        """
+            .formatted(namePrefix, suffix, shortPrefix, suffix, pattern);
     String response = post("/api/trackedEntityAttributes", body);
     String uid = MAPPER.readTree(response).path("response").path("uid").asText();
     if (uid.isBlank()) {
-      throw new IllegalStateException("Failed to create test TEA: " + response);
+      throw new IllegalStateException(
+          "Failed to create test TEA (" + namePrefix + "): " + response);
     }
     return uid;
   }
@@ -231,10 +265,10 @@ public class ReserveValuesPerformanceTest extends Simulation {
 
   private static void seedReservedValues(int count) {
     System.out.printf("  Seeding %d background reserved values via psql...%n", count);
-    // owneruid 'seedBgAtr00' is a fictional 11-char uid that never conflicts with the test TEA.
+    // owneruid 'seedBgAtr00' is a fictional 11-char uid that never conflicts with the test TEAs.
     String sql =
-        "INSERT INTO reservedvalue (created, expirydate, ownerobject, owneruid, key, value) "
-            + "SELECT now(), now() + interval '1 year', "
+        "INSERT INTO reservedvalue (reservedvalueid, created, expirydate, ownerobject, owneruid, key, value) "
+            + "SELECT nextval('reservedvalue_sequence'), now(), now() + interval '1 year', "
             + "'TRACKEDENTITYATTRIBUTE', 'seedBgAtr00', 'seed', lpad(i::text, 10, '0') "
             + "FROM generate_series(1, "
             + count
@@ -262,6 +296,57 @@ public class ReserveValuesPerformanceTest extends Simulation {
     }
   }
 
+  private static void seedTrackedEntityAttributeValues(List<String> excludeTeaUids, int count) {
+    System.out.printf("  Seeding %d TEAVs via psql (cross join TEAs × TEs)...%n", count);
+    // Cross joins the most recently created TEAs (excluding the test TEAs) with the most recently
+    // created TEs. Using DESC order picks our setup data, avoiding conflicts with existing
+    // Sierra Leone demo TEAVs. 1 000 TEAs × 10 000 TEs = 10M rows; LIMIT caps the total.
+    String excludeList =
+        String.join(
+            ", ",
+            excludeTeaUids.stream().map(uid -> "'" + uid + "'").toList());
+    String sql =
+        "WITH teas AS ("
+            + "  SELECT trackedentityattributeid FROM trackedentityattribute"
+            + "  WHERE uid NOT IN ("
+            + excludeList
+            + ") ORDER BY trackedentityattributeid DESC LIMIT 1000"
+            + "), tes AS ("
+            + "  SELECT trackedentityid FROM trackedentity"
+            + "  ORDER BY trackedentityid DESC LIMIT 10000"
+            + "), candidates AS ("
+            + "  SELECT tea.trackedentityattributeid, te.trackedentityid"
+            + "  FROM teas tea CROSS JOIN tes te LIMIT "
+            + count
+            + ") "
+            + "INSERT INTO trackedentityattributevalue"
+            + " (trackedentityattributeid, trackedentityid, value, created, lastupdated, storedby)"
+            + " SELECT trackedentityattributeid, trackedentityid,"
+            + " 'perf-test', now(), now(), 'perf-seed'"
+            + " FROM candidates"
+            + " ON CONFLICT DO NOTHING";
+
+    try {
+      Process p =
+          new ProcessBuilder(
+                  "docker", "exec", DOCKER_CONTAINER,
+                  "psql", "-U", DB_USER, "-d", DB_NAME, "-c", sql)
+              .redirectErrorStream(true)
+              .start();
+      String output =
+          new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+      int exit = p.waitFor();
+      if (exit == 0) {
+        System.out.println("  TEAV seed done: " + output);
+      } else {
+        System.err.println("  TEAV psql seed failed (exit " + exit + "): " + output);
+      }
+    } catch (Exception e) {
+      System.err.println(
+          "  Could not seed TEAVs (docker not reachable?): " + e.getMessage());
+    }
+  }
+
   @Override
   public void before() {
     auth =
@@ -272,21 +357,35 @@ public class ReserveValuesPerformanceTest extends Simulation {
     try {
       System.out.println("=== ReserveValuesPerformanceTest setup ===");
 
-      System.out.println("[1/4] Creating test TEA with RANDOM(####)...");
-      teaUid = createGeneratedTea();
-      System.out.println("      TEA uid: " + teaUid);
+      System.out.println("[1/6] Creating degradation TEAs...");
+      degradationRandomTeaUid = createGeneratedTea("RANDOM(####)", "PerfTest Deg Random", "PerfDegR");
+      degradationSequentialTeaUid = createGeneratedTea("SEQUENTIAL(####)", "PerfTest Deg Sequential", "PerfDegS");
+      System.out.println("      Degradation random TEA uid: " + degradationRandomTeaUid);
+      System.out.println("      Degradation sequential TEA uid: " + degradationSequentialTeaUid);
 
-      System.out.println("[2/4] Creating " + BACKGROUND_TEA_COUNT + " background TEAs...");
+      System.out.println("[2/6] Creating concurrency TEAs...");
+      concurrencyRandomTeaUid = createGeneratedTea("RANDOM(XXXXXX)", "PerfTest Con Random", "PerfConR");
+      concurrencySequentialTeaUid = createGeneratedTea("SEQUENTIAL(######)", "PerfTest Con Sequential", "PerfConS");
+      System.out.println("      Concurrency random TEA uid: " + concurrencyRandomTeaUid);
+      System.out.println("      Concurrency sequential TEA uid: " + concurrencySequentialTeaUid);
+
+      System.out.println("[3/6] Creating " + BACKGROUND_TEA_COUNT + " background TEAs...");
       createBackgroundTeas(BACKGROUND_TEA_COUNT);
 
-      System.out.println("[3/4] Creating " + BACKGROUND_TRACKED_ENTITIES + " tracked entities...");
+      System.out.println("[4/6] Creating " + BACKGROUND_TRACKED_ENTITIES + " tracked entities...");
       createTrackedEntities(BACKGROUND_TRACKED_ENTITIES);
 
       System.out.println(
-          "[4/4] Seeding " + BACKGROUND_RESERVED_VALUES + " background reserved values...");
+          "[5/6] Seeding " + BACKGROUND_RESERVED_VALUES + " background reserved values...");
       seedReservedValues(BACKGROUND_RESERVED_VALUES);
 
-      System.out.println("=== Setup complete — starting scenario ===");
+      System.out.println("[6/6] Seeding " + BACKGROUND_TEAV_COUNT + " background TEAVs...");
+      seedTrackedEntityAttributeValues(
+          List.of(degradationRandomTeaUid, degradationSequentialTeaUid,
+              concurrencyRandomTeaUid, concurrencySequentialTeaUid),
+          BACKGROUND_TEAV_COUNT);
+
+      System.out.println("=== Setup complete — starting scenario: " + MODE + " ===");
     } catch (Exception e) {
       throw new RuntimeException("Setup failed", e);
     }
@@ -299,17 +398,77 @@ public class ReserveValuesPerformanceTest extends Simulation {
             .disableCaching()
             .basicAuth(USERNAME, PASSWORD);
 
-    ScenarioBuilder reserve =
-        scenario("Reserve " + VALUES_TO_RESERVE + " values - RANDOM(####)")
-            .exec(session -> session.set("teaUid", teaUid))
+    int halfValues = VALUES_TO_RESERVE / 2;
+
+    // Degradation: 1 user, N sequential iterations. Each iteration reserves half values from
+    // RANDOM(####) (10k pool — degrades as pool drains) and half from SEQUENTIAL(####).
+    ScenarioBuilder degradationScenario =
+        scenario("Pool Degradation - RANDOM(####) + SEQUENTIAL(####)")
             .exec(
-                http(RESERVE_REQUEST)
+                session ->
+                    session
+                        .set("randomTeaUid", degradationRandomTeaUid)
+                        .set("sequentialTeaUid", degradationSequentialTeaUid))
+            .repeat(DEGRADATION_ITERATIONS)
+            .on(
+                exec(
+                        http("GET generateAndReserve - " + halfValues + " values [degradation-random]")
+                            .get(
+                                "/api/trackedEntityAttributes/#{randomTeaUid}/generateAndReserve"
+                                    + "?numberToReserve="
+                                    + halfValues)
+                            .check(status().in(200, 409)))
+                    .exec(
+                        http(
+                                "GET generateAndReserve - "
+                                    + halfValues
+                                    + " values [degradation-sequential]")
+                            .get(
+                                "/api/trackedEntityAttributes/#{sequentialTeaUid}/generateAndReserve"
+                                    + "?numberToReserve="
+                                    + halfValues)
+                            .check(status().in(200, 409))));
+
+    // Concurrency: ramp to N users. Each iteration reserves half values from RANDOM(XXXXXX)
+    // (~308M pool) and half from SEQUENTIAL(######) (1M pool — neither exhausts under load).
+    ScenarioBuilder concurrencyScenario =
+        scenario("Concurrency - RANDOM(XXXXXX) + SEQUENTIAL(######)")
+            .exec(
+                session ->
+                    session
+                        .set("randomTeaUid", concurrencyRandomTeaUid)
+                        .set("sequentialTeaUid", concurrencySequentialTeaUid))
+            .exec(
+                http("GET generateAndReserve - " + halfValues + " values [concurrency-random]")
                     .get(
-                        "/api/trackedEntityAttributes/#{teaUid}/generateAndReserve"
+                        "/api/trackedEntityAttributes/#{randomTeaUid}/generateAndReserve"
                             + "?numberToReserve="
-                            + VALUES_TO_RESERVE)
+                            + halfValues)
+                    .check(status().is(200)))
+            .exec(
+                http("GET generateAndReserve - " + halfValues + " values [concurrency-sequential]")
+                    .get(
+                        "/api/trackedEntityAttributes/#{sequentialTeaUid}/generateAndReserve"
+                            + "?numberToReserve="
+                            + halfValues)
                     .check(status().is(200)));
 
-    setUp(reserve.injectOpen(atOnceUsers(1))).protocols(httpProtocol);
+    PopulationBuilder degradationPop = degradationScenario.injectOpen(atOnceUsers(1));
+    PopulationBuilder concurrencyPop =
+        concurrencyScenario.injectClosed(
+            rampConcurrentUsers(0)
+                .to(CONCURRENCY_USERS)
+                .during(Duration.ofSeconds(CONCURRENCY_RAMP_SECONDS)),
+            constantConcurrentUsers(CONCURRENCY_USERS)
+                .during(Duration.ofSeconds(CONCURRENCY_SUSTAIN_SECONDS)));
+
+    PopulationBuilder population =
+        switch (MODE) {
+          case "degradation" -> degradationPop;
+          case "concurrency" -> concurrencyPop;
+          default -> degradationPop.andThen(concurrencyPop);
+        };
+
+    setUp(population).protocols(httpProtocol);
   }
 }
