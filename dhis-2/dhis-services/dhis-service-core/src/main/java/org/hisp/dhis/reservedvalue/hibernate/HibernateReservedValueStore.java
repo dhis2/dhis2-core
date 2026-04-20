@@ -128,7 +128,7 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
 
     Long count =
         query
-            .setParameter("ownerobject", Objects.TRACKEDENTITYATTRIBUTE)
+            .setParameter("ownerobject", Objects.TRACKEDENTITYATTRIBUTE.name())
             .setParameter("uid", reservedValue.getOwnerUid())
             .setParameter("key", reservedValue.getKey())
             .getSingleResult();
