@@ -656,7 +656,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (params.hasEnrollmentStatuses()) {
       sql +=
           hlp.whereAnd()
-              + " enrollmentstatus in ("
+              + " "
+              + quoteAlias("enrollmentstatus")
+              + " in ("
               + params.getEnrollmentStatus().stream()
                   .map(p -> singleQuote(p.name()))
                   .collect(joining(","))
