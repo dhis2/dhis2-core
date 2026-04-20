@@ -34,7 +34,6 @@ import static org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper.map;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -51,9 +50,9 @@ import org.springframework.stereotype.Component;
  * @author Ameen <ameen@dhis2.org>
  */
 @Component(
-    "org.hisp.dhis.tracker.imports.validation.validator.enrollment.SecurityOwnershipValidator")
+    "org.hisp.dhis.tracker.imports.validation.validator.enrollment.SecurityEnrollmentValidator")
 @RequiredArgsConstructor
-class SecurityOwnershipValidator implements Validator<Enrollment> {
+class SecurityEnrollmentValidator implements Validator<Enrollment> {
   @Nonnull private final TrackerAccessManager trackerAccessManager;
 
   @Override
@@ -74,7 +73,7 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       if (strategy.isUpdate()) {
         handleUpdate(reporter, preheat, user, databaseEnrollment, enrollment);
       } else if (strategy.isDelete()) {
-        handleDelete(reporter, preheat, user, databaseEnrollment, enrollment);
+        handleDelete(reporter, user, databaseEnrollment, enrollment);
       }
     }
   }
@@ -94,28 +93,23 @@ class SecurityOwnershipValidator implements Validator<Enrollment> {
       UserDetails user,
       org.hisp.dhis.tracker.model.Enrollment databaseEnrollment,
       Enrollment enrollment) {
-    OrganisationUnit enrollmentOrgUnit = preheat.getOrganisationUnit(enrollment.getOrgUnit());
+    OrganisationUnit payloadOrgUnit = preheat.getOrganisationUnit(enrollment.getOrgUnit());
+    OrganisationUnit orgUnit =
+        payloadOrgUnit != null ? payloadOrgUnit : databaseEnrollment.getOrganisationUnit();
 
     trackerAccessManager
-        .canUpdate(user, databaseEnrollment, enrollmentOrgUnit)
+        .canUpdate(user, databaseEnrollment, orgUnit)
         .forEach(em -> reporter.addError(enrollment, em.validationCode(), em.args().toArray()));
   }
 
   private void handleDelete(
       Reporter reporter,
-      TrackerPreheat preheat,
       UserDetails user,
       org.hisp.dhis.tracker.model.Enrollment databaseEnrollment,
       Enrollment enrollment) {
-    boolean hasNonDeletedEvents = enrollmentHasEvents(preheat, enrollment.getEnrollment());
-
     trackerAccessManager
-        .canDelete(user, databaseEnrollment, hasNonDeletedEvents)
+        .canDelete(user, databaseEnrollment)
         .forEach(eo -> reporter.addError(enrollment, eo.validationCode(), eo.args().toArray()));
-  }
-
-  private boolean enrollmentHasEvents(TrackerPreheat preheat, UID enrollmentUid) {
-    return preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent().contains(enrollmentUid);
   }
 
   @Override
