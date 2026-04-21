@@ -121,11 +121,9 @@ import org.slf4j.LoggerFactory;
  *       of wall time. Same workload across versions; wall time varies. Default path.
  *   <li>{@code -DimportDurationSec} -- how long each program's import phase runs. Duration-based:
  *       each user loops for the given duration; the circular feeder replays data as needed. Same
- *       wall time across versions; workload varies. Opt in by setting this; setting it disables
- *       {@code importRequestsPerUser}.
+ *       wall time across versions; workload varies. Opt in by setting this instead of {@code
+ *       importRequestsPerUser}; setting both fails the simulation at startup.
  * </ul>
- *
- * <p>Setting both fails the simulation.
  *
  * <p><b>Profiles:</b>
  *
