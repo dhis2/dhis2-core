@@ -32,11 +32,14 @@ package org.hisp.dhis.analytics.event.query;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
+import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
+import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEventActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
@@ -291,6 +294,86 @@ public class EventsQuery3AutoTest extends AnalyticsApiTest {
             "0",
             "2017-07-23 12:46:11.472",
             "Female"));
+  }
+
+  @Test
+  public void validateProgramStatusWithEnrollmentOu() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("headers=enrollmentouname,programstatus,enrollmentdate")
+            .add("displayProperty=NAME")
+            .add("outputType=EVENT")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("dimension=ENROLLMENT_OU:O6uvpzGd5pu,PROGRAM_STATUS:ACTIVE")
+            .add("desc=eventdate,lastupdated");
+
+    // When
+    ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        0,
+        3,
+        3); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"total\":0,\"pageSize\":100,\"pageCount\":0},\"items\":{\"202509\":{\"name\":\"September 2025\"},\"ACTIVE\":{\"name\":\"Active\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"202507\":{\"name\":\"July 2025\"},\"202508\":{\"name\":\"August 2025\"},\"202505\":{\"name\":\"May 2025\"},\"202506\":{\"name\":\"June 2025\"},\"O6uvpzGd5pu\":{\"name\":\"Bo\"},\"202602\":{\"name\":\"February 2026\"},\"202504\":{\"name\":\"April 2025\"},\"202603\":{\"name\":\"March 2026\"},\"202512\":{\"name\":\"December 2025\"},\"202601\":{\"name\":\"January 2026\"},\"202510\":{\"name\":\"October 2025\"},\"202511\":{\"name\":\"November 2025\"},\"LAST_12_MONTHS\":{\"name\":\"Last 12 months\"},\"programstatus\":{\"name\":\"Program status\"},\"enrollmentou\":{\"name\":\"Enrollment org. unit\"},\"pe\":{},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"enrollmentou\":[\"O6uvpzGd5pu\"],\"pe\":[],\"programstatus\":[\"ACTIVE\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "enrollmentouname",
+        "Enrollment org unit name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "programstatus",
+        "Program status",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "enrollmentdate",
+        "Date of enrollment",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // No rows found in response, skipping row assertions.
+    // This test does not assert on the query results, because it responsible for checking that the
+    // generated sql
+    // actually runs, since the combination of `ENROLLMENT_OU` + `PROGRAM_STATUS` was triggering a
+    // SQL error
   }
 
   @Test

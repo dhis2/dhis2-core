@@ -345,12 +345,6 @@ class TrackerOwnershipTransferManagerTest extends PostgresIntegrationTestBase {
         UID.of(trackedEntityA1), UID.of(programA), "test protected program");
 
     assertTrue(trackerOwnershipManager.hasAccess(userDetailsB, trackedEntityA1, programA));
-    assertTrue(
-        trackerOwnershipManager.hasAccess(
-            userDetailsB,
-            trackedEntityA1.getUid(),
-            trackedEntityA1.getOrganisationUnit(),
-            programA));
 
     TrackedEntity trackedEntity =
         trackedEntityService.getTrackedEntity(

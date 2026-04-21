@@ -899,6 +899,28 @@ public class DefaultUserService implements UserService {
 
   @Override
   @Transactional(readOnly = true)
+  @CheckForNull
+  public UserDetails createUserDetailsByUsername(@Nonnull String username) {
+    User user = userStore.getUserByUsername(username);
+    if (user == null) {
+      return null;
+    }
+    return createUserDetails(user);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  @CheckForNull
+  public UserDetails createUserDetailsByOpenId(@Nonnull String openId) {
+    User user = userStore.getUserByOpenId(openId);
+    if (user == null) {
+      return null;
+    }
+    return createUserDetails(user);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public UserDetails createUserDetails(User user) {
     if (user == null) {
       return null;
