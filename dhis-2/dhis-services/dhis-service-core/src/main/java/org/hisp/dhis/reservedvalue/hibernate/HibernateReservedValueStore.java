@@ -34,6 +34,8 @@ import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 
 import jakarta.persistence.EntityManager;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.Objects;
@@ -104,9 +106,9 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
             .setParameter("values", values.stream().map(String::toLowerCase).toList())
             .list();
 
-    return values.stream()
-        .filter(v -> takenValues.stream().noneMatch(tv -> v.equalsIgnoreCase(tv.toString())))
-        .toList();
+    Set<String> takenLower =
+        takenValues.stream().map(tv -> tv.toString().toLowerCase()).collect(Collectors.toSet());
+    return values.stream().filter(v -> !takenLower.contains(v.toLowerCase())).toList();
   }
 
   @Override
