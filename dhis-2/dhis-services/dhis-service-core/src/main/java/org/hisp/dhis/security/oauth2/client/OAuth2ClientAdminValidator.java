@@ -177,9 +177,8 @@ public class OAuth2ClientAdminValidator {
   }
 
   /**
-   * On update, if the caller didn't send a name, preserve the existing persisted name rather than
-   * clobbering it via REPLACE merge. Falls back to clientId only when the existing record also
-   * lacks a name.
+   * On update, if the caller didn't send a name, preserve the existing persisted name. Falls back
+   * to clientId only when the existing record also lacks a name.
    */
   public void preserveNameOnUpdate(Dhis2OAuth2Client existing, Dhis2OAuth2Client newEntity) {
     if (newEntity.getName() != null && !newEntity.getName().isEmpty()) {

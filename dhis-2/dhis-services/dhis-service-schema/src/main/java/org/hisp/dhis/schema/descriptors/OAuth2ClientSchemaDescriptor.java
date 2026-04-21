@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import static org.hisp.dhis.security.Authorities.F_OAUTH2_CLIENT_MANAGE;
+
 import java.util.List;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
@@ -44,7 +46,7 @@ public class OAuth2ClientSchemaDescriptor implements SchemaDescriptor {
   public static final String SINGULAR = "oAuth2Client";
   public static final String PLURAL = "oAuth2Clients";
   public static final String API_ENDPOINT = "/" + PLURAL;
-  public static final String AUTHORITY = "F_OAUTH2_CLIENT_MANAGE";
+  public static final String AUTHORITY = F_OAUTH2_CLIENT_MANAGE.name();
 
   @Override
   public Schema getSchema() {
