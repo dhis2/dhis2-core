@@ -41,7 +41,6 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.setting.SystemSettingsService;
-import org.jspecify.annotations.NonNull;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.stereotype.Component;
 
@@ -151,7 +150,7 @@ public class OAuth2ClientAdminValidator {
     }
   }
 
-  private static @NonNull String getScheme(String trimmed) throws ConflictException {
+  private static String getScheme(String trimmed) throws ConflictException {
     URI parsed;
     try {
       parsed = new URI(trimmed);
