@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -759,7 +758,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testSaveNotificationTemplateWithDeliveryChannels() {
-    POST("/metadata", Path.of("program/program_notification_template.json")).content(HttpStatus.OK);
+    POST("/metadata", WebClient.Body("program/program_notification_template.json")).content(HttpStatus.OK);
     JsonObject template =
         GET("/programNotificationTemplates/uivYkvFEOss")
             .content(HttpStatus.OK)
@@ -768,7 +767,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
     assertEquals(1, template.getArray("deliveryChannels").size());
 
     // Update the template with an additional delivery channel
-    POST("/metadata", Path.of("program/program_notification_template_update.json"))
+    POST("/metadata", WebClient.Body("program/program_notification_template_update.json"))
         .content(HttpStatus.OK);
     template =
         GET("/programNotificationTemplates/uivYkvFEOss")
