@@ -72,10 +72,9 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
   }
 
   private static final String INSERT_AVAILABLE_VALUES_SQL =
-      "WITH candidates AS (SELECT unnest(?) AS v) "
-          + "INSERT INTO reservedvalue (reservedvalueid, ownerobject, owneruid, key, value, expirydate, created) "
-          + "SELECT nextval('reservedvalue_sequence'), ?, ?, ?, c.v, ?, ? "
-          + "FROM candidates c "
+      "WITH candidates AS (SELECT unnest(?) AS v), "
+          + "available AS ("
+          + "SELECT c.v FROM candidates c "
           + "WHERE LOWER(c.v) NOT IN ("
           + "SELECT LOWER(value) FROM trackedentityattributevalue "
           + "WHERE trackedentityattributeid = ? AND LOWER(value) IN (SELECT LOWER(v) FROM candidates) "
@@ -83,8 +82,14 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
           + "SELECT LOWER(value) FROM reservedvalue "
           + "WHERE ownerobject = ? AND owneruid = ? AND key = ? "
           + "AND LOWER(value) IN (SELECT LOWER(v) FROM candidates)"
+          + ") LIMIT ?"
+          + "), "
+          + "inserted AS ("
+          + "INSERT INTO reservedvalue (reservedvalueid, ownerobject, owneruid, key, value, expirydate, created) "
+          + "SELECT nextval('reservedvalue_sequence'), ?, ?, ?, a.v, ?, ? FROM available a "
+          + "ON CONFLICT DO NOTHING"
           + ") "
-          + "LIMIT ? ON CONFLICT DO NOTHING RETURNING value";
+          + "SELECT v AS value FROM available";
 
   @Override
   public List<String> insertAvailableValues(
@@ -97,16 +102,16 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
         conn -> {
           PreparedStatement ps = conn.prepareStatement(INSERT_AVAILABLE_VALUES_SQL);
           ps.setArray(1, conn.createArrayOf("text", candidates.toArray()));
-          ps.setString(2, reservedValue.getOwnerObject());
-          ps.setString(3, reservedValue.getOwnerUid());
-          ps.setString(4, reservedValue.getKey());
-          ps.setTimestamp(5, new Timestamp(reservedValue.getExpiryDate().getTime()));
-          ps.setTimestamp(6, new Timestamp(reservedValue.getCreated().getTime()));
-          ps.setLong(7, reservedValue.getTrackedEntityAttributeId());
-          ps.setString(8, reservedValue.getOwnerObject());
-          ps.setString(9, reservedValue.getOwnerUid());
-          ps.setString(10, reservedValue.getKey());
-          ps.setInt(11, limit);
+          ps.setLong(2, reservedValue.getTrackedEntityAttributeId());
+          ps.setString(3, reservedValue.getOwnerObject());
+          ps.setString(4, reservedValue.getOwnerUid());
+          ps.setString(5, reservedValue.getKey());
+          ps.setInt(6, limit);
+          ps.setString(7, reservedValue.getOwnerObject());
+          ps.setString(8, reservedValue.getOwnerUid());
+          ps.setString(9, reservedValue.getKey());
+          ps.setTimestamp(10, new Timestamp(reservedValue.getExpiryDate().getTime()));
+          ps.setTimestamp(11, new Timestamp(reservedValue.getCreated().getTime()));
           return ps;
         },
         (rs, rowNum) -> rs.getString("value"));

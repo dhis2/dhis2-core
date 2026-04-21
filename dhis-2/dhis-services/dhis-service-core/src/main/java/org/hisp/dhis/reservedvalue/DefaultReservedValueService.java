@@ -165,20 +165,21 @@ public class DefaultReservedValueService implements ReservedValueService {
 
     try {
       List<String> generatedValues = new ArrayList<>();
-      long poolSize = TextPatternValidationUtils.getTotalValuesPotential(generatedSegment);
-      int attempt = 0;
 
       while (attemptsLeft-- > 0 && numberOfReservations - reservedValues.size() > 0) {
         checkTimeout(startTime);
-        int needed = numberOfReservations - reservedValues.size();
-        int multiplier = (int) Math.pow(2, Math.min(attempt++, 4));
-        int toGenerate = (int) Math.min((long) needed * multiplier, poolSize);
         generatedValues.addAll(
-            valueGeneratorService.generateValues(generatedSegment, textPattern, key, toGenerate));
+            valueGeneratorService.generateValues(
+                generatedSegment, textPattern, key, numberOfReservations - reservedValues.size()));
         List<String> resolvedPatterns =
             getResolvedPatterns(values, textPattern, generatedSegment, generatedValues);
 
-        saveGeneratedValues(needed, reservedValues, reservedValue, isPersistable, resolvedPatterns);
+        saveGeneratedValues(
+            numberOfReservations - reservedValues.size(),
+            reservedValues,
+            reservedValue,
+            isPersistable,
+            resolvedPatterns);
 
         generatedValues = new ArrayList<>();
       }
