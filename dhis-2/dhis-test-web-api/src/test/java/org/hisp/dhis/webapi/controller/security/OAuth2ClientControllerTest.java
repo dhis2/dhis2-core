@@ -127,6 +127,44 @@ class OAuth2ClientControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testForbiddenWithoutManageAuthority() {
+    // OAuth2 clients carry secrets and, via client_credentials, mint long-lived
+    // tokens that act as their creator. Restrict management to the dedicated
+    // F_OAUTH2_CLIENT_MANAGE authority — a regular authenticated user must get 403.
+    switchToNewUser("regular-joe");
+    assertStatus(
+        HttpStatus.FORBIDDEN,
+        POST(
+            "/oAuth2Clients",
+            "{"
+                + "'clientId':'evil-client',"
+                + "'clientSecret':'secret',"
+                + "'clientAuthenticationMethods':'client_secret_basic',"
+                + "'authorizationGrantTypes':'authorization_code',"
+                + "'redirectUris':'https://evil.example.com/callback',"
+                + "'scopes':'openid'"
+                + "}"));
+  }
+
+  @Test
+  void testAllowedWithManageAuthority() {
+    // A non-admin user with F_OAUTH2_CLIENT_MANAGE can create clients.
+    switchToNewUser("oauth-admin", "F_OAUTH2_CLIENT_MANAGE");
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/oAuth2Clients",
+            "{"
+                + "'clientId':'authorized-client',"
+                + "'clientSecret':'secret',"
+                + "'clientAuthenticationMethods':'client_secret_basic',"
+                + "'authorizationGrantTypes':'authorization_code',"
+                + "'redirectUris':'https://example.com/callback',"
+                + "'scopes':'openid'"
+                + "}"));
+  }
+
+  @Test
   void testRejectsJavascriptSchemeRedirectUri() {
     // Spring Authorization Server emits Location: <storedRedirectUri>?code=...
     // after exact-string match. A stored javascript: URI would execute in the

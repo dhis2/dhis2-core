@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.webapi.controller.security.oauth;
 
+import static org.hisp.dhis.security.Authorities.F_OAUTH2_CLIENT_MANAGE;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Locale;
@@ -36,6 +38,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -53,6 +56,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping({"/api/oAuth2Clients"})
 @RequiredArgsConstructor
+@RequiresAuthority(anyOf = F_OAUTH2_CLIENT_MANAGE)
 public class OAuth2ClientController
     extends AbstractCrudController<Dhis2OAuth2Client, GetObjectListParams> {
 

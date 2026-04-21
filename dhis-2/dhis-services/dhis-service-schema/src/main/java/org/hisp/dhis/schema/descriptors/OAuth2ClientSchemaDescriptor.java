@@ -29,8 +29,11 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
+import java.util.List;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
 
 /**
@@ -41,6 +44,7 @@ public class OAuth2ClientSchemaDescriptor implements SchemaDescriptor {
   public static final String SINGULAR = "oAuth2Client";
   public static final String PLURAL = "oAuth2Clients";
   public static final String API_ENDPOINT = "/" + PLURAL;
+  public static final String AUTHORITY = "F_OAUTH2_CLIENT_MANAGE";
 
   @Override
   public Schema getSchema() {
@@ -50,6 +54,16 @@ public class OAuth2ClientSchemaDescriptor implements SchemaDescriptor {
     schema.setDefaultPrivate(true);
     schema.setDataReadShareable(false);
     schema.setDataWriteShareable(false);
+
+    // OAuth2 clients are security-sensitive: client secrets are persisted, and
+    // client_credentials grants let a token act as the creating user with no
+    // session, MFA, or rotation. Gate all mutations + reads behind a dedicated
+    // authority so only designated admins can manage them.
+    schema.add(new Authority(AuthorityType.CREATE, List.of(AUTHORITY)));
+    schema.add(new Authority(AuthorityType.UPDATE, List.of(AUTHORITY)));
+    schema.add(new Authority(AuthorityType.DELETE, List.of(AUTHORITY)));
+    schema.add(new Authority(AuthorityType.READ, List.of(AUTHORITY)));
+
     return schema;
   }
 }
