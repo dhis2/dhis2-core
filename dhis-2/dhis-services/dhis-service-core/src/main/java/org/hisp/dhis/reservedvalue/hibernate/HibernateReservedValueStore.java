@@ -122,10 +122,12 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
   @Override
   public int getNumberOfUsedValues(ReservedValue reservedValue) {
     Query<Long> query =
-        getTypedQuery("SELECT count(*) FROM ReservedValue WHERE owneruid = :uid AND key = :key");
+        getTypedQuery(
+            "SELECT count(*) FROM ReservedValue WHERE ownerobject = :ownerObject AND owneruid = :uid AND key = :key");
 
     Long count =
         query
+            .setParameter("ownerObject", reservedValue.getOwnerObject())
             .setParameter("uid", reservedValue.getOwnerUid())
             .setParameter("key", reservedValue.getKey())
             .getSingleResult();
@@ -151,8 +153,10 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
   }
 
   @Override
-  public boolean useReservedValue(String ownerUID, String value) {
-    return getQuery("DELETE FROM ReservedValue WHERE owneruid = :uid AND value = :value")
+  public boolean useReservedValue(String ownerObject, String ownerUID, String value) {
+    return getQuery(
+                "DELETE FROM ReservedValue WHERE ownerobject = :ownerObject AND owneruid = :uid AND value = :value")
+            .setParameter("ownerObject", ownerObject)
             .setParameter("uid", ownerUID)
             .setParameter("value", value)
             .executeUpdate()

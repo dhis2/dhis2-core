@@ -275,7 +275,8 @@ public class DefaultReservedValueService implements ReservedValueService {
   @Override
   @Transactional
   public boolean useReservedValue(TextPattern textPattern, String value) {
-    return reservedValueStore.useReservedValue(textPattern.getOwnerUid(), value);
+    return reservedValueStore.useReservedValue(
+        textPattern.getOwnerObject().name(), textPattern.getOwnerUid(), value);
   }
 
   @Override
