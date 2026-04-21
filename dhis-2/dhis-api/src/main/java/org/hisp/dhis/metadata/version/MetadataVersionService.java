@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.metadata.version;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
 
@@ -134,6 +136,17 @@ public interface MetadataVersionService {
    * @return JSON data for the version snapshot
    */
   String getVersionData(String versionName);
+
+  /**
+   * Streams the metadata snapshot for the given version name directly to the output stream,
+   * bypassing Hibernate by querying the JSONB column via JDBC.
+   *
+   * @param versionName the version name
+   * @param out the output stream to write the snapshot to
+   * @return true if the snapshot was found and written, false if no snapshot exists
+   * @throws IOException if writing to the output stream fails
+   */
+  boolean streamVersionData(String versionName, OutputStream out) throws IOException;
 
   /**
    * Creates an entry in the DataStore given the MetadataVersion details.

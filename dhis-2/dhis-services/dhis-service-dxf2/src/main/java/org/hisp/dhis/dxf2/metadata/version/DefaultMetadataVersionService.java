@@ -33,6 +33,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Lists;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -57,6 +60,7 @@ import org.hisp.dhis.metadata.version.MetadataVersionStore;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.util.DateUtils;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -78,6 +82,8 @@ public class DefaultMetadataVersionService implements MetadataVersionService {
   private final MetadataSystemSettingService metadataSystemSettingService;
 
   private final RenderService renderService;
+
+  private final JdbcTemplate jdbcTemplate;
 
   // -------------------------------------------------------------------------
   // MetadataVersionService implementation
@@ -237,6 +243,33 @@ public class DefaultMetadataVersionService implements MetadataVersionService {
     }
 
     return null;
+  }
+
+  @Override
+  public boolean streamVersionData(String versionName, OutputStream out) throws IOException {
+    String sql =
+        "SELECT jbvalue->>'metadata' FROM keyjsonvalue"
+            + " WHERE namespace = ? AND namespacekey = ?";
+    try {
+      Boolean found =
+          jdbcTemplate.query(
+              sql,
+              rs -> {
+                if (!rs.next()) return false;
+                try (InputStream in = rs.getBinaryStream(1)) {
+                  if (in == null) return false;
+                  in.transferTo(out);
+                } catch (IOException e) {
+                  throw new UncheckedIOException(e);
+                }
+                return true;
+              },
+              MetadataDatastoreService.METADATA_STORE_NS,
+              versionName);
+      return Boolean.TRUE.equals(found);
+    } catch (UncheckedIOException e) {
+      throw e.getCause();
+    }
   }
 
   @Override

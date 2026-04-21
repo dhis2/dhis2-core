@@ -94,7 +94,11 @@ public class ConditionalOpenEntityManagerInViewFilter extends OpenEntityManagerI
               "/api/ping",
               "/api/metrics",
               "/api/system/ping",
-              "/api/potentialDuplicates")
+              "/api/potentialDuplicates",
+              // Metadata version snapshots are streamed directly via JDBC; no Hibernate session
+              // needed
+              "/api/metadata/version/*/data",
+              "/api/*/metadata/version/*/data")
           .map(PARSER::parse)
           .toList();
 

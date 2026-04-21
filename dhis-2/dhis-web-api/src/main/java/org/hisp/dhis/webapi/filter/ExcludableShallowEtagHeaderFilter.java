@@ -76,9 +76,9 @@ import org.springframework.web.filter.ShallowEtagHeaderFilter;
     })
 public class ExcludableShallowEtagHeaderFilter extends ShallowEtagHeaderFilter {
   private static final String UID_REGEXP = "[a-zA-Z][a-zA-Z0-9]{10}";
-  static final String EXCLUDE_URI_REGEX_VAR_NAME = "excludeUriRegex";
+  public static final String EXCLUDE_URI_REGEX_VAR_NAME = "excludeUriRegex";
 
-  static final String ENDPOINTS =
+  public static final String ENDPOINTS =
       "/api/(\\d{2}/)?dataValueSets|"
           + "/api/(\\d{2}/)?dataValues|"
           + "/api/(\\d{2}/)?fileResources|"
@@ -92,7 +92,10 @@ public class ExcludableShallowEtagHeaderFilter extends ShallowEtagHeaderFilter {
           + UID_REGEXP
           + "/attributes/"
           + UID_REGEXP
-          + "/(file|image)";
+          + "/(file|image)|"
+          // Metadata version snapshots are 100MB+; ETag buffering in FastByteArrayOutputStream
+          // retains ~2-3x the content and defeats streaming.
+          + "/api/(\\d{2}/)?metadata/version/.+/data(\\.gz)?";
 
   private Pattern pattern = null;
 

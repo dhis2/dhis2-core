@@ -233,8 +233,9 @@ public class MetadataVersionController {
   // endpoint to download metadata
   @RequiresAuthority(anyOf = F_METADATA_MANAGE)
   @GetMapping(value = "/version/{versionName}/data", produces = APPLICATION_JSON_VALUE)
-  public @ResponseBody String downloadVersion(@PathVariable("versionName") String versionName)
-      throws MetadataVersionException, BadRequestException {
+  public void downloadVersion(
+      @PathVariable("versionName") String versionName, HttpServletResponse response)
+      throws MetadataVersionException, BadRequestException, IOException {
     boolean enabled = isMetadataVersioningEnabled();
 
     try {
@@ -242,13 +243,13 @@ public class MetadataVersionController {
         throw new BadRequestException("Metadata versioning is not enabled for this instance.");
       }
 
-      String versionData = versionService.getVersionData(versionName);
+      response.setContentType(APPLICATION_JSON_VALUE);
+      boolean found = versionService.streamVersionData(versionName, response.getOutputStream());
 
-      if (versionData == null) {
+      if (!found) {
         throw new MetadataVersionException(
             "No metadata version snapshot found for the given version " + versionName);
       }
-      return versionData;
     } catch (MetadataVersionServiceException ex) {
       throw new MetadataVersionException(
           "Unable to download version from system: " + versionName + ex.getMessage());
