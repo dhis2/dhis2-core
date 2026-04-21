@@ -758,7 +758,8 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testSaveNotificationTemplateWithDeliveryChannels() {
-    POST("/metadata", WebClient.Body("program/program_notification_template.json")).content(HttpStatus.OK);
+    POST("/metadata", WebClient.Body("program/program_notification_template.json"))
+        .content(HttpStatus.OK);
     JsonObject template =
         GET("/programNotificationTemplates/uivYkvFEOss")
             .content(HttpStatus.OK)
