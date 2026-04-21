@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.program.notification.dataset;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.any;
@@ -429,5 +430,29 @@ class DataSetNotificationServiceTest extends TrackerTestBase {
     assertTrue(
         !capturedUsers.contains(userDisabled),
         "The disabled user should NOT be in the recipient list.");
+  }
+
+  @Test
+  void testCreateProgramMessage_eachMessageGetsItsOwnDeliveryChannelsCopy() {
+    // Returning the same template twice causes createProgramMessage to be called twice
+    // with the same template instance — reproducing the shared-collection bug
+    when(dsntService.getCompleteNotifications(any(DataSet.class)))
+        .thenReturn(List.of(smsTemplateA, smsTemplateA));
+    when(renderer.render(any(), any())).thenReturn(notificationMessage);
+    when(externalMessageService.sendMessages(anyList())).thenReturn(successStatus);
+    I18nFormat format = Mockito.mock(I18nFormat.class);
+    when(i18nManager.getI18nFormat()).thenReturn(format);
+    when(format.formatPeriod(any())).thenReturn("2000-1-1");
+
+    subject.sendCompleteDataSetNotifications(registrationA);
+
+    verify(externalMessageService).sendMessages(programMessageCaptor.capture());
+    List<ProgramMessage> messages = programMessageCaptor.getValue();
+    assertEquals(2, messages.size());
+    assertNotSame(
+        messages.get(0).getDeliveryChannels(),
+        messages.get(1).getDeliveryChannels(),
+        "Each ProgramMessage must own an independent copy of deliveryChannels, "
+            + "not a shared reference to the template's collection");
   }
 }

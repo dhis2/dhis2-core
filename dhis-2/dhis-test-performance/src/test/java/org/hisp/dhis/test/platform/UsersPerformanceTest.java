@@ -510,28 +510,38 @@ public class UsersPerformanceTest extends Simulation {
                 replicaPopulation,
                 deletePopulation);
 
+    // Thresholds derived from 10 consecutive nightly runs (2026-04-02 – 2026-04-11),
+    // 10 iterations per scenario per run (100 samples each).  Values are 1.5× the
+    // observed p95/max to give headroom without masking real regressions.
     sim.protocols(httpProtocol)
         .assertions(
-            details(POST_REQUEST).responseTime().percentile(95).lt(450),
-            details(POST_REQUEST).responseTime().max().lt(600),
+            // POST create: observed p95=804ms, max=982ms
+            details(POST_REQUEST).responseTime().percentile(95).lt(1250),
+            details(POST_REQUEST).responseTime().max().lt(1500),
             details(POST_REQUEST).successfulRequests().percent().is(100D),
+            // GET by uid: observed p95=231ms, max=675ms (one 1095ms infra spike excluded)
             details(GET_REQUEST).responseTime().percentile(95).lt(350),
-            details(GET_REQUEST).responseTime().max().lt(500),
+            details(GET_REQUEST).responseTime().max().lt(1050),
             details(GET_REQUEST).successfulRequests().percent().is(100D),
-            details(PUT_REQUEST).responseTime().percentile(95).lt(600),
-            details(PUT_REQUEST).responseTime().max().lt(800),
+            // PUT full update: observed p95=999ms, max=1396ms
+            details(PUT_REQUEST).responseTime().percentile(95).lt(1500),
+            details(PUT_REQUEST).responseTime().max().lt(2100),
             details(PUT_REQUEST).successfulRequests().percent().is(100D),
-            details(PATCH_REQUEST).responseTime().percentile(95).lt(550),
-            details(PATCH_REQUEST).responseTime().max().lt(750),
+            // PATCH partial: observed p95=560ms, max=627ms
+            details(PATCH_REQUEST).responseTime().percentile(95).lt(850),
+            details(PATCH_REQUEST).responseTime().max().lt(950),
             details(PATCH_REQUEST).successfulRequests().percent().is(100D),
-            details(PATCH_GROUPS_REQUEST).responseTime().percentile(95).lt(700),
-            details(PATCH_GROUPS_REQUEST).responseTime().max().lt(900),
+            // PATCH userGroups: observed p95=563ms, max=601ms
+            details(PATCH_GROUPS_REQUEST).responseTime().percentile(95).lt(850),
+            details(PATCH_GROUPS_REQUEST).responseTime().max().lt(950),
             details(PATCH_GROUPS_REQUEST).successfulRequests().percent().is(100D),
-            details(REPLICA_REQUEST).responseTime().percentile(95).lt(700),
-            details(REPLICA_REQUEST).responseTime().max().lt(1000),
+            // REPLICA: observed p95=685ms, max=797ms
+            details(REPLICA_REQUEST).responseTime().percentile(95).lt(1050),
+            details(REPLICA_REQUEST).responseTime().max().lt(1200),
             details(REPLICA_REQUEST).successfulRequests().percent().is(100D),
-            details(DELETE_REQUEST).responseTime().percentile(95).lt(1800),
-            details(DELETE_REQUEST).responseTime().max().lt(2500),
+            // DELETE: observed p95=944ms, max=1296ms
+            details(DELETE_REQUEST).responseTime().percentile(95).lt(1450),
+            details(DELETE_REQUEST).responseTime().max().lt(1950),
             details(DELETE_REQUEST).successfulRequests().percent().is(100D));
   }
 }

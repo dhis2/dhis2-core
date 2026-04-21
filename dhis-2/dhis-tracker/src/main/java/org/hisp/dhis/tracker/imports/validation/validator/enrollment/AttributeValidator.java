@@ -41,12 +41,10 @@ import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils
 import com.google.common.collect.Maps;
 import com.google.common.collect.Streams;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -70,12 +68,8 @@ class AttributeValidator
     extends org.hisp.dhis.tracker.imports.validation.validator.AttributeValidator
     implements Validator<Enrollment> {
 
-  private final OptionService optionService;
-
-  public AttributeValidator(
-      DhisConfigurationProvider dhisConfigurationProvider, OptionService optionService) {
+  public AttributeValidator(DhisConfigurationProvider dhisConfigurationProvider) {
     super(dhisConfigurationProvider);
-    this.optionService = optionService;
   }
 
   @Override
@@ -87,10 +81,14 @@ class AttributeValidator
     OrganisationUnit orgUnit =
         preheat.getOrganisationUnit(getOrgUnitUidFromTei(bundle, enrollment.getTrackedEntity()));
 
+    Set<MetadataIdentifier> mandatoryProgramAttributes =
+        preheat.getMandatoryProgramAttributes(program);
+
     Map<MetadataIdentifier, String> attributeValueMap = Maps.newHashMap();
 
     for (Attribute attribute : enrollment.getAttributes()) {
-      validateRequiredProperties(reporter, preheat, enrollment, attribute, program);
+      validateRequiredProperties(
+          reporter, preheat, enrollment, attribute, mandatoryProgramAttributes);
 
       TrackedEntityAttribute teAttribute =
           bundle.getPreheat().getTrackedEntityAttribute(attribute.getAttribute());
@@ -102,7 +100,7 @@ class AttributeValidator
         attributeValueMap.put(attribute.getAttribute(), attribute.getValue());
         validateAttributeValue(reporter, enrollment, teAttribute, attribute.getValue());
         validateValueType(reporter, bundle, enrollment, attribute.getValue(), teAttribute);
-        validateOptionSet(reporter, enrollment, teAttribute, attribute.getValue(), optionService);
+        validateOptionSet(reporter, enrollment, teAttribute, attribute.getValue());
 
         validateAttributeUniqueness(
             reporter, preheat, enrollment, attribute.getValue(), teAttribute, te, orgUnit);
@@ -117,18 +115,13 @@ class AttributeValidator
       TrackerPreheat preheat,
       Enrollment enrollment,
       Attribute attribute,
-      Program program) {
+      Set<MetadataIdentifier> mandatoryProgramAttributes) {
     if (attribute.getAttribute().isBlank()) {
       reporter.addError(enrollment, E1075, attribute);
       return;
     }
 
-    Optional<ProgramTrackedEntityAttribute> optionalTrackedAttr =
-        program.getProgramAttributes().stream()
-            .filter(pa -> attribute.getAttribute().isEqualTo(pa.getAttribute()) && pa.isMandatory())
-            .findFirst();
-
-    if (optionalTrackedAttr.isPresent()) {
+    if (mandatoryProgramAttributes.contains(attribute.getAttribute())) {
       reporter.addErrorIfNull(
           attribute.getValue(),
           enrollment,

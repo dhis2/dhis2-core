@@ -37,7 +37,11 @@
   ],
   "enrollments": [
     {
-      "enrollment": "NfX6INLTOVq"
+      "enrollment": "NfX6INLTOVq",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "HllvX50cXC0"
+      }
     }
   ],
   "events": [],

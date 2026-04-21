@@ -41,13 +41,16 @@ import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNo
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -71,11 +74,15 @@ import org.hisp.dhis.webapi.controller.tracker.JsonDataValue;
 import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.hisp.dhis.webapi.controller.tracker.JsonNote;
 import org.hisp.dhis.webapi.controller.tracker.TestSetup;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -676,6 +683,52 @@ class TrackerEventsExportControllerTest extends PostgresControllerIntegrationTes
     result.setDataElement(de.getUid());
     result.setValue(value);
     return result;
+  }
+
+  static Stream<Arguments> callEventsEndpoint() {
+    return Stream.of(
+        arguments(
+            ".json.zip",
+            "application/json+zip",
+            "attachment; filename=trackerEvents.json.zip",
+            "binary"),
+        arguments(
+            ".json.gz",
+            "application/json+gzip",
+            "attachment; filename=trackerEvents.json.gz",
+            "binary"),
+        arguments(
+            ".csv",
+            "application/csv; charset=UTF-8",
+            "attachment; filename=trackerEvents.csv",
+            null),
+        arguments(
+            ".csv.gz",
+            "application/csv+gzip",
+            "attachment; filename=trackerEvents.csv.gz",
+            "binary"),
+        arguments(
+            ".csv.zip",
+            "application/csv+zip",
+            "attachment; filename=trackerEvents.csv.zip",
+            "binary"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("callEventsEndpoint")
+  void
+      shouldMatchContentTypeAndAttachment_whenEndpointForCompressedEventJsonIsInvokedForTrackerEvent(
+          String extension,
+          String expectedContentType,
+          String expectedAttachment,
+          String encoding) {
+    HttpResponse res = GET("/tracker/trackerEvents" + extension + "?program=" + PROGRAM_UID);
+
+    assertEquals(HttpStatus.OK, res.status());
+    assertEquals(expectedContentType, res.header("Content-Type"));
+    assertEquals(expectedAttachment, res.header(ContextUtils.HEADER_CONTENT_DISPOSITION));
+    assertEquals(encoding, res.header(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING));
+    assertNotNull(res.content(expectedContentType));
   }
 
   private FileResource storeFile(String contentType, String content) throws ConflictException {

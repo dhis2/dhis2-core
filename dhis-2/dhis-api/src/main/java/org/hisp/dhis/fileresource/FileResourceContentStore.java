@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.storage.BlobKey;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -50,7 +51,7 @@ public interface FileResourceContentStore {
    * @return a ByteSource which provides a stream to the content or null if the content cannot be
    *     found or read.
    */
-  InputStream getFileResourceContent(String key);
+  InputStream getFileResourceContent(BlobKey key);
 
   /**
    * Get the content length of a FileResource from the file store.
@@ -58,7 +59,7 @@ public interface FileResourceContentStore {
    * @param key the key.
    * @return the content length
    */
-  long getFileResourceContentLength(String key);
+  long getFileResourceContentLength(BlobKey key);
 
   /**
    * Save the contents of the byte array to the file store.
@@ -97,7 +98,7 @@ public interface FileResourceContentStore {
    *
    * @param key the key.
    */
-  void deleteFileResourceContent(String key);
+  void deleteFileResourceContent(BlobKey key);
 
   /**
    * Check existence of a file.
@@ -105,7 +106,7 @@ public interface FileResourceContentStore {
    * @param key key of the file.
    * @return true if the file exists in the file store, false otherwise.
    */
-  boolean fileResourceContentExists(String key);
+  boolean fileResourceContentExists(BlobKey key);
 
   /**
    * Create a signed GET request which gives access to the content.
@@ -113,7 +114,7 @@ public interface FileResourceContentStore {
    * @param key the key.
    * @return a URI containing the signed GET request or null if signed requests are not supported.
    */
-  URI getSignedGetContentUri(String key);
+  URI getSignedGetContentUri(BlobKey key);
 
   /**
    * Copies the content of a stream to the resource stored under key to the output stream.
@@ -121,7 +122,7 @@ public interface FileResourceContentStore {
    * @param key the key used to store a resource
    * @param output the output stream to copy the stream into
    */
-  void copyContent(String key, OutputStream output) throws IOException, NoSuchElementException;
+  void copyContent(BlobKey key, OutputStream output) throws IOException, NoSuchElementException;
 
   /**
    * Copies the content of the resource stored under key to the byte array.
@@ -129,7 +130,7 @@ public interface FileResourceContentStore {
    * @param key the key used to store a resource
    * @return byte array of the content
    */
-  byte[] copyContent(String key) throws IOException, NoSuchElementException;
+  byte[] copyContent(BlobKey key) throws IOException, NoSuchElementException;
 
   /**
    * Opens a stream to the resource stored under key.
@@ -137,5 +138,5 @@ public interface FileResourceContentStore {
    * @param key the key used to store a resource
    * @return content stream
    */
-  InputStream openStream(String key) throws IOException, NoSuchElementException;
+  InputStream openStream(BlobKey key) throws IOException, NoSuchElementException;
 }

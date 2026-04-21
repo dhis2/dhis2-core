@@ -44,8 +44,10 @@ import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNo
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 import com.google.common.collect.Sets;
 import java.io.IOException;
@@ -99,6 +101,7 @@ import org.hisp.dhis.webapi.controller.tracker.JsonEvent;
 import org.hisp.dhis.webapi.controller.tracker.JsonNote;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationshipItem;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -1230,6 +1233,39 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     note.setUid(uid);
     manager.save(note, false);
     return note;
+  }
+
+  static Stream<Arguments> callEventsEndpoint() {
+    return Stream.of(
+        arguments(
+            ".json.zip", "application/json+zip", "attachment; filename=events.json.zip", "binary"),
+        arguments(
+            ".json.gz", "application/json+gzip", "attachment; filename=events.json.gz", "binary"),
+        arguments(
+            ".csv", "application/csv; charset=UTF-8", "attachment; filename=events.csv", null),
+        arguments(
+            ".csv.gz", "application/csv+gzip", "attachment; filename=events.csv.gz", "binary"),
+        arguments(
+            ".csv.zip", "application/csv+zip", "attachment; filename=events.csv.zip", "binary"));
+  }
+
+  @ParameterizedTest
+  @MethodSource("callEventsEndpoint")
+  void
+      shouldMatchContentTypeAndAttachment_whenEndpointForCompressedEventJsonIsInvokedForTrackerEvent(
+          String extension,
+          String expectedContentType,
+          String expectedAttachment,
+          String encoding) {
+    switchContextToUser(user);
+
+    HttpResponse res = GET("/tracker/events" + extension + "?program=" + program.getUid());
+
+    assertEquals(HttpStatus.OK, res.status());
+    assertEquals(expectedContentType, res.header("Content-Type"));
+    assertEquals(expectedAttachment, res.header(ContextUtils.HEADER_CONTENT_DISPOSITION));
+    assertEquals(encoding, res.header(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING));
+    assertNotNull(res.content(expectedContentType));
   }
 
   private void assertDefaultResponse(JsonObject json, TrackerEvent event) {

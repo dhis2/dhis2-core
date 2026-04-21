@@ -62,7 +62,7 @@ class OrgUnitSqlCoordinatorTest {
     SelectBuilder sb = new SelectBuilder();
     sb.from("analytics_event_test", "ax");
 
-    OrgUnitSqlCoordinator.addJoinIfNeeded(sb, params);
+    OrgUnitSqlCoordinator.addJoinIfNeeded(sb, params, sqlBuilder);
 
     assertThat(sb.build(), not(containsString("enrl")));
   }
@@ -79,7 +79,7 @@ class OrgUnitSqlCoordinatorTest {
     SelectBuilder sb = new SelectBuilder();
     sb.from("analytics_event_test", "ax");
 
-    OrgUnitSqlCoordinator.addJoinIfNeeded(sb, params);
+    OrgUnitSqlCoordinator.addJoinIfNeeded(sb, params, sqlBuilder);
 
     String sql = sb.build();
     assertThat(sql, containsString("analytics_enrollment_" + program.getUid().toLowerCase()));
@@ -97,7 +97,7 @@ class OrgUnitSqlCoordinatorTest {
     List<String> columns = new ArrayList<>();
 
     OrgUnitSqlCoordinator.addDimensionSelectColumns(
-        columns, params, false, true, AnalyticsType.EVENT);
+        columns, params, false, true, AnalyticsType.EVENT, sqlBuilder);
 
     assertThat(columns, hasSize(1));
     assertThat(columns.get(0), is("enrl.\"ou\" as enrollmentou"));
@@ -114,9 +114,9 @@ class OrgUnitSqlCoordinatorTest {
     List<String> columns = new ArrayList<>();
 
     OrgUnitSqlCoordinator.addDimensionSelectColumns(
-        columns, params, false, false, AnalyticsType.EVENT);
+        columns, params, false, false, AnalyticsType.EVENT, sqlBuilder);
     OrgUnitSqlCoordinator.addDimensionSelectColumns(
-        columns, params, false, true, AnalyticsType.ENROLLMENT);
+        columns, params, false, true, AnalyticsType.ENROLLMENT, sqlBuilder);
 
     assertThat(columns, hasSize(0));
   }
@@ -131,7 +131,7 @@ class OrgUnitSqlCoordinatorTest {
             .build();
     List<String> columns = new ArrayList<>();
 
-    OrgUnitSqlCoordinator.addQuerySelectColumns(columns, params);
+    OrgUnitSqlCoordinator.addQuerySelectColumns(columns, params, sqlBuilder);
 
     assertThat(columns, hasSize(2));
     assertThat(columns.get(0), is("enrl.\"ou\" as enrollmentou"));
@@ -144,7 +144,7 @@ class OrgUnitSqlCoordinatorTest {
         new EventQueryParams.Builder().withProgram(createProgram('A')).build();
     StringBuilder sql = new StringBuilder();
 
-    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(sql, new SqlHelper(), params);
+    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(sql, new SqlHelper(), params, sqlBuilder);
 
     assertThat(sql.toString(), is(""));
   }
@@ -162,7 +162,7 @@ class OrgUnitSqlCoordinatorTest {
             .build();
 
     StringBuilder sql = new StringBuilder();
-    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(sql, new SqlHelper(), params);
+    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(sql, new SqlHelper(), params, sqlBuilder);
 
     String where = sql.toString();
     assertThat(where, containsString("where ("));
@@ -184,7 +184,7 @@ class OrgUnitSqlCoordinatorTest {
             .build();
 
     StringBuilder sql = new StringBuilder();
-    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(sql, new SqlHelper(), params);
+    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(sql, new SqlHelper(), params, sqlBuilder);
 
     String where = sql.toString();
     assertThat(where, containsString("enrl.\"uidlevel1\" in ("));
@@ -204,7 +204,7 @@ class OrgUnitSqlCoordinatorTest {
             .build();
 
     StringBuilder sql = new StringBuilder();
-    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(sql, new SqlHelper(), params);
+    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(sql, new SqlHelper(), params, sqlBuilder);
 
     String where = sql.toString();
     assertThat(where, containsString("enrl.\"ou\" in ("));
@@ -226,7 +226,7 @@ class OrgUnitSqlCoordinatorTest {
             .build();
 
     StringBuilder sql = new StringBuilder();
-    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(sql, new SqlHelper(), params);
+    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(sql, new SqlHelper(), params, sqlBuilder);
 
     String where = sql.toString();
     assertThat(where, containsString("enrl.\"uidlevel1\" in ('" + ouA.getUid() + "')"));
@@ -246,7 +246,7 @@ class OrgUnitSqlCoordinatorTest {
 
     List<String> selectColumns = new ArrayList<>();
     OrgUnitSqlCoordinator.addDimensionSelectColumns(
-        selectColumns, params, false, true, AnalyticsType.EVENT);
+        selectColumns, params, false, true, AnalyticsType.EVENT, sqlBuilder);
 
     assertThat(selectColumns, hasSize(1));
     assertThat(selectColumns.get(0), is("'" + ouA.getUid() + "' as enrollmentou"));
@@ -264,7 +264,7 @@ class OrgUnitSqlCoordinatorTest {
 
     List<String> groupByColumns = new ArrayList<>();
     OrgUnitSqlCoordinator.addDimensionSelectColumns(
-        groupByColumns, params, true, true, AnalyticsType.EVENT);
+        groupByColumns, params, true, true, AnalyticsType.EVENT, sqlBuilder);
 
     assertThat(groupByColumns, hasSize(0));
   }
@@ -280,7 +280,7 @@ class OrgUnitSqlCoordinatorTest {
             .build();
     StringBuilder sql = new StringBuilder();
 
-    OrgUnitSqlCoordinator.appendLegacyJoin(sql, params);
+    OrgUnitSqlCoordinator.appendLegacyJoin(sql, params, sqlBuilder);
 
     String result = sql.toString();
     assertThat(result, containsString("analytics_enrollment_" + program.getUid().toLowerCase()));

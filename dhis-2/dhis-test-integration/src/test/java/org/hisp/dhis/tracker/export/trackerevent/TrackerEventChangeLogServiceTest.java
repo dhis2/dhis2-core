@@ -290,14 +290,16 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
     DataElement dataElement = manager.get(DataElement.class, dataElementUid);
     User deletedUser = new User();
     deletedUser.setUsername("deletedUserName");
-    trackerEventChangeLogService.addEventChangeLog(
-        event,
-        dataElement,
-        event.getProgramStage().getProgram(),
-        "previous",
-        "current",
-        UPDATE,
-        deletedUser.getUsername());
+    entityManager.persist(
+        new TrackerEventChangeLog(
+            event,
+            dataElement,
+            null,
+            "previous",
+            "current",
+            UPDATE,
+            new java.util.Date(),
+            deletedUser.getUsername()));
 
     List<EventChangeLog> changeLogs =
         getDataElementChangeLogs(

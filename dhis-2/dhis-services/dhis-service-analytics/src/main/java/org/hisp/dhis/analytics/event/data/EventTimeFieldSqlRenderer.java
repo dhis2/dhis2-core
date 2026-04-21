@@ -55,7 +55,7 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.springframework.stereotype.Component;
 
 @Component
-class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
+public class EventTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
 
   public EventTimeFieldSqlRenderer(SqlBuilder sqlBuilder) {
     super(sqlBuilder);

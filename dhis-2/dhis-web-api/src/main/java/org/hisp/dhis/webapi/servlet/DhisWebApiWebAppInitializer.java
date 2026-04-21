@@ -159,13 +159,6 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addFilter("sessionIdFilter", new DelegatingFilterProxy("sessionIdFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
-    /* Intercept index.html, plugin.html, and other html requests to inject no-cache
-      headers using ContextUtils.setNoStore(response).
-    */
-    context
-        .addFilter("AppHtmlNoCacheFilter", new DelegatingFilterProxy("appHtmlNoCacheFilter"))
-        .addMappingForUrlPatterns(null, true, "/*");
-
     context
         .addFilter("GlobalShellFilter", new DelegatingFilterProxy("globalShellFilter"))
         .addMappingForUrlPatterns(null, true, "/*");

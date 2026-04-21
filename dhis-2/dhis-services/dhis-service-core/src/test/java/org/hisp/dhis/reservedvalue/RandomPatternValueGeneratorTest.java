@@ -30,7 +30,7 @@
 package org.hisp.dhis.reservedvalue;
 
 import static org.hisp.dhis.reservedvalue.RandomPatternValueGenerator.generateRandomValues;
-import static org.hisp.dhis.util.Constants.RANDOM_GENERATION_CHUNK;
+import static org.hisp.dhis.reservedvalue.ValueGeneratorService.RANDOM_GENERATION_CHUNK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 

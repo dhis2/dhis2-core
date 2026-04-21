@@ -40,28 +40,38 @@ import org.junit.jupiter.api.Test;
 class EventQueryParamsUtilsTest {
   @Test
   void testWithoutProgramStageItems() {
-    // Create mock QueryItems
     QueryItem item1 = mock(QueryItem.class);
     QueryItem item2 = mock(QueryItem.class);
     QueryItem item3 = mock(QueryItem.class);
+    QueryItem filter1 = mock(QueryItem.class);
+    QueryItem filter2 = mock(QueryItem.class);
 
-    // Set behavior for hasProgramStage()
-    when(item1.hasProgramStage()).thenReturn(false); // This item should be retained
-    when(item2.hasProgramStage()).thenReturn(true); // This item should be removed
-    when(item3.hasProgramStage()).thenReturn(false); // This item should be retained
+    when(item1.hasProgramStage()).thenReturn(false);
+    when(item2.hasProgramStage()).thenReturn(true);
+    when(item3.hasProgramStage()).thenReturn(false);
+    when(filter1.hasProgramStage()).thenReturn(false);
+    when(filter2.hasProgramStage()).thenReturn(true);
 
-    // Create an EventQueryParams instance with these items
     EventQueryParams originalParams =
-        new EventQueryParams.Builder().addItem(item1).addItem(item2).addItem(item3).build();
+        new EventQueryParams.Builder()
+            .addItem(item1)
+            .addItem(item2)
+            .addItem(item3)
+            .addItemFilter(filter1)
+            .addItemFilter(filter2)
+            .build();
 
-    // Apply the method under test
     EventQueryParams resultParams = EventQueryParamsUtils.withoutProgramStageItems(originalParams);
 
-    // Assert the resulting params contain only the filtered items
     List<QueryItem> resultItems = resultParams.getItems();
     assertEquals(2, resultItems.size());
     assertTrue(resultItems.contains(item1));
     assertTrue(resultItems.contains(item3));
     assertFalse(resultItems.contains(item2));
+
+    List<QueryItem> resultItemFilters = resultParams.getItemFilters();
+    assertEquals(1, resultItemFilters.size());
+    assertTrue(resultItemFilters.contains(filter1));
+    assertFalse(resultItemFilters.contains(filter2));
   }
 }

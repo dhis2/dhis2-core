@@ -44,6 +44,8 @@ import java.util.Set;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
@@ -51,6 +53,8 @@ import org.junit.jupiter.api.Test;
 
 /** Unit tests for {@link EnrollmentQueryHelper}. */
 class EnrollmentQueryHelperTest {
+
+  private final SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
   @Test
   void testGetHeaderColumnsSamePrefixedDimension() {
@@ -65,7 +69,7 @@ class EnrollmentQueryHelperTest {
 
     String sql = "select name0, name1, dim.name2, pe, value, ou from table";
 
-    Set<String> headerColumns = EnrollmentQueryHelper.getHeaderColumns(headers, sql);
+    Set<String> headerColumns = EnrollmentQueryHelper.getHeaderColumns(headers, sql, sqlBuilder);
 
     String[] columns = headerColumns.toArray(String[]::new);
     assertEquals(3, columns.length);
@@ -87,7 +91,7 @@ class EnrollmentQueryHelperTest {
 
     String sql = "select name0, name1, ax.name2, pe, value, ou from table";
 
-    Set<String> headerColumns = EnrollmentQueryHelper.getHeaderColumns(headers, sql);
+    Set<String> headerColumns = EnrollmentQueryHelper.getHeaderColumns(headers, sql, sqlBuilder);
 
     String[] columns = headerColumns.toArray(String[]::new);
     assertEquals(3, columns.length);

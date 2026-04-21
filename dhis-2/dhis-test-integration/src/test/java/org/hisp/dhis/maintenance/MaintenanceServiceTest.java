@@ -76,10 +76,8 @@ import org.hisp.dhis.tracker.acl.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
-import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
 import org.hisp.dhis.tracker.export.singleevent.SingleEventService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
-import org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLogService;
 import org.hisp.dhis.tracker.export.trackerevent.TrackerEventService;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.Relationship;
@@ -112,10 +110,6 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
   @Autowired private RelationshipService relationshipService;
 
   @Autowired private ProgramMessageService programMessageService;
-
-  @Autowired private TrackerEventChangeLogService trackerEventChangeLogService;
-
-  @Autowired private SingleEventChangeLogService singleEventChangeLogService;
 
   @Autowired private DataElementService dataElementService;
 
@@ -407,14 +401,16 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     eventA.setAttributeOptionCombo(coA);
     eventA.setOrganisationUnit(organisationUnit);
     manager.save(eventA);
-    trackerEventChangeLogService.addEventChangeLog(
-        eventA,
-        dataElement,
-        eventA.getProgramStage().getProgram(),
-        "",
-        "value",
-        UPDATE,
-        getCurrentUsername());
+    entityManager.persist(
+        new org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLog(
+            eventA,
+            dataElement,
+            null,
+            "",
+            "value",
+            UPDATE,
+            new java.util.Date(),
+            getCurrentUsername()));
     manager.save(enrollment);
     assertTrue(enrollmentService.findEnrollment(UID.of(enrollment)).isPresent());
     manager.delete(enrollment);
@@ -433,14 +429,16 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     SingleEvent eventA = createSingleEvent(program.getProgramStageByStage(1), organisationUnit);
     eventA.setAttributeOptionCombo(coA);
     manager.save(eventA);
-    singleEventChangeLogService.addEventChangeLog(
-        eventA,
-        dataElement,
-        eventA.getProgramStage().getProgram(),
-        "",
-        "value",
-        UPDATE,
-        getCurrentUsername());
+    entityManager.persist(
+        new org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLog(
+            eventA,
+            dataElement,
+            null,
+            "",
+            "value",
+            UPDATE,
+            new java.util.Date(),
+            getCurrentUsername()));
     assertTrue(singleEventService.findEvent(UID.of(eventA)).isPresent());
     manager.delete(eventA);
     assertFalse(singleEventService.findEvent(UID.of(eventA)).isPresent());

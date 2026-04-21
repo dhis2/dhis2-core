@@ -39,23 +39,24 @@ import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLogService;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
@@ -73,14 +74,8 @@ import org.springframework.stereotype.Component;
 public class SingleEventPersister
     extends AbstractTrackerPersister<
         org.hisp.dhis.tracker.imports.domain.SingleEvent, SingleEvent> {
-  private final SingleEventChangeLogService singleEventChangeLogService;
-
-  public SingleEventPersister(
-      ReservedValueService reservedValueService,
-      TrackedEntityChangeLogService trackedEntityChangeLogService,
-      SingleEventChangeLogService eventChangeLogService) {
-    super(reservedValueService, trackedEntityChangeLogService);
-    this.singleEventChangeLogService = eventChangeLogService;
+  public SingleEventPersister(ReservedValueService reservedValueService) {
+    super(reservedValueService);
   }
 
   @Override
@@ -158,7 +153,8 @@ public class SingleEventPersister
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.SingleEvent event,
       SingleEvent hibernateEntity,
-      UserDetails user) {
+      UserDetails user,
+      ChangeLogAccumulator changeLogs) {
     // DO NOTHING - EVENT HAVE NO ATTRIBUTES
   }
 
@@ -169,13 +165,11 @@ public class SingleEventPersister
       org.hisp.dhis.tracker.imports.domain.SingleEvent event,
       SingleEvent payloadEntity,
       SingleEvent currentEntity,
-      UserDetails user) {
-    handleDataValues(entityManager, preheat, event.getDataValues(), payloadEntity, user);
-    singleEventChangeLogService.addFieldChangeLog(
-        currentEntity,
-        payloadEntity,
-        payloadEntity.getProgramStage().getProgram(),
-        user.getUsername());
+      UserDetails user,
+      ChangeLogAccumulator changeLogs) {
+    handleDataValues(
+        entityManager, preheat, event.getDataValues(), payloadEntity, user, changeLogs);
+    logFieldChanges(currentEntity, payloadEntity, user.getUsername(), changeLogs);
   }
 
   private void handleDataValues(
@@ -183,46 +177,36 @@ public class SingleEventPersister
       TrackerPreheat preheat,
       Set<DataValue> payloadDataValues,
       SingleEvent event,
-      UserDetails user) {
+      UserDetails user,
+      ChangeLogAccumulator changeLogs) {
+    Program program = event.getProgramStage().getProgram();
+    String username = user.getUsername();
     Map<String, EventDataValue> dataValueDBMap =
         event.getEventDataValues().stream()
             .collect(Collectors.toMap(EventDataValue::getDataElement, Function.identity()));
-
     payloadDataValues.forEach(
         dataValue -> {
           DataElement dataElement = preheat.getDataElement(dataValue.getDataElement());
           EventDataValue dbDataValue = dataValueDBMap.get(dataElement.getUid());
 
           if (isNewDataValue(dbDataValue, dataValue)) {
-            singleEventChangeLogService.addEventChangeLog(
-                event,
-                dataElement,
-                event.getProgramStage().getProgram(),
-                null,
-                dataValue.getValue(),
-                CREATE,
-                user.getUsername());
+            changeLogs.addSingleEventChangeLog(
+                event, dataElement, program, null, dataValue.getValue(), CREATE, username);
             saveDataValue(dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isUpdate(dbDataValue, dataValue)) {
-            singleEventChangeLogService.addEventChangeLog(
+            changeLogs.addSingleEventChangeLog(
                 event,
                 dataElement,
-                event.getProgramStage().getProgram(),
+                program,
                 dbDataValue.getValue(),
                 dataValue.getValue(),
                 UPDATE,
-                user.getUsername());
+                username);
             updateDataValue(
                 dbDataValue, dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isDeletion(dbDataValue, dataValue)) {
-            singleEventChangeLogService.addEventChangeLog(
-                event,
-                dataElement,
-                event.getProgramStage().getProgram(),
-                dbDataValue.getValue(),
-                null,
-                DELETE,
-                user.getUsername());
+            changeLogs.addSingleEventChangeLog(
+                event, dataElement, program, dbDataValue.getValue(), null, DELETE, username);
             deleteDataValue(dbDataValue, event, dataElement, entityManager, preheat);
           }
         });
@@ -315,5 +299,52 @@ public class SingleEventPersister
     return eventDataValue != null
         && !StringUtils.isBlank(dv.getValue())
         && !StringUtils.equals(dv.getValue(), eventDataValue.getValue());
+  }
+
+  private static void logFieldChanges(
+      SingleEvent currentEntity,
+      SingleEvent payloadEntity,
+      String username,
+      ChangeLogAccumulator changeLogs) {
+    Program program = payloadEntity.getProgramStage().getProgram();
+
+    logFieldChange(
+        changeLogs,
+        payloadEntity,
+        "occurredAt",
+        formatDate(currentEntity.getOccurredDate()),
+        formatDate(payloadEntity.getOccurredDate()),
+        program,
+        username);
+    logFieldChange(
+        changeLogs,
+        payloadEntity,
+        "geometry",
+        formatGeometry(currentEntity.getGeometry()),
+        formatGeometry(payloadEntity.getGeometry()),
+        program,
+        username);
+  }
+
+  private static void logFieldChange(
+      ChangeLogAccumulator changeLogs,
+      SingleEvent event,
+      String field,
+      String currentValue,
+      String newValue,
+      Program program,
+      String username) {
+    if (!Objects.equals(currentValue, newValue)) {
+      ChangeLogType changeLogType;
+      if (currentValue == null) {
+        changeLogType = CREATE;
+      } else if (newValue == null) {
+        changeLogType = DELETE;
+      } else {
+        changeLogType = UPDATE;
+      }
+      changeLogs.addSingleEventFieldChangeLog(
+          event, field, program, currentValue, newValue, changeLogType, username);
+    }
   }
 }

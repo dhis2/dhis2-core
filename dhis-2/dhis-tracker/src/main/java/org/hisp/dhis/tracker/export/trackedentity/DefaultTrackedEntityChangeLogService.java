@@ -41,7 +41,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Program;
@@ -65,8 +64,6 @@ public class DefaultTrackedEntityChangeLogService implements TrackedEntityChange
   private final TrackedEntityAttributeService trackedEntityAttributeService;
 
   private final ProgramService programService;
-
-  private final DhisConfigurationProvider config;
 
   @Transactional
   @Override

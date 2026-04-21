@@ -29,18 +29,10 @@
  */
 package org.hisp.dhis.fileresource.events;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.fileresource.FileResourceDomain;
+import org.hisp.dhis.storage.BlobKey;
 
 /**
- * @Author Zubair Asghar.
+ * @Author david mackessy
  */
-@Getter
-@RequiredArgsConstructor
-public class FileDeletedEvent {
-
-  private final String storageKey;
-  private final String contentType;
-  private final FileResourceDomain domain;
-}
+public record FileDeletedEvent(BlobKey storageKey, String contentType, FileResourceDomain domain) {}

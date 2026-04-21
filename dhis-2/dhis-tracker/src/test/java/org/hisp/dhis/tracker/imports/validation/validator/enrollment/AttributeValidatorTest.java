@@ -29,9 +29,6 @@
  */
 package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
-import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
-import static org.hisp.dhis.test.TestBase.makeUser;
-import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertNoErrors;
@@ -44,8 +41,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
@@ -53,7 +50,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -69,7 +65,6 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
-import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -117,12 +112,6 @@ class AttributeValidatorTest {
 
   private Reporter reporter;
 
-  private final UserDetails regularUser =
-      Objects.requireNonNull(UserDetails.fromUser(makeUser("B")));
-
-  private final UserDetails superUser =
-      Objects.requireNonNull(UserDetails.fromUser(makeUser("A", List.of("ALL"))));
-
   @BeforeEach
   void setUp() {
 
@@ -138,8 +127,18 @@ class AttributeValidatorTest {
         new TrackedEntityAttribute("percentage", "percent", ValueType.PERCENTAGE, false, false);
     trackedEntityAttributeP.setUid(TRACKED_ATTRIBUTE_P);
 
-    when(preheat.getIdSchemes()).thenReturn(TrackerIdSchemeParams.builder().build());
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    when(preheat.getIdSchemes()).thenReturn(idSchemes);
     when(preheat.getProgram((MetadataIdentifier) any())).thenReturn(program);
+    when(preheat.getMandatoryProgramAttributes(any()))
+        .thenAnswer(
+            invocation -> {
+              Program p = invocation.getArgument(0);
+              return p.getProgramAttributes().stream()
+                  .filter(pa -> Boolean.TRUE.equals(pa.isMandatory()))
+                  .map(pa -> idSchemes.toMetadataIdentifier(pa.getAttribute()))
+                  .collect(Collectors.toUnmodifiableSet());
+            });
     when(enrollment.getProgram()).thenReturn(MetadataIdentifier.ofUid("program"));
     when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid(TRACKED_ATTRIBUTE)))
         .thenReturn(trackedEntityAttribute);
@@ -159,7 +158,6 @@ class AttributeValidatorTest {
 
     bundle = TrackerBundle.builder().preheat(preheat).build();
 
-    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new Reporter(idSchemes);
   }
 
@@ -555,83 +553,6 @@ class AttributeValidatorTest {
   @MethodSource("invalidImageFormats")
   void shouldFailValidationWhenImageFileResourceHasInvalidFormat(String format) {
     runImageValidationTest(format, false);
-  }
-
-  @Test
-  void shouldPassValidationWhenAttributeOrgUnitInUserSearchScope() {
-    TrackedEntityAttribute orgUnitAttr =
-        new TrackedEntityAttribute("orgunit", "orgunit", ValueType.ORGANISATION_UNIT, false, false);
-    orgUnitAttr.setUid("orgUnitAttrUid");
-    when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid("orgUnitAttrUid")))
-        .thenReturn(orgUnitAttr);
-    when(program.getProgramAttributes())
-        .thenReturn(List.of(new ProgramTrackedEntityAttribute(program, orgUnitAttr, false, false)));
-    OrganisationUnit orgUnit = createOrganisationUnit('C');
-    when(preheat.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
-    Attribute attribute =
-        Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid("orgUnitAttrUid"))
-            .value(orgUnit.getUid())
-            .build();
-    when(enrollment.getAttributes()).thenReturn(List.of(attribute));
-    regularUser.getUserEffectiveSearchOrgUnitIds().add(orgUnit.getUid());
-    bundle.setUser(regularUser);
-    bundle.setStrategy(enrollment, TrackerImportStrategy.CREATE);
-
-    validator.validate(reporter, bundle, enrollment);
-
-    assertNoErrors(reporter);
-  }
-
-  @Test
-  void shouldFailWhenAttributeOrgUnitAttributeNotInUserSearchScope() {
-    TrackedEntityAttribute orgUnitAttr =
-        new TrackedEntityAttribute("orgunit", "orgunit", ValueType.ORGANISATION_UNIT, false, false);
-    orgUnitAttr.setUid("orgUnitAttrUid");
-    when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid("orgUnitAttrUid")))
-        .thenReturn(orgUnitAttr);
-    when(program.getProgramAttributes())
-        .thenReturn(List.of(new ProgramTrackedEntityAttribute(program, orgUnitAttr, false, false)));
-    OrganisationUnit orgUnit = createOrganisationUnit('C');
-    when(preheat.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
-    Attribute attribute =
-        Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid("orgUnitAttrUid"))
-            .value(orgUnit.getUid())
-            .build();
-    when(enrollment.getAttributes()).thenReturn(List.of(attribute));
-    bundle.setUser(regularUser);
-    bundle.setStrategy(enrollment, TrackerImportStrategy.CREATE);
-
-    validator.validate(reporter, bundle, enrollment);
-
-    assertHasError(reporter, enrollment, ValidationCode.E1007);
-    assertContains("not in the user's search scope", reporter.getErrors().get(0).getMessage());
-  }
-
-  @Test
-  void shouldPassValidationWhenAttributeOrgUnitNotInSuperUserSearchScope() {
-    TrackedEntityAttribute orgUnitAttr =
-        new TrackedEntityAttribute("orgunit", "orgunit", ValueType.ORGANISATION_UNIT, false, false);
-    orgUnitAttr.setUid("orgUnitAttrUid");
-    when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid("orgUnitAttrUid")))
-        .thenReturn(orgUnitAttr);
-    when(program.getProgramAttributes())
-        .thenReturn(List.of(new ProgramTrackedEntityAttribute(program, orgUnitAttr, false, false)));
-    OrganisationUnit orgUnit = createOrganisationUnit('C');
-    when(preheat.getOrganisationUnit(orgUnit.getUid())).thenReturn(orgUnit);
-    Attribute attribute =
-        Attribute.builder()
-            .attribute(MetadataIdentifier.ofUid("orgUnitAttrUid"))
-            .value(orgUnit.getUid())
-            .build();
-    when(enrollment.getAttributes()).thenReturn(List.of(attribute));
-    bundle.setUser(superUser);
-    bundle.setStrategy(enrollment, TrackerImportStrategy.CREATE);
-
-    validator.validate(reporter, bundle, enrollment);
-
-    assertNoErrors(reporter);
   }
 
   private void runImageValidationTest(String format, boolean shouldPass) {

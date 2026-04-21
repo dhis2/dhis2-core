@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +27,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.util;
+package org.hisp.dhis.storage;
 
-public class Constants {
-  public static final int RESERVED_VALUE_GENERATION_ATTEMPT = 10;
+import javax.annotation.Nonnull;
 
-  public static final long RESERVED_VALUE_GENERATION_TIMEOUT = (1000 * 30);
+/**
+ * The name of the S3 bucket or filesystem directory in which all DHIS2 blobs are stored.
+ *
+ * <p>The value must not be blank and must not end with {@code /}. This ensures that {@link
+ * #resolve(BlobKey)} always produces a clean path without any slash-cleaning.
+ *
+ * <p>Configured via {@link org.hisp.dhis.external.conf.ConfigurationKey#FILESTORE_CONTAINER} and
+ * resolved once at startup by {@link org.hisp.dhis.jclouds.JCloudsStore}.
+ */
+public record BlobContainerName(String value) {
 
-  public static final int RANDOM_GENERATION_CHUNK = 10;
+  public BlobContainerName {
+    if (value == null || value.isBlank()) {
+      throw new IllegalArgumentException("Container name must not be null or blank");
+    }
+    if (value.endsWith("/")) {
+      throw new IllegalArgumentException("Container name must not end with '/': " + value);
+    }
+  }
+
+  /** Returns the full filesystem/store path for {@code key}: {@code "<container>/<key>"}. */
+  @Nonnull
+  public String resolve(@Nonnull BlobKey key) {
+    return value + "/" + key.value();
+  }
+
+  @Nonnull
+  @Override
+  public String toString() {
+    return value;
+  }
 }

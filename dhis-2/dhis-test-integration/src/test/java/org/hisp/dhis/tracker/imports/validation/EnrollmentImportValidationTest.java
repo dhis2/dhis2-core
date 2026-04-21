@@ -33,7 +33,6 @@ import static org.hisp.dhis.tracker.Assertions.assertHasErrors;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_11;
-import static org.hisp.dhis.tracker.imports.validation.Users.USER_2;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_4;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_5;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -136,7 +135,7 @@ class EnrollmentImportValidationTest extends PostgresIntegrationTestBase {
   @Test
   void shouldFailWhenCreatingNewEnrollmentIfUserHasNoCaptureScopeAccessToOrgUnit()
       throws IOException {
-    User user = userService.getUser(USER_2);
+    User user = userService.getUser(USER_5);
     TrackerImportParams params = TrackerImportParams.builder().build();
     injectSecurityContextUser(user);
 
@@ -144,7 +143,7 @@ class EnrollmentImportValidationTest extends PostgresIntegrationTestBase {
         trackerImportService.importTracker(
             params, testSetup.fromJson("tracker/validations/enrollments_te_enrollments-data.json"));
 
-    assertHasErrors(importReport, 4, ValidationCode.E1000);
+    assertHasErrors(importReport, 6, ValidationCode.E1000);
   }
 
   @Test

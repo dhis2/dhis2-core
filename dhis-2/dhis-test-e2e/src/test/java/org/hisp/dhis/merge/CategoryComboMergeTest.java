@@ -34,6 +34,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.gson.JsonArray;
@@ -55,6 +56,7 @@ class CategoryComboMergeTest extends ApiTest {
 
   private RestApiActions categoryComboApiActions;
   private RestApiActions categoryOptionComboApiActions;
+  private RestApiActions categoriesApiActions;
   private RestApiActions dataElementApiActions;
   private RestApiActions programsApiActions;
   private RestApiActions dataApprovalWorkflowsApiActions;
@@ -74,6 +76,7 @@ class CategoryComboMergeTest extends ApiTest {
     loginActions = new LoginActions();
     categoryComboApiActions = new RestApiActions("categoryCombos");
     categoryOptionComboApiActions = new RestApiActions("categoryOptionCombos");
+    categoriesApiActions = new RestApiActions("categories");
     dataElementApiActions = new RestApiActions("dataElements");
     programsApiActions = new RestApiActions("programs");
     dataApprovalWorkflowsApiActions = new RestApiActions("dataApprovalWorkflows");
@@ -133,9 +136,9 @@ class CategoryComboMergeTest extends ApiTest {
                 .formatted(srcCoc))
         .validateStatus(201);
 
-    assertEquals(4, srcCc1Cocs.size(), "Source CC1 should have 4 COCs");
-    assertEquals(4, srcCc2Cocs.size(), "Source CC2 should have 4 COCs");
-    assertEquals(4, targetCcCocs.size(), "Target CC should have 4 COCs");
+    assertEquals(8, srcCc1Cocs.size(), "Source CC1 should have 8 COCs");
+    assertEquals(8, srcCc2Cocs.size(), "Source CC2 should have 8 COCs");
+    assertEquals(8, targetCcCocs.size(), "Target CC should have 8 COCs");
 
     // login as merge user
     loginActions.loginAsUser("userWithCcMergeAuth", "Test1234!");
@@ -240,6 +243,11 @@ class CategoryComboMergeTest extends ApiTest {
     assertProgIndHasCc("prgIndUID01", targetUid);
     assertProgIndHasCc("prgIndUID02", targetUid);
     assertProgIndHasCc("prgIndUID03", targetUid);
+
+    // source combos are no longer referenced by any of their categories
+    assertCategoryDoesNotReferenceCombo("UIDCategx01", sourceUid1, sourceUid2);
+    assertCategoryDoesNotReferenceCombo("UIDCategx02", sourceUid1, sourceUid2);
+    assertCategoryDoesNotReferenceCombo("UIDCategx03", sourceUid1, sourceUid2);
   }
 
   private void assertProgIndHasCc(String prgIndUid, String ccUid) {
@@ -263,9 +271,9 @@ class CategoryComboMergeTest extends ApiTest {
   }
 
   private void assertPreMergeState() {
-    assertComboHasCategories(sourceUid1, "UIDCategx01", "UIDCategx02");
-    assertComboHasCategories(sourceUid2, "UIDCategx01", "UIDCategx02");
-    assertComboHasCategories(targetUid, "UIDCategx01", "UIDCategx02");
+    assertComboHasCategories(sourceUid1, "UIDCategx01", "UIDCategx02", "UIDCategx03");
+    assertComboHasCategories(sourceUid2, "UIDCategx01", "UIDCategx02", "UIDCategx03");
+    assertComboHasCategories(targetUid, "UIDCategx01", "UIDCategx02", "UIDCategx03");
 
     // data elements
     assertDataElementHasCombo("DeUID0000x1", sourceUid1);
@@ -318,7 +326,7 @@ class CategoryComboMergeTest extends ApiTest {
                 getDataApprovalWorkflows(sourceUid1, sourceUid2, targetUid),
                 getProgramIndicators(sourceUid1, sourceUid2, targetUid));
 
-    metadataActions.importMetadata(metadata).validate().body("response.stats.created", equalTo(25));
+    metadataActions.importMetadata(metadata).validate().body("response.stats.created", equalTo(28));
 
     generateCocs();
   }
@@ -338,13 +346,20 @@ class CategoryComboMergeTest extends ApiTest {
     }
   }
 
-  private void assertComboHasCategories(String catComboUid, String catUid1, String catUid2) {
+  private void assertCategoryDoesNotReferenceCombo(String categoryUid, String... comboUids) {
+    categoriesApiActions
+        .get(categoryUid + "?fields=categoryCombos[id]")
+        .validateStatus(200)
+        .validate()
+        .body("categoryCombos.id", not(hasItems(comboUids)));
+  }
+
+  private void assertComboHasCategories(String catComboUid, String... catUids) {
     categoryComboApiActions
         .get(catComboUid)
         .validateStatus(200)
         .validate()
-        .body(
-            "categories.id", containsInAnyOrder(List.of(catUid1, catUid2).toArray(String[]::new)));
+        .body("categories.id", containsInAnyOrder(catUids));
   }
 
   private void assertDataSetHasCombo(String dsUid, String comboUid) {
@@ -396,6 +411,16 @@ class CategoryComboMergeTest extends ApiTest {
                 "id": "UIDCatOpx2B",
                 "name": "cat optionx 2B",
                 "shortName": "cat optionx 2B"
+            },
+            {
+                "id": "UIDCatOpx3A",
+                "name": "cat optionx 3A",
+                "shortName": "cat optionx 3A"
+            },
+            {
+                "id": "UIDCatOpx3B",
+                "name": "cat optionx 3B",
+                "shortName": "cat optionx 3B"
             }
         ]
         """;
@@ -431,6 +456,20 @@ class CategoryComboMergeTest extends ApiTest {
                         "id": "UIDCatOpx2B"
                     }
                 ]
+            },
+            {
+                "id": "UIDCategx03",
+                "name": "category x3",
+                "shortName": "category x3",
+                "dataDimensionType": "DISAGGREGATION",
+                "categoryOptions": [
+                    {
+                        "id": "UIDCatOpx3A"
+                    },
+                    {
+                        "id": "UIDCatOpx3B"
+                    }
+                ]
             }
         ]
         """;
@@ -449,6 +488,9 @@ class CategoryComboMergeTest extends ApiTest {
                     },
                     {
                         "id": "UIDCategx02"
+                    },
+                    {
+                        "id": "UIDCategx03"
                     }
                 ]
             },
@@ -462,6 +504,9 @@ class CategoryComboMergeTest extends ApiTest {
                     },
                     {
                         "id": "UIDCategx02"
+                    },
+                    {
+                        "id": "UIDCategx03"
                     }
                 ]
             },
@@ -475,6 +520,9 @@ class CategoryComboMergeTest extends ApiTest {
                     },
                     {
                         "id": "UIDCategx02"
+                    },
+                    {
+                        "id": "UIDCategx03"
                     }
                 ]
             }

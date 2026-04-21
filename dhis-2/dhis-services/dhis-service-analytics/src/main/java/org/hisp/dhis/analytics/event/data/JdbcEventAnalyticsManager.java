@@ -40,10 +40,7 @@ import static org.hisp.dhis.analytics.DataType.BOOLEAN;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.common.ColumnHeader.LATITUDE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.LONGITUDE;
-import static org.hisp.dhis.analytics.common.CteUtils.computeKey;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
-import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.STAGE_OU_CODE_COLUMN;
-import static org.hisp.dhis.analytics.event.data.OrganisationUnitResolver.STAGE_OU_NAME_COLUMN;
 import static org.hisp.dhis.analytics.table.ColumnPostfix.OU_GEOMETRY_COL_POSTFIX;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.withExceptionHandling;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
@@ -58,7 +55,6 @@ import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -72,7 +68,6 @@ import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.CteContext;
-import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.analytics.common.EndpointItem;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
@@ -91,18 +86,15 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.AnalyticsType;
@@ -170,10 +162,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
   @Override
   public Grid getEvents(EventQueryParams params, Grid grid, int maxLimit) {
-    String sql =
-        useExperimentalAnalyticsQueryEngine()
-            ? buildAnalyticsQuery(params, maxLimit)
-            : getAggregatedEnrollmentsSql(params, maxLimit);
+    String sql = buildAnalyticsQuery(params, maxLimit);
     if (params.analyzeOnly()) {
       withExceptionHandling(
           () -> executionPlanStore.addExecutionPlan(params.getExplainOrderId(), sql));
@@ -364,78 +353,10 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
   // Supportive methods
   // -------------------------------------------------------------------------
 
-  /**
-   * Returns a select SQL clause for the given query.
-   *
-   * @param params the {@link EventQueryParams}.
-   */
-  @Override
-  protected String getSelectClause(EventQueryParams params) {
-    List<String> standardColumns = getStandardColumns(params);
-
-    List<String> selectCols =
-        ListUtils.distinctUnion(standardColumns, getSelectColumns(params, false));
-
-    return "select " + StringUtils.join(selectCols, ",") + " ";
-  }
-
-  @Override
-  protected String getColumnWithCte(
-      QueryItem item, CteContext cteContext, EventQueryParams params) {
-    Set<String> columns = new LinkedHashSet<>();
-
-    // Get the CTE definition for the item
-    CteDefinition cteDef = cteContext.getDefinitionByItemUid(computeKey(item));
-    if (cteDef == null) {
-      throw new IllegalQueryException(ErrorCode.E7148, item.getItemId());
-    }
-    int programStageOffset = computeRowNumberOffset(item.getProgramStageOffset());
-    // calculate the alias for the column
-    // if the item is not a repeatable stage, the alias is the program stage + item name
-    String alias =
-        getAlias(item).orElse("%s.%s".formatted(item.getProgramStage().getUid(), item.getItemId()));
-    columns.add("%s.value as %s".formatted(cteDef.getAlias(programStageOffset), quote(alias)));
-
-    // For stage.ou dimensions, conditionally select ouname/oucode columns
-    if (isStageOuDimension(item) && params.hasHeaders()) {
-      String stageUid = item.getProgramStage().getUid();
-      if (params.getHeaders().contains(stageUid + ".ouname")) {
-        columns.add(
-            "%s.%s as %s"
-                .formatted(
-                    cteDef.getAlias(programStageOffset),
-                    STAGE_OU_NAME_COLUMN,
-                    quote(stageUid + ".ouname")));
-      }
-      if (params.getHeaders().contains(stageUid + ".oucode")) {
-        columns.add(
-            "%s.%s as %s"
-                .formatted(
-                    cteDef.getAlias(programStageOffset),
-                    STAGE_OU_CODE_COLUMN,
-                    quote(stageUid + ".oucode")));
-      }
-    }
-
-    if (cteDef.isRowContext()) {
-      // Add additional status and exists columns for row context
-      columns.add(
-          "coalesce(%s.rn = %s, false) as %s"
-              .formatted(
-                  cteDef.getAlias(programStageOffset),
-                  programStageOffset + 1,
-                  quote(alias + ".exists")));
-      columns.add(
-          "%s.eventstatus as %s"
-              .formatted(cteDef.getAlias(programStageOffset), quote(alias + ".status")));
-    }
-    return String.join(",\n", columns);
-  }
-
   @Override
   void addFromClause(SelectBuilder sb, EventQueryParams params) {
     sb.from(params.getTableName(), ANALYTICS_TBL_ALIAS);
-    OrgUnitSqlCoordinator.addJoinIfNeeded(sb, params);
+    OrgUnitSqlCoordinator.addJoinIfNeeded(sb, params, sqlBuilder);
   }
 
   /**
@@ -547,7 +468,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     resolveDateFieldPeriodBucketJoins(params, ANALYTICS_TBL_ALIAS)
         .forEach(join -> sql.append(join.toSql()).append(" "));
 
-    OrgUnitSqlCoordinator.appendLegacyJoin(sql, params);
+    OrgUnitSqlCoordinator.appendLegacyJoin(sql, params, sqlBuilder);
 
     return sql.append(joinOrgUnitTables(params, getAnalyticsType())).toString();
   }
@@ -697,14 +618,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
               + "' ";
     }
 
-    // ---------------------------------------------------------------------
-    // Query items and filters
-    // ---------------------------------------------------------------------
-
-    if (!useExperimentalAnalyticsQueryEngine()) {
-      sql += getQueryItemsAndFiltersWhereClause(params, hlp);
-    }
-
     sql += getOptionFilter(params, hlp);
 
     // ---------------------------------------------------------------------
@@ -743,7 +656,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     if (params.hasEnrollmentStatuses()) {
       sql +=
           hlp.whereAnd()
-              + " enrollmentstatus in ("
+              + " "
+              + quoteAlias("enrollmentstatus")
+              + " in ("
               + params.getEnrollmentStatus().stream()
                   .map(p -> singleQuote(p.name()))
                   .collect(joining(","))
@@ -775,7 +690,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     }
 
     StringBuilder enrollmentOuSql = new StringBuilder();
-    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(enrollmentOuSql, hlp, params);
+    OrgUnitSqlCoordinator.appendWherePredicateIfNeeded(enrollmentOuSql, hlp, params, sqlBuilder);
     sql += enrollmentOuSql;
 
     if (params.hasBbox()) {
@@ -1078,7 +993,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     List<String> columns = new ArrayList<>(getStandardColumns(params));
     addDimensionSelectColumns(columns, params, false, false);
-    OrgUnitSqlCoordinator.addQuerySelectColumns(columns, params);
+    OrgUnitSqlCoordinator.addQuerySelectColumns(columns, params, sqlBuilder);
     addEventsItemSelectColumns(columns, params, cteContext);
 
     columns.forEach(
