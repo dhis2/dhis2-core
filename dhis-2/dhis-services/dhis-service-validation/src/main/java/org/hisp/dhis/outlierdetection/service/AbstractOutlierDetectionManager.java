@@ -50,7 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Min-Max values).
  */
 public abstract class AbstractOutlierDetectionManager {
-  //Safety valve to prevent long-running queries for running forever.
+  // Safety valve to prevent long-running queries for running forever.
   private static final String STATEMENT_TIMEOUT_SQL = "SET LOCAL statement_timeout = '10min'";
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
