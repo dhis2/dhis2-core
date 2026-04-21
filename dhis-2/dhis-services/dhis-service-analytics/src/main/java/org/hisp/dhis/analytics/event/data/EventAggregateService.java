@@ -493,7 +493,7 @@ public class EventAggregateService {
           (List<String>)
               ((Map<String, Object>) grid.getMetaData().get(DIMENSIONS.getKey())).get(dimension);
 
-      if (legendOptions.isEmpty()) {
+      if (legendOptions == null || legendOptions.isEmpty()) {
         List<Legend> legends = eventDimensionalItemObject.getLegendSet().getSortedLegends();
         addLegends(dimensionalItems, parentUid, legends);
       } else {
@@ -604,7 +604,7 @@ public class EventAggregateService {
       MetadataItem metadataItem =
           (MetadataItem) ((Map<String, Object>) grid.getMetaData().get(ITEMS.getKey())).get(row);
 
-      String name = defaultIfEmpty(metadataItem.getName(), row);
+      String name = metadataItem == null ? row : defaultIfEmpty(metadataItem.getName(), row);
       String col = defaultIfEmpty(COLUMN_NAMES.get(row), row);
 
       outputGrid.addHeader(new GridHeader(name, col, TEXT, false, true));
