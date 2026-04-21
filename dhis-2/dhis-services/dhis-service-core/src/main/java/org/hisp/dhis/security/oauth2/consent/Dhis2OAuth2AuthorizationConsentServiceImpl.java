@@ -166,6 +166,8 @@ public class Dhis2OAuth2AuthorizationConsentServiceImpl
 
     entity.setRegisteredClientId(authorizationConsent.getRegisteredClientId());
     entity.setPrincipalName(authorizationConsent.getPrincipalName());
+    entity.setName(
+        org.apache.commons.lang3.StringUtils.left(authorizationConsent.getPrincipalName(), 230));
 
     Set<String> authorities = new HashSet<>();
     for (GrantedAuthority authority : authorizationConsent.getAuthorities()) {

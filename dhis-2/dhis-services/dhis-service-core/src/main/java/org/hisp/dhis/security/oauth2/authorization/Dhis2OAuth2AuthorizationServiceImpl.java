@@ -350,6 +350,8 @@ public class Dhis2OAuth2AuthorizationServiceImpl
 
     entity.setRegisteredClientId(authorization.getRegisteredClientId());
     entity.setPrincipalName(authorization.getPrincipalName());
+    entity.setName(
+        org.apache.commons.lang3.StringUtils.left(authorization.getPrincipalName(), 230));
     entity.setAuthorizationGrantType(authorization.getAuthorizationGrantType().getValue());
     entity.setAuthorizedScopes(
         StringUtils.collectionToCommaDelimitedString(authorization.getAuthorizedScopes()));
