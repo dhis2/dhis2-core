@@ -50,6 +50,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.bundle.persister.CommitService;
 import org.hisp.dhis.tracker.imports.bundle.persister.PersistenceException;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
+import org.hisp.dhis.tracker.imports.bundle.persister.TrackerPersister;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
@@ -113,23 +114,28 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   @Nonnull
   @Override
   @Transactional
-  public PersistenceReport commit(@Nonnull TrackerBundle bundle) {
+  public CommitResult commit(@Nonnull TrackerBundle bundle) {
     if (TrackerBundleMode.VALIDATE == bundle.getImportMode()) {
-      return PersistenceReport.emptyReport();
+      return new CommitResult(PersistenceReport.emptyReport(), List.of());
     }
 
-    Map<TrackerType, TrackerTypeReport> reportMap =
-        Map.of(
-            TrackerType.TRACKED_ENTITY,
+    List<TrackerPersister.PersistResult> results =
+        List.of(
             commitService.getTrackerPersister().persist(entityManager, bundle),
-            TrackerType.ENROLLMENT,
             commitService.getEnrollmentPersister().persist(entityManager, bundle),
-            TrackerType.EVENT,
             commitService.getEventPersister().persist(entityManager, bundle),
-            TrackerType.RELATIONSHIP,
             commitService.getRelationshipPersister().persist(entityManager, bundle));
 
-    return new PersistenceReport(reportMap);
+    Map<TrackerType, TrackerTypeReport> reportMap =
+        results.stream()
+            .collect(
+                java.util.stream.Collectors.toMap(
+                    r -> r.report().getTrackerType(), TrackerPersister.PersistResult::report));
+
+    List<TrackerNotificationDataBundle> notificationBundles =
+        results.stream().flatMap(r -> r.notificationBundles().stream()).toList();
+
+    return new CommitResult(new PersistenceReport(reportMap), notificationBundles);
   }
 
   @Override

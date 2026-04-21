@@ -48,6 +48,7 @@ import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.proxy.HibernateProxy;
 import org.hisp.dhis.artemis.audit.AuditManager;
+import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.audit.AuditType;
@@ -71,6 +72,8 @@ public abstract class AbstractHibernateListener {
 
   protected final AuditObjectFactory objectFactory;
 
+  private final AuditMatrix auditMatrix;
+
   private final UsernameSupplier usernameSupplier;
 
   private final SchemaService schemaService;
@@ -78,15 +81,18 @@ public abstract class AbstractHibernateListener {
   public AbstractHibernateListener(
       AuditManager auditManager,
       AuditObjectFactory objectFactory,
+      AuditMatrix auditMatrix,
       UsernameSupplier usernameSupplier,
       SchemaService schemaService) {
     checkNotNull(auditManager);
     checkNotNull(objectFactory);
+    checkNotNull(auditMatrix);
     checkNotNull(usernameSupplier);
     checkNotNull(schemaService);
 
     this.auditManager = auditManager;
     this.objectFactory = objectFactory;
+    this.auditMatrix = auditMatrix;
     this.usernameSupplier = usernameSupplier;
     this.schemaService = schemaService;
   }
@@ -97,10 +103,10 @@ public abstract class AbstractHibernateListener {
       Auditable auditable =
           AnnotationUtils.getAnnotation(HibernateProxyUtils.getRealClass(object), Auditable.class);
 
-      boolean shouldAudit =
+      boolean isAuditableEventType =
           Arrays.stream(auditable.eventType()).anyMatch(s -> s.contains("all") || s.contains(type));
 
-      if (shouldAudit) {
+      if (isAuditableEventType && auditMatrix.isEnabled(auditable.scope(), getAuditType())) {
         return Optional.of(auditable);
       }
     }

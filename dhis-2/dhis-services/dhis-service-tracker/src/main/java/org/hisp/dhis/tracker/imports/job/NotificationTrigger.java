@@ -36,5 +36,18 @@ public enum NotificationTrigger {
   ENROLLMENT,
   ENROLLMENT_COMPLETION,
   EVENT_COMPLETION,
-  NONE
+  NONE;
+
+  /**
+   * Returns the corresponding {@link org.hisp.dhis.program.notification.NotificationTrigger} used
+   * on {@link org.hisp.dhis.program.notification.ProgramNotificationTemplate}.
+   */
+  public org.hisp.dhis.program.notification.NotificationTrigger toTemplateTrigger() {
+    return switch (this) {
+      case ENROLLMENT -> org.hisp.dhis.program.notification.NotificationTrigger.ENROLLMENT;
+      case ENROLLMENT_COMPLETION, EVENT_COMPLETION ->
+          org.hisp.dhis.program.notification.NotificationTrigger.COMPLETION;
+      case NONE -> null;
+    };
+  }
 }

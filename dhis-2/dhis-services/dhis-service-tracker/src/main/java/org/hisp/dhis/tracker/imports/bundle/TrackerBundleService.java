@@ -43,6 +43,9 @@ import org.hisp.dhis.user.UserDetails;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface TrackerBundleService {
+  record CommitResult(
+      PersistenceReport report, List<TrackerNotificationDataBundle> notificationBundles) {}
+
   /**
    * Creates and prepares tracker bundle.
    *
@@ -69,7 +72,7 @@ public interface TrackerBundleService {
    * @param bundle TrackerBundle to commit.
    */
   @Nonnull
-  PersistenceReport commit(@Nonnull TrackerBundle bundle);
+  CommitResult commit(@Nonnull TrackerBundle bundle);
 
   /**
    * Carry out notifications for TrackerImporter.
