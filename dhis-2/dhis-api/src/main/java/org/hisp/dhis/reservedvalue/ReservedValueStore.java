@@ -39,12 +39,9 @@ public interface ReservedValueStore extends GenericStore<ReservedValue> {
 
   int DELETE_BATCH_SIZE = 500_000;
 
-  void bulkInsertReservedValues(List<ReservedValue> toAdd);
-
   void reserveValues(List<ReservedValue> toAdd);
 
-  List<ReservedValue> getAvailableValues(
-      ReservedValue reservedValue, List<String> values, String ownerObject);
+  List<String> insertAvailableValues(ReservedValue template, List<String> candidates, int limit);
 
   int getNumberOfUsedValues(ReservedValue reservedValue);
 
