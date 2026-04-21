@@ -230,9 +230,14 @@ public class Dhis2OAuth2ClientServiceImpl
       entity.setUid(CodeGenerator.generateUid());
     }
 
+    // Spring's RegisteredClient.Builder.build() defaults clientName to the
+    // internal id when not set explicitly, so getClientName() is never null.
+    // Treat "clientName equals id" as "no name supplied" and fall back to
+    // clientId for a meaningful display name.
+    String clientName = registeredClient.getClientName();
     entity.setName(
-        registeredClient.getClientName() != null
-            ? registeredClient.getClientName()
+        clientName != null && !clientName.equals(registeredClient.getId())
+            ? clientName
             : registeredClient.getClientId());
     entity.setClientId(registeredClient.getClientId());
     entity.setClientIdIssuedAt(

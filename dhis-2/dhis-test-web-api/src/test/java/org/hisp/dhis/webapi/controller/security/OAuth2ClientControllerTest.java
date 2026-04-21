@@ -31,9 +31,10 @@ package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
@@ -51,17 +52,23 @@ class OAuth2ClientControllerTest extends H2ControllerIntegrationTestBase {
   void testListOrderedByDisplayName() {
     // Reproduces the bug where ORDER BY displayName on an entity without a
     // persisted `name` column (pre-fix Dhis2OAuth2Client) crashed with
-    // IllegalArgumentException inside JpaCriteriaQueryEngine.
-    createClient("client-b", "Bravo Client");
-    createClient("client-a", "Alpha Client");
+    // IllegalArgumentException inside JpaCriteriaQueryEngine. Filter by our
+    // known prefix to ignore any system-seeded clients (e.g. DCR registrar).
+    createClient("list-test-b", "Bravo Client");
+    createClient("list-test-a", "Alpha Client");
 
     JsonObject response =
-        GET("/oAuth2Clients?order=displayName&fields=id,name").content(HttpStatus.OK);
-    JsonList<JsonObject> clients = response.getList("oAuth2Clients", JsonObject.class);
+        GET("/oAuth2Clients?order=displayName&fields=id,name,clientId").content(HttpStatus.OK);
+    List<String> names =
+        response.getList("oAuth2Clients", JsonObject.class).stream()
+            .filter(c -> c.getString("clientId").string().startsWith("list-test-"))
+            .map(c -> c.getString("name").string())
+            .toList();
 
-    assertEquals(2, clients.size());
-    assertEquals("Alpha Client", clients.get(0).getString("name").string());
-    assertEquals("Bravo Client", clients.get(1).getString("name").string());
+    assertTrue(
+        names.indexOf("Alpha Client") >= 0
+            && names.indexOf("Alpha Client") < names.indexOf("Bravo Client"),
+        "Expected Alpha before Bravo, got: " + names);
   }
 
   @Test
