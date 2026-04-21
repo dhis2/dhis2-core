@@ -75,6 +75,7 @@ public class OAuth2ClientController
 
   @Override
   protected void preCreateEntity(Dhis2OAuth2Client entity) throws ConflictException {
+    rejectReservedClientId(entity.getClientId(), "create a client with");
     validateAuthorizationGrantTypes(entity);
     validateRedirectUris(entity);
     defaultNameFromClientId(entity);
@@ -95,6 +96,12 @@ public class OAuth2ClientController
   protected void preUpdateEntity(Dhis2OAuth2Client entity, Dhis2OAuth2Client newEntity)
       throws ConflictException {
     rejectIfSystemRegistrar(entity, "update");
+    // Block rename-to-reserved: an existing client being edited to claim the
+    // reserved clientId would otherwise get the same squatting effect as creating
+    // one directly.
+    if (entity == null || !entity.getClientId().equals(newEntity.getClientId())) {
+      rejectReservedClientId(newEntity.getClientId(), "rename a client to");
+    }
     validateAuthorizationGrantTypes(newEntity);
     validateRedirectUris(newEntity);
     preserveNameOnUpdate(entity, newEntity);
@@ -131,6 +138,25 @@ public class OAuth2ClientController
           "Cannot "
               + operation
               + " the system-managed DCR registrar client ("
+              + OAuth2DcrService.SYSTEM_REGISTRAR_CLIENTID
+              + ").");
+    }
+  }
+
+  /**
+   * Reject any user attempt to use the reserved DCR system-registrar clientId via the REST API.
+   * Without this, an admin could squat the reserved clientId while the authorization server is
+   * disabled — then when {@link OAuth2DcrService#init()} later runs, {@code findByClientId(...)}
+   * would return the squatter's record instead of creating its own, and DCR would mint initial
+   * access tokens through a client whose secret / redirect URIs the squatter controls.
+   */
+  private static void rejectReservedClientId(String clientId, String operation)
+      throws ConflictException {
+    if (OAuth2DcrService.SYSTEM_REGISTRAR_CLIENTID.equals(clientId)) {
+      throw new ConflictException(
+          "Cannot "
+              + operation
+              + " the reserved DCR system-registrar clientId ("
               + OAuth2DcrService.SYSTEM_REGISTRAR_CLIENTID
               + ").");
     }

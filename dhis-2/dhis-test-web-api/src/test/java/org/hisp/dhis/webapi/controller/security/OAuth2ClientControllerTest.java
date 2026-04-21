@@ -34,8 +34,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
@@ -127,11 +129,49 @@ class OAuth2ClientControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testCannotCreateWithReservedSystemRegistrarClientId() {
+    // If someone could squat the reserved clientId while the authorization
+    // server is off, OAuth2DcrService.init() would later find their record,
+    // skip creating its own, and DCR would mint initial access tokens through
+    // a client whose secret the squatter controls.
+    assertStatus(
+        HttpStatus.CONFLICT,
+        POST(
+            "/oAuth2Clients",
+            "{"
+                + "'clientId':'system-dcr-registrar-client',"
+                + "'clientSecret':'secret',"
+                + "'clientAuthenticationMethods':'client_secret_basic',"
+                + "'authorizationGrantTypes':'authorization_code',"
+                + "'redirectUris':'https://example.com/callback',"
+                + "'scopes':'openid'"
+                + "}"));
+  }
+
+  @Test
+  void testCannotRenameExistingClientToReservedClientId() {
+    String uid = createClient("legit-client", "Legit Client");
+    assertStatus(
+        HttpStatus.CONFLICT,
+        PUT(
+            "/oAuth2Clients/" + uid,
+            "{"
+                + "'clientId':'system-dcr-registrar-client',"
+                + "'clientSecret':'secret',"
+                + "'clientAuthenticationMethods':'client_secret_basic',"
+                + "'authorizationGrantTypes':'authorization_code',"
+                + "'redirectUris':'https://example.com/callback',"
+                + "'scopes':'openid'"
+                + "}"));
+  }
+
+  @Test
   void testSystemRegistrarHiddenFromList() {
     // The DCR system registrar is server-managed. Admins must not see it in
-    // the settings list. Create a same-named client via the store path to
-    // simulate OAuth2DcrService.init(), then assert the list filters it out.
-    createClient("system-dcr-registrar-client", "System Registrar");
+    // the settings list. Persist via manager directly to simulate what
+    // OAuth2DcrService.init() does at startup, then assert the list filters
+    // it out.
+    persistSystemRegistrarFixture();
     createClient("visible-client", "Visible");
 
     List<String> clientIds =
@@ -151,7 +191,7 @@ class OAuth2ClientControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testSystemRegistrarCannotBeUpdated() {
-    String uid = createClient("system-dcr-registrar-client", "System Registrar");
+    String uid = persistSystemRegistrarFixture();
     assertStatus(
         HttpStatus.CONFLICT,
         PUT(
@@ -168,8 +208,28 @@ class OAuth2ClientControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testSystemRegistrarCannotBeDeleted() {
-    String uid = createClient("system-dcr-registrar-client", "System Registrar");
+    String uid = persistSystemRegistrarFixture();
     assertStatus(HttpStatus.CONFLICT, DELETE("/oAuth2Clients/" + uid));
+  }
+
+  /**
+   * Persist a client with the reserved system-registrar clientId via the store layer, bypassing the
+   * controller's rejection of the reserved clientId. Simulates what {@code OAuth2DcrService.init()}
+   * does at startup on a fresh database.
+   */
+  private String persistSystemRegistrarFixture() {
+    Dhis2OAuth2Client client = new Dhis2OAuth2Client();
+    client.setAutoFields();
+    client.setUid(CodeGenerator.generateUid());
+    client.setName("System Registrar");
+    client.setClientId("system-dcr-registrar-client");
+    client.setClientSecret("secret");
+    client.setClientAuthenticationMethods("client_secret_basic");
+    client.setAuthorizationGrantTypes("client_credentials");
+    client.setRedirectUris("https://example.com/callback");
+    client.setScopes("openid");
+    manager.save(client);
+    return client.getUid();
   }
 
   @Test
