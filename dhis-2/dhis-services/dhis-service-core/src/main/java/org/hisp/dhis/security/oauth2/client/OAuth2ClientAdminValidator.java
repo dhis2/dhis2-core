@@ -41,6 +41,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.setting.SystemSettingsService;
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.stereotype.Component;
 
@@ -105,7 +106,8 @@ public class OAuth2ClientAdminValidator {
     if (entity.getAuthorizationGrantTypes() == null) {
       return;
     }
-    for (String grantType : entity.getAuthorizationGrantTypes().split(",")) {
+    String[] types = entity.getAuthorizationGrantTypes().split(",");
+    for (String grantType : types) {
       String trimmed = grantType.trim();
       if (trimmed.isEmpty()) {
         continue;
@@ -131,34 +133,36 @@ public class OAuth2ClientAdminValidator {
     if (entity.getRedirectUris() == null) {
       return;
     }
-    Set<String> customSchemeAllowList = null;
-    for (String uri : entity.getRedirectUris().split(",")) {
+    Set<String> customSchemeAllowList = parseRedirectAllowList();
+    String[] redirectUris = entity.getRedirectUris().split(",");
+    for (String uri : redirectUris) {
       String trimmed = uri.trim();
       if (trimmed.isEmpty()) {
         continue;
       }
-      URI parsed;
-      try {
-        parsed = new URI(trimmed);
-      } catch (URISyntaxException e) {
-        throw new ConflictException("Invalid redirect URI: " + trimmed);
-      }
-      String scheme = parsed.getScheme();
-      if (scheme == null || scheme.isEmpty()) {
-        throw new ConflictException("Invalid redirect URI: " + trimmed);
-      }
-      String lowerScheme = scheme.toLowerCase(Locale.ROOT);
+      String lowerScheme = getScheme(trimmed).toLowerCase(Locale.ROOT);
       if ("http".equals(lowerScheme) || "https".equals(lowerScheme)) {
         continue;
-      }
-      if (customSchemeAllowList == null) {
-        customSchemeAllowList = parseRedirectAllowList();
       }
       if (!customSchemeAllowList.contains(trimmed)) {
         throw new ConflictException(
             "Redirect URI not in deviceEnrollmentRedirectAllowlist: " + trimmed);
       }
     }
+  }
+
+  private static @NonNull String getScheme(String trimmed) throws ConflictException {
+    URI parsed;
+    try {
+      parsed = new URI(trimmed);
+    } catch (URISyntaxException e) {
+      throw new ConflictException("Invalid redirect URI: " + trimmed);
+    }
+    String scheme = parsed.getScheme();
+    if (scheme == null || scheme.isEmpty()) {
+      throw new ConflictException("Invalid redirect URI: " + trimmed);
+    }
+    return scheme;
   }
 
   /**
