@@ -153,29 +153,29 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void getIfReservedValuesReturnsReservedValue() {
+  void insertAvailableValuesSkipsAlreadyReserved() {
     ReservedValue rv = reservedValue.value(prog001).build();
     saveReservedValue(rv);
-    List<ReservedValue> res =
-        reservedValueStore.getAvailableValues(
-            rv, Lists.newArrayList(rv.getValue()), rv.getOwnerObject());
-    assertEquals(0, res.size());
+    List<String> inserted =
+        reservedValueStore.insertAvailableValues(rv, Lists.newArrayList(prog001), 10);
+    assertEquals(0, inserted.size());
+    assertEquals(1, reservedValueStore.getCount());
   }
 
   @Test
-  void getAvailableValuesWhenNotReserved() {
+  void insertAvailableValuesInsertsOnlyAvailable() {
     ReservedValue rv = reservedValue.value(prog001).build();
     saveReservedValue(rv);
-    assertEquals(1, reservedValueStore.getAll().size());
-    List<ReservedValue> res =
-        reservedValueStore.getAvailableValues(
-            rv, Lists.newArrayList(prog001, prog002), rv.getOwnerObject());
-    assertEquals(1, res.size());
-    assertTrue(res.stream().anyMatch(r -> r.getValue().equals(prog002)));
+    List<String> inserted =
+        reservedValueStore.insertAvailableValues(rv, Lists.newArrayList(prog001, prog002), 10);
+    assertEquals(1, inserted.size());
+    assertTrue(inserted.contains(prog002));
+    assertEquals(2, reservedValueStore.getCount());
   }
 
   @Test
-  void getAvailableValuesWhenAlreadyUsed() throws TextPatternParser.TextPatternParsingException {
+  void insertAvailableValuesSkipsAlreadyUsedInTeav()
+      throws TextPatternParser.TextPatternParsingException {
     OrganisationUnit ou = createOrganisationUnit("OU");
     organisationUnitStore.save(ou);
 
@@ -195,16 +195,13 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     trackedEntityAttributeValueService.addTrackedEntityAttributeValue(teav);
     ReservedValue rv = reservedValue.value(prog001).build();
     rv.setTrackedEntityAttributeId(teav.getAttribute().getId());
-    assertEquals(
-        1,
-        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity).size());
-    assertEquals(0, reservedValueStore.getAll().size());
-    List<ReservedValue> res =
-        reservedValueStore.getAvailableValues(
-            rv, Lists.newArrayList(prog001, prog002), rv.getOwnerObject());
-    assertFalse(res.stream().anyMatch(r -> r.getValue().equals(prog001)));
-    assertTrue(res.stream().anyMatch(r -> r.getValue().equals(prog002)));
-    assertEquals(1, res.size());
+    dbmsManager.clearSession();
+
+    List<String> inserted =
+        reservedValueStore.insertAvailableValues(rv, Lists.newArrayList(prog001, prog002), 10);
+    assertFalse(inserted.contains(prog001));
+    assertTrue(inserted.contains(prog002));
+    assertEquals(1, inserted.size());
   }
 
   @Test

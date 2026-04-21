@@ -177,7 +177,6 @@ public class DefaultReservedValueService implements ReservedValueService {
         saveGeneratedValues(
             numberOfReservations - reservedValues.size(),
             reservedValues,
-            textPattern,
             reservedValue,
             isPersistable,
             resolvedPatterns);
@@ -240,23 +239,17 @@ public class DefaultReservedValueService implements ReservedValueService {
   private void saveGeneratedValues(
       int remainingValuesToReserve,
       List<ReservedValue> resultList,
-      TextPattern textPattern,
       ReservedValue reservedValue,
       boolean isPersistable,
       List<String> resolvedPatterns) {
     if (isPersistable) {
-      List<ReservedValue> availableValues =
-          reservedValueStore.getAvailableValues(
+      List<String> inserted =
+          reservedValueStore.insertAvailableValues(
               reservedValue,
               resolvedPatterns.stream().distinct().collect(Collectors.toList()),
-              textPattern.getOwnerObject().name());
-
-      List<ReservedValue> requiredValues =
-          availableValues.subList(0, Math.min(availableValues.size(), remainingValuesToReserve));
-
-      reservedValueStore.bulkInsertReservedValues(requiredValues);
-
-      resultList.addAll(requiredValues);
+              remainingValuesToReserve);
+      resultList.addAll(
+          inserted.stream().map(value -> reservedValue.toBuilder().value(value).build()).toList());
     } else {
       resultList.addAll(
           resolvedPatterns.stream()

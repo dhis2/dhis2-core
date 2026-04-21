@@ -34,6 +34,8 @@ import static org.hisp.dhis.common.Objects.TRACKEDENTITYATTRIBUTE;
 import static org.hisp.dhis.common.collection.CollectionUtils.isEmpty;
 
 import jakarta.persistence.EntityManager;
+import java.sql.PreparedStatement;
+import java.sql.Timestamp;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.query.Query;
@@ -69,43 +71,40 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
     this.batchHandlerFactory = batchHandlerFactory;
   }
 
+  private static final String INSERT_AVAILABLE_VALUES_SQL =
+      "INSERT INTO reservedvalue (ownerobject, owneruid, key, value, expirydate, created) "
+          + "SELECT ?, ?, ?, v, ?, ? FROM unnest(?) AS v "
+          + "WHERE NOT EXISTS ("
+          + "SELECT 1 FROM trackedentityattributevalue "
+          + "WHERE trackedentityattributeid = ? AND LOWER(value) = LOWER(v)) "
+          + "AND NOT EXISTS ("
+          + "SELECT 1 FROM reservedvalue "
+          + "WHERE ownerobject = ? AND owneruid = ? AND key = ? AND LOWER(value) = LOWER(v)) "
+          + "LIMIT ? ON CONFLICT DO NOTHING RETURNING value";
+
   @Override
-  public List<ReservedValue> getAvailableValues(
-      ReservedValue reservedValue, List<String> values, String ownerObject) {
-    if (isEmpty(values) || !reservedValue.getOwnerObject().equals(ownerObject)) {
+  public List<String> insertAvailableValues(
+      ReservedValue template, List<String> candidates, int limit) {
+    if (isEmpty(candidates)) {
       return List.of();
     }
-    List<String> availableValues = getIfAvailable(reservedValue, values);
-
-    return availableValues.stream()
-        .map(value -> reservedValue.toBuilder().value(value).build())
-        .toList();
-  }
-
-  @Override
-  public void bulkInsertReservedValues(List<ReservedValue> toAdd) {
-    try (BatchHandler<ReservedValue> batchHandler =
-        batchHandlerFactory.createBatchHandler(ReservedValueBatchHandler.class).init()) {
-      toAdd.forEach(batchHandler::addObject);
-      batchHandler.flush();
-    } catch (Exception e) {
-      log.error("Failed to bulk insert reserved values", e);
-    }
-  }
-
-  private List<String> getIfAvailable(ReservedValue reservedValue, List<String> values) {
-
-    List<?> teavOrReservedValues =
-        getSession()
-            .createNamedQuery("getRandomGeneratedValuesNotAvailableNamedQuery")
-            .setParameter("teaId", reservedValue.getTrackedEntityAttributeId())
-            .setParameter("ownerObject", reservedValue.getOwnerObject())
-            .setParameter("ownerUid", reservedValue.getOwnerUid())
-            .setParameter("key", reservedValue.getKey())
-            .setParameter("values", values.stream().map(String::toLowerCase).toList())
-            .list();
-
-    return values.stream().filter(rv -> !teavOrReservedValues.contains(rv)).toList();
+    return jdbcTemplate.query(
+        conn -> {
+          PreparedStatement ps = conn.prepareStatement(INSERT_AVAILABLE_VALUES_SQL);
+          ps.setString(1, template.getOwnerObject());
+          ps.setString(2, template.getOwnerUid());
+          ps.setString(3, template.getKey());
+          ps.setTimestamp(4, new Timestamp(template.getExpiryDate().getTime()));
+          ps.setTimestamp(5, new Timestamp(template.getCreated().getTime()));
+          ps.setArray(6, conn.createArrayOf("text", candidates.toArray()));
+          ps.setLong(7, template.getTrackedEntityAttributeId());
+          ps.setString(8, template.getOwnerObject());
+          ps.setString(9, template.getOwnerUid());
+          ps.setString(10, template.getKey());
+          ps.setInt(11, limit);
+          return ps;
+        },
+        (rs, rowNum) -> rs.getString("value"));
   }
 
   @Override

@@ -33,9 +33,8 @@ import static java.util.Calendar.DATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.anyInt;
-import static org.mockito.Mockito.anyList;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -157,7 +156,7 @@ class ReservedValueServiceTest {
                 futureDate)
             .size());
     verify(reservedValueStore, times(0)).reserveValues(any());
-    verify(reservedValueStore, times(0)).bulkInsertReservedValues(anyList());
+    verify(reservedValueStore, times(0)).insertAvailableValues(any(), any(), anyInt());
   }
 
   @Test
@@ -165,12 +164,8 @@ class ReservedValueServiceTest {
       throws TextPatternParser.TextPatternParsingException,
           TextPatternGenerationException,
           ReserveValueException {
-    when(reservedValueStore.getAvailableValues(any(), any(), any()))
-        .thenReturn(
-            Arrays.asList(
-                ReservedValue.builder().build(),
-                ReservedValue.builder().build(),
-                ReservedValue.builder().build()));
+    when(reservedValueStore.insertAvailableValues(any(), any(), anyInt()))
+        .thenReturn(Arrays.asList("TEST-AAA", "TEST-BBB"));
     assertEquals(
         2,
         reservedValueService
@@ -180,36 +175,16 @@ class ReservedValueServiceTest {
                 new HashMap<>(),
                 futureDate)
             .size());
-    verify(reservedValueStore, times(1)).getAvailableValues(any(), any(), any());
-    verify(reservedValueStore, times(1)).bulkInsertReservedValues(anyList());
+    verify(reservedValueStore, times(1)).insertAvailableValues(any(), any(), anyInt());
   }
 
   @Test
-  void shouldRemoveDuplicatesReserveValuesRandomPattern()
+  void shouldReserveExactNumberOfValuesRandomPattern()
       throws TextPatternParser.TextPatternParsingException,
           TextPatternGenerationException,
           ReserveValueException {
-    when(reservedValueStore.getAvailableValues(any(), any(), any()))
-        .thenReturn(
-            Arrays.asList(
-                ReservedValue.builder()
-                    .ownerUid(ownerUid)
-                    .ownerObject(Objects.TRACKEDENTITYATTRIBUTE.name())
-                    .key("key")
-                    .value("value")
-                    .build(),
-                ReservedValue.builder()
-                    .ownerUid(ownerUid)
-                    .ownerObject(Objects.TRACKEDENTITYATTRIBUTE.name())
-                    .key("key")
-                    .value("value")
-                    .build(),
-                ReservedValue.builder()
-                    .ownerUid("owner1")
-                    .ownerObject("ownerObject1")
-                    .key("key1")
-                    .value("value")
-                    .build()));
+    when(reservedValueStore.insertAvailableValues(any(), any(), anyInt()))
+        .thenReturn(Arrays.asList("TEST-AAA", "TEST-BBB"));
     assertEquals(
         2,
         reservedValueService
@@ -219,9 +194,7 @@ class ReservedValueServiceTest {
                 new HashMap<>(),
                 futureDate)
             .size());
-    verify(reservedValueStore, times(1)).getAvailableValues(any(), any(), any());
-    verify(reservedValueStore, times(1))
-        .bulkInsertReservedValues(argThat(list -> list.size() == 2));
+    verify(reservedValueStore, times(1)).insertAvailableValues(any(), any(), eq(2));
   }
 
   @Test
