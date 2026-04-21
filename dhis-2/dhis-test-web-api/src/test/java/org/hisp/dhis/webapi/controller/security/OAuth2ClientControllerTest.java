@@ -105,6 +105,29 @@ class OAuth2ClientControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testAcceptsCustomSchemeRedirectUri() {
+    // RFC 8252 — native apps legitimately use custom schemes for OAuth2
+    // redirect URIs (e.g. dhis2oauth://oauth for the DHIS2 Android app).
+    // The validator must accept these, not just http/https.
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/oAuth2Clients",
+                "{"
+                    + "'clientId':'client-native',"
+                    + "'clientSecret':'secret',"
+                    + "'clientAuthenticationMethods':'client_secret_basic',"
+                    + "'authorizationGrantTypes':'authorization_code,refresh_token',"
+                    + "'redirectUris':'dhis2oauth://oauth',"
+                    + "'scopes':'openid'"
+                    + "}"));
+
+    JsonObject client = GET("/oAuth2Clients/{id}", uid).content(HttpStatus.OK);
+    assertEquals("dhis2oauth://oauth", client.getString("redirectUris").string());
+  }
+
+  @Test
   void testUpdateAllowsClientCredentialsGrantType() {
     // The DCR system registrar client is created with client_credentials;
     // editing it via the UI must not be rejected by the grant-type validator.

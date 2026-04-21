@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.webapi.controller.security.oauth;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.query.GetObjectListParams;
@@ -138,27 +140,29 @@ public class OAuth2ClientController
   }
 
   /**
-   * Validates that all redirect URIs in the entity are valid URLs. Special handling is done for
-   * localhost URLs to allow for development environments.
+   * Validates that all redirect URIs parse as well-formed URIs. Accepts http/https as well as
+   * custom schemes (e.g. {@code dhis2oauth://oauth}) which are legitimate OAuth2 redirect targets
+   * for native apps per RFC 8252.
    *
    * @param entity the OAuth2 client entity to validate
-   * @throws ConflictException if any invalid URI is found
+   * @throws ConflictException if any redirect URI cannot be parsed
    */
   private void validateRedirectUris(Dhis2OAuth2Client entity) throws ConflictException {
-    if (entity.getRedirectUris() != null) {
-      String[] uris = entity.getRedirectUris().split(",");
-      for (String uri : uris) {
-        String trimmedUri = uri.trim();
-        if (trimmedUri.isEmpty()) {
-          continue;
-        }
-        // Special handling for localhost URLs which are valid for development
-        boolean isLocalhost =
-            trimmedUri.startsWith("http://localhost") || trimmedUri.startsWith("https://localhost");
-
-        if (!isLocalhost && !org.hisp.dhis.system.util.ValidationUtils.urlIsValid(trimmedUri)) {
+    if (entity.getRedirectUris() == null) {
+      return;
+    }
+    for (String uri : entity.getRedirectUris().split(",")) {
+      String trimmedUri = uri.trim();
+      if (trimmedUri.isEmpty()) {
+        continue;
+      }
+      try {
+        URI parsed = new URI(trimmedUri);
+        if (parsed.getScheme() == null || parsed.getScheme().isEmpty()) {
           throw new ConflictException("Invalid redirect URI: " + trimmedUri);
         }
+      } catch (URISyntaxException e) {
+        throw new ConflictException("Invalid redirect URI: " + trimmedUri);
       }
     }
   }
