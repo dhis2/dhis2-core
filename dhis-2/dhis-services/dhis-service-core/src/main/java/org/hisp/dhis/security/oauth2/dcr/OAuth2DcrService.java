@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.security.oauth2.dcr;
 
+import static org.hisp.dhis.security.oauth2.OAuth2Constants.SYSTEM_REGISTRAR_CLIENTID;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -87,15 +89,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Conditional(AuthorizationServerEnabledCondition.class)
 public class OAuth2DcrService {
-
-  /**
-   * @deprecated use {@link
-   *     org.hisp.dhis.security.oauth2.OAuth2Constants#SYSTEM_REGISTRAR_CLIENTID}. Kept as a
-   *     re-export for callers already pointed at this class.
-   */
-  @Deprecated
-  public static final String SYSTEM_REGISTRAR_CLIENTID =
-      org.hisp.dhis.security.oauth2.OAuth2Constants.SYSTEM_REGISTRAR_CLIENTID;
 
   @Autowired private Dhis2OAuth2ClientService oAuth2ClientService;
   @Autowired private Dhis2OAuth2AuthorizationService dhis2OAuth2AuthorizationService;
