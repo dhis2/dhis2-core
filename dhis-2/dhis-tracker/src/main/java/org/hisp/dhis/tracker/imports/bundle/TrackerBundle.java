@@ -29,17 +29,16 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.AllArgsConstructor;
@@ -80,13 +79,13 @@ public class TrackerBundle {
   @Builder.Default private TrackerImportStrategy importStrategy = TrackerImportStrategy.CREATE;
 
   /** Should text pattern validation be skipped or not, default is not. */
-  @JsonProperty private boolean skipTextPatternValidation;
+  private boolean skipTextPatternValidation;
 
   /** Should side effects be skipped or not, default is not. */
-  @JsonProperty private boolean skipSideEffects;
+  private boolean skipSideEffects;
 
   /** Should rule engine call be skipped or not, default is to skip. */
-  @JsonProperty private boolean skipRuleEngine;
+  private boolean skipRuleEngine;
 
   /** Should import be treated as an atomic import (all or nothing). */
   @Builder.Default private AtomicMode atomicMode = AtomicMode.ALL;
@@ -112,6 +111,13 @@ public class TrackerBundle {
 
   /** Relationships to import. */
   @Builder.Default private List<Relationship> relationships = new ArrayList<>();
+
+  // Lazily-built UID indexes for O(1) lookups. Invalidated when entity lists change.
+  private Map<UID, TrackedEntity> trackedEntityByUid;
+  private Map<UID, Enrollment> enrollmentByUid;
+  private Map<UID, TrackerEvent> trackerEventByUid;
+  private Map<UID, SingleEvent> singleEventByUid;
+  private Map<UID, Relationship> relationshipByUid;
 
   /** Notifications for enrollments. */
   @Builder.Default private Map<UID, List<Notification>> enrollmentNotifications = new HashMap<>();
@@ -149,34 +155,99 @@ public class TrackerBundle {
     return resolvedStrategyMap;
   }
 
-  @Builder.Default @JsonIgnore private Set<UID> updatedTrackedEntities = new HashSet<>();
+  @Builder.Default private Set<UID> updatedTrackedEntities = new HashSet<>();
+
+  public void setTrackedEntities(List<TrackedEntity> trackedEntities) {
+    this.trackedEntities = trackedEntities;
+    this.trackedEntityByUid = null;
+  }
+
+  public void setEnrollments(List<Enrollment> enrollments) {
+    this.enrollments = enrollments;
+    this.enrollmentByUid = null;
+  }
+
+  public void setTrackerEvents(List<TrackerEvent> trackerEvents) {
+    this.trackerEvents = trackerEvents;
+    this.trackerEventByUid = null;
+  }
+
+  public void setSingleEvents(List<SingleEvent> singleEvents) {
+    this.singleEvents = singleEvents;
+    this.singleEventByUid = null;
+  }
+
+  public void setRelationships(List<Relationship> relationships) {
+    this.relationships = relationships;
+    this.relationshipByUid = null;
+  }
 
   public Optional<TrackedEntity> findTrackedEntityByUid(@Nonnull UID uid) {
-    return findById(this.trackedEntities, uid);
+    return Optional.ofNullable(getTrackedEntityByUid().get(uid));
   }
 
   public Optional<Enrollment> findEnrollmentByUid(@Nonnull UID uid) {
-    return findById(this.enrollments, uid);
+    return Optional.ofNullable(getEnrollmentByUid().get(uid));
   }
 
   public Optional<TrackerEvent> findTrackerEventByUid(@Nonnull UID uid) {
-    return findById(this.getTrackerEvents(), uid);
+    return Optional.ofNullable(getTrackerEventByUid().get(uid));
   }
 
   public Optional<SingleEvent> findSingleEventByUid(@Nonnull UID uid) {
-    return findById(this.getSingleEvents(), uid);
+    return Optional.ofNullable(getSingleEventByUid().get(uid));
   }
 
   public Optional<Event> findEventByUid(@Nonnull UID uid) {
-    return findById(this.getEvents(), uid);
+    Event event = getTrackerEventByUid().get(uid);
+    if (event == null) {
+      event = getSingleEventByUid().get(uid);
+    }
+    return Optional.ofNullable(event);
   }
 
   public Optional<Relationship> findRelationshipByUid(@Nonnull UID uid) {
-    return findById(this.relationships, uid);
+    return Optional.ofNullable(getRelationshipByUid().get(uid));
   }
 
-  private static <T extends TrackerDto> Optional<T> findById(List<T> entities, UID uid) {
-    return entities.stream().filter(e -> Objects.equals(e.getUID(), uid)).findFirst();
+  private Map<UID, TrackedEntity> getTrackedEntityByUid() {
+    if (trackedEntityByUid == null) {
+      trackedEntityByUid = indexByUid(trackedEntities);
+    }
+    return trackedEntityByUid;
+  }
+
+  private Map<UID, Enrollment> getEnrollmentByUid() {
+    if (enrollmentByUid == null) {
+      enrollmentByUid = indexByUid(enrollments);
+    }
+    return enrollmentByUid;
+  }
+
+  private Map<UID, TrackerEvent> getTrackerEventByUid() {
+    if (trackerEventByUid == null) {
+      trackerEventByUid = indexByUid(trackerEvents);
+    }
+    return trackerEventByUid;
+  }
+
+  private Map<UID, SingleEvent> getSingleEventByUid() {
+    if (singleEventByUid == null) {
+      singleEventByUid = indexByUid(singleEvents);
+    }
+    return singleEventByUid;
+  }
+
+  private Map<UID, Relationship> getRelationshipByUid() {
+    if (relationshipByUid == null) {
+      relationshipByUid = indexByUid(relationships);
+    }
+    return relationshipByUid;
+  }
+
+  private static <T extends TrackerDto> Map<UID, T> indexByUid(List<T> entities) {
+    return entities.stream()
+        .collect(Collectors.toMap(TrackerDto::getUID, Function.identity(), (a, b) -> a));
   }
 
   public Set<UID> getUpdatedTrackedEntities() {

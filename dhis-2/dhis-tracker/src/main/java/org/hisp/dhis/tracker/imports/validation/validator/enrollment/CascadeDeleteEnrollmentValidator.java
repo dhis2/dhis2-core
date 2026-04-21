@@ -27,12 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.util;
+package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
-public class Constants {
-  public static final int RESERVED_VALUE_GENERATION_ATTEMPT = 10;
+import static org.hisp.dhis.security.Authorities.F_ENROLLMENT_CASCADE_DELETE;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
 
-  public static final long RESERVED_VALUE_GENERATION_TIMEOUT = (1000 * 30);
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.Enrollment;
+import org.hisp.dhis.tracker.imports.validation.Reporter;
+import org.hisp.dhis.tracker.imports.validation.Validator;
+import org.hisp.dhis.user.UserDetails;
 
-  public static final int RANDOM_GENERATION_CHUNK = 10;
+class CascadeDeleteEnrollmentValidator implements Validator<Enrollment> {
+
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
+    UserDetails user = bundle.getUser();
+    boolean hasNonDeletedEvents =
+        bundle
+            .getPreheat()
+            .getEnrollmentsWithOneOrMoreNonDeletedEvent()
+            .contains(enrollment.getEnrollment());
+
+    if (hasNonDeletedEvents && !user.isAuthorized(F_ENROLLMENT_CASCADE_DELETE)) {
+      reporter.addError(enrollment, E1103, user.getUid(), enrollment.getEnrollment());
+    }
+  }
+
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return strategy.isDelete();
+  }
 }

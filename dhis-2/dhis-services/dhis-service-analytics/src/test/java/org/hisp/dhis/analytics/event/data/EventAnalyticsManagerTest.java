@@ -550,7 +550,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
         "ax.\"quarterly\", ax.\"ou\" from "
             + getTable(programA.getUid())
             + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA')"
-            + " and enrollmentstatus in ('ACTIVE','COMPLETED') and eventstatus in ('SCHEDULE') limit 101";
+            + " and ax.\"enrollmentstatus\" in ('ACTIVE','COMPLETED') and eventstatus in ('SCHEDULE') limit 101";
 
     assertSql(expected, sql.getValue());
   }
@@ -568,7 +568,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + getTable(programA.getUid())
             + " as ax "
             + "where (ps.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" "
-            + "in ('ouabcdefghA') and enrollmentstatus in ('ACTIVE','COMPLETED') limit 101";
+            + "in ('ouabcdefghA') and ax.\"enrollmentstatus\" in ('ACTIVE','COMPLETED') limit 101";
 
     assertSql(expected, sql.getValue());
   }
@@ -586,7 +586,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + getTable(programA.getUid())
             + " as ax "
             + "where ((( ax.\"lastupdated\" >= '2000-01-01' and ax.\"lastupdated\" < '2000-04-01') )) and ax.\"uidlevel1\" "
-            + "in ('ouabcdefghA') and enrollmentstatus in ('ACTIVE','COMPLETED') limit 101";
+            + "in ('ouabcdefghA') and ax.\"enrollmentstatus\" in ('ACTIVE','COMPLETED') limit 101";
 
     assertSql(expected, sql.getValue());
   }
