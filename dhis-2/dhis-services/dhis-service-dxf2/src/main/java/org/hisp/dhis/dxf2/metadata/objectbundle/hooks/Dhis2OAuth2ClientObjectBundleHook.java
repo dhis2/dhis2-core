@@ -58,7 +58,12 @@ public class Dhis2OAuth2ClientObjectBundleHook extends AbstractObjectBundleHook<
   public void validate(
       Dhis2OAuth2Client object, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
     if (bundle.isPersisted(object)) {
-      runAsErrorReport(() -> validator.rejectIfSystemRegistrar(object, "update"), addReports);
+      // On bulk UPDATE we intentionally do NOT run rejectIfSystemRegistrar: a
+      // round-trip metadata export/import legitimately re-sends the real
+      // system-dcr-registrar-client row, and rejecting it would break full
+      // metadata backups/restores. The admin still needs F_OAUTH2_CLIENT_MANAGE
+      // + F_METADATA_IMPORT to reach this path. The REST PUT path keeps the
+      // strict check so the settings UI can't touch the registrar directly.
       Dhis2OAuth2Client persisted = bundle.getPreheat().get(bundle.getPreheatIdentifier(), object);
       if (persisted == null || !persisted.getClientId().equals(object.getClientId())) {
         runAsErrorReport(
