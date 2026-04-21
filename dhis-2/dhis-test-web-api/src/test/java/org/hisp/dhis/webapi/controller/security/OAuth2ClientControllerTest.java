@@ -72,6 +72,28 @@ class OAuth2ClientControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testSchemaValidationAcceptsMissingName() {
+    // The settings UI POSTs a payload without `name` to /api/schemas/oAuth2Client
+    // for pre-validation before the real create. That endpoint calls the schema
+    // validator directly (no controller hook), so the `name` property must not
+    // be marked required in the schema. The controller still defaults name to
+    // clientId on the actual POST.
+    JsonObject response =
+        POST(
+                "/schemas/oAuth2Client",
+                "{"
+                    + "'clientId':'schema-probe',"
+                    + "'clientSecret':'secret',"
+                    + "'clientAuthenticationMethods':'client_secret_basic',"
+                    + "'authorizationGrantTypes':'authorization_code',"
+                    + "'redirectUris':'https://example.com/callback',"
+                    + "'scopes':'openid'"
+                    + "}")
+            .content(HttpStatus.OK);
+    assertEquals("OK", response.getString("status").string());
+  }
+
+  @Test
   void testCreatePersistsName() {
     String uid = createClient("client-c", "Charlie Client");
 
@@ -102,6 +124,83 @@ class OAuth2ClientControllerTest extends H2ControllerIntegrationTestBase {
 
     JsonObject client = GET("/oAuth2Clients/{id}", uid).content(HttpStatus.OK);
     assertEquals("Original Name", client.getString("name").string());
+  }
+
+  @Test
+  void testRejectsJavascriptSchemeRedirectUri() {
+    // Spring Authorization Server emits Location: <storedRedirectUri>?code=...
+    // after exact-string match. A stored javascript: URI would execute in the
+    // victim's browser. Must be rejected at save time.
+    assertStatus(
+        HttpStatus.CONFLICT,
+        POST(
+            "/oAuth2Clients",
+            "{"
+                + "'clientId':'client-js',"
+                + "'clientSecret':'secret',"
+                + "'clientAuthenticationMethods':'client_secret_basic',"
+                + "'authorizationGrantTypes':'authorization_code',"
+                + "'redirectUris':'javascript:alert(1)',"
+                + "'scopes':'openid'"
+                + "}"));
+  }
+
+  @Test
+  void testRejectsDataSchemeRedirectUri() {
+    assertStatus(
+        HttpStatus.CONFLICT,
+        POST(
+            "/oAuth2Clients",
+            "{"
+                + "'clientId':'client-data',"
+                + "'clientSecret':'secret',"
+                + "'clientAuthenticationMethods':'client_secret_basic',"
+                + "'authorizationGrantTypes':'authorization_code',"
+                + "'redirectUris':'data:text/html,<script>fetch(\"//x\")</script>',"
+                + "'scopes':'openid'"
+                + "}"));
+  }
+
+  @Test
+  void testRejectsFileSchemeRedirectUri() {
+    assertStatus(
+        HttpStatus.CONFLICT,
+        POST(
+            "/oAuth2Clients",
+            "{"
+                + "'clientId':'client-file',"
+                + "'clientSecret':'secret',"
+                + "'clientAuthenticationMethods':'client_secret_basic',"
+                + "'authorizationGrantTypes':'authorization_code',"
+                + "'redirectUris':'file:///etc/passwd',"
+                + "'scopes':'openid'"
+                + "}"));
+  }
+
+  @Test
+  void testDefaultNameTruncatesLongClientId() {
+    // clientId is varchar(255); persisted name is varchar(230). When the UI
+    // omits name, the controller defaults it to clientId — must truncate so
+    // the persist doesn't blow up with value-too-long.
+    String longClientId = "c".repeat(250);
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/oAuth2Clients",
+                "{"
+                    + "'clientId':'"
+                    + longClientId
+                    + "',"
+                    + "'clientSecret':'secret',"
+                    + "'clientAuthenticationMethods':'client_secret_basic',"
+                    + "'authorizationGrantTypes':'authorization_code',"
+                    + "'redirectUris':'https://example.com/callback',"
+                    + "'scopes':'openid'"
+                    + "}"));
+
+    JsonObject client = GET("/oAuth2Clients/{id}", uid).content(HttpStatus.OK);
+    assertEquals(230, client.getString("name").string().length());
   }
 
   @Test

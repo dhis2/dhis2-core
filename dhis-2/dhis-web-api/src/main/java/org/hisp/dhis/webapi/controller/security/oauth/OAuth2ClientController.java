@@ -31,6 +31,8 @@ package org.hisp.dhis.webapi.controller.security.oauth;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Locale;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.query.GetObjectListParams;
@@ -53,6 +55,28 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequiredArgsConstructor
 public class OAuth2ClientController
     extends AbstractCrudController<Dhis2OAuth2Client, GetObjectListParams> {
+
+  /**
+   * Schemes that must never appear in a stored redirect URI. Spring Authorization Server does
+   * exact-string matching against the stored value at authorize time and then emits a Location
+   * header — it does NOT reject dangerous schemes. Allowing these would let an admin plant a stored
+   * XSS / token-exfiltration payload that fires when a victim completes an authorize flow.
+   */
+  private static final Set<String> BLOCKED_REDIRECT_URI_SCHEMES =
+      Set.of(
+          "javascript",
+          "data",
+          "vbscript",
+          "file",
+          "about",
+          "blob",
+          "jar",
+          "view-source",
+          "ws",
+          "wss");
+
+  /** Max length of the persisted `name` column; keep in sync with the Hibernate mapping. */
+  private static final int NAME_MAX_LENGTH = 230;
 
   private final Dhis2OAuth2ClientService clientService;
 
@@ -91,7 +115,7 @@ public class OAuth2ClientController
    */
   private void defaultNameFromClientId(Dhis2OAuth2Client entity) {
     if ((entity.getName() == null || entity.getName().isEmpty()) && entity.getClientId() != null) {
-      entity.setName(entity.getClientId());
+      entity.setName(truncateName(entity.getClientId()));
     }
   }
 
@@ -107,8 +131,12 @@ public class OAuth2ClientController
     if (existing != null && existing.getName() != null && !existing.getName().isEmpty()) {
       newEntity.setName(existing.getName());
     } else if (newEntity.getClientId() != null) {
-      newEntity.setName(newEntity.getClientId());
+      newEntity.setName(truncateName(newEntity.getClientId()));
     }
+  }
+
+  private static String truncateName(String value) {
+    return value.length() > NAME_MAX_LENGTH ? value.substring(0, NAME_MAX_LENGTH) : value;
   }
 
   /**
@@ -140,12 +168,14 @@ public class OAuth2ClientController
   }
 
   /**
-   * Validates that all redirect URIs parse as well-formed URIs. Accepts http/https as well as
-   * custom schemes (e.g. {@code dhis2oauth://oauth}) which are legitimate OAuth2 redirect targets
-   * for native apps per RFC 8252.
+   * Validates that all redirect URIs parse as well-formed URIs with a non-dangerous scheme. Accepts
+   * http/https as well as custom schemes (e.g. {@code dhis2oauth://oauth}) which are legitimate
+   * OAuth2 redirect targets for native apps per RFC 8252. Rejects schemes that would let a stored
+   * redirect URI act as an XSS / token-exfiltration vector when Spring Authorization Server emits
+   * the {@code Location} header after exact-match comparison.
    *
    * @param entity the OAuth2 client entity to validate
-   * @throws ConflictException if any redirect URI cannot be parsed
+   * @throws ConflictException if any redirect URI is malformed or uses a blocked scheme
    */
   private void validateRedirectUris(Dhis2OAuth2Client entity) throws ConflictException {
     if (entity.getRedirectUris() == null) {
@@ -156,13 +186,18 @@ public class OAuth2ClientController
       if (trimmedUri.isEmpty()) {
         continue;
       }
+      URI parsed;
       try {
-        URI parsed = new URI(trimmedUri);
-        if (parsed.getScheme() == null || parsed.getScheme().isEmpty()) {
-          throw new ConflictException("Invalid redirect URI: " + trimmedUri);
-        }
+        parsed = new URI(trimmedUri);
       } catch (URISyntaxException e) {
         throw new ConflictException("Invalid redirect URI: " + trimmedUri);
+      }
+      String scheme = parsed.getScheme();
+      if (scheme == null || scheme.isEmpty()) {
+        throw new ConflictException("Invalid redirect URI: " + trimmedUri);
+      }
+      if (BLOCKED_REDIRECT_URI_SCHEMES.contains(scheme.toLowerCase(Locale.ROOT))) {
+        throw new ConflictException("Disallowed redirect URI scheme: " + scheme);
       }
     }
   }
