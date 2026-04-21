@@ -37,10 +37,14 @@ import java.util.Locale;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.query.Query;
+import org.hisp.dhis.query.operators.NotEqualOperator;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
+import org.hisp.dhis.security.oauth2.dcr.OAuth2DcrService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
@@ -105,11 +109,46 @@ public class OAuth2ClientController
   @Override
   protected void preUpdateEntity(Dhis2OAuth2Client entity, Dhis2OAuth2Client newEntity)
       throws ConflictException {
+    rejectIfSystemRegistrar(entity, "update");
     validateAuthorizationGrantTypes(newEntity);
     validateRedirectUris(newEntity);
     preserveNameOnUpdate(entity, newEntity);
 
     super.preUpdateEntity(entity, newEntity);
+  }
+
+  @Override
+  protected void preDeleteEntity(Dhis2OAuth2Client entity) throws ConflictException {
+    rejectIfSystemRegistrar(entity, "delete");
+  }
+
+  /**
+   * Hide the DCR system registrar client from list queries. It's created and owned by the server
+   * itself to bootstrap dynamic client registration; admins should never touch it through the
+   * settings UI. Direct-by-uid fetches are left alone since DCR / other server code may need to
+   * read it, and the UI only discovers client uids via this list.
+   */
+  @Override
+  protected void modifyGetObjectList(GetObjectListParams params, Query<Dhis2OAuth2Client> query) {
+    query.add(
+        new Filter("clientId", new NotEqualOperator<>(OAuth2DcrService.SYSTEM_REGISTRAR_CLIENTID)));
+  }
+
+  /**
+   * Reject any mutation targeting the DCR system registrar client. The record is server-managed —
+   * its clientId, grant types, and redirect URIs are bootstrap config for dynamic client
+   * registration and must not drift from what {@link OAuth2DcrService} expects.
+   */
+  private static void rejectIfSystemRegistrar(Dhis2OAuth2Client entity, String operation)
+      throws ConflictException {
+    if (entity != null && OAuth2DcrService.SYSTEM_REGISTRAR_CLIENTID.equals(entity.getClientId())) {
+      throw new ConflictException(
+          "Cannot "
+              + operation
+              + " the system-managed DCR registrar client ("
+              + OAuth2DcrService.SYSTEM_REGISTRAR_CLIENTID
+              + ").");
+    }
   }
 
   /**

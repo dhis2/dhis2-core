@@ -127,6 +127,52 @@ class OAuth2ClientControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testSystemRegistrarHiddenFromList() {
+    // The DCR system registrar is server-managed. Admins must not see it in
+    // the settings list. Create a same-named client via the store path to
+    // simulate OAuth2DcrService.init(), then assert the list filters it out.
+    createClient("system-dcr-registrar-client", "System Registrar");
+    createClient("visible-client", "Visible");
+
+    List<String> clientIds =
+        GET("/oAuth2Clients?fields=clientId&paging=false")
+            .content(HttpStatus.OK)
+            .getList("oAuth2Clients", JsonObject.class)
+            .stream()
+            .map(c -> c.getString("clientId").string())
+            .toList();
+
+    assertTrue(
+        clientIds.contains("visible-client"), "Expected visible-client in list, got: " + clientIds);
+    assertTrue(
+        !clientIds.contains("system-dcr-registrar-client"),
+        "system-dcr-registrar-client must not appear in list, got: " + clientIds);
+  }
+
+  @Test
+  void testSystemRegistrarCannotBeUpdated() {
+    String uid = createClient("system-dcr-registrar-client", "System Registrar");
+    assertStatus(
+        HttpStatus.CONFLICT,
+        PUT(
+            "/oAuth2Clients/" + uid,
+            "{"
+                + "'clientId':'system-dcr-registrar-client',"
+                + "'clientSecret':'new-secret',"
+                + "'clientAuthenticationMethods':'client_secret_basic',"
+                + "'authorizationGrantTypes':'authorization_code',"
+                + "'redirectUris':'https://example.com/callback',"
+                + "'scopes':'openid'"
+                + "}"));
+  }
+
+  @Test
+  void testSystemRegistrarCannotBeDeleted() {
+    String uid = createClient("system-dcr-registrar-client", "System Registrar");
+    assertStatus(HttpStatus.CONFLICT, DELETE("/oAuth2Clients/" + uid));
+  }
+
+  @Test
   void testForbiddenWithoutManageAuthority() {
     // OAuth2 clients carry secrets and, via client_credentials, mint long-lived
     // tokens that act as their creator. Restrict management to the dedicated
