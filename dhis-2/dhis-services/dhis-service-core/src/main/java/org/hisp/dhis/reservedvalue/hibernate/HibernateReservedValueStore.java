@@ -72,8 +72,8 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
   }
 
   private static final String INSERT_AVAILABLE_VALUES_SQL =
-      "INSERT INTO reservedvalue (ownerobject, owneruid, key, value, expirydate, created) "
-          + "SELECT ?, ?, ?, v, ?, ? FROM unnest(?) AS v "
+      "INSERT INTO reservedvalue (reservedvalueid, ownerobject, owneruid, key, value, expirydate, created) "
+          + "SELECT nextval('reservedvalue_sequence'), ?, ?, ?, v, ?, ? FROM unnest(?) AS v "
           + "WHERE NOT EXISTS ("
           + "SELECT 1 FROM trackedentityattributevalue "
           + "WHERE trackedentityattributeid = ? AND LOWER(value) = LOWER(v)) "
@@ -84,23 +84,24 @@ public class HibernateReservedValueStore extends HibernateGenericStore<ReservedV
 
   @Override
   public List<String> insertAvailableValues(
-      ReservedValue template, List<String> candidates, int limit) {
+      ReservedValue reservedValue, List<String> candidates, int limit) {
     if (isEmpty(candidates)) {
       return List.of();
     }
+
     return jdbcTemplate.query(
         conn -> {
           PreparedStatement ps = conn.prepareStatement(INSERT_AVAILABLE_VALUES_SQL);
-          ps.setString(1, template.getOwnerObject());
-          ps.setString(2, template.getOwnerUid());
-          ps.setString(3, template.getKey());
-          ps.setTimestamp(4, new Timestamp(template.getExpiryDate().getTime()));
-          ps.setTimestamp(5, new Timestamp(template.getCreated().getTime()));
+          ps.setString(1, reservedValue.getOwnerObject());
+          ps.setString(2, reservedValue.getOwnerUid());
+          ps.setString(3, reservedValue.getKey());
+          ps.setTimestamp(4, new Timestamp(reservedValue.getExpiryDate().getTime()));
+          ps.setTimestamp(5, new Timestamp(reservedValue.getCreated().getTime()));
           ps.setArray(6, conn.createArrayOf("text", candidates.toArray()));
-          ps.setLong(7, template.getTrackedEntityAttributeId());
-          ps.setString(8, template.getOwnerObject());
-          ps.setString(9, template.getOwnerUid());
-          ps.setString(10, template.getKey());
+          ps.setLong(7, reservedValue.getTrackedEntityAttributeId());
+          ps.setString(8, reservedValue.getOwnerObject());
+          ps.setString(9, reservedValue.getOwnerUid());
+          ps.setString(10, reservedValue.getKey());
           ps.setInt(11, limit);
           return ps;
         },

@@ -34,7 +34,7 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.TestUtils;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternParser;
@@ -46,7 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Luca Cambi
  */
 @Transactional
-class TrackedEntityAttributeControllerTest extends H2ControllerIntegrationTestBase {
+class TrackedEntityAttributeControllerTest extends PostgresControllerIntegrationTestBase {
   @Test
   void shouldGenerateRandomValuesOrgUnitCodeAndRandom() throws Exception {
 
