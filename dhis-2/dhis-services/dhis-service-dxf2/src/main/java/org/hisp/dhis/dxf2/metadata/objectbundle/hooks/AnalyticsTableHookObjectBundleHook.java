@@ -70,7 +70,8 @@ public class AnalyticsTableHookObjectBundleHook
 
     analyticsTableHooks.forEach(
         existingAnalyticsTableHook -> {
-          if (areEqual(analyticsTableHook, existingAnalyticsTableHook)) {
+          if (!existingAnalyticsTableHook.getUid().equals(analyticsTableHook.getUid())
+              && areEqual(analyticsTableHook, existingAnalyticsTableHook)) {
             addReports.accept(
                 new ErrorReport(
                     AnalyticsTableHook.class,

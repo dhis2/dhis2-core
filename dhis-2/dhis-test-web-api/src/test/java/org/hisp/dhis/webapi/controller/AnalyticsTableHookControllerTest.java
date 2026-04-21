@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.junit.jupiter.api.Test;
@@ -50,6 +51,20 @@ class AnalyticsTableHookControllerTest extends H2ControllerIntegrationTestBase {
         POST(
             "/analyticsTableHooks/",
             "{'name':'NameA', 'phase':'RESOURCE_TABLE_POPULATED', 'resourceTableType':'ORG_UNIT_STRUCTURE', 'sql':'update analytics_rs_orgunitstructure set organisationunitid=3'}"));
+  }
+
+  @Test
+  void testUpdateExistingAnalyticsTableHook() {
+    JsonMixed response =
+        POST(
+                "/analyticsTableHooks/",
+                "{'name':'NameA', 'phase':'RESOURCE_TABLE_POPULATED', 'resourceTableType':'ORG_UNIT_STRUCTURE', 'sql':'update analytics_rs_orgunitstructure set organisationunitid=3'}")
+            .content(HttpStatus.CREATED);
+    String id = response.getObject("response").getString("uid").string();
+    PUT(
+            "/analyticsTableHooks/" + id,
+            "{'name':'NameB', 'phase':'RESOURCE_TABLE_POPULATED', 'resourceTableType':'ORG_UNIT_STRUCTURE', 'sql':'update analytics_rs_orgunitstructure set organisationunitid=3'}")
+        .content(HttpStatus.OK);
   }
 
   @Test
