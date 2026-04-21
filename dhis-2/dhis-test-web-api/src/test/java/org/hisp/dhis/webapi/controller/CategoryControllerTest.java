@@ -36,6 +36,7 @@ import static org.hisp.dhis.http.HttpStatus.CREATED;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.List;
 import java.util.Set;
@@ -212,5 +213,13 @@ class CategoryControllerTest extends H2ControllerIntegrationTestBase {
   @DisplayName("API doesn't error when version 44 included in API call")
   void v44ApiTest() {
     assertStatus(HttpStatus.OK, GET("/44/categories"));
+  }
+
+  @Test
+  @DisplayName("Etag header is included when running server in embedded mode")
+  void etagHeaderPresentTest() {
+    String eTag = GET("/categories").header("ETag");
+    assertNotNull(eTag, "ETag header should be present");
+    assertEquals(35, eTag.length(), "ETag header should be 37 characters long");
   }
 }
