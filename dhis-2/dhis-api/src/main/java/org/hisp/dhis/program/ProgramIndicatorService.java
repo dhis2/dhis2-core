@@ -214,6 +214,25 @@ public interface ProgramIndicatorService {
       String tableAlias);
 
   /**
+   * Gets the analytics SQL clause of an expression. The SQL does not substitute null values.
+   *
+   * @param expression the expression.
+   * @param dataType the data type to return.
+   * @param programIndicator the program indicator to evaluate.
+   * @param startDate the start date.
+   * @param endDate the end date.
+   * @param tableAlias use this table alias for expression returning a inner query
+   * @return the SQL string.
+   */
+  String getAnalyticsSqlAllowingNulls(
+      String expression,
+      DataType dataType,
+      ProgramIndicator programIndicator,
+      Date startDate,
+      Date endDate,
+      String tableAlias);
+
+  /**
    * Returns a SQL clause which matches any value for the data elements and attributes in the given
    * expression.
    *

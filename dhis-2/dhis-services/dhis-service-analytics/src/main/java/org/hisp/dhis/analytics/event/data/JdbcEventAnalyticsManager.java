@@ -626,7 +626,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     if (params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasFilter()) {
       String filter =
-          programIndicatorService.getAnalyticsSql(
+          programIndicatorService.getAnalyticsSqlAllowingNulls(
               params.getProgramIndicator().getFilter(),
               BOOLEAN,
               params.getProgramIndicator(),
