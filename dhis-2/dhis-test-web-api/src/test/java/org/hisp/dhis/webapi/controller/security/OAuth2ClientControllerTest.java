@@ -38,8 +38,10 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
+import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -49,6 +51,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class OAuth2ClientControllerTest extends H2ControllerIntegrationTestBase {
+
+  @Autowired private Dhis2OAuth2ClientService clientService;
 
   @Test
   void testListOrderedByDisplayName() {
@@ -215,9 +219,16 @@ class OAuth2ClientControllerTest extends H2ControllerIntegrationTestBase {
   /**
    * Persist a client with the reserved system-registrar clientId via the store layer, bypassing the
    * controller's rejection of the reserved clientId. Simulates what {@code OAuth2DcrService.init()}
-   * does at startup on a fresh database.
+   * does at startup on a fresh database. If a row already exists (the real DCR init ran in the test
+   * context, or a prior test left state), reuse it rather than violating the unique constraint on
+   * {@code client_id}.
    */
   private String persistSystemRegistrarFixture() {
+    Dhis2OAuth2Client existing =
+        clientService.getAsDhis2OAuth2ClientByClientId("system-dcr-registrar-client");
+    if (existing != null) {
+      return existing.getUid();
+    }
     Dhis2OAuth2Client client = new Dhis2OAuth2Client();
     client.setAutoFields();
     client.setUid(CodeGenerator.generateUid());
