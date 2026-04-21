@@ -58,6 +58,7 @@ public class OAuth2ClientController
   protected void preCreateEntity(Dhis2OAuth2Client entity) throws ConflictException {
     validateAuthorizationGrantTypes(entity);
     validateRedirectUris(entity);
+    defaultNameFromClientId(entity);
 
     if (entity.getClientSettings() == null) {
       ClientSettings.Builder builder = ClientSettings.builder();
@@ -76,8 +77,20 @@ public class OAuth2ClientController
       throws ConflictException {
     validateAuthorizationGrantTypes(newEntity);
     validateRedirectUris(newEntity);
+    defaultNameFromClientId(newEntity);
 
     super.preUpdateEntity(entity, newEntity);
+  }
+
+  /**
+   * Default the entity name to the clientId when the caller didn't supply one.
+   * BaseIdentifiableObject requires a non-null name since 2.44; OAuth2 clients are commonly created
+   * without a separate human-readable name, so fall back to the technical clientId for display.
+   */
+  private void defaultNameFromClientId(Dhis2OAuth2Client entity) {
+    if ((entity.getName() == null || entity.getName().isEmpty()) && entity.getClientId() != null) {
+      entity.setName(entity.getClientId());
+    }
   }
 
   /**

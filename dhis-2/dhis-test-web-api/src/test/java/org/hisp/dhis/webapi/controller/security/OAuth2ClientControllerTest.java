@@ -80,6 +80,30 @@ class OAuth2ClientControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals("client-c", client.getString("clientId").string());
   }
 
+  @Test
+  void testCreateWithoutNameDefaultsToClientId() {
+    // Consumers (e.g. the OAuth2 e2e test and existing API clients) may POST
+    // a client without a `name` field. Verify the controller defaults it to
+    // clientId rather than rejecting the request on the NOT NULL constraint.
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/oAuth2Clients",
+                "{"
+                    + "'clientId':'client-no-name',"
+                    + "'clientSecret':'secret',"
+                    + "'clientAuthenticationMethods':'client_secret_basic',"
+                    + "'authorizationGrantTypes':'authorization_code,refresh_token',"
+                    + "'redirectUris':'https://example.com/callback',"
+                    + "'scopes':'openid'"
+                    + "}"));
+
+    JsonObject client = GET("/oAuth2Clients/{id}", uid).content(HttpStatus.OK);
+    assertEquals("client-no-name", client.getString("name").string());
+    assertEquals("client-no-name", client.getString("clientId").string());
+  }
+
   private String createClient(String clientId, String name) {
     return assertStatus(
         HttpStatus.CREATED,
