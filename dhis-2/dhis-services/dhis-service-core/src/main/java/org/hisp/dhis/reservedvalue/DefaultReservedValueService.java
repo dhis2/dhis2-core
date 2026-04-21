@@ -64,6 +64,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 public class DefaultReservedValueService implements ReservedValueService {
   private static final int RESERVED_VALUE_GENERATION_ATTEMPT = 10;
   private static final long RESERVED_VALUE_GENERATION_TIMEOUT = (1000 * 30);
+  private static final int CANDIDATE_MULTIPLIER = 10;
 
   private final TextPatternService textPatternService;
 
@@ -168,18 +169,15 @@ public class DefaultReservedValueService implements ReservedValueService {
 
       while (attemptsLeft-- > 0 && numberOfReservations - reservedValues.size() > 0) {
         checkTimeout(startTime);
+        int needed = numberOfReservations - reservedValues.size();
+        long poolSize = TextPatternValidationUtils.getTotalValuesPotential(generatedSegment);
+        int toGenerate = (int) Math.min((long) needed * CANDIDATE_MULTIPLIER, poolSize);
         generatedValues.addAll(
-            valueGeneratorService.generateValues(
-                generatedSegment, textPattern, key, numberOfReservations - reservedValues.size()));
+            valueGeneratorService.generateValues(generatedSegment, textPattern, key, toGenerate));
         List<String> resolvedPatterns =
             getResolvedPatterns(values, textPattern, generatedSegment, generatedValues);
 
-        saveGeneratedValues(
-            numberOfReservations - reservedValues.size(),
-            reservedValues,
-            reservedValue,
-            isPersistable,
-            resolvedPatterns);
+        saveGeneratedValues(needed, reservedValues, reservedValue, isPersistable, resolvedPatterns);
 
         generatedValues = new ArrayList<>();
       }
