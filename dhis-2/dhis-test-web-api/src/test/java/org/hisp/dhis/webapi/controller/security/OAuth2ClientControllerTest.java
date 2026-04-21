@@ -214,7 +214,8 @@ class OAuth2ClientControllerTest extends H2ControllerIntegrationTestBase {
   void testRejectsJavascriptSchemeRedirectUri() {
     // Spring Authorization Server emits Location: <storedRedirectUri>?code=...
     // after exact-string match. A stored javascript: URI would execute in the
-    // victim's browser. Must be rejected at save time.
+    // victim's browser. The URI is not in deviceEnrollmentRedirectAllowlist,
+    // so the allow-list validator rejects it.
     assertStatus(
         HttpStatus.CONFLICT,
         POST(
@@ -257,6 +258,25 @@ class OAuth2ClientControllerTest extends H2ControllerIntegrationTestBase {
                 + "'clientAuthenticationMethods':'client_secret_basic',"
                 + "'authorizationGrantTypes':'authorization_code',"
                 + "'redirectUris':'file:///etc/passwd',"
+                + "'scopes':'openid'"
+                + "}"));
+  }
+
+  @Test
+  void testRejectsCustomSchemeNotInAllowList() {
+    // intent:// is a legitimate Android scheme but is NOT in
+    // deviceEnrollmentRedirectAllowlist by default. Allow-list defaults to
+    // deny for every custom scheme — admins must opt-in to each one.
+    assertStatus(
+        HttpStatus.CONFLICT,
+        POST(
+            "/oAuth2Clients",
+            "{"
+                + "'clientId':'client-intent',"
+                + "'clientSecret':'secret',"
+                + "'clientAuthenticationMethods':'client_secret_basic',"
+                + "'authorizationGrantTypes':'authorization_code',"
+                + "'redirectUris':'intent://something#Intent;end',"
                 + "'scopes':'openid'"
                 + "}"));
   }

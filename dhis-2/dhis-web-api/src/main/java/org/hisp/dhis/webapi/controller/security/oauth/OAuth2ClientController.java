@@ -33,8 +33,10 @@ import static org.hisp.dhis.security.Authorities.F_OAUTH2_CLIENT_MANAGE;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.query.Filter;
@@ -45,6 +47,7 @@ import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
 import org.hisp.dhis.security.oauth2.dcr.OAuth2DcrService;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
@@ -64,29 +67,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class OAuth2ClientController
     extends AbstractCrudController<Dhis2OAuth2Client, GetObjectListParams> {
 
-  /**
-   * Schemes that must never appear in a stored redirect URI. Spring Authorization Server does
-   * exact-string matching against the stored value at authorize time and then emits a Location
-   * header — it does NOT reject dangerous schemes. Allowing these would let an admin plant a stored
-   * XSS / token-exfiltration payload that fires when a victim completes an authorize flow.
-   */
-  private static final Set<String> BLOCKED_REDIRECT_URI_SCHEMES =
-      Set.of(
-          "javascript",
-          "data",
-          "vbscript",
-          "file",
-          "about",
-          "blob",
-          "jar",
-          "view-source",
-          "ws",
-          "wss");
-
   /** Max length of the persisted `name` column; keep in sync with the Hibernate mapping. */
   private static final int NAME_MAX_LENGTH = 230;
 
   private final Dhis2OAuth2ClientService clientService;
+  private final SystemSettingsService systemSettingsService;
 
   @Override
   protected void preCreateEntity(Dhis2OAuth2Client entity) throws ConflictException {
@@ -211,19 +196,25 @@ public class OAuth2ClientController
   }
 
   /**
-   * Validates that all redirect URIs parse as well-formed URIs with a non-dangerous scheme. Accepts
-   * http/https as well as custom schemes (e.g. {@code dhis2oauth://oauth}) which are legitimate
-   * OAuth2 redirect targets for native apps per RFC 8252. Rejects schemes that would let a stored
-   * redirect URI act as an XSS / token-exfiltration vector when Spring Authorization Server emits
-   * the {@code Location} header after exact-match comparison.
+   * Validates redirect URIs against an explicit allow-list. http and https schemes are always
+   * accepted. Any other URI must match verbatim one of the entries in the {@code
+   * deviceEnrollmentRedirectAllowlist} system setting (same allow-list used by DCR device
+   * enrollment, default {@code dhis2oauth://oauth}).
+   *
+   * <p>Spring Authorization Server does exact-string matching of the stored redirect URI at
+   * authorize time and then emits a {@code Location} header with no scheme filtering, so any stored
+   * {@code javascript:} / {@code data:} / OS-scheme URI would fire in a victim's browser after a
+   * completed flow. Defaulting to deny and letting the admin curate the allow-list via a single
+   * system setting closes that surface without hardcoding a blocklist we'd have to keep chasing.
    *
    * @param entity the OAuth2 client entity to validate
-   * @throws ConflictException if any redirect URI is malformed or uses a blocked scheme
+   * @throws ConflictException if any redirect URI is malformed or not allowed
    */
   private void validateRedirectUris(Dhis2OAuth2Client entity) throws ConflictException {
     if (entity.getRedirectUris() == null) {
       return;
     }
+    Set<String> customSchemeAllowList = null; // lazy — only parse when we hit a non-http(s) URI
     for (String uri : entity.getRedirectUris().split(",")) {
       String trimmedUri = uri.trim();
       if (trimmedUri.isEmpty()) {
@@ -239,9 +230,28 @@ public class OAuth2ClientController
       if (scheme == null || scheme.isEmpty()) {
         throw new ConflictException("Invalid redirect URI: " + trimmedUri);
       }
-      if (BLOCKED_REDIRECT_URI_SCHEMES.contains(scheme.toLowerCase(Locale.ROOT))) {
-        throw new ConflictException("Disallowed redirect URI scheme: " + scheme);
+      String lowerScheme = scheme.toLowerCase(Locale.ROOT);
+      if ("http".equals(lowerScheme) || "https".equals(lowerScheme)) {
+        continue;
+      }
+      if (customSchemeAllowList == null) {
+        customSchemeAllowList = parseRedirectAllowList();
+      }
+      if (!customSchemeAllowList.contains(trimmedUri)) {
+        throw new ConflictException(
+            "Redirect URI not in deviceEnrollmentRedirectAllowlist: " + trimmedUri);
       }
     }
+  }
+
+  private Set<String> parseRedirectAllowList() {
+    String raw = systemSettingsService.getCurrentSettings().getDeviceEnrollmentRedirectAllowlist();
+    if (raw == null || raw.isBlank()) {
+      return Set.of();
+    }
+    return Arrays.stream(raw.split(","))
+        .map(String::trim)
+        .filter(s -> !s.isEmpty())
+        .collect(Collectors.toUnmodifiableSet());
   }
 }
