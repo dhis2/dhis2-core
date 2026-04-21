@@ -41,6 +41,7 @@ import org.hisp.dhis.query.operators.NotEqualOperator;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
+import org.hisp.dhis.security.oauth2.client.OAuth2ClientAdminValidator;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;

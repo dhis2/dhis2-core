@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.security.oauth;
+package org.hisp.dhis.security.oauth2.client;
 
 import static org.hisp.dhis.security.oauth2.OAuth2Constants.CLIENT_NAME_MAX_LENGTH;
 import static org.hisp.dhis.security.oauth2.OAuth2Constants.SYSTEM_REGISTRAR_CLIENTID;
@@ -40,15 +40,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.stereotype.Component;
 
 /**
- * Admin-input validation and defaulting for {@link Dhis2OAuth2Client} mutations. Extracted from
- * {@link OAuth2ClientController} so the same rules can be reused from any entry point that accepts
- * admin-supplied client definitions (REST CRUD, a future metadata-import hook, etc.).
+ * Admin-input validation and defaulting for {@link Dhis2OAuth2Client} mutations. Reused from the
+ * REST controller and from the metadata-import {@code ObjectBundleHook} so the same rules run on
+ * every admin-facing entry point.
  *
  * <p>Deliberately scoped to admin-facing checks. The DHIS2 DCR bootstrap and Spring Authorization
  * Server's own client persistence paths must not run these validators: the system registrar
