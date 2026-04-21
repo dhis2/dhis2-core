@@ -50,7 +50,8 @@ import org.springframework.transaction.annotation.Transactional;
  * Min-Max values).
  */
 public abstract class AbstractOutlierDetectionManager {
-  private static final String STATEMENT_TIMEOUT_SQL = "SET LOCAL statement_timeout = '600000'";
+  //Safety valve to prevent long-running queries for running forever.
+  private static final String STATEMENT_TIMEOUT_SQL = "SET LOCAL statement_timeout = '10min'";
 
   private final NamedParameterJdbcTemplate jdbcTemplate;
   private final OutlierSqlStatementProcessor sqlStatementProcessor;
