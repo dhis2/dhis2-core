@@ -1,0 +1,22 @@
+{
+  "programNotificationTemplates": [
+    {
+      "notificationTrigger": "SCHEDULED_DAYS_DUE_DATE",
+      "lastUpdated": "2026-04-14T04:24:42.392",
+      "relativeScheduledDays": -3,
+      "subjectTemplate": "Immunization visit reminder",
+      "id": "uivYkvFEOss",
+      "notifyUsersInHierarchyOnly": false,
+      "created": "2016-10-11T10:32:58.490",
+      "sendRepeatable": false,
+      "notificationRecipient": "TRACKED_ENTITY_INSTANCE",
+      "notifyParentOrganisationUnitOnly": false,
+      "name": "Immunization visit reminder",
+      "messageTemplate": "Dear A{w75KJ2mc4zz}. This to remind you that you have an upcoming visit in V{days_until_due_date} days for your second immunization visit at V{program_stage_name} health facility. Please ensure to bring your immunization card with you.",
+      "translations": [],
+      "deliveryChannels": [
+        "SMS"
+      ]
+    }
+  ]
+}
