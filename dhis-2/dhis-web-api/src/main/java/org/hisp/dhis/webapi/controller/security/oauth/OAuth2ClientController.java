@@ -77,15 +77,15 @@ public class OAuth2ClientController
       throws ConflictException {
     validateAuthorizationGrantTypes(newEntity);
     validateRedirectUris(newEntity);
-    defaultNameFromClientId(newEntity);
+    preserveNameOnUpdate(entity, newEntity);
 
     super.preUpdateEntity(entity, newEntity);
   }
 
   /**
-   * Default the entity name to the clientId when the caller didn't supply one.
-   * BaseIdentifiableObject requires a non-null name since 2.44; OAuth2 clients are commonly created
-   * without a separate human-readable name, so fall back to the technical clientId for display.
+   * Default the entity name to the clientId when the caller didn't supply one. The settings UI
+   * currently has no name field, so POSTs omit it; BaseIdentifiableObject requires a non-null name
+   * after 2.44, so fall back to the technical clientId for display.
    */
   private void defaultNameFromClientId(Dhis2OAuth2Client entity) {
     if ((entity.getName() == null || entity.getName().isEmpty()) && entity.getClientId() != null) {
@@ -94,8 +94,25 @@ public class OAuth2ClientController
   }
 
   /**
-   * Validates that the authorization grant types in the entity contain only allowed values
-   * (authorization_code and refresh_token)
+   * On update, if the caller didn't send a name (the settings UI has no name field), preserve the
+   * existing persisted name rather than clobbering it via REPLACE merge. Fall back to clientId only
+   * if the existing record also lacks a name.
+   */
+  private void preserveNameOnUpdate(Dhis2OAuth2Client existing, Dhis2OAuth2Client newEntity) {
+    if (newEntity.getName() != null && !newEntity.getName().isEmpty()) {
+      return;
+    }
+    if (existing != null && existing.getName() != null && !existing.getName().isEmpty()) {
+      newEntity.setName(existing.getName());
+    } else if (newEntity.getClientId() != null) {
+      newEntity.setName(newEntity.getClientId());
+    }
+  }
+
+  /**
+   * Validates that the authorization grant types in the entity contain only values supported by the
+   * Spring Authorization Server: authorization_code, refresh_token, client_credentials.
+   * client_credentials is required by the internal DCR system registrar client.
    *
    * @param entity the OAuth2 client entity to validate
    * @throws ConflictException if any invalid grant type is found
@@ -105,12 +122,16 @@ public class OAuth2ClientController
       String[] grantTypes = entity.getAuthorizationGrantTypes().split(",");
       for (String grantType : grantTypes) {
         String trimmedGrantType = grantType.trim();
+        if (trimmedGrantType.isEmpty()) {
+          continue;
+        }
         if (!AuthorizationGrantType.AUTHORIZATION_CODE.getValue().equals(trimmedGrantType)
-            && !AuthorizationGrantType.REFRESH_TOKEN.getValue().equals(trimmedGrantType)) {
+            && !AuthorizationGrantType.REFRESH_TOKEN.getValue().equals(trimmedGrantType)
+            && !AuthorizationGrantType.CLIENT_CREDENTIALS.getValue().equals(trimmedGrantType)) {
           throw new ConflictException(
               "Invalid authorization grant type: "
                   + trimmedGrantType
-                  + ". Only authorization_code and refresh_token are allowed.");
+                  + ". Only authorization_code, refresh_token and client_credentials are allowed.");
         }
       }
     }

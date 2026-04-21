@@ -81,6 +81,52 @@ class OAuth2ClientControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
+  void testUpdateWithoutNamePreservesExistingName() {
+    // The settings UI has no name field, so PUTs omit it. Preserve the
+    // existing persisted name rather than clobbering with clientId via
+    // REPLACE merge.
+    String uid = createClient("client-keep", "Original Name");
+
+    assertStatus(
+        HttpStatus.OK,
+        PUT(
+            "/oAuth2Clients/" + uid,
+            "{"
+                + "'clientId':'client-keep',"
+                + "'clientSecret':'secret',"
+                + "'clientAuthenticationMethods':'client_secret_basic',"
+                + "'authorizationGrantTypes':'authorization_code,refresh_token',"
+                + "'redirectUris':'https://example.com/callback',"
+                + "'scopes':'openid'"
+                + "}"));
+
+    JsonObject client = GET("/oAuth2Clients/{id}", uid).content(HttpStatus.OK);
+    assertEquals("Original Name", client.getString("name").string());
+  }
+
+  @Test
+  void testUpdateAllowsClientCredentialsGrantType() {
+    // The DCR system registrar client is created with client_credentials;
+    // editing it via the UI must not be rejected by the grant-type validator.
+    String uid =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/oAuth2Clients",
+                "{"
+                    + "'clientId':'client-cc',"
+                    + "'clientSecret':'secret',"
+                    + "'clientAuthenticationMethods':'client_secret_basic',"
+                    + "'authorizationGrantTypes':'client_credentials',"
+                    + "'redirectUris':'https://example.com/callback',"
+                    + "'scopes':'openid'"
+                    + "}"));
+
+    JsonObject client = GET("/oAuth2Clients/{id}", uid).content(HttpStatus.OK);
+    assertEquals("client_credentials", client.getString("authorizationGrantTypes").string());
+  }
+
+  @Test
   void testCreateWithoutNameDefaultsToClientId() {
     // Consumers (e.g. the OAuth2 e2e test and existing API clients) may POST
     // a client without a `name` field. Verify the controller defaults it to
