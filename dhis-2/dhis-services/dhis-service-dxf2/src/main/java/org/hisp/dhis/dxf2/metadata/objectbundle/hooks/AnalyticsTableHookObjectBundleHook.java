@@ -30,6 +30,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsTableHook;
@@ -70,7 +71,8 @@ public class AnalyticsTableHookObjectBundleHook
 
     analyticsTableHooks.forEach(
         existingAnalyticsTableHook -> {
-          if (areEqual(analyticsTableHook, existingAnalyticsTableHook)) {
+          if (!Objects.equals(existingAnalyticsTableHook.getUid(), analyticsTableHook.getUid())
+              && areEqual(analyticsTableHook, existingAnalyticsTableHook)) {
             addReports.accept(
                 new ErrorReport(
                     AnalyticsTableHook.class,
