@@ -126,4 +126,17 @@ class OAuth2TokenRedactionTest extends H2ControllerIntegrationTestBase {
           "Response must not contain secret field `" + secret + "`: " + body.toJson());
     }
   }
+
+  @Test
+  @DisplayName("GET /api/metadata default response must not include oAuth2Authorizations")
+  void defaultMetadataExportOmitsOAuth2Authorizations() {
+    JsonObject metadata = GET("/metadata").content(HttpStatus.OK).as(JsonObject.class);
+
+    assertFalse(
+        metadata.has("oAuth2Authorizations"),
+        "Default /api/metadata response must not contain the oAuth2Authorizations array");
+    assertFalse(
+        metadata.has("oAuth2AuthorizationConsents"),
+        "Default /api/metadata response must not contain the oAuth2AuthorizationConsents array");
+  }
 }
