@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,45 +27,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static org.hisp.dhis.security.Authorities.F_OAUTH2_CLIENT_MANAGE;
-
-import java.util.List;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
+import java.util.function.Consumer;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
+import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
+import org.springframework.stereotype.Component;
 
 /**
+ * Wires {@link Dhis2OAuth2ClientService}'s admin validators + defaulting into the metadata import
+ * pipeline so the same checks run on bulk {@code /api/metadata} imports as on REST CRUD. The REST
+ * controller already calls the same service methods directly. Idempotent on the REST path.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class OAuth2ClientSchemaDescriptor implements SchemaDescriptor {
+@Component
+@RequiredArgsConstructor
+public class Dhis2OAuth2ClientObjectBundleHook extends AbstractObjectBundleHook<Dhis2OAuth2Client> {
 
-  public static final String SINGULAR = "oAuth2Client";
-  public static final String PLURAL = "oAuth2Clients";
-  public static final String API_ENDPOINT = "/" + PLURAL;
-  public static final String AUTHORITY = F_OAUTH2_CLIENT_MANAGE.name();
+  private final Dhis2OAuth2ClientService clientService;
 
   @Override
-  public Schema getSchema() {
-    Schema schema = new Schema(Dhis2OAuth2Client.class, SINGULAR, PLURAL);
-    schema.setRelativeApiEndpoint(API_ENDPOINT);
-    schema.setDataShareable(false);
-    schema.setDefaultPrivate(true);
-    schema.setDataReadShareable(false);
-    schema.setDataWriteShareable(false);
+  public void validate(
+      Dhis2OAuth2Client object, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    if (bundle.isPersisted(object)) {
+      Dhis2OAuth2Client persisted = bundle.getPreheat().get(bundle.getPreheatIdentifier(), object);
+      clientService.validateUpdate(persisted, object, addReports);
+    } else {
+      clientService.validateCreate(object, addReports);
+    }
+  }
 
-    // OAuth2 clients are security-sensitive: client secrets are persisted, and
-    // client_credentials grants let a token act as the creating user with no
-    // session, MFA, or rotation. Gate all mutations + reads behind a dedicated
-    // authority so only designated admins can manage them.
-    schema.add(new Authority(AuthorityType.CREATE, List.of(AUTHORITY)));
-    schema.add(new Authority(AuthorityType.UPDATE, List.of(AUTHORITY)));
-    schema.add(new Authority(AuthorityType.DELETE, List.of(AUTHORITY)));
-    schema.add(new Authority(AuthorityType.READ, List.of(AUTHORITY)));
+  @Override
+  public void preCreate(Dhis2OAuth2Client object, ObjectBundle bundle) {
+    clientService.applyCreateDefaults(object);
+  }
 
-    return schema;
+  @Override
+  public void preUpdate(
+      Dhis2OAuth2Client object, Dhis2OAuth2Client persistedObject, ObjectBundle bundle) {
+    clientService.applyUpdateDefaults(persistedObject, object);
   }
 }
