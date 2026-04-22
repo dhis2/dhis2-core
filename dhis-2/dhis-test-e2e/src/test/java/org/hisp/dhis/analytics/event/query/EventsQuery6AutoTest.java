@@ -4106,17 +4106,17 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
 
     // Given
     QueryParamsBuilder params =
-            new QueryParamsBuilder()
-                    .add("displayProperty=NAME")
-                    .add("outputType=EVENT")
-                    .add("pageSize=100")
-                    .add("page=1")
-                    //.add("dimension=Zj7UnCAulEk.EVENT_DATE:THIS_YEAR")
+        new QueryParamsBuilder()
+            .add("displayProperty=NAME")
+            .add("outputType=EVENT")
+            .add("pageSize=100")
+            .add("page=1")
+            // .add("dimension=Zj7UnCAulEk.EVENT_DATE:THIS_YEAR")
 
-                    .add("dimension=ENROLLMENT_OU:USER_ORGUNIT")
-                    .add("headers=enrollmentouname,A03MvHHogjR.a3kGcGDCuk6");
-                    //.add("desc=eventdate,lastupdated")
-                    //.add("relativePeriodDate=2022-12-31");
+            .add("dimension=ENROLLMENT_OU:USER_ORGUNIT")
+            .add("headers=enrollmentouname,A03MvHHogjR.a3kGcGDCuk6");
+    // .add("desc=eventdate,lastupdated")
+    // .add("relativePeriodDate=2022-12-31");
 
     // When
     ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
@@ -4127,14 +4127,14 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
   public void validateStagePrefixedDataElementHeaderWithoutDimension() {
     // Given
     QueryParamsBuilder params =
-            new QueryParamsBuilder()
-                    .add("headers=enrollmentouname,A03MvHHogjR.a3kGcGDCuk6")
-                    .add("displayProperty=NAME")
-                    .add("outputType=EVENT")
-                    .add("pageSize=100")
-                    .add("page=1")
-                    .add("dimension=ENROLLMENT_OU:O6uvpzGd5pu")
-                    .add("totalPages=false");
+        new QueryParamsBuilder()
+            .add("headers=enrollmentouname,A03MvHHogjR.a3kGcGDCuk6")
+            .add("displayProperty=NAME")
+            .add("outputType=EVENT")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("dimension=ENROLLMENT_OU:O6uvpzGd5pu")
+            .add("totalPages=false");
 
     // When
     ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
@@ -4143,27 +4143,27 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
     response.validate().statusCode(200).body("headers", hasSize(2));
 
     List<Map<String, Object>> actualHeaders =
-            response.extractList("headers", Map.class).stream()
-                    .map(obj -> (Map<String, Object>) obj)
-                    .collect(Collectors.toList());
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj)
+            .collect(Collectors.toList());
 
     validateHeaderPropertiesByName(
-            response,
-            actualHeaders,
-            "enrollmentouname",
-            "Enrollment org unit name",
-            "TEXT",
-            "java.lang.String",
-            false,
-            true);
+        response,
+        actualHeaders,
+        "enrollmentouname",
+        "Enrollment org unit name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
     validateHeaderPropertiesByName(
-            response,
-            actualHeaders,
-            "A03MvHHogjR.a3kGcGDCuk6",
-            "MCH Apgar Score",
-            "NUMBER",
-            "java.lang.Double",
-            false,
-            true);
+        response,
+        actualHeaders,
+        "A03MvHHogjR.a3kGcGDCuk6",
+        "MCH Apgar Score",
+        "NUMBER",
+        "java.lang.Double",
+        false,
+        true);
   }
 }
