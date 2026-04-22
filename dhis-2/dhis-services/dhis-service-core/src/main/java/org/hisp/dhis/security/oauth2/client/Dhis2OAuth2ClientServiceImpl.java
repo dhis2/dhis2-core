@@ -82,12 +82,15 @@ import org.springframework.util.StringUtils;
 public class Dhis2OAuth2ClientServiceImpl
     implements Dhis2OAuth2ClientService, RegisteredClientRepository {
 
-  /** Spring Authorization Server grant types this DHIS2 deployment exposes via the admin UI. */
+  /**
+   * Grant types an admin-facing entry point (REST CRUD, bulk metadata import) is allowed to set on
+   * a client. {@code client_credentials} is deliberately excluded — the only legitimate user of it
+   * in this deployment is the DCR system registrar, which is created server-side via {@link
+   * Dhis2OAuth2ClientStore#save} and bypasses these validators. See {@link #validateGrantTypes} for
+   * the one exception that keeps metadata round-trips working.
+   */
   private static final Set<AuthorizationGrantType> ALLOWED_ADMIN_GRANT_TYPES =
-      Set.of(
-          AuthorizationGrantType.AUTHORIZATION_CODE,
-          AuthorizationGrantType.REFRESH_TOKEN,
-          AuthorizationGrantType.CLIENT_CREDENTIALS);
+      Set.of(AuthorizationGrantType.AUTHORIZATION_CODE, AuthorizationGrantType.REFRESH_TOKEN);
 
   private final Dhis2OAuth2ClientStore clientStore;
   private final UserService userService;
@@ -426,7 +429,14 @@ public class Dhis2OAuth2ClientServiceImpl
   }
 
   private void validateGrantTypes(Dhis2OAuth2Client entity, Consumer<ErrorReport> errors) {
+    // The DCR system registrar legitimately uses client_credentials; skip the check so a full
+    // metadata round-trip can re-import it. Admin-initiated creates can't hit this branch because
+    // the reserved clientId is rejected earlier.
+    boolean isSystemRegistrar = SYSTEM_REGISTRAR_CLIENTID.equals(entity.getClientId());
     for (AuthorizationGrantType type : getAuthorizationGrantTypesSet(entity)) {
+      if (isSystemRegistrar && AuthorizationGrantType.CLIENT_CREDENTIALS.equals(type)) {
+        continue;
+      }
       if (!ALLOWED_ADMIN_GRANT_TYPES.contains(type)) {
         errors.accept(
             new ErrorReport(
@@ -434,7 +444,7 @@ public class Dhis2OAuth2ClientServiceImpl
                 ErrorCode.E4000,
                 "Invalid authorization grant type: "
                     + type.getValue()
-                    + ". Only authorization_code, refresh_token and client_credentials are allowed."));
+                    + ". Only authorization_code and refresh_token are allowed."));
       }
     }
   }

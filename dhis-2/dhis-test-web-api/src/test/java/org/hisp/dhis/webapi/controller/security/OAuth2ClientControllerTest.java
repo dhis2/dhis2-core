@@ -402,25 +402,24 @@ class OAuth2ClientControllerTest extends H2ControllerIntegrationTestBase {
   }
 
   @Test
-  void testUpdateAllowsClientCredentialsGrantType() {
-    // The DCR system registrar client is created with client_credentials;
-    // editing it via the UI must not be rejected by the grant-type validator.
-    String uid =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/oAuth2Clients",
-                "{"
-                    + "'clientId':'client-cc',"
-                    + "'clientSecret':'secret',"
-                    + "'clientAuthenticationMethods':'client_secret_basic',"
-                    + "'authorizationGrantTypes':'client_credentials',"
-                    + "'redirectUris':'https://example.com/callback',"
-                    + "'scopes':'openid'"
-                    + "}"));
-
-    JsonObject client = GET("/oAuth2Clients/{id}", uid).content(HttpStatus.OK);
-    assertEquals("client_credentials", client.getString("authorizationGrantTypes").string());
+  void testRejectsClientCredentialsGrantTypeOnAdminCreate() {
+    // client_credentials is reserved for the server-managed DCR system registrar
+    // (which is persisted via the service, bypassing this validator). Admins
+    // must not be able to mint client_credentials clients via the UI or the
+    // bulk metadata path — it's a long-lived, non-rotating, non-MFA token
+    // footgun.
+    assertStatus(
+        HttpStatus.CONFLICT,
+        POST(
+            "/oAuth2Clients",
+            "{"
+                + "'clientId':'client-cc',"
+                + "'clientSecret':'secret',"
+                + "'clientAuthenticationMethods':'client_secret_basic',"
+                + "'authorizationGrantTypes':'client_credentials',"
+                + "'redirectUris':'https://example.com/callback',"
+                + "'scopes':'openid'"
+                + "}"));
   }
 
   @Test
