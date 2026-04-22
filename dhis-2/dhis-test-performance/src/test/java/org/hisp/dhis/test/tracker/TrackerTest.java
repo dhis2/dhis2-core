@@ -103,6 +103,9 @@ import org.slf4j.LoggerFactory;
  *   <li>{@code all} (default) -- import then export
  *   <li>{@code import} -- import only, skip export
  *   <li>{@code export} -- export only, skip import (DB must be seeded)
+ *   <li>{@code isolated_birth} -- import then a minimal scenario that only loops
+ *       {@code Search Birth events}, to reproduce the CI-only bimodal regression
+ *       without any preceding {@code /trackedEntities} requests
  * </ul>
  *
  * <p><b>Import parameters (common):</b>
@@ -210,14 +213,17 @@ public class TrackerTest extends Simulation {
   private enum TestMode {
     ALL,
     IMPORT,
-    EXPORT;
+    EXPORT,
+    ISOLATED_BIRTH;
 
     static TestMode fromString(String mode) {
       try {
         return valueOf(mode.toUpperCase());
       } catch (IllegalArgumentException e) {
         throw new IllegalArgumentException(
-            "Unknown testMode: " + mode + ". Valid options: all, import, export");
+            "Unknown testMode: "
+                + mode
+                + ". Valid options: all, import, export, isolated_birth");
       }
     }
   }
@@ -316,6 +322,7 @@ public class TrackerTest extends Simulation {
           case ALL -> importScenarios().andThen(exportScenarios(eventScenario, trackerScenario));
           case IMPORT -> importScenarios();
           case EXPORT -> exportScenarios(eventScenario, trackerScenario);
+          case ISOLATED_BIRTH -> importScenarios().andThen(isolatedBirthEventsScenario());
         };
 
     HttpProtocolBuilder httpProtocolBuilder =
@@ -447,7 +454,7 @@ public class TrackerTest extends Simulation {
   }
 
   private boolean exportEnabled() {
-    return this.testMode != TestMode.IMPORT;
+    return this.testMode == TestMode.ALL || this.testMode == TestMode.EXPORT;
   }
 
   private boolean importEnabled() {
@@ -541,6 +548,37 @@ public class TrackerTest extends Simulation {
         .scenario()
         .injectClosed(closedProfile)
         .andThen(trackerScenario.scenario().injectClosed(closedProfile));
+  }
+
+  /**
+   * Minimal scenario for reproducing the Search Birth events CI bimodal regression: login, then
+   * loop {@code Search Birth events} only. No preceding tracker/trackedEntities requests, no
+   * pauses. Use with {@code -DtestMode=isolated_birth}.
+   */
+  private PopulationBuilder isolatedBirthEventsScenario() {
+    String searchBirthEvents =
+        "/api/tracker/events?order=createdAt:desc&page=1"
+            + "&pageSize=15&orgUnit=DiszpKrYNg8&orgUnitMode=SELECTED&program="
+            + this.trackerProgram
+            + "&programStage=A03MvHHogjR&fields=:all,!relationships";
+    Request searchBirthEventsByStage =
+        new Request(
+            searchBirthEvents,
+            new EnumMap<>(Map.of(Profile.SMOKE, Integer.MAX_VALUE, Profile.LOAD, Integer.MAX_VALUE)),
+            "Search Birth events");
+
+    ChainBuilder chain =
+        exec(
+            searchBirthEventsByStage.action().check(jsonPath("$.events[*]").count().gte(1)));
+
+    ScenarioBuilder scenarioBuilder =
+        scenario("Isolated Search Birth events")
+            .feed(userFeeder)
+            .exec(login())
+            .exitHereIfFailed()
+            .exec(loopForProfile(chain));
+
+    return scenarioBuilder.injectClosed(buildClosedInjectionProfile());
   }
 
   private ScenarioWithRequests eventProgramScenario() {
