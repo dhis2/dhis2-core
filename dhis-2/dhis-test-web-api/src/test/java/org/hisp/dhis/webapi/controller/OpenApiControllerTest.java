@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.http.HttpClientAdapter.Accept;
+import static org.hisp.dhis.jsontree.JsonSelector.$;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertGreaterOrEqual;
 import static org.hisp.dhis.test.utils.Assertions.assertLessOrEqual;
@@ -97,8 +98,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   void testGetOpenApiDocumentJson_NoValidationErrors() {
     JsonObject doc =
         GET("/openapi/openapi.json?failOnNameClash=true&failOnInconsistency=true").content();
-    SwaggerParseResult result =
-        new OpenAPIParser().readContents(doc.node().getDeclaration(), null, null);
+    SwaggerParseResult result = new OpenAPIParser().readContents(doc.toJson(), null, null);
     assertEquals(List.of(), result.getMessages(), "There should not be any errors");
   }
 
@@ -240,15 +240,11 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
         jobConfiguration.getObject("properties").size()
             > jobConfigurationParams.getObject("properties").size());
     assertTrue(
-        jobConfiguration
-            .node()
-            .find(JsonNodeType.BOOLEAN, n -> n.getPath().toString().endsWith("readOnly"))
-            .isPresent());
+        jobConfiguration.queryExists(
+            $.find(JsonNodeType.BOOLEAN, n -> n.path().segment().contentEquals("readOnly"))));
     assertFalse(
-        jobConfigurationParams
-            .node()
-            .find(JsonNodeType.BOOLEAN, n -> n.getPath().toString().endsWith("readOnly"))
-            .isPresent());
+        jobConfigurationParams.queryExists(
+            $.find(JsonNodeType.BOOLEAN, n -> n.path().segment().contentEquals("readOnly"))));
   }
 
   @Test
@@ -256,7 +252,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
     JsonObject doc = GET("/openapi/openapi.json?failOnNameClash=true").content();
 
     Path tmpFile = Files.createTempFile("openapi", ".json");
-    Files.writeString(tmpFile, doc.node().getDeclaration());
+    Files.writeString(tmpFile, doc.toJson());
 
     CodegenConfigurator configurator =
         new CodegenConfigurator()

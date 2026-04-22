@@ -297,9 +297,7 @@ class DataElementControllerTest extends PostgresControllerIntegrationTestBase {
                     }""")
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport errorReport =
-        validationErrorMsg.find(
-            JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E1121);
+    JsonErrorReport errorReport = validationErrorMsg.findErrorReport(ErrorCode.E1121);
     assertNotNull(errorReport);
     assertEquals(
         "Data element `DeUid000001` value type cannot be changed as it has associated data values",

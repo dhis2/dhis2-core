@@ -253,7 +253,8 @@ class DatastoreControllerTest extends H2ControllerIntegrationTestBase {
   void testGetKeyJsonValue_ComplexValue() {
     assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/cat", "{'x':[1,2,3]}"));
     assertEquals(
-        asList(1, 2, 3), GET("/dataStore/pets/cat").content().getArray("x").numberValues());
+        asList(1, 2, 3),
+        GET("/dataStore/pets/cat").content().getArray("x").intValues().boxed().toList());
   }
 
   @Test

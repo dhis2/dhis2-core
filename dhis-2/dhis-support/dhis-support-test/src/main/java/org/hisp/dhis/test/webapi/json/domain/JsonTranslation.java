@@ -46,7 +46,7 @@ public interface JsonTranslation extends JsonObject {
     return getString("property").string();
   }
 
-  default String getValue() {
+  default String value() {
     return getString("value").string();
   }
 }

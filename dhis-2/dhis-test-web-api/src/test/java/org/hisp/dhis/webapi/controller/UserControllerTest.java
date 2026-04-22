@@ -275,9 +275,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals(
         "Property `OIDC mapping value` already exists, was given `peter@mail.org`.",
-        response
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4054)
-            .getMessage());
+        response.findErrorReport(ErrorCode.E4054).getMessage());
   }
 
   /**
@@ -298,9 +296,7 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals(
         "User `someone` is not allowed to change a user having the ALL authority",
-        response
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3041)
-            .getMessage());
+        response.findErrorReport(ErrorCode.E3041).getMessage());
   }
 
   @Test
@@ -317,15 +313,11 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals(
         "User `someone` is not allowed to change a user having the ALL authority",
-        response
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3041)
-            .getMessage());
+        response.findErrorReport(ErrorCode.E3041).getMessage());
 
     assertEquals(
         "User `someone` is not allowed to change a user having the ALL authority",
-        response
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3041)
-            .getMessage());
+        response.findErrorReport(ErrorCode.E3041).getMessage());
   }
 
   private JsonImportSummary updateRolesNonAllAdmin() {

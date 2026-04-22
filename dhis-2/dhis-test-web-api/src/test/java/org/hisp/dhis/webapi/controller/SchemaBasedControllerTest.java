@@ -251,7 +251,8 @@ class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
                     .getObject("attributeValues")
                     .node()
                     .replaceWith("[{\"value\":\"42\", \"attribute\":{\"id\":\"" + attrId + "\"}}]")
-                    .getDeclaration()),
+                    .getDeclaration()
+                    .toString()),
             ContentType(MediaType.APPLICATION_JSON)));
     assertEquals(
         "42",
@@ -260,7 +261,7 @@ class SchemaBasedControllerTest extends PostgresControllerIntegrationTestBase {
             .as(JsonIdentifiableObject.class)
             .getAttributeValues()
             .get(0)
-            .getValue());
+            .value());
   }
 
   private boolean isExcludedFromTest(JsonSchema schema) {

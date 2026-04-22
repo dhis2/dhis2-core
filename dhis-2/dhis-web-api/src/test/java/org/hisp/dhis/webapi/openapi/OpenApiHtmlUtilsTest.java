@@ -29,10 +29,11 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
-import static org.hisp.dhis.webapi.openapi.OpenApiHtmlUtils.escapeHtml;
+import static org.hisp.dhis.webapi.openapi.OpenApiHtmlUtils.appendEscaped;
 import static org.hisp.dhis.webapi.openapi.OpenApiHtmlUtils.stripHtml;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.jsontree.Text;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -44,75 +45,72 @@ class OpenApiHtmlUtilsTest {
 
   @Test
   void testEscapeHtml_Null() {
-    assertEquals("", escapeHtml(null));
+    assertEscapedEquals("", "");
   }
 
   @Test
   void testEscapeHtml_Empty() {
-    assertEquals("", escapeHtml(""));
+    assertEscapedEquals("", "");
   }
 
   @Test
   void testEscapeHtml_Blank() {
-    assertEquals("  ", escapeHtml("  "));
+    assertEscapedEquals("  ", "  ");
   }
 
   @Test
   void testEscapeHtml_Plain() {
-    assertEquals("This is just plain text", escapeHtml("This is just plain text"));
+    assertEscapedEquals("This is just plain text", "This is just plain text");
   }
 
   @Test
   void testEscapeHtml_AmpIsEscaped() {
-    assertEquals("You&amp;me", escapeHtml("You&me"));
-    assertEquals("&amp;Co Internationale", escapeHtml("&Co Internationale"));
-    assertEquals("Now &amp;", escapeHtml("Now &"));
+    assertEscapedEquals("You&amp;me", "You&me");
+    assertEscapedEquals("&amp;Co Internationale", "&Co Internationale");
+    assertEscapedEquals("Now &amp;", "Now &");
   }
 
   @Test
   void testEscapeHtml_LessThanIsEscaped() {
-    assertEquals("1&lt;7", escapeHtml("1<7"));
-    assertEquals("&lt; power", escapeHtml("< power"));
-    assertEquals("I &lt;3 cats", escapeHtml("I <3 cats"));
-    assertEquals("I &lt;3 cats &amp; dogs", escapeHtml("I <3 cats & dogs"));
+    assertEscapedEquals("1&lt;7", "1<7");
+    assertEscapedEquals("&lt; power", "< power");
+    assertEscapedEquals("I &lt;3 cats", "I <3 cats");
+    assertEscapedEquals("I &lt;3 cats &amp; dogs", "I <3 cats & dogs");
   }
 
   @Test
   void testEscapeHtml_GreaterThanIsEscaped() {
-    assertEquals("1&gt;7", escapeHtml("1>7"));
-    assertEquals("&gt; power", escapeHtml("> power"));
-    assertEquals("I &gt;&gt; cats", escapeHtml("I >> cats"));
-    assertEquals("cats &gt;&gt; dogs &amp; horses", escapeHtml("cats >> dogs & horses"));
+    assertEscapedEquals("1&gt;7", "1>7");
+    assertEscapedEquals("&gt; power", "> power");
+    assertEscapedEquals("I &gt;&gt; cats", "I >> cats");
+    assertEscapedEquals("cats &gt;&gt; dogs &amp; horses", "cats >> dogs & horses");
   }
 
   @Test
   void testEscapeHtml_SingleQuotesAreEscaped() {
-    assertEquals(
-        "&#039;Hey, must be a devil between us&#039;",
-        escapeHtml("'Hey, must be a devil between us'"));
-    assertEquals(
-        "Now, &#039;Exit Music&#039; (for a film)", escapeHtml("Now, 'Exit Music' (for a film)"));
+    assertEscapedEquals(
+        "&#039;Hey, must be a devil between us&#039;", "'Hey, must be a devil between us'");
+    assertEscapedEquals(
+        "Now, &#039;Exit Music&#039; (for a film)", "Now, 'Exit Music' (for a film)");
   }
 
   @Test
   void testEscapeHtml_DoubleQuotesAreEscaped() {
-    assertEquals(
-        "&quot;Hey, must be a devil between us&quot;",
-        escapeHtml("\"Hey, must be a devil between us\""));
-    assertEquals(
-        "Now, &quot;Exit Music&quot; (for a film)", escapeHtml("Now, \"Exit Music\" (for a film)"));
+    assertEscapedEquals(
+        "&quot;Hey, must be a devil between us&quot;", "\"Hey, must be a devil between us\"");
+    assertEscapedEquals(
+        "Now, &quot;Exit Music&quot; (for a film)", "Now, \"Exit Music\" (for a film)");
   }
 
   @Test
   void testEscapeHtml_HtmlEntitiesAreNotEscaped() {
-    assertEquals(
+    assertEscapedEquals(
         "Remember to use &CounterClockwiseContourIntegral;",
-        escapeHtml("Remember to use &CounterClockwiseContourIntegral;"));
-    assertEquals(
-        "Also the &EmptyVerySmallSquare; space",
-        escapeHtml("Also the &EmptyVerySmallSquare; space"));
-    assertEquals("Direction is &#x200E;!", escapeHtml("Direction is &#x200E;!"));
-    assertEquals("Everyone loves &#128049;", escapeHtml("Everyone loves &#128049;"));
+        "Remember to use &CounterClockwiseContourIntegral;");
+    assertEscapedEquals(
+        "Also the &EmptyVerySmallSquare; space", "Also the &EmptyVerySmallSquare; space");
+    assertEscapedEquals("Direction is &#x200E;!", "Direction is &#x200E;!");
+    assertEscapedEquals("Everyone loves &#128049;", "Everyone loves &#128049;");
   }
 
   @Test
@@ -135,5 +133,11 @@ class OpenApiHtmlUtilsTest {
     assertEquals(
         "Any of , , , , and  will be stripped!",
         stripHtml("Any of <, >, \", ', and & will be stripped!"));
+  }
+
+  private void assertEscapedEquals(String expected, String actual) {
+    StringBuilder escaped = new StringBuilder();
+    appendEscaped(Text.of(actual), escaped);
+    assertEquals(expected, escaped.toString());
   }
 }

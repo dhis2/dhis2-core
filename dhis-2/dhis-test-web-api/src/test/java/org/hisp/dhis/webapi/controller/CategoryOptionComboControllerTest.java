@@ -181,9 +181,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
                     }""")
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport errorReport =
-        validationErrorMsg.find(
-            JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E1534);
+    JsonErrorReport errorReport = validationErrorMsg.findErrorReport(ErrorCode.E1534);
     assertNotNull(errorReport);
     assertEquals(
         "dataMergeStrategy field must be specified. With value `DISCARD` or `LAST_UPDATED`",

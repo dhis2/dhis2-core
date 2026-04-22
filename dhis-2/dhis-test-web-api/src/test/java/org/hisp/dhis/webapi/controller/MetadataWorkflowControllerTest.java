@@ -149,8 +149,7 @@ class MetadataWorkflowControllerTest extends H2ControllerIntegrationTestBase {
                         + "}"
                         + "}")
                 .content(HttpStatus.CONFLICT));
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4000);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E4000);
     assertEquals("Missing required property `shortName`", error.getMessage());
     assertEquals("shortName", error.getErrorProperties().get(0));
   }
