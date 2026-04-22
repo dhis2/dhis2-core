@@ -36,13 +36,13 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.SecondaryMetadataObject;
 
 @Getter
 @Setter
 @JacksonXmlRootElement(localName = "oauth2AuthorizationConsent", namespace = DxfNamespaces.DXF_2_0)
 public class Dhis2OAuth2AuthorizationConsent extends BaseIdentifiableObject
-    implements MetadataObject {
+    implements SecondaryMetadataObject {
 
   public Dhis2OAuth2AuthorizationConsent() {}
 
