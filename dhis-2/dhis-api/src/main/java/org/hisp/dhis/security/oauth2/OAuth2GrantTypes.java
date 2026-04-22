@@ -46,20 +46,17 @@ public final class OAuth2GrantTypes {
    * (authorization_code, client_credentials, refresh_token, device_code). Falls back to a new
    * instance for any custom value — the equality contract on {@code AuthorizationGrantType} is
    * value-based, but returning the singleton where possible keeps identity comparisons working.
+   *
+   * <p>Case labels are the RFC-defined grant-type strings (RFC 6749 + RFC 8628); they match
+   * Spring's {@code AuthorizationGrantType.*.getValue()} by construction.
    */
   public static AuthorizationGrantType resolve(@Nonnull String value) {
-    if (AuthorizationGrantType.AUTHORIZATION_CODE.getValue().equals(value)) {
-      return AuthorizationGrantType.AUTHORIZATION_CODE;
-    }
-    if (AuthorizationGrantType.CLIENT_CREDENTIALS.getValue().equals(value)) {
-      return AuthorizationGrantType.CLIENT_CREDENTIALS;
-    }
-    if (AuthorizationGrantType.REFRESH_TOKEN.getValue().equals(value)) {
-      return AuthorizationGrantType.REFRESH_TOKEN;
-    }
-    if (AuthorizationGrantType.DEVICE_CODE.getValue().equals(value)) {
-      return AuthorizationGrantType.DEVICE_CODE;
-    }
-    return new AuthorizationGrantType(value);
+    return switch (value) {
+      case "authorization_code" -> AuthorizationGrantType.AUTHORIZATION_CODE;
+      case "client_credentials" -> AuthorizationGrantType.CLIENT_CREDENTIALS;
+      case "refresh_token" -> AuthorizationGrantType.REFRESH_TOKEN;
+      case "urn:ietf:params:oauth:grant-type:device_code" -> AuthorizationGrantType.DEVICE_CODE;
+      default -> new AuthorizationGrantType(value);
+    };
   }
 }
