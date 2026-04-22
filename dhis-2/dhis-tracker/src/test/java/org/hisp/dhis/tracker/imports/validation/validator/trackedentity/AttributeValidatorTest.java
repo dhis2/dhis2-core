@@ -40,6 +40,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hisp.dhis.common.CodeGenerator;
@@ -60,6 +61,7 @@ import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.imports.util.Constant;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -642,6 +644,90 @@ class AttributeValidatorTest {
     validator.validate(reporter, bundle, trackedEntity);
 
     assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldFailValidationWhenImportingUniqueAttributeValueWithDifferentCaseThanExistingValue() {
+    String teaUid = "UniqueTeaA1";
+
+    TrackedEntityAttribute tea = new TrackedEntityAttribute();
+    tea.setUid(teaUid);
+    tea.setValueType(ValueType.TEXT);
+    tea.setUnique(true);
+    tea.setOrgunitScope(false);
+
+    when(preheat.getUniqueAttributeValues())
+        .thenReturn(
+            List.of(
+                new UniqueAttributeValue(
+                    UID.generate(),
+                    MetadataIdentifier.ofUid(teaUid),
+                    "Abc",
+                    MetadataIdentifier.ofUid("OrgUnit0001"))));
+    when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid(teaUid))).thenReturn(tea);
+    when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
+        .thenReturn(new TrackedEntityType());
+
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(UID.generate())
+            .attributes(
+                Collections.singletonList(
+                    Attribute.builder()
+                        .attribute(MetadataIdentifier.ofUid(teaUid))
+                        .value("ABC")
+                        .build()))
+            .trackedEntityType(MetadataIdentifier.ofUid("trackedEntityType"))
+            .build();
+
+    validator.validate(reporter, bundle, trackedEntity);
+
+    assertHasError(reporter, trackedEntity, ValidationCode.E1064);
+  }
+
+  @Test
+  void shouldPassValidationWhenUniqueAttributeValueWithDifferentCaseBelongsToSameTrackedEntity() {
+    String teaUid = "UniqueTeaA1";
+    UID teUid = UID.generate();
+
+    TrackedEntityAttribute tea = new TrackedEntityAttribute();
+    tea.setUid(teaUid);
+    tea.setValueType(ValueType.TEXT);
+    tea.setUnique(true);
+    tea.setOrgunitScope(false);
+
+    org.hisp.dhis.tracker.model.TrackedEntity storedTe =
+        new org.hisp.dhis.tracker.model.TrackedEntity();
+    storedTe.setUid(teUid.getValue());
+
+    when(preheat.getUniqueAttributeValues())
+        .thenReturn(
+            List.of(
+                new UniqueAttributeValue(
+                    teUid,
+                    MetadataIdentifier.ofUid(teaUid),
+                    "Abc",
+                    MetadataIdentifier.ofUid("OrgUnit0001"))));
+    when(preheat.getTrackedEntityAttribute(MetadataIdentifier.ofUid(teaUid))).thenReturn(tea);
+    when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
+        .thenReturn(new TrackedEntityType());
+    when(preheat.getTrackedEntity(teUid)).thenReturn(storedTe);
+
+    TrackedEntity trackedEntity =
+        TrackedEntity.builder()
+            .trackedEntity(teUid)
+            .attributes(
+                Collections.singletonList(
+                    Attribute.builder()
+                        .attribute(MetadataIdentifier.ofUid(teaUid))
+                        .value("ABC")
+                        .build()))
+            .trackedEntityType(MetadataIdentifier.ofUid("trackedEntityType"))
+            .build();
+
+    validator.validate(reporter, bundle, trackedEntity);
+
+    assertNoErrors(reporter);
   }
 
   private TrackedEntityAttribute getTrackedEntityAttributeWithOptionSet() {
