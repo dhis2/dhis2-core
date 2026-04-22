@@ -208,10 +208,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
                 }""")
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport errorReport =
-        validationErrorMsg.find(
-            JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E1533);
-    assertNotNull(errorReport);
+    JsonErrorReport errorReport = validationErrorMsg.findErrorReport(ErrorCode.E1533);
     assertEquals(
         "SOURCE CategoryOptionCombo does not exist: `bjDvmb4bfuf`", errorReport.getMessage());
   }

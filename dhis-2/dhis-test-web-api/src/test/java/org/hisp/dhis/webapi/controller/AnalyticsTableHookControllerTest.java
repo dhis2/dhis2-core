@@ -37,6 +37,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -88,7 +89,8 @@ class AnalyticsTableHookControllerTest extends H2ControllerIntegrationTestBase {
                 "/analyticsTableHooks/",
                 "{'name':'NameB', 'phase':'RESOURCE_TABLE_POPULATED', 'resourceTableType':'ORG_UNIT_STRUCTURE', 'sql':'update analytics_rs_orgunitstructure set organisationunitid=1'}")
             .content(HttpStatus.CONFLICT)
-            .find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E6400);
+            .as(JsonWebMessage.class)
+            .findErrorReport(ErrorCode.E6400);
     assertNotNull(error);
     assertEquals("Analytics table hook `NameB` is a duplicate of `NameA`", error.getMessage());
   }

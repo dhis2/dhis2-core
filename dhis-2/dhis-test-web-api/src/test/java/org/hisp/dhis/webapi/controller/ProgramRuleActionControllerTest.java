@@ -32,7 +32,6 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -47,6 +46,7 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -135,8 +135,8 @@ class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
     JsonErrorReport error =
         POST("/programRuleActions", programRuleAction)
             .content(HttpStatus.CONFLICT)
-            .find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4058);
-    assertNotNull(error);
+            .as(JsonWebMessage.class)
+            .findErrorReport(ErrorCode.E4058);
     assertEquals(
         "Program Rule `ProgramRuleA` with Action Type `HIDEPROGRAMSTAGE` has irrelevant reference objects",
         error.getMessage());
@@ -159,8 +159,8 @@ class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
     JsonErrorReport error =
         POST("/programRuleActions", programRuleAction)
             .content(HttpStatus.CONFLICT)
-            .find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4083);
-    assertNotNull(error);
+            .as(JsonWebMessage.class)
+            .findErrorReport(ErrorCode.E4083);
     assertEquals(
         "ProgramRule `%s` must be associated with a Tracker Program (a program with registration)"
             .formatted(programRuleB.getUid()),
@@ -184,8 +184,8 @@ class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
     JsonErrorReport error =
         POST("/programRuleActions", programRuleAction)
             .content(HttpStatus.CONFLICT)
-            .find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4084);
-    assertNotNull(error);
+            .as(JsonWebMessage.class)
+            .findErrorReport(ErrorCode.E4084);
     assertEquals(
         "ProgramStage `%s` is not part of Program `%s`"
             .formatted(trackerProgramStageB.getUid(), trackerProgramA.getUid()),
@@ -209,8 +209,8 @@ class ProgramRuleActionControllerTest extends H2ControllerIntegrationTestBase {
     JsonErrorReport error =
         POST("/programRuleActions", programRuleAction)
             .content(HttpStatus.CONFLICT)
-            .find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4038);
-    assertNotNull(error);
+            .as(JsonWebMessage.class)
+            .findErrorReport(ErrorCode.E4038);
     assertEquals(
         "ProgramStage cannot be null for program rule `%s`".formatted(programRuleA.getUid()),
         error.getMessage());
