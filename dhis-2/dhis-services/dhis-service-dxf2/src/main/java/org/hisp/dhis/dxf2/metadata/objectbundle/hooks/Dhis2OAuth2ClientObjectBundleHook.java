@@ -32,19 +32,15 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.feedback.ConflictException;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
-import org.hisp.dhis.security.oauth2.client.OAuth2ClientAdminValidator;
+import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
 import org.springframework.stereotype.Component;
 
 /**
- * Runs {@link OAuth2ClientAdminValidator} against any {@link Dhis2OAuth2Client} that flows through
- * the metadata import pipeline. The REST CRUD controller already calls the validator in its
- * pre-hooks; the ObjectBundleHook is what catches the bulk {@code /api/metadata} path, which
- * bypasses the controller but runs the same import pipeline. Double-execution on the REST path is
- * harmless — the validator is idempotent.
+ * Wires {@link Dhis2OAuth2ClientService}'s admin validators + defaulting into the metadata import
+ * pipeline so the same checks run on bulk {@code /api/metadata} imports as on REST CRUD. The REST
+ * controller already calls the same service methods directly. Idempotent on the REST path.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -52,59 +48,27 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class Dhis2OAuth2ClientObjectBundleHook extends AbstractObjectBundleHook<Dhis2OAuth2Client> {
 
-  private final OAuth2ClientAdminValidator validator;
+  private final Dhis2OAuth2ClientService clientService;
 
   @Override
   public void validate(
       Dhis2OAuth2Client object, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
     if (bundle.isPersisted(object)) {
-      // On bulk UPDATE we intentionally do NOT run rejectIfSystemRegistrar: a
-      // round-trip metadata export/import legitimately re-sends the real
-      // system-dcr-registrar-client row, and rejecting it would break full
-      // metadata backups/restores. The admin still needs F_OAUTH2_CLIENT_MANAGE
-      // + F_METADATA_IMPORT to reach this path. The REST PUT path keeps the
-      // strict check so the settings UI can't touch the registrar directly.
       Dhis2OAuth2Client persisted = bundle.getPreheat().get(bundle.getPreheatIdentifier(), object);
-      if (persisted == null || !persisted.getClientId().equals(object.getClientId())) {
-        runAsErrorReport(
-            () -> validator.rejectReservedClientId(object.getClientId(), "rename a client to"),
-            addReports);
-      }
+      clientService.validateUpdate(persisted, object, addReports);
     } else {
-      runAsErrorReport(
-          () -> validator.rejectReservedClientId(object.getClientId(), "create a client with"),
-          addReports);
+      clientService.validateCreate(object, addReports);
     }
-    runAsErrorReport(() -> validator.validateGrantTypes(object), addReports);
-    runAsErrorReport(() -> validator.validateRedirectUris(object), addReports);
   }
 
   @Override
   public void preCreate(Dhis2OAuth2Client object, ObjectBundle bundle) {
-    validator.defaultNameFromClientId(object);
+    clientService.applyCreateDefaults(object);
   }
 
   @Override
   public void preUpdate(
       Dhis2OAuth2Client object, Dhis2OAuth2Client persistedObject, ObjectBundle bundle) {
-    validator.preserveNameOnUpdate(persistedObject, object);
-  }
-
-  /**
-   * Bridge from the validator's {@link ConflictException}-based API to the bundle hook's {@link
-   * ErrorReport}-based error channel. Using {@code ErrorCode.E4000} (generic message) keeps the
-   * same http status (409) the import pipeline already maps validation conflicts to.
-   */
-  private void runAsErrorReport(CheckedRunnable check, Consumer<ErrorReport> addReports) {
-    try {
-      check.run();
-    } catch (ConflictException e) {
-      addReports.accept(new ErrorReport(Dhis2OAuth2Client.class, ErrorCode.E4000, e.getMessage()));
-    }
-  }
-
-  @FunctionalInterface
-  private interface CheckedRunnable {
-    void run() throws ConflictException;
+    clientService.applyUpdateDefaults(persistedObject, object);
   }
 }

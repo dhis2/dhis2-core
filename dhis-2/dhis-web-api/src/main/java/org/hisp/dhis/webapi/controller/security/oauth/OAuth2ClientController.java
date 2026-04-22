@@ -32,8 +32,12 @@ package org.hisp.dhis.webapi.controller.security.oauth;
 import static org.hisp.dhis.security.Authorities.F_OAUTH2_CLIENT_MANAGE;
 import static org.hisp.dhis.security.oauth2.OAuth2Constants.SYSTEM_REGISTRAR_CLIENTID;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.query.Query;
@@ -41,20 +45,15 @@ import org.hisp.dhis.query.operators.NotEqualOperator;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
-import org.hisp.dhis.security.oauth2.client.OAuth2ClientAdminValidator;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
-import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * Controller for managing OAuth2 clients for the DHIS2 OAuth2 authorization server.
- *
- * <p>Delegates admin-input validation and name-defaulting to {@link OAuth2ClientAdminValidator};
- * retains only the parts that are specific to the REST CRUD pipeline (authority gate, list-query
- * filter to hide the system registrar, client-settings defaulting, delete-protection for the system
- * registrar which doesn't flow through the bundle import).
+ * Controller for managing OAuth2 clients for the DHIS2 OAuth2 authorization server. Validation and
+ * defaulting live on {@link Dhis2OAuth2ClientService} — this controller is just the REST pipeline
+ * glue: authority gate, list-query filter to hide the system registrar, REST-only delete guard, and
+ * translation of the first collected validation error into a {@link ConflictException}.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -66,43 +65,35 @@ public class OAuth2ClientController
     extends AbstractCrudController<Dhis2OAuth2Client, GetObjectListParams> {
 
   private final Dhis2OAuth2ClientService clientService;
-  private final OAuth2ClientAdminValidator validator;
 
   @Override
   protected void preCreateEntity(Dhis2OAuth2Client entity) throws ConflictException {
-    validator.rejectReservedClientId(entity.getClientId(), "create a client with");
-    validator.validateGrantTypes(entity);
-    validator.validateRedirectUris(entity);
-    validator.defaultNameFromClientId(entity);
-
-    if (entity.getClientSettings() == null) {
-      ClientSettings clientSettings =
-          ClientSettings.builder().requireAuthorizationConsent(true).build();
-      entity.setClientSettings(clientService.writeMap(clientSettings.getSettings()));
-    }
-    if (entity.getTokenSettings() == null) {
-      TokenSettings tokenSettings = TokenSettings.builder().build();
-      entity.setTokenSettings(clientService.writeMap(tokenSettings.getSettings()));
-    }
+    throwFirst(errors -> clientService.validateCreate(entity, errors));
+    clientService.applyCreateDefaults(entity);
   }
 
   @Override
   protected void preUpdateEntity(Dhis2OAuth2Client entity, Dhis2OAuth2Client newEntity)
       throws ConflictException {
-    validator.rejectIfSystemRegistrar(entity, "update");
-    if (entity == null || !entity.getClientId().equals(newEntity.getClientId())) {
-      validator.rejectReservedClientId(newEntity.getClientId(), "rename a client to");
+    if (entity != null && SYSTEM_REGISTRAR_CLIENTID.equals(entity.getClientId())) {
+      throw new ConflictException(
+          "Cannot update the system-managed DCR registrar client ("
+              + SYSTEM_REGISTRAR_CLIENTID
+              + ").");
     }
-    validator.validateGrantTypes(newEntity);
-    validator.validateRedirectUris(newEntity);
-    validator.preserveNameOnUpdate(entity, newEntity);
-
+    throwFirst(errors -> clientService.validateUpdate(entity, newEntity, errors));
+    clientService.applyUpdateDefaults(entity, newEntity);
     super.preUpdateEntity(entity, newEntity);
   }
 
   @Override
   protected void preDeleteEntity(Dhis2OAuth2Client entity) throws ConflictException {
-    validator.rejectIfSystemRegistrar(entity, "delete");
+    if (entity != null && SYSTEM_REGISTRAR_CLIENTID.equals(entity.getClientId())) {
+      throw new ConflictException(
+          "Cannot delete the system-managed DCR registrar client ("
+              + SYSTEM_REGISTRAR_CLIENTID
+              + ").");
+    }
   }
 
   /**
@@ -114,5 +105,20 @@ public class OAuth2ClientController
   @Override
   protected void modifyGetObjectList(GetObjectListParams params, Query<Dhis2OAuth2Client> query) {
     query.add(new Filter("clientId", new NotEqualOperator<>(SYSTEM_REGISTRAR_CLIENTID)));
+  }
+
+  /**
+   * Run a collecting validator and translate the first reported error into a {@link
+   * ConflictException}. The full set of errors is available to non-REST callers (e.g. the
+   * metadata-import bundle hook) which prefer to merge them into a bundle report instead of
+   * throwing.
+   */
+  private static void throwFirst(Consumer<Consumer<ErrorReport>> validator)
+      throws ConflictException {
+    List<ErrorReport> errors = new ArrayList<>();
+    validator.accept(errors::add);
+    if (!errors.isEmpty()) {
+      throw new ConflictException(errors.get(0).getMessage());
+    }
   }
 }
