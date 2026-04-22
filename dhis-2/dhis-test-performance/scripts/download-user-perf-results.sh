@@ -1,29 +1,35 @@
 #!/usr/bin/env bash
-# Downloads gatling-report-users-load artifacts from the last N scheduled performance test runs.
+# Downloads Gatling artifacts from the last N scheduled performance test runs.
 #
 # Usage:
-#   ./download-user-perf-results.sh [--runs N] [--out-dir DIR]
+#   ./download-user-perf-results.sh [--test-name NAME] [--runs N] [--out-dir DIR]
 #
-# Defaults: 10 runs, output to ./gatling-downloads/
+# Defaults: test-name=users-load, 10 runs, output to ./gatling-downloads-<test-name>/
 #
 # Requires: gh CLI (authenticated), jq or python3
 
 set -euo pipefail
 
 RUNS=10
-OUT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/gatling-downloads"
+TEST_NAME="users-load"
+OUT_DIR=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --runs) RUNS="$2"; shift 2 ;;
+    --test-name) TEST_NAME="$2"; shift 2 ;;
     --out-dir) OUT_DIR="$2"; shift 2 ;;
     *) echo "Unknown argument: $1" >&2; exit 1 ;;
   esac
 done
 
+if [[ -z "$OUT_DIR" ]]; then
+  OUT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/gatling-downloads-${TEST_NAME}"
+fi
+
 mkdir -p "$OUT_DIR"
 
-echo "Fetching last $RUNS runs from dhis2/dhis2-core performance-tests-scheduled.yml ..."
+echo "Fetching last $RUNS runs from dhis2/dhis2-core performance-tests-scheduled.yml (test-name: $TEST_NAME) ..."
 
 RUN_IDS=$(gh run list \
   --repo dhis2/dhis2-core \
@@ -43,7 +49,7 @@ echo
 
 while IFS=' ' read -r run_id created_at; do
   date_tag="${created_at:0:10}"
-  artifact_name="gatling-report-users-load-${run_id}-attempt-1"
+  artifact_name="gatling-report-${TEST_NAME}-${run_id}-attempt-1"
   dest="$OUT_DIR/${date_tag}_${run_id}"
 
   if [[ -d "$dest" ]]; then
@@ -82,4 +88,4 @@ done <<< "$RUN_IDS"
 
 echo
 echo "Downloads complete. Results in: $OUT_DIR"
-echo "Run analyze-user-perf-results.py to compute metrics."
+echo "Run: python3 analyze-user-perf-results.py --dir $OUT_DIR"
