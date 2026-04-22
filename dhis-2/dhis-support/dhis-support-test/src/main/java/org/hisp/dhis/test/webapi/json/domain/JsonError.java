@@ -79,7 +79,7 @@ public interface JsonError extends JsonObject {
    * @return a error summary suitable to be used as assert message.
    */
   default String summary() {
-    if (!isA(JsonError.class)) {
+    if (!isObject() || !has("httpStatusCode") || !has("message")) {
       return toJson();
     }
     StringBuilder str = new StringBuilder();
