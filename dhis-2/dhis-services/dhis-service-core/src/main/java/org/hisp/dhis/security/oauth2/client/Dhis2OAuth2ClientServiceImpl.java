@@ -58,7 +58,6 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.jspecify.annotations.Nullable;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -472,7 +471,8 @@ public class Dhis2OAuth2ClientServiceImpl
     }
   }
 
-  private static @Nullable String getScheme(Consumer<ErrorReport> errors, String trimmed) {
+  @CheckForNull
+  private static String getScheme(Consumer<ErrorReport> errors, String trimmed) {
     String scheme;
     try {
       scheme = new URI(trimmed).getScheme();
