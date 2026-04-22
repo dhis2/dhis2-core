@@ -31,7 +31,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.http.HttpClientAdapter.Accept;
-import static org.hisp.dhis.jsontree.JsonSelector.$;
+import static org.hisp.dhis.jsontree.JsonSelector.AT;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertGreaterOrEqual;
 import static org.hisp.dhis.test.utils.Assertions.assertLessOrEqual;
@@ -55,6 +55,7 @@ import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.openapi.OpenApiObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.ParameterObject;
@@ -220,7 +221,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals(
         Set.of("pager", "organisationUnits"),
-        properties.keys().collect(toSet()),
+        properties.keys().map(Text::toString).collect(toSet()),
         "there should only be a pager and an entity list property");
 
     SchemaObject listSchema = properties.get("organisationUnits");
@@ -241,10 +242,10 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
             > jobConfigurationParams.getObject("properties").size());
     assertTrue(
         jobConfiguration.queryExists(
-            $.find(JsonNodeType.BOOLEAN, n -> n.path().segment().contentEquals("readOnly"))));
+            AT.find(JsonNodeType.BOOLEAN, n -> n.path().segment().contentEquals("readOnly"))));
     assertFalse(
         jobConfigurationParams.queryExists(
-            $.find(JsonNodeType.BOOLEAN, n -> n.path().segment().contentEquals("readOnly"))));
+            AT.find(JsonNodeType.BOOLEAN, n -> n.path().segment().contentEquals("readOnly"))));
   }
 
   @Test

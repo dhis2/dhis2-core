@@ -440,7 +440,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
 
     // then they are updated
     JsonCategoryOptionCombo updated = getCoc(cocUid);
-    assertEquals("new alt name", updated.getAttributeValues().get(0).getValue());
+    assertEquals("new alt name", updated.getAttributeValues().get(0).value());
   }
 
   @Test
@@ -457,7 +457,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
         .content(HttpStatus.OK);
 
     JsonCategoryOptionCombo cocWithAv = getCoc(cocUid);
-    assertEquals("val created", cocWithAv.getAttributeValues().get(0).getValue());
+    assertEquals("val created", cocWithAv.getAttributeValues().get(0).value());
 
     // when updating the attribute values
     PUT("/categoryOptionCombos/" + cocUid, cocAttributeValuesOnlyUpdated(avUid, "val updated"))
@@ -465,7 +465,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
 
     // then they are updated
     JsonCategoryOptionCombo updated = getCoc(cocUid);
-    assertEquals("val updated", updated.getAttributeValues().get(0).getValue());
+    assertEquals("val updated", updated.getAttributeValues().get(0).value());
   }
 
   @Test
@@ -516,7 +516,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
     JsonCategoryOptionCombo updated = getCoc(cocUid);
     assertEquals("new code zzz123", updated.getCode());
     assertTrue(updated.getIgnoreApproval());
-    assertEquals("new alt name 12", updated.getAttributeValues().get(0).getValue());
+    assertEquals("new alt name 12", updated.getAttributeValues().get(0).value());
 
     // and other unrelated fields are not affected
     assertEquals(cocUid, updated.getId());
@@ -612,7 +612,7 @@ class CategoryOptionComboControllerTest extends H2ControllerIntegrationTestBase 
     // then code & attributeValues are updated
     JsonCategoryOptionCombo updated2 = getCoc(cocUid);
     assertEquals("new code zzz123x", updated2.getCode());
-    assertEquals("new alt name zz12", updated2.getAttributeValues().get(0).getValue());
+    assertEquals("new alt name zz12", updated2.getAttributeValues().get(0).value());
 
     // and ignoreApproval is unchanged
     assertTrue(updated2.getIgnoreApproval());
