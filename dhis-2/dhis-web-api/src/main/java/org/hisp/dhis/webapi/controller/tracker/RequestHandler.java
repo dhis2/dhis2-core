@@ -61,7 +61,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class RequestHandler {
   private static final CacheControl CACHE_CONTROL_DIRECTIVES =
-      CacheControl.noCache().cachePrivate();
+      CacheControl.noCache().cachePrivate().mustRevalidate();
 
   private final DhisConfigurationProvider dhisConfig;
 

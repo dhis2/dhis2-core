@@ -33,7 +33,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.security.Authorities.F_SYSTEM_SETTING;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
 import static org.hisp.dhis.util.JsonValueUtils.toJavaString;
-import static org.hisp.dhis.webapi.utils.ContextUtils.noCacheNoStoreMustRevalidate;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
@@ -138,7 +137,7 @@ public class SystemSettingsController {
     if (SystemSettings.isTranslatable(key)) value = getSystemSettingTranslation(key);
     if (value.isEmpty())
       value = toJavaString(settingsService.getCurrentSettings().toJson(true, Set.of(key)).get(key));
-    return ResponseEntity.ok().headers(noCacheNoStoreMustRevalidate()).body(value);
+    return ResponseEntity.ok().body(value);
   }
 
   @GetMapping(produces = APPLICATION_JSON_VALUE)
@@ -148,7 +147,7 @@ public class SystemSettingsController {
     SystemSettings settings = settingsService.getCurrentSettings();
     JsonMap<JsonMixed> res =
         key == null || key.isEmpty() ? settings.toJson(false) : settings.toJson(true, key);
-    return ResponseEntity.ok().headers(noCacheNoStoreMustRevalidate()).body(res);
+    return ResponseEntity.ok().body(res);
   }
 
   @GetMapping(value = "/{key}", produces = APPLICATION_JSON_VALUE)
@@ -167,7 +166,7 @@ public class SystemSettingsController {
       }
     }
     if (value.isNull()) value = settingsService.getCurrentSettings().toJson(true, Set.of(key));
-    return ResponseEntity.ok().headers(noCacheNoStoreMustRevalidate()).body(value);
+    return ResponseEntity.ok().body(value);
   }
 
   @DeleteMapping("/{key}")
@@ -203,10 +202,7 @@ public class SystemSettingsController {
     if (value.isEmpty())
       value =
           toJavaString(settingsService.getCurrentSettings().toJson(false, Set.of(key)).get(key));
-    return ResponseEntity.ok()
-        .contentType(MediaType.TEXT_PLAIN)
-        .headers(noCacheNoStoreMustRevalidate())
-        .body(value);
+    return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN).body(value);
   }
 
   @Nonnull

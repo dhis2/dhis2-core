@@ -1,0 +1,22 @@
+{
+  "relationshipTypes": [
+    {
+      "id": "CchRT000001",
+      "name": "Cache Test RelType",
+      "fromToName": "Cache from-to",
+      "toFromName": "Cache to-from",
+      "fromConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "Q9GufDoplCL"
+        }
+      },
+      "toConstraint": {
+        "relationshipEntity": "TRACKED_ENTITY_INSTANCE",
+        "trackedEntityType": {
+          "id": "Q9GufDoplCL"
+        }
+      }
+    }
+  ]
+}

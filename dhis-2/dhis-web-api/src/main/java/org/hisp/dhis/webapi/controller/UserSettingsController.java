@@ -97,7 +97,9 @@ public class UserSettingsController {
     UserSettings settings = getUserSettings(userId, username, useFallback);
     JsonMap<JsonMixed> res =
         key == null || key.isEmpty() ? settings.toJson(false) : settings.toJson(false, key);
-    return ResponseEntity.ok().cacheControl(CacheControl.noCache().cachePrivate()).body(res);
+    return ResponseEntity.ok()
+        .cacheControl(CacheControl.noCache().cachePrivate().mustRevalidate())
+        .body(res);
   }
 
   @GetMapping(value = "/{key}")
@@ -112,7 +114,8 @@ public class UserSettingsController {
     checkKeyExists(key);
 
     response.setHeader(
-        ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue());
+        ContextUtils.HEADER_CACHE_CONTROL,
+        CacheControl.noCache().cachePrivate().mustRevalidate().getHeaderValue());
     response.setHeader(HttpHeaders.CONTENT_TYPE, ContextUtils.CONTENT_TYPE_TEXT);
 
     UserSettings settings = getUserSettings(userId, username, useFallback);

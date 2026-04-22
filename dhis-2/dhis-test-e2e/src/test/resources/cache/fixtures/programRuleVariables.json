@@ -1,0 +1,21 @@
+{
+  "programs": [
+    {
+      "id": "CchPrgPRV01",
+      "name": "Cache Program for PRV",
+      "shortName": "Cache PRV Prog",
+      "programType": "WITHOUT_REGISTRATION",
+      "organisationUnits": [
+        { "id": "DiszpKrYNg8" }
+      ]
+    }
+  ],
+  "programRuleVariables": [
+    {
+      "id": "CchPRV00001",
+      "name": "cache_test_prv",
+      "program": { "id": "CchPrgPRV01" },
+      "programRuleVariableSourceType": "CALCULATED_VALUE"
+    }
+  ]
+}

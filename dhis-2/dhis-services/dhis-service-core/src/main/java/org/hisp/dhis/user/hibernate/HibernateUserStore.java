@@ -70,6 +70,7 @@ import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.config.sqlobserver.DmlSqlParser;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.QueryUtils;
@@ -460,6 +461,14 @@ public class HibernateUserStore extends HibernateIdentifiableObjectStore<User>
     typedQuery.setHint(QueryHints.HINT_CACHE_REGION, USERNAME_QUERY_CACHE_REGION);
 
     return QueryUtils.getSingleResult(typedQuery);
+  }
+
+  @Override
+  public int updateLastLogin(@Nonnull String username) {
+    return jdbcTemplate.update(
+        DmlSqlParser.DML_SKIP_MARKER
+            + " UPDATE userinfo SET lastlogin = now(), lastupdated = now() WHERE username = ?",
+        username);
   }
 
   @Override

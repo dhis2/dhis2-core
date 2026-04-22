@@ -229,6 +229,13 @@
             <release>17</release>
             <encoding>${project.build.sourceEncoding}</encoding>
             <parameters>true</parameters>
+            <annotationProcessorPaths>
+              <path>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+              </path>
+            </annotationProcessorPaths>
           </configuration>
         </plugin>
         <plugin>
@@ -337,6 +344,20 @@
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
               <groups>uitests</groups>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>cache</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <groups>cache</groups>
             </configuration>
           </plugin>
         </plugins>

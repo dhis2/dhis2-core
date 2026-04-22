@@ -70,6 +70,7 @@ class DefaultAppManagerTest {
   @Mock private I18nManager i18nManager;
   @Mock private BundledAppManager bundledAppInstaller;
   @Mock private LocaleManager localeManager;
+  @Mock private org.hisp.dhis.cache.ETagService eTagService;
 
   private AppManager appManager;
 
@@ -130,7 +131,8 @@ class DefaultAppManagerTest {
             cacheBuilderProvider,
             i18nManager,
             localeManager,
-            bundledAppInstaller);
+            bundledAppInstaller,
+            eTagService);
   }
 
   /**

@@ -1,0 +1,28 @@
+{
+  "predictors": [
+    {
+      "id": "CchPrd00001",
+      "name": "Cache Test Predictor",
+      "shortName": "Cache Pred",
+      "output": { "id": "CchDE000002" },
+      "generator": {
+        "expression": "0"
+      },
+      "periodType": "Monthly",
+      "sequentialSampleCount": 1,
+      "annualSampleCount": 0,
+      "organisationUnitDescendants": "SELECTED",
+      "organisationUnitLevels": []
+    }
+  ],
+  "dataElements": [
+    {
+      "id": "CchDE000002",
+      "name": "Cache Test DataElement for Predictor",
+      "shortName": "Cache Pred DE",
+      "aggregationType": "SUM",
+      "valueType": "INTEGER",
+      "domainType": "AGGREGATE"
+    }
+  ]
+}

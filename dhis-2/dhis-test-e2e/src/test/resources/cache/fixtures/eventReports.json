@@ -1,0 +1,21 @@
+{
+  "programs": [
+    {
+      "id": "CchPrgERp01",
+      "name": "Cache Program for EventReport",
+      "shortName": "Cache ER Prog",
+      "programType": "WITHOUT_REGISTRATION",
+      "organisationUnits": [
+        { "id": "DiszpKrYNg8" }
+      ]
+    }
+  ],
+  "eventReports": [
+    {
+      "id": "CchER000001",
+      "name": "Cache Test Event Report",
+      "type": "LINE_LIST",
+      "program": { "id": "CchPrgERp01" }
+    }
+  ]
+}
