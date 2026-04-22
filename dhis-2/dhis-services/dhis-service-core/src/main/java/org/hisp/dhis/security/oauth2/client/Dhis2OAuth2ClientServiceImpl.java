@@ -52,11 +52,13 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.security.oauth2.OAuth2GrantTypes;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
@@ -206,7 +208,7 @@ public class Dhis2OAuth2ClientServiceImpl
             .authorizationGrantTypes(
                 (grantTypes) ->
                     authorizationGrantTypes.forEach(
-                        grantType -> grantTypes.add(resolveAuthorizationGrantType(grantType))))
+                        grantType -> grantTypes.add(OAuth2GrantTypes.resolve(grantType))))
             .redirectUris(uris -> uris.addAll(redirectUris))
             .postLogoutRedirectUris(uris -> uris.addAll(postLogoutRedirectUris))
             .scopes(scopes -> scopes.addAll(clientScopes));
@@ -311,28 +313,6 @@ public class Dhis2OAuth2ClientServiceImpl
   }
 
   /**
-   * Resolves the AuthorizationGrantType from a string value.
-   *
-   * @param authorizationGrantType The string value
-   * @return The corresponding AuthorizationGrantType
-   */
-  private static AuthorizationGrantType resolveAuthorizationGrantType(
-      @Nonnull String authorizationGrantType) {
-    if (AuthorizationGrantType.AUTHORIZATION_CODE.getValue().equals(authorizationGrantType)) {
-      return AuthorizationGrantType.AUTHORIZATION_CODE;
-    } else if (AuthorizationGrantType.CLIENT_CREDENTIALS
-        .getValue()
-        .equals(authorizationGrantType)) {
-      return AuthorizationGrantType.CLIENT_CREDENTIALS;
-    } else if (AuthorizationGrantType.REFRESH_TOKEN.getValue().equals(authorizationGrantType)) {
-      return AuthorizationGrantType.REFRESH_TOKEN;
-    } else if (AuthorizationGrantType.DEVICE_CODE.getValue().equals(authorizationGrantType)) {
-      return AuthorizationGrantType.DEVICE_CODE;
-    }
-    return new AuthorizationGrantType(authorizationGrantType); // Custom authorization grant type
-  }
-
-  /**
    * Resolves the ClientAuthenticationMethod from a string value.
    *
    * @param clientAuthenticationMethod The string value
@@ -421,7 +401,7 @@ public class Dhis2OAuth2ClientServiceImpl
     return Arrays.stream(raw.split(","))
         .map(String::trim)
         .filter(s -> !s.isEmpty())
-        .map(AuthorizationGrantType::new)
+        .map(OAuth2GrantTypes::resolve)
         .collect(Collectors.toUnmodifiableSet());
   }
 
@@ -476,21 +456,8 @@ public class Dhis2OAuth2ClientServiceImpl
       if (trimmed.isEmpty()) {
         continue;
       }
-      String scheme;
-      try {
-        scheme = new URI(trimmed).getScheme();
-      } catch (URISyntaxException e) {
-        errors.accept(
-            new ErrorReport(
-                Dhis2OAuth2Client.class, ErrorCode.E4000, "Invalid redirect URI: " + trimmed));
-        continue;
-      }
-      if (scheme == null || scheme.isEmpty()) {
-        errors.accept(
-            new ErrorReport(
-                Dhis2OAuth2Client.class, ErrorCode.E4000, "Invalid redirect URI: " + trimmed));
-        continue;
-      }
+      String scheme = getScheme(errors, trimmed);
+      if (scheme == null) continue;
       String lowerScheme = scheme.toLowerCase(Locale.ROOT);
       if ("http".equals(lowerScheme) || "https".equals(lowerScheme)) {
         continue;
@@ -503,6 +470,25 @@ public class Dhis2OAuth2ClientServiceImpl
                 "Redirect URI not in deviceEnrollmentRedirectAllowlist: " + trimmed));
       }
     }
+  }
+
+  private static @Nullable String getScheme(Consumer<ErrorReport> errors, String trimmed) {
+    String scheme;
+    try {
+      scheme = new URI(trimmed).getScheme();
+    } catch (URISyntaxException e) {
+      errors.accept(
+          new ErrorReport(
+              Dhis2OAuth2Client.class, ErrorCode.E4000, "Invalid redirect URI: " + trimmed));
+      return null;
+    }
+    if (scheme == null || scheme.isEmpty()) {
+      errors.accept(
+          new ErrorReport(
+              Dhis2OAuth2Client.class, ErrorCode.E4000, "Invalid redirect URI: " + trimmed));
+      return null;
+    }
+    return scheme;
   }
 
   private Set<String> parseRedirectAllowList() {
