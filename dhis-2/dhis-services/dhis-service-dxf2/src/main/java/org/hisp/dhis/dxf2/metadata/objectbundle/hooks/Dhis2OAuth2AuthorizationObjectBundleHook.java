@@ -58,7 +58,7 @@ public class Dhis2OAuth2AuthorizationObjectBundleHook
     addReports.accept(
         new ErrorReport(
             Dhis2OAuth2Authorization.class,
-            ErrorCode.E6002,
+            ErrorCode.E6023,
             Dhis2OAuth2Authorization.class.getSimpleName()));
   }
 }
