@@ -1133,7 +1133,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
         columnMapper,
         filterBuilder,
         stageQuerySqlFacade,
-        new DateFieldPeriodBucketColumnResolver(builder));
+        new DateFieldPeriodBucketColumnResolver(builder),
+        new FirstOrLastValueSubqueryRenderer(
+            builder, timeCoordinateSelector, programIndicatorService));
   }
 
   private void verifyFirstOrLastAggregationTypeSubquery(
