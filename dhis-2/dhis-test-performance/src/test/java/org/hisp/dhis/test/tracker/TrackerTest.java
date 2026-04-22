@@ -700,7 +700,7 @@ public class TrackerTest extends Simulation {
         "/api/tracker/events?order=createdAt:desc&page=1"
             + "&pageSize=15&orgUnit=DiszpKrYNg8&orgUnitMode=SELECTED&program="
             + this.trackerProgram
-            + "&programStage=A03MvHHogjR&fields=*";
+            + "&programStage=A03MvHHogjR&fields=:all,!relationships";
 
     String getTEsFromEvents =
         "/api/tracker/trackedEntities?pageSize=15&program="
