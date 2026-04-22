@@ -30,55 +30,48 @@
 package org.hisp.dhis.webapi.filter;
 
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.WebFilter;
-import jakarta.servlet.annotation.WebInitParam;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.regex.Pattern;
+import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.Assert;
+import org.springframework.stereotype.Component;
 import org.springframework.web.filter.ShallowEtagHeaderFilter;
 
 /**
- * Subclass of {@link org.springframework.web.filter.ShallowEtagHeaderFilter} which allows exclusion
- * of URIs matching a regex.
+ * Subclass of {@link org.springframework.web.filter.ShallowEtagHeaderFilter} which skips ETag
+ * generation for URIs matching {@link #ENDPOINTS}.
  *
- * <p>The regex is given as the init-param named 'excludeUriRegex' in the filter configuration.
+ * <p>Registered as a Spring bean and wired into the servlet filter chain via a {@code
+ * DelegatingFilterProxy} in {@code DhisWebApiWebAppInitializer}, mapped to {@code /api/*}.
  *
- * <p>Example configuration:
+ * <p>Requests whose URI matches {@link #ENDPOINTS} bypass the underlying {@link
+ * ShallowEtagHeaderFilter} and proceed down the chain without response buffering or ETag
+ * computation. This is used to skip endpoints that stream large payloads (e.g. file/image resources
+ * and data value sets) where the cost of buffering the response to compute an MD5 outweighs the
+ * benefit.
  *
- * <pre>{@code
- * <filter>
- *     <filter-name>ShallowEtagHeaderFilter</filter-name>
- *     <filter-class>org.hisp.dhis.webapi.filter.ExcludableShallowEtagHeaderFilter</filter-class>
- *     <init-param>
- *         <param-name>excludeUriRegex</param-name>
- *         <param-value>/api/dataValues|/api/dataValues/files</param-value>
- *     </init-param>
- * </filter>
- * }</pre>
+ * <p>Examples:
  *
- * <p>The example exactly matches and excludes any request to the '/api/dataValues' and
- * '/api/dataValues/files' from the filter.
+ * <ul>
+ *   <li>{@code GET /api/dataElementGroups} — <em>not</em> excluded; response gets an ETag.
+ *   <li>{@code GET /api/dataValues} — excluded; no ETag header added.
+ *   <li>{@code GET /api/41/fileResources/abc123} — excluded (the {@code (\d{2}/)?} segment matches
+ *       the optional API version prefix).
+ *   <li>{@code GET /api/tracker/events/RkV9CZzmV2E/dataValues/q33Wv8jNvFA/file} — excluded.
+ * </ul>
  *
  * @author Lars Helge Overland
  * @author Halvdan Hoem Grelland
  */
 @Slf4j
-@WebFilter(
-    urlPatterns = {"/api/*"},
-    asyncSupported = true,
-    initParams = {
-      @WebInitParam(name = "excludeUriRegex", value = ExcludableShallowEtagHeaderFilter.ENDPOINTS)
-    })
+@Component
 public class ExcludableShallowEtagHeaderFilter extends ShallowEtagHeaderFilter {
   private static final String UID_REGEXP = "[a-zA-Z][a-zA-Z0-9]{10}";
-  static final String EXCLUDE_URI_REGEX_VAR_NAME = "excludeUriRegex";
 
-  static final String ENDPOINTS =
+  private static final String ENDPOINTS =
       "/api/(\\d{2}/)?dataValueSets|"
           + "/api/(\\d{2}/)?dataValues|"
           + "/api/(\\d{2}/)?fileResources|"
@@ -94,43 +87,22 @@ public class ExcludableShallowEtagHeaderFilter extends ShallowEtagHeaderFilter {
           + UID_REGEXP
           + "/(file|image)";
 
-  private Pattern pattern = null;
+  private static final Pattern EXCLUDE_PATTERN = Pattern.compile(ENDPOINTS);
 
-  @Override
-  protected void initFilterBean() {
-    FilterConfig filterConfig = getFilterConfig();
-
-    String excludeRegex =
-        filterConfig != null ? filterConfig.getInitParameter(EXCLUDE_URI_REGEX_VAR_NAME) : null;
-
-    Assert.notNull(
-        excludeRegex,
-        String.format(
-            excludeRegex,
-            "Parameter '%s' must be specified for ExcludableShallowEtagHeaderFilter",
-            EXCLUDE_URI_REGEX_VAR_NAME));
-
-    pattern = Pattern.compile(excludeRegex);
-
+  @PostConstruct
+  void logConfiguration() {
     log.debug(
-        String.format(
-            "ExcludableShallowEtagHeaderFilter initialized with %s: '%s'",
-            EXCLUDE_URI_REGEX_VAR_NAME, excludeRegex));
+        "ExcludableShallowEtagHeaderFilter registered; URIs matching '{}' will bypass ETag generation",
+        ENDPOINTS);
   }
 
   @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-    String uri = request.getRequestURI();
-
-    boolean match = pattern.matcher(uri).find();
-
-    if (match) {
-      // Proceed without invoking this filter
+    if (EXCLUDE_PATTERN.matcher(request.getRequestURI()).find()) {
       filterChain.doFilter(request, response);
     } else {
-      // Invoke this filter
       super.doFilterInternal(request, response, filterChain);
     }
   }

@@ -165,6 +165,30 @@ public class Dhis2OAuth2ClientServiceIntegrationTest extends PostgresIntegration
   }
 
   @Test
+  void testSaveWithNullClientNameFallsBackToClientId() {
+    // Given: a RegisteredClient without clientName set (RFC 7591 allows this
+    // for dynamic client registration).
+    String clientId = "no-name-client-" + UUID.randomUUID();
+    RegisteredClient registeredClient =
+        RegisteredClient.withId(CodeGenerator.generateUid())
+            .clientId(clientId)
+            .clientSecret("secret")
+            .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+            .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+            .redirectUri("https://example.com/callback")
+            .scope("read")
+            .build();
+
+    // When
+    clientRepository.save(registeredClient);
+    Dhis2OAuth2Client entity = clientRepository.getAsDhis2OAuth2ClientByClientId(clientId);
+
+    // Then: name is populated from clientId to satisfy NOT NULL constraint.
+    assertNotNull(entity);
+    assertEquals(clientId, entity.getName());
+  }
+
+  @Test
   void testTimestampConversion() {
     // Given
     Instant now = Instant.now();
