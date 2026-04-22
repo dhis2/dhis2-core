@@ -814,6 +814,96 @@ class DefaultEventDataQueryServiceTest {
   }
 
   @Test
+  void getFromRequestPromotesStagePrefixedHeaderIntoItemWhenNotInDimensions() {
+    ProgramStage programStage = createProgramStage('S', program);
+    DataElement dataElement = createDataElement('D', ValueType.NUMBER, AggregationType.SUM);
+    QueryItem dataElementItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(dataElement.getUid()),
+            program,
+            null,
+            ValueType.NUMBER,
+            AggregationType.SUM,
+            null);
+    dataElementItem.setProgramStage(programStage);
+
+    String headerAlias = programStage.getUid() + "." + dataElement.getUid();
+    when(queryItemLocator.getQueryItemFromDimension(headerAlias, program, EventOutputType.EVENT))
+        .thenReturn(dataElementItem);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT)
+            .headers(new LinkedHashSet<>(List.of("enrollmentouname", headerAlias)))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+    assertEquals(dataElement.getUid(), params.getItems().get(0).getItemId());
+    assertEquals(programStage.getUid(), params.getItems().get(0).getProgramStage().getUid());
+  }
+
+  @Test
+  void getFromRequestDoesNotPromoteStagePrefixedHeaderWhenSuffixIsStaticColumn() {
+    ProgramStage programStage = createProgramStage('S', program);
+
+    String headerAlias = programStage.getUid() + ".eventstatus";
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).headers(Set.of(headerAlias)).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.getItems().isEmpty());
+    verify(queryItemLocator, times(0)).getQueryItemFromDimension(eq(headerAlias), any(), any());
+  }
+
+  @Test
+  void getFromRequestDoesNotPromoteStagePrefixedHeaderAlreadyPresentAsItem() {
+    ProgramStage programStage = createProgramStage('S', program);
+    DataElement dataElement = createDataElement('D', ValueType.NUMBER, AggregationType.SUM);
+    QueryItem dataElementItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(dataElement.getUid()),
+            program,
+            null,
+            ValueType.NUMBER,
+            AggregationType.SUM,
+            null);
+    dataElementItem.setProgramStage(programStage);
+
+    String alias = programStage.getUid() + "." + dataElement.getUid();
+    when(queryItemLocator.getQueryItemFromDimension(alias, program, EventOutputType.EVENT))
+        .thenReturn(dataElementItem);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT)
+            .dimension(Set.of(Set.of(alias)))
+            .headers(Set.of(alias))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+  }
+
+  @Test
+  void getFromRequestSwallowsLocatorFailureForUnresolvableHeaderSuffix() {
+    ProgramStage programStage = createProgramStage('S', program);
+    String headerAlias = programStage.getUid() + ".notADataElement";
+
+    when(queryItemLocator.getQueryItemFromDimension(headerAlias, program, EventOutputType.EVENT))
+        .thenThrow(new IllegalQueryException(ErrorCode.E7224, headerAlias));
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).headers(Set.of(headerAlias)).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.getItems().isEmpty());
+  }
+
+  @Test
   void getFromRequestRejectsNonNumericAndNonBooleanValueTypes() {
     DataElement textElement = createDataElement('X', ValueType.TEXT, AggregationType.NONE);
     DataElement dateElement = createDataElement('D', ValueType.DATE, AggregationType.NONE);

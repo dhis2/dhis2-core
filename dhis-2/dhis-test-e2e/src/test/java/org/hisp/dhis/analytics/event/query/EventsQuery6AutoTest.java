@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.event.query;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderExistence;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeaderPropertiesByName;
 import static org.hisp.dhis.analytics.ValidationHelper.validateResponseStructure;
@@ -4097,5 +4098,72 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
       validateRowValueByName(response, actualHeaders, 9, "oucode", "OU_559");
       validateRowValueByName(response, actualHeaders, 9, "incidentdate", "2021-09-10 12:27:48.552");
     }
+  }
+
+  @Test
+  @DisplayName("Validate period dimension with stage-specific date dimension is rejected")
+  public void edoardo() {
+
+    // Given
+    QueryParamsBuilder params =
+            new QueryParamsBuilder()
+                    .add("displayProperty=NAME")
+                    .add("outputType=EVENT")
+                    .add("pageSize=100")
+                    .add("page=1")
+                    //.add("dimension=Zj7UnCAulEk.EVENT_DATE:THIS_YEAR")
+
+                    .add("dimension=ENROLLMENT_OU:USER_ORGUNIT")
+                    .add("headers=enrollmentouname,A03MvHHogjR.a3kGcGDCuk6");
+                    //.add("desc=eventdate,lastupdated")
+                    //.add("relativePeriodDate=2022-12-31");
+
+    // When
+    ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
+    System.out.println(response.prettyPrint());
+  }
+
+  @Test
+  public void validateStagePrefixedDataElementHeaderWithoutDimension() {
+    // Given
+    QueryParamsBuilder params =
+            new QueryParamsBuilder()
+                    .add("headers=enrollmentouname,A03MvHHogjR.a3kGcGDCuk6")
+                    .add("displayProperty=NAME")
+                    .add("outputType=EVENT")
+                    .add("pageSize=100")
+                    .add("page=1")
+                    .add("dimension=ENROLLMENT_OU:O6uvpzGd5pu")
+                    .add("totalPages=false");
+
+    // When
+    ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    response.validate().statusCode(200).body("headers", hasSize(2));
+
+    List<Map<String, Object>> actualHeaders =
+            response.extractList("headers", Map.class).stream()
+                    .map(obj -> (Map<String, Object>) obj)
+                    .collect(Collectors.toList());
+
+    validateHeaderPropertiesByName(
+            response,
+            actualHeaders,
+            "enrollmentouname",
+            "Enrollment org unit name",
+            "TEXT",
+            "java.lang.String",
+            false,
+            true);
+    validateHeaderPropertiesByName(
+            response,
+            actualHeaders,
+            "A03MvHHogjR.a3kGcGDCuk6",
+            "MCH Apgar Score",
+            "NUMBER",
+            "java.lang.Double",
+            false,
+            true);
   }
 }

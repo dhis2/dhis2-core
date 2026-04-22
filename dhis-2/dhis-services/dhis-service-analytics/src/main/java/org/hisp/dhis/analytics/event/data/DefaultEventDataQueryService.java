@@ -175,6 +175,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
     addFiltersToParams(params, request, userOrgUnits, pr, idScheme, enrollmentStatuses);
 
+    addHeaderOnlyItemsToParams(params, request, pr);
+
     addSortToParams(params, request, pr);
 
     if (request.getAggregationType() != null) {
@@ -390,6 +392,67 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   @Override
   public QueryItem getQueryItem(String dimensionString, Program program, EventOutputType type) {
     return getQueryItem(dimensionString, program, type, null);
+  }
+
+  /**
+   * Promotes each {@code headers=} entry of the form {@code {stageUid}.{itemUid}} into a {@link
+   * QueryItem} when it doesn't already exist as a dimension or item and its suffix isn't a known
+   * static column. This lets clients request stage-scoped data element / attribute columns without
+   * having to repeat them in {@code dimension=}. Resolver failures are swallowed so unresolvable
+   * suffixes surface as E7230 downstream in the usual way.
+   */
+  private void addHeaderOnlyItemsToParams(
+      EventQueryParams.Builder params, EventDataQueryRequest request, Program pr) {
+    Set<String> headers = request.getHeaders();
+    if (headers == null || headers.isEmpty() || pr == null) {
+      return;
+    }
+
+    Set<String> existingKeys =
+        params.build().getItems().stream()
+            .map(DefaultEventDataQueryService::itemKey)
+            .collect(Collectors.toSet());
+
+    for (String header : headers) {
+      int dot = header.lastIndexOf('.');
+      if (dot <= 0 || dot >= header.length() - 1) {
+        continue;
+      }
+
+      if (isStaticColumnSuffix(header.substring(dot + 1))) {
+        continue;
+      }
+
+      if (existingKeys.contains(header)) {
+        continue;
+      }
+
+      try {
+        QueryItem queryItem =
+            getQueryItem(header, pr, request.getOutputType(), request.getRelativePeriodDate());
+        if (queryItem != null) {
+          params.addItem(queryItem);
+          existingKeys.add(itemKey(queryItem));
+        }
+      } catch (IllegalQueryException ignored) {
+        // Let the downstream grid retain check surface the usual E7230 for truly unknown headers.
+      }
+    }
+  }
+
+  private static String itemKey(QueryItem item) {
+    String uid = item.getItemId();
+    return item.hasProgramStage() ? item.getProgramStage().getUid() + "." + uid : uid;
+  }
+
+  private static boolean isStaticColumnSuffix(String suffix) {
+    for (ColumnHeader candidate : ColumnHeader.values()) {
+      if (candidate.getItem().equalsIgnoreCase(suffix)
+          || candidate.name().equalsIgnoreCase(suffix)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private void addSortToParams(
