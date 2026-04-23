@@ -121,7 +121,7 @@
     <lettuce.version>6.8.0.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-database-postgresql.version>11.8.2</flyway-database-postgresql.version>
+    <flyway-database-postgresql.version>12.4.0</flyway-database-postgresql.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <ehcache3.version>3.10.8</ehcache3.version>
     <jaxb-runtime.version>4.0.7</jaxb-runtime.version>
@@ -143,7 +143,7 @@
     <velocity-tools.version>3.1</velocity-tools.version>
 
     <!-- Jackson -->
-    <jackson.version>2.20.0</jackson.version>
+    <jackson.version>2.21.2</jackson.version>
     <jackson-datatype-jts.version>2.19.2</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 
