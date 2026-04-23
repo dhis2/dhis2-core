@@ -64,6 +64,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.schema.Schema;
 import org.springframework.stereotype.Component;
 
@@ -143,12 +144,13 @@ public class GeoJsonAttributesCheck implements ObjectValidationCheck {
    *
    * <p>If Jackson throws error then create new ErrorReport with ErrorCode.E6004
    *
-   * @param attributeId the ID of the attribute being checked
-   * @param attributeValue the validated value for the attribute with the provided ID
+   * @param key the ID of the attribute being checked
+   * @param value the validated value for the attribute with the provided ID
    * @param addError ErrorReport consumer.
    */
-  private void validateGeoJsonValue(
-      String attributeId, String attributeValue, Consumer<ErrorReport> addError) {
+  private void validateGeoJsonValue(Text key, Text value, Consumer<ErrorReport> addError) {
+    String attributeId = key.toString();
+    String attributeValue = value.toString();
     try {
       validateGeoJsonObject(
           objectMapper.readValue(attributeValue, GeoJsonObject.class), attributeId, addError);
