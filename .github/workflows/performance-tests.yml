@@ -228,16 +228,24 @@ jobs:
 
         echo "## 📥 Download Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Download all results from all attempts:" >> $GITHUB_STEP_SUMMARY
+        echo "Recommended (per-test artifact, layout works directly with [gatling-statistics](https://github.com/dhis2/gatling-statistics)):" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-        echo "gh run download --repo dhis2/dhis2-core ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+        echo "gh run download ${{ github.run_id }} --repo dhis2/dhis2-core \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --name gatling-report-${{ inputs.test_name }}-${{ github.run_id }}-attempt-${{ github.run_attempt }} \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --dir ./${{ inputs.test_name }}-${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "All attempts (one wrapper directory per artifact, not readable by gstat directly):" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "gh run download ${{ github.run_id }} --repo dhis2/dhis2-core" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
         echo "## 📊 View Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Results are in \`gatling-report-${{ inputs.test_name }}-${{ github.run_id }}-attempt-${{ github.run_attempt }}/\` with subdirectories:" >> $GITHUB_STEP_SUMMARY
+        echo "After the recommended download command above, the layout is \`./${{ inputs.test_name }}-${{ github.run_id }}/\` containing:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         if [ "$WARMUP_COUNT" -gt 0 ]; then
           echo "* **Warmup runs**: \`<simulation-class>-<timestamp>-${{ inputs.test_name }}-warmup-<number>/\`" >> $GITHUB_STEP_SUMMARY
@@ -256,6 +264,31 @@ jobs:
         echo "* \`dhis.log\` - DHIS2 application log (if DHIS2 logging enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`postgresql.log\` - PostgreSQL query logs (if SQL logging enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`pgbadger.html\` - SQL log analysis report (if SQL logging enabled)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "### Per-run percentiles" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "gstat ./${{ inputs.test_name }}-${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "### Compare with another run" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Download a second run the same way (replace \`<other-run-id>\` and \`<other-test-name>\`), then run \`gstat compare\` with the baseline first:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "gh run download <other-run-id> --repo dhis2/dhis2-core \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --name gatling-report-<other-test-name>-<other-run-id>-attempt-1 \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --dir ./<other-test-name>-<other-run-id>" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "gstat compare \\" >> $GITHUB_STEP_SUMMARY
+        echo "  ./<other-test-name>-<other-run-id> \\" >> $GITHUB_STEP_SUMMARY
+        echo "  ./${{ inputs.test_name }}-${{ github.run_id }} \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --percentile 95 --method tdigest" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Tip**: \`gstat compare\` uses each input directory's basename as the column header. Pick a short, meaningful \`test_name\` (e.g. \`2.43.0-load-2u\`) so the table reads cleanly. Override per input with \`--label NAME\`." >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
         echo "## 🖥️ Environment" >> $GITHUB_STEP_SUMMARY

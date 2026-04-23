@@ -330,21 +330,46 @@ jobs:
 
         echo "## 📥 Download Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Download all results from all attempts:" >> $GITHUB_STEP_SUMMARY
+        echo "Recommended (single artifact, layout works directly with [gatling-statistics](https://github.com/dhis2/gatling-statistics)):" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-        echo "gh run download --repo dhis2/dhis2-core ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+        echo "gh run download ${{ github.run_id }} --repo dhis2/dhis2-core \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --name gatling-report-${{ github.run_id }}-${{ github.sha }}-attempt-${{ github.run_attempt }} \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --dir ./compare-${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "All attempts (one wrapper directory per artifact, not readable by gstat directly):" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "gh run download ${{ github.run_id }} --repo dhis2/dhis2-core" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
         echo "## 📊 View Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Results are in \`gatling-report-${{ github.run_id }}-${{ github.sha }}-attempt-${{ github.run_attempt }}/\` with subdirectories:" >> $GITHUB_STEP_SUMMARY
+        echo "After the recommended download command above, the layout is \`./compare-${{ github.run_id }}/\` containing:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "* **Baseline warmup runs** (if WARMUP > 0): \`<simulation-class>-<timestamp>-baseline-warmup-<number>/\`" >> $GITHUB_STEP_SUMMARY
         echo "* **Baseline**: \`<simulation-class>-<timestamp>-baseline/\`" >> $GITHUB_STEP_SUMMARY
         echo "* **Candidate warmup runs** (if WARMUP > 0): \`<simulation-class>-<timestamp>-candidate-warmup-<number>/\`" >> $GITHUB_STEP_SUMMARY
         echo "* **Candidate**: \`<simulation-class>-<timestamp>-candidate/\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "### Per-run percentiles" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "gstat ./compare-${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "### Compare baseline vs candidate" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "gstat compare \\" >> $GITHUB_STEP_SUMMARY
+        echo "  ./compare-${{ github.run_id }}/*-baseline  --label baseline \\" >> $GITHUB_STEP_SUMMARY
+        echo "  ./compare-${{ github.run_id }}/*-candidate --label candidate \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --percentile 95 --method tdigest" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "Each directory contains:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
