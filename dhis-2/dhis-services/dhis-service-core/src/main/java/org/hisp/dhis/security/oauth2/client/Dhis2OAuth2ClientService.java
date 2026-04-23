@@ -81,8 +81,8 @@ public interface Dhis2OAuth2ClientService {
   RegisteredClient findById(String id);
 
   /**
-   * Look up a client by OAuth2 {@code client_id}. Called by Spring AS on every token-endpoint
-   * authentication; keep this fast.
+   * Look up a client by OAuth2 {@code client_id}. Called by Spring Authorization Server on every
+   * token-endpoint authentication.
    *
    * @return the matching {@link RegisteredClient}, or {@code null} if none.
    */

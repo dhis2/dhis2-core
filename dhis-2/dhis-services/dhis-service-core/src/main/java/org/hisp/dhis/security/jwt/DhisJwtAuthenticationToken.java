@@ -43,8 +43,9 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
  *
  * <p>Instances are created by {@link Dhis2JwtAuthenticationManagerResolver} once the token
  * signature has been verified against the issuer's JWKS and the token's mapping claim (typically
- * {@code username} or {@code email}) has been resolved to a DHIS2 {@link UserDetails}. The token
- * wraps three things:
+ * {@code username} or {@code email}) has been resolved to a DHIS2 {@link UserDetails}. The mapping
+ * claim has already been consumed upstream by the resolver, so the wrapped {@link DhisOidcUser}
+ * uses {@link IdTokenClaimNames#SUB} as its name attribute. The token wraps three things:
  *
  * <ul>
  *   <li>The raw validated {@link Jwt}, available through {@link #getToken()}.

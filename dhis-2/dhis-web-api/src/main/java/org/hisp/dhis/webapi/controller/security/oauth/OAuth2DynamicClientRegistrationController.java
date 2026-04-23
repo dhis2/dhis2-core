@@ -61,9 +61,13 @@ import org.springframework.web.util.UriComponentsBuilder;
  * the standard RFC 7591 registration response.
  *
  * <p>The DCR endpoint is implicitly enabled whenever {@code oauth2.server.enabled=on}, gated here
- * by {@link AuthorizationServerEnabledCondition}. The registration payload must contain inline
- * {@code jwks} (remote {@code jwks_uri} is not accepted). IATs are single-use: once {@code
- * /connect/register} consumes the underlying authorization, the IAT cannot be replayed.
+ * by {@link AuthorizationServerEnabledCondition}. The registration payload typically ships an
+ * inline {@code jwks} (rather than a remote {@code jwks_uri}), because the main DCR client is the
+ * DHIS2 Android Capture app, whose per-device RSA keypair is generated in the Android Keystore and
+ * cannot be hosted at a public URL; the inline form is decoded at token-endpoint time by {@link
+ * org.hisp.dhis.webapi.security.config.InlineJwksJwtClientAssertionDecoderFactory}. IATs are
+ * single-use: once {@code /connect/register} consumes the underlying authorization, the IAT cannot
+ * be replayed.
  *
  * <p>The primary client of this flow is the DHIS2 Android Capture app; the {@code /enrollDevice}
  * step below prepares the redirect that seeds it with an IAT.
