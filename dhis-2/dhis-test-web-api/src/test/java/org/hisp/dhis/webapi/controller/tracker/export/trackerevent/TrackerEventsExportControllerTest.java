@@ -449,7 +449,7 @@ class TrackerEventsExportControllerTest extends PostgresControllerIntegrationTes
         jsonEvent.getNotes().stream().map(JsonNote::getNote).toList());
     assertContainsOnly(
         List.of("comment value", "comment value"),
-        jsonEvent.getNotes().stream().map(JsonNote::getValue).toList());
+        jsonEvent.getNotes().stream().map(JsonNote::value).toList());
   }
 
   @Test

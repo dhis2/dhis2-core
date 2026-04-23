@@ -150,7 +150,7 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
             .content(HttpStatus.OK)
             .as(JsonNote.class);
 
-    assertEquals("This is a note", note.getValue());
+    assertEquals("This is a note", note.value());
     assertTrue(CodeGenerator.isValidUid(note.getNote()));
   }
 
@@ -171,7 +171,7 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
             .content(HttpStatus.OK)
             .as(JsonNote.class);
 
-    assertEquals("This is a note", note.getValue());
+    assertEquals("This is a note", note.value());
     assertEquals(noteUid.getValue(), note.getNote());
   }
 
@@ -204,7 +204,7 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
             .content(HttpStatus.OK)
             .as(JsonNote.class);
 
-    assertEquals("This is a note", note.getValue());
+    assertEquals("This is a note", note.value());
     assertTrue(CodeGenerator.isValidUid(note.getNote()));
   }
 
@@ -224,7 +224,7 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
             .content(HttpStatus.OK)
             .as(JsonNote.class);
 
-    assertEquals("This is a note", note.getValue());
+    assertEquals("This is a note", note.value());
     assertEquals(noteUid.getValue(), note.getNote());
   }
 

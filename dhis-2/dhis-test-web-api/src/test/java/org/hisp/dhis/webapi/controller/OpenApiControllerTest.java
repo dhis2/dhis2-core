@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.http.HttpClientAdapter.Accept;
+import static org.hisp.dhis.jsontree.JsonSelector.AT;
 import static org.hisp.dhis.test.utils.Assertions.assertContains;
 import static org.hisp.dhis.test.utils.Assertions.assertGreaterOrEqual;
 import static org.hisp.dhis.test.utils.Assertions.assertLessOrEqual;
@@ -54,6 +55,7 @@ import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.webapi.openapi.OpenApiObject;
 import org.hisp.dhis.webapi.openapi.OpenApiObject.ParameterObject;
@@ -97,8 +99,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
   void testGetOpenApiDocumentJson_NoValidationErrors() {
     JsonObject doc =
         GET("/openapi/openapi.json?failOnNameClash=true&failOnInconsistency=true").content();
-    SwaggerParseResult result =
-        new OpenAPIParser().readContents(doc.node().getDeclaration(), null, null);
+    SwaggerParseResult result = new OpenAPIParser().readContents(doc.toJson(), null, null);
     assertEquals(List.of(), result.getMessages(), "There should not be any errors");
   }
 
@@ -220,7 +221,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals(
         Set.of("pager", "organisationUnits"),
-        properties.keys().collect(toSet()),
+        properties.keys().map(Text::toString).collect(toSet()),
         "there should only be a pager and an entity list property");
 
     SchemaObject listSchema = properties.get("organisationUnits");
@@ -240,15 +241,11 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
         jobConfiguration.getObject("properties").size()
             > jobConfigurationParams.getObject("properties").size());
     assertTrue(
-        jobConfiguration
-            .node()
-            .find(JsonNodeType.BOOLEAN, n -> n.getPath().toString().endsWith("readOnly"))
-            .isPresent());
+        jobConfiguration.queryExists(
+            AT.find(JsonNodeType.BOOLEAN, n -> n.path().segment().contentEquals("readOnly"))));
     assertFalse(
-        jobConfigurationParams
-            .node()
-            .find(JsonNodeType.BOOLEAN, n -> n.getPath().toString().endsWith("readOnly"))
-            .isPresent());
+        jobConfigurationParams.queryExists(
+            AT.find(JsonNodeType.BOOLEAN, n -> n.path().segment().contentEquals("readOnly"))));
   }
 
   @Test
@@ -256,7 +253,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
     JsonObject doc = GET("/openapi/openapi.json?failOnNameClash=true").content();
 
     Path tmpFile = Files.createTempFile("openapi", ".json");
-    Files.writeString(tmpFile, doc.node().getDeclaration());
+    Files.writeString(tmpFile, doc.toJson());
 
     CodegenConfigurator configurator =
         new CodegenConfigurator()

@@ -31,6 +31,7 @@ package org.hisp.test.webapi.json.domain;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.time.LocalDateTime;
 import org.hisp.dhis.jsontree.JsonList;
@@ -39,7 +40,6 @@ import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.json.domain.JsonError;
 import org.hisp.dhis.test.webapi.json.domain.JsonUser;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -75,7 +75,7 @@ class DomainJsonResponseTest {
     JsonObject response = createJSON("{'user': {'lastUpdated': '2021-01-21T15:14:54.000'}}");
     JsonUser user = response.get("user", JsonUser.class);
     assertEquals(LocalDateTime.of(2021, 1, 21, 15, 14, 54), user.getLastUpdated());
-    Assertions.assertNull(user.getCreated());
+    assertNull(user.getCreated());
   }
 
   @Test

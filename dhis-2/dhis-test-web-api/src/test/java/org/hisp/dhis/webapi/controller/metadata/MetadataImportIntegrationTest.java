@@ -62,8 +62,7 @@ class MetadataImportIntegrationTest extends PostgresControllerIntegrationTestBas
         POST("/metadata", Path.of("metadata/program_with_inaccessible_programStage.json"))
             .content(HttpStatus.CONFLICT)
             .as(JsonImportSummary.class);
-    JsonErrorReport errorReport =
-        response.find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E5008);
+    JsonErrorReport errorReport = response.findErrorReport(ErrorCode.E5008);
     assertNotNull(errorReport);
     assertEquals(
         "READ access is required for reference [LloQNgtkrbt] (ProgramStage) on object test [SkV0iNXNJ2S] (Program) for association `programStage`",
@@ -84,8 +83,7 @@ class MetadataImportIntegrationTest extends PostgresControllerIntegrationTestBas
         POST("/metadata", Path.of("metadata/program_with_inaccessible_dataelement.json"))
             .content(HttpStatus.CONFLICT)
             .as(JsonImportSummary.class);
-    JsonErrorReport errorReport =
-        response.find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E5008);
+    JsonErrorReport errorReport = response.findErrorReport(ErrorCode.E5008);
     assertNotNull(errorReport);
     assertEquals(
         "READ access is required for reference [rFQNCGMYud2] (DataElement) on object [m69ZMmIJctI] (ProgramStageDataElement) for association `dataElement`",
@@ -111,8 +109,7 @@ class MetadataImportIntegrationTest extends PostgresControllerIntegrationTestBas
             .content(HttpStatus.CONFLICT)
             .as(JsonImportSummary.class);
 
-    JsonErrorReport errorReport =
-        response.find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E3001);
+    JsonErrorReport errorReport = response.findErrorReport(ErrorCode.E3001);
     assertNotNull(errorReport);
     assertEquals(
         "User `test User testuser [HvbPAQEyXSD] (User)` is not allowed to update object `test [LloQNgtkrbt] (ProgramStage)`",

@@ -229,8 +229,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     "/users/" + id + "/translations",
                     "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn'}]}")
                 .content(HttpStatus.CONFLICT));
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1107);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E1107);
     assertEquals("Object type `User` is not translatable", error.getMessage());
   }
 
@@ -259,7 +258,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     JsonTranslation translation = translations.get(0, JsonTranslation.class);
     assertEquals("sv", translation.getLocale());
     assertEquals("name", translation.getProperty());
-    assertEquals("name sv", translation.getValue());
+    assertEquals("name sv", translation.value());
   }
 
   @Test
@@ -286,8 +285,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn 1'},{'locale':'sv', 'property':'name', 'value':'namn2'}]}")
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1106);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E1106);
     assertEquals(
         String.format(
             "There are duplicate translation records for property `name` and locale `sv` on DataSet `%s`",
@@ -327,8 +325,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     "{'translations': [{'locale':'en', 'property':'name'}]}")
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4000);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E4000);
 
     assertEquals("Missing required property `value`", error.getMessage());
   }
@@ -353,8 +350,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     "{'translations': [{'locale':'en', 'value':'namn 1'}]}")
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4000);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E4000);
 
     assertEquals("Missing required property `property`", error.getMessage());
   }
@@ -379,8 +375,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     "{'translations': [{'property':'name', 'value':'namn 1'}]}")
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4000);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E4000);
 
     assertEquals("Missing required property `locale`", error.getMessage());
   }
@@ -444,7 +439,13 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         HttpStatus.OK,
         PUT(
             "/users/" + peterUserId,
-            Body(oldPeter.getString("firstName").node().replaceWith("\"Fry\"").getDeclaration()),
+            Body(
+                oldPeter
+                    .getString("firstName")
+                    .node()
+                    .replaceWith("\"Fry\"")
+                    .getDeclaration()
+                    .toString()),
             ContentType(MediaType.APPLICATION_JSON)));
     JsonUser newPeter = GET("/users/{id}", peterUserId).content().as(JsonUser.class);
     assertEquals("Fry", newPeter.getFirstName());
@@ -1076,9 +1077,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
             .as(JsonImportSummary.class);
     assertEquals(
         "Invalid UID `11111111111` for property `DataSet`",
-        response
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4014)
-            .getMessage());
+        response.findErrorReport(ErrorCode.E4014).getMessage());
   }
 
   @Test
