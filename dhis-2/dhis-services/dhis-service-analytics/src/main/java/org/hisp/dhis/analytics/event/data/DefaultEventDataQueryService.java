@@ -398,11 +398,11 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
    * Promotes each {@code headers=} entry of the form {@code {stageUid}.{itemUid}} into a {@link
    * QueryItem} when it doesn't already exist as a dimension or item and its suffix isn't a known
    * static column. This lets clients request stage-scoped data element / attribute columns without
-   * having to repeat them in {@code dimension=}. Stage-OU helper suffixes ({@code ou}, {@code
-   * ouname}, {@code oucode}) are promoted by synthesising an unfiltered {@code {stageUid}.ou}
-   * dimension item, which is what the CTE generator uses to emit the stage-scoped {@code
-   * ouname}/{@code oucode} columns. Resolver failures are swallowed so unresolvable suffixes
-   * surface as E7230 downstream in the usual way.
+   * having to repeat them in {@code dimension=}. On the enrollment endpoint, stage-scoped static
+   * column headers (e.g. {@code {stageUid}.ouname}, {@code {stageUid}.eventdate}) are promoted by
+   * synthesising the corresponding unfiltered stage dimension item so the CTE generator emits the
+   * matching output column. Resolver failures are swallowed so unresolvable suffixes surface as
+   * E7230 downstream in the usual way.
    */
   private void addHeaderOnlyItemsToParams(
       EventQueryParams.Builder params, EventDataQueryRequest request, Program pr) {
@@ -416,6 +416,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
             .map(DefaultEventDataQueryService::itemKey)
             .collect(Collectors.toSet());
 
+    boolean enrollment = request.getEndpointItem() == RequestTypeAware.EndpointItem.ENROLLMENT;
+
     for (String header : headers) {
       int dot = header.lastIndexOf('.');
       if (dot <= 0 || dot >= header.length() - 1) {
@@ -425,9 +427,27 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       String prefix = header.substring(0, dot);
       String suffix = header.substring(dot + 1);
 
-      if (isStageOuHelperSuffix(suffix)
-          && request.getEndpointItem() == RequestTypeAware.EndpointItem.ENROLLMENT) {
-        promoteStageOuDimension(params, request, pr, prefix, existingKeys);
+      if (enrollment && isStageOuHelperSuffix(suffix)) {
+        promoteStageDimension(
+            params,
+            request,
+            pr,
+            prefix,
+            EventAnalyticsColumnName.OU_COLUMN_NAME,
+            EventAnalyticsColumnName.OU_COLUMN_NAME,
+            existingKeys);
+        continue;
+      }
+
+      if (enrollment && isStageEventDateSuffix(suffix)) {
+        promoteStageDimension(
+            params,
+            request,
+            pr,
+            prefix,
+            EVENT_DATE_DIMENSION,
+            EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
+            existingKeys);
         continue;
       }
 
@@ -452,22 +472,25 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     }
   }
 
-  private void promoteStageOuDimension(
+  private void promoteStageDimension(
       EventQueryParams.Builder params,
       EventDataQueryRequest request,
       Program pr,
       String stagePrefix,
+      String dimensionSuffix,
+      String itemIdSuffix,
       Set<String> existingKeys) {
-    String stageOuKey = stagePrefix + "." + EventAnalyticsColumnName.OU_COLUMN_NAME;
-    if (existingKeys.contains(stageOuKey)) {
+    String quickKey = stagePrefix + "." + itemIdSuffix;
+    if (existingKeys.contains(quickKey)) {
       return;
     }
+    String dimension = stagePrefix + "." + dimensionSuffix;
     try {
-      QueryItem stageOuItem =
-          getQueryItem(stageOuKey, pr, request.getOutputType(), request.getRelativePeriodDate());
-      if (stageOuItem != null) {
-        params.addItem(stageOuItem);
-        existingKeys.add(itemKey(stageOuItem));
+      QueryItem item =
+          getQueryItem(dimension, pr, request.getOutputType(), request.getRelativePeriodDate());
+      if (item != null) {
+        params.addItem(item);
+        existingKeys.add(itemKey(item));
       }
     } catch (IllegalQueryException ignored) {
       // Unknown stage prefix — leave it to the downstream grid retain check.
@@ -483,6 +506,10 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     return EventAnalyticsColumnName.OU_COLUMN_NAME.equalsIgnoreCase(suffix)
         || EventAnalyticsColumnName.OU_NAME_COLUMN_NAME.equalsIgnoreCase(suffix)
         || EventAnalyticsColumnName.OU_CODE_COLUMN_NAME.equalsIgnoreCase(suffix);
+  }
+
+  private static boolean isStageEventDateSuffix(String suffix) {
+    return ColumnHeader.EVENT_DATE.getItem().equalsIgnoreCase(suffix);
   }
 
   private static boolean isStaticColumnSuffix(String suffix) {
