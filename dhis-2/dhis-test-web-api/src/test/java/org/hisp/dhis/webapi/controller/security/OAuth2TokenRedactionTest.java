@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.controller.security;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -138,5 +139,15 @@ class OAuth2TokenRedactionTest extends H2ControllerIntegrationTestBase {
     assertFalse(
         metadata.has("oAuth2AuthorizationConsents"),
         "Default /api/metadata response must not contain the oAuth2AuthorizationConsents array");
+  }
+
+  @Test
+  @DisplayName("Non-superuser must be forbidden from the OAuth2 authorization endpoints")
+  void nonSuperuserIsForbidden() {
+    switchToNewUser("basic-user");
+
+    assertEquals(HttpStatus.FORBIDDEN, GET("/oAuth2Authorizations").status());
+    assertEquals(HttpStatus.FORBIDDEN, GET("/oAuth2Authorizations/{uid}", seededUid).status());
+    assertEquals(HttpStatus.FORBIDDEN, GET("/oAuth2AuthorizationConsents").status());
   }
 }

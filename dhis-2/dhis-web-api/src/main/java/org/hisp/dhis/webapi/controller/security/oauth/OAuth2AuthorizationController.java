@@ -29,20 +29,28 @@
  */
 package org.hisp.dhis.webapi.controller.security.oauth;
 
+import static org.hisp.dhis.security.Authorities.ALL;
+
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.oauth2.authorization.Dhis2OAuth2Authorization;
 import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * Controller for managing OAuth2 authorizations for the DHIS2 OAuth2 authorization server.
+ * Read-only controller for inspecting OAuth2 authorizations (runtime Spring Authorization Server
+ * state: access/refresh tokens, authorization codes, OIDC id-tokens, device codes, consent grants).
+ * Gated on {@link org.hisp.dhis.security.Authorities#ALL} — only superusers may list or read these
+ * rows because they surface principal, client and grant metadata that is sensitive even after token
+ * values are redacted from the JSON payload by {@code @JsonIgnore} on the entity.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Controller
 @RequestMapping({"/api/oAuth2Authorizations"})
 @RequiredArgsConstructor
+@RequiresAuthority(anyOf = ALL)
 public class OAuth2AuthorizationController
     extends AbstractFullReadOnlyController<Dhis2OAuth2Authorization, GetObjectListParams> {}
