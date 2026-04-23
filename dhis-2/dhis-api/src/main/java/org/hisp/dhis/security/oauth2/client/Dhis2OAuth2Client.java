@@ -45,6 +45,36 @@ public class Dhis2OAuth2Client extends BaseIdentifiableObject implements Metadat
 
   public Dhis2OAuth2Client() {}
 
+  /**
+   * Override so that the persisted {@code name} column is always populated even if the caller (the
+   * settings UI, which has no name field) doesn't supply one. Hibernate uses property access for
+   * this entity, so the value returned here is what gets written to the DB and what the schema
+   * validator at {@code POST /api/schemas/oAuth2Client} reads via reflection — letting us keep
+   * {@code not-null="true"} on the column without breaking UI pre-validation. Truncated to the
+   * column length (230) so the schema-validator's {@code @PropertyRange} check on a long {@code
+   * clientId} (max 255) doesn't reject the request.
+   */
+  @Override
+  public String getName() {
+    String name = super.getName();
+    if (name != null && !name.isEmpty()) {
+      return name;
+    }
+    if (clientId == null) {
+      return null;
+    }
+    return clientId.length() > 230 ? clientId.substring(0, 230) : clientId;
+  }
+
+  /**
+   * Returns the raw {@code name} field value without the {@link #getName()} fallback. Use this when
+   * defaulting / preservation logic needs to distinguish "caller didn't supply a name" from "caller
+   * supplied the same value as the fallback".
+   */
+  public String getRawName() {
+    return super.getName();
+  }
+
   @JsonProperty private String clientId;
   @JsonProperty private String clientSecret;
   @JsonProperty private Date clientIdIssuedAt;
