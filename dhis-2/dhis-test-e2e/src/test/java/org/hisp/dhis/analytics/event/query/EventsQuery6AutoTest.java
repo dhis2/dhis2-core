@@ -4101,29 +4101,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
   }
 
   @Test
-  @DisplayName("Validate period dimension with stage-specific date dimension is rejected")
-  public void edoardo() {
-
-    // Given
-    QueryParamsBuilder params =
-        new QueryParamsBuilder()
-            .add("displayProperty=NAME")
-            .add("outputType=EVENT")
-            .add("pageSize=100")
-            .add("page=1")
-            // .add("dimension=Zj7UnCAulEk.EVENT_DATE:THIS_YEAR")
-
-            .add("dimension=ENROLLMENT_OU:USER_ORGUNIT")
-            .add("headers=enrollmentouname,A03MvHHogjR.a3kGcGDCuk6");
-    // .add("desc=eventdate,lastupdated")
-    // .add("relativePeriodDate=2022-12-31");
-
-    // When
-    ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
-    System.out.println(response.prettyPrint());
-  }
-
-  @Test
   public void validateStagePrefixedDataElementHeaderWithoutDimension() {
     // Given
     QueryParamsBuilder params =
@@ -4133,12 +4110,16 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
             .add("outputType=EVENT")
             .add("pageSize=100")
             .add("page=1")
-            .add("dimension=ENROLLMENT_OU:O6uvpzGd5pu")
+            .add("dimension=ENROLLMENT_OU:jNb63DIHuwU")
+            .add("dimension=A03MvHHogjR.EVENT_DATE:THIS_YEAR")
+            // .add("dimension=ou:O6uvpzGd5pu")
+
+            .add("relativePeriodDate=2022-12-31")
             .add("totalPages=false");
 
     // When
     ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
-
+    System.out.println(response.prettyPrint());
     // Then
     response.validate().statusCode(200).body("headers", hasSize(2));
 
@@ -4165,5 +4146,9 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         "java.lang.Double",
         false,
         true);
+
+    // Row cells must align with the requested headers. A prior regression swapped SQL and grid
+    // column ordering so the item value landed in the enrollmentouname cell and vice versa.
+    validateRowValueByName(response, actualHeaders, 0, "enrollmentouname", "Baoma Station CHP");
   }
 }
