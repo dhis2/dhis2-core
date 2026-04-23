@@ -935,7 +935,7 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
     assertThat(
         filtersNode0.get("repetition").get("indexes").toJson(), is(equalTo("[1,2,3,-2,-1,0]")));
 
-    JsonObject filtersNode1 = response.get("filters").get(0);
+    JsonObject filtersNode1 = response.get("filters").get(1);
     assertThat(filtersNode1.get("items").toJson(), is(equalTo("[]")));
     assertThat(filtersNode1.get("dimension").string(), is(equalTo("deabcdefghE")));
     assertThat(filtersNode1.get("repetition").get("parent").string(), is(equalTo("FILTER")));
