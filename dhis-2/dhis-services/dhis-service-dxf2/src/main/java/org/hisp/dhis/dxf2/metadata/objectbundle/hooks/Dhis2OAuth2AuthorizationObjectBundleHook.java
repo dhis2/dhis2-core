@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Reject any attempt to create or update {@link Dhis2OAuth2Authorization} via the metadata import
- * pipeline. These records are runtime OAuth2 state — access tokens, refresh tokens, device codes —
+ * pipeline. These records are runtime OAuth2 state (access tokens, refresh tokens, device codes)
  * written exclusively by Spring Authorization Server through {@code
  * Dhis2OAuth2AuthorizationServiceImpl.save(OAuth2Authorization)}. Allowing {@code /api/metadata} to
  * POST arbitrary authorization rows would let an admin forge bearer tokens for any principal.

@@ -114,11 +114,13 @@ public class Dhis2OAuth2AuthorizationConsentServiceIntegrationTest
     assertTrue(actualAuthorities.contains("SCOPE_email"));
   }
 
+  /**
+   * The Spring {@code OAuth2AuthorizationConsent} domain object has no name field; the DHIS2 entity
+   * derives {@code name} from {@code principalName} to satisfy the NOT NULL constraint required by
+   * {@code BaseIdentifiableObject}.
+   */
   @Test
   void testSaveDerivesNameFromPrincipalName() {
-    // The Spring OAuth2AuthorizationConsent domain object has no name field;
-    // the DHIS2 entity derives `name` from `principalName` to satisfy the
-    // NOT NULL constraint required by BaseIdentifiableObject.
     OAuth2AuthorizationConsent consent =
         OAuth2AuthorizationConsent.withId(registeredClient.getId(), "principal-derived")
             .authority(new SimpleGrantedAuthority("SCOPE_profile"))

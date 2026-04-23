@@ -42,7 +42,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * Read-only controller for inspecting OAuth2 authorizations (runtime Spring Authorization Server
  * state: access/refresh tokens, authorization codes, OIDC id-tokens, device codes, consent grants).
- * Gated on {@link org.hisp.dhis.security.Authorities#ALL} — only superusers may list or read these
+ * Gated on {@link org.hisp.dhis.security.Authorities#ALL}: only superusers may list or read these
  * rows because they surface principal, client and grant metadata that is sensitive even after token
  * values are redacted from the JSON payload by {@code @JsonIgnore} on the entity.
  *

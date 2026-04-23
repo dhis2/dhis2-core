@@ -57,7 +57,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Verifies that {@code /api/metadata} refuses to create or update {@link Dhis2OAuth2Authorization}
  * or {@link Dhis2OAuth2AuthorizationConsent}. These are runtime OAuth2 state (access tokens,
  * refresh tokens, device codes, principal consent grants) and must only be written by Spring
- * Authorization Server's own save path — never by an admin-supplied metadata payload.
+ * Authorization Server's own save path, never by an admin-supplied metadata payload.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */

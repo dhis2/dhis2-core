@@ -40,10 +40,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * Read-only controller for inspecting OAuth2 authorization consents (principal → client scope
+ * Read-only controller for inspecting OAuth2 authorization consents (principal to client scope
  * grants stored by Spring Authorization Server). Gated on {@link
- * org.hisp.dhis.security.Authorities#ALL} — only superusers may list or read these rows because
- * they reveal which principals have granted which scopes to which clients.
+ * org.hisp.dhis.security.Authorities#ALL}: only superusers may list or read these rows because they
+ * reveal which principals have granted which scopes to which clients.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */

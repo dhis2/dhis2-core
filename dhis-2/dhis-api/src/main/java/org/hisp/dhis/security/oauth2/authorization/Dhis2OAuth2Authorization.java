@@ -39,12 +39,38 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.SecondaryMetadataObject;
 
+/**
+ * DHIS2 persistence representation of a Spring Authorization Server {@code OAuth2Authorization}.
+ *
+ * <p>An {@code OAuth2Authorization} is a single authorization grant and its associated tokens for
+ * one principal authenticating against one registered client. It holds the authorization code,
+ * access token, refresh token, OIDC id-token, device code and user code, each with its own
+ * issued/expires timestamps and opaque metadata blob. Spring Authorization Server operates
+ * exclusively on the framework type {@code
+ * org.springframework.security.oauth2.server.authorization.OAuth2Authorization}, which is an
+ * immutable, builder-constructed value object not wired for JPA or DHIS2 ACL.
+ *
+ * <p>This class is the mutable DHIS2-side mirror: a {@link BaseIdentifiableObject} with a Hibernate
+ * mapping and a JSON/XML view, so the authorization can live in the DHIS2 database alongside all
+ * other identifiable objects and be inspected through the admin REST surface. Conversion between
+ * the two representations happens in {@code Dhis2OAuth2AuthorizationServiceImpl}: {@code
+ * toEntity(OAuth2Authorization)} builds a {@link Dhis2OAuth2Authorization} for persistence, and
+ * {@code toObject(Dhis2OAuth2Authorization)} reconstructs the Spring-side {@code
+ * OAuth2Authorization} for the authorization-server runtime.
+ *
+ * <p>Marked {@link SecondaryMetadataObject} so the type is excluded from the default {@code
+ * /api/metadata} export; token-bearing fields are additionally {@link JsonIgnore}'d so no REST
+ * surface can leak them even on explicit requests. Persistence uses Hibernate field access ({@code
+ * Dhis2OAuth2Authorization.hbm.xml}) and is independent of the JSON annotations.
+ */
 @Getter
 @Setter
 @JacksonXmlRootElement(localName = "oauth2Authorization", namespace = DxfNamespaces.DXF_2_0)
+@SuppressWarnings("java:S2160") // Identity is uid, handled by BaseIdentifiableObject.equals.
 public class Dhis2OAuth2Authorization extends BaseIdentifiableObject
     implements SecondaryMetadataObject {
 
+  /** Required by Hibernate + Jackson for reflective instantiation. */
   public Dhis2OAuth2Authorization() {}
 
   @JsonProperty private String registeredClientId;

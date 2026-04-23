@@ -44,7 +44,7 @@ import org.hisp.dhis.security.oauth2.consent.Dhis2OAuth2AuthorizationConsent;
 import org.springframework.stereotype.Component;
 
 /**
- * Rejects {@code /api/metadata} operations that touch runtime Spring Authorization Server state —
+ * Rejects {@code /api/metadata} operations that touch runtime Spring Authorization Server state:
  * {@link Dhis2OAuth2Authorization} (access/refresh tokens, authorization codes, device codes, OIDC
  * id-tokens) and {@link Dhis2OAuth2AuthorizationConsent} (principal scope grants). These rows are
  * written, updated and deleted exclusively by Spring Authorization Server through the {@code
