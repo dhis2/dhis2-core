@@ -398,8 +398,11 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
    * Promotes each {@code headers=} entry of the form {@code {stageUid}.{itemUid}} into a {@link
    * QueryItem} when it doesn't already exist as a dimension or item and its suffix isn't a known
    * static column. This lets clients request stage-scoped data element / attribute columns without
-   * having to repeat them in {@code dimension=}. Resolver failures are swallowed so unresolvable
-   * suffixes surface as E7230 downstream in the usual way.
+   * having to repeat them in {@code dimension=}. Stage-OU helper suffixes ({@code ou}, {@code
+   * ouname}, {@code oucode}) are promoted by synthesising an unfiltered {@code {stageUid}.ou}
+   * dimension item, which is what the CTE generator uses to emit the stage-scoped {@code
+   * ouname}/{@code oucode} columns. Resolver failures are swallowed so unresolvable suffixes
+   * surface as E7230 downstream in the usual way.
    */
   private void addHeaderOnlyItemsToParams(
       EventQueryParams.Builder params, EventDataQueryRequest request, Program pr) {
@@ -419,7 +422,16 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         continue;
       }
 
-      if (isStaticColumnSuffix(header.substring(dot + 1))) {
+      String prefix = header.substring(0, dot);
+      String suffix = header.substring(dot + 1);
+
+      if (isStageOuHelperSuffix(suffix)
+          && request.getEndpointItem() == RequestTypeAware.EndpointItem.ENROLLMENT) {
+        promoteStageOuDimension(params, request, pr, prefix, existingKeys);
+        continue;
+      }
+
+      if (isStaticColumnSuffix(suffix)) {
         continue;
       }
 
@@ -440,9 +452,37 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
     }
   }
 
+  private void promoteStageOuDimension(
+      EventQueryParams.Builder params,
+      EventDataQueryRequest request,
+      Program pr,
+      String stagePrefix,
+      Set<String> existingKeys) {
+    String stageOuKey = stagePrefix + "." + EventAnalyticsColumnName.OU_COLUMN_NAME;
+    if (existingKeys.contains(stageOuKey)) {
+      return;
+    }
+    try {
+      QueryItem stageOuItem =
+          getQueryItem(stageOuKey, pr, request.getOutputType(), request.getRelativePeriodDate());
+      if (stageOuItem != null) {
+        params.addItem(stageOuItem);
+        existingKeys.add(itemKey(stageOuItem));
+      }
+    } catch (IllegalQueryException ignored) {
+      // Unknown stage prefix — leave it to the downstream grid retain check.
+    }
+  }
+
   private static String itemKey(QueryItem item) {
     String uid = item.getItemId();
     return item.hasProgramStage() ? item.getProgramStage().getUid() + "." + uid : uid;
+  }
+
+  private static boolean isStageOuHelperSuffix(String suffix) {
+    return EventAnalyticsColumnName.OU_COLUMN_NAME.equalsIgnoreCase(suffix)
+        || EventAnalyticsColumnName.OU_NAME_COLUMN_NAME.equalsIgnoreCase(suffix)
+        || EventAnalyticsColumnName.OU_CODE_COLUMN_NAME.equalsIgnoreCase(suffix);
   }
 
   private static boolean isStaticColumnSuffix(String suffix) {

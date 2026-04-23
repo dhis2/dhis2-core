@@ -904,6 +904,113 @@ class DefaultEventDataQueryServiceTest {
   }
 
   @Test
+  void getFromRequestPromotesStageOuDimensionFromStagePrefixedOuNameHeader() {
+    ProgramStage programStage = createProgramStage('S', program);
+
+    QueryItem stageOuQueryItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME),
+            program,
+            null,
+            ValueType.ORGANISATION_UNIT,
+            AggregationType.NONE,
+            null);
+    stageOuQueryItem.setProgramStage(programStage);
+
+    String stageOuDim = programStage.getUid() + "." + EventAnalyticsColumnName.OU_COLUMN_NAME;
+    String stageOuNameHeader = programStage.getUid() + ".ouname";
+
+    when(queryItemLocator.getQueryItemFromDimension(
+            stageOuDim, program, EventOutputType.ENROLLMENT))
+        .thenReturn(stageOuQueryItem);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT)
+            .headers(new LinkedHashSet<>(List.of("ouname", stageOuNameHeader)))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+    assertEquals(EventAnalyticsColumnName.OU_COLUMN_NAME, params.getItems().get(0).getItemId());
+    assertEquals(programStage.getUid(), params.getItems().get(0).getProgramStage().getUid());
+  }
+
+  @Test
+  void getFromRequestPromotesStageOuDimensionFromStagePrefixedOuCodeHeader() {
+    ProgramStage programStage = createProgramStage('S', program);
+
+    QueryItem stageOuQueryItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME),
+            program,
+            null,
+            ValueType.ORGANISATION_UNIT,
+            AggregationType.NONE,
+            null);
+    stageOuQueryItem.setProgramStage(programStage);
+
+    String stageOuDim = programStage.getUid() + "." + EventAnalyticsColumnName.OU_COLUMN_NAME;
+    String stageOuCodeHeader = programStage.getUid() + ".oucode";
+
+    when(queryItemLocator.getQueryItemFromDimension(
+            stageOuDim, program, EventOutputType.ENROLLMENT))
+        .thenReturn(stageOuQueryItem);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT).headers(Set.of(stageOuCodeHeader)).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+    assertEquals(EventAnalyticsColumnName.OU_COLUMN_NAME, params.getItems().get(0).getItemId());
+  }
+
+  @Test
+  void getFromRequestDoesNotDuplicateStageOuItemWhenAlreadyPresent() {
+    ProgramStage programStage = createProgramStage('S', program);
+
+    QueryItem stageOuQueryItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME),
+            program,
+            null,
+            ValueType.ORGANISATION_UNIT,
+            AggregationType.NONE,
+            null);
+    stageOuQueryItem.setProgramStage(programStage);
+
+    String stageOuDim = programStage.getUid() + "." + EventAnalyticsColumnName.OU_COLUMN_NAME;
+    String stageOuNameHeader = programStage.getUid() + ".ouname";
+
+    when(queryItemLocator.getQueryItemFromDimension(
+            stageOuDim, program, EventOutputType.ENROLLMENT))
+        .thenReturn(stageOuQueryItem);
+
+    // Force addDimensionsToParams to fall through to the QueryItem path so the stage.ou
+    // dimension ends up in params.getItems() (matches real production behaviour — the central
+    // dataQueryService does not recognise stage-prefixed ou dimensions).
+    when(dataQueryService.getDimension(
+            eq(stageOuDim),
+            anyList(),
+            any(EventDataQueryRequest.class),
+            anyList(),
+            anyBoolean(),
+            any()))
+        .thenReturn(null);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT)
+            .dimension(Set.of(Set.of(stageOuDim)))
+            .headers(Set.of(stageOuNameHeader))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+  }
+
+  @Test
   void getFromRequestRejectsNonNumericAndNonBooleanValueTypes() {
     DataElement textElement = createDataElement('X', ValueType.TEXT, AggregationType.NONE);
     DataElement dateElement = createDataElement('D', ValueType.DATE, AggregationType.NONE);
