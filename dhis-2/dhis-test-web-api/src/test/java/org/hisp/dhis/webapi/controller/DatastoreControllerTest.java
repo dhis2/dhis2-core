@@ -306,7 +306,7 @@ class DatastoreControllerTest extends H2ControllerIntegrationTestBase {
         GET("/dataStore/pets/cat/metaData").content().as(JsonDatastoreValue.class);
     assertEquals("pets", metaData.getNamespace());
     assertEquals("cat", metaData.key());
-    assertTrue(metaData.getValue().isUndefined(), "metadata should not contain the value");
+    assertTrue(metaData.value().isUndefined(), "metadata should not contain the value");
     JsonObject access = metaData.getObject("access");
     assertTrue(access.isObject());
     assertTrue(access.has("manage", "write", "read", "update", "delete"));

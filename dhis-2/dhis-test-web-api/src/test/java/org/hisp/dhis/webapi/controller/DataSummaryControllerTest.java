@@ -144,7 +144,8 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
         .get("activeUsers")
         .asMap(JsonValue.class)
         .keys()
-        .forEach(key -> assertTrue(Text.of("#?#").matches(key), "Active user keys should be integers"));
+        .forEach(
+            key -> assertTrue(Text.of("#?#").matches(key), "Active user keys should be integers"));
     content
         .get("logins")
         .asMap(JsonValue.class)
@@ -174,7 +175,9 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
         .asMap(JsonValue.class)
         .keys()
         .forEach(
-            key -> assertTrue(Text.of("#?#").matches(key), "Data value count keys should be integers"));
+            key ->
+                assertTrue(
+                    Text.of("#?#").matches(key), "Data value count keys should be integers"));
     assertTrue(content.has("eventCount"), "Event counts are missing");
     content
         .get("eventCount")
@@ -185,7 +188,8 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
         .get("eventCount")
         .asMap(JsonValue.class)
         .keys()
-        .forEach(key -> assertTrue(Text.of("#?#").matches(key), "Event count keys should be integers"));
+        .forEach(
+            key -> assertTrue(Text.of("#?#").matches(key), "Event count keys should be integers"));
     content
         .get("trackerEventCount")
         .asMap(JsonValue.class)
@@ -199,7 +203,8 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
         .keys()
         .forEach(
             key ->
-                assertTrue(Text.of("#?#").matches(key), "Tracker event count keys should be integers"));
+                assertTrue(
+                    Text.of("#?#").matches(key), "Tracker event count keys should be integers"));
     content
         .get("singleEventCount")
         .asMap(JsonValue.class)
@@ -212,7 +217,8 @@ class DataSummaryControllerTest extends PostgresControllerIntegrationTestBase {
         .keys()
         .forEach(
             key ->
-                assertTrue(Text.of("#?#").matches(key), "Single event count keys should be integers"));
+                assertTrue(
+                    Text.of("#?#").matches(key), "Single event count keys should be integers"));
   }
 
   @Test

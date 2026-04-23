@@ -83,7 +83,7 @@ class DataIntegrityDefaultChecksTest extends AbstractDataIntegrityIntegrationTes
     assertEquals(0, summary.getCount());
     assertFalse(summary.getIsSlow());
     assertNotNull(summary.getFinishedTime());
-    assertEquals(0, summary.getPercentage());
+    assertEquals(0.0d, summary.getPercentage());
 
     // Trigger the slow check
     assertStatus(HttpStatus.OK, POST("/dataIntegrity/summary?checks=" + check));
