@@ -1011,6 +1011,38 @@ class DefaultEventDataQueryServiceTest {
   }
 
   @Test
+  void getFromRequestPromotesStageEventDateDimensionFromStagePrefixedEventDateHeader() {
+    ProgramStage programStage = createProgramStage('S', program);
+
+    QueryItem stageEventDateItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
+            program,
+            null,
+            ValueType.DATE,
+            AggregationType.NONE,
+            null);
+    stageEventDateItem.setProgramStage(programStage);
+
+    String stageEventDateDim = programStage.getUid() + ".EVENT_DATE";
+    String stageEventDateHeader = programStage.getUid() + ".eventdate";
+
+    when(queryItemLocator.getQueryItemFromDimension(
+            stageEventDateDim, program, EventOutputType.ENROLLMENT))
+        .thenReturn(stageEventDateItem);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT).headers(Set.of(stageEventDateHeader)).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+    assertEquals(
+        EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME, params.getItems().get(0).getItemId());
+    assertEquals(programStage.getUid(), params.getItems().get(0).getProgramStage().getUid());
+  }
+
+  @Test
   void getFromRequestRejectsNonNumericAndNonBooleanValueTypes() {
     DataElement textElement = createDataElement('X', ValueType.TEXT, AggregationType.NONE);
     DataElement dateElement = createDataElement('D', ValueType.DATE, AggregationType.NONE);
