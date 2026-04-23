@@ -65,18 +65,39 @@ import org.springframework.security.oauth2.server.resource.web.DefaultBearerToke
 import org.springframework.stereotype.Component;
 
 /**
- * Represent a custom AuthenticationManagerResolver to resolve authenticate JWT bearer token
- * requests. This class will look up the corresponding issuer configuration ({@link
- * DhisOidcClientRegistration}), based on the JWT "issuer" field information in the token and create
- * a new {@link DhisJwtAuthenticationProvider} with the resolved config looked up in the {@link
- * DhisOidcProviderRepository}
+ * Spring {@link AuthenticationManagerResolver} used by the OAuth2 resource-server filter chain to
+ * authenticate inbound JWT bearer token requests.
  *
- * <p>It will also create the authentication method to be called for authenticating the request.
+ * <p>This resolver implements DHIS2's JWT bearer authentication path, which lets OAuth2 clients
+ * call the DHIS2 API using a JWT access token issued either by DHIS2 itself (when the DHIS2
+ * Authorization Server is enabled) or by a trusted external OIDC IdP. It is only active when JWT
+ * bearer authentication has been enabled via configuration.
  *
- * @author Morten Svanæs <msvanaes@dhis2.org>
- * @see
- *     org.hisp.dhis.security.jwt.Dhis2JwtAuthenticationManagerResolver.DhisJwtAuthenticationProvider
+ * <p>For each incoming request it:
+ *
+ * <ol>
+ *   <li>Extracts the {@code iss} (issuer) claim from the bearer token using {@link
+ *       JwtClaimIssuerConverter}.
+ *   <li>Looks up the matching {@link DhisOidcClientRegistration} in {@link
+ *       DhisOidcProviderRepository} by issuer URI. For DHIS2-issued tokens this resolves to the
+ *       internal DHIS2 provider whose JWKS lives at {@code {server.base.url}/oauth2/jwks}; for
+ *       external-IdP tokens the provider's {@code jwk_uri} is used.
+ *   <li>Caches (per issuer) an {@link AuthenticationManager} that delegates to a {@link
+ *       DhisJwtAuthenticationProvider}. The provider is configured with a {@link JwtDecoder} for
+ *       signature and claim validation and a {@link Converter} that maps a validated {@link Jwt}
+ *       into a {@link DhisJwtAuthenticationToken}.
+ * </ol>
+ *
+ * <p>The token converter enforces an audience check (against the registered client ids, or, for
+ * tokens issued by the DHIS2 Authorization Server itself, against registered OAuth2 clients), then
+ * resolves the DHIS2 user by reading the provider's mapping claim (currently {@code username} or
+ * {@code email}) and looking up the corresponding {@link UserDetails} through {@link UserService}.
+ * If no matching DHIS2 user exists, authentication is rejected with an {@link
+ * InvalidBearerTokenException}. User lookup here is eager so that the authenticated principal is
+ * fully populated before any non-OSIV (Open Session In View) endpoint runs.
+ *
  * @see org.hisp.dhis.security.oidc.DhisOidcProviderRepository
+ * @see DhisJwtAuthenticationToken
  * @see AuthenticationManagerResolver
  */
 @Component
@@ -96,10 +117,27 @@ public class Dhis2JwtAuthenticationManagerResolver
 
   private JwtDecoder jwtDecoder;
 
+  /**
+   * Override the {@link JwtDecoder} used to validate bearer tokens. Intended for tests that need a
+   * fixed decoder instead of one resolved from the issuer location. When set, {@link
+   * #getDecoder(String)} returns this decoder for every issuer.
+   *
+   * @param jwtDecoder the decoder to use, or {@code null} to fall back to issuer-based resolution
+   */
   public void setJwtDecoder(JwtDecoder jwtDecoder) {
     this.jwtDecoder = jwtDecoder;
   }
 
+  /**
+   * Resolve the {@link AuthenticationManager} to use for the given request based on the {@code iss}
+   * claim of the bearer token.
+   *
+   * @param request the current HTTP request carrying the bearer token
+   * @return an {@link AuthenticationManager} backed by a {@link DhisJwtAuthenticationProvider}
+   *     configured for the token's issuer
+   * @throws InvalidBearerTokenException if the token is missing, malformed, lacks an {@code iss}
+   *     claim, or the issuer does not match any configured {@link DhisOidcClientRegistration}
+   */
   @Override
   public AuthenticationManager resolve(HttpServletRequest request) {
     String issuer = this.issuerConverter.convert(request);

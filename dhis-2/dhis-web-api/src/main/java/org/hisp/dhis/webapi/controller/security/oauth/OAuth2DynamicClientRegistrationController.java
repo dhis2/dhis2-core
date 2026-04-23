@@ -50,12 +50,23 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
 /**
- * Controller for enrolling devices using OAuth2 Dynamic Client Registration (DCR) (RFC 7591). A new
- * device client can be enrolled by obtaining an initial access token (IAT) using the custom
- * '/enroll' endpoint.
+ * REST controller for the DHIS2 device enrollment flow backing OAuth2 Dynamic Client Registration
+ * (DCR) as defined by RFC 7591. A new device client is enrolled in two steps: the user first hits
+ * {@code GET /api/auth/enrollDevice} to be redirected back to the device with a freshly minted
+ * Initial Access Token (IAT); the device then presents that IAT as a Bearer credential to the
+ * authorization server's {@code /connect/register} endpoint (provided by Spring Authorization
+ * Server) which persists a new {@link org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client} row
+ * configured with {@link
+ * org.springframework.security.oauth2.core.ClientAuthenticationMethod#PRIVATE_KEY_JWT} and returns
+ * the standard RFC 7591 registration response.
  *
- * <p>The IAT is then used to register a new client at the /connect/register (RFC 7591) endpoint of
- * the authorization server.
+ * <p>The DCR endpoint is implicitly enabled whenever {@code oauth2.server.enabled=on}, gated here
+ * by {@link AuthorizationServerEnabledCondition}. The registration payload must contain inline
+ * {@code jwks} (remote {@code jwks_uri} is not accepted). IATs are single-use: once {@code
+ * /connect/register} consumes the underlying authorization, the IAT cannot be replayed.
+ *
+ * <p>The primary client of this flow is the DHIS2 Android Capture app; the {@code /enrollDevice}
+ * step below prepares the redirect that seeds it with an IAT.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -71,14 +82,22 @@ public class OAuth2DynamicClientRegistrationController {
   @Autowired private OAuth2DcrService oAuth2DcrService;
 
   /**
-   * Enroll a new device client, create an initial access token (IAT) and then redirect to the
-   * specified redirect URI with the IAT and state as query parameters, similar to the OAuth2
-   * '/authorize' endpoint.
+   * Mints an Initial Access Token (IAT) via {@link OAuth2DcrService#createIat(String)} and
+   * redirects the user-agent back to the caller-provided {@code redirectUri} with the IAT (and the
+   * opaque {@code state}) attached as query parameters. The redirect shape mirrors the OAuth2
+   * {@code /authorize} endpoint so that a device client can pick the IAT up the same way it would
+   * pick up an authorization code.
    *
-   * @param redirectUri the redirect URI to send the IAT to
-   * @param state an opaque value that will be returned to the client
-   * @param response the HTTP response
-   * @throws IOException if an I/O error occurs
+   * <p>Gated by two system-settings allowlists: the caller must belong to one of the user groups in
+   * {@code deviceEnrollmentAllowedUserGroups} (HTTP 403 {@code forbidden_user} otherwise), and the
+   * {@code redirectUri} must match an entry in {@code deviceEnrollmentRedirectAllowlist} (HTTP 400
+   * {@code invalid_redirect_uri} otherwise). The response is marked non-cacheable before the
+   * redirect is issued.
+   *
+   * @param redirectUri the redirect URI to send the IAT to; must match the redirect allowlist
+   * @param state an opaque value that is echoed back to the client on the redirect
+   * @param response the HTTP response used to emit either the error or the redirect
+   * @throws IOException if writing the redirect or error response fails
    */
   @GetMapping("/enrollDevice")
   public void enroll(
@@ -112,11 +131,11 @@ public class OAuth2DynamicClientRegistrationController {
   }
 
   /**
-   * Check if the current user is authorized based on user group membership.
+   * Checks whether the current user is allowed to enroll a device based on user group membership,
+   * using the {@code deviceEnrollmentAllowedUserGroups} system setting as a comma-separated list of
+   * group ids. If the setting is blank, all authenticated users are allowed.
    *
-   * <p>Default: allow all authenticated users regardless of group membership.
-   *
-   * @return true if the user is authorized, false otherwise
+   * @return {@code true} if the caller may enroll a device, {@code false} otherwise
    */
   private boolean hasValidUserGroupAuthorization() {
     String allowedUserGroups =
@@ -138,10 +157,13 @@ public class OAuth2DynamicClientRegistrationController {
   }
 
   /**
-   * Check if the provided redirect URI is allowed based on an allowlist from system settings.
+   * Checks whether the supplied redirect URI is permitted for device enrollment. Each non-blank
+   * entry in the {@code deviceEnrollmentRedirectAllowlist} system setting is converted to a regex
+   * via {@link TextUtils#createRegexFromGlob(String)} and matched case-insensitively against the
+   * candidate URI. A blank or missing allowlist rejects all redirect URIs.
    *
-   * @param redirectUri the redirect URI to check
-   * @return true if the redirect URI is allowed, false otherwise
+   * @param redirectUri the redirect URI proposed by the caller
+   * @return {@code true} if the redirect URI matches the allowlist, {@code false} otherwise
    */
   private boolean isRedirectUriAllowed(String redirectUri) {
     if (redirectUri == null || redirectUri.isBlank()) return false;

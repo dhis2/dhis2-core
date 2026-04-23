@@ -39,7 +39,11 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-/** Hibernate implementation of the OAuth2AuthorizationConsentStore. */
+/**
+ * Hibernate-backed store for {@link Dhis2OAuth2AuthorizationConsent}. Backs {@link
+ * Dhis2OAuth2AuthorizationConsentServiceImpl}; lookups are by the composite {@code
+ * (registeredClientId, principalName)} key.
+ */
 @Repository
 public class HibernateDhis2OAuth2AuthorizationConsentStore
     extends HibernateIdentifiableObjectStore<Dhis2OAuth2AuthorizationConsent>
@@ -59,6 +63,7 @@ public class HibernateDhis2OAuth2AuthorizationConsentStore
         true);
   }
 
+  /** Look up the consent row with the given composite identity. Returns {@code null} if none. */
   @Override
   @CheckForNull
   public Dhis2OAuth2AuthorizationConsent getByRegisteredClientIdAndPrincipalName(
@@ -71,6 +76,7 @@ public class HibernateDhis2OAuth2AuthorizationConsentStore
             .addPredicate(root -> builder.equal(root.get("principalName"), principalName)));
   }
 
+  /** Delete the consent row with the given composite identity, if present. */
   @Override
   public void deleteByRegisteredClientIdAndPrincipalName(
       @Nonnull String registeredClientId, @Nonnull String principalName) {

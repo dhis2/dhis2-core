@@ -33,7 +33,13 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
-/** Store for OAuth2AuthorizationConsent entities. */
+/**
+ * Persistence store for {@link Dhis2OAuth2AuthorizationConsent}. Backs Spring Authorization
+ * Server's {@link
+ * org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService}
+ * implementation, which keys consent records on the composite {@code (registeredClientId,
+ * principalName)} pair: one record per (client, user) combination.
+ */
 public interface Dhis2OAuth2AuthorizationConsentStore
     extends IdentifiableObjectStore<Dhis2OAuth2AuthorizationConsent> {
 

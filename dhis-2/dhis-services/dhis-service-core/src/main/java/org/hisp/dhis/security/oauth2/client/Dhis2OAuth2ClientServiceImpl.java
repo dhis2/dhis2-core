@@ -73,8 +73,18 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * DHIS2 implementation of Spring Authorization Server's RegisteredClientRepository that uses
- * HibernateOAuth2ClientStore for persistence.
+ * Spring-bean implementation of {@link Dhis2OAuth2ClientService}. Also implements Spring
+ * Authorization Server's {@link RegisteredClientRepository}, so Spring AS reads clients through
+ * this bean on every token-endpoint authentication. Persistence is delegated to {@link
+ * Dhis2OAuth2ClientStore} ({@link HibernateDhis2OAuth2ClientStore}).
+ *
+ * <p>The Jackson {@link ObjectMapper} is preloaded with {@link SecurityJackson2Modules} and {@link
+ * OAuth2AuthorizationServerJackson2Module} so the {@code clientSettings} / {@code tokenSettings}
+ * JSON round-trips correctly against Spring AS's internal types.
+ *
+ * <p>{@link #save(RegisteredClient)} detects a DCR call by looking for a {@link Jwt} principal in
+ * the security context (i.e. the Initial Access Token); when present, the JWT's {@code sub} claim
+ * is resolved to a DHIS2 user and recorded as {@code createdBy} on the new client.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -84,7 +94,7 @@ public class Dhis2OAuth2ClientServiceImpl
 
   /**
    * Grant types an admin-facing entry point (REST CRUD, bulk metadata import) is allowed to set on
-   * a client. {@code client_credentials} is deliberately excluded — the only legitimate user of it
+   * a client. {@code client_credentials} is deliberately excluded; the only legitimate user of it
    * in this deployment is the DCR system registrar, which is created server-side via {@link
    * Dhis2OAuth2ClientStore#save} and bypasses these validators. See {@link #validateGrantTypes} for
    * the one exception that keeps metadata round-trips working.
@@ -114,6 +124,13 @@ public class Dhis2OAuth2ClientServiceImpl
     this.objectMapper.registerModule(new OAuth2AuthorizationServerJackson2Module());
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p>If the current security context's principal is a {@link Jwt} (the DCR Initial Access Token),
+   * the token's {@code sub} claim is resolved to a DHIS2 user and passed as {@code createdBy} so
+   * the new client is owned by the enrolling user.
+   */
   @Transactional
   @Override
   public void save(RegisteredClient registeredClient) {
@@ -315,10 +332,11 @@ public class Dhis2OAuth2ClientServiceImpl
   }
 
   /**
-   * Resolves the ClientAuthenticationMethod from a string value.
+   * Resolves the {@link ClientAuthenticationMethod} from its string value, returning one of the
+   * Spring AS constants when possible and constructing a custom instance otherwise.
    *
-   * @param clientAuthenticationMethod The string value
-   * @return The corresponding ClientAuthenticationMethod
+   * @param clientAuthenticationMethod the string value
+   * @return the corresponding {@link ClientAuthenticationMethod}
    */
   private static ClientAuthenticationMethod resolveClientAuthenticationMethod(
       @Nonnull String clientAuthenticationMethod) {
@@ -410,8 +428,8 @@ public class Dhis2OAuth2ClientServiceImpl
   /**
    * Reject any attempt to use the reserved DCR system-registrar clientId via admin paths. Without
    * this, an admin could squat the reserved clientId while the authorization server is disabled,
-   * and when {@code OAuth2DcrService.init()} later runs DCR would mint initial access tokens
-   * through a client whose secret / redirect URIs the squatter controls.
+   * and when {@code OAuth2DcrService.init()} later runs DCR would mint Initial Access Tokens
+   * through a client whose secret and redirect URIs the squatter controls.
    */
   private static void checkClientIdNotReserved(
       String clientId, String operation, Consumer<ErrorReport> errors) {
@@ -428,6 +446,13 @@ public class Dhis2OAuth2ClientServiceImpl
     }
   }
 
+  /**
+   * Enforce the grant-type admin rule: only {@code authorization_code} and {@code refresh_token}
+   * are accepted on admin-facing paths. The DCR system registrar is the sole legitimate holder of
+   * {@code client_credentials} in this deployment; its re-import from a metadata bundle is allowed
+   * through because admin-initiated creates cannot reach this branch (the reserved clientId is
+   * rejected earlier by {@link #checkClientIdNotReserved}).
+   */
   private void validateGrantTypes(Dhis2OAuth2Client entity, Consumer<ErrorReport> errors) {
     // The DCR system registrar legitimately uses client_credentials; skip the check so a full
     // metadata round-trip can re-import it. Admin-initiated creates can't hit this branch because
@@ -450,10 +475,11 @@ public class Dhis2OAuth2ClientServiceImpl
   }
 
   /**
-   * Redirect URI allow-list: http and https are always accepted; any other URI must match verbatim
-   * an entry in the {@code deviceEnrollmentRedirectAllowlist} system setting. Default-to-deny
-   * closes the stored-XSS / token-exfiltration surface that Spring Authorization Server leaves open
-   * when it emits the {@code Location} header without scheme filtering.
+   * Redirect URI allow-list: http and https are always accepted; any other URI (e.g. a custom
+   * scheme like {@code dhis2oauth://oauth}) must match verbatim an entry in the {@code
+   * deviceEnrollmentRedirectAllowlist} system setting. Default-to-deny closes the stored-XSS and
+   * token-exfiltration surface that Spring Authorization Server leaves open when it emits the
+   * {@code Location} header without scheme filtering.
    */
   private void validateRedirectUris(Dhis2OAuth2Client entity, Consumer<ErrorReport> errors) {
     if (entity.getRedirectUris() == null) {
@@ -481,6 +507,10 @@ public class Dhis2OAuth2ClientServiceImpl
     }
   }
 
+  /**
+   * Extract and return the URI scheme from the given redirect URI. Reports an {@link ErrorReport}
+   * and returns {@code null} if the URI is malformed or has no scheme.
+   */
   @CheckForNull
   private static String getScheme(Consumer<ErrorReport> errors, String trimmed) {
     String scheme;
@@ -501,6 +531,10 @@ public class Dhis2OAuth2ClientServiceImpl
     return scheme;
   }
 
+  /**
+   * Parse the {@code deviceEnrollmentRedirectAllowlist} system setting into a set of verbatim
+   * redirect-URI strings.
+   */
   private Set<String> parseRedirectAllowList() {
     String raw = systemSettingsService.getCurrentSettings().getDeviceEnrollmentRedirectAllowlist();
     if (raw == null || raw.isBlank()) {
@@ -512,6 +546,7 @@ public class Dhis2OAuth2ClientServiceImpl
         .collect(Collectors.toUnmodifiableSet());
   }
 
+  /** Truncate to {@code CLIENT_NAME_MAX_LENGTH}; returns {@code null} unchanged. */
   private static String truncateName(String value) {
     if (value == null) {
       return null;

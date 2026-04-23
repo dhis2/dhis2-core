@@ -52,6 +52,20 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
 import org.springframework.stereotype.Component;
 
+/**
+ * Spring {@link OAuth2AuthorizationRequestResolver} that extends the default resolver with two
+ * DHIS2-specific behaviors.
+ *
+ * <p>First, it appends per-provider extra query parameters to the authorization request, sourced
+ * from the provider's {@code extra_request_parameters} map (configured via {@code
+ * oidc.provider.<id>.extra_request_parameters}). Typical uses are IdP-specific hints such as {@code
+ * prompt}, {@code hd}, or {@code login_hint}.
+ *
+ * <p>Second, it enables PKCE ({@link #PKCE_CHALLENGE_METHOD S256}) when the provider opts in with
+ * {@code enable_pkce=on}: a random 96-byte URL-safe {@code code_verifier} is generated, stored as a
+ * request attribute for the token exchange, and the corresponding SHA-256 {@code code_challenge}
+ * plus {@code code_challenge_method} are added to the authorization request.
+ */
 @Component
 public class DhisCustomAuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
   public static final String PKCE_CHALLENGE_METHOD = "S256";
@@ -65,6 +79,7 @@ public class DhisCustomAuthorizationRequestResolver implements OAuth2Authorizati
   private final StringKeyGenerator secureKeyGenerator =
       new Base64StringKeyGenerator(Base64.getUrlEncoder().withoutPadding(), 96);
 
+  /** Wires the default Spring resolver against the DHIS2 client-registration repository. */
   @PostConstruct
   public void init() {
     defaultResolver =

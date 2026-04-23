@@ -38,6 +38,20 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 
+/**
+ * Persisted OAuth2 authorization / issued-grant entity. Mirrors Spring Authorization Server's
+ * {@link org.springframework.security.oauth2.server.authorization.OAuth2Authorization}, mapped to
+ * the {@code oauth2_authorization} table. There is one row per grant, and a single row may hold any
+ * combination of an authorization code, access token, refresh token, OpenID Connect ID token, and
+ * device-code / user-code depending on which grant produced it.
+ *
+ * <p>Exposed read-only over REST at {@code GET /api/oAuth2Authorizations} (superuser only) for
+ * operational inspection. It is not importable through {@code /api/metadata}.
+ *
+ * <p>For each token / code family the stored fields follow the same shape: a {@code *Value} (opaque
+ * or JWT token value), {@code *IssuedAt} / {@code *ExpiresAt} timestamps, and a {@code *Metadata}
+ * JSON blob produced by Spring AS.
+ */
 @Getter
 @Setter
 @JacksonXmlRootElement(localName = "oauth2Authorization", namespace = DxfNamespaces.DXF_2_0)
@@ -45,11 +59,32 @@ public class Dhis2OAuth2Authorization extends BaseIdentifiableObject implements 
 
   Dhis2OAuth2Authorization() {}
 
+  /**
+   * Reference to the {@link org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client} this grant was
+   * issued to. Holds the internal id of the registered client, not its public {@code clientId}.
+   */
   @JsonProperty private String registeredClientId;
+
+  /**
+   * Name of the resource owner the grant is tied to. For user-delegated flows this is the DHIS2
+   * username; for {@code client_credentials} it is the client itself.
+   */
   @JsonProperty private String principalName;
+
+  /**
+   * The grant type that produced this authorization (e.g. {@code authorization_code}, {@code
+   * client_credentials}, {@code refresh_token}, {@code
+   * urn:ietf:params:oauth:grant-type:device_code}).
+   */
   @JsonProperty private String authorizationGrantType;
+
+  /** Comma-separated list of scopes that were actually granted for this authorization. */
   @JsonProperty private String authorizedScopes;
+
+  /** JSON-encoded Spring AS attributes map (authenticated principal, request metadata, etc.). */
   @JsonProperty private String attributes;
+
+  /** Opaque {@code state} value used by Spring AS for OAuth2 CSRF protection during the flow. */
   @JsonProperty private String state;
 
   @JsonProperty private String authorizationCodeValue;

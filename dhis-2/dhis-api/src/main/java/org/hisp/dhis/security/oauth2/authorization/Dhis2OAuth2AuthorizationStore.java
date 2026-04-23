@@ -33,7 +33,17 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
-/** Store for OAuth2Authorization entities. */
+/**
+ * Persistence store for {@link Dhis2OAuth2Authorization}. These lookup methods back Spring
+ * Authorization Server's {@link
+ * org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService}
+ * implementation, in particular its {@code findByToken(String, OAuth2TokenType)} contract.
+ *
+ * <p>{@link #getByToken(String)} has union semantics: it searches across every token column on
+ * {@link Dhis2OAuth2Authorization} (authorization code, access token, refresh token, OIDC ID token,
+ * user code, device code) and returns the first matching row, which is what Spring AS needs when
+ * asked to resolve a token without knowing its type up-front.
+ */
 public interface Dhis2OAuth2AuthorizationStore
     extends IdentifiableObjectStore<Dhis2OAuth2Authorization> {
 

@@ -78,10 +78,20 @@ import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.security.oidc.provider.GenericOidcProviderBuilder;
 
 /**
- * Parses the DHIS.conf file for valid generic OIDC provider configurations. See the DHIS2 manual
- * for how to configure a OIDC provider correctly.
+ * Parses {@code dhis.conf} for generic OIDC provider configurations under the {@code
+ * oidc.provider.<id>.*} namespace and turns each valid group of keys into a {@link
+ * DhisOidcClientRegistration} suitable for any OIDC-compliant Identity Provider.
  *
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * <p>Reserved provider ids ({@code google}, {@code azure}, {@code wso2}, {@code dhis2}) are skipped
+ * here; they are handled by their dedicated provider classes ({@code GoogleProvider}, {@code
+ * AzureAdProvider}, {@code Wso2Provider}, {@code Dhis2InternalOidcProvider}).
+ *
+ * <p>Validation rejects unknown configuration keys and, for each rejected key, logs the closest
+ * valid key name by Levenshtein distance as a "did you mean" hint. URI-valued keys are also
+ * validated with {@link UrlValidator}. Providers whose configuration fails any required-key, name,
+ * or URI check are skipped without aborting startup.
+ *
+ * <p>See the DHIS2 manual for the canonical list of supported configuration keys.
  */
 @Slf4j
 public final class GenericOidcProviderConfigParser {

@@ -37,7 +37,16 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * Controller for managing OAuth2 authorizations for the DHIS2 OAuth2 authorization server.
+ * Read-only REST controller exposing rows from the {@code oauth2_authorization} table at {@code
+ * /api/oAuth2Authorizations}. Each row represents an issued authorization (access token, refresh
+ * token, authorization code, or OIDC ID token) for a given user and client, and this endpoint
+ * surfaces them for support and debugging of grants issued by the DHIS2 OAuth2 authorization
+ * server.
+ *
+ * <p>Restricted to superusers. Not mutable through REST and not importable via {@code
+ * /api/metadata}: only list and by-uid read operations provided by {@link
+ * AbstractFullReadOnlyController} are available, backed by the {@link Dhis2OAuth2Authorization}
+ * entity.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */

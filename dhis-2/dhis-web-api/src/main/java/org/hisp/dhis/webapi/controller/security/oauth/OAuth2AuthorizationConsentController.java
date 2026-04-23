@@ -37,7 +37,19 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * Controller for managing OAuth2 authorization consents for the DHIS2 OAuth2 authorization server.
+ * Read-only REST controller exposing rows from the {@code oauth2_authorization_consent} table at
+ * {@code /api/oAuth2AuthorizationConsents}. Each row records the set of scopes a user has
+ * previously consented to for a given client, as captured by the DHIS2 OAuth2 authorization
+ * server's consent screen.
+ *
+ * <p>Restricted to superusers. Not mutable through REST and not importable via {@code
+ * /api/metadata}: only list and by-uid read operations provided by {@link
+ * AbstractFullReadOnlyController} are available, backed by the {@link
+ * Dhis2OAuth2AuthorizationConsent} entity.
+ *
+ * <p>Clients registered through Dynamic Client Registration bypass the consent screen (they are
+ * persisted with {@code requireAuthorizationConsent=false}), so no consent rows are produced for
+ * those clients and they will not appear here.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */

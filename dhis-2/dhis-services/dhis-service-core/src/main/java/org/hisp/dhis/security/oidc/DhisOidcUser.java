@@ -44,7 +44,16 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Spring-principal object produced by {@link DhisOidcUserService} after a DHIS2 user has been
+ * resolved from an OIDC Identity Provider's claims. It wraps the DHIS2 {@link UserDetails} for the
+ * local account, the validated ID token, and the raw claims returned by the IdP, so that downstream
+ * Spring Security code and DHIS2 authorization checks can treat an OIDC-authenticated principal as
+ * both an {@link OidcUser} and a DHIS2 {@link UserDetails}.
+ *
+ * <p>All {@link UserDetails} accessors (username, authorities, org-unit scopes, two-factor flags,
+ * etc.) delegate to the wrapped DHIS2 user. All {@link OidcUser} accessors return the claims and ID
+ * token supplied at construction time; {@link #getUserInfo()} is not exposed here because the DHIS2
+ * login flow only uses the ID token claims.
  */
 public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, OidcUser {
   private final OidcIdToken oidcIdToken;
