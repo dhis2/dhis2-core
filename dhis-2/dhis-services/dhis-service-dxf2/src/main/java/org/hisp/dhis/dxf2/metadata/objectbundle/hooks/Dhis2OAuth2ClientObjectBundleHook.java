@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,57 +29,46 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.List;
-import java.util.Objects;
 import java.util.function.Consumer;
-import lombok.AllArgsConstructor;
-import org.hisp.dhis.analytics.AnalyticsTableHook;
-import org.hisp.dhis.analytics.AnalyticsTableHookService;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
+import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
 import org.springframework.stereotype.Component;
 
+/**
+ * Wires {@link Dhis2OAuth2ClientService}'s admin validators + defaulting into the metadata import
+ * pipeline so the same checks run on bulk {@code /api/metadata} imports as on REST CRUD. The REST
+ * controller already calls the same service methods directly. Idempotent on the REST path.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 @Component
-@AllArgsConstructor
-public class AnalyticsTableHookObjectBundleHook
-    extends AbstractObjectBundleHook<AnalyticsTableHook> {
+@RequiredArgsConstructor
+public class Dhis2OAuth2ClientObjectBundleHook extends AbstractObjectBundleHook<Dhis2OAuth2Client> {
 
-  private final AnalyticsTableHookService analyticsTableHookService;
+  private final Dhis2OAuth2ClientService clientService;
 
   @Override
   public void validate(
-      AnalyticsTableHook analyticsTableHook,
-      ObjectBundle bundle,
-      Consumer<ErrorReport> addReports) {
-    checkDuplicateAnalyticsTableHook(analyticsTableHook, addReports);
+      Dhis2OAuth2Client object, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    if (bundle.isPersisted(object)) {
+      Dhis2OAuth2Client persisted = bundle.getPreheat().get(bundle.getPreheatIdentifier(), object);
+      clientService.validateUpdate(persisted, object, addReports);
+    } else {
+      clientService.validateCreate(object, addReports);
+    }
   }
 
-  static boolean areEqual(AnalyticsTableHook one, AnalyticsTableHook other) {
-    return one.getPhase() == other.getPhase()
-        && one.getResourceTableType() == other.getResourceTableType()
-        && one.getAnalyticsTableType() == other.getAnalyticsTableType()
-        && one.getSql().equals(other.getSql());
+  @Override
+  public void preCreate(Dhis2OAuth2Client object, ObjectBundle bundle) {
+    clientService.applyCreateDefaults(object);
   }
 
-  private void checkDuplicateAnalyticsTableHook(
-      AnalyticsTableHook analyticsTableHook, Consumer<ErrorReport> addReports) {
-
-    List<AnalyticsTableHook> analyticsTableHooks =
-        analyticsTableHookService.getByPhaseAndResourceTableType(
-            analyticsTableHook.getPhase(), analyticsTableHook.getResourceTableType());
-
-    analyticsTableHooks.forEach(
-        existingAnalyticsTableHook -> {
-          if (!Objects.equals(existingAnalyticsTableHook.getUid(), analyticsTableHook.getUid())
-              && areEqual(analyticsTableHook, existingAnalyticsTableHook)) {
-            addReports.accept(
-                new ErrorReport(
-                    AnalyticsTableHook.class,
-                    ErrorCode.E6400,
-                    analyticsTableHook.getName(),
-                    existingAnalyticsTableHook.getName()));
-          }
-        });
+  @Override
+  public void preUpdate(
+      Dhis2OAuth2Client object, Dhis2OAuth2Client persistedObject, ObjectBundle bundle) {
+    clientService.applyUpdateDefaults(persistedObject, object);
   }
 }

@@ -99,7 +99,7 @@
     <dhis-json-tree.version>1.8.1</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>6.5.4</spring-security.version>
+    <spring-security.version>6.5.9</spring-security.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <spring-authorization-server.version>1.5.2</spring-authorization-server.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
@@ -132,7 +132,7 @@
     <postgresql-driver.version>42.7.10</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
     <datasource-proxy.version>1.11.0</datasource-proxy.version>
-    <mysql-connector-j.version>9.3.0</mysql-connector-j.version>
+    <mysql-connector-j.version>9.6.0</mysql-connector-j.version>
     <clickhouse-jdbc.version>0.9.8</clickhouse-jdbc.version>
 
     <!-- Servlet -->
