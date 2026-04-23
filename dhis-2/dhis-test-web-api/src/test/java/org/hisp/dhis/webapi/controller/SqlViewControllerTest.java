@@ -161,7 +161,8 @@ class SqlViewControllerTest extends H2ControllerIntegrationTestBase {
             .content()
             .node()
             .addMember("updateJobId", "\"" + jobId + "\"")
-            .getDeclaration();
+            .getDeclaration()
+            .toString();
     assertStatus(HttpStatus.OK, PUT("/sqlViews/" + uid, updatePayload));
 
     JsonObject params = GET("/jobConfigurations/{id}", jobId).content().getObject("jobParameters");

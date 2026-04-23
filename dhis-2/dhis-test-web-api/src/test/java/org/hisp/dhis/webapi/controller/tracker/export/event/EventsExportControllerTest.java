@@ -281,7 +281,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
     JsonNote note = jsonEvent.getNotes().get(0);
     assertEquals("oqXG28h988k", note.getNote());
-    assertEquals("my notes", note.getValue());
+    assertEquals("my notes", note.value());
     assertEquals(owner.getUid(), note.getStoredBy());
   }
 
@@ -300,7 +300,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertHasOnlyMembers(eventJson, "dataValues");
     JsonDataValue dataValue = eventJson.getDataValues().get(0);
     assertEquals(de.getUid(), dataValue.getDataElement());
-    assertEquals(dv.getValue(), dataValue.getValue());
+    assertEquals(dv.getValue(), dataValue.value());
     assertHasMember(dataValue, "createdAt");
     assertHasMember(dataValue, "updatedAt");
     assertHasMember(dataValue, "storedBy");
@@ -325,7 +325,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     assertContainsOnly(expectedEvents, jsonEvents.stream().map(JsonEvent::getEvent).toList());
     assertContainsOnly(
         expectedDataValues,
-        jsonEvents.stream().map(jsonEvent -> jsonEvent.getDataValues().get(0).getValue()).toList());
+        jsonEvents.stream().map(jsonEvent -> jsonEvent.getDataValues().get(0).value()).toList());
   }
 
   @Test
@@ -346,7 +346,7 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
     JsonDataValue dataValue = jsonEvent.getDataValues().get(0);
     assertEquals(eventNoValue.getUid(), jsonEvent.getEvent());
     assertEquals(deMultiText.getUid(), dataValue.getDataElement());
-    assertNull(dataValue.getValue());
+    assertNull(dataValue.value());
   }
 
   @Test

@@ -37,7 +37,7 @@ import com.lowagie.text.pdf.AcroFields;
 import com.lowagie.text.pdf.PdfReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -54,10 +54,11 @@ import org.hisp.dhis.dxf2.adx.AdxPeriod;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
-import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.hisp.staxwax.reader.XMLReader;
 
@@ -231,7 +232,12 @@ public final class DataEntryInput {
       @Nonnull InputStream in, @Nonnull ImportOptions options) throws IOException {
     IdSchemes schemes = options.getIdSchemes();
     JsonObject dvs =
-        JsonValue.of(new InputStreamReader(wrapAndCheckCompressionFormat(in))).asObject();
+        JsonMixed.of(
+            JsonNode.of(
+                wrapAndCheckCompressionFormat(in).readAllBytes(),
+                StandardCharsets.UTF_8,
+                null,
+                JsonNode.Index.AUTO_SKIP));
     String ds = dvs.getString("dataSet").string();
     String completionDate = dvs.getString("completeDate").string();
     // keys that are common for all values
@@ -282,14 +288,11 @@ public final class DataEntryInput {
     List<DataEntryValue.Input> values = new ArrayList<>();
     // Note that this uses JsonNode API to iterate without indexing
     // to make the processing memory footprint smaller
-    JsonValue dataValues = dvs.get("dataValues");
+    JsonArray dataValues = dvs.get("dataValues");
     if (dataValues.exists())
-      dataValues
-          .node()
-          .elements(false)
-          .forEachRemaining(
-              node -> {
-                JsonObject dv = JsonMixed.of(node);
+      dataValues.stream(JsonNode.Index.SKIP)
+          .forEach(
+              dv -> {
                 JsonString coc = dv.getString("categoryOptionCombo");
                 values.add(
                     new DataEntryValue.Input(

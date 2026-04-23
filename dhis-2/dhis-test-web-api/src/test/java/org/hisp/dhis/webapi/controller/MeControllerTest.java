@@ -321,7 +321,7 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
     userService.updateUser(userByUsername);
 
     assertEquals(
-        "myvalue", GET("/me").content().as(JsonMeDto.class).getAttributeValues().get(0).getValue());
+        "myvalue", GET("/me").content().as(JsonMeDto.class).getAttributeValues().get(0).value());
   }
 
   @Test

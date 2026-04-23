@@ -149,8 +149,7 @@ class MetadataWorkflowControllerTest extends H2ControllerIntegrationTestBase {
                         + "}"
                         + "}")
                 .content(HttpStatus.CONFLICT));
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4000);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E4000);
     assertEquals("Missing required property `shortName`", error.getMessage());
     assertEquals("shortName", error.getErrorProperties().get(0));
   }
@@ -229,8 +228,7 @@ class MetadataWorkflowControllerTest extends H2ControllerIntegrationTestBase {
                         + "'change':[{'op':'not-json-patch-op'}]"
                         + "}")
                 .content(HttpStatus.CONFLICT));
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4031);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E4031);
     assertEquals(
         "Property `change` requires a valid JSON payload, was given `[{\"op\":\"not-json-patch-op\"}]`",
         error.getMessage());
@@ -307,8 +305,7 @@ class MetadataWorkflowControllerTest extends H2ControllerIntegrationTestBase {
             "WARNING",
             "One or more errors occurred, please see full details in import report.",
             POST("/metadata/proposals/" + proposalId).content(HttpStatus.CONFLICT));
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4015);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E4015);
     assertEquals(
         "Property `targetId` refers to an object that does not exist, could not find `"
             + defaultTargetId
@@ -340,8 +337,7 @@ class MetadataWorkflowControllerTest extends H2ControllerIntegrationTestBase {
             "WARNING",
             "One or more errors occurred, please see full details in import report.",
             POST("/metadata/proposals/" + proposalId).content(HttpStatus.CONFLICT));
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4015);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E4015);
     assertEquals(
         "Property `targetId` refers to an object that does not exist, could not find `"
             + defaultTargetId
@@ -386,7 +382,7 @@ class MetadataWorkflowControllerTest extends H2ControllerIntegrationTestBase {
             "WARNING",
             "One or more errors occurred, please see full details in import report.",
             POST("/metadata/proposals/" + proposalId).content(HttpStatus.CONFLICT));
-    message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E3001);
+    message.findErrorReport(ErrorCode.E3001);
     JsonMetadataProposal proposal =
         GET("/metadata/proposals/" + proposalId).content().as(JsonMetadataProposal.class);
 

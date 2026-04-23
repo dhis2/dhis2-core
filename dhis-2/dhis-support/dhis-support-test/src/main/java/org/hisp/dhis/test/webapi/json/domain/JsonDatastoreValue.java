@@ -42,11 +42,11 @@ public interface JsonDatastoreValue extends JsonIdentifiableObject {
     return getString("namespace").string();
   }
 
-  default String getKey() {
+  default String key() {
     return getString("key").string();
   }
 
-  default JsonValue getValue() {
+  default JsonValue value() {
     return get("value");
   }
 }
