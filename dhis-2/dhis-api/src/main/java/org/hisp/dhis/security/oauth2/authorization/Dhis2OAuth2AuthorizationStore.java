@@ -43,6 +43,8 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  * {@link Dhis2OAuth2Authorization} (authorization code, access token, refresh token, OIDC ID token,
  * user code, device code) and returns the first matching row, which is what Spring AS needs when
  * asked to resolve a token without knowing its type up-front.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public interface Dhis2OAuth2AuthorizationStore
     extends IdentifiableObjectStore<Dhis2OAuth2Authorization> {

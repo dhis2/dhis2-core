@@ -92,6 +92,8 @@ import org.hisp.dhis.security.oidc.provider.GenericOidcProviderBuilder;
  * or URI check are skipped without aborting startup.
  *
  * <p>See the DHIS2 manual for the canonical list of supported configuration keys.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
 public final class GenericOidcProviderConfigParser {

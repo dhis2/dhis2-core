@@ -45,6 +45,8 @@ import org.springframework.stereotype.Repository;
  * Dhis2OAuth2AuthorizationServiceImpl} and exposes token-value lookups across the {@code state},
  * {@code authorization_code}, {@code access_token}, {@code refresh_token}, {@code oidc_id_token},
  * {@code user_code}, and {@code device_code} columns.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Repository
 public class HibernateDhis2OAuth2AuthorizationStore

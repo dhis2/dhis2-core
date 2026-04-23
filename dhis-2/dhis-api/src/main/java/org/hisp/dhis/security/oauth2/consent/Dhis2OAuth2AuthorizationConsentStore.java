@@ -39,6 +39,8 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  * org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsentService}
  * implementation, which keys consent records on the composite {@code (registeredClientId,
  * principalName)} pair: one record per (client, user) combination.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public interface Dhis2OAuth2AuthorizationConsentStore
     extends IdentifiableObjectStore<Dhis2OAuth2AuthorizationConsent> {

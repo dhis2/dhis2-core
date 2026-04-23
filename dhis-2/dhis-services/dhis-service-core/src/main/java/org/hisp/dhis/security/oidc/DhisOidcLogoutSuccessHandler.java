@@ -78,6 +78,8 @@ import org.springframework.stereotype.Component;
  * present, the handler switches active linked account via {@code
  * UserService.setActiveLinkedAccounts} and redirects to {@code linked_accounts.relogin_url};
  * otherwise it redirects to {@code linked_accounts.logout_url}.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
 @RequiredArgsConstructor

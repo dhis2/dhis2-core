@@ -39,16 +39,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 
 /**
- * Persisted record of a resource owner's consent to the scopes requested by an OAuth2 client.
- * Mirrors Spring Authorization Server's {@link
- * org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsent}, mapped to
- * the {@code oauth2_authorization_consent} table. Its composite identity is {@code
- * (registeredClientId, principalName)}: one row per (client, user) pair.
- *
- * <p>Exposed read-only over REST at {@code GET /api/oAuth2AuthorizationConsents} (superuser only).
- * Clients registered through Dynamic Client Registration (RFC 7591) are configured with {@code
- * requireAuthorizationConsent=false}, so they bypass the consent screen and do not produce rows in
- * this table.
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Getter
 @Setter

@@ -52,6 +52,8 @@ import java.security.interfaces.RSAPublicKey;
  *   <li>On the authorization-server side, to load the signing key DHIS2 uses to mint its own tokens
  *       ({@code oauth2.server.jwt.keystore.*}).
  * </ul>
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class KeyStoreUtil {
   private KeyStoreUtil() {

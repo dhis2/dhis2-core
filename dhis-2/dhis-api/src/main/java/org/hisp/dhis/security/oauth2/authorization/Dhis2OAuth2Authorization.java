@@ -39,18 +39,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 
 /**
- * Persisted OAuth2 authorization / issued-grant entity. Mirrors Spring Authorization Server's
- * {@link org.springframework.security.oauth2.server.authorization.OAuth2Authorization}, mapped to
- * the {@code oauth2_authorization} table. There is one row per grant, and a single row may hold any
- * combination of an authorization code, access token, refresh token, OpenID Connect ID token, and
- * device-code / user-code depending on which grant produced it.
- *
- * <p>Exposed read-only over REST at {@code GET /api/oAuth2Authorizations} (superuser only) for
- * operational inspection. It is not importable through {@code /api/metadata}.
- *
- * <p>For each token / code family the stored fields follow the same shape: a {@code *Value} (opaque
- * or JWT token value), {@code *IssuedAt} / {@code *ExpiresAt} timestamps, and a {@code *Metadata}
- * JSON blob produced by Spring AS.
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Getter
 @Setter

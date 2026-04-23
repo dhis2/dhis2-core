@@ -43,6 +43,8 @@ import org.springframework.stereotype.Repository;
  * Hibernate-backed store for {@link Dhis2OAuth2AuthorizationConsent}. Backs {@link
  * Dhis2OAuth2AuthorizationConsentServiceImpl}; lookups are by the composite {@code
  * (registeredClientId, principalName)} key.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Repository
 public class HibernateDhis2OAuth2AuthorizationConsentStore

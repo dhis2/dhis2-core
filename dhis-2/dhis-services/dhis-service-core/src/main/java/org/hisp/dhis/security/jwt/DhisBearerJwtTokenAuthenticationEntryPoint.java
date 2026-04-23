@@ -61,6 +61,8 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
  * <p>After emitting the WWW-Authenticate challenge, the entry point also forwards the {@link
  * AuthenticationException} to the Spring MVC {@code HandlerExceptionResolver} so that DHIS2's
  * global exception advice can log and translate the failure consistently with other API errors.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
 @Slf4j

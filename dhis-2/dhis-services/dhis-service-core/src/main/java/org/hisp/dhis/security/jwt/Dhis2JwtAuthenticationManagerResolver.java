@@ -99,6 +99,7 @@ import org.springframework.stereotype.Component;
  * @see org.hisp.dhis.security.oidc.DhisOidcProviderRepository
  * @see DhisJwtAuthenticationToken
  * @see AuthenticationManagerResolver
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
 public class Dhis2JwtAuthenticationManagerResolver

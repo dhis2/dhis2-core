@@ -74,6 +74,8 @@ import org.springframework.web.client.RestTemplate;
  * FormHttpMessageConverter} and {@link OAuth2AccessTokenResponseHttpMessageConverter}, and {@link
  * OAuth2ErrorResponseErrorHandler} mapping upstream HTTP errors to {@link
  * OAuth2AuthorizationException} with the {@code invalid_token_response} error code.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Service
 @RequiredArgsConstructor

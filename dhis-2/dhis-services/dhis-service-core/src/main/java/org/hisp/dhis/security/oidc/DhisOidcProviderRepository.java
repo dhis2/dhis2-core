@@ -60,6 +60,8 @@ import org.springframework.stereotype.Component;
  * <p>Each registration is keyed by its registration id (the provider id used in redirect URIs and
  * the login page). Insertion order is preserved via a {@link LinkedHashMap} so login buttons render
  * in the order providers were parsed.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
 public class DhisOidcProviderRepository implements ClientRegistrationRepository {

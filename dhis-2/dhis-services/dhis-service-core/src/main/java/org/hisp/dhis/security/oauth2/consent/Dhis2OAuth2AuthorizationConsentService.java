@@ -40,6 +40,8 @@ import java.util.List;
  * of authorities (scopes) the user granted that client. Clients registered via DCR bypass the
  * consent screen (they are saved with {@code requireAuthorizationConsent=false}) and therefore do
  * not create rows here.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public interface Dhis2OAuth2AuthorizationConsentService {
   /** Persist the consent or update the existing row with the same composite identity. */

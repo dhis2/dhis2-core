@@ -55,6 +55,8 @@ import org.hisp.dhis.common.MetadataObject;
  * org.springframework.security.oauth2.core.ClientAuthenticationMethod}) by {@code
  * Dhis2OAuth2ClientServiceImpl.toObject} when building a {@link
  * org.springframework.security.oauth2.server.authorization.client.RegisteredClient}.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Getter
 @Setter

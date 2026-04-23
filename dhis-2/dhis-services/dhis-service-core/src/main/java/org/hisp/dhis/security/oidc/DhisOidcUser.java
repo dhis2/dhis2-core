@@ -54,6 +54,8 @@ import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
  * etc.) delegate to the wrapped DHIS2 user. All {@link OidcUser} accessors return the claims and ID
  * token supplied at construction time; {@link #getUserInfo()} is not exposed here because the DHIS2
  * login flow only uses the ID token claims.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, OidcUser {
   private final OidcIdToken oidcIdToken;

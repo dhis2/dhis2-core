@@ -44,6 +44,8 @@ import org.springframework.stereotype.Repository;
  * Dhis2OAuth2ClientServiceImpl}'s {@link
  * org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository}
  * implementation.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Repository
 public class HibernateDhis2OAuth2ClientStore

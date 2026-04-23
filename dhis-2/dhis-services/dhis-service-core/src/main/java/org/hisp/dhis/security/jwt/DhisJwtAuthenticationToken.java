@@ -59,6 +59,8 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
  * SecurityContextHolder.getContext().getAuthentication()} for every JWT-authenticated request, and
  * the type downstream code should cast to when it needs access to the DHIS2 user and the original
  * JWT claims.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class DhisJwtAuthenticationToken extends JwtAuthenticationToken {
   private final DhisOidcUser dhisOidcUser;

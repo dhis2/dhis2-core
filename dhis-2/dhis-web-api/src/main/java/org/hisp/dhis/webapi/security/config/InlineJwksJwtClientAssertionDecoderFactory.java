@@ -83,6 +83,8 @@ import org.springframework.util.StringUtils;
  * <p>The same {@link OAuth2TokenValidator} is applied to both paths so inline-JWKS clients get the
  * same assertion validation rules (audience, issuer, expiry, and so on) as {@code jwks_uri}
  * clients.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class InlineJwksJwtClientAssertionDecoderFactory
     implements JwtDecoderFactory<RegisteredClient> {

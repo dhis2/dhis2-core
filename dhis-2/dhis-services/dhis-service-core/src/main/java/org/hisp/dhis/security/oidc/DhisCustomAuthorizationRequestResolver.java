@@ -65,6 +65,8 @@ import org.springframework.stereotype.Component;
  * {@code enable_pkce=on}: a random 96-byte URL-safe {@code code_verifier} is generated, stored as a
  * request attribute for the token exchange, and the corresponding SHA-256 {@code code_challenge}
  * plus {@code code_challenge_method} are added to the authorization request.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
 public class DhisCustomAuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {

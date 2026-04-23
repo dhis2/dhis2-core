@@ -43,6 +43,8 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  * providers ({@code google}, {@code azure.*}, {@code wso2}, generic {@code oidc.provider.*}). It
  * does NOT gate the internal DHIS2 OIDC provider ({@code dhis2-internal}), which is activated by
  * its own condition tied to {@code oauth2.server.enabled}.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class OidcLoginEnabledCondition extends PropertiesAwareConfigurationCondition {
   @Override

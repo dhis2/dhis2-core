@@ -41,6 +41,8 @@ import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
  * lifetime: authorization code, access token, refresh token, OIDC ID token, user code, and device
  * code. Each is also independently indexed so token-introspection lookups can find the parent
  * authorization by any of those values.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public interface Dhis2OAuth2AuthorizationService {
   /** Persist a new authorization or update the existing row with the same id. */

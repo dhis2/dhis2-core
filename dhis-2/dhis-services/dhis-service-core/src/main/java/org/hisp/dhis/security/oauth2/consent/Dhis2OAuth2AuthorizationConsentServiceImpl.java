@@ -53,6 +53,8 @@ import org.springframework.util.StringUtils;
  * #toObject} / {@link #toEntity} translate between Spring AS's {@link
  * org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsent} and the flat
  * DHIS2 entity (authorities stored as a comma-delimited string).
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Service
 public class Dhis2OAuth2AuthorizationConsentServiceImpl

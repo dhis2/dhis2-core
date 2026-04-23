@@ -81,6 +81,8 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
  *   <li>{@code externalClients}: client ids and secrets for additional clients authorized to
  *       present tokens issued by the same IdP (used when validating inbound bearer tokens).
  * </ul>
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Data
 @Builder

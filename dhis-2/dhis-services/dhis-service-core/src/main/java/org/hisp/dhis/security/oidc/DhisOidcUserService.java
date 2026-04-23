@@ -60,6 +60,8 @@ import org.springframework.stereotype.Service;
  *
  * <p>On success the method returns a {@link DhisOidcUser} wrapping the DHIS2 {@code UserDetails}
  * together with the raw OIDC claims and the validated ID token.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
 @Service
