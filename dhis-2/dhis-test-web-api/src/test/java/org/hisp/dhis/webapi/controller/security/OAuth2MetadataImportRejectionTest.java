@@ -38,15 +38,19 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.security.oauth2.authorization.Dhis2OAuth2Authorization;
+import org.hisp.dhis.security.oauth2.authorization.Dhis2OAuth2AuthorizationStore;
 import org.hisp.dhis.security.oauth2.consent.Dhis2OAuth2AuthorizationConsent;
+import org.hisp.dhis.security.oauth2.consent.Dhis2OAuth2AuthorizationConsentStore;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.test.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.test.webapi.json.domain.JsonTypeReport;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -59,6 +63,9 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class OAuth2MetadataImportRejectionTest extends H2ControllerIntegrationTestBase {
+
+  @Autowired private Dhis2OAuth2AuthorizationStore authorizationStore;
+  @Autowired private Dhis2OAuth2AuthorizationConsentStore consentStore;
 
   private static Stream<Arguments> rejectedTypes() {
     return Stream.of(
@@ -100,6 +107,66 @@ class OAuth2MetadataImportRejectionTest extends H2ControllerIntegrationTestBase 
             .orElse(null);
     assertNotNull(
         errorReport, "Expected E6023 error report for " + entity.getSimpleName() + " import");
+    assertTrue(
+        errorReport.getMessage().contains(entity.getSimpleName()),
+        "Error message should name the rejected type");
+  }
+
+  @Test
+  @DisplayName("POST /api/metadata?importStrategy=DELETE is rejected for Dhis2OAuth2Authorization")
+  void deleteStrategyIsRejectedForAuthorization() {
+    Dhis2OAuth2Authorization row = new Dhis2OAuth2Authorization();
+    row.setAutoFields();
+    row.setName("admin");
+    row.setRegisteredClientId("client-1");
+    row.setPrincipalName("admin");
+    row.setAuthorizationGrantType("authorization_code");
+    authorizationStore.save(row);
+
+    String body = "{\"oAuth2Authorizations\":[{\"id\":\"" + row.getUid() + "\"}]}";
+    assertRejectedDelete(body, Dhis2OAuth2Authorization.class);
+    assertNotNull(
+        authorizationStore.getByUid(row.getUid()), "Row must not have been deleted by the import");
+  }
+
+  @Test
+  @DisplayName(
+      "POST /api/metadata?importStrategy=DELETE is rejected for Dhis2OAuth2AuthorizationConsent")
+  void deleteStrategyIsRejectedForConsent() {
+    Dhis2OAuth2AuthorizationConsent row = new Dhis2OAuth2AuthorizationConsent();
+    row.setAutoFields();
+    row.setName("admin");
+    row.setRegisteredClientId("client-1");
+    row.setPrincipalName("admin");
+    row.setAuthorities("read");
+    consentStore.save(row);
+
+    String body = "{\"oAuth2AuthorizationConsents\":[{\"id\":\"" + row.getUid() + "\"}]}";
+    assertRejectedDelete(body, Dhis2OAuth2AuthorizationConsent.class);
+    assertNotNull(
+        consentStore.getByUid(row.getUid()), "Row must not have been deleted by the import");
+  }
+
+  private void assertRejectedDelete(String body, Class<? extends IdentifiableObject> entity) {
+    JsonImportSummary report =
+        POST("/metadata?importStrategy=DELETE", body)
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonImportSummary.class);
+
+    assertEquals("ERROR", report.getStatus());
+    assertEquals(0, report.getStats().getDeleted());
+    assertEquals(1, report.getStats().getIgnored());
+
+    JsonTypeReport typeReport = report.getTypeReport(entity);
+    JsonErrorReport errorReport =
+        typeReport.getObjectReports().stream()
+            .flatMap(or -> or.getErrorReports().stream())
+            .filter(e -> e.getErrorCode() == ErrorCode.E6023)
+            .findFirst()
+            .orElse(null);
+    assertNotNull(
+        errorReport, "Expected E6023 error report for " + entity.getSimpleName() + " DELETE");
     assertTrue(
         errorReport.getMessage().contains(entity.getSimpleName()),
         "Error message should name the rejected type");
