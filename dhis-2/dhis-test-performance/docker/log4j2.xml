@@ -41,10 +41,6 @@
             <AppenderRef ref="console"/>
         </Logger>
         <Logger name="org.hisp.dhis" level="INFO" additivity="true"/>
-        <!-- DHIS2-20965 diagnostics: Hikari pool state every 30s + getConnection/query tracing -->
-        <Logger name="com.zaxxer.hikari.pool.HikariPool" level="DEBUG" additivity="false">
-            <AppenderRef ref="console"/>
-        </Logger>
 
         <Root level="WARN">
             <AppenderRef ref="console"/>
