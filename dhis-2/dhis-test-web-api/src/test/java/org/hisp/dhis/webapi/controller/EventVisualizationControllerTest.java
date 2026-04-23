@@ -797,7 +797,7 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
     assertThat(simpleDimensionNode0.get("dimension").string(), is(equalTo("eventDate")));
     assertThat(simpleDimensionNode0.get("program").string(), is(equalTo("deabcdefghP")));
     assertThat(
-        simpleDimensionNode0.get("values").string(),
+        simpleDimensionNode0.get("values").toJson(),
         is(
             equalTo(
 """
@@ -842,7 +842,7 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
 
     JsonObject dataElementDimensionsNode1 = response.get("dataElementDimensions").get(1);
     assertThat(
-        dataElementDimensionsNode1.get("dataElement").string(),
+        dataElementDimensionsNode1.get("dataElement").toJson(),
         is(
             equalTo(
 """
@@ -1048,9 +1048,9 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
 
     // Then
     JsonObject response = GET("/eventVisualizations/" + uid).content();
-    String metaData = response.get("metaData").node().value().toString();
+    String metaData = response.get("metaData").toJson();
 
-    assertThat(response.get("name").node().value(), is(equalTo("Test metadata post")));
+    assertThat(response.get("name").string(), is(equalTo("Test metadata post")));
     assertThat(
         metaData,
         containsString(
@@ -1067,8 +1067,8 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
         metaData,
         containsString(
             "{\"uid\":\"Zj7UnCAulEk\",\"code\":\"DataElementCodeD\",\"name\":\"DataElementD\"}"));
-    assertThat(response.get("type").node().value(), is(equalTo("STACKED_COLUMN")));
-    assertThat(response.get("program").node().get("id").value(), is(equalTo(mockProgram.getUid())));
+    assertThat(response.get("type").string(), is(equalTo("STACKED_COLUMN")));
+    assertThat(response.get("program").get("id").string(), is(equalTo(mockProgram.getUid())));
   }
 
   @Test
