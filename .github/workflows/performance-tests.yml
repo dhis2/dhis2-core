@@ -275,7 +275,7 @@ jobs:
         echo "gstat compare <baseline-dir> ./${{ inputs.test_name }}-${{ github.run_id }} --percentile 95 --method tdigest" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "\`--method tdigest\` matches the t-digest algorithm Gatling uses in \`index.html\`, so the table lines up with the HTML report. Small drift is still possible due to implementation differences. Drop the flag (or pass \`--method exact\`) for an exact percentile." >> $GITHUB_STEP_SUMMARY
+        echo "\`--method tdigest\` matches the t-digest algorithm Gatling uses in \`index.html\`, so the table lines up with the HTML report. Small drift is still possible due to implementation differences. Drop the flag for an exact percentile (gstat's default)." >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "**Tip**: \`gstat compare\` uses each input directory's basename as the column header. Pick a short, meaningful \`test_name\` (e.g. \`2.43.0-load-2u\`) so the table reads cleanly. Override per input with \`--label NAME\`." >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY

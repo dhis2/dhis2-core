@@ -371,7 +371,7 @@ jobs:
         echo "  --percentile 95 --method tdigest" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "\`--method tdigest\` matches the t-digest algorithm Gatling uses in \`index.html\`, so the table lines up with the HTML report. Small drift is still possible due to implementation differences. Drop the flag (or pass \`--method exact\`) for an exact percentile." >> $GITHUB_STEP_SUMMARY
+        echo "\`--method tdigest\` matches the t-digest algorithm Gatling uses in \`index.html\`, so the table lines up with the HTML report. Small drift is still possible due to implementation differences. Drop the flag for an exact percentile (gstat's default)." >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "Each directory contains:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
