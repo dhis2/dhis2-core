@@ -314,7 +314,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
 
     assertContainsAll(
         List.of(tea1.getUid(), tea2.getUid()), attributes, JsonAttribute::getAttribute);
-    assertContainsAll(List.of("rainy day", "70"), attributes, JsonAttribute::getValue);
+    assertContainsAll(List.of("rainy day", "70"), attributes, JsonAttribute::value);
   }
 
   @Test
@@ -340,8 +340,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
         List.of(tea1.getUid(), tea2.getUid(), tea3.getUid()),
         attributes,
         JsonAttribute::getAttribute);
-    assertContainsAll(
-        List.of("rainy day", "70", "Frank PTEA"), attributes, JsonAttribute::getValue);
+    assertContainsAll(List.of("rainy day", "70", "Frank PTEA"), attributes, JsonAttribute::value);
   }
 
   @Test
@@ -1157,7 +1156,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
                     te.getAttributes().stream()
                         .filter(attr -> "multitxtAtr".equals(attr.getAttribute()))
                         .findFirst()
-                        .map(JsonAttribute::getValue)
+                        .map(JsonAttribute::value)
                         .orElse(null))
             .toList());
   }

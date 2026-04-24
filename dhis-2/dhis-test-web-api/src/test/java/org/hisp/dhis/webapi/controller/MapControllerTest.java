@@ -66,9 +66,9 @@ class MapControllerTest extends H2ControllerIntegrationTestBase {
     // object.
     String mandatoryProperties =
         "'lastUpdated':'"
-            + map.get("lastUpdated").node().value()
+            + map.get("lastUpdated").string()
             + "', 'created':'"
-            + map.get("created").node().value()
+            + map.get("created").string()
             + "'";
 
     assertStatus(
@@ -77,7 +77,7 @@ class MapControllerTest extends H2ControllerIntegrationTestBase {
 
     map = GET("/maps/{uid}", mapId).content();
 
-    assertEquals("My updated map", map.get("name").node().value());
+    assertEquals("My updated map", map.get("name").string());
   }
 
   @Test

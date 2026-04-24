@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.webapi.controller.icon;
 
-import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -176,7 +175,7 @@ class IconControllerTest extends PostgresControllerIntegrationTestBase {
 
     JsonList<JsonIcon> icons = response.getList("icons", JsonIcon.class);
 
-    assertContainsAll(List.of(key2, key3), icons, JsonIcon::getKey);
+    assertContainsAll(List.of(key2, key3), icons, JsonIcon::key);
   }
 
   @Test
@@ -281,10 +280,10 @@ class IconControllerTest extends PostgresControllerIntegrationTestBase {
   }
 
   private void assertIcons(JsonIcon icon, Set<String> keywords, String fileResourceId, String key) {
-    String actualKey = icon.getString("key").string();
-    String actualDescription = icon.getString("description").string();
-    String actualFileResourceId = icon.getObject("fileResource").getString("id").string();
-    List<String> actualKeywords = icon.getArray("keywords").stringValues();
+    String actualKey = icon.key();
+    String actualDescription = icon.getDescription();
+    String actualFileResourceId = icon.getFileResource().getId();
+    Set<String> actualKeywords = icon.getKeywords();
     assertAll(
         () ->
             assertEquals(
@@ -304,6 +303,6 @@ class IconControllerTest extends PostgresControllerIntegrationTestBase {
                 String.format(
                     "Expected FileResourceId was %s but found %s",
                     fileResourceId, actualFileResourceId)),
-        () -> assertContainsOnly(keywords, actualKeywords));
+        () -> assertEquals(keywords, actualKeywords));
   }
 }
