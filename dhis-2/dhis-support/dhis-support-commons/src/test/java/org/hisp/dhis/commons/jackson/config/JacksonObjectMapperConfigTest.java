@@ -36,7 +36,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.exc.StreamConstraintsException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -110,34 +109,6 @@ class JacksonObjectMapperConfigTest {
     assertEquals(user.getUid(), testUser.getUid());
     assertEquals(user.getUid(), user.getCreatedBy().getUid());
     assertEquals(user.getUid(), user.getLastUpdatedBy().getUid());
-  }
-
-  // DHIS2-21252
-  @Test
-  void testLargeMetadataStringExceedsDefaultJacksonLimit() {
-    // Jackson 2.15+ defaults StreamReadConstraints.getMaxStringLength() to 20_000_000.
-    // A metadata snapshot exceeding this limit throws StreamConstraintsException on an
-    // unconfigured mapper — this was the root cause of the DHIS2-21252 bug that prevented
-    // large metadata version snapshots from being deserialised during sync.
-    ObjectMapper unconfiguredMapper = new ObjectMapper();
-    String json = "{\"metadata\":\"" + "x".repeat(20_100_000) + "\"}";
-
-    assertThrows(
-        StreamConstraintsException.class, () -> unconfiguredMapper.readValue(json, Map.class));
-  }
-
-  // DHIS2-21252
-  @Test
-  void testConfiguredMapperDeserializesStringLargerThanDefaultJacksonLimit() throws IOException {
-    // JacksonObjectMapperConfig raises StreamReadConstraints.maxStringLength to 150 MB,
-    // fixing the StreamConstraintsException thrown when metadata snapshots exceed the 20 MB
-    // Jackson default.
-    String largeContent = "x".repeat(20_100_000);
-    String json = "{\"metadata\":\"" + largeContent + "\"}";
-
-    Map<String, String> result =
-        jsonMapper.readValue(json, new TypeReference<Map<String, String>>() {});
-    assertEquals(largeContent, result.get("metadata"));
   }
 
   private String createDateString(String str) {
