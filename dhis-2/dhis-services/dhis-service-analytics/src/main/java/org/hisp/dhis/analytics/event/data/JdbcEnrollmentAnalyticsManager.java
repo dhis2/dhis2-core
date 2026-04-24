@@ -615,23 +615,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       or = true;
     }
 
-    /*
-          String orClause =
-              orgUnitItems.stream()
-                  .map(
-                      object -> {
-                        OrganisationUnit unit = (OrganisationUnit) object;
-                        return params
-                                .getOrgUnitField()
-                                .withSqlBuilder(sqlBuilder)
-                                .getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType())
-                            + " = '"
-                            + unit.getUid()
-                            + "'";
-                      })
-                  .collect(Collectors.joining(" or "));
-    */
-
     if (!orClause.isEmpty()) {
       condition = hlp.whereAnd() + " (" + orClause + ") ";
     }
