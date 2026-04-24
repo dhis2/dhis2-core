@@ -37,7 +37,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.Function;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.QueryElement;
-import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.Subselect;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.TableColumn;
 
 /**
@@ -71,15 +70,7 @@ public class EventQuery {
     ORGUNIT_UID(new TableColumn("o", "uid", "ou_uid")),
     ORGUNIT_NAME(new TableColumn("o", "name", "ou_name")),
     COC_UID(new TableColumn("coc", "uid", "cocuid")),
-    CAT_OPTIONS(
-        new Subselect(
-            "( "
-                + "SELECT string_agg(opt.uid::text, ',') "
-                + "FROM categoryoption opt "
-                + "join categoryoptioncombos_categoryoptions ccc "
-                + "on opt.categoryoptionid = ccc.categoryoptionid "
-                + "WHERE coc.categoryoptioncomboid = ccc.categoryoptioncomboid )",
-            "catoptions")),
+    CAT_OPTIONS(new TableColumn("catopts", "catoptions")),
     ASSIGNED_USER(new TableColumn("ui", "uid", "userid")),
     ASSIGNED_USER_FIRST_NAME(new TableColumn("ui", "firstname")),
     ASSIGNED_USER_SURNAME(new TableColumn("ui", "surname")),
@@ -118,6 +109,13 @@ public class EventQuery {
         + "join organisationunit o on psi.organisationunitid = o.organisationunitid "
         + "join categoryoptioncombo coc on psi.attributeoptioncomboid = coc.categoryoptioncomboid "
         + "left join userinfo ui on psi.assigneduserid = ui.userinfoid "
+        + "left join lateral ("
+        + "select string_agg(opt.uid::text, ',') as catoptions "
+        + "from categoryoption opt "
+        + "join categoryoptioncombos_categoryoptions ccc "
+        + "on opt.categoryoptionid = ccc.categoryoptionid "
+        + "where coc.categoryoptioncomboid = ccc.categoryoptioncomboid "
+        + ") catopts on true "
         + "where pi.enrollmentid in (:ids)";
   }
 
