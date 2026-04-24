@@ -72,8 +72,19 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * DHIS2 implementation of Spring Authorization Server's OAuth2AuthorizationService that uses
- * HibernateOAuth2AuthorizationStore for persistence.
+ * Spring-bean implementation of {@link Dhis2OAuth2AuthorizationService} and Spring Authorization
+ * Server's {@link OAuth2AuthorizationService}. Persistence is delegated to {@link
+ * Dhis2OAuth2AuthorizationStore} (Hibernate-backed).
+ *
+ * <p>Spring AS models an issued grant as an {@link OAuth2Authorization} aggregate holding up to six
+ * distinct token objects (authorization code, access token, refresh token, OIDC ID token, user
+ * code, device code), each with its own issued-at / expires-at / metadata map. This implementation
+ * flattens that aggregate into a single {@link Dhis2OAuth2Authorization} row with per-token
+ * columns, and {@link #toObject} / {@link #toEntity} translate in both directions.
+ *
+ * <p>The Jackson {@link ObjectMapper} is preloaded with {@link SecurityJackson2Modules} and {@link
+ * OAuth2AuthorizationServerJackson2Module} so the {@code attributes}, per-token metadata, and OIDC
+ * ID-token claims JSON round-trip correctly.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -112,6 +123,15 @@ public class Dhis2OAuth2AuthorizationServiceImpl
     this.objectMapper.enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p>If an authorization with the same id already exists it is merged; otherwise a new row is
+   * inserted. The {@code createdBy} user is resolved from the current security context: a {@link
+   * Jwt} principal (the DCR Initial Access Token) resolves to the token's {@code sub} claim; an
+   * {@link OAuth2ClientAuthenticationToken} resolves to the client's registered {@code createdBy}
+   * user; other cases fall through to the default store behaviour.
+   */
   @Transactional
   @Override
   public void save(OAuth2Authorization authorization) {
@@ -173,6 +193,14 @@ public class Dhis2OAuth2AuthorizationServiceImpl
     return entity != null ? toObject(entity) : null;
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p>When {@code tokenType} is {@code null} all token columns are searched. Otherwise the column
+   * matching the Spring AS parameter name is used: {@code state}, {@code code}, {@code
+   * access_token}, {@code refresh_token}, {@code id_token}, {@code user_code}, or {@code
+   * device_code}.
+   */
   @Transactional(readOnly = true)
   @Override
   public OAuth2Authorization findByToken(String token, OAuth2TokenType tokenType) {

@@ -60,6 +60,8 @@ import org.hisp.dhis.common.SecondaryMetadataObject;
  * <p>Marked {@link SecondaryMetadataObject} so the type is excluded from the default {@code
  * /api/metadata} export. Persistence uses Hibernate field access ({@code
  * Dhis2OAuth2AuthorizationConsent.hbm.xml}) and is independent of the JSON annotations.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Getter
 @Setter
