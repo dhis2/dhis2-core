@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonMetadataVersion;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.jupiter.api.DisplayName;
@@ -44,7 +44,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
-class MetadataVersionControllerTest extends H2ControllerIntegrationTestBase {
+class MetadataVersionControllerTest extends PostgresControllerIntegrationTestBase {
 
   @Test
   @DisplayName("A valid metadata version should be returned from the versions endpoint")

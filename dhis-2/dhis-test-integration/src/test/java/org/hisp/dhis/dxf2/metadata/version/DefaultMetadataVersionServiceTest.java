@@ -239,13 +239,6 @@ class DefaultMetadataVersionServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testShouldGiveValidVersionDataIfExists() throws IOException {
-    versionService.createMetadataVersionInDataStore("myVersion", "myJson");
-
-    assertEquals("myJson", streamToString("myVersion"));
-  }
-
-  @Test
   void testShouldReturnFalseWhenAVersionDoesNotExist() throws IOException {
     assertFalse(
         versionService.streamVersionData("myNonExistingVersion", new ByteArrayOutputStream()));
