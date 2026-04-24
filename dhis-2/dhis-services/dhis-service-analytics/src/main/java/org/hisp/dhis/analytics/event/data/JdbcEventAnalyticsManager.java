@@ -33,11 +33,9 @@ import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
 import static org.hisp.dhis.analytics.AnalyticsConstants.DATE_PERIOD_STRUCT_ALIAS;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
-import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.common.ColumnHeader.LATITUDE;
 import static org.hisp.dhis.analytics.common.ColumnHeader.LONGITUDE;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
@@ -49,12 +47,10 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.feedback.ErrorCode.E7131;
 import static org.hisp.dhis.feedback.ErrorCode.E7132;
 import static org.hisp.dhis.feedback.ErrorCode.E7133;
-import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,10 +58,8 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
-import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.Rectangle;
-import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.EndpointItem;
@@ -109,7 +103,6 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 
 /**
  * TODO could use row_number() and filtering for paging.
@@ -126,6 +119,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
   private final EventTimeFieldSqlRenderer timeFieldSqlRenderer;
 
+  private final FirstOrLastValueSubqueryRenderer firstOrLastRenderer;
+
   public JdbcEventAnalyticsManager(
       @Qualifier("analyticsJdbcTemplate") JdbcTemplate jdbcTemplate,
       ProgramIndicatorService programIndicatorService,
@@ -141,7 +136,8 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       ColumnMapper columnMapper,
       QueryItemFilterBuilder filterBuilder,
       StageQuerySqlFacade stageQuerySqlFacade,
-      DateFieldPeriodBucketColumnResolver dateFieldPeriodBucketColumnResolver) {
+      DateFieldPeriodBucketColumnResolver dateFieldPeriodBucketColumnResolver,
+      FirstOrLastValueSubqueryRenderer firstOrLastRenderer) {
     super(
         jdbcTemplate,
         programIndicatorService,
@@ -158,6 +154,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         stageQuerySqlFacade,
         dateFieldPeriodBucketColumnResolver);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
+    this.firstOrLastRenderer = firstOrLastRenderer;
   }
 
   @Override
@@ -445,7 +442,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     StringBuilder sql = new StringBuilder(" from ");
 
     if (params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()) {
-      sql.append(getFirstOrLastValueSubquerySql(params));
+      sql.append(firstOrLastRenderer.render(params));
     } else {
       sql.append(params.getTableName());
     }
@@ -824,147 +821,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     // Use regular OU clause only if NOT all regular OU UIDs are covered by stage.ou
     return !stageOuUids.containsAll(regularOuUids);
-  }
-
-  /**
-   * Generates a sub query which provides a view of the data where each row is ranked by the
-   * execution date, ascending or descending. The events are partitioned by org unit and attribute
-   * option combo. A column {@code pe_rank} defines the rank. Only data for the last 10 years
-   * relative to the period end date is included.
-   *
-   * @param params the {@link EventQueryParams}.
-   */
-  private String getFirstOrLastValueSubquerySql(EventQueryParams params) {
-    Assert.isTrue(
-        params.hasValueDimension() || params.hasProgramIndicatorDimension(),
-        "Last value aggregation type query must have value dimension or a program indicator");
-
-    String timeCol = quoteAlias(params.getTimeFieldAsFieldFallback());
-    String createdCol = quoteAlias(TimeField.CREATED.getEventColumnName());
-    String partitionByClause = getFirstOrLastValuePartitionByClause(params);
-    String order =
-        params.getAggregationTypeFallback().isFirstPeriodAggregationType() ? "asc" : "desc";
-
-    String columns;
-    String timeTest;
-    String nullTest;
-
-    if (params.hasProgramIndicatorDimension()) {
-      columns = "*," + getProgramIndicatorSql(params) + " as value";
-      timeTest = timeFieldSqlRenderer.renderPeriodTimeFieldSql(params);
-      nullTest = "";
-    } else {
-      String valueItem = quoteAlias(params.getValue().getDimensionItem());
-      columns =
-          quote("event") + "," + valueItem + "," + getFirstOrLastValueSubqueryQuotedColumns(params);
-
-      Date latest = params.getLatestEndDate();
-      Date earliest = addYears(latest, LAST_VALUE_YEARS_OFFSET);
-      timeTest =
-          timeCol
-              + " >= '"
-              + toMediumDate(earliest)
-              + "' "
-              + "and "
-              + timeCol
-              + " <= '"
-              + toMediumDate(latest)
-              + "'";
-
-      nullTest = " and " + valueItem + " is not null";
-    }
-
-    return "(select "
-        + columns
-        + ",row_number() over ("
-        + partitionByClause
-        + " "
-        + "order by "
-        + timeCol
-        + " "
-        + order
-        + ", "
-        + createdCol
-        + " "
-        + order
-        + ") as pe_rank "
-        + "from "
-        + params.getTableName()
-        + " as "
-        + ANALYTICS_TBL_ALIAS
-        + " "
-        + "where "
-        + timeTest
-        + nullTest
-        + ")";
-  }
-
-  /**
-   * Returns the partition by clause for the first or last event sub query. If the aggregation type
-   * of the given parameters specifies "first" or "last" as the general aggregation type, the
-   * partition by clause will use the dimensions from the analytics query as columns in order to
-   * rank events in all dimensions. In this case, the outer query will perform no aggregation and
-   * simply filter by the top ranked events.
-   *
-   * <p>If the aggregation type specifies another aggregation type (i.e. "sum" or "average") as the
-   * general aggregation type, the partition by clause will use the "ou" and "ao" columns to rank
-   * events in the time dimension only, and have the outer query perform the aggregation in the
-   * other dimensions, as well as filter by the top ranked events.
-   *
-   * @param params the {@link EventQueryParams}.
-   * @return the partition by clause.
-   */
-  private String getFirstOrLastValuePartitionByClause(EventQueryParams params) {
-    if (params.isAnyAggregationType(AggregationType.FIRST, AggregationType.LAST)) {
-      return getFirstOrLastValuePartitionByColumns(params.getNonPeriodDimensions());
-    } else {
-      return "partition by " + quoteAliasCommaDelimited(List.of("ou", "ao"));
-    }
-  }
-
-  /**
-   * Returns the partition by clause for the first or last event sub query. The columns to partition
-   * by are based on the given list of dimensions.
-   *
-   * @param dimensions the list of {@link DimensionalObject}.
-   * @return the partition by clause.
-   */
-  private String getFirstOrLastValuePartitionByColumns(List<DimensionalObject> dimensions) {
-    String partitionColumns =
-        dimensions.stream()
-            .map(DimensionalObject::getDimensionName)
-            .map(sqlBuilder::quoteAx)
-            .collect(Collectors.joining(","));
-
-    String sql = "";
-
-    if (isNotEmpty(partitionColumns)) {
-      sql += "partition by " + partitionColumns;
-    }
-
-    return sql;
-  }
-
-  /**
-   * Returns quoted names of columns for the {@link AggregationType#FIRST} or {@link
-   * AggregationType#LAST} sub query (not for program indicators).
-   *
-   * @param params the {@link EventQueryParams}.
-   */
-  private String getFirstOrLastValueSubqueryQuotedColumns(EventQueryParams params) {
-    return params.getDimensionsAndFilters().stream()
-        .map(dim -> quote(dim.getDimensionName()))
-        .collect(joining(","));
-  }
-
-  /** Returns the program indicator SQL from the query parameters. */
-  private String getProgramIndicatorSql(EventQueryParams params) {
-    return programIndicatorService.getAnalyticsSql(
-        params.getProgramIndicator().getExpression(),
-        NUMERIC,
-        params.getProgramIndicator(),
-        params.getEarliestStartDate(),
-        params.getLatestEndDate());
   }
 
   /**

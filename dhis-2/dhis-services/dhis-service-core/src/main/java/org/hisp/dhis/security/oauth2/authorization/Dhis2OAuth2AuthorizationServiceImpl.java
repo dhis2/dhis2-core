@@ -37,9 +37,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.security.oauth2.OAuth2GrantTypes;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -50,7 +50,6 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2DeviceCode;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
@@ -223,8 +222,7 @@ public class Dhis2OAuth2AuthorizationServiceImpl
         OAuth2Authorization.withRegisteredClient(registeredClient)
             .id(entity.getUid())
             .principalName(entity.getPrincipalName())
-            .authorizationGrantType(
-                resolveAuthorizationGrantType(entity.getAuthorizationGrantType()))
+            .authorizationGrantType(OAuth2GrantTypes.resolve(entity.getAuthorizationGrantType()))
             .authorizedScopes(StringUtils.commaDelimitedListToSet(entity.getAuthorizedScopes()))
             .attributes(attributes -> attributes.putAll(parseMap(entity.getAttributes())));
 
@@ -467,27 +465,5 @@ public class Dhis2OAuth2AuthorizationServiceImpl
     } catch (Exception ex) {
       throw new IllegalArgumentException("Failed to write JSON data: " + ex.getMessage(), ex);
     }
-  }
-
-  /**
-   * Resolves the AuthorizationGrantType from a string value.
-   *
-   * @param authorizationGrantType The string value
-   * @return The corresponding AuthorizationGrantType
-   */
-  private static AuthorizationGrantType resolveAuthorizationGrantType(
-      @Nonnull String authorizationGrantType) {
-    if (AuthorizationGrantType.AUTHORIZATION_CODE.getValue().equals(authorizationGrantType)) {
-      return AuthorizationGrantType.AUTHORIZATION_CODE;
-    } else if (AuthorizationGrantType.CLIENT_CREDENTIALS
-        .getValue()
-        .equals(authorizationGrantType)) {
-      return AuthorizationGrantType.CLIENT_CREDENTIALS;
-    } else if (AuthorizationGrantType.REFRESH_TOKEN.getValue().equals(authorizationGrantType)) {
-      return AuthorizationGrantType.REFRESH_TOKEN;
-    } else if (AuthorizationGrantType.DEVICE_CODE.getValue().equals(authorizationGrantType)) {
-      return AuthorizationGrantType.DEVICE_CODE;
-    }
-    return new AuthorizationGrantType(authorizationGrantType); // Custom authorization grant type
   }
 }

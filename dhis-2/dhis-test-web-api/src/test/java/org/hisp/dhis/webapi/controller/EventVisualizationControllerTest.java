@@ -55,7 +55,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.eventvisualization.EventVisualization;
-import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -675,13 +674,13 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
     // Then
     JsonObject response = GET("/eventVisualizations/" + uid).content();
 
-    assertThat(response.get("name").node().value(), is(equalTo("Test post")));
-    assertThat(response.get("type").node().value(), is(equalTo("LINE_LIST")));
-    assertThat(response.get("program").node().get("id").value(), is(equalTo(mockProgram.getUid())));
-    assertThat(response.get("skipRounding").node().value(), is(equalTo(true)));
-    assertThat(response.get("hideEmptyColumns").node().value(), is(equalTo(true)));
-    assertThat(response.get("fixColumnHeaders").node().value(), is(equalTo(false)));
-    assertThat(response.get("fixRowHeaders").node().value(), is(equalTo(true)));
+    assertThat(response.get("name").string(), is(equalTo("Test post")));
+    assertThat(response.get("type").string(), is(equalTo("LINE_LIST")));
+    assertThat(response.get("program").get("id").string(), is(equalTo(mockProgram.getUid())));
+    assertThat(response.get("skipRounding").booleanValue(), is(equalTo(true)));
+    assertThat(response.get("hideEmptyColumns").booleanValue(), is(equalTo(true)));
+    assertThat(response.get("fixColumnHeaders").booleanValue(), is(equalTo(false)));
+    assertThat(response.get("fixRowHeaders").booleanValue(), is(equalTo(true)));
   }
 
   @Test
@@ -782,10 +781,10 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
                 + "?fields=*,sorting,filters[dimension,programStage,repetition[:all],items[code,name,dimensionItemType,dimensionItem,id],repetitions],columns[dimension,program,programStage,items[id],repetitions]")
             .content();
 
-    assertThat(response.get("name").node().value(), is(equalTo("Test multi-programs post")));
-    assertThat(response.get("type").node().value(), is(equalTo("LINE_LIST")));
-    assertThat(response.get("skipRounding").node().value(), is(equalTo(false)));
-    assertThat(response.get("legacy").node().value(), is(equalTo(false)));
+    assertThat(response.get("name").string(), is(equalTo("Test multi-programs post")));
+    assertThat(response.get("type").string(), is(equalTo("LINE_LIST")));
+    assertThat(response.get("skipRounding").booleanValue(), is(equalTo(false)));
+    assertThat(response.get("legacy").booleanValue(), is(equalTo(false)));
     assertThat(
         response.get("trackedEntityType").node().value().toString(),
         is(
@@ -793,173 +792,159 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
 """
 {"id":"nEenWmSyUEp"}""")));
 
-    JsonNode simpleDimensionNode0 = response.get("simpleDimensions").node().element(0);
-    assertThat(simpleDimensionNode0.get("parent").value().toString(), is(equalTo("COLUMN")));
-    assertThat(simpleDimensionNode0.get("dimension").value().toString(), is(equalTo("eventDate")));
-    assertThat(simpleDimensionNode0.get("program").value().toString(), is(equalTo("deabcdefghP")));
+    JsonObject simpleDimensionNode0 = response.get("simpleDimensions").get(0);
+    assertThat(simpleDimensionNode0.get("parent").string(), is(equalTo("COLUMN")));
+    assertThat(simpleDimensionNode0.get("dimension").string(), is(equalTo("eventDate")));
+    assertThat(simpleDimensionNode0.get("program").string(), is(equalTo("deabcdefghP")));
     assertThat(
-        simpleDimensionNode0.get("values").value().toString(),
+        simpleDimensionNode0.get("values").toJson(),
         is(
             equalTo(
 """
 ["2023-07-21_2023-08-01","2023-01-21_2023-02-01"]""")));
-    assertThat(simpleDimensionNode0.get("parent").value().toString(), is(equalTo("COLUMN")));
+    assertThat(simpleDimensionNode0.get("parent").string(), is(equalTo("COLUMN")));
 
-    JsonNode sortingNode0 = response.get("sorting").node().element(0);
+    JsonObject sortingNode0 = response.get("sorting").get(0);
     assertThat(
-        sortingNode0.get("dimension").value().toString(),
+        sortingNode0.get("dimension").string(),
         is(equalTo("deabcdefghP[-1].deabcdefghS[0].deabcdefghB")));
-    assertThat(sortingNode0.get("direction").value().toString(), is(equalTo("ASC")));
+    assertThat(sortingNode0.get("direction").string(), is(equalTo("ASC")));
 
-    JsonNode sortingNode1 = response.get("sorting").node().element(1);
+    JsonObject sortingNode1 = response.get("sorting").get(1);
+    assertThat(sortingNode1.get("dimension").string(), is(equalTo("deabcdefghP.deabcdefghB")));
+    assertThat(sortingNode1.get("direction").string(), is(equalTo("DESC")));
+
+    assertThat(response.get("rows").toJson(), is(equalTo("[]")));
+    assertThat(response.get("rowDimensions").toJson(), is(equalTo("[]")));
+
     assertThat(
-        sortingNode1.get("dimension").value().toString(), is(equalTo("deabcdefghP.deabcdefghB")));
-    assertThat(sortingNode1.get("direction").value().toString(), is(equalTo("DESC")));
-
-    assertThat(response.get("rows").node().value().toString(), is(equalTo("[]")));
-    assertThat(response.get("rowDimensions").node().value().toString(), is(equalTo("[]")));
-
-    assertThat(
-        response.get("columnDimensions").node().value().toString(),
+        response.get("columnDimensions").toJson(),
         is(
             equalTo(
 """
 ["deabcdefghP.deabcdefghB","deabcdefghC","deabcdefghP.eventDate","created"]""")));
 
     assertThat(
-        response.get("filterDimensions").node().value().toString(),
+        response.get("filterDimensions").toJson(),
         is(
             equalTo(
 """
 ["deabcdefghP.deabcdefghS.ou","deabcdefghE"]""")));
 
-    JsonNode dataElementDimensionsNode0 = response.get("dataElementDimensions").node().element(0);
+    JsonObject dataElementDimensionsNode0 = response.get("dataElementDimensions").get(0);
     assertThat(
-        dataElementDimensionsNode0.get("dataElement").value().toString(),
+        dataElementDimensionsNode0.get("dataElement").toJson(),
         is(
             equalTo(
 """
 {"id":"deabcdefghC"}""")));
-    assertThat(
-        dataElementDimensionsNode0.get("filter").value().toString(), is(equalTo("IN:Female")));
+    assertThat(dataElementDimensionsNode0.get("filter").string(), is(equalTo("IN:Female")));
 
-    JsonNode dataElementDimensionsNode1 = response.get("dataElementDimensions").node().element(1);
+    JsonObject dataElementDimensionsNode1 = response.get("dataElementDimensions").get(1);
     assertThat(
-        dataElementDimensionsNode1.get("dataElement").value().toString(),
+        dataElementDimensionsNode1.get("dataElement").toJson(),
         is(
             equalTo(
 """
 {"id":"deabcdefghE"}""")));
-    assertFalse(dataElementDimensionsNode1.isMember("filter"));
+    assertFalse(dataElementDimensionsNode1.has("filter"));
 
     assertThat(
-        response.get("programIndicatorDimensions").node().value().toString(),
+        response.get("programIndicatorDimensions").toJson(),
         is(
             equalTo(
 """
 [{"programIndicator":{"id":"deabcdefghB"}}]""")));
 
     assertThat(
-        response.get("organisationUnits").node().value().toString(),
+        response.get("organisationUnits").toJson(),
         is(
             equalTo(
 """
 [{"id":"ImspTQPwCqd"}]""")));
 
-    JsonNode repetitionsNode0 = response.get("repetitions").node().element(0);
-    assertThat(repetitionsNode0.get("parent").value().toString(), is(equalTo("FILTER")));
-    assertThat(repetitionsNode0.get("dimension").value().toString(), is(equalTo("ou")));
-    assertThat(repetitionsNode0.get("program").value().toString(), is(equalTo("deabcdefghP")));
-    assertThat(repetitionsNode0.get("programStage").value().toString(), is(equalTo("deabcdefghS")));
-    assertThat(repetitionsNode0.get("indexes").value().toString(), is(equalTo("[1,2,3,-2,-1,0]")));
+    JsonObject repetitionsNode0 = response.get("repetitions").get(0);
+    assertThat(repetitionsNode0.get("parent").string(), is(equalTo("FILTER")));
+    assertThat(repetitionsNode0.get("dimension").string(), is(equalTo("ou")));
+    assertThat(repetitionsNode0.get("program").string(), is(equalTo("deabcdefghP")));
+    assertThat(repetitionsNode0.get("programStage").string(), is(equalTo("deabcdefghS")));
+    assertThat(repetitionsNode0.get("indexes").toJson(), is(equalTo("[1,2,3,-2,-1,0]")));
 
-    JsonNode repetitionsNode1 = response.get("repetitions").node().element(1);
-    assertThat(repetitionsNode1.get("parent").value().toString(), is(equalTo("FILTER")));
-    assertThat(repetitionsNode1.get("dimension").value().toString(), is(equalTo("deabcdefghE")));
-    assertFalse(repetitionsNode1.isMember("program"));
-    assertFalse(repetitionsNode1.isMember("programStage"));
-    assertThat(repetitionsNode1.get("indexes").value().toString(), is(equalTo("[1,2,0]")));
+    JsonObject repetitionsNode1 = response.get("repetitions").get(1);
+    assertThat(repetitionsNode1.get("parent").string(), is(equalTo("FILTER")));
+    assertThat(repetitionsNode1.get("dimension").string(), is(equalTo("deabcdefghE")));
+    assertFalse(repetitionsNode1.has("program"));
+    assertFalse(repetitionsNode1.has("programStage"));
+    assertThat(repetitionsNode1.get("indexes").toJson(), is(equalTo("[1,2,0]")));
 
-    JsonNode columnsNode0 = response.get("columns").node().element(0);
-    assertThat(columnsNode0.get("items").value().toString(), is(equalTo("[]")));
+    JsonObject columnsNode0 = response.get("columns").get(0);
+    assertThat(columnsNode0.get("items").toJson(), is(equalTo("[]")));
     assertThat(
-        columnsNode0.get("program").value().toString(),
+        columnsNode0.get("program").toJson(),
         is(
             equalTo(
 """
 {"id":"deabcdefghP"}""")));
-    assertThat(columnsNode0.get("dimension").value().toString(), is(equalTo("deabcdefghB")));
+    assertThat(columnsNode0.get("dimension").string(), is(equalTo("deabcdefghB")));
 
-    JsonNode columnsNode1 = response.get("columns").node().element(1);
-    assertThat(columnsNode1.get("items").value().toString(), is(equalTo("[]")));
-    assertFalse(columnsNode1.isMember("program"));
-    assertThat(columnsNode1.get("dimension").value().toString(), is(equalTo("deabcdefghC")));
+    JsonObject columnsNode1 = response.get("columns").get(1);
+    assertThat(columnsNode1.get("items").toJson(), is(equalTo("[]")));
+    assertFalse(columnsNode1.has("program"));
+    assertThat(columnsNode1.get("dimension").string(), is(equalTo("deabcdefghC")));
 
-    JsonNode columnsNode2 = response.get("columns").node().element(2);
+    JsonObject columnsNode2 = response.get("columns").get(2);
     assertThat(
-        columnsNode2.get("items").value().toString(),
+        columnsNode2.get("items").toJson(),
         is(
             equalTo(
 """
 [{"id":"2023-07-21_2023-08-01"},{"id":"2023-01-21_2023-02-01"}]""")));
     assertThat(
-        columnsNode2.get("program").value().toString(),
+        columnsNode2.get("program").toJson(),
         is(
             equalTo(
 """
 {"id":"deabcdefghP"}""")));
-    assertThat(columnsNode2.get("dimension").value().toString(), is(equalTo("eventDate")));
+    assertThat(columnsNode2.get("dimension").string(), is(equalTo("eventDate")));
 
-    JsonNode columnsNode3 = response.get("columns").node().element(3);
+    JsonObject columnsNode3 = response.get("columns").get(3);
     assertThat(
-        columnsNode3.get("items").value().toString(),
+        columnsNode3.get("items").toJson(),
         is(
             equalTo(
 """
 [{"id":"2021-01-21_2021-02-01"}]""")));
-    assertThat(columnsNode3.get("dimension").value().toString(), is(equalTo("created")));
+    assertThat(columnsNode3.get("dimension").string(), is(equalTo("created")));
 
-    JsonNode filtersNode0 = response.get("filters").node().element(0);
+    JsonObject filtersNode0 = response.get("filters").get(0);
     assertThat(
-        filtersNode0.get("items").element(0).get("dimensionItem").value().toString(),
-        is(equalTo("ImspTQPwCqd")));
+        filtersNode0.get("items").get(0).get("dimensionItem").string(), is(equalTo("ImspTQPwCqd")));
+    assertThat(filtersNode0.get("items").get(0).get("id").string(), is(equalTo("ImspTQPwCqd")));
     assertThat(
-        filtersNode0.get("items").element(0).get("id").value().toString(),
-        is(equalTo("ImspTQPwCqd")));
-    assertThat(
-        filtersNode0.get("programStage").value().toString(),
+        filtersNode0.get("programStage").toJson(),
         is(
             equalTo(
 """
 {"id":"deabcdefghS"}""")));
-    assertThat(filtersNode0.get("dimension").value().toString(), is(equalTo("ou")));
+    assertThat(filtersNode0.get("dimension").string(), is(equalTo("ou")));
+    assertThat(filtersNode0.get("repetition").get("parent").string(), is(equalTo("FILTER")));
+    assertThat(filtersNode0.get("repetition").get("dimension").string(), is(equalTo("ou")));
+    assertThat(filtersNode0.get("repetition").get("program").string(), is(equalTo("deabcdefghP")));
     assertThat(
-        filtersNode0.get("repetition").get("parent").value().toString(), is(equalTo("FILTER")));
+        filtersNode0.get("repetition").get("programStage").string(), is(equalTo("deabcdefghS")));
     assertThat(
-        filtersNode0.get("repetition").get("dimension").value().toString(), is(equalTo("ou")));
-    assertThat(
-        filtersNode0.get("repetition").get("program").value().toString(),
-        is(equalTo("deabcdefghP")));
-    assertThat(
-        filtersNode0.get("repetition").get("programStage").value().toString(),
-        is(equalTo("deabcdefghS")));
-    assertThat(
-        filtersNode0.get("repetition").get("indexes").value().toString(),
-        is(equalTo("[1,2,3,-2,-1,0]")));
+        filtersNode0.get("repetition").get("indexes").toJson(), is(equalTo("[1,2,3,-2,-1,0]")));
 
-    JsonNode filtersNode1 = response.get("filters").node().element(1);
-    assertThat(filtersNode1.get("items").value().toString(), is(equalTo("[]")));
-    assertThat(filtersNode1.get("dimension").value().toString(), is(equalTo("deabcdefghE")));
+    JsonObject filtersNode1 = response.get("filters").get(1);
+    assertThat(filtersNode1.get("items").toJson(), is(equalTo("[]")));
+    assertThat(filtersNode1.get("dimension").string(), is(equalTo("deabcdefghE")));
+    assertThat(filtersNode1.get("repetition").get("parent").string(), is(equalTo("FILTER")));
     assertThat(
-        filtersNode1.get("repetition").get("parent").value().toString(), is(equalTo("FILTER")));
-    assertThat(
-        filtersNode1.get("repetition").get("dimension").value().toString(),
-        is(equalTo("deabcdefghE")));
-    assertFalse(filtersNode1.get("repetition").isMember("program"));
-    assertFalse(filtersNode1.get("repetition").isMember("programStage"));
-    assertThat(
-        filtersNode1.get("repetition").get("indexes").value().toString(), is(equalTo("[1,2,0]")));
-    assertEquals("[{\"id\":\"deabcdefghP\"}]", response.get("programDimensions").toString());
+        filtersNode1.get("repetition").get("dimension").string(), is(equalTo("deabcdefghE")));
+    assertFalse(filtersNode1.get("repetition").has("program"));
+    assertFalse(filtersNode1.get("repetition").has("programStage"));
+    assertThat(filtersNode1.get("repetition").get("indexes").toJson(), is(equalTo("[1,2,0]")));
+    assertEquals("[{\"id\":\"deabcdefghP\"}]", response.get("programDimensions").toJson());
   }
 
   @Test
@@ -1063,9 +1048,9 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
 
     // Then
     JsonObject response = GET("/eventVisualizations/" + uid).content();
-    String metaData = response.get("metaData").node().value().toString();
+    String metaData = response.get("metaData").toJson();
 
-    assertThat(response.get("name").node().value(), is(equalTo("Test metadata post")));
+    assertThat(response.get("name").string(), is(equalTo("Test metadata post")));
     assertThat(
         metaData,
         containsString(
@@ -1082,8 +1067,8 @@ class EventVisualizationControllerTest extends H2ControllerIntegrationTestBase {
         metaData,
         containsString(
             "{\"uid\":\"Zj7UnCAulEk\",\"code\":\"DataElementCodeD\",\"name\":\"DataElementD\"}"));
-    assertThat(response.get("type").node().value(), is(equalTo("STACKED_COLUMN")));
-    assertThat(response.get("program").node().get("id").value(), is(equalTo(mockProgram.getUid())));
+    assertThat(response.get("type").string(), is(equalTo("STACKED_COLUMN")));
+    assertThat(response.get("program").get("id").string(), is(equalTo(mockProgram.getUid())));
   }
 
   @Test

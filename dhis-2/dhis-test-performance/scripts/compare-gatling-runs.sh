@@ -70,6 +70,7 @@ print_table() {
       } else {
         change = "N/A"
       }
+      gsub(/\|/, "\\|", name)
       printf "| %s | %d | %d | %+d | %s |\n", name, bval, fval, diff, change
     }
   ' "$BTMP" "$FTMP"
