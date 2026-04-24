@@ -31,25 +31,23 @@ package org.hisp.dhis.condition;
 
 import static org.hisp.dhis.commons.util.SystemUtils.isOAuth2AuthorizationServerTest;
 
-import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * Condition that matches to true if redis.enabled property is set to true in dhis.conf.
+ * Gate for the Spring Authorization Server and its supporting beans.
+ *
+ * <p>The OAuth2 Authorization Server is disabled in 2.43.0. Re-enable is planned for 2.43.1. The
+ * {@code oauth2-authorization-server-test} profile is still honored so the existing test suite can
+ * exercise the feature locally, and the {@code oauth2.server.enabled} dhis.conf key is ignored for
+ * this release.
  *
  * @author Ameen Mohamed
  */
 public class AuthorizationServerEnabledCondition extends PropertiesAwareConfigurationCondition {
   @Override
   public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    if (isOAuth2AuthorizationServerTest(context.getEnvironment().getActiveProfiles())) {
-      return true;
-    }
-    if (!isTestRun(context)) {
-      return getConfiguration().isEnabled(ConfigurationKey.OAUTH2_SERVER_ENABLED);
-    }
-    return false;
+    return isOAuth2AuthorizationServerTest(context.getEnvironment().getActiveProfiles());
   }
 
   @Override

@@ -29,12 +29,17 @@
  */
 package org.hisp.dhis.webapi.controller.security.oauth;
 
+import static org.hisp.dhis.security.Authorities.ALL;
+
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.condition.AuthorizationServerEnabledCondition;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
 import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
@@ -44,11 +49,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * Controller for managing OAuth2 clients for the DHIS2 OAuth2 authorization server.
  *
+ * <p>Disabled in 2.43.0 via {@link AuthorizationServerEnabledCondition}; superuser-only as a
+ * defense-in-depth gate when the condition is flipped back on. Scheduled re-enable in 2.43.1.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Controller
 @RequestMapping({"/api/oAuth2Clients"})
 @RequiredArgsConstructor
+@Conditional(AuthorizationServerEnabledCondition.class)
+@RequiresAuthority(anyOf = ALL)
 public class OAuth2ClientController
     extends AbstractCrudController<Dhis2OAuth2Client, GetObjectListParams> {
 
