@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -139,7 +140,7 @@ public class DefaultMetadataSyncService implements MetadataSyncService {
    */
   private byte[] getOrFetchSnapshotBytes(MetadataVersion version) {
     byte[] local = readLocalSnapshotBytes(version);
-    if (local != null && local.length > 0) {
+    if (local != null) {
       log.info("Rendering the MetadataVersion from local DataStore");
       return local;
     }
@@ -159,11 +160,14 @@ public class DefaultMetadataSyncService implements MetadataSyncService {
     return remoteSnapshot.getBytes(StandardCharsets.UTF_8);
   }
 
+  /** Returns the locally stored snapshot bytes, or {@code null} if none are stored. */
+  @CheckForNull
   private byte[] readLocalSnapshotBytes(MetadataVersion version) {
     ByteArrayOutputStream buffer = new ByteArrayOutputStream();
     try {
-      if (!metadataVersionService.streamVersionData(version.getName(), buffer)) {
-        return new byte[0];
+      if (!metadataVersionService.streamVersionData(version.getName(), buffer)
+          || buffer.size() == 0) {
+        return null;
       }
     } catch (IOException e) {
       throw new MetadataSyncServiceException(
@@ -171,7 +175,7 @@ public class DefaultMetadataSyncService implements MetadataSyncService {
               + version.getName(),
           e);
     }
-    return buffer.size() == 0 ? null : buffer.toByteArray();
+    return buffer.toByteArray();
   }
 
   private String getMetadataVersionSnapshotFromRemote(MetadataVersion version) {

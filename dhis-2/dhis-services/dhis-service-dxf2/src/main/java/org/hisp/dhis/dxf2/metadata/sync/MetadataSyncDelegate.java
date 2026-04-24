@@ -81,7 +81,7 @@ public class MetadataSyncDelegate {
         return false;
       }
     } catch (IOException e) {
-      log.error("Exception occurred when parsing the metadata snapshot" + e.getMessage());
+      log.error("Exception occurred when parsing the metadata snapshot", e);
     }
 
     return !systemVersion.trim().equals(remoteVersion.trim());

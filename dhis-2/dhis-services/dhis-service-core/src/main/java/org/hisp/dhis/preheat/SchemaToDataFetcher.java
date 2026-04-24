@@ -62,6 +62,16 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class SchemaToDataFetcher {
+
+  /**
+   * PostgreSQL's JDBC driver limits prepared statements to 65,535 bind parameters. We stay well
+   * under that to leave room for other params and to match the partition size used elsewhere in the
+   * preheat pipeline.
+   */
+  private static final int MAX_VALUES_PER_QUERY = 20_000;
+
+  private static final String HQL_FILTERED_TEMPLATE = "SELECT :fields from :entity WHERE :filter";
+
   private final EntityManager entityManager;
 
   public SchemaToDataFetcher(EntityManager entityManager) {
@@ -90,13 +100,6 @@ public class SchemaToDataFetcher {
 
     return mapUniqueFields(schema, objectsBeingImported);
   }
-
-  /**
-   * PostgreSQL's JDBC driver limits prepared statements to 65,535 bind parameters. We stay well
-   * under that to leave room for other params and to match the partition size used elsewhere in the
-   * preheat pipeline.
-   */
-  private static final int MAX_VALUES_PER_QUERY = 20_000;
 
   @SuppressWarnings("unchecked")
   private List<? extends IdentifiableObject> mapUniqueFields(
@@ -153,13 +156,8 @@ public class SchemaToDataFetcher {
       }
 
       String hql =
-          "SELECT "
-              + fields
-              + " FROM "
-              + entity
-              + " WHERE "
-              + property.getFieldName()
-              + " IN (:batch)";
+          "SELECT %s FROM %s WHERE %s IN (:batch)"
+              .formatted(fields, entity, property.getFieldName());
 
       for (List<Object> batch : Lists.partition(new ArrayList<>(values), MAX_VALUES_PER_QUERY)) {
         Query query = entityManager.createQuery(hql).setHint(QueryHints.HINT_READONLY, true);
@@ -178,12 +176,9 @@ public class SchemaToDataFetcher {
     if (singleColumn) {
       return handleSingleColumn(new ArrayList<>(singleColumnResults), uniqueProperties, schema);
     }
-    List<Object[]> dedupedRows =
-        multiColumnResults.stream().map(List::toArray).collect(Collectors.toList());
+    List<Object[]> dedupedRows = multiColumnResults.stream().map(List::toArray).toList();
     return handleMultipleColumn(dedupedRows, uniqueProperties, schema);
   }
-
-  private static final String HQL_FILTERED_TEMPLATE = "SELECT :fields from :entity WHERE :filter";
 
   private Query createQuery(
       Schema schema, List<Property> uniqueProperties, Map<String, Set<Object>> valuesToCheck) {

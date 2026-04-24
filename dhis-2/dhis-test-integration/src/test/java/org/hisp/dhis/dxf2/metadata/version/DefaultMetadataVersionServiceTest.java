@@ -38,6 +38,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 import org.apache.commons.lang3.time.DateUtils;
@@ -236,20 +239,20 @@ class DefaultMetadataVersionServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testShouldGiveValidVersionDataIfExists() throws java.io.IOException {
+  void testShouldGiveValidVersionDataIfExists() throws IOException {
     versionService.createMetadataVersionInDataStore("myVersion", "myJson");
 
     assertEquals("myJson", streamToString("myVersion"));
   }
 
   @Test
-  void testShouldReturnNullWhenAVersionDoesNotExist() throws java.io.IOException {
-    java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
-    assertFalse(versionService.streamVersionData("myNonExistingVersion", out));
+  void testShouldReturnFalseWhenAVersionDoesNotExist() throws IOException {
+    assertFalse(
+        versionService.streamVersionData("myNonExistingVersion", new ByteArrayOutputStream()));
   }
 
   @Test
-  void testShouldStoreSnapshotInMetadataStore() throws java.io.IOException {
+  void testShouldStoreSnapshotInMetadataStore() throws IOException {
     versionService.createMetadataVersionInDataStore("myVersion", "mySnapshot");
 
     dbmsManager.flushSession();
@@ -257,10 +260,10 @@ class DefaultMetadataVersionServiceTest extends PostgresIntegrationTestBase {
     assertEquals("mySnapshot", streamToString("myVersion"));
   }
 
-  private String streamToString(String versionName) throws java.io.IOException {
-    java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+  private String streamToString(String versionName) throws IOException {
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
     assertTrue(versionService.streamVersionData(versionName, out));
-    return out.toString(java.nio.charset.StandardCharsets.UTF_8);
+    return out.toString(StandardCharsets.UTF_8);
   }
 
   @Test

@@ -40,6 +40,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
@@ -266,7 +267,7 @@ class DefaultMetadataSyncServiceTest {
 
   @Test
   void testShouldStoreMetadataSnapshotInDataStoreAndImport()
-      throws DhisVersionMismatchException, java.io.IOException {
+      throws DhisVersionMismatchException, IOException {
     MetadataSyncParams syncParams = Mockito.mock(MetadataSyncParams.class);
     MetadataVersion metadataVersion = new MetadataVersion("testVersion", VersionType.ATOMIC);
     MetadataSyncSummary metadataSyncSummary = new MetadataSyncSummary();
@@ -295,7 +296,7 @@ class DefaultMetadataSyncServiceTest {
 
   @Test
   void testShouldNotStoreMetadataSnapshotInDataStoreWhenAlreadyExistsInLocalStore()
-      throws DhisVersionMismatchException, java.io.IOException {
+      throws DhisVersionMismatchException, IOException {
     MetadataSyncParams syncParams = Mockito.mock(MetadataSyncParams.class);
 
     MetadataVersion metadataVersion = new MetadataVersion("testVersion", VersionType.ATOMIC);
@@ -329,7 +330,7 @@ class DefaultMetadataSyncServiceTest {
 
   @Test
   void testShouldVerifyImportParamsAtomicTypeForTheGivenBestEffortVersion()
-      throws DhisVersionMismatchException, java.io.IOException {
+      throws DhisVersionMismatchException, IOException {
     MetadataSyncParams syncParams = new MetadataSyncParams();
 
     MetadataVersion metadataVersion = new MetadataVersion("testVersion", VersionType.BEST_EFFORT);
