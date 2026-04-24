@@ -146,8 +146,7 @@ class MetadataSyncImportHandlerTest {
 
     MetadataSyncSummary actualMetadataSyncSummary;
     try (InputStream snapshot = toStream(expectedMetadataSnapshot)) {
-      actualMetadataSyncSummary =
-          metadataSyncImportHandler.importMetadata(syncParams, snapshot);
+      actualMetadataSyncSummary = metadataSyncImportHandler.importMetadata(syncParams, snapshot);
     }
 
     verify(metadataVersionDelegate).addNewMetadataVersion(metadataVersion);
@@ -183,8 +182,7 @@ class MetadataSyncImportHandlerTest {
 
     MetadataSyncSummary actualMetadataSyncSummary;
     try (InputStream snapshot = toStream(expectedMetadataSnapshot)) {
-      actualMetadataSyncSummary =
-          metadataSyncImportHandler.importMetadata(syncParams, snapshot);
+      actualMetadataSyncSummary = metadataSyncImportHandler.importMetadata(syncParams, snapshot);
     }
     verify(metadataVersionDelegate).addNewMetadataVersion(metadataVersion);
     assertEquals(
@@ -259,8 +257,7 @@ class MetadataSyncImportHandlerTest {
 
     MetadataSyncSummary actualMetadataSyncSummary;
     try (InputStream snapshot = toStream(expectedMetadataSnapshot)) {
-      actualMetadataSyncSummary =
-          metadataSyncImportHandler.importMetadata(syncParams, snapshot);
+      actualMetadataSyncSummary = metadataSyncImportHandler.importMetadata(syncParams, snapshot);
     }
 
     verify(metadataVersionDelegate, never()).addNewMetadataVersion(metadataVersion);
