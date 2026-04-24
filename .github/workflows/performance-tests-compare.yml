@@ -372,7 +372,7 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "* \`index.html\` - Gatling HTML report" >> $GITHUB_STEP_SUMMARY
         echo "* \`simulation.log\` - Binary Gatling test data (response times, etc.)" >> $GITHUB_STEP_SUMMARY
-        echo "* \`simulation.csv\` - Parsed binary data in CSV format (requires [glog](https://github.com/dhis2/gatling/releases); analyzed by [gstat](https://github.com/dhis2/gatling-statistics))" >> $GITHUB_STEP_SUMMARY
+        echo "* \`simulation.csv\` - Parsed binary data in CSV format (analyze using [gstat](https://github.com/dhis2/gatling-statistics))" >> $GITHUB_STEP_SUMMARY
         echo "* \`run-simulation.env\` - Complete test run metadata (read it on how to reproduce this run)" >> $GITHUB_STEP_SUMMARY
         echo "* \`profile.html\` - Flamegraph visualization (if profiling enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`profile.jfr\` - JFR profiler data (if profiling enabled)" >> $GITHUB_STEP_SUMMARY

@@ -256,7 +256,7 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "* \`index.html\` - Gatling HTML report" >> $GITHUB_STEP_SUMMARY
         echo "* \`simulation.log\` - Binary Gatling test data (response times, etc.)" >> $GITHUB_STEP_SUMMARY
-        echo "* \`simulation.csv\` - Parsed binary data in CSV format (requires [glog](https://github.com/dhis2/gatling/releases); analyzed by [gstat](https://github.com/dhis2/gatling-statistics))" >> $GITHUB_STEP_SUMMARY
+        echo "* \`simulation.csv\` - Parsed binary data in CSV format (analyze using [gstat](https://github.com/dhis2/gatling-statistics))" >> $GITHUB_STEP_SUMMARY
         echo "* \`run-simulation.env\` - Complete test run metadata (read it on how to reproduce this run)" >> $GITHUB_STEP_SUMMARY
         echo "* \`profile.html\` - Flamegraph visualization (if profiling enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`profile.jfr\` - JFR profiler data (if profiling enabled)" >> $GITHUB_STEP_SUMMARY
@@ -269,19 +269,10 @@ jobs:
 
         echo "### Compare with another run" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Prints a Markdown table per request: p95 for each run, absolute diff (ms), and percent change vs the baseline (the first input)." >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Download a second run the same way (replace \`<other-run-id>\` and \`<other-test-name>\`):" >> $GITHUB_STEP_SUMMARY
+        echo "Prints a Markdown table per request: p95 for each run, absolute diff (ms), and percent change vs the baseline (the first input). Download the baseline the same way as above, then:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-        echo "gh run download <other-run-id> --repo dhis2/dhis2-core \\" >> $GITHUB_STEP_SUMMARY
-        echo "  --name gatling-report-<other-test-name>-<other-run-id>-attempt-1 \\" >> $GITHUB_STEP_SUMMARY
-        echo "  --dir ./<other-test-name>-<other-run-id>" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "gstat compare \\" >> $GITHUB_STEP_SUMMARY
-        echo "  ./<other-test-name>-<other-run-id> \\" >> $GITHUB_STEP_SUMMARY
-        echo "  ./${{ inputs.test_name }}-${{ github.run_id }} \\" >> $GITHUB_STEP_SUMMARY
-        echo "  --percentile 95 --method tdigest" >> $GITHUB_STEP_SUMMARY
+        echo "gstat compare ./<baseline-test-name>-<baseline-run-id> ./${{ inputs.test_name }}-${{ github.run_id }} --percentile 95 --method tdigest" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`--method tdigest\` matches the t-digest algorithm Gatling uses in \`index.html\`, so the table lines up with the HTML report. Small drift is still possible due to implementation differences. Drop the flag (or pass \`--method exact\`) for an exact percentile." >> $GITHUB_STEP_SUMMARY
