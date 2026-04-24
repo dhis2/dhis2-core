@@ -86,8 +86,8 @@ public class ExcludableShallowEtagHeaderFilter extends ShallowEtagHeaderFilter {
           + "/attributes/"
           + UID_REGEXP
           + "/(file|image)|"
-          // Metadata version snapshots are 100MB+; ETag buffering in FastByteArrayOutputStream
-          // retains ~2-3x the content and defeats streaming.
+          // Metadata version snapshots are not suitable for ETag buffering.
+          // Ideally, versions are only requested once per remote client.
           + "/api/(\\d{2}/)?metadata/version/.+/data(\\.gz)?";
 
   private static final Pattern EXCLUDE_PATTERN = Pattern.compile(ENDPOINTS);
