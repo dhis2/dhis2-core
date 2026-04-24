@@ -338,7 +338,7 @@ jobs:
         echo "  --dir ./compare-${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "All attempts (one wrapper directory per artifact, not readable by gstat directly):" >> $GITHUB_STEP_SUMMARY
+        echo "Only needed if you used **Re-run failed jobs** on this run and want to download every preserved attempt at once (one wrapper directory per artifact, not readable by gstat directly):" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
         echo "gh run download ${{ github.run_id }} --repo dhis2/dhis2-core" >> $GITHUB_STEP_SUMMARY
@@ -355,14 +355,9 @@ jobs:
         echo "* **Candidate**: \`<simulation-class>-<timestamp>-candidate/\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
-        echo "### Per-run percentiles" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-        echo "gstat ./compare-${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
-        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-
         echo "### Compare baseline vs candidate" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Prints a Markdown table per request: baseline p95, candidate p95, absolute diff (ms), and percent change." >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
         echo "gstat compare \\" >> $GITHUB_STEP_SUMMARY
@@ -370,6 +365,8 @@ jobs:
         echo "  ./compare-${{ github.run_id }}/*-candidate --label candidate \\" >> $GITHUB_STEP_SUMMARY
         echo "  --percentile 95 --method tdigest" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`--method tdigest\` matches the t-digest algorithm Gatling uses in \`index.html\`, so the table lines up with the HTML report — small drift is still possible due to implementation differences. Drop the flag (or pass \`--method exact\`) for an exact percentile." >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "Each directory contains:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
