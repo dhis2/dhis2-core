@@ -1159,34 +1159,45 @@ public class JdbcEventStore implements EventStore {
       User user,
       SqlHelper hlp,
       StringBuilder dataElementAndFiltersSql) {
-    StringBuilder fromBuilder =
-        new StringBuilder(" from programstageinstance psi ")
-            .append("inner join programinstance pi on pi.programinstanceid=psi.programinstanceid ")
-            .append("inner join program p on p.programid=pi.programid ")
-            .append("inner join programstage ps on ps.programstageid=psi.programstageid ");
+    StringBuilder fromBuilder = new StringBuilder(" from programstageinstance psi ");
 
     if (isWithoutRegistrationQuery(params)) {
-      // For single-event programs there are no tracked entity program owners.
-      // Join ou directly on psi.organisationunitid so the planner can use an index scan
-      // rather than resolving a COALESCE across a left-joined TPO row.
-      fromBuilder.append(
-          "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid ");
-    } else if (params.getProgram() != null) {
-      // For tracker (WITH_REGISTRATION) programs a TPO record is always created at enrollment
-      // time. INNER JOIN on po.organisationunitid is correct and sargable.
+      // For single-event programs, a single programinstance owns all events in the program.
+      // Derive program via programstage FK and demote programinstance to LEFT JOIN so the
+      // planner cannot use the programinstanceid index as the outer side of a Nested Loop,
+      // which causes a catastrophic BitmapAnd on large tables. Master applies the same
+      // pattern in JdbcSingleEventStore; 2.41 equivalent is in JdbcEventStore (tracker module).
       fromBuilder
+          .append("inner join programstage ps on ps.programstageid=psi.programstageid ")
+          .append("inner join program p on p.programid=ps.programid ")
           .append(
-              "inner join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid and pi.programid=po.programid) ")
-          .append("inner join organisationunit ou on po.organisationunitid=ou.organisationunitid ");
+              "left join programinstance pi on pi.programinstanceid=psi.programinstanceid ")
+          .append(
+              "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid ");
     } else {
-      // No program filter — result may contain both WITH and WITHOUT_REGISTRATION events.
-      // Use LEFT JOIN + COALESCE: TPO-owner OU for tracker events, psi.organisationunitid
-      // for single-event program events (which have no TPO row).
       fromBuilder
           .append(
-              "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid and pi.programid=po.programid) ")
-          .append(
-              "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) ");
+              "inner join programinstance pi on pi.programinstanceid=psi.programinstanceid ")
+          .append("inner join program p on p.programid=pi.programid ")
+          .append("inner join programstage ps on ps.programstageid=psi.programstageid ");
+      if (params.getProgram() != null) {
+        // For tracker (WITH_REGISTRATION) programs a TPO record is always created at enrollment
+        // time. INNER JOIN on po.organisationunitid is correct and sargable.
+        fromBuilder
+            .append(
+                "inner join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid and pi.programid=po.programid) ")
+            .append(
+                "inner join organisationunit ou on po.organisationunitid=ou.organisationunitid ");
+      } else {
+        // No program filter — result may contain both WITH and WITHOUT_REGISTRATION events.
+        // Use LEFT JOIN + COALESCE: TPO-owner OU for tracker events, psi.organisationunitid
+        // for single-event program events (which have no TPO row).
+        fromBuilder
+            .append(
+                "left join trackedentityprogramowner po on (pi.trackedentityinstanceid=po.trackedentityinstanceid and pi.programid=po.programid) ")
+            .append(
+                "inner join organisationunit ou on (coalesce(po.organisationunitid, psi.organisationunitid)=ou.organisationunitid) ");
+      }
     }
     // psiou is always psi.organisationunitid; kept unconditional for SELECT clause (psiou.uid,
     // psiou.code). For WITHOUT_REGISTRATION queries ou and psiou resolve to the same row.
