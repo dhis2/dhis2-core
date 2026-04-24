@@ -31,12 +31,15 @@ package org.hisp.dhis.preheat;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.collect.Lists;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -88,6 +91,13 @@ public class SchemaToDataFetcher {
     return mapUniqueFields(schema, objectsBeingImported);
   }
 
+  /**
+   * PostgreSQL's JDBC driver limits prepared statements to 65,535 bind parameters. We stay well
+   * under that to leave room for other params and to match the partition size used elsewhere in the
+   * preheat pipeline.
+   */
+  private static final int MAX_VALUES_PER_QUERY = 20_000;
+
   @SuppressWarnings("unchecked")
   private List<? extends IdentifiableObject> mapUniqueFields(
       Schema schema, Collection<? extends IdentifiableObject> objectsBeingImported) {
@@ -100,31 +110,85 @@ public class SchemaToDataFetcher {
       return List.of();
     }
 
-    Query query = createQuery(schema, uniqueProperties, objectsBeingImported);
-    if (query == null) {
+    Map<String, Set<Object>> valuesToCheck =
+        extractValuesToCheck(uniqueProperties, objectsBeingImported);
+
+    int totalValues = valuesToCheck.values().stream().mapToInt(Set::size).sum();
+    if (totalValues == 0) {
       return List.of();
     }
 
-    List<Object> objects = query.getResultList();
+    // Fast path: single query when under the parameter limit
+    if (totalValues <= MAX_VALUES_PER_QUERY) {
+      Query query = createQuery(schema, uniqueProperties, valuesToCheck);
+      if (query == null) {
+        return List.of();
+      }
+      List<Object> objects = query.getResultList();
+      return uniqueProperties.size() == 1
+          ? handleSingleColumn(objects, uniqueProperties, schema)
+          : handleMultipleColumn((List<Object[]>) (List<?>) objects, uniqueProperties, schema);
+    }
 
-    // Hibernate returns a List containing an array of Objects if multiple
-    // columns are used in the query, or a "simple" List if only one column is used
-    return uniqueProperties.size() == 1
-        ? handleSingleColumn(objects, uniqueProperties, schema)
-        : handleMultipleColumn((List<Object[]>) (List<?>) objects, uniqueProperties, schema);
+    // Batched path: run one query per unique property, partitioning each property's values
+    // into chunks that stay under the parameter limit. Results are deduplicated because a row
+    // matching multiple unique properties can be returned by more than one query.
+    return runBatchedQueries(schema, uniqueProperties, valuesToCheck);
+  }
+
+  @SuppressWarnings("unchecked")
+  private List<? extends IdentifiableObject> runBatchedQueries(
+      Schema schema, List<Property> uniqueProperties, Map<String, Set<Object>> valuesToCheck) {
+    String fields = extractUniqueFields(uniqueProperties);
+    String entity = schema.getKlass().getSimpleName();
+    boolean singleColumn = uniqueProperties.size() == 1;
+
+    Set<Object> singleColumnResults = new LinkedHashSet<>();
+    Set<List<Object>> multiColumnResults = new LinkedHashSet<>();
+
+    for (Property property : uniqueProperties) {
+      Set<Object> values = valuesToCheck.get(property.getFieldName());
+      if (values == null || values.isEmpty()) {
+        continue;
+      }
+
+      String hql =
+          "SELECT "
+              + fields
+              + " FROM "
+              + entity
+              + " WHERE "
+              + property.getFieldName()
+              + " IN (:batch)";
+
+      for (List<Object> batch : Lists.partition(new ArrayList<>(values), MAX_VALUES_PER_QUERY)) {
+        Query query = entityManager.createQuery(hql).setHint(QueryHints.HINT_READONLY, true);
+        query.setParameter("batch", batch);
+        List<Object> rows = query.getResultList();
+        if (singleColumn) {
+          singleColumnResults.addAll(rows);
+        } else {
+          for (Object row : rows) {
+            multiColumnResults.add(Arrays.asList((Object[]) row));
+          }
+        }
+      }
+    }
+
+    if (singleColumn) {
+      return handleSingleColumn(new ArrayList<>(singleColumnResults), uniqueProperties, schema);
+    }
+    List<Object[]> dedupedRows =
+        multiColumnResults.stream().map(List::toArray).collect(Collectors.toList());
+    return handleMultipleColumn(dedupedRows, uniqueProperties, schema);
   }
 
   private static final String HQL_FILTERED_TEMPLATE = "SELECT :fields from :entity WHERE :filter";
 
   private Query createQuery(
-      Schema schema,
-      List<Property> uniqueProperties,
-      Collection<? extends IdentifiableObject> objectsBeingImported) {
+      Schema schema, List<Property> uniqueProperties, Map<String, Set<Object>> valuesToCheck) {
     String fields = extractUniqueFields(uniqueProperties);
     String entity = schema.getKlass().getSimpleName();
-
-    Map<String, Set<Object>> valuesToCheck =
-        extractValuesToCheck(uniqueProperties, objectsBeingImported);
 
     String whereClause = buildWhereClause(uniqueProperties, valuesToCheck);
     if (whereClause.isEmpty()) {

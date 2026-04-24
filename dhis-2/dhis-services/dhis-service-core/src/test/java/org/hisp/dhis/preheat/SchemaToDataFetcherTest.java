@@ -220,6 +220,37 @@ class SchemaToDataFetcherTest extends TestBase {
   }
 
   @Test
+  void verifyLargeImportSetIsBatchedToStayUnderPostgresParameterLimit() {
+    Schema schema =
+        createSchema(
+            DummyDataElement.class,
+            "dummyDataElement",
+            Stream.of(
+                    createProperty(String.class, "name", true, true),
+                    createUniqueProperty(String.class, "url", true, true),
+                    createProperty(String.class, "code", true, true))
+                .toList());
+
+    mockSession();
+    when(query.getResultList()).thenReturn(List.of("http://found"));
+
+    // 25_000 exceeds the internal 20_000 batch size so batching is triggered (25_000 / 20_000 = 2
+    // batches)
+    List<DummyDataElement> toImport = new ArrayList<>(25_000);
+    for (int i = 0; i < 25_000; i++) {
+      DummyDataElement d = new DummyDataElement();
+      d.setUrl("http://example.com/" + i);
+      toImport.add(d);
+    }
+
+    List<? extends IdentifiableObject> result = subject.fetch(schema, toImport);
+
+    verify(entityManager, times(2)).createQuery(anyString());
+    // the same value returned by both batches is deduplicated to one result
+    assertThat(result, hasSize(1));
+  }
+
+  @Test
   void verifyNoSqlWhenUniquePropertiesListIsEmpty() {
     Schema schema = createSchema(SMSCommand.class, "smsCommand", Lists.newArrayList());
 

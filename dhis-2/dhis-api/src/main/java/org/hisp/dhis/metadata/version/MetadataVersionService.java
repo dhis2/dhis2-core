@@ -130,16 +130,10 @@ public interface MetadataVersionService {
   boolean saveVersion(VersionType versionType);
 
   /**
-   * Gets the Version data - the actual JSON snapshot given the version name.
+   * Streams the metadata snapshot for the given version name directly to the output stream.
    *
-   * @param versionName
-   * @return JSON data for the version snapshot
-   */
-  String getVersionData(String versionName);
-
-  /**
-   * Streams the metadata snapshot for the given version name directly to the output stream,
-   * bypassing Hibernate by querying the JSONB column via JDBC.
+   * <p>Scans the stored JSONB wrapper directly without materialising a full Java String copy of the
+   * metadata field, which is the memory-efficient way to access large snapshots.
    *
    * @param versionName the version name
    * @param out the output stream to write the snapshot to

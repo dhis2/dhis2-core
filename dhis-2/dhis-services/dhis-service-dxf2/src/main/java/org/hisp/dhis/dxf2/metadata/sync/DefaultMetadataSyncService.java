@@ -29,6 +29,10 @@
  */
 package org.hisp.dhis.dxf2.metadata.sync;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
@@ -101,16 +105,21 @@ public class DefaultMetadataSyncService implements MetadataSyncService {
     MetadataVersion version = getMetadataVersion(syncParams);
 
     setMetadataImportMode(syncParams, version);
-    String metadataVersionSnapshot = getMetadataVersionSnapshot(version);
 
-    if (metadataSyncDelegate.shouldStopSync(metadataVersionSnapshot)) {
+    // Obtain the snapshot as a byte[] buffer. Coming from the local datastore it is streamed
+    // (without MetadataWrapper deserialisation); coming from remote it is downloaded and
+    // integrity-checked. Holding it once as UTF-8 bytes is substantially cheaper than keeping
+    // a Java String alive for the whole import, which the previous String-based flow required.
+    byte[] snapshotBytes = getOrFetchSnapshotBytes(version);
+
+    if (metadataSyncDelegate.shouldStopSync(new ByteArrayInputStream(snapshotBytes))) {
       throw new DhisVersionMismatchException(
           "Metadata sync failed because your version of DHIS does not match the master version");
     }
 
-    saveMetadataVersionSnapshotLocally(version, metadataVersionSnapshot);
     MetadataSyncSummary metadataSyncSummary =
-        metadataSyncImportHandler.importMetadata(syncParams, metadataVersionSnapshot);
+        metadataSyncImportHandler.importMetadata(
+            syncParams, new ByteArrayInputStream(snapshotBytes));
 
     log.info("Metadata Sync Summary: " + metadataSyncSummary);
 
@@ -123,32 +132,46 @@ public class DefaultMetadataSyncService implements MetadataSyncService {
     return (metadataVersionService.getVersionByName(version.getName()) == null);
   }
 
-  private void saveMetadataVersionSnapshotLocally(
-      MetadataVersion version, String metadataVersionSnapshot) {
-    if (getLocalVersionSnapshot(version) == null) {
-      metadataVersionService.createMetadataVersionInDataStore(
-          version.getName(), metadataVersionSnapshot);
-      log.info(
-          "Downloaded the metadata snapshot from remote and saved in Data Store for the version: "
-              + version);
-    }
-  }
-
-  private String getMetadataVersionSnapshot(MetadataVersion version) {
-    String metadataVersionSnapshot = getLocalVersionSnapshot(version);
-
-    if (metadataVersionSnapshot != null) {
-      return metadataVersionSnapshot;
+  /**
+   * Returns the metadata snapshot bytes for the given version. If the snapshot is already stored
+   * locally it is streamed directly from the datastore; otherwise it is downloaded from the remote
+   * server, integrity-checked, and saved locally before returning.
+   */
+  private byte[] getOrFetchSnapshotBytes(MetadataVersion version) {
+    byte[] local = readLocalSnapshotBytes(version);
+    if (local != null && local.length > 0) {
+      log.info("Rendering the MetadataVersion from local DataStore");
+      return local;
     }
 
-    metadataVersionSnapshot = getMetadataVersionSnapshotFromRemote(version);
+    String remoteSnapshot = getMetadataVersionSnapshotFromRemote(version);
 
-    if (!(metadataVersionService.isMetadataPassingIntegrity(version, metadataVersionSnapshot))) {
+    if (!metadataVersionService.isMetadataPassingIntegrity(version, remoteSnapshot)) {
       throw new MetadataSyncServiceException(
           "Metadata snapshot is corrupted. Not saving it locally");
     }
 
-    return metadataVersionSnapshot;
+    metadataVersionService.createMetadataVersionInDataStore(version.getName(), remoteSnapshot);
+    log.info(
+        "Downloaded the metadata snapshot from remote and saved in Data Store for the version: "
+            + version);
+
+    return remoteSnapshot.getBytes(StandardCharsets.UTF_8);
+  }
+
+  private byte[] readLocalSnapshotBytes(MetadataVersion version) {
+    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+    try {
+      if (!metadataVersionService.streamVersionData(version.getName(), buffer)) {
+        return new byte[0];
+      }
+    } catch (IOException e) {
+      throw new MetadataSyncServiceException(
+          "Exception occurred while reading local metadata snapshot for version "
+              + version.getName(),
+          e);
+    }
+    return buffer.size() == 0 ? null : buffer.toByteArray();
   }
 
   private String getMetadataVersionSnapshotFromRemote(MetadataVersion version) {
@@ -176,17 +199,6 @@ public class DefaultMetadataSyncService implements MetadataSyncService {
   // ----------------------------------------------------------------------------------------
   // Private Methods
   // ----------------------------------------------------------------------------------------
-
-  private String getLocalVersionSnapshot(MetadataVersion version) {
-    String metadataVersionSnapshot = metadataVersionService.getVersionData(version.getName());
-
-    if (StringUtils.isNotEmpty(metadataVersionSnapshot)) {
-      log.info("Rendering the MetadataVersion from local DataStore");
-      return metadataVersionSnapshot;
-    }
-
-    return null;
-  }
 
   private List<String> getVersionsFromParams(Map<String, List<String>> parameters) {
     if (parameters == null) {

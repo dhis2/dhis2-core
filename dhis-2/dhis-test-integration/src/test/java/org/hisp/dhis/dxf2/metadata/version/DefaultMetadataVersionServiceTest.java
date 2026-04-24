@@ -236,24 +236,31 @@ class DefaultMetadataVersionServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void testShouldGiveValidVersionDataIfExists() {
+  void testShouldGiveValidVersionDataIfExists() throws java.io.IOException {
     versionService.createMetadataVersionInDataStore("myVersion", "myJson");
 
-    assertEquals("myJson", versionService.getVersionData("myVersion"));
+    assertEquals("myJson", streamToString("myVersion"));
   }
 
   @Test
-  void testShouldReturnNullWhenAVersionDoesNotExist() {
-    assertNull(versionService.getVersionData("myNonExistingVersion"));
+  void testShouldReturnNullWhenAVersionDoesNotExist() throws java.io.IOException {
+    java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+    assertFalse(versionService.streamVersionData("myNonExistingVersion", out));
   }
 
   @Test
-  void testShouldStoreSnapshotInMetadataStore() {
+  void testShouldStoreSnapshotInMetadataStore() throws java.io.IOException {
     versionService.createMetadataVersionInDataStore("myVersion", "mySnapshot");
 
     dbmsManager.flushSession();
 
-    assertEquals("mySnapshot", versionService.getVersionData("myVersion"));
+    assertEquals("mySnapshot", streamToString("myVersion"));
+  }
+
+  private String streamToString(String versionName) throws java.io.IOException {
+    java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
+    assertTrue(versionService.streamVersionData(versionName, out));
+    return out.toString(java.nio.charset.StandardCharsets.UTF_8);
   }
 
   @Test

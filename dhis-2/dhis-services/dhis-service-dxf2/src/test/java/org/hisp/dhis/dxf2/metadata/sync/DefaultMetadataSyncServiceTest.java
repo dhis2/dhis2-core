@@ -32,6 +32,7 @@ package org.hisp.dhis.dxf2.metadata.sync;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.never;
@@ -39,6 +40,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -212,7 +216,7 @@ class DefaultMetadataSyncServiceTest {
     when(syncParams.getVersion()).thenReturn(metadataVersion);
     when(metadataVersionDelegate.downloadMetadataVersionSnapshot(metadataVersion))
         .thenReturn(expectedMetadataSnapshot);
-    when(metadataSyncDelegate.shouldStopSync(expectedMetadataSnapshot)).thenReturn(true);
+    when(metadataSyncDelegate.shouldStopSync(any(InputStream.class))).thenReturn(true);
     when(metadataVersionService.isMetadataPassingIntegrity(
             metadataVersion, expectedMetadataSnapshot))
         .thenReturn(true);
@@ -233,7 +237,7 @@ class DefaultMetadataSyncServiceTest {
     when(syncParams.getVersion()).thenReturn(metadataVersion);
     when(metadataVersionDelegate.downloadMetadataVersionSnapshot(metadataVersion))
         .thenReturn(expectedMetadataSnapshot);
-    when(metadataSyncDelegate.shouldStopSync(expectedMetadataSnapshot)).thenReturn(false);
+    when(metadataSyncDelegate.shouldStopSync(any(InputStream.class))).thenReturn(false);
     when(metadataVersionService.isMetadataPassingIntegrity(
             metadataVersion, expectedMetadataSnapshot))
         .thenReturn(true);
@@ -261,7 +265,8 @@ class DefaultMetadataSyncServiceTest {
   }
 
   @Test
-  void testShouldStoreMetadataSnapshotInDataStoreAndImport() throws DhisVersionMismatchException {
+  void testShouldStoreMetadataSnapshotInDataStoreAndImport()
+      throws DhisVersionMismatchException, java.io.IOException {
     MetadataSyncParams syncParams = Mockito.mock(MetadataSyncParams.class);
     MetadataVersion metadataVersion = new MetadataVersion("testVersion", VersionType.ATOMIC);
     MetadataSyncSummary metadataSyncSummary = new MetadataSyncSummary();
@@ -269,13 +274,14 @@ class DefaultMetadataSyncServiceTest {
     String expectedMetadataSnapshot = "{\"date\":\"2016-05-24T05:27:25.128+0000\"}";
 
     when(syncParams.getVersion()).thenReturn(metadataVersion);
-    when(metadataVersionService.getVersionData("testVersion")).thenReturn(null);
+    when(metadataVersionService.streamVersionData(eq("testVersion"), any(OutputStream.class)))
+        .thenReturn(false);
     when(metadataVersionDelegate.downloadMetadataVersionSnapshot(metadataVersion))
         .thenReturn(expectedMetadataSnapshot);
     when(metadataVersionService.isMetadataPassingIntegrity(
             metadataVersion, expectedMetadataSnapshot))
         .thenReturn(true);
-    when(metadataSyncImportHandler.importMetadata(syncParams, expectedMetadataSnapshot))
+    when(metadataSyncImportHandler.importMetadata(eq(syncParams), any(InputStream.class)))
         .thenReturn(metadataSyncSummary);
 
     MetadataSyncSummary actualSummary = metadataSyncService.doMetadataSync(syncParams);
@@ -289,7 +295,7 @@ class DefaultMetadataSyncServiceTest {
 
   @Test
   void testShouldNotStoreMetadataSnapshotInDataStoreWhenAlreadyExistsInLocalStore()
-      throws DhisVersionMismatchException {
+      throws DhisVersionMismatchException, java.io.IOException {
     MetadataSyncParams syncParams = Mockito.mock(MetadataSyncParams.class);
 
     MetadataVersion metadataVersion = new MetadataVersion("testVersion", VersionType.ATOMIC);
@@ -300,9 +306,15 @@ class DefaultMetadataSyncServiceTest {
     String expectedMetadataSnapshot = "{\"date\":\"2016-05-24T05:27:25.128+0000\"}";
 
     when(syncParams.getVersion()).thenReturn(metadataVersion);
-    when(metadataVersionService.getVersionData("testVersion")).thenReturn(expectedMetadataSnapshot);
+    when(metadataVersionService.streamVersionData(eq("testVersion"), any(OutputStream.class)))
+        .thenAnswer(
+            invocation -> {
+              OutputStream out = invocation.getArgument(1);
+              out.write(expectedMetadataSnapshot.getBytes(StandardCharsets.UTF_8));
+              return true;
+            });
 
-    when(metadataSyncImportHandler.importMetadata(syncParams, expectedMetadataSnapshot))
+    when(metadataSyncImportHandler.importMetadata(eq(syncParams), any(InputStream.class)))
         .thenReturn(metadataSyncSummary);
 
     MetadataSyncSummary actualSummary = metadataSyncService.doMetadataSync(syncParams);
@@ -317,7 +329,7 @@ class DefaultMetadataSyncServiceTest {
 
   @Test
   void testShouldVerifyImportParamsAtomicTypeForTheGivenBestEffortVersion()
-      throws DhisVersionMismatchException {
+      throws DhisVersionMismatchException, java.io.IOException {
     MetadataSyncParams syncParams = new MetadataSyncParams();
 
     MetadataVersion metadataVersion = new MetadataVersion("testVersion", VersionType.BEST_EFFORT);
@@ -330,16 +342,22 @@ class DefaultMetadataSyncServiceTest {
     metadataSyncSummary.setMetadataVersion(metadataVersion);
     String expectedMetadataSnapshot = "{\"date\":\"2016-05-24T05:27:25.128+0000\"}";
 
-    when(metadataVersionService.getVersionData("testVersion")).thenReturn(expectedMetadataSnapshot);
+    when(metadataVersionService.streamVersionData(eq("testVersion"), any(OutputStream.class)))
+        .thenAnswer(
+            invocation -> {
+              OutputStream out = invocation.getArgument(1);
+              out.write(expectedMetadataSnapshot.getBytes(StandardCharsets.UTF_8));
+              return true;
+            });
 
     metadataSyncService.doMetadataSync(syncParams);
 
     verify(metadataSyncImportHandler, times(1))
         .importMetadata(
-            (argThat(
+            argThat(
                 metadataSyncParams ->
-                    syncParams.getImportParams().getAtomicMode().equals(AtomicMode.NONE))),
-            eq(expectedMetadataSnapshot));
+                    syncParams.getImportParams().getAtomicMode().equals(AtomicMode.NONE)),
+            any(InputStream.class));
 
     verify(metadataVersionService, never())
         .createMetadataVersionInDataStore(metadataVersion.getName(), expectedMetadataSnapshot);

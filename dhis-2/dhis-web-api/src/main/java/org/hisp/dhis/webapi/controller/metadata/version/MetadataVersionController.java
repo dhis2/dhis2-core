@@ -34,7 +34,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
@@ -276,16 +275,15 @@ public class MetadataVersionController {
           "metadata.json.gz",
           true);
       response.addHeader(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary");
-      String versionData = versionService.getVersionData(versionName);
 
-      if (versionData == null) {
-        throw new MetadataVersionException(
-            "No metadata version snapshot found for the given version " + versionName);
+      try (GZIPOutputStream gos = new GZIPOutputStream(response.getOutputStream())) {
+        boolean found = versionService.streamVersionData(versionName, gos);
+
+        if (!found) {
+          throw new MetadataVersionException(
+              "No metadata version snapshot found for the given version " + versionName);
+        }
       }
-
-      GZIPOutputStream gos = new GZIPOutputStream(response.getOutputStream());
-      gos.write(versionData.getBytes(StandardCharsets.UTF_8));
-      gos.close();
     } catch (MetadataVersionServiceException ex) {
       throw new MetadataVersionException(
           "Unable to download version from system: " + versionName + ex.getMessage());

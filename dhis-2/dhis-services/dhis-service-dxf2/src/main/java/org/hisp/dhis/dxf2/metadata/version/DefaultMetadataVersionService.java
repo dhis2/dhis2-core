@@ -230,22 +230,6 @@ public class DefaultMetadataVersionService implements MetadataVersionService {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public String getVersionData(String versionName) {
-    DatastoreEntry entry = metaDataDatastoreService.getMetaDataVersion(versionName);
-
-    if (entry != null) {
-      try {
-        return renderService.fromJson(entry.getValue(), MetadataWrapper.class).getMetadata();
-      } catch (IOException e) {
-        log.error("Exception occurred while deserializing metadata.", e);
-      }
-    }
-
-    return null;
-  }
-
-  @Override
   public boolean streamVersionData(String versionName, OutputStream out) throws IOException {
     String sql =
         "SELECT jbvalue->>'metadata' FROM keyjsonvalue"
