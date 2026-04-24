@@ -272,7 +272,7 @@ jobs:
         echo "Prints a Markdown table per request: p95 for each run, absolute diff (ms), and percent change vs the baseline (the first input). Download the baseline the same way as above, then:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-        echo "gstat compare ./<baseline-test-name>-<baseline-run-id> ./${{ inputs.test_name }}-${{ github.run_id }} --percentile 95 --method tdigest" >> $GITHUB_STEP_SUMMARY
+        echo "gstat compare <baseline-dir> ./${{ inputs.test_name }}-${{ github.run_id }} --percentile 95 --method tdigest" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`--method tdigest\` matches the t-digest algorithm Gatling uses in \`index.html\`, so the table lines up with the HTML report. Small drift is still possible due to implementation differences. Drop the flag (or pass \`--method exact\`) for an exact percentile." >> $GITHUB_STEP_SUMMARY
