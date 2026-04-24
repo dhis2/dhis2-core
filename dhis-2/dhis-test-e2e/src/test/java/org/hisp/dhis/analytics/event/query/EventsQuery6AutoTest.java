@@ -4151,4 +4151,23 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
     // column ordering so the item value landed in the enrollmentouname cell and vice versa.
     validateRowValueByName(response, actualHeaders, 0, "enrollmentouname", "Baoma Station CHP");
   }
+
+  @Test
+  public void verifyDimensionAcceptsOuAndEnrollmentOu() {
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("displayProperty=NAME")
+            .add("outputType=EVENT")
+            .add("pageSize=100")
+            .add("page=1")
+            .add("dimension=ZkbAXlQUYJG.ou:USER_ORGUNIT")
+            .add("dimension=ENROLLMENT_OU:USER_ORGUNIT")
+            .add("desc=eventdate,lastupdated");
+
+    // When
+    ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
+    response.validate().statusCode(200).body("headers", hasSize(26));
+  }
 }
