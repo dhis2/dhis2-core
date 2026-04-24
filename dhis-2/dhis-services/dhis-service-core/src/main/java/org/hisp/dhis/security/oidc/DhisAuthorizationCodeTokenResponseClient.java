@@ -59,6 +59,22 @@ import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
 
 /**
+ * Spring {@link OAuth2AccessTokenResponseClient} used by the DHIS2 Relying Party during the
+ * authorization-code token exchange against an external OIDC Identity Provider.
+ *
+ * <p>This client supports both client authentication modes: standard {@code client_secret_*}
+ * (basic, post, JWT) and {@code private_key_jwt}. When the matched {@link ClientRegistration}
+ * declares {@link ClientAuthenticationMethod#PRIVATE_KEY_JWT}, the client builds a JWT client
+ * assertion signed with the per-provider key loaded from {@link DhisOidcClientRegistration} ({@code
+ * jwk}, {@code jwkSetUrl}), using Spring's {@link
+ * NimbusJwtClientAuthenticationParametersConverter}; for all other methods it falls back to the
+ * standard {@link OAuth2AuthorizationCodeGrantRequestEntityConverter}.
+ *
+ * <p>HTTP exchange is performed with a {@link RestTemplate} configured with {@link
+ * FormHttpMessageConverter} and {@link OAuth2AccessTokenResponseHttpMessageConverter}, and {@link
+ * OAuth2ErrorResponseErrorHandler} mapping upstream HTTP errors to {@link
+ * OAuth2AuthorizationException} with the {@code invalid_token_response} error code.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Service
@@ -77,6 +93,10 @@ public class DhisAuthorizationCodeTokenResponseClient
 
   private RestOperations restOperations;
 
+  /**
+   * Builds the two request-entity converters (standard and {@code private_key_jwt}) and the {@link
+   * RestTemplate} used to call the IdP's token endpoint.
+   */
   @PostConstruct
   public void init() {
     Function<ClientRegistration, JWK> jwkResolver =
@@ -123,6 +143,16 @@ public class DhisAuthorizationCodeTokenResponseClient
     this.restOperations = restTemplate;
   }
 
+  /**
+   * Exchanges an authorization code for an access token (and an ID token) at the IdP's token
+   * endpoint. Picks the {@code private_key_jwt} converter when the client registration declares
+   * that authentication method, otherwise uses the standard converter.
+   *
+   * @param authorizationCodeGrantRequest the authorization-code grant request
+   * @return the parsed token response from the IdP
+   * @throws OAuth2AuthorizationException if the HTTP exchange fails or the response cannot be
+   *     parsed
+   */
   @Override
   public OAuth2AccessTokenResponse getTokenResponse(
       @Nonnull OAuth2AuthorizationCodeGrantRequest authorizationCodeGrantRequest) {
