@@ -31,8 +31,12 @@ package org.hisp.dhis.security.oauth2.client;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
 import javax.annotation.CheckForNull;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.user.UserDetails;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 
 /**
@@ -82,4 +86,30 @@ public interface Dhis2OAuth2ClientService {
   String writeMap(Map<String, Object> data);
 
   List<Dhis2OAuth2Client> getAll();
+
+  /**
+   * Collect validation errors that would block creating the given client. Errors are reported to
+   * the consumer rather than thrown — callers (REST controller, metadata-import bundle hook) decide
+   * whether to translate to a {@code ConflictException} or merge into a bundle report.
+   */
+  void validateCreate(Dhis2OAuth2Client entity, Consumer<ErrorReport> errors);
+
+  /** Collect validation errors that would block updating an existing client. */
+  void validateUpdate(
+      Dhis2OAuth2Client persisted, Dhis2OAuth2Client newEntity, Consumer<ErrorReport> errors);
+
+  /** Apply server-side defaults that fill in fields on create (name, client/token settings). */
+  void applyCreateDefaults(Dhis2OAuth2Client entity);
+
+  /**
+   * Apply update-time defaults — preserves the existing persisted name when the caller didn't send
+   * one (the settings UI has no name field, so a REPLACE merge would otherwise clobber it).
+   */
+  void applyUpdateDefaults(Dhis2OAuth2Client persisted, Dhis2OAuth2Client newEntity);
+
+  /**
+   * Parse the comma-separated {@code authorizationGrantTypes} field into a typed set. Storage stays
+   * as a string column for now; callers should prefer this typed view.
+   */
+  Set<AuthorizationGrantType> getAuthorizationGrantTypesSet(Dhis2OAuth2Client entity);
 }

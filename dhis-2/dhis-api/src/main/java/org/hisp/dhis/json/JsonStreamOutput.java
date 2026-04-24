@@ -527,7 +527,7 @@ public final class JsonStreamOutput {
   }
 
   private static void addJacksonMapped(
-      JsonBuilder.JsonObjectBuilder obj, String name, Object value) {
+      JsonBuilder.JsonObjectBuilder obj, CharSequence name, Object value) {
     try {
       String json = FALLBACK_MAPPER.writeValueAsString(value);
       obj.addMember(name, JsonNode.of(json));

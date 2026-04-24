@@ -37,7 +37,7 @@ public interface JsonDataValue extends JsonObject {
     return getString("dataElement").string();
   }
 
-  default String getValue() {
+  default String value() {
     return getString("value").string();
   }
 

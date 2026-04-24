@@ -151,6 +151,13 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
             "springSecurityFilterChain", new DelegatingFilterProxy("springSecurityFilterChain"))
         .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), false, "/*");
 
+    FilterRegistration.Dynamic etagFilter =
+        context.addFilter(
+            "excludableShallowEtagHeaderFilter",
+            new DelegatingFilterProxy("excludableShallowEtagHeaderFilter"));
+    etagFilter.setAsyncSupported(true);
+    etagFilter.addMappingForUrlPatterns(null, true, "/api/*");
+
     context
         .addFilter("ApiVersionFilter", new DelegatingFilterProxy("apiVersionFilter"))
         .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/api/*");
