@@ -79,8 +79,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Service for managing OAuth2 Dynamic Client Registration (DCR) in DHIS2, including creation of
- * initial access tokens (IAT) for enrolling new device clients.
+ * Bootstraps OAuth2 Dynamic Client Registration (DCR) support and mints the Initial Access Tokens
+ * (IATs) that enroll new device clients.
+ *
+ * <p>Active only when {@code oauth2.server.enabled=on} (see {@link
+ * AuthorizationServerEnabledCondition}). At startup {@link #init()} ensures the reserved {@code
+ * system-dcr-registrar-client} exists; that client is the sole holder of {@code client_credentials}
+ * in the deployment and is used internally to mint IATs for RFC 7591 dynamic client registration.
+ *
+ * <p>Flow: the user-facing {@code GET /api/auth/enrollDevice} endpoint calls {@link #createIat} to
+ * obtain a single-use IAT JWT, which the device then presents at {@code /connect/register} to
+ * register itself as a new OAuth2 client.
  *
  * <p>See RFC 7591: OAuth 2.0 Dynamic Client Registration Protocol, section 2.1.
  *
@@ -101,6 +110,14 @@ public class OAuth2DcrService {
   private RegisteredClient registeredClient;
   private JwtEncoder jwtEncoder;
 
+  /**
+   * Initializes the Jackson mapper (preloaded with {@link SecurityJackson2Modules} and {@link
+   * OAuth2AuthorizationServerJackson2Module}) and the JWT encoder, then ensures the reserved {@code
+   * system-dcr-registrar-client} exists. The registrar is created with {@code client_credentials}
+   * grant, {@code ClientAuthenticationMethod.NONE}, scope {@code client.create}, and redirect URIs
+   * seeded from the {@code deviceEnrollmentRedirectAllowlist} system setting. If the client already
+   * exists the stored definition is reused as-is.
+   */
   @PostConstruct
   void init() {
     this.jwtEncoder = new NimbusJwtEncoder(jwkSource);
@@ -141,6 +158,14 @@ public class OAuth2DcrService {
     }
   }
 
+  /**
+   * Mint a single-use Initial Access Token (IAT) bound to the given redirect URI, persist the
+   * backing {@link OAuth2Authorization}, and return the JWT-encoded token alongside it. The TTL is
+   * read from the {@code deviceEnrollmentIATTtlSeconds} system setting.
+   *
+   * @param redirectUri the redirect URI to embed in the token's claims
+   * @return the persisted {@link OAuth2Authorization} and its signed JWT string
+   */
   @Nonnull
   @Transactional
   public IatPair createIat(@Nonnull String redirectUri) {
@@ -221,6 +246,7 @@ public class OAuth2DcrService {
     return new IatPair(authorization, jwtEncodedToken);
   }
 
+  /** Carrier for a minted IAT: the persisted {@link OAuth2Authorization} and the signed JWT. */
   public record IatPair(OAuth2Authorization authorization, String iatJwt) {}
 
   /**
