@@ -1170,14 +1170,12 @@ public class JdbcEventStore implements EventStore {
       fromBuilder
           .append("inner join programstage ps on ps.programstageid=psi.programstageid ")
           .append("inner join program p on p.programid=ps.programid ")
-          .append(
-              "left join programinstance pi on pi.programinstanceid=psi.programinstanceid ")
+          .append("left join programinstance pi on pi.programinstanceid=psi.programinstanceid ")
           .append(
               "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid ");
     } else {
       fromBuilder
-          .append(
-              "inner join programinstance pi on pi.programinstanceid=psi.programinstanceid ")
+          .append("inner join programinstance pi on pi.programinstanceid=psi.programinstanceid ")
           .append("inner join program p on p.programid=pi.programid ")
           .append("inner join programstage ps on ps.programstageid=psi.programstageid ");
       if (params.getProgram() != null) {
