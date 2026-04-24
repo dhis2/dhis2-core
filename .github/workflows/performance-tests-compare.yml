@@ -103,6 +103,11 @@ on:
           WARMUP=2
         required: true
         type: string
+      test_name:
+        description: 'Test name for artifact naming (defaults to "manual"). Artifact is always prefixed with "compare-".'
+        required: false
+        type: string
+        default: manual
 
 jobs:
   performance-tests:
@@ -213,7 +218,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v7
       with:
-        name: gatling-report-${{ github.run_id }}-${{ github.sha }}-attempt-${{ github.run_attempt }}
+        name: gatling-report-compare-${{ inputs.test_name }}-${{ github.run_id }}-attempt-${{ github.run_attempt }}
         path: dhis-2/dhis-test-performance/target/gatling/
 
     - name: Create job summary
@@ -334,8 +339,8 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
         echo "gh run download ${{ github.run_id }} --repo dhis2/dhis2-core \\" >> $GITHUB_STEP_SUMMARY
-        echo "  --name gatling-report-${{ github.run_id }}-${{ github.sha }}-attempt-${{ github.run_attempt }} \\" >> $GITHUB_STEP_SUMMARY
-        echo "  --dir ./compare-${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+        echo "  --name gatling-report-compare-${{ inputs.test_name }}-${{ github.run_id }}-attempt-${{ github.run_attempt }} \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --dir ./compare-${{ inputs.test_name }}-${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "Only needed if you re-ran failed jobs on this run. Downloads every preserved attempt, each in its own wrapper directory (not readable by [gstat](https://github.com/dhis2/gatling-statistics) directly):" >> $GITHUB_STEP_SUMMARY
@@ -347,7 +352,7 @@ jobs:
 
         echo "## 📊 View Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "After the recommended download command above, the layout is \`./compare-${{ github.run_id }}/\` containing:" >> $GITHUB_STEP_SUMMARY
+        echo "After the recommended download command above, the layout is \`./compare-${{ inputs.test_name }}-${{ github.run_id }}/\` containing:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "* **Baseline warmup runs** (if WARMUP > 0): \`<simulation-class>-<timestamp>-baseline-warmup-<number>/\`" >> $GITHUB_STEP_SUMMARY
         echo "* **Baseline**: \`<simulation-class>-<timestamp>-baseline/\`" >> $GITHUB_STEP_SUMMARY
@@ -361,8 +366,8 @@ jobs:
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
         echo "gstat compare \\" >> $GITHUB_STEP_SUMMARY
-        echo "  ./compare-${{ github.run_id }}/*-baseline  --label baseline \\" >> $GITHUB_STEP_SUMMARY
-        echo "  ./compare-${{ github.run_id }}/*-candidate --label candidate \\" >> $GITHUB_STEP_SUMMARY
+        echo "  ./compare-${{ inputs.test_name }}-${{ github.run_id }}/*-baseline  --label baseline \\" >> $GITHUB_STEP_SUMMARY
+        echo "  ./compare-${{ inputs.test_name }}-${{ github.run_id }}/*-candidate --label candidate \\" >> $GITHUB_STEP_SUMMARY
         echo "  --percentile 95 --method tdigest" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
