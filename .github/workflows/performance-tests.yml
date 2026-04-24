@@ -228,7 +228,7 @@ jobs:
 
         echo "## 📥 Download Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Recommended (per-test artifact, layout works directly with [gatling-statistics](https://github.com/dhis2/gatling-statistics)):" >> $GITHUB_STEP_SUMMARY
+        echo "Recommended. Downloads this run's artifact in a layout [gstat](https://github.com/dhis2/gatling-statistics) can read directly:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
         echo "gh run download ${{ github.run_id }} --repo dhis2/dhis2-core \\" >> $GITHUB_STEP_SUMMARY
@@ -236,7 +236,7 @@ jobs:
         echo "  --dir ./${{ inputs.test_name }}-${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Only needed if you used **Re-run failed jobs** on this run and want to download every preserved attempt at once (one wrapper directory per artifact, not readable by gstat directly):" >> $GITHUB_STEP_SUMMARY
+        echo "Only needed if you re-ran failed jobs on this run. Downloads every preserved attempt, each in its own wrapper directory (not readable by [gstat](https://github.com/dhis2/gatling-statistics) directly):" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
         echo "gh run download ${{ github.run_id }} --repo dhis2/dhis2-core" >> $GITHUB_STEP_SUMMARY
@@ -255,15 +255,16 @@ jobs:
         echo "Each directory contains:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "* \`index.html\` - Gatling HTML report" >> $GITHUB_STEP_SUMMARY
-        echo "* \`run-simulation.env\` - Complete test run metadata (read it on how to reproduce this run)" >> $GITHUB_STEP_SUMMARY
         echo "* \`simulation.log\` - Binary Gatling test data (response times, etc.)" >> $GITHUB_STEP_SUMMARY
-        echo "* \`simulation.csv\` - Parsed binary data in CSV format (requires [glog](https://github.com/dhis2/gatling/releases) and can be analyzed using [gatling-statistics](https://github.com/dhis2/gatling-statistics))" >> $GITHUB_STEP_SUMMARY
+        echo "* \`simulation.csv\` - Parsed binary data in CSV format (requires [glog](https://github.com/dhis2/gatling/releases); analyzed by [gstat](https://github.com/dhis2/gatling-statistics))" >> $GITHUB_STEP_SUMMARY
+        echo "* \`run-simulation.env\` - Complete test run metadata (read it on how to reproduce this run)" >> $GITHUB_STEP_SUMMARY
         echo "* \`profile.html\` - Flamegraph visualization (if profiling enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`profile.jfr\` - JFR profiler data (if profiling enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`profile.collapsed\` - Collapsed stack traces (if profiling enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`dhis.log\` - DHIS2 application log (if DHIS2 logging enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`postgresql.log\` - PostgreSQL query logs (if SQL logging enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`pgbadger.html\` - SQL log analysis report (if SQL logging enabled)" >> $GITHUB_STEP_SUMMARY
+        echo "* \`gc.log\` - JVM GC and safepoint logs (always captured; analyze with [Eclipse Jifa](https://github.com/eclipse-jifa/jifa))" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
         echo "### Compare with another run" >> $GITHUB_STEP_SUMMARY
@@ -283,7 +284,7 @@ jobs:
         echo "  --percentile 95 --method tdigest" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "\`--method tdigest\` matches the t-digest algorithm Gatling uses in \`index.html\`, so the table lines up with the HTML report — small drift is still possible due to implementation differences. Drop the flag (or pass \`--method exact\`) for an exact percentile." >> $GITHUB_STEP_SUMMARY
+        echo "\`--method tdigest\` matches the t-digest algorithm Gatling uses in \`index.html\`, so the table lines up with the HTML report. Small drift is still possible due to implementation differences. Drop the flag (or pass \`--method exact\`) for an exact percentile." >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "**Tip**: \`gstat compare\` uses each input directory's basename as the column header. Pick a short, meaningful \`test_name\` (e.g. \`2.43.0-load-2u\`) so the table reads cleanly. Override per input with \`--label NAME\`." >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
