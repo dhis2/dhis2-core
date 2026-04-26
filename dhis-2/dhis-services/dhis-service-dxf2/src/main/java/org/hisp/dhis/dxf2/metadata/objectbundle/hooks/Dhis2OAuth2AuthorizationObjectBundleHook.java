@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,33 +27,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.security.oauth;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static org.hisp.dhis.security.Authorities.ALL;
-
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.query.GetObjectListParams;
-import org.hisp.dhis.security.RequiresAuthority;
+import java.util.function.Consumer;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.security.oauth2.authorization.Dhis2OAuth2Authorization;
-import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.stereotype.Component;
 
 /**
- * Read-only controller for inspecting OAuth2 authorizations (runtime Spring Authorization Server
- * state: access/refresh tokens, authorization codes, OIDC id-tokens, device codes, consent grants).
- * Gated on {@link org.hisp.dhis.security.Authorities#ALL}: only superusers may list or read these
- * rows because they surface principal, client and grant metadata that is sensitive even after token
- * values are redacted from the JSON payload by {@code @JsonIgnore} on the entity.
+ * Reject any attempt to create or update {@link Dhis2OAuth2Authorization} via the metadata import
+ * pipeline. These records are runtime OAuth2 state (access tokens, refresh tokens, device codes)
+ * written exclusively by Spring Authorization Server through {@code
+ * Dhis2OAuth2AuthorizationServiceImpl.save(OAuth2Authorization)}. Allowing {@code /api/metadata} to
+ * POST arbitrary authorization rows would let an admin forge bearer tokens for any principal.
+ *
+ * <p>The read-only {@code OAuth2AuthorizationController} still exposes GET, and Spring AS keeps its
+ * own persistence path. This hook only closes the metadata-import write path.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Controller
-@RequestMapping({"/api/oAuth2Authorizations"})
-@RequiredArgsConstructor
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@RequiresAuthority(anyOf = ALL)
-public class OAuth2AuthorizationController
-    extends AbstractFullReadOnlyController<Dhis2OAuth2Authorization, GetObjectListParams> {}
+@Component
+public class Dhis2OAuth2AuthorizationObjectBundleHook
+    extends AbstractObjectBundleHook<Dhis2OAuth2Authorization> {
+
+  @Override
+  public void validate(
+      Dhis2OAuth2Authorization object, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    addReports.accept(
+        new ErrorReport(
+            Dhis2OAuth2Authorization.class,
+            ErrorCode.E6023,
+            Dhis2OAuth2Authorization.class.getSimpleName()));
+  }
+}
