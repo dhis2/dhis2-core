@@ -32,26 +32,23 @@ package org.hisp.dhis.webapi.controller.security.oauth;
 import static org.hisp.dhis.security.Authorities.ALL;
 
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.condition.AuthorizationServerEnabledCondition;
 import org.hisp.dhis.query.GetObjectListParams;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.oauth2.consent.Dhis2OAuth2AuthorizationConsent;
 import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * Controller for managing OAuth2 authorization consents for the DHIS2 OAuth2 authorization server.
- *
- * <p>Disabled in 2.43.0 via {@link AuthorizationServerEnabledCondition};
+ * Superuser-only for 2.43.0; no new consents can be granted because the authorization server itself
+ * is disabled.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Controller
 @RequestMapping({"/api/oAuth2AuthorizationConsents"})
 @RequiredArgsConstructor
-@Conditional(AuthorizationServerEnabledCondition.class)
 @RequiresAuthority(anyOf = ALL)
 public class OAuth2AuthorizationConsentController
     extends AbstractFullReadOnlyController<Dhis2OAuth2AuthorizationConsent, GetObjectListParams> {}

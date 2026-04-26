@@ -37,7 +37,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Confirms the OAuth2 Authorization Server surface is disabled on 2.43.0.
+ * Confirms the OAuth2 Authorization Server surface is disabled on 2.43.0. The DCR enrollment
+ * endpoint is unreachable (404) because it is gated by {@code AuthorizationServerEnabledCondition}.
+ * The three CRUD/list controllers are superuser-only — non-admins get 403.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -45,29 +47,25 @@ import org.springframework.transaction.annotation.Transactional;
 class OAuth2AuthorizationServerDisabledTest extends H2ControllerIntegrationTestBase {
 
   @Test
-  void oauth2Clients_get_returns404() {
-    assertEquals(HttpStatus.NOT_FOUND, GET("/oAuth2Clients").status());
-  }
-
-  @Test
-  void oauth2Clients_post_returns404() {
-    assertEquals(
-        HttpStatus.NOT_FOUND,
-        POST("/oAuth2Clients", "{'clientId':'any','clientSecret':'any'}").status());
-  }
-
-  @Test
-  void oauth2Authorizations_get_returns404() {
-    assertEquals(HttpStatus.NOT_FOUND, GET("/oAuth2Authorizations").status());
-  }
-
-  @Test
-  void oauth2AuthorizationConsents_get_returns404() {
-    assertEquals(HttpStatus.NOT_FOUND, GET("/oAuth2AuthorizationConsents").status());
-  }
-
-  @Test
   void dcrEnrollDevice_returns404() {
     assertEquals(HttpStatus.NOT_FOUND, GET("/enrollDevice?client_id=x").status());
+  }
+
+  @Test
+  void oauth2Clients_nonAdmin_returns403() {
+    switchToNewUser("guest-clients");
+    assertEquals(HttpStatus.FORBIDDEN, GET("/oAuth2Clients").status());
+  }
+
+  @Test
+  void oauth2Authorizations_nonAdmin_returns403() {
+    switchToNewUser("guest-auth");
+    assertEquals(HttpStatus.FORBIDDEN, GET("/oAuth2Authorizations").status());
+  }
+
+  @Test
+  void oauth2AuthorizationConsents_nonAdmin_returns403() {
+    switchToNewUser("guest-consent");
+    assertEquals(HttpStatus.FORBIDDEN, GET("/oAuth2AuthorizationConsents").status());
   }
 }
