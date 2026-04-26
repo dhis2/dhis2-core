@@ -39,11 +39,6 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Confirms the OAuth2 Authorization Server surface is disabled on 2.43.0.
  *
- * <p>The three OAuth2 controllers and the DCR enrollment endpoint are gated by {@code
- * AuthorizationServerEnabledCondition}, which returns {@code false} outside the {@code
- * oauth2-authorization-server-test} profile. This test runs in the default profile, so the beans
- * never load and every path returns 404. Scheduled re-enable in 2.43.1.
- *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Transactional

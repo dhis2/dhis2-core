@@ -37,8 +37,8 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 /**
  * Gate for the Spring Authorization Server and its supporting beans.
  *
- * <p>The OAuth2 Authorization Server is disabled in 2.43.0. Re-enable is planned for 2.43.1. The
- * {@code oauth2-authorization-server-test} profile is still honored so the existing test suite can
+ * <p>The OAuth2 Authorization Server is disabled in 2.43.0. The {@code
+ * oauth2-authorization-server-test} profile is still honored so the existing test suite can
  * exercise the feature locally, and the {@code oauth2.server.enabled} dhis.conf key is ignored for
  * this release.
  *
