@@ -42,7 +42,7 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
  * exercise the feature locally, and the {@code oauth2.server.enabled} dhis.conf key is ignored for
  * this release.
  *
- * @author Ameen Mohamed
+ * @author Morten Svanæs
  */
 public class AuthorizationServerEnabledCondition extends PropertiesAwareConfigurationCondition {
   @Override
