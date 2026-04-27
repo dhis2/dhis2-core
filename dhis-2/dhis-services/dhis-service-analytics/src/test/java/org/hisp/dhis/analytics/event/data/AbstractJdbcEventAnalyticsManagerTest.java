@@ -1478,6 +1478,44 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void testExperimentalSelectClauseQualifiesStageOuHeadersWhenEnrollmentOuJoinIsUsed() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    ProgramStage stage = createProgramStage('B', programA);
+    stage.setUid("ZkbAXlQUYJG");
+
+    QueryItem stageOuItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME),
+            programA,
+            null,
+            ValueType.ORGANISATION_UNIT,
+            AggregationType.NONE,
+            null);
+    stageOuItem.setProgramStage(stage);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withEnrollmentOuDimension(List.of(ouA))
+            .addItem(stageOuItem)
+            .withHeaders(Set.of("enrollmentouname", "ZkbAXlQUYJG.ouname"))
+            .build();
+
+    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "enrl"))
+        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("enrl.\"uidlevel1\"", "", ""));
+
+    SelectBuilder sb = new SelectBuilder();
+    eventSubject.addSelectClause(
+        sb, params, new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT));
+    String selectClause = sb.build();
+
+    assertThat(selectClause, containsString("enrl.\"ouname\" as \"ZkbAXlQUYJG.ouname\""));
+    assertTrue(!selectClause.contains(", \"ouname\" as \"ZkbAXlQUYJG.ouname\""));
+  }
+
+  @Test
   void testEnrollmentOuLevelConstraintUsesOrgUnitLevelColumn() {
     EventQueryParams params =
         new EventQueryParams.Builder()

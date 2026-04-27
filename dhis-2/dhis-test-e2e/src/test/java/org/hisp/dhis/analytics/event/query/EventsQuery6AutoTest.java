@@ -4164,11 +4164,36 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
             .add("page=1")
             .add("dimension=ZkbAXlQUYJG.ou:USER_ORGUNIT")
             .add("dimension=ENROLLMENT_OU:USER_ORGUNIT")
+            .add("headers=enrollmentouname,ZkbAXlQUYJG.ouname")
             .add("desc=eventdate,lastupdated");
 
     // When
     ApiResponse response = actions.query().get("ur1Edk5Oe2n", JSON, JSON, params);
-    response.validate().statusCode(200).body("headers", hasSize(26));
+    response.validate().statusCode(200).body("headers", hasSize(2));
+
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj)
+            .collect(Collectors.toList());
+
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "enrollmentouname",
+        "Enrollment org unit name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ZkbAXlQUYJG.ouname",
+        "Organisation unit name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
   }
 
   @Test

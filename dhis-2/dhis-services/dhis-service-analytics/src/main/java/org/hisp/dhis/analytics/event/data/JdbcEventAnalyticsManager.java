@@ -884,13 +884,17 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         if (params.hasHeaders()) {
           if (params.getHeaders().contains(stageUid + ".ouname")) {
             columns.add(
-                quote(EventAnalyticsColumnName.OU_NAME_COLUMN_NAME)
+                sqlBuilder.quote(
+                        getStageOuValueColumnTableAlias(params),
+                        EventAnalyticsColumnName.OU_NAME_COLUMN_NAME)
                     + " as "
                     + quote(stageUid + ".ouname"));
           }
           if (params.getHeaders().contains(stageUid + ".oucode")) {
             columns.add(
-                quote(EventAnalyticsColumnName.OU_CODE_COLUMN_NAME)
+                sqlBuilder.quote(
+                        getStageOuValueColumnTableAlias(params),
+                        EventAnalyticsColumnName.OU_CODE_COLUMN_NAME)
                     + " as "
                     + quote(stageUid + ".oucode"));
           }
