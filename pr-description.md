@@ -59,9 +59,9 @@ Each method now emits a direct predicate before the access-scope EXISTS clauses 
 
 | Mode | WITHOUT_REGISTRATION | WITH_REGISTRATION |
 |---|---|---|
-| SELECTED | `ev.organisationunitid = :ou_id` | `ou.organisationunitid = :ou_id` → pushed to TPO index |
-| DESCENDANTS | `ev.organisationunitid IN (:ou_ids)` — descendant IDs pre-resolved via JDBC query on `organisationunit`. Falls back to path-LIKE if subtree > 1 000 org units | `ou.path LIKE CONCAT(:ou_path, '%')` |
-| CHILDREN | `ev.organisationunitid IN (:ou_ids)` — parent + direct children pre-resolved. Falls back to scalar anchor + subquery if > 1 000 | `ou.organisationunitid = :ou_id OR ...` |
+| SELECTED | `psi.organisationunitid = :ou_id` | `ou.organisationunitid = :ou_id` → pushed to TPO index |
+| DESCENDANTS | `psi.organisationunitid IN (:ou_ids)` — descendant IDs pre-resolved via JDBC query on `organisationunit`. Falls back to path-LIKE if subtree > 1 000 org units | `ou.path LIKE CONCAT(:ou_path, '%')` |
+| CHILDREN | `psi.organisationunitid IN (:ou_ids)` — parent + direct children pre-resolved. Falls back to scalar anchor + subquery if > 1 000 | `ou.organisationunitid = :ou_id OR ...` |
 
 `ACCESSIBLE` and `CAPTURE` scope is defined by the user's own org units inside the EXISTS subqueries — no equivalent outer predicate is possible for those modes.
 

@@ -237,6 +237,42 @@ class JdbcEventStoreTest {
   }
 
   @Test
+  void descendants_withoutRegistration_emptyResolverResult_fallsBackToPathLike() {
+    Program program = new Program();
+    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+
+    OrganisationUnit ou = createOrganisationUnit('A');
+    ou.setPath("/oupath/");
+
+    EventQueryParams params = new EventQueryParams();
+    params.setProgram(program);
+    params.setOrgUnit(ou);
+    params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.DESCENDANTS);
+
+    when(currentUserService.getCurrentUser()).thenReturn(new User());
+
+    when(namedParameterJdbcTemplate.queryForList(
+            contains("CONCAT(:path"), any(MapSqlParameterSource.class), eq(Long.class)))
+        .thenReturn(Collections.emptyList());
+
+    ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+    when(namedParameterJdbcTemplate.queryForObject(
+            sqlCaptor.capture(),
+            any(MapSqlParameterSource.class),
+            ArgumentMatchers.<Class<Integer>>any()))
+        .thenReturn(0);
+
+    subject.getEventCount(params);
+
+    String sql = sqlCaptor.getValue();
+    assertFalse(
+        sql.contains(":ou_ids"), "SQL should not contain :ou_ids for empty resolver result");
+    assertTrue(
+        sql.contains("ou.path like"),
+        "SQL should fall back to path-LIKE when resolver returns no rows");
+  }
+
+  @Test
   void descendants_withoutRegistration_largeSubtree_fallsBackToPathLike() {
     Program program = new Program();
     program.setProgramType(ProgramType.WITHOUT_REGISTRATION);

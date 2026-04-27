@@ -1468,8 +1468,8 @@ public class JdbcEventStore implements EventStore {
         directDescendantsPredicate =
             " psi.organisationunitid IN (:" + COLUMN_ORG_UNIT_IDS + ")" + AND;
       } else {
-        // Empty list (leaf OU or resolver miss) or subtree too large for JDBC IN-list;
-        // fall back to path scan (relies on lastupdated index)
+        // OU not found in DB (stale path or data integrity issue) or subtree too large for JDBC
+        // IN-list; fall back to path scan (relies on lastupdated index)
         directDescendantsPredicate = CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + AND;
       }
     } else {
