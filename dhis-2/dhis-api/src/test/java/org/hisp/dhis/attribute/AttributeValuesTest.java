@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.attribute;
 
-import static java.util.stream.Collectors.toMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -41,8 +40,11 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.function.BiConsumer;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.jsontree.Text;
 import org.junit.jupiter.api.Test;
+import org.springframework.util.SerializationUtils;
 
 /**
  * Unit test for {@link LazyAttributeValues} implementation.
@@ -79,20 +81,40 @@ class AttributeValuesTest {
 
   @Test
   void testKeys() {
-    assertEquals(Set.of(), AttributeValues.empty().keys());
-    assertEquals(Set.of(), AttributeValues.of(Map.of()).keys());
-    assertEquals(Set.of("a"), AttributeValues.of(Map.of("a", "b")).keys());
-    assertEquals(Set.of("a", "c"), AttributeValues.of(Map.of("a", "b", "c", "d")).keys());
-    assertEquals(Set.of("a"), AttributeValues.of("{\"a\": {\"value\":\"b\"}}").keys());
+    assertEquals(List.of(), AttributeValues.empty().keys().toList());
+    assertEquals(List.of(), AttributeValues.of(Map.of()).keys().toList());
+    assertEquals(
+        List.of(UID.of("a0123456789")),
+        AttributeValues.of(Map.of("a0123456789", "b")).keys().toList());
+    assertEquals(
+        List.of(UID.of("a0123456789"), UID.of("c0123456789")),
+        AttributeValues.of(Map.of("a0123456789", "b", "c0123456789", "d")).keys().toList());
+    assertEquals(
+        List.of(UID.of("a0123456789"), UID.of("c0123456789")),
+        AttributeValues.of(Map.of("c0123456789", "b", "a0123456789", "d")).keys().toList());
+    assertEquals(
+        List.of(UID.of("a0123456789")),
+        AttributeValues.of("{\"a0123456789\": {\"value\":\"b\"}}").keys().toList());
   }
 
   @Test
   void testValues() {
-    assertEquals(Set.of(), AttributeValues.empty().values());
-    assertEquals(Set.of(), AttributeValues.of(Map.of()).values());
-    assertEquals(Set.of("b"), AttributeValues.of(Map.of("a", "b")).values());
-    assertEquals(Set.of("b", "d"), AttributeValues.of(Map.of("a", "b", "c", "d")).values());
-    assertEquals(Set.of("b"), AttributeValues.of("{\"a\": {\"value\":\"b\"}}").values());
+    assertEquals(List.of(), AttributeValues.empty().values().toList());
+    assertEquals(List.of(), AttributeValues.of(Map.of()).values().toList());
+    assertEquals(
+        List.of("b"), AttributeValues.of(Map.of("a", "b")).values().map(Text::toString).toList());
+    assertEquals(
+        List.of("b", "d"),
+        AttributeValues.of(Map.of("a", "b", "c", "d")).values().map(Text::toString).toList());
+    assertEquals(
+        List.of("b"),
+        AttributeValues.of("{\"a\": {\"value\":\"b\"}}").values().map(Text::toString).toList());
+    assertEquals(
+        List.of("1", "2"),
+        AttributeValues.of("{\"y\": {\"value\":\"2\"}, \"x\": {\"value\": \"1\"}}")
+            .values()
+            .map(Text::toString)
+            .toList());
   }
 
   @Test
@@ -110,6 +132,8 @@ class AttributeValuesTest {
     assertFalse(AttributeValues.empty().contains("a"));
     assertFalse(AttributeValues.of("{}").contains("x"));
     assertFalse(AttributeValues.of(Map.of()).contains("y"));
+    assertFalse(AttributeValues.of("{\"a\": {\"value\":\"b\"}}").contains("b"));
+
     assertTrue(AttributeValues.of("{\"a\": {\"value\":\"b\"}}").contains("a"));
     assertTrue(AttributeValues.of(Map.of("a", "b")).contains("a"));
     assertTrue(AttributeValues.of(Map.of("a", "b", "c", "d")).contains("c"));
@@ -124,7 +148,7 @@ class AttributeValuesTest {
     assertEquals(AttributeValues.of(Map.of("c", "z", "b", "y")), by.added("c", "z"));
     assertEquals(AttributeValues.of(Map.of("a", "x", "b", "y", "c", "z")), axby.added("c", "z"));
     assertEquals(AttributeValues.of(Map.of("a", "7", "b", "y")), axby.added("a", "7"));
-    Map<String, String> expected = new HashMap<>();
+    Map<CharSequence, CharSequence> expected = new HashMap<>();
     AttributeValues actual = AttributeValues.empty();
     for (int i = -10; i < 10; i++) {
       String key = "" + ('a' + i);
@@ -154,34 +178,15 @@ class AttributeValuesTest {
     AttributeValues.of("{}").forEach((k, v) -> fail("should not be called"));
     AttributeValues.of(Map.of()).forEach((k, v) -> fail("should not be called"));
     Map<String, String> res = new HashMap<>();
-    AttributeValues.of("{\"a\": {\"value\":\"b\"}}").forEach(res::put);
+    BiConsumer<Text, Text> put = (key, value) -> res.put(key.toString(), value.toString());
+    AttributeValues.of("{\"a\": {\"value\":\"b\"}}").forEach(put);
     assertEquals(Map.of("a", "b"), res);
     res.clear();
-    AttributeValues.of(Map.of("a", "b")).forEach(res::put);
+    AttributeValues.of(Map.of("a", "b")).forEach(put);
     assertEquals(Map.of("a", "b"), res);
     res.clear();
-    AttributeValues.of(Map.of("a", "b", "c", "d")).forEach(res::put);
+    AttributeValues.of(Map.of("a", "b", "c", "d")).forEach(put);
     assertEquals(Map.of("a", "b", "c", "d"), res);
-  }
-
-  @Test
-  void testStream() {
-    assertEquals(List.of(), AttributeValues.empty().stream().toList());
-    assertEquals(List.of(), AttributeValues.of("{}").stream().toList());
-    assertEquals(List.of(), AttributeValues.of(Map.of()).stream().toList());
-    assertEquals(
-        Map.of("a", "b"),
-        AttributeValues.of("{\"a\": {\"value\":\"b\"}}").stream()
-            .collect(toMap(Map.Entry::getKey, Map.Entry::getValue)));
-    assertTrue(AttributeValues.of(Map.of("a", "b")).contains("a"));
-    assertEquals(
-        Map.of("a", "b"),
-        AttributeValues.of(Map.of("a", "b")).stream()
-            .collect(toMap(Map.Entry::getKey, Map.Entry::getValue)));
-    assertEquals(
-        Map.of("a", "b", "c", "d"),
-        AttributeValues.of(Map.of("a", "b", "c", "d")).stream()
-            .collect(toMap(Map.Entry::getKey, Map.Entry::getValue)));
   }
 
   @Test
@@ -190,8 +195,7 @@ class AttributeValuesTest {
     assertEquals("{}", AttributeValues.of("{}").toObjectJson());
     assertEquals("{}", AttributeValues.of(Map.of()).toObjectJson());
     AttributeValues fromJson = AttributeValues.of("{\"a\": {\"value\":\"b\"}}");
-    assertEquals("{\"a\": {\"value\":\"b\"}}", fromJson.toObjectJson());
-    // note that the JSON is different in whitespace because when constructed from JSON the original
+    assertEquals("{\"a\":{\"value\":\"b\"}}", fromJson.toObjectJson());
     // JSON is returned while when constructed from a map the JSON is composed
     assertEquals("{\"a\":{\"value\":\"b\"}}", AttributeValues.of(Map.of("a", "b")).toObjectJson());
     // however, once the JSON got parsed internally the toJson is computed again
@@ -202,6 +206,10 @@ class AttributeValuesTest {
     assertEquals(
         "{\"c\":{\"value\":\"d\"},\"x\":{\"value\":\"y\"}}",
         AttributeValues.of(Map.of("x", "y", "c", "d")).toObjectJson());
+    // empty attributes are stripped
+    AttributeValues values =
+        AttributeValues.of("{\"a\": {\"value\":\"b\"}, \"b\": {\"value\":\"\"}}");
+    assertEquals("{\"a\":{\"value\":\"b\"}}", values.toObjectJson());
   }
 
   @Test
@@ -217,42 +225,9 @@ class AttributeValuesTest {
   }
 
   @Test
-  void testMapKeys() {
-    assertEquals(AttributeValues.empty(), AttributeValues.empty().mapKeys(v -> v.repeat(2)));
-    assertEquals(
-        AttributeValues.of(Map.of("aa", "b")),
-        AttributeValues.of(Map.of("a", "b")).mapKeys(v -> v.repeat(2)));
-  }
-
-  @Test
-  void testMapValues() {
-    assertEquals(AttributeValues.empty(), AttributeValues.empty().mapValues(v -> v.repeat(2)));
-    assertEquals(
-        AttributeValues.of(Map.of("a", "bb")),
-        AttributeValues.of(Map.of("a", "b")).mapValues(v -> v.repeat(2)));
-  }
-
-  @Test
-  void testRemovedAll() {
-    assertEquals(AttributeValues.empty(), AttributeValues.empty().removedAll(id -> true));
-    assertEquals(AttributeValues.empty(), AttributeValues.empty().removedAll(id -> false));
-    assertEquals(
-        AttributeValues.of(Map.of("a", "b")),
-        AttributeValues.of(Map.of("a", "b")).removedAll("c"::equals));
-    assertEquals(
-        AttributeValues.empty(), AttributeValues.of(Map.of("a", "b")).removedAll("a"::equals));
-    AttributeValues before = AttributeValues.of(Map.of("a", "x", "b", "y", "c", "z"));
-    assertEquals(AttributeValues.of(Map.of("b", "y", "c", "z")), before.removedAll("a"::equals));
-    assertEquals(AttributeValues.of(Map.of("a", "x", "c", "z")), before.removedAll("b"::endsWith));
-    assertEquals(
-        AttributeValues.of(Map.of("a", "x", "b", "y")), before.removedAll("c"::startsWith));
-    assertEquals(AttributeValues.of(Map.of("b", "y")), before.removedAll(id -> id.matches("[ac]")));
-    assertSame(before, before.removedAll("r"::equals));
-  }
-
-  @Test
-  void testToMap() {
-    assertEquals(Map.of(), AttributeValues.empty().toMap());
-    assertEquals(Map.of("a", "1"), AttributeValues.of(Map.of("a", "1")).toMap());
+  void testSerialisation() {
+    AttributeValues values = AttributeValues.of(Map.of("a", "b", "c", "d"));
+    AttributeValues copy = SerializationUtils.clone(values);
+    assertEquals(values, copy);
   }
 }
