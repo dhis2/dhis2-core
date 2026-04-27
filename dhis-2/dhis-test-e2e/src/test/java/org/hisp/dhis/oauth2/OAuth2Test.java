@@ -68,7 +68,7 @@ import org.springframework.http.ResponseEntity;
 
 @Tag("oauth2tests")
 @Slf4j
-@Disabled("OAuth2 Authorization Server is disabled in 2.43.0; re-enable scheduled for 2.43.1")
+@Disabled("OAuth2 Authorization Server is disabled in 2.43.0")
 class OAuth2Test extends BaseE2ETest {
 
   private static WebDriver driver;
