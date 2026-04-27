@@ -219,6 +219,7 @@ final class LazyAttributeValues implements AttributeValues {
   @CheckForNull
   @Override
   public Text getText(CharSequence attributeId) {
+    if (attributeId == null) return null;
     init();
     Text key = Text.of(attributeId);
     int i = binarySearch(keys, key);

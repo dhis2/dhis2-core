@@ -107,15 +107,15 @@ public sealed interface AttributeValues
    * @return the value or null if the attribute is not contained (undefined)
    */
   @CheckForNull
-  default String get(CharSequence attributeId) {
+  default String get(@CheckForNull CharSequence attributeId) {
     Text res = getText(attributeId);
     return res == null ? null : res.toString();
   }
 
   @CheckForNull
-  Text getText(CharSequence attributeId);
+  Text getText(@CheckForNull CharSequence attributeId);
 
-  default boolean contains(CharSequence attributeId) {
+  default boolean contains(@CheckForNull CharSequence attributeId) {
     return get(attributeId) != null;
   }
 
@@ -164,9 +164,9 @@ public sealed interface AttributeValues
   AttributeValues added(@Nonnull CharSequence attributeId, @CheckForNull CharSequence value);
 
   /**
-   * @param uid the attribute to remove
+   * @param attributeId the attribute to remove
    * @return a new set with the attribute removed
    */
   @Nonnull
-  AttributeValues removed(@Nonnull CharSequence uid);
+  AttributeValues removed(@Nonnull CharSequence attributeId);
 }
