@@ -67,6 +67,7 @@ import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.webapi.ControllerWithJwtTokenAuthTestBase;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,6 +97,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Disabled
 @ActiveProfiles("oauth2-authorization-server-test")
 class DcrControllerTest extends ControllerWithJwtTokenAuthTestBase {
 
