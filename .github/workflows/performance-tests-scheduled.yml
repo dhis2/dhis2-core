@@ -36,7 +36,7 @@ jobs:
               DHIS2_IMAGE=dhis2/core-dev:latest
               SIMULATION_CLASS=org.hisp.dhis.test.platform.UsersPerformanceTest
               WARMUP=2
-              MVN_ARGS=-Diterations=3 -Dprofile=smoke
+              MVN_ARGS="-Diterations=3 -Dprofile=smoke"
             slack_webhook_secret: SLACK_WEBHOOK_PLATFORM_PERFORMANCE
           - name: users-load
             env: |
