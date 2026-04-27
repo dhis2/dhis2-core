@@ -184,7 +184,7 @@
     },
     {
       "name": "validateStagePrefixedEventDateHeaderWithoutDimension",
-      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=A03MvHHogjR.eventdate,enrollmentdate,ouname&displayProperty=NAME&totalPages=false&pageSize=100&page=1",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=A03MvHHogjR.eventdate,enrollmentdate,ouname&displayProperty=NAME&totalPages=false&pageSize=20&page=1&desc=enrollmentdate,ouname",
       "version": {
         "min": 43
       }
