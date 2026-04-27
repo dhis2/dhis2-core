@@ -1494,26 +1494,35 @@ public class JdbcEventStore implements EventStore {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_ID, params.getOrgUnit().getId());
 
-    // WITHOUT_REGISTRATION: filter directly on psi.organisationunitid so the planner can
-    // drive the scan from the composite index on (organisationunitid, executiondate).
-    // WITH_REGISTRATION: filter on ou.organisationunitid which resolves to po.organisationunitid
-    // via the sargable INNER JOIN on TPO — psi.organisationunitid is provenance, not ownership.
-    String directChildrenPredicate =
-        isWithoutRegistrationQuery(params)
-            ? " (psi.organisationunitid = :"
+    String directChildrenPredicate;
+    if (isWithoutRegistrationQuery(params)) {
+      List<Long> childrenIds = resolveChildrenOrgUnitIds(params.getOrgUnit().getId());
+      if (!childrenIds.isEmpty() && childrenIds.size() <= MAX_ORG_UNIT_IDS_FOR_IN_CLAUSE) {
+        mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_IDS, childrenIds);
+        directChildrenPredicate =
+            " psi.organisationunitid IN (:" + COLUMN_ORG_UNIT_IDS + ")" + AND;
+      } else {
+        // Empty list (leaf OU) or unusually wide OU; fall back to scalar anchor + subquery
+        directChildrenPredicate =
+            " (psi.organisationunitid = :"
                 + COLUMN_ORG_UNIT_ID
                 + " OR psi.organisationunitid IN ("
                 + "SELECT organisationunitid FROM organisationunit WHERE parentid = :"
                 + COLUMN_ORG_UNIT_ID
                 + "))"
-                + AND
-            : " (ou.organisationunitid = :"
-                + COLUMN_ORG_UNIT_ID
-                + " OR ou.organisationunitid IN ("
-                + "SELECT organisationunitid FROM organisationunit WHERE parentid = :"
-                + COLUMN_ORG_UNIT_ID
-                + "))"
                 + AND;
+      }
+    } else {
+      // WITH_REGISTRATION: filter via ou.organisationunitid resolved through the TPO join
+      directChildrenPredicate =
+          " (ou.organisationunitid = :"
+              + COLUMN_ORG_UNIT_ID
+              + " OR ou.organisationunitid IN ("
+              + "SELECT organisationunitid FROM organisationunit WHERE parentid = :"
+              + COLUMN_ORG_UNIT_ID
+              + "))"
+              + AND;
+    }
 
     String customChildrenQuery =
         " AND (ou.hierarchylevel = "
