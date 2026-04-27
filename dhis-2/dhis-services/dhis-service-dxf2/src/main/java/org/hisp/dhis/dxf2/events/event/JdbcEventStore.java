@@ -1456,12 +1456,15 @@ public class JdbcEventStore implements EventStore {
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
-    // WITHOUT_REGISTRATION: filter directly on psi.organisationunitid so the planner can
-    // drive the scan from the composite index on (organisationunitid, executiondate).
+    // WITHOUT_REGISTRATION + date range: filter directly on psi.organisationunitid so the planner
+    // can drive the scan from the composite index on (organisationunitid, programstageid,
+    // executiondate). Without a date range the planner instead uses idx_psi_lastupdated_desc with
+    // ORDER BY lastupdated DESC LIMIT n, scanning newest-first and stopping early — adding the IN
+    // subquery here breaks that strategy and forces a full seq scan + sort.
     // WITH_REGISTRATION: filter on ou.path which resolves to po.organisationunitid via the
     // sargable INNER JOIN on TPO — psi.organisationunitid is provenance, not ownership.
     String directDescendantsPredicate =
-        isWithoutRegistrationQuery(params)
+        isWithoutRegistrationQuery(params) && hasDateRange(params)
             ? " psi.organisationunitid IN ("
                 + "SELECT organisationunitid FROM organisationunit "
                 + "WHERE path LIKE CONCAT(:"
@@ -1562,6 +1565,10 @@ public class JdbcEventStore implements EventStore {
   private boolean isWithoutRegistrationQuery(EventQueryParams params) {
     return params.getProgram() != null
         && params.getProgram().getProgramType() == ProgramType.WITHOUT_REGISTRATION;
+  }
+
+  private boolean hasDateRange(EventQueryParams params) {
+    return params.getStartDate() != null || params.getEndDate() != null;
   }
 
   private static String getSearchAndCaptureScopeOrgUnitPathMatchQuery(String orgUnitMatcher) {
