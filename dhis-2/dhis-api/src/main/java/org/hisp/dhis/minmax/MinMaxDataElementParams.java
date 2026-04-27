@@ -29,92 +29,35 @@
  */
 package org.hisp.dhis.minmax;
 
-import com.google.common.base.MoreObjects;
+import static org.hisp.dhis.jsontree.Validation.YesNo.NO;
+
 import java.util.List;
-import org.apache.commons.lang3.BooleanUtils;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.PagerUtils;
+import org.hisp.dhis.common.UrlParams;
+import org.hisp.dhis.jsontree.Validation;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
-public class MinMaxDataElementQueryParams {
-  public static final MinMaxDataElementQueryParams EMPTY = new MinMaxDataElementQueryParams();
+public record MinMaxDataElementParams(
+    List<String> fields,
+    List<String> filters,
+    Boolean skipPaging,
+    @Validation(required = NO) boolean paging,
+    @Validation(required = NO, minimum = 1) int page,
+    @Validation(required = NO, minimum = 1, maximum = 1000) int pageSize)
+    implements UrlParams {
 
-  private List<String> filters;
+  public static final MinMaxDataElementParams DEFAULT =
+      new MinMaxDataElementParams(List.of(), List.of(), null, true, 1, 50);
 
-  private Boolean skipPaging;
-
-  private Boolean paging;
-
-  private int page = 1;
-
-  private int pageSize = Pager.DEFAULT_PAGE_SIZE;
-
-  private int total;
-
-  public MinMaxDataElementQueryParams() {}
-
-  public boolean isSkipPaging() {
-    return PagerUtils.isSkipPaging(skipPaging, paging);
-  }
-
-  public void setSkipPaging(Boolean skipPaging) {
-    this.skipPaging = skipPaging;
-  }
-
-  public boolean isPaging() {
-    return BooleanUtils.toBoolean(paging);
-  }
-
-  public void setPaging(Boolean paging) {
-    this.paging = paging;
-  }
-
-  public int getPage() {
-    return page;
-  }
-
-  public void setPage(int page) {
-    this.page = page;
-  }
-
-  public int getPageSize() {
-    return pageSize;
-  }
-
-  public void setPageSize(int pageSize) {
-    this.pageSize = pageSize;
-  }
-
-  public int getTotal() {
-    return total;
-  }
-
-  public void setTotal(int total) {
-    this.total = total;
+  public MinMaxDataElementParams(List<String> filters) {
+    this(List.of(), filters, null, true, 1, 50);
   }
 
   @OpenApi.Ignore
-  public Pager getPager() {
-    return PagerUtils.isSkipPaging(skipPaging, paging) ? null : new Pager(page, total, pageSize);
-  }
-
-  public List<String> getFilters() {
-    return this.filters;
-  }
-
-  public void setFilters(List<String> filters) {
-    this.filters = filters;
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("page", page)
-        .add("pageSize", pageSize)
-        .add("total", total)
-        .toString();
+  public boolean isPaged() {
+    if (skipPaging != null) return !skipPaging;
+    return paging;
   }
 }

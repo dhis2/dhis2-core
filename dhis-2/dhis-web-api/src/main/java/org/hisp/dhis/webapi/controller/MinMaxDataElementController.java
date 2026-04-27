@@ -33,7 +33,6 @@ import static org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig.jso
 import static org.hisp.dhis.security.Authorities.F_MINMAX_DATAELEMENT_ADD;
 import static org.springframework.util.MimeTypeUtils.APPLICATION_JSON_VALUE;
 
-import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,6 +42,7 @@ import java.util.zip.GZIPInputStream;
 import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.csv.CSV;
 import org.hisp.dhis.datavalue.DataValue;
@@ -55,7 +55,7 @@ import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
 import org.hisp.dhis.minmax.MinMaxDataElement;
-import org.hisp.dhis.minmax.MinMaxDataElementQueryParams;
+import org.hisp.dhis.minmax.MinMaxDataElementParams;
 import org.hisp.dhis.minmax.MinMaxDataElementService;
 import org.hisp.dhis.minmax.MinMaxValue;
 import org.hisp.dhis.minmax.MinMaxValueDeleteRequest;
@@ -65,7 +65,6 @@ import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -88,28 +87,26 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @AllArgsConstructor
 public class MinMaxDataElementController {
 
-  private final ContextService contextService;
   private final MinMaxDataElementService minMaxService;
   private final FieldFilterService fieldFilterService;
 
   @GetMapping
-  public @ResponseBody RootNode getObjectList(MinMaxDataElementQueryParams query)
+  public @ResponseBody RootNode getObjectList(MinMaxDataElementParams query)
       throws QueryParserException {
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
-    List<String> filters = Lists.newArrayList(contextService.getParameterValues("filter"));
-    query.setFilters(filters);
 
+    List<String> fields = query.fields();
     if (fields.isEmpty()) {
-      fields.addAll(FieldPreset.ALL.getFields());
+      fields = FieldPreset.ALL.getFields();
     }
 
     List<MinMaxDataElement> minMaxDataElements = minMaxService.getMinMaxDataElements(query);
 
     RootNode rootNode = NodeUtils.createMetadata();
 
-    if (!query.isSkipPaging()) {
-      query.setTotal(minMaxService.countMinMaxDataElements(query));
-      rootNode.addChild(NodeUtils.createPager(query.getPager()));
+    if (query.isPaged()) {
+      int total = minMaxService.countMinMaxDataElements(query);
+      Pager pager = new Pager(query.page(), total, query.pageSize());
+      rootNode.addChild(NodeUtils.createPager(pager));
     }
 
     rootNode.addChild(
