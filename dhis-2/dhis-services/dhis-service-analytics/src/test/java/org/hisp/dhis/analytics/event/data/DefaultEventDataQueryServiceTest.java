@@ -71,6 +71,7 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -1104,6 +1105,74 @@ class DefaultEventDataQueryServiceTest {
     EventQueryParams params = subject.getFromRequest(request);
 
     assertTrue(params.getItems().isEmpty());
+  }
+
+  @Test
+  void getFromRequestDoesNotPromoteRepeatableStageOffsetHeaderAlreadyPresentAsItem() {
+    // Repeatable-stage offset dimensions like uvMKOn1oWvd[0].DX4LVYeP7bw land on
+    // params.getItems() with their RepeatableStageParams set. Headers using the same [N].uid
+    // notation must dedup against them, otherwise a second QueryItem with the same offset is
+    // promoted and the validator raises E7243 (duplicate stage dimension identifier).
+    ProgramStage programStage = createProgramStage('S', program);
+    DataElement dataElement = createDataElement('D', ValueType.NUMBER, AggregationType.SUM);
+
+    String offsetDim0 = programStage.getUid() + "[0]." + dataElement.getUid();
+    String offsetDim1 = programStage.getUid() + "[1]." + dataElement.getUid();
+
+    // Force the dimension path to fall through to getQueryItem so the offset items land on
+    // params.getItems() with their RepeatableStageParams — matching production behaviour where
+    // dataQueryService.getDimension does not recognise stage-offset notation.
+    when(dataQueryService.getDimension(
+            eq(offsetDim0),
+            anyList(),
+            any(EventDataQueryRequest.class),
+            anyList(),
+            anyBoolean(),
+            any()))
+        .thenReturn(null);
+    when(dataQueryService.getDimension(
+            eq(offsetDim1),
+            anyList(),
+            any(EventDataQueryRequest.class),
+            anyList(),
+            anyBoolean(),
+            any()))
+        .thenReturn(null);
+
+    when(queryItemLocator.getQueryItemFromDimension(offsetDim0, program, EventOutputType.EVENT))
+        .thenAnswer(inv -> newOffsetItem(programStage, dataElement, 0, offsetDim0));
+    when(queryItemLocator.getQueryItemFromDimension(offsetDim1, program, EventOutputType.EVENT))
+        .thenAnswer(inv -> newOffsetItem(programStage, dataElement, 1, offsetDim1));
+
+    Set<Set<String>> dimension = new LinkedHashSet<>();
+    dimension.add(Set.of(offsetDim0));
+    dimension.add(Set.of(offsetDim1));
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT)
+            .dimension(dimension)
+            .headers(new LinkedHashSet<>(List.of(offsetDim0, offsetDim1)))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(2, params.getItems().size());
+    assertTrue(params.getDuplicateStageDimensionIdentifiers().isEmpty());
+  }
+
+  private QueryItem newOffsetItem(
+      ProgramStage stage, DataElement de, int offset, String dimension) {
+    QueryItem qi =
+        new QueryItem(
+            new BaseDimensionalItemObject(de.getUid()),
+            program,
+            null,
+            ValueType.NUMBER,
+            AggregationType.SUM,
+            null);
+    qi.setProgramStage(stage);
+    qi.setRepeatableStageParams(RepeatableStageParams.of(offset, dimension));
+    return qi;
   }
 
   @Test

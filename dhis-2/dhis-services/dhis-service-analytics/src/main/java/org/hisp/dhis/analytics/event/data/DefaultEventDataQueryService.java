@@ -427,16 +427,28 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   }
 
   /**
-   * Collects identifiers for every column the grid will already produce — both items and
-   * dimensions. Stage-prefixed categories / COGS land on {@code params.getDimensions()} (their
-   * {@code getDimension()} returns the full {@code stage.uid} key); items contribute their {@link
-   * #itemKey} form. Headers that match either are left to the existing column rather than promoted
-   * into a duplicate {@link QueryItem}.
+   * Collects identifiers for every column the grid will already produce, so a header naming any of
+   * them is left alone instead of being promoted into a duplicate {@link QueryItem}. Three forms
+   * are emitted per source:
+   *
+   * <ul>
+   *   <li>{@link #itemKey(QueryItem)} for each item — matches plain {@code stage.uid} headers.
+   *   <li>{@code RepeatableStageParams.getDimension()} for repeatable-stage offset items — matches
+   *       {@code stage[N].uid} headers, which would otherwise bypass dedup and trigger E7243.
+   *   <li>{@link DimensionalObject#getDimension()} for each dimension — matches stage-prefixed
+   *       categories / COGS that land on {@code params.getDimensions()} rather than items.
+   * </ul>
    */
   private static Set<String> collectExistingHeaderKeys(EventQueryParams.Builder params) {
     EventQueryParams built = params.build();
     Set<String> keys = new LinkedHashSet<>();
-    built.getItems().stream().map(DefaultEventDataQueryService::itemKey).forEach(keys::add);
+    for (QueryItem item : built.getItems()) {
+      keys.add(itemKey(item));
+      if (item.hasRepeatableStageParams()
+          && item.getRepeatableStageParams().getDimension() != null) {
+        keys.add(item.getRepeatableStageParams().getDimension());
+      }
+    }
     built.getDimensions().stream()
         .map(DimensionalObject::getDimension)
         .filter(Objects::nonNull)
