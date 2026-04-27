@@ -1462,8 +1462,7 @@ public class JdbcEventStore implements EventStore {
 
     String directDescendantsPredicate;
     if (isWithoutRegistrationQuery(params)) {
-      List<Long> descendantIds =
-          resolveDescendantOrgUnitIds(params.getOrgUnit().getStoredPath());
+      List<Long> descendantIds = resolveDescendantOrgUnitIds(params.getOrgUnit().getStoredPath());
       if (!descendantIds.isEmpty() && descendantIds.size() <= MAX_ORG_UNIT_IDS_FOR_IN_CLAUSE) {
         mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_IDS, descendantIds);
         directDescendantsPredicate =
@@ -1499,10 +1498,10 @@ public class JdbcEventStore implements EventStore {
       List<Long> childrenIds = resolveChildrenOrgUnitIds(params.getOrgUnit().getId());
       if (!childrenIds.isEmpty() && childrenIds.size() <= MAX_ORG_UNIT_IDS_FOR_IN_CLAUSE) {
         mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_IDS, childrenIds);
-        directChildrenPredicate =
-            " psi.organisationunitid IN (:" + COLUMN_ORG_UNIT_IDS + ")" + AND;
+        directChildrenPredicate = " psi.organisationunitid IN (:" + COLUMN_ORG_UNIT_IDS + ")" + AND;
       } else {
-        // OU not found in DB (empty resolver result) or unusually wide OU; fall back to scalar anchor + subquery
+        // OU not found in DB (empty resolver result) or unusually wide OU; fall back to scalar
+        // anchor + subquery
         directChildrenPredicate =
             " (psi.organisationunitid = :"
                 + COLUMN_ORG_UNIT_ID
@@ -1581,15 +1580,10 @@ public class JdbcEventStore implements EventStore {
         && params.getProgram().getProgramType() == ProgramType.WITHOUT_REGISTRATION;
   }
 
-  private boolean hasDateRange(EventQueryParams params) {
-    return params.getStartDate() != null || params.getEndDate() != null;
-  }
-
   private List<Long> resolveDescendantOrgUnitIds(String storedPath) {
     return jdbcTemplate.queryForList(
         "SELECT organisationunitid FROM organisationunit WHERE path LIKE CONCAT(:path, '%')",
-        new MapSqlParameterSource("path", storedPath),
-        Long.class);
+        new MapSqlParameterSource("path", storedPath), Long.class);
   }
 
   private List<Long> resolveChildrenOrgUnitIds(long ouId) {
