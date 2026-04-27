@@ -113,6 +113,10 @@ import org.springframework.util.Assert;
 public class DefaultEventDataQueryService implements EventDataQueryService {
   private static final String EVENT_DATE_DIMENSION = "EVENT_DATE";
 
+  private static final String EVENT_STATUS_DIMENSION = "EVENT_STATUS";
+
+  private static final String SCHEDULED_DATE_DIMENSION = "SCHEDULED_DATE";
+
   private static final String ENROLLMENT_OU_DIMENSION = "ENROLLMENT_OU";
   private static final String LEVEL_PREFIX = "LEVEL-";
 
@@ -502,6 +506,30 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       return true;
     }
 
+    if (enrollment && isStageEventStatusSuffix(suffix)) {
+      promoteStageDimension(
+          params,
+          request,
+          pr,
+          prefix,
+          EVENT_STATUS_DIMENSION,
+          EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME,
+          existingKeys);
+      return true;
+    }
+
+    if (enrollment && isStageScheduledDateSuffix(suffix)) {
+      promoteStageDimension(
+          params,
+          request,
+          pr,
+          prefix,
+          SCHEDULED_DATE_DIMENSION,
+          EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME,
+          existingKeys);
+      return true;
+    }
+
     return isStaticColumnSuffix(suffix);
   }
 
@@ -594,6 +622,14 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
 
   private static boolean isStageEventDateSuffix(String suffix) {
     return ColumnHeader.EVENT_DATE.getItem().equalsIgnoreCase(suffix);
+  }
+
+  private static boolean isStageEventStatusSuffix(String suffix) {
+    return ColumnHeader.EVENT_STATUS.getItem().equalsIgnoreCase(suffix);
+  }
+
+  private static boolean isStageScheduledDateSuffix(String suffix) {
+    return ColumnHeader.SCHEDULED_DATE.getItem().equalsIgnoreCase(suffix);
   }
 
   private static boolean isStaticColumnSuffix(String suffix) {

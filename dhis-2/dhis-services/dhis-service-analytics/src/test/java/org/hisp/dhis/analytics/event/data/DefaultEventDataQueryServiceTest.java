@@ -1263,6 +1263,70 @@ class DefaultEventDataQueryServiceTest {
   }
 
   @Test
+  void getFromRequestPromotesStageEventStatusDimensionFromStagePrefixedEventStatusHeader() {
+    ProgramStage programStage = createProgramStage('S', program);
+
+    QueryItem stageEventStatusItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME),
+            program,
+            null,
+            ValueType.TEXT,
+            AggregationType.NONE,
+            null);
+    stageEventStatusItem.setProgramStage(programStage);
+
+    String stageEventStatusDim = programStage.getUid() + ".EVENT_STATUS";
+    String stageEventStatusHeader = programStage.getUid() + ".eventstatus";
+
+    when(queryItemLocator.getQueryItemFromDimension(
+            stageEventStatusDim, program, EventOutputType.ENROLLMENT))
+        .thenReturn(stageEventStatusItem);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT).headers(Set.of(stageEventStatusHeader)).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+    assertEquals(
+        EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME, params.getItems().get(0).getItemId());
+    assertEquals(programStage.getUid(), params.getItems().get(0).getProgramStage().getUid());
+  }
+
+  @Test
+  void getFromRequestPromotesStageScheduledDateDimensionFromStagePrefixedScheduledDateHeader() {
+    ProgramStage programStage = createProgramStage('S', program);
+
+    QueryItem stageScheduledDateItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME),
+            program,
+            null,
+            ValueType.DATE,
+            AggregationType.NONE,
+            null);
+    stageScheduledDateItem.setProgramStage(programStage);
+
+    String stageScheduledDateDim = programStage.getUid() + ".SCHEDULED_DATE";
+    String stageScheduledDateHeader = programStage.getUid() + ".scheduleddate";
+
+    when(queryItemLocator.getQueryItemFromDimension(
+            stageScheduledDateDim, program, EventOutputType.ENROLLMENT))
+        .thenReturn(stageScheduledDateItem);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT).headers(Set.of(stageScheduledDateHeader)).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+    assertEquals(
+        EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME, params.getItems().get(0).getItemId());
+    assertEquals(programStage.getUid(), params.getItems().get(0).getProgramStage().getUid());
+  }
+
+  @Test
   void getFromRequestRejectsNonNumericAndNonBooleanValueTypes() {
     DataElement textElement = createDataElement('X', ValueType.TEXT, AggregationType.NONE);
     DataElement dateElement = createDataElement('D', ValueType.DATE, AggregationType.NONE);
