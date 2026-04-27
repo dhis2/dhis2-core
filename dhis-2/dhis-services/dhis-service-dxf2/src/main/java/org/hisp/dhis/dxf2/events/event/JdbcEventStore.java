@@ -1502,7 +1502,7 @@ public class JdbcEventStore implements EventStore {
         directChildrenPredicate =
             " psi.organisationunitid IN (:" + COLUMN_ORG_UNIT_IDS + ")" + AND;
       } else {
-        // Empty list (leaf OU) or unusually wide OU; fall back to scalar anchor + subquery
+        // OU not found in DB (empty resolver result) or unusually wide OU; fall back to scalar anchor + subquery
         directChildrenPredicate =
             " (psi.organisationunitid = :"
                 + COLUMN_ORG_UNIT_ID
