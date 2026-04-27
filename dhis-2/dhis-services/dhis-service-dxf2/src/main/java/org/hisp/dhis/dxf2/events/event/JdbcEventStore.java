@@ -210,6 +210,10 @@ public class JdbcEventStore implements EventStore {
 
   private static final String COLUMN_ORG_UNIT_ID = "ou_id";
 
+  private static final String COLUMN_ORG_UNIT_IDS = "ou_ids";
+
+  private static final int MAX_ORG_UNIT_IDS_FOR_IN_CLAUSE = 1_000;
+
   private static final String USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY =
       " ou.path like CONCAT(orgunit.path, '%') ";
 
@@ -1569,6 +1573,21 @@ public class JdbcEventStore implements EventStore {
 
   private boolean hasDateRange(EventQueryParams params) {
     return params.getStartDate() != null || params.getEndDate() != null;
+  }
+
+  private List<Long> resolveDescendantOrgUnitIds(String storedPath) {
+    return jdbcTemplate.queryForList(
+        "SELECT organisationunitid FROM organisationunit WHERE path LIKE CONCAT(:path, '%')",
+        new MapSqlParameterSource("path", storedPath),
+        Long.class);
+  }
+
+  private List<Long> resolveChildrenOrgUnitIds(long ouId) {
+    return jdbcTemplate.queryForList(
+        "SELECT organisationunitid FROM organisationunit"
+            + " WHERE organisationunitid = :ouId OR parentid = :ouId",
+        new MapSqlParameterSource("ouId", ouId),
+        Long.class);
   }
 
   private static String getSearchAndCaptureScopeOrgUnitPathMatchQuery(String orgUnitMatcher) {
