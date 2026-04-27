@@ -395,14 +395,20 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
   }
 
   /**
-   * Promotes each {@code headers=} entry of the form {@code {stageUid}.{itemUid}} into a {@link
-   * QueryItem} when it doesn't already exist as a dimension or item and its suffix isn't a known
-   * static column. This lets clients request stage-scoped data element / attribute columns without
-   * having to repeat them in {@code dimension=}. On the enrollment endpoint, stage-scoped static
-   * column headers (e.g. {@code {stageUid}.ouname}, {@code {stageUid}.eventdate}) are promoted by
-   * synthesising the corresponding unfiltered stage dimension item so the CTE generator emits the
-   * matching output column. Resolver failures are swallowed so unresolvable suffixes surface as
-   * E7230 downstream in the usual way.
+   * Promotes a {@code headers=} entry into a {@link QueryItem} when it isn't already present as a
+   * dimension or item and isn't a known static column. Two shapes are supported:
+   *
+   * <ul>
+   *   <li>{@code {stageUid}.{itemUid}} — stage-scoped data element / attribute. On the enrollment
+   *       endpoint, stage-scoped static column headers (e.g. {@code {stageUid}.ouname}, {@code
+   *       {stageUid}.eventdate}) are promoted by synthesising the corresponding unfiltered stage
+   *       dimension item so the CTE generator emits the matching output column.
+   *   <li>Flat {@code itemUid} — program-level tracked entity attribute or data element. Only
+   *       promoted on query endpoints; aggregate endpoints don't use {@code headers=} this way.
+   * </ul>
+   *
+   * <p>Resolver failures are swallowed so truly unknown headers surface as E7230 downstream in the
+   * usual way.
    */
   private void addHeaderOnlyItemsToParams(
       EventQueryParams.Builder params, EventDataQueryRequest request, Program pr) {
@@ -411,64 +417,130 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       return;
     }
 
-    Set<String> existingKeys =
-        params.build().getItems().stream()
-            .map(DefaultEventDataQueryService::itemKey)
-            .collect(Collectors.toSet());
-
-    boolean enrollment = request.getEndpointItem() == RequestTypeAware.EndpointItem.ENROLLMENT;
+    Set<String> existingKeys = collectExistingHeaderKeys(params);
 
     for (String header : headers) {
-      int dot = header.lastIndexOf('.');
-      if (dot <= 0 || dot >= header.length() - 1) {
-        continue;
-      }
+      if (handleStagePrefixedSpecialCase(header, params, request, pr, existingKeys)) continue;
+      if (shouldSkipHeader(header, request)) continue;
+      promoteHeaderToItem(header, params, request, pr, existingKeys);
+    }
+  }
 
-      String prefix = header.substring(0, dot);
-      String suffix = header.substring(dot + 1);
+  /**
+   * Collects identifiers for every column the grid will already produce — both items and
+   * dimensions. Stage-prefixed categories / COGS land on {@code params.getDimensions()} (their
+   * {@code getDimension()} returns the full {@code stage.uid} key); items contribute their {@link
+   * #itemKey} form. Headers that match either are left to the existing column rather than promoted
+   * into a duplicate {@link QueryItem}.
+   */
+  private static Set<String> collectExistingHeaderKeys(EventQueryParams.Builder params) {
+    EventQueryParams built = params.build();
+    Set<String> keys = new LinkedHashSet<>();
+    built.getItems().stream().map(DefaultEventDataQueryService::itemKey).forEach(keys::add);
+    built.getDimensions().stream()
+        .map(DimensionalObject::getDimension)
+        .filter(Objects::nonNull)
+        .forEach(keys::add);
+    return keys;
+  }
 
-      if (enrollment && isStageOuHelperSuffix(suffix)) {
-        promoteStageDimension(
-            params,
-            request,
-            pr,
-            prefix,
-            EventAnalyticsColumnName.OU_COLUMN_NAME,
-            EventAnalyticsColumnName.OU_COLUMN_NAME,
-            existingKeys);
-        continue;
-      }
+  /**
+   * Handles every stage-prefixed shape that should short-circuit the main loop: enrollment-only OU
+   * helpers and {@code eventdate} (which synthesise a stage dimension), and any stage-prefixed
+   * static column header (which is left to natural grid resolution). Returns {@code true} when the
+   * header was claimed and the caller should {@code continue}; {@code false} otherwise — including
+   * for stage-prefixed real items, which fall through to the generic promotion path.
+   */
+  private boolean handleStagePrefixedSpecialCase(
+      String header,
+      EventQueryParams.Builder params,
+      EventDataQueryRequest request,
+      Program pr,
+      Set<String> existingKeys) {
+    if (!isStagePrefixed(header)) {
+      return false;
+    }
 
-      if (enrollment && isStageEventDateSuffix(suffix)) {
-        promoteStageDimension(
-            params,
-            request,
-            pr,
-            prefix,
-            EVENT_DATE_DIMENSION,
-            EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
-            existingKeys);
-        continue;
-      }
+    int dot = header.lastIndexOf('.');
+    String prefix = header.substring(0, dot);
+    String suffix = header.substring(dot + 1);
+    boolean enrollment = request.getEndpointItem() == RequestTypeAware.EndpointItem.ENROLLMENT;
 
-      if (isStaticColumnSuffix(suffix)) {
-        continue;
-      }
+    if (enrollment && isStageOuHelperSuffix(suffix)) {
+      promoteStageDimension(
+          params,
+          request,
+          pr,
+          prefix,
+          EventAnalyticsColumnName.OU_COLUMN_NAME,
+          EventAnalyticsColumnName.OU_COLUMN_NAME,
+          existingKeys);
+      return true;
+    }
 
-      if (existingKeys.contains(header)) {
-        continue;
-      }
+    if (enrollment && isStageEventDateSuffix(suffix)) {
+      promoteStageDimension(
+          params,
+          request,
+          pr,
+          prefix,
+          EVENT_DATE_DIMENSION,
+          EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
+          existingKeys);
+      return true;
+    }
 
-      try {
-        QueryItem queryItem =
-            getQueryItem(header, pr, request.getOutputType(), request.getRelativePeriodDate());
-        if (queryItem != null) {
-          params.addItem(queryItem);
-          existingKeys.add(itemKey(queryItem));
-        }
-      } catch (IllegalQueryException ignored) {
-        // Let the downstream grid retain check surface the usual E7230 for truly unknown headers.
+    return isStaticColumnSuffix(suffix);
+  }
+
+  /**
+   * Returns {@code true} for flat headers that should be ignored — non-query endpoints (aggregate
+   * doesn't use {@code headers=} this way) and static {@link ColumnHeader} names that the grid
+   * already produces. Stage-prefixed headers always return {@code false} here; they're handled by
+   * {@link #handleStagePrefixedSpecialCase}.
+   */
+  private static boolean shouldSkipHeader(String header, EventDataQueryRequest request) {
+    if (isStagePrefixed(header)) {
+      return false;
+    }
+    if (request.getEndpointAction() != RequestTypeAware.EndpointAction.QUERY) {
+      return true;
+    }
+    return isStaticColumnSuffix(header);
+  }
+
+  /**
+   * Returns {@code true} when the header has the {@code {stageUid}.{suffix}} shape — i.e. an
+   * interior dot with non-empty text on both sides. A leading or trailing dot doesn't count.
+   */
+  private static boolean isStagePrefixed(String header) {
+    int dot = header.lastIndexOf('.');
+    return dot > 0 && dot < header.length() - 1;
+  }
+
+  /**
+   * Resolves the header against {@link #getQueryItem} and adds the resulting {@link QueryItem} to
+   * the params, skipping headers already present in {@code existingKeys}. {@link
+   * IllegalQueryException}s are swallowed so unresolvable headers surface as E7230 downstream.
+   */
+  private void promoteHeaderToItem(
+      String header,
+      EventQueryParams.Builder params,
+      EventDataQueryRequest request,
+      Program pr,
+      Set<String> existingKeys) {
+    if (existingKeys.contains(header)) {
+      return;
+    }
+    try {
+      QueryItem queryItem =
+          getQueryItem(header, pr, request.getOutputType(), request.getRelativePeriodDate());
+      if (queryItem != null) {
+        params.addItem(queryItem);
+        existingKeys.add(itemKey(queryItem));
       }
+    } catch (IllegalQueryException ignored) {
+      // Let the downstream grid retain check surface the usual E7230 for truly unknown headers.
     }
   }
 

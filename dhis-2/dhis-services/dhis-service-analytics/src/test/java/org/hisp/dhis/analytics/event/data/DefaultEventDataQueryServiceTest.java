@@ -1011,6 +1011,157 @@ class DefaultEventDataQueryServiceTest {
   }
 
   @Test
+  void getFromRequestPromotesFlatTrackedEntityAttributeHeaderIntoItem() {
+    QueryItem teaItem =
+        new QueryItem(
+            new BaseDimensionalItemObject("cejWyOfXge6"),
+            program,
+            null,
+            ValueType.TEXT,
+            AggregationType.NONE,
+            null);
+
+    when(queryItemLocator.getQueryItemFromDimension("cejWyOfXge6", program, EventOutputType.EVENT))
+        .thenReturn(teaItem);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).headers(Set.of("cejWyOfXge6")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+    assertEquals("cejWyOfXge6", params.getItems().get(0).getItemId());
+  }
+
+  @Test
+  void getFromRequestPromotesFlatTrackedEntityAttributeHeaderForEnrollmentEndpoint() {
+    QueryItem teaItem =
+        new QueryItem(
+            new BaseDimensionalItemObject("cejWyOfXge6"),
+            program,
+            null,
+            ValueType.TEXT,
+            AggregationType.NONE,
+            null);
+
+    when(queryItemLocator.getQueryItemFromDimension(
+            "cejWyOfXge6", program, EventOutputType.ENROLLMENT))
+        .thenReturn(teaItem);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, ENROLLMENT).headers(Set.of("cejWyOfXge6")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+    assertEquals("cejWyOfXge6", params.getItems().get(0).getItemId());
+  }
+
+  @Test
+  void getFromRequestDoesNotPromoteFlatHeaderWhenStaticColumn() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).headers(Set.of("eventdate")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.getItems().isEmpty());
+    verify(queryItemLocator, times(0)).getQueryItemFromDimension(eq("eventdate"), any(), any());
+  }
+
+  @Test
+  void getFromRequestDoesNotPromoteFlatHeaderAlreadyPresentAsItem() {
+    QueryItem teaItem =
+        new QueryItem(
+            new BaseDimensionalItemObject("cejWyOfXge6"),
+            program,
+            null,
+            ValueType.TEXT,
+            AggregationType.NONE,
+            null);
+
+    when(queryItemLocator.getQueryItemFromDimension("cejWyOfXge6", program, EventOutputType.EVENT))
+        .thenReturn(teaItem);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT)
+            .dimension(Set.of(Set.of("cejWyOfXge6")))
+            .headers(Set.of("cejWyOfXge6"))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertEquals(1, params.getItems().size());
+  }
+
+  @Test
+  void getFromRequestSwallowsLocatorFailureForUnresolvableFlatHeader() {
+    when(queryItemLocator.getQueryItemFromDimension("notReal", program, EventOutputType.EVENT))
+        .thenThrow(new IllegalQueryException(ErrorCode.E7224, "notReal"));
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT).headers(Set.of("notReal")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.getItems().isEmpty());
+  }
+
+  @Test
+  void getFromRequestDoesNotPromoteStagePrefixedHeaderAlreadyPresentAsDimension() {
+    // Stage-prefixed category / COGS dimensions are stored on params.getDimensions(), not on
+    // params.getItems(). The header dedup must still recognise them so we don't synthesise a
+    // duplicate (and value-type-less) QueryItem that crashes downstream grid header building.
+    String stageCategory = "kO3z4Dhc038.LFsZ8v5v7rq";
+
+    BaseDimensionalObject stageCategoryDim = new BaseDimensionalObject();
+    stageCategoryDim.setUid(stageCategory);
+    stageCategoryDim.setDimensionType(DimensionType.CATEGORY);
+    stageCategoryDim.setDimensionName("LFsZ8v5v7rq");
+
+    when(dataQueryService.getDimension(
+            eq(stageCategory),
+            anyList(),
+            any(EventDataQueryRequest.class),
+            anyList(),
+            anyBoolean(),
+            any()))
+        .thenReturn(stageCategoryDim);
+
+    EventDataQueryRequest request =
+        baseRequestBuilder(QUERY, EVENT)
+            .dimension(Set.of(Set.of(stageCategory + ":CW81uF03hvV;B3nxOazOO2G")))
+            .headers(Set.of(stageCategory))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.getItems().isEmpty());
+    verify(queryItemLocator, times(0)).getQueryItemFromDimension(eq(stageCategory), any(), any());
+  }
+
+  @Test
+  void getFromRequestDoesNotPromoteFlatHeaderOnEventAggregateEndpoint() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, EVENT).headers(Set.of("cejWyOfXge6")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.getItems().isEmpty());
+    verify(queryItemLocator, times(0)).getQueryItemFromDimension(eq("cejWyOfXge6"), any(), any());
+  }
+
+  @Test
+  void getFromRequestDoesNotPromoteFlatHeaderOnEnrollmentAggregateEndpoint() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, ENROLLMENT).headers(Set.of("cejWyOfXge6")).build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    assertTrue(params.getItems().isEmpty());
+    verify(queryItemLocator, times(0)).getQueryItemFromDimension(eq("cejWyOfXge6"), any(), any());
+  }
+
+  @Test
   void getFromRequestPromotesStageEventDateDimensionFromStagePrefixedEventDateHeader() {
     ProgramStage programStage = createProgramStage('S', program);
 
