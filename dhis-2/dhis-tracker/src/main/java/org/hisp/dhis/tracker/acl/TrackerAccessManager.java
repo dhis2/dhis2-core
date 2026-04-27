@@ -31,7 +31,6 @@ package org.hisp.dhis.tracker.acl;
 
 import java.util.List;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.Relationship;
@@ -44,6 +43,7 @@ import org.hisp.dhis.user.UserDetails;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface TrackerAccessManager {
+
   /**
    * Checks data read access to the TET and ownership of a tracked entity across programs for which
    * the user has data read access.
@@ -147,23 +147,18 @@ public interface TrackerAccessManager {
   /** Like {@link #canCreate(UserDetails, TrackerEvent)}. */
   List<ErrorMessage> canDelete(UserDetails user, TrackerEvent event);
 
-  List<String> canRead(UserDetails user, SingleEvent event);
+  List<ErrorMessage> canRead(UserDetails user, SingleEvent event);
 
-  List<String> canCreate(UserDetails user, SingleEvent event);
+  List<ErrorMessage> canCreate(UserDetails user, SingleEvent event);
+
+  List<ErrorMessage> canUpdate(
+      @Nonnull UserDetails user, SingleEvent event, @Nonnull OrganisationUnit orgUnit);
+
+  List<ErrorMessage> canDelete(@Nonnull UserDetails user, SingleEvent event);
 
   List<String> canRead(UserDetails user, Relationship relationship);
 
   List<String> canCreate(UserDetails user, Relationship relationship);
 
   List<String> canDelete(UserDetails user, @Nonnull Relationship relationship);
-
-  /**
-   * Checks the sharing read access to EventDataValue
-   *
-   * @param user User validated for write access
-   * @param event SingleEvent under which the EventDataValue belongs
-   * @param dataElement DataElement of EventDataValue
-   * @return Empty list if read access allowed, list of errors otherwise.
-   */
-  List<String> canRead(UserDetails user, SingleEvent event, DataElement dataElement);
 }
