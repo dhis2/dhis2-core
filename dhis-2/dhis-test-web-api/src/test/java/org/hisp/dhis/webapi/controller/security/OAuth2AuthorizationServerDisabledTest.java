@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,31 +27,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.condition;
+package org.hisp.dhis.webapi.controller.security;
 
-import static org.hisp.dhis.commons.util.SystemUtils.isOAuth2AuthorizationServerTest;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
+import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Gate for the Spring Authorization Server and its supporting beans.
+ * Confirms the OAuth2 Authorization Server surface is disabled on 2.43.0. The DCR enrollment
+ * endpoint is unreachable (404) because it is gated by {@code AuthorizationServerEnabledCondition}.
+ * The three CRUD/list controllers are superuser-only — non-admins get 403.
  *
- * <p>The OAuth2 Authorization Server is disabled in 2.43.0. The {@code
- * oauth2-authorization-server-test} profile is still honored so the existing test suite can
- * exercise the feature locally, and the {@code oauth2.server.enabled} dhis.conf key is ignored for
- * this release.
- *
- * @author Morten Svanæs
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class AuthorizationServerEnabledCondition extends PropertiesAwareConfigurationCondition {
-  @Override
-  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    return isOAuth2AuthorizationServerTest(context.getEnvironment().getActiveProfiles());
+@Transactional
+class OAuth2AuthorizationServerDisabledTest extends H2ControllerIntegrationTestBase {
+
+  @Test
+  void dcrEnrollDevice_returns404() {
+    assertEquals(HttpStatus.NOT_FOUND, GET("/enrollDevice?client_id=x").status());
   }
 
-  @Override
-  public ConfigurationPhase getConfigurationPhase() {
-    return ConfigurationPhase.REGISTER_BEAN;
+  @Test
+  void oauth2Clients_nonAdmin_returns403() {
+    switchToNewUser("guest-clients");
+    assertEquals(HttpStatus.FORBIDDEN, GET("/oAuth2Clients").status());
+  }
+
+  @Test
+  void oauth2Authorizations_nonAdmin_returns403() {
+    switchToNewUser("guest-auth");
+    assertEquals(HttpStatus.FORBIDDEN, GET("/oAuth2Authorizations").status());
+  }
+
+  @Test
+  void oauth2AuthorizationConsents_nonAdmin_returns403() {
+    switchToNewUser("guest-consent");
+    assertEquals(HttpStatus.FORBIDDEN, GET("/oAuth2AuthorizationConsents").status());
   }
 }

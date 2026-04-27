@@ -29,9 +29,12 @@
  */
 package org.hisp.dhis.webapi.controller.security.oauth;
 
+import static org.hisp.dhis.security.Authorities.ALL;
+
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
@@ -42,13 +45,15 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * Controller for managing OAuth2 clients for the DHIS2 OAuth2 authorization server.
+ * Controller for managing OAuth2 clients for the DHIS2 OAuth2 authorization server. Superuser-only
+ * for 2.43.0; the persisted clients are inert because the authorization server itself is disabled.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Controller
 @RequestMapping({"/api/oAuth2Clients"})
 @RequiredArgsConstructor
+@RequiresAuthority(anyOf = ALL)
 public class OAuth2ClientController
     extends AbstractCrudController<Dhis2OAuth2Client, GetObjectListParams> {
 
