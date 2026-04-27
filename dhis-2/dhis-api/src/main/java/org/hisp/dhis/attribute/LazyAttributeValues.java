@@ -36,6 +36,8 @@ import static java.util.Arrays.copyOfRange;
 import static org.hisp.dhis.jsontree.JsonBuilder.createArray;
 import static org.hisp.dhis.jsontree.JsonBuilder.createObject;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
@@ -380,5 +382,23 @@ final class LazyAttributeValues implements AttributeValues {
   @Override
   public String toString() {
     return toObjectJson();
+  }
+
+  /*
+  Serialisation
+  */
+
+  @Serial
+  public Object writeReplace() {
+    return new SerializedAttributeValues(toString());
+  }
+
+  record SerializedAttributeValues(String json) implements Serializable {
+    @Serial private static final long serialVersionUID = 1L;
+
+    @Serial
+    private Object readResolve() {
+      return of(json);
+    }
   }
 }

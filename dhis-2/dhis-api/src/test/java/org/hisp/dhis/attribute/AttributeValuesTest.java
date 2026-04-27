@@ -44,6 +44,7 @@ import java.util.function.BiConsumer;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.jsontree.Text;
 import org.junit.jupiter.api.Test;
+import org.springframework.util.SerializationUtils;
 
 /**
  * Unit test for {@link LazyAttributeValues} implementation.
@@ -221,5 +222,12 @@ class AttributeValuesTest {
     assertEquals(
         "[{\"value\":\"d\",\"attribute\":{\"id\":\"c\"}},{\"value\":\"y\",\"attribute\":{\"id\":\"x\"}}]",
         AttributeValues.of(Map.of("x", "y", "c", "d")).toArrayJson());
+  }
+
+  @Test
+  void testSerialisation() {
+    AttributeValues values = AttributeValues.of(Map.of("a", "b", "c", "d"));
+    AttributeValues copy = SerializationUtils.clone(values);
+    assertEquals(values, copy);
   }
 }

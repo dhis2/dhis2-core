@@ -131,7 +131,8 @@ public class GeoJsonAttributesCheck implements ObjectValidationCheck {
     object
         .getAttributeValues()
         .forEach(
-            (attributeId, value) -> {
+            (key, value) -> {
+              String attributeId = key.toString();
               if (attributes.contains(attributeId))
                 validateGeoJsonValue(attributeId, value, errorReports::add);
             });
@@ -148,8 +149,8 @@ public class GeoJsonAttributesCheck implements ObjectValidationCheck {
    * @param value the validated value for the attribute with the provided ID
    * @param addError ErrorReport consumer.
    */
-  private void validateGeoJsonValue(Text key, Text value, Consumer<ErrorReport> addError) {
-    String attributeId = key.toString();
+  private void validateGeoJsonValue(
+      String attributeId, Text value, Consumer<ErrorReport> addError) {
     String attributeValue = value.toString();
     try {
       validateGeoJsonObject(
