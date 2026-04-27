@@ -1460,22 +1460,22 @@ public class JdbcEventStore implements EventStore {
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
-    // WITHOUT_REGISTRATION + date range: filter directly on psi.organisationunitid so the planner
-    // can drive the scan from the composite index on (organisationunitid, programstageid,
-    // executiondate). Without a date range the planner instead uses idx_psi_lastupdated_desc with
-    // ORDER BY lastupdated DESC LIMIT n, scanning newest-first and stopping early — adding the IN
-    // subquery here breaks that strategy and forces a full seq scan + sort.
-    // WITH_REGISTRATION: filter on ou.path which resolves to po.organisationunitid via the
-    // sargable INNER JOIN on TPO — psi.organisationunitid is provenance, not ownership.
-    String directDescendantsPredicate =
-        isWithoutRegistrationQuery(params) && hasDateRange(params)
-            ? " psi.organisationunitid IN ("
-                + "SELECT organisationunitid FROM organisationunit "
-                + "WHERE path LIKE CONCAT(:"
-                + COLUMN_ORG_UNIT_PATH
-                + ", '%'))"
-                + AND
-            : CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + AND;
+    String directDescendantsPredicate;
+    if (isWithoutRegistrationQuery(params)) {
+      List<Long> descendantIds =
+          resolveDescendantOrgUnitIds(params.getOrgUnit().getStoredPath());
+      if (!descendantIds.isEmpty() && descendantIds.size() <= MAX_ORG_UNIT_IDS_FOR_IN_CLAUSE) {
+        mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_IDS, descendantIds);
+        directDescendantsPredicate =
+            " psi.organisationunitid IN (:" + COLUMN_ORG_UNIT_IDS + ")" + AND;
+      } else {
+        // Subtree too large for JDBC IN-list; fall back to path scan (relies on lastupdated index)
+        directDescendantsPredicate = CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + AND;
+      }
+    } else {
+      // WITH_REGISTRATION: filter via ou.path resolved through the TPO join
+      directDescendantsPredicate = CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + AND;
+    }
 
     if (isProgramRestricted(params.getProgram())) {
       return directDescendantsPredicate
