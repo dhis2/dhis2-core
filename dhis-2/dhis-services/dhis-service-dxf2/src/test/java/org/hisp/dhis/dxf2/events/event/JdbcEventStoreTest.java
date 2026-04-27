@@ -35,7 +35,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -215,7 +217,7 @@ class JdbcEventStoreTest {
     when(currentUserService.getCurrentUser()).thenReturn(new User());
 
     when(namedParameterJdbcTemplate.queryForList(
-            anyString(), any(MapSqlParameterSource.class), eq(Long.class)))
+            contains("CONCAT(:path"), any(MapSqlParameterSource.class), eq(Long.class)))
         .thenReturn(List.of(1L, 2L, 3L));
 
     ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
@@ -251,7 +253,7 @@ class JdbcEventStoreTest {
 
     List<Long> largeList = LongStream.rangeClosed(1, 1001).boxed().collect(Collectors.toList());
     when(namedParameterJdbcTemplate.queryForList(
-            anyString(), any(MapSqlParameterSource.class), eq(Long.class)))
+            contains("CONCAT(:path"), any(MapSqlParameterSource.class), eq(Long.class)))
         .thenReturn(largeList);
 
     ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
@@ -287,7 +289,7 @@ class JdbcEventStoreTest {
     when(currentUserService.getCurrentUser()).thenReturn(new User());
 
     when(namedParameterJdbcTemplate.queryForList(
-            anyString(), any(MapSqlParameterSource.class), eq(Long.class)))
+            contains("parentid = :ouId"), any(MapSqlParameterSource.class), eq(Long.class)))
         .thenReturn(List.of(100L, 101L));
 
     ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
@@ -324,6 +326,10 @@ class JdbcEventStoreTest {
     when(namedParameterJdbcTemplate.queryForObject(
             anyString(), any(MapSqlParameterSource.class), ArgumentMatchers.<Class<Integer>>any()))
         .thenReturn(0);
+
+    doThrow(new IllegalStateException("resolver must not be called for WITH_REGISTRATION"))
+        .when(namedParameterJdbcTemplate)
+        .queryForList(anyString(), any(MapSqlParameterSource.class), eq(Long.class));
 
     subject.getEventCount(params);
 
