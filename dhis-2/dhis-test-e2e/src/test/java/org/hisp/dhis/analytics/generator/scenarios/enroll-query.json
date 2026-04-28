@@ -167,6 +167,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "ouMultipleLevels",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT;LEVEL-wjP19dkFeIk;LEVEL-tTUf91fCytl;LEVEL-m9lBJogzE95&headers=ouname,lastupdated&totalPages=false&rowContext=true&lastUpdated=201707&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT",
+      "version": {
+        "min": 41
+      }
     }
   ]
 }
