@@ -481,7 +481,8 @@ public class DefaultQueryPlanner implements QueryPlanner {
     if (isNotEmpty(params.getDataElements())) {
       ListMap<AnalyticsAggregationType, DimensionalItemObject> aggregationTypeDataElementMap =
           QueryPlannerUtils.getAggregationTypeDataElementMap(
-              params.getDataElements(), params.getAggregationType(), params.getPeriodType());
+              params.getDataElements(), params.getAggregationType(), params.getPeriodType(),
+              params.getDataElementPeriodTypes());
 
       for (AnalyticsAggregationType aggregationType : aggregationTypeDataElementMap.keySet()) {
         DataQueryParams query =
@@ -520,7 +521,8 @@ public class DefaultQueryPlanner implements QueryPlanner {
           QueryPlannerUtils.getAggregationTypeDataElementMap(
               params.getFilterOptions(DATA_X_DIM_ID, DataDimensionItemType.DATA_ELEMENT),
               params.getAggregationType(),
-              params.getPeriodType());
+              params.getPeriodType(),
+              params.getDataElementPeriodTypes());
 
       for (AnalyticsAggregationType aggregationType : aggregationTypeDataElementMap.keySet()) {
         DataQueryParams query =
@@ -638,7 +640,8 @@ public class DefaultQueryPlanner implements QueryPlanner {
 
     if (params.isDisaggregation() && isNotEmpty(params.getDataElements())) {
       ListMap<PeriodType, DimensionalItemObject> periodTypeDataElementMap =
-          QueryPlannerUtils.getPeriodTypeDataElementMap(params.getDataElements());
+          QueryPlannerUtils.getPeriodTypeDataElementMap(
+              params.getDataElements(), params.getDataElementPeriodTypes());
 
       for (PeriodType periodType : periodTypeDataElementMap.keySet()) {
         DataQueryParams query =
