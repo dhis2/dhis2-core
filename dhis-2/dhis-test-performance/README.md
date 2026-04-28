@@ -41,8 +41,8 @@ Test results are saved to `target/gatling/<simulation-class>-<timestamp>/`:
 ### Analysis
 
 * Look at Gatling's own `index.html`
-* If it doesn't provide the analysis you need, try [gatling-statistics](https://github.com/dhis2/gatling-statistics)
 * Analyze `gc.log` with [Eclipse Jifa](https://github.com/eclipse-jifa/jifa) (`bash jifa.sh gc.log`)
+* If `index.html` doesn't provide the analysis you need, try [gatling-statistics](https://github.com/dhis2/gatling-statistics)
 * To compare two runs (e.g. baseline vs feature branch), use
 [gstat](https://github.com/dhis2/gatling-statistics) directly:
 
