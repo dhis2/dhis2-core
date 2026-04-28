@@ -53,9 +53,11 @@ gstat compare \
 ```
 
 This prints a GitHub markdown table of p50/p95 differences between the two runs. This table can be
-useful to include in your PR review. `gstat compare` also accepts directories containing multiple
-runs per side (percentiles are computed over the combined sample) and supports `--exclude warmup`
-to drop warmup runs.
+useful to include in your PR review. Each side may also be a directory containing multiple
+`<simulation>-<timestamp>` runs; gstat then computes percentiles over the combined sample for that
+side automatically (same behavior as `gstat --combine` for non-compare output, but always on for
+`compare` since a row per request needs a single value per side). Pass `--exclude warmup` to drop
+warmup runs.
 
 `gstat` percentiles are computed over the full sample, not Gatling's `index.html` t-digest, so they
 may differ slightly from the numbers shown in Gatling's HTML report. If exact parity with Gatling's
