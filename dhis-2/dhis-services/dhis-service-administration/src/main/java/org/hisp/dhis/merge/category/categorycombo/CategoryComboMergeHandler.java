@@ -78,7 +78,7 @@ public class CategoryComboMergeHandler {
    */
   public void handleCategories(List<CategoryCombo> sources, CategoryCombo target) {
     for (CategoryCombo source : sources) {
-      for (Category category : source.getCategories()) {
+      for (Category category : List.copyOf(source.getCategories())) {
         category.removeCategoryCombo(source);
       }
     }

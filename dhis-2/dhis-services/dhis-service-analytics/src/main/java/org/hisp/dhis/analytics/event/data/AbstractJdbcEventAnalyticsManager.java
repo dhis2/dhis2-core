@@ -1921,9 +1921,128 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     return organisationUnitResolver.buildStageOuCteContext(item, params);
   }
 
-  /** Returns the column name associated with the CTE */
-  protected abstract String getColumnWithCte(
-      QueryItem item, CteContext cteContext, EventQueryParams params);
+  /**
+   * Builds the SELECT-clause fragment for a CTE-backed {@link QueryItem}.
+   *
+   * <p>Each CTE-backed item contributes one required column and up to four optional helper columns,
+   * joined with commas and newlines. The general shape of the output is:
+   *
+   * <pre>
+   *   &lt;cteAlias&gt;.value as "alias"
+   *   [, &lt;cteAlias&gt;.ev_ouname as "stageUid.ouname"]              // stage.ou dimensions only
+   *   [, &lt;cteAlias&gt;.ev_oucode as "stageUid.oucode"]              // stage.ou dimensions only
+   *   [, coalesce(&lt;cteAlias&gt;.rn = N, false) as "alias.exists"]   // row-context CTEs only
+   *   [, &lt;cteAlias&gt;.eventstatus as "alias.status"]               // row-context CTEs only
+   * </pre>
+   *
+   * <p>The {@code value} column's alias is resolved via {@link #getAlias(QueryItem)}, falling back
+   * to {@code programStageUid.itemId} when no explicit alias is set. The CTE alias itself is
+   * offset-aware (see {@link #computeRowNumberOffset(int)}): a negative program-stage offset is
+   * translated into a positive row-number position, so the same CTE can serve several occurrences
+   * of a repeatable stage.
+   *
+   * <p><b>Stage-OU dimensions.</b> When {@link #isStageOuDimension(QueryItem)} is true and the
+   * query declares headers, the {@code ouname} and {@code oucode} helper columns are emitted only
+   * when the corresponding headers ({@code stageUid.ouname}, {@code stageUid.oucode}) are
+   * requested. Missing headers mean the caller does not want that data, so emitting the columns
+   * unconditionally would produce unused SELECT output.
+   *
+   * <p><b>Row context.</b> When the backing {@link CteDefinition} is a row-context CTE (see {@link
+   * CteDefinition#isRowContext()}), two metadata columns are appended:
+   *
+   * <ul>
+   *   <li>{@code alias.exists} — {@code true} iff the CTE row number matches the requested offset
+   *       (i.e. the event actually existed at that offset), otherwise {@code false}. Implemented
+   *       with {@code coalesce(rn = N, false)} so a missing join row yields {@code false} rather
+   *       than {@code null}.
+   *   <li>{@code alias.status} — the raw {@code eventstatus} from the CTE, letting callers
+   *       distinguish scheduled vs. completed events when populating row-context metadata.
+   * </ul>
+   *
+   * @param item the {@link QueryItem} whose CTE-backed column(s) should be emitted; must have a
+   *     program stage.
+   * @param cteContext the current {@link CteContext} — must contain a {@link CteDefinition}
+   *     registered for the item's CTE key (see {@link CteUtils#computeKey(QueryItem)}).
+   * @param params the current {@link EventQueryParams}, used to look up requested headers for the
+   *     optional stage-OU expansion.
+   * @return the comma+newline-joined SELECT-clause fragment for this item; never {@code null}.
+   * @throws IllegalQueryException with {@link ErrorCode#E7148} if no {@link CteDefinition} exists
+   *     for the item's CTE key in the supplied context.
+   */
+  protected String getColumnWithCte(
+      QueryItem item, CteContext cteContext, EventQueryParams params) {
+    CteDefinition cteDef = cteContext.getDefinitionByItemUid(CteUtils.computeKey(item));
+    if (cteDef == null) {
+      throw new IllegalQueryException(ErrorCode.E7148, item.getItemId());
+    }
+    int offset = computeRowNumberOffset(item.getProgramStageOffset());
+    String cteAlias = cteDef.getAlias(offset);
+    // For a non-repeatable stage the alias falls back to "<programStage>.<itemId>".
+    String valueAlias =
+        getAlias(item).orElse("%s.%s".formatted(item.getProgramStage().getUid(), item.getItemId()));
+
+    List<CteColumn> columns = new ArrayList<>();
+    columns.add(valueColumn(cteAlias, valueAlias));
+    columns.addAll(stageOuHelperColumns(cteAlias, item, params));
+    columns.addAll(rowContextColumns(cteDef, cteAlias, offset, valueAlias));
+    return columns.stream().map(CteColumn::sql).collect(joining(",\n"));
+  }
+
+  private CteColumn valueColumn(String cteAlias, String valueAlias) {
+    return new CteColumn(cteAlias + ".value", quote(valueAlias));
+  }
+
+  /**
+   * Emits the optional {@code stageUid.ouname} and {@code stageUid.oucode} helper columns for
+   * stage-level organisation-unit dimensions. Each helper is included only when the caller
+   * explicitly requested it via its matching header — requesting the OU dimension without the
+   * {@code .ouname}/{@code .oucode} headers means the caller only wants the OU id, so emitting the
+   * helpers anyway would just bloat the SELECT output.
+   */
+  private List<CteColumn> stageOuHelperColumns(
+      String cteAlias, QueryItem item, EventQueryParams params) {
+    if (!isStageOuDimension(item) || !params.hasHeaders()) {
+      return List.of();
+    }
+    String stageUid = item.getProgramStage().getUid();
+    List<CteColumn> helpers = new ArrayList<>();
+    if (params.getHeaders().contains(stageUid + ".ouname")) {
+      helpers.add(
+          new CteColumn(cteAlias + "." + STAGE_OU_NAME_COLUMN, quote(stageUid + ".ouname")));
+    }
+    if (params.getHeaders().contains(stageUid + ".oucode")) {
+      helpers.add(
+          new CteColumn(cteAlias + "." + STAGE_OU_CODE_COLUMN, quote(stageUid + ".oucode")));
+    }
+    return helpers;
+  }
+
+  /**
+   * Emits the two repeatable-stage row-context metadata columns: {@code .exists} (whether an event
+   * actually occurred at the requested offset) and {@code .status} (its event status). The {@code
+   * coalesce(rn = N, false)} form ensures a missing CTE join row yields {@code false} rather than
+   * {@code null}, so callers can treat {@code .exists} as a plain boolean.
+   */
+  private List<CteColumn> rowContextColumns(
+      CteDefinition cteDef, String cteAlias, int offset, String valueAlias) {
+    if (!cteDef.isRowContext()) {
+      return List.of();
+    }
+    String existsExpr = "coalesce(%s.rn = %s, false)".formatted(cteAlias, offset + 1);
+    return List.of(
+        new CteColumn(existsExpr, quote(valueAlias + ".exists")),
+        new CteColumn(cteAlias + ".eventstatus", quote(valueAlias + ".status")));
+  }
+
+  /**
+   * A single SELECT-list column emitted by {@link #getColumnWithCte}: a raw SQL expression plus a
+   * pre-quoted alias. Rendered as {@code <expr> as <quotedAlias>}.
+   */
+  private record CteColumn(String expr, String quotedAlias) {
+    String sql() {
+      return expr + " as " + quotedAlias;
+    }
+  }
 
   protected abstract CteContext getCteDefinitions(EventQueryParams params);
 

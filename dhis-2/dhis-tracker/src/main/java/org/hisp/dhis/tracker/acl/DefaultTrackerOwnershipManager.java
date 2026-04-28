@@ -285,24 +285,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public boolean hasAccess(
-      UserDetails user, String trackedEntity, OrganisationUnit owningOrgUnit, Program program) {
-    if (canSkipOwnershipCheck(user, program) || trackedEntity == null || owningOrgUnit == null) {
-      return true;
-    }
-
-    final String orgUnitPath = owningOrgUnit.getStoredPath();
-    return switch (program.getAccessLevel()) {
-      case OPEN, AUDITED -> user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnitPath);
-      case PROTECTED ->
-          user.isInUserHierarchy(orgUnitPath)
-              || hasTemporaryAccessWithUid(trackedEntity, program, user);
-      case CLOSED -> user.isInUserHierarchy(orgUnitPath);
-    };
-  }
-
-  @Override
   public boolean canSkipOwnershipCheck(UserDetails user, Program program) {
     return program == null || canSkipOwnershipCheck(user, program.getProgramType());
   }
@@ -389,16 +371,5 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager {
         s ->
             (programTempOwnerStore.getValidTempOwnerCount(program, trackedEntity.getUid(), user)
                 > 0));
-  }
-
-  private boolean hasTemporaryAccessWithUid(
-      String trackedEntityUid, Program program, UserDetails user) {
-    if (canSkipOwnershipCheck(user, program) || trackedEntityUid == null) {
-      return true;
-    }
-
-    return tempOwnerCache.get(
-        getTempOwnershipCacheKey(trackedEntityUid, program.getUid(), user.getUid()),
-        s -> programTempOwnerStore.getValidTempOwnerCount(program, trackedEntityUid, user) > 0);
   }
 }

@@ -78,7 +78,7 @@ class AssertionsTest {
 
     assertThrows(
         AssertionError.class,
-        () -> assertHasOnlyErrors(report, ValidationCode.E1000, ValidationCode.E1003));
+        () -> assertHasOnlyErrors(report, ValidationCode.E1000, ValidationCode.E1001));
   }
 
   @Test

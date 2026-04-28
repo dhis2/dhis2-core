@@ -27,24 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
-import org.hisp.dhis.dataset.DataInputPeriod;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import static org.hisp.dhis.security.Authorities.F_ENROLLMENT_CASCADE_DELETE;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
 
-/**
- * @author Stian Sandvold
- */
-public class DataInputPeriodSchemaDescriptor implements SchemaDescriptor {
-  public static final String SINGULAR = "dataInputPeriod";
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.Enrollment;
+import org.hisp.dhis.tracker.imports.validation.Reporter;
+import org.hisp.dhis.tracker.imports.validation.Validator;
+import org.hisp.dhis.user.UserDetails;
 
-  public static final String PLURAL = "dataInputPeriods";
-
-  public static final String API_ENDPOINT = "/" + PLURAL;
+class CascadeDeleteEnrollmentValidator implements Validator<Enrollment> {
 
   @Override
-  public Schema getSchema() {
-    return new Schema(DataInputPeriod.class, SINGULAR, PLURAL);
+  public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
+    UserDetails user = bundle.getUser();
+    boolean hasNonDeletedEvents =
+        bundle
+            .getPreheat()
+            .getEnrollmentsWithOneOrMoreNonDeletedEvent()
+            .contains(enrollment.getEnrollment());
+
+    if (hasNonDeletedEvents && !user.isAuthorized(F_ENROLLMENT_CASCADE_DELETE)) {
+      reporter.addError(enrollment, E1103, user.getUid(), enrollment.getEnrollment());
+    }
+  }
+
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return strategy.isDelete();
   }
 }

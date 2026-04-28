@@ -36,8 +36,10 @@ import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.DELETE;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.UPDATE;
-import static org.hisp.dhis.tracker.imports.validation.Users.USER_2;
+import static org.hisp.dhis.tracker.imports.validation.Users.USER_5;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_6;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1102;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -201,9 +203,9 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
     TrackerObjects trackerObjects =
         testSetup.fromJson("tracker/validations/events-with-registration.json");
     TrackerImportParams params = new TrackerImportParams();
-    injectSecurityContextUser(userService.getUser(USER_2));
+    injectSecurityContextUser(userService.getUser(USER_5));
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
-    assertHasOnlyErrors(importReport, ValidationCode.E1000);
+    assertHasOnlyErrors(importReport, E1000, E1102);
   }
 
   @Test
