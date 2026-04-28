@@ -36,28 +36,23 @@ import static java.util.Arrays.copyOfRange;
 import static org.hisp.dhis.jsontree.JsonBuilder.createArray;
 import static org.hisp.dhis.jsontree.JsonBuilder.createObject;
 
+import java.io.Serial;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.TreeMap;
 import java.util.function.BiConsumer;
-import java.util.function.Predicate;
-import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonMixed;
-import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonString;
-import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.jsontree.JsonNode;
+import org.hisp.dhis.jsontree.Text;
 import org.intellij.lang.annotations.Language;
 
 /**
@@ -81,29 +76,42 @@ final class LazyAttributeValues implements AttributeValues {
 
   @Nonnull
   static AttributeValues of(@Nonnull @Language("json") String json) {
-    if ("{}".equals(json) || "[]".equals(json)) return empty();
+    return of((CharSequence) json);
+  }
+
+  @Nonnull
+  static AttributeValues of(@Nonnull CharSequence json) {
     if (json.isEmpty() || (json.charAt(0) != '{' && json.charAt(0) != '[')) throw illegalJson(json);
+    if (json.length() == 2
+        && ((json.charAt(0) == '{' && json.charAt(1) == '}')
+            || (json.charAt(0) == '[' && json.charAt(1) == ']'))) return empty();
     return new LazyAttributeValues(json, null, null);
   }
 
-  static AttributeValues of(@Nonnull Map<String, String> values) {
+  static AttributeValues of(@Nonnull Map<CharSequence, CharSequence> values) {
     if (values.isEmpty()) return empty();
-    LazyAttributeValues entries = new LazyAttributeValues(null, null, null);
-    if (values instanceof TreeMap<String, String> tm) {
-      entries.init(tm);
-    } else {
-      entries.init(new TreeMap<>(values));
-    }
-    return entries;
+    LazyAttributeValues res = new LazyAttributeValues(null, null, null);
+    res.init(values);
+    return res;
   }
 
-  @Language("json")
-  private String json;
+  private void init(@Nonnull Map<CharSequence, CharSequence> from) {
+    keys = new Text[from.size()];
+    values = new Text[keys.length];
+    int i = 0;
+    for (Map.Entry<CharSequence, CharSequence> e : from.entrySet()) {
+      keys[i] = Text.of(e.getKey());
+      values[i++] = Text.of(e.getValue());
+    }
+    sort2(keys, values);
+  }
 
-  private String[] keys;
-  private String[] values;
+  private CharSequence json;
 
-  private static final String[] NOTHING = new String[0];
+  private Text[] keys;
+  private Text[] values;
+
+  private static final Text[] NOTHING = new Text[0];
 
   private void init() {
     if (keys != null) return;
@@ -125,69 +133,61 @@ final class LazyAttributeValues implements AttributeValues {
    * from JSON multiple threads might concurrently invoke the initialisation wherefore this is
    * synchronized.
    */
-  private synchronized void initSync(@Nonnull String json) {
+  private synchronized void initSync(@Nonnull CharSequence json) {
     if (keys != null) return;
     JsonMixed objOrArr = JsonMixed.of(json);
     if (objOrArr.isNull() || objOrArr.isEmpty()) {
       initEmpty();
       return;
     }
-    // Note that this needs to go via TreeMap to ensure alphabetic ordering;
-    // using JSON value API directly is difficult due to incompatibility of lambdas and i-counters
+    int i = 0;
+    keys = new Text[objOrArr.size()];
+    values = new Text[keys.length];
     if (objOrArr.isObject()) {
-      init(parseObjectJson(objOrArr));
+      for (JsonNode e : objOrArr.node().members(JsonNode.Index.SKIP)) {
+        keys[i] = e.getKey();
+        values[i++] = extractValue(e.getIfExists("value"));
+      }
     } else if (objOrArr.isArray()) {
-      init(parseArrayJson(objOrArr));
+      for (JsonNode e : objOrArr.node().elements(JsonNode.Index.SKIP)) {
+        keys[i] = e.get("attribute").get("id").textValue();
+        values[i++] = extractValue(e.getIfExists("value"));
+      }
     } else throw illegalJson(json);
+    sort2(keys, values);
+  }
+
+  private static void sort2(Text[] keys, Text[] values) {
+    // Use a simple bubble sort for clarity
+    for (int i = 0; i < keys.length - 1; i++) {
+      for (int j = 0; j < keys.length - i - 1; j++) {
+        if (keys[j].compareTo(keys[j + 1]) > 0) {
+          // Swap keys
+          Text tempKey = keys[j];
+          keys[j] = keys[j + 1];
+          keys[j + 1] = tempKey;
+          // Swap values
+          Text tempVal = values[j];
+          values[j] = values[j + 1];
+          values[j + 1] = tempVal;
+        }
+      }
+    }
   }
 
   @Nonnull
-  private static IllegalArgumentException illegalJson(@Nonnull String json) {
+  private static IllegalArgumentException illegalJson(@Nonnull CharSequence json) {
     return new IllegalArgumentException("Not a valid attribute value JSON: " + json);
   }
 
   @Nonnull
-  private static TreeMap<String, String> parseObjectJson(JsonObject map) {
-    return map.entries()
-        .collect(
-            Collectors.toMap(
-                e -> e.getKey().toString(),
-                e -> parseValue(e.getValue().asObject().get("value")),
-                (a, b) -> a,
-                TreeMap::new));
-  }
-
-  @Nonnull
-  private static TreeMap<String, String> parseArrayJson(JsonArray arr) {
-    return arr.stream()
-        .map(JsonValue::asObject)
-        .collect(
-            Collectors.toMap(
-                obj -> obj.getObject("attribute").getString("id").string(),
-                obj -> parseValue(obj.get("value")),
-                (a, b) -> a,
-                TreeMap::new));
-  }
-
-  @Nonnull
-  private static String parseValue(JsonMixed value) {
-    if (value.isUndefined()) return "";
+  private static Text extractValue(JsonNode value) {
+    if (value == null) return Text.EMPTY;
     return switch (value.type()) {
-      case NULL -> "";
-      case STRING -> value.as(JsonString.class).string();
-      default -> value.toJson();
+      case NULL -> Text.EMPTY;
+      case STRING -> value.textValue();
+      default -> value.getDeclaration();
     };
-  }
-
-  private void init(TreeMap<String, String> from) {
-    keys = new String[from.size()];
-    values = new String[keys.length];
-    int i = 0;
-    for (Map.Entry<String, String> e : from.entrySet()) {
-      // Note: intern is used so all keys of the same attribute share a String instance
-      keys[i] = e.getKey().intern();
-      values[i++] = e.getValue();
-    }
   }
 
   @Override
@@ -204,55 +204,59 @@ final class LazyAttributeValues implements AttributeValues {
 
   @Nonnull
   @Override
-  public Set<String> keys() {
+  public Stream<UID> keys() {
     init();
-    return Set.of(keys);
+    return Stream.of(keys).map(UID::of);
   }
 
   @Nonnull
   @Override
-  public Set<String> values() {
+  public Stream<Text> values() {
     init();
-    return Set.of(values);
+    return Stream.of(values);
   }
 
   @CheckForNull
   @Override
-  public String get(String attributeId) {
+  public Text getText(CharSequence attributeId) {
+    if (attributeId == null) return null;
     init();
-    int i = binarySearch(keys, attributeId);
+    Text key = Text.of(attributeId);
+    int i = binarySearch(keys, key);
     return i < 0 ? null : values[i];
   }
 
   @Nonnull
   @Override
-  public AttributeValues added(@Nonnull String attributeId, @CheckForNull String value) {
+  public AttributeValues added(
+      @Nonnull CharSequence attributeId, @CheckForNull CharSequence value) {
     if (value == null) return removed(attributeId);
     init();
-    int i = binarySearch(keys, attributeId);
+    Text key = Text.of(attributeId);
+    int i = binarySearch(keys, key);
     if (i >= 0) { // replace existing value
-      if (values[i].equals(value)) return this;
-      String[] newValues = values.clone();
-      newValues[i] = value;
+      if (values[i].contentEquals(value)) return this;
+      Text[] newValues = values.clone();
+      newValues[i] = Text.of(value);
       return new LazyAttributeValues(null, keys, newValues);
     }
     int insert = -(i + 1);
     int size = keys.length;
     if (insert == size) { // append
-      String[] newKeys = copyOf(keys, size + 1);
-      String[] newValues = copyOf(values, size + 1);
-      newKeys[size] = attributeId;
-      newValues[size] = value;
+      Text[] newKeys = copyOf(keys, size + 1);
+      Text[] newValues = copyOf(values, size + 1);
+      newKeys[size] = key;
+      newValues[size] = Text.of(value);
       return new LazyAttributeValues(null, newKeys, newValues);
     }
-    String[] newKeys = new String[size + 1];
-    String[] newValues = new String[size + 1];
+    Text[] newKeys = new Text[size + 1];
+    Text[] newValues = new Text[size + 1];
     if (insert > 0) {
       arraycopy(keys, 0, newKeys, 0, insert);
       arraycopy(values, 0, newValues, 0, insert);
     }
-    newKeys[insert] = attributeId;
-    newValues[insert] = value;
+    newKeys[insert] = key;
+    newValues[insert] = Text.of(value);
     int remaining = keys.length - insert;
     arraycopy(keys, insert, newKeys, insert + 1, remaining);
     arraycopy(values, insert, newValues, insert + 1, remaining);
@@ -261,9 +265,9 @@ final class LazyAttributeValues implements AttributeValues {
 
   @Nonnull
   @Override
-  public AttributeValues removed(@Nonnull String uid) {
+  public AttributeValues removed(@Nonnull CharSequence attributeId) {
     init();
-    int i = binarySearch(keys, uid);
+    int i = binarySearch(keys, Text.of(attributeId));
     if (i < 0) return this; // not contained
     if (size() == 1) {
       return empty();
@@ -277,8 +281,8 @@ final class LazyAttributeValues implements AttributeValues {
           null, copyOf(keys, keys.length - 1), copyOf(values, values.length - 1));
     }
     // remove in the middle
-    String[] newKeys = new String[keys.length - 1];
-    String[] newValues = new String[newKeys.length];
+    Text[] newKeys = new Text[keys.length - 1];
+    Text[] newValues = new Text[newKeys.length];
     arraycopy(keys, 0, newKeys, 0, i);
     arraycopy(values, 0, newValues, 0, i);
     int remaining = keys.length - i - 1;
@@ -287,73 +291,15 @@ final class LazyAttributeValues implements AttributeValues {
     return new LazyAttributeValues(null, newKeys, newValues);
   }
 
-  @Nonnull
   @Override
-  public AttributeValues removedAll(Predicate<String> attributeIdMatches) {
-    if (Stream.of(keys).noneMatch(attributeIdMatches)) return this;
-    int remove = (int) Stream.of(keys).filter(attributeIdMatches).count();
-    if (remove == size()) return empty();
-    int newSize = keys.length - remove;
-    String[] newKeys = new String[newSize];
-    String[] newValues = new String[newKeys.length];
-    int j = 0;
-    for (int i = 0; i < keys.length; i++) {
-      if (!attributeIdMatches.test(keys[i])) {
-        newKeys[j] = keys[i];
-        newValues[j++] = values[i];
-      }
-    }
-    return new LazyAttributeValues(null, newKeys, newValues);
-  }
-
-  @Nonnull
-  @Override
-  public AttributeValues mapValues(@Nonnull UnaryOperator<String> mapper) {
-    init();
-    return map(values, mapper);
-  }
-
-  @Nonnull
-  @Override
-  public AttributeValues mapKeys(@Nonnull UnaryOperator<String> mapper) {
-    init();
-    return map(keys, mapper);
-  }
-
-  @Nonnull
-  private AttributeValues map(String[] elements, @Nonnull UnaryOperator<String> f) {
-    String[] newElements = null;
-    for (int i = 0; i < elements.length; i++) {
-      String element = elements[i];
-      String mapped = f.apply(element);
-      if (!element.equals(mapped)) {
-        if (newElements == null) newElements = elements.clone();
-        newElements[i] = mapped;
-      }
-    }
-    if (newElements == null) return this; // no change happened
-    return elements == keys
-        ? new LazyAttributeValues(null, newElements, values)
-        : new LazyAttributeValues(null, keys, newElements);
-  }
-
-  @Override
-  public void forEach(BiConsumer<String, String> action) {
+  public void forEach(BiConsumer<Text, Text> action) {
     init();
     for (int i = 0; i < keys.length; i++) action.accept(keys[i], values[i]);
   }
 
   @Nonnull
   @Override
-  public Stream<Map.Entry<String, String>> stream() {
-    init();
-    if (isEmpty()) return Stream.empty();
-    return StreamSupport.stream(spliterator(), false);
-  }
-
-  @Nonnull
-  @Override
-  public Iterator<Map.Entry<String, String>> iterator() {
+  public Iterator<Map.Entry<Text, Text>> iterator() {
     init();
     return new Iterator<>() {
       int i = 0;
@@ -364,7 +310,7 @@ final class LazyAttributeValues implements AttributeValues {
       }
 
       @Override
-      public Map.Entry<String, String> next() {
+      public Map.Entry<Text, Text> next() {
         if (i >= size())
           throw new NoSuchElementException("Next called without checking via hasNext");
         return Map.entry(keys[i], values[i++]);
@@ -391,12 +337,14 @@ final class LazyAttributeValues implements AttributeValues {
   @Nonnull
   @Override
   public String toObjectJson() {
-    if (json != null && json.charAt(0) == '{') return json;
-    init();
     if (isEmpty()) return "{}";
     return createObject(
             map ->
-                forEach((key, value) -> map.addObject(key, obj -> obj.addString("value", value))))
+                forEach(
+                    (key, value) -> {
+                      if (!value.isEmpty())
+                        map.addObject(key, obj -> obj.addString("value", value));
+                    }))
         .getDeclaration()
         .toString();
   }
@@ -404,7 +352,6 @@ final class LazyAttributeValues implements AttributeValues {
   @Nonnull
   @Override
   public String toArrayJson() {
-    init();
     if (isEmpty()) return "[]";
     return createArray(
             arr ->
@@ -436,5 +383,23 @@ final class LazyAttributeValues implements AttributeValues {
   @Override
   public String toString() {
     return toObjectJson();
+  }
+
+  /*
+  Serialisation
+  */
+
+  @Serial
+  public Object writeReplace() {
+    return new SerializedAttributeValues(toString());
+  }
+
+  record SerializedAttributeValues(String json) implements Serializable {
+    @Serial private static final long serialVersionUID = 1L;
+
+    @Serial
+    private Object readResolve() {
+      return of(json);
+    }
   }
 }

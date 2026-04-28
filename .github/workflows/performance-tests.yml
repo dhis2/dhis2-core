@@ -228,16 +228,24 @@ jobs:
 
         echo "## 📥 Download Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Download all results from all attempts:" >> $GITHUB_STEP_SUMMARY
+        echo "Recommended. Downloads this run's artifact in a layout [gstat](https://github.com/dhis2/gatling-statistics) can read directly:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-        echo "gh run download --repo dhis2/dhis2-core ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+        echo "gh run download ${{ github.run_id }} --repo dhis2/dhis2-core \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --name gatling-report-${{ inputs.test_name }}-${{ github.run_id }}-attempt-${{ github.run_attempt }} \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --dir ./${{ inputs.test_name }}-${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Only needed if you re-ran failed jobs on this run. Downloads every preserved attempt, each in its own wrapper directory (not readable by [gstat](https://github.com/dhis2/gatling-statistics) directly):" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "gh run download ${{ github.run_id }} --repo dhis2/dhis2-core" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
         echo "## 📊 View Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Results are in \`gatling-report-${{ inputs.test_name }}-${{ github.run_id }}-attempt-${{ github.run_attempt }}/\` with subdirectories:" >> $GITHUB_STEP_SUMMARY
+        echo "After the recommended download command above, the layout is \`./${{ inputs.test_name }}-${{ github.run_id }}/\` containing:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         if [ "$WARMUP_COUNT" -gt 0 ]; then
           echo "* **Warmup runs**: \`<simulation-class>-<timestamp>-${{ inputs.test_name }}-warmup-<number>/\`" >> $GITHUB_STEP_SUMMARY
@@ -247,15 +255,29 @@ jobs:
         echo "Each directory contains:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "* \`index.html\` - Gatling HTML report" >> $GITHUB_STEP_SUMMARY
-        echo "* \`run-simulation.env\` - Complete test run metadata (read it on how to reproduce this run)" >> $GITHUB_STEP_SUMMARY
         echo "* \`simulation.log\` - Binary Gatling test data (response times, etc.)" >> $GITHUB_STEP_SUMMARY
-        echo "* \`simulation.csv\` - Parsed binary data in CSV format (requires [glog](https://github.com/dhis2/gatling/releases) and can be analyzed using [gatling-statistics](https://github.com/dhis2/gatling-statistics))" >> $GITHUB_STEP_SUMMARY
+        echo "* \`simulation.csv\` - Parsed binary data in CSV format (analyze using [gstat](https://github.com/dhis2/gatling-statistics))" >> $GITHUB_STEP_SUMMARY
+        echo "* \`run-simulation.env\` - Complete test run metadata (read it on how to reproduce this run)" >> $GITHUB_STEP_SUMMARY
         echo "* \`profile.html\` - Flamegraph visualization (if profiling enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`profile.jfr\` - JFR profiler data (if profiling enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`profile.collapsed\` - Collapsed stack traces (if profiling enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`dhis.log\` - DHIS2 application log (if DHIS2 logging enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`postgresql.log\` - PostgreSQL query logs (if SQL logging enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`pgbadger.html\` - SQL log analysis report (if SQL logging enabled)" >> $GITHUB_STEP_SUMMARY
+        echo "* \`gc.log\` - JVM GC and safepoint logs (always captured; analyze with [Eclipse Jifa](https://github.com/eclipse-jifa/jifa))" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "### Compare with another run" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Prints a Markdown table per request: p95 for each run, absolute diff (ms), and percent change vs the baseline (the first input). Download the baseline the same way as above, then:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "gstat compare <baseline-dir> ./${{ inputs.test_name }}-${{ github.run_id }} --percentile 95" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`gstat\` reports an exact percentile (linear interpolation over the full sample), so numbers may differ slightly from Gatling's \`index.html\`, which uses a t-digest approximation." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Tip**: \`gstat compare\` uses each input directory's basename as the column header. Pick a short, meaningful \`test_name\` (e.g. \`2.43.0-load-2u\`) so the table reads cleanly. Override per input with \`--label NAME\`." >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
         echo "## 🖥️ Environment" >> $GITHUB_STEP_SUMMARY

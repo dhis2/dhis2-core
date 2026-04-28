@@ -38,9 +38,11 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -142,5 +144,26 @@ class DataSetControllerTest extends H2ControllerIntegrationTestBase {
     dataSet = manager.get(DataSet.class, dataSetId);
 
     assertEquals(0, dataSet.getCompulsoryDataElementOperands().size());
+  }
+
+  @Test
+  @DisplayName("Response responseType should be 'ObjectReport'")
+  void responseTypeTest() {
+    // given a dataset exists
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataSets/",
+            "{'name':'data set test', 'shortName':'DST', 'periodType':'Monthly', 'id': 'DsUid090901'}"));
+
+    // when patching the dataset
+    JsonMixed content =
+        PATCH(
+                "/dataSets/DsUid090901",
+                "[{'op': 'replace', 'path': '/name', 'value': 'DS name update'}]")
+            .content();
+
+    // then the response type should be 'ObjectReport'
+    assertEquals("ObjectReport", content.getString("response.responseType").string());
   }
 }
