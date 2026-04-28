@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,47 +27,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.security.csp;
 
-import static org.hisp.dhis.util.FileUtils.getResourceFileAsString;
-
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.webapi.security.csp.CspLegacyLoginFallback;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * @author Morten Svanaes <msvanaes@dhis2.org>
+ * Servlet filter that emits the default {@code Content-Security-Policy} plus {@code
+ * X-Content-Type-Options} and {@code X-Frame-Options} on every response that flows through the
+ * filter chain.
+ *
+ * <p>Necessary because {@link CspInterceptor} only fires when {@code DispatcherServlet} resolves a
+ * {@link org.springframework.web.method.HandlerMethod}, leaving 404 responses, static-resource
+ * handlers and pre-{@code DispatcherServlet} rejections without security headers. This filter sets
+ * the baseline; for handler-mapped requests {@link CspInterceptor} overrides {@code
+ * Content-Security-Policy} with the annotation-driven policy via {@code response.setHeader}.
+ *
+ * @see CspInterceptor
+ * @author Morten Svanaes
  */
-@Slf4j
-@Controller
-public class LoginFallbackController {
+public class CspBaselineFilter extends OncePerRequestFilter {
 
-  @CspLegacyLoginFallback
-  @GetMapping("/login.html")
-  protected void getLoginFallback(HttpServletRequest req, HttpServletResponse resp)
-      throws IOException {
-    if (session() != null && session().getAttribute("SPRING_SECURITY_CONTEXT") != null) {
-      String referer = (String) req.getAttribute("origin");
-      req.setAttribute("origin", referer);
-      resp.sendRedirect("/");
-    } else {
-      String content = getResourceFileAsString(this.getClass(), "login.html");
-      resp.setContentType("text/html");
-      resp.setStatus(HttpServletResponse.SC_OK);
-      resp.getWriter().println(content);
-    }
+  private final CspPolicyService cspPolicyService;
+
+  public CspBaselineFilter(CspPolicyService cspPolicyService) {
+    this.cspPolicyService = cspPolicyService;
   }
 
-  public static HttpSession session() {
-    ServletRequestAttributes attr =
-        (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-    return attr.getRequest().getSession(false);
+  @Override
+  protected void doFilterInternal(
+      HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+      throws ServletException, IOException {
+    HttpHeaders baseline = cspPolicyService.getDefaultSecurityHeaders();
+    baseline.forEach(
+        (name, values) -> {
+          if (!values.isEmpty()) {
+            response.setHeader(name, values.get(0));
+          }
+        });
+    chain.doFilter(request, response);
   }
 }

@@ -64,8 +64,8 @@ import org.hisp.dhis.tracker.export.FileResourceStream;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.webapi.security.csp.CspUserUploadedContent;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
-import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -123,6 +123,7 @@ public class FileResourceController
     return fileResource;
   }
 
+  @CspUserUploadedContent
   @GetMapping(value = "/{uid}/data")
   public void getFileResourceData(
       @PathVariable UID uid,
@@ -150,9 +151,6 @@ public class FileResourceController
         HttpHeaders.CONTENT_LENGTH,
         String.valueOf(fileResourceService.getFileResourceContentLength(fileResource)));
     response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName());
-
-    HeaderUtils.setSecurityHeaders(
-        response, dhisConfig.getProperty(ConfigurationKey.CSP_HEADER_VALUE));
 
     try {
       fileResourceService.copyFileResourceContent(fileResource, response.getOutputStream());

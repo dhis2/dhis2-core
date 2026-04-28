@@ -41,7 +41,6 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import javax.sql.DataSource;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -58,13 +57,14 @@ import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
-import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.DhisCorsProcessor;
 import org.hisp.dhis.webapi.filter.SessionTimeoutHeaderFilter;
 import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
+import org.hisp.dhis.webapi.security.csp.CspBaselineFilter;
+import org.hisp.dhis.webapi.security.csp.CspPolicyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -143,7 +143,7 @@ public class DhisWebApiWebSecurityConfig {
 
   @Autowired private ConfigurationService configurationService;
 
-  @Autowired private CacheProvider cacheProvider;
+  @Autowired private CspPolicyService cspPolicyService;
 
   @Autowired private ApiTokenAuthManager apiTokenAuthManager;
 
@@ -263,7 +263,7 @@ public class DhisWebApiWebSecurityConfig {
     }
 
     configureMatchers(http);
-    configureCspFilter(http, dhisConfig, configurationService, cacheProvider);
+    configureCspBaselineFilter(http);
     configureApiTokenAuthorizationFilter(http);
     configureOAuthTokenFilters(http);
 
@@ -474,13 +474,8 @@ public class DhisWebApiWebSecurityConfig {
     return corsFilter;
   }
 
-  private void configureCspFilter(
-      HttpSecurity http,
-      DhisConfigurationProvider dhisConfig,
-      ConfigurationService configurationService,
-      CacheProvider cacheProvider) {
-    http.addFilterBefore(
-        new CspFilter(dhisConfig, configurationService, cacheProvider), HeaderWriterFilter.class);
+  private void configureCspBaselineFilter(HttpSecurity http) {
+    http.addFilterBefore(new CspBaselineFilter(cspPolicyService), HeaderWriterFilter.class);
   }
 
   private void configureApiTokenAuthorizationFilter(HttpSecurity http) {

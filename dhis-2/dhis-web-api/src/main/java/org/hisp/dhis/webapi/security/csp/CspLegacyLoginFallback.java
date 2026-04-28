@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +27,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.utils;
+package org.hisp.dhis.webapi.security.csp;
 
-import jakarta.servlet.http.HttpServletResponse;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public class HeaderUtils {
-  public static final String X_CONTENT_TYPE_OPTIONS_VALUE = "nosniff";
-  public static final String X_XSS_PROTECTION_VALUE = "1; mode=block";
-
-  public static void setSecurityHeaders(HttpServletResponse response, String cspHeaders) {
-    response.setHeader("Content-Security-Policy", cspHeaders);
-    response.setHeader("X-Content-Type-Options", X_CONTENT_TYPE_OPTIONS_VALUE);
-    response.setHeader("X-XSS-Protection", X_XSS_PROTECTION_VALUE);
-  }
-}
+/**
+ * Marks the legacy fallback login controller handler method ({@code
+ * LoginFallbackController.getLoginFallback}) so {@link
+ * org.hisp.dhis.security.utils.CspConstants#LEGACY_LOGIN_FALLBACK_CSP_POLICY} is applied.
+ *
+ * <p>Marker annotation. The fallback {@code login.html} contains a single inline {@code <script>}
+ * block running the login flow, so it needs {@code script-src 'self' 'unsafe-inline'} until that
+ * script is extracted to an external file. Apply this marker only to that one handler method.
+ *
+ * @see CspUserUploadedContent
+ * @see CspAppHost
+ * @see CspInterceptor
+ * @author Morten Svanaes
+ */
+@Target({ElementType.METHOD, ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface CspLegacyLoginFallback {}

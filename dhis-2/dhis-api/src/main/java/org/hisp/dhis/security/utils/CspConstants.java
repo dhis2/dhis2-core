@@ -29,26 +29,42 @@
  */
 package org.hisp.dhis.security.utils;
 
-import java.util.List;
-import java.util.regex.Pattern;
-
 public class CspConstants {
   private CspConstants() {}
 
   public static final String SCRIPT_SOURCE_DEFAULT = "script-src 'none'; ";
 
-  public static final Pattern P_1 = Pattern.compile("^.+/dataValues/files$");
+  public static final String CONTENT_SECURITY_POLICY_HEADER_NAME = "Content-Security-Policy";
+  public static final String FRAME_ANCESTORS_DEFAULT_CSP = "frame-ancestors 'self'";
 
-  public static final Pattern P_2 =
-      Pattern.compile(
-          "^.+messageConversations/[a-zA-Z\\d]+/[a-zA-Z\\d]+/attachments/[a-zA-Z\\d]+$");
+  /**
+   * Strict default CSP policy applied to all endpoints. This policy only allows resources from the
+   * same origin.
+   */
+  public static final String DEFAULT_CSP_POLICY =
+      "default-src 'self'; style-src 'self' 'unsafe-inline';";
 
-  public static final Pattern P_3 = Pattern.compile("^.+fileResources/[a-zA-Z\\d]+/data$");
+  /**
+   * CSP policy for endpoints serving user-uploaded content. This policy disables all unsafe sources
+   * to prevent injection attacks on potentially untrusted content.
+   */
+  public static final String USER_UPLOADED_CONTENT_CSP_POLICY = "default-src 'none';";
 
-  public static final Pattern P_4 = Pattern.compile("^.+audits/files/[a-zA-Z\\d]+$");
+  /**
+   * CSP policy for the app host endpoint that renders installed DHIS2 apps inside an iframe. More
+   * permissive than the default to allow apps to load resources, but still restricts the most
+   * dangerous sources.
+   */
+  public static final String APP_HOST_CSP_POLICY =
+      "default-src 'self'; style-src 'self' 'unsafe-inline'; child-src 'self' blob:;"
+          + " img-src * data:; connect-src *;";
 
-  public static final List<Pattern> EXTERNAL_STATIC_CONTENT_URL_PATTERNS =
-      List.of(P_1, P_2, P_2, P_4);
-
-  public static final Pattern LOGIN_PATTERN = Pattern.compile("^.+/dhis-web-commons/security/.+$");
+  /**
+   * CSP policy for the legacy fallback login page ({@code /login.html}) which contains an inline
+   * {@code <script>} block. Allows {@code script-src 'self' 'unsafe-inline'} so the fallback flow
+   * keeps working when CSP is enabled. Long term the inline script should be extracted to an
+   * external file so this policy can go away.
+   */
+  public static final String LEGACY_LOGIN_FALLBACK_CSP_POLICY =
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';";
 }
