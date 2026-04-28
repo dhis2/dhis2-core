@@ -61,9 +61,11 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -449,26 +451,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               + ") ";
     } else // Descendants
     {
-      List<DimensionalItemObject> orgUnitItems = params.getDimensionOrFilterItems(ORGUNIT_DIM_ID);
-
-      String orClause =
-          orgUnitItems.stream()
-              .map(
-                  object -> {
-                    OrganisationUnit unit = (OrganisationUnit) object;
-                    return params
-                            .getOrgUnitField()
-                            .withSqlBuilder(sqlBuilder)
-                            .getOrgUnitLevelCol(unit.getLevel(), getAnalyticsType())
-                        + " = '"
-                        + unit.getUid()
-                        + "'";
-                  })
-              .collect(Collectors.joining(" or "));
-
-      if (!orClause.isEmpty()) {
-        sql += hlp.whereAnd() + " (" + orClause + ") ";
-      }
+      sql += getDescendantsCondition(params, hlp);
     }
 
     // ---------------------------------------------------------------------
@@ -600,6 +583,58 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     }
 
     return sql;
+  }
+
+  /**
+   * It gets the OU items and its respective levels, and generates a SQL condition/filter that
+   * checks if the respective level matches any descendant.
+   *
+   * @param params the {@link EventQueryParams} where OU items are retrieved from.
+   * @param hlp the {@link SqlHelper} used to append the right operator.
+   * @return the SQL statement.
+   */
+  String getDescendantsCondition(EventQueryParams params, SqlHelper hlp) {
+    List<DimensionalItemObject> orgUnitItems = params.getDimensionOrFilterItems(ORGUNIT_DIM_ID);
+    Map<Integer, Set<String>> levelsOus = new HashMap<>();
+    String condition = "";
+    String orClause = "";
+
+    for (DimensionalItemObject orgUnitItem : orgUnitItems) {
+      OrganisationUnit orgUnit = (OrganisationUnit) orgUnitItem;
+      Set<String> ouUids = levelsOus.get(orgUnit.getLevel());
+
+      if (ouUids == null) {
+        ouUids = new HashSet<>();
+      }
+
+      ouUids.add(orgUnit.getUid());
+      levelsOus.put(orgUnit.getLevel(), ouUids);
+    }
+
+    boolean or = false;
+
+    for (Entry<Integer, Set<String>> levelOu : levelsOus.entrySet()) {
+      String column =
+          params
+              .getOrgUnitField()
+              .withSqlBuilder(sqlBuilder)
+              .getOrgUnitLevelCol(levelOu.getKey(), getAnalyticsType());
+      orClause =
+          orClause.concat(
+              (or ? " or " : EMPTY)
+                  + column
+                  + " in ("
+                  + getQuotedCommaDelimitedString(levelOu.getValue())
+                  + ")");
+
+      or = true;
+    }
+
+    if (!orClause.isEmpty()) {
+      condition = hlp.whereAnd() + " (" + orClause + ") ";
+    }
+
+    return condition;
   }
 
   private String addFiltersToWhereClause(EventQueryParams params) {
@@ -1139,7 +1174,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         aggregateEventDateFilters.stream()
             .map(item -> extractFiltersAsSql(item, "ev." + quote(item.getItemName()), params))
             .filter(StringUtils::isNotBlank)
-            .collect(Collectors.joining(" and "));
+            .collect(joining(" and "));
 
     if (!eventFilterSql.isBlank()) {
       eventFilters.add(eventFilterSql);
