@@ -51,14 +51,6 @@ public interface ConfigurationService {
    */
   Configuration getConfiguration();
 
-  /**
-   * Indicates whether the given origin is CORS white listed.
-   *
-   * @param origin the origin.
-   * @return true if the given origin is CORS white listed.
-   */
-  boolean isCorsWhitelisted(String origin);
-
   /** Indicates whether the current user is part of the feedback Recipients group */
   boolean isUserInFeedbackRecipientUserGroup(UserDetails userDetails);
 }

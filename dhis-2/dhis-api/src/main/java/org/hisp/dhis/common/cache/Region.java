@@ -67,6 +67,5 @@ public enum Region {
   dataIntegritySummaryCache,
   dataIntegrityDetailsCache,
   queryAliasCache,
-  corsWhitelistCache,
   notificationTemplateCache
 }

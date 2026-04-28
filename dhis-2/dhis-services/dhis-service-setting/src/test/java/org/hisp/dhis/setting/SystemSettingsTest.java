@@ -102,7 +102,7 @@ class SystemSettingsTest {
   @Test
   void testKeysWithDefaults() {
     Set<String> keys = SystemSettings.keysWithDefaults();
-    assertEquals(148, keys.size());
+    assertEquals(149, keys.size());
     // just check some at random
     assertTrue(keys.contains("syncSkipSyncForDataChangedBefore"));
     assertTrue(keys.contains("keyTrackerDashboardLayout"));
@@ -110,6 +110,25 @@ class SystemSettingsTest {
     assertTrue(keys.contains("keyCustomTranslationsEnabled"));
     assertTrue(keys.contains(("keyCustomColor")));
     assertTrue(keys.contains(("keyCustomColorMobile")));
+    assertTrue(keys.contains("corsWhitelist"));
+  }
+
+  @Test
+  void testCorsWhitelist() {
+    SystemSettings settings =
+        SystemSettings.of(
+            Map.of(
+                "corsWhitelist",
+                "https://alpha.example.org, https://beta.example.org\nhttps://gamma.example.org"));
+
+    assertEquals(
+        Set.of(
+            "https://alpha.example.org", "https://beta.example.org", "https://gamma.example.org"),
+        settings.getCorsWhitelist());
+    assertEquals(
+        "https://alpha.example.org,https://beta.example.org",
+        SystemSettings.encodeCorsWhitelist(
+            Set.of(" https://beta.example.org ", "https://alpha.example.org")));
   }
 
   @Test

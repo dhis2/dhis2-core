@@ -69,6 +69,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.setting.SystemSettings;
+import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
 import org.hisp.dhis.util.ObjectUtils;
@@ -95,6 +96,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class ConfigurationController {
   @Autowired private ConfigurationService configurationService;
 
+  @Autowired private SystemSettingsService settingsService;
+
   @Autowired private DhisConfigurationProvider config;
 
   @Autowired private IdentifiableObjectManager identifiableObjectManager;
@@ -113,7 +116,11 @@ public class ConfigurationController {
 
   @GetMapping
   public @ResponseBody Configuration getConfiguration(Model model, HttpServletRequest request) {
-    return configurationService.getConfiguration();
+    Configuration configuration = configurationService.getConfiguration();
+    // Overlay corsWhitelist from system settings; the field on Configuration is API-compat only
+    // (see Configuration#corsWhitelist) and is no longer Hibernate-mapped.
+    configuration.setCorsWhitelist(settingsService.getCurrentSettings().getCorsWhitelist());
+    return configuration;
   }
 
   @ResponseStatus(value = HttpStatus.OK)
@@ -459,7 +466,7 @@ public class ConfigurationController {
       value = {"/corsWhitelist", "/corsAllowlist"},
       produces = APPLICATION_JSON_VALUE)
   public @ResponseBody Set<String> getCorsWhitelist(Model model, HttpServletRequest request) {
-    return configurationService.getConfiguration().getCorsWhitelist();
+    return settingsService.getCurrentSettings().getCorsWhitelist();
   }
 
   @SuppressWarnings("unchecked")
@@ -471,11 +478,7 @@ public class ConfigurationController {
   public void setCorsWhitelist(@RequestBody String input) throws IOException {
     Set<String> corsWhitelist = renderService.fromJson(input, Set.class);
 
-    Configuration configuration = configurationService.getConfiguration();
-
-    configuration.setCorsWhitelist(corsWhitelist);
-
-    configurationService.setConfiguration(configuration);
+    settingsService.put("corsWhitelist", SystemSettings.encodeCorsWhitelist(corsWhitelist));
   }
 
   @GetMapping(

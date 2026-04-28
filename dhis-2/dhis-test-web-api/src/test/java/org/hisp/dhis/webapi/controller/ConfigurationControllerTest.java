@@ -33,6 +33,7 @@ import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -204,6 +205,29 @@ class ConfigurationControllerTest extends PostgresControllerIntegrationTestBase 
         GET("/configuration/infrastructuralIndicators").content(HttpStatus.OK).as(JsonObject.class);
     assertEquals(indicatorGroupId, indicatorGroup.getString("id").string());
     assertEquals("Test Infrastructure Group", indicatorGroup.getString("name").string());
+  }
+
+  @Test
+  @DisplayName("POST /configuration/corsWhitelist should store CORS whitelist as system setting")
+  void testSetCorsWhitelistUsesSystemSettings() {
+    String payload =
+        """
+            [
+              "https://beta.example.org",
+              "https://alpha.example.org"
+            ]
+            """;
+
+    assertStatus(HttpStatus.NO_CONTENT, POST("/configuration/corsWhitelist", payload));
+
+    String corsWhitelist = GET("/configuration/corsWhitelist").content(HttpStatus.OK).toString();
+    assertTrue(corsWhitelist.contains("https://alpha.example.org"));
+    assertTrue(corsWhitelist.contains("https://beta.example.org"));
+
+    JsonObject configuration = GET("/configuration").content(HttpStatus.OK).as(JsonObject.class);
+    String configurationCorsWhitelist = configuration.getArray("corsWhitelist").toString();
+    assertTrue(configurationCorsWhitelist.contains("https://alpha.example.org"));
+    assertTrue(configurationCorsWhitelist.contains("https://beta.example.org"));
   }
 
   @Test

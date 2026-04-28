@@ -95,6 +95,18 @@ public class Configuration implements Serializable {
 
   private OrganisationUnitLevel facilityOrgUnitLevel;
 
+  /**
+   * API-compatibility only: the CORS whitelist is no longer persisted via Hibernate (the {@code
+   * configuration_corswhitelist} mapping was removed in 2.44). The authoritative source is {@link
+   * org.hisp.dhis.setting.SystemSettings#getCorsWhitelist()}; {@code
+   * ConfigurationController#getConfiguration} overlays the live value at read time so the {@code
+   * /api/configuration} JSON shape stays unchanged.
+   *
+   * @deprecated Read or write via {@link org.hisp.dhis.setting.SystemSettingsService} or the
+   *     dedicated {@code GET}/{@code POST /api/configuration/corsWhitelist} endpoints. This field
+   *     and its accessors are scheduled for removal in a future major release.
+   */
+  @Deprecated(since = "2.44", forRemoval = true)
   private Set<String> corsWhitelist = new HashSet<>();
 
   /** Set of periods used in data output (analytics). */
@@ -269,19 +281,33 @@ public class Configuration implements Serializable {
     this.facilityOrgUnitLevel = facilityOrgUnitLevel;
   }
 
+  /**
+   * @deprecated See {@link #corsWhitelist}.
+   */
+  @Deprecated(since = "2.44", forRemoval = true)
   @JsonProperty
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Set<String> getCorsWhitelist() {
     return corsWhitelist;
   }
 
+  /**
+   * @deprecated See {@link #corsWhitelist}.
+   */
+  @Deprecated(since = "2.44", forRemoval = true)
   public void setCorsWhitelist(Set<String> corsWhitelist) {
     this.corsWhitelist = corsWhitelist;
   }
 
+  /**
+   * Alias for {@link #getCorsWhitelist()} kept for API compatibility.
+   *
+   * @deprecated See {@link #corsWhitelist}.
+   */
+  @Deprecated(since = "2.44", forRemoval = true)
   @JsonProperty
   public Set<String> getCorsAllowlist() {
-    return getCorsWhitelist(); // just an alias
+    return getCorsWhitelist();
   }
 
   @JsonProperty

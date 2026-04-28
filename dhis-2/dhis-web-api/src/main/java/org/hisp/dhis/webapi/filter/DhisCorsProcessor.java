@@ -37,7 +37,8 @@ import java.net.URLEncoder;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.cors.CorsConfiguration;
@@ -45,6 +46,14 @@ import org.springframework.web.cors.CorsProcessor;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.util.UriComponentsBuilder;
 
+/**
+ * Spring {@link CorsProcessor} that decides whether to accept a CORS request based on the CORS
+ * whitelist stored in {@link org.hisp.dhis.setting.SystemSettings}. Whitelist entries support glob
+ * patterns (resolved via {@link TextUtils#createRegexFromGlob}). Reads come from the in-memory
+ * settings snapshot, so the request path does not open a Hibernate session.
+ *
+ * @author Morten Svanaes
+ */
 @Slf4j
 @Component
 public class DhisCorsProcessor implements CorsProcessor {
@@ -70,10 +79,10 @@ public class DhisCorsProcessor implements CorsProcessor {
 
   private static final Integer MAX_AGE = 60 * 60; // 1hr max-age
 
-  private final ConfigurationService configurationService;
+  private final SystemSettingsProvider settingsProvider;
 
-  public DhisCorsProcessor(ConfigurationService configurationService) {
-    this.configurationService = configurationService;
+  public DhisCorsProcessor(SystemSettingsProvider settingsProvider) {
+    this.settingsProvider = settingsProvider;
   }
 
   @Override
@@ -84,14 +93,13 @@ public class DhisCorsProcessor implements CorsProcessor {
 
     String origin = request.getHeader(CORS_ORIGIN);
 
-    // Origin header is required for CORS requests
-
+    // Origin header is required for CORS requests; pass through if absent.
     if (StringUtils.isEmpty(origin)) {
       return true;
     }
 
     if (!isOriginWhitelisted(request, origin)) {
-      log.debug("CORS request with origin " + origin + " is not whitelisted");
+      log.debug("CORS request with origin {} is not whitelisted", origin);
       return false;
     }
 
@@ -100,6 +108,7 @@ public class DhisCorsProcessor implements CorsProcessor {
     response.addHeader("Vary", CORS_ORIGIN);
 
     if (isPreflight(request)) {
+      // CORS preflight requires a 2xx status code, so short-circuit the filter chain with 204.
       String requestHeaders = request.getHeader(CORS_REQUEST_HEADERS);
       String requestMethod = request.getHeader(CORS_REQUEST_METHOD);
 
@@ -108,10 +117,6 @@ public class DhisCorsProcessor implements CorsProcessor {
       response.addHeader(CORS_MAX_AGE, String.valueOf(MAX_AGE));
 
       response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-
-      // CORS preflight requires a 2xx status code, so short-circuit the
-      // filter chain
-
     } else {
       response.addHeader(CORS_EXPOSE_HEADERS, EXPOSED_HEADERS);
     }
@@ -139,12 +144,19 @@ public class DhisCorsProcessor implements CorsProcessor {
     String localUrl = uriBuilder.build().toString();
 
     return !StringUtils.isEmpty(origin)
-        && (localUrl.equals(origin) || configurationService.isCorsWhitelisted(origin));
+        && (localUrl.equals(origin) || matchesCorsWhitelist(origin));
+  }
+
+  private boolean matchesCorsWhitelist(String origin) {
+    return settingsProvider.getCurrentSettings().getCorsWhitelist().stream()
+        .filter(StringUtils::isNotBlank)
+        .map(TextUtils::createRegexFromGlob)
+        .anyMatch(origin::matches);
   }
 
   /**
-   * Simple HttpServletRequestWrapper implementation that makes sure that the query string is
-   * properly encoded.
+   * Simple {@link HttpServletRequestWrapper} that ensures the query string is properly URL-encoded
+   * before {@link ServletUriComponentsBuilder} parses it.
    */
   static class HttpServletRequestEncodingWrapper extends HttpServletRequestWrapper {
     public HttpServletRequestEncodingWrapper(HttpServletRequest request) {

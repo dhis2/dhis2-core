@@ -44,12 +44,6 @@
     <many-to-one name="facilityOrgUnitLevel" class="org.hisp.dhis.organisationunit.OrganisationUnitLevel"
         column="facilityorgunitlevel" foreign-key="fk_configuration_facilityorgunitlevel" />
 
-    <set name="corsWhitelist" table="configuration_corswhitelist" lazy="false">
-      <cache usage="read-write" />
-      <key column="configurationid" foreign-key="fk_configuration_corswhitelist" />
-      <element type="string" column="corswhitelist" />
-    </set>
-
     <set name="dataOutputPeriodTypes" table="configuration_dataoutputperiodtype">
       <cache usage="read-write" />
       <key column="configurationid" foreign-key="fk_configuration_dataoutputperiodtype_configurationid" not-null="true" />

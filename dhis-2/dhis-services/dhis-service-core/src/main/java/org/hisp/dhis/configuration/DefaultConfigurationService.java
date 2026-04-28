@@ -30,10 +30,8 @@
 package org.hisp.dhis.configuration;
 
 import java.util.Iterator;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserGroup;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -72,22 +70,6 @@ public class DefaultConfigurationService implements ConfigurationService {
     Iterator<Configuration> iterator = configurationStore.getAll().iterator();
 
     return iterator.hasNext() ? iterator.next() : new Configuration();
-  }
-
-  @Override
-  @Transactional(readOnly = true)
-  public boolean isCorsWhitelisted(String origin) {
-    Set<String> corsWhitelist = getConfiguration().getCorsWhitelist();
-
-    for (String cors : corsWhitelist) {
-      String regex = TextUtils.createRegexFromGlob(cors);
-
-      if (origin.matches(regex)) {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   @Override

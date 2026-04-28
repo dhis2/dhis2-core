@@ -30,13 +30,9 @@
 package org.hisp.dhis.configuration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.HashSet;
-import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -85,22 +81,5 @@ class ConfigurationServiceTest extends PostgresIntegrationTestBase {
     assertNotNull(config.getFacilityOrgUnitGroupSet());
     assertEquals(group, config.getFeedbackRecipients());
     assertEquals(groupSet, config.getFacilityOrgUnitGroupSet());
-  }
-
-  @Test
-  void testCorsWhitelist() {
-    Configuration config = configurationService.getConfiguration();
-    Set<String> cors = new HashSet<>();
-    cors.add("http://localhost:3000/");
-    cors.add("http://*.local.tld:3000/");
-    cors.add("*.remote.tld/");
-    config.setCorsWhitelist(cors);
-    configurationService.setConfiguration(config);
-    assertTrue(configurationService.isCorsWhitelisted("http://localhost:3000/"));
-    assertTrue(configurationService.isCorsWhitelisted("http://foobar.local.tld:3000/"));
-    assertTrue(configurationService.isCorsWhitelisted("http://magic.remote.tld/"));
-    assertFalse(configurationService.isCorsWhitelisted("http://localhost:9000/"));
-    assertFalse(configurationService.isCorsWhitelisted("http://another.local.tld/"));
-    assertFalse(configurationService.isCorsWhitelisted("http://some.other.tld/"));
   }
 }

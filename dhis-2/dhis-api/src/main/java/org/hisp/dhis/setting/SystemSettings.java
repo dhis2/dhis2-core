@@ -33,10 +33,13 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BinaryOperator;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.analytics.AnalyticsCacheTtlMode;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
@@ -281,6 +284,15 @@ public non-sealed interface SystemSettings extends Settings {
 
   default boolean getSelfRegistrationNoRecaptcha() {
     return asBoolean("keySelfRegistrationNoRecaptcha", false);
+  }
+
+  /**
+   * Returns the CORS whitelist parsed from the {@code corsWhitelist} system setting. The stored
+   * value is comma- or newline-separated; see {@link #parseCorsWhitelist(String)} for the parsing
+   * rules.
+   */
+  default Set<String> getCorsWhitelist() {
+    return parseCorsWhitelist(asString("corsWhitelist", ""));
   }
 
   @Confidential
@@ -854,5 +866,40 @@ public non-sealed interface SystemSettings extends Settings {
    */
   default Boolean getCustomTranslationsEnabled() {
     return asBoolean("keyCustomTranslationsEnabled", false);
+  }
+
+  /**
+   * Parses a CORS whitelist stored as a single string. Accepts comma-separated, newline-separated,
+   * or both; trims each entry, drops empty entries, and preserves insertion order via {@link
+   * LinkedHashSet}. Returns an empty set for {@code null} or blank input.
+   */
+  static Set<String> parseCorsWhitelist(String value) {
+    if (value == null || value.isBlank()) {
+      return Set.of();
+    }
+
+    return value
+        .lines()
+        .flatMap(line -> Arrays.stream(line.split(",")))
+        .map(String::trim)
+        .filter(entry -> !entry.isEmpty())
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
+  /**
+   * Encodes a CORS whitelist to the canonical storage form: trimmed, empty entries removed, sorted
+   * alphabetically (deterministic), comma-joined with no spaces. Returns an empty string for {@code
+   * null} or empty input.
+   */
+  static String encodeCorsWhitelist(Set<String> corsWhitelist) {
+    if (corsWhitelist == null || corsWhitelist.isEmpty()) {
+      return "";
+    }
+
+    return corsWhitelist.stream()
+        .map(String::trim)
+        .filter(entry -> !entry.isEmpty())
+        .sorted()
+        .collect(Collectors.joining(","));
   }
 }
