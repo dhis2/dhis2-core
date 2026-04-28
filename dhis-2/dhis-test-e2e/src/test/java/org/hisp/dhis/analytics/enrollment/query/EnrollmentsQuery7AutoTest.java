@@ -1186,4 +1186,71 @@ public class EnrollmentsQuery7AutoTest extends AnalyticsApiTest {
       validateRowValueByName(response, actualHeaders, 2, "completed", "2023-01-20 10:40:58.396");
     }
   }
+
+  @Test
+  public void ouMultipleLevels() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("includeMetadataDetails=true")
+            .add("headers=ouname,lastupdated")
+            .add("lastUpdated=201707")
+            .add("displayProperty=NAME")
+            .add("totalPages=false")
+            .add("rowContext=true")
+            .add("pageSize=100")
+            .add("outputType=ENROLLMENT")
+            .add("page=1")
+            .add("dimension=ou:USER_ORGUNIT;LEVEL-wjP19dkFeIk;LEVEL-tTUf91fCytl;LEVEL-m9lBJogzE95");
+
+    // When
+    ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        1,
+        2,
+        2); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "ouname",
+        "Organisation unit name",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "lastupdated",
+        "Last updated on",
+        "DATETIME",
+        "java.time.LocalDateTime",
+        false,
+        true);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row values by name at specific indices (sorted results).
+    // Validate selected values for row index 0
+    validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
+    validateRowValueByName(response, actualHeaders, 0, "lastupdated", "2017-07-23 12:45:49.807");
+  }
 }
