@@ -31,16 +31,22 @@ package org.hisp.dhis.dataelement;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetElement;
+import org.hisp.dhis.dataset.comparator.DataSetFrequencyComparator;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.period.PeriodType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -260,5 +266,17 @@ public class DefaultDataElementService implements DataElementService {
   @Transactional(readOnly = true)
   public DataElementGroupSet getDataElementGroupSet(String uid) {
     return dataElementGroupSetStore.getByUid(uid);
+  }
+  
+  @Override
+  @Transactional(readOnly = true)
+  public PeriodType getPeriodType(DataElement dataElement) {
+    List<DataSet> list = dataElement.getDataSetElements().stream()
+        .map(DataSetElement::getDataSet)
+        .filter(Objects::nonNull)
+        .sorted(DataSetFrequencyComparator.INSTANCE)
+        .collect(Collectors.toUnmodifiableList());
+        
+    return !list.isEmpty() ? list.get(0).getPeriodType() : null;
   }
 }

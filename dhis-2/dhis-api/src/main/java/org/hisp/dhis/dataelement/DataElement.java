@@ -451,7 +451,7 @@ public class DataElement extends BaseMetadataObject
    * an immutable set of data sets associated with this data element.
    */
   public Set<DataSet> getDataSets() {
-    return dataSetElements.stream()
+    return getDataSetElements().stream()
         .map(DataSetElement::getDataSet)
         .filter(Objects::nonNull)
         .collect(toUnmodifiableSet());
