@@ -4079,8 +4079,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
           false,
           true);
 
-      // rowContext not found or empty in the response, skipping assertions.
-
       // 7. Assert row values by name at specific indices (sorted results).
       // Validate selected values for row index 0
       validateRowValueByName(response, actualHeaders, 0, "oucode", "OU_559");
