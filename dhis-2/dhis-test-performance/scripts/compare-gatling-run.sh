@@ -6,7 +6,7 @@
 #   ./compare-gatling-run.sh <run-id>
 #
 # Requires: [gh]    (https://cli.github.com)
-#           [gstat] (https://github.com/dhis2/gatling-statistics)
+#           [gstat] (https://github.com/dhis2/gatling-statistics) v0.2.0+ for the `compare` subcommand
 #
 # Example:
 #   ./compare-gatling-run.sh 24079806891
