@@ -43,24 +43,23 @@ Test results are saved to `target/gatling/<simulation-class>-<timestamp>/`:
 * Look at Gatling's own `index.html`
 * If it doesn't provide the analysis you need, try [gatling-statistics](https://github.com/dhis2/gatling-statistics)
 * Analyze `gc.log` with [Eclipse Jifa](https://github.com/eclipse-jifa/jifa) (`bash jifa.sh gc.log`)
-* To compare two runs (e.g. baseline vs feature branch), use `scripts/compare-gatling-runs.sh`:
+* To compare two runs (e.g. baseline vs feature branch), use
+[gstat](https://github.com/dhis2/gatling-statistics) directly:
 
 ```sh
-./scripts/compare-gatling-runs.sh \
+gstat compare \
   target/gatling/usersperformancetest-20260217072013445 \
   target/gatling/usersperformancetest-20260217073019128
 ```
 
+This prints a GitHub markdown table of p50/p95 differences between the two runs. This table can be
+useful to include in your PR review. `gstat compare` also accepts directories containing multiple
+runs per side (percentiles are computed over the combined sample) and supports `--exclude warmup`
+to drop warmup runs.
 
-This requires [gstat](https://github.com/dhis2/gatling-statistics) to be installed
-and prints a GitHub markdown table of p50/p95 differences between the two runs. This 
-table can be useful to include in your PR review. 
-
-The comparison script uses `gstat` output, not Gatling's `index.html`. The percentile values are
-good for relative baseline-vs-candidate comparison when both runs are processed the same way, but
-they may differ slightly from the numbers shown in Gatling's HTML report due to differences in
-percentile calculation. If exact parity with Gatling's UI matters, use `index.html` as the source
-of truth.
+`gstat` percentiles are computed over the full sample, not Gatling's `index.html` t-digest, so they
+may differ slightly from the numbers shown in Gatling's HTML report. If exact parity with Gatling's
+UI matters, use `index.html` as the source of truth.
 
 Since Gatling 3.12, test results are written in binary format. The `run-simulation.sh` script
 automatically converts `simulation.log` to `simulation.csv` if
