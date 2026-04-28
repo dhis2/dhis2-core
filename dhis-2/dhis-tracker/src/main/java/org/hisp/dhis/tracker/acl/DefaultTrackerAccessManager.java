@@ -610,15 +610,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
 
     if (program.isClosed() || program.isProtected()) {
-      if (!user.isInUserHierarchy(orgUnit.getStoredPath())) {
-        errors.add(
-            new ErrorMessage(E1000, user.getUid(), List.of(user.getUid(), orgUnit.getUid())));
-      }
+      checkOrgUnitInCaptureScope(errors, user, orgUnit);
     } else {
-      if (!user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath())) {
-        errors.add(
-            new ErrorMessage(E1105, user.getUid(), List.of(user.getUid(), orgUnit.getUid())));
-      }
+      checkOrgUnitInSearchScope(errors, user, orgUnit);
     }
   }
 
