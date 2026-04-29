@@ -162,8 +162,29 @@
       }
     },
     {
+      "name": "stageAndEventStatusHeaderOnly",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,enrollmentdate,ZzYYXq4fJie.eventstatus,A03MvHHogjR.eventdate&displayProperty=NAME&totalPages=false&outputType=ENROLLMENT&pageSize=100&page=1&dimension=A03MvHHogjR.EVENT_DATE:2021&desc=enrollmentdate,ouname",
+      "version": {
+        "min": 43
+      }
+    },
+    {
       "name": "fixedPeriod2017Feb",
       "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?dimension=ou:ImspTQPwCqd&headers=ouname,lastupdated&totalPages=false&rowContext=true&lastUpdated=2017Feb&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT&desc=lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "validateStagePrefixedOuNameHeaderAlongsideEnrollmentOuName",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=enrollmentdate,ZzYYXq4fJie.ouname&displayProperty=NAME&totalPages=false&pageSize=100&page=1&dimension=pe:202301&desc=enrollmentdate,ouname",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "validateStagePrefixedEventDateHeaderWithoutDimension",
+      "query": "/api/analytics/enrollments/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=A03MvHHogjR.eventdate,enrollmentdate,ouname&displayProperty=NAME&totalPages=false&pageSize=20&page=1&desc=enrollmentdate,ouname",
       "version": {
         "min": 43
       }

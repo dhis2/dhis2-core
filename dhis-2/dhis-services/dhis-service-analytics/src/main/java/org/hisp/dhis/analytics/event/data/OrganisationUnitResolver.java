@@ -270,6 +270,20 @@ public class OrganisationUnitResolver {
    * @return a {@link StageOuCteContext} containing the value column and filter condition
    */
   public StageOuCteContext buildStageOuCteContext(QueryItem item, EventQueryParams params) {
+    return buildStageOuCteContext(item, params, null);
+  }
+
+  /**
+   * Builds stage.ou filter conditions using uidlevelX columns, optionally qualifying the SELECT
+   * value column with a table alias.
+   *
+   * @param item the {@link QueryItem} representing the stage.ou dimension
+   * @param params the {@link EventQueryParams} used to resolve org unit keywords
+   * @param tableAlias optional table alias used for the value column
+   * @return a {@link StageOuCteContext} containing the value column and filter condition
+   */
+  public StageOuCteContext buildStageOuCteContext(
+      QueryItem item, EventQueryParams params, String tableAlias) {
     Map<Integer, List<OrganisationUnit>> orgUnitsByLevel =
         resolveOrgUnitsGroupedByLevel(params, item);
 
@@ -286,7 +300,9 @@ public class OrganisationUnitResolver {
 
     if (orgUnitsByLevel.isEmpty()) {
       return new StageOuCteContext(
-          sqlBuilder.quote("ou"), "", additionalSelectColumns); // fallback to raw ou column
+          quoteStageOuColumn("ou", tableAlias),
+          "",
+          additionalSelectColumns); // fallback to raw ou column
     }
 
     // Sort levels from most specific (highest) to least specific (lowest)
@@ -297,13 +313,13 @@ public class OrganisationUnitResolver {
     String valueColumn;
     if (sortedLevels.size() == 1) {
       // Single level: just use the column directly
-      valueColumn = sqlBuilder.quote("uidlevel" + sortedLevels.get(0));
+      valueColumn = quoteStageOuColumn("uidlevel" + sortedLevels.get(0), tableAlias);
     } else {
       // Multiple levels: use CASE to return the matching value
       StringBuilder caseExpr = new StringBuilder("case");
       for (int level : sortedLevels) {
         List<OrganisationUnit> orgUnits = orgUnitsByLevel.get(level);
-        String column = sqlBuilder.quote("uidlevel" + level);
+        String column = quoteStageOuColumn("uidlevel" + level, tableAlias);
         String quotedUids =
             orgUnits.stream()
                 .map(OrganisationUnit::getUid)
@@ -342,6 +358,12 @@ public class OrganisationUnitResolver {
         sortedLevels.size() > 1 ? "(" + conditions + ")" : conditions.toString();
 
     return new StageOuCteContext(valueColumn, filterCondition, additionalSelectColumns);
+  }
+
+  private String quoteStageOuColumn(String column, String tableAlias) {
+    return StringUtils.isBlank(tableAlias)
+        ? sqlBuilder.quote(column)
+        : sqlBuilder.quote(tableAlias, column);
   }
 
   /**

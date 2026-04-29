@@ -51,6 +51,17 @@ import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 
 /**
+ * Builds the WSO2 Identity Server {@link DhisOidcClientRegistration} from {@code
+ * oidc.provider.wso2.*} configuration keys in {@code dhis.conf}. Reads {@code client_id}, {@code
+ * client_secret}, {@code server_url}, {@code mapping_claim}, {@code display_alias} and {@code
+ * enable_logout}.
+ *
+ * <p>The OAuth2 / OIDC endpoints are derived from the configured {@code server_url}: {@code
+ * /oauth2/authorize}, {@code /oauth2/token}, {@code /oauth2/jwks} and {@code /oauth2/userinfo}.
+ * When {@code enable_logout} is on, the {@code end_session_endpoint} is wired to {@code
+ * /oidc/logout} on the same host. When {@code oidc.oauth2.login.enabled=on} and the WSO2 block is
+ * present, WSO2 renders as a sign-in button on the DHIS2 web login page.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class Wso2Provider extends AbstractOidcProvider {
