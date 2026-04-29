@@ -35,6 +35,15 @@ import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
+ * Spring {@link org.springframework.context.annotation.Condition} that gates the external-IdP OIDC
+ * login filter chain on {@code oidc.oauth2.login.enabled=on} in {@code dhis.conf}. It returns
+ * {@code false} during test runs so integration tests do not accidentally enable OIDC login.
+ *
+ * <p>This condition governs the login buttons on the DHIS2 web login page driven by external
+ * providers ({@code google}, {@code azure.*}, {@code wso2}, generic {@code oidc.provider.*}). It
+ * does NOT gate the internal DHIS2 OIDC provider ({@code dhis2-internal}), which is activated by
+ * its own condition tied to {@code oauth2.server.enabled}.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class OidcLoginEnabledCondition extends PropertiesAwareConfigurationCondition {

@@ -46,6 +46,21 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.stereotype.Component;
 
 /**
+ * Spring-registered {@link ClientRegistrationRepository} holding every configured DHIS2 OIDC
+ * registration, exposed to Spring Security's {@code oauth2Login} filter chain.
+ *
+ * <p>At startup, {@link #init()} parses {@code dhis.conf}: generic providers ({@code
+ * oidc.provider.<id>.*}) are parsed by {@link GenericOidcProviderConfigParser}, and the dedicated
+ * built-in providers ({@code google}, {@code azure.0} / {@code azure.1} / ..., {@code wso2}) are
+ * parsed by their own provider classes. If {@code oauth2.server.enabled=on}, the internal {@code
+ * dhis2-internal} provider is auto-registered; its endpoints are derived from {@code
+ * server.base.url} and it is used by the Android Capture app rather than shown on the web login
+ * page.
+ *
+ * <p>Each registration is keyed by its registration id (the provider id used in redirect URIs and
+ * the login page). Insertion order is preserved via a {@link LinkedHashMap} so login buttons render
+ * in the order providers were parsed.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
@@ -54,6 +69,11 @@ public class DhisOidcProviderRepository implements ClientRegistrationRepository 
 
   private final Map<String, DhisOidcClientRegistration> registrationHashMap = new LinkedHashMap<>();
 
+  /**
+   * Builds the repository from {@code dhis.conf} at startup: parses generic OIDC providers, Azure,
+   * Google, and WSO2 configurations, and auto-registers the internal DHIS2 provider when {@code
+   * oauth2.server.enabled=on}.
+   */
   @PostConstruct
   public void init() {
     GenericOidcProviderConfigParser.parse(config.getProperties()).forEach(this::addRegistration);
@@ -67,6 +87,13 @@ public class DhisOidcProviderRepository implements ClientRegistrationRepository 
     }
   }
 
+  /**
+   * Registers a {@link DhisOidcClientRegistration} under its registration id. Null values are
+   * ignored. If a registration with the same id is already present, the existing entry is retained
+   * (first-wins semantics).
+   *
+   * @param registration the registration to add, may be {@code null}
+   */
   public void addRegistration(DhisOidcClientRegistration registration) {
     if (registration == null) {
       return;
@@ -76,10 +103,18 @@ public class DhisOidcProviderRepository implements ClientRegistrationRepository 
         registration.getClientRegistration().getRegistrationId(), registration);
   }
 
+  /** Removes every registered provider from this repository. */
   public void clear() {
     this.registrationHashMap.clear();
   }
 
+  /**
+   * Returns the Spring {@link ClientRegistration} for the given registration id, or {@code null} if
+   * no provider is registered under that id.
+   *
+   * @param registrationId the provider registration id
+   * @return the Spring {@link ClientRegistration}, or {@code null} if unknown
+   */
   @Override
   public ClientRegistration findByRegistrationId(String registrationId) {
     final DhisOidcClientRegistration dhisOidcClientRegistration =
@@ -91,14 +126,35 @@ public class DhisOidcProviderRepository implements ClientRegistrationRepository 
     return dhisOidcClientRegistration.getClientRegistration();
   }
 
+  /**
+   * Returns the DHIS2 wrapper registration for the given registration id, or {@code null} if no
+   * provider is registered under that id. Unlike {@link #findByRegistrationId(String)}, this
+   * returns the DHIS2 wrapper so callers can access DHIS2-specific fields (mapping claim, {@code
+   * private_key_jwt} material, external clients, login button metadata).
+   *
+   * @param registrationId the provider registration id
+   * @return the DHIS2 wrapper, or {@code null} if unknown
+   */
   public DhisOidcClientRegistration getDhisOidcClientRegistration(String registrationId) {
     return registrationHashMap.get(registrationId);
   }
 
+  /**
+   * Returns the set of all registered provider ids, in insertion order.
+   *
+   * @return set of registration ids
+   */
   public Set<String> getAllRegistrationId() {
     return registrationHashMap.keySet();
   }
 
+  /**
+   * Finds the first registered provider whose {@code provider_details.issuer_uri} equals the given
+   * issuer URI. Comparison ignores a single trailing slash on either side.
+   *
+   * @param issuerUri the issuer URI to look up
+   * @return the matching registration, or {@code null} if no provider declares that issuer
+   */
   public DhisOidcClientRegistration findByIssuerUri(String issuerUri) {
     String normalizedInput =
         issuerUri == null
