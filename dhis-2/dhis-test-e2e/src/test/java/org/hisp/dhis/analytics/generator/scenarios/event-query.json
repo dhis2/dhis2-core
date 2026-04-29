@@ -289,21 +289,21 @@
     },
     {
       "name": "createdAndLastUpdatedCanBeCombinedWithStageSpecificEventDate",
-      "query": "/api/analytics/events/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,lastupdated&displayProperty=NAME&totalPages=false&pageSize=10&page=1&desc=lastupdated&dimension=ou:ImspTQPwCqd,CREATED:2017,LAST_UPDATED:2018,A03MvHHogjR.EVENT_DATE:2021",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,lastupdated&displayProperty=NAME&totalPages=false&pageSize=10&page=1&desc=eventdate,lastupdated,ouname&dimension=ou:ImspTQPwCqd,CREATED:2017,LAST_UPDATED:2018,A03MvHHogjR.EVENT_DATE:2021",
       "version": {
         "min": 43
       }
     },
     {
       "name": "createdCanBeCombinedWithStageSpecificEventDate",
-      "query": "/api/analytics/events/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,lastupdated&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=ou:ImspTQPwCqd,CREATED:2017,A03MvHHogjR.EVENT_DATE:2021&desc=lastupdated",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,lastupdated&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=ou:ImspTQPwCqd,CREATED:2017,A03MvHHogjR.EVENT_DATE:2021&desc=eventdate,lastupdated,ouname",
       "version": {
         "min": 43
       }
     },
     {
       "name": "lastUpdatedCanBeCombinedWithStageSpecificEventDate",
-      "query": "/api/analytics/events/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,lastupdated&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=ou:ImspTQPwCqd,LAST_UPDATED:2018,A03MvHHogjR.EVENT_DATE:2021&desc=lastupdated",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?includeMetadataDetails=true&headers=ouname,lastupdated&displayProperty=NAME&totalPages=false&pageSize=10&page=1&dimension=ou:ImspTQPwCqd,LAST_UPDATED:2018,A03MvHHogjR.EVENT_DATE:2021&desc=eventdate,lastupdated,ouname",
       "version": {
         "min": 43
       }
