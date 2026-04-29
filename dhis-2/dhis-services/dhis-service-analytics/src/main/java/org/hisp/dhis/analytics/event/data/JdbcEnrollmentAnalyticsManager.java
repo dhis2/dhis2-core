@@ -54,7 +54,6 @@ import static org.hisp.dhis.util.DateUtils.toMediumDate;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -134,16 +133,12 @@ import org.springframework.stereotype.Service;
 public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     implements EnrollmentAnalyticsManager {
   private final EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer;
+  private final ProgramStageOffsetSqlBuilder stageOffsetBuilder;
   private final StageHeaderClassifier stageHeaderClassifier = new StageHeaderClassifier();
   private final AggregatedEnrollmentDateHeaderResolver dateHeaderResolver =
       new AggregatedEnrollmentDateHeaderResolver();
   private final AggregatedEnrollmentHeaderColumnResolver headerColumnResolver =
       new AggregatedEnrollmentHeaderColumnResolver(stageHeaderClassifier);
-
-  private static final String DIRECTION_PLACEHOLDER = "#DIRECTION_PLACEHOLDER";
-
-  private static final String ORDER_BY_EXECUTION_DATE =
-      "order by occurreddate " + DIRECTION_PLACEHOLDER + ", created " + DIRECTION_PLACEHOLDER;
 
   private static final String LIMIT_1 = "limit 1";
 
@@ -170,7 +165,8 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       ColumnMapper columnMapper,
       QueryItemFilterBuilder filterBuilder,
       StageQuerySqlFacade stageQuerySqlFacade,
-      DateFieldPeriodBucketColumnResolver dateFieldPeriodBucketColumnResolver) {
+      DateFieldPeriodBucketColumnResolver dateFieldPeriodBucketColumnResolver,
+      ProgramStageOffsetSqlBuilder stageOffsetBuilder) {
     super(
         jdbcTemplate,
         programIndicatorService,
@@ -187,6 +183,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         stageQuerySqlFacade,
         dateFieldPeriodBucketColumnResolver);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
+    this.stageOffsetBuilder = stageOffsetBuilder;
   }
 
   @Override
@@ -689,9 +686,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
               + IS_NOT_NULL
               + psCondition
               + " "
-              + createOrderType(item.getProgramStageOffset())
+              + stageOffsetBuilder.orderType(item.getProgramStageOffset())
               + " "
-              + createOffset(item.getProgramStageOffset())
+              + stageOffsetBuilder.offsetClause(item.getProgramStageOffset())
               + " "
               + LIMIT_1
               + " )",
@@ -739,12 +736,12 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             + "and ps = '"
             + item.getProgramStage().getUid()
             + "' "
-            + getExecutionDateFilter(
+            + stageOffsetBuilder.executionDateFilter(
                 item.getRepeatableStageParams().getStartDate(),
                 item.getRepeatableStageParams().getEndDate())
-            + createOrderType(item.getProgramStageOffset())
+            + stageOffsetBuilder.orderType(item.getProgramStageOffset())
             + " "
-            + createOffset(item.getProgramStageOffset())
+            + stageOffsetBuilder.offsetClause(item.getProgramStageOffset())
             + " "
             + LIMIT_1
             + " )";
@@ -771,9 +768,9 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           + "and ps = '"
           + item.getProgramStage().getUid()
           + "' "
-          + createOrderType(item.getProgramStageOffset())
+          + stageOffsetBuilder.orderType(item.getProgramStageOffset())
           + " "
-          + createOffset(item.getProgramStageOffset())
+          + stageOffsetBuilder.offsetClause(item.getProgramStageOffset())
           + " "
           + LIMIT_1
           + " )";
@@ -818,24 +815,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         == ATTRIBUTE;
   }
 
-  private String getExecutionDateFilter(Date startDate, Date endDate) {
-    StringBuilder sb = new StringBuilder();
-
-    if (startDate != null) {
-      sb.append(" and occurreddate >= ");
-
-      sb.append(String.format("%s ", sqlBuilder.singleQuote(toMediumDate(startDate))));
-    }
-
-    if (endDate != null) {
-      sb.append(" and occurreddate <= ");
-
-      sb.append(String.format("%s ", sqlBuilder.singleQuote(toMediumDate(endDate))));
-    }
-
-    return sb.toString();
-  }
-
   private void assertProgram(QueryItem item) {
     Assert.isTrue(
         item.hasProgram(),
@@ -845,29 +824,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
   @Override
   protected AnalyticsType getAnalyticsType() {
     return AnalyticsType.ENROLLMENT;
-  }
-
-  private String createOffset(int offset) {
-    if (offset == 0) {
-      return EMPTY;
-    }
-
-    if (offset < 0) {
-      return "offset " + (-1 * offset);
-    } else {
-      return "offset " + (offset - 1);
-    }
-  }
-
-  private String createOrderType(int offset) {
-    if (offset == 0) {
-      return ORDER_BY_EXECUTION_DATE.replace(DIRECTION_PLACEHOLDER, "desc");
-    }
-    if (offset < 0) {
-      return ORDER_BY_EXECUTION_DATE.replace(DIRECTION_PLACEHOLDER, "desc");
-    } else {
-      return ORDER_BY_EXECUTION_DATE.replace(DIRECTION_PLACEHOLDER, "asc");
-    }
   }
 
   /**
