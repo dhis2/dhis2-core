@@ -316,6 +316,13 @@
       }
     },
     {
+      "name": "validateProgramStatusWithEnrollmentOu",
+      "query": "/api/analytics/events/query/IpHINAT79UW.json?displayProperty=NAME&outputType=EVENT&pageSize=100&page=1&dimension=ENROLLMENT_OU:O6uvpzGd5pu&dimension=PROGRAM_STATUS:ACTIVE&headers=enrollmentouname,programstatus,enrollmentdate&desc=eventdate,lastupdated",
+      "version": {
+        "min": 43
+      }
+    },
+    {
       "name": "ouMultipleLevels",
       "query": "/api/analytics/events/query/IpHINAT79UW.json?dimension=GxdhnY5wmHq,ou:USER_ORGUNIT;LEVEL-wjP19dkFeIk;LEVEL-tTUf91fCytl;LEVEL-m9lBJogzE95,p2Zxg0wcPQ3&headers=ouname,lastupdated,GxdhnY5wmHq,p2Zxg0wcPQ3&totalPages=false&lastUpdated=201707&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=EVENT&stage=ZzYYXq4fJie",
       "version": {
