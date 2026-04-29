@@ -46,7 +46,6 @@ import static org.hisp.dhis.analytics.util.EventQueryParamsUtils.withoutProgramS
 import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.util.DateUtils.toMediumDate;
@@ -109,7 +108,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
@@ -117,7 +115,6 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.util.ListBuilder;
-import org.locationtech.jts.util.Assert;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.InvalidResultSetAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -133,14 +130,12 @@ import org.springframework.stereotype.Service;
 public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     implements EnrollmentAnalyticsManager {
   private final EnrollmentTimeFieldSqlRenderer timeFieldSqlRenderer;
-  private final ProgramStageOffsetSqlBuilder stageOffsetBuilder;
+  private final EnrollmentEventSubqueryBuilder eventSubqueryBuilder;
   private final StageHeaderClassifier stageHeaderClassifier = new StageHeaderClassifier();
   private final AggregatedEnrollmentDateHeaderResolver dateHeaderResolver =
       new AggregatedEnrollmentDateHeaderResolver();
   private final AggregatedEnrollmentHeaderColumnResolver headerColumnResolver =
       new AggregatedEnrollmentHeaderColumnResolver(stageHeaderClassifier);
-
-  private static final String LIMIT_1 = "limit 1";
 
   private static final String IS_NOT_NULL = " is not null ";
 
@@ -166,7 +161,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       QueryItemFilterBuilder filterBuilder,
       StageQuerySqlFacade stageQuerySqlFacade,
       DateFieldPeriodBucketColumnResolver dateFieldPeriodBucketColumnResolver,
-      ProgramStageOffsetSqlBuilder stageOffsetBuilder) {
+      EnrollmentEventSubqueryBuilder eventSubqueryBuilder) {
     super(
         jdbcTemplate,
         programIndicatorService,
@@ -183,7 +178,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         stageQuerySqlFacade,
         dateFieldPeriodBucketColumnResolver);
     this.timeFieldSqlRenderer = timeFieldSqlRenderer;
-    this.stageOffsetBuilder = stageOffsetBuilder;
+    this.eventSubqueryBuilder = eventSubqueryBuilder;
   }
 
   @Override
@@ -643,59 +638,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    */
   @Override
   protected ColumnAndAlias getCoordinateColumn(QueryItem item, String suffix) {
-    if (item.getProgram() != null) {
-      String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
-      String colName = quote(item.getItemId());
-
-      String psCondition = "";
-
-      if (item.hasProgramStage()) {
-        assertProgram(item);
-
-        psCondition = "and ps = '" + item.getProgramStage().getUid() + "' ";
-      }
-
-      String stCentroidFunction = "";
-
-      if (ValueType.ORGANISATION_UNIT == item.getValueType()) {
-        stCentroidFunction = "ST_Centroid";
-      }
-
-      String alias = getAlias(item).orElse(null);
-
-      return ColumnAndAlias.ofColumnAndAlias(
-          "(select '[' || round(ST_X("
-              + stCentroidFunction
-              + "("
-              + colName
-              + "))::numeric, 6) || ',' || round(ST_Y("
-              + stCentroidFunction
-              + "("
-              + colName
-              + "))::numeric, 6) || ']' as "
-              + colName
-              + " from "
-              + eventTableName
-              + " where "
-              + eventTableName
-              + ".enrollment = "
-              + ANALYTICS_TBL_ALIAS
-              + ".enrollment "
-              + "and "
-              + colName
-              + IS_NOT_NULL
-              + psCondition
-              + " "
-              + stageOffsetBuilder.orderType(item.getProgramStageOffset())
-              + " "
-              + stageOffsetBuilder.offsetClause(item.getProgramStageOffset())
-              + " "
-              + LIMIT_1
-              + " )",
-          alias);
-    }
-
-    return ColumnAndAlias.EMPTY;
+    return eventSubqueryBuilder.renderCoordinateSubquery(item);
   }
 
   /**
@@ -710,75 +653,13 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
    */
   @Override
   protected String getColumn(QueryItem item, String suffix) {
-    String colName = item.getItemName();
-    String alias = EMPTY;
-
     if (item.hasProgramStage()) {
-      assertProgram(item);
-
-      colName = quote(colName + suffix);
-
-      String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
-      String excludingScheduledCondition =
-          eventTableName + ".eventstatus != '" + EventStatus.SCHEDULE + "' and ";
-
-      if (item.getProgramStage().getRepeatable() && item.hasRepeatableStageParams()) {
-        return "(select "
-            + colName
-            + " from "
-            + eventTableName
-            + " where "
-            + excludingScheduledCondition
-            + eventTableName
-            + ".enrollment = "
-            + ANALYTICS_TBL_ALIAS
-            + ".enrollment "
-            + "and ps = '"
-            + item.getProgramStage().getUid()
-            + "' "
-            + stageOffsetBuilder.executionDateFilter(
-                item.getRepeatableStageParams().getStartDate(),
-                item.getRepeatableStageParams().getEndDate())
-            + stageOffsetBuilder.orderType(item.getProgramStageOffset())
-            + " "
-            + stageOffsetBuilder.offsetClause(item.getProgramStageOffset())
-            + " "
-            + LIMIT_1
-            + " )";
-      }
-
-      if (item.getItem().getDimensionItemType() == DATA_ELEMENT && item.getProgramStage() != null) {
-        alias = " as " + quote(item.getProgramStage().getUid() + "." + item.getItem().getUid());
-      }
-
-      return "(select "
-          + colName
-          + alias
-          + " from "
-          + eventTableName
-          + " where "
-          + excludingScheduledCondition
-          + eventTableName
-          + ".enrollment = "
-          + ANALYTICS_TBL_ALIAS
-          + ".enrollment "
-          + "and "
-          + colName
-          + IS_NOT_NULL
-          + "and ps = '"
-          + item.getProgramStage().getUid()
-          + "' "
-          + stageOffsetBuilder.orderType(item.getProgramStageOffset())
-          + " "
-          + stageOffsetBuilder.offsetClause(item.getProgramStageOffset())
-          + " "
-          + LIMIT_1
-          + " )";
-    } else if (isOrganizationUnitProgramAttribute(item)) {
-      return quoteAlias(colName + suffix);
-    } else {
-      return quoteAlias(colName);
+      return eventSubqueryBuilder.renderValueSubquery(item, suffix);
     }
+    if (isOrganizationUnitProgramAttribute(item)) {
+      return quoteAlias(item.getItemName() + suffix);
+    }
+    return quoteAlias(item.getItemName());
   }
 
   /**
@@ -813,12 +694,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
             .next()
             .getDataDimensionType()
         == ATTRIBUTE;
-  }
-
-  private void assertProgram(QueryItem item) {
-    Assert.isTrue(
-        item.hasProgram(),
-        "Can not query item with program stage but no program:" + item.getItemName());
   }
 
   @Override

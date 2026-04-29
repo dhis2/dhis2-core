@@ -162,7 +162,8 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             filterBuilder,
             stageQuerySqlFacade,
             new DateFieldPeriodBucketColumnResolver(new PostgreSqlAnalyticsSqlBuilder()),
-            new ProgramStageOffsetSqlBuilder(sqlBuilder));
+            new EnrollmentEventSubqueryBuilder(
+                sqlBuilder, new ProgramStageOffsetSqlBuilder(sqlBuilder)));
   }
 
   @Test

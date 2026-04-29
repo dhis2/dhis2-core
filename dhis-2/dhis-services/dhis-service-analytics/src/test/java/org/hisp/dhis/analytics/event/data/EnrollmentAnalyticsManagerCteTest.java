@@ -748,7 +748,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
         filterBuilder,
         stageQuerySqlFacade,
         new DateFieldPeriodBucketColumnResolver(builder),
-        new ProgramStageOffsetSqlBuilder(builder));
+        new EnrollmentEventSubqueryBuilder(builder, new ProgramStageOffsetSqlBuilder(builder)));
   }
 
   @Test
