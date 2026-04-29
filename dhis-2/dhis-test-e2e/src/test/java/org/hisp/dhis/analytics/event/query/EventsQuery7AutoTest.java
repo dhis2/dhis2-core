@@ -339,7 +339,7 @@ public class EventsQuery7AutoTest extends AnalyticsApiTest {
             .add("page=1")
             .add(
                 "dimension=ou:ImspTQPwCqd,CREATED:2017,LAST_UPDATED:2018,A03MvHHogjR.EVENT_DATE:2021")
-            .add("desc=lastupdated");
+            .add("desc=eventdate,lastupdated,ouname");
 
     // When
     ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
@@ -391,20 +391,20 @@ public class EventsQuery7AutoTest extends AnalyticsApiTest {
 
     // 7. Assert row values by name at specific indices (sorted results).
     // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
-    validateRowValueByName(response, actualHeaders, 0, "lastupdated", "2018-09-14 22:24:18.195");
+    validateRowValueByName(response, actualHeaders, 0, "ouname", "Mambiama CHP");
+    validateRowValueByName(response, actualHeaders, 0, "lastupdated", "2018-08-06 21:20:52.67");
 
     // Validate selected values for row index 3
-    validateRowValueByName(response, actualHeaders, 3, "ouname", "Ngelehun CHC");
-    validateRowValueByName(response, actualHeaders, 3, "lastupdated", "2018-08-07 14:56:08.107");
+    validateRowValueByName(response, actualHeaders, 3, "ouname", "Mongerewa MCHP");
+    validateRowValueByName(response, actualHeaders, 3, "lastupdated", "2018-08-06 21:20:50.052");
 
     // Validate selected values for row index 6
-    validateRowValueByName(response, actualHeaders, 6, "ouname", "Makaba MCHP");
-    validateRowValueByName(response, actualHeaders, 6, "lastupdated", "2018-08-06 21:20:52.78");
+    validateRowValueByName(response, actualHeaders, 6, "ouname", "Youndu CHP");
+    validateRowValueByName(response, actualHeaders, 6, "lastupdated", "2018-08-06 21:20:48.359");
 
     // Validate selected values for row index 9
-    validateRowValueByName(response, actualHeaders, 9, "ouname", "Sawuria CHP");
-    validateRowValueByName(response, actualHeaders, 9, "lastupdated", "2018-08-06 21:20:52.779");
+    validateRowValueByName(response, actualHeaders, 9, "ouname", "Rokel (Masimera) MCHP");
+    validateRowValueByName(response, actualHeaders, 9, "lastupdated", "2018-08-06 21:20:48.017");
   }
 
   @Test
@@ -423,7 +423,7 @@ public class EventsQuery7AutoTest extends AnalyticsApiTest {
             .add("pageSize=10")
             .add("page=1")
             .add("dimension=ou:ImspTQPwCqd,CREATED:2017,A03MvHHogjR.EVENT_DATE:2021")
-            .add("desc=lastupdated");
+            .add("desc=eventdate,lastupdated,ouname");
 
     // When
     ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
@@ -475,20 +475,20 @@ public class EventsQuery7AutoTest extends AnalyticsApiTest {
 
     // 7. Assert row values by name at specific indices (sorted results).
     // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
-    validateRowValueByName(response, actualHeaders, 0, "lastupdated", "2018-09-14 22:24:18.195");
+    validateRowValueByName(response, actualHeaders, 0, "ouname", "Mambiama CHP");
+    validateRowValueByName(response, actualHeaders, 0, "lastupdated", "2018-08-06 21:20:52.67");
 
     // Validate selected values for row index 3
-    validateRowValueByName(response, actualHeaders, 3, "ouname", "Ngelehun CHC");
-    validateRowValueByName(response, actualHeaders, 3, "lastupdated", "2018-08-07 14:56:08.107");
+    validateRowValueByName(response, actualHeaders, 3, "ouname", "Mongerewa MCHP");
+    validateRowValueByName(response, actualHeaders, 3, "lastupdated", "2018-08-06 21:20:50.052");
 
     // Validate selected values for row index 6
-    validateRowValueByName(response, actualHeaders, 6, "ouname", "Makaba MCHP");
-    validateRowValueByName(response, actualHeaders, 6, "lastupdated", "2018-08-06 21:20:52.78");
+    validateRowValueByName(response, actualHeaders, 6, "ouname", "Youndu CHP");
+    validateRowValueByName(response, actualHeaders, 6, "lastupdated", "2018-08-06 21:20:48.359");
 
     // Validate selected values for row index 9
-    validateRowValueByName(response, actualHeaders, 9, "ouname", "Sawuria CHP");
-    validateRowValueByName(response, actualHeaders, 9, "lastupdated", "2018-08-06 21:20:52.779");
+    validateRowValueByName(response, actualHeaders, 9, "ouname", "Rokel (Masimera) MCHP");
+    validateRowValueByName(response, actualHeaders, 9, "lastupdated", "2018-08-06 21:20:48.017");
   }
 
   @Test
@@ -508,7 +508,7 @@ public class EventsQuery7AutoTest extends AnalyticsApiTest {
             .add("pageSize=10")
             .add("page=1")
             .add("dimension=ou:ImspTQPwCqd,LAST_UPDATED:2018,A03MvHHogjR.EVENT_DATE:2021")
-            .add("desc=lastupdated");
+            .add("desc=eventdate,lastupdated,ouname");
 
     // When
     ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
@@ -560,20 +560,20 @@ public class EventsQuery7AutoTest extends AnalyticsApiTest {
 
     // 7. Assert row values by name at specific indices (sorted results).
     // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "ouname", "Ngelehun CHC");
-    validateRowValueByName(response, actualHeaders, 0, "lastupdated", "2018-09-14 22:24:18.195");
+    validateRowValueByName(response, actualHeaders, 0, "ouname", "Mambiama CHP");
+    validateRowValueByName(response, actualHeaders, 0, "lastupdated", "2018-08-06 21:20:52.67");
 
     // Validate selected values for row index 3
-    validateRowValueByName(response, actualHeaders, 3, "ouname", "Ngelehun CHC");
-    validateRowValueByName(response, actualHeaders, 3, "lastupdated", "2018-08-07 14:56:08.107");
+    validateRowValueByName(response, actualHeaders, 3, "ouname", "Mongerewa MCHP");
+    validateRowValueByName(response, actualHeaders, 3, "lastupdated", "2018-08-06 21:20:50.052");
 
     // Validate selected values for row index 6
-    validateRowValueByName(response, actualHeaders, 6, "ouname", "Makaba MCHP");
-    validateRowValueByName(response, actualHeaders, 6, "lastupdated", "2018-08-06 21:20:52.78");
+    validateRowValueByName(response, actualHeaders, 6, "ouname", "Youndu CHP");
+    validateRowValueByName(response, actualHeaders, 6, "lastupdated", "2018-08-06 21:20:48.359");
 
     // Validate selected values for row index 9
-    validateRowValueByName(response, actualHeaders, 9, "ouname", "Sawuria CHP");
-    validateRowValueByName(response, actualHeaders, 9, "lastupdated", "2018-08-06 21:20:52.779");
+    validateRowValueByName(response, actualHeaders, 9, "ouname", "Rokel (Masimera) MCHP");
+    validateRowValueByName(response, actualHeaders, 9, "lastupdated", "2018-08-06 21:20:48.017");
   }
 
   @Test
