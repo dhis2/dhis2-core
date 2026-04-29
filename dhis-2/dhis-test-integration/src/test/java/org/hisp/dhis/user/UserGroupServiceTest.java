@@ -29,13 +29,13 @@
  */
 package org.hisp.dhis.user;
 
+import static org.hisp.dhis.test.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -134,20 +134,17 @@ class UserGroupServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetAllUserGroups() {
-    List<UserGroup> userGroups = new ArrayList<>();
     Set<User> members = new HashSet<>();
     members.add(user1);
     members.add(user3);
     UserGroup userGroupA = createUserGroup('A', members);
-    userGroups.add(userGroupA);
     userGroupService.addUserGroup(userGroupA);
     members = new HashSet<>();
     members.add(user1);
     members.add(user2);
     UserGroup userGroupB = createUserGroup('B', members);
-    userGroups.add(userGroupB);
     userGroupService.addUserGroup(userGroupB);
-    assertEquals(userGroupService.getAllUserGroups(), userGroups);
+    assertContainsOnly(List.of(userGroupA, userGroupB), userGroupService.getAllUserGroups());
   }
 
   @Test
