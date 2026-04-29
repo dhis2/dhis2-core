@@ -456,7 +456,6 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
 
     // When
     ApiResponse response = actions.aggregate().get("ur1Edk5Oe2n", JSON, JSON, params);
-    System.out.println(response.prettyPrint());
     List<Map<String, Object>> actualHeaders =
         response.extractList("headers", Map.class).stream()
             .map(obj -> (Map<String, Object>) obj) // Ensure correct type
