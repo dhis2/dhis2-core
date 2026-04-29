@@ -56,6 +56,7 @@ import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.AnalyticsTestUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OutputFormat;
+import org.hisp.dhis.analytics.event.data.OrganisationUnitResolver;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -230,6 +231,8 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Autowired private CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
   @Autowired private SystemSettingsService settingsService;
+
+  @Autowired private OrganisationUnitResolver organisationUnitResolver;
 
   private Date processStartTime;
 

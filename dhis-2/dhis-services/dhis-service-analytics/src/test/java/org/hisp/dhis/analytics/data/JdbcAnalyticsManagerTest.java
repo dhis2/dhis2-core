@@ -48,6 +48,7 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.event.data.OrganisationUnitResolver;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
@@ -85,6 +86,8 @@ class JdbcAnalyticsManagerTest {
   @Mock private NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
 
   @Mock private QueryPlanner queryPlanner;
+
+  @Mock private OrganisationUnitResolver organisationUnitResolver;
 
   @Spy private SqlBuilder sqlBuilder = new PostgreSqlBuilder();
 
