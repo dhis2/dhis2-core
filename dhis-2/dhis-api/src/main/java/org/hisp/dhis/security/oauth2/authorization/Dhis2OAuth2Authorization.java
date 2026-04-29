@@ -62,6 +62,8 @@ import org.hisp.dhis.common.SecondaryMetadataObject;
  * /api/metadata} export; token-bearing fields are additionally {@link JsonIgnore}'d so no REST
  * surface can leak them even on explicit requests. Persistence uses Hibernate field access ({@code
  * Dhis2OAuth2Authorization.hbm.xml}) and is independent of the JSON annotations.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Getter
 @Setter
@@ -73,11 +75,32 @@ public class Dhis2OAuth2Authorization extends BaseIdentifiableObject
   /** Required by Hibernate + Jackson for reflective instantiation. */
   public Dhis2OAuth2Authorization() {}
 
+  /**
+   * Reference to the {@link org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client} this grant was
+   * issued to. Holds the internal id of the registered client, not its public {@code clientId}.
+   */
   @JsonProperty private String registeredClientId;
+
+  /**
+   * Name of the resource owner the grant is tied to. For user-delegated flows this is the DHIS2
+   * username; for {@code client_credentials} it is the client itself.
+   */
   @JsonProperty private String principalName;
+
+  /**
+   * The grant type that produced this authorization (e.g. {@code authorization_code}, {@code
+   * client_credentials}, {@code refresh_token}, {@code
+   * urn:ietf:params:oauth:grant-type:device_code}).
+   */
   @JsonProperty private String authorizationGrantType;
+
+  /** Comma-separated list of scopes that were actually granted for this authorization. */
   @JsonProperty private String authorizedScopes;
+
+  /** JSON-encoded Spring AS attributes map (authenticated principal, request metadata, etc.). */
   @JsonIgnore private String attributes;
+
+  /** Opaque {@code state} value used by Spring AS for OAuth2 CSRF protection during the flow. */
   @JsonIgnore private String state;
 
   @JsonIgnore private String authorizationCodeValue;
