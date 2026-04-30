@@ -72,8 +72,7 @@ public class CspConstants {
    * CSP policy for the rendered OpenAPI HTML documentation pages, which emit inline {@code onclick}
    * handlers from {@code OpenApiRenderer}. Allows {@code script-src 'self' 'unsafe-inline'} so the
    * interactive doc page works under the default-deny baseline. Scoped to the OpenAPI HTML
-   * endpoints only via {@link
-   * org.hisp.dhis.webapi.security.csp.CspOpenApiDocs @CspOpenApiDocs}.
+   * endpoints only via {@link org.hisp.dhis.webapi.security.csp.CspOpenApiDocs @CspOpenApiDocs}.
    */
   public static final String OPENAPI_DOCS_CSP_POLICY =
       "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';";
