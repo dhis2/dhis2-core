@@ -1456,13 +1456,15 @@ public class JdbcEventStore implements EventStore {
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
-    // WITHOUT_REGISTRATION + date range: filter directly on psi.organisationunitid so the planner
-    // can drive the scan from the composite index on (organisationunitid, programstageid,
-    // executiondate). Without a date range the planner instead uses idx_psi_lastupdated_desc with
-    // ORDER BY lastupdated DESC LIMIT n, scanning newest-first and stopping early — adding the IN
-    // subquery here breaks that strategy and forces a full seq scan + sort.
-    // WITH_REGISTRATION: filter on ou.path which resolves to po.organisationunitid via the
-    // sargable INNER JOIN on TPO — psi.organisationunitid is provenance, not ownership.
+    // WITHOUT_REGISTRATION — three access patterns depending on query shape:
+    //   1. Date range present: push psi.organisationunitid IN (subquery) so the planner drives
+    //      the scan from idx_event_ou_ps_occurreddate(ou, ps, date) — best case.
+    //   2. No date range, ORDER BY lastupdated DESC (typical Android sync): fall back to path
+    //      LIKE so the planner uses idx_psi_lastupdated_desc, scanning newest-first and stopping
+    //      early at LIMIT — acceptable. Adding the IN subquery here forces a full seq scan + sort.
+    //   3. No date range, no ORDER BY lastupdated: path LIKE fallback, no efficient access path.
+    // WITH_REGISTRATION: filter on ou.path resolved via the TPO INNER JOIN —
+    //   psi.organisationunitid is provenance, not ownership.
     String directDescendantsPredicate =
         isWithoutRegistrationQuery(params) && hasDateRange(params)
             ? " psi.organisationunitid IN ("
