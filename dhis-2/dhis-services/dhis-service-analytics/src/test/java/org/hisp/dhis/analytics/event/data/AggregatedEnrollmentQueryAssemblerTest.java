@@ -32,6 +32,12 @@ package org.hisp.dhis.analytics.event.data;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.not;
+import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
+import static org.hisp.dhis.common.DimensionType.PERIOD;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -40,13 +46,20 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.analytics.common.EndpointItem;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.util.sql.SelectBuilder;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.PeriodDimension;
+import org.hisp.dhis.period.PeriodType;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -158,6 +171,20 @@ class AggregatedEnrollmentQueryAssemblerTest {
   }
 
   @Test
+  void addStandardColumnsWithShadowCteRewritesUnknownFormulaToStableDefaultAlias() {
+    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
+    CteContext cteContext = shadowCteContext();
+    String formula = "coalesce(enrollmentdate, created)";
+
+    assembler.addStandardColumns(sb, cteContext, List.of(formula));
+
+    String sql = sb.build();
+    String expectedAlias = "formula_" + (formula.hashCode() & Integer.MAX_VALUE);
+    assertThat(sql, containsString("ax." + expectedAlias));
+    assertThat(sql, not(containsString(formula)));
+  }
+
+  @Test
   void addOrgUnitAggregateColumnsEmitsDefaultOuWhenNoLevelColumnsAndNotAggregateEnrollment() {
     SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
     EventQueryParams params = mock(EventQueryParams.class);
@@ -167,6 +194,196 @@ class AggregatedEnrollmentQueryAssemblerTest {
     String sql = sb.build();
     assertThat(sql, containsString("ou"));
     assertThat(sql, containsString("group by"));
+  }
+
+  @Test
+  void addOrgUnitAggregateColumnsEmitsLevelColumnsWhenOuModeRequiresThem() {
+    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
+    OrganisationUnit organisationUnit = new OrganisationUnit("OrgTest");
+    organisationUnit.setPath("/Level1/OrgTest");
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withOrganisationUnitMode(CAPTURE)
+            .addDimension(
+                new BaseDimensionalObject(
+                    ORGUNIT_DIM_ID, ORGANISATION_UNIT, List.of(organisationUnit)))
+            .build();
+
+    assembler.addOrgUnitAggregateColumns(sb, params);
+
+    String sql = sb.build();
+    assertThat(sql, containsString("uidlevel2"));
+    assertThat(sql, containsString("group by uidlevel2"));
+    assertThat(sql, not(containsString("group by ou")));
+  }
+
+  @Test
+  void addOrgUnitAggregateColumnsSkipsDefaultOuForAggregateEnrollmentWithoutOuDimensions() {
+    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withEndpointAction(AGGREGATE)
+            .withEndpointItem(org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT)
+            .build();
+
+    assembler.addOrgUnitAggregateColumns(sb, params);
+
+    String sql = sb.build();
+    assertThat(sql, not(containsString("ou")));
+    assertThat(sql, not(containsString("group by")));
+  }
+
+  @Test
+  void addPeriodAggregateColumnsUsesPeriodColumnsWhenNoProjectionExists() {
+    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(
+                new BaseDimensionalObject(PERIOD_DIM_ID, PERIOD, List.of(month("202301"))))
+            .build();
+
+    assembler.addPeriodAggregateColumns(params, sb, List.of());
+
+    String sql = sb.build();
+    assertThat(sql, containsString("Monthly"));
+    assertThat(sql, containsString("group by Monthly"));
+    assertThat(sql, not(containsString("t1.Monthly")));
+  }
+
+  @Test
+  void addPeriodAggregateColumnsAddsResolvedExpressions() {
+    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
+    EventQueryParams params = mock(EventQueryParams.class);
+    DateFieldPeriodBucketColumnResolver.ResolvedExpression expression =
+        new DateFieldPeriodBucketColumnResolver.ResolvedExpression(
+            "date_trunc('month', eb.\"enrollmentdate\") as \"enrollmentdate\"",
+            "date_trunc('month', eb.\"enrollmentdate\")",
+            "enrollmentdate",
+            Optional.empty());
+
+    assembler.addPeriodAggregateColumns(
+        params,
+        sb,
+        List.of(
+            new AggregatedEnrollmentQueryAssembler.PeriodProjection(
+                "enrollmentdate", Optional.of(expression))));
+
+    String sql = sb.build();
+    assertThat(
+        sql, containsString("date_trunc('month', eb.\"enrollmentdate\") as \"enrollmentdate\""));
+    assertThat(sql, containsString("group by date_trunc('month', eb.\"enrollmentdate\")"));
+  }
+
+  @Test
+  void addPeriodAggregateColumnsQuotesProjectionKeysWithoutResolvedExpressions() {
+    SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
+    EventQueryParams params = mock(EventQueryParams.class);
+
+    assembler.addPeriodAggregateColumns(
+        params,
+        sb,
+        List.of(
+            new AggregatedEnrollmentQueryAssembler.PeriodProjection(
+                "scheduleddate", Optional.empty())));
+
+    String sql = sb.build();
+    assertThat(sql, containsString("\"scheduleddate\""));
+    assertThat(sql, containsString("group by \"scheduleddate\""));
+  }
+
+  @Test
+  void addHeaderAggregateColumnsSkipsInfrastructureAndPeriodHeaders() {
+    SelectBuilder sb = new SelectBuilder().from("enrollment_aggr_base", "eb");
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(
+                new BaseDimensionalObject(
+                    PERIOD_DIM_ID,
+                    PERIOD,
+                    "monthly",
+                    "Period",
+                    List.of(month("202301").setDateField(TimeField.ENROLLMENT_DATE.name()))))
+            .build();
+    CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
+
+    assembler.addHeaderAggregateColumns(
+        List.of(
+            new GridHeader("value"),
+            new GridHeader("ou"),
+            new GridHeader("pe"),
+            new GridHeader("enrollmentdate"),
+            new GridHeader("plain")),
+        params,
+        cteContext,
+        sb,
+        List.of(
+            new AggregatedEnrollmentQueryAssembler.PeriodProjection("monthly", Optional.empty())));
+
+    String sql = sb.build();
+    assertThat(sql, containsString("\"plain\""));
+    assertThat(sql, not(containsString("\"enrollmentdate\"")));
+    assertThat(sql, not(containsString("\"value\"")));
+    assertThat(sql, not(containsString("\"ou\"")));
+    assertThat(sql, not(containsString("\"pe\"")));
+  }
+
+  @Test
+  void addHeaderAggregateColumnsUsesStageFilterCteWhenPresent() {
+    SelectBuilder sb = new SelectBuilder().from("enrollment_aggr_base", "eb");
+    CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
+    cteContext.addFilterCte("latest_events_stage1", "select 1");
+
+    assembler.addHeaderAggregateColumns(
+        List.of(new GridHeader("stage1.eventdate")),
+        mock(EventQueryParams.class),
+        cteContext,
+        sb,
+        List.of());
+
+    String sql = sb.build();
+    assertThat(sql, containsString("ev_occurreddate as \"stage1.eventdate\""));
+    assertThat(sql, containsString("group by"));
+    assertThat(sql, containsString("ev_occurreddate"));
+  }
+
+  @Test
+  void addHeaderAggregateColumnsSkipsPeriodProjectionHeadersCaseInsensitively() {
+    SelectBuilder sb = new SelectBuilder().from("enrollment_aggr_base", "eb");
+
+    assembler.addHeaderAggregateColumns(
+        List.of(new GridHeader("ScheduledDate"), new GridHeader("plain")),
+        mock(EventQueryParams.class),
+        new CteContext(EndpointItem.ENROLLMENT),
+        sb,
+        List.of(
+            new AggregatedEnrollmentQueryAssembler.PeriodProjection(
+                "scheduleddate", Optional.empty())));
+
+    String sql = sb.build();
+    assertThat(sql, containsString("\"plain\""));
+    assertThat(sql, not(containsString("\"ScheduledDate\"")));
+    assertThat(sql, not(containsString("\"scheduleddate\"")));
+  }
+
+  @Test
+  void addHeaderAggregateColumnsUsesProgramIndicatorCteWhenHeaderMatchesIndicatorUid() {
+    SelectBuilder sb = new SelectBuilder().from("enrollment_aggr_base", "eb");
+    CteContext cteContext = mock(CteContext.class);
+    CteDefinition piDef = mock(CteDefinition.class);
+    when(cteContext.getCteKeysExcluding(CteDefinition.ENROLLMENT_AGGR_BASE))
+        .thenReturn(Set.of("PiUid"));
+    when(cteContext.getDefinitionByItemUid("PiUid")).thenReturn(piDef);
+    when(piDef.isProgramStage()).thenReturn(false);
+    when(piDef.isProgramIndicator()).thenReturn(true);
+    when(piDef.getProgramIndicatorUid()).thenReturn("PiUid");
+    when(piDef.getAlias()).thenReturn("pi_cte");
+
+    assembler.addHeaderAggregateColumns(
+        List.of(new GridHeader("PiUid")), mock(EventQueryParams.class), cteContext, sb, List.of());
+
+    String sql = sb.build();
+    assertThat(sql, containsString("pi_cte.value as \"PiUid\""));
+    assertThat(sql, containsString("group by \"PiUid\""));
   }
 
   @Test
@@ -180,10 +397,96 @@ class AggregatedEnrollmentQueryAssemblerTest {
   }
 
   @Test
+  void resolveAggregatePeriodProjectionsSplitsMixedDateFieldPeriods() {
+    PeriodDimension enrollmentDate = month("202301").setDateField(TimeField.ENROLLMENT_DATE.name());
+    PeriodDimension lastUpdated = month("202302").setDateField(TimeField.LAST_UPDATED.name());
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(
+                new BaseDimensionalObject(
+                    PERIOD_DIM_ID,
+                    PERIOD,
+                    "monthly",
+                    "Period",
+                    List.of(enrollmentDate, lastUpdated)))
+            .build();
+
+    List<AggregatedEnrollmentQueryAssembler.PeriodProjection> projections =
+        assembler.resolveAggregatePeriodProjections(params);
+
+    assertEquals(2, projections.size());
+    assertTrue(
+        projections.stream()
+            .anyMatch(
+                projection ->
+                    "enrollmentdate".equals(projection.responseKey())
+                        && projection.expression().isPresent()));
+    assertTrue(
+        projections.stream()
+            .anyMatch(
+                projection ->
+                    "lastupdated".equals(projection.responseKey())
+                        && projection.expression().isPresent()));
+  }
+
+  @Test
+  void resolveAggregatePeriodProjectionsKeepsDefaultGroupWhenMixedWithNonDefaultDateField() {
+    PeriodDimension defaultPeriod = month("202301");
+    PeriodDimension enrollmentDate = month("202302").setDateField(TimeField.ENROLLMENT_DATE.name());
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(
+                new BaseDimensionalObject(
+                    PERIOD_DIM_ID,
+                    PERIOD,
+                    "monthly",
+                    "Period",
+                    List.of(defaultPeriod, enrollmentDate)))
+            .build();
+
+    List<AggregatedEnrollmentQueryAssembler.PeriodProjection> projections =
+        assembler.resolveAggregatePeriodProjections(params);
+
+    assertEquals(2, projections.size());
+    assertTrue(
+        projections.stream()
+            .anyMatch(
+                projection ->
+                    "monthly".equals(projection.responseKey())
+                        && projection.expression().isEmpty()));
+    assertTrue(
+        projections.stream()
+            .anyMatch(
+                projection ->
+                    "enrollmentdate".equals(projection.responseKey())
+                        && projection.expression().isPresent()));
+  }
+
+  @Test
   void collectPeriodDateFieldKeysReturnsEmptyWhenNoPeriodDimension() {
     EventQueryParams params = mock(EventQueryParams.class);
 
     assertTrue(assembler.collectPeriodDateFieldKeys(params).isEmpty());
+  }
+
+  @Test
+  void collectPeriodDateFieldKeysReturnsNormalizedNonNullDateFields() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .addDimension(
+                new BaseDimensionalObject(
+                    PERIOD_DIM_ID,
+                    PERIOD,
+                    "monthly",
+                    "Period",
+                    List.of(
+                        month("202301").setDateField(TimeField.ENROLLMENT_DATE.name()),
+                        month("202302"),
+                        month("202303").setDateField(TimeField.LAST_UPDATED.name()))))
+            .build();
+
+    assertEquals(
+        Set.of("enrollmentdate", "lastupdated"), assembler.collectPeriodDateFieldKeys(params));
   }
 
   @Test
@@ -247,5 +550,11 @@ class AggregatedEnrollmentQueryAssemblerTest {
     CteContext context = new CteContext(EndpointItem.ENROLLMENT);
     context.addShadowCte("top_enrollments", "select 1", CteDefinition.CteType.TOP_ENROLLMENTS);
     return context;
+  }
+
+  private static PeriodDimension month(String isoPeriod) {
+    PeriodDimension period = PeriodDimension.of(isoPeriod);
+    period.getPeriod().setPeriodType(PeriodType.getPeriodTypeFromIsoString(isoPeriod));
+    return period;
   }
 }
