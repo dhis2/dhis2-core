@@ -1189,8 +1189,17 @@ class JdbcEventStore implements EventStore {
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
+    // WITHOUT_REGISTRATION — three access patterns depending on query shape:
+    //   1. Date range present: push ev.organisationunitid IN (subquery) so the planner drives
+    //      the scan from idx_event_ou_ps_occurreddate(ou, ps, date) — best case.
+    //   2. No date range, ORDER BY lastupdated DESC (typical Android sync): fall back to path
+    //      LIKE so the planner uses idx_psi_lastupdated_desc, scanning newest-first and stopping
+    //      early at LIMIT — acceptable. Adding the IN subquery here forces a full seq scan + sort.
+    //   3. No date range, no ORDER BY lastupdated: path LIKE fallback, no efficient access path.
+    // WITH_REGISTRATION: filter on ou.path resolved via the TPO INNER JOIN —
+    //   ev.organisationunitid is provenance, not ownership.
     String directDescendantsPredicate =
-        isWithoutRegistrationQuery(params)
+        isWithoutRegistrationQuery(params) && hasDateRange(params)
             ? " ev.organisationunitid IN ("
                 + "SELECT organisationunitid FROM organisationunit "
                 + "WHERE path LIKE CONCAT(:"
@@ -1332,6 +1341,10 @@ class JdbcEventStore implements EventStore {
   private boolean isWithoutRegistrationQuery(EventQueryParams params) {
     return params.getEnrolledInProgram() != null
         && params.getEnrolledInProgram().getProgramType() == ProgramType.WITHOUT_REGISTRATION;
+  }
+
+  private boolean hasDateRange(EventQueryParams params) {
+    return params.getOccurredStartDate() != null || params.getOccurredEndDate() != null;
   }
 
   private boolean isProgramRestricted(Program program) {
