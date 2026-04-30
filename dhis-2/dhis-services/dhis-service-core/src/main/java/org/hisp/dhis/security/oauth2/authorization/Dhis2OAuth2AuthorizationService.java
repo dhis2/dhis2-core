@@ -32,19 +32,44 @@ package org.hisp.dhis.security.oauth2.authorization;
 import java.util.List;
 import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
 
+/**
+ * DHIS2 service for persisting OAuth2 authorizations (issued grants). Backs Spring Authorization
+ * Server's {@link
+ * org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationService}.
+ *
+ * <p>One row is stored per grant and holds every token value issued for that grant for its
+ * lifetime: authorization code, access token, refresh token, OIDC ID token, user code, and device
+ * code. Each is also independently indexed so token-introspection lookups can find the parent
+ * authorization by any of those values.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 public interface Dhis2OAuth2AuthorizationService {
+  /** Persist a new authorization or update the existing row with the same id. */
   void save(
       org.springframework.security.oauth2.server.authorization.OAuth2Authorization authorization);
 
+  /**
+   * Remove the persisted authorization identified by the given Spring-AS {@code
+   * OAuth2Authorization}.
+   */
   void remove(
       org.springframework.security.oauth2.server.authorization.OAuth2Authorization authorization);
 
+  /** Delete the persisted authorization with the given DHIS2 UID. */
   void delete(String uid);
 
+  /** Return all persisted authorizations. */
   List<Dhis2OAuth2Authorization> getAll();
 
+  /** Look up an authorization by its id. Returns {@code null} if no match. */
   org.springframework.security.oauth2.server.authorization.OAuth2Authorization findById(String id);
 
+  /**
+   * Look up an authorization by token value. When {@code tokenType} is {@code null}, all token
+   * columns are searched; otherwise the column matching {@link OAuth2TokenType} (or equivalent
+   * Spring-AS parameter name) is used. Returns {@code null} if no match.
+   */
   org.springframework.security.oauth2.server.authorization.OAuth2Authorization findByToken(
       String token, OAuth2TokenType tokenType);
 }
