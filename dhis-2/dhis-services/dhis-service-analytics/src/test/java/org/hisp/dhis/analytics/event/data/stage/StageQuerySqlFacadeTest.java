@@ -55,7 +55,7 @@ class StageQuerySqlFacadeTest {
     classifier.isStageOrgUnit = true;
     EventQueryParams params = new EventQueryParams.Builder().build();
 
-    Optional<ColumnAndAlias> column = subject.resolveSelectColumn(item, params, false, false);
+    Optional<ColumnAndAlias> column = subject.resolveSelectColumn(item, params, false, false, null);
 
     assertTrue(column.isPresent());
     assertEquals("stage_ou_expr", column.get().getColumn());
@@ -71,8 +71,9 @@ class StageQuerySqlFacadeTest {
     EventQueryParams params = new EventQueryParams.Builder().build();
 
     Optional<ColumnAndAlias> nonAggregated =
-        subject.resolveSelectColumn(item, params, false, false);
-    Optional<ColumnAndAlias> aggregated = subject.resolveSelectColumn(item, params, false, true);
+        subject.resolveSelectColumn(item, params, false, false, null);
+    Optional<ColumnAndAlias> aggregated =
+        subject.resolveSelectColumn(item, params, false, true, null);
 
     assertFalse(nonAggregated.isPresent());
     assertTrue(aggregated.isPresent());
@@ -87,7 +88,8 @@ class StageQuerySqlFacadeTest {
     dateRenderer.periodBucket = Optional.empty();
 
     Optional<ColumnAndAlias> column =
-        subject.resolveSelectColumn(item, new EventQueryParams.Builder().build(), false, true);
+        subject.resolveSelectColumn(
+            item, new EventQueryParams.Builder().build(), false, true, null);
 
     assertFalse(column.isPresent());
   }
@@ -187,7 +189,10 @@ class StageQuerySqlFacadeTest {
   private static class TestOrgUnitService implements StageOrgUnitSqlService {
     @Override
     public ColumnAndAlias selectColumn(
-        QueryItem item, EventQueryParams params, boolean isGroupByClause) {
+        QueryItem item,
+        EventQueryParams params,
+        boolean isGroupByClause,
+        String valueColumnTableAlias) {
       return isGroupByClause
           ? ColumnAndAlias.ofColumn("stage_ou_expr")
           : ColumnAndAlias.ofColumnAndAlias("stage_ou_expr", item.getItemName());
