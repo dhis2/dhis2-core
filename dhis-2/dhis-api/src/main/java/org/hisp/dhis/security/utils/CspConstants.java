@@ -51,13 +51,14 @@ public class CspConstants {
   public static final String USER_UPLOADED_CONTENT_CSP_POLICY = "default-src 'none';";
 
   /**
-   * CSP policy for the app host endpoint that renders installed DHIS2 apps inside an iframe. More
-   * permissive than the default to allow apps to load resources, but still restricts the most
-   * dangerous sources.
+   * CSP policy for the app host endpoint that renders installed DHIS2 apps inside an iframe.
+   * Strictly same-origin: no wildcards in {@code img-src} or {@code connect-src}. Apps that need to
+   * call external services (analytics, map tiles, third-party APIs) must be granted an explicit
+   * override via an admin-controlled mechanism — see the per-app CSP follow-up.
    */
   public static final String APP_HOST_CSP_POLICY =
       "default-src 'self'; style-src 'self' 'unsafe-inline'; child-src 'self' blob:;"
-          + " img-src * data:; connect-src *;";
+          + " img-src 'self' data:; connect-src 'self';";
 
   /**
    * CSP policy for the rendered OpenAPI HTML documentation pages, which emit inline {@code onclick}
