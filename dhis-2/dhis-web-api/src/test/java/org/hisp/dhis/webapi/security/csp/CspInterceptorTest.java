@@ -102,19 +102,6 @@ class CspInterceptorTest {
   }
 
   @Test
-  void methodLevelLegacyLoginFallback_appliesLegacyLoginFallbackPolicy() throws Exception {
-    when(cspPolicyService.constructLegacyLoginFallbackCspPolicy()).thenReturn("policy");
-    when(cspPolicyService.getSecurityHeaders("policy")).thenReturn(headers());
-
-    cspInterceptor.preHandle(
-        request, response, handler(MethodMarkedLegacyLoginFallback.class, "fallback"));
-
-    verify(cspPolicyService, times(1)).constructLegacyLoginFallbackCspPolicy();
-    verify(cspPolicyService, never()).constructUserUploadedContentCspPolicy();
-    verify(cspPolicyService, never()).constructAppHostCspPolicy();
-  }
-
-  @Test
   void methodLevelOpenApiDocs_appliesOpenApiDocsPolicy() throws Exception {
     when(cspPolicyService.constructOpenApiDocsCspPolicy()).thenReturn("policy");
     when(cspPolicyService.getSecurityHeaders("policy")).thenReturn(headers());
@@ -124,7 +111,6 @@ class CspInterceptorTest {
     verify(cspPolicyService, times(1)).constructOpenApiDocsCspPolicy();
     verify(cspPolicyService, never()).constructUserUploadedContentCspPolicy();
     verify(cspPolicyService, never()).constructAppHostCspPolicy();
-    verify(cspPolicyService, never()).constructLegacyLoginFallbackCspPolicy();
   }
 
   @Test
@@ -195,13 +181,6 @@ class CspInterceptorTest {
     @CspUserUploadedContent
     @CspAppHost
     public void both() {
-      // empty — fixture target for reflection
-    }
-  }
-
-  public static class MethodMarkedLegacyLoginFallback {
-    @CspLegacyLoginFallback
-    public void fallback() {
       // empty — fixture target for reflection
     }
   }

@@ -335,6 +335,8 @@ public class DhisWebApiWebSecurityConfig {
                   // Login fallback and legacy login endpoint
                   .requestMatchers(new AntPathRequestMatcher("/login.html"))
                   .permitAll()
+                  .requestMatchers(new AntPathRequestMatcher("/login.js"))
+                  .permitAll()
                   .requestMatchers(
                       new AntPathRequestMatcher("/dhis-web-commons/security/login.action"))
                   .permitAll()

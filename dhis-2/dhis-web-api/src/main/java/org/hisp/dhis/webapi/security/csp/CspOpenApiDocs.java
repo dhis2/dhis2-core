@@ -45,7 +45,6 @@ import java.lang.annotation.Target;
  *
  * @see CspUserUploadedContent
  * @see CspAppHost
- * @see CspLegacyLoginFallback
  * @see CspInterceptor
  * @author Morten Svanaes
  */

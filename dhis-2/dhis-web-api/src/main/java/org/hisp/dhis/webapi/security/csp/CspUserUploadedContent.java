@@ -52,7 +52,7 @@ import java.lang.annotation.Target;
  * </pre>
  *
  * @see CspAppHost
- * @see CspLegacyLoginFallback
+ * @see CspOpenApiDocs
  * @see CspInterceptor
  * @author Morten Svanaes
  */

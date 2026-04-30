@@ -382,12 +382,14 @@ public class CspHeadersE2ETest extends BaseE2ETest {
   }
 
   // ========================================================================
-  // Login pages — legacy fallback (@CspLegacyLoginFallback) and modern app
+  // Login pages — fallback /login.html (default CSP) and modern app
   // ========================================================================
 
   @Test
-  void testLoginFallbackHasLegacyLoginFallbackCsp() {
-    // LoginFallbackController.getLoginFallback has @CspLegacyLoginFallback
+  void testLoginFallbackHasDefaultCsp() {
+    // LoginFallbackController.getLoginFallback no longer needs a CSP marker:
+    // its inline <script> was extracted to /login.js so the page falls under
+    // the strict default policy.
     ResponseEntity<String> response =
         restTemplate.exchange(serverHostUrl + "login.html", HttpMethod.GET, null, String.class);
 
@@ -396,22 +398,42 @@ public class CspHeadersE2ETest extends BaseE2ETest {
     String csp = response.getHeaders().getFirst(CSP_HEADER);
     assertNotNull(csp, "CSP header should be present on /login.html");
     assertTrue(
+        csp.contains("default-src 'self'"),
+        "Login fallback CSP should be the strict default, got: " + csp);
+    assertFalse(
         csp.contains("script-src 'self' 'unsafe-inline'"),
-        "Legacy login CSP should allow inline scripts, got: " + csp);
-    assertTrue(
-        csp.contains("style-src 'self' 'unsafe-inline'"),
-        "Legacy login CSP should allow inline styles, got: " + csp);
+        "Login fallback CSP should NOT allow inline scripts anymore, got: " + csp);
     assertTrue(
         csp.contains("frame-ancestors 'self'"),
-        "Legacy login CSP should contain frame-ancestors 'self', got: " + csp);
+        "Login fallback CSP should contain frame-ancestors 'self', got: " + csp);
     verifyStandardSecurityHeaders(response);
 
-    // Sanity: response body still carries the inline script the policy is meant to allow
+    // Sanity: response body should reference the external login.js, not an inline <script>
     String body = response.getBody();
     assertNotNull(body, "Login fallback should return HTML body");
     assertTrue(
+        body.contains("src=\"./login.js\""),
+        "/login.html should reference external ./login.js");
+    assertFalse(
         body.contains("<script>"),
-        "/login.html should contain inline <script> tag (the reason this CSP exists)");
+        "/login.html should NOT contain inline <script> blocks anymore");
+  }
+
+  @Test
+  void testLoginJsIsServedAsJavascript() {
+    ResponseEntity<String> response =
+        restTemplate.exchange(serverHostUrl + "login.js", HttpMethod.GET, null, String.class);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    String contentType = response.getHeaders().getFirst("Content-Type");
+    assertNotNull(contentType, "Content-Type should be set on /login.js");
+    assertTrue(
+        contentType.startsWith("application/javascript"),
+        "/login.js should be served as application/javascript, got: " + contentType);
+    String body = response.getBody();
+    assertNotNull(body, "/login.js should return a body");
+    assertTrue(
+        body.contains("loginForm"), "/login.js should contain the login form handler code");
   }
 
   @Test

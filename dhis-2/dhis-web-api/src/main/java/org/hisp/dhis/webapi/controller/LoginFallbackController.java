@@ -36,7 +36,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.webapi.security.csp.CspLegacyLoginFallback;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -49,7 +48,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 @Controller
 public class LoginFallbackController {
 
-  @CspLegacyLoginFallback
   @GetMapping("/login.html")
   protected void getLoginFallback(HttpServletRequest req, HttpServletResponse resp)
       throws IOException {
@@ -63,6 +61,14 @@ public class LoginFallbackController {
       resp.setStatus(HttpServletResponse.SC_OK);
       resp.getWriter().println(content);
     }
+  }
+
+  @GetMapping("/login.js")
+  protected void getLoginJs(HttpServletResponse resp) throws IOException {
+    String content = getResourceFileAsString(this.getClass(), "login.js");
+    resp.setContentType("application/javascript");
+    resp.setStatus(HttpServletResponse.SC_OK);
+    resp.getWriter().println(content);
   }
 
   public static HttpSession session() {

@@ -60,15 +60,6 @@ public class CspConstants {
           + " img-src * data:; connect-src *;";
 
   /**
-   * CSP policy for the legacy fallback login page ({@code /login.html}) which contains an inline
-   * {@code <script>} block. Allows {@code script-src 'self' 'unsafe-inline'} so the fallback flow
-   * keeps working when CSP is enabled. Long term the inline script should be extracted to an
-   * external file so this policy can go away.
-   */
-  public static final String LEGACY_LOGIN_FALLBACK_CSP_POLICY =
-      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';";
-
-  /**
    * CSP policy for the rendered OpenAPI HTML documentation pages, which emit inline {@code onclick}
    * handlers from {@code OpenApiRenderer}. Allows {@code script-src 'self' 'unsafe-inline'} so the
    * interactive doc page works under the default-deny baseline. Scoped to the OpenAPI HTML

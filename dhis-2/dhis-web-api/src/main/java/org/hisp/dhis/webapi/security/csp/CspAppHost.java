@@ -44,7 +44,7 @@ import java.lang.annotation.Target;
  * auditable place rather than being scattered across annotation values.
  *
  * @see CspUserUploadedContent
- * @see CspLegacyLoginFallback
+ * @see CspOpenApiDocs
  * @see CspInterceptor
  * @author Morten Svanaes
  */

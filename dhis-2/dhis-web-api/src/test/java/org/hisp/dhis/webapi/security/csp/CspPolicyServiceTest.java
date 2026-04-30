@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.security.csp;
 
 import static org.hisp.dhis.security.utils.CspConstants.APP_HOST_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.DEFAULT_CSP_POLICY;
-import static org.hisp.dhis.security.utils.CspConstants.LEGACY_LOGIN_FALLBACK_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.OPENAPI_DOCS_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.USER_UPLOADED_CONTENT_CSP_POLICY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -95,13 +94,6 @@ class CspPolicyServiceTest {
     String result = cspPolicyService.constructAppHostCspPolicy();
 
     assertEquals(APP_HOST_CSP_POLICY + " frame-ancestors 'self';", result);
-  }
-
-  @Test
-  void constructLegacyLoginFallbackPolicy_appendsFrameAncestorsSelf() {
-    String result = cspPolicyService.constructLegacyLoginFallbackCspPolicy();
-
-    assertEquals(LEGACY_LOGIN_FALLBACK_CSP_POLICY + " frame-ancestors 'self';", result);
   }
 
   @Test

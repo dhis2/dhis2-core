@@ -34,7 +34,6 @@ import static org.hisp.dhis.security.utils.CspConstants.APP_HOST_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.CONTENT_SECURITY_POLICY_HEADER_NAME;
 import static org.hisp.dhis.security.utils.CspConstants.DEFAULT_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.FRAME_ANCESTORS_DEFAULT_CSP;
-import static org.hisp.dhis.security.utils.CspConstants.LEGACY_LOGIN_FALLBACK_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.OPENAPI_DOCS_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.USER_UPLOADED_CONTENT_CSP_POLICY;
 
@@ -73,10 +72,6 @@ public class CspPolicyService {
 
   public String constructAppHostCspPolicy() {
     return appendFrameAncestors(APP_HOST_CSP_POLICY);
-  }
-
-  public String constructLegacyLoginFallbackCspPolicy() {
-    return appendFrameAncestors(LEGACY_LOGIN_FALLBACK_CSP_POLICY);
   }
 
   public String constructOpenApiDocsCspPolicy() {
