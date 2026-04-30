@@ -58,7 +58,7 @@ class StageOrgUnitSqlServiceTest {
     DefaultStageOrgUnitSqlService subject =
         new DefaultStageOrgUnitSqlService(resolver, new PostgreSqlAnalyticsSqlBuilder());
 
-    ColumnAndAlias column = subject.selectColumn(item, params, false);
+    ColumnAndAlias column = subject.selectColumn(item, params, false, null);
 
     assertEquals("\"uidlevel4\"", column.getColumn());
     assertEquals("ou", column.getAlias());
@@ -75,7 +75,7 @@ class StageOrgUnitSqlServiceTest {
     DefaultStageOrgUnitSqlService subject =
         new DefaultStageOrgUnitSqlService(resolver, new PostgreSqlAnalyticsSqlBuilder());
 
-    ColumnAndAlias column = subject.selectColumn(item, params, true);
+    ColumnAndAlias column = subject.selectColumn(item, params, true, null);
 
     assertEquals("\"uidlevel5\"", column.getColumn());
     assertEquals("\"uidlevel5\"", column.asSql());
@@ -188,7 +188,8 @@ class StageOrgUnitSqlServiceTest {
     }
 
     @Override
-    public StageOuCteContext buildStageOuCteContext(QueryItem item, EventQueryParams params) {
+    public StageOuCteContext buildStageOuCteContext(
+        QueryItem item, EventQueryParams params, String tableAlias) {
       return stageOuCteContext;
     }
   }
