@@ -412,11 +412,9 @@ public class CspHeadersE2ETest extends BaseE2ETest {
     String body = response.getBody();
     assertNotNull(body, "Login fallback should return HTML body");
     assertTrue(
-        body.contains("src=\"./login.js\""),
-        "/login.html should reference external ./login.js");
+        body.contains("src=\"./login.js\""), "/login.html should reference external ./login.js");
     assertFalse(
-        body.contains("<script>"),
-        "/login.html should NOT contain inline <script> blocks anymore");
+        body.contains("<script>"), "/login.html should NOT contain inline <script> blocks anymore");
   }
 
   @Test
@@ -432,8 +430,7 @@ public class CspHeadersE2ETest extends BaseE2ETest {
         "/login.js should be served as application/javascript, got: " + contentType);
     String body = response.getBody();
     assertNotNull(body, "/login.js should return a body");
-    assertTrue(
-        body.contains("loginForm"), "/login.js should contain the login form handler code");
+    assertTrue(body.contains("loginForm"), "/login.js should contain the login form handler code");
   }
 
   @Test
