@@ -795,13 +795,7 @@ public class MetadataItemsHandler {
       String itemUid = getItemUid(item);
       List<String> itemDimensionValues = resolveQueryItemDimension(item, params, itemOptions);
 
-      // Check if we are in the specific "Option Set but no Item Options" scenario
-      if (item.hasOptionSet() && itemOptions.isEmpty()) {
-        // Fallback to raw item ID to match original behavior
-        dimensionItems.put(item.getItemId(), itemDimensionValues);
-      } else {
-        dimensionItems.put(itemUid, itemDimensionValues);
-      }
+      dimensionItems.put(itemUid, itemDimensionValues);
     }
   }
 
