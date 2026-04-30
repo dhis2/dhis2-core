@@ -22,7 +22,7 @@ async function fetchLoginConfig() {
     if (config.countryFlag) {
       const flag = document.getElementById("flag");
       flag.src = `./dhis-web-commons/flags/${config.countryFlag}.png`;
-      flag.style.display = "block";
+      flag.classList.remove("hidden");
     }
   } catch (error) {
     console.error("Error:", error);
@@ -35,9 +35,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const toggleTwoFAInput = () => {
     if (twoFAToggle.checked) {
-      twoFAContainer.style.display = "block";
+      twoFAContainer.classList.remove("hidden");
     } else {
-      twoFAContainer.style.display = "none";
+      twoFAContainer.classList.add("hidden");
       document.getElementById("twoFA").value = "";
     }
   };
@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const errorMessage = document.getElementById("errorMessage");
       const twoFA = document.getElementById("twoFA").value.trim();
 
-      spinner.style.display = "block";
+      spinner.classList.remove("hidden");
       errorMessage.innerText = "";
       submitButton.disabled = true;
 
@@ -99,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (error) {
         errorMessage.innerText = error.message;
       } finally {
-        spinner.style.display = "none";
+        spinner.classList.add("hidden");
         submitButton.disabled = false;
       }
     });

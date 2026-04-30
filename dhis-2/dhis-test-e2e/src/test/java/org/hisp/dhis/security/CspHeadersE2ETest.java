@@ -388,8 +388,8 @@ public class CspHeadersE2ETest extends BaseE2ETest {
   @Test
   void testLoginFallbackHasDefaultCsp() {
     // LoginFallbackController.getLoginFallback no longer needs a CSP marker:
-    // its inline <script> was extracted to /login.js so the page falls under
-    // the strict default policy.
+    // its inline <script> was extracted to /login.js and its inline <style>
+    // to /login.css, so the page falls under the strict default policy.
     ResponseEntity<String> response =
         restTemplate.exchange(serverHostUrl + "login.html", HttpMethod.GET, null, String.class);
 
@@ -408,13 +408,17 @@ public class CspHeadersE2ETest extends BaseE2ETest {
         "Login fallback CSP should contain frame-ancestors 'self', got: " + csp);
     verifyStandardSecurityHeaders(response);
 
-    // Sanity: response body should reference the external login.js, not an inline <script>
+    // Sanity: response body should reference the external assets, not contain inline blocks
     String body = response.getBody();
     assertNotNull(body, "Login fallback should return HTML body");
     assertTrue(
         body.contains("src=\"./login.js\""), "/login.html should reference external ./login.js");
+    assertTrue(
+        body.contains("href=\"./login.css\""), "/login.html should reference external ./login.css");
     assertFalse(
         body.contains("<script>"), "/login.html should NOT contain inline <script> blocks anymore");
+    assertFalse(
+        body.contains("<style>"), "/login.html should NOT contain inline <style> blocks anymore");
   }
 
   @Test
@@ -431,6 +435,23 @@ public class CspHeadersE2ETest extends BaseE2ETest {
     String body = response.getBody();
     assertNotNull(body, "/login.js should return a body");
     assertTrue(body.contains("loginForm"), "/login.js should contain the login form handler code");
+  }
+
+  @Test
+  void testLoginCssIsServedAsStylesheet() {
+    ResponseEntity<String> response =
+        restTemplate.exchange(serverHostUrl + "login.css", HttpMethod.GET, null, String.class);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    String contentType = response.getHeaders().getFirst("Content-Type");
+    assertNotNull(contentType, "Content-Type should be set on /login.css");
+    assertTrue(
+        contentType.startsWith("text/css"),
+        "/login.css should be served as text/css, got: " + contentType);
+    String body = response.getBody();
+    assertNotNull(body, "/login.css should return a body");
+    assertTrue(
+        body.contains(".login-container"), "/login.css should contain the login-container rule");
   }
 
   @Test

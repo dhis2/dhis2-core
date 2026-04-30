@@ -71,6 +71,14 @@ public class LoginFallbackController {
     resp.getWriter().println(content);
   }
 
+  @GetMapping("/login.css")
+  protected void getLoginCss(HttpServletResponse resp) throws IOException {
+    String content = getResourceFileAsString(this.getClass(), "login.css");
+    resp.setContentType("text/css");
+    resp.setStatus(HttpServletResponse.SC_OK);
+    resp.getWriter().println(content);
+  }
+
   public static HttpSession session() {
     ServletRequestAttributes attr =
         (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
