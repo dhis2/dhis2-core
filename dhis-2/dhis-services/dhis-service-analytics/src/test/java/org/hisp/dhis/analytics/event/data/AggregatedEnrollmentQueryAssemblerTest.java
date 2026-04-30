@@ -118,7 +118,6 @@ class AggregatedEnrollmentQueryAssemblerTest {
   void addStandardColumnsWithoutShadowCteEmitsAxAlias() {
     SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
     CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
-    EventQueryParams params = mock(EventQueryParams.class);
 
     assembler.addStandardColumns(sb, cteContext, List.of("enrollment", "trackedentity"));
 
@@ -146,7 +145,6 @@ class AggregatedEnrollmentQueryAssemblerTest {
   void addStandardColumnsWithShadowCtePrefixesPlainColumnsWithAx() {
     SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
     CteContext cteContext = shadowCteContext();
-    EventQueryParams params = mock(EventQueryParams.class);
 
     assembler.addStandardColumns(sb, cteContext, List.of("enrollment", "trackedentity"));
 
@@ -159,7 +157,6 @@ class AggregatedEnrollmentQueryAssemblerTest {
   void addStandardColumnsWithShadowCteRewritesGeometryFormulaToAlias() {
     SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
     CteContext cteContext = shadowCteContext();
-    EventQueryParams params = mock(EventQueryParams.class);
     String formula = "ST_AsGeoJSON(enrollmentgeometry)";
 
     assembler.addStandardColumns(sb, cteContext, List.of(formula));
