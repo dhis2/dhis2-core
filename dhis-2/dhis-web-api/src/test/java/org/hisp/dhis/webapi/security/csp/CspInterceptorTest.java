@@ -154,28 +154,42 @@ class CspInterceptorTest {
     return new HandlerMethod(controller, method);
   }
 
+  // The static classes below are test fixtures: each method body is intentionally empty
+  // because the interceptor only inspects annotations via reflection; the methods exist
+  // solely as targets for HandlerMethod construction.
+
   public static class Plain {
-    public void plain() {}
+    public void plain() {
+      // empty — fixture target for reflection
+    }
   }
 
   public static class MethodMarked {
     @CspUserUploadedContent
-    public void marked() {}
+    public void marked() {
+      // empty — fixture target for reflection
+    }
   }
 
   @CspAppHost
   public static class ClassMarkedAppHost {
-    public void anyMethod() {}
+    public void anyMethod() {
+      // empty — fixture target for reflection
+    }
   }
 
   public static class BothMarked {
     @CspUserUploadedContent
     @CspAppHost
-    public void both() {}
+    public void both() {
+      // empty — fixture target for reflection
+    }
   }
 
   public static class MethodMarkedLegacyLoginFallback {
     @CspLegacyLoginFallback
-    public void fallback() {}
+    public void fallback() {
+      // empty — fixture target for reflection
+    }
   }
 }
