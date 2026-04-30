@@ -119,8 +119,7 @@ class CspInterceptorTest {
     when(cspPolicyService.constructOpenApiDocsCspPolicy()).thenReturn("policy");
     when(cspPolicyService.getSecurityHeaders("policy")).thenReturn(headers());
 
-    cspInterceptor.preHandle(
-        request, response, handler(MethodMarkedOpenApiDocs.class, "openapi"));
+    cspInterceptor.preHandle(request, response, handler(MethodMarkedOpenApiDocs.class, "openapi"));
 
     verify(cspPolicyService, times(1)).constructOpenApiDocsCspPolicy();
     verify(cspPolicyService, never()).constructUserUploadedContentCspPolicy();
