@@ -293,7 +293,7 @@ public class EnrollmentsAggregate4AutoTest extends AnalyticsApiTest {
 
     // Assert metaData.
     String expectedMetaData =
-        "{\"pager\":{\"isLastPage\":true,\"pageSize\":50,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"VBqh0ynB2wv\":{\"name\":\"Malaria case registration\"},\"ou\":{\"name\":\"Organisation unit\"},\"pTo4uMt3xur.oZg33kd9taw\":{\"name\":\"Gender\"},\"pTo4uMt3xur\":{\"name\":\"Malaria case registration\"}},\"dimensions\":{\"ou\":[\"ImspTQPwCqd\"],\"oZg33kd9taw\":[\"Mnp3oXrpAbK\"]}}";
+        "{\"pager\":{\"isLastPage\":true,\"pageSize\":50,\"page\":1},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"Mnp3oXrpAbK\":{\"code\":\"Female\",\"name\":\"Female\"},\"rBvjJYbMCVx\":{\"code\":\"Male\",\"name\":\"Male\"},\"VBqh0ynB2wv\":{\"name\":\"Malaria case registration\"},\"ou\":{\"name\":\"Organisation unit\"},\"pTo4uMt3xur.oZg33kd9taw\":{\"name\":\"Gender\"},\"pTo4uMt3xur\":{\"name\":\"Malaria case registration\"}},\"dimensions\":{\"ou\":[\"ImspTQPwCqd\"],\"pTo4uMt3xur.oZg33kd9taw\":[\"Mnp3oXrpAbK\"]}}";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
