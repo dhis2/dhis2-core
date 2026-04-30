@@ -230,7 +230,10 @@ public class DefaultMetadataVersionService implements MetadataVersionService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public boolean streamVersionData(String versionName, OutputStream out) throws IOException {
+    // The 'metadata' JSON key must match MetadataWrapper#getMetadata(); renaming the wrapper
+    // field would silently break this query (no row found, snapshot reported missing).
     String sql =
         "SELECT jbvalue->>'metadata' FROM keyjsonvalue"
             + " WHERE namespace = ? AND namespacekey = ?";

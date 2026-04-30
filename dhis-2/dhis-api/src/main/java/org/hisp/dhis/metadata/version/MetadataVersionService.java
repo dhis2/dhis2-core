@@ -133,7 +133,7 @@ public interface MetadataVersionService {
    * Streams the metadata snapshot for the given version name directly to the output stream.
    *
    * <p>Scans the stored JSONB wrapper directly without materialising a full Java String copy of the
-   * metadata field, which is the memory-efficient way to access large snapshots.
+   * metadata field, which is a more memory-efficient path for large snapshots.
    *
    * @param versionName the version name
    * @param out the output stream to write the snapshot to

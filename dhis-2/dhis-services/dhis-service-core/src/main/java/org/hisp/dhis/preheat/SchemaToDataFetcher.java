@@ -64,9 +64,25 @@ import org.springframework.stereotype.Component;
 public class SchemaToDataFetcher {
 
   /**
-   * PostgreSQL's JDBC driver limits prepared statements to 65,535 bind parameters. We stay well
-   * under that to leave room for other params and to match the partition size used elsewhere in the
-   * preheat pipeline.
+   * Threshold that controls both:
+   *
+   * <ol>
+   *   <li>when to switch from the OR'd single-query fast path to the per-property batched path
+   *       (when {@code totalValues > MAX_VALUES_PER_QUERY});
+   *   <li>the partition size used inside the batched path so each IN-clause stays under
+   *       PostgreSQL's hard cap of 65,535 bind parameters.
+   * </ol>
+   *
+   * <p>20,000 is conservative relative to the 65,535 cap and matches the partition size already
+   * used elsewhere in the preheat pipeline (see {@link DefaultPreheatService}).
+   *
+   * <p>Trade-off worth knowing before tuning this: the threshold is summed across <em>all</em>
+   * unique properties, so an import with e.g. 12k values for {@code code} + 10k for {@code name}
+   * (22k total, but neither IN-clause large on its own) falls into the batched path and runs as N
+   * separate queries instead of one OR'd query. For totals between 20k and 65k the previous code
+   * ran in a single query; the batched path will do more round-trips. Raising this constant or
+   * splitting the threshold from the partition size would recover that, but the current value is
+   * intentionally conservative to keep behaviour predictable across imports.
    */
   private static final int MAX_VALUES_PER_QUERY = 20_000;
 

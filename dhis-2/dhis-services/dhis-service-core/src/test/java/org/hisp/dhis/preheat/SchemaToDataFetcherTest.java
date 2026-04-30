@@ -251,6 +251,45 @@ class SchemaToDataFetcherTest extends TestBase {
   }
 
   @Test
+  void verifyBatchedPathDeduplicatesMultiColumnRowsAcrossPerPropertyQueries() {
+    Schema schema =
+        createSchema(
+            DummyDataElement.class,
+            "dummyDataElement",
+            Stream.of(
+                    createUniqueProperty(String.class, "url", true, true),
+                    createUniqueProperty(String.class, "code", true, true))
+                .toList());
+
+    mockSession();
+    // Every per-property query returns the same row. Without dedup we'd see 4 copies (one per
+    // createQuery call); the LinkedHashSet<List<Object>> in runBatchedQueries collapses it to 1.
+    // Column order matches the alphabetical iteration of unique properties: code, url.
+    List<Object[]> sharedRow = new ArrayList<>();
+    sharedRow.add(new Object[] {"cx", "http://x"});
+    when(query.getResultList()).thenReturn(sharedRow);
+
+    // 25_000 distinct urls AND 25_000 distinct codes -> each property partitioned into
+    // 20_000 + 5_000 batches -> 2 properties * 2 batches = 4 createQuery calls.
+    List<DummyDataElement> toImport = new ArrayList<>(25_000);
+    for (int i = 0; i < 25_000; i++) {
+      DummyDataElement d = new DummyDataElement();
+      d.setUrl("http://example.com/" + i);
+      d.setCode("c" + i);
+      toImport.add(d);
+    }
+
+    List<? extends IdentifiableObject> result = subject.fetch(schema, toImport);
+
+    verify(entityManager, times(4)).createQuery(anyString());
+    assertThat(result, hasSize(1));
+    assertThat(
+        result,
+        IsIterableContainingInAnyOrder.containsInAnyOrder(
+            allOf(hasProperty("url", is("http://x")), hasProperty("code", is("cx")))));
+  }
+
+  @Test
   void verifyNoSqlWhenUniquePropertiesListIsEmpty() {
     Schema schema = createSchema(SMSCommand.class, "smsCommand", Lists.newArrayList());
 
