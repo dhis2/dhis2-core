@@ -39,9 +39,8 @@ import static org.hisp.dhis.security.utils.CspConstants.USER_UPLOADED_CONTENT_CS
 
 import java.util.Set;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.http.HttpHeaders;
@@ -58,19 +57,10 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class CspPolicyService {
   private final DhisConfigurationProvider dhisConfig;
   private final ConfigurationService configurationService;
-  private final Cache<Set<String>> corsWhitelistCache;
-
-  public CspPolicyService(
-      DhisConfigurationProvider dhisConfig,
-      ConfigurationService configurationService,
-      CacheProvider cacheProvider) {
-    this.dhisConfig = dhisConfig;
-    this.configurationService = configurationService;
-    this.corsWhitelistCache = cacheProvider.createCorsWhitelistCache();
-  }
 
   public String constructDefaultCspPolicy() {
     return appendFrameAncestors(DEFAULT_CSP_POLICY);
@@ -146,20 +136,11 @@ public class CspPolicyService {
   }
 
   private String getFrameAncestorsCspDirective() {
-    Set<String> corsWhitelist = getCorsWhitelist();
+    Set<String> corsWhitelist = configurationService.getCorsWhitelist();
     if (corsWhitelist == null || corsWhitelist.isEmpty()) {
       return FRAME_ANCESTORS_DEFAULT_CSP + ";";
     }
     String sortedOrigins = corsWhitelist.stream().sorted().collect(Collectors.joining(" "));
     return FRAME_ANCESTORS_DEFAULT_CSP + " " + sortedOrigins + ";";
-  }
-
-  /**
-   * Returns the cached CORS whitelist, refreshing from the database if the cache has expired or is
-   * not yet initialized.
-   */
-  private Set<String> getCorsWhitelist() {
-    return corsWhitelistCache.get(
-        "CORS_WHITELIST", key -> configurationService.getConfiguration().getCorsWhitelist());
   }
 }

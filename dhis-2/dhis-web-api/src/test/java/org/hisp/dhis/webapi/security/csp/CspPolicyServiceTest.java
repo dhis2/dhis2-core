@@ -39,15 +39,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.function.Function;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,41 +62,17 @@ class CspPolicyServiceTest {
   @Mock(lenient = true)
   private ConfigurationService configurationService;
 
-  @Mock(lenient = true)
-  private CacheProvider cacheProvider;
-
-  @Mock(lenient = true)
-  @SuppressWarnings("unchecked")
-  private Cache<Set<String>> corsWhitelistCache;
-
   private CspPolicyService cspPolicyService;
 
   private Set<String> corsWhitelist;
 
   @BeforeEach
-  @SuppressWarnings("unchecked")
   void setUp() {
     when(dhisConfig.isEnabled(any())).thenReturn(true);
     corsWhitelist = Set.of();
+    when(configurationService.getCorsWhitelist()).thenAnswer(invocation -> corsWhitelist);
 
-    Configuration configuration = new Configuration();
-    when(configurationService.getConfiguration())
-        .thenAnswer(invocation -> withWhitelist(configuration));
-
-    when(cacheProvider.<Set<String>>createCorsWhitelistCache()).thenReturn(corsWhitelistCache);
-    when(corsWhitelistCache.get(anyString(), any(Function.class)))
-        .thenAnswer(
-            invocation -> {
-              Function<String, Set<String>> loader = invocation.getArgument(1);
-              return loader.apply(invocation.getArgument(0));
-            });
-
-    cspPolicyService = new CspPolicyService(dhisConfig, configurationService, cacheProvider);
-  }
-
-  private Configuration withWhitelist(Configuration configuration) {
-    configuration.setCorsWhitelist(corsWhitelist);
-    return configuration;
+    cspPolicyService = new CspPolicyService(dhisConfig, configurationService);
   }
 
   @Test
