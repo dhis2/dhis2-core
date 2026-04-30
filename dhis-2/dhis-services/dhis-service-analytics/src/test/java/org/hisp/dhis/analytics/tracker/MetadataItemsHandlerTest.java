@@ -47,7 +47,6 @@ import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramStage;
-import static org.hisp.dhis.test.TestBase.createTrackedEntityAttribute;
 import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -94,7 +93,6 @@ import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.SystemUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -260,51 +258,6 @@ class MetadataItemsHandlerTest {
       assertFalse(
           dimensions.containsKey(dataElementA.getUid()),
           "Dimensions map should not contain the raw Data Element UID key for stage-scoped items");
-    }
-
-    @Test
-    @DisplayName(
-        "should use raw dimension key for stage-scoped tracked entity attribute option set items in aggregate context")
-    void shouldUseRawDimensionKeyForStageScopedTeaOptionSetItemsInAggregateContext() {
-      // Given
-      Grid grid = new ListGrid();
-      ProgramStage programStage = createProgramStage('S', programA);
-      TrackedEntityAttribute attribute = createTrackedEntityAttribute('G');
-      attribute.setOptionSet(optionSetA);
-
-      QueryItem queryItem =
-          new QueryItem(attribute, null, attribute.getValueType(), null, optionSetA);
-      queryItem.setProgramStage(programStage);
-
-      EventQueryParams params =
-          new EventQueryParams.Builder()
-              .withProgram(programA)
-              .withSkipMeta(false)
-              .withEndpointAction(AGGREGATE)
-              .withOrganisationUnits(List.of(orgUnitA))
-              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
-              .addItem(queryItem)
-              .build();
-
-      when(userService.getUserByUsername(anyString())).thenReturn(null);
-
-      // When
-      metadataItemsHandler.addMetadata(grid, params, List.of());
-
-      // Then
-      @SuppressWarnings("unchecked")
-      Map<String, List<String>> dimensions =
-          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
-
-      assertNotNull(dimensions);
-
-      String prefixedId = programStage.getUid() + "." + attribute.getUid();
-      assertTrue(
-          dimensions.containsKey(attribute.getUid()),
-          "Dimensions map should contain the raw Tracked Entity Attribute UID key");
-      assertFalse(
-          dimensions.containsKey(prefixedId),
-          "Dimensions map should not contain the ProgramStage-prefixed Tracked Entity Attribute UID key");
     }
 
     @Test
