@@ -33,14 +33,12 @@ import static io.gatling.javaapi.core.CoreDsl.StringBody;
 import static io.gatling.javaapi.core.CoreDsl.constantConcurrentUsers;
 import static io.gatling.javaapi.core.CoreDsl.exec;
 import static io.gatling.javaapi.core.CoreDsl.rampUsers;
-import static io.gatling.javaapi.core.CoreDsl.rampUsersPerSec;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
 
 import io.gatling.javaapi.core.ChainBuilder;
 import io.gatling.javaapi.core.ClosedInjectionStep;
 import io.gatling.javaapi.core.OpenInjectionStep;
-import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,25 +74,6 @@ public class TestDefinitions {
    */
   public static OpenInjectionStep simpleUsersRumpUp(int users, int during) {
     return rampUsers(users).during(during);
-  }
-
-  /**
-   * Creates a default {@link OpenInjectionStep} that defines default values for the users rump-up
-   * simulation.
-   *
-   * @return the {@link OpenInjectionStep} object.
-   */
-  public static OpenInjectionStep defaultComplexUsersRumpUp() {
-    int totalDesiredUserCount = 15;
-    double userRampUpPerInterval = 1;
-    double rampUpIntervalSeconds = 3;
-
-    int totalRampUptimeSeconds = 3;
-    int steadyStateDurationSeconds = 20;
-
-    return rampUsersPerSec(userRampUpPerInterval / (rampUpIntervalSeconds / 60))
-        .to(totalDesiredUserCount)
-        .during(Duration.ofSeconds(totalRampUptimeSeconds + steadyStateDurationSeconds));
   }
 
   /**

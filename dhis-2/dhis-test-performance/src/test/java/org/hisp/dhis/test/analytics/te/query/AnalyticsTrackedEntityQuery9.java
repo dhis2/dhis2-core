@@ -27,34 +27,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.analytics;
+package org.hisp.dhis.test.analytics.te.query;
 
 import static io.gatling.javaapi.core.CoreDsl.details;
 import static io.gatling.javaapi.core.CoreDsl.exec;
-import static io.gatling.javaapi.core.CoreDsl.rampConcurrentUsers;
 import static io.gatling.javaapi.core.CoreDsl.repeat;
 import static io.gatling.javaapi.core.CoreDsl.scenario;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static org.hisp.dhis.test.analytics.TestDefinitions.BASE_URL;
 import static org.hisp.dhis.test.analytics.TestDefinitions.loginChain;
+import static org.hisp.dhis.test.analytics.TestDefinitions.simpleUsersRumpUp;
 
-import io.gatling.javaapi.core.ClosedInjectionStep;
+import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.ScenarioBuilder;
 import io.gatling.javaapi.core.Simulation;
 import io.gatling.javaapi.http.HttpProtocolBuilder;
 
-public class AnalyticsAggregateBasic extends Simulation {
+public class AnalyticsTrackedEntityQuery9 extends Simulation {
 
-  private static final String GET_AGGREGATED_ANALYTICS = "GET AGGREGATED ANALYTICS";
+  private static final String GET_TRACKED_ENTITY_QUERY = "GET TRACKED ENTITY QUERY 9";
   public static final String URL_QUERY =
-      "/api/analytics?dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS;&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2026-04-30";
+      "/api/analytics/trackedEntities/query/nEenWmSyUEp?dimension=ou:USER_ORGUNIT,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6&headers=ouname,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6,created&totalPages=false&rowContext=true&displayProperty=NAME&pageSize=20&page=1&includeMetadataDetails=true&desc=created&relativePeriodDate=2017-01-27";
 
-  @Override
-  public void before() {
-    // TODO: This test assumes that the export process was fully executed. Needs to review it.
-  }
-
-  public AnalyticsAggregateBasic() {
+  public AnalyticsTrackedEntityQuery9() {
     HttpProtocolBuilder httpProtocol =
         http.baseUrl(BASE_URL)
             .acceptHeader("application/json")
@@ -65,28 +60,28 @@ public class AnalyticsAggregateBasic extends Simulation {
     // The scenarios are grouped, so we can assert on the target API call only (login stats are
     // ignored).
     ScenarioBuilder scenario =
-        scenario("Analytics test")
+        scenario("Analytics tracked entity query test")
             .group("Authentication")
             .on(exec(loginChain()))
-            .group(GET_AGGREGATED_ANALYTICS)
+            .group(GET_TRACKED_ENTITY_QUERY)
             .on(
                 repeat(1)
                     .on(
-                        exec(http(GET_AGGREGATED_ANALYTICS)
+                        exec(http(GET_TRACKED_ENTITY_QUERY)
                                 .get(URL_QUERY)
                                 .basicAuth("admin", "district"))
                             .pause(1)));
 
     // How users should enter the scenarios.
-    ClosedInjectionStep closedInjection = rampConcurrentUsers(0).to(1).during(10);
+    OpenInjectionStep injectionStep = simpleUsersRumpUp(1, 10);
 
     // Bringing all parts together (scenarios, injection, protocol, assertions).
-    setUp(scenario.injectClosed(closedInjection))
+    setUp(scenario.injectOpen(injectionStep))
         .protocols(httpProtocol)
         .assertions(
-            details(GET_AGGREGATED_ANALYTICS).responseTime().percentile(95).lt(380),
-            details(GET_AGGREGATED_ANALYTICS).responseTime().max().lt(400),
-            details(GET_AGGREGATED_ANALYTICS).successfulRequests().percent().is(100D),
-            details(GET_AGGREGATED_ANALYTICS).successfulRequests().percent().is(100D));
+            details(GET_TRACKED_ENTITY_QUERY).responseTime().percentile(95).lt(255),
+            details(GET_TRACKED_ENTITY_QUERY).responseTime().max().lt(360),
+            details(GET_TRACKED_ENTITY_QUERY).successfulRequests().percent().is(100D),
+            details(GET_TRACKED_ENTITY_QUERY).successfulRequests().percent().is(100D));
   }
 }
