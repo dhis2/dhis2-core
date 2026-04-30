@@ -52,13 +52,31 @@ public class CspConstants {
 
   /**
    * CSP policy for the app host endpoint that renders installed DHIS2 apps inside an iframe.
-   * Strictly same-origin: no wildcards in {@code img-src} or {@code connect-src}. Apps that need to
-   * call external services (analytics, map tiles, third-party APIs) must be granted an explicit
-   * override via an admin-controlled mechanism — see the per-app CSP follow-up.
+   * Same-origin by default: no wildcards in {@code img-src} or {@code connect-src}. The bundled
+   * Maps app loads basemap tiles from CartoDB (Fastly CDN, round-robin across {@code a/b/c}
+   * subdomains), so those three origins are temporarily allow-listed here for both schemes (HTTP
+   * for local dev on {@code http://localhost}, HTTPS for production).
+   *
+   * <p>Apps that need to call other external services (analytics, third-party APIs, etc.) must be
+   * granted an explicit override via an admin-controlled mechanism — see the per-app CSP follow-up.
+   * When that lands, the CartoDB origins listed here should move into the Maps app's manifest and
+   * an admin-approved override row, and the constant should return to strictly same-origin.
    */
+  private static final String CARTODB_BASEMAP_ORIGINS =
+      "https://cartodb-basemaps-a.global.ssl.fastly.net"
+          + " https://cartodb-basemaps-b.global.ssl.fastly.net"
+          + " https://cartodb-basemaps-c.global.ssl.fastly.net"
+          + " http://cartodb-basemaps-a.global.ssl.fastly.net"
+          + " http://cartodb-basemaps-b.global.ssl.fastly.net"
+          + " http://cartodb-basemaps-c.global.ssl.fastly.net";
+
   public static final String APP_HOST_CSP_POLICY =
       "default-src 'self'; style-src 'self' 'unsafe-inline'; child-src 'self' blob:;"
-          + " img-src 'self' data:; connect-src 'self';";
+          + " img-src 'self' data: "
+          + CARTODB_BASEMAP_ORIGINS
+          + "; connect-src 'self' "
+          + CARTODB_BASEMAP_ORIGINS
+          + ";";
 
   /**
    * CSP policy for the rendered OpenAPI HTML documentation pages, which emit inline {@code onclick}
