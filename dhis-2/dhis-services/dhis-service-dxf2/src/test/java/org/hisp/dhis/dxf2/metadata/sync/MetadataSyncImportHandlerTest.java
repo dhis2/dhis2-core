@@ -53,6 +53,7 @@ import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.VersionType;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -81,56 +82,58 @@ class MetadataSyncImportHandlerTest {
 
   private ImportReport importReport;
 
+  private InputStream snapshot;
+
   @BeforeEach
-  public void setup() {
+  void setup() {
     metadataVersion = new MetadataVersion("testVersion", VersionType.ATOMIC);
     expectedMetadataSnapshot = "{\"date\":\"2016-05-24T05:27:25.128+0000\"}";
     syncParams = new MetadataSyncParams();
     importReport = new ImportReport();
+    snapshot = new ByteArrayInputStream(expectedMetadataSnapshot.getBytes(StandardCharsets.UTF_8));
+  }
+
+  @AfterEach
+  void tearDown() throws IOException {
+    snapshot.close();
   }
 
   @Test
-  void testShouldThrowExceptionWhenNoVersionSet() throws IOException {
+  void testShouldThrowExceptionWhenNoVersionSet() {
     syncParams.setImportParams(null);
-    try (InputStream snapshot = toStream(expectedMetadataSnapshot)) {
-      assertThrows(
-          MetadataSyncServiceException.class,
-          () -> metadataSyncImportHandler.importMetadata(syncParams, snapshot),
-          "MetadataImportParams for the Sync cant be null.");
-    }
+    assertThrows(
+        MetadataSyncServiceException.class,
+        () -> metadataSyncImportHandler.importMetadata(syncParams, snapshot),
+        "MetadataImportParams for the Sync cant be null.");
   }
 
   @Test
-  void testShouldThrowExceptionWhenNoImportParams() throws IOException {
+  void testShouldThrowExceptionWhenNoImportParams() {
     syncParams.setVersion(metadataVersion);
     syncParams.setImportParams(null);
 
-    try (InputStream snapshot = toStream(expectedMetadataSnapshot)) {
-      assertThrows(
-          MetadataSyncServiceException.class,
-          () -> metadataSyncImportHandler.importMetadata(syncParams, snapshot),
-          "MetadataImportParams for the Sync cant be null.");
-    }
+    assertThrows(
+        MetadataSyncServiceException.class,
+        () -> metadataSyncImportHandler.importMetadata(syncParams, snapshot),
+        "MetadataImportParams for the Sync cant be null.");
   }
 
   @Test
-  void testShouldThrowExceptionWhenImportServiceFails() throws IOException {
+  void testShouldThrowExceptionWhenImportServiceFails() {
     syncParams.setImportParams(new MetadataImportParams());
     syncParams.setVersion(metadataVersion);
 
     when(metadataImportService.importMetadata(eq(syncParams.getImportParams()), any()))
         .thenThrow(new MetadataSyncServiceException(""));
 
-    try (InputStream snapshot = toStream(expectedMetadataSnapshot)) {
-      assertThrows(
-          MetadataSyncImportException.class,
-          () -> metadataSyncImportHandler.importMetadata(syncParams, snapshot));
-    }
+    assertThrows(
+        MetadataSyncImportException.class,
+        () -> metadataSyncImportHandler.importMetadata(syncParams, snapshot));
     verify(metadataVersionDelegate, never()).addNewMetadataVersion(metadataVersion);
   }
 
   @Test
-  void testShouldImportMetadata() throws IOException {
+  void testShouldImportMetadata() {
     syncParams.setImportParams(new MetadataImportParams());
     syncParams.setVersion(metadataVersion);
     MetadataSyncSummary metadataSyncSummary = new MetadataSyncSummary();
@@ -144,10 +147,8 @@ class MetadataSyncImportHandlerTest {
 
     doNothing().when(metadataVersionDelegate).addNewMetadataVersion(metadataVersion);
 
-    MetadataSyncSummary actualMetadataSyncSummary;
-    try (InputStream snapshot = toStream(expectedMetadataSnapshot)) {
-      actualMetadataSyncSummary = metadataSyncImportHandler.importMetadata(syncParams, snapshot);
-    }
+    MetadataSyncSummary actualMetadataSyncSummary =
+        metadataSyncImportHandler.importMetadata(syncParams, snapshot);
 
     verify(metadataVersionDelegate).addNewMetadataVersion(metadataVersion);
     assertEquals(
@@ -165,7 +166,7 @@ class MetadataSyncImportHandlerTest {
   }
 
   @Test
-  void testShouldImportMetadataWhenBestEffortWithWarnings() throws IOException {
+  void testShouldImportMetadataWhenBestEffortWithWarnings() {
     syncParams.setImportParams(new MetadataImportParams());
     syncParams.setVersion(metadataVersion);
     MetadataSyncSummary metadataSyncSummary = new MetadataSyncSummary();
@@ -180,10 +181,8 @@ class MetadataSyncImportHandlerTest {
 
     doNothing().when(metadataVersionDelegate).addNewMetadataVersion(metadataVersion);
 
-    MetadataSyncSummary actualMetadataSyncSummary;
-    try (InputStream snapshot = toStream(expectedMetadataSnapshot)) {
-      actualMetadataSyncSummary = metadataSyncImportHandler.importMetadata(syncParams, snapshot);
-    }
+    MetadataSyncSummary actualMetadataSyncSummary =
+        metadataSyncImportHandler.importMetadata(syncParams, snapshot);
     verify(metadataVersionDelegate).addNewMetadataVersion(metadataVersion);
     assertEquals(
         metadataSyncSummary.getImportReport(), actualMetadataSyncSummary.getImportReport());
@@ -208,12 +207,10 @@ class MetadataSyncImportHandlerTest {
     when(renderService.fromMetadata(any(InputStream.class), eq(RenderFormat.JSON)))
         .thenReturn(null);
 
-    try (InputStream snapshot = toStream(expectedMetadataSnapshot)) {
-      assertThrows(
-          MetadataSyncServiceException.class,
-          () -> metadataSyncImportHandler.importMetadata(syncParams, snapshot),
-          "ClassListMap can't be null");
-    }
+    assertThrows(
+        MetadataSyncServiceException.class,
+        () -> metadataSyncImportHandler.importMetadata(syncParams, snapshot),
+        "ClassListMap can't be null");
 
     verify(metadataImportService, never()).importMetadata(eq(syncParams.getImportParams()), any());
     verify(metadataVersionDelegate, never()).addNewMetadataVersion(metadataVersion);
@@ -229,12 +226,10 @@ class MetadataSyncImportHandlerTest {
     when(renderService.fromMetadata(any(InputStream.class), eq(RenderFormat.JSON)))
         .thenThrow(new IOException());
 
-    try (InputStream snapshot = toStream(expectedMetadataSnapshot)) {
-      assertThrows(
-          MetadataSyncServiceException.class,
-          () -> metadataSyncImportHandler.importMetadata(syncParams, snapshot),
-          "Exception occurred while trying to do JSON conversion while parsing class list map");
-    }
+    assertThrows(
+        MetadataSyncServiceException.class,
+        () -> metadataSyncImportHandler.importMetadata(syncParams, snapshot),
+        "Exception occurred while trying to do JSON conversion while parsing class list map");
 
     verify(metadataImportService, never()).importMetadata(eq(syncParams.getImportParams()), any());
     verify(metadataVersionDelegate, never()).addNewMetadataVersion(metadataVersion);
@@ -242,7 +237,7 @@ class MetadataSyncImportHandlerTest {
   }
 
   @Test
-  void testShouldReturnDefaultSummaryWhenImportStatusIsError() throws IOException {
+  void testShouldReturnDefaultSummaryWhenImportStatusIsError() {
     syncParams.setImportParams(new MetadataImportParams());
     syncParams.setVersion(metadataVersion);
     MetadataSyncSummary metadataSyncSummary = new MetadataSyncSummary();
@@ -255,10 +250,8 @@ class MetadataSyncImportHandlerTest {
     when(metadataImportService.importMetadata(eq(syncParams.getImportParams()), any()))
         .thenReturn(importReport);
 
-    MetadataSyncSummary actualMetadataSyncSummary;
-    try (InputStream snapshot = toStream(expectedMetadataSnapshot)) {
-      actualMetadataSyncSummary = metadataSyncImportHandler.importMetadata(syncParams, snapshot);
-    }
+    MetadataSyncSummary actualMetadataSyncSummary =
+        metadataSyncImportHandler.importMetadata(syncParams, snapshot);
 
     verify(metadataVersionDelegate, never()).addNewMetadataVersion(metadataVersion);
     assertEquals(
@@ -268,9 +261,5 @@ class MetadataSyncImportHandlerTest {
         metadataSyncSummary.getImportSummary(), actualMetadataSyncSummary.getImportSummary());
     assertEquals(
         metadataSyncSummary.getMetadataVersion(), actualMetadataSyncSummary.getMetadataVersion());
-  }
-
-  private static InputStream toStream(String s) {
-    return new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8));
   }
 }

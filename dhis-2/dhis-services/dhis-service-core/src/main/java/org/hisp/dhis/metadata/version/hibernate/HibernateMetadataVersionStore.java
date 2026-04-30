@@ -31,9 +31,14 @@ package org.hisp.dhis.metadata.version.hibernate;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.datastore.MetadataDatastoreService;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -106,5 +111,35 @@ public class HibernateMetadataVersionStore extends HibernateIdentifiableObjectSt
             .addOrder(root -> builder.asc(root.get("created")))
             .setMaxResults(1)
             .setCacheable(false));
+  }
+
+  @Override
+  public boolean streamMetadataVersionData(String versionName, OutputStream out)
+      throws IOException {
+    // The 'metadata' JSON key must match MetadataWrapper#getMetadata(); renaming the wrapper
+    // field would silently break this query (no row found, snapshot reported missing).
+    String sql =
+        "SELECT jbvalue->>'metadata' FROM keyjsonvalue"
+            + " WHERE namespace = ? AND namespacekey = ?";
+    try {
+      Boolean found =
+          jdbcTemplate.query(
+              sql,
+              rs -> {
+                if (!rs.next()) return false;
+                try (InputStream in = rs.getBinaryStream(1)) {
+                  if (in == null) return false;
+                  in.transferTo(out);
+                } catch (IOException e) {
+                  throw new UncheckedIOException(e);
+                }
+                return true;
+              },
+              MetadataDatastoreService.METADATA_STORE_NS,
+              versionName);
+      return Boolean.TRUE.equals(found);
+    } catch (UncheckedIOException e) {
+      throw e.getCause();
+    }
   }
 }
