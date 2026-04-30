@@ -30,7 +30,6 @@
 package org.hisp.dhis.analytics.tracker;
 
 import static java.util.Collections.emptyList;
-import static java.util.Optional.empty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
@@ -61,7 +60,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -90,6 +88,7 @@ import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -201,9 +200,10 @@ public class MetadataItemsHandler {
   private Map<String, List<String>> buildDimensionItems(Grid grid, EventQueryParams params) {
     if (params.isComingFromQuery()) {
       Map<String, List<Option>> optionsPresentInGrid = getItemOptions(grid, params.getItems());
-      return getDimensionItems(params, Optional.of(optionsPresentInGrid));
+      return getDimensionItems(params, optionsPresentInGrid, true);
     }
-    return getDimensionItems(params, empty());
+
+    return getDimensionItems(params, Map.of(), false);
   }
 
   /**
@@ -651,16 +651,19 @@ public class MetadataItemsHandler {
    *
    * @param params the {@link EventQueryParams}.
    * @param itemOptions the item options to be added into dimension items.
+   * @param hasResolvedItemOptions whether item options have been resolved for the response.
    * @return a {@link Map} of dimension items.
    */
   private Map<String, List<String>> getDimensionItems(
-      EventQueryParams params, Optional<Map<String, List<Option>>> itemOptions) {
+      EventQueryParams params,
+      Map<String, List<Option>> itemOptions,
+      boolean hasResolvedItemOptions) {
     Map<String, List<String>> dimensionItems = new HashMap<>();
 
     addPeriodDimensionItems(dimensionItems, params);
 
     addDimensionsAndFilters(dimensionItems, params);
-    addQueryItemDimensions(dimensionItems, params, itemOptions);
+    addQueryItemDimensions(dimensionItems, params, itemOptions, hasResolvedItemOptions);
     addItemFiltersToDimensionItems(params.getItemFilters(), dimensionItems);
     addEnrollmentOuDimensionItems(dimensionItems, params);
     addProgramStatusDimensionItems(dimensionItems, params);
@@ -785,18 +788,43 @@ public class MetadataItemsHandler {
    * @param dimensionItems the dimension items map.
    * @param params the {@link EventQueryParams}.
    * @param itemOptions the item options.
+   * @param hasResolvedItemOptions whether item options have been resolved for the response.
    */
   private void addQueryItemDimensions(
       Map<String, List<String>> dimensionItems,
       EventQueryParams params,
-      Optional<Map<String, List<Option>>> itemOptions) {
+      Map<String, List<Option>> itemOptions,
+      boolean hasResolvedItemOptions) {
 
     for (QueryItem item : params.getItems()) {
-      String itemUid = getItemUid(item);
-      List<String> itemDimensionValues = resolveQueryItemDimension(item, params, itemOptions);
+      String itemUid = getQueryItemDimensionKey(item, hasResolvedItemOptions);
+      List<String> itemDimensionValues =
+          resolveQueryItemDimension(item, params, itemOptions, hasResolvedItemOptions);
 
       dimensionItems.put(itemUid, itemDimensionValues);
     }
+  }
+
+  /**
+   * Returns the metadata dimensions key for a query item.
+   *
+   * <p>Stage-scoped tracked entity attribute option sets in aggregate context keep their raw item
+   * UID, as clients and existing enrollment aggregate responses expect the attribute UID in {@code
+   * metadata.dimensions}. Other stage-scoped items use the normalized item UID, which may include
+   * the program stage prefix.
+   *
+   * @param item the {@link QueryItem}.
+   * @param hasResolvedItemOptions whether item options have been resolved for the response.
+   * @return the metadata dimensions key.
+   */
+  private String getQueryItemDimensionKey(QueryItem item, boolean hasResolvedItemOptions) {
+    if (item.hasOptionSet()
+        && !hasResolvedItemOptions
+        && item.getItem() instanceof TrackedEntityAttribute) {
+      return item.getItemId();
+    }
+
+    return getItemUid(item);
   }
 
   /**
@@ -805,10 +833,14 @@ public class MetadataItemsHandler {
    * @param item the {@link QueryItem}.
    * @param params the {@link EventQueryParams}.
    * @param itemOptions the item options.
+   * @param hasResolvedItemOptions whether item options have been resolved for the response.
    * @return a list of dimension values.
    */
   private List<String> resolveQueryItemDimension(
-      QueryItem item, EventQueryParams params, Optional<Map<String, List<Option>>> itemOptions) {
+      QueryItem item,
+      EventQueryParams params,
+      Map<String, List<Option>> itemOptions,
+      boolean hasResolvedItemOptions) {
 
     if (item.getValueType().isOrganisationUnit()) {
       return isStageOuDimension(item)
@@ -817,7 +849,7 @@ public class MetadataItemsHandler {
     }
 
     if (item.hasOptionSet()) {
-      return resolveOptionSetDimension(item, itemOptions);
+      return resolveOptionSetDimension(item, itemOptions, hasResolvedItemOptions);
     }
 
     if (item.hasLegendSet()) {
@@ -836,14 +868,15 @@ public class MetadataItemsHandler {
    *
    * @param item the {@link QueryItem}.
    * @param itemOptions the item options.
+   * @param hasResolvedItemOptions whether item options have been resolved for the response.
    * @return a list of option UIDs.
    */
   private List<String> resolveOptionSetDimension(
-      QueryItem item, Optional<Map<String, List<Option>>> itemOptions) {
+      QueryItem item, Map<String, List<Option>> itemOptions, boolean hasResolvedItemOptions) {
 
-    if (itemOptions.isPresent()) {
+    if (hasResolvedItemOptions) {
       String itemUid = getItemUid(item);
-      List<Option> options = itemOptions.get().get(itemUid);
+      List<Option> options = itemOptions.get(itemUid);
       return getDimensionItemUidsFrom(options, item.getOptionSetFilterItemsOrAll());
     }
 
