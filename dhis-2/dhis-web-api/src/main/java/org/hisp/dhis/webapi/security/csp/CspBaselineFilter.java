@@ -39,8 +39,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
  * Servlet filter that emits the default {@code Content-Security-Policy} plus {@code
- * X-Content-Type-Options} and {@code X-Frame-Options} on every response that flows through the
- * filter chain.
+ * X-Content-Type-Options} on every response that flows through the filter chain. {@code
+ * X-Frame-Options} is added only when CSP is disabled (legacy fallback); when CSP is enabled the
+ * {@code frame-ancestors} directive supersedes it.
  *
  * <p>Necessary because {@link CspInterceptor} only fires when {@code DispatcherServlet} resolves a
  * {@link org.springframework.web.method.HandlerMethod}, leaving 404 responses, static-resource

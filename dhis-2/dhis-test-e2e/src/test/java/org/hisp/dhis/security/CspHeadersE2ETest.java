@@ -475,8 +475,20 @@ public class CspHeadersE2ETest extends BaseE2ETest {
     String xContentTypeOptions = response.getHeaders().getFirst(X_CONTENT_TYPE_OPTIONS_HEADER);
     assertEquals("nosniff", xContentTypeOptions, "X-Content-Type-Options should be 'nosniff'");
 
+    // X-Frame-Options is only emitted when CSP is disabled. When CSP is enabled the
+    // frame-ancestors directive is the source of truth (and may legitimately whitelist
+    // external origins via the CORS whitelist), so XFO would conflict.
+    String csp = response.getHeaders().getFirst(CSP_HEADER);
     String xFrameOptions = response.getHeaders().getFirst(X_FRAME_OPTIONS_HEADER);
-    assertEquals("SAMEORIGIN", xFrameOptions, "X-Frame-Options should be 'SAMEORIGIN'");
+    if (csp == null) {
+      assertEquals(
+          "SAMEORIGIN",
+          xFrameOptions,
+          "X-Frame-Options should be 'SAMEORIGIN' when CSP is disabled");
+    } else {
+      assertNull(
+          xFrameOptions, "X-Frame-Options should be omitted when CSP frame-ancestors is set");
+    }
   }
 
   /** Verifies that security headers are present in the response. */
@@ -486,8 +498,6 @@ public class CspHeadersE2ETest extends BaseE2ETest {
     assertNotNull(
         headers.getFirst(X_CONTENT_TYPE_OPTIONS_HEADER),
         "X-Content-Type-Options header should be present");
-    assertNotNull(
-        headers.getFirst(X_FRAME_OPTIONS_HEADER), "X-Frame-Options header should be present");
 
     // CSP header may not be present on all endpoints when CSP is globally disabled,
     // but it should at least be set when CSP is enabled

@@ -93,6 +93,10 @@ public class CspInterceptor implements HandlerInterceptor {
       log.debug("Applying legacy-login-fallback CSP policy for {}", method.getName());
       return cspPolicyService.constructLegacyLoginFallbackCspPolicy();
     }
+    if (hasMarker(method, controllerClass, CspOpenApiDocs.class)) {
+      log.debug("Applying openapi-docs CSP policy for {}", method.getName());
+      return cspPolicyService.constructOpenApiDocsCspPolicy();
+    }
     return null;
   }
 

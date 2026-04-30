@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.security.csp;
 import static org.hisp.dhis.security.utils.CspConstants.APP_HOST_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.DEFAULT_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.LEGACY_LOGIN_FALLBACK_CSP_POLICY;
+import static org.hisp.dhis.security.utils.CspConstants.OPENAPI_DOCS_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.USER_UPLOADED_CONTENT_CSP_POLICY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -104,6 +105,13 @@ class CspPolicyServiceTest {
   }
 
   @Test
+  void constructOpenApiDocsPolicy_appendsFrameAncestorsSelf() {
+    String result = cspPolicyService.constructOpenApiDocsCspPolicy();
+
+    assertEquals(OPENAPI_DOCS_CSP_POLICY + " frame-ancestors 'self';", result);
+  }
+
+  @Test
   void corsWhitelist_isSortedDeterministically() {
     Set<String> whitelist = new LinkedHashSet<>();
     whitelist.add("https://zeta.example.com");
@@ -121,17 +129,20 @@ class CspPolicyServiceTest {
   }
 
   @Test
-  void getSecurityHeaders_cspEnabled_setsAllThreeHeaders() {
+  void getSecurityHeaders_cspEnabled_setsCspAndContentTypeButNoXFrameOptions() {
     HttpHeaders headers = cspPolicyService.getSecurityHeaders("script-src 'self';");
 
     assertNotNull(headers);
     assertTrue(headers.containsKey("Content-Security-Policy"));
     assertEquals("nosniff", headers.getFirst("X-Content-Type-Options"));
-    assertEquals("SAMEORIGIN", headers.getFirst("X-Frame-Options"));
+    // X-Frame-Options is omitted when CSP is enabled because the frame-ancestors
+    // directive in the CSP is the source of truth and may legitimately whitelist
+    // external origins.
+    assertFalse(headers.containsKey("X-Frame-Options"));
   }
 
   @Test
-  void getSecurityHeaders_cspDisabled_omitsCspButKeepsStandardHeaders() {
+  void getSecurityHeaders_cspDisabled_omitsCspAndFallsBackToXFrameOptions() {
     when(dhisConfig.isEnabled(any())).thenReturn(false);
 
     HttpHeaders headers = cspPolicyService.getSecurityHeaders("script-src 'self';");
@@ -159,7 +170,7 @@ class CspPolicyServiceTest {
         DEFAULT_CSP_POLICY + " frame-ancestors 'self';",
         headers.getFirst("Content-Security-Policy"));
     assertEquals("nosniff", headers.getFirst("X-Content-Type-Options"));
-    assertEquals("SAMEORIGIN", headers.getFirst("X-Frame-Options"));
+    assertFalse(headers.containsKey("X-Frame-Options"));
   }
 
   @Test

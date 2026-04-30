@@ -115,6 +115,20 @@ class CspInterceptorTest {
   }
 
   @Test
+  void methodLevelOpenApiDocs_appliesOpenApiDocsPolicy() throws Exception {
+    when(cspPolicyService.constructOpenApiDocsCspPolicy()).thenReturn("policy");
+    when(cspPolicyService.getSecurityHeaders("policy")).thenReturn(headers());
+
+    cspInterceptor.preHandle(
+        request, response, handler(MethodMarkedOpenApiDocs.class, "openapi"));
+
+    verify(cspPolicyService, times(1)).constructOpenApiDocsCspPolicy();
+    verify(cspPolicyService, never()).constructUserUploadedContentCspPolicy();
+    verify(cspPolicyService, never()).constructAppHostCspPolicy();
+    verify(cspPolicyService, never()).constructLegacyLoginFallbackCspPolicy();
+  }
+
+  @Test
   void userUploadedTakesPrecedenceOverAppHostOnSameElement() throws Exception {
     when(cspPolicyService.constructUserUploadedContentCspPolicy()).thenReturn("policy");
     when(cspPolicyService.getSecurityHeaders("policy")).thenReturn(headers());
@@ -189,6 +203,13 @@ class CspInterceptorTest {
   public static class MethodMarkedLegacyLoginFallback {
     @CspLegacyLoginFallback
     public void fallback() {
+      // empty — fixture target for reflection
+    }
+  }
+
+  public static class MethodMarkedOpenApiDocs {
+    @CspOpenApiDocs
+    public void openapi() {
       // empty — fixture target for reflection
     }
   }

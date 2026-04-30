@@ -35,6 +35,7 @@ import static org.hisp.dhis.security.utils.CspConstants.CONTENT_SECURITY_POLICY_
 import static org.hisp.dhis.security.utils.CspConstants.DEFAULT_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.FRAME_ANCESTORS_DEFAULT_CSP;
 import static org.hisp.dhis.security.utils.CspConstants.LEGACY_LOGIN_FALLBACK_CSP_POLICY;
+import static org.hisp.dhis.security.utils.CspConstants.OPENAPI_DOCS_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.USER_UPLOADED_CONTENT_CSP_POLICY;
 
 import java.util.Set;
@@ -78,6 +79,10 @@ public class CspPolicyService {
     return appendFrameAncestors(LEGACY_LOGIN_FALLBACK_CSP_POLICY);
   }
 
+  public String constructOpenApiDocsCspPolicy() {
+    return appendFrameAncestors(OPENAPI_DOCS_CSP_POLICY);
+  }
+
   /**
    * Returns the baseline security headers using the default CSP policy. Used by {@link
    * CspBaselineFilter} to seed every response before any handler-specific override.
@@ -91,7 +96,9 @@ public class CspPolicyService {
   /**
    * Builds the security headers to attach to a response: {@code Content-Security-Policy} (when
    * {@link org.hisp.dhis.external.conf.ConfigurationKey#CSP_ENABLED} is enabled) plus {@code
-   * X-Content-Type-Options} and {@code X-Frame-Options}.
+   * X-Content-Type-Options}. When CSP is disabled, {@code X-Frame-Options: SAMEORIGIN} is emitted
+   * as a legacy fallback; when CSP is enabled the {@code frame-ancestors} directive is the source
+   * of truth and XFO is omitted to avoid conflicting with whitelisted external origins.
    *
    * @param cspPolicy a pre-composed policy string; must not be {@code null} or blank — call {@link
    *     #getDefaultSecurityHeaders()} for the baseline
@@ -115,11 +122,14 @@ public class CspPolicyService {
       log.debug(
           "Applied CSP policy {} and standard security headers for response", effectivePolicy);
     } else {
+      // X-Frame-Options is a legacy fallback. When CSP is enabled the frame-ancestors
+      // directive is the source of truth (and may legitimately whitelist external origins
+      // via the CORS whitelist), so emitting XFO would conflict with it.
+      headers.set("X-Frame-Options", "SAMEORIGIN");
       log.debug("CSP disabled; applying only standard security headers for response");
     }
 
     headers.set("X-Content-Type-Options", "nosniff");
-    headers.set("X-Frame-Options", "SAMEORIGIN");
 
     return headers;
   }
