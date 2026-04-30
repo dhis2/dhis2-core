@@ -130,7 +130,6 @@ class AggregatedEnrollmentQueryAssemblerTest {
   void addStandardColumnsFormulaColumnInPlainPathIsAddedVerbatim() {
     SelectBuilder sb = new SelectBuilder().from("ax_table", "ax");
     CteContext cteContext = new CteContext(EndpointItem.ENROLLMENT);
-    EventQueryParams params = mock(EventQueryParams.class);
     String formula = "ST_AsGeoJSON(enrollmentgeometry)";
 
     assembler.addStandardColumns(sb, cteContext, List.of(formula));
