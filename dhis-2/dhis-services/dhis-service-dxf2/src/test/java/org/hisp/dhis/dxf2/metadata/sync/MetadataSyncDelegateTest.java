@@ -39,6 +39,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
@@ -68,7 +70,7 @@ class MetadataSyncDelegateTest {
     String versionSnapshot =
         "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
     when(systemService.getSystemInfoVersion()).thenReturn(null);
-    boolean shouldStopSync = metadataSyncDelegate.shouldStopSync(versionSnapshot);
+    boolean shouldStopSync = metadataSyncDelegate.shouldStopSync(toStream(versionSnapshot));
     assertFalse(shouldStopSync);
   }
 
@@ -77,7 +79,7 @@ class MetadataSyncDelegateTest {
     String versionSnapshot =
         "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
     when(systemService.getSystemInfoVersion()).thenReturn("2.26");
-    boolean shouldStopSync = metadataSyncDelegate.shouldStopSync(versionSnapshot);
+    boolean shouldStopSync = metadataSyncDelegate.shouldStopSync(toStream(versionSnapshot));
     assertFalse(shouldStopSync);
   }
 
@@ -91,10 +93,10 @@ class MetadataSyncDelegateTest {
     when(metadataSystemSettingService.getStopMetadataSyncSetting()).thenReturn(true);
     ObjectMapper mapper = new ObjectMapper();
     JsonNode jsonNode = mapper.readTree(systemNodeString);
-    when(renderService.getSystemObject(any(ByteArrayInputStream.class), eq(RenderFormat.JSON)))
+    when(renderService.getSystemObject(any(InputStream.class), eq(RenderFormat.JSON)))
         .thenReturn(jsonNode);
 
-    boolean shouldStopSync = metadataSyncDelegate.shouldStopSync(versionSnapshot);
+    boolean shouldStopSync = metadataSyncDelegate.shouldStopSync(toStream(versionSnapshot));
     assertTrue(shouldStopSync);
   }
 
@@ -107,10 +109,10 @@ class MetadataSyncDelegateTest {
     when(metadataSystemSettingService.getStopMetadataSyncSetting()).thenReturn(true);
     ObjectMapper mapper = new ObjectMapper();
     JsonNode jsonNode = mapper.readTree(systemNodeString);
-    when(renderService.getSystemObject(any(ByteArrayInputStream.class), eq(RenderFormat.JSON)))
+    when(renderService.getSystemObject(any(InputStream.class), eq(RenderFormat.JSON)))
         .thenReturn(jsonNode);
 
-    boolean shouldStopSync = metadataSyncDelegate.shouldStopSync(versionSnapshot);
+    boolean shouldStopSync = metadataSyncDelegate.shouldStopSync(toStream(versionSnapshot));
     assertFalse(shouldStopSync);
   }
 
@@ -120,7 +122,11 @@ class MetadataSyncDelegateTest {
         "{\"system:\": {\"date\":\"2016-05-24T05:27:25.128+0000\", \"version\": \"2.26\"}, \"name\":\"testVersion\",\"created\":\"2016-05-26T11:43:59.787+0000\",\"type\":\"BEST_EFFORT\",\"id\":\"ktwh8PHNwtB\",\"hashCode\":\"12wa32d4f2et3tyt5yu6i\"}";
     when(systemService.getSystemInfoVersion()).thenReturn("2.26");
     when(metadataSystemSettingService.getStopMetadataSyncSetting()).thenReturn(false);
-    boolean shouldStopSync = metadataSyncDelegate.shouldStopSync(versionSnapshot);
+    boolean shouldStopSync = metadataSyncDelegate.shouldStopSync(toStream(versionSnapshot));
     assertFalse(shouldStopSync);
+  }
+
+  private static InputStream toStream(String s) {
+    return new ByteArrayInputStream(s.getBytes(StandardCharsets.UTF_8));
   }
 }
