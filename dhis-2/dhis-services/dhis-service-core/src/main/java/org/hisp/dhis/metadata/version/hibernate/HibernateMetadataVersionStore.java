@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.sql.ResultSet;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -111,6 +112,16 @@ public class HibernateMetadataVersionStore extends HibernateIdentifiableObjectSt
             .addOrder(root -> builder.asc(root.get("created")))
             .setMaxResults(1)
             .setCacheable(false));
+  }
+
+  @Override
+  public boolean metadataVersionSnapshotExists(String versionName) {
+    return Boolean.TRUE.equals(
+        jdbcTemplate.query(
+            "SELECT 1 FROM keyjsonvalue WHERE namespace = ? AND namespacekey = ? LIMIT 1",
+            ResultSet::next,
+            MetadataDatastoreService.METADATA_STORE_NS,
+            versionName));
   }
 
   @Override

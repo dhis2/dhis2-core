@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -177,5 +178,32 @@ class MetadataVersionControllerTest extends PostgresControllerIntegrationTestBas
     // then
     assertTrue(response.success(), "response is successful");
     assertEquals("application/gzip", response.header("Content-Type"));
+  }
+
+  @Test
+  @DisplayName("Missing version on data endpoint returns an error, not a 2xx empty body")
+  void getMissingMetadataVersionDataReturnsError() {
+    POST("/systemSettings/keyVersionEnabled?value=true").success();
+
+    HttpResponse response = GET("/metadata/version/DoesNotExist/data");
+
+    assertFalse(response.success(), "response should not be 2xx for a missing snapshot");
+    assertTrue(
+        response.error().getMessage().contains("DoesNotExist"),
+        "error message should reference the missing version name");
+  }
+
+  @Test
+  @DisplayName(
+      "Missing version on data.gz endpoint returns an error, not a 2xx empty gzip (GZIPOutputStream commits the response on construction)")
+  void getMissingMetadataVersionDataGzReturnsError() {
+    POST("/systemSettings/keyVersionEnabled?value=true").success();
+
+    HttpResponse response = GET("/metadata/version/DoesNotExist/data.gz");
+
+    assertFalse(response.success(), "response should not be 2xx for a missing snapshot");
+    assertTrue(
+        response.error().getMessage().contains("DoesNotExist"),
+        "error message should reference the missing version name");
   }
 }

@@ -231,6 +231,12 @@ public class DefaultMetadataVersionService implements MetadataVersionService {
   }
 
   @Override
+  @Transactional(readOnly = true)
+  public boolean snapshotExists(String versionName) {
+    return versionStore.metadataVersionSnapshotExists(versionName);
+  }
+
+  @Override
   @Transactional
   public void createMetadataVersionInDataStore(String versionName, String versionSnapshot) {
     if (StringUtils.isEmpty(versionSnapshot)) {

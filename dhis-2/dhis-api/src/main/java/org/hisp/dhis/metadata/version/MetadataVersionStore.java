@@ -90,4 +90,16 @@ public interface MetadataVersionStore extends GenericStore<MetadataVersion> {
    * @throws IOException if writing to the output stream fails
    */
   boolean streamMetadataVersionData(String versionName, OutputStream out) throws IOException;
+
+  /**
+   * Returns whether a metadata snapshot exists for the given version name. Intended as a cheap
+   * pre-flight check before opening a response output stream — once {@link
+   * #streamMetadataVersionData} starts writing, response headers are committed and an error status
+   * can no longer be returned to the client (especially relevant for the gzipped variant where
+   * {@code GZIPOutputStream} writes its magic header on construction).
+   *
+   * @param versionName the version name
+   * @return true if a snapshot row exists in the metadata datastore namespace
+   */
+  boolean metadataVersionSnapshotExists(String versionName);
 }

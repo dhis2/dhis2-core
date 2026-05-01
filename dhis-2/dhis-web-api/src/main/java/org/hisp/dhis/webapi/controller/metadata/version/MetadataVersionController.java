@@ -235,20 +235,14 @@ public class MetadataVersionController {
   public void downloadVersion(
       @PathVariable("versionName") String versionName, HttpServletResponse response)
       throws MetadataVersionException, BadRequestException, IOException {
-    boolean enabled = isMetadataVersioningEnabled();
+    requireVersioningEnabledAndSnapshotExists(versionName);
 
     try {
-      if (!enabled) {
-        throw new BadRequestException("Metadata versioning is not enabled for this instance.");
-      }
-
       response.setContentType(APPLICATION_JSON_VALUE);
-      boolean found = versionService.streamVersionData(versionName, response.getOutputStream());
-
-      if (!found) {
-        throw new MetadataVersionException(
-            "No metadata version snapshot found for the given version " + versionName);
-      }
+      // Snapshots are downloaded once per remote sync client and never re-requested.
+      // Tell intermediaries not to spend cache space on a body nobody will ask for again.
+      response.setHeader(ContextUtils.HEADER_CACHE_CONTROL, "no-store");
+      versionService.streamVersionData(versionName, response.getOutputStream());
     } catch (MetadataVersionServiceException ex) {
       throw new MetadataVersionException(
           "Unable to download version from system: " + versionName + ex.getMessage());
@@ -261,13 +255,9 @@ public class MetadataVersionController {
   public void downloadGZipVersion(
       @PathVariable("versionName") String versionName, HttpServletResponse response)
       throws MetadataVersionException, IOException, BadRequestException {
-    boolean enabled = isMetadataVersioningEnabled();
+    requireVersioningEnabledAndSnapshotExists(versionName);
 
     try {
-      if (!enabled) {
-        throw new BadRequestException("Metadata versioning is not enabled for this instance.");
-      }
-
       contextUtils.configureResponse(
           response,
           ContextUtils.CONTENT_TYPE_GZIP,
@@ -275,18 +265,33 @@ public class MetadataVersionController {
           "metadata.json.gz",
           true);
       response.addHeader(ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary");
+      // CacheStrategy.NO_CACHE maps to Cache-Control: no-cache (revalidate, may store).
+      // Override with no-store: snapshots are fetched once per remote, so caching wastes space.
+      response.setHeader(ContextUtils.HEADER_CACHE_CONTROL, "no-store");
 
       try (GZIPOutputStream gos = new GZIPOutputStream(response.getOutputStream())) {
-        boolean found = versionService.streamVersionData(versionName, gos);
-
-        if (!found) {
-          throw new MetadataVersionException(
-              "No metadata version snapshot found for the given version " + versionName);
-        }
+        versionService.streamVersionData(versionName, gos);
       }
     } catch (MetadataVersionServiceException ex) {
       throw new MetadataVersionException(
           "Unable to download version from system: " + versionName + ex.getMessage());
+    }
+  }
+
+  /**
+   * Pre-flight check before opening any response output stream. Once {@code GZIPOutputStream} is
+   * constructed it writes the gzip magic header to the response, committing it — at which point a
+   * thrown error can no longer reach the client (Spring's exception handler can't rewrite a
+   * committed response). This method must run before any byte is written.
+   */
+  private void requireVersioningEnabledAndSnapshotExists(String versionName)
+      throws BadRequestException, MetadataVersionException {
+    if (!isMetadataVersioningEnabled()) {
+      throw new BadRequestException("Metadata versioning is not enabled for this instance.");
+    }
+    if (!versionService.snapshotExists(versionName)) {
+      throw new MetadataVersionException(
+          "No metadata version snapshot found for the given version " + versionName);
     }
   }
 

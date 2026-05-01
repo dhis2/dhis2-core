@@ -143,6 +143,16 @@ public interface MetadataVersionService {
   boolean streamVersionData(String versionName, OutputStream out) throws IOException;
 
   /**
+   * Returns whether a metadata snapshot exists for the given version name. Cheap pre-flight check
+   * intended to be called before opening any response output stream — see {@link
+   * MetadataVersionStore#metadataVersionSnapshotExists} for the rationale.
+   *
+   * @param versionName the version name
+   * @return true if a snapshot is stored for that version
+   */
+  boolean snapshotExists(String versionName);
+
+  /**
    * Creates an entry in the DataStore given the MetadataVersion details.
    *
    * @param versionName
