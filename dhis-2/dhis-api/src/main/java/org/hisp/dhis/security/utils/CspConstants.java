@@ -38,17 +38,27 @@ public class CspConstants {
   public static final String FRAME_ANCESTORS_DEFAULT_CSP = "frame-ancestors 'self'";
 
   /**
+   * Defense-in-depth directives that do NOT fall back to {@code default-src} per the CSP spec, so
+   * they have to be declared explicitly on every policy. Locks down {@code <base href>} rewriting,
+   * off-origin form submission, and legacy plugin embeds (Flash / Java applet / PDF plugin attack
+   * surface — DHIS2 doesn't use any of these).
+   */
+  private static final String COMMON_HARDENING =
+      "base-uri 'self'; form-action 'self'; object-src 'none';";
+
+  /**
    * Strict default CSP policy applied to all endpoints. This policy only allows resources from the
    * same origin.
    */
   public static final String DEFAULT_CSP_POLICY =
-      "default-src 'self'; style-src 'self' 'unsafe-inline';";
+      "default-src 'self'; style-src 'self' 'unsafe-inline'; " + COMMON_HARDENING;
 
   /**
    * CSP policy for endpoints serving user-uploaded content. This policy disables all unsafe sources
    * to prevent injection attacks on potentially untrusted content.
    */
-  public static final String USER_UPLOADED_CONTENT_CSP_POLICY = "default-src 'none';";
+  public static final String USER_UPLOADED_CONTENT_CSP_POLICY =
+      "default-src 'none'; " + COMMON_HARDENING;
 
   /**
    * CSP policy for the app host endpoint that renders installed DHIS2 apps inside an iframe.
@@ -76,7 +86,8 @@ public class CspConstants {
           + CARTODB_BASEMAP_ORIGINS
           + "; connect-src 'self' "
           + CARTODB_BASEMAP_ORIGINS
-          + ";";
+          + "; "
+          + COMMON_HARDENING;
 
   /**
    * CSP policy for the rendered OpenAPI HTML documentation pages, which emit inline {@code onclick}
@@ -85,5 +96,6 @@ public class CspConstants {
    * endpoints only via {@link org.hisp.dhis.webapi.security.csp.CspOpenApiDocs @CspOpenApiDocs}.
    */
   public static final String OPENAPI_DOCS_CSP_POLICY =
-      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';";
+      "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+          + COMMON_HARDENING;
 }
