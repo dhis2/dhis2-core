@@ -92,7 +92,10 @@ public class ExcludableShallowEtagHeaderFilter extends ShallowEtagHeaderFilter {
           + UID_REGEXP
           + "/attributes/"
           + UID_REGEXP
-          + "/(file|image)";
+          + "/(file|image)|"
+          // Metadata version snapshots are not suitable for ETag buffering.
+          // Ideally, versions are only requested once per remote client.
+          + "/api/(\\d{2}/)?metadata/version/.+/data(\\.gz)?";
 
   private Pattern pattern = null;
 
