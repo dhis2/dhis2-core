@@ -115,8 +115,7 @@ class SqlViewControllerIntegrationTest extends DhisControllerIntegrationTest {
     // text result). After the fix, the entire CAST(...) expression becomes a quoted
     // identifier; Postgres errors out with "column does not exist" at parse time, so
     // the inner SELECT never executes and no value is leaked.
-    String injection =
-        "CAST((SELECT password FROM userinfo WHERE username='admin') AS int)";
+    String injection = "CAST((SELECT password FROM userinfo WHERE username='admin') AS int)";
     HttpResponse response = GET(QUERY_PATH + "?filter=" + injection + ":eq:1");
 
     JsonMixed body = response.contentUnchecked();

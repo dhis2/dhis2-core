@@ -255,7 +255,7 @@ public class DefaultSqlViewService implements SqlViewService {
     filter +=
         sqlHelper.whereAnd()
             + " "
-            + columnName
+            + SqlUtils.quote(columnName)
             + " "
             + operatorWithPlaceHolderAndArg.operatorWithPlaceholder();
 
