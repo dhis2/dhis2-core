@@ -48,17 +48,18 @@ public class CspConstants {
    *       formaction} button attribute); also a partial CSRF defense layer.
    *   <li>{@code object-src 'none'} — kills the legacy plugin attack surface (Flash / Java applet /
    *       PDF plugin) — DHIS2 doesn't use any of these.
+   *   <li>{@code upgrade-insecure-requests} — instructs the browser to silently upgrade {@code
+   *       http://} sub-resource fetches to {@code https://}. Closes mixed-content gaps in
+   *       production deployments. Note: Chromium does NOT reliably upgrade cross-origin fetches
+   *       when the parent page is on {@code http://localhost} — the CSP source-list check runs
+   *       against the pre-upgrade URL, so a strict https-only policy still rejects http
+   *       sub-resources in dev. The Maps app dev allowance handles that case via {@code
+   *       SERVER_HTTPS}-conditional injection of http origins (see {@link
+   *       org.hisp.dhis.webapi.security.csp.CspPolicyService#constructAppHostCspPolicy}).
    * </ul>
-   *
-   * <p>{@code upgrade-insecure-requests} is intentionally NOT in this list. It was tried but caused
-   * the e2e {@code OAuth2Test} to time out: the OAuth2 flow uses a Selenium-driven redirect to
-   * {@code http://localhost:9090/oauth2/code/dhis2-client} and Chromium upgrades that navigation
-   * under the directive in some configurations, hitting a non-existent https endpoint. Deferred to
-   * a Phase 2 follow-up that scopes it more narrowly or wires it via the existing {@code
-   * CSP_UPGRADE_INSECURE_ENABLED} config key.
    */
   private static final String COMMON_HARDENING =
-      "base-uri 'self'; form-action 'self'; object-src 'none';";
+      "base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;";
 
   /**
    * Strict default CSP policy applied to all endpoints. This policy only allows resources from the
