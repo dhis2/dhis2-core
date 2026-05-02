@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
@@ -90,6 +91,46 @@ class SqlViewControllerIntegrationTest extends PostgresControllerIntegrationTest
             .getObject("message")
             .toString()
             .contains("Query failed because of a syntax error"));
+  }
+
+  @Test
+  void sqlInjectionFilterColumnNameUnionTest() {
+    // The fixture views select 4 columns from optionvalue (uid, name, description,
+    // sort_order). On vulnerable master a payload that smuggles a 4-column UNION
+    // through the column-name slot returns userinfo.password (bcrypt) in the grid.
+    // After the fix, SqlUtils.quote() turns the entire payload into a non-existent
+    // identifier and Postgres rejects it. Either way, the response must not contain
+    // a bcrypt-formatted hash.
+    String injection = "1=1 UNION SELECT password, '', '', 0 FROM userinfo WHERE 'a'";
+    HttpResponse response = GET(QUERY_PATH + "?filter=" + injection + ":neq:x");
+
+    JsonMixed body = response.contentUnchecked();
+    assertFalse(
+        body.toString().contains("$2a$"),
+        "Filter column-name slot is injectable: response leaked a bcrypt hash. Body: " + body);
+  }
+
+  @Test
+  void sqlInjectionFilterColumnNameCastTest() {
+    // Ahmed/M4xIq PoC (GHSA-pwmg-mvjw-4m23): smuggle a subquery via CAST(... AS int)
+    // in the column-name slot, exfiltrate via the Postgres type-cast error message
+    // ("invalid input syntax for type integer: \"<value>\"" embeds the subquery's
+    // text result). After the fix, the entire CAST(...) expression becomes a quoted
+    // identifier; Postgres errors out with "column does not exist" at parse time, so
+    // the inner SELECT never executes and no value is leaked.
+    String injection =
+        "CAST((SELECT password FROM userinfo WHERE username='admin') AS int)";
+    HttpResponse response = GET(QUERY_PATH + "?filter=" + injection + ":eq:1");
+
+    JsonMixed body = response.contentUnchecked();
+    String s = body.toString();
+    assertFalse(
+        s.contains("$2a$"),
+        "Filter column-name slot is injectable: response leaked a bcrypt hash. Body: " + body);
+    assertFalse(
+        s.toLowerCase().contains("invalid input syntax for type integer"),
+        "Filter column-name slot is injectable: Postgres CAST error surfaces attacker subquery output. Body: "
+            + body);
   }
 
   @Test
