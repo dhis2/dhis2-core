@@ -38,13 +38,27 @@ public class CspConstants {
   public static final String FRAME_ANCESTORS_DEFAULT_CSP = "frame-ancestors 'self'";
 
   /**
-   * Defense-in-depth directives that do NOT fall back to {@code default-src} per the CSP spec, so
-   * they have to be declared explicitly on every policy. Locks down {@code <base href>} rewriting,
-   * off-origin form submission, and legacy plugin embeds (Flash / Java applet / PDF plugin attack
-   * surface — DHIS2 doesn't use any of these).
+   * Defense-in-depth directives applied to every emitted policy. Each one is a policy-level
+   * directive that does NOT fall back to {@code default-src} per the CSP spec, so it has to be
+   * declared explicitly:
+   *
+   * <ul>
+   *   <li>{@code base-uri 'self'} — locks down {@code <base href>} rewriting.
+   *   <li>{@code form-action 'self'} — prevents off-origin form submission (incl. via the {@code
+   *       formaction} button attribute); also a partial CSRF defense layer.
+   *   <li>{@code object-src 'none'} — kills the legacy plugin attack surface (Flash / Java applet /
+   *       PDF plugin) — DHIS2 doesn't use any of these.
+   *   <li>{@code upgrade-insecure-requests} — instructs the browser to silently upgrade every
+   *       {@code http://} sub-resource fetch to {@code https://} before the request goes out, so
+   *       protocol-relative URLs (e.g. the bundled Maps app's CartoDB tile URLs) work uniformly
+   *       across http://localhost dev and https://production deployments without a separate http
+   *       allow-list. Originally requested by the {@code CSP_UPGRADE_INSECURE_ENABLED} config key
+   *       in {@code dhis.conf} (defined but previously unused per the original CSP_REPORT.md §2.1)
+   *       — now applied unconditionally.
+   * </ul>
    */
   private static final String COMMON_HARDENING =
-      "base-uri 'self'; form-action 'self'; object-src 'none';";
+      "base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests;";
 
   /**
    * Strict default CSP policy applied to all endpoints. This policy only allows resources from the
@@ -64,8 +78,10 @@ public class CspConstants {
    * CSP policy for the app host endpoint that renders installed DHIS2 apps inside an iframe.
    * Same-origin by default: no wildcards in {@code img-src} or {@code connect-src}. The bundled
    * Maps app loads basemap tiles from CartoDB (Fastly CDN, round-robin across {@code a/b/c}
-   * subdomains), so those three origins are temporarily allow-listed here for both schemes (HTTP
-   * for local dev on {@code http://localhost}, HTTPS for production).
+   * subdomains), so those three origins are temporarily allow-listed here. HTTPS only — the {@code
+   * upgrade-insecure-requests} directive in {@link #COMMON_HARDENING} auto-upgrades any {@code
+   * http://} fetch the maps-app issues from a dev page, so we never need to ship http allow-list
+   * entries.
    *
    * <p>Apps that need to call other external services (analytics, third-party APIs, etc.) must be
    * granted an explicit override via an admin-controlled mechanism — see the per-app CSP follow-up.
@@ -75,10 +91,7 @@ public class CspConstants {
   private static final String CARTODB_BASEMAP_ORIGINS =
       "https://cartodb-basemaps-a.global.ssl.fastly.net"
           + " https://cartodb-basemaps-b.global.ssl.fastly.net"
-          + " https://cartodb-basemaps-c.global.ssl.fastly.net"
-          + " http://cartodb-basemaps-a.global.ssl.fastly.net"
-          + " http://cartodb-basemaps-b.global.ssl.fastly.net"
-          + " http://cartodb-basemaps-c.global.ssl.fastly.net";
+          + " https://cartodb-basemaps-c.global.ssl.fastly.net";
 
   public static final String APP_HOST_CSP_POLICY =
       "default-src 'self'; style-src 'self' 'unsafe-inline'; child-src 'self' blob:;"

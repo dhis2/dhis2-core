@@ -104,9 +104,10 @@ class CspPolicyServiceTest {
   }
 
   @Test
-  void allEmittedPolicies_includeBaseUriFormActionAndObjectSrcHardening() {
-    // base-uri, form-action, object-src do not fall back to default-src per the CSP spec, so
-    // every emitted policy must declare them explicitly. Regression guard.
+  void allEmittedPolicies_includeCommonHardeningDirectives() {
+    // base-uri, form-action, object-src, upgrade-insecure-requests are policy-level directives
+    // that don't fall back to default-src per the CSP spec, so every emitted policy must declare
+    // them explicitly. Regression guard.
     String[] policies = {
       cspPolicyService.constructDefaultCspPolicy(),
       cspPolicyService.constructUserUploadedContentCspPolicy(),
@@ -117,6 +118,9 @@ class CspPolicyServiceTest {
       assertTrue(policy.contains("base-uri 'self'"), "missing base-uri 'self' in: " + policy);
       assertTrue(policy.contains("form-action 'self'"), "missing form-action 'self' in: " + policy);
       assertTrue(policy.contains("object-src 'none'"), "missing object-src 'none' in: " + policy);
+      assertTrue(
+          policy.contains("upgrade-insecure-requests"),
+          "missing upgrade-insecure-requests in: " + policy);
     }
   }
 
