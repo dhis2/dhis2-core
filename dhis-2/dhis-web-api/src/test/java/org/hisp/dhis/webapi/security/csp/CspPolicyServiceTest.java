@@ -29,7 +29,9 @@
  */
 package org.hisp.dhis.webapi.security.csp;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.SERVER_HTTPS;
 import static org.hisp.dhis.security.utils.CspConstants.APP_HOST_CSP_POLICY;
+import static org.hisp.dhis.security.utils.CspConstants.CARTODB_BASEMAP_HTTP_ORIGINS;
 import static org.hisp.dhis.security.utils.CspConstants.DEFAULT_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.OPENAPI_DOCS_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.USER_UPLOADED_CONTENT_CSP_POLICY;
@@ -90,10 +92,36 @@ class CspPolicyServiceTest {
   }
 
   @Test
-  void constructAppHostPolicy_appendsFrameAncestorsSelf() {
+  void constructAppHostPolicy_serverHttpsOn_appendsFrameAncestorsSelfWithHttpsOnly() {
+    // setUp mocks dhisConfig.isEnabled(any()) -> true, so SERVER_HTTPS is on.
     String result = cspPolicyService.constructAppHostCspPolicy();
 
     assertEquals(APP_HOST_CSP_POLICY + " frame-ancestors 'self';", result);
+    assertFalse(
+        result.contains("http://cartodb"),
+        "https-on policy should not contain plain-http cartodb origins, got: " + result);
+  }
+
+  @Test
+  void constructAppHostPolicy_serverHttpsOff_includesHttpCartodbOrigins() {
+    // server.https=off (the default in dhis.conf) → dev / non-TLS deployment. The Maps app's
+    // cartodb fetches go out as http://, and the browser doesn't reliably upgrade them under
+    // upgrade-insecure-requests when the parent page is on http://localhost. So the dev policy
+    // extends img-src and connect-src with the http variants.
+    when(dhisConfig.isEnabled(SERVER_HTTPS)).thenReturn(false);
+
+    String result = cspPolicyService.constructAppHostCspPolicy();
+
+    assertTrue(
+        result.contains(CARTODB_BASEMAP_HTTP_ORIGINS),
+        "server.https=off policy should include http cartodb origins, got: " + result);
+    // both img-src and connect-src should now allow the http variants
+    assertTrue(
+        result.contains("img-src 'self' data: ") && result.contains("http://cartodb-basemaps-a"),
+        "img-src should allow http cartodb origins, got: " + result);
+    assertTrue(
+        result.contains("connect-src 'self' ") && result.contains("http://cartodb-basemaps-a"),
+        "connect-src should allow http cartodb origins, got: " + result);
   }
 
   @Test

@@ -30,7 +30,10 @@
 package org.hisp.dhis.webapi.security.csp;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
+import static org.hisp.dhis.external.conf.ConfigurationKey.SERVER_HTTPS;
 import static org.hisp.dhis.security.utils.CspConstants.APP_HOST_CSP_POLICY;
+import static org.hisp.dhis.security.utils.CspConstants.CARTODB_BASEMAP_HTTP_ORIGINS;
+import static org.hisp.dhis.security.utils.CspConstants.CARTODB_BASEMAP_ORIGINS;
 import static org.hisp.dhis.security.utils.CspConstants.CONTENT_SECURITY_POLICY_HEADER_NAME;
 import static org.hisp.dhis.security.utils.CspConstants.DEFAULT_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.FRAME_ANCESTORS_DEFAULT_CSP;
@@ -71,7 +74,20 @@ public class CspPolicyService {
   }
 
   public String constructAppHostCspPolicy() {
-    return appendFrameAncestors(APP_HOST_CSP_POLICY);
+    String policy = APP_HOST_CSP_POLICY;
+    // Dev allowance: when the server isn't configured for HTTPS (i.e. server.https=off, the
+    // default in dhis.conf), the bundled Maps app's CartoDB tile fetches go out as http://
+    // because the browser inherits the http://localhost page scheme. The CSP source-list check
+    // runs against the pre-upgrade URL on Chrome, so the strict https-only allow-list rejects
+    // them and basemaps don't render. Extend the allow-list with the http variants in that
+    // case. Production (server.https=on) keeps the strict https-only policy.
+    if (!dhisConfig.isEnabled(SERVER_HTTPS)) {
+      policy =
+          policy.replace(
+              CARTODB_BASEMAP_ORIGINS,
+              CARTODB_BASEMAP_ORIGINS + " " + CARTODB_BASEMAP_HTTP_ORIGINS);
+    }
+    return appendFrameAncestors(policy);
   }
 
   public String constructOpenApiDocsCspPolicy() {

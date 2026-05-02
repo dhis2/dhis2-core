@@ -48,13 +48,14 @@ public class CspConstants {
    *       formaction} button attribute); also a partial CSRF defense layer.
    *   <li>{@code object-src 'none'} — kills the legacy plugin attack surface (Flash / Java applet /
    *       PDF plugin) — DHIS2 doesn't use any of these.
-   *   <li>{@code upgrade-insecure-requests} — instructs the browser to silently upgrade every
-   *       {@code http://} sub-resource fetch to {@code https://} before the request goes out, so
-   *       protocol-relative URLs (e.g. the bundled Maps app's CartoDB tile URLs) work uniformly
-   *       across http://localhost dev and https://production deployments without a separate http
-   *       allow-list. Originally requested by the {@code CSP_UPGRADE_INSECURE_ENABLED} config key
-   *       in {@code dhis.conf} (defined but previously unused per the original CSP_REPORT.md §2.1)
-   *       — now applied unconditionally.
+   *   <li>{@code upgrade-insecure-requests} — instructs the browser to silently upgrade {@code
+   *       http://} sub-resource fetches to {@code https://}. Closes mixed-content gaps in
+   *       production deployments. Note: Chromium does NOT reliably upgrade cross-origin fetches
+   *       when the parent page is on {@code http://localhost} — the CSP source-list check runs
+   *       against the pre-upgrade URL, so a strict https-only policy still rejects http
+   *       sub-resources in dev. The Maps app dev allowance handles that case via {@code
+   *       SERVER_HTTPS}-conditional injection of http origins (see {@link
+   *       org.hisp.dhis.webapi.security.csp.CspPolicyService#constructAppHostCspPolicy}).
    * </ul>
    */
   private static final String COMMON_HARDENING =
@@ -75,23 +76,33 @@ public class CspConstants {
       "default-src 'none'; " + COMMON_HARDENING;
 
   /**
-   * CSP policy for the app host endpoint that renders installed DHIS2 apps inside an iframe.
-   * Same-origin by default: no wildcards in {@code img-src} or {@code connect-src}. The bundled
-   * Maps app loads basemap tiles from CartoDB (Fastly CDN, round-robin across {@code a/b/c}
-   * subdomains), so those three origins are temporarily allow-listed here. HTTPS only — the {@code
-   * upgrade-insecure-requests} directive in {@link #COMMON_HARDENING} auto-upgrades any {@code
-   * http://} fetch the maps-app issues from a dev page, so we never need to ship http allow-list
-   * entries.
+   * CartoDB tile-server origins (Fastly CDN, round-robin across {@code a/b/c} subdomains) used by
+   * the bundled Maps app. HTTPS variant — always allowed in the app-host policy.
    *
    * <p>Apps that need to call other external services (analytics, third-party APIs, etc.) must be
    * granted an explicit override via an admin-controlled mechanism — see the per-app CSP follow-up.
-   * When that lands, the CartoDB origins listed here should move into the Maps app's manifest and
-   * an admin-approved override row, and the constant should return to strictly same-origin.
+   * When that lands, these CartoDB origins should move into the Maps app's manifest and an
+   * admin-approved override row, and the constant should return to strictly same-origin.
    */
-  private static final String CARTODB_BASEMAP_ORIGINS =
+  public static final String CARTODB_BASEMAP_ORIGINS =
       "https://cartodb-basemaps-a.global.ssl.fastly.net"
           + " https://cartodb-basemaps-b.global.ssl.fastly.net"
           + " https://cartodb-basemaps-c.global.ssl.fastly.net";
+
+  /**
+   * CartoDB origins served over plain HTTP. Browsers don't reliably apply {@code
+   * upgrade-insecure-requests} to cross-origin sub-resource fetches when the parent page is on
+   * {@code http://localhost} (Chromium quirk: the CSP source-list check runs against the
+   * pre-upgrade URL on some Chrome versions, so an https-only allow-list rejects the http fetch
+   * before the upgrade fires). To keep the bundled Maps app working in dev, {@link
+   * org.hisp.dhis.webapi.security.csp.CspPolicyService#constructAppHostCspPolicy} appends these
+   * origins to the app-host policy only when {@code server.https} is OFF in {@code dhis.conf} (i.e.
+   * dev / non-TLS deployments). Production (HTTPS on) gets the strict https-only policy.
+   */
+  public static final String CARTODB_BASEMAP_HTTP_ORIGINS =
+      "http://cartodb-basemaps-a.global.ssl.fastly.net"
+          + " http://cartodb-basemaps-b.global.ssl.fastly.net"
+          + " http://cartodb-basemaps-c.global.ssl.fastly.net";
 
   public static final String APP_HOST_CSP_POLICY =
       "default-src 'self'; style-src 'self' 'unsafe-inline'; child-src 'self' blob:;"
