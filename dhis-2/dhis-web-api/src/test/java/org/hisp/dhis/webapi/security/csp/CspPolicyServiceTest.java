@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.webapi.security.csp;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_UPGRADE_INSECURE_ENABLED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.SERVER_HTTPS;
 import static org.hisp.dhis.security.utils.CspConstants.APP_HOST_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.CARTODB_BASEMAP_HTTP_ORIGINS;
@@ -81,14 +82,17 @@ class CspPolicyServiceTest {
   void constructDefaultPolicy_appendsFrameAncestorsSelf() {
     String result = cspPolicyService.constructDefaultCspPolicy();
 
-    assertEquals(DEFAULT_CSP_POLICY + " frame-ancestors 'self';", result);
+    assertEquals(
+        DEFAULT_CSP_POLICY + " upgrade-insecure-requests; frame-ancestors 'self';", result);
   }
 
   @Test
   void constructUserUploadedContentPolicy_appendsFrameAncestorsSelf() {
     String result = cspPolicyService.constructUserUploadedContentCspPolicy();
 
-    assertEquals(USER_UPLOADED_CONTENT_CSP_POLICY + " frame-ancestors 'self';", result);
+    assertEquals(
+        USER_UPLOADED_CONTENT_CSP_POLICY + " upgrade-insecure-requests; frame-ancestors 'self';",
+        result);
   }
 
   @Test
@@ -96,7 +100,8 @@ class CspPolicyServiceTest {
     // setUp mocks dhisConfig.isEnabled(any()) -> true, so SERVER_HTTPS is on.
     String result = cspPolicyService.constructAppHostCspPolicy();
 
-    assertEquals(APP_HOST_CSP_POLICY + " frame-ancestors 'self';", result);
+    assertEquals(
+        APP_HOST_CSP_POLICY + " upgrade-insecure-requests; frame-ancestors 'self';", result);
     assertFalse(
         result.contains("http://cartodb"),
         "https-on policy should not contain plain-http cartodb origins, got: " + result);
@@ -128,14 +133,15 @@ class CspPolicyServiceTest {
   void constructOpenApiDocsPolicy_appendsFrameAncestorsSelf() {
     String result = cspPolicyService.constructOpenApiDocsCspPolicy();
 
-    assertEquals(OPENAPI_DOCS_CSP_POLICY + " frame-ancestors 'self';", result);
+    assertEquals(
+        OPENAPI_DOCS_CSP_POLICY + " upgrade-insecure-requests; frame-ancestors 'self';", result);
   }
 
   @Test
   void allEmittedPolicies_includeCommonHardeningDirectives() {
-    // base-uri, form-action, object-src, upgrade-insecure-requests are policy-level directives
-    // that don't fall back to default-src per the CSP spec, so every emitted policy must declare
-    // them explicitly. Regression guard.
+    // base-uri, form-action, object-src are policy-level directives that don't fall back to
+    // default-src per the CSP spec, so every emitted policy must declare them explicitly.
+    // Regression guard.
     String[] policies = {
       cspPolicyService.constructDefaultCspPolicy(),
       cspPolicyService.constructUserUploadedContentCspPolicy(),
@@ -146,10 +152,29 @@ class CspPolicyServiceTest {
       assertTrue(policy.contains("base-uri 'self'"), "missing base-uri 'self' in: " + policy);
       assertTrue(policy.contains("form-action 'self'"), "missing form-action 'self' in: " + policy);
       assertTrue(policy.contains("object-src 'none'"), "missing object-src 'none' in: " + policy);
-      assertTrue(
-          policy.contains("upgrade-insecure-requests"),
-          "missing upgrade-insecure-requests in: " + policy);
     }
+  }
+
+  @Test
+  void upgradeInsecureRequests_configEnabled_appendsDirective() {
+    // setUp mocks dhisConfig.isEnabled(any()) -> true, so CSP_UPGRADE_INSECURE_ENABLED is on.
+    String result = cspPolicyService.constructDefaultCspPolicy();
+
+    assertTrue(
+        result.contains("upgrade-insecure-requests;"),
+        "with csp.upgrade.insecure.enabled=on the directive should be present, got: " + result);
+  }
+
+  @Test
+  void upgradeInsecureRequests_configDisabled_omitsDirective() {
+    // Opt-out for deployments serving over plain HTTP (e.g. e2e Selenium harness on port 9090).
+    when(dhisConfig.isEnabled(CSP_UPGRADE_INSECURE_ENABLED)).thenReturn(false);
+
+    String result = cspPolicyService.constructDefaultCspPolicy();
+
+    assertFalse(
+        result.contains("upgrade-insecure-requests"),
+        "with csp.upgrade.insecure.enabled=off the directive must not be emitted, got: " + result);
   }
 
   @Test
@@ -164,6 +189,7 @@ class CspPolicyServiceTest {
 
     assertEquals(
         DEFAULT_CSP_POLICY
+            + " upgrade-insecure-requests;"
             + " frame-ancestors 'self' https://alpha.example.com https://mid.example.com"
             + " https://zeta.example.com;",
         result);
@@ -208,7 +234,7 @@ class CspPolicyServiceTest {
     HttpHeaders headers = cspPolicyService.getDefaultSecurityHeaders();
 
     assertEquals(
-        DEFAULT_CSP_POLICY + " frame-ancestors 'self';",
+        DEFAULT_CSP_POLICY + " upgrade-insecure-requests; frame-ancestors 'self';",
         headers.getFirst("Content-Security-Policy"));
     assertEquals("nosniff", headers.getFirst("X-Content-Type-Options"));
     assertFalse(headers.containsKey("X-Frame-Options"));

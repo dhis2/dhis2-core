@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.security.csp;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_UPGRADE_INSECURE_ENABLED;
 import static org.hisp.dhis.external.conf.ConfigurationKey.SERVER_HTTPS;
 import static org.hisp.dhis.security.utils.CspConstants.APP_HOST_CSP_POLICY;
 import static org.hisp.dhis.security.utils.CspConstants.CARTODB_BASEMAP_HTTP_ORIGINS;
@@ -151,6 +152,12 @@ public class CspPolicyService {
       String trimmed = basePolicy.trim();
       builder.append(trimmed);
       builder.append(trimmed.endsWith(";") ? " " : "; ");
+    }
+    // upgrade-insecure-requests is config-gated: default ON, opt out via
+    // csp.upgrade.insecure.enabled=off in dhis.conf for deployments that genuinely serve over
+    // plain HTTP and need cross-origin http sub-resources to remain reachable.
+    if (dhisConfig.isEnabled(CSP_UPGRADE_INSECURE_ENABLED)) {
+      builder.append("upgrade-insecure-requests; ");
     }
     builder.append(getFrameAncestorsCspDirective());
     return builder.toString();
