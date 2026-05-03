@@ -54,7 +54,7 @@ import java.lang.annotation.Target;
  * @see CspAppHost
  * @see CspOpenApiDocs
  * @see CspInterceptor
- * @author Morten Svanaes
+ * @author Austin McGee
  */
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)

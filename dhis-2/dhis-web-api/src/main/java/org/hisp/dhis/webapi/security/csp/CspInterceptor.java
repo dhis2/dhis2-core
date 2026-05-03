@@ -48,7 +48,8 @@ import org.springframework.web.servlet.HandlerInterceptor;
  * {@link CspBaselineFilter}.
  *
  * @see CspBaselineFilter for the unconditional baseline applied to every response
- * @author Morten Svanaes
+ * @author Austin McGee
+ * @author Morten Svanæs
  */
 @Slf4j
 @Component

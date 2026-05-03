@@ -55,7 +55,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 
-/** Unit tests for {@link CspPolicyService}. */
+/**
+ * Unit tests for {@link CspPolicyService}.
+ *
+ * @author Austin McGee
+ */
 @ExtendWith(MockitoExtension.class)
 class CspPolicyServiceTest {
 

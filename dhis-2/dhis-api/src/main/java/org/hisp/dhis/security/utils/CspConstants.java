@@ -38,9 +38,8 @@ public class CspConstants {
   public static final String FRAME_ANCESTORS_DEFAULT_CSP = "frame-ancestors 'self'";
 
   /**
-   * Defense-in-depth directives applied to every emitted policy. Each one is a policy-level
-   * directive that does NOT fall back to {@code default-src} per the CSP spec, so it has to be
-   * declared explicitly:
+   * Directives applied to every emitted policy. Each one is a policy-level directive that does NOT
+   * fall back to {@code default-src} per the CSP spec, so it has to be declared explicitly:
    *
    * <ul>
    *   <li>{@code base-uri 'self'} — locks down {@code <base href>} rewriting.
@@ -52,10 +51,7 @@ public class CspConstants {
    *
    * <p>{@code upgrade-insecure-requests} is appended at runtime by {@link
    * org.hisp.dhis.webapi.security.csp.CspPolicyService} based on {@link
-   * org.hisp.dhis.external.conf.ConfigurationKey#CSP_UPGRADE_INSECURE_ENABLED} (default ON). It
-   * lives outside this static block so deployments that genuinely serve over plain HTTP (e.g. the
-   * e2e Selenium-driven OAuth2 redirect on port 9090) can opt out by setting {@code
-   * csp.upgrade.insecure.enabled=off} in {@code dhis.conf}.
+   * org.hisp.dhis.external.conf.ConfigurationKey#CSP_UPGRADE_INSECURE_ENABLED} (default ON).
    */
   private static final String COMMON_HARDENING =
       "base-uri 'self'; form-action 'self'; object-src 'none';";
@@ -77,11 +73,6 @@ public class CspConstants {
   /**
    * CartoDB tile-server origins (Fastly CDN, round-robin across {@code a/b/c} subdomains) used by
    * the bundled Maps app. HTTPS variant — always allowed in the app-host policy.
-   *
-   * <p>Apps that need to call other external services (analytics, third-party APIs, etc.) must be
-   * granted an explicit override via an admin-controlled mechanism — see the per-app CSP follow-up.
-   * When that lands, these CartoDB origins should move into the Maps app's manifest and an
-   * admin-approved override row, and the constant should return to strictly same-origin.
    */
   public static final String CARTODB_BASEMAP_ORIGINS =
       "https://cartodb-basemaps-a.global.ssl.fastly.net"
@@ -89,11 +80,7 @@ public class CspConstants {
           + " https://cartodb-basemaps-c.global.ssl.fastly.net";
 
   /**
-   * CartoDB origins served over plain HTTP. Browsers don't reliably apply {@code
-   * upgrade-insecure-requests} to cross-origin sub-resource fetches when the parent page is on
-   * {@code http://localhost} (Chromium quirk: the CSP source-list check runs against the
-   * pre-upgrade URL on some Chrome versions, so an https-only allow-list rejects the http fetch
-   * before the upgrade fires). To keep the bundled Maps app working in dev, {@link
+   * CartoDB origins served over plain HTTP. To keep the bundled Maps app working in dev, {@link
    * org.hisp.dhis.webapi.security.csp.CspPolicyService#constructAppHostCspPolicy} appends these
    * origins to the app-host policy only when {@code server.https} is OFF in {@code dhis.conf} (i.e.
    * dev / non-TLS deployments). Production (HTTPS on) gets the strict https-only policy.

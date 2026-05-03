@@ -50,7 +50,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * Content-Security-Policy} with the annotation-driven policy via {@code response.setHeader}.
  *
  * @see CspInterceptor
- * @author Morten Svanaes
+ * @author Morten Svanæs
  */
 public class CspBaselineFilter extends OncePerRequestFilter {
 

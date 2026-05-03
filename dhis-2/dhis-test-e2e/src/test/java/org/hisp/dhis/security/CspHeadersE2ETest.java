@@ -59,7 +59,8 @@ import org.springframework.web.client.HttpStatusCodeException;
  *   <li>{@code X-Content-Type-Options} and {@code X-Frame-Options} are consistently applied.
  * </ol>
  *
- * @author Morten Svanaes
+ * @author Austin McGee
+ * @author Morten Svanæs
  */
 @Tag("csptests")
 @Slf4j

@@ -42,7 +42,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 /**
- * @author Morten Svanaes <msvanaes@dhis2.org>
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
 @Controller

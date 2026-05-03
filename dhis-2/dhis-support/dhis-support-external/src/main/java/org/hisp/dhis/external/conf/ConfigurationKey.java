@@ -725,9 +725,6 @@ public enum ConfigurationKey {
   /**
    * Whether to emit the CSP {@code upgrade-insecure-requests} directive. When ON, browsers silently
    * rewrite {@code http://} sub-resource fetches to {@code https://}, closing mixed-content gaps.
-   * Default ON. Turn OFF on test/dev servers that genuinely serve over plain HTTP and need {@code
-   * http://} cross-origin sub-resources to remain reachable (e.g. the e2e Selenium-driven OAuth2
-   * redirect to {@code http://localhost:9090/...}). (sensitive)
    */
   CSP_UPGRADE_INSECURE_ENABLED("csp.upgrade.insecure.enabled", Constants.ON, true),
 

@@ -52,6 +52,9 @@ import org.springframework.web.method.HandlerMethod;
  *
  * <p>These tests cover the annotation→policy-resolution wiring only. The actual header values that
  * land on a real response are exercised by {@code CspHeadersE2ETest}.
+ *
+ * @author Austin McGee
+ * @author Morten Svanæs
  */
 @ExtendWith(MockitoExtension.class)
 class CspInterceptorTest {

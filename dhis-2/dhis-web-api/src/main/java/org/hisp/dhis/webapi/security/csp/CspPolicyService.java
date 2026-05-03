@@ -57,7 +57,8 @@ import org.springframework.stereotype.Component;
  *
  * @see CspBaselineFilter
  * @see CspInterceptor
- * @author Morten Svanaes
+ * @author Austin McGee
+ * @author Morten Svanæs
  */
 @Slf4j
 @Component
