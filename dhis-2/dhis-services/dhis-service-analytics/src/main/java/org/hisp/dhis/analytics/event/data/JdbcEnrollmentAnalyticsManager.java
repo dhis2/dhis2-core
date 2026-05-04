@@ -734,7 +734,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     removeLegacyPeriodDimensionColumns(columns, params);
 
     SelectBuilder sb = new SelectBuilder();
-    sb.addColumn(ENROLLMENT_COL, "ax");
+    sb.addColumn(ENROLLMENT_COL, "ax", ENROLLMENT_COL);
     for (String column : Sets.newHashSet(columns)) {
       sb.addColumn(SqlColumnParser.removeTableAlias(column));
     }
@@ -936,7 +936,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         """
         (
             select
-                ev.enrollment,
+                ev.enrollment as enrollment,
                 max(ev.%s) as %s
             from %s ev
             where ev.eventstatus != 'SCHEDULE'

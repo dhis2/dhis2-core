@@ -60,3 +60,30 @@ This affected analytics queries that look up the financial-year `financialsep` (
 Override `useJoinForDatePeriodStructureLookup()` to return `true` in `ClickHouseAnalyticsSqlBuilder.java`. The JOIN form works on all three engines (it is never worse than the subquery form on Postgres), so no further conditionals are needed.
 
 ---
+## ISSUE: CTE columns retain the original table prefix in ClickHouse's scope
+
+The new ClickHouse analyzer (default since 24.x) does **not** re-scope projected columns to the CTE alias when the SELECT list uses a table-prefixed reference without an explicit output alias. So a CTE projecting `ax.enrollment` produces a column that the analyzer still binds to `ax`, not to the CTE name. The outer query's `eb.enrollment` (where `eb` is the CTE alias) becomes unresolvable, and the error even includes ClickHouse's hint: `Maybe you meant: ['ax.enrollment']`.
+
+Postgres and Doris implicitly drop the table prefix and re-scope under the CTE alias.
+
+### FIX
+
+Two emission sites in the enrollment-aggregate CTE chain were affected — both in `JdbcEnrollmentAnalyticsManager.java`:
+
+- **CTE projection (`enrollment_aggr_base`)**, line 740. Add an explicit identity-alias on the prefixed column. The alias re-binds the column under the CTE name in ClickHouse, and is a no-op for Postgres/Doris (which already discarded the prefix).
+
+  ```diff
+  - sb.addColumn(ENROLLMENT_COL, "ax");                   // ax.enrollment
+  + sb.addColumn(ENROLLMENT_COL, "ax", ENROLLMENT_COL);   // ax.enrollment as enrollment
+  ```
+
+- **Inline derived table (`evf` event-date subquery)**, line 942. Same shape — `select ev.enrollment, …` exposes the column under `ev` rather than `evf` in ClickHouse. Added the identity alias inside the SQL text block.
+
+  ```diff
+  -     ev.enrollment,
+  +     ev.enrollment as enrollment,
+  ```
+
+The bare-identifier alternative (`select enrollment, …`) was rejected because the CTE has an `INNER JOIN` whose right side also has an `enrollment` column — the prefix-with-alias form is the portable one.
+
+---
