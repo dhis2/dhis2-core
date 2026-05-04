@@ -138,6 +138,13 @@ public class ClickHouseAnalyticsSqlBuilder extends ClickHouseSqlBuilder
     return true;
   }
 
+  @Override
+  public String castAsDate(String expression) {
+    // toDateOrNull accepts only String input (not Date / DateTime / DateTime64),
+    // so wrap with toString to make the cast type-agnostic and NULL-safe.
+    return "toDateOrNull(toString(" + expression + "))";
+  }
+
   private String castToDate(String expression) {
     return "toDate(" + expression + ")";
   }

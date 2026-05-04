@@ -478,9 +478,9 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       String joinCol = quoteAlias(params.getTimeFieldAsField(AnalyticsType.EVENT));
       sql.append("left join analytics_rs_dateperiodstructure as ")
           .append(DATE_PERIOD_STRUCT_ALIAS)
-          .append(" on cast(")
-          .append(joinCol)
-          .append(" as date) = ")
+          .append(" on ")
+          .append(sqlBuilder.castAsDate(joinCol))
+          .append(" = ")
           .append(DATE_PERIOD_STRUCT_ALIAS)
           .append(".")
           .append(quote("dateperiod"))

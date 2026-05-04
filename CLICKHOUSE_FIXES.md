@@ -87,3 +87,41 @@ Two emission sites in the enrollment-aggregate CTE chain were affected — both 
 The bare-identifier alternative (`select enrollment, …`) was rejected because the CTE has an `INNER JOIN` whose right side also has an `enrollment` column — the prefix-with-alias form is the portable one.
 
 ---
+## ISSUE: `CAST(x AS Date)` throws on `NULL` in ClickHouse
+
+When a data-element column is used as an analytics time field and the column allows NULL, the join condition
+
+```sql
+left join analytics_rs_dateperiodstructure as ps on cast(ax."<dataElementUid>" as date) = ps."dateperiod"
+```
+
+fails in ClickHouse with `CANNOT_INSERT_NULL_IN_ORDINARY_COLUMN`: `toDate(NULL)` and `CAST(NULL AS Date)` are not NULL-tolerant; they expect a non-Nullable result. Postgres and Doris return `NULL` for `CAST(NULL AS DATE)`.
+
+### FIX
+
+A new default method on the `AnalyticsSqlBuilder` interface:
+
+```java
+default String castAsDate(String expression) {
+  return "cast(" + expression + " as date)";
+}
+```
+
+Postgres and Doris keep the default behaviour. `ClickHouseAnalyticsSqlBuilder` overrides:
+
+```java
+@Override
+public String castAsDate(String expression) {
+  // toDateOrNull accepts only String input (not Date / DateTime / DateTime64),
+  // so wrap with toString to make the cast type-agnostic and NULL-safe.
+  return "toDateOrNull(toString(" + expression + "))";
+}
+```
+
+`toDateOrNull` is ClickHouse's NULL-tolerant date parser, but unlike `toDate` (which accepts multiple input types and throws on NULL) it only accepts `String`. A date-typed data element stored as `DateTime64(3)` triggers `Illegal type DateTime64(3) of first argument of function toDateOrNull`. Wrapping with `toString` first normalises every input type (`Date`, `DateTime`, `DateTime64`, `String`, and their `Nullable` variants) into a string that `toDateOrNull` can parse, while still propagating `NULL` through both calls.
+
+The inline `cast(... as date)` in `JdbcEventAnalyticsManager.java:455-462` (the `params.hasTimeField()` LEFT JOIN to the date-period-structure table) was replaced with `sqlBuilder.castAsDate(joinCol)`. Output for Postgres/Doris is byte-identical to before.
+
+The private `castToDate` helper inside `ClickHouseAnalyticsSqlBuilder` (still emitting `toDate(...)`) was deliberately left unchanged: it is only called from period-bucket rendering paths whose input columns are real `TimeField` date columns (`enrollmentdate`, `occurreddate`, `lastupdated`) which are non-null in the analytics tables. Broadening it would mask bugs and unnecessarily widen the output type.
+
+---
