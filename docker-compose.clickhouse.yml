@@ -1,0 +1,50 @@
+services:
+  web:
+    volumes:
+      - ./docker/clickhouse/dhis-clickhouse.conf:/opt/dhis2/dhis.conf:ro
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+    networks:
+      clickhouse_network:
+        ipv4_address: 192.168.101.9
+
+  db:
+    networks:
+      clickhouse_network:
+        ipv4_address: 192.168.101.8
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:${CLICKHOUSE_VERSION}
+    networks:
+      clickhouse_network:
+        ipv4_address: 192.168.101.10
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    environment:
+      - CLICKHOUSE_DB=dhis2
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+      - clickhouse-log:/var/log/clickhouse-server
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8123/ping || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  clickhouse-data:
+  clickhouse-log:
+
+networks:
+  clickhouse_network:
+    ipam:
+      config:
+        - subnet: 192.168.101.0/24
