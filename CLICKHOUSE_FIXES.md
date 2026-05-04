@@ -125,3 +125,72 @@ The inline `cast(... as date)` in `JdbcEventAnalyticsManager.java:455-462` (the 
 The private `castToDate` helper inside `ClickHouseAnalyticsSqlBuilder` (still emitting `toDate(...)`) was deliberately left unchanged: it is only called from period-bucket rendering paths whose input columns are real `TimeField` date columns (`enrollmentdate`, `occurreddate`, `lastupdated`) which are non-null in the analytics tables. Broadening it would mask bugs and unnecessarily widen the output type.
 
 ---
+## ISSUE: Result-set column lookup uses display-cased period dimension name
+
+After the SQL emission for period columns was lowercased (issue #1), the analytics aggregate path failed at row-building time with `org.springframework.jdbc.InvalidResultSetAccessException: Invalid column name`. The stack pointed at `AggregatedRowBuilder.addDimensionData` calling `rowSet.getString(dimension.getDimensionName())` with the display-cased name (e.g. `"Quarterly"`). The result-set column produced by the SQL is `quarterly` (lowercase), so the lookup misses on ClickHouse.
+
+`PeriodDimensionSplitter.splitPeriodDimension` only lowercases the synthetic dimension name when the input is `null`, blank, or equal to `PERIOD_DIM_ID` (`"pe"`). When the input dimension already carries a non-trivial mixed-case name from upstream, that name is preserved verbatim, and the row builder forwards it to the JDBC layer.
+
+The Postgres and MySQL/Doris JDBC drivers normalise column-name lookups case-insensitively, so the mismatch was invisible. ClickHouse's JDBC driver is strictly case-sensitive — `getString("Quarterly")` against a result set with `quarterly` raises `InvalidResultSetAccessException`.
+
+### FIX (part 1)
+
+`AggregatedRowBuilder.addDimensionData` lowercases the dimension name with `Locale.ROOT` before the result-set lookup, matching the convention used everywhere SQL is emitted.
+
+```diff
+  for (DimensionalObject dimension : PeriodDimensionSplitter.expandPeriodDimensions(...)) {
+-   String dimensionValue =
+-       extractStringValue(dimension.getDimensionName(), dimension.getValueType());
++   String dimensionValue =
++       extractStringValue(
++           dimension.getDimensionName().toLowerCase(Locale.ROOT), dimension.getValueType());
+    row.add(dimensionValue);
+  }
+```
+
+The fix is scoped to dimension lookups only. The neighbouring call to `extractStringValue` from `addQueryItemValue` (which receives UID-cased aliases such as `"Zj7UnCAulEk.oZg33kd9taw"`) is left unchanged — those names must remain case-significant.
+
+### FIX (part 2)
+
+The lowercase-only fix was insufficient. The deeper issue surfaced on event-aggregate queries projecting org-unit dimensions: the SELECT list emitted bare `ax."uidlevel2"` (table-prefixed, no alias). ClickHouse JDBC then reports the column with the table prefix attached (mirroring the new analyzer's column-scoping behaviour), so `rowSet.getString("uidlevel2")` cannot resolve `ax.uidlevel2`. Postgres / MySQL JDBC drivers strip the prefix in result-set metadata and the bug stayed invisible.
+
+The fix is to add an explicit `as <col>` alias to dimension projections in the SELECT context, so the result-set column has a canonical name regardless of how the engine reports the underlying expression:
+
+- `OrgUnitField.ouQuote` previously aliased only the special `"ou"` column. Generalised to always emit `as <col>` when the caller asked for an alias (`noColumnAlias == false`):
+
+  ```diff
+  - return sqlBuilder.quote(tableAlias, col);
+  + return sqlBuilder.quote(tableAlias, col)
+  +     + ((noColumnAlias) ? "" : " as " + col);
+  ```
+
+- `AbstractJdbcEventAnalyticsManager.getTableAndColumn` was changed similarly for the time-field-period branch and the catch-all fallback. Both now alias on `!isGroupByClause` and emit a bare reference on `isGroupByClause` (so the GROUP BY shape is unchanged):
+
+  ```diff
+  - return sqlBuilder.quote(DATE_PERIOD_STRUCT_ALIAS, col);
+  + String expr = sqlBuilder.quote(DATE_PERIOD_STRUCT_ALIAS, col);
+  + return isGroupByClause ? expr : expr + " as " + col;
+    ...
+  - return quoteAlias(col);
+  + return isGroupByClause ? quoteAlias(col) : quoteAlias(col) + " as " + col;
+  ```
+
+The dynamic period bucket branch (`DateFieldPeriodBucketColumnResolver`) and the org-unit-by-level path already produced aliased SELECT expressions — they were left alone.
+
+### Suggested follow-up
+
+The deeper smell is that period dimension names are propagated in display case from `PeriodTypeEnum.getName()` and only opportunistically lowercased at use-sites. Lowercasing once at the point a dimension is constructed (so `getDimensionName()` always returns the canonical form) would remove the need for defensive lowercasing in row-building and SQL-emission code alike.
+
+A complementary clean-up would standardise the alias pattern at every dimension SELECT-emission site (right now alias presence is decided locally in each branch of `getTableAndColumn` and in `ouQuote`). A single helper that decides "alias on SELECT, bare on GROUP BY" once would make the contract explicit and remove the JDBC-driver-dependent footgun this issue exposed.
+
+---
+## Patterns that recur across these issues
+
+Several of the failures share a common root: the analytics SQL builders carry assumptions that hold on Postgres and on Doris (with `lower_case_table_names=1`), but not on ClickHouse:
+
+1. **Identifier casing must be consistent at the emission site.** ClickHouse will not silently normalise.
+2. **Column scoping inside CTEs and derived tables follows the projection's table prefix unless an explicit output alias is given.** Identity-aliases (`ax.enrollment as enrollment`) are the safe portable form.
+3. **NULL handling around date casts is engine-specific.** ANSI `cast(... as date)` is not universally NULL-tolerant.
+4. **Correlated subqueries are not portable.** Where a correlated subquery is convenient, an equivalent JOIN form is almost always available and preferable.
+
+Where possible the fixes go through the SQL builder abstraction (engine-aware overrides) rather than scattering `if (clickhouse) ...` conditionals through the manager classes.

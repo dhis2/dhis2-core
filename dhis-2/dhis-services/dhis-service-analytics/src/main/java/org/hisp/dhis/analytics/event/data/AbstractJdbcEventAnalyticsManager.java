@@ -1268,7 +1268,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     }
 
     if (params.hasTimeField() && DimensionType.PERIOD == dimension.getDimensionType()) {
-      return sqlBuilder.quote(DATE_PERIOD_STRUCT_ALIAS, col);
+      String expr = sqlBuilder.quote(DATE_PERIOD_STRUCT_ALIAS, col);
+      return isGroupByClause ? expr : expr + " as " + col;
     } else if (DimensionType.ORGANISATION_UNIT == dimension.getDimensionType()) {
       return params
           .getOrgUnitField()
@@ -1282,7 +1283,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     } else if (params.isPiDisagDimension(col)) {
       return piDisagQueryGenerator.getColumnForSelectOrGroupBy(params, col, isGroupByClause);
     } else {
-      return quoteAlias(col);
+      return isGroupByClause ? quoteAlias(col) : quoteAlias(col) + " as " + col;
     }
   }
 
