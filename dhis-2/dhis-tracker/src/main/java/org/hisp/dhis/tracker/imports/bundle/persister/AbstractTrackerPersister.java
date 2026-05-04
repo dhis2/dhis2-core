@@ -36,7 +36,7 @@ import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -87,7 +87,7 @@ import org.hisp.dhis.user.UserDetails;
 public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends IdentifiableObject>
     implements TrackerPersister<T, V> {
   private static final DateTimeFormatter DATE_FORMATTER =
-      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneOffset.UTC);
+      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
 
   @PersistenceContext private EntityManager entityManager;
 
