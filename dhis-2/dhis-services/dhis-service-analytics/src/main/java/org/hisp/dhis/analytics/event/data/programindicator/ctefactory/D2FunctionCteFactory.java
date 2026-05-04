@@ -196,7 +196,7 @@ public class D2FunctionCteFactory implements CteSqlFactory {
       log.error("ProgramIndicator {} lacks program – cannot build D2 CTE.", pi.getUid());
       return null;
     }
-    return "analytics_event_" + pi.getProgram().getUid();
+    return "analytics_event_" + pi.getProgram().getUid().toLowerCase();
   }
 
   private enum D2FuncType {

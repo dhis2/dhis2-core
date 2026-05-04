@@ -263,7 +263,7 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
         + (needsExpressions ? expression + " as value, " : "")
         + " row_number() over (partition by trackedentity order by enrollmentdate desc) as rn "
         + " from analytics_enrollment_"
-        + program.getElement().getUid()
+        + program.getElement().getUid().toLowerCase()
         + " as "
         + SUBQUERY_TABLE_ALIAS
         + (needsExpressions ? " where " + filter : "")

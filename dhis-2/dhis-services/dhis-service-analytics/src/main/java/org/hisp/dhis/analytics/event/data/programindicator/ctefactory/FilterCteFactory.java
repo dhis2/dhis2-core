@@ -134,7 +134,7 @@ public class FilterCteFactory implements CteSqlFactory {
       Date end,
       SqlBuilder qb) {
 
-    String table = "analytics_event_" + pi.getProgram().getUid();
+    String table = "analytics_event_" + pi.getProgram().getUid().toLowerCase();
     String quotedCol = qb.quote(column);
 
     String boundaries =

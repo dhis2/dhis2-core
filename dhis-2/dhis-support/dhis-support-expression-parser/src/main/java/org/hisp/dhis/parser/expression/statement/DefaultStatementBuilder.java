@@ -138,7 +138,8 @@ public class DefaultStatementBuilder implements StatementBuilder {
       programStageCondition = "and ps = '" + programStageUid + "' ";
     }
 
-    String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
+    String eventTableName =
+        "analytics_event_" + programIndicator.getProgram().getUid().toLowerCase();
     return "(select "
         + columnName
         + " from "

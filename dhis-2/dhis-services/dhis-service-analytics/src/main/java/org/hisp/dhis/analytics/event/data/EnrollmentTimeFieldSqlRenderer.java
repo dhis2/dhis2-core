@@ -141,7 +141,8 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer {
     for (String programStage : map.keySet()) {
       Set<AnalyticsPeriodBoundary> boundaries = map.get(programStage);
 
-      String eventTableName = "analytics_event_" + programIndicator.getProgram().getUid();
+      String eventTableName =
+          "analytics_event_" + programIndicator.getProgram().getUid().toLowerCase();
       sql +=
           (firstIteration ? "" : " and ")
               + " exists(select 1 from "

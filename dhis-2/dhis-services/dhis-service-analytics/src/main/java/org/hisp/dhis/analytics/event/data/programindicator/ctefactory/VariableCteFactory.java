@@ -115,7 +115,7 @@ public class VariableCteFactory implements CteSqlFactory {
       CteContext ctx,
       SqlBuilder qb) {
 
-    String table = "analytics_event_" + pi.getProgram().getUid();
+    String table = "analytics_event_" + pi.getProgram().getUid().toLowerCase();
     String psCondition = v.psUid() != null ? "and ps = '" + v.psUid() + "' " : "";
 
     String boundaries =

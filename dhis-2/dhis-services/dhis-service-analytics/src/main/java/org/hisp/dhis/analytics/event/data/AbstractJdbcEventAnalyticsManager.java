@@ -2521,7 +2521,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private void addShadowEventTableCte(EventQueryParams params, CteContext cteContext) {
     // Create a shadow CTE with the EXACT same name as the real event table
-    String eventTableName = "analytics_event_" + params.getProgram().getUid();
+    String eventTableName = "analytics_event_" + params.getProgram().getUid().toLowerCase();
 
     SelectBuilder shadowEvents = new SelectBuilder();
 
@@ -2869,7 +2869,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private void buildProgramStageCte(
       CteContext cteContext, QueryItem item, EventQueryParams params) {
     // The event table name, e.g. "analytics_event_XYZ".
-    String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid();
+    String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid().toLowerCase();
 
     // Quoted column name for the item (e.g. "ax"."my_column").
     String colName = quote(item.getItemName());

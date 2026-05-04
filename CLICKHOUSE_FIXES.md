@@ -19,3 +19,24 @@ Lowercase the period name with `Locale.ROOT` at every site that emits it as a SQ
 - `EnrollmentQueryHelper.java:170` — outer query period column reference (`enr_aggr.monthly`).
 
 ---
+## ISSUE: Program UID emitted in mixed case in analytics table names
+
+DHIS2 UIDs are intentionally mixed-case (e.g. `IpHINAT79UW`). The analytics tables are created with **lowercased** names (`analytics_event_iphinat79uw`), but a long list of emission sites concatenated `"analytics_event_" + program.getUid()` without lowercasing. Postgres folds unquoted identifiers and Doris is case-insensitive, so the mismatch went unnoticed there. ClickHouse rejected the queries with `UNKNOWN_TABLE`.
+
+### FIX
+
+`.toLowerCase()` the UID at every emission site, matching the existing precedent at `AbstractJdbcEventAnalyticsManager.java:3220` (one of the few sites that was already correct).
+
+- `AbstractJdbcEventAnalyticsManager.java` — lines 2449, 2793.
+- `JdbcEnrollmentAnalyticsManager.java:937`.
+- `EnrollmentEventSubqueryBuilder.java` — lines 75 and 92.
+- `EnrollmentTimeFieldSqlRenderer.java:144`.
+- `D2FunctionCteFactory.java:199`, `FilterCteFactory.java:137`, `VariableCteFactory.java:118`, `ProgramStageDataElementCteFactory.java:152`.
+- `DefaultStatementBuilder.java:141`.
+- `ProgramIndicatorQueryBuilder.java:265-266` — same bug class for `analytics_enrollment_<UID>`, fixed for symmetry.
+
+### Suggested follow-up
+
+There is no shared helper for "build the analytics table name from a program/program-stage UID" — every site assembles `"analytics_event_" + uid` inline. A small refactor adding `AnalyticsTableNames.eventTable(Program)` / `enrollmentTable(Program)` and replacing all sites with the helper would make this class of bug structurally impossible.
+
+---

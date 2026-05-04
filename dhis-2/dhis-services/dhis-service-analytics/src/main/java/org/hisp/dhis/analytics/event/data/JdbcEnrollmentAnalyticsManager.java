@@ -931,7 +931,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       return;
     }
 
-    String eventTableName = ANALYTICS_EVENT + params.getProgram().getUid();
+    String eventTableName = ANALYTICS_EVENT + params.getProgram().getUid().toLowerCase();
     String eventEnrollmentFilterSql =
         """
         (

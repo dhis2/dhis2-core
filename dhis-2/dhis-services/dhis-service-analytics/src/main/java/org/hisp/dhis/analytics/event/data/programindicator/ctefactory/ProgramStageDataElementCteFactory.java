@@ -149,7 +149,7 @@ public class ProgramStageDataElementCteFactory implements CteSqlFactory {
       log.error("PI {} has no Program – cannot create CTE {}", pi.getUid(), key);
       return;
     }
-    String table = "analytics_event_" + pi.getProgram().getUid();
+    String table = "analytics_event_" + pi.getProgram().getUid().toLowerCase();
     String boundaries =
         BoundarySqlBuilder.buildSql(
             pi.getAnalyticsPeriodBoundaries(),
