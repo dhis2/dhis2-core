@@ -103,6 +103,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -527,7 +528,12 @@ public abstract class AbstractJdbcEventAnalyticsManager {
           if (params.isAggregatedEnrollments()
               && dimension.getDimensionType() == DimensionType.PERIOD) {
             for (DimensionalItemObject it : dimension.getItems()) {
-              columns.add(((PeriodDimension) it).getPeriodType().getPeriodTypeEnum().getName());
+              columns.add(
+                  ((PeriodDimension) it)
+                      .getPeriodType()
+                      .getPeriodTypeEnum()
+                      .getName()
+                      .toLowerCase(Locale.ROOT));
             }
             return;
           }
@@ -556,7 +562,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             columns.add(
                 isGroupByClause
                     ? singleQuote(period.getIsoDate())
-                    : singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
+                    : singleQuote(period.getIsoDate())
+                        + " as "
+                        + period.getPeriodType().getName().toLowerCase(Locale.ROOT));
           } else if (!params.hasPeriods() && params.hasFilterPeriods()) {
             // Assuming same period type for all period filters, as the
             // query planner splits into one query per period type
@@ -565,7 +573,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
             columns.add(
                 isGroupByClause
                     ? singleQuote(period.getIsoDate())
-                    : singleQuote(period.getIsoDate()) + " as " + period.getPeriodType().getName());
+                    : singleQuote(period.getIsoDate())
+                        + " as "
+                        + period.getPeriodType().getName().toLowerCase(Locale.ROOT));
           } else {
             throw new IllegalStateException(
                 """
