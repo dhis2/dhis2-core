@@ -2,7 +2,7 @@
 
 # Command for running DHIS2 in an embedded Tomcat
 
-# Requires JDK 11
+# Requires JDK 17
 
 # Supported options:
 #
