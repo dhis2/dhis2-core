@@ -225,7 +225,7 @@ public class DefaultSqlViewService
     {
         String query = StringUtils.EMPTY;
 
-        query += sqlHelper.whereAnd() + " " + columnName + " " + QueryUtils.parseFilterOperator( operator, value );
+        query += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( columnName ) + " " + QueryUtils.parseFilterOperator( operator, value );
 
         return query;
     }
