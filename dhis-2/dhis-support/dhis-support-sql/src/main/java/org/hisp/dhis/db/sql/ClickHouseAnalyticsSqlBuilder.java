@@ -133,6 +133,11 @@ public class ClickHouseAnalyticsSqlBuilder extends ClickHouseSqlBuilder
     return Optional.ofNullable(expression).map(ClickHouseAnalyticsSqlBuilder::collapseWhitespace);
   }
 
+  @Override
+  public boolean useJoinForDatePeriodStructureLookup() {
+    return true;
+  }
+
   private String castToDate(String expression) {
     return "toDate(" + expression + ")";
   }

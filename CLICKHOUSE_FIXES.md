@@ -40,3 +40,23 @@ DHIS2 UIDs are intentionally mixed-case (e.g. `IpHINAT79UW`). The analytics tabl
 There is no shared helper for "build the analytics table name from a program/program-stage UID" — every site assembles `"analytics_event_" + uid` inline. A small refactor adding `AnalyticsTableNames.eventTable(Program)` / `enrollmentTable(Program)` and replacing all sites with the helper would make this class of bug structurally impossible.
 
 ---
+## ISSUE: Correlated scalar subqueries referencing outer columns
+
+ClickHouse's analyzer rejects scalar subqueries that reference non-constant columns from the parent scope:
+
+> `Resolve identifier 'eb.lastupdated' from parent scope only supported for constants and CTE.`
+
+This affected analytics queries that look up the financial-year `financialsep` (and similar) period bucket in `analytics_rs_dateperiodstructure` from inside the SELECT or GROUP BY of the outer query, computing the join key from a column on the enclosing CTE. Postgres supports correlated subqueries; ClickHouse does not.
+
+### FIX
+
+`DateFieldPeriodBucketColumnResolver.java:217` already supports two emission shapes for this lookup, controlled by `sqlBuilder.useJoinForDatePeriodStructureLookup()`:
+
+- **`false` (default)** — emits `(select financialsep from analytics_rs_dateperiodstructure as dps_period where dps_period.dateperiod = …)` inline. Works on Postgres.
+- **`true`** — emits a `LEFT JOIN analytics_rs_dateperiodstructure as <alias>` in the FROM clause and replaces the SELECT/GROUP-BY expression with a column reference like `<alias>.financialsep`. Used by Doris.
+
+`DorisAnalyticsSqlBuilder` overrides the flag to `true`. `ClickHouseAnalyticsSqlBuilder` was inheriting the default `false`.
+
+Override `useJoinForDatePeriodStructureLookup()` to return `true` in `ClickHouseAnalyticsSqlBuilder.java`. The JOIN form works on all three engines (it is never worse than the subquery form on Postgres), so no further conditionals are needed.
+
+---
