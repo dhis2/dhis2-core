@@ -254,7 +254,7 @@ public class DefaultSqlViewService
         OperatorWithPlaceHolderAndArg operatorWithPlaceHolderAndArg = QueryUtils.parseFilterOperator( operator,
             value );
 
-        filter += sqlHelper.whereAnd() + " " + columnName + " "
+        filter += sqlHelper.whereAnd() + " " + statementBuilder.columnQuote( columnName ) + " "
             + operatorWithPlaceHolderAndArg.getOperatorWithPlaceholder();
 
         return new OperatorWithPlaceHolderAndArg( filter, operatorWithPlaceHolderAndArg.getArg() );
