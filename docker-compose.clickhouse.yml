@@ -29,8 +29,8 @@ services:
     environment:
       - CLICKHOUSE_DB=dhis2
       - CLICKHOUSE_USER=default
-      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
     volumes:
+      - ./docker/clickhouse/users.d:/etc/clickhouse-server/users.d:ro
       - clickhouse-data:/var/lib/clickhouse
       - clickhouse-log:/var/log/clickhouse-server
     healthcheck:
