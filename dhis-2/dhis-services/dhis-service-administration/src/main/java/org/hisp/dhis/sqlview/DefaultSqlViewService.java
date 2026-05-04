@@ -208,7 +208,7 @@ public class DefaultSqlViewService implements SqlViewService {
     query +=
         sqlHelper.whereAnd()
             + " "
-            + columnName
+            + statementBuilder.columnQuote(columnName)
             + " "
             + QueryUtils.parseFilterOperator(operator, value);
 
