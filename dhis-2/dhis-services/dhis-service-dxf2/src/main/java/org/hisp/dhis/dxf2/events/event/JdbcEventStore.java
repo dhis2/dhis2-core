@@ -1460,22 +1460,24 @@ public class JdbcEventStore implements EventStore {
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
-    String directDescendantsPredicate;
-    if (isWithoutRegistrationQuery(params)) {
-      List<Long> descendantIds = resolveDescendantOrgUnitIds(params.getOrgUnit().getStoredPath());
-      if (!descendantIds.isEmpty() && descendantIds.size() <= MAX_ORG_UNIT_IDS_FOR_IN_CLAUSE) {
-        mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_IDS, descendantIds);
-        directDescendantsPredicate =
-            " psi.organisationunitid IN (:" + COLUMN_ORG_UNIT_IDS + ")" + AND;
-      } else {
-        // OU not found in DB (stale path or data integrity issue) or subtree too large for JDBC
-        // IN-list; fall back to path scan (relies on lastupdated index)
-        directDescendantsPredicate = CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + AND;
-      }
-    } else {
-      // WITH_REGISTRATION: filter via ou.path resolved through the TPO join
-      directDescendantsPredicate = CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + AND;
-    }
+    // WITHOUT_REGISTRATION — three access patterns depending on query shape:
+    //   1. Date range present: push psi.organisationunitid IN (subquery) so the planner drives
+    //      the scan from idx_event_ou_ps_occurreddate(ou, ps, date) — best case.
+    //   2. No date range, ORDER BY lastupdated DESC (typical Android sync): fall back to path
+    //      LIKE so the planner uses idx_psi_lastupdated_desc, scanning newest-first and stopping
+    //      early at LIMIT — acceptable. Adding the IN subquery here forces a full seq scan + sort.
+    //   3. No date range, no ORDER BY lastupdated: path LIKE fallback, no efficient access path.
+    // WITH_REGISTRATION: filter on ou.path resolved via the TPO INNER JOIN —
+    //   psi.organisationunitid is provenance, not ownership.
+    String directDescendantsPredicate =
+        isWithoutRegistrationQuery(params) && hasDateRange(params)
+            ? " psi.organisationunitid IN ("
+                + "SELECT organisationunitid FROM organisationunit "
+                + "WHERE path LIKE CONCAT(:"
+                + COLUMN_ORG_UNIT_PATH
+                + ", '%'))"
+                + AND
+            : CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + AND;
 
     if (isProgramRestricted(params.getProgram())) {
       return directDescendantsPredicate
