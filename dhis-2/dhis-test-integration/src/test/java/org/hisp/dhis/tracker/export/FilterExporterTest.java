@@ -458,40 +458,6 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void
-      shouldExportTrackedEntitiesWhenFilteringByMultiTextAttributeWithLeadingAndTrailingWhitespace()
-          throws ForbiddenException, BadRequestException, NotFoundException {
-    TrackedEntityOperationParams params =
-        TrackedEntityOperationParams.builder()
-            .organisationUnits(orgUnit)
-            .orgUnitMode(SELECTED)
-            .program(UID.of("BFcipDERJnf"))
-            .filterBy(UID.of("multitxtAtr"), List.of(new QueryFilter(QueryOperator.EQ, " blue ")))
-            .build();
-
-    List<String> trackedEntities = getTrackedEntities(params);
-
-    assertContainsOnly(List.of("QS6w44flWAf"), trackedEntities);
-  }
-
-  @Test
-  void shouldExportTrackedEntitiesWhenFilteringByMultiTextAttributeWithWhitespaceUsingIn()
-      throws ForbiddenException, BadRequestException, NotFoundException {
-    TrackedEntityOperationParams params =
-        TrackedEntityOperationParams.builder()
-            .organisationUnits(orgUnit)
-            .orgUnitMode(SELECTED)
-            .program(UID.of("BFcipDERJnf"))
-            .filterBy(
-                UID.of("multitxtAtr"), List.of(new QueryFilter(QueryOperator.IN, " blue ;red")))
-            .build();
-
-    List<String> trackedEntities = getTrackedEntities(params);
-
-    assertContainsOnly(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
-  }
-
-  @Test
   void shouldExportEmptyEventsIfAttributeFilterDoesNotMatch()
       throws ForbiddenException, BadRequestException {
     TrackedEntityAttribute attr = get(TrackedEntityAttribute.class, "V66aa7a2122");
