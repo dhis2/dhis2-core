@@ -167,7 +167,7 @@ cleanup() {
   if [ -n "$PROF_ARGS" ]; then
     compose_files+=("-f" "docker-compose.profile.yml")
   fi
-  docker compose "${compose_files[@]}" down --volumes 2>/dev/null || true
+  docker compose "${compose_files[@]}" down --volumes --remove-orphans 2>/dev/null || true
 
   # Show output summary for the main (non-warmup) run
   if [ -n "$LAST_RUN_DIR" ] && [ -d "$LAST_RUN_DIR" ]; then
@@ -264,7 +264,7 @@ start_containers() {
   start_time=$(date +%s)
 
   # shellcheck disable=SC2086
-  docker compose $compose_args down --volumes
+  docker compose $compose_args down --volumes --remove-orphans
 
   # shellcheck disable=SC2086
   if ! docker compose $compose_args up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"; then
