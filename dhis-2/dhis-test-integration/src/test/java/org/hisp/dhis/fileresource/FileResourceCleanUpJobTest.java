@@ -89,13 +89,12 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
       // when the cleanup job runs
       cleanUpJob.execute(null, JobProgress.noop());
 
-      // then unassigned file resources are deleted
+      // then unassigned file resources are deleted (DATA_VALUE excluded — see below)
       assertNull(fileResourceStore.getByUid(fr1.getUid()));
       assertNull(fileResourceStore.getByUid(fr3.getUid()));
       assertNull(fileResourceStore.getByUid(fr5.getUid()));
       assertNull(fileResourceStore.getByUid(fr7.getUid()));
       assertNull(fileResourceStore.getByUid(fr13.getUid()));
-      assertNull(fileResourceStore.getByUid(fr15.getUid()));
 
       // and assigned file resources still exist
       assertNotNull(fileResourceStore.getByUid(fr2.getUid()));
@@ -104,6 +103,11 @@ class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
       assertNotNull(fileResourceStore.getByUid(fr8.getUid()));
       assertNotNull(fileResourceStore.getByUid(fr14.getUid()));
       assertNotNull(fileResourceStore.getByUid(fr16.getUid()));
+
+      // HOTFIX [DHIS2-21427]: DATA_VALUE-domain unassigned FRs are NOT deleted
+      // until the trim SQL is widened. fr15 (DATA_VALUE, unassigned) must
+      // therefore still exist after the cleanup job runs.
+      assertNotNull(fileResourceStore.getByUid(fr15.getUid()));
 
       // and domains not to be deleted (MESSAGE_ATTACHMENT) still exist whether assigned or not
       assertNotNull(fileResourceStore.getByUid(fr9.getUid()));
