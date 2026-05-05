@@ -640,8 +640,8 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
     assertThat(
         sql,
         is(
-            "(date_part('year',age(cast((select occurreddate from analytics_event_Program000A "
-                + "where analytics_event_Program000A.enrollment = ax.enrollment and occurreddate is not null "
+            "(date_part('year',age(cast((select occurreddate from analytics_event_program000a "
+                + "where analytics_event_program000a.enrollment = ax.enrollment and occurreddate is not null "
                 + "and ps = 'ProgrmStagA' "
                 + "order by occurreddate desc limit 1 ) as date), cast(enrollmentdate as date))))"));
   }
@@ -656,8 +656,8 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
     assertThat(
         sql,
         is(
-            "(date_part('year',age(cast((select occurreddate from analytics_event_Program000A "
-                + "where analytics_event_Program000A.enrollment = ax.enrollment and occurreddate is not null "
+            "(date_part('year',age(cast((select occurreddate from analytics_event_program000a "
+                + "where analytics_event_program000a.enrollment = ax.enrollment and occurreddate is not null "
                 + "and occurreddate < cast( '2021-01-01' as date ) and occurreddate >= cast( '2020-01-01' as date ) "
                 + "and ps = 'ProgrmStagA' "
                 + "order by occurreddate desc limit 1 ) as date), cast(enrollmentdate as date)))) < 1::numeric"));
