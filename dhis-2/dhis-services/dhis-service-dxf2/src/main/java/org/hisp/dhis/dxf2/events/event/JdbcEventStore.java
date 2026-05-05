@@ -210,6 +210,10 @@ public class JdbcEventStore implements EventStore {
 
   private static final String COLUMN_ORG_UNIT_ID = "ou_id";
 
+  private static final String COLUMN_ORG_UNIT_IDS = "ou_ids";
+
+  private static final int MAX_ORG_UNIT_IDS_FOR_IN_CLAUSE = 1_000;
+
   private static final String USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY =
       " ou.path like CONCAT(orgunit.path, '%') ";
 
@@ -1491,26 +1495,35 @@ public class JdbcEventStore implements EventStore {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_ID, params.getOrgUnit().getId());
 
-    // WITHOUT_REGISTRATION: filter directly on psi.organisationunitid so the planner can
-    // drive the scan from the composite index on (organisationunitid, executiondate).
-    // WITH_REGISTRATION: filter on ou.organisationunitid which resolves to po.organisationunitid
-    // via the sargable INNER JOIN on TPO — psi.organisationunitid is provenance, not ownership.
-    String directChildrenPredicate =
-        isWithoutRegistrationQuery(params)
-            ? " (psi.organisationunitid = :"
+    String directChildrenPredicate;
+    if (isWithoutRegistrationQuery(params)) {
+      List<Long> childrenIds = resolveChildrenOrgUnitIds(params.getOrgUnit().getId());
+      if (!childrenIds.isEmpty() && childrenIds.size() <= MAX_ORG_UNIT_IDS_FOR_IN_CLAUSE) {
+        mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_IDS, childrenIds);
+        directChildrenPredicate = " psi.organisationunitid IN (:" + COLUMN_ORG_UNIT_IDS + ")" + AND;
+      } else {
+        // OU not found in DB (empty resolver result) or unusually wide OU; fall back to scalar
+        // anchor + subquery
+        directChildrenPredicate =
+            " (psi.organisationunitid = :"
                 + COLUMN_ORG_UNIT_ID
                 + " OR psi.organisationunitid IN ("
                 + "SELECT organisationunitid FROM organisationunit WHERE parentid = :"
                 + COLUMN_ORG_UNIT_ID
                 + "))"
-                + AND
-            : " (ou.organisationunitid = :"
-                + COLUMN_ORG_UNIT_ID
-                + " OR ou.organisationunitid IN ("
-                + "SELECT organisationunitid FROM organisationunit WHERE parentid = :"
-                + COLUMN_ORG_UNIT_ID
-                + "))"
                 + AND;
+      }
+    } else {
+      // WITH_REGISTRATION: filter via ou.organisationunitid resolved through the TPO join
+      directChildrenPredicate =
+          " (ou.organisationunitid = :"
+              + COLUMN_ORG_UNIT_ID
+              + " OR ou.organisationunitid IN ("
+              + "SELECT organisationunitid FROM organisationunit WHERE parentid = :"
+              + COLUMN_ORG_UNIT_ID
+              + "))"
+              + AND;
+    }
 
     String customChildrenQuery =
         " AND (ou.hierarchylevel = "
@@ -1569,8 +1582,18 @@ public class JdbcEventStore implements EventStore {
         && params.getProgram().getProgramType() == ProgramType.WITHOUT_REGISTRATION;
   }
 
-  private boolean hasDateRange(EventQueryParams params) {
-    return params.getStartDate() != null || params.getEndDate() != null;
+  private List<Long> resolveDescendantOrgUnitIds(String storedPath) {
+    return jdbcTemplate.queryForList(
+        "SELECT organisationunitid FROM organisationunit WHERE path LIKE CONCAT(:path, '%')",
+        new MapSqlParameterSource("path", storedPath), Long.class);
+  }
+
+  private List<Long> resolveChildrenOrgUnitIds(long ouId) {
+    return jdbcTemplate.queryForList(
+        "SELECT organisationunitid FROM organisationunit"
+            + " WHERE organisationunitid = :ouId OR parentid = :ouId",
+        new MapSqlParameterSource("ouId", ouId),
+        Long.class);
   }
 
   private static String getSearchAndCaptureScopeOrgUnitPathMatchQuery(String orgUnitMatcher) {

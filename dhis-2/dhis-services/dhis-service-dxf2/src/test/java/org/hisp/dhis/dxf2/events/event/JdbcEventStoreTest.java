@@ -32,8 +32,13 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.utils.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -45,6 +50,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -56,10 +63,13 @@ import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.dxf2.events.trackedentity.store.EventStore;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitStore;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -189,6 +199,178 @@ class JdbcEventStoreTest {
     assertFalse(
         countSql.toLowerCase().contains("order by"),
         "count query must not contain ORDER BY — column alias is removed from SELECT and would cause a DB error");
+  }
+
+  @Test
+  void descendants_withoutRegistration_smallSubtree_usesPreResolvedIds() {
+    Program program = new Program();
+    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+
+    OrganisationUnit ou = createOrganisationUnit('A');
+    ou.setPath("/oupath/");
+
+    EventQueryParams params = new EventQueryParams();
+    params.setProgram(program);
+    params.setOrgUnit(ou);
+    params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.DESCENDANTS);
+
+    when(currentUserService.getCurrentUser()).thenReturn(new User());
+
+    when(namedParameterJdbcTemplate.queryForList(
+            contains("CONCAT(:path"), any(MapSqlParameterSource.class), eq(Long.class)))
+        .thenReturn(List.of(1L, 2L, 3L));
+
+    ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+    when(namedParameterJdbcTemplate.queryForObject(
+            sqlCaptor.capture(),
+            any(MapSqlParameterSource.class),
+            ArgumentMatchers.<Class<Integer>>any()))
+        .thenReturn(0);
+
+    subject.getEventCount(params);
+
+    String sql = sqlCaptor.getValue();
+    assertTrue(sql.contains(":ou_ids"), "SQL should contain bound :ou_ids list");
+    assertFalse(
+        sql.contains("SELECT organisationunitid FROM organisationunit WHERE path LIKE"),
+        "SQL should not contain path-LIKE subquery when resolver returns IDs");
+  }
+
+  @Test
+  void descendants_withoutRegistration_emptyResolverResult_fallsBackToPathLike() {
+    Program program = new Program();
+    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+
+    OrganisationUnit ou = createOrganisationUnit('A');
+    ou.setPath("/oupath/");
+
+    EventQueryParams params = new EventQueryParams();
+    params.setProgram(program);
+    params.setOrgUnit(ou);
+    params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.DESCENDANTS);
+
+    when(currentUserService.getCurrentUser()).thenReturn(new User());
+
+    when(namedParameterJdbcTemplate.queryForList(
+            contains("CONCAT(:path"), any(MapSqlParameterSource.class), eq(Long.class)))
+        .thenReturn(Collections.emptyList());
+
+    ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+    when(namedParameterJdbcTemplate.queryForObject(
+            sqlCaptor.capture(),
+            any(MapSqlParameterSource.class),
+            ArgumentMatchers.<Class<Integer>>any()))
+        .thenReturn(0);
+
+    subject.getEventCount(params);
+
+    String sql = sqlCaptor.getValue();
+    assertFalse(
+        sql.contains(":ou_ids"), "SQL should not contain :ou_ids for empty resolver result");
+    assertTrue(
+        sql.contains("ou.path like"),
+        "SQL should fall back to path-LIKE when resolver returns no rows");
+  }
+
+  @Test
+  void descendants_withoutRegistration_largeSubtree_fallsBackToPathLike() {
+    Program program = new Program();
+    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+
+    OrganisationUnit ou = createOrganisationUnit('A');
+    ou.setPath("/oupath/");
+
+    EventQueryParams params = new EventQueryParams();
+    params.setProgram(program);
+    params.setOrgUnit(ou);
+    params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.DESCENDANTS);
+
+    when(currentUserService.getCurrentUser()).thenReturn(new User());
+
+    List<Long> largeList = LongStream.rangeClosed(1, 1001).boxed().collect(Collectors.toList());
+    when(namedParameterJdbcTemplate.queryForList(
+            contains("CONCAT(:path"), any(MapSqlParameterSource.class), eq(Long.class)))
+        .thenReturn(largeList);
+
+    ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+    when(namedParameterJdbcTemplate.queryForObject(
+            sqlCaptor.capture(),
+            any(MapSqlParameterSource.class),
+            ArgumentMatchers.<Class<Integer>>any()))
+        .thenReturn(0);
+
+    subject.getEventCount(params);
+
+    String sql = sqlCaptor.getValue();
+    assertFalse(
+        sql.contains(":ou_ids"), "SQL should not contain :ou_ids when subtree exceeds threshold");
+    assertTrue(
+        sql.contains("ou.path like"),
+        "SQL should fall back to path-LIKE when subtree exceeds threshold");
+  }
+
+  @Test
+  void children_withoutRegistration_smallSet_usesPreResolvedIds() {
+    Program program = new Program();
+    program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+
+    OrganisationUnit ou = createOrganisationUnit('A');
+    ou.setPath("/oupath/");
+
+    EventQueryParams params = new EventQueryParams();
+    params.setProgram(program);
+    params.setOrgUnit(ou);
+    params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.CHILDREN);
+
+    when(currentUserService.getCurrentUser()).thenReturn(new User());
+
+    when(namedParameterJdbcTemplate.queryForList(
+            contains("parentid = :ouId"), any(MapSqlParameterSource.class), eq(Long.class)))
+        .thenReturn(List.of(100L, 101L));
+
+    ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+    when(namedParameterJdbcTemplate.queryForObject(
+            sqlCaptor.capture(),
+            any(MapSqlParameterSource.class),
+            ArgumentMatchers.<Class<Integer>>any()))
+        .thenReturn(0);
+
+    subject.getEventCount(params);
+
+    String sql = sqlCaptor.getValue();
+    assertTrue(sql.contains(":ou_ids"), "SQL should contain bound :ou_ids list for CHILDREN");
+    assertFalse(
+        sql.contains("SELECT organisationunitid FROM organisationunit WHERE parentid"),
+        "SQL should not contain children subquery when resolver returns IDs");
+  }
+
+  @Test
+  void descendants_withRegistration_doesNotCallResolver() {
+    Program program = new Program();
+    program.setProgramType(ProgramType.WITH_REGISTRATION);
+
+    OrganisationUnit ou = createOrganisationUnit('A');
+    ou.setPath("/oupath/");
+
+    EventQueryParams params = new EventQueryParams();
+    params.setProgram(program);
+    params.setOrgUnit(ou);
+    params.setOrgUnitSelectionMode(OrganisationUnitSelectionMode.DESCENDANTS);
+
+    when(currentUserService.getCurrentUser()).thenReturn(new User());
+
+    when(namedParameterJdbcTemplate.queryForObject(
+            anyString(), any(MapSqlParameterSource.class), ArgumentMatchers.<Class<Integer>>any()))
+        .thenReturn(0);
+
+    doThrow(new IllegalStateException("resolver must not be called for WITH_REGISTRATION"))
+        .when(namedParameterJdbcTemplate)
+        .queryForList(anyString(), any(MapSqlParameterSource.class), eq(Long.class));
+
+    subject.getEventCount(params);
+
+    verify(namedParameterJdbcTemplate, never())
+        .queryForList(anyString(), any(MapSqlParameterSource.class), eq(Long.class));
   }
 
   private void mockRowSet() throws SQLException {
