@@ -184,6 +184,80 @@ The deeper smell is that period dimension names are propagated in display case f
 A complementary clean-up would standardise the alias pattern at every dimension SELECT-emission site (right now alias presence is decided locally in each branch of `getTableAndColumn` and in `ouQuote`). A single helper that decides "alias on SELECT, bare on GROUP BY" once would make the contract explicit and remove the JDBC-driver-dependent footgun this issue exposed.
 
 ---
+## ISSUE: Legend-set companion columns missing in ClickHouse analytics tables
+
+For data elements (and tracked entity attributes) that have a legend set attached, the analytics tables on Postgres and Doris carry a companion column named `<deUid>_<lsUid>` (or `<attrUid>_<lsUid>`) populated at table-build time with the UID of the legend whose `[startValue, endValue)` range contains the row's value. Aggregate queries that group or filter by legend bucket reference these columns directly — e.g. `select … ax."vV9UWAZohSf_OrkEzxZEH4X" as "Zj7UnCAulEk.vV9UWAZohSf-OrkEzxZEH4X" from analytics_event_<programUid> as ax …`.
+
+On ClickHouse the column doesn't exist. The query fails with:
+
+```
+Code: 47. DB::Exception: Identifier 'ax.vV9UWAZohSf_OrkEzxZEH4X' cannot be resolved from table with name ax.
+```
+
+The schema confirms it — only the bare data-element columns are present:
+
+```
+`vV9UWAZohSf` Nullable(Int64),
+`GieVkTxp4HH` Nullable(Float64),
+…
+```
+
+The cause sits in `JdbcEventAnalyticsTableManager.getColumnFromDataElementWithLegendSet` (line 832) and the analogous TE-attribute method `getColumnForAttributeWithLegendSet` (line 775). Both early-return `List.of()` when `!sqlBuilder.supportsCorrelatedSubquery()`:
+
+```java
+private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(...) {
+  if (!sqlBuilder.supportsCorrelatedSubquery()) {
+    return List.of();
+  }
+  // … otherwise build the legend-lookup column using a correlated subquery
+}
+```
+
+`ClickHouseSqlBuilder.supportsCorrelatedSubquery()` returns `false` (correctly — see issue #3 above), so the legend-set columns are never created on ClickHouse. The query-generation path, however, doesn't consult that flag — it emits `<deUid>_<lsUid>` references unconditionally whenever a query item has a legend set, and the engine fails to resolve the column.
+
+Unlike the earlier issues, this is a **schema/feature gap** rather than a SQL-shape mismatch. The two halves of the analytics pipeline (table population vs. query generation) disagree about which columns exist on ClickHouse.
+
+### FIX
+
+Option 1 (inline CASE expression). The two halves of the analytics pipeline are reconciled at the table-population side: instead of skipping the legend-set columns on ClickHouse, generate them with an inline `CASE` expression that bakes the legend ranges into the SQL. The companion columns now exist in the ClickHouse analytics tables with the same name, type, and semantics as on Postgres/Doris, so the unchanged query path keeps working.
+
+`JdbcEventAnalyticsTableManager.getColumnFromDataElementWithLegendSet` was changed to delegate to a new helper when the engine doesn't support correlated subqueries:
+
+```java
+private List<AnalyticsTableColumn> getColumnFromDataElementWithLegendSet(
+    DataElement dataElement, String selectExpression, String dataFilterClause,
+    ProgramType programType) {
+  if (!sqlBuilder.supportsCorrelatedSubquery()) {
+    return getLegendCaseColumns(dataElement, selectExpression);
+  }
+  // ... existing correlated-subquery path unchanged for Postgres/Doris
+}
+```
+
+`getLegendCaseColumns` builds one `AnalyticsTableColumn` per legend set on the data element. The select-expression for each column is built by `buildLegendCaseExpression`, which emits:
+
+```sql
+(case
+   when <valueExpr> >= <start1> and <valueExpr> < <end1> then '<legendUid1>'
+   when <valueExpr> >= <start2> and <valueExpr> < <end2> then '<legendUid2>'
+   ...
+   else null
+ end) as <deUid>_<lsUid>
+```
+
+`<valueExpr>` is the existing `columnExpression` produced by `ColumnMapper.getColumnExpression`, which already coerces non-numeric inputs to `NULL`. `NULL` propagates through the inequality comparisons and falls through to the `ELSE NULL` branch, matching the Postgres behaviour where the correlated subquery returns no rows for non-numeric values.
+
+The boundary semantics (`startvalue <= v AND endvalue > v` in the original SQL, equivalent to `v >= startvalue AND v < endvalue`) are preserved.
+
+Postgres and Doris are unaffected: their `supportsCorrelatedSubquery()` returns `true`, so the existing correlated-subquery path is taken unchanged.
+
+### Suggested follow-up
+
+- The symmetric path for tracked-entity-attribute legend sets (`JdbcEventAnalyticsTableManager.getColumnForAttributeWithLegendSet`, line 775) still early-returns `List.of()` on ClickHouse. The current failing test exercises only the data-element path, so this was deliberately left for a follow-up. The same `CASE`-expression pattern applies — the only adjustment is reading the value from the attribute column rather than the JSON-extracted data-element expression.
+- The repeated `<valueExpr>` in each `WHEN` branch will balloon the SQL when the value expression is itself large (e.g. a JSON extract with regex coercion). For typical legend sets (4–10 legends) and current value expressions this is fine; if it ever becomes a hot spot, the value expression can be hoisted into a per-row CTE or a materialised subexpression at the cost of more involved emission.
+
+---
+
 ## Patterns that recur across these issues
 
 Several of the failures share a common root: the analytics SQL builders carry assumptions that hold on Postgres and on Doris (with `lower_case_table_names=1`), but not on ClickHouse:

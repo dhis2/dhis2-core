@@ -84,6 +84,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.db.model.DataType;
 import org.hisp.dhis.db.model.Logged;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.legend.Legend;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodDataProvider;
 import org.hisp.dhis.period.PeriodType;
@@ -830,7 +832,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       String dataFilterClause,
       ProgramType programType) {
     if (!sqlBuilder.supportsCorrelatedSubquery()) {
-      return List.of();
+      return getLegendCaseColumns(dataElement, selectExpression);
     }
 
     String eventTable =
@@ -872,6 +874,58 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                   .build();
             })
         .toList();
+  }
+
+  /**
+   * Builds legend-set companion columns using an inline {@code CASE} expression rather than the
+   * correlated subquery the default path relies on. Used when the underlying engine does not
+   * support correlated subqueries (e.g. ClickHouse). Legend ranges are static metadata loaded with
+   * the {@link LegendSet}, so the lookup compiles to a per-row decision tree that yields the same
+   * legend UID the correlated subquery would have returned.
+   *
+   * @param dataElement the {@link DataElement}.
+   * @param valueExpression SQL fragment that evaluates to the data element's numeric value, with
+   *     non-numeric inputs already coerced to {@code NULL} by the column-expression machinery.
+   * @return one {@link AnalyticsTableColumn} per legend set on the data element.
+   */
+  private List<AnalyticsTableColumn> getLegendCaseColumns(
+      DataElement dataElement, String valueExpression) {
+    return dataElement.getLegendSets().stream()
+        .map(
+            ls -> {
+              String column = dataElement.getUid() + PartitionUtils.SEP + ls.getUid();
+              String sql = buildLegendCaseExpression(ls, valueExpression) + " as " + column;
+              return AnalyticsTableColumn.builder()
+                  .name(column)
+                  .dataType(CHARACTER_11)
+                  .selectExpression(sql)
+                  .build();
+            })
+        .toList();
+  }
+
+  /**
+   * Renders a {@code CASE WHEN start <= value AND value < end THEN 'legendUid' ... END} expression
+   * for the given legend set. Mirrors the {@code l.startvalue <= v AND l.endvalue > v} predicate
+   * used by the correlated-subquery path so semantics match across engines.
+   */
+  private String buildLegendCaseExpression(LegendSet legendSet, String valueExpression) {
+    StringBuilder sb = new StringBuilder("(case ");
+    for (Legend legend : legendSet.getLegends()) {
+      sb.append("when ")
+          .append(valueExpression)
+          .append(" >= ")
+          .append(legend.getStartValue())
+          .append(" and ")
+          .append(valueExpression)
+          .append(" < ")
+          .append(legend.getEndValue())
+          .append(" then '")
+          .append(legend.getUid())
+          .append("' ");
+    }
+    sb.append("else null end)");
+    return sb.toString();
   }
 
   /**
