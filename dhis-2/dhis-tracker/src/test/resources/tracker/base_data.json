@@ -45,6 +45,14 @@
             "identifier": "V66aa7a2122"
           },
           "value": "170.0"
+        },
+        {
+          "valueType": "MULTI_TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "multitxtAtr"
+          },
+          "value": " blue , green"
         }
       ]
     },
@@ -106,6 +114,14 @@
             "identifier": "dIVt4l5vIOa"
           },
           "value": "Frank PTEA"
+        },
+        {
+          "valueType": "MULTI_TEXT",
+          "attribute": {
+            "idScheme": "UID",
+            "identifier": "multitxtAtr"
+          },
+          "value": "red"
         }
       ]
     },

@@ -266,28 +266,23 @@ public class FilterJdbcPredicate {
       String column, QueryOperator operator, Parameter parameter, IdentifiableObject entity)
       throws BadRequestException {
     String unnestSql = "unnest(string_to_array(lower(" + column + "), ',')) AS val";
-    String trimmed = "trim(val)";
     String param = parameter != null ? parameter.name() : null;
 
     return switch (operator) {
       case IEQ, EQ, IN ->
-          String.format("exists (select 1 from %s where %s in (:%s))", unnestSql, trimmed, param);
+          String.format("exists (select 1 from %s where val in (:%s))", unnestSql, param);
       case NE, NEQ ->
-          String.format(
-              "not exists (select 1 from %s where %s in (:%s))", unnestSql, trimmed, param);
+          String.format("not exists (select 1 from %s where val in (:%s))", unnestSql, param);
       case LIKE, ILIKE, EW, SW ->
-          String.format("exists (select 1 from %s where %s like :%s)", unnestSql, trimmed, param);
+          String.format("exists (select 1 from %s where val like :%s)", unnestSql, param);
       case NLIKE, NILIKE ->
-          String.format(
-              "not exists (select 1 from %s where %s like :%s)", unnestSql, trimmed, param);
+          String.format("not exists (select 1 from %s where val like :%s)", unnestSql, param);
       case NULL ->
           String.format(
-              "not exists (select 1 from %s where %s is not null and %s <> '')",
-              unnestSql, trimmed, trimmed);
+              "not exists (select 1 from %s where val is not null and val <> '')", unnestSql);
       case NNULL ->
           String.format(
-              "exists (select 1 from %s where %s is not null and %s <> '')",
-              unnestSql, trimmed, trimmed);
+              "exists (select 1 from %s where val is not null and val <> '')", unnestSql);
       default ->
           throw new BadRequestException(
               String.format(
