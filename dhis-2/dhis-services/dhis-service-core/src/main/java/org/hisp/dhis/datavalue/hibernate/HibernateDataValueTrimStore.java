@@ -58,61 +58,21 @@ public class HibernateDataValueTrimStore extends HibernateGenericStore<DataValue
 
   @Override
   public int updateFileResourcesNotAssignedToAnyDataValue() {
-    // using with to do this in a single pass on the datavalue table
-    // abort if we cannot get the locks quickly
-    String sql =
-        """
-        WITH candidates AS (
-            SELECT uid
-            FROM fileresource
-            WHERE domain = 'DATA_VALUE' AND isassigned = true
-        ),
-        fr_datavalues AS (
-            SELECT dv.value
-            FROM datavalue dv
-            JOIN dataelement de ON de.dataelementid = dv.dataelementid
-            WHERE de.valuetype = 'FILE_RESOURCE'
-        )
-        UPDATE fileresource fr
-        SET isassigned = false, lastupdated = now()
-        FROM candidates c
-        LEFT JOIN fr_datavalues frdv ON frdv.value = c.uid
-        WHERE fr.isassigned = true
-          AND fr.uid = c.uid
-          AND frdv.value IS NULL""";
-    return getSession()
-        .createNativeQuery(sql)
-        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(1000))
-        .executeUpdate();
+    // HOTFIX [DHIS2-21427]: disabled. The original SQL only scanned the
+    // aggregate `datavalue` table, missing file resources referenced from
+    // trackerevent.eventdatavalues and TEAVs, so it wrongly flipped
+    // isassigned=false on still-referenced FRs. Restore once the SQL is
+    // widened to UNION all four sources (datavalue, trackerevent JSONB,
+    // singleevent JSONB, trackedentityattributevalue).
+    return 0;
   }
 
   @Override
   public int updateFileResourcesAssignedToAnyDataValue() {
-    // using with to do this in a single pass on the datavalue table
-    // abort if we cannot get the locks quickly
-    String sql =
-        """
-        WITH candidates AS (
-            SELECT uid
-            FROM fileresource
-            WHERE domain = 'DATA_VALUE' AND isassigned = false
-        ),
-        fr_datavalues AS (
-            SELECT DISTINCT dv.value
-            FROM datavalue dv
-            JOIN dataelement de ON de.dataelementid = dv.dataelementid
-            WHERE de.valuetype = 'FILE_RESOURCE'
-        )
-        UPDATE fileresource fr
-        SET isassigned = true
-        FROM candidates c
-        JOIN fr_datavalues frdv ON frdv.value = c.uid
-        WHERE fr.isassigned = false
-          AND fr.uid = c.uid""";
-    return getSession()
-        .createNativeQuery(sql)
-        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(1000))
-        .executeUpdate();
+    // HOTFIX [DHIS2-21427]: disabled symmetrically. The inverse query had the
+    // same blind spot, so it could not repair what the other one broke.
+    // Restore alongside the symmetric SQL widening.
+    return 0;
   }
 
   @Override
