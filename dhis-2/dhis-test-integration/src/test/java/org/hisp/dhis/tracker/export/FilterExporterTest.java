@@ -458,15 +458,15 @@ class FilterExporterTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldExportTrackedEntitiesWhenFilteringByMultiTextAttributeWithLeadingAndTrailingWhitespace()
-      throws ForbiddenException, BadRequestException, NotFoundException {
+  void
+      shouldExportTrackedEntitiesWhenFilteringByMultiTextAttributeWithLeadingAndTrailingWhitespace()
+          throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
             .organisationUnits(orgUnit)
             .orgUnitMode(SELECTED)
             .program(UID.of("BFcipDERJnf"))
-            .filterBy(
-                UID.of("multitxtAtr"), List.of(new QueryFilter(QueryOperator.EQ, " blue ")))
+            .filterBy(UID.of("multitxtAtr"), List.of(new QueryFilter(QueryOperator.EQ, " blue ")))
             .build();
 
     List<String> trackedEntities = getTrackedEntities(params);

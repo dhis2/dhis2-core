@@ -281,8 +281,7 @@ public class FilterJdbcPredicate {
           String.format(
               "not exists (select 1 from %s where val is not null and val <> '')", unnestSql);
       case NNULL ->
-          String.format(
-              "exists (select 1 from %s where val is not null and val <> '')", unnestSql);
+          String.format("exists (select 1 from %s where val is not null and val <> '')", unnestSql);
       default ->
           throw new BadRequestException(
               String.format(
