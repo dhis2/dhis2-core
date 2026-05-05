@@ -472,6 +472,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
             program.isSingleProgramStage()
                 ? program.getProgramStages().stream().toList().get(0).getId()
                 : EMPTY);
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
     String fromClauseSingleEvent =
         qualifyResourceTables(
             replaceQualify(
@@ -484,6 +485,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 left join analytics_rs_orgunitstructure ous on ev.organisationunitid=ous.organisationunitid \
                 left join analytics_rs_organisationunitgroupsetstructure ougs on ev.organisationunitid=ougs.organisationunitid \
                 inner join analytics_rs_categorystructure acs on ev.attributeoptioncomboid=acs.categoryoptioncomboid \
+                ${extraJoinClause}\
                 where ev.lastupdated < '${startTime}' ${partitionClause} \
                 and ev.programstageid = ${programStageId} \
                 and ev.organisationunitid is not null \
@@ -493,19 +495,19 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 and dps.year <= ${latestYear} \
                 and ev.status in (${exportableEventStatues}) \
                 and ${evDeletedClause}""",
-                Map.of(
-                    "eventDateExpression", "ev.occurreddate",
-                    "partitionClause", partitionClauseSingleEvent,
-                    "startTime", toLongDate(params.getStartTime()),
-                    "programStageId", programStageId,
-                    "enDeletedClause", sqlBuilder.isFalse("en", "deleted"),
-                    "teDeletedClause", sqlBuilder.isFalse("te", "deleted"),
-                    "firstYear", String.valueOf(firstYear),
-                    "latestYear", String.valueOf(latestYear),
-                    "evDeletedClause", sqlBuilder.isFalse("ev", "deleted"),
-                    "exportableEventStatues", join(",", EXPORTABLE_EVENT_STATUSES))));
+                Map.ofEntries(
+                    Map.entry("eventDateExpression", "ev.occurreddate"),
+                    Map.entry("partitionClause", partitionClauseSingleEvent),
+                    Map.entry("startTime", toLongDate(params.getStartTime())),
+                    Map.entry("programStageId", programStageId),
+                    Map.entry("enDeletedClause", sqlBuilder.isFalse("en", "deleted")),
+                    Map.entry("teDeletedClause", sqlBuilder.isFalse("te", "deleted")),
+                    Map.entry("firstYear", String.valueOf(firstYear)),
+                    Map.entry("latestYear", String.valueOf(latestYear)),
+                    Map.entry("evDeletedClause", sqlBuilder.isFalse("ev", "deleted")),
+                    Map.entry("exportableEventStatues", join(",", EXPORTABLE_EVENT_STATUSES)),
+                    Map.entry("extraJoinClause", collectColumnJoinClauses(columns)))));
 
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
     populateTableInternal(tableName, columns, fromClauseSingleEvent);
   }
 
@@ -529,6 +531,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       String partitionClause,
       String attributeJoinClause,
       String tableName) {
+    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
     String fromClause =
         replaceQualify(
             sqlBuilder,
@@ -546,6 +549,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 left join ${organisationunit} enrollmentou on en.organisationunitid=enrollmentou.organisationunitid \
                 inner join analytics_rs_categorystructure acs on ev.attributeoptioncomboid=acs.categoryoptioncomboid \
                 ${attributeJoinClause}\
+                ${extraJoinClause}\
                 where ev.lastupdated < '${startTime}' ${partitionClause} \
                 and pr.programid = ${programId} \
                 and ev.organisationunitid is not null \
@@ -555,19 +559,19 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                 and dps.year <= ${latestYear} \
                 and ev.status in (${exportableEventStatues}) \
                 and ev.deleted = false""",
-            Map.of(
-                "eventDateExpression", eventDateExpression,
-                "partitionClause", partitionClause,
-                "attributeJoinClause", attributeJoinClause,
-                "startTime", toLongDate(params.getStartTime()),
-                "programId", String.valueOf(program.getId()),
-                "enDeletedClause", sqlBuilder.isFalse("en", "deleted"),
-                "teDeletedClause", sqlBuilder.isFalse("te", "deleted"),
-                "firstYear", String.valueOf(firstYear),
-                "latestYear", String.valueOf(latestYear),
-                "exportableEventStatues", join(",", EXPORTABLE_EVENT_STATUSES)));
+            Map.ofEntries(
+                Map.entry("eventDateExpression", eventDateExpression),
+                Map.entry("partitionClause", partitionClause),
+                Map.entry("attributeJoinClause", attributeJoinClause),
+                Map.entry("startTime", toLongDate(params.getStartTime())),
+                Map.entry("programId", String.valueOf(program.getId())),
+                Map.entry("enDeletedClause", sqlBuilder.isFalse("en", "deleted")),
+                Map.entry("teDeletedClause", sqlBuilder.isFalse("te", "deleted")),
+                Map.entry("firstYear", String.valueOf(firstYear)),
+                Map.entry("latestYear", String.valueOf(latestYear)),
+                Map.entry("exportableEventStatues", join(",", EXPORTABLE_EVENT_STATUSES)),
+                Map.entry("extraJoinClause", collectColumnJoinClauses(columns))));
 
-    List<AnalyticsTableColumn> columns = partition.getMasterTable().getAnalyticsTableColumns();
     populateTableInternal(tableName, columns, fromClause);
   }
 

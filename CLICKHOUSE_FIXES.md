@@ -258,6 +258,85 @@ Postgres and Doris are unaffected: their `supportsCorrelatedSubquery()` returns 
 
 ---
 
+## ISSUE: OU-name companion column missing in ClickHouse analytics tables
+
+For data elements whose `valueType == ORGANISATION_UNIT`, the analytics tables on Postgres and Doris carry a companion column named `<deUid>_name` that stores the *display name* of the org unit referenced by the bare column. Aggregate queries that group or label by org unit name reference it directly:
+
+```sql
+select count(ax."event") as value, "n1rtSHYf6O6_name"
+from analytics_event_<programUid> as ax
+…
+group by "n1rtSHYf6O6_name"
+```
+
+On ClickHouse the column doesn't exist:
+
+```
+Code: 47. DB::Exception: Unknown expression identifier 'n1rtSHYf6O6_name' …
+Maybe you meant: ['n1rtSHYf6O6'].
+```
+
+Same root cause as the legend-set gap. `ColumnMapper.getColumnsForOrgUnitDataElement` (line 138) early-returns `List.of()` when `!sqlBuilder.supportsCorrelatedSubquery()`, because the Postgres/Doris path populates the column via a per-row scalar subquery that ClickHouse rejects:
+
+```sql
+(select ou.name from organisationunit ou where ou.uid = <jsonExtract(eventdatavalues, '<deUid>', 'value')>) as <deUid>_name
+```
+
+The companion `_geometry` column isn't an issue here — `isGeospatialSupport()` returns false on ClickHouse for unrelated reasons, so the geometry path is skipped on every code branch already.
+
+### FIX
+
+Same shape as the legend-set fix in spirit (close the schema gap at table-build time) but the chosen mechanism is different: a `LEFT JOIN` to `organisationunit` injected into the populating SELECT. The legend-set fix could inline static metadata; the OU-name lookup against potentially-thousands of org units can't, so a JOIN is the right tool.
+
+The change has three coordinated parts.
+
+**1. New `joinClause` field on `AnalyticsTableColumn`.** A column may now declare a JOIN clause that must be present in the populating SELECT for its `selectExpression` to resolve.
+
+```java
+/**
+ * Optional JOIN clause that must be present in the populating SELECT for this column's
+ * select expression to resolve. Used when the engine does not support correlated subqueries
+ * (e.g. ClickHouse) and the column is populated via a lookup join instead. Identical clauses
+ * across columns are deduplicated when assembled.
+ */
+private final String joinClause;
+```
+
+**2. `AbstractEventJdbcTableManager.populateTableInternal` collects and injects them.** Distinct join clauses contributed by columns are spliced into the FROM clause immediately before the `WHERE` keyword:
+
+```java
+sql += " " + injectColumnJoinClauses(fromClause, columns);
+```
+
+`injectColumnJoinClauses` deduplicates with `Stream::distinct`, so repeated joins to the same alias collapse to one.
+
+**3. `ColumnMapper.getColumnsForOrgUnitDataElement` branches on engine support.** When `!supportsCorrelatedSubquery()`, it emits a single `_name` column whose select expression references a JOIN alias and whose `joinClause` provides the JOIN:
+
+```java
+String joinAlias = "ou_" + uid.toLowerCase();
+String valueExpression = sqlBuilder.jsonExtract("eventdatavalues", uid, "value");
+String joinClause =
+    "left join " + sqlBuilder.qualifyTable("organisationunit")
+        + " " + joinAlias + " on " + joinAlias + ".uid = " + valueExpression;
+…
+return List.of(
+    AnalyticsTableColumn.builder()
+        .name(uid + OU_NAME_COL_POSTFIX)
+        …
+        .selectExpression(joinAlias + ".name as " + sqlBuilder.quote(columnName))
+        .joinClause(joinClause)
+        .build());
+```
+
+The Postgres/Doris path is unchanged — `supportsCorrelatedSubquery()` returns true, so the existing scalar-subquery emission runs as before, and no `joinClause` is set on the column. The injection step is a no-op for them.
+
+### Suggested follow-up
+
+- The symmetric path for tracked-entity-attribute org-unit values (`ColumnMapper.getColumnForOrgUnitAttribute`, line 224) still early-returns on ClickHouse. The current failing test exercises only the data-element path, so this was deliberately deferred. The same JOIN pattern applies — the only adjustment is the value source (`av.value` rather than the JSON-extracted data-element expression).
+- The `joinClause` field on `AnalyticsTableColumn` is general — any future ClickHouse-specific column that needs lookup-join semantics can use the same plumbing instead of inventing yet another bespoke escape hatch.
+
+---
+
 ## Patterns that recur across these issues
 
 Several of the failures share a common root: the analytics SQL builders carry assumptions that hold on Postgres and on Doris (with `lower_case_table_names=1`), but not on ClickHouse:

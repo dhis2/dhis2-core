@@ -72,8 +72,7 @@ public class EnrollmentEventSubqueryBuilder {
   public String renderValueSubquery(QueryItem item, String suffix) {
     assertProgram(item);
     String quotedColName = sqlBuilder.quote(item.getItemName() + suffix);
-    String eventTableName =
-        ANALYTICS_EVENT_TABLE_PREFIX + item.getProgram().getUid().toLowerCase();
+    String eventTableName = ANALYTICS_EVENT_TABLE_PREFIX + item.getProgram().getUid().toLowerCase();
 
     if (item.getProgramStage().getRepeatable() && item.hasRepeatableStageParams()) {
       return repeatableStageSubquery(item, quotedColName, eventTableName);
@@ -90,8 +89,7 @@ public class EnrollmentEventSubqueryBuilder {
       return ColumnAndAlias.EMPTY;
     }
 
-    String eventTableName =
-        ANALYTICS_EVENT_TABLE_PREFIX + item.getProgram().getUid().toLowerCase();
+    String eventTableName = ANALYTICS_EVENT_TABLE_PREFIX + item.getProgram().getUid().toLowerCase();
     String quotedColName = sqlBuilder.quote(item.getItemId());
 
     String psCondition = "";
