@@ -30,58 +30,31 @@
 package org.hisp.dhis.test.analytics.enrollment.query;
 
 import static io.gatling.javaapi.core.CoreDsl.details;
-import static io.gatling.javaapi.core.CoreDsl.exec;
-import static io.gatling.javaapi.core.CoreDsl.repeat;
-import static io.gatling.javaapi.core.CoreDsl.scenario;
-import static io.gatling.javaapi.http.HttpDsl.http;
-import static org.hisp.dhis.test.analytics.TestDefinitions.BASE_URL;
-import static org.hisp.dhis.test.analytics.TestDefinitions.loginChain;
-import static org.hisp.dhis.test.analytics.TestDefinitions.simpleUsersRumpUp;
+import static org.hisp.dhis.test.analytics.TestHelper.buildScenario;
 
+import io.gatling.javaapi.core.Assertion;
 import io.gatling.javaapi.core.OpenInjectionStep;
-import io.gatling.javaapi.core.ScenarioBuilder;
+import io.gatling.javaapi.core.PopulationBuilder;
 import io.gatling.javaapi.core.Simulation;
-import io.gatling.javaapi.http.HttpProtocolBuilder;
+import java.util.List;
+import org.hisp.dhis.test.analytics.AnalyticsSimulation;
 
-public class AnalyticsEnrollmentQuery2 extends Simulation {
+public class AnalyticsEnrollmentQuery2 extends Simulation implements AnalyticsSimulation {
 
   private static final String GET_ENROLLMENT_QUERY = "GET ENROLLMENT QUERY 2";
-  public static final String URL_QUERY =
+  private static final String GET_ENROLLMENT_QUERY_API_QUERY =
       "/api/analytics/enrollments/query/WSGAb5XwJ3Y?dimension=ou:ImspTQPwCqd,ksBXh8hBmpv:GE:0,Oy1a11KynDC:GE:0,rxNjqzJ7dkK:GE:0&headers=ouname,lastupdated,ksBXh8hBmpv,Oy1a11KynDC,rxNjqzJ7dkK&totalPages=false&lastUpdated=LAST_5_YEARS&displayProperty=NAME&outputType=ENROLLMENT&pageSize=100&page=1&includeMetadataDetails=true&relativePeriodDate=2023-11-01";
 
-  public AnalyticsEnrollmentQuery2() {
-    HttpProtocolBuilder httpProtocol =
-        http.baseUrl(BASE_URL)
-            .acceptHeader("application/json")
-            .warmUp(BASE_URL + URL_QUERY)
-            .disableCaching();
+  public PopulationBuilder buildPopulation(OpenInjectionStep injectionStep) {
+    return buildScenario(GET_ENROLLMENT_QUERY, GET_ENROLLMENT_QUERY_API_QUERY)
+        .injectOpen(injectionStep);
+  }
 
-    // The scenario includes a login step and the target API call step.
-    // The scenarios are grouped, so we can assert on the target API call only (login stats are
-    // ignored).
-    ScenarioBuilder scenario =
-        scenario("Analytics enrollment query test")
-            .group("Authentication")
-            .on(exec(loginChain()))
-            .group(GET_ENROLLMENT_QUERY)
-            .on(
-                repeat(1)
-                    .on(
-                        exec(http(GET_ENROLLMENT_QUERY)
-                                .get(URL_QUERY)
-                                .basicAuth("admin", "district"))
-                            .pause(1)));
-
-    // How users should enter the scenarios.
-    OpenInjectionStep injectionStep = simpleUsersRumpUp(1, 10);
-
-    // Bringing all parts together (scenarios, injection, protocol, assertions).
-    setUp(scenario.injectOpen(injectionStep))
-        .protocols(httpProtocol)
-        .assertions(
-            details(GET_ENROLLMENT_QUERY).responseTime().percentile(95).lt(16650),
-            details(GET_ENROLLMENT_QUERY).responseTime().max().lt(16850),
-            details(GET_ENROLLMENT_QUERY).successfulRequests().percent().is(100D),
-            details(GET_ENROLLMENT_QUERY).successfulRequests().percent().is(100D));
+  public List<Assertion> buildAssertions() {
+    return List.of(
+        details(GET_ENROLLMENT_QUERY).responseTime().percentile(95).lt(16650),
+        details(GET_ENROLLMENT_QUERY).responseTime().max().lt(16850),
+        details(GET_ENROLLMENT_QUERY).successfulRequests().percent().is(100D),
+        details(GET_ENROLLMENT_QUERY).successfulRequests().percent().is(100D));
   }
 }

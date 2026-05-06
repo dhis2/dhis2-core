@@ -39,15 +39,12 @@ import static io.gatling.javaapi.http.HttpDsl.status;
 import io.gatling.javaapi.core.ChainBuilder;
 import io.gatling.javaapi.core.ClosedInjectionStep;
 import io.gatling.javaapi.core.OpenInjectionStep;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Provides the common definitions and settings used across all tests. It's the class where all
  * common settings should be defined.
  */
 public class TestDefinitions {
-  private static final Logger logger = LoggerFactory.getLogger(TestDefinitions.class);
   public static final String BASE_URL = "http://localhost:8080";
 
   public static final String USERNAME = "admin";
@@ -86,7 +83,8 @@ public class TestDefinitions {
         http("Login")
             .post("/api/auth/login")
             .header("Content-Type", "application/json")
-            .body(StringBody("{\"username\":\"admin\",\"password\":\"district\"}"))
+            .body(
+                StringBody("{\"username\":\"" + USERNAME + "\",\"password\":\"" + PASSWORD + "\"}"))
             .check(status().is(200)));
   }
 }

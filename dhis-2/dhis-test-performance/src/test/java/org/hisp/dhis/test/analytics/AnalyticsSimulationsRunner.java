@@ -27,34 +27,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.analytics.aggregate;
+package org.hisp.dhis.test.analytics;
 
-import static io.gatling.javaapi.core.CoreDsl.details;
-import static org.hisp.dhis.test.analytics.TestHelper.buildScenario;
+import static org.hisp.dhis.test.analytics.TestDefinitions.simpleUsersRumpUp;
+import static org.hisp.dhis.test.analytics.TestHelper.buildHttpProtocol;
 
 import io.gatling.javaapi.core.Assertion;
 import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.PopulationBuilder;
 import io.gatling.javaapi.core.Simulation;
+import java.util.ArrayList;
 import java.util.List;
-import org.hisp.dhis.test.analytics.AnalyticsSimulation;
+import org.hisp.dhis.test.analytics.aggregate.AnalyticsAggregate1;
+import org.hisp.dhis.test.analytics.enrollment.query.AnalyticsEnrollmentQuery1;
+import org.hisp.dhis.test.analytics.enrollment.query.AnalyticsEnrollmentQuery2;
 
-public class AnalyticsAggregate1 extends Simulation implements AnalyticsSimulation {
+public class AnalyticsSimulationsRunner extends Simulation {
+  public AnalyticsSimulationsRunner() {
+    // How users should enter the scenarios.
+    OpenInjectionStep defaultInjectionStep = simpleUsersRumpUp(1, 10);
 
-  private static final String GET_AGGREGATED_ANALYTICS = "GET AGGREGATED ANALYTICS";
-  private static final String GET_AGGREGATED_ANALYTICS_API_QUERY =
-      "/api/analytics?dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS;&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2026-04-30";
+    // Simulations.
+    AnalyticsSimulation analyticsAggregate1 = new AnalyticsAggregate1();
+    AnalyticsSimulation analyticsEnrollmentQuery1 = new AnalyticsEnrollmentQuery1();
+    AnalyticsSimulation analyticsEnrollmentQuery2 = new AnalyticsEnrollmentQuery2();
 
-  public PopulationBuilder buildPopulation(OpenInjectionStep injectionStep) {
-    return buildScenario(GET_AGGREGATED_ANALYTICS, GET_AGGREGATED_ANALYTICS_API_QUERY)
-        .injectOpen(injectionStep);
-  }
+    // Scenarios.
+    List<PopulationBuilder> scenarios = new ArrayList<>();
+    scenarios.add(analyticsAggregate1.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsEnrollmentQuery1.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsEnrollmentQuery2.buildPopulation(defaultInjectionStep));
 
-  public List<Assertion> buildAssertions() {
-    return List.of(
-        details(GET_AGGREGATED_ANALYTICS).responseTime().percentile(95).lt(380),
-        details(GET_AGGREGATED_ANALYTICS).responseTime().max().lt(400),
-        details(GET_AGGREGATED_ANALYTICS).successfulRequests().percent().is(100D),
-        details(GET_AGGREGATED_ANALYTICS).successfulRequests().percent().is(100D));
+    // Assertions.
+    List<Assertion> assertions = new ArrayList<>();
+    assertions.addAll(analyticsAggregate1.buildAssertions());
+    assertions.addAll(analyticsEnrollmentQuery1.buildAssertions());
+    assertions.addAll(analyticsEnrollmentQuery2.buildAssertions());
+
+    // Execute and assert all scenarios.
+    SetUp setUp = setUp(scenarios);
+    setUp.protocols(buildHttpProtocol("/api/ping")).assertions(assertions);
   }
 }

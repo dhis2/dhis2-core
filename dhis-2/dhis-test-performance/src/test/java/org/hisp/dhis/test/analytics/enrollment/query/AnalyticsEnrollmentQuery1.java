@@ -30,58 +30,31 @@
 package org.hisp.dhis.test.analytics.enrollment.query;
 
 import static io.gatling.javaapi.core.CoreDsl.details;
-import static io.gatling.javaapi.core.CoreDsl.exec;
-import static io.gatling.javaapi.core.CoreDsl.repeat;
-import static io.gatling.javaapi.core.CoreDsl.scenario;
-import static io.gatling.javaapi.http.HttpDsl.http;
-import static org.hisp.dhis.test.analytics.TestDefinitions.BASE_URL;
-import static org.hisp.dhis.test.analytics.TestDefinitions.loginChain;
-import static org.hisp.dhis.test.analytics.TestDefinitions.simpleUsersRumpUp;
+import static org.hisp.dhis.test.analytics.TestHelper.buildScenario;
 
+import io.gatling.javaapi.core.Assertion;
 import io.gatling.javaapi.core.OpenInjectionStep;
-import io.gatling.javaapi.core.ScenarioBuilder;
+import io.gatling.javaapi.core.PopulationBuilder;
 import io.gatling.javaapi.core.Simulation;
-import io.gatling.javaapi.http.HttpProtocolBuilder;
+import java.util.List;
+import org.hisp.dhis.test.analytics.AnalyticsSimulation;
 
-public class AnalyticsEnrollmentQuery1 extends Simulation {
+public class AnalyticsEnrollmentQuery1 extends Simulation implements AnalyticsSimulation {
 
   private static final String GET_ENROLLMENT_QUERY = "GET ENROLLMENT QUERY 1";
-  public static final String URL_QUERY =
+  private static final String GET_ENROLLMENT_QUERY_API_QUERY =
       "/api/analytics/enrollments/query/ur1Edk5Oe2n?dimension=ou:O6uvpzGd5pu,J5jldMd8OHv,w75KJ2mc4zz,cejWyOfXge6:IN:Female,GUOBQt5K2WI:LIKE:Cape,ZkbAXlQUYJG.U5ubm6PPYrM,lZGmxYbs97q,OvY4VVhSDeJ:LE:45:NE:NV:!EQ:44&headers=ouname,J5jldMd8OHv,w75KJ2mc4zz,cejWyOfXge6,GUOBQt5K2WI,ZkbAXlQUYJG.U5ubm6PPYrM,lZGmxYbs97q,OvY4VVhSDeJ,lastupdated,createdbydisplayname,lastupdatedbydisplayname,enrollmentdate,programstatus&totalPages=false&rowContext=true&lastUpdated=LAST_10_YEARS&programStatus=ACTIVE&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=ENROLLMENT&asc=OvY4VVhSDeJ&relativePeriodDate=2022-07-01";
 
-  public AnalyticsEnrollmentQuery1() {
-    HttpProtocolBuilder httpProtocol =
-        http.baseUrl(BASE_URL)
-            .acceptHeader("application/json")
-            .warmUp(BASE_URL + URL_QUERY)
-            .disableCaching();
+  public PopulationBuilder buildPopulation(OpenInjectionStep injectionStep) {
+    return buildScenario(GET_ENROLLMENT_QUERY, GET_ENROLLMENT_QUERY_API_QUERY)
+        .injectOpen(injectionStep);
+  }
 
-    // The scenario includes a login step and the target API call step.
-    // The scenarios are grouped, so we can assert on the target API call only (login stats are
-    // ignored).
-    ScenarioBuilder scenario =
-        scenario("Analytics enrollment query test")
-            .group("Authentication")
-            .on(exec(loginChain()))
-            .group(GET_ENROLLMENT_QUERY)
-            .on(
-                repeat(1)
-                    .on(
-                        exec(http(GET_ENROLLMENT_QUERY)
-                                .get(URL_QUERY)
-                                .basicAuth("admin", "district"))
-                            .pause(1)));
-
-    // How users should enter the scenarios.
-    OpenInjectionStep injectionStep = simpleUsersRumpUp(1, 10);
-
-    // Bringing all parts together (scenarios, injection, protocol, assertions).
-    setUp(scenario.injectOpen(injectionStep))
-        .protocols(httpProtocol)
-        .assertions(
-            details(GET_ENROLLMENT_QUERY).responseTime().percentile(95).lt(140),
-            details(GET_ENROLLMENT_QUERY).responseTime().max().lt(200),
-            details(GET_ENROLLMENT_QUERY).successfulRequests().percent().is(100D),
-            details(GET_ENROLLMENT_QUERY).successfulRequests().percent().is(100D));
+  public List<Assertion> buildAssertions() {
+    return List.of(
+        details(GET_ENROLLMENT_QUERY).responseTime().percentile(95).lt(140),
+        details(GET_ENROLLMENT_QUERY).responseTime().max().lt(200),
+        details(GET_ENROLLMENT_QUERY).successfulRequests().percent().is(100D),
+        details(GET_ENROLLMENT_QUERY).successfulRequests().percent().is(100D));
   }
 }

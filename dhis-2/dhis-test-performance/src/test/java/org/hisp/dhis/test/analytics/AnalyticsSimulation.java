@@ -27,34 +27,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.test.analytics.aggregate;
-
-import static io.gatling.javaapi.core.CoreDsl.details;
-import static org.hisp.dhis.test.analytics.TestHelper.buildScenario;
+package org.hisp.dhis.test.analytics;
 
 import io.gatling.javaapi.core.Assertion;
 import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.PopulationBuilder;
-import io.gatling.javaapi.core.Simulation;
 import java.util.List;
-import org.hisp.dhis.test.analytics.AnalyticsSimulation;
 
-public class AnalyticsAggregate1 extends Simulation implements AnalyticsSimulation {
+public interface AnalyticsSimulation {
+  PopulationBuilder buildPopulation(OpenInjectionStep injectionStep);
 
-  private static final String GET_AGGREGATED_ANALYTICS = "GET AGGREGATED ANALYTICS";
-  private static final String GET_AGGREGATED_ANALYTICS_API_QUERY =
-      "/api/analytics?dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS;&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2026-04-30";
-
-  public PopulationBuilder buildPopulation(OpenInjectionStep injectionStep) {
-    return buildScenario(GET_AGGREGATED_ANALYTICS, GET_AGGREGATED_ANALYTICS_API_QUERY)
-        .injectOpen(injectionStep);
-  }
-
-  public List<Assertion> buildAssertions() {
-    return List.of(
-        details(GET_AGGREGATED_ANALYTICS).responseTime().percentile(95).lt(380),
-        details(GET_AGGREGATED_ANALYTICS).responseTime().max().lt(400),
-        details(GET_AGGREGATED_ANALYTICS).successfulRequests().percent().is(100D),
-        details(GET_AGGREGATED_ANALYTICS).successfulRequests().percent().is(100D));
-  }
+  List<Assertion> buildAssertions();
 }
