@@ -176,7 +176,9 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     String valueCteAlias = valueCte.getAlias(); // Get the generated alias
 
     // Assert directly on the mainCteSql string
-    assertTrue(mainCteSql.startsWith("select subax.enrollment, "), "Main CTE SQL start check");
+    assertTrue(
+        mainCteSql.startsWith("select subax.enrollment as enrollment, "),
+        "Main CTE SQL start check");
     // Check aggregation function (assuming SUM based on default non-custom type)
     assertTrue(
         mainCteSql.contains("sum(" + valueCteAlias + ".value)"),
@@ -243,7 +245,9 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     String mainCteSql = mainPiCte.getCteDefinition(); // Get SQL directly from definition
     String filterCteAlias = filterCte.getAlias();
 
-    assertTrue(mainCteSql.startsWith("select subax.enrollment, "), "Main CTE SQL start check");
+    assertTrue(
+        mainCteSql.startsWith("select subax.enrollment as enrollment, "),
+        "Main CTE SQL start check");
     assertTrue(
         mainCteSql.contains("avg(1)"),
         "Main CTE SQL expression check"); // Simple expression used, assuming SUM default
@@ -327,7 +331,9 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     String createdAlias = createdCte.getAlias();
     String scheduledAlias = scheduledCte.getAlias();
 
-    assertTrue(mainCteSql.startsWith("select subax.enrollment, "), "Main CTE SQL start check");
+    assertTrue(
+        mainCteSql.startsWith("select subax.enrollment as enrollment, "),
+        "Main CTE SQL start check");
     assertTrue(mainCteSql.contains("avg(1)"), "Main CTE SQL expression check"); // Simple expression
     assertTrue(
         mainCteSql.contains(" from " + enrollmentTable + " as " + subax),
@@ -392,7 +398,9 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     String valueAlias = valueCte.getAlias();
     String filterAlias = filterCte.getAlias();
 
-    assertTrue(mainCteSql.startsWith("select subax.enrollment, "), "Main CTE SQL start check");
+    assertTrue(
+        mainCteSql.startsWith("select subax.enrollment as enrollment, "),
+        "Main CTE SQL start check");
     assertTrue(
         mainCteSql.contains("avg(" + valueAlias + ".value)"),
         "Main CTE SQL expression check"); // Expression uses value alias
@@ -456,7 +464,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
 
     String expectedMainSql =
         String.format(
-            "select subax.enrollment, avg(%s.value + %s.value) as value "
+            "select subax.enrollment as enrollment, avg(%s.value + %s.value) as value "
                 + "from %s as subax "
                 + "left join %s %s on %s.enrollment = subax.enrollment and %s.rn = 1 "
                 + " "
@@ -509,7 +517,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
 
     String expectedMainSql =
         String.format(
-            "select subax.enrollment, avg(1) as value "
+            "select subax.enrollment as enrollment, avg(1) as value "
                 + "from %s as subax "
                 + "inner join %s %s on %s.enrollment = subax.enrollment "
                 + // The one inner join
@@ -564,7 +572,9 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     assertNotNull(mainPiCte, "Main PI CTE Definition should not be null");
     String mainCteSql = mainPiCte.getCteDefinition();
 
-    assertTrue(mainCteSql.startsWith("select subax.enrollment, "), "Main CTE SQL start check");
+    assertTrue(
+        mainCteSql.startsWith("select subax.enrollment as enrollment, "),
+        "Main CTE SQL start check");
     assertTrue(
         mainCteSql.contains("avg(100)"),
         "Main CTE SQL expression check"); // Assuming SUM default agg type

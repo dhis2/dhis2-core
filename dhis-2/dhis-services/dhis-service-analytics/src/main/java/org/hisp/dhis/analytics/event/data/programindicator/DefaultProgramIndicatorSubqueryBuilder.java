@@ -393,7 +393,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     }
     if (endpointItem == EndpointItem.ENROLLMENT) {
       return String.format(
-          "select %s.enrollment, %s(%s) as value from %s as %s %s group by %s.enrollment",
+          "select %s.enrollment as enrollment, %s(%s) as value from %s as %s %s group by %s.enrollment",
           SUBQUERY_TABLE_ALIAS,
           function,
           finalProcessedExpressionSql,
