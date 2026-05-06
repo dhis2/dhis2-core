@@ -41,7 +41,6 @@ import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.substringBefore;
 import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AnalyticsConstants.DATE_PERIOD_STRUCT_ALIAS;
@@ -333,8 +332,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   List<String> removeAliases(List<String> columns) {
     return columns.stream()
-            .map(c -> c.replaceAll("\\s+as\\s+\"?([a-zA-Z0-9_]+)\"?+$", ""))
-            .toList();
+        .map(c -> c.replaceAll("\\s+as\\s+\"?([a-zA-Z0-9_]+)\"?+$", ""))
+        .toList();
   }
 
   /**

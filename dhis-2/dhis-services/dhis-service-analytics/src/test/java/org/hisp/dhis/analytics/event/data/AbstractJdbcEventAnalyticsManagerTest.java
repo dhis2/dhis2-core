@@ -950,13 +950,13 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   void testRemoveAliases() {
     // Given
     List<String> columnsWithAliases =
-            List.of(
-                    "columnA as cA",
-                    "columnB",
-                    "columnC as cC",
-                    "cast(columnD as date)",
-                    "cast(columnE as date) as cE",
-                    "");
+        List.of(
+            "columnA as cA",
+            "columnB",
+            "columnC as cC",
+            "cast(columnD as date)",
+            "cast(columnE as date) as cE",
+            "");
 
     // When
     List<String> columnsWithNoAliases = eventSubject.removeAliases(columnsWithAliases);
