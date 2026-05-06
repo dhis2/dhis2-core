@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
-import jakarta.persistence.EntityManager;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -57,14 +56,12 @@ public class TrackedEntityPersister
 
   @Override
   protected void updateAttributes(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
       TrackedEntity te,
       UserDetails user,
       ChangeLogAccumulator changeLogs) {
-    handleTrackedEntityAttributeValues(
-        entityManager, preheat, trackerDto.getAttributes(), te, user, changeLogs);
+    handleTrackedEntityAttributeValues(preheat, trackerDto.getAttributes(), te, user, changeLogs);
   }
 
   @Override
@@ -100,7 +97,6 @@ public class TrackedEntityPersister
 
   @Override
   protected void updateDataValues(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
       TrackedEntity payloadEntity,
