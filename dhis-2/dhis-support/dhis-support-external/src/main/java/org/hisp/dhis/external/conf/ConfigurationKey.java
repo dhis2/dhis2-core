@@ -811,6 +811,8 @@ public enum ConfigurationKey {
   // in, and redirect to that URL after they are logged in.
   LOGIN_SAVED_REQUESTS_ENABLE("login.saved.requests.enable", Constants.ON, false),
 
+  USAGE_METRICS_ENDPIONT("usage.metrics.endpoint", "https://otel.dhis2.org/v1/metrics", false),
+
   // OIDC internal provider configuration for DHIS2 when Authorization Server is enabled, with
   // property: (OAUTH2_SERVER_ENABLED)
   OIDC_DHIS2_INTERNAL_CLIENT_ID("oidc.provider.dhis2.client_id", "dhis2-internal", false),

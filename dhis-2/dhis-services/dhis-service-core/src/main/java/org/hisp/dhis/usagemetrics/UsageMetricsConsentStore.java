@@ -27,43 +27,8 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.usagemetrics;
 
-import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.OpenApi;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.hisp.dhis.common.GenericStore;
 
-/**
- * @author Luciano Fiandesio
- */
-@OpenApi.Document(
-    entity = Server.class,
-    classifiers = {"team:platform", "purpose:support"})
-@Profile("!test")
-@Controller
-@Slf4j
-public class PrometheusScrapeEndpointController {
-  private static final String TEXT_FORMAT_CONTENT_TYPE = "text/plain; version=0.0.4; charset=utf-8";
-  private final PrometheusMeterRegistry prometheusRegistry;
-
-  public PrometheusScrapeEndpointController(PrometheusMeterRegistry prometheusRegistry) {
-    this.prometheusRegistry = prometheusRegistry;
-  }
-
-  @GetMapping(value = "/api/metrics", produces = TEXT_FORMAT_CONTENT_TYPE)
-  public void scrape(HttpServletResponse response) {
-    try {
-      response.setContentType(TEXT_FORMAT_CONTENT_TYPE);
-      prometheusRegistry.scrape(response.getOutputStream());
-    } catch (IOException ex) {
-      // Client disconnected during metrics scraping (common with Prometheus)
-      // Log at debug level to avoid noise - Prometheus will automatically retry
-      log.debug("Client disconnected while writing metrics: {}", ex.getMessage());
-    }
-  }
-}
+public interface UsageMetricsConsentStore extends GenericStore<UsageMetricsConsent> {}

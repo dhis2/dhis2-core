@@ -35,15 +35,19 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpSessionEvent;
 import java.util.List;
 import javax.annotation.PostConstruct;
+import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationEnrolmentException;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationException;
 import org.hisp.dhis.security.spring2fa.TwoFactorCodeSentException;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.setting.SystemSettingsProvider;
+import org.hisp.dhis.usagemetrics.UsageMetricsConsentStore;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
@@ -111,6 +115,8 @@ public class AuthenticationController {
 
   @Autowired protected ApplicationEventPublisher eventPublisher;
   @Autowired private HttpSessionEventPublisher httpSessionEventPublisher;
+  @Autowired private UsageMetricsConsentStore usageMetricsConsentStore;
+  @Autowired private AppManager appManager;
 
   private SessionAuthenticationStrategy sessionStrategy = new NullAuthenticatedSessionStrategy();
 
@@ -234,7 +240,20 @@ public class AuthenticationController {
   private String getRedirectUrl(
       Authentication authentication, HttpServletRequest request, HttpServletResponse response) {
     // Default redirect URL, let the index controller do the redirect to the start app
-    String redirectUrl = request.getContextPath() + "/";
+
+    String redirectUrl;
+    if (CurrentUserUtil.hasAnyAuthority(List.of(Authorities.ALL.toString()))
+        && usageMetricsConsentStore.getAll().isEmpty()
+        && appManager.getApp(settingsProvider.getCurrentSettings().getUsageMetricsAppName())
+            != null) {
+      redirectUrl =
+          request.getContextPath()
+              + "/"
+              + AppManager.INSTALLED_APP_PREFIX
+              + settingsProvider.getCurrentSettings().getUsageMetricsAppName();
+    } else {
+      redirectUrl = request.getContextPath() + "/";
+    }
 
     // Check enforce verified email, redirect to the profile page if email is not verified
     boolean enforceVerifiedEmail = settingsProvider.getCurrentSettings().getEnforceVerifiedEmail();

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,43 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.usagemetrics;
 
-import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.OpenApi;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Getter;
+import lombok.Setter;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.MetadataObject;
 
-/**
- * @author Luciano Fiandesio
- */
-@OpenApi.Document(
-    entity = Server.class,
-    classifiers = {"team:platform", "purpose:support"})
-@Profile("!test")
-@Controller
-@Slf4j
-public class PrometheusScrapeEndpointController {
-  private static final String TEXT_FORMAT_CONTENT_TYPE = "text/plain; version=0.0.4; charset=utf-8";
-  private final PrometheusMeterRegistry prometheusRegistry;
+@Getter
+@Setter
+@JsonIgnoreProperties({"favorite", "favorites", "sharing", "attributeValues"})
+public class UsageMetricsConsent extends BaseIdentifiableObject implements MetadataObject {
+  @Setter protected long id = 1;
 
-  public PrometheusScrapeEndpointController(PrometheusMeterRegistry prometheusRegistry) {
-    this.prometheusRegistry = prometheusRegistry;
-  }
+  private String dbSystemIdentifier;
 
-  @GetMapping(value = "/api/metrics", produces = TEXT_FORMAT_CONTENT_TYPE)
-  public void scrape(HttpServletResponse response) {
-    try {
-      response.setContentType(TEXT_FORMAT_CONTENT_TYPE);
-      prometheusRegistry.scrape(response.getOutputStream());
-    } catch (IOException ex) {
-      // Client disconnected during metrics scraping (common with Prometheus)
-      // Log at debug level to avoid noise - Prometheus will automatically retry
-      log.debug("Client disconnected while writing metrics: {}", ex.getMessage());
-    }
-  }
+  @JsonProperty(required = true)
+  private boolean consent;
 }

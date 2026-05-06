@@ -719,6 +719,10 @@ public non-sealed interface SystemSettings extends Settings {
     return asBoolean("globalShellEnabled", true);
   }
 
+  default String getUsageMetricsAppName() {
+    return asString("usageMetricsAppName", "usage-metrics");
+  }
+
   /**
    * @return true if email verification is enforced for all users.
    */
