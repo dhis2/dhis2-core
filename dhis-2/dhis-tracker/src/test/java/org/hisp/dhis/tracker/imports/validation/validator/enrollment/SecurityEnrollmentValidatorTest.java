@@ -34,7 +34,11 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1091;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1104;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
@@ -69,6 +73,7 @@ import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -313,6 +318,90 @@ class SecurityEnrollmentValidatorTest extends TrackerTestBase {
     validator.validate(reporter, bundle, enrollment);
 
     assertHasError(reporter, enrollment, E1104);
+  }
+
+  @Test
+  void shouldPassDatabaseAocToCanUpdateWhenPayloadOmitsAoc() {
+    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
+        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+            .enrollment(UID.generate())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntity(TE_ID)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .build();
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.UPDATE);
+    CategoryOptionCombo dbAoc = createCategoryOptionCombo('A');
+    Enrollment dbEnrollment = getEnrollment(enrollment.getEnrollment());
+    dbEnrollment.setAttributeOptionCombo(dbAoc);
+    when(preheat.getEnrollment(enrollment.getEnrollment())).thenReturn(dbEnrollment);
+    doReturn(List.of())
+        .when(trackerAccessManager)
+        .canUpdate(any(UserDetails.class), any(Enrollment.class), any(OrganisationUnit.class));
+
+    validator.validate(reporter, bundle, enrollment);
+
+    ArgumentCaptor<Enrollment> captor = ArgumentCaptor.forClass(Enrollment.class);
+    verify(trackerAccessManager)
+        .canUpdate(any(UserDetails.class), captor.capture(), any(OrganisationUnit.class));
+    assertEquals(dbAoc, captor.getValue().getAttributeOptionCombo());
+  }
+
+  @Test
+  void shouldPassPayloadAocToCanUpdateWhenPayloadSpecifiesAoc() {
+    CategoryOptionCombo payloadAoc = createCategoryOptionCombo('B');
+    MetadataIdentifier aocId = MetadataIdentifier.ofUid(payloadAoc.getUid());
+    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
+        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+            .enrollment(UID.generate())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntity(TE_ID)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .attributeOptionCombo(aocId)
+            .build();
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.UPDATE);
+    CategoryOptionCombo dbAoc = createCategoryOptionCombo('A');
+    Enrollment dbEnrollment = getEnrollment(enrollment.getEnrollment());
+    dbEnrollment.setAttributeOptionCombo(dbAoc);
+    when(preheat.getEnrollment(enrollment.getEnrollment())).thenReturn(dbEnrollment);
+    when(preheat.getCategoryOptionCombo(aocId)).thenReturn(payloadAoc);
+    doReturn(List.of())
+        .when(trackerAccessManager)
+        .canUpdate(any(UserDetails.class), any(Enrollment.class), any(OrganisationUnit.class));
+
+    validator.validate(reporter, bundle, enrollment);
+
+    ArgumentCaptor<Enrollment> captor = ArgumentCaptor.forClass(Enrollment.class);
+    verify(trackerAccessManager)
+        .canUpdate(any(UserDetails.class), captor.capture(), any(OrganisationUnit.class));
+    assertEquals(payloadAoc, captor.getValue().getAttributeOptionCombo());
+  }
+
+  @Test
+  void shouldPassDatabaseAocToCanDeleteRegardlessOfPayloadAoc() {
+    CategoryOptionCombo payloadAoc = createCategoryOptionCombo('B');
+    MetadataIdentifier aocId = MetadataIdentifier.ofUid(payloadAoc.getUid());
+    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment =
+        org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
+            .enrollment(UID.generate())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .trackedEntity(TE_ID)
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .attributeOptionCombo(aocId)
+            .build();
+    when(bundle.getStrategy(enrollment)).thenReturn(TrackerImportStrategy.DELETE);
+    CategoryOptionCombo dbAoc = createCategoryOptionCombo('A');
+    Enrollment dbEnrollment = getEnrollment(enrollment.getEnrollment());
+    dbEnrollment.setAttributeOptionCombo(dbAoc);
+    when(preheat.getEnrollment(enrollment.getEnrollment())).thenReturn(dbEnrollment);
+    doReturn(List.of())
+        .when(trackerAccessManager)
+        .canDelete(any(UserDetails.class), any(Enrollment.class));
+
+    validator.validate(reporter, bundle, enrollment);
+
+    ArgumentCaptor<Enrollment> captor = ArgumentCaptor.forClass(Enrollment.class);
+    verify(trackerAccessManager).canDelete(any(UserDetails.class), captor.capture());
+    assertEquals(dbAoc, captor.getValue().getAttributeOptionCombo());
   }
 
   private TrackedEntity teWithNoEnrollments() {

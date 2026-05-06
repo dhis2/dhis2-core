@@ -39,6 +39,7 @@ import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
@@ -66,11 +67,14 @@ class SecurityEnrollmentValidator implements Validator<Enrollment> {
     } else {
       org.hisp.dhis.tracker.model.Enrollment databaseEnrollment =
           bundle.getPreheat().getEnrollment(enrollment.getEnrollment());
-      CategoryOptionCombo aoc =
-          preheat.getCategoryOptionCombo(enrollment.getAttributeOptionCombo());
-      databaseEnrollment.setAttributeOptionCombo(aoc);
 
       if (strategy.isUpdate()) {
+        MetadataIdentifier enrollmentAoc = enrollment.getAttributeOptionCombo();
+        if (enrollmentAoc != null && enrollmentAoc.isNotBlank()) {
+          CategoryOptionCombo aoc = preheat.getCategoryOptionCombo(enrollmentAoc);
+          databaseEnrollment.setAttributeOptionCombo(aoc);
+        }
+
         handleUpdate(reporter, preheat, user, databaseEnrollment, enrollment);
       } else if (strategy.isDelete()) {
         handleDelete(reporter, user, databaseEnrollment, enrollment);
