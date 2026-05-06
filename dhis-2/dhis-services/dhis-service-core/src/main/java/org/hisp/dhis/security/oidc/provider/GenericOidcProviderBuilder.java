@@ -49,6 +49,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.KeyStoreUtil;
+import org.hisp.dhis.security.oidc.SupportedJwsAlgorithms;
+import org.hisp.dhis.security.oidc.UserInfoResponseType;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.AuthenticationMethod;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
@@ -118,9 +120,12 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider {
       return null;
     }
 
-    if (clientSecret.isEmpty()) {
+    if (clientSecret != null && clientSecret.isEmpty()) {
       throw new IllegalArgumentException(providerId + " client secret is missing!");
     }
+
+    UserInfoResponseType userInfoResponseType =
+        UserInfoResponseType.fromConfig(config.get(USER_INFO_RESPONSE_TYPE));
 
     return DhisOidcClientRegistration.builder()
         .clientRegistration(buildClientRegistration(config, providerId, clientId, clientSecret))
@@ -134,6 +139,11 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider {
         .rsaPublicKey(getPublicKey(config))
         .keyId(config.get(JWT_PRIVATE_KEY_ALIAS))
         .jwkSetUrl(config.get(JWK_SET_URL))
+        .userInfoResponseType(userInfoResponseType)
+        .userInfoJwsAlgorithm(
+            userInfoResponseType == UserInfoResponseType.JWT
+                ? SupportedJwsAlgorithms.parseOrDefault(config.get(USER_INFO_JWS_ALGORITHM))
+                : null)
         .build();
   }
 
