@@ -46,9 +46,10 @@ services:
       dockerfile: Dockerfile.postgres
       args:
         POSTGRES_BASE_IMAGE: ghcr.io/baosystems/postgis:14-3.5
+        DB_DIR: "${DB_DIR:-}"
         DB_TYPE: "${DB_TYPE:-sierra-leone}"
         DB_VERSION: "${DB_VERSION:-dev}"
-    image: localhost/dhis2-postgres:14-3.5-${DB_TYPE:-sierra-leone}-${DB_VERSION:-dev}
+    image: localhost/dhis2-postgres:14-3.5-${DB_IMAGE_TAG:-sierra-leone-dev}
     cpus: 4
     mem_limit: 16gb
     shm_size: 6gb

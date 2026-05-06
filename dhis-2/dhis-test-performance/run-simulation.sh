@@ -17,11 +17,15 @@ show_usage() {
   echo "  SIMULATION_CLASS      Fully qualified Gatling Simulation class name"
   echo ""
   echo "OPTIONS:"
+  echo "  DB_DIR                Optional top-level S3 directory (default: not set)"
+  echo "                        When set, DB_TYPE can be any valid identifier"
+  echo "                        Pattern: s3://databases.dhis2.org/<dir>/<type>/<version>/dhis2-db-<type>.sql.gz"
   echo "  DB_TYPE               Database type (default: sierra-leone)"
-  echo "                        Valid values: sierra-leone, hmis"
+  echo "                        Valid values without DB_DIR: sierra-leone, hmis"
+  echo "                        Any valid identifier when DB_DIR is set"
   echo "  DB_VERSION            Database version (default: dev)"
   echo "                        Must be alphanumeric, dots, hyphens, underscores only"
-  echo "                        Pattern: s3://databases.dhis2.org/<type>/<version>/dhis2-db-<type>.sql.gz"
+  echo "                        Pattern (no DB_DIR): s3://databases.dhis2.org/<type>/<version>/dhis2-db-<type>.sql.gz"
   echo "  DHIS2_USERNAME        DHIS2 username for API authentication (default: admin)"
   echo "  DHIS2_PASSWORD        DHIS2 password for API authentication (default: district)"
   echo "  ANALYTICS_GENERATE    Generate analytics tables before running tests (default: false)"
@@ -89,6 +93,7 @@ fi
 # ENVIRONMENT SETUP
 ################################################################################
 
+DB_DIR=${DB_DIR:-""}
 DB_TYPE=${DB_TYPE:-"sierra-leone"}
 DB_VERSION=${DB_VERSION:-"dev"}
 DHIS2_USERNAME=${DHIS2_USERNAME:-"admin"}
@@ -106,17 +111,37 @@ MVN_ARGS=${MVN_ARGS:-""}
 # Track last non-warmup run directory for output summary
 LAST_RUN_DIR=""
 
-# Validate DB_TYPE (only allow sierra-leone or hmis)
-case "$DB_TYPE" in
-  sierra-leone|hmis)
-    # Valid
-    ;;
-  *)
-    echo "Error: DB_TYPE must be 'sierra-leone' or 'hmis', got: $DB_TYPE" >&2
+# Validate DB_DIR (no slashes, no special characters that could be malicious)
+# Allow only alphanumeric, dots, hyphens, and underscores
+if [ -n "$DB_DIR" ] && ! echo "$DB_DIR" | grep -qE '^[a-zA-Z0-9._-]+$'; then
+  echo "Error: DB_DIR contains invalid characters: $DB_DIR" >&2
+  echo "DB_DIR must contain only alphanumeric characters, dots, hyphens, and underscores" >&2
+  echo "Run '$0' without arguments to see usage" >&2
+  exit 1
+fi
+
+# Validate DB_TYPE: when DB_DIR is not set, only allow the standard databases
+if [ -z "$DB_DIR" ]; then
+  case "$DB_TYPE" in
+    sierra-leone|hmis)
+      # Valid
+      ;;
+    *)
+      echo "Error: DB_TYPE must be 'sierra-leone' or 'hmis' when DB_DIR is not set, got: $DB_TYPE" >&2
+      echo "Set DB_DIR to use a custom database type" >&2
+      echo "Run '$0' without arguments to see usage" >&2
+      exit 1
+      ;;
+  esac
+else
+  # When DB_DIR is set, DB_TYPE can be any valid identifier
+  if ! echo "$DB_TYPE" | grep -qE '^[a-zA-Z0-9._-]+$'; then
+    echo "Error: DB_TYPE contains invalid characters: $DB_TYPE" >&2
+    echo "DB_TYPE must contain only alphanumeric characters, dots, hyphens, and underscores" >&2
     echo "Run '$0' without arguments to see usage" >&2
     exit 1
-    ;;
-esac
+  fi
+fi
 
 # Validate DB_VERSION (no slashes, no special characters that could be malicious)
 # Allow only alphanumeric, dots, hyphens, and underscores
@@ -126,6 +151,14 @@ if ! echo "$DB_VERSION" | grep -qE '^[a-zA-Z0-9._-]+$'; then
   echo "Run '$0' without arguments to see usage" >&2
   exit 1
 fi
+
+# Compute the Docker image tag for the postgres container, incorporating DB_DIR when set
+if [ -n "$DB_DIR" ]; then
+  DB_IMAGE_TAG="${DB_DIR}-${DB_TYPE}-${DB_VERSION}"
+else
+  DB_IMAGE_TAG="${DB_TYPE}-${DB_VERSION}"
+fi
+export DB_IMAGE_TAG
 
 parse_prof_args() {
   if [ -z "$PROF_ARGS" ]; then
@@ -631,6 +664,7 @@ generate_metadata() {
     echo "# Args"
     echo "DHIS2_IMAGE=$DHIS2_IMAGE"
     echo "SIMULATION_CLASS=$SIMULATION_CLASS"
+    echo "DB_DIR=$DB_DIR"
     echo "DB_TYPE=$DB_TYPE"
     echo "DB_VERSION=$DB_VERSION"
     echo "DHIS2_USERNAME=$DHIS2_USERNAME"
