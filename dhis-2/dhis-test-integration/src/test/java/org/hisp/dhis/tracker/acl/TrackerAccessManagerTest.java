@@ -30,6 +30,7 @@
 package org.hisp.dhis.tracker.acl;
 
 import static org.hisp.dhis.security.acl.AccessStringHelper.CATEGORY_NO_DATA_SHARING_DEFAULT;
+import static org.hisp.dhis.security.acl.AccessStringHelper.CATEGORY_OPTION_DEFAULT;
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1099;
@@ -51,6 +52,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
 import org.apache.commons.lang3.time.DateUtils;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -75,6 +78,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
@@ -121,6 +125,16 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
   private TrackerEvent eventA;
 
   private TrackerEvent eventB;
+
+  private SingleEvent singleEvent;
+
+  private CategoryOption oldCatOption;
+
+  private CategoryOption newCatOption;
+
+  private CategoryOptionCombo oldAoc;
+
+  private CategoryOptionCombo newAoc;
 
   @BeforeEach
   void setUp() {
@@ -202,6 +216,51 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     eventB.setScheduledDate(DateUtils.addDays(new Date(), 10));
     eventB.setAttributeOptionCombo(coA);
     manager.save(eventB, false);
+
+    oldCatOption = createCategoryOption('M');
+    categoryService.addCategoryOption(oldCatOption);
+    oldCatOption.getSharing().setPublicAccess(CATEGORY_OPTION_DEFAULT);
+    categoryService.updateCategoryOption(oldCatOption);
+
+    newCatOption = createCategoryOption('N');
+    categoryService.addCategoryOption(newCatOption);
+    newCatOption.getSharing().setPublicAccess(CATEGORY_OPTION_DEFAULT);
+    categoryService.updateCategoryOption(newCatOption);
+
+    Category singleEventCategory = createCategory('M', oldCatOption, newCatOption);
+    categoryService.addCategory(singleEventCategory);
+
+    CategoryCombo singleEventCategoryCombo = createCategoryCombo('M', singleEventCategory);
+    categoryService.addCategoryCombo(singleEventCategoryCombo);
+
+    oldAoc = createCategoryOptionCombo(singleEventCategoryCombo, oldCatOption);
+    categoryService.addCategoryOptionCombo(oldAoc);
+    oldCatOption.getCategoryOptionCombos().add(oldAoc);
+    categoryService.updateCategoryOption(oldCatOption);
+
+    newAoc = createCategoryOptionCombo(singleEventCategoryCombo, newCatOption);
+    categoryService.addCategoryOptionCombo(newAoc);
+    newCatOption.getCategoryOptionCombos().add(newAoc);
+    categoryService.updateCategoryOption(newCatOption);
+
+    ProgramStage singleEventProgramStage = createProgramStage('C', 0);
+    manager.save(singleEventProgramStage);
+
+    Program singleEventProgram = createProgram('C', new HashSet<>(), orgUnitA);
+    singleEventProgram.setProgramType(ProgramType.WITHOUT_REGISTRATION);
+    singleEventProgramStage.setProgram(singleEventProgram);
+    singleEventProgram.getProgramStages().add(singleEventProgramStage);
+    manager.save(singleEventProgram);
+    singleEventProgram.setPublicAccess(AccessStringHelper.DATA_READ_WRITE);
+    manager.update(singleEventProgram);
+    manager.update(singleEventProgramStage);
+
+    singleEvent = new SingleEvent();
+    singleEvent.setProgramStage(singleEventProgramStage);
+    singleEvent.setOrganisationUnit(orgUnitA);
+    singleEvent.setAttributeOptionCombo(oldAoc);
+    singleEvent.setOccurredDate(new Date());
+    manager.save(singleEvent);
 
     User adminUser = getAdminUser();
     adminUser.setTeiSearchOrganisationUnits(Set.of(orgUnitA, orgUnitB));
@@ -509,6 +568,55 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
   void shouldFailToDeleteEnrollmentWhenUserLacksAccess() {
     assertEnrollmentCategoryOptionAccessFails(
         (userDetails, enrollment) -> trackerAccessManager.canDelete(userDetails, enrollment));
+  }
+
+  @Test
+  void shouldPassWhenUpdatingSingleEventWithAccessToBothOldAndNewAoc() {
+    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
+
+    assertNoErrors(trackerAccessManager.canUpdate(fromUser(user), singleEvent, orgUnitA, newAoc));
+  }
+
+  @Test
+  void shouldFailWhenUpdatingSingleEventWithAccessOnlyToNewAoc() {
+    oldCatOption.getSharing().setPublicAccess(CATEGORY_NO_DATA_SHARING_DEFAULT);
+    manager.update(oldCatOption);
+
+    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
+
+    assertHasErrorMessage(
+        trackerAccessManager.canUpdate(fromUser(user), singleEvent, orgUnitA, newAoc), E1099);
+  }
+
+  @Test
+  void shouldFailWhenUpdatingSingleEventWithAccessOnlyToOldAoc() {
+    newCatOption.getSharing().setPublicAccess(CATEGORY_NO_DATA_SHARING_DEFAULT);
+    manager.update(newCatOption);
+
+    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
+
+    assertHasErrorMessage(
+        trackerAccessManager.canUpdate(fromUser(user), singleEvent, orgUnitA, newAoc), E1099);
+  }
+
+  @Test
+  void shouldPassWhenUpdatingSingleEventWithNoAocChangeAndUserHasAccess() {
+    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
+
+    assertNoErrors(trackerAccessManager.canUpdate(fromUser(user), singleEvent, orgUnitA, oldAoc));
+  }
+
+  @Test
+  void shouldFailWhenUpdatingSingleEventWithNoAccessToEitherAoc() {
+    oldCatOption.getSharing().setPublicAccess(CATEGORY_NO_DATA_SHARING_DEFAULT);
+    manager.update(oldCatOption);
+    newCatOption.getSharing().setPublicAccess(CATEGORY_NO_DATA_SHARING_DEFAULT);
+    manager.update(newCatOption);
+
+    User user = createUserWithAuth("user1").setOrganisationUnits(Sets.newHashSet(orgUnitA));
+
+    assertHasErrors(
+        2, trackerAccessManager.canUpdate(fromUser(user), singleEvent, orgUnitA, newAoc));
   }
 
   private void assertEnrollmentCategoryOptionAccessFails(

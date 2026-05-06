@@ -345,7 +345,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<ErrorMessage> canUpdate(
-      @Nonnull UserDetails user, @Nonnull SingleEvent event, @Nonnull OrganisationUnit orgUnit) {
+      @Nonnull UserDetails user,
+      @Nonnull SingleEvent event,
+      @Nonnull OrganisationUnit orgUnit,
+      @Nonnull CategoryOptionCombo categoryOptionCombo) {
     if (user.isSuper()) {
       return List.of();
     }
@@ -353,6 +356,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     List<ErrorMessage> errors = new ArrayList<>(validateSingleEventAccess(user, event));
     if (!orgUnit.getUid().equals(event.getOrganisationUnit().getUid())) {
       checkOrgUnitInCaptureScope(errors, user, orgUnit);
+    }
+
+    if (!categoryOptionCombo.getUid().equals(event.getAttributeOptionCombo().getUid())) {
+      checkDataWriteAccessToCategoryOptionCombo(errors, user, categoryOptionCombo);
     }
 
     return errors;

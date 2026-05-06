@@ -38,7 +38,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.SingleEvent;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
@@ -67,12 +66,6 @@ class SecuritySingleEventValidator
           bundle.getPreheat().getSingleEvent(singleEvent.getUID());
 
       if (strategy.isUpdate()) {
-        MetadataIdentifier singleEventAoc = singleEvent.getAttributeOptionCombo();
-        if (singleEventAoc != null && singleEventAoc.isNotBlank()) {
-          CategoryOptionCombo aoc = bundle.getPreheat().getCategoryOptionCombo(singleEventAoc);
-          databaseSingleEvent.setAttributeOptionCombo(aoc);
-        }
-
         handleUpdate(reporter, bundle, databaseSingleEvent, singleEvent);
       } else if (strategy.isDelete()) {
         handleDelete(reporter, bundle, databaseSingleEvent, singleEvent);
@@ -99,8 +92,13 @@ class SecuritySingleEventValidator
     OrganisationUnit orgUnit =
         payloadOrgUnit != null ? payloadOrgUnit : databaseSingleEvent.getOrganisationUnit();
 
+    CategoryOptionCombo payloadAoc =
+        bundle.getPreheat().getCategoryOptionCombo(singleEvent.getAttributeOptionCombo());
+    CategoryOptionCombo aoc =
+        payloadAoc != null ? payloadAoc : databaseSingleEvent.getAttributeOptionCombo();
+
     trackerAccessManager
-        .canUpdate(bundle.getUser(), databaseSingleEvent, orgUnit)
+        .canUpdate(bundle.getUser(), databaseSingleEvent, orgUnit, aoc)
         .forEach(em -> reporter.addError(singleEvent, em.validationCode(), em.args().toArray()));
   }
 

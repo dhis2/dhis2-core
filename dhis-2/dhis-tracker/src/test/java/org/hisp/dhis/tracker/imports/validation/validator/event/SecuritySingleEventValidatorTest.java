@@ -148,7 +148,10 @@ class SecuritySingleEventValidatorTest extends TrackerTestBase {
     lenient()
         .when(
             trackerAccessManager.canUpdate(
-                any(UserDetails.class), any(SingleEvent.class), any(OrganisationUnit.class)))
+                any(UserDetails.class),
+                any(SingleEvent.class),
+                any(OrganisationUnit.class),
+                any(CategoryOptionCombo.class)))
         .thenReturn(
             List.of(new ErrorMessage(E1000, user.getUid(), List.of(user.getUid(), ORG_UNIT_ID))));
     lenient()
@@ -173,7 +176,10 @@ class SecuritySingleEventValidatorTest extends TrackerTestBase {
     when(preheat.getSingleEvent(event.getEvent())).thenReturn(dbSingleEvent());
     when(preheat.getOrganisationUnit(event.getOrgUnit())).thenReturn(organisationUnit);
     when(trackerAccessManager.canUpdate(
-            any(UserDetails.class), any(SingleEvent.class), any(OrganisationUnit.class)))
+            any(UserDetails.class),
+            any(SingleEvent.class),
+            any(OrganisationUnit.class),
+            any(CategoryOptionCombo.class)))
         .thenReturn(
             List.of(new ErrorMessage(E1000, user.getUid(), List.of(user.getUid(), ORG_UNIT_ID))));
 
@@ -213,7 +219,10 @@ class SecuritySingleEventValidatorTest extends TrackerTestBase {
     lenient()
         .when(
             trackerAccessManager.canUpdate(
-                any(UserDetails.class), any(SingleEvent.class), any(OrganisationUnit.class)))
+                any(UserDetails.class),
+                any(SingleEvent.class),
+                any(OrganisationUnit.class),
+                any(CategoryOptionCombo.class)))
         .thenReturn(
             List.of(new ErrorMessage(E1091, user.getUid(), List.of(user.getUid(), PROGRAM_ID))));
     lenient()
@@ -257,7 +266,10 @@ class SecuritySingleEventValidatorTest extends TrackerTestBase {
     lenient()
         .when(
             trackerAccessManager.canUpdate(
-                any(UserDetails.class), any(SingleEvent.class), any(OrganisationUnit.class)))
+                any(UserDetails.class),
+                any(SingleEvent.class),
+                any(OrganisationUnit.class),
+                any(CategoryOptionCombo.class)))
         .thenReturn(
             List.of(new ErrorMessage(E1099, user.getUid(), List.of(user.getUid(), "catOptUid"))));
     lenient()
@@ -282,7 +294,10 @@ class SecuritySingleEventValidatorTest extends TrackerTestBase {
     lenient()
         .when(
             trackerAccessManager.canUpdate(
-                any(UserDetails.class), any(SingleEvent.class), any(OrganisationUnit.class)))
+                any(UserDetails.class),
+                any(SingleEvent.class),
+                any(OrganisationUnit.class),
+                any(CategoryOptionCombo.class)))
         .thenReturn(List.of());
     lenient()
         .when(trackerAccessManager.canDelete(any(UserDetails.class), any(SingleEvent.class)))
@@ -318,15 +333,23 @@ class SecuritySingleEventValidatorTest extends TrackerTestBase {
     dbEvent.setAttributeOptionCombo(dbAoc);
     when(preheat.getSingleEvent(event.getEvent())).thenReturn(dbEvent);
     when(trackerAccessManager.canUpdate(
-            any(UserDetails.class), any(SingleEvent.class), any(OrganisationUnit.class)))
+            any(UserDetails.class),
+            any(SingleEvent.class),
+            any(OrganisationUnit.class),
+            any(CategoryOptionCombo.class)))
         .thenReturn(List.of());
 
     validator.validate(reporter, bundle, event);
 
-    ArgumentCaptor<SingleEvent> captor = ArgumentCaptor.forClass(SingleEvent.class);
+    ArgumentCaptor<CategoryOptionCombo> aocCaptor =
+        ArgumentCaptor.forClass(CategoryOptionCombo.class);
     verify(trackerAccessManager)
-        .canUpdate(any(UserDetails.class), captor.capture(), any(OrganisationUnit.class));
-    assertEquals(dbAoc, captor.getValue().getAttributeOptionCombo());
+        .canUpdate(
+            any(UserDetails.class),
+            any(SingleEvent.class),
+            any(OrganisationUnit.class),
+            aocCaptor.capture());
+    assertEquals(dbAoc, aocCaptor.getValue());
   }
 
   @Test
@@ -348,15 +371,23 @@ class SecuritySingleEventValidatorTest extends TrackerTestBase {
     when(preheat.getSingleEvent(event.getEvent())).thenReturn(dbEvent);
     when(preheat.getCategoryOptionCombo(aocId)).thenReturn(payloadAoc);
     when(trackerAccessManager.canUpdate(
-            any(UserDetails.class), any(SingleEvent.class), any(OrganisationUnit.class)))
+            any(UserDetails.class),
+            any(SingleEvent.class),
+            any(OrganisationUnit.class),
+            any(CategoryOptionCombo.class)))
         .thenReturn(List.of());
 
     validator.validate(reporter, bundle, event);
 
-    ArgumentCaptor<SingleEvent> captor = ArgumentCaptor.forClass(SingleEvent.class);
+    ArgumentCaptor<CategoryOptionCombo> aocCaptor =
+        ArgumentCaptor.forClass(CategoryOptionCombo.class);
     verify(trackerAccessManager)
-        .canUpdate(any(UserDetails.class), captor.capture(), any(OrganisationUnit.class));
-    assertEquals(payloadAoc, captor.getValue().getAttributeOptionCombo());
+        .canUpdate(
+            any(UserDetails.class),
+            any(SingleEvent.class),
+            any(OrganisationUnit.class),
+            aocCaptor.capture());
+    assertEquals(payloadAoc, aocCaptor.getValue());
   }
 
   @Test
@@ -399,6 +430,7 @@ class SecuritySingleEventValidatorTest extends TrackerTestBase {
   private SingleEvent dbSingleEvent() {
     SingleEvent event = new SingleEvent();
     event.setOrganisationUnit(organisationUnit);
+    event.setAttributeOptionCombo(createCategoryOptionCombo('Z'));
     return event;
   }
 }

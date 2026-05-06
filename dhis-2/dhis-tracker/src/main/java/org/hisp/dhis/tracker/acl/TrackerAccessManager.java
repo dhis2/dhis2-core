@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.acl;
 
 import java.util.List;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.Relationship;
@@ -147,13 +148,45 @@ public interface TrackerAccessManager {
   /** Like {@link #canCreate(UserDetails, TrackerEvent)}. */
   List<ErrorMessage> canDelete(UserDetails user, TrackerEvent event);
 
+  /**
+   * Checks org unit scope access, data read access to the program, and data read access to the
+   * category option combo.
+   *
+   * @return No errors if the user has org unit scope access, data read access to the program, and
+   *     data read access to the category option combo.
+   */
   List<ErrorMessage> canRead(UserDetails user, SingleEvent event);
 
+  /**
+   * Checks capture scope access, data write access to the program, and data write access to the
+   * category option combo.
+   *
+   * @return No errors if the user has all required access rights to create the event.
+   */
   List<ErrorMessage> canCreate(UserDetails user, SingleEvent event);
 
+  /**
+   * Checks capture scope access, data write access to the program, and data write access to the
+   * stored event's category option combo. When {@code orgUnit} differs from the stored event's org
+   * unit, capture scope access to it is also required. When {@code categoryOptionCombo} differs
+   * from the stored event's category option combo, data write access to it is also required.
+   *
+   * @param user the user whose access is being validated.
+   * @param event the stored event to update.
+   * @param orgUnit the org unit the caller intends to move the entity to; if no org unit change is
+   *     intended, pass the entity's existing org unit.
+   * @param categoryOptionCombo the category option combo the caller intends to set on the event; if
+   *     no category option combo change is intended, pass the entity's existing category option
+   *     combo.
+   * @return No errors if the user has all required access rights to update the event.
+   */
   List<ErrorMessage> canUpdate(
-      @Nonnull UserDetails user, SingleEvent event, @Nonnull OrganisationUnit orgUnit);
+      @Nonnull UserDetails user,
+      SingleEvent event,
+      @Nonnull OrganisationUnit orgUnit,
+      @Nonnull CategoryOptionCombo categoryOptionCombo);
 
+  /** Like {@link #canCreate(UserDetails, SingleEvent)}. */
   List<ErrorMessage> canDelete(@Nonnull UserDetails user, SingleEvent event);
 
   List<String> canRead(UserDetails user, Relationship relationship);
