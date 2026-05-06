@@ -9,7 +9,7 @@ on:
   pull_request:
     types: [opened, labeled, synchronize]
   schedule:
-    - cron: "36 1 * * *" # Run at 01:36 AM
+    - cron: "26 1 * * *" # Run at 01:36 AM
   workflow_dispatch:
     inputs:
       maven_log:
