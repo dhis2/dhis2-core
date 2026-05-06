@@ -30,56 +30,29 @@
 package org.hisp.dhis.test.analytics.event.query;
 
 import static io.gatling.javaapi.core.CoreDsl.details;
-import static io.gatling.javaapi.core.CoreDsl.exec;
-import static io.gatling.javaapi.core.CoreDsl.repeat;
-import static io.gatling.javaapi.core.CoreDsl.scenario;
-import static io.gatling.javaapi.http.HttpDsl.http;
-import static org.hisp.dhis.test.analytics.TestDefinitions.BASE_URL;
-import static org.hisp.dhis.test.analytics.TestDefinitions.loginChain;
-import static org.hisp.dhis.test.analytics.TestDefinitions.simpleUsersRumpUp;
+import static org.hisp.dhis.test.analytics.TestHelper.buildScenario;
 
+import io.gatling.javaapi.core.Assertion;
 import io.gatling.javaapi.core.OpenInjectionStep;
-import io.gatling.javaapi.core.ScenarioBuilder;
+import io.gatling.javaapi.core.PopulationBuilder;
 import io.gatling.javaapi.core.Simulation;
-import io.gatling.javaapi.http.HttpProtocolBuilder;
+import java.util.List;
 
 public class AnalyticsEventQuery3 extends Simulation {
 
-  private static final String GET_EVENT_QUERY = "GET EVENT QUERY 3";
-  public static final String URL_QUERY =
+  private static final String GET_QUERY = "GET EVENT QUERY 3";
+  private static final String GET_QUERY_API =
       "/api/analytics/events/query/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT&dimension=A03MvHHogjR.UXz7xuGCEhU&dimension=p2Zxg0wcPQ3&dimension=cejWyOfXge6&outputType=EVENT&stage=A03MvHHogjR&enrollmentDate=THIS_MONTH&programStatus=ACTIVE,COMPLETED&eventDate=LAST_MONTH,LAST_12_MONTHS&eventStatus=SCHEDULE&lastUpdated=LAST_12_MONTHS,LAST_5_YEARS,LAST_10_YEARS&headers=ouname,A03MvHHogjR.UXz7xuGCEhU,enrollmentdate,scheduleddate,incidentdate,programstatus,eventdate,eventstatus,p2Zxg0wcPQ3,lastupdated,cejWyOfXge6&paging=false&outputIdScheme=CODE&relativePeriodDate=2022-07-01";
 
-  public AnalyticsEventQuery3() {
-    HttpProtocolBuilder httpProtocol =
-        http.baseUrl(BASE_URL)
-            .acceptHeader("application/json")
-            .warmUp(BASE_URL + URL_QUERY)
-            .disableCaching();
+  public PopulationBuilder buildPopulation(OpenInjectionStep injectionStep) {
+    return buildScenario(GET_QUERY, GET_QUERY_API).injectOpen(injectionStep);
+  }
 
-    // The scenario includes a login step and the target API call step.
-    // The scenarios are grouped, so we can assert on the target API call only (login stats are
-    // ignored).
-    ScenarioBuilder scenario =
-        scenario("Analytics event query test")
-            .group("Authentication")
-            .on(exec(loginChain()))
-            .group(GET_EVENT_QUERY)
-            .on(
-                repeat(1)
-                    .on(
-                        exec(http(GET_EVENT_QUERY).get(URL_QUERY).basicAuth("admin", "district"))
-                            .pause(1)));
-
-    // How users should enter the scenarios.
-    OpenInjectionStep injectionStep = simpleUsersRumpUp(1, 10);
-
-    // Bringing all parts together (scenarios, injection, protocol, assertions).
-    setUp(scenario.injectOpen(injectionStep))
-        .protocols(httpProtocol)
-        .assertions(
-            details(GET_EVENT_QUERY).responseTime().percentile(95).lt(150),
-            details(GET_EVENT_QUERY).responseTime().max().lt(230),
-            details(GET_EVENT_QUERY).successfulRequests().percent().is(100D),
-            details(GET_EVENT_QUERY).successfulRequests().percent().is(100D));
+  public List<Assertion> buildAssertions() {
+    return List.of(
+        details(GET_QUERY).responseTime().percentile(95).lt(150),
+        details(GET_QUERY).responseTime().max().lt(230),
+        details(GET_QUERY).successfulRequests().percent().is(100D),
+        details(GET_QUERY).successfulRequests().percent().is(100D));
   }
 }

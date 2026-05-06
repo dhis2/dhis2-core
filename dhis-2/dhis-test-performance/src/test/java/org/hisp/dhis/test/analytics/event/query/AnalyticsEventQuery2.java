@@ -30,56 +30,29 @@
 package org.hisp.dhis.test.analytics.event.query;
 
 import static io.gatling.javaapi.core.CoreDsl.details;
-import static io.gatling.javaapi.core.CoreDsl.exec;
-import static io.gatling.javaapi.core.CoreDsl.repeat;
-import static io.gatling.javaapi.core.CoreDsl.scenario;
-import static io.gatling.javaapi.http.HttpDsl.http;
-import static org.hisp.dhis.test.analytics.TestDefinitions.BASE_URL;
-import static org.hisp.dhis.test.analytics.TestDefinitions.loginChain;
-import static org.hisp.dhis.test.analytics.TestDefinitions.simpleUsersRumpUp;
+import static org.hisp.dhis.test.analytics.TestHelper.buildScenario;
 
+import io.gatling.javaapi.core.Assertion;
 import io.gatling.javaapi.core.OpenInjectionStep;
-import io.gatling.javaapi.core.ScenarioBuilder;
+import io.gatling.javaapi.core.PopulationBuilder;
 import io.gatling.javaapi.core.Simulation;
-import io.gatling.javaapi.http.HttpProtocolBuilder;
+import java.util.List;
 
 public class AnalyticsEventQuery2 extends Simulation {
 
-  private static final String GET_EVENT_QUERY = "GET EVENT QUERY 2";
-  public static final String URL_QUERY =
+  private static final String GET_QUERY = "GET EVENT QUERY 2";
+  private static final String GET_QUERY_API =
       "/api/analytics/events/query/eBAyeGv0exc.json?dimension=ou:O6uvpzGd5pu,eMyVanycQSC,qrur9Dvnyt5-Yf6UHoPkdS6:IN:TvM2MQgD7Jd,tUdBD1JDxpn:GT:21,sGna2pquXOO,Kswd1r4qWLh,gWxh7DiRmG7,x7PaHGvgWY2:GT:20,XCMi7Wvnplm:GE:22,hlPt8H4bUOQ,Thkx2BnO5Kq,Y7hKDSuqEtH,K6uUAvq500H:IN:D303,msodh3rEMJa,oZg33kd9taw,GieVkTxp4HH-TBxGTceyzwy:IN:wgbW2ZQnlIc,HS8QXAJtuKV,fWIAEtYVEGk,SWfdB5lX0fk,vV9UWAZohSf-OrkEzxZEH4X&headers=eventdate,ouname,eMyVanycQSC,qrur9Dvnyt5,tUdBD1JDxpn,sGna2pquXOO,Kswd1r4qWLh,gWxh7DiRmG7,x7PaHGvgWY2,XCMi7Wvnplm,hlPt8H4bUOQ,Thkx2BnO5Kq,Y7hKDSuqEtH,K6uUAvq500H,msodh3rEMJa,oZg33kd9taw,GieVkTxp4HH,HS8QXAJtuKV,fWIAEtYVEGk,SWfdB5lX0fk,vV9UWAZohSf&totalPages=false&eventDate=THIS_YEAR&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&outputType=EVENT&stage=Zj7UnCAulEk&relativePeriodDate=2022-07-01";
 
-  public AnalyticsEventQuery2() {
-    HttpProtocolBuilder httpProtocol =
-        http.baseUrl(BASE_URL)
-            .acceptHeader("application/json")
-            .warmUp(BASE_URL + URL_QUERY)
-            .disableCaching();
+  public PopulationBuilder buildPopulation(OpenInjectionStep injectionStep) {
+    return buildScenario(GET_QUERY, GET_QUERY_API).injectOpen(injectionStep);
+  }
 
-    // The scenario includes a login step and the target API call step.
-    // The scenarios are grouped, so we can assert on the target API call only (login stats are
-    // ignored).
-    ScenarioBuilder scenario =
-        scenario("Analytics event query test")
-            .group("Authentication")
-            .on(exec(loginChain()))
-            .group(GET_EVENT_QUERY)
-            .on(
-                repeat(1)
-                    .on(
-                        exec(http(GET_EVENT_QUERY).get(URL_QUERY).basicAuth("admin", "district"))
-                            .pause(1)));
-
-    // How users should enter the scenarios.
-    OpenInjectionStep injectionStep = simpleUsersRumpUp(1, 10);
-
-    // Bringing all parts together (scenarios, injection, protocol, assertions).
-    setUp(scenario.injectOpen(injectionStep))
-        .protocols(httpProtocol)
-        .assertions(
-            details(GET_EVENT_QUERY).responseTime().percentile(95).lt(240),
-            details(GET_EVENT_QUERY).responseTime().max().lt(350),
-            details(GET_EVENT_QUERY).successfulRequests().percent().is(100D),
-            details(GET_EVENT_QUERY).successfulRequests().percent().is(100D));
+  public List<Assertion> buildAssertions() {
+    return List.of(
+        details(GET_QUERY).responseTime().percentile(95).lt(240),
+        details(GET_QUERY).responseTime().max().lt(350),
+        details(GET_QUERY).successfulRequests().percent().is(100D),
+        details(GET_QUERY).successfulRequests().percent().is(100D));
   }
 }

@@ -41,20 +41,19 @@ import org.hisp.dhis.test.analytics.AnalyticsSimulation;
 
 public class AnalyticsEnrollmentQuery2 extends Simulation implements AnalyticsSimulation {
 
-  private static final String GET_ENROLLMENT_QUERY = "GET ENROLLMENT QUERY 2";
-  private static final String GET_ENROLLMENT_QUERY_API_QUERY =
+  private static final String GET_QUERY = "GET ENROLLMENT QUERY 2";
+  private static final String GET_QUERY_API =
       "/api/analytics/enrollments/query/WSGAb5XwJ3Y?dimension=ou:ImspTQPwCqd,ksBXh8hBmpv:GE:0,Oy1a11KynDC:GE:0,rxNjqzJ7dkK:GE:0&headers=ouname,lastupdated,ksBXh8hBmpv,Oy1a11KynDC,rxNjqzJ7dkK&totalPages=false&lastUpdated=LAST_5_YEARS&displayProperty=NAME&outputType=ENROLLMENT&pageSize=100&page=1&includeMetadataDetails=true&relativePeriodDate=2023-11-01";
 
   public PopulationBuilder buildPopulation(OpenInjectionStep injectionStep) {
-    return buildScenario(GET_ENROLLMENT_QUERY, GET_ENROLLMENT_QUERY_API_QUERY)
-        .injectOpen(injectionStep);
+    return buildScenario(GET_QUERY, GET_QUERY_API).injectOpen(injectionStep);
   }
 
   public List<Assertion> buildAssertions() {
     return List.of(
-        details(GET_ENROLLMENT_QUERY).responseTime().percentile(95).lt(16650),
-        details(GET_ENROLLMENT_QUERY).responseTime().max().lt(16850),
-        details(GET_ENROLLMENT_QUERY).successfulRequests().percent().is(100D),
-        details(GET_ENROLLMENT_QUERY).successfulRequests().percent().is(100D));
+        details(GET_QUERY).responseTime().percentile(95).lt(16650),
+        details(GET_QUERY).responseTime().max().lt(16850),
+        details(GET_QUERY).successfulRequests().percent().is(100D),
+        details(GET_QUERY).successfulRequests().percent().is(100D));
   }
 }
