@@ -18,11 +18,11 @@ show_usage() {
   echo ""
   echo "OPTIONS:"
   echo "  DB_DIR                Optional top-level S3 directory (default: not set)"
-  echo "                        When set, DB_TYPE can be any valid identifier"
+  echo "                        Valid values: dev"
   echo "                        Pattern: s3://databases.dhis2.org/<dir>/<type>/<version>/dhis2-db-<type>.sql.gz"
   echo "  DB_TYPE               Database type (default: sierra-leone)"
   echo "                        Valid values without DB_DIR: sierra-leone, hmis"
-  echo "                        Any valid identifier when DB_DIR is set"
+  echo "                        Valid values with DB_DIR: platform-perf"
   echo "  DB_VERSION            Database version (default: dev)"
   echo "                        Must be alphanumeric, dots, hyphens, underscores only"
   echo "                        Pattern (no DB_DIR): s3://databases.dhis2.org/<type>/<version>/dhis2-db-<type>.sql.gz"
@@ -111,17 +111,16 @@ MVN_ARGS=${MVN_ARGS:-""}
 # Track last non-warmup run directory for output summary
 LAST_RUN_DIR=""
 
-# Validate DB_DIR (no slashes, no special characters that could be malicious)
-# Allow only alphanumeric, dots, hyphens, and underscores
-if [ -n "$DB_DIR" ] && ! echo "$DB_DIR" | grep -qE '^[a-zA-Z0-9._-]+$'; then
-  echo "Error: DB_DIR contains invalid characters: $DB_DIR" >&2
-  echo "DB_DIR must contain only alphanumeric characters, dots, hyphens, and underscores" >&2
+# Validate DB_DIR: currently only 'dev' is supported
+if [ -n "$DB_DIR" ] && [ "$DB_DIR" != "dev" ]; then
+  echo "Error: DB_DIR must be 'dev', got: $DB_DIR" >&2
   echo "Run '$0' without arguments to see usage" >&2
   exit 1
 fi
 
-# Validate DB_TYPE: when DB_DIR is not set, only allow the standard databases
+# Validate DB_TYPE
 if [ -z "$DB_DIR" ]; then
+  # No DB_DIR: only standard public databases are allowed
   case "$DB_TYPE" in
     sierra-leone|hmis)
       # Valid
@@ -134,10 +133,9 @@ if [ -z "$DB_DIR" ]; then
       ;;
   esac
 else
-  # When DB_DIR is set, DB_TYPE can be any valid identifier
-  if ! echo "$DB_TYPE" | grep -qE '^[a-zA-Z0-9._-]+$'; then
-    echo "Error: DB_TYPE contains invalid characters: $DB_TYPE" >&2
-    echo "DB_TYPE must contain only alphanumeric characters, dots, hyphens, and underscores" >&2
+  # DB_DIR is set: only 'platform-perf' is supported for now
+  if [ "$DB_TYPE" != "platform-perf" ]; then
+    echo "Error: DB_TYPE must be 'platform-perf' when DB_DIR is set, got: $DB_TYPE" >&2
     echo "Run '$0' without arguments to see usage" >&2
     exit 1
   fi
