@@ -237,18 +237,18 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     item.setProgram(programA);
 
     String columnSql = subject.getColumn(item);
-
+    String programAUid = programA.getUid().toLowerCase();
     assertThat(
         columnSql,
         is(
             "(select \""
                 + dataElementA.getUid()
                 + "\" from analytics_event_"
-                + programA.getUid()
+                + programAUid
                 + " where analytics_event_"
-                + programA.getUid()
+                + programAUid
                 + ".eventstatus != 'SCHEDULE' and analytics_event_"
-                + programA.getUid()
+                + programAUid
                 + ".enrollment = ax.enrollment and \""
                 + dataElementA.getUid()
                 + "\" is not null and ps = '"
@@ -270,18 +270,18 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     item.setRepeatableStageParams(params);
 
     String columnSql = subject.getColumn(item);
-
+    String programBUid = programB.getUid().toLowerCase();
     assertThat(
         columnSql,
         is(
             "(select \""
                 + dataElementA.getUid()
                 + "\" from analytics_event_"
-                + programB.getUid()
+                + programBUid
                 + " where analytics_event_"
-                + programB.getUid()
+                + programBUid
                 + ".eventstatus != 'SCHEDULE' and analytics_event_"
-                + programB.getUid()
+                + programBUid
                 + ".enrollment = ax.enrollment and ps = '"
                 + repeatableProgramStage.getUid()
                 + "' order by occurreddate desc, created desc  limit 1 )"));
@@ -298,7 +298,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     String columnSql = subject.getCoordinateColumn(item).asSql();
 
     String colName = quote(item.getItemName());
-    String eventTableName = "analytics_event_" + item.getProgram().getUid();
+    String eventTableName = "analytics_event_" + item.getProgram().getUid().toLowerCase();
 
     assertThat(
         columnSql,
@@ -336,7 +336,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     String columnSql = subject.getCoordinateColumn(item).asSql();
 
     String colName = quote(item.getItemName());
-    String eventTableName = "analytics_event_" + item.getProgram().getUid();
+    String eventTableName = "analytics_event_" + item.getProgram().getUid().toLowerCase();
 
     assertThat(
         columnSql,

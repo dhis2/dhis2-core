@@ -159,7 +159,8 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
                 "row_number() over (partition by enrollment order by occurreddate desc) as rn"),
         "Value CTE SQL content check");
     assertTrue(
-        valueCte.getCteDefinition().contains("from " + eventTable), "Value CTE SQL content check");
+        valueCte.getCteDefinition().contains("from " + eventTable.toLowerCase()),
+        "Value CTE SQL content check");
     assertFalse(
         valueCte.getCteDefinition().contains("limit 1"),
         "Value CTE SQL should not contain LIMIT 1");
@@ -228,7 +229,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
                 + "from %s where \"eventstatus\" is not null"
                 + " ) latest "
                 + "where rn = 1 and \"eventstatus\" = 'ACTIVE'",
-            eventTable);
+            eventTable.toLowerCase());
     assertEquals(
         normalizeSql(expectedFilterSql),
         normalizeSql(filterCte.getCteDefinition()),
@@ -691,7 +692,7 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
         normalizeSql(cteSql)
             .matches(
                 ".* from "
-                    + eventTable
+                    + eventTable.toLowerCase()
                     + " where \"eventstatus\" is not null and "
                     + normalizeSql(expectedBoundarySql)
                     + ".*\\) latest where rn = 1.*"),
@@ -738,7 +739,8 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     String cteSql = valueCte.getCteDefinition();
     assertTrue(
         normalizeSql(cteSql)
-            .matches(".* from " + eventTable + " where \"occurreddate\" is not null\\s*"),
+            .matches(
+                ".* from " + eventTable.toLowerCase() + " where \"occurreddate\" is not null\\s*"),
         "Value CTE SQL should only contain base WHERE conditions, no boundaries added. SQL: "
             + cteSql);
     assertFalse(cteSql.contains(">="), "SQL should not contain '>=' from boundary");
