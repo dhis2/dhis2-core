@@ -34,11 +34,14 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1091;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1099;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -56,9 +59,11 @@ import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.test.TrackerTestBase;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -302,6 +307,83 @@ class SecuritySingleEventValidatorTest extends TrackerTestBase {
     validator.validate(reporter, bundle, event);
 
     assertIsEmpty(reporter.getErrors());
+  }
+
+  @Test
+  void shouldPassDatabaseAocToCanUpdateWhenPayloadOmitsAoc() {
+    org.hisp.dhis.tracker.imports.domain.Event event = singleEvent();
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
+    CategoryOptionCombo dbAoc = createCategoryOptionCombo('A');
+    SingleEvent dbEvent = dbSingleEvent();
+    dbEvent.setAttributeOptionCombo(dbAoc);
+    when(preheat.getSingleEvent(event.getEvent())).thenReturn(dbEvent);
+    when(trackerAccessManager.canUpdate(
+            any(UserDetails.class), any(SingleEvent.class), any(OrganisationUnit.class)))
+        .thenReturn(List.of());
+
+    validator.validate(reporter, bundle, event);
+
+    ArgumentCaptor<SingleEvent> captor = ArgumentCaptor.forClass(SingleEvent.class);
+    verify(trackerAccessManager)
+        .canUpdate(any(UserDetails.class), captor.capture(), any(OrganisationUnit.class));
+    assertEquals(dbAoc, captor.getValue().getAttributeOptionCombo());
+  }
+
+  @Test
+  void shouldPassPayloadAocToCanUpdateWhenPayloadSpecifiesAoc() {
+    CategoryOptionCombo payloadAoc = createCategoryOptionCombo('B');
+    MetadataIdentifier aocId = MetadataIdentifier.ofUid(payloadAoc.getUid());
+    org.hisp.dhis.tracker.imports.domain.Event event =
+        org.hisp.dhis.tracker.imports.domain.SingleEvent.builder()
+            .event(UID.generate())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .programStage(MetadataIdentifier.ofUid(PS_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .attributeOptionCombo(aocId)
+            .build();
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
+    CategoryOptionCombo dbAoc = createCategoryOptionCombo('A');
+    SingleEvent dbEvent = dbSingleEvent();
+    dbEvent.setAttributeOptionCombo(dbAoc);
+    when(preheat.getSingleEvent(event.getEvent())).thenReturn(dbEvent);
+    when(preheat.getCategoryOptionCombo(aocId)).thenReturn(payloadAoc);
+    when(trackerAccessManager.canUpdate(
+            any(UserDetails.class), any(SingleEvent.class), any(OrganisationUnit.class)))
+        .thenReturn(List.of());
+
+    validator.validate(reporter, bundle, event);
+
+    ArgumentCaptor<SingleEvent> captor = ArgumentCaptor.forClass(SingleEvent.class);
+    verify(trackerAccessManager)
+        .canUpdate(any(UserDetails.class), captor.capture(), any(OrganisationUnit.class));
+    assertEquals(payloadAoc, captor.getValue().getAttributeOptionCombo());
+  }
+
+  @Test
+  void shouldPassDatabaseAocToCanDeleteRegardlessOfPayloadAoc() {
+    CategoryOptionCombo payloadAoc = createCategoryOptionCombo('B');
+    MetadataIdentifier aocId = MetadataIdentifier.ofUid(payloadAoc.getUid());
+    org.hisp.dhis.tracker.imports.domain.Event event =
+        org.hisp.dhis.tracker.imports.domain.SingleEvent.builder()
+            .event(UID.generate())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .programStage(MetadataIdentifier.ofUid(PS_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .attributeOptionCombo(aocId)
+            .build();
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.DELETE);
+    CategoryOptionCombo dbAoc = createCategoryOptionCombo('A');
+    SingleEvent dbEvent = dbSingleEvent();
+    dbEvent.setAttributeOptionCombo(dbAoc);
+    when(preheat.getSingleEvent(event.getEvent())).thenReturn(dbEvent);
+    when(trackerAccessManager.canDelete(any(UserDetails.class), any(SingleEvent.class)))
+        .thenReturn(List.of());
+
+    validator.validate(reporter, bundle, event);
+
+    ArgumentCaptor<SingleEvent> captor = ArgumentCaptor.forClass(SingleEvent.class);
+    verify(trackerAccessManager).canDelete(any(UserDetails.class), captor.capture());
+    assertEquals(dbAoc, captor.getValue().getAttributeOptionCombo());
   }
 
   private org.hisp.dhis.tracker.imports.domain.Event singleEvent() {

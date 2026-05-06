@@ -38,6 +38,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.SingleEvent;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
@@ -64,11 +65,14 @@ class SecuritySingleEventValidator
     } else {
       org.hisp.dhis.tracker.model.SingleEvent databaseSingleEvent =
           bundle.getPreheat().getSingleEvent(singleEvent.getUID());
-      CategoryOptionCombo aoc =
-          bundle.getPreheat().getCategoryOptionCombo(singleEvent.getAttributeOptionCombo());
-      databaseSingleEvent.setAttributeOptionCombo(aoc);
 
       if (strategy.isUpdate()) {
+        MetadataIdentifier singleEventAoc = singleEvent.getAttributeOptionCombo();
+        if (singleEventAoc != null && singleEventAoc.isNotBlank()) {
+          CategoryOptionCombo aoc = bundle.getPreheat().getCategoryOptionCombo(singleEventAoc);
+          databaseSingleEvent.setAttributeOptionCombo(aoc);
+        }
+
         handleUpdate(reporter, bundle, databaseSingleEvent, singleEvent);
       } else if (strategy.isDelete()) {
         handleDelete(reporter, bundle, databaseSingleEvent, singleEvent);
