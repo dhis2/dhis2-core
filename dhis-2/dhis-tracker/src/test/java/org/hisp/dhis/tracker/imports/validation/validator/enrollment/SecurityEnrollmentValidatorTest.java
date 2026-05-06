@@ -336,14 +336,23 @@ class SecurityEnrollmentValidatorTest extends TrackerTestBase {
     when(preheat.getEnrollment(enrollment.getEnrollment())).thenReturn(dbEnrollment);
     doReturn(List.of())
         .when(trackerAccessManager)
-        .canUpdate(any(UserDetails.class), any(Enrollment.class), any(OrganisationUnit.class));
+        .canUpdate(
+            any(UserDetails.class),
+            any(Enrollment.class),
+            any(OrganisationUnit.class),
+            any(CategoryOptionCombo.class));
 
     validator.validate(reporter, bundle, enrollment);
 
-    ArgumentCaptor<Enrollment> captor = ArgumentCaptor.forClass(Enrollment.class);
+    ArgumentCaptor<CategoryOptionCombo> aocCaptor =
+        ArgumentCaptor.forClass(CategoryOptionCombo.class);
     verify(trackerAccessManager)
-        .canUpdate(any(UserDetails.class), captor.capture(), any(OrganisationUnit.class));
-    assertEquals(dbAoc, captor.getValue().getAttributeOptionCombo());
+        .canUpdate(
+            any(UserDetails.class),
+            any(Enrollment.class),
+            any(OrganisationUnit.class),
+            aocCaptor.capture());
+    assertEquals(dbAoc, aocCaptor.getValue());
   }
 
   @Test
@@ -366,14 +375,23 @@ class SecurityEnrollmentValidatorTest extends TrackerTestBase {
     when(preheat.getCategoryOptionCombo(aocId)).thenReturn(payloadAoc);
     doReturn(List.of())
         .when(trackerAccessManager)
-        .canUpdate(any(UserDetails.class), any(Enrollment.class), any(OrganisationUnit.class));
+        .canUpdate(
+            any(UserDetails.class),
+            any(Enrollment.class),
+            any(OrganisationUnit.class),
+            any(CategoryOptionCombo.class));
 
     validator.validate(reporter, bundle, enrollment);
 
-    ArgumentCaptor<Enrollment> captor = ArgumentCaptor.forClass(Enrollment.class);
+    ArgumentCaptor<CategoryOptionCombo> aocCaptor =
+        ArgumentCaptor.forClass(CategoryOptionCombo.class);
     verify(trackerAccessManager)
-        .canUpdate(any(UserDetails.class), captor.capture(), any(OrganisationUnit.class));
-    assertEquals(payloadAoc, captor.getValue().getAttributeOptionCombo());
+        .canUpdate(
+            any(UserDetails.class),
+            any(Enrollment.class),
+            any(OrganisationUnit.class),
+            aocCaptor.capture());
+    assertEquals(payloadAoc, aocCaptor.getValue());
   }
 
   @Test
@@ -422,6 +440,7 @@ class SecurityEnrollmentValidatorTest extends TrackerTestBase {
     enrollment.setTrackedEntity(teWithNoEnrollments());
     enrollment.setProgram(program);
     enrollment.setStatus(EnrollmentStatus.ACTIVE);
+    enrollment.setAttributeOptionCombo(createCategoryOptionCombo('Z'));
     return enrollment;
   }
 }

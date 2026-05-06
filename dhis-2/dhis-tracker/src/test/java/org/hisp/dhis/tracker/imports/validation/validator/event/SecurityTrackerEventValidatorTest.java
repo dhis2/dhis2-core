@@ -937,14 +937,23 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     when(preheat.getTrackerEvent(event.getEvent())).thenReturn(dbEvent);
     doReturn(List.of())
         .when(trackerAccessManager)
-        .canUpdate(any(UserDetails.class), any(TrackerEvent.class), any(OrganisationUnit.class));
+        .canUpdate(
+            any(UserDetails.class),
+            any(TrackerEvent.class),
+            any(OrganisationUnit.class),
+            any(CategoryOptionCombo.class));
 
     validator.validate(reporter, bundle, event);
 
-    ArgumentCaptor<TrackerEvent> captor = ArgumentCaptor.forClass(TrackerEvent.class);
+    ArgumentCaptor<CategoryOptionCombo> aocCaptor =
+        ArgumentCaptor.forClass(CategoryOptionCombo.class);
     verify(trackerAccessManager)
-        .canUpdate(any(UserDetails.class), captor.capture(), any(OrganisationUnit.class));
-    assertEquals(dbAoc, captor.getValue().getAttributeOptionCombo());
+        .canUpdate(
+            any(UserDetails.class),
+            any(TrackerEvent.class),
+            any(OrganisationUnit.class),
+            aocCaptor.capture());
+    assertEquals(dbAoc, aocCaptor.getValue());
   }
 
   @Test
@@ -969,14 +978,23 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     when(preheat.getCategoryOptionCombo(aocId)).thenReturn(payloadAoc);
     doReturn(List.of())
         .when(trackerAccessManager)
-        .canUpdate(any(UserDetails.class), any(TrackerEvent.class), any(OrganisationUnit.class));
+        .canUpdate(
+            any(UserDetails.class),
+            any(TrackerEvent.class),
+            any(OrganisationUnit.class),
+            any(CategoryOptionCombo.class));
 
     validator.validate(reporter, bundle, event);
 
-    ArgumentCaptor<TrackerEvent> captor = ArgumentCaptor.forClass(TrackerEvent.class);
+    ArgumentCaptor<CategoryOptionCombo> aocCaptor =
+        ArgumentCaptor.forClass(CategoryOptionCombo.class);
     verify(trackerAccessManager)
-        .canUpdate(any(UserDetails.class), captor.capture(), any(OrganisationUnit.class));
-    assertEquals(payloadAoc, captor.getValue().getAttributeOptionCombo());
+        .canUpdate(
+            any(UserDetails.class),
+            any(TrackerEvent.class),
+            any(OrganisationUnit.class),
+            aocCaptor.capture());
+    assertEquals(payloadAoc, aocCaptor.getValue());
   }
 
   @Test
@@ -1038,6 +1056,7 @@ class SecurityTrackerEventValidatorTest extends TrackerTestBase {
     event.setOrganisationUnit(organisationUnit);
     event.setEnrollment(getEnrollment(UID.generate()));
     event.setStatus(EventStatus.COMPLETED);
+    event.setAttributeOptionCombo(createCategoryOptionCombo('Z'));
     return event;
   }
 }
