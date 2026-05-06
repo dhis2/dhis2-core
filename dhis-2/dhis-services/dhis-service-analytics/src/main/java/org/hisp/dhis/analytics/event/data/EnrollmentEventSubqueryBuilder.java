@@ -38,6 +38,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
+import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.event.EventStatus;
 import org.locationtech.jts.util.Assert;
 import org.springframework.stereotype.Component;
@@ -53,8 +54,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class EnrollmentEventSubqueryBuilder {
-
-  private static final String ANALYTICS_EVENT_TABLE_PREFIX = "analytics_event_";
 
   private static final String LIMIT_1 = "limit 1";
 
@@ -72,7 +71,7 @@ public class EnrollmentEventSubqueryBuilder {
   public String renderValueSubquery(QueryItem item, String suffix) {
     assertProgram(item);
     String quotedColName = sqlBuilder.quote(item.getItemName() + suffix);
-    String eventTableName = ANALYTICS_EVENT_TABLE_PREFIX + item.getProgram().getUid().toLowerCase();
+    String eventTableName = AnalyticsTableNames.eventTable(item.getProgram());
 
     if (item.getProgramStage().getRepeatable() && item.hasRepeatableStageParams()) {
       return repeatableStageSubquery(item, quotedColName, eventTableName);
@@ -89,7 +88,7 @@ public class EnrollmentEventSubqueryBuilder {
       return ColumnAndAlias.EMPTY;
     }
 
-    String eventTableName = ANALYTICS_EVENT_TABLE_PREFIX + item.getProgram().getUid().toLowerCase();
+    String eventTableName = AnalyticsTableNames.eventTable(item.getProgram());
     String quotedColName = sqlBuilder.quote(item.getItemId());
 
     String psCondition = "";

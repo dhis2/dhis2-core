@@ -100,6 +100,7 @@ import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
+import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
@@ -931,7 +932,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
       return;
     }
 
-    String eventTableName = ANALYTICS_EVENT + params.getProgram().getUid().toLowerCase();
+    String eventTableName = AnalyticsTableNames.eventTable(params.getProgram());
     String eventEnrollmentFilterSql =
         """
         (

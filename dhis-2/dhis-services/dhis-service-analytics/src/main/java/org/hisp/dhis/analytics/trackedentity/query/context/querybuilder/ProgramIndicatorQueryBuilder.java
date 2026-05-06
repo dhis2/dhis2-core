@@ -66,6 +66,7 @@ import org.hisp.dhis.analytics.trackedentity.query.context.sql.RenderableSqlQuer
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilder;
 import org.hisp.dhis.analytics.trackedentity.query.context.sql.SqlQueryBuilders;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -262,8 +263,8 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
         + ", "
         + (needsExpressions ? expression + " as value, " : "")
         + " row_number() over (partition by trackedentity order by enrollmentdate desc) as rn "
-        + " from analytics_enrollment_"
-        + program.getElement().getUid().toLowerCase()
+        + " from "
+        + AnalyticsTableNames.enrollmentTable(program.getElement())
         + " as "
         + SUBQUERY_TABLE_ALIAS
         + (needsExpressions ? " where " + filter : "")

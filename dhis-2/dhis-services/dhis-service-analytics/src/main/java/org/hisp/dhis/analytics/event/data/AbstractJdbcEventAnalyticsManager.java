@@ -170,6 +170,7 @@ import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
+import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.option.Option;
@@ -2522,7 +2523,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private void addShadowEventTableCte(EventQueryParams params, CteContext cteContext) {
     // Create a shadow CTE with the EXACT same name as the real event table
-    String eventTableName = "analytics_event_" + params.getProgram().getUid().toLowerCase();
+    String eventTableName = AnalyticsTableNames.eventTable(params.getProgram());
 
     SelectBuilder shadowEvents = new SelectBuilder();
 
@@ -2870,7 +2871,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private void buildProgramStageCte(
       CteContext cteContext, QueryItem item, EventQueryParams params) {
     // The event table name, e.g. "analytics_event_XYZ".
-    String eventTableName = ANALYTICS_EVENT + item.getProgram().getUid().toLowerCase();
+    String eventTableName = AnalyticsTableNames.eventTable(item.getProgram());
 
     // Quoted column name for the item (e.g. "ax"."my_column").
     String colName = quote(item.getItemName());
@@ -3209,7 +3210,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    */
   private String buildAggregateFilterCteSql(List<QueryItem> stageItems, EventQueryParams params) {
     QueryItem firstItem = stageItems.get(0);
-    String tableName = "analytics_event_" + firstItem.getProgram().getUid().toLowerCase();
+    String tableName = AnalyticsTableNames.eventTable(firstItem.getProgram());
     String stageUid = firstItem.getProgramStage().getUid();
 
     List<String> innerColumns = new ArrayList<>();
@@ -3306,10 +3307,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
               // Determine the correct table: event table or enrollment table
               String tableName =
                   item.hasProgramStage()
-                      ? "analytics_event_"
-                          + item.getProgram()
-                              .getUid()
-                              .toLowerCase() // Event table for program stage
+                      ? AnalyticsTableNames.eventTable(item.getProgram())
                       : params.getTableName(); // Enrollment table
 
               String programStageCondition =

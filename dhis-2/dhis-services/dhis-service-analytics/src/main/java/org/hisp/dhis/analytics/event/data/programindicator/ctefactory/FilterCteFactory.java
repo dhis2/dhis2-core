@@ -40,6 +40,7 @@ import org.hisp.dhis.analytics.event.data.programindicator.BoundarySqlBuilder;
 import org.hisp.dhis.analytics.event.data.programindicator.ctefactory.placeholder.PlaceholderParser;
 import org.hisp.dhis.analytics.event.data.programindicator.ctefactory.placeholder.PlaceholderParser.FilterFields;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.program.ProgramIndicator;
 
 public class FilterCteFactory implements CteSqlFactory {
@@ -134,7 +135,7 @@ public class FilterCteFactory implements CteSqlFactory {
       Date end,
       SqlBuilder qb) {
 
-    String table = "analytics_event_" + pi.getProgram().getUid().toLowerCase();
+    String table = AnalyticsTableNames.eventTable(pi.getProgram());
     String quotedCol = qb.quote(column);
 
     String boundaries =

@@ -43,6 +43,7 @@ import org.hisp.dhis.analytics.event.data.programindicator.BoundarySqlBuilder;
 import org.hisp.dhis.analytics.event.data.programindicator.ctefactory.placeholder.PlaceholderParser;
 import org.hisp.dhis.analytics.event.data.programindicator.ctefactory.placeholder.PlaceholderParser.VariableFields;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.program.ProgramIndicator;
 
 @Slf4j
@@ -115,7 +116,7 @@ public class VariableCteFactory implements CteSqlFactory {
       CteContext ctx,
       SqlBuilder qb) {
 
-    String table = "analytics_event_" + pi.getProgram().getUid().toLowerCase();
+    String table = AnalyticsTableNames.eventTable(pi.getProgram());
     String psCondition = v.psUid() != null ? "and ps = '" + v.psUid() + "' " : "";
 
     String boundaries =

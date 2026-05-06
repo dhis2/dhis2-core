@@ -45,6 +45,7 @@ import org.hisp.dhis.analytics.event.data.programindicator.BoundarySqlBuilder;
 import org.hisp.dhis.analytics.event.data.programindicator.ctefactory.placeholder.PlaceholderParser;
 import org.hisp.dhis.antlr.AntlrParserUtils;
 import org.hisp.dhis.db.sql.SqlBuilder;
+import org.hisp.dhis.db.util.AnalyticsTableNames;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.ProgramIndicator;
 
@@ -196,7 +197,7 @@ public class D2FunctionCteFactory implements CteSqlFactory {
       log.error("ProgramIndicator {} lacks program – cannot build D2 CTE.", pi.getUid());
       return null;
     }
-    return "analytics_event_" + pi.getProgram().getUid().toLowerCase();
+    return AnalyticsTableNames.eventTable(pi.getProgram());
   }
 
   private enum D2FuncType {
