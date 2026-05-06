@@ -332,7 +332,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @return the columns without aliases.
    */
   List<String> removeAliases(List<String> columns) {
-    return columns.stream().map(c -> substringBefore(c, " as ")).toList();
+    return columns.stream()
+            .map(c -> c.replaceAll("\\s+as\\s+\"?([a-zA-Z0-9_]+)\"?+$", ""))
+            .toList();
   }
 
   /**
