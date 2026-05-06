@@ -47,7 +47,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 class FileResourceCleanUpJobTest extends PostgresIntegrationTestBase {
 
   @Autowired private FileResourceCleanUpJob cleanUpJob;
