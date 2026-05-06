@@ -181,13 +181,13 @@ public interface TrackerAccessManager {
    * @return No errors if the user has all required access rights to update the event.
    */
   List<ErrorMessage> canUpdate(
-      @Nonnull UserDetails user,
+      UserDetails user,
       SingleEvent event,
-      @Nonnull OrganisationUnit orgUnit,
-      @Nonnull CategoryOptionCombo categoryOptionCombo);
+      OrganisationUnit orgUnit,
+      CategoryOptionCombo categoryOptionCombo);
 
   /** Like {@link #canCreate(UserDetails, SingleEvent)}. */
-  List<ErrorMessage> canDelete(@Nonnull UserDetails user, SingleEvent event);
+  List<ErrorMessage> canDelete(UserDetails user, SingleEvent event);
 
   List<String> canRead(UserDetails user, Relationship relationship);
 
