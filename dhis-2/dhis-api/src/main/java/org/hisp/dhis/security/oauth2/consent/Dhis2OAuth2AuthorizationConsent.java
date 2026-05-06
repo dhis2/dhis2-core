@@ -36,13 +36,36 @@ import lombok.Getter;
 import lombok.Setter;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.SecondaryMetadataObject;
 
+/**
+ * DHIS2 persistence representation of a Spring Authorization Server {@code
+ * OAuth2AuthorizationConsent}.
+ *
+ * <p>An {@code OAuth2AuthorizationConsent} records which scopes / authorities a principal has
+ * granted to a registered client. It is the set of permissions persisted when the user clicks
+ * "Allow" on the OAuth consent screen, keyed by {@code (registeredClientId, principalName)}. Spring
+ * Authorization Server operates on the framework type {@code
+ * org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsent}, which is an
+ * immutable, builder-constructed value object not wired for JPA or DHIS2 ACL.
+ *
+ * <p>This class is the mutable DHIS2-side mirror: a {@link BaseIdentifiableObject} with a Hibernate
+ * mapping and a JSON/XML view, so the consent can live in the DHIS2 database alongside all other
+ * identifiable objects and be inspected through the admin REST surface. Conversion between the two
+ * representations happens in {@code Dhis2OAuth2AuthorizationConsentServiceImpl}: {@code
+ * toEntity(OAuth2AuthorizationConsent)} builds a {@link Dhis2OAuth2AuthorizationConsent} for
+ * persistence, and {@code toObject(Dhis2OAuth2AuthorizationConsent)} reconstructs the Spring-side
+ * {@code OAuth2AuthorizationConsent} for the authorization-server runtime.
+ *
+ * <p>Marked {@link SecondaryMetadataObject} so the type is excluded from the default {@code
+ * /api/metadata} export. Persistence uses Hibernate field access ({@code
+ * Dhis2OAuth2AuthorizationConsent.hbm.xml}) and is independent of the JSON annotations.
+ */
 @Getter
 @Setter
 @JacksonXmlRootElement(localName = "oauth2AuthorizationConsent", namespace = DxfNamespaces.DXF_2_0)
 public class Dhis2OAuth2AuthorizationConsent extends BaseIdentifiableObject
-    implements MetadataObject {
+    implements SecondaryMetadataObject {
 
   public Dhis2OAuth2AuthorizationConsent() {}
 

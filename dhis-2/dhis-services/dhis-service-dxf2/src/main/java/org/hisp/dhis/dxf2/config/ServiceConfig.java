@@ -49,6 +49,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.validation.GeoJsonAttributesChec
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.MandatoryAttributesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.MetadataAttributeCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.NotOwnerReferencesCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.OAuth2RuntimeStateCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ReferencesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.SchemaCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.SecurityCheck;
@@ -168,6 +169,7 @@ public class ServiceConfig {
                 getValidationCheckByClass(DashboardCheck.class)),
         DELETE,
             newArrayList(
+                getValidationCheckByClass(OAuth2RuntimeStateCheck.class),
                 getValidationCheckByClass(SecurityCheck.class),
                 getValidationCheckByClass(DeletionCheck.class)));
   }
