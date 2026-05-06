@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UrlParams;
-import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
@@ -65,9 +65,10 @@ public class UrlParamsMethodArgumentResolver implements HandlerMethodArgumentRes
       @Nonnull WebDataBinderFactory binderFactory)
       throws Exception {
 
-    Class<?> paramsType = parameter.getParameterType();
+    @SuppressWarnings("unchecked")
+    Class<? extends Record> paramsType = (Class<? extends Record>) parameter.getParameterType();
 
-    List<JsonObject.Property> properties = JsonObject.properties(paramsType);
+    List<JsonObject.Property> properties = JsonObject.collapsedProperties(paramsType);
     JsonNode object =
         JsonBuilder.createObject(
             obj -> {
@@ -105,9 +106,15 @@ public class UrlParamsMethodArgumentResolver implements HandlerMethodArgumentRes
               }
             });
     JsonMixed params = JsonMixed.of(object);
-    Validation.Result result = params.validate(paramsType, Validation.Mode.PROBE_ALL);
+    Validation.Result result = params.validate(paramsType, Validation.Mode.PROBE);
     if (!result.errors().isEmpty()) {
-      throw new ConflictException(result.toString());
+      // TODO do we want to have different error codes per validation Rule?
+      Validation.Error e0 = result.errors().get(0);
+      throw new BadRequestException(
+          "URL parameter `"
+              + e0.path().segment()
+              + "` "
+              + e0.template().formatted(e0.args().toArray()));
     }
     return params.to(paramsType);
   }

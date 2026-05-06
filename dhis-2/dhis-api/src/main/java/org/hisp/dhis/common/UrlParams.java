@@ -32,6 +32,9 @@ package org.hisp.dhis.common;
 /**
  * Marker interface to be implemented by {@link Record} classes to be mapped via json-tree.
  *
+ * <p>This is so this becomes an opt-in feature.
+ *
  * @author Jan Bernitt
+ * @since 2.44
  */
 public interface UrlParams {}
