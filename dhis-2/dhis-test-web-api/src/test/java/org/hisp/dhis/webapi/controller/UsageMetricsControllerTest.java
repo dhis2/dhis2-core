@@ -1,0 +1,81 @@
+/*
+ * Copyright (c) 2004-2026, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * may be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.webapi.controller;
+
+import static org.hisp.dhis.test.webapi.Assertions.assertWebMessage;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
+import org.hisp.dhis.usagemetrics.UsageMetricsConsent;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
+
+@Transactional
+class UsageMetricsControllerTest extends PostgresControllerIntegrationTestBase {
+
+  @Autowired private ObjectMapper objectMapper;
+
+  @Test
+  void testUpdateConsent() throws JsonProcessingException {
+    UsageMetricsConsent newUsageMetricsConsent = new UsageMetricsConsent();
+    newUsageMetricsConsent.setConsent(true);
+    PUT("/usageMetrics", objectMapper.writeValueAsString(newUsageMetricsConsent))
+        .content(HttpStatus.OK);
+    JsonMixed usageMetricsConsent = GET("/usageMetrics").content(HttpStatus.OK);
+    assertTrue(usageMetricsConsent.getBoolean("consent").booleanValue());
+  }
+
+  @Test
+  void testUpdateConsentWhenUserIsWithoutAllAuthority() throws JsonProcessingException {
+    switchToNewUser("alice");
+
+    UsageMetricsConsent newUsageMetricsConsent = new UsageMetricsConsent();
+    newUsageMetricsConsent.setConsent(true);
+    assertWebMessage(
+        "Forbidden",
+        403,
+        "ERROR",
+        "Access is denied, requires one Authority from [ALL]",
+        PUT("/usageMetrics", objectMapper.writeValueAsString(newUsageMetricsConsent))
+            .content(HttpStatus.FORBIDDEN));
+  }
+
+  @Test
+  void testGetConsent() {
+    JsonMixed usageMetricsConsent = GET("/usageMetrics").content(HttpStatus.OK);
+    assertFalse(usageMetricsConsent.getBoolean("consent").booleanValue());
+  }
+}

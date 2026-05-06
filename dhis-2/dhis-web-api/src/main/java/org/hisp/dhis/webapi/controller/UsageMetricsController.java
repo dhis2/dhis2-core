@@ -29,41 +29,42 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
-import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import lombok.extern.slf4j.Slf4j;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.security.Authorities.ALL;
+
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
-import org.springframework.context.annotation.Profile;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.security.RequiresAuthority;
+import org.hisp.dhis.usagemetrics.UsageMetricsConsent;
+import org.hisp.dhis.usagemetrics.UsageMetricsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
-/**
- * @author Luciano Fiandesio
- */
-@OpenApi.Document(
-    entity = Server.class,
-    classifiers = {"team:platform", "purpose:support"})
-@Profile("!test")
 @Controller
-@Slf4j
-public class PrometheusScrapeEndpointController {
-  private static final String TEXT_FORMAT_CONTENT_TYPE = "text/plain; version=0.0.4; charset=utf-8";
-  private final PrometheusMeterRegistry prometheusRegistry;
+@RequiredArgsConstructor
+@RequestMapping("/api/usageMetrics")
+@OpenApi.Document(classifiers = {"team:extensibility", "purpose:support"})
+public class UsageMetricsController {
 
-  public PrometheusScrapeEndpointController(PrometheusMeterRegistry prometheusRegistry) {
-    this.prometheusRegistry = prometheusRegistry;
+  private final UsageMetricsService usageMetricsConsentService;
+
+  @PutMapping
+  @RequiresAuthority(anyOf = ALL)
+  @ResponseBody
+  public WebMessage updateConsent(@RequestBody UsageMetricsConsent usageMetricsConsent) {
+    usageMetricsConsentService.saveConsent(usageMetricsConsent);
+    return ok();
   }
 
-  @GetMapping(value = "/api/metrics", produces = TEXT_FORMAT_CONTENT_TYPE)
-  public void scrape(HttpServletResponse response) {
-    try {
-      response.setContentType(TEXT_FORMAT_CONTENT_TYPE);
-      prometheusRegistry.scrape(response.getOutputStream());
-    } catch (IOException ex) {
-      // Client disconnected during metrics scraping (common with Prometheus)
-      // Log at debug level to avoid noise - Prometheus will automatically retry
-      log.debug("Client disconnected while writing metrics: {}", ex.getMessage());
-    }
+  @GetMapping()
+  @RequiresAuthority(anyOf = ALL)
+  @ResponseBody
+  public UsageMetricsConsent getConsent() {
+    return usageMetricsConsentService.getConsent();
   }
 }

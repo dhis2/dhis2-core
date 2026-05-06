@@ -38,13 +38,25 @@ import io.micrometer.core.instrument.config.MeterFilter;
 import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
 import io.micrometer.prometheusmetrics.PrometheusConfig;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
+import io.prometheus.metrics.core.metrics.GaugeWithCallback;
+import io.prometheus.metrics.core.metrics.Info;
 import io.prometheus.metrics.model.registry.PrometheusRegistry;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import org.hisp.dhis.appmanager.App;
+import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.datasource.DatabasePoolUtils.DbPoolType;
+import org.hisp.dhis.datastatistics.DataStatisticsService;
+import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.system.SystemInfo;
+import org.hisp.dhis.system.SystemService;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 /**
  * Configures Prometheus metrics integration for DHIS2.
@@ -85,8 +97,212 @@ public class PrometheusMonitoringConfig {
    * /api/metrics endpoint reads from this via {@code scrape()}.
    */
   @Bean
+  @Primary
   public PrometheusRegistry prometheusRegistry() {
     return new PrometheusRegistry();
+  }
+
+  @Bean(name = "sendUsageMetricsRegistry")
+  public PrometheusRegistry sendUsageMetricsRegistry(
+      SystemService systemService,
+      DataStatisticsService dataStatisticsService,
+      AppManager appManager,
+      TrackedEntityTypeStore trackedEntityTypeStore) {
+    double[] bins = new double[100];
+    bins[0] = 0;
+    for (int i = 1; i < 100; i++) {
+      bins[i] = Math.pow(2, i);
+    }
+
+    PrometheusRegistry prometheusRegistry = new PrometheusRegistry();
+    SystemInfo systemInfo = systemService.getSystemInfo();
+
+    Info buildInfo =
+        Info.builder()
+            .name("build_info")
+            .help("Build Info")
+            .labelNames("revision", "build_time")
+            .register(prometheusRegistry);
+
+    String buildTime =
+        systemInfo.getBuildTime() == null ? "" : systemInfo.getBuildTime().toString();
+    buildInfo.addLabelValues(systemInfo.getRevision(), buildTime);
+
+    Info envInfo =
+        Info.builder()
+            .name("environment_info")
+            .help("Environment")
+            .labelNames(
+                "os",
+                "jvm_mem_mb_total",
+                "cpu_cores",
+                "postgres_version",
+                "java_version",
+                "java_vendor")
+            .register(prometheusRegistry);
+
+    envInfo.addLabelValues(
+        systemInfo.getOsArchitecture(),
+        String.valueOf((Runtime.getRuntime().totalMemory() / (1024 * 1024))),
+        String.valueOf(systemInfo.getCpuCores()),
+        systemInfo.getDatabaseInfo().getDatabaseVersion(),
+        systemInfo.getJavaVersion(),
+        systemInfo.getJavaVendor());
+
+    GaugeWithCallback.builder()
+        .name("dhis2_users")
+        .help("DHIS2 Users")
+        .labelNames("statistics", "bucket")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              Map<Integer, Integer> activeUsers = dataSummary.getActiveUsers();
+              bin(bins, activeUsers.get(1), callback, List.of("active_users_last_hour"));
+              bin(bins, activeUsers.get(1), callback, List.of("active_users_today"));
+              bin(bins, activeUsers.get(2), callback, List.of("active_users_last_2_days"));
+              bin(bins, activeUsers.get(7), callback, List.of("active_users_last_7_days"));
+              bin(bins, activeUsers.get(30), callback, List.of("active_users_last_30_days"));
+              bin(bins, dataSummary.getObjectCounts().get("user"), callback, List.of("users"));
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
+        .name("tracker_programs")
+        .help("Tracker Programs")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              callback.call(dataSummary.getObjectCounts().get("program"));
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
+        .name("organisation_units")
+        .help("Organisation Units")
+        .labelNames("bucket")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              bin(bins, dataSummary.getObjectCounts().get("organisationUnit"), callback);
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
+        .name("dashboards")
+        .help("Dashboards")
+        .labelNames("bucket")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              bin(bins, dataSummary.getObjectCounts().get("dashboard"), callback);
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
+        .name("maps")
+        .help("Maps")
+        .labelNames("bucket")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              bin(bins, dataSummary.getObjectCounts().get("map"), callback);
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
+        .name("data_sets")
+        .help("Data Sets")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              callback.call(dataSummary.getObjectCounts().get("dataSet"));
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
+        .name("visualizations")
+        .help("Visualizations")
+        .labelNames("bucket")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              bin(bins, dataSummary.getObjectCounts().get("visualization"), callback);
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
+        .name("tracked_entities")
+        .help("Tracked Entities")
+        .labelNames("bucket")
+        .callback(
+            callback -> {
+              DataSummary dataSummary = dataStatisticsService.getSystemStatisticsSummary();
+              bin(bins, dataSummary.getObjectCounts().get("trackedEntity"), callback);
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
+        .name("core_apps")
+        .help("Core Apps")
+        .labelNames("name", "version")
+        .callback(
+            callback -> {
+              List<App> apps = appManager.getApps(null);
+              for (App app : apps) {
+                if (app.isCoreApp()) {
+                  callback.call(1, app.getName(), app.getVersion());
+                }
+              }
+            })
+        .register(prometheusRegistry);
+
+    GaugeWithCallback.builder()
+        .name("tracked_entity_types")
+        .help("Tracked Entity Types")
+        .callback(callback -> callback.call(trackedEntityTypeStore.getAll().size()))
+        .register(prometheusRegistry);
+
+    return prometheusRegistry;
+  }
+
+  private void bin(double[] bins, long value, GaugeWithCallback.Callback callback) {
+    bin(bins, value, callback, List.of());
+  }
+
+  private void bin(
+      double[] bins,
+      long gaugeValue,
+      GaugeWithCallback.Callback callback,
+      List<String> labelValues) {
+    boolean binned = false;
+    List<String> newLabelValues;
+
+    for (int i = 0; i < bins.length; i++) {
+      String bucketLabelValue;
+      if (i > 0) {
+        bucketLabelValue = String.format("%.0f - %.0f", bins[i - 1] + 1, bins[i]);
+      } else {
+        bucketLabelValue = String.format("%.0f", bins[i]);
+      }
+      newLabelValues = new ArrayList<>(labelValues);
+      newLabelValues.add(bucketLabelValue);
+      if (!binned && bins[i] >= gaugeValue) {
+        binned = true;
+        callback.call(1, newLabelValues.toArray(new String[] {}));
+      } else {
+        callback.call(0, newLabelValues.toArray(new String[] {}));
+      }
+
+      newLabelValues = new ArrayList<>(labelValues);
+      newLabelValues.add("+inf");
+      if (i == (bins.length - 1)) {
+        if (binned) {
+          callback.call(0, newLabelValues.toArray(new String[] {}));
+        } else {
+          callback.call(1, newLabelValues.toArray(new String[] {}));
+        }
+      }
+    }
   }
 
   /**
