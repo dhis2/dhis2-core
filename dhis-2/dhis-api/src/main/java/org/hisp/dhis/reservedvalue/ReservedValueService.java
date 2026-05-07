@@ -51,5 +51,5 @@ public interface ReservedValueService {
 
   void deleteReservedValueByUid(String uid);
 
-  void removeUsedOrExpiredReservations();
+  int removeUsedOrExpiredReservations();
 }

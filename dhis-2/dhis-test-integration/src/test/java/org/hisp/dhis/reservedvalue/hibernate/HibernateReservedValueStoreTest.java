@@ -49,6 +49,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -87,6 +88,10 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase {
     Calendar future = Calendar.getInstance();
     future.add(Calendar.DATE, 10);
     futureDate = future.getTime();
+  }
+
+  @BeforeEach
+  void resetBuilderState() {
     reservedValue.expiryDate(futureDate);
   }
 
@@ -193,15 +198,16 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase {
     saveReservedValue(rv);
     assertTrue(
         reservedValueStore.isReserved(Objects.TRACKEDENTITYATTRIBUTE.name(), teaUid, prog001));
-    reservedValueStore.removeUsedOrExpiredReservations();
+    reservedValueStore.removeExpiredValues();
     assertFalse(reservedValueStore.getAll().contains(rv));
   }
 
   @Test
-  void removeExpiredReservationsDoesNotRemoveAnythingIfNothingHasExpired() {
+  void removeExpiredReservationsDoesNotRemoveAnythingIfNothingIsExpiredOrUsed() {
     saveReservedValue(reservedValue.value(prog001).build());
     int num = reservedValueStore.getCount();
-    reservedValueStore.removeUsedOrExpiredReservations();
+    reservedValueStore.removeExpiredValues();
+    reservedValueStore.removeUsedValues();
     assertEquals(num, reservedValueStore.getCount());
   }
 
@@ -233,8 +239,9 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase {
     trackedEntityAttributeStore.save(tea);
     TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue('Z', tei, tea);
     teav.setValue(prog001);
-    trackedEntityAttributeValueStore.save(teav);
-    reservedValueStore.removeUsedOrExpiredReservations();
+    trackedEntityAttributeValueService.addTrackedEntityAttributeValue(teav);
+    dbmsManager.clearSession();
+    reservedValueStore.removeUsedValues();
     assertFalse(
         reservedValueStore.isReserved(Objects.TRACKEDENTITYATTRIBUTE.name(), teaUid, prog001));
     assertEquals(0, reservedValueStore.getCount());
@@ -260,7 +267,9 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase {
     trackedEntityAttributeValueStore.save(teav);
     ReservedValue rv = reservedValue.value(prog001).build();
     reservedValueStore.save(rv);
-    reservedValueStore.removeUsedOrExpiredReservations();
+    dbmsManager.clearSession();
+    reservedValueStore.removeExpiredValues();
+    reservedValueStore.removeUsedValues();
     assertFalse(
         reservedValueStore.isReserved(Objects.TRACKEDENTITYATTRIBUTE.name(), teaUid, prog001));
     assertFalse(
