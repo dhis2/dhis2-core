@@ -17,11 +17,15 @@ show_usage() {
   echo "  SIMULATION_CLASS      Fully qualified Gatling Simulation class name"
   echo ""
   echo "OPTIONS:"
+  echo "  DB_DIR                Optional top-level S3 directory (default: not set)"
+  echo "                        Valid values: dev"
+  echo "                        Pattern: s3://databases.dhis2.org/<dir>/<type>/<version>/dhis2-db-<type>.sql.gz"
   echo "  DB_TYPE               Database type (default: sierra-leone)"
-  echo "                        Valid values: sierra-leone, hmis"
+  echo "                        Valid values without DB_DIR: sierra-leone, hmis"
+  echo "                        Valid values with DB_DIR: platform-perf"
   echo "  DB_VERSION            Database version (default: dev)"
   echo "                        Must be alphanumeric, dots, hyphens, underscores only"
-  echo "                        Pattern: s3://databases.dhis2.org/<type>/<version>/dhis2-db-<type>.sql.gz"
+  echo "                        Pattern (no DB_DIR): s3://databases.dhis2.org/<type>/<version>/dhis2-db-<type>.sql.gz"
   echo "  DHIS2_USERNAME        DHIS2 username for API authentication (default: admin)"
   echo "  DHIS2_PASSWORD        DHIS2 password for API authentication (default: district)"
   echo "  ANALYTICS_GENERATE    Generate analytics tables before running tests (default: false)"
@@ -89,6 +93,7 @@ fi
 # ENVIRONMENT SETUP
 ################################################################################
 
+DB_DIR=${DB_DIR:-""}
 DB_TYPE=${DB_TYPE:-"sierra-leone"}
 DB_VERSION=${DB_VERSION:-"dev"}
 DHIS2_USERNAME=${DHIS2_USERNAME:-"admin"}
@@ -106,17 +111,35 @@ MVN_ARGS=${MVN_ARGS:-""}
 # Track last non-warmup run directory for output summary
 LAST_RUN_DIR=""
 
-# Validate DB_TYPE (only allow sierra-leone or hmis)
-case "$DB_TYPE" in
-  sierra-leone|hmis)
-    # Valid
-    ;;
-  *)
-    echo "Error: DB_TYPE must be 'sierra-leone' or 'hmis', got: $DB_TYPE" >&2
+# Validate DB_DIR: currently only 'dev' is supported
+if [ -n "$DB_DIR" ] && [ "$DB_DIR" != "dev" ]; then
+  echo "Error: DB_DIR must be 'dev', got: $DB_DIR" >&2
+  echo "Run '$0' without arguments to see usage" >&2
+  exit 1
+fi
+
+# Validate DB_TYPE
+if [ -z "$DB_DIR" ]; then
+  # No DB_DIR: only standard public databases are allowed
+  case "$DB_TYPE" in
+    sierra-leone|hmis)
+      # Valid
+      ;;
+    *)
+      echo "Error: DB_TYPE must be 'sierra-leone' or 'hmis' when DB_DIR is not set, got: $DB_TYPE" >&2
+      echo "Set DB_DIR to use a custom database type" >&2
+      echo "Run '$0' without arguments to see usage" >&2
+      exit 1
+      ;;
+  esac
+else
+  # DB_DIR is set: only 'platform-perf' is supported for now
+  if [ "$DB_TYPE" != "platform-perf" ]; then
+    echo "Error: DB_TYPE must be 'platform-perf' when DB_DIR is set, got: $DB_TYPE" >&2
     echo "Run '$0' without arguments to see usage" >&2
     exit 1
-    ;;
-esac
+  fi
+fi
 
 # Validate DB_VERSION (no slashes, no special characters that could be malicious)
 # Allow only alphanumeric, dots, hyphens, and underscores
@@ -631,6 +654,7 @@ generate_metadata() {
     echo "# Args"
     echo "DHIS2_IMAGE=$DHIS2_IMAGE"
     echo "SIMULATION_CLASS=$SIMULATION_CLASS"
+    echo "DB_DIR=$DB_DIR"
     echo "DB_TYPE=$DB_TYPE"
     echo "DB_VERSION=$DB_VERSION"
     echo "DHIS2_USERNAME=$DHIS2_USERNAME"
