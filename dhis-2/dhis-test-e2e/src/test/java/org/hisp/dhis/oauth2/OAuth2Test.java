@@ -173,10 +173,10 @@ class OAuth2Test extends BaseE2ETest {
     log.info("[{}] navigating to authorize URL: {}", testName, authorizeUrl);
     driver.get(authorizeUrl);
 
-    wait.until(ExpectedConditions.urlContains(serverHostUrl + "/login/"));
+    wait.until(ExpectedConditions.urlContains(serverHostUrl + "/dhis-web-login/"));
     String currentUrl = driver.getCurrentUrl();
     log.info("[{}] redirected to login page: {}", testName, currentUrl);
-    assertEquals(serverHostUrl + "/login/", currentUrl);
+    assertEquals(serverHostUrl + "/dhis-web-login/", currentUrl);
 
     // Wait for the login page to load
     wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector("input#username")));
@@ -326,7 +326,7 @@ class OAuth2Test extends BaseE2ETest {
     log.info("[{}] navigating to authorize URL: {}", testName, authorizeUrl);
     driver.get(authorizeUrl);
 
-    wait.until(ExpectedConditions.urlContains(serverHostUrl + "/login/"));
+    wait.until(ExpectedConditions.urlContains(serverHostUrl + "/dhis-web-login/"));
     log.info("[{}] redirected to login page: {}", testName, driver.getCurrentUrl());
 
     // Login
