@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,33 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.security.oauth;
+package org.hisp.dhis.security.oauth2;
 
-import static org.hisp.dhis.security.Authorities.ALL;
-
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.query.GetObjectListParams;
-import org.hisp.dhis.security.RequiresAuthority;
-import org.hisp.dhis.security.oauth2.authorization.Dhis2OAuth2Authorization;
-import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import javax.annotation.Nonnull;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 
 /**
- * Read-only controller for inspecting OAuth2 authorizations (runtime Spring Authorization Server
- * state: access/refresh tokens, authorization codes, OIDC id-tokens, device codes, consent grants).
- * Gated on {@link org.hisp.dhis.security.Authorities#ALL}: only superusers may list or read these
- * rows because they surface principal, client and grant metadata that is sensitive even after token
- * values are redacted from the JSON payload by {@code @JsonIgnore} on the entity.
+ * Shared helpers for Spring Authorization Server {@link AuthorizationGrantType} values.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Controller
-@RequestMapping({"/api/oAuth2Authorizations"})
-@RequiredArgsConstructor
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@RequiresAuthority(anyOf = ALL)
-public class OAuth2AuthorizationController
-    extends AbstractFullReadOnlyController<Dhis2OAuth2Authorization, GetObjectListParams> {}
+public final class OAuth2GrantTypes {
+
+  private OAuth2GrantTypes() {}
+
+  /**
+   * Map a grant-type string back to Spring's canonical {@link AuthorizationGrantType} singleton
+   * (authorization_code, client_credentials, refresh_token, device_code). Falls back to a new
+   * instance for any custom value — the equality contract on {@code AuthorizationGrantType} is
+   * value-based, but returning the singleton where possible keeps identity comparisons working.
+   *
+   * <p>Case labels are the RFC-defined grant-type strings (RFC 6749 + RFC 8628); they match
+   * Spring's {@code AuthorizationGrantType.*.getValue()} by construction.
+   */
+  public static AuthorizationGrantType resolve(@Nonnull String value) {
+    return switch (value) {
+      case "authorization_code" -> AuthorizationGrantType.AUTHORIZATION_CODE;
+      case "client_credentials" -> AuthorizationGrantType.CLIENT_CREDENTIALS;
+      case "refresh_token" -> AuthorizationGrantType.REFRESH_TOKEN;
+      case "urn:ietf:params:oauth:grant-type:device_code" -> AuthorizationGrantType.DEVICE_CODE;
+      default -> new AuthorizationGrantType(value);
+    };
+  }
+}

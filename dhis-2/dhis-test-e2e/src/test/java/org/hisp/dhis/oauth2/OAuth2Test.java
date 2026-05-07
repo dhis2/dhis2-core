@@ -234,7 +234,7 @@ class OAuth2Test extends BaseE2ETest {
     assertNotNull(accessToken);
     log.info("[{}] access token received, length={}", testName, accessToken.length());
 
-    String actualIssuerUri;
+    String actualIssuerUri = null;
     String expectedIssuerUri = "http://web:8080/";
 
     // Decode the access_token

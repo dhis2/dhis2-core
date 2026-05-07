@@ -42,10 +42,8 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -86,7 +84,6 @@ public class Dhis2JwtAuthenticationManagerResolver
     implements AuthenticationManagerResolver<HttpServletRequest> {
 
   @Autowired private DhisConfigurationProvider config;
-  @Autowired private UserStore userStore;
   @Autowired private DhisOidcProviderRepository clientRegistrationRepository;
   @Autowired private Dhis2OAuth2ClientService oAuth2ClientService;
   @Autowired private UserService userService;
@@ -180,21 +177,20 @@ public class Dhis2JwtAuthenticationManagerResolver
 
       String mappingClaimKey = clientRegistration.getMappingClaimKey();
       String mappingValue = jwt.getClaim(mappingClaimKey);
-      User user;
-      switch (mappingClaimKey) {
-        case "username" -> user = userStore.getUserByUsername(mappingValue);
-        case "email" -> user = userStore.getUserByOpenId(mappingValue);
-        default -> throw new InvalidBearerTokenException("Invalid mapping claim");
-      }
+      UserDetails currentUserDetails =
+          switch (mappingClaimKey) {
+            case "username" -> userService.createUserDetailsByUsername(mappingValue);
+            case "email" -> userService.createUserDetailsByOpenId(mappingValue);
+            default -> throw new InvalidBearerTokenException("Invalid mapping claim");
+          };
 
-      if (user == null) {
+      if (currentUserDetails == null) {
         throw new InvalidBearerTokenException(
             String.format(
                 "Found no matching DHIS2 user for the mapping claim: '%s' with the value: '%s'",
                 mappingClaimKey, mappingValue));
       }
 
-      UserDetails currentUserDetails = userService.createUserDetails(user);
       Collection<GrantedAuthority> grantedAuthorities =
           List.copyOf(currentUserDetails.getAuthorities());
 
