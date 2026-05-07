@@ -30,7 +30,6 @@
 package org.hisp.dhis.analytics.table;
 
 import static java.lang.String.join;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.table.model.Skip.SKIP;
@@ -170,7 +169,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         params.isSkipPrograms()
             ? idObjectManager.getAllNoAcl(Program.class).stream()
                 .filter(p -> !params.getSkipPrograms().contains(p.getUid()))
-                .collect(toList())
+                .toList()
             : idObjectManager.getAllNoAcl(Program.class);
 
     Integer firstDataYear = availableDataYears.get(0);
@@ -231,7 +230,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
         params.isSkipPrograms()
             ? idObjectManager.getAllNoAcl(Program.class).stream()
                 .filter(p -> !params.getSkipPrograms().contains(p.getUid()))
-                .collect(toList())
+                .toList()
             : idObjectManager.getAllNoAcl(Program.class);
 
     for (Program program : programs) {
