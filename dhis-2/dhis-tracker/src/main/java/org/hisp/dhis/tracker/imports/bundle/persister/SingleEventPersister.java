@@ -33,7 +33,6 @@ import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 
-import jakarta.persistence.EntityManager;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
@@ -149,7 +148,6 @@ public class SingleEventPersister
 
   @Override
   protected void updateAttributes(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.SingleEvent event,
       SingleEvent hibernateEntity,
@@ -160,20 +158,17 @@ public class SingleEventPersister
 
   @Override
   protected void updateDataValues(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.SingleEvent event,
       SingleEvent payloadEntity,
       SingleEvent currentEntity,
       UserDetails user,
       ChangeLogAccumulator changeLogs) {
-    handleDataValues(
-        entityManager, preheat, event.getDataValues(), payloadEntity, user, changeLogs);
+    handleDataValues(preheat, event.getDataValues(), payloadEntity, user, changeLogs);
     logFieldChanges(currentEntity, payloadEntity, user.getUsername(), changeLogs);
   }
 
   private void handleDataValues(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       Set<DataValue> payloadDataValues,
       SingleEvent event,
@@ -192,7 +187,7 @@ public class SingleEventPersister
           if (isNewDataValue(dbDataValue, dataValue)) {
             changeLogs.addSingleEventChangeLog(
                 event, dataElement, program, null, dataValue.getValue(), CREATE, username);
-            saveDataValue(dataValue, event, dataElement, user, entityManager, preheat);
+            saveDataValue(dataValue, event, dataElement, user, preheat);
           } else if (isUpdate(dbDataValue, dataValue)) {
             changeLogs.addSingleEventChangeLog(
                 event,
@@ -202,12 +197,11 @@ public class SingleEventPersister
                 dataValue.getValue(),
                 UPDATE,
                 username);
-            updateDataValue(
-                dbDataValue, dataValue, event, dataElement, user, entityManager, preheat);
+            updateDataValue(dbDataValue, dataValue, event, dataElement, user, preheat);
           } else if (isDeletion(dbDataValue, dataValue)) {
             changeLogs.addSingleEventChangeLog(
                 event, dataElement, program, dbDataValue.getValue(), null, DELETE, username);
-            deleteDataValue(dbDataValue, event, dataElement, entityManager, preheat);
+            deleteDataValue(dbDataValue, event, dataElement, preheat);
           }
         });
   }
@@ -217,7 +211,6 @@ public class SingleEventPersister
       SingleEvent event,
       DataElement dataElement,
       UserDetails user,
-      EntityManager entityManager,
       TrackerPreheat preheat) {
     EventDataValue eventDataValue = new EventDataValue();
     eventDataValue.setDataElement(dataElement.getUid());
@@ -232,7 +225,7 @@ public class SingleEventPersister
     eventDataValue.setProvidedElsewhere(dv.isProvidedElsewhere());
 
     if (dataElement.isFileType()) {
-      assignFileResource(entityManager, preheat, event.getUid(), eventDataValue.getValue());
+      assignFileResource(preheat, event.getUid(), eventDataValue.getValue());
     }
 
     event.getEventDataValues().add(eventDataValue);
@@ -244,14 +237,13 @@ public class SingleEventPersister
       SingleEvent event,
       DataElement dataElement,
       UserDetails user,
-      EntityManager entityManager,
       TrackerPreheat preheat) {
     eventDataValue.setLastUpdated(new Date());
     eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
 
     if (dataElement.isFileType()) {
-      unassignFileResource(entityManager, preheat, event.getUid(), eventDataValue.getValue());
-      assignFileResource(entityManager, preheat, event.getUid(), dv.getValue());
+      unassignFileResource(preheat, event.getUid(), eventDataValue.getValue());
+      assignFileResource(preheat, event.getUid(), dv.getValue());
     }
 
     eventDataValue.setProvidedElsewhere(dv.isProvidedElsewhere());
@@ -262,10 +254,9 @@ public class SingleEventPersister
       EventDataValue eventDataValue,
       SingleEvent event,
       DataElement dataElement,
-      EntityManager entityManager,
       TrackerPreheat preheat) {
     if (dataElement.isFileType()) {
-      unassignFileResource(entityManager, preheat, event.getUid(), eventDataValue.getValue());
+      unassignFileResource(preheat, event.getUid(), eventDataValue.getValue());
     }
 
     event.getEventDataValues().remove(eventDataValue);
