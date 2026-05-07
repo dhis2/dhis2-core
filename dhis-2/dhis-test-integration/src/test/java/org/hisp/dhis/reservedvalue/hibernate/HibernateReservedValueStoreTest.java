@@ -48,6 +48,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -82,6 +83,8 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase {
   @Autowired private TrackedEntityAttributeStore trackedEntityAttributeStore;
 
   @Autowired private TrackedEntityAttributeValueStore trackedEntityAttributeValueStore;
+
+  @Autowired private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
   @Override
   protected void setUpTest() {
