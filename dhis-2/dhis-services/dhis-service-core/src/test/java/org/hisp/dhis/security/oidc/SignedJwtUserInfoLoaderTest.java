@@ -119,6 +119,7 @@ class SignedJwtUserInfoLoaderTest {
     when(clientRegistration.getProviderDetails()).thenReturn(providerDetails);
     when(providerDetails.getUserInfoEndpoint()).thenReturn(userInfoEndpoint);
     when(userInfoEndpoint.getUri()).thenReturn("https://idp.test/userinfo");
+    when(providerDetails.getJwkSetUri()).thenReturn("https://idp.test/jwks");
 
     registration =
         DhisOidcClientRegistration.builder()
@@ -126,7 +127,6 @@ class SignedJwtUserInfoLoaderTest {
             .mappingClaimKey("sub")
             .userInfoResponseType(UserInfoResponseType.JWT)
             .userInfoJwsAlgorithm(JWSAlgorithm.RS256)
-            .jwkSetUrl("https://idp.test/jwks")
             .build();
 
     loader = new SignedJwtUserInfoLoader(userService, jwkSourceCacheStub, restTemplate);
@@ -205,6 +205,23 @@ class SignedJwtUserInfoLoaderTest {
         assertThrows(
             OAuth2AuthenticationException.class, () -> loader.load(userRequest, registration));
     assertEquals("user_not_found", ex.getError().getErrorCode());
+  }
+
+  @Test
+  void disabledUserRaisesUserDisabled() throws Exception {
+    String jwt = signJwt(claims("user-123"));
+    when(restTemplate.exchange(
+            anyString(), eq(HttpMethod.GET), any(HttpEntity.class), eq(String.class)))
+        .thenReturn(ResponseEntity.ok(jwt));
+    User user = new User();
+    user.setExternalAuth(true);
+    user.setDisabled(true);
+    when(userService.getUserByOpenId("user-123")).thenReturn(user);
+
+    OAuth2AuthenticationException ex =
+        assertThrows(
+            OAuth2AuthenticationException.class, () -> loader.load(userRequest, registration));
+    assertEquals("user_disabled", ex.getError().getErrorCode());
   }
 
   // helpers

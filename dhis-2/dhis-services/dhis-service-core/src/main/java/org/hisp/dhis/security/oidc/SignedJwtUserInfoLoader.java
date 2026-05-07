@@ -36,7 +36,7 @@ import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
-import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -88,10 +88,12 @@ public class SignedJwtUserInfoLoader {
    *     valid DHIS2 user
    */
   public OidcUser load(OidcUserRequest userRequest, DhisOidcClientRegistration reg) {
-    String userInfoUri =
-        userRequest.getClientRegistration().getProviderDetails().getUserInfoEndpoint().getUri();
+    var providerDetails = userRequest.getClientRegistration().getProviderDetails();
+    String userInfoUri = providerDetails.getUserInfoEndpoint().getUri();
+    String idpJwkSetUri = providerDetails.getJwkSetUri();
     String jwt = fetchJwt(userRequest, userInfoUri);
-    JWTClaimsSet claims = verify(jwt, reg, userRequest.getClientRegistration().getRegistrationId());
+    JWTClaimsSet claims =
+        verify(jwt, reg, userRequest.getClientRegistration().getRegistrationId(), idpJwkSetUri);
     String mappingValue = requireMappingClaim(claims, reg);
     User user = requireExternalAuthUser(mappingValue, reg);
     UserDetails details = userService.createUserDetails(user);
@@ -102,7 +104,7 @@ public class SignedJwtUserInfoLoader {
   private String fetchJwt(OidcUserRequest userRequest, String userInfoUri) {
     HttpHeaders headers = new HttpHeaders();
     headers.setBearerAuth(userRequest.getAccessToken().getTokenValue());
-    headers.setAccept(Collections.singletonList(MediaType.valueOf("application/jwt")));
+    headers.setAccept(List.of(MediaType.valueOf("application/jwt")));
     HttpEntity<String> entity = new HttpEntity<>("", headers);
     try {
       ResponseEntity<String> response =
@@ -121,10 +123,11 @@ public class SignedJwtUserInfoLoader {
     }
   }
 
-  private JWTClaimsSet verify(String jwt, DhisOidcClientRegistration reg, String registrationId) {
+  private JWTClaimsSet verify(
+      String jwt, DhisOidcClientRegistration reg, String registrationId, String idpJwkSetUri) {
     try {
       ConfigurableJWTProcessor<SecurityContext> processor = new DefaultJWTProcessor<>();
-      JWKSource<SecurityContext> keySource = jwkSourceCache.get(registrationId, reg.getJwkSetUrl());
+      JWKSource<SecurityContext> keySource = jwkSourceCache.get(registrationId, idpJwkSetUri);
       JWSKeySelector<SecurityContext> selector =
           new JWSVerificationKeySelector<>(reg.getUserInfoJwsAlgorithm(), keySource);
       processor.setJWSKeySelector(selector);
