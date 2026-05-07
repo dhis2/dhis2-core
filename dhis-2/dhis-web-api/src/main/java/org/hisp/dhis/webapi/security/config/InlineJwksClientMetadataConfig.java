@@ -69,8 +69,12 @@ final class InlineJwksClientMetadataConfig {
       // Let SAS map standard fields first
       RegisteredClient rc = delegate.convert(reg);
 
-      // Copy current client settings so we can add our own
+      // Copy current client settings so we can add our own.
+      // Override the SAS default of requireAuthorizationConsent(true) — DCR-registered clients
+      // are first-party (e.g. Android app) authenticating with their own DHIS2 server,
+      // so no end-user consent prompt is needed.
       ClientSettings.Builder cs = ClientSettings.withSettings(rc.getClientSettings().getSettings());
+      cs.requireAuthorizationConsent(false);
       Map<String, Object> claims = reg.getClaims();
 
       // Accept optional "token_endpoint_auth_signing_alg": "RS256"
