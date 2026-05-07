@@ -837,10 +837,10 @@ public non-sealed interface SystemSettings extends Settings {
   /**
    * @since 2.42
    * @return a set of redirect urls that are allowed in device client enrollment and registration,
-   *     delimited by comma. Default is empty string which means all redirect urls are allowed.
+   *     delimited by comma. Defaults to the DHIS2 Android app's custom-scheme redirect URI.
    */
   default String getDeviceEnrollmentRedirectAllowlist() {
-    return asString("deviceEnrollmentRedirectAllowlist", "");
+    return asString("deviceEnrollmentRedirectAllowlist", "dhis2oauth://oauth");
   }
 
   /**

@@ -67,6 +67,8 @@ public class DhisOidcClientRegistration {
 
   private final String jwkSetUrl;
 
+  @Builder.Default private final boolean visibleOnLoginPage = true;
+
   @Builder.Default private final Map<String, Map<String, String>> externalClients = new HashMap<>();
 
   public Collection<String> getClientIds() {
