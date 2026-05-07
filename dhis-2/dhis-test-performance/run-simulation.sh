@@ -576,6 +576,15 @@ prepare_database() {
   fi
 }
 
+reset_database_state() {
+  # Drains warmup-induced WAL and reclaims dead tuples so the measured run starts
+  # from a clean state. Without this the warmup leaves WAL ~half full and a
+  # wal-triggered checkpoint can fire mid-measurement, producing tail-latency spikes.
+  echo ""
+  echo "Resetting database state (vacuum analyze + checkpoint)..."
+  docker compose exec db psql --username=dhis --quiet --command='vacuum analyze;' --command='checkpoint;' > /dev/null
+}
+
 start_profiler() {
   if [ -n "$PROF_ARGS" ]; then
     # shellcheck disable=SC2086
@@ -807,6 +816,7 @@ if [ "$WARMUP" -gt 0 ]; then
     run_simulation "$i"
   done
   echo "Warmup complete."
+  reset_database_state
 fi
 
 echo ""
