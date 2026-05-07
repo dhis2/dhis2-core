@@ -150,14 +150,6 @@ if ! echo "$DB_VERSION" | grep -qE '^[a-zA-Z0-9._-]+$'; then
   exit 1
 fi
 
-# Compute the Docker image tag for the postgres container, incorporating DB_DIR when set
-if [ -n "$DB_DIR" ]; then
-  DB_IMAGE_TAG="${DB_DIR}-${DB_TYPE}-${DB_VERSION}"
-else
-  DB_IMAGE_TAG="${DB_TYPE}-${DB_VERSION}"
-fi
-export DB_IMAGE_TAG
-
 parse_prof_args() {
   if [ -z "$PROF_ARGS" ]; then
     EVENT_FLAG=""
