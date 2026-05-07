@@ -37,8 +37,9 @@ import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.PopulationBuilder;
 import io.gatling.javaapi.core.Simulation;
 import java.util.List;
+import org.hisp.dhis.test.analytics.AnalyticsSimulation;
 
-public class AnalyticsEventQuery1 extends Simulation {
+public class AnalyticsEventQuery1 extends Simulation implements AnalyticsSimulation {
 
   private static final String GET_QUERY = "GET EVENT QUERY 1";
   private static final String GET_QUERY_API =

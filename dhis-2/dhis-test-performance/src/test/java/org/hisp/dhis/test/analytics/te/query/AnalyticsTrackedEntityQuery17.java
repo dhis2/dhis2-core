@@ -30,58 +30,30 @@
 package org.hisp.dhis.test.analytics.te.query;
 
 import static io.gatling.javaapi.core.CoreDsl.details;
-import static io.gatling.javaapi.core.CoreDsl.exec;
-import static io.gatling.javaapi.core.CoreDsl.repeat;
-import static io.gatling.javaapi.core.CoreDsl.scenario;
-import static io.gatling.javaapi.http.HttpDsl.http;
-import static org.hisp.dhis.test.analytics.TestDefinitions.BASE_URL;
-import static org.hisp.dhis.test.analytics.TestDefinitions.loginChain;
-import static org.hisp.dhis.test.analytics.TestDefinitions.simpleUsersRumpUp;
+import static org.hisp.dhis.test.analytics.TestHelper.buildScenario;
 
+import io.gatling.javaapi.core.Assertion;
 import io.gatling.javaapi.core.OpenInjectionStep;
-import io.gatling.javaapi.core.ScenarioBuilder;
+import io.gatling.javaapi.core.PopulationBuilder;
 import io.gatling.javaapi.core.Simulation;
-import io.gatling.javaapi.http.HttpProtocolBuilder;
+import java.util.List;
+import org.hisp.dhis.test.analytics.AnalyticsSimulation;
 
-public class AnalyticsTrackedEntityQuery17 extends Simulation {
+public class AnalyticsTrackedEntityQuery17 extends Simulation implements AnalyticsSimulation {
 
-  private static final String GET_TRACKED_ENTITY_QUERY = "GET TRACKED ENTITY QUERY 17";
-  public static final String URL_QUERY =
+  private static final String GET_QUERY = "GET TRACKED ENTITY QUERY 17";
+  private static final String GET_QUERY_API =
       "/api/analytics/trackedEntities/query/nEenWmSyUEp.json?dimension=ou:tEgxbwwrwUd;ObV5AR1NECl;Uwcj0mz78BV;nDwbwJZQUYU;OjTS752GbZE;mt47bcb0Rcj;ZxuSbAmsLCn;ImspTQPwCqd,WSGAb5XwJ3Y.bbKtnxRZKEP.QWVRukwa83h:IN:NV;0;1,WSGAb5XwJ3Y.edqlbukwRfQ.yTDoF5b1OhI,WSGAb5XwJ3Y.edqlbukwRfQ.DCUDZxqOxUo:IN:0,WSGAb5XwJ3Y.edqlbukwRfQ.w7enwqzx90I,WSGAb5XwJ3Y.PFDfvmGpsR3.hib4oz2sOLw,WSGAb5XwJ3Y.WZbXY0S00lP.Itl05OEupgQ,WSGAb5XwJ3Y.PFDfvmGpsR3.FIHEeJwfhZH,WSGAb5XwJ3Y.PFDfvmGpsR3.BmaBjPQX8ME:IN:1,WSGAb5XwJ3Y.bbKtnxRZKEP.csl3yq5UC46,WSGAb5XwJ3Y.PFDfvmGpsR3.csl3yq5UC46,WSGAb5XwJ3Y.PFDfvmGpsR3.m3XQrgadVK9,WSGAb5XwJ3Y.WZbXY0S00lP.DecmCMPDPdS,WSGAb5XwJ3Y.WZbXY0S00lP.QFX1FLWBwtq,ur1Edk5Oe2n.ZkbAXlQUYJG.HmkXnHJxcD1,ur1Edk5Oe2n.ZkbAXlQUYJG.U5ubm6PPYrM,ur1Edk5Oe2n.ZkbAXlQUYJG.vAzDOljIN1o,ur1Edk5Oe2n.jdRD35YwbRH.yLIPuJHRgey,ur1Edk5Oe2n.EPEcjy3FWmI.lJTx9EZ1dk1,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.ZzYYXq4fJie.GQY2lXrypjO,IpHINAT79UW.ZzYYXq4fJie.HLmTEmupdX0,IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU,uy2gU8kT1jF.Xgk8Wvl0jHr.Rbv6wcblbxe,uy2gU8kT1jF.eaDHS084uMp.utliJZmDeeC,uy2gU8kT1jF.eaDHS084uMp.pB5sL7Ts4fb,uy2gU8kT1jF.oRySG82BKE6.EzMxXuVww2z,uy2gU8kT1jF.grIfo3oOf4Y.gAbD3uDVHHh,uy2gU8kT1jF.eaDHS084uMp.OuJ6sgPyAbC,uy2gU8kT1jF.oRySG82BKE6.UXz7xuGCEhU,uy2gU8kT1jF.grIfo3oOf4Y.g9eOBujte1U,uy2gU8kT1jF.eaDHS084uMp.NALlPhMmMTQ,fDd25txQckK.lST1OZ5BDJ2.qpQinIDQ6Uy,fDd25txQckK.lST1OZ5BDJ2.fQMBEt42CSl,fDd25txQckK.lST1OZ5BDJ2.Mnkodq2wzlV&headers=ouname,WSGAb5XwJ3Y.bbKtnxRZKEP.QWVRukwa83h,WSGAb5XwJ3Y.edqlbukwRfQ.yTDoF5b1OhI,WSGAb5XwJ3Y.edqlbukwRfQ.DCUDZxqOxUo,WSGAb5XwJ3Y.edqlbukwRfQ.w7enwqzx90I,WSGAb5XwJ3Y.PFDfvmGpsR3.hib4oz2sOLw,WSGAb5XwJ3Y.WZbXY0S00lP.Itl05OEupgQ,WSGAb5XwJ3Y.PFDfvmGpsR3.FIHEeJwfhZH,WSGAb5XwJ3Y.PFDfvmGpsR3.BmaBjPQX8ME,WSGAb5XwJ3Y.bbKtnxRZKEP.csl3yq5UC46,WSGAb5XwJ3Y.PFDfvmGpsR3.csl3yq5UC46,WSGAb5XwJ3Y.PFDfvmGpsR3.m3XQrgadVK9,WSGAb5XwJ3Y.WZbXY0S00lP.DecmCMPDPdS,WSGAb5XwJ3Y.WZbXY0S00lP.QFX1FLWBwtq,WSGAb5XwJ3Y.programstatus,ur1Edk5Oe2n.ZkbAXlQUYJG.HmkXnHJxcD1,ur1Edk5Oe2n.ZkbAXlQUYJG.U5ubm6PPYrM,ur1Edk5Oe2n.ZkbAXlQUYJG.vAzDOljIN1o,ur1Edk5Oe2n.jdRD35YwbRH.yLIPuJHRgey,ur1Edk5Oe2n.EPEcjy3FWmI.lJTx9EZ1dk1,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.ZzYYXq4fJie.GQY2lXrypjO,IpHINAT79UW.ZzYYXq4fJie.HLmTEmupdX0,IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU,uy2gU8kT1jF.Xgk8Wvl0jHr.Rbv6wcblbxe,uy2gU8kT1jF.eaDHS084uMp.utliJZmDeeC,uy2gU8kT1jF.eaDHS084uMp.pB5sL7Ts4fb,uy2gU8kT1jF.oRySG82BKE6.EzMxXuVww2z,uy2gU8kT1jF.grIfo3oOf4Y.gAbD3uDVHHh,uy2gU8kT1jF.eaDHS084uMp.OuJ6sgPyAbC,uy2gU8kT1jF.oRySG82BKE6.UXz7xuGCEhU,uy2gU8kT1jF.grIfo3oOf4Y.g9eOBujte1U,uy2gU8kT1jF.eaDHS084uMp.NALlPhMmMTQ,uy2gU8kT1jF.incidentdate,fDd25txQckK.lST1OZ5BDJ2.qpQinIDQ6Uy,fDd25txQckK.lST1OZ5BDJ2.fQMBEt42CSl,fDd25txQckK.lST1OZ5BDJ2.Mnkodq2wzlV,created&totalPages=false&rowContext=true&programStatus=WSGAb5XwJ3Y.COMPLETED,WSGAb5XwJ3Y.ACTIVE&created=LAST_10_YEARS&displayProperty=NAME&pageSize=5&page=1&includeMetadataDetails=true&asc=ouname&relativePeriodDate=2024-06-13";
 
-  public AnalyticsTrackedEntityQuery17() {
-    HttpProtocolBuilder httpProtocol =
-        http.baseUrl(BASE_URL)
-            .acceptHeader("application/json")
-            .warmUp(BASE_URL + URL_QUERY)
-            .disableCaching();
+  public PopulationBuilder buildPopulation(OpenInjectionStep injectionStep) {
+    return buildScenario(GET_QUERY, GET_QUERY_API).injectOpen(injectionStep);
+  }
 
-    // The scenario includes a login step and the target API call step.
-    // The scenarios are grouped, so we can assert on the target API call only (login stats are
-    // ignored).
-    ScenarioBuilder scenario =
-        scenario("Analytics tracked entity query test")
-            .group("Authentication")
-            .on(exec(loginChain()))
-            .group(GET_TRACKED_ENTITY_QUERY)
-            .on(
-                repeat(1)
-                    .on(
-                        exec(http(GET_TRACKED_ENTITY_QUERY)
-                                .get(URL_QUERY)
-                                .basicAuth("admin", "district"))
-                            .pause(1)));
-
-    // How users should enter the scenarios.
-    OpenInjectionStep injectionStep = simpleUsersRumpUp(1, 10);
-
-    // Bringing all parts together (scenarios, injection, protocol, assertions).
-    setUp(scenario.injectOpen(injectionStep))
-        .protocols(httpProtocol)
-        .assertions(
-            details(GET_TRACKED_ENTITY_QUERY).responseTime().percentile(95).lt(325),
-            details(GET_TRACKED_ENTITY_QUERY).responseTime().max().lt(515),
-            details(GET_TRACKED_ENTITY_QUERY).successfulRequests().percent().is(100D),
-            details(GET_TRACKED_ENTITY_QUERY).successfulRequests().percent().is(100D));
+  public List<Assertion> buildAssertions() {
+    return List.of(
+        details(GET_QUERY).responseTime().percentile(95).lt(325),
+        details(GET_QUERY).responseTime().max().lt(515),
+        details(GET_QUERY).successfulRequests().percent().is(100D),
+        details(GET_QUERY).successfulRequests().percent().is(100D));
   }
 }

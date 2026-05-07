@@ -30,58 +30,30 @@
 package org.hisp.dhis.test.analytics.te.query;
 
 import static io.gatling.javaapi.core.CoreDsl.details;
-import static io.gatling.javaapi.core.CoreDsl.exec;
-import static io.gatling.javaapi.core.CoreDsl.repeat;
-import static io.gatling.javaapi.core.CoreDsl.scenario;
-import static io.gatling.javaapi.http.HttpDsl.http;
-import static org.hisp.dhis.test.analytics.TestDefinitions.BASE_URL;
-import static org.hisp.dhis.test.analytics.TestDefinitions.loginChain;
-import static org.hisp.dhis.test.analytics.TestDefinitions.simpleUsersRumpUp;
+import static org.hisp.dhis.test.analytics.TestHelper.buildScenario;
 
+import io.gatling.javaapi.core.Assertion;
 import io.gatling.javaapi.core.OpenInjectionStep;
-import io.gatling.javaapi.core.ScenarioBuilder;
+import io.gatling.javaapi.core.PopulationBuilder;
 import io.gatling.javaapi.core.Simulation;
-import io.gatling.javaapi.http.HttpProtocolBuilder;
+import java.util.List;
+import org.hisp.dhis.test.analytics.AnalyticsSimulation;
 
-public class AnalyticsTrackedEntityQuery18 extends Simulation {
+public class AnalyticsTrackedEntityQuery18 extends Simulation implements AnalyticsSimulation {
 
-  private static final String GET_TRACKED_ENTITY_QUERY = "GET TRACKED ENTITY QUERY 18";
-  public static final String URL_QUERY =
+  private static final String GET_QUERY = "GET TRACKED ENTITY QUERY 18";
+  private static final String GET_QUERY_API =
       "/api/analytics/trackedEntities/query/Zy2SEgA61ys.json?dimension=ou:O6uvpzGd5pu,TfdH5KvFmMy:ILIKE:la,B6TnnFMgmCk,CklPZdOd6H1,qDkgAbB5Jlk.ou:USER_ORGUNIT,qDkgAbB5Jlk.hYyB7FUS5eR.fazCI2ygYkq:IN:PASSIVE,qDkgAbB5Jlk.hYyB7FUS5eR.SzVk2KvkSSd,qDkgAbB5Jlk.hYyB7FUS5eR.GyJHQUWZ9Rl,qDkgAbB5Jlk.C0aLZo75dgJ.lezQpdvvGjY:EQ:5:NE:NV&headers=ouname,TfdH5KvFmMy,B6TnnFMgmCk,created,lastupdated,createdbydisplayname,lastupdatedbydisplayname,CklPZdOd6H1,qDkgAbB5Jlk.programstatus,qDkgAbB5Jlk.enrollmentdate,qDkgAbB5Jlk.ouname,qDkgAbB5Jlk.hYyB7FUS5eR.fazCI2ygYkq,qDkgAbB5Jlk.hYyB7FUS5eR.SzVk2KvkSSd,qDkgAbB5Jlk.hYyB7FUS5eR.GyJHQUWZ9Rl,qDkgAbB5Jlk.C0aLZo75dgJ.lezQpdvvGjY&totalPages=false&rowContext=true&lastUpdated=LAST_5_YEARS&programStatus=qDkgAbB5Jlk.ACTIVE,qDkgAbB5Jlk.COMPLETED&enrollmentDate=qDkgAbB5Jlk.THIS_YEAR&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&relativePeriodDate=2022-07-01";
 
-  public AnalyticsTrackedEntityQuery18() {
-    HttpProtocolBuilder httpProtocol =
-        http.baseUrl(BASE_URL)
-            .acceptHeader("application/json")
-            .warmUp(BASE_URL + URL_QUERY)
-            .disableCaching();
+  public PopulationBuilder buildPopulation(OpenInjectionStep injectionStep) {
+    return buildScenario(GET_QUERY, GET_QUERY_API).injectOpen(injectionStep);
+  }
 
-    // The scenario includes a login step and the target API call step.
-    // The scenarios are grouped, so we can assert on the target API call only (login stats are
-    // ignored).
-    ScenarioBuilder scenario =
-        scenario("Analytics tracked entity query test")
-            .group("Authentication")
-            .on(exec(loginChain()))
-            .group(GET_TRACKED_ENTITY_QUERY)
-            .on(
-                repeat(1)
-                    .on(
-                        exec(http(GET_TRACKED_ENTITY_QUERY)
-                                .get(URL_QUERY)
-                                .basicAuth("admin", "district"))
-                            .pause(1)));
-
-    // How users should enter the scenarios.
-    OpenInjectionStep injectionStep = simpleUsersRumpUp(1, 10);
-
-    // Bringing all parts together (scenarios, injection, protocol, assertions).
-    setUp(scenario.injectOpen(injectionStep))
-        .protocols(httpProtocol)
-        .assertions(
-            details(GET_TRACKED_ENTITY_QUERY).responseTime().percentile(95).lt(170),
-            details(GET_TRACKED_ENTITY_QUERY).responseTime().max().lt(250),
-            details(GET_TRACKED_ENTITY_QUERY).successfulRequests().percent().is(100D),
-            details(GET_TRACKED_ENTITY_QUERY).successfulRequests().percent().is(100D));
+  public List<Assertion> buildAssertions() {
+    return List.of(
+        details(GET_QUERY).responseTime().percentile(95).lt(170),
+        details(GET_QUERY).responseTime().max().lt(250),
+        details(GET_QUERY).successfulRequests().percent().is(100D),
+        details(GET_QUERY).successfulRequests().percent().is(100D));
   }
 }

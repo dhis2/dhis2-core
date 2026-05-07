@@ -41,6 +41,28 @@ import java.util.List;
 import org.hisp.dhis.test.analytics.aggregate.AnalyticsAggregate1;
 import org.hisp.dhis.test.analytics.enrollment.query.AnalyticsEnrollmentQuery1;
 import org.hisp.dhis.test.analytics.enrollment.query.AnalyticsEnrollmentQuery2;
+import org.hisp.dhis.test.analytics.event.query.AnalyticsEventQuery1;
+import org.hisp.dhis.test.analytics.event.query.AnalyticsEventQuery2;
+import org.hisp.dhis.test.analytics.event.query.AnalyticsEventQuery3;
+import org.hisp.dhis.test.analytics.te.query.AnalyticsTrackedEntityQuery1;
+import org.hisp.dhis.test.analytics.te.query.AnalyticsTrackedEntityQuery10;
+import org.hisp.dhis.test.analytics.te.query.AnalyticsTrackedEntityQuery11;
+import org.hisp.dhis.test.analytics.te.query.AnalyticsTrackedEntityQuery12;
+import org.hisp.dhis.test.analytics.te.query.AnalyticsTrackedEntityQuery13;
+import org.hisp.dhis.test.analytics.te.query.AnalyticsTrackedEntityQuery14;
+import org.hisp.dhis.test.analytics.te.query.AnalyticsTrackedEntityQuery15;
+import org.hisp.dhis.test.analytics.te.query.AnalyticsTrackedEntityQuery16;
+import org.hisp.dhis.test.analytics.te.query.AnalyticsTrackedEntityQuery17;
+import org.hisp.dhis.test.analytics.te.query.AnalyticsTrackedEntityQuery18;
+import org.hisp.dhis.test.analytics.te.query.AnalyticsTrackedEntityQuery19;
+import org.hisp.dhis.test.analytics.te.query.AnalyticsTrackedEntityQuery2;
+import org.hisp.dhis.test.analytics.te.query.AnalyticsTrackedEntityQuery3;
+import org.hisp.dhis.test.analytics.te.query.AnalyticsTrackedEntityQuery4;
+import org.hisp.dhis.test.analytics.te.query.AnalyticsTrackedEntityQuery5;
+import org.hisp.dhis.test.analytics.te.query.AnalyticsTrackedEntityQuery6;
+import org.hisp.dhis.test.analytics.te.query.AnalyticsTrackedEntityQuery7;
+import org.hisp.dhis.test.analytics.te.query.AnalyticsTrackedEntityQuery8;
+import org.hisp.dhis.test.analytics.te.query.AnalyticsTrackedEntityQuery9;
 
 public class AnalyticsSimulationsRunner extends Simulation {
   public AnalyticsSimulationsRunner() {
@@ -49,20 +71,95 @@ public class AnalyticsSimulationsRunner extends Simulation {
 
     // Simulations.
     AnalyticsSimulation analyticsAggregate1 = new AnalyticsAggregate1();
+
     AnalyticsSimulation analyticsEnrollmentQuery1 = new AnalyticsEnrollmentQuery1();
     AnalyticsSimulation analyticsEnrollmentQuery2 = new AnalyticsEnrollmentQuery2();
+
+    AnalyticsSimulation analyticsEventQuery1 = new AnalyticsEventQuery1();
+    AnalyticsSimulation analyticsEventQuery2 = new AnalyticsEventQuery2();
+    AnalyticsSimulation analyticsEventQuery3 = new AnalyticsEventQuery3();
+
+    AnalyticsSimulation analyticsTrackedEntityQuery1 = new AnalyticsTrackedEntityQuery1();
+    AnalyticsSimulation analyticsTrackedEntityQuery2 = new AnalyticsTrackedEntityQuery2();
+    AnalyticsSimulation analyticsTrackedEntityQuery3 = new AnalyticsTrackedEntityQuery3();
+    AnalyticsSimulation analyticsTrackedEntityQuery4 = new AnalyticsTrackedEntityQuery4();
+    AnalyticsSimulation analyticsTrackedEntityQuery5 = new AnalyticsTrackedEntityQuery5();
+    AnalyticsSimulation analyticsTrackedEntityQuery6 = new AnalyticsTrackedEntityQuery6();
+    AnalyticsSimulation analyticsTrackedEntityQuery7 = new AnalyticsTrackedEntityQuery7();
+    AnalyticsSimulation analyticsTrackedEntityQuery8 = new AnalyticsTrackedEntityQuery8();
+    AnalyticsSimulation analyticsTrackedEntityQuery9 = new AnalyticsTrackedEntityQuery9();
+    AnalyticsSimulation analyticsTrackedEntityQuery10 = new AnalyticsTrackedEntityQuery10();
+    AnalyticsSimulation analyticsTrackedEntityQuery11 = new AnalyticsTrackedEntityQuery11();
+    AnalyticsSimulation analyticsTrackedEntityQuery12 = new AnalyticsTrackedEntityQuery12();
+    AnalyticsSimulation analyticsTrackedEntityQuery13 = new AnalyticsTrackedEntityQuery13();
+    AnalyticsSimulation analyticsTrackedEntityQuery14 = new AnalyticsTrackedEntityQuery14();
+    AnalyticsSimulation analyticsTrackedEntityQuery15 = new AnalyticsTrackedEntityQuery15();
+    AnalyticsSimulation analyticsTrackedEntityQuery16 = new AnalyticsTrackedEntityQuery16();
+    AnalyticsSimulation analyticsTrackedEntityQuery17 = new AnalyticsTrackedEntityQuery17();
+    AnalyticsSimulation analyticsTrackedEntityQuery18 = new AnalyticsTrackedEntityQuery18();
+    AnalyticsSimulation analyticsTrackedEntityQuery19 = new AnalyticsTrackedEntityQuery19();
 
     // Scenarios.
     List<PopulationBuilder> scenarios = new ArrayList<>();
     scenarios.add(analyticsAggregate1.buildPopulation(defaultInjectionStep));
+
     scenarios.add(analyticsEnrollmentQuery1.buildPopulation(defaultInjectionStep));
     scenarios.add(analyticsEnrollmentQuery2.buildPopulation(defaultInjectionStep));
+
+    scenarios.add(analyticsEventQuery1.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsEventQuery2.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsEventQuery3.buildPopulation(defaultInjectionStep));
+
+    scenarios.add(analyticsTrackedEntityQuery1.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsTrackedEntityQuery2.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsTrackedEntityQuery3.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsTrackedEntityQuery4.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsTrackedEntityQuery5.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsTrackedEntityQuery6.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsTrackedEntityQuery7.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsTrackedEntityQuery8.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsTrackedEntityQuery9.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsTrackedEntityQuery10.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsTrackedEntityQuery11.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsTrackedEntityQuery12.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsTrackedEntityQuery13.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsTrackedEntityQuery14.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsTrackedEntityQuery15.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsTrackedEntityQuery16.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsTrackedEntityQuery17.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsTrackedEntityQuery18.buildPopulation(defaultInjectionStep));
+    scenarios.add(analyticsTrackedEntityQuery19.buildPopulation(defaultInjectionStep));
 
     // Assertions.
     List<Assertion> assertions = new ArrayList<>();
     assertions.addAll(analyticsAggregate1.buildAssertions());
+
     assertions.addAll(analyticsEnrollmentQuery1.buildAssertions());
     assertions.addAll(analyticsEnrollmentQuery2.buildAssertions());
+
+    assertions.addAll(analyticsEventQuery1.buildAssertions());
+    assertions.addAll(analyticsEventQuery2.buildAssertions());
+    assertions.addAll(analyticsEventQuery3.buildAssertions());
+
+    assertions.addAll(analyticsTrackedEntityQuery1.buildAssertions());
+    assertions.addAll(analyticsTrackedEntityQuery2.buildAssertions());
+    assertions.addAll(analyticsTrackedEntityQuery3.buildAssertions());
+    assertions.addAll(analyticsTrackedEntityQuery4.buildAssertions());
+    assertions.addAll(analyticsTrackedEntityQuery5.buildAssertions());
+    assertions.addAll(analyticsTrackedEntityQuery6.buildAssertions());
+    assertions.addAll(analyticsTrackedEntityQuery7.buildAssertions());
+    assertions.addAll(analyticsTrackedEntityQuery8.buildAssertions());
+    assertions.addAll(analyticsTrackedEntityQuery9.buildAssertions());
+    assertions.addAll(analyticsTrackedEntityQuery10.buildAssertions());
+    assertions.addAll(analyticsTrackedEntityQuery11.buildAssertions());
+    assertions.addAll(analyticsTrackedEntityQuery12.buildAssertions());
+    assertions.addAll(analyticsTrackedEntityQuery13.buildAssertions());
+    assertions.addAll(analyticsTrackedEntityQuery14.buildAssertions());
+    assertions.addAll(analyticsTrackedEntityQuery15.buildAssertions());
+    assertions.addAll(analyticsTrackedEntityQuery16.buildAssertions());
+    assertions.addAll(analyticsTrackedEntityQuery17.buildAssertions());
+    assertions.addAll(analyticsTrackedEntityQuery18.buildAssertions());
+    assertions.addAll(analyticsTrackedEntityQuery19.buildAssertions());
 
     // Execute and assert all scenarios.
     SetUp setUp = setUp(scenarios);

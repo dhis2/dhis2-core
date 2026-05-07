@@ -37,23 +37,40 @@ import static io.gatling.javaapi.http.HttpDsl.http;
 import static org.hisp.dhis.test.analytics.TestDefinitions.BASE_URL;
 import static org.hisp.dhis.test.analytics.TestDefinitions.loginChain;
 import static org.hisp.dhis.test.analytics.TestDefinitions.simpleUsersRumpUp;
+import static org.hisp.dhis.test.analytics.TestHelper.buildScenario;
 
+import io.gatling.javaapi.core.Assertion;
 import io.gatling.javaapi.core.OpenInjectionStep;
+import io.gatling.javaapi.core.PopulationBuilder;
 import io.gatling.javaapi.core.ScenarioBuilder;
 import io.gatling.javaapi.core.Simulation;
 import io.gatling.javaapi.http.HttpProtocolBuilder;
+import java.util.List;
+import org.hisp.dhis.test.analytics.AnalyticsSimulation;
 
-public class AnalyticsTrackedEntityQuery2 extends Simulation {
+public class AnalyticsTrackedEntityQuery2 extends Simulation implements AnalyticsSimulation {
 
-  private static final String GET_TRACKED_ENTITY_QUERY = "GET TRACKED ENTITY QUERY 2";
-  public static final String URL_QUERY =
+  private static final String GET_QUERY = "GET TRACKED ENTITY QUERY 2";
+  private static final String GET_QUERY_API =
       "/api/analytics/trackedEntities/query/nEenWmSyUEp?dimension=ou:USER_ORGUNIT,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6&headers=ouname,gHGyrwKPzej,ciq2USN94oJ,cejWyOfXge6,IpHINAT79UW.A03MvHHogjR.bx6fsa0t90x,IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6,created&totalPages=false&rowContext=true&created=YESTERDAY&displayProperty=NAME&pageSize=100&page=1&includeMetadataDetails=true&asc=created&relativePeriodDate=2017-01-27";
+
+  public PopulationBuilder buildPopulation(OpenInjectionStep injectionStep) {
+    return buildScenario(GET_QUERY, GET_QUERY_API).injectOpen(injectionStep);
+  }
+
+  public List<Assertion> buildAssertions() {
+    return List.of(
+        details(GET_QUERY).responseTime().percentile(95).lt(215),
+        details(GET_QUERY).responseTime().max().lt(300),
+        details(GET_QUERY).successfulRequests().percent().is(100D),
+        details(GET_QUERY).successfulRequests().percent().is(100D));
+  }
 
   public AnalyticsTrackedEntityQuery2() {
     HttpProtocolBuilder httpProtocol =
         http.baseUrl(BASE_URL)
             .acceptHeader("application/json")
-            .warmUp(BASE_URL + URL_QUERY)
+            .warmUp(BASE_URL + GET_QUERY_API)
             .disableCaching();
 
     // The scenario includes a login step and the target API call step.
@@ -63,13 +80,11 @@ public class AnalyticsTrackedEntityQuery2 extends Simulation {
         scenario("Analytics tracked entity query test")
             .group("Authentication")
             .on(exec(loginChain()))
-            .group(GET_TRACKED_ENTITY_QUERY)
+            .group(GET_QUERY)
             .on(
                 repeat(1)
                     .on(
-                        exec(http(GET_TRACKED_ENTITY_QUERY)
-                                .get(URL_QUERY)
-                                .basicAuth("admin", "district"))
+                        exec(http(GET_QUERY).get(GET_QUERY_API).basicAuth("admin", "district"))
                             .pause(1)));
 
     // How users should enter the scenarios.
@@ -79,9 +94,9 @@ public class AnalyticsTrackedEntityQuery2 extends Simulation {
     setUp(scenario.injectOpen(injectionStep))
         .protocols(httpProtocol)
         .assertions(
-            details(GET_TRACKED_ENTITY_QUERY).responseTime().percentile(95).lt(210),
-            details(GET_TRACKED_ENTITY_QUERY).responseTime().max().lt(320),
-            details(GET_TRACKED_ENTITY_QUERY).successfulRequests().percent().is(100D),
-            details(GET_TRACKED_ENTITY_QUERY).successfulRequests().percent().is(100D));
+            details(GET_QUERY).responseTime().percentile(95).lt(210),
+            details(GET_QUERY).responseTime().max().lt(320),
+            details(GET_QUERY).successfulRequests().percent().is(100D),
+            details(GET_QUERY).successfulRequests().percent().is(100D));
   }
 }
