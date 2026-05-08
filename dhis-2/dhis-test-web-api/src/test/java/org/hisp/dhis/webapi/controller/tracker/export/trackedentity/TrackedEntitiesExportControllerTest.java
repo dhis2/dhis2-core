@@ -119,7 +119,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
   // Used to generate unique chars for creating test objects like TEA, ...
   private static final String UNIQUE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   private static final String TEA_MULTI_TEXT = "multitxtAtr";
-  private static final String TE_UID_RBG = "QS6w44flWSS"; // "red,blue,Green" as multi text value
+  private static final String TE_UID_RBG = "QS6w44flWSS"; // "red, blue ,Green" as multi text value
   private static final String TE_UID_RWY = "QS6w44flWTT"; // "red,white,yellow" as multi text value
   private static final String TE_UID_EMPTY_STRING = "QS6w44flWUU"; // "" as multi text value
   public static final List<String> TE_UID_NULL =
@@ -1549,23 +1549,33 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
    */
   private static Stream<Arguments> provideMultiTextFilterTestCases() {
     return Stream.of(
-        Arguments.of("sw:bl", List.of("red,blue,Green"), List.of(TE_UID_RBG)),
-        Arguments.of("ew:een", List.of("red,blue,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("sw: bl", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("ew:een", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
         Arguments.of("like:ellow", List.of("red,white,yellow"), List.of(TE_UID_RWY)),
         Arguments.of("like:ello", List.of("red,white,yellow"), List.of(TE_UID_RWY)),
         Arguments.of("ew:bl", List.of(), List.of()), // no match
-        Arguments.of("ilike:green", List.of("red,blue,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("ilike:green", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
         Arguments.of(
             "in:red",
-            List.of("red,blue,Green", "red,white,yellow"),
+            List.of("red, blue ,Green", "red,white,yellow"),
             List.of(TE_UID_RBG, TE_UID_RWY)),
         Arguments.of(
             "like:red",
-            List.of("red,blue,Green", "red,white,yellow"),
+            List.of("red, blue ,Green", "red,white,yellow"),
             List.of(TE_UID_RBG, TE_UID_RWY)),
         Arguments.of(
             "!null",
-            List.of("red,blue,Green", "red,white,yellow"),
-            List.of(TE_UID_RBG, TE_UID_RWY)));
+            List.of("red, blue ,Green", "red,white,yellow"),
+            List.of(TE_UID_RBG, TE_UID_RWY)),
+        Arguments.of("eq: blue ", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("eq:blue", List.of(), List.of()),
+        Arguments.of("in: blue ", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("in:blue", List.of(), List.of()),
+        Arguments.of("sw: blue", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("sw:blue", List.of(), List.of()),
+        Arguments.of("ew:blue ", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("ew:blue", List.of(), List.of()),
+        Arguments.of("like: blue ", List.of("red, blue ,Green"), List.of(TE_UID_RBG)),
+        Arguments.of("like:blue", List.of("red, blue ,Green"), List.of(TE_UID_RBG)));
   }
 }
