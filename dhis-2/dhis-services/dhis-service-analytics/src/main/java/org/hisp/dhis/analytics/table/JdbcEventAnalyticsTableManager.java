@@ -305,12 +305,12 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
               and ev.lastupdated >= '${startDate}' \
               and ev.lastupdated < '${endDate}');""",
               Map.of(
-                  "tableName", sqlBuilder.qualifyTable(getAnalyticsTableType().getTableName()),
+                  "tableName", qualify(table.getMainName()),
                   "programId", String.valueOf(table.getProgram().getId()),
                   "startDate", toLongDate(partition.getStartDate()),
                   "endDate", toLongDate(partition.getEndDate())));
 
-      invokeTimeAndLog(sql, "Remove updated events for table: '{}'", getAnalyticsTableType().getTableName());
+      invokeTimeAndLog(sql, "Remove updated events for table: '{}'", table.getMainName());
     }
   }
 
