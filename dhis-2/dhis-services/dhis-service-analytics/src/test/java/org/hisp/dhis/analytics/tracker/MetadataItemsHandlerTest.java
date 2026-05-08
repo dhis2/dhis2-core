@@ -209,8 +209,8 @@ class MetadataItemsHandlerTest {
 
     @Test
     @DisplayName(
-        "should use raw item ID as dimension key for option set items in non-query context")
-    void shouldUseRawItemIdAsDimensionKeyForOptionSetItemsInNonQueryContext() {
+        "should use stage-prefixed dimension key for stage-scoped option set items in aggregate context")
+    void shouldUseStagePrefixedDimensionKeyForStageScopedOptionSetItemsInAggregateContext() {
       // Given
       Grid grid = new ListGrid();
 
@@ -228,12 +228,12 @@ class MetadataItemsHandlerTest {
               optionSetA);
       queryItem.setProgramStage(programStage);
 
-      // 3. Create params for a NON-QUERY action (AGGREGATE)
+      // 3. Create params for an aggregate action.
       EventQueryParams params =
           new EventQueryParams.Builder()
               .withProgram(programA)
               .withSkipMeta(false)
-              .withEndpointAction(AGGREGATE) // This ensures itemOptions is empty
+              .withEndpointAction(AGGREGATE)
               .withOrganisationUnits(List.of(orgUnitA))
               .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
               .addItem(queryItem)
@@ -251,20 +251,13 @@ class MetadataItemsHandlerTest {
 
       assertNotNull(dimensions);
 
-      // THE BUG CHECK:
-      // The bug causes the key to be "ProgramStageID.DataElementID"
-      // The fix ensures the key is just "DataElementID"
-
-      // 1. Assert the RAW ID is present
-      assertTrue(
-          dimensions.containsKey(dataElementA.getUid()),
-          "Dimensions map should contain the raw Data Element UID key");
-
-      // 2. Assert the PREFIXED ID is NOT present
       String prefixedId = programStage.getUid() + "." + dataElementA.getUid();
-      assertFalse(
+      assertTrue(
           dimensions.containsKey(prefixedId),
-          "Dimensions map should NOT contain the ProgramStage prefixed UID key");
+          "Dimensions map should contain the ProgramStage-prefixed Data Element UID key");
+      assertFalse(
+          dimensions.containsKey(dataElementA.getUid()),
+          "Dimensions map should not contain the raw Data Element UID key for stage-scoped items");
     }
 
     @Test

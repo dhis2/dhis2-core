@@ -340,13 +340,42 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     EventQueryParams params =
         new EventQueryParams.Builder(createRequestParams()).addItem(stageOuItem).build();
 
-    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params))
+    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "ax"))
         .thenReturn(new OrganisationUnitResolver.StageOuCteContext("ax.\"uidlevel1\"", "", ""));
 
     ColumnAndAlias columnAndAlias =
         eventSubject.getColumnAndAlias(stageOuItem, params, false, true);
 
     assertThat(columnAndAlias.asSql(), is("ax.\"uidlevel1\" as \"ou\""));
+  }
+
+  @Test
+  void verifyGetColumnAndAliasQualifiesStageOuColumnForAggregateWhenEnrollmentOuJoined() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    QueryItem stageOuItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME),
+            programA,
+            null,
+            ValueType.ORGANISATION_UNIT,
+            AggregationType.NONE,
+            null);
+    stageOuItem.setProgramStage(programStage);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .addItem(stageOuItem)
+            .withEnrollmentOuDimension(List.of(ouA))
+            .build();
+
+    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "enrl"))
+        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("enrl.\"uidlevel1\"", "", ""));
+
+    ColumnAndAlias columnAndAlias =
+        eventSubject.getColumnAndAlias(stageOuItem, params, false, true);
+
+    assertThat(columnAndAlias.asSql(), is("enrl.\"uidlevel1\" as \"ou\""));
   }
 
   @Test
