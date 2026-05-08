@@ -111,6 +111,10 @@ public interface BlobStoreService {
    * Recursively deletes all blobs whose key starts with {@code prefix}. On filesystem backends this
    * maps to a directory delete; on object-store backends it performs per-key deletion.
    */
+  // TODO(DHIS2-20648) The replacement implementation must honour this recursively for ALL
+  // backends. The current jclouds-transient and jclouds-S3 paths are non-recursive (callers
+  // work around it in JCloudsAppStorageService#deleteApp); see BlobStoreServiceContractTest's
+  // supportsRecursiveDirectoryDelete capability hook — drop the false overrides once fixed.
   void deleteDirectory(BlobKeyPrefix prefix);
 
   /**
@@ -121,8 +125,12 @@ public interface BlobStoreService {
 
   /**
    * Lists all blob keys whose key starts with {@code prefix} (recursive). May return an empty
-   * iterable if no matching blobs exist.
+   * iterable if no matching blobs exist. Returned keys identify real blobs only — synthetic
+   * directory marker entries (values ending with {@code /}) must not be returned.
    */
+  // TODO(DHIS2-20648) The replacement implementation must filter directory markers. The current
+  // jclouds-filesystem provider emits them; see BlobStoreServiceContractTest's
+  // listKeysIncludesDirectoryMarkers capability hook — drop the true override once fixed.
   Iterable<BlobKey> listKeys(BlobKeyPrefix prefix);
 
   /**
