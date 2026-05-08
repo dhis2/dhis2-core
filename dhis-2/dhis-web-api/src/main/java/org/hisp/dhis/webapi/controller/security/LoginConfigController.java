@@ -113,6 +113,10 @@ public class LoginConfigController {
       DhisOidcClientRegistration clientRegistration =
           oidcProviderRepository.getDhisOidcClientRegistration(registrationId);
 
+      if (!clientRegistration.isVisibleOnLoginPage()) {
+        continue;
+      }
+
       providers.add(
           LoginOidcProvider.builder()
               .id(registrationId)

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2025, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,32 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.security.oauth;
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import static org.hisp.dhis.security.Authorities.ALL;
-
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.query.GetObjectListParams;
-import org.hisp.dhis.security.RequiresAuthority;
+import java.util.function.Consumer;
+import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.security.oauth2.consent.Dhis2OAuth2AuthorizationConsent;
-import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
-import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.stereotype.Component;
 
 /**
- * Read-only controller for inspecting OAuth2 authorization consents (principal to client scope
- * grants stored by Spring Authorization Server). Gated on {@link
- * org.hisp.dhis.security.Authorities#ALL}: only superusers may list or read these rows because they
- * reveal which principals have granted which scopes to which clients.
+ * Reject any attempt to create or update {@link Dhis2OAuth2AuthorizationConsent} via the metadata
+ * import pipeline. Consents record which scopes a principal granted to a registered client and are
+ * written exclusively by Spring Authorization Server through {@code
+ * Dhis2OAuth2AuthorizationConsentServiceImpl.save(OAuth2AuthorizationConsent)}. Allowing {@code
+ * /api/metadata} to POST arbitrary consent rows would let an admin fabricate scope grants on behalf
+ * of any principal, bypassing the user-facing consent screen.
+ *
+ * <p>The read-only {@code OAuth2AuthorizationConsentController} still exposes GET, and Spring AS
+ * keeps its own persistence path. This hook only closes the metadata-import write path.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Controller
-@RequestMapping({"/api/oAuth2AuthorizationConsents"})
-@RequiredArgsConstructor
-@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
-@RequiresAuthority(anyOf = ALL)
-public class OAuth2AuthorizationConsentController
-    extends AbstractFullReadOnlyController<Dhis2OAuth2AuthorizationConsent, GetObjectListParams> {}
+@Component
+public class Dhis2OAuth2AuthorizationConsentObjectBundleHook
+    extends AbstractObjectBundleHook<Dhis2OAuth2AuthorizationConsent> {
+
+  @Override
+  public void validate(
+      Dhis2OAuth2AuthorizationConsent object,
+      ObjectBundle bundle,
+      Consumer<ErrorReport> addReports) {
+    addReports.accept(
+        new ErrorReport(
+            Dhis2OAuth2AuthorizationConsent.class,
+            ErrorCode.E6023,
+            Dhis2OAuth2AuthorizationConsent.class.getSimpleName()));
+  }
+}
