@@ -310,7 +310,9 @@ public class EventsQuery3AutoTest extends AnalyticsApiTest {
             .add("pageSize=100")
             .add("page=1")
             .add("dimension=ENROLLMENT_OU:O6uvpzGd5pu,PROGRAM_STATUS:ACTIVE")
-            .add("desc=eventdate,lastupdated");
+            .add("desc=eventdate,lastupdated")
+            .add("eventDate=LAST_12_MONTHS")
+            .add("relativePeriodDate=2026-04-01");
 
     // When
     ApiResponse response = actions.query().get("IpHINAT79UW", JSON, JSON, params);
