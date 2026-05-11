@@ -55,6 +55,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import org.awaitility.Awaitility;
 import org.hisp.dhis.storage.BlobContainerName;
 import org.hisp.dhis.storage.BlobKey;
 import org.hisp.dhis.storage.BlobKeyPrefix;
@@ -69,9 +70,9 @@ import org.junit.jupiter.api.TestInstance;
  * Behavioural contract every {@link BlobStoreService} implementation must satisfy.
  *
  * <p>Subclasses provide a wired {@link BlobStoreService} (e.g. JClouds + transient, JClouds +
- * filesystem, JClouds + S3, the future AWS SDK v2 implementation) and the contract tests run
- * unchanged. Intent: lock the behavioural surface in place before replacing JClouds, so that the
- * new implementation can be validated against the same suite.
+ * filesystem, JClouds + S3) and the contract tests run unchanged. Intent: lock the behavioural
+ * surface in place before replacing JClouds, so that the new implementation can be validated
+ * against the same suite.
  *
  * <p>Tests that don't apply to a given backend are skipped via {@link
  * org.junit.jupiter.api.Assumptions} on capability hooks subclasses override:
@@ -89,9 +90,6 @@ import org.junit.jupiter.api.TestInstance;
  * <p>Lifecycle: subclasses use {@code @BeforeAll}/{@code @AfterAll} to start and stop the backend
  * (one per class). Per-test data is namespaced under a unique {@link #testPrefix} and removed in
  * {@link #cleanUpTestData()}.
- *
- * <p>This class lives in {@code org.hisp.dhis.jclouds} so concrete subclasses can call the
- * package-private {@link JCloudsStore} constructor without exposing it more broadly.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 abstract class BlobStoreServiceContractTest {
@@ -112,8 +110,7 @@ abstract class BlobStoreServiceContractTest {
   /**
    * {@code true} if {@link BlobStoreService#listKeys} may return synthetic "directory marker" keys
    * (values ending with {@code /}) alongside real blobs. The current jclouds-filesystem provider
-   * does this; S3 and the future AWS SDK v2 implementation do not. Backends that expose markers see
-   * assertions augmented to tolerate them.
+   * does this; S3 does not. Backends that expose markers see assertions augmented to tolerate them.
    */
   protected boolean listKeysIncludesDirectoryMarkers() {
     return false;
@@ -351,14 +348,18 @@ abstract class BlobStoreServiceContractTest {
   }
 
   @Test
-  void signedGetUri_expiredUri_isRejected() throws Exception {
+  void signedGetUri_expiredUri_isRejected() {
     assumeTrue(supportsRequestSigning(), "backend does not support request signing");
     putString(key("expires-fast"), "x");
     URI uri = service().signedGetUri(key("expires-fast"), 1);
     assertNotNull(uri);
-    Thread.sleep(2_500);
-    HttpResponse<String> response = httpGet(uri);
-    assertNotEquals(200, response.statusCode(), "expired presigned URL should not return 200");
+    Awaitility.await()
+        .atMost(Duration.ofSeconds(10))
+        .pollInterval(Duration.ofMillis(500))
+        .untilAsserted(
+            () ->
+                assertNotEquals(
+                    200, httpGet(uri).statusCode(), "expired presigned URL should not return 200"));
   }
 
   // -------------------------------------------------------------------- meta

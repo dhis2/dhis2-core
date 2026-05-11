@@ -107,7 +107,7 @@ class FilesystemJCloudsStoreContractTest extends BlobStoreServiceContractTest {
   @Override
   protected boolean listKeysIncludesDirectoryMarkers() {
     // TODO(DHIS2-20648) jclouds-filesystem returns synthetic entries for parent directories
-    // alongside real blobs. Drop this override once the replacement NIO-based implementation
+    // alongside real blobs. Drop this override once the replacement implementation
     // filters these out so listKeys returns blob keys only.
     return true;
   }

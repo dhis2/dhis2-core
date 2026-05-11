@@ -47,11 +47,6 @@ import org.testcontainers.containers.MinIOContainer;
  * (presigned URLs, server-side MD5 validation, custom endpoint + path-style addressing) that have
  * no other automated coverage today.
  *
- * <p>Lives in {@code dhis-test-integration} because it requires Docker. The {@code
- * BlobStoreServiceContractTest} base class is consumed via the {@code dhis-service-core} test-jar;
- * the {@code org.hisp.dhis.jclouds} package is shared across jars so the package-private {@link
- * JCloudsStore} constructor remains reachable.
- *
  * <p>The container is managed manually rather than via {@code @Testcontainers} because the {@code
  * org.testcontainers:junit-jupiter} integration artifact is not on the test classpath; only the
  * core {@code testcontainers} + {@code minio} modules are pulled in via {@code dhis-support-test}.
