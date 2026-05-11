@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,46 +29,40 @@
  */
 package org.hisp.dhis.test.junit;
 
-import org.junit.jupiter.api.extension.AfterAllCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.testcontainers.containers.MinIOContainer;
+import java.util.Properties;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * Starts a MinIO container shared across all tests in a class. Test classes register the extension
- * via {@code @ExtendWith(MinIOTestExtension.class)} and read connection details from the public
- * statics on this type ({@link #MINIO_USER}, {@link #MINIO_PASSWORD}, {@link #s3Url()}).
+ * Spring {@link Configuration} that wires the active {@link DhisConfigurationProvider} to point at
+ * the MinIO container managed by {@link MinIOTestExtension}.
  *
- * <p>The container is started lazily by the class initializer the first time the class is loaded
- * and stopped in {@link #afterAll(ExtensionContext)}.
+ * <p>Use alongside {@code @ExtendWith(MinIOTestExtension.class)} on Spring-aware integration test
+ * classes:
  *
- * @author david mackessy
+ * <pre>{@code
+ * @ExtendWith(MinIOTestExtension.class)
+ * @ContextConfiguration(classes = MinIOTestConfig.class)
+ * class MyTest extends PostgresIntegrationTestBase { ... }
+ * }</pre>
  */
-public class MinIOTestExtension implements AfterAllCallback {
+@Configuration
+public class MinIOTestConfig {
 
-  public static final String MINIO_USER = "testuser";
-  public static final String MINIO_PASSWORD = "testpassword";
+  @Bean
+  public DhisConfigurationProvider dhisConfigurationProvider() {
+    Properties properties = new Properties();
+    properties.put("filestore.provider", "s3");
+    properties.put("filestore.container", "dhis2");
+    properties.put("filestore.location", "eu-west-1");
+    properties.put("filestore.endpoint", MinIOTestExtension.s3Url());
+    properties.put("filestore.identity", MinIOTestExtension.MINIO_USER);
+    properties.put("filestore.secret", MinIOTestExtension.MINIO_PASSWORD);
 
-  private static final String S3_URL;
-  private static final MinIOContainer MIN_IO_CONTAINER;
-
-  static {
-    MIN_IO_CONTAINER =
-        new MinIOContainer("minio/minio:RELEASE.2025-04-22T22-12-26Z")
-            .withUserName(MINIO_USER)
-            .withPassword(MINIO_PASSWORD);
-    MIN_IO_CONTAINER.start();
-    S3_URL = MIN_IO_CONTAINER.getS3URL();
-  }
-
-  /**
-   * Endpoint URL the running MinIO container is reachable on (e.g. {@code http://localhost:32812}).
-   */
-  public static String s3Url() {
-    return S3_URL;
-  }
-
-  @Override
-  public void afterAll(ExtensionContext context) {
-    MIN_IO_CONTAINER.stop();
+    PostgresDhisConfigurationProvider provider = new PostgresDhisConfigurationProvider(null);
+    provider.addProperties(properties);
+    return provider;
   }
 }

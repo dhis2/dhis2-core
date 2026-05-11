@@ -36,58 +36,52 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.storage.BlobStoreService;
+import org.hisp.dhis.test.junit.MinIOTestExtension;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
-import org.testcontainers.containers.MinIOContainer;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Runs the {@link BlobStoreServiceContractTest} suite against the JClouds {@code s3} provider,
- * pointed at a MinIO container started by Testcontainers. Validates the S3-shaped behaviours
- * (presigned URLs, server-side MD5 validation, custom endpoint + path-style addressing) that have
- * no other automated coverage today.
+ * pointed at the MinIO container managed by {@link MinIOTestExtension}. Validates the S3-shaped
+ * behaviours (presigned URLs, server-side MD5 validation, custom endpoint + path-style addressing)
+ * that have no other automated coverage today.
  *
- * <p>The container is managed manually rather than via {@code @Testcontainers} because the {@code
- * org.testcontainers:junit-jupiter} integration artifact is not on the test classpath; only the
- * core {@code testcontainers} + {@code minio} modules are pulled in via {@code dhis-support-test}.
+ * <p>Lives in {@code dhis-test-integration} because it requires Docker. The {@code
+ * BlobStoreServiceContractTest} base class is consumed from the same module; the {@code
+ * org.hisp.dhis.jclouds} package is shared with {@link JCloudsStore} so its package-private
+ * constructor remains reachable.
  */
 @Tag("integration")
-class S3JCloudsStoreContractTest extends BlobStoreServiceContractTest {
+@ExtendWith(MinIOTestExtension.class)
+class S3BlobStoreServiceContractTest extends BlobStoreServiceContractTest {
 
-  private static final String USER = "testuser";
-  private static final String PASSWORD = "testpassword";
-
-  private MinIOContainer minio;
   private JCloudsStore store;
 
   @BeforeAll
   void start() {
-    minio =
-        new MinIOContainer("minio/minio:RELEASE.2025-04-22T22-12-26Z")
-            .withUserName(USER)
-            .withPassword(PASSWORD);
-    minio.start();
-
     DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
     lenient().when(config.getProperty(ConfigurationKey.FILESTORE_PROVIDER)).thenReturn("s3");
     lenient().when(config.getProperty(ConfigurationKey.FILESTORE_CONTAINER)).thenReturn("contract");
     lenient().when(config.getProperty(ConfigurationKey.FILESTORE_LOCATION)).thenReturn("eu-west-1");
     lenient()
         .when(config.getProperty(ConfigurationKey.FILESTORE_ENDPOINT))
-        .thenReturn(minio.getS3URL());
-    lenient().when(config.getProperty(ConfigurationKey.FILESTORE_IDENTITY)).thenReturn(USER);
-    lenient().when(config.getProperty(ConfigurationKey.FILESTORE_SECRET)).thenReturn(PASSWORD);
+        .thenReturn(MinIOTestExtension.s3Url());
+    lenient()
+        .when(config.getProperty(ConfigurationKey.FILESTORE_IDENTITY))
+        .thenReturn(MinIOTestExtension.MINIO_USER);
+    lenient()
+        .when(config.getProperty(ConfigurationKey.FILESTORE_SECRET))
+        .thenReturn(MinIOTestExtension.MINIO_PASSWORD);
 
-    LocationManager locationManager = mock(LocationManager.class);
-
-    store = new JCloudsStore(config, locationManager);
+    store = new JCloudsStore(config, mock(LocationManager.class));
     store.init();
   }
 
   @AfterAll
   void stop() {
     if (store != null) store.cleanUp();
-    if (minio != null) minio.stop();
   }
 
   @Override

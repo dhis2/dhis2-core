@@ -57,7 +57,7 @@ import org.junit.jupiter.api.Tag;
  * the same suite.
  */
 @Tag("integration")
-class FilesystemJCloudsStoreContractTest extends BlobStoreServiceContractTest {
+class FilesystemBlobStoreServiceContractTest extends BlobStoreServiceContractTest {
 
   private Path tempDir;
   private JCloudsStore store;

@@ -49,7 +49,7 @@ import org.junit.jupiter.api.Tag;
  * alongside the other contract subclasses that validate cross-backend conformance.
  */
 @Tag("integration")
-class TransientJCloudsStoreContractTest extends BlobStoreServiceContractTest {
+class TransientBlobStoreServiceContractTest extends BlobStoreServiceContractTest {
 
   private JCloudsStore store;
 
