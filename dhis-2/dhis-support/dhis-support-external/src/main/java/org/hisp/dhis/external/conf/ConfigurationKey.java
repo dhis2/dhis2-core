@@ -545,7 +545,6 @@ public enum ConfigurationKey {
   /** Base64-encoded 32-byte encryption key for X-User-ID header value (sensitive). */
   LOGGING_USER_ID_ENCRYPTION_KEY("logging.user_id_encryption_key", "", true),
 
-
   /** Base URL to the DHIS 2 instance. */
   SERVER_BASE_URL("server.base.url", "", false),
 

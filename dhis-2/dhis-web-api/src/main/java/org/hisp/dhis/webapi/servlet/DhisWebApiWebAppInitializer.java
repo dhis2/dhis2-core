@@ -170,7 +170,6 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addFilter("userIdHeaderFilter", new DelegatingFilterProxy("userIdHeaderFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
 
-
     context
         .addFilter("GlobalShellFilter", new DelegatingFilterProxy("globalShellFilter"))
         .addMappingForUrlPatterns(null, true, "/*");
