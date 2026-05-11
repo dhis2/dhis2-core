@@ -55,5 +55,5 @@ public interface TrackedEntityAttributeMapper extends PreheatMapper<TrackedEntit
   @Mapping(target = "valueType")
   @Mapping(target = "orgunitScope")
   @Mapping(target = "optionSet")
-  TrackedEntityAttribute map(TrackedEntityAttribute trackedEntityType);
+  TrackedEntityAttribute map(TrackedEntityAttribute trackedEntityAttribute);
 }

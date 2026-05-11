@@ -4,16 +4,17 @@ Analyze Gatling simulation.csv results across multiple runs to derive calibrated
 assertion thresholds for UsersPerformanceTest.java.
 
 Usage:
-    python3 analyze-user-perf-results.py [--dir ./gatling-downloads] [--slack 1.5]
+    python3 analyze-user-perf-results.py [--dir ./gatling-downloads-users-load] [--slack 1.5] [--profile load]
 
-    --dir    Root directory containing per-run subdirectories (default: ./gatling-downloads)
-    --slack  Multiplier applied to observed p95/max to produce suggested thresholds (default: 1.5)
+    --dir      Root directory containing per-run subdirectories
+    --slack    Multiplier applied to observed p95/max to produce suggested thresholds (default: 1.5)
+    --profile  Profile label used in output comments: 'load' or 'smoke' (default: load)
 
 The script walks all subdirectories, finds simulation.csv files, parses request rows,
 and prints:
   1. Per-run summary table
   2. Aggregate stats across all runs
-  3. Suggested assertion thresholds (observed + slack headroom)
+  3. Suggested assertion thresholds (observed + slack headroom) in Java declaration order
 """
 
 import argparse
@@ -83,12 +84,31 @@ def find_csvs(root: Path) -> list[tuple[str, Path]]:
     return found
 
 
+# Canonical order matching the Java assertions block in UsersPerformanceTest.java
+JAVA_ORDER = [
+    "POST User - create",
+    "GET User - by uid",
+    "PUT User - full update",
+    "PATCH User - partial update",
+    "PATCH User - replace userGroups",
+    "POST User - replicate",
+    "DELETE User - delete",
+]
+
+
+def ordered_names(data: dict) -> list[str]:
+    """Return keys in Java declaration order, with any unknown names appended."""
+    known = [n for n in JAVA_ORDER if n in data]
+    unknown = sorted(n for n in data if n not in JAVA_ORDER)
+    return known + unknown
+
+
 def print_run_table(label: str, run_data: dict[str, list[int]]):
     print(f"\n### Run: {label}")
     header = f"{'Scenario':<38} {'n':>4} {'min':>5} {'p50':>5} {'p75':>5} {'p95':>5} {'p99':>5} {'max':>5}"
     print(header)
     print("-" * len(header))
-    for name in sorted(run_data):
+    for name in ordered_names(run_data):
         s = stats(run_data[name])
         print(
             f"{name:<38} {s['n']:>4} {s['min']:>5} {s['p50']:>5} {s['p75']:>5} "
@@ -104,8 +124,9 @@ def suggest_threshold(observed: int, slack: float) -> int:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--dir", default="./gatling-downloads", help="Root directory of downloaded results")
+    parser.add_argument("--dir", default="./gatling-downloads-users-load", help="Root directory of downloaded results")
     parser.add_argument("--slack", type=float, default=1.5, help="Slack multiplier for suggested thresholds (default: 1.5)")
+    parser.add_argument("--profile", default="load", choices=["load", "smoke"], help="Profile label for output (default: load)")
     args = parser.parse_args()
 
     root = Path(args.dir)
@@ -138,7 +159,7 @@ def main():
     print("-" * len(header))
 
     agg_stats = {}
-    for name in sorted(all_times):
+    for name in ordered_names(all_times):
         s = stats(all_times[name])
         agg_stats[name] = s
         print(
@@ -147,31 +168,30 @@ def main():
         )
 
     # Suggested thresholds
+    profile_label = args.profile.upper()
     print("\n\n" + "=" * 70)
-    print(f"## SUGGESTED ASSERTION THRESHOLDS (slack: {args.slack}x observed p95/max)")
-    print("## Copy these into UsersPerformanceTest.java assertions block")
+    print(f"## SUGGESTED {profile_label} THRESHOLDS (slack: {args.slack}x observed p95/max)")
+    print(f"## Paste the Profile.{profile_label} entries into the threshold maps in UsersPerformanceTest.java")
     print("=" * 70)
 
-    # Map scenario names to Java constants
-    java_const = {
-        "POST User - create":          ("POST_REQUEST",         "post"),
-        "GET User - by uid":           ("GET_REQUEST",          "get"),
-        "PUT User - full update":      ("PUT_REQUEST",          "put"),
-        "PATCH User - partial update": ("PATCH_REQUEST",        "patch"),
-        "PATCH User - replace userGroups": ("PATCH_GROUPS_REQUEST", "patchGroups"),
-        "POST User - replicate":       ("REPLICA_REQUEST",      "replica"),
-        "DELETE User - delete":        ("DELETE_REQUEST",       "delete"),
+    # Map scenario names to Java threshold-map variable names
+    java_thresh_map = {
+        "POST User - create":              "POST_THRESH",
+        "GET User - by uid":               "GET_THRESH",
+        "PUT User - full update":          "PUT_THRESH",
+        "PATCH User - partial update":     "PATCH_THRESH",
+        "PATCH User - replace userGroups": "PATCH_GROUPS_THRESH",
+        "POST User - replicate":           "REPLICA_THRESH",
+        "DELETE User - delete":            "DELETE_THRESH",
     }
 
-    for name in sorted(agg_stats):
+    for name in ordered_names(agg_stats):
         s = agg_stats[name]
         p95_thresh = suggest_threshold(s["p95"], args.slack)
         max_thresh = suggest_threshold(s["max"], args.slack)
-        const, _ = java_const.get(name, (f'"{name}"', "?"))
+        map_var = java_thresh_map.get(name, f'/* {name} */')
         print(f"\n// {name}  [observed p95={s['p95']}ms, max={s['max']}ms across {s['n']} requests]")
-        print(f"details({const}).responseTime().percentile(95).lt({p95_thresh}),")
-        print(f"details({const}).responseTime().max().lt({max_thresh}),")
-        print(f"details({const}).successfulRequests().percent().is(100D),")
+        print(f"Profile.{profile_label}, new Thresholds({p95_thresh}, {max_thresh})  // in {map_var}")
 
 
 if __name__ == "__main__":

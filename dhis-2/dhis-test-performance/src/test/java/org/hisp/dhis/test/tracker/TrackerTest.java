@@ -105,15 +105,24 @@ import org.slf4j.LoggerFactory;
  *   <li>{@code export} -- export only, skip import (DB must be seeded)
  * </ul>
  *
- * <p><b>Import parameters:</b>
+ * <p><b>Import parameters (common):</b>
  *
  * <ul>
  *   <li>{@code -DimportEntitiesPerRequest} -- target entities (TEs + enrollments + events) per HTTP
  *       request (default: 500 for load, 50 for smoke)
- *   <li>{@code -DimportMaxEntitiesPerProgram} -- cap on entities imported per program. The actual
- *       count may be lower due to integer division rounding -- this is a cap, not a target.
- *       (default: 30,000 for load, 500 for smoke)
  *   <li>{@code -DimportUsers} -- concurrent import users (default: 4 for load, 1 for smoke)
+ * </ul>
+ *
+ * <p><b>Import parameters (mutually exclusive):</b>
+ *
+ * <ul>
+ *   <li>{@code -DimportRequestsPerUser} -- how many import requests each user makes per program
+ *       (default: 10 on smoke, 15 on load/capacity). Repeat-based: deterministic count regardless
+ *       of wall time. Same workload across versions; wall time varies. Default path.
+ *   <li>{@code -DimportDurationSec} -- how long each program's import phase runs. Duration-based:
+ *       each user loops for the given duration; the circular feeder replays data as needed. Same
+ *       wall time across versions; workload varies. Opt in by setting this instead of {@code
+ *       importRequestsPerUser}; setting both fails the simulation at startup.
  * </ul>
  *
  * <p><b>Profiles:</b>
@@ -176,7 +185,8 @@ public class TrackerTest extends Simulation {
   private final int steps;
   private final TestMode testMode;
   private final int importEntitiesPerRequest;
-  private final int importMaxEntitiesPerProgram;
+  private final int importRequestsPerUser;
+  private final int importDurationSec;
   private final int importUsers;
   private NdjsonFeeder mnchFeeder;
   private NdjsonFeeder childFeeder;
@@ -249,13 +259,14 @@ public class TrackerTest extends Simulation {
         int durationSec,
         int steps,
         int importEntitiesPerRequest,
-        int importMaxEntitiesPerProgram,
+        int importRequestsPerUser,
+        int importDurationSec,
         int importUsers) {}
     ProfileDefaults defaults =
         switch (this.profile) {
-          case SMOKE -> new ProfileDefaults(1, 1, 100, 1, 1, 1, 50, 500, 1);
-          case LOAD -> new ProfileDefaults(4, 4, 1, 15, 180, 1, 500, 30_000, 4);
-          case CAPACITY -> new ProfileDefaults(8, 8, 1, 10, 30, 4, 500, 30_000, 4);
+          case SMOKE -> new ProfileDefaults(1, 1, 100, 1, 1, 1, 50, 10, 0, 1);
+          case LOAD -> new ProfileDefaults(4, 4, 1, 15, 180, 1, 500, 15, 0, 4);
+          case CAPACITY -> new ProfileDefaults(8, 8, 1, 10, 30, 4, 500, 15, 0, 4);
         };
     this.concurrentUsers = Integer.getInteger("concurrentUsers", defaults.concurrentUsers());
     this.repeat = Integer.getInteger("repeat", defaults.repeat());
@@ -266,9 +277,16 @@ public class TrackerTest extends Simulation {
     this.testMode = TestMode.fromString(System.getProperty("testMode", "all"));
     this.importEntitiesPerRequest =
         Integer.getInteger("importEntitiesPerRequest", defaults.importEntitiesPerRequest());
-    this.importMaxEntitiesPerProgram =
-        Integer.getInteger("importMaxEntitiesPerProgram", defaults.importMaxEntitiesPerProgram());
+    this.importRequestsPerUser =
+        Integer.getInteger("importRequestsPerUser", defaults.importRequestsPerUser());
+    this.importDurationSec = Integer.getInteger("importDurationSec", defaults.importDurationSec());
     this.importUsers = Integer.getInteger("importUsers", defaults.importUsers());
+
+    if (System.getProperty("importRequestsPerUser") != null
+        && System.getProperty("importDurationSec") != null) {
+      throw new IllegalArgumentException(
+          "importRequestsPerUser and importDurationSec are mutually exclusive.");
+    }
 
     if (this.testMode != TestMode.EXPORT) {
       String s3Base =
@@ -445,55 +463,63 @@ public class TrackerTest extends Simulation {
   }
 
   /**
-   * Builds an import scenario for a single program. Each ndjson line may contain multiple entities
-   * (e.g. 1 TE + enrollments + events). The number of import requests per user is derived from
-   * {@code importMaxEntitiesPerProgram}, {@code importEntitiesPerRequest}, and {@code importUsers}.
-   * The actual number of imported entities is capped at {@code importMaxEntitiesPerProgram} but may
-   * undershoot due to integer division rounding -- it is not a target.
+   * Builds an import scenario for a single program. Each ndjson line is a complete JSON object (one
+   * tracked entity or one event). Lines are batched into requests of {@code
+   * importEntitiesPerRequest} entities.
    *
-   * <p>Example for MNCH (entitiesPerLine=9, feeder lineCount=94538) with
-   * importEntitiesPerRequest=500, importMaxEntitiesPerProgram=5000, importUsers=4:
+   * <p>On load/capacity profiles, the scenario uses {@code during(importDurationSec)} with a closed
+   * injection model: a fixed pool of {@code importUsers} concurrent users loop for the given
+   * duration. The circular {@link NdjsonFeeder} replays data as needed since payloads contain no
+   * entity UIDs (DHIS2 generates them), so every request creates new entities.
    *
-   * <pre>
-   *   linesPerRequest   = importEntitiesPerRequest / entitiesPerLine     = 500 / 9              = 55
-   *   availableEntities = feeder.lineCount * entitiesPerLine             = 94538 * 9            = 850842
-   *   entitiesPerUser   = min(importMaxEntitiesPerProgram, available) / importUsers = min(5000, 850842) / 4 = 1250
-   *   requestsPerUser   = entitiesPerUser / importEntitiesPerRequest     = 1250 / 500           = 2
-   *   actual entities   = requestsPerUser * linesPerRequest * entitiesPerLine * importUsers = 2 * 55 * 9 * 4 = 3960
-   * </pre>
+   * <p>On smoke, the scenario uses {@code repeat(importRequestsPerUser)} for deterministic
+   * iteration counts.
    */
   private PopulationBuilder importProgram(
       String name, NdjsonFeeder feeder, int entitiesPerLine, String wrapperKey) {
     int linesPerRequest = this.importEntitiesPerRequest / entitiesPerLine;
-    int availableEntities = feeder.lineCount() * entitiesPerLine;
-    int entitiesPerUser =
-        Math.min(this.importMaxEntitiesPerProgram, availableEntities) / this.importUsers;
-    int requestsPerUser = entitiesPerUser / this.importEntitiesPerRequest;
     logger.debug(
-        "Import {}: {} lines, {} lines/request, {} requests/user, {} users",
+        "Import {}: {} lines, {} lines/request, {} users, {}",
         name,
         feeder.lineCount(),
         linesPerRequest,
-        requestsPerUser,
-        this.importUsers);
-    return scenario(name)
-        .exec(
-            session -> session.set("username", this.adminUser).set("password", this.adminPassword))
-        .exec(login())
-        .exitHereIfFailed()
-        .repeat(requestsPerUser)
-        .on(
-            feed(feeder, linesPerRequest)
-                .exec(
-                    http(name)
-                        .post("/api/tracker?async=false&importStrategy=CREATE_AND_UPDATE")
-                        .header("Content-Type", "application/json")
-                        .header("X-Request-ID", session -> nextRequestId(name))
-                        .body(
-                            StringBody(
-                                session -> wrapPayload(session.getList("payload"), wrapperKey)))
-                        .check(status().is(200))))
-        .injectOpen(atOnceUsers(this.importUsers));
+        this.importUsers,
+        this.importRequestsPerUser > 0
+            ? "repeat=" + this.importRequestsPerUser
+            : "duration=" + this.importDurationSec + "s");
+
+    ChainBuilder importRequest =
+        feed(feeder, linesPerRequest)
+            .exec(
+                http(name)
+                    .post("/api/tracker?async=false")
+                    .header("Content-Type", "application/json")
+                    .header("X-Request-ID", session -> nextRequestId(name))
+                    .body(
+                        StringBody(session -> wrapPayload(session.getList("payload"), wrapperKey)))
+                    .check(status().is(200)));
+
+    ScenarioBuilder scenario =
+        scenario(name)
+            .exec(
+                session ->
+                    session.set("username", this.adminUser).set("password", this.adminPassword))
+            .exec(login())
+            .exitHereIfFailed();
+
+    if (this.importRequestsPerUser > 0) {
+      return scenario
+          .repeat(this.importRequestsPerUser)
+          .on(importRequest)
+          .injectOpen(atOnceUsers(this.importUsers));
+    }
+
+    return scenario
+        .during(Duration.ofSeconds(this.importDurationSec))
+        .on(importRequest)
+        .injectClosed(
+            constantConcurrentUsers(this.importUsers)
+                .during(Duration.ofSeconds(this.importDurationSec)));
   }
 
   /** Wraps a list of pre-built JSON objects into a tracker import envelope. */
@@ -533,31 +559,31 @@ public class TrackerTest extends Simulation {
     Request goToFirstPage =
         new Request(
             getEventsUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 88, Profile.LOAD, 126)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 107, Profile.LOAD, 131)),
             "Go to first page",
             "Get ANC events");
     Request goToSecondPage =
         new Request(
             getEventsUrl + "&page=2",
-            new EnumMap<>(Map.of(Profile.SMOKE, 89, Profile.LOAD, 164)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 107, Profile.LOAD, 153)),
             "Go to second page",
             "Get ANC events");
     Request searchEventsByDateRange =
         new Request(
             getEventsUrl + "&occurredAfter=2020-01-01&occurredBefore=2025-12-31",
-            new EnumMap<>(Map.of(Profile.SMOKE, 29, Profile.LOAD, 542)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 41, Profile.LOAD, 509)),
             "Search by date range",
             "Get ANC events");
     Request searchEventsNotAssigned =
         new Request(
             getEventsUrl + "&assignedUserMode=NONE",
-            new EnumMap<>(Map.of(Profile.SMOKE, 84, Profile.LOAD, 167)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 108, Profile.LOAD, 173)),
             "Search not assigned",
             "Get ANC events");
     Request getFirstEvent =
         new Request(
             singleEventUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 27, Profile.LOAD, 116)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 55, Profile.LOAD, 118)),
             "Get first event",
             "Get ANC events",
             "Get one event");
@@ -700,62 +726,62 @@ public class TrackerTest extends Simulation {
     Request notFoundTeByNameWithLikeOperator =
         new Request(
             notFoundTEByName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 105)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 111)),
             "Not found TE by name with like operator",
             "Get Child Programme TEs");
     Request notFoundTeByNameWithEqOperator =
         new Request(
             notFoundTEByExactName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 27)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 42)),
             "Not found TE by name with eq operator",
             "Get Child Programme TEs");
     Request searchTeByNameWithLikeOperator =
         new Request(
             searchTEByName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 36, Profile.LOAD, 173)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 50, Profile.LOAD, 174)),
             "Search TE by name with like operator",
             "Get Child Programme TEs");
     Request searchTeByNameWithEqOperator =
         new Request(
             searchTEByExactName,
-            new EnumMap<>(Map.of(Profile.SMOKE, 32, Profile.LOAD, 112)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 44, Profile.LOAD, 117)),
             "Search TE by name with eq operator",
             "Get Child Programme TEs");
     Request searchBirthEventsByStage =
         new Request(
             searchBirthEvents,
-            new EnumMap<>(Map.of(Profile.SMOKE, 40, Profile.LOAD, 975)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 53, Profile.LOAD, 943)),
             "Search Birth events",
             "Get Child Programme TEs");
     Request getTrackedEntitiesForEvents =
         new Request(
             getTEsFromEvents,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 25)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 28)),
             "Get TEs from events",
             "Get Child Programme TEs");
     Request getFirstPageOfTEs =
         new Request(
             getTEsUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 38, Profile.LOAD, 155)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 50, Profile.LOAD, 162)),
             "Get first page of TEs",
             "Get Child Programme TEs");
     Request getTEsWithEnrollmentStatus =
         new Request(
             getTEsWithEnrollmentStatusUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 52, Profile.LOAD, 184)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 71, Profile.LOAD, 177)),
             "Get TEs with enrollment status",
             "Get Child Programme TEs");
     Request getFirstTrackedEntity =
         new Request(
             singleTrackedEntityUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 34, Profile.LOAD, 118)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 47, Profile.LOAD, 121)),
             "Get first tracked entity",
             "Get Child Programme TEs",
             "Go to single enrollment");
     Request getFirstEnrollment =
         new Request(
             singleEnrollmentUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 25, Profile.LOAD, 38)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 37, Profile.LOAD, 56)),
             "Get first enrollment",
             "Get Child Programme TEs",
             "Go to single enrollment");
@@ -769,7 +795,7 @@ public class TrackerTest extends Simulation {
     Request getFirstEventFromEnrollment =
         new Request(
             eventUrl,
-            new EnumMap<>(Map.of(Profile.SMOKE, 42, Profile.LOAD, 111)),
+            new EnumMap<>(Map.of(Profile.SMOKE, 58, Profile.LOAD, 141)),
             "Get first event from enrollment",
             "Get Child Programme TEs",
             "Go to single enrollment",
@@ -1006,11 +1032,11 @@ public class TrackerTest extends Simulation {
   }
 
   private static final EnumMap<Profile, Integer> MNCH_IMPORT_P95 =
-      new EnumMap<>(Map.of(Profile.SMOKE, 416, Profile.LOAD, 9776));
+      new EnumMap<>(Map.of(Profile.SMOKE, 303, Profile.LOAD, 3526));
   private static final EnumMap<Profile, Integer> CHILD_IMPORT_P95 =
-      new EnumMap<>(Map.of(Profile.SMOKE, 227, Profile.LOAD, 4215));
+      new EnumMap<>(Map.of(Profile.SMOKE, 168, Profile.LOAD, 1769));
   private static final EnumMap<Profile, Integer> ANC_IMPORT_P95 =
-      new EnumMap<>(Map.of(Profile.SMOKE, 149, Profile.LOAD, 6772));
+      new EnumMap<>(Map.of(Profile.SMOKE, 119, Profile.LOAD, 2652));
 
   private Stream<Assertion> getImportAssertions(Profile profile) {
     return Stream.of(

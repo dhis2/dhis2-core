@@ -95,8 +95,8 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         : StringUtils.EMPTY;
   }
 
-  private String getDataEndDateClause(Date dataStartDate, String relation, String alias) {
-    return dataStartDate != null
+  private String getDataEndDateClause(Date dataEndDate, String relation, String alias) {
+    return dataEndDate != null
         ? relation + " " + alias + ".enddate <= :" + DATA_END_DATE.getKey() + " "
         : StringUtils.EMPTY;
   }
@@ -111,22 +111,8 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
     String dataStartDateClause = getDataStartDateClause(request.getDataStartDate(), "and", "pe");
     String dataEndDateClause = getDataEndDateClause(request.getDataEndDate(), "and", "pe");
 
-    return "select dvs.de_uid, dvs.ou_uid, dvs.coc_uid, dvs.aoc_uid, "
-        + "dvs.de_name, dvs.ou_name, dvs.coc_name, dvs.aoc_name, dvs.value, dvs.follow_up, "
-        + "dvs.pe_start_date, dvs.pt_name, "
-        + "stats.middle_value as middle_value, "
-        + "stats.std_dev as std_dev, "
-        + "abs(dvs.value::double precision - stats.middle_value) as middle_value_abs_dev, "
-        + "abs(dvs.value::double precision - stats.middle_value) / stats.std_dev as z_score, "
-        + "stats.middle_value - (stats.std_dev * :"
-        + thresholdParam
-        + ") as lower_bound, "
-        + "stats.middle_value + (stats.std_dev * :"
-        + thresholdParam
-        + ") as upper_bound "
-        +
+    return "with dvs as ("
         // Data value query
-        "from ("
         + "select dv.dataelementid, dv.sourceid, dv.periodid, "
         + "dv.categoryoptioncomboid, dv.attributeoptioncomboid, "
         + "de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, "
@@ -152,14 +138,9 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + "and "
         + ouPathClause
         + " and dv.deleted is false"
-        + " and (trim(dv.value) ~ '"
-        + OutlierDetectionUtils.PG_DOUBLE_REGEX
-        + "'"
-        + " and length(split_part(trim(dv.value), '.', 1)) <= 307) "
-        + ") as dvs "
-        +
-        // Mean or Median and std dev mapping query
-        "inner join ("
+        + "), "
+        // Mean and std dev stats query
+        + "stats as ("
         + "select dv.dataelementid as dataelementid, dv.sourceid as sourceid, "
         + "dv.categoryoptioncomboid as categoryoptioncomboid, "
         + "dv.attributeoptioncomboid as attributeoptioncomboid, "
@@ -177,27 +158,32 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + ouPathClause
         + " "
         + "and dv.deleted is false "
-        + "and (trim(dv.value) ~ '"
-        + OutlierDetectionUtils.PG_DOUBLE_REGEX
-        + "' "
-        + "and length(split_part(trim(dv.value), '.', 1)) <= 307) "
-        + "group by dv.dataelementid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid"
-        + ") as stats "
-        +
-        // Query join
-        "on dvs.dataelementid = stats.dataelementid "
+        + "group by dv.dataelementid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid "
+        + "having stddev_pop(dv.value::double precision) > 0"
+        + ") "
+        // Outer query joining the two CTEs
+        + "select dvs.de_uid, dvs.ou_uid, dvs.coc_uid, dvs.aoc_uid, "
+        + "dvs.de_name, dvs.ou_name, dvs.coc_name, dvs.aoc_name, dvs.value, dvs.follow_up, "
+        + "dvs.pe_start_date, dvs.pt_name, "
+        + "stats.middle_value as middle_value, "
+        + "stats.std_dev as std_dev, "
+        + "abs(dvs.value::double precision - stats.middle_value) as middle_value_abs_dev, "
+        + "abs(dvs.value::double precision - stats.middle_value) / stats.std_dev as z_score, "
+        + "stats.middle_value - (stats.std_dev * :"
+        + thresholdParam
+        + ") as lower_bound, "
+        + "stats.middle_value + (stats.std_dev * :"
+        + thresholdParam
+        + ") as upper_bound "
+        + "from dvs "
+        + "inner join stats on dvs.dataelementid = stats.dataelementid "
         + "and dvs.sourceid = stats.sourceid "
         + "and dvs.categoryoptioncomboid = stats.categoryoptioncomboid "
         + "and dvs.attributeoptioncomboid = stats.attributeoptioncomboid "
-        + "where stats.std_dev != 0.0 "
-        +
-        // Filter on z-score threshold
-        "and (abs(dvs.value::double precision - stats.middle_value) / stats.std_dev) >= :"
+        + "where (abs(dvs.value::double precision - stats.middle_value) / stats.std_dev) >= :"
         + thresholdParam
         + " "
-        +
-        // Order and limit
-        "order by "
+        + "order by "
         + order
         + " desc "
         + "limit :"
@@ -239,10 +225,6 @@ public class ZscoreSqlStatementProcessor implements OutlierSqlStatementProcessor
         + " and "
         + ouPathClause
         + " and dv.deleted is false"
-        + " and (trim(dv.value) ~ '"
-        + OutlierDetectionUtils.PG_DOUBLE_REGEX
-        + "'"
-        + " and length(split_part(trim(dv.value), '.', 1)) <= 307)"
         + ")"
         + " select dvs.de_uid,"
         + " dvs.ou_uid,"

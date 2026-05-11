@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,24 +27,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.tracker.acl;
 
-import org.hisp.dhis.dataset.DataInputPeriod;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import java.util.List;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 
-/**
- * @author Stian Sandvold
- */
-public class DataInputPeriodSchemaDescriptor implements SchemaDescriptor {
-  public static final String SINGULAR = "dataInputPeriod";
-
-  public static final String PLURAL = "dataInputPeriods";
-
-  public static final String API_ENDPOINT = "/" + PLURAL;
-
-  @Override
-  public Schema getSchema() {
-    return new Schema(DataInputPeriod.class, SINGULAR, PLURAL);
-  }
-}
+public record ErrorMessage(ValidationCode validationCode, String userUid, List<Object> args) {}

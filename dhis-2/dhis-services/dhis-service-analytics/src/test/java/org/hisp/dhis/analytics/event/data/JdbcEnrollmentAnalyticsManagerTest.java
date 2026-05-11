@@ -30,14 +30,24 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.util.List;
+import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
 import org.hisp.dhis.analytics.table.util.ColumnMapper;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.junit.jupiter.api.Test;
@@ -87,5 +97,62 @@ class JdbcEnrollmentAnalyticsManagerTest {
 
     result = jdbcEnrollmentAnalyticsManager.addEnrollmentPrefix("ev.\"A03MvHHogjR\"");
     assertEquals("ev.\"A03MvHHogjR\"", result);
+  }
+
+  @Test
+  void testGetDescendantsConditionSingleOrgUnit() {
+    // Arrange
+    EventQueryParams params = mock(EventQueryParams.class);
+    SqlHelper hlp = mock(SqlHelper.class);
+
+    OrganisationUnit ou = mock(OrganisationUnit.class);
+    when(ou.getLevel()).thenReturn(2);
+    when(ou.getUid()).thenReturn("UID123");
+
+    List<DimensionalItemObject> orgUnits = List.of(ou);
+    when(params.getDimensionOrFilterItems("ou")).thenReturn(orgUnits);
+
+    OrgUnitField orgUnitField = mock(OrgUnitField.class);
+    when(params.getOrgUnitField()).thenReturn(orgUnitField);
+    when(orgUnitField.withSqlBuilder(any())).thenReturn(orgUnitField);
+    when(orgUnitField.getOrgUnitLevelCol(eq(2), any())).thenReturn("level2");
+
+    when(hlp.whereAnd()).thenReturn(" where ");
+
+    // Act
+    String condition = jdbcEnrollmentAnalyticsManager.getDescendantsCondition(params, hlp);
+
+    // Assert
+    assertEquals(" where  (level2 in ('UID123')) ", condition);
+  }
+
+  @Test
+  void testGetDescendantsConditionMultipleLevels() {
+    // Arrange
+    EventQueryParams params = mock(EventQueryParams.class);
+    SqlHelper hlp = mock(SqlHelper.class);
+
+    OrganisationUnit ou1 = mock(OrganisationUnit.class);
+    when(ou1.getLevel()).thenReturn(1);
+    when(ou1.getUid()).thenReturn("OU1");
+
+    OrganisationUnit ou2 = mock(OrganisationUnit.class);
+    when(ou2.getLevel()).thenReturn(2);
+    when(ou2.getUid()).thenReturn("OU2");
+    when(params.getDimensionOrFilterItems("ou")).thenReturn(List.of(ou1, ou2));
+
+    OrgUnitField orgUnitField = mock(OrgUnitField.class);
+    when(params.getOrgUnitField()).thenReturn(orgUnitField);
+    when(orgUnitField.withSqlBuilder(any())).thenReturn(orgUnitField);
+    when(orgUnitField.getOrgUnitLevelCol(eq(1), any())).thenReturn("level1");
+    when(orgUnitField.getOrgUnitLevelCol(eq(2), any())).thenReturn("level2");
+
+    when(hlp.whereAnd()).thenReturn(" and ");
+
+    // Act
+    String condition = jdbcEnrollmentAnalyticsManager.getDescendantsCondition(params, hlp);
+
+    // Assert
+    assertEquals(" and  (level1 in ('OU1') or level2 in ('OU2')) ", condition);
   }
 }

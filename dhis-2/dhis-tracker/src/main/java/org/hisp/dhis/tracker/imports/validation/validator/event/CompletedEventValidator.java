@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,38 +27,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+package org.hisp.dhis.tracker.imports.validation.validator.event;
 
-import lombok.AllArgsConstructor;
-import org.hisp.dhis.dataset.DataInputPeriod;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
-import org.springframework.stereotype.Component;
+import static org.hisp.dhis.security.Authorities.F_UNCOMPLETE_EVENT;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1083;
 
-/**
- * @author Stian Sandvold
- */
-@Component
-@AllArgsConstructor
-public class DataInputPeriodObjectBundleHook extends AbstractObjectBundleHook<DataInputPeriod> {
-  private final PeriodService periodService;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.imports.domain.Event;
+import org.hisp.dhis.tracker.imports.validation.Reporter;
+import org.hisp.dhis.tracker.imports.validation.Validator;
+import org.hisp.dhis.user.UserDetails;
+
+class CompletedEventValidator implements Validator<Event> {
 
   @Override
-  public void preCreate(DataInputPeriod object, ObjectBundle bundle) {
-    setPeriod(object);
+  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
+    if (!(event instanceof org.hisp.dhis.tracker.imports.domain.TrackerEvent trackerEvent)) {
+      return;
+    }
+
+    UserDetails user = bundle.getUser();
+    org.hisp.dhis.tracker.model.TrackerEvent databaseTrackerEvent =
+        bundle.getPreheat().getTrackerEvent(trackerEvent.getUID());
+
+    if (EventStatus.COMPLETED == databaseTrackerEvent.getStatus()
+        && trackerEvent.getStatus() != null
+        && trackerEvent.getStatus() != databaseTrackerEvent.getStatus()
+        && !user.isAuthorized(F_UNCOMPLETE_EVENT)) {
+      reporter.addError(trackerEvent, E1083, user.getUid());
+    }
   }
 
   @Override
-  public void preUpdate(
-      DataInputPeriod object, DataInputPeriod persistedObject, ObjectBundle bundle) {
-    setPeriod(object);
-  }
-
-  private void setPeriod(DataInputPeriod dataInputPeriod) {
-    Period period = periodService.getPeriod(dataInputPeriod.getPeriod().getIsoDate());
-
-    dataInputPeriod.setPeriod(period);
-    getSession().save(period);
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return strategy.isUpdate();
   }
 }

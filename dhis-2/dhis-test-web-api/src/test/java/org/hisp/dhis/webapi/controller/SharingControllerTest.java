@@ -63,7 +63,7 @@ class SharingControllerTest extends H2ControllerIntegrationTestBase {
         200,
         "OK",
         "Access control set",
-        PUT("/sharing?type=userGroup&id=" + groupId, group.getSharing().node().getDeclaration())
+        PUT("/sharing?type=userGroup&id=" + groupId, group.getSharing().toJson())
             .content(HttpStatus.OK));
   }
 
@@ -77,7 +77,7 @@ class SharingControllerTest extends H2ControllerIntegrationTestBase {
         200,
         "OK",
         "Access control set",
-        POST("/sharing?type=userGroup&id=" + groupId, group.getSharing().node().getDeclaration())
+        POST("/sharing?type=userGroup&id=" + groupId, group.getSharing().toJson())
             .content(HttpStatus.OK));
   }
 

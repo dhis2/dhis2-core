@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.configuration;
 
+import java.util.Set;
 import org.hisp.dhis.user.UserDetails;
 
 /**
@@ -50,6 +51,23 @@ public interface ConfigurationService {
    * @return the configuration.
    */
   Configuration getConfiguration();
+
+  /**
+   * Returns the configured CORS whitelist. The result is cached for fast read access on hot paths
+   * (CORS preflight checks, CSP {@code frame-ancestors} composition); the cache is invalidated by
+   * {@link #setCorsWhitelist(Set)}.
+   *
+   * @return the whitelist (never {@code null}).
+   */
+  Set<String> getCorsWhitelist();
+
+  /**
+   * Replaces the CORS whitelist and invalidates the read cache populated by {@link
+   * #getCorsWhitelist()}.
+   *
+   * @param corsWhitelist the new whitelist (may be empty, must not be {@code null}).
+   */
+  void setCorsWhitelist(Set<String> corsWhitelist);
 
   /**
    * Indicates whether the given origin is CORS white listed.

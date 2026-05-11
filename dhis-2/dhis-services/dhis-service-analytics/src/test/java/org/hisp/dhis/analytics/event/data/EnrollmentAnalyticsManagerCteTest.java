@@ -747,7 +747,8 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
         columnMapper,
         filterBuilder,
         stageQuerySqlFacade,
-        new DateFieldPeriodBucketColumnResolver(builder));
+        new DateFieldPeriodBucketColumnResolver(builder),
+        new EnrollmentEventSubqueryBuilder(builder, new ProgramStageOffsetSqlBuilder(builder)));
   }
 
   @Test
@@ -795,7 +796,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     String generatedSql = sql.getValue();
     assertThat(generatedSql, containsString("enrollmentdate >= '2017-01-01'"));
     assertThat(generatedSql, containsString("enrollmentdate < '2018-01-01'"));
-    assertThat(generatedSql, containsString("ax.\"uidlevel1\" = 'ouabcdefghA'"));
+    assertThat(generatedSql, containsString("ax.\"uidlevel1\" in ('ouabcdefghA')"));
   }
 
   @Test

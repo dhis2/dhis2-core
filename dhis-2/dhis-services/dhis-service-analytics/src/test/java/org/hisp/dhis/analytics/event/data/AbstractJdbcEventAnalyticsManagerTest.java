@@ -239,7 +239,9 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             columnMapper,
             filterBuilder,
             stageQuerySqlFacade,
-            new DateFieldPeriodBucketColumnResolver(new PostgreSqlAnalyticsSqlBuilder()));
+            new DateFieldPeriodBucketColumnResolver(new PostgreSqlAnalyticsSqlBuilder()),
+            new FirstOrLastValueSubqueryRenderer(
+                sqlBuilder, eventTimeFieldSqlRenderer, programIndicatorService));
   }
 
   @Test
@@ -338,13 +340,42 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     EventQueryParams params =
         new EventQueryParams.Builder(createRequestParams()).addItem(stageOuItem).build();
 
-    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params))
+    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "ax"))
         .thenReturn(new OrganisationUnitResolver.StageOuCteContext("ax.\"uidlevel1\"", "", ""));
 
     ColumnAndAlias columnAndAlias =
         eventSubject.getColumnAndAlias(stageOuItem, params, false, true);
 
     assertThat(columnAndAlias.asSql(), is("ax.\"uidlevel1\" as \"ou\""));
+  }
+
+  @Test
+  void verifyGetColumnAndAliasQualifiesStageOuColumnForAggregateWhenEnrollmentOuJoined() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    QueryItem stageOuItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME),
+            programA,
+            null,
+            ValueType.ORGANISATION_UNIT,
+            AggregationType.NONE,
+            null);
+    stageOuItem.setProgramStage(programStage);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .addItem(stageOuItem)
+            .withEnrollmentOuDimension(List.of(ouA))
+            .build();
+
+    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "enrl"))
+        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("enrl.\"uidlevel1\"", "", ""));
+
+    ColumnAndAlias columnAndAlias =
+        eventSubject.getColumnAndAlias(stageOuItem, params, false, true);
+
+    assertThat(columnAndAlias.asSql(), is("enrl.\"uidlevel1\" as \"ou\""));
   }
 
   @Test
@@ -1436,6 +1467,81 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     assertThat(selectClause, containsString("enrl.\"ou\" as enrollmentou"));
     assertThat(selectClause, containsString("enrl.\"ouname\" as enrollmentouname"));
+  }
+
+  @Test
+  void testExperimentalSelectClauseQualifiesStageOuLevelWhenEnrollmentOuJoinIsUsed() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    ProgramStage stage = createProgramStage('B', programA);
+    stage.setUid("ZkbAXlQUYJG");
+
+    QueryItem stageOuItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME),
+            programA,
+            null,
+            ValueType.ORGANISATION_UNIT,
+            AggregationType.NONE,
+            null);
+    stageOuItem.setProgramStage(stage);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withEnrollmentOuDimension(List.of(ouA))
+            .addItem(stageOuItem)
+            .build();
+
+    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "enrl"))
+        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("enrl.\"uidlevel1\"", "", ""));
+
+    SelectBuilder sb = new SelectBuilder();
+    eventSubject.addSelectClause(
+        sb, params, new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT));
+    String selectClause = sb.build();
+
+    assertThat(selectClause, containsString("enrl.\"uidlevel1\" as \"ZkbAXlQUYJG.ou\""));
+    assertTrue(!selectClause.contains(", \"uidlevel1\" as \"ZkbAXlQUYJG.ou\""));
+  }
+
+  @Test
+  void testExperimentalSelectClauseQualifiesStageOuHeadersWhenEnrollmentOuJoinIsUsed() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    ProgramStage stage = createProgramStage('B', programA);
+    stage.setUid("ZkbAXlQUYJG");
+
+    QueryItem stageOuItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME),
+            programA,
+            null,
+            ValueType.ORGANISATION_UNIT,
+            AggregationType.NONE,
+            null);
+    stageOuItem.setProgramStage(stage);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withEnrollmentOuDimension(List.of(ouA))
+            .addItem(stageOuItem)
+            .withHeaders(Set.of("enrollmentouname", "ZkbAXlQUYJG.ouname"))
+            .build();
+
+    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "enrl"))
+        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("enrl.\"uidlevel1\"", "", ""));
+
+    SelectBuilder sb = new SelectBuilder();
+    eventSubject.addSelectClause(
+        sb, params, new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT));
+    String selectClause = sb.build();
+
+    assertThat(selectClause, containsString("enrl.\"ouname\" as \"ZkbAXlQUYJG.ouname\""));
+    assertTrue(!selectClause.contains(", \"ouname\" as \"ZkbAXlQUYJG.ouname\""));
   }
 
   @Test

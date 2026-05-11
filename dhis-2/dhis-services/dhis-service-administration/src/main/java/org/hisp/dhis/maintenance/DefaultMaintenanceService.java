@@ -91,6 +91,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
   // -------------------------------------------------------------------------
 
   @Override
+  @Transactional
   public int deleteZeroDataValues() {
     int result = maintenanceStore.deleteZeroDataValues();
 
@@ -100,6 +101,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
   }
 
   @Override
+  @Transactional
   public int deleteSoftDeletedDataValues() {
     int result = maintenanceStore.deleteSoftDeletedDataValues();
 
@@ -109,6 +111,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
   }
 
   @Override
+  @Transactional
   public int deleteSoftDeletedEvents() {
     int result = maintenanceStore.deleteSoftDeletedEvents();
 
@@ -118,6 +121,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
   }
 
   @Override
+  @Transactional
   public int deleteSoftDeletedRelationships() {
     int result = maintenanceStore.deleteSoftDeletedRelationships();
 
@@ -127,6 +131,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
   }
 
   @Override
+  @Transactional
   public int deleteSoftDeletedEnrollments() {
     int result = maintenanceStore.deleteSoftDeletedEnrollments();
 
@@ -136,6 +141,7 @@ public class DefaultMaintenanceService implements MaintenanceService {
   }
 
   @Override
+  @Transactional
   public int deleteSoftDeletedTrackedEntities() {
     int result = maintenanceStore.deleteSoftDeletedTrackedEntities();
 

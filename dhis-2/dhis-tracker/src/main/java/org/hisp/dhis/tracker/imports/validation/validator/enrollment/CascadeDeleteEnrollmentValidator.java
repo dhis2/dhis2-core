@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,49 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.validation.validator.relationship;
+package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.tracker.acl.TrackerAccessManager;
+import static org.hisp.dhis.security.Authorities.F_ENROLLMENT_CASCADE_DELETE;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1103;
+
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
-import org.hisp.dhis.tracker.imports.domain.Relationship;
+import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.hisp.dhis.user.UserDetails;
-import org.springframework.stereotype.Component;
 
-@Component(
-    "org.hisp.dhis.tracker.imports.validation.validator.relationship.SecurityOwnershipValidator")
-@RequiredArgsConstructor
-class SecurityOwnershipValidator implements Validator<Relationship> {
-  private final TrackerAccessManager trackerAccessManager;
+class CascadeDeleteEnrollmentValidator implements Validator<Enrollment> {
 
   @Override
-  public void validate(Reporter reporter, TrackerBundle bundle, Relationship relationship) {
-    TrackerImportStrategy strategy = bundle.getStrategy(relationship);
+  public void validate(Reporter reporter, TrackerBundle bundle, Enrollment enrollment) {
     UserDetails user = bundle.getUser();
+    boolean hasNonDeletedEvents =
+        bundle
+            .getPreheat()
+            .getEnrollmentsWithOneOrMoreNonDeletedEvent()
+            .contains(enrollment.getEnrollment());
 
-    if (strategy.isDelete()
-        && (!trackerAccessManager
-            .canDelete(user, bundle.getPreheat().getRelationship(relationship))
-            .isEmpty())) {
-      reporter.addError(relationship, ValidationCode.E4020, user, relationship.getRelationship());
-    }
-
-    if (strategy.isCreate()
-        && (!trackerAccessManager
-            .canCreate(
-                user, TrackerObjectsMapper.map(bundle.getPreheat(), relationship, bundle.getUser()))
-            .isEmpty())) {
-      reporter.addError(relationship, ValidationCode.E4020, user, relationship.getRelationship());
+    if (hasNonDeletedEvents && !user.isAuthorized(F_ENROLLMENT_CASCADE_DELETE)) {
+      reporter.addError(enrollment, E1103, user.getUid(), enrollment.getEnrollment());
     }
   }
 
   @Override
   public boolean needsToRun(TrackerImportStrategy strategy) {
-    return true;
+    return strategy.isDelete();
   }
 }

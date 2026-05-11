@@ -79,8 +79,8 @@ public interface JsonError extends JsonObject {
    * @return a error summary suitable to be used as assert message.
    */
   default String summary() {
-    if (!isA(JsonError.class)) {
-      return node().getDeclaration();
+    if (!isObject() || !has("httpStatusCode") || !has("message")) {
+      return toJson();
     }
     StringBuilder str = new StringBuilder();
     Consumer<JsonList<JsonErrorReport>> printer =
@@ -119,7 +119,7 @@ public interface JsonError extends JsonObject {
     if (summaries.exists()) {
       for (JsonImportSummary summary : summaries) {
         for (JsonImportConflict conflict : summary.getConflicts()) {
-          str.append("\n  ").append(conflict.getObject()).append(' ').append(conflict.getValue());
+          str.append("\n  ").append(conflict.getObject()).append(' ').append(conflict.value());
         }
       }
     }

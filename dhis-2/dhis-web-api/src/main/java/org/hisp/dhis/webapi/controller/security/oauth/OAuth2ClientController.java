@@ -29,103 +29,144 @@
  */
 package org.hisp.dhis.webapi.controller.security.oauth;
 
+import static org.hisp.dhis.security.Authorities.F_OAUTH2_CLIENT_MANAGE;
+import static org.hisp.dhis.security.oauth2.OAuth2Constants.SYSTEM_REGISTRAR_CLIENTID;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.query.Filter;
 import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.query.Query;
+import org.hisp.dhis.query.operators.NotEqualOperator;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.security.oauth2.server.authorization.settings.ClientSettings;
-import org.springframework.security.oauth2.server.authorization.settings.TokenSettings;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * Controller for managing OAuth2 clients for the DHIS2 OAuth2 authorization server.
+ * REST controller that exposes DHIS2 metadata CRUD for registered OAuth2 clients at {@code
+ * /api/oAuth2Clients}. Requires the {@code F_OAUTH2_CLIENT_MANAGE} authority. Behaves like a
+ * standard DHIS2 metadata resource: supports list/get/create/update/delete, import/export, sharing,
+ * and translations via the {@link AbstractCrudController} pipeline.
+ *
+ * <p>Validation and defaulting live on {@link Dhis2OAuth2ClientService}; this controller is the
+ * REST pipeline glue: authority gate, list-query filter to hide the system DCR registrar client,
+ * REST-only guards against mutating that reserved system client, and translation of the first
+ * collected validation error into a {@link ConflictException}.
+ *
+ * <p>Domain rules enforced by the service layer include: only {@code authorization_code} and {@code
+ * refresh_token} grant types are accepted (the {@code client_credentials} grant is rejected with
+ * HTTP 409 and {@link org.hisp.dhis.feedback.ErrorCode#E4000}), redirect URIs with custom schemes
+ * must appear verbatim in the {@code deviceEnrollmentRedirectAllowlist} system setting, and the
+ * reserved system client id {@link
+ * org.hisp.dhis.security.oauth2.OAuth2Constants#SYSTEM_REGISTRAR_CLIENTID} is filtered from list
+ * responses and rejected on create, update, and delete through this controller.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Controller
 @RequestMapping({"/api/oAuth2Clients"})
 @RequiredArgsConstructor
+@RequiresAuthority(anyOf = F_OAUTH2_CLIENT_MANAGE)
 public class OAuth2ClientController
     extends AbstractCrudController<Dhis2OAuth2Client, GetObjectListParams> {
 
   private final Dhis2OAuth2ClientService clientService;
 
+  /**
+   * Runs create-time validation and applies defaults via {@link Dhis2OAuth2ClientService} before
+   * the client is persisted. The first reported validation error is translated into a {@link
+   * ConflictException} (HTTP 409), for example when a disallowed grant type such as {@code
+   * client_credentials} is submitted or when a custom-scheme redirect URI is not present in the
+   * {@code deviceEnrollmentRedirectAllowlist}.
+   *
+   * @param entity the incoming client payload to validate and default
+   * @throws ConflictException if the service reports one or more validation errors
+   */
   @Override
   protected void preCreateEntity(Dhis2OAuth2Client entity) throws ConflictException {
-    validateAuthorizationGrantTypes(entity);
-    validateRedirectUris(entity);
-
-    if (entity.getClientSettings() == null) {
-      ClientSettings.Builder builder = ClientSettings.builder();
-      builder.requireAuthorizationConsent(true);
-      ClientSettings clientSettings = builder.build();
-      entity.setClientSettings(clientService.writeMap(clientSettings.getSettings()));
-    }
-    if (entity.getTokenSettings() == null) {
-      TokenSettings tokenSettings = TokenSettings.builder().build();
-      entity.setTokenSettings(clientService.writeMap(tokenSettings.getSettings()));
-    }
+    throwFirst(errors -> clientService.validateCreate(entity, errors));
+    clientService.applyCreateDefaults(entity);
   }
 
+  /**
+   * Runs update-time validation, applies defaults, and blocks attempts to mutate the reserved
+   * system DCR registrar client via REST.
+   *
+   * @param entity the existing persisted client
+   * @param newEntity the incoming update payload
+   * @throws ConflictException if the target is the system registrar client (HTTP 409), or if {@link
+   *     Dhis2OAuth2ClientService} reports a validation error such as renaming the client id to the
+   *     reserved system id, switching to a disallowed grant type, or introducing a custom-scheme
+   *     redirect URI that is not allowlisted
+   */
   @Override
   protected void preUpdateEntity(Dhis2OAuth2Client entity, Dhis2OAuth2Client newEntity)
       throws ConflictException {
-    validateAuthorizationGrantTypes(newEntity);
-    validateRedirectUris(newEntity);
-
+    if (entity != null && SYSTEM_REGISTRAR_CLIENTID.equals(entity.getClientId())) {
+      throw new ConflictException(
+          "Cannot update the system-managed DCR registrar client ("
+              + SYSTEM_REGISTRAR_CLIENTID
+              + ").");
+    }
+    throwFirst(errors -> clientService.validateUpdate(entity, newEntity, errors));
+    clientService.applyUpdateDefaults(entity, newEntity);
     super.preUpdateEntity(entity, newEntity);
   }
 
   /**
-   * Validates that the authorization grant types in the entity contain only allowed values
-   * (authorization_code and refresh_token)
+   * Blocks deletion of the reserved system DCR registrar client through REST. Other entities are
+   * deleted by the default {@link AbstractCrudController} pipeline.
    *
-   * @param entity the OAuth2 client entity to validate
-   * @throws ConflictException if any invalid grant type is found
+   * @param entity the client targeted for deletion
+   * @throws ConflictException if the target is the system registrar client (HTTP 409)
    */
-  private void validateAuthorizationGrantTypes(Dhis2OAuth2Client entity) throws ConflictException {
-    if (entity.getAuthorizationGrantTypes() != null) {
-      String[] grantTypes = entity.getAuthorizationGrantTypes().split(",");
-      for (String grantType : grantTypes) {
-        String trimmedGrantType = grantType.trim();
-        if (!AuthorizationGrantType.AUTHORIZATION_CODE.getValue().equals(trimmedGrantType)
-            && !AuthorizationGrantType.REFRESH_TOKEN.getValue().equals(trimmedGrantType)) {
-          throw new ConflictException(
-              "Invalid authorization grant type: "
-                  + trimmedGrantType
-                  + ". Only authorization_code and refresh_token are allowed.");
-        }
-      }
+  @Override
+  protected void preDeleteEntity(Dhis2OAuth2Client entity) throws ConflictException {
+    if (entity != null && SYSTEM_REGISTRAR_CLIENTID.equals(entity.getClientId())) {
+      throw new ConflictException(
+          "Cannot delete the system-managed DCR registrar client ("
+              + SYSTEM_REGISTRAR_CLIENTID
+              + ").");
     }
   }
 
   /**
-   * Validates that all redirect URIs in the entity are valid URLs. Special handling is done for
-   * localhost URLs to allow for development environments.
+   * Hides the DCR system registrar client from list queries. It is created and owned by the server
+   * itself to bootstrap dynamic client registration; administrators should never touch it through
+   * the settings UI. Direct by-uid fetches are left alone since DCR and other server code may need
+   * to read it, and the UI only discovers client uids via this list.
    *
-   * @param entity the OAuth2 client entity to validate
-   * @throws ConflictException if any invalid URI is found
+   * @param params the incoming list parameters (unmodified)
+   * @param query the underlying query to which the clientId exclusion filter is added
    */
-  private void validateRedirectUris(Dhis2OAuth2Client entity) throws ConflictException {
-    if (entity.getRedirectUris() != null) {
-      String[] uris = entity.getRedirectUris().split(",");
-      for (String uri : uris) {
-        String trimmedUri = uri.trim();
-        if (trimmedUri.isEmpty()) {
-          continue;
-        }
-        // Special handling for localhost URLs which are valid for development
-        boolean isLocalhost =
-            trimmedUri.startsWith("http://localhost") || trimmedUri.startsWith("https://localhost");
+  @Override
+  protected void modifyGetObjectList(GetObjectListParams params, Query<Dhis2OAuth2Client> query) {
+    query.add(new Filter("clientId", new NotEqualOperator<>(SYSTEM_REGISTRAR_CLIENTID)));
+  }
 
-        if (!isLocalhost && !org.hisp.dhis.system.util.ValidationUtils.urlIsValid(trimmedUri)) {
-          throw new ConflictException("Invalid redirect URI: " + trimmedUri);
-        }
-      }
+  /**
+   * Runs a collecting validator and translates the first reported error into a {@link
+   * ConflictException}. The full set of errors is available to non-REST callers (for example the
+   * metadata import bundle hook) which prefer to merge them into a bundle report instead of
+   * throwing.
+   *
+   * @param validator a consumer that accepts an {@link ErrorReport} collector and populates it with
+   *     any validation failures
+   * @throws ConflictException carrying the message of the first collected error, if any
+   */
+  private static void throwFirst(Consumer<Consumer<ErrorReport>> validator)
+      throws ConflictException {
+    List<ErrorReport> errors = new ArrayList<>();
+    validator.accept(errors::add);
+    if (!errors.isEmpty()) {
+      throw new ConflictException(errors.get(0).getMessage());
     }
   }
 }
