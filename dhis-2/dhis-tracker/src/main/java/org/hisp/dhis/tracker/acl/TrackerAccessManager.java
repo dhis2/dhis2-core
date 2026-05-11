@@ -31,7 +31,7 @@ package org.hisp.dhis.tracker.acl;
 
 import java.util.List;
 import javax.annotation.Nonnull;
-import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.Relationship;
@@ -44,6 +44,7 @@ import org.hisp.dhis.user.UserDetails;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface TrackerAccessManager {
+
   /**
    * Checks data read access to the TET and ownership of a tracked entity across programs for which
    * the user has data read access.
@@ -95,18 +96,26 @@ public interface TrackerAccessManager {
   List<ErrorMessage> canCreate(UserDetails user, Enrollment enrollment);
 
   /**
-   * Checks data write access to the program, data read access to the TET, ownership, and category
-   * option combo write access. When {@code orgUnit} differs from the stored enrollment's org unit,
-   * capture scope access to it is also required.
+   * Checks data write access to the program, data read access to the TET, ownership, and data write
+   * access to the stored enrollment's category option combo. When {@code orgUnit} differs from the
+   * stored enrollment's org unit, capture scope access to it is also required. When {@code
+   * categoryOptionCombo} differs from the stored enrollment's category option combo, data write
+   * access to it is also required.
    *
    * @param user the user whose access is being validated.
    * @param enrollment the stored enrollment to update.
    * @param orgUnit the org unit the caller intends to move the entity to; if no org unit change is
    *     intended, pass the entity's existing org unit.
+   * @param categoryOptionCombo the category option combo the caller intends to set on the
+   *     enrollment; if no category option combo change is intended, pass the entity's existing
+   *     category option combo.
    * @return No errors if the user has all required access rights to update the enrollment.
    */
   List<ErrorMessage> canUpdate(
-      UserDetails user, Enrollment enrollment, @Nonnull OrganisationUnit orgUnit);
+      UserDetails user,
+      Enrollment enrollment,
+      OrganisationUnit orgUnit,
+      CategoryOptionCombo categoryOptionCombo);
 
   /** Like {@link #canCreate(UserDetails, Enrollment)}. */
   List<ErrorMessage> canDelete(UserDetails user, Enrollment enrollment);
@@ -132,38 +141,73 @@ public interface TrackerAccessManager {
 
   /**
    * Checks data write access to the program stage, data read access to the program and TET,
-   * ownership, and data write access to the category option combo. When {@code orgUnit} differs
-   * from the stored event's org unit, capture scope access to it is also required.
+   * ownership, and data write access to the stored event's category option combo. When {@code
+   * orgUnit} differs from the stored event's org unit, capture scope access to it is also required.
+   * When {@code attributeOptionCombo} differs from the stored event's category option combo, data
+   * write access to it is also required.
    *
    * @param user the user whose access is being validated.
    * @param event the stored event to update.
    * @param orgUnit the org unit the caller intends to move the entity to; if no org unit change is
    *     intended, pass the entity's existing org unit.
+   * @param attributeOptionCombo the category option combo the caller intends to set on the event;
+   *     if no category option combo change is intended, pass the entity's existing category option
+   *     combo.
    * @return No errors if the user has all required access rights to update the event.
    */
   List<ErrorMessage> canUpdate(
-      UserDetails user, TrackerEvent event, @Nonnull OrganisationUnit orgUnit);
+      UserDetails user,
+      TrackerEvent event,
+      OrganisationUnit orgUnit,
+      CategoryOptionCombo attributeOptionCombo);
 
   /** Like {@link #canCreate(UserDetails, TrackerEvent)}. */
   List<ErrorMessage> canDelete(UserDetails user, TrackerEvent event);
 
-  List<String> canRead(UserDetails user, SingleEvent event);
+  /**
+   * Checks org unit scope access, data read access to the program, and data read access to the
+   * category option combo.
+   *
+   * @return No errors if the user has org unit scope access, data read access to the program, and
+   *     data read access to the category option combo.
+   */
+  List<ErrorMessage> canRead(UserDetails user, SingleEvent event);
 
-  List<String> canCreate(UserDetails user, SingleEvent event);
+  /**
+   * Checks capture scope access, data write access to the program, and data write access to the
+   * category option combo.
+   *
+   * @return No errors if the user has all required access rights to create the event.
+   */
+  List<ErrorMessage> canCreate(UserDetails user, SingleEvent event);
+
+  /**
+   * Checks capture scope access, data write access to the program, and data write access to the
+   * stored event's category option combo. When {@code orgUnit} differs from the stored event's org
+   * unit, capture scope access to it is also required. When {@code categoryOptionCombo} differs
+   * from the stored event's category option combo, data write access to it is also required.
+   *
+   * @param user the user whose access is being validated.
+   * @param event the stored event to update.
+   * @param orgUnit the org unit the caller intends to move the entity to; if no org unit change is
+   *     intended, pass the entity's existing org unit.
+   * @param categoryOptionCombo the category option combo the caller intends to set on the event; if
+   *     no category option combo change is intended, pass the entity's existing category option
+   *     combo.
+   * @return No errors if the user has all required access rights to update the event.
+   */
+  List<ErrorMessage> canUpdate(
+      UserDetails user,
+      SingleEvent event,
+      OrganisationUnit orgUnit,
+      CategoryOptionCombo categoryOptionCombo);
+
+  /** Like {@link #canCreate(UserDetails, SingleEvent)}. */
+  List<ErrorMessage> canDelete(UserDetails user, SingleEvent event);
 
   List<String> canRead(UserDetails user, Relationship relationship);
 
   List<String> canCreate(UserDetails user, Relationship relationship);
 
   List<String> canDelete(UserDetails user, @Nonnull Relationship relationship);
-
-  /**
-   * Checks the sharing read access to EventDataValue
-   *
-   * @param user User validated for write access
-   * @param event SingleEvent under which the EventDataValue belongs
-   * @param dataElement DataElement of EventDataValue
-   * @return Empty list if read access allowed, list of errors otherwise.
-   */
-  List<String> canRead(UserDetails user, SingleEvent event, DataElement dataElement);
 }
