@@ -30,7 +30,6 @@
 package org.hisp.dhis.tracker.acl;
 
 import java.util.List;
-import javax.annotation.Nonnull;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.tracker.model.Enrollment;
@@ -58,7 +57,7 @@ public interface TrackerAccessManager {
    *
    * @return No errors if the user has capture scope access and write access to the TET.
    */
-  List<ErrorMessage> canCreate(@Nonnull UserDetails user, TrackedEntity trackedEntity);
+  List<ErrorMessage> canCreate(UserDetails user, TrackedEntity trackedEntity);
 
   /**
    * Checks data write access to the TET and ownership of the tracked entity across programs for
@@ -72,7 +71,7 @@ public interface TrackerAccessManager {
    * @return No errors if the user has all required access rights to update the tracked entity.
    */
   List<ErrorMessage> canUpdate(
-      UserDetails user, TrackedEntity trackedEntity, @Nonnull OrganisationUnit orgUnit);
+      UserDetails user, TrackedEntity trackedEntity, OrganisationUnit orgUnit);
 
   /**
    * Like {@link #canUpdate(UserDetails, TrackedEntity, OrganisationUnit)}, but also requires
@@ -205,9 +204,30 @@ public interface TrackerAccessManager {
   /** Like {@link #canCreate(UserDetails, SingleEvent)}. */
   List<ErrorMessage> canDelete(UserDetails user, SingleEvent event);
 
-  List<String> canRead(UserDetails user, Relationship relationship);
+  /**
+   * Checks data read access to the relationship type, and data read access to both the {@code from}
+   * and {@code to} items.
+   *
+   * @return No errors if the user has data read access to the relationship type and to both items.
+   */
+  List<ErrorMessage> canRead(UserDetails user, Relationship relationship);
 
-  List<String> canCreate(UserDetails user, Relationship relationship);
+  /**
+   * Checks data write access to the relationship type and data write access to the {@code from}
+   * item. For non-bidirectional relationship types, also checks data read access to the {@code to}
+   * item. For bidirectional relationship types, also checks data write access to the {@code to}
+   * item.
+   *
+   * @return No errors if the user has all required access rights to create the relationship.
+   */
+  List<ErrorMessage> canCreate(UserDetails user, Relationship relationship);
 
-  List<String> canDelete(UserDetails user, @Nonnull Relationship relationship);
+  /**
+   * Checks data write access to the relationship type and data write access to the {@code from}
+   * item. For bidirectional relationship types, also checks data write access to the {@code to}
+   * item.
+   *
+   * @return No errors if the user has all required access rights to delete the relationship.
+   */
+  List<ErrorMessage> canDelete(UserDetails user, Relationship relationship);
 }
