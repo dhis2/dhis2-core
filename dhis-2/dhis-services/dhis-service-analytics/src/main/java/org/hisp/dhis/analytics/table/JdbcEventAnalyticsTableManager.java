@@ -178,10 +178,10 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
 
     List<Program> programs =
         params.isSkipPrograms()
-            ? idObjectManager.getAllNoAcl(Program.class)
-            : idObjectManager.getAllNoAcl(Program.class).stream()
+            ? idObjectManager.getAllNoAcl(Program.class).stream()
                 .filter(p -> !params.getSkipPrograms().contains(p.getUid()))
-                .toList();
+                .toList()
+            : idObjectManager.getAllNoAcl(Program.class);
 
     Integer firstDataYear = availableDataYears.get(0);
     Integer latestDataYear = availableDataYears.get(availableDataYears.size() - 1);
@@ -376,7 +376,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                     and ev.lastupdated >= '${startDate}' \
                     and ev.lastupdated < '${endDate}');""",
                 Map.of(
-                    "tableName", sqlBuilder.qualifyTable(table.getName()),
+                    "tableName", sqlBuilder.qualifyTable(table.getMainName()),
                     "programId", String.valueOf(program.getId()),
                     "startDate", toLongDate(partition.getStartDate()),
                     "endDate", toLongDate(partition.getEndDate())));
@@ -401,7 +401,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
                     and ev.lastupdated >= '${startDate}' \
                     and ev.lastupdated < '${endDate}');""",
                   Map.of(
-                      "tableName", sqlBuilder.qualifyTable(table.getName()),
+                      "tableName", sqlBuilder.qualifyTable(table.getMainName()),
                       "programStageId", String.valueOf(programStageId),
                       "startDate", toLongDate(partition.getStartDate()),
                       "endDate", toLongDate(partition.getEndDate())));
@@ -409,7 +409,7 @@ public class JdbcEventAnalyticsTableManager extends AbstractEventJdbcTableManage
       }
 
       if (isNotBlank(sql)) {
-        invokeTimeAndLog(sql, "Remove updated events for table: '{}'", table.getName());
+        invokeTimeAndLog(sql, "Remove updated events for table: '{}'", table.getMainName());
       }
     }
   }
