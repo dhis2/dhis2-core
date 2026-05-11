@@ -44,6 +44,10 @@
             <AppenderRef ref="file" level="warn"/>
         </Root>
 
+        <!-- Tests that verify uniqueness constraints intentionally trigger duplicate-key
+             violations; Hibernate logs every such exception at ERROR via SqlExceptionHelper. -->
+        <Logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="fatal" additivity="false"/>
+
         <!-- A few examples of loggers that might be useful to debug integration test issues.
         Adding an AppenderRef is necessary to overrule the log level we have set on the Root AppenderRefs.
         Once you add an AppenderRef to a Logger you need to set additivity to false otherwise logs might appear twice
