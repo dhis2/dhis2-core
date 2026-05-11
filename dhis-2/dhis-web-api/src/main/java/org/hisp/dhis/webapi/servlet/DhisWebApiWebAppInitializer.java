@@ -150,7 +150,7 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
         .addFilter(
             "LegacyDhisWebLoginRedirectFilter",
             new DelegatingFilterProxy("legacyDhisWebLoginRedirectFilter"))
-        .addMappingForUrlPatterns(null, false, "/*");
+        .addMappingForUrlPatterns(null, false, "/dhis-web-login", "/dhis-web-login/*");
 
     context
         .addFilter(
