@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.user;
 
-import java.util.HashSet;
 import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 import org.springframework.stereotype.Component;
 
@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class UserRoleDeletionHandler extends IdObjectDeletionHandler<UserRole> {
-  private final UserService userService;
+  private final UserRoleStore userRoleStore;
 
   @Override
   protected void registerHandler() {
@@ -48,15 +48,9 @@ public class UserRoleDeletionHandler extends IdObjectDeletionHandler<UserRole> {
   }
 
   private void deleteUser(User user) {
-    for (UserRole role : user.getUserRoles()) {
-      role.getMembers().remove(user);
-
-      // Needs to bypass ACL to allow user deletion, without UserRole write access.
-      // We are just updating the membership/mapping here on the user side we have access to.
-      // See: https://dhis2.atlassian.net/browse/DHIS2-19693
-      userService.updateUserRole(role, new SystemUser());
-    }
-
-    user.setUserRoles(new HashSet<>());
+    // Remove join table rows via SQL to avoid loading all role members collections.
+    // No need to clear user.userRoles in-memory — cascade is "save-update,persist,merge"
+    // (no delete cascade), so Hibernate will not attempt to delete shared UserRole entities.
+    userRoleStore.removeAllMemberships(UID.of(user.getUid()));
   }
 }

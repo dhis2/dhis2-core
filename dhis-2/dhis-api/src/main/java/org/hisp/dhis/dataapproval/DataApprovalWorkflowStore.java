@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.dataapproval;
 
+import java.util.Set;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
@@ -36,4 +37,14 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  *
  * @author Jim Grace
  */
-public interface DataApprovalWorkflowStore extends IdentifiableObjectStore<DataApprovalWorkflow> {}
+public interface DataApprovalWorkflowStore extends IdentifiableObjectStore<DataApprovalWorkflow> {
+
+  /**
+   * Update all source CategoryCombo ids to the target CategoryCombo id for DataApprovalWorkflows.
+   *
+   * @param sourceCategoryComboIds source category combo ids
+   * @param targetCategoryComboId target category combo id
+   * @return number of updated rows
+   */
+  int updateCategoryComboRefs(Set<Long> sourceCategoryComboIds, long targetCategoryComboId);
+}

@@ -105,7 +105,7 @@ public class InMemoryQueryEngine implements QueryEngine {
   private record OrderBy(Order order, Property property) {}
 
   private <T extends IdentifiableObject> List<T> runSorter(Query<T> query, List<T> objects) {
-    Schema schema = schemaService.getDynamicSchema(query.getObjectType());
+    Schema schema = schemaService.getSchema(query.getObjectType());
     List<OrderBy> orders = new ArrayList<>();
     for (Order order : query.getOrders()) {
       Property p = schema.getProperty(order.getProperty());
@@ -227,7 +227,7 @@ public class InMemoryQueryEngine implements QueryEngine {
     if (f.isAttribute()) return filterMatchAttribute(f);
 
     String path = f.getPath();
-    Schema schema = schemaService.getDynamicSchema(q.getObjectType());
+    Schema schema = schemaService.getSchema(q.getObjectType());
 
     // flat path
     if (!path.contains(".")) return filterMatch(schema.getProperty(path), f);
@@ -241,8 +241,8 @@ public class InMemoryQueryEngine implements QueryEngine {
       properties[i] = p;
       schema =
           p.isCollection()
-              ? schemaService.getDynamicSchema(p.getItemKlass())
-              : schemaService.getDynamicSchema(p.getKlass());
+              ? schemaService.getSchema(p.getItemKlass())
+              : schemaService.getSchema(p.getKlass());
     }
     Predicate<Object> res = filterMatch(properties[properties.length - 1], f);
     for (int i = properties.length - 2; i >= 0; i--) {

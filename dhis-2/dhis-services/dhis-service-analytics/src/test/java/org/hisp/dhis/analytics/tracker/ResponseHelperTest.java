@@ -34,14 +34,23 @@ import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.createProgramStage;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.AnalyticsCustomHeader;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -177,6 +186,120 @@ class ResponseHelperTest {
 
       // Then
       assertEquals("A03MvHHogjR.ou", result);
+    }
+  }
+
+  @Nested
+  @DisplayName("applyHeaders tests")
+  class ApplyHeadersTests {
+
+    @Test
+    @DisplayName("should normalize enum-style header aliases")
+    void shouldNormalizeEnumStyleHeaderAliases() {
+      Grid grid = new ListGrid();
+      grid.addHeader(new GridHeader("programstatus", "Program status", ValueType.TEXT, false, true))
+          .addHeader(
+              new GridHeader("ouname", "Organisation unit name", ValueType.TEXT, false, true));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder().withHeaders(Set.of("PROGRAM_STATUS")).build();
+
+      ResponseHelper.applyHeaders(grid, params);
+
+      assertEquals(1, grid.getHeaders().size());
+      assertEquals("programstatus", grid.getHeaders().get(0).getName());
+    }
+
+    @Test
+    @DisplayName("should keep requested header order after normalization")
+    void shouldKeepRequestedHeaderOrderAfterNormalization() {
+      Grid grid = new ListGrid();
+      grid.addHeader(new GridHeader("programstatus", "Program status", ValueType.TEXT, false, true))
+          .addHeader(
+              new GridHeader("ouname", "Organisation unit name", ValueType.TEXT, false, true));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withHeaders(new LinkedHashSet<>(List.of("OUNAME", "PROGRAM_STATUS")))
+              .build();
+
+      ResponseHelper.applyHeaders(grid, params);
+
+      assertEquals(2, grid.getHeaders().size());
+      assertEquals("ouname", grid.getHeaders().get(0).getName());
+      assertEquals("programstatus", grid.getHeaders().get(1).getName());
+    }
+
+    @Test
+    @DisplayName("should resolve stage-prefixed alias and keep stage prefix in response header")
+    void shouldResolveStagePrefixedAliasAndKeepStagePrefixInResponseHeader() {
+      Grid grid = new ListGrid();
+      grid.addHeader(new GridHeader("eventdate", "Event date", ValueType.DATETIME, false, true))
+          .addHeader(
+              new GridHeader("ouname", "Organisation unit name", ValueType.TEXT, false, true));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder().withHeaders(Set.of("Zj7UnCAulEk.eventDate")).build();
+
+      ResponseHelper.applyHeaders(grid, params);
+
+      assertEquals(1, grid.getHeaders().size());
+      assertEquals("Zj7UnCAulEk.eventdate", grid.getHeaders().get(0).getName());
+    }
+
+    @Test
+    @DisplayName(
+        "should keep stage prefix on fallback-resolved header alongside direct stage-prefixed header")
+    void shouldKeepStagePrefixOnFallbackResolvedHeaderAlongsideDirectStagePrefixedHeader() {
+      Grid grid = new ListGrid();
+      grid.addHeader(
+              new GridHeader(
+                  "A03MvHHogjR.ouname", "Organisation unit name", ValueType.TEXT, false, true))
+          .addHeader(new GridHeader("eventstatus", "Event status", ValueType.TEXT, false, true))
+          .addHeader(new GridHeader("eventdate", "Event date", ValueType.DATETIME, false, true));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withHeaders(
+                  new LinkedHashSet<>(List.of("A03MvHHogjR.ouname", "A03MvHHogjR.eventstatus")))
+              .build();
+
+      ResponseHelper.applyHeaders(grid, params);
+
+      assertEquals(2, grid.getHeaders().size());
+      assertEquals("A03MvHHogjR.ouname", grid.getHeaders().get(0).getName());
+      assertEquals("A03MvHHogjR.eventstatus", grid.getHeaders().get(1).getName());
+    }
+
+    @Test
+    @DisplayName("should prefer exact stage-prefixed grid header over base alias")
+    void shouldPreferExactStagePrefixedGridHeaderOverBaseAlias() {
+      Grid grid = new ListGrid();
+      grid.addHeader(
+              new GridHeader(
+                  "Zj7UnCAulEk.eventdate", "Event date", ValueType.DATETIME, false, true))
+          .addHeader(
+              new GridHeader("ouname", "Organisation unit name", ValueType.TEXT, false, true));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder().withHeaders(Set.of("Zj7UnCAulEk.eventDate")).build();
+
+      ResponseHelper.applyHeaders(grid, params);
+
+      assertEquals(1, grid.getHeaders().size());
+      assertEquals("Zj7UnCAulEk.eventdate", grid.getHeaders().get(0).getName());
+    }
+
+    @Test
+    @DisplayName("should throw when stage-prefixed suffix does not match any column")
+    void shouldThrowWhenStagePrefixedSuffixDoesNotMatchAnyColumn() {
+      Grid grid = new ListGrid();
+      grid.addHeader(new GridHeader("eventdate", "Event date", ValueType.DATETIME, false, true));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder().withHeaders(Set.of("Zj7UnCAulEk.unknownSuffix")).build();
+
+      assertThrows(IllegalQueryException.class, () -> ResponseHelper.applyHeaders(grid, params));
     }
   }
 

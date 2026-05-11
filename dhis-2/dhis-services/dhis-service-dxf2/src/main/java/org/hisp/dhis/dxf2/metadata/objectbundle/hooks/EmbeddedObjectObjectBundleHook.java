@@ -62,7 +62,7 @@ public class EmbeddedObjectObjectBundleHook extends AbstractObjectBundleHook<Ide
   public void validate(
       IdentifiableObject object, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
     Class<? extends IdentifiableObject> klass = object.getClass();
-    Schema schema = schemaService.getDynamicSchema(klass);
+    Schema schema = schemaService.getSchema(klass);
 
     schema.getEmbeddedObjectProperties().keySet().stream()
         .forEach(
@@ -99,7 +99,7 @@ public class EmbeddedObjectObjectBundleHook extends AbstractObjectBundleHook<Ide
 
   @Override
   public void preCreate(IdentifiableObject object, ObjectBundle bundle) {
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
 
     if (schema == null || schema.getEmbeddedObjectProperties().isEmpty()) {
       return;
@@ -113,7 +113,7 @@ public class EmbeddedObjectObjectBundleHook extends AbstractObjectBundleHook<Ide
   @Override
   public void preUpdate(
       IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle) {
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
 
     if (schema == null || schema.getEmbeddedObjectProperties().isEmpty()) {
       return;
@@ -168,8 +168,7 @@ public class EmbeddedObjectObjectBundleHook extends AbstractObjectBundleHook<Ide
       obj.setAutoFields();
     }
 
-    Schema embeddedSchema =
-        schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema embeddedSchema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
 
     for (Property embeddedProperty : embeddedSchema.getPropertyMap().values()) {
       if (PeriodType.class.isAssignableFrom(embeddedProperty.getKlass())) {
@@ -192,7 +191,7 @@ public class EmbeddedObjectObjectBundleHook extends AbstractObjectBundleHook<Ide
       return;
     }
 
-    Schema propertySchema = schemaService.getDynamicSchema(property.getItemKlass());
+    Schema propertySchema = schemaService.getSchema(property.getItemKlass());
 
     analyticalObjectImportHandler.handleAnalyticalObject(
         entityManager, propertySchema, (BaseAnalyticalObject) identifiableObject, bundle);

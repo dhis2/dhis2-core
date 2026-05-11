@@ -133,6 +133,15 @@ public enum ErrorCode {
   E1540(
       "CategoryOptionCombos must be duplicates (same cat combo, same cat options, different UID) in order to merge"),
 
+  /* CategoryCombo merge */
+  E1545("Source and target CategoryCombos must have identical Categories: source {0} has {1}"),
+  E1546(
+      "CategoryOptionCombo has incorrect number of CategoryOptions. Expected {0} but found {1} for COC: {2}"),
+  E1547(
+      "CategoryOptionCombo has CategoryOptions that are not valid for the CategoryCombo categories: {0}"),
+  E1548(
+      "Duplicate CategoryOptionCombo `{0}` found for CategoryCombo `{1}`. Fix this before attempting the merge."),
+
   /* DataElement merge */
   E1550("All source ValueTypes must match target ValueType: `{0}`. Other ValueTypes found: `{1}`"),
   E1551(
@@ -329,6 +338,11 @@ public enum ErrorCode {
   E4057("The Program Rule name {0} already exist in Program {1}"),
 
   E4058("Program Rule `{0}` with Action Type `{1}` has irrelevant reference objects"),
+  E4059("ProgramRuleVariable `{0}` with source type `{1}` requires a data element"),
+  E4089("ProgramRuleVariable `{0}` with source type `{1}` requires a tracked entity attribute"),
+  E4090("ProgramRuleVariable `{0}` is missing a source type"),
+  E4091("ProgramRuleVariable `{0}` with source type `{1}` requires a program stage"),
+  E4092("ProgramRuleVariable `{0}` with source type `{1}` requires a value type"),
 
   /* Metadata Validation (continued) */
   E4060("Object could not be deleted: {0}"),
@@ -427,6 +441,7 @@ public enum ErrorCode {
   E6020("AttributeValue `{0}` is an invalid username"),
   E6021("AttributeValue `{0}` is an invalid phone number"),
   E6022("Object cannot reference itself by property `{0}`"),
+  E6023("Type `{0}` cannot be imported via metadata"),
 
   /* File resource */
   E6100("Filename not present"),
@@ -457,6 +472,9 @@ public enum ErrorCode {
   E6304("Aggregate data exchange target API must be specified when target type is EXTERNAL"),
   E6305(
       "Aggregate data exchange target API must specify either access token or username and password"),
+  E6306("Aggregate data exchange source using periods of different types: `{0}` ({1}) vs `{2}`"),
+  E6307(
+      "Aggregate data exchange source request contains data item with unsupported type: `{0}`, allowed types are: {1}"),
 
   /*Analytics table hook*/
   E6400("Analytics table hook `{0}` is a duplicate of `{1}`"),
@@ -514,6 +532,7 @@ public enum ErrorCode {
   E7133("Query cannot be executed, possibly because of invalid types or invalid operation"),
   E7134("Cannot retrieve total value for data elements with skip total category combination"),
   E7135("Date time is not parsable: `{0}`"),
+  E7136("Query exceeded the maximum allowed execution time"),
   E7137("Expression is not parsable: `{0}`"),
   E7138("Invalid offset: `{0}`"),
   E7139("Parameters programStatus and enrollmentStatus cannot be used together"),
@@ -565,7 +584,7 @@ public enum ErrorCode {
   E7221("Coordinate field is invalid: `{0}`"),
   E7222("Query item or filter is invalid: `{0}`"),
   E7223(
-      "Value does not refer to a data element or attribute which are numeric and part of the program: `{0}`"),
+      "Value does not refer to a data element or attribute which are numeric or boolean and part of the program: `{0}`"),
   E7224(
       "Item identifier does not reference any data element, attribute or indicator part of the program: `{0}`"),
   E7225(
@@ -676,8 +695,8 @@ public enum ErrorCode {
       "Untimely data entry for attribute option combo ${combo:{0}} and period(s): `${periods:{1}}`"),
   E8033(
       "Untimely data entry (already approved) for attribute option combo ${combo:{0}}, org unit ${unit:{1}} and periods: `${periods:{2}}`"),
-  E8034("Data set deletion scope ID refers to a non-existing object: `${id:{1}}`"),
-  E8035("Data set deletion scope ID is not a valid UID: `${id:{1}}`"),
+  E8034("Data set deletion scope ID refers to a non-existing object: `${id:{0}}`"),
+  E8035("Data set deletion scope ID is not a valid UID: `${id:{0}}`"),
   // value level decoding and input issues
   E8100("Value #${index:{0}} period not defined in group or value: `${dv:{1}}`"),
   E8101("Value #${index:{0}} data set is required to decode category options: `${options:{1}}`"),

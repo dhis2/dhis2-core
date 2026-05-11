@@ -49,7 +49,7 @@ public class PrefixedDimension {
 
   private final ProgramStage programStage;
 
-  private final BaseIdentifiableObject item;
+  private final IdentifiableObject item;
 
   private final String dimensionType;
 

@@ -49,6 +49,7 @@ import org.apache.catalina.Lifecycle;
 import org.apache.catalina.LifecycleEvent;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.LifecycleListener;
+import org.apache.catalina.LifecycleState;
 import org.apache.catalina.WebResource;
 import org.apache.catalina.WebResourceRoot;
 import org.apache.catalina.WebResourceRoot.ResourceSetType;
@@ -140,13 +141,42 @@ public class Main {
 
     host.addChild(context);
 
-    tomcat.start();
+    try {
+      tomcat.start();
+    } catch (Exception ex) {
+      log.error("FATAL: Failed to start embedded Tomcat. Shutting down.", ex);
+      System.exit(1);
+    }
+
+    // Spring context failures during ContextLoaderListener are caught internally by
+    // Tomcat — the context transitions to FAILED then STOPPED, but tomcat.start()
+    // returns normally. starter.getStartUpException() is also null because the
+    // exception occurs after TomcatStarter.onStartup() has already completed
+    // (onStartup only registers the listener; Spring context init runs later).
+    // Check the context lifecycle state explicitly.
+    if (context.getState() != LifecycleState.STARTED) {
+      log.error(
+          "FATAL: Web application context failed to start (state: {}). Shutting down.",
+          context.getStateName());
+      System.exit(1);
+    }
+
+    Exception startUpException = starter.getStartUpException();
+    if (startUpException != null) {
+      log.error("FATAL: Failed to initialize Spring context. Shutting down.", startUpException);
+      System.exit(1);
+    }
 
     Thread awaitThread =
         new Thread("container-" + (1)) {
           @Override
           public void run() {
-            performDeferredLoadOnStartup(tomcat);
+            try {
+              performDeferredLoadOnStartup(tomcat);
+            } catch (Exception ex) {
+              log.error("FATAL: Failed during deferred servlet startup. Shutting down.", ex);
+              System.exit(1);
+            }
             tomcat.getServer().await();
           }
         };

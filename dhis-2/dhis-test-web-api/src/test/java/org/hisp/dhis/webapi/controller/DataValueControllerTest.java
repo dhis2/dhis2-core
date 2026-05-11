@@ -42,6 +42,8 @@ import org.hisp.dhis.datavalue.DataExportValue;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpMethod;
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.jsontree.JsonArray;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
@@ -146,6 +148,24 @@ class DataValueControllerTest extends AbstractDataValueControllerTest {
 
     HttpResponse response = POST("/dataValues", body);
     assertStatus(HttpStatus.CREATED, response);
+  }
+
+  @Test
+  void testDataValueContext_History() {
+    addDataValue("2021-01", "42", null, false);
+    JsonObject context =
+        GET(
+                "/dataEntry/dataValueContext?de={de}&pe={pe}&ou={ou}&co={co}",
+                dataElementId,
+                "2021-01",
+                orgUnitId,
+                categoryOptionComboId)
+            .content();
+    JsonArray history = context.getArray("history");
+    assertEquals(1, history.size());
+    JsonObject entry = history.getObject(0);
+    assertEquals("42", entry.getString("value").string());
+    assertEquals("202101", entry.getString("period").string());
   }
 
   /** Check if the dataValueSet endpoint return correct fileName. */

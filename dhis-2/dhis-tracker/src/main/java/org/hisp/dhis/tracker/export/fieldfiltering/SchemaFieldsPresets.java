@@ -62,9 +62,9 @@ public class SchemaFieldsPresets {
     }
 
     if (property.isCollection()) {
-      return schemaService.getDynamicSchema(property.getItemKlass());
+      return schemaService.getSchema(property.getItemKlass());
     }
-    return schemaService.getDynamicSchema(property.getKlass());
+    return schemaService.getSchema(property.getKlass());
   }
 
   private static String toFieldName(Property property) {

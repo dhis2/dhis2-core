@@ -45,15 +45,12 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.setting.SystemSettings;
-import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.random.BeanRandomizer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -78,18 +75,13 @@ class ProgramIndicatorSubqueryBuilderTest {
 
   @Mock private ProgramIndicatorService programIndicatorService;
 
-  @Mock private SystemSettingsService systemSettingsService;
-
   @InjectMocks private DefaultProgramIndicatorSubqueryBuilder subject;
-
-  @Spy private SystemSettings systemSettings;
 
   @BeforeEach
   void setUp() {
     program = createProgram('A');
     startDate = getDate(2018, 1, 1);
     endDate = getDate(2018, 6, 30);
-    when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
   }
 
   @Test
@@ -109,7 +101,7 @@ class ProgramIndicatorSubqueryBuilderTest {
         is(
             "(SELECT avg (distinct event) FROM analytics_event_"
                 + program.getUid().toLowerCase()
-                + " as subax WHERE enrollment = ax.enrollment)"));
+                + " as subax)"));
   }
 
   /** Verifies that the join after WHERE is changing when outer join is type EVENT. */
@@ -150,7 +142,7 @@ class ProgramIndicatorSubqueryBuilderTest {
         is(
             "(SELECT avg (distinct event) FROM analytics_event_"
                 + program.getUid().toLowerCase()
-                + " as subax WHERE enrollment = ax.enrollment)"));
+                + " as subax)"));
   }
 
   @Test
@@ -211,6 +203,6 @@ class ProgramIndicatorSubqueryBuilderTest {
         is(
             "(SELECT avg (distinct event) FROM analytics_event_"
                 + program.getUid().toLowerCase()
-                + " as subax WHERE enrollment = ax.enrollment AND (a = b))"));
+                + " as subax WHERE (a = b))"));
   }
 }

@@ -41,6 +41,7 @@ import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_CHILDREN;
 import static org.hisp.dhis.analytics.AnalyticsConstants.KEY_USER_ORGUNIT_GRANDCHILDREN;
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
+import static org.hisp.dhis.analytics.AnalyticsWeeklyStartKey.WEEKLY;
 import static org.hisp.dhis.common.DimensionConstants.CATEGORYOPTIONCOMBO_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DATA_COLLAPSED_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
@@ -557,7 +558,8 @@ public abstract class BaseAnalyticalObject extends BaseNameableObject implements
 
       if (hasRelativePeriods()) {
         items.addAll(
-            getRelatives().getRelativePeriods(date, format, dynamicNames, FINANCIAL_YEAR_OCTOBER));
+            getRelatives()
+                .getRelativePeriods(date, format, dynamicNames, FINANCIAL_YEAR_OCTOBER, WEEKLY));
       }
 
       type = DimensionType.PERIOD;

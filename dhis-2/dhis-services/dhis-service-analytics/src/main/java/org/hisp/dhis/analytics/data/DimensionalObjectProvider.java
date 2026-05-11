@@ -84,6 +84,7 @@ import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
+import org.hisp.dhis.analytics.AnalyticsWeeklyStartKey;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.BaseNameableObject;
@@ -197,6 +198,8 @@ public class DimensionalObjectProvider {
     DimensionItemKeywords dimensionalKeywords = new DimensionItemKeywords();
     AnalyticsFinancialYearStartKey financialYearStart =
         settingsProvider.getCurrentSettings().getAnalyticsFinancialYearStart();
+    AnalyticsWeeklyStartKey weeklyStart =
+        settingsProvider.getCurrentSettings().getAnalyticsWeeklyStart();
 
     for (String isoPeriod : items) {
       // Contains isoPeriod and timeField
@@ -206,7 +209,12 @@ public class DimensionalObjectProvider {
         String dateField = isoPeriodHolder.getDateField();
         DateField dateAndField = new DateField(relativePeriodDate, dateField);
         addRelativePeriods(
-            dateAndField, periods, dimensionalKeywords, financialYearStart, isoPeriodHolder);
+            dateAndField,
+            periods,
+            dimensionalKeywords,
+            financialYearStart,
+            weeklyStart,
+            isoPeriodHolder);
       } else {
         Period period = ofNullable(isoPeriodHolder.getIsoPeriod());
 
@@ -298,6 +306,7 @@ public class DimensionalObjectProvider {
    * @param periods the {@link List} of {@link Period} to be populated.
    * @param dimensionalKeywords the {@link DimensionItemKeywords} to be populated.
    * @param financialYearStart the initial financial year.
+   * @param weeklyStart the initial weekly.
    * @param isoPeriodHolder the object where the ISO period and date will be extracted from.
    */
   private void addRelativePeriods(
@@ -305,6 +314,7 @@ public class DimensionalObjectProvider {
       List<PeriodDimension> periods,
       DimensionItemKeywords dimensionalKeywords,
       AnalyticsFinancialYearStartKey financialYearStart,
+      AnalyticsWeeklyStartKey weeklyStart,
       IsoPeriodHolder isoPeriodHolder) {
     I18nFormat format = i18nManager.getI18nFormat();
     I18n i18n = i18nManager.getI18n();
@@ -315,7 +325,7 @@ public class DimensionalObjectProvider {
 
     List<PeriodDimension> relativePeriods =
         getRelativePeriodsFromEnum(
-            relativePeriod, relativePeriodDate, format, true, financialYearStart);
+            relativePeriod, relativePeriodDate, format, true, financialYearStart, weeklyStart);
 
     // If a custom time filter is specified, set it in periods
 

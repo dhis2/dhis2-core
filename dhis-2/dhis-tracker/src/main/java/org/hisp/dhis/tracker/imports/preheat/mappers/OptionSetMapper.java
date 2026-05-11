@@ -38,7 +38,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = DebugMapper.class)
+@Mapper
 public interface OptionSetMapper extends PreheatMapper<OptionSet> {
   OptionSetMapper INSTANCE = Mappers.getMapper(OptionSetMapper.class);
 

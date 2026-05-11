@@ -35,6 +35,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fileresource.FileResource;
@@ -76,12 +77,13 @@ class FileResourceControllerMockTest {
     FileResource fileResource = new FileResource();
     fileResource.setContentType("image/png");
     fileResource.setDomain(FileResourceDomain.ORG_UNIT);
-    fileResource.setUid("id");
+    UID id = UID.generate();
+    fileResource.setUid(id.getValue());
 
-    when(fileResourceService.getFileResource("id")).thenReturn(fileResource);
+    when(fileResourceService.getFileResource(id.getValue())).thenReturn(fileResource);
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
-    controller.getFileResourceData("id", new MockHttpServletResponse(), null, currentUser);
+    controller.getFileResourceData(id, new MockHttpServletResponse(), null, currentUser);
 
     verify(fileResourceService).copyFileResourceContent(any(), any());
   }
@@ -92,14 +94,14 @@ class FileResourceControllerMockTest {
     FileResource fileResource = new FileResource();
     fileResource.setContentType("image/png");
     fileResource.setDomain(FileResourceDomain.DATA_VALUE);
-    fileResource.setUid("id");
+    UID id = UID.generate();
+    fileResource.setUid(id.getValue());
 
-    when(fileResourceService.getFileResource("id")).thenReturn(fileResource);
+    when(fileResourceService.getFileResource(id.getValue())).thenReturn(fileResource);
 
     User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
     assertThrows(
         ForbiddenException.class,
-        () ->
-            controller.getFileResourceData("id", new MockHttpServletResponse(), null, currentUser));
+        () -> controller.getFileResourceData(id, new MockHttpServletResponse(), null, currentUser));
   }
 }

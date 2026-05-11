@@ -31,17 +31,14 @@ package org.hisp.dhis.user;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import jakarta.persistence.EntityManager;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import javax.annotation.Nonnull;
-import org.hibernate.Session;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.HibernateCacheManager;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.stereotype.Service;
@@ -56,23 +53,19 @@ public class DefaultUserGroupService implements UserGroupService {
   private final AclService aclService;
   private final HibernateCacheManager cacheManager;
   private final Cache<String> userGroupNameCache;
-  private final EntityManager entityManager;
 
   public DefaultUserGroupService(
       UserGroupStore userGroupStore,
       AclService aclService,
       HibernateCacheManager cacheManager,
-      CacheProvider cacheProvider,
-      EntityManager entityManager) {
+      CacheProvider cacheProvider) {
     checkNotNull(userGroupStore);
     checkNotNull(aclService);
     checkNotNull(cacheManager);
-    checkNotNull(entityManager);
 
     this.userGroupStore = userGroupStore;
     this.aclService = aclService;
     this.cacheManager = cacheManager;
-    this.entityManager = entityManager;
 
     userGroupNameCache = cacheProvider.createUserGroupNameCache();
   }
@@ -134,7 +127,12 @@ public class DefaultUserGroupService implements UserGroupService {
   @Override
   @Transactional(readOnly = true)
   public boolean canAddOrRemoveMember(String uid, @Nonnull UserDetails userDetails) {
-    UserGroup userGroup = getUserGroup(uid);
+    return canAddOrRemoveMember(getUserGroup(uid), userDetails);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public boolean canAddOrRemoveMember(UserGroup userGroup, @Nonnull UserDetails userDetails) {
 
     if (userGroup == null) {
       return false;
@@ -151,10 +149,11 @@ public class DefaultUserGroupService implements UserGroupService {
   @Transactional
   public void addUserToGroups(User user, Collection<String> uids, UserDetails currentUser) {
     for (String uid : uids) {
-      if (canAddOrRemoveMember(uid, currentUser)) {
-        UserGroup userGroup = getUserGroup(uid);
-        userGroup.addUser(user);
-        userGroupStore.updateNoAcl(userGroup);
+      UserGroup userGroup = getUserGroup(uid);
+      if (canAddOrRemoveMember(userGroup, currentUser)
+          && userGroupStore.addMember(
+              userGroup.getUID(), user.getUID(), UID.of(currentUser.getUid()))) {
+        user.getGroups().add(userGroup);
       }
     }
     aclService.invalidateCurrentUserGroupInfoCache();
@@ -162,53 +161,33 @@ public class DefaultUserGroupService implements UserGroupService {
 
   @Override
   @Transactional
-  public void removeUserFromGroups(User user, Collection<String> uids) {
-    for (String uid : uids) {
-      if (canAddOrRemoveMember(uid)) {
-        UserGroup userGroup = getUserGroup(uid);
-        userGroup.removeUser(user);
-        userGroupStore.updateNoAcl(userGroup);
-      }
-    }
-    aclService.invalidateCurrentUserGroupInfoCache();
-  }
-
-  @Override
-  @Transactional
-  public void updateUserGroups(
-      User user, @Nonnull Collection<String> uids, UserDetails currentUser) {
+  public void updateUserGroups(User user, @Nonnull Collection<UID> uids, UserDetails currentUser) {
     Collection<UserGroup> updates = getUserGroupsByUid(uids);
+    UID currentUserUid = UID.of(currentUser.getUid());
+    UID userUid = user.getUID();
 
-    Map<UserGroup, Integer> before = new HashMap<>();
-    updates.forEach(userGroup -> before.put(userGroup, userGroup.getMembers().size()));
-
+    // Remove user from groups they're no longer in (SQL bypass avoids loading UserGroup.members)
     for (UserGroup userGroup : new HashSet<>(user.getGroups())) {
-      if (!updates.contains(userGroup) && canAddOrRemoveMember(userGroup.getUid(), currentUser)) {
-        before.put(userGroup, userGroup.getMembers().size());
-        userGroup.removeUser(user);
+      if (!updates.contains(userGroup)
+          && canAddOrRemoveMember(userGroup, currentUser)
+          && userGroupStore.removeMember(userGroup.getUID(), userUid, currentUserUid)) {
+        user.getGroups().remove(userGroup);
       }
     }
 
+    // Add user to groups they should be in (SQL bypass with NOT EXISTS guard)
     for (UserGroup userGroup : updates) {
-      if (canAddOrRemoveMember(userGroup.getUid(), currentUser)) {
-        userGroup.addUser(user);
+      if (canAddOrRemoveMember(userGroup, currentUser)
+          && userGroupStore.addMember(userGroup.getUID(), userUid, currentUserUid)) {
+        user.getGroups().add(userGroup);
       }
     }
 
-    Session session = entityManager.unwrap(Session.class);
-    // Update user group if members have changed
-    before.forEach(
-        (userGroup, beforeSize) -> {
-          if (beforeSize != userGroup.getMembers().size()) {
-            userGroup.setLastUpdatedBy(session.getReference(User.class, currentUser.getId()));
-            userGroupStore.updateNoAcl(userGroup);
-          }
-        });
     aclService.invalidateCurrentUserGroupInfoCache();
   }
 
-  private Collection<UserGroup> getUserGroupsByUid(@Nonnull Collection<String> uids) {
-    return userGroupStore.getByUid(uids);
+  private Collection<UserGroup> getUserGroupsByUid(@Nonnull Collection<UID> uids) {
+    return userGroupStore.getByUid(UID.toValueList(uids));
   }
 
   @Override

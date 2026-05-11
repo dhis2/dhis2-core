@@ -62,6 +62,7 @@ public final class SystemInfo {
   @JsonProperty private final String dateFormat;
   @JsonProperty private final Date serverDate;
   @JsonProperty private final String serverTimeZoneId;
+  @JsonProperty private final int sessionTimeout;
   @JsonProperty private final String serverTimeZoneDisplayName;
   @JsonProperty private final Date lastAnalyticsTableSuccess;
   @JsonProperty private final String intervalSinceLastAnalyticsTableSuccess;

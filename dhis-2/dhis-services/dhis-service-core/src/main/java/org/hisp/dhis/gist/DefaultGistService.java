@@ -178,7 +178,7 @@ public class DefaultGistService implements GistService {
   private GistPager pager(GistQuery query) {
     if (!query.isPaging()) return null;
     int page = 1 + (query.getPageOffset() / query.getPageSize());
-    Schema schema = schemaService.getDynamicSchema(query.getElementType());
+    Schema schema = schemaService.getSchema(query.getElementType());
     String prev = null;
     String next = null;
     Integer total = null;
@@ -217,7 +217,7 @@ public class DefaultGistService implements GistService {
   }
 
   private RelativePropertyContext createPropertyContext(GistQuery query) {
-    return new RelativePropertyContext(query.getElementType(), schemaService::getDynamicSchema);
+    return new RelativePropertyContext(query.getElementType(), schemaService::getSchema);
   }
 
   private Stream<Object[]> fetchWithParameters(

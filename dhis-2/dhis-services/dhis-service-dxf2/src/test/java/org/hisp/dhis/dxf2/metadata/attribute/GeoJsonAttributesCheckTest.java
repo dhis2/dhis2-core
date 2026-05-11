@@ -86,7 +86,7 @@ class GeoJsonAttributesCheckTest {
     schema.getPropertyMap().put("attributeValues", property);
     SchemaService schemaService = Mockito.mock(SchemaService.class);
 
-    when(schemaService.getDynamicSchema(OrganisationUnit.class)).thenReturn(schema);
+    when(schemaService.getSchema(OrganisationUnit.class)).thenReturn(schema);
     when(validationContext.getSchemaService()).thenReturn(schemaService);
 
     Preheat preheat = Mockito.mock(Preheat.class);

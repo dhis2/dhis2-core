@@ -32,11 +32,11 @@ section_order: 2
 summary_sql: >-
   select count(*) as value,
   100*count(*) / NULLIF( (select count(*) from dataset),0) as percent
-  from dataset where datasetid NOT IN (
-  SELECT DISTINCT datasetid from datasetsource);
+  from dataset ds WHERE NOT EXISTS (
+  SELECT 1 from datasetsource s WHERE s.datasetid = ds.datasetid);
 details_sql: >-
-  SELECT uid,name from dataset WHERE
-  datasetid NOT IN (SELECT DISTINCT datasetid from datasetsource);
+  SELECT uid,name from dataset ds
+  WHERE NOT EXISTS (SELECT 1 from datasetsource s WHERE s.datasetid = ds.datasetid);
 severity: WARNING
 introduction: >
   Datasets should be assigned to organisation units. When data sets are not assigned to any organisation units,

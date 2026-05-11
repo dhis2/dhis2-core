@@ -379,14 +379,15 @@ public class FieldFilterService {
     source
         .getAttributeValues()
         .forEach(
-            (attributeId, value) -> {
+            (key, value) -> {
+              String attributeId = key.toString();
               ObjectNode attrValueNode = attributes.addObject();
-              attrValueNode.put("value", value);
+              attrValueNode.put("value", value.toString());
               attrValueNode.set(
                   "attribute",
                   attributeProperties.computeIfAbsent(
                       attributeId,
-                      key -> {
+                      k -> {
                         Attribute attribute = attributeService.getAttribute(attributeId);
                         List<ObjectNode> res = new ArrayList<>(1);
                         toObjectNodes(
@@ -447,7 +448,7 @@ public class FieldFilterService {
       return;
     }
 
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
 
     if (!schema.isIdentifiableObject()) {
       return;

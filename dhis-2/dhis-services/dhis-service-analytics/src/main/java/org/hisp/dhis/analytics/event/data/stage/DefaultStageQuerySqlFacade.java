@@ -67,9 +67,15 @@ public class DefaultStageQuerySqlFacade implements StageQuerySqlFacade {
   /** {@inheritDoc} */
   @Override
   public Optional<ColumnAndAlias> resolveSelectColumn(
-      QueryItem item, EventQueryParams params, boolean isGroupByClause, boolean isAggregated) {
+      QueryItem item,
+      EventQueryParams params,
+      boolean isGroupByClause,
+      boolean isAggregated,
+      String stageOuValueColumnTableAlias) {
     if (classifier.isStageOrgUnit(item)) {
-      return Optional.of(stageOrgUnitSqlService.selectColumn(item, params, isGroupByClause));
+      return Optional.of(
+          stageOrgUnitSqlService.selectColumn(
+              item, params, isGroupByClause, stageOuValueColumnTableAlias));
     }
 
     if (isAggregated && classifier.isStageDate(item)) {

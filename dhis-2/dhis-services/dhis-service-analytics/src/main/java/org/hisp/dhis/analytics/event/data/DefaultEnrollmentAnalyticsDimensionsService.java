@@ -64,7 +64,6 @@ public class DefaultEnrollmentAnalyticsDimensionsService
 
   @Override
   public List<PrefixedDimension> getQueryDimensionsByProgramId(String programId) {
-
     UserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
     return Optional.of(programId)
         .map(programService::getProgram)
@@ -136,10 +135,15 @@ public class DefaultEnrollmentAnalyticsDimensionsService
         .orElse(List.of())
         .stream()
         .filter(this::isNotConfidential)
+        .filter(this::isNotSkipped)
         .collect(Collectors.toList());
   }
 
   private boolean isNotConfidential(TrackedEntityAttribute trackedEntityAttribute) {
     return !trackedEntityAttribute.isConfidentialBool();
+  }
+
+  private boolean isNotSkipped(TrackedEntityAttribute trackedEntityAttribute) {
+    return !trackedEntityAttribute.isSkipAnalytics();
   }
 }

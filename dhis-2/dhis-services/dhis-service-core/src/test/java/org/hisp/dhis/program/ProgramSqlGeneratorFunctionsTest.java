@@ -45,6 +45,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -323,15 +325,11 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
 
     String sql = test("d2:count(#{ProgrmStagA.DataElmentA})");
     assertThat(
-        normalize(sql),
+        sql,
         is(
-            normalize(
-                "(select count(\"DataElmentA\") "
-                    + "from analytics_event_Program000A "
-                    + "where analytics_event_Program000A.enrollment = ax.enrollment "
-                    + "and \"DataElmentA\" is not null and \"DataElmentA\" is not null "
-                    + "and occurreddate < cast( '2021-01-01' as date ) "
-                    + "and ps = 'ProgrmStagA')")));
+            "__D2FUNC__(func='count', ps='ProgrmStagA', de='DataElmentA', argType='none', arg64='', hash='d03b8b7191fdc0e9146c5f03870b78b1befeae9d', pi='"
+                + programIndicator.getUid()
+                + "')__"));
   }
 
   @Test
@@ -343,15 +341,11 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
 
     String sql = test("d2:count(#{ProgrmStagA.DataElmentA})");
     assertThat(
-        normalize(sql),
+        sql,
         is(
-            normalize(
-                "(select count(\"DataElmentA\") "
-                    + "from analytics_event_Program000A "
-                    + "where analytics_event_Program000A.enrollment = ax.enrollment "
-                    + "and \"DataElmentA\" is not null and \"DataElmentA\" is not null "
-                    + "and occurreddate >= cast( '2020-01-01' as date ) "
-                    + "and ps = 'ProgrmStagA')")));
+            "__D2FUNC__(func='count', ps='ProgrmStagA', de='DataElmentA', argType='none', arg64='', hash='a303e79630018c6d90cf0bcb5a3429826381defd', pi='"
+                + programIndicator.getUid()
+                + "')__"));
   }
 
   @Test
@@ -363,15 +357,11 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
 
     String sql = test("d2:count(#{ProgrmStagA.DataElmentA})");
     assertThat(
-        normalize(sql),
+        sql,
         is(
-            normalize(
-                "(select count(\"DataElmentA\") "
-                    + "from analytics_event_Program000A "
-                    + "where analytics_event_Program000A.enrollment = ax.enrollment "
-                    + "and \"DataElmentA\" is not null and \"DataElmentA\" is not null "
-                    + "and occurreddate < cast( '2021-01-01' as date ) and occurreddate >= cast( '2020-01-01' as date ) "
-                    + "and ps = 'ProgrmStagA')")));
+            "__D2FUNC__(func='count', ps='ProgrmStagA', de='DataElmentA', argType='none', arg64='', hash='f8b0c7db011ecc2256bb6bece7513471174905fc', pi='"
+                + programIndicator.getUid()
+                + "')__"));
   }
 
   @Test
@@ -453,6 +443,64 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
                     + "where analytics_event_Program000A.enrollment = ax.enrollment "
                     + "and \"DataElmentA\" is not null and \"DataElmentA\" = 'ABC' "
                     + "and ps = 'ProgrmStagA')")));
+  }
+
+  @Test
+  void testEnrollmentCountIfConditionUsesPlaceholder() {
+    programIndicator.setAnalyticsType(ENROLLMENT);
+    when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
+    when(idObjectManager.get(DataElement.class, dataElementA.getUid())).thenReturn(dataElementA);
+
+    String sql = test("d2:countIfCondition(#{ProgrmStagA.DataElmentA},'>5')");
+
+    String encodedCondition =
+        Base64.getEncoder().encodeToString("'>5'".getBytes(StandardCharsets.UTF_8));
+
+    assertThat(
+        sql,
+        is(
+            "__D2FUNC__(func='countIfCondition', ps='ProgrmStagA', de='DataElmentA', argType='condLit64', arg64='"
+                + encodedCondition
+                + "', hash='noboundaries', pi='"
+                + programIndicator.getUid()
+                + "')__"));
+  }
+
+  @Test
+  void testEnrollmentCountIfValueUsesPlaceholder() {
+    programIndicator.setAnalyticsType(ENROLLMENT);
+    when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
+    when(idObjectManager.get(DataElement.class, dataElementA.getUid())).thenReturn(dataElementA);
+
+    String sql = test("d2:countIfValue(#{ProgrmStagA.DataElmentA},55)");
+
+    String encodedValueSql =
+        Base64.getEncoder().encodeToString("55.0".getBytes(StandardCharsets.UTF_8));
+
+    assertThat(
+        sql,
+        is(
+            "__D2FUNC__(func='countIfValue', ps='ProgrmStagA', de='DataElmentA', argType='val64', arg64='"
+                + encodedValueSql
+                + "', hash='noboundaries', pi='"
+                + programIndicator.getUid()
+                + "')__"));
+  }
+
+  @Test
+  void testEnrollmentCountUsesPlaceholder() {
+    programIndicator.setAnalyticsType(ENROLLMENT);
+    when(programStageService.getProgramStage(programStageA.getUid())).thenReturn(programStageA);
+    when(idObjectManager.get(DataElement.class, dataElementA.getUid())).thenReturn(dataElementA);
+
+    String sql = test("d2:count(#{ProgrmStagA.DataElmentA})");
+
+    assertThat(
+        sql,
+        is(
+            "__D2FUNC__(func='count', ps='ProgrmStagA', de='DataElmentA', argType='none', arg64='', hash='noboundaries', pi='"
+                + programIndicator.getUid()
+                + "')__"));
   }
 
   @Test

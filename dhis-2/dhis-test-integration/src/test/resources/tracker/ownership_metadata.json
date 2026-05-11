@@ -570,7 +570,6 @@
         }
       ],
       "userAccesses": [],
-      "teiSearchOrganisationUnits": [],
       "organisationUnits": [
         {
           "id": "h4w96yEMlzO"
@@ -620,6 +619,9 @@
       "teiSearchOrganisationUnits": [
         {
           "id": "uoNW0E3xXUy"
+        },
+        {
+          "id": "B1nCbRV3qtP"
         }
       ],
       "organisationUnits": [

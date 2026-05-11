@@ -45,7 +45,7 @@ import org.hisp.dhis.jsontree.JsonValue;
 public final class CoordinatesUtils {
   public static String geometryWithCoordinatePairs(JsonObject geometry) {
     if (geometry.isUndefined()) {
-      return geometry.node().getDeclaration();
+      return geometry.toJson();
     }
     JsonArray coordinates = geometry.getArray("coordinates");
     int dimensions = coordinateDimensions(coordinates);
@@ -54,11 +54,15 @@ public final class CoordinatesUtils {
       pair = pair.getArray(0);
     }
     if (pair.size() == 2 || dimensions > 4) {
-      return geometry.node().getDeclaration();
+      return geometry.toJson();
     }
     geometry = JsonValue.of(geometry.node().extract()).asObject(); // geometry as root node
     JsonArray newCoordinates = geometry.getArray("coordinates");
-    return newCoordinates.node().replaceWith(coordinatesAsPairs(newCoordinates)).getDeclaration();
+    return newCoordinates
+        .node()
+        .replaceWith(coordinatesAsPairs(newCoordinates))
+        .getDeclaration()
+        .toString();
   }
 
   public static boolean coordinatesEmpty(JsonValue coordinates) {

@@ -83,7 +83,7 @@ public abstract class AbstractSchemaStrategy implements ClassBasedSupplierStrate
   @Override
   public void add(List<List<String>> splitList, TrackerPreheat preheat) {
     TrackerIdSchemeParam idSchemeParam = preheat.getIdSchemes().getByClass(getSchemaClass());
-    Schema schema = schemaService.getDynamicSchema(getSchemaClass());
+    Schema schema = schemaService.getSchema(getSchemaClass());
 
     queryForIdentifiableObjects(preheat, schema, idSchemeParam, splitList, mapper());
   }

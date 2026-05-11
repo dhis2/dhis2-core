@@ -32,6 +32,7 @@ package org.hisp.dhis.user;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nonnull;
+import org.hisp.dhis.common.UID;
 
 public interface UserGroupService {
   String ID = UserGroupService.class.getName();
@@ -60,9 +61,22 @@ public interface UserGroupService {
 
   void addUserToGroups(User user, @Nonnull Collection<String> uids, UserDetails currentUser);
 
-  void removeUserFromGroups(User user, @Nonnull Collection<String> uids);
+  /**
+   * Indicates whether the given user can add or remove members for the given user group. To do so
+   * the user must have write access to the group or have read access as well as the
+   * F_USER_GROUPS_READ_ONLY_ADD_MEMBERS authority.
+   *
+   * <p>Use this overload when you already have the UserGroup loaded to avoid redundant database
+   * queries.
+   *
+   * @param userGroup the user group (may be null).
+   * @param currentUser the user details to check permissions for.
+   * @return true if the user can add or remove members of the user group, false if userGroup is
+   *     null.
+   */
+  boolean canAddOrRemoveMember(UserGroup userGroup, @Nonnull UserDetails currentUser);
 
-  void updateUserGroups(User user, @Nonnull Collection<String> uids, UserDetails currentUser);
+  void updateUserGroups(User user, @Nonnull Collection<UID> uids, UserDetails currentUser);
 
   List<UserGroup> getAllUserGroups();
 

@@ -43,6 +43,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
@@ -97,7 +98,7 @@ public class FileResourceController
   @Override
   @GetMapping(value = "/{uid}", params = "fields")
   public ResponseEntity<?> getObject(
-      @PathVariable String uid,
+      @PathVariable UID uid,
       GetObjectParams params,
       @CurrentUser UserDetails currentUser,
       HttpServletRequest request,
@@ -108,9 +109,9 @@ public class FileResourceController
 
   @GetMapping(value = "/{uid}")
   public FileResource getFileResource(
-      @PathVariable String uid, @RequestParam(required = false) ImageFileDimension dimension)
+      @PathVariable UID uid, @RequestParam(required = false) ImageFileDimension dimension)
       throws NotFoundException {
-    FileResource fileResource = fileResourceService.getFileResource(uid);
+    FileResource fileResource = fileResourceService.getFileResource(uid.getValue());
 
     if (fileResource == null) {
       throw new NotFoundException(FileResource.class, uid);
@@ -124,12 +125,12 @@ public class FileResourceController
 
   @GetMapping(value = "/{uid}/data")
   public void getFileResourceData(
-      @PathVariable String uid,
+      @PathVariable UID uid,
       HttpServletResponse response,
       @RequestParam(required = false) ImageFileDimension dimension,
       @CurrentUser User currentUser)
       throws NotFoundException, ForbiddenException, WebMessageException {
-    FileResource fileResource = fileResourceService.getFileResource(uid);
+    FileResource fileResource = fileResourceService.getFileResource(uid.getValue());
 
     if (fileResource == null) {
       throw new NotFoundException(FileResource.class, uid);
@@ -166,28 +167,29 @@ public class FileResourceController
   public WebMessage saveFileResource(
       @RequestParam MultipartFile file,
       @RequestParam(defaultValue = "DATA_VALUE") FileResourceDomain domain,
-      @RequestParam(required = false) String uid)
+      @RequestParam(required = false) UID uid)
       throws IOException, ConflictException {
 
     FileResourceUtils.validateFileSize(
         file, Long.parseLong(dhisConfig.getProperty(ConfigurationKey.MAX_FILE_UPLOAD_SIZE_BYTES)));
 
     FileResource fileResource;
+    String id = uid == null ? null : uid.getValue();
     if (domain.equals(FileResourceDomain.ICON)) {
       validateCustomIconFile(file);
-      fileResource = fileResourceUtils.saveFileResource(uid, resizeIconToDefaultSize(file), domain);
+      fileResource = fileResourceUtils.saveFileResource(id, resizeIconToDefaultSize(file), domain);
 
     } else if (domain.equals(FileResourceDomain.USER_AVATAR)) {
       fileResourceUtils.validateUserAvatar(file);
       fileResource =
-          fileResourceUtils.saveFileResource(uid, resizeAvatarToDefaultSize(file), domain);
+          fileResourceUtils.saveFileResource(id, resizeAvatarToDefaultSize(file), domain);
 
     } else if (domain.equals(FileResourceDomain.ORG_UNIT)) {
       fileResourceUtils.validateOrgUnitImage(file);
-      fileResource = fileResourceUtils.saveFileResource(uid, resizeOrgToDefaultSize(file), domain);
+      fileResource = fileResourceUtils.saveFileResource(id, resizeOrgToDefaultSize(file), domain);
 
     } else {
-      fileResource = fileResourceUtils.saveFileResource(uid, file, domain);
+      fileResource = fileResourceUtils.saveFileResource(id, file, domain);
     }
 
     WebMessage webMessage = new WebMessage(Status.OK, HttpStatus.ACCEPTED);

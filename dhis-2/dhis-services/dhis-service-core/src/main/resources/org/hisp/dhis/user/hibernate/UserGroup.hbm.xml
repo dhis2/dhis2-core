@@ -24,8 +24,15 @@
 
     <property name="translations" type="jblTranslations"/>
 
+    <!--
+      No L2 cache on members: all membership writes go through SQL bypass methods
+      (addMember, removeAllMemberships) that write directly to the DB and cannot reliably
+      invalidate L2 across cluster nodes. The collection is also rarely read in hot paths —
+      individual group membership checks happen on the inverse User.groups side, and bulk
+      enumeration of all members of a group is uncommon in production. The overhead of
+      manual cache eviction after every SQL bypass outweighs the benefit.
+    -->
     <set name="members" table="usergroupmembers">
-      <cache usage="read-write" />
       <key column="usergroupid" foreign-key="fk_usergroupmembers_usergroupid" />
       <many-to-many column="userid" class="org.hisp.dhis.user.User" foreign-key="fk_usergroupmembers_userid" />
     </set>

@@ -110,7 +110,7 @@ class EnrollmentOperationParamsMapper {
 
   private List<Program> getTrackerPrograms(Program program) {
     if (program == null) {
-      return trackerProgramService.getAccessibleTrackerPrograms();
+      return trackerProgramService.getTrackerProgramsWithDataReadAccess();
     }
 
     return emptyList();

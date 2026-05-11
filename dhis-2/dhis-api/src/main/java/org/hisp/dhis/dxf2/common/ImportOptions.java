@@ -31,6 +31,7 @@ package org.hisp.dhis.dxf2.common;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -45,6 +46,7 @@ import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.datavalue.DataEntryGroup;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.scheduling.JobParameters;
@@ -297,5 +299,10 @@ public class ImportOptions implements JobParameters {
 
   public ImportOptions setStrategy(ImportStrategy strategy) {
     return setImportStrategy(strategy);
+  }
+
+  @JsonIgnore
+  public DataEntryGroup.Options getDataEntryOptions() {
+    return new DataEntryGroup.Options(isDryRun(), isAtomic(), isForce());
   }
 }

@@ -134,7 +134,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     DataValue dataValueC = new DataValue(deC, peC, ouA, optionCombo, optionCombo, "3");
     addDataValues(dataValueA, dataValueB, dataValueC);
     DataExportValue dvA =
-        dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo));
+        dataExportService.exportValue(new DataValueKey(deA, peA, ouA, optionCombo, optionCombo));
     assertNotNull(dvA);
     assertNotNull(dvA.created());
     assertEquals(ouA.getUid(), dvA.orgUnit().getValue());
@@ -142,7 +142,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     assertEquals(peA.getIsoDate(), dvA.period().getIsoDate());
     assertEquals("1", dvA.value());
     DataExportValue dvB =
-        dataExportService.exportValue(new DataEntryKey(deB, peA, ouA, optionCombo, optionCombo));
+        dataExportService.exportValue(new DataValueKey(deB, peA, ouA, optionCombo, optionCombo));
     assertNotNull(dvB);
     assertNotNull(dvB.created());
     assertEquals(ouA.getUid(), dvB.orgUnit().getValue());
@@ -150,7 +150,7 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     assertEquals(peA.getIsoDate(), dvB.period().getIsoDate());
     assertEquals("2", dvB.value());
     DataExportValue dvC =
-        dataExportService.exportValue(new DataEntryKey(deC, peC, ouA, optionCombo, optionCombo));
+        dataExportService.exportValue(new DataValueKey(deC, peC, ouA, optionCombo, optionCombo));
     assertNotNull(dvC);
     assertNotNull(dvC.created());
     assertEquals(ouA.getUid(), dvC.orgUnit().getValue());
@@ -165,17 +165,17 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     DataValue dataValueB = new DataValue(deB, peA, ouB, optionCombo, optionCombo, "2");
     addDataValues(dataValueA, dataValueB);
     assertNotNull(
-        dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deA, peA, ouA, optionCombo, optionCombo)));
     assertNotNull(
-        dataExportService.exportValue(new DataEntryKey(deB, peA, ouB, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deB, peA, ouB, optionCombo, optionCombo)));
     dataValueA.setValue("5");
     addDataValues(dataValueA);
     DataExportValue dvA =
-        dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo));
+        dataExportService.exportValue(new DataValueKey(deA, peA, ouA, optionCombo, optionCombo));
     assertNotNull(dvA);
     assertEquals("5", dvA.value());
     DataExportValue dvB =
-        dataExportService.exportValue(new DataEntryKey(deB, peA, ouB, optionCombo, optionCombo));
+        dataExportService.exportValue(new DataValueKey(deB, peA, ouB, optionCombo, optionCombo));
     assertNotNull(dvB);
     assertEquals("2", dvB.value());
   }
@@ -188,49 +188,49 @@ class DataValueServiceTest extends PostgresIntegrationTestBase {
     DataValue dataValueD = new DataValue(deD, peC, ouB, optionCombo, optionCombo, "4");
     addDataValues(dataValueA, dataValueB, dataValueC, dataValueD);
     assertNotNull(
-        dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deA, peA, ouA, optionCombo, optionCombo)));
     assertNotNull(
-        dataExportService.exportValue(new DataEntryKey(deB, peA, ouA, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deB, peA, ouA, optionCombo, optionCombo)));
     assertNotNull(
-        dataExportService.exportValue(new DataEntryKey(deC, peC, ouD, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deC, peC, ouD, optionCombo, optionCombo)));
     assertNotNull(
-        dataExportService.exportValue(new DataEntryKey(deD, peC, ouB, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deD, peC, ouB, optionCombo, optionCombo)));
     deleteDataValue(dataValueA);
     assertNull(
-        dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deA, peA, ouA, optionCombo, optionCombo)));
     assertNotNull(
-        dataExportService.exportValue(new DataEntryKey(deB, peA, ouA, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deB, peA, ouA, optionCombo, optionCombo)));
     assertNotNull(
-        dataExportService.exportValue(new DataEntryKey(deC, peC, ouD, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deC, peC, ouD, optionCombo, optionCombo)));
     assertNotNull(
-        dataExportService.exportValue(new DataEntryKey(deD, peC, ouB, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deD, peC, ouB, optionCombo, optionCombo)));
     deleteDataValue(dataValueB);
     assertNull(
-        dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deA, peA, ouA, optionCombo, optionCombo)));
     assertNull(
-        dataExportService.exportValue(new DataEntryKey(deB, peA, ouA, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deB, peA, ouA, optionCombo, optionCombo)));
     assertNotNull(
-        dataExportService.exportValue(new DataEntryKey(deC, peC, ouD, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deC, peC, ouD, optionCombo, optionCombo)));
     assertNotNull(
-        dataExportService.exportValue(new DataEntryKey(deD, peC, ouB, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deD, peC, ouB, optionCombo, optionCombo)));
     deleteDataValue(dataValueC);
     assertNull(
-        dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deA, peA, ouA, optionCombo, optionCombo)));
     assertNull(
-        dataExportService.exportValue(new DataEntryKey(deB, peA, ouA, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deB, peA, ouA, optionCombo, optionCombo)));
     assertNull(
-        dataExportService.exportValue(new DataEntryKey(deC, peC, ouD, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deC, peC, ouD, optionCombo, optionCombo)));
     assertNotNull(
-        dataExportService.exportValue(new DataEntryKey(deD, peC, ouB, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deD, peC, ouB, optionCombo, optionCombo)));
     deleteDataValue(dataValueD);
     assertNull(
-        dataExportService.exportValue(new DataEntryKey(deA, peA, ouA, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deA, peA, ouA, optionCombo, optionCombo)));
     assertNull(
-        dataExportService.exportValue(new DataEntryKey(deB, peA, ouA, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deB, peA, ouA, optionCombo, optionCombo)));
     assertNull(
-        dataExportService.exportValue(new DataEntryKey(deC, peC, ouD, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deC, peC, ouD, optionCombo, optionCombo)));
     assertNull(
-        dataExportService.exportValue(new DataEntryKey(deD, peC, ouB, optionCombo, optionCombo)));
+        dataExportService.exportValue(new DataValueKey(deD, peC, ouB, optionCombo, optionCombo)));
   }
 
   // -------------------------------------------------------------------------

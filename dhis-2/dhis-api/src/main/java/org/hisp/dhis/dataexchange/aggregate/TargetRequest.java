@@ -37,6 +37,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.ObjectUtils;
+import org.hisp.dhis.common.IdProperty;
+import org.hisp.dhis.datavalue.DataEntryGroup;
+import org.hisp.dhis.datavalue.DataExportGroup;
 import org.hisp.dhis.importexport.ImportStrategy;
 
 @Getter
@@ -45,19 +48,19 @@ import org.hisp.dhis.importexport.ImportStrategy;
 @Accessors(chain = true)
 public class TargetRequest implements Serializable {
   /** Data element identifier scheme. */
-  @JsonProperty private String dataElementIdScheme;
+  @JsonProperty private IdProperty dataElementIdScheme;
 
   /** Org unit identifier scheme. */
-  @JsonProperty private String orgUnitIdScheme;
+  @JsonProperty private IdProperty orgUnitIdScheme;
 
   /** Category option combination identifier scheme. */
-  @JsonProperty private String categoryOptionComboIdScheme;
+  @JsonProperty private IdProperty categoryOptionComboIdScheme;
 
   /** General identifier scheme. */
-  @JsonProperty private String idScheme;
+  @JsonProperty private IdProperty idScheme;
 
   /** Import strategy. */
-  @JsonProperty private ImportStrategy importStrategy;
+  @JsonProperty private ImportStrategy importStrategy = ImportStrategy.CREATE_AND_UPDATE;
 
   /** Indicates whether to skip audit records. */
   @JsonProperty private Boolean skipAudit;
@@ -69,5 +72,37 @@ public class TargetRequest implements Serializable {
   @JsonIgnore
   public boolean isSkipAuditOrDefault() {
     return ObjectUtils.firstNonNull(skipAudit, true);
+  }
+
+  /**
+   * @return the IDs as used by data export (external exchange)
+   */
+  @JsonIgnore
+  public DataExportGroup.Ids getExportIds() {
+    return DataExportGroup.Ids.of(
+        idScheme,
+        null,
+        dataElementIdScheme,
+        orgUnitIdScheme,
+        categoryOptionComboIdScheme,
+        null,
+        null,
+        null);
+  }
+
+  /**
+   * @return the IDS as used by data entry (internal exchange)
+   */
+  @JsonIgnore
+  public DataEntryGroup.Ids getEntryIds() {
+    return DataEntryGroup.Ids.of(
+        idScheme,
+        null,
+        dataElementIdScheme,
+        orgUnitIdScheme,
+        categoryOptionComboIdScheme,
+        null,
+        null,
+        null);
   }
 }

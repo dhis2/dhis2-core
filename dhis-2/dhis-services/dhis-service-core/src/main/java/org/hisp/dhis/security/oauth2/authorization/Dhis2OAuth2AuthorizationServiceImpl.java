@@ -37,9 +37,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
-import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.security.oauth2.OAuth2GrantTypes;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2Client;
 import org.hisp.dhis.security.oauth2.client.Dhis2OAuth2ClientService;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -50,7 +50,6 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.jackson2.SecurityJackson2Modules;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2DeviceCode;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
@@ -73,8 +72,19 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * DHIS2 implementation of Spring Authorization Server's OAuth2AuthorizationService that uses
- * HibernateOAuth2AuthorizationStore for persistence.
+ * Spring-bean implementation of {@link Dhis2OAuth2AuthorizationService} and Spring Authorization
+ * Server's {@link OAuth2AuthorizationService}. Persistence is delegated to {@link
+ * Dhis2OAuth2AuthorizationStore} (Hibernate-backed).
+ *
+ * <p>Spring AS models an issued grant as an {@link OAuth2Authorization} aggregate holding up to six
+ * distinct token objects (authorization code, access token, refresh token, OIDC ID token, user
+ * code, device code), each with its own issued-at / expires-at / metadata map. This implementation
+ * flattens that aggregate into a single {@link Dhis2OAuth2Authorization} row with per-token
+ * columns, and {@link #toObject} / {@link #toEntity} translate in both directions.
+ *
+ * <p>The Jackson {@link ObjectMapper} is preloaded with {@link SecurityJackson2Modules} and {@link
+ * OAuth2AuthorizationServerJackson2Module} so the {@code attributes}, per-token metadata, and OIDC
+ * ID-token claims JSON round-trip correctly.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -113,6 +123,15 @@ public class Dhis2OAuth2AuthorizationServiceImpl
     this.objectMapper.enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p>If an authorization with the same id already exists it is merged; otherwise a new row is
+   * inserted. The {@code createdBy} user is resolved from the current security context: a {@link
+   * Jwt} principal (the DCR Initial Access Token) resolves to the token's {@code sub} claim; an
+   * {@link OAuth2ClientAuthenticationToken} resolves to the client's registered {@code createdBy}
+   * user; other cases fall through to the default store behaviour.
+   */
   @Transactional
   @Override
   public void save(OAuth2Authorization authorization) {
@@ -174,6 +193,14 @@ public class Dhis2OAuth2AuthorizationServiceImpl
     return entity != null ? toObject(entity) : null;
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * <p>When {@code tokenType} is {@code null} all token columns are searched. Otherwise the column
+   * matching the Spring AS parameter name is used: {@code state}, {@code code}, {@code
+   * access_token}, {@code refresh_token}, {@code id_token}, {@code user_code}, or {@code
+   * device_code}.
+   */
   @Transactional(readOnly = true)
   @Override
   public OAuth2Authorization findByToken(String token, OAuth2TokenType tokenType) {
@@ -223,8 +250,7 @@ public class Dhis2OAuth2AuthorizationServiceImpl
         OAuth2Authorization.withRegisteredClient(registeredClient)
             .id(entity.getUid())
             .principalName(entity.getPrincipalName())
-            .authorizationGrantType(
-                resolveAuthorizationGrantType(entity.getAuthorizationGrantType()))
+            .authorizationGrantType(OAuth2GrantTypes.resolve(entity.getAuthorizationGrantType()))
             .authorizedScopes(StringUtils.commaDelimitedListToSet(entity.getAuthorizedScopes()))
             .attributes(attributes -> attributes.putAll(parseMap(entity.getAttributes())));
 
@@ -350,6 +376,8 @@ public class Dhis2OAuth2AuthorizationServiceImpl
 
     entity.setRegisteredClientId(authorization.getRegisteredClientId());
     entity.setPrincipalName(authorization.getPrincipalName());
+    entity.setName(
+        org.apache.commons.lang3.StringUtils.left(authorization.getPrincipalName(), 230));
     entity.setAuthorizationGrantType(authorization.getAuthorizationGrantType().getValue());
     entity.setAuthorizedScopes(
         StringUtils.collectionToCommaDelimitedString(authorization.getAuthorizedScopes()));
@@ -467,27 +495,5 @@ public class Dhis2OAuth2AuthorizationServiceImpl
     } catch (Exception ex) {
       throw new IllegalArgumentException("Failed to write JSON data: " + ex.getMessage(), ex);
     }
-  }
-
-  /**
-   * Resolves the AuthorizationGrantType from a string value.
-   *
-   * @param authorizationGrantType The string value
-   * @return The corresponding AuthorizationGrantType
-   */
-  private static AuthorizationGrantType resolveAuthorizationGrantType(
-      @Nonnull String authorizationGrantType) {
-    if (AuthorizationGrantType.AUTHORIZATION_CODE.getValue().equals(authorizationGrantType)) {
-      return AuthorizationGrantType.AUTHORIZATION_CODE;
-    } else if (AuthorizationGrantType.CLIENT_CREDENTIALS
-        .getValue()
-        .equals(authorizationGrantType)) {
-      return AuthorizationGrantType.CLIENT_CREDENTIALS;
-    } else if (AuthorizationGrantType.REFRESH_TOKEN.getValue().equals(authorizationGrantType)) {
-      return AuthorizationGrantType.REFRESH_TOKEN;
-    } else if (AuthorizationGrantType.DEVICE_CODE.getValue().equals(authorizationGrantType)) {
-      return AuthorizationGrantType.DEVICE_CODE;
-    }
-    return new AuthorizationGrantType(authorizationGrantType); // Custom authorization grant type
   }
 }

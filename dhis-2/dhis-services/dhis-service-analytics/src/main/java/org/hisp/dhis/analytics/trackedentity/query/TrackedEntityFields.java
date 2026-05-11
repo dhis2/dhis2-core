@@ -326,14 +326,16 @@ public class TrackedEntityFields {
 
   /**
    * Checks if the given {@link DimensionIdentifier} is eligible to be added as a header. It is
-   * eligible if it is a static dimension, and it is either an event or enrollment dimension.
+   * eligible if it is a data element, or if it is a static dimension and it is either an event or
+   * enrollment dimension.
    *
    * @param parsedHeader the {@link DimensionIdentifier}.
    * @return true if it is eligible, false otherwise.
    */
   private static boolean isEligible(DimensionIdentifier<DimensionParam> parsedHeader) {
-    return parsedHeader.getDimension().isStaticDimension()
-        && (parsedHeader.isEventDimension() || parsedHeader.isEnrollmentDimension());
+    return isDataElement(parsedHeader)
+        || (parsedHeader.getDimension().isStaticDimension()
+            && (parsedHeader.isEventDimension() || parsedHeader.isEnrollmentDimension()));
   }
 
   /**

@@ -46,6 +46,8 @@ public enum ColumnHeader {
   CREATED_BY_DISPLAY_NAME("createdbydisplayname", "Created by"),
   LAST_UPDATED_BY_DISPLAY_NAME("lastupdatedbydisplayname", "Last updated by"),
   LAST_UPDATED("lastupdated", "Last updated on"),
+  CREATED("created", "Created on"),
+  COMPLETED_DATE("completed", "Completed on"),
   LONGITUDE("longitude", "Longitude"),
   LATITUDE("latitude", "Latitude"),
   ORG_UNIT_NAME("ouname", "Organisation unit name"),

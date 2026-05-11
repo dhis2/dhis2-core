@@ -175,10 +175,14 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
   void testGetUiLocaleAfterUserLanguageChange() {
     POST("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID + "&value=fr");
     JsonArray response = GET("/locales/ui").content();
-    JsonWebLocale firstElement = response.getObject(0).as(JsonWebLocale.class);
-    assertEquals("en", firstElement.getLocale());
-    assertEquals("English", firstElement.getName());
-    assertEquals("anglais", firstElement.getDisplayName());
+    JsonWebLocale enLocale =
+        response.stream()
+            .map(o -> o.as(JsonWebLocale.class))
+            .filter(l -> "en".equals(l.getLocale()))
+            .findFirst()
+            .orElseThrow();
+    assertEquals("English", enLocale.getName());
+    assertEquals("anglais", enLocale.getDisplayName());
   }
 
   @Test
@@ -186,10 +190,14 @@ class LocaleControllerTest extends H2ControllerIntegrationTestBase {
     POST("/systemSettings/keyUiLocale/?value=es");
     DELETE("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID);
     JsonArray response = GET("/locales/ui").content();
-    JsonWebLocale firstElement = response.getObject(0).as(JsonWebLocale.class);
-    assertEquals("bn", firstElement.getLocale());
-    assertEquals("বাংলা", firstElement.getName());
-    assertEquals("bengalí", firstElement.getDisplayName());
+    JsonWebLocale bnLocale =
+        response.stream()
+            .map(o -> o.as(JsonWebLocale.class))
+            .filter(l -> "bn".equals(l.getLocale()))
+            .findFirst()
+            .orElseThrow();
+    assertEquals("বাংলা", bnLocale.getName());
+    assertEquals("bengalí", bnLocale.getDisplayName());
   }
 
   @Test

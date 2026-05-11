@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.Text;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -186,7 +187,7 @@ class GistValidationControllerTest extends AbstractGistControllerTest {
             .getObject("sharing")
             .node()
             .extract()
-            .member("public")
+            .member(Text.of("public"))
             .replaceWith("\"--------\"")
             .toString();
     assertStatus(HttpStatus.NO_CONTENT, PUT("/userGroups/" + userGroupId + "/sharing", sharing));

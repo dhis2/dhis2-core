@@ -34,15 +34,19 @@ import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import lombok.NoArgsConstructor;
+import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.SlimPager;
@@ -61,8 +65,103 @@ public class ResponseHelper {
    */
   public static void applyHeaders(Grid grid, EventQueryParams params) {
     if (params.hasHeaders()) {
-      grid.retainColumns(params.getHeaders());
+      Set<String> normalizedHeaders = new LinkedHashSet<>();
+      for (String header : params.getHeaders()) {
+        normalizedHeaders.add(normalizeHeaderForGrid(header, grid));
+      }
+      grid.retainColumns(normalizedHeaders);
     }
+  }
+
+  /**
+   * Resolves a user-supplied {@code headers=} value to a canonical column name on the {@link Grid},
+   * trying in order:
+   *
+   * <ol>
+   *   <li>case-insensitive match against an existing grid header name;
+   *   <li>case-insensitive match against a {@link ColumnHeader} enum name or item;
+   *   <li>if the input contains an interior dot (e.g. {@code {stageUid}.eventDate}), the suffix
+   *       after the last dot is retried against steps 1 and 2. When this fallback succeeds, the
+   *       matching grid header is renamed to {@code {stagePrefix}.{canonicalItem}} so the response
+   *       echoes the stage-prefixed form the client requested — mirroring the header naming used
+   *       when a stage-prefixed dimension materialises the column.
+   * </ol>
+   *
+   * <p>If nothing resolves, the input is returned unchanged, which lets {@link
+   * Grid#retainColumns(Set)} surface the usual {@code E7230} for truly unknown headers.
+   *
+   * @param header the raw {@code headers=} value.
+   * @param grid the grid whose headers are the resolution target.
+   * @return the canonical name to retain, or the original input if no match was found.
+   */
+  private static String normalizeHeaderForGrid(String header, Grid grid) {
+    String direct = resolveHeader(header, grid);
+    if (direct != null) return direct;
+
+    String viaStagePrefix = resolveAfterStagePrefix(header, grid);
+    if (viaStagePrefix != null) return viaStagePrefix;
+
+    return header;
+  }
+
+  /**
+   * Handles the {@code {stageUid}.suffix} alias case: if the input contains an interior dot, try
+   * resolving the substring after the last dot against the grid and {@link ColumnHeader} enum. On a
+   * successful match, the matching grid header is renamed in place to {@code
+   * {stagePrefix}.{canonicalItem}} so the response preserves the stage-prefixed alias the client
+   * asked for.
+   *
+   * @param header the raw header value.
+   * @param grid the grid whose headers are the resolution target.
+   * @return the stage-prefixed name to return and retain, or {@code null} if the input has no
+   *     interior dot or the suffix does not resolve.
+   */
+  private static String resolveAfterStagePrefix(String header, Grid grid) {
+    int dot = header.lastIndexOf('.');
+    if (dot <= 0 || dot >= header.length() - 1) return null;
+    String resolvedSuffix = resolveHeader(header.substring(dot + 1), grid);
+    if (resolvedSuffix == null) return null;
+    String stagePrefixed = header.substring(0, dot + 1) + resolvedSuffix;
+    renameGridHeader(grid, resolvedSuffix, stagePrefixed);
+    return stagePrefixed;
+  }
+
+  /**
+   * Renames the first grid header whose name equals {@code from} (case-insensitive) to {@code to}.
+   * No-op if no header matches.
+   */
+  private static void renameGridHeader(Grid grid, String from, String to) {
+    for (GridHeader h : grid.getHeaders()) {
+      if (h.getName().equalsIgnoreCase(from)) {
+        h.setName(to);
+        return;
+      }
+    }
+  }
+
+  /**
+   * Attempts to resolve a header token against the grid headers and then against the {@link
+   * ColumnHeader} enum.
+   *
+   * @param header the token to resolve.
+   * @param grid the grid whose headers take precedence.
+   * @return the canonical name if resolved, otherwise {@code null}.
+   */
+  private static String resolveHeader(String header, Grid grid) {
+    for (GridHeader gridHeader : grid.getHeaders()) {
+      if (gridHeader.getName().equalsIgnoreCase(header)) {
+        return gridHeader.getName();
+      }
+    }
+
+    for (ColumnHeader candidate : ColumnHeader.values()) {
+      if (candidate.name().equalsIgnoreCase(header)
+          || candidate.getItem().equalsIgnoreCase(header)) {
+        return candidate.getItem();
+      }
+    }
+
+    return null;
   }
 
   /**

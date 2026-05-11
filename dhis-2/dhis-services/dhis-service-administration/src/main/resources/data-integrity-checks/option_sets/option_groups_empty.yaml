@@ -32,18 +32,18 @@ section_order: 4
 summary_sql: >-
   WITH option_groups_empty as (
   SELECT uid,name from
-  optiongroup where 
-  optionsetid IS NULL OR optiongroupid NOT IN (
-  SELECT DISTINCT optiongroupid from optiongroupmembers)
+  optiongroup og where
+  og.optionsetid IS NULL OR NOT EXISTS (
+  SELECT 1 from optiongroupmembers m WHERE m.optiongroupid = og.optiongroupid)
   )
-  SELECT 
+  SELECT
   COUNT(*) as value,
   100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*) FROM optiongroup), 0) as percent
   from option_groups_empty;
 details_sql: >-
-  SELECT uid,name from optiongroup
-  where optionsetid IS NULL OR optiongroupid NOT IN (
-  SELECT DISTINCT optiongroupid from optiongroupmembers)
+  SELECT uid,name from optiongroup og
+  where og.optionsetid IS NULL OR NOT EXISTS (
+  SELECT 1 from optiongroupmembers m WHERE m.optiongroupid = og.optiongroupid)
 details_id_type: optionGroups
 severity: WARNING
 introduction: >

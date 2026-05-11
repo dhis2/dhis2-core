@@ -35,7 +35,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {DebugMapper.class, OptionSetMapper.class, AttributeValuesMapper.class})
+@Mapper(uses = {OptionSetMapper.class, AttributeValuesMapper.class})
 public interface TrackedEntityAttributeMapper extends PreheatMapper<TrackedEntityAttribute> {
   TrackedEntityAttributeMapper INSTANCE = Mappers.getMapper(TrackedEntityAttributeMapper.class);
 
@@ -55,5 +55,5 @@ public interface TrackedEntityAttributeMapper extends PreheatMapper<TrackedEntit
   @Mapping(target = "valueType")
   @Mapping(target = "orgunitScope")
   @Mapping(target = "optionSet")
-  TrackedEntityAttribute map(TrackedEntityAttribute trackedEntityType);
+  TrackedEntityAttribute map(TrackedEntityAttribute trackedEntityAttribute);
 }

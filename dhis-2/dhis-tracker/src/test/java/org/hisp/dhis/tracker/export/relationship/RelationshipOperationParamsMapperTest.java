@@ -30,6 +30,9 @@
 package org.hisp.dhis.tracker.export.relationship;
 
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1032;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1081;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1324;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -44,6 +47,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.tracker.acl.ErrorMessage;
 import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.Order;
 import org.hisp.dhis.tracker.model.Enrollment;
@@ -134,7 +138,9 @@ class RelationshipOperationParamsMapperTest extends TrackerTestBase {
   @Test
   void shouldThrowForbiddenExceptionWhenATrackedEntityIsNotAccessible() {
     when(relationshipStore.findTrackedEntity(TE_UID, false)).thenReturn(Optional.of(trackedEntity));
-    when(trackerAccessManager.canRead(user, trackedEntity)).thenReturn(List.of("error"));
+    when(trackerAccessManager.canRead(user, trackedEntity))
+        .thenReturn(
+            List.of(new ErrorMessage(E1324, user.getUid(), List.of(trackedEntity.getUid()))));
     RelationshipOperationParams params = RelationshipOperationParams.builder(trackedEntity).build();
 
     assertThrows(ForbiddenException.class, () -> mapper.map(params));
@@ -175,7 +181,8 @@ class RelationshipOperationParamsMapperTest extends TrackerTestBase {
   @Test
   void shouldThrowForbiddenExceptionWhenAnEnrollmentIsNotAccessible() {
     when(relationshipStore.findEnrollment(EN_UID, false)).thenReturn(Optional.of(enrollment));
-    when(trackerAccessManager.canRead(user, enrollment)).thenReturn(List.of("error"));
+    when(trackerAccessManager.canRead(user, enrollment))
+        .thenReturn(List.of(new ErrorMessage(E1081, user.getUid(), List.of(enrollment.getUid()))));
     RelationshipOperationParams params = RelationshipOperationParams.builder(enrollment).build();
 
     assertThrows(ForbiddenException.class, () -> mapper.map(params));
@@ -216,7 +223,8 @@ class RelationshipOperationParamsMapperTest extends TrackerTestBase {
   @Test
   void shouldThrowForbiddenExceptionWhenAnEventIsNotAccessible() {
     when(relationshipStore.findEvent(EV_UID, false)).thenReturn(Optional.of(event));
-    when(trackerAccessManager.canRead(user, event)).thenReturn(List.of("error"));
+    when(trackerAccessManager.canRead(user, event))
+        .thenReturn(List.of(new ErrorMessage(E1032, user.getUid(), List.of(event.getUid()))));
     RelationshipOperationParams params = RelationshipOperationParams.builder(event).build();
 
     assertThrows(ForbiddenException.class, () -> mapper.map(params));

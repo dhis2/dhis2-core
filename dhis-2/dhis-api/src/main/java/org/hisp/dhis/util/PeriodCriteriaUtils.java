@@ -115,13 +115,19 @@ public class PeriodCriteriaUtils {
   public static boolean hasPeriod(EnrollmentAnalyticsQueryCriteria criteria) {
     return criteria.getDimension().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID))
         || (criteria.getFilter().stream().anyMatch(d -> d.startsWith(PERIOD_DIM_ID)))
+        || criteria.getDimension().stream().anyMatch(d -> d.contains(".EVENT_DATE:"))
+        || criteria.getFilter().stream().anyMatch(d -> d.contains(".EVENT_DATE:"))
+        || criteria.getDimension().stream().anyMatch(d -> d.contains(".SCHEDULED_DATE:"))
+        || criteria.getFilter().stream().anyMatch(d -> d.contains(".SCHEDULED_DATE:"))
         || hasStaticDateDimension(criteria.getDimension())
         || hasStaticDateDimension(criteria.getFilter())
+        || !isBlank(criteria.getEventDate())
         || !isBlank(criteria.getEnrollmentDate())
         || (criteria.getStartDate() != null && criteria.getEndDate() != null)
         || !isBlank(criteria.getIncidentDate())
         || !isBlank(criteria.getOccurredDate())
         || !isBlank(criteria.getLastUpdated())
+        || !isBlank(criteria.getScheduledDate())
         || criteria.getRelativePeriodDate() != null
         || Stream.concat(criteria.getDimension().stream(), criteria.getFilter().stream())
             .anyMatch(d -> STATIC_DATE_DIMENSIONS.contains(d.split(":")[0]));

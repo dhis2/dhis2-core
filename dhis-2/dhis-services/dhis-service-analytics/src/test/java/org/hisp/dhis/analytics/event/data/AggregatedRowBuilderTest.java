@@ -456,7 +456,7 @@ class AggregatedRowBuilderTest {
   }
 
   @Test
-  void testBuildRowWithEnrollmentOuDimensionUsesCentralizedColumnName() {
+  void testBuildRowWithEnrollmentOuDimensionReadsEnrollmentOuColumn() {
     EventQueryParams params =
         new EventQueryParams.Builder()
             .withProgram(programA)

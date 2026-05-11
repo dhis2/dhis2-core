@@ -30,6 +30,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.query.GetObjectListParams;
@@ -50,7 +51,7 @@ public class DataApprovalLevelController
   }
 
   @Override
-  protected void postDeleteEntity(String entityUID) {
+  protected void postDeleteEntity(UID entityUID) {
     dataApprovalLevelService.postDeleteDataApprovalLevel();
   }
 }

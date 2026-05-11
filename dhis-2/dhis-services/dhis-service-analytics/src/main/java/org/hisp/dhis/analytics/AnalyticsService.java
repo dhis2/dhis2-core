@@ -34,6 +34,7 @@ import java.util.Map;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This interface is responsible for retrieving aggregated data. Data will be returned in a grid
@@ -128,6 +129,9 @@ public interface AnalyticsService {
    * @return raw data as a Grid object.
    */
   Grid getRawDataValues(DataQueryParams params);
+
+  @Transactional(readOnly = true)
+  Grid getAggregatedDataValuesGrid(DataQueryParams params);
 
   /**
    * Generates a data value set for the given query. The query must contain a data, period and

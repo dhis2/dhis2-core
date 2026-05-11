@@ -40,8 +40,10 @@ import java.util.stream.Stream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdProperty;
+import org.hisp.dhis.common.NonTransactional;
 import org.hisp.dhis.feedback.ConflictException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,6 +64,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class DataExportPipeline {
 
   private final DataExportService service;
+
+  /** Export groups extracted from other sources than the DV table as JSON */
+  @NonTransactional
+  public void exportAsJson(@Nonnull DataExportGroup.Output group, @Nonnull OutputStream out) {
+    DataExportOutput.toJson(group, out);
+  }
 
   @Transactional(readOnly = true)
   public <T> List<T> exportAsList(DataExportParams.Input params, Function<DataExportValue, T> f)
@@ -137,7 +145,7 @@ public class DataExportPipeline {
     // ADX special handling of decoding and encoding
     if (params.getInputUseCodeFallback() == null) params.setInputUseCodeFallback(true);
     if (params.getUnfoldOptionCombos() == null) params.setUnfoldOptionCombos(true);
-    if (params.getIdScheme() == null) params.setIdScheme(IdScheme.CODE.name());
+    if (params.getIdScheme() == null) params.setIdScheme(IdProperty.CODE);
 
     Stream<DataExportGroup.Output> groups = service.exportInGroups(params);
     try (OutputStream xml = wrapWithCompression(params, out)) {

@@ -48,25 +48,29 @@ public class EventQueryParamsUtils {
   }
 
   /**
-   * Remove program stage items from EventQueryParams. This method creates a copy of the
-   * EventQueryParams instance and filters out QueryItems with hasProgramStage == true.
+   * Remove program stage items and item filters from EventQueryParams. This method creates a copy
+   * of the EventQueryParams instance and filters out QueryItems with hasProgramStage == true from
+   * both collections.
    *
    * @param params event query params
    * @return list of program stage items
    */
   public static EventQueryParams withoutProgramStageItems(EventQueryParams params) {
-    // Create a copy of the EventQueryParams instance
     EventQueryParams.Builder builder = new EventQueryParams.Builder(params);
 
-    // Filter out QueryItems with hasProgramStage == true
     List<QueryItem> filteredItems =
         params.getItems().stream().filter(item -> !item.hasProgramStage()).toList();
+    List<QueryItem> filteredItemFilters =
+        params.getItemFilters().stream().filter(item -> !item.hasProgramStage()).toList();
 
-    // Clear the current items and itemFilters in the builder
-    builder.removeItems(); // Clears the items
+    builder.removeItems().removeItemFilters();
 
     for (QueryItem item : filteredItems) {
       builder.addItem(item);
+    }
+
+    for (QueryItem item : filteredItemFilters) {
+      builder.addItemFilter(item);
     }
 
     return builder.build();

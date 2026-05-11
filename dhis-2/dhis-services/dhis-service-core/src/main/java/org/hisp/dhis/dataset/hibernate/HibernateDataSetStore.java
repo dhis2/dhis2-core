@@ -30,13 +30,17 @@
 package org.hisp.dhis.dataset.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hibernate.LockMode.PESSIMISTIC_WRITE;
 
 import com.google.common.collect.Lists;
 import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Nonnull;
+import org.hibernate.LockOptions;
 import org.hibernate.query.Query;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -46,6 +50,7 @@ import org.hisp.dhis.dataset.DataSetStore;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AclService;
+import org.intellij.lang.annotations.Language;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -120,5 +125,38 @@ public class HibernateDataSetStore extends HibernateIdentifiableObjectStore<Data
             DataSetElement.class)
         .setParameter("dataElements", dataElements)
         .list();
+  }
+
+  @Override
+  public List<DataSet> getByCategoryCombo(List<CategoryCombo> categoryCombos) {
+    if (categoryCombos == null || categoryCombos.isEmpty()) return List.of();
+    @Language("hql")
+    String hql =
+        """
+        select ds from DataSet ds
+        where ds.categoryCombo in (:categoryCombos)
+        """;
+    return getQuery(hql)
+        .setParameter("categoryCombos", categoryCombos)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .list();
+  }
+
+  @Override
+  public int updateDataSetElementCategoryComboRefs(
+      Set<Long> sourceCategoryComboIds, long targetCategoryComboId) {
+    if (sourceCategoryComboIds == null || sourceCategoryComboIds.isEmpty()) return 0;
+    String sql =
+        """
+        update datasetelement
+        set categorycomboid = :targetCategoryComboId
+        where categorycomboid in :sourceCategoryComboIds
+        """;
+    return getSession()
+        .createNativeQuery(sql)
+        .setParameter("targetCategoryComboId", targetCategoryComboId)
+        .setParameter("sourceCategoryComboIds", sourceCategoryComboIds)
+        .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
+        .executeUpdate();
   }
 }

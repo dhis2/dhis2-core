@@ -41,6 +41,7 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
@@ -48,7 +49,6 @@ import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.Option;
-import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -89,8 +89,6 @@ class AttributeValidatorTest {
 
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
-  @Mock private OptionService optionService;
-
   private TrackerBundle bundle;
 
   private Reporter reporter;
@@ -102,6 +100,16 @@ class AttributeValidatorTest {
     bundle = TrackerBundle.builder().preheat(preheat).build();
     idSchemes = TrackerIdSchemeParams.builder().build();
     when(preheat.getIdSchemes()).thenReturn(idSchemes);
+    when(preheat.getMandatoryTrackedEntityTypeAttributes(any()))
+        .thenAnswer(
+            invocation -> {
+              TrackedEntityType tet = invocation.getArgument(0);
+              return tet.getTrackedEntityTypeAttributes().stream()
+                  .filter(a -> Boolean.TRUE.equals(a.isMandatory()))
+                  .map(TrackedEntityTypeAttribute::getTrackedEntityAttribute)
+                  .map(idSchemes::toMetadataIdentifier)
+                  .collect(Collectors.toUnmodifiableSet());
+            });
     reporter = new Reporter(idSchemes);
     when(dhisConfigurationProvider.getEncryptionStatus()).thenReturn(EncryptionStatus.OK);
   }
@@ -436,7 +444,6 @@ class AttributeValidatorTest {
         .thenReturn(trackedEntityAttribute);
     when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
         .thenReturn(new TrackedEntityType());
-    when(optionService.existsAllOptions(any(), any())).thenReturn(true);
 
     TrackedEntity trackedEntity =
         TrackedEntity.builder()
@@ -489,7 +496,6 @@ class AttributeValidatorTest {
         .thenReturn(trackedEntityAttribute);
     when(preheat.getTrackedEntityType((MetadataIdentifier) any()))
         .thenReturn(new TrackedEntityType());
-    when(optionService.existsAllOptions(any(), any())).thenReturn(true);
 
     TrackedEntity trackedEntity =
         TrackedEntity.builder()

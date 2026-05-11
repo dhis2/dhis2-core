@@ -39,6 +39,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.unauthorized;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.RuntimeJsonMappingException;
 import io.github.classgraph.ClassGraph;
 import jakarta.persistence.PersistenceException;
@@ -400,6 +401,7 @@ public class CrudControllerAdvice {
 
   @ExceptionHandler({
     JsonParseException.class,
+    JsonMappingException.class,
     MetadataImportException.class,
     MetadataExportException.class
   })

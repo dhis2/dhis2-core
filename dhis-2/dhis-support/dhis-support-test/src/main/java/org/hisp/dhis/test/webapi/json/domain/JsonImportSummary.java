@@ -29,8 +29,12 @@
  */
 package org.hisp.dhis.test.webapi.json.domain;
 
+import static org.hisp.dhis.jsontree.JsonSelector.AT;
+
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonObject;
 
 /**
@@ -39,6 +43,10 @@ import org.hisp.dhis.jsontree.JsonObject;
  * @author Jan Bernitt
  */
 public interface JsonImportSummary extends JsonObject {
+  default String getDescription() {
+    return getString("description").string();
+  }
+
   default String getResponseType() {
     return getString("responseType").string();
   }
@@ -68,5 +76,13 @@ public interface JsonImportSummary extends JsonObject {
 
   default JsonList<JsonImportConflict> getConflicts() {
     return getList("conflicts", JsonImportConflict.class);
+  }
+
+  default JsonErrorReport findErrorReport(ErrorCode code) {
+    return queryFirst(
+            AT.find(
+                JsonNodeType.OBJECT, obj -> obj.as(JsonErrorReport.class).getErrorCode() == code))
+        .orElseThrow()
+        .as(JsonErrorReport.class);
   }
 }

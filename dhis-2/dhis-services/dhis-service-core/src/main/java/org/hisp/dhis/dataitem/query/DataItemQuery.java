@@ -40,6 +40,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public interface DataItemQuery {
   String CAST_NULL_AS_TEXT = "cast (null as text)";
+  String CAST_NULL_AS_BOOL = "cast (null as bool)";
 
   /**
    * Builds and returns the SQL statement required by the implementation.

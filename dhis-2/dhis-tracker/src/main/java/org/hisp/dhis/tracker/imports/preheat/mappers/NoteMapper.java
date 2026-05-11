@@ -33,7 +33,7 @@ import org.hisp.dhis.note.Note;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = DebugMapper.class)
+@Mapper
 public interface NoteMapper extends PreheatMapper<Note> {
   NoteMapper INSTANCE = Mappers.getMapper(NoteMapper.class);
 

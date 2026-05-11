@@ -32,11 +32,11 @@ section_order: 1
 summary_sql: >-
   select count(*) as value,
   100*count(*) / NULLIF( (select count(*) from dataset),0) as percent
-  from dataset where datasetid NOT IN (
-  SELECT datasetid from datasetelement);
+  from dataset ds WHERE NOT EXISTS (
+  SELECT 1 from datasetelement de WHERE de.datasetid = ds.datasetid);
 details_sql: >-
-  SELECT uid,name from dataset WHERE
-  datasetid NOT IN (SELECT datasetid from datasetelement);
+  SELECT uid,name from dataset ds
+  WHERE NOT EXISTS (SELECT 1 from datasetelement de WHERE de.datasetid = ds.datasetid);
 severity: WARNING
 introduction: >
   All datasets should have data elements assigned to them.

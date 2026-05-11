@@ -103,6 +103,10 @@ public class RestApiActions {
     return post("", ContentType.JSON.toString(), object, queryParamsBuilder);
   }
 
+  public ApiResponse postNoBody(String resource) {
+    return post(resource, ContentType.JSON.toString(), null, null);
+  }
+
   public ApiResponse post(
       String resource, String contentType, Object object, QueryParamsBuilder queryParams) {
     String path = queryParams == null ? "" : queryParams.build();

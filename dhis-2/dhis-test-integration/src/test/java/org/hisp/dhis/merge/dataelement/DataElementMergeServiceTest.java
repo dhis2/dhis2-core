@@ -3061,13 +3061,29 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   }
 
   private void addEventChangeLog(TrackerEvent event, DataElement dataElement, String currentValue) {
-    trackerEventChangeLogService.addEventChangeLog(
-        event, dataElement, program, "", currentValue, CREATE, getAdminUser().getUsername());
+    entityManager.persist(
+        new org.hisp.dhis.tracker.export.trackerevent.TrackerEventChangeLog(
+            event,
+            dataElement,
+            null,
+            "",
+            currentValue,
+            CREATE,
+            new java.util.Date(),
+            getAdminUser().getUsername()));
   }
 
   private void addEventChangeLog(SingleEvent event, DataElement dataElement, String currentValue) {
-    singleEventChangeLogService.addEventChangeLog(
-        event, dataElement, program, "", currentValue, CREATE, getAdminUser().getUsername());
+    entityManager.persist(
+        new org.hisp.dhis.tracker.export.singleevent.SingleEventChangeLog(
+            event,
+            dataElement,
+            null,
+            "",
+            currentValue,
+            CREATE,
+            new java.util.Date(),
+            getAdminUser().getUsername()));
   }
 
   private DataEntryValue.Input createDataValue(DataElement de, String value, Period p) {

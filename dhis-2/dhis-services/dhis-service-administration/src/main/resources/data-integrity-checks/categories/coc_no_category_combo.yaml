@@ -31,17 +31,17 @@
   section_order: 7
   summary_sql: >-
       WITH catoptioncombos_no_catcombo  AS (
-      SELECT uid,name FROM categoryoptioncombo
-      WHERE categoryoptioncomboid NOT IN (SELECT DISTINCT categoryoptioncomboid
-      FROM categorycombos_optioncombos))
+      SELECT uid,name FROM categoryoptioncombo coc
+      WHERE NOT EXISTS (SELECT 1 FROM categorycombos_optioncombos c
+      WHERE c.categoryoptioncomboid = coc.categoryoptioncomboid))
       SELECT COUNT(*)as value,
       100.0 * COUNT(*) / NULLIF( (SELECT COUNT(*)
       FROM categoryoptioncombo), 0 )  percent
       FROM catoptioncombos_no_catcombo;
   details_sql: >-
-    SELECT uid,name FROM categoryoptioncombo
-    WHERE categoryoptioncomboid NOT IN (SELECT categoryoptioncomboid
-    FROM categorycombos_optioncombos)
+    SELECT uid,name FROM categoryoptioncombo coc
+    WHERE NOT EXISTS (SELECT 1 FROM categorycombos_optioncombos c
+    WHERE c.categoryoptioncomboid = coc.categoryoptioncomboid)
     ORDER BY name;
   severity: WARNING
   introduction: >

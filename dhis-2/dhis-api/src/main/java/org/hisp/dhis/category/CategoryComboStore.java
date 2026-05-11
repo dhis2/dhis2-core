@@ -58,4 +58,12 @@ public interface CategoryComboStore extends IdentifiableObjectStore<CategoryComb
    * @return number of updated rows
    */
   int updateCatComboCategoryRefs(Set<Long> sourceCategoryIds, long targetId);
+
+  /**
+   * Get all {@link CategoryCombo}s by their UIDs.
+   *
+   * @param uids the UIDs of the CategoryCombos
+   * @return list of {@link CategoryCombo}s
+   */
+  List<CategoryCombo> getCategoryCombosByUid(Collection<UID> uids);
 }

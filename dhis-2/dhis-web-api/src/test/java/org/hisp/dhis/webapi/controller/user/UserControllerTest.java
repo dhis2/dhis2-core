@@ -51,6 +51,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -100,10 +101,10 @@ class UserControllerTest {
   @BeforeEach
   public void setUp() {
     UserGroup userGroup1 = new UserGroup();
-    userGroup1.setUid("abc1");
+    userGroup1.setUid("abcdefghij1");
 
     UserGroup userGroup2 = new UserGroup();
-    userGroup2.setUid("abc2");
+    userGroup2.setUid("abcdefghij2");
 
     currentUser = new User();
     currentUser.setId(1000);
@@ -154,7 +155,10 @@ class UserControllerTest {
     }
 
     verify(userGroupService)
-        .updateUserGroups(user, Set.of("abc1", "abc2"), UserDetails.fromUser(currentUser2));
+        .updateUserGroups(
+            user,
+            Set.of(UID.of("abcdefghij1"), UID.of("abcdefghij2")),
+            UserDetails.fromUser(currentUser2));
   }
 
   private ImportReport createReportWith(Status status, Consumer<TypeReport> operation) {
@@ -307,7 +311,8 @@ class UserControllerTest {
     verify(userGroupService)
         .updateUserGroups(
             same(user),
-            (Collection<String>) argThat(containsInAnyOrder("abc1", "abc2")),
+            (Collection<UID>)
+                argThat(containsInAnyOrder(UID.of("abcdefghij1"), UID.of("abcdefghij2"))),
             same(currentUserDetails));
   }
 }

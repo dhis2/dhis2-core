@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
@@ -85,6 +86,8 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
   private String programStageLabel;
 
   private String eventLabel;
+
+  private String eventsLabel;
 
   private Set<ProgramNotificationTemplate> notificationTemplates = new HashSet<>();
 
@@ -142,6 +145,15 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
   /** Returns all data elements part of this program stage. */
   public Set<DataElement> getDataElements() {
     return programStageDataElements.stream()
+        .map(ProgramStageDataElement::getDataElement)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+  }
+
+  /** Returns all non-skipped data elements part of this program stage. */
+  public Set<DataElement> getNonSkippedDataElements() {
+    return programStageDataElements.stream()
+        .filter(programStageDataElement -> !programStageDataElement.getSkipAnalytics())
         .map(ProgramStageDataElement::getDataElement)
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
@@ -268,7 +280,7 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public Program getProgram() {
     return program;
@@ -362,6 +374,24 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
 
   public void setEventLabel(String eventLabel) {
     this.eventLabel = eventLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @PropertyRange(min = 2)
+  public String getEventsLabel() {
+    return eventsLabel;
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Translatable(propertyName = "eventsLabel", key = "EVENTS_LABEL")
+  public String getDisplayEventsLabel() {
+    return getTranslation("EVENTS_LABEL", getEventsLabel());
+  }
+
+  public void setEventsLabel(String eventsLabel) {
+    this.eventsLabel = eventsLabel;
   }
 
   @JsonProperty
@@ -567,6 +597,7 @@ public class ProgramStage extends BaseNameableObject implements MetadataObject {
     copy.setStyle(original.getStyle());
     copy.setValidationStrategy(original.getValidationStrategy());
     copy.setEventLabel(original.getEventLabel());
+    copy.setEventsLabel(original.getEventsLabel());
     copy.setProgramStageLabel(original.getProgramStageLabel());
   }
 }
