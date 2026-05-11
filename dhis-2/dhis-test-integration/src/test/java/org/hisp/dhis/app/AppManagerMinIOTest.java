@@ -44,8 +44,8 @@ import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
-import org.hisp.dhis.test.junit.MinIOTestConfig;
 import org.hisp.dhis.test.junit.MinIOTestExtension;
+import org.hisp.dhis.test.junit.MinIOTestExtension.DhisConfig;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,12 +60,11 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.test.context.ContextConfiguration;
 
 /**
- * Exercises {@link AppManager} install/update/resource-resolution flows when DHIS2 is configured to
- * use the S3 (MinIO) blob store. {@link MinIOTestExtension} starts the container; {@link
- * MinIOTestConfig} overrides the {@code DhisConfigurationProvider} bean to point at it.
+ * Test class configured for use cases when DHIS2 is configured to use MinIO storage. The default
+ * storage is the local filesystem.
  */
 @ExtendWith(MinIOTestExtension.class)
-@ContextConfiguration(classes = MinIOTestConfig.class)
+@ContextConfiguration(classes = {DhisConfig.class})
 class AppManagerMinIOTest extends PostgresIntegrationTestBase {
 
   private static final String MOCK_CONTEXT_PATH = "/context";
