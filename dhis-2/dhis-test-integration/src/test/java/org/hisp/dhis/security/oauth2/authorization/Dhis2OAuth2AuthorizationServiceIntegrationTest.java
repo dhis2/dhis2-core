@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -170,6 +171,11 @@ public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
 
     // When
     authorizationService.save(authorization);
+
+    List<Dhis2OAuth2Authorization> all = authorizationService.getAll();
+    for (Dhis2OAuth2Authorization oAuth2Authorization : all) {
+      System.out.println(oAuth2Authorization);
+    }
 
     OAuth2Authorization foundAuthorization =
         authorizationService.findByToken(
