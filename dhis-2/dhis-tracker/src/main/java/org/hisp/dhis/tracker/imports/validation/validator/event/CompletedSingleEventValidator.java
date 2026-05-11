@@ -40,23 +40,23 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.hisp.dhis.user.UserDetails;
 
-class CompletedEventValidator implements Validator<Event> {
+class CompletedSingleEventValidator implements Validator<Event> {
 
   @Override
   public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
-    if (!(event instanceof org.hisp.dhis.tracker.imports.domain.TrackerEvent trackerEvent)) {
+    if (!(event instanceof org.hisp.dhis.tracker.imports.domain.SingleEvent singleEvent)) {
       return;
     }
 
     UserDetails user = bundle.getUser();
-    org.hisp.dhis.tracker.model.TrackerEvent databaseTrackerEvent =
-        bundle.getPreheat().getTrackerEvent(trackerEvent.getUID());
+    org.hisp.dhis.tracker.model.SingleEvent databaseSingleEvent =
+        bundle.getPreheat().getSingleEvent(singleEvent.getUID());
 
-    if (EventStatus.COMPLETED == databaseTrackerEvent.getStatus()
-        && trackerEvent.getStatus() != null
-        && trackerEvent.getStatus() != databaseTrackerEvent.getStatus()
+    if (EventStatus.COMPLETED == databaseSingleEvent.getStatus()
+        && singleEvent.getStatus() != null
+        && singleEvent.getStatus() != databaseSingleEvent.getStatus()
         && !user.isAuthorized(F_UNCOMPLETE_EVENT)) {
-      reporter.addError(trackerEvent, E1083, user.getUid());
+      reporter.addError(singleEvent, E1083, user.getUid());
     }
   }
 
