@@ -65,7 +65,8 @@ public class EventValidator implements Validator<TrackerBundle> {
                     all(
                         securityTrackerEventValidator,
                         securitySingleEventValidator,
-                        new CompletedEventValidator()),
+                        new CompletedTrackerEventValidator(),
+                        new CompletedSingleEventValidator()),
                     all(
                         categoryOptValidator,
                         new DateValidator(),
