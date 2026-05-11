@@ -54,7 +54,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import org.awaitility.Awaitility;
 import org.hisp.dhis.storage.BlobContainerName;
 import org.hisp.dhis.storage.BlobKey;
@@ -116,8 +115,7 @@ abstract class BlobStoreServiceContractTest {
     return false;
   }
 
-  private final BlobKeyPrefix testPrefix =
-      BlobKeyPrefix.of("contract-" + UUID.randomUUID().toString().substring(0, 8));
+  private final BlobKeyPrefix testPrefix = BlobKeyPrefix.of("blobStoreContract");
 
   @AfterEach
   void cleanUpTestData() {
@@ -209,18 +207,14 @@ abstract class BlobStoreServiceContractTest {
   void putBlob_withMismatchedMd5_isRejected() {
     assumeTrue(validatesContentMd5(), "backend does not validate Content-MD5");
     byte[] payload = "verify-me".getBytes(UTF_8);
+    BlobKey badKey = key("bad-md5");
+    ByteArrayInputStream stream = new ByteArrayInputStream(payload);
     ContentHash wrong = new ContentHash("00000000000000000000000000000000");
+    BlobStoreService svc = service();
+
     assertThrows(
         RuntimeException.class,
-        () ->
-            service()
-                .putBlob(
-                    key("bad-md5"),
-                    new ByteArrayInputStream(payload),
-                    payload.length,
-                    "text/plain",
-                    null,
-                    wrong));
+        () -> svc.putBlob(badKey, stream, payload.length, "text/plain", null, wrong));
   }
 
   @Test
@@ -290,8 +284,7 @@ abstract class BlobStoreServiceContractTest {
 
   @Test
   void listFolders_unknownPrefix_returnsEmpty() {
-    Iterable<BlobKeyPrefix> result =
-        service().listFolders(BlobKeyPrefix.of("does-not-exist-" + UUID.randomUUID()));
+    Iterable<BlobKeyPrefix> result = service().listFolders(BlobKeyPrefix.of("does-not-exist"));
     assertFalse(result.iterator().hasNext());
   }
 
