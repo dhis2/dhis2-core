@@ -30,10 +30,12 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
+import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.EVENT_STATUS_COLUMN_NAME;
 import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME;
 import static org.hisp.dhis.analytics.table.EventAnalyticsColumnName.OU_COLUMN_NAME;
 import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
@@ -78,6 +80,7 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -90,6 +93,7 @@ import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -409,6 +413,134 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     assertThat(generatedSql, containsString("\"n1rtSHYf6O6\" in ('ImspTQPwCqd')"));
     assertThat(baseCteSql, containsString("inner join latest_events_" + programStage.getUid()));
     assertThat(baseCteSql, not(containsString("and \"n1rtSHYf6O6\" in ('ImspTQPwCqd')")));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentUnfilteredEventStatusUsesLatestEventsCte() {
+    // When a stage-specific dimension without a filter (e.g. stage.EVENT_STATUS) is requested
+    // alongside a filtered stage dimension (stage.EVENT_DATE), the unfiltered dimension must
+    // also be projected by the latest_events_<stage> CTE so the outer SELECT can read it from
+    // the same "latest event" row. Without this, the resolver emits a reference to
+    // uiogg.ev_eventstatus while the CTE doesn't project the column, producing a SQL error.
+    String stageUid = programStage.getUid();
+
+    QueryItem dateItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(OCCURRED_DATE_COLUMN_NAME),
+            programA,
+            null,
+            ValueType.DATE,
+            null,
+            null);
+    dateItem.setProgram(programA);
+    dateItem.setProgramStage(programStage);
+    dateItem.addFilter(new QueryFilter(QueryOperator.GE, "2026-01-01"));
+    dateItem.addFilter(new QueryFilter(QueryOperator.LE, "2026-12-31"));
+
+    QueryItem statusItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EVENT_STATUS_COLUMN_NAME),
+            programA,
+            null,
+            ValueType.TEXT,
+            null,
+            null);
+    statusItem.setProgram(programA);
+    statusItem.setProgramStage(programStage);
+
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.addItem(dateItem);
+    params.addItem(statusItem);
+    params.withEndpointAction(AGGREGATE);
+
+    ListGrid grid = new ListGrid();
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+    grid.addHeader(
+        new GridHeader(stageUid + ".eventdate", "Event date", ValueType.DATE, false, false));
+    grid.addHeader(
+        new GridHeader(stageUid + ".eventstatus", "Event status", ValueType.TEXT, false, false));
+
+    subject.getEnrollments(params.build(), grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+    String latestEventsCteSql =
+        generatedSql.substring(
+            generatedSql.indexOf("latest_events_" + stageUid + " as ("),
+            generatedSql.indexOf("enrollment_aggr_base as ("));
+
+    // The latest_events CTE must project both the filtered (eventdate) and unfiltered
+    // (eventstatus) stage dimensions so the outer SELECT can read them from the same row.
+    assertThat(latestEventsCteSql, containsString("ev_occurreddate"));
+    assertThat(latestEventsCteSql, containsString("ev_eventstatus"));
+
+    // The redundant per-item CTE must not be created when a latest_events_<stage> already exists.
+    assertThat(generatedSql, not(containsString(stageUid + "_" + EVENT_STATUS_COLUMN_NAME + "_0")));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentRepeatableOffsetItemKeepsPerItemCteWhenLatestEventsCteExists() {
+    String stageUid = repeatableProgramStage.getUid();
+    String deUid = dataElementA.getUid();
+
+    QueryItem dateItem = createFilteredStageDateItem(repeatableProgramStage);
+    QueryItem offsetItem = createRepeatableOffsetDataElementItem(stageUid, -1);
+
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.addItem(dateItem);
+    params.addItem(offsetItem);
+    params.withEndpointAction(AGGREGATE);
+
+    ListGrid grid = new ListGrid();
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+    grid.addHeader(
+        new GridHeader(stageUid + ".eventdate", "Event date", ValueType.DATE, false, false));
+    grid.addHeader(
+        new GridHeader(stageUid + "[-1]." + deUid, "Offset value", ValueType.NUMBER, false, false));
+
+    subject.getEnrollments(params.build(), grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+    String latestEventsCteSql =
+        generatedSql.substring(
+            generatedSql.indexOf("latest_events_" + stageUid + " as ("),
+            generatedSql.indexOf("enrollment_aggr_base as ("));
+
+    assertThat(latestEventsCteSql, containsString("ev_occurreddate"));
+    assertThat(latestEventsCteSql, not(containsString("ev_" + deUid)));
+    assertThat(generatedSql, containsString(stageUid + "_" + deUid + "_0 as ("));
+    assertThat(generatedSql, containsString("as \"" + stageUid + "[-1]." + deUid + "\""));
+  }
+
+  @Test
+  void verifyAggregateEnrollmentRepeatableOffsetsAreNotDuplicatedInLatestEventsCte() {
+    String stageUid = repeatableProgramStage.getUid();
+    String deUid = dataElementA.getUid();
+
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.addItem(createFilteredStageDateItem(repeatableProgramStage));
+    params.addItem(createRepeatableOffsetDataElementItem(stageUid, -1));
+    params.addItem(createRepeatableOffsetDataElementItem(stageUid, 1));
+    params.withEndpointAction(AGGREGATE);
+
+    ListGrid grid = new ListGrid();
+    grid.addHeader(new GridHeader("value", "Value", ValueType.NUMBER, false, false));
+    grid.addHeader(
+        new GridHeader(stageUid + ".eventdate", "Event date", ValueType.DATE, false, false));
+
+    subject.getEnrollments(params.build(), grid, 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+    String latestEventsCteSql =
+        generatedSql.substring(
+            generatedSql.indexOf("latest_events_" + stageUid + " as ("),
+            generatedSql.indexOf("enrollment_aggr_base as ("));
+
+    assertThat(countOccurrences(latestEventsCteSql, "ev_" + deUid), is(0));
+    assertThat(generatedSql, containsString(stageUid + "_" + deUid + "_0 as ("));
+    assertThat(generatedSql, containsString(stageUid + "_" + deUid + "_1 as ("));
   }
 
   @Test
@@ -1106,6 +1238,32 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
     return params.build();
   }
 
+  private QueryItem createFilteredStageDateItem(ProgramStage stage) {
+    QueryItem dateItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(OCCURRED_DATE_COLUMN_NAME),
+            programA,
+            null,
+            ValueType.DATE,
+            null,
+            null);
+    dateItem.setProgram(programA);
+    dateItem.setProgramStage(stage);
+    dateItem.addFilter(new QueryFilter(QueryOperator.GE, "2026-01-01"));
+    dateItem.addFilter(new QueryFilter(QueryOperator.LE, "2026-12-31"));
+    return dateItem;
+  }
+
+  private QueryItem createRepeatableOffsetDataElementItem(String stageUid, int offset) {
+    QueryItem item = new QueryItem(new BaseDimensionalItemObject(dataElementA.getUid()));
+    item.setProgram(programA);
+    item.setProgramStage(repeatableProgramStage);
+    item.setValueType(ValueType.NUMBER);
+    item.setRepeatableStageParams(
+        RepeatableStageParams.of(offset, stageUid + "[" + offset + "]." + dataElementA.getUid()));
+    return item;
+  }
+
   private EventQueryParams createAggregateEnrollmentWithEventDateParams() {
     BaseDimensionalItemObject dateItem = new BaseDimensionalItemObject(OCCURRED_DATE_COLUMN_NAME);
     QueryItem queryItem = new QueryItem(dateItem, programA, null, ValueType.DATE, null, null);
@@ -1199,5 +1357,15 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
   private String noEof(String sql) {
     return sql.replaceAll("\\s+", " ").trim();
+  }
+
+  private int countOccurrences(String value, String search) {
+    int count = 0;
+    int index = 0;
+    while ((index = value.indexOf(search, index)) >= 0) {
+      count++;
+      index += search.length();
+    }
+    return count;
   }
 }
