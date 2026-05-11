@@ -195,7 +195,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   public List<ErrorMessage> canUpdate(
       @Nonnull UserDetails user,
       @Nonnull Enrollment enrollment,
-      @Nonnull OrganisationUnit orgUnit) {
+      @Nonnull OrganisationUnit orgUnit,
+      @Nonnull CategoryOptionCombo categoryOptionCombo) {
     if (user.isSuper()) {
       return List.of();
     }
@@ -204,6 +205,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     if (!orgUnit.getUid().equals(enrollment.getOrganisationUnit().getUid())) {
       checkOrgUnitInCaptureScope(errors, user, orgUnit);
+    }
+
+    if (!categoryOptionCombo.getUid().equals(enrollment.getAttributeOptionCombo().getUid())) {
+      checkDataWriteAccessToCategoryOptionCombo(errors, user, categoryOptionCombo);
     }
 
     return errors;
@@ -272,7 +277,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<ErrorMessage> canUpdate(
-      @Nonnull UserDetails user, @Nonnull TrackerEvent event, @Nonnull OrganisationUnit orgUnit) {
+      @Nonnull UserDetails user,
+      @Nonnull TrackerEvent event,
+      @Nonnull OrganisationUnit orgUnit,
+      @Nonnull CategoryOptionCombo attributeOptionCombo) {
     if (user.isSuper()) {
       return List.of();
     }
@@ -281,6 +289,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     if (!orgUnit.getUid().equals(event.getOrganisationUnit().getUid())) {
       checkOrgUnitInCaptureScope(errors, user, orgUnit);
+    }
+
+    if (!attributeOptionCombo.getUid().equals(event.getAttributeOptionCombo().getUid())) {
+      checkDataWriteAccessToCategoryOptionCombo(errors, user, attributeOptionCombo);
     }
 
     return errors;
@@ -469,13 +481,19 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
     if (item.getEnrollment() != null) {
       Enrollment enrollment = item.getEnrollment();
-      return canUpdate(user, enrollment, enrollment.getOrganisationUnit()).stream()
+      return canUpdate(
+              user,
+              enrollment,
+              enrollment.getOrganisationUnit(),
+              enrollment.getAttributeOptionCombo())
+          .stream()
           .map(em -> em.validationCode().getMessage())
           .toList();
     }
     if (item.getTrackerEvent() != null) {
       TrackerEvent event = item.getTrackerEvent();
-      return canUpdate(user, event, event.getOrganisationUnit()).stream()
+      return canUpdate(user, event, event.getOrganisationUnit(), event.getAttributeOptionCombo())
+          .stream()
           .map(em -> em.validationCode().getMessage())
           .toList();
     }
