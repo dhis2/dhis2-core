@@ -527,12 +527,6 @@ public enum ConfigurationKey {
   LOGGING_FILE_MAX_ARCHIVES("logging.file.max_archives", "1"),
 
   /**
-   * Adds a hashed (SHA-256) session ID to the MDC ({@code sessionId} key). Include it in log output
-   * via {@code %X{sessionId}} in the log4j2 pattern layout.
-   */
-  LOGGING_SESSION_ID("logging.session_id", Constants.ON, false),
-
-  /**
    * Enables SQL query logging via a datasource proxy. All {@code logging.query.*} keys below
    * require this to be enabled.
    */
