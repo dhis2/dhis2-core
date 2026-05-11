@@ -64,7 +64,9 @@ class S3BlobStoreServiceContractTest extends BlobStoreServiceContractTest {
     DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
     lenient().when(config.getProperty(ConfigurationKey.FILESTORE_PROVIDER)).thenReturn("s3");
     lenient().when(config.getProperty(ConfigurationKey.FILESTORE_CONTAINER)).thenReturn("contract");
-    lenient().when(config.getProperty(ConfigurationKey.FILESTORE_LOCATION)).thenReturn("eu-west-1");
+    // FILESTORE_LOCATION intentionally not stubbed (mock returns null). JCloudsStore.createLocation
+    // returns null for a null location, so no LocationConstraint is sent on bucket creation —
+    // newer MinIO releases (>= RELEASE.2025-04-22) reject mismatched regions.
     lenient()
         .when(config.getProperty(ConfigurationKey.FILESTORE_ENDPOINT))
         .thenReturn(MinIOTestExtension.s3Url());

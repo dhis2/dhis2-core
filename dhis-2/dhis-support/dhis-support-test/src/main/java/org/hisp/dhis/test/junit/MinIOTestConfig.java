@@ -56,7 +56,9 @@ public class MinIOTestConfig {
     Properties properties = new Properties();
     properties.put("filestore.provider", "s3");
     properties.put("filestore.container", "dhis2");
-    properties.put("filestore.location", "eu-west-1");
+    // No filestore.location: jclouds otherwise sends a CreateBucketConfiguration with a
+    // LocationConstraint, which newer MinIO releases (>= RELEASE.2025-04-22) reject when the
+    // value doesn't match the server's region. With no location, jclouds uses the server default.
     properties.put("filestore.endpoint", MinIOTestExtension.s3Url());
     properties.put("filestore.identity", MinIOTestExtension.MINIO_USER);
     properties.put("filestore.secret", MinIOTestExtension.MINIO_PASSWORD);
