@@ -30,6 +30,10 @@
         as they propagate up from the Logger to its parent which is the Root.
         Check the log4j2 config documentation for more details. Uncomment the various loggers to debug the tests. -->
 
+        <!-- Tests that verify uniqueness constraints intentionally trigger duplicate-key
+             violations; Hibernate logs every such exception at ERROR via SqlExceptionHelper. -->
+        <Logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="fatal" additivity="false"/>
+
         <!-- DHIS2 -->
         <!--        
         <Logger name="org.hisp.dhis.migration" level="info" additivity="false">
