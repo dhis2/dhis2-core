@@ -142,11 +142,11 @@ class FileResourceControllerTest extends H2ControllerIntegrationTestBase {
     MockMultipartFile image =
         new MockMultipartFile(
             "file", "OU_profile_image.png", "image/png", Files.readAllBytes(file.toPath()));
-    HttpResponse response = POST_MULTIPART("/fileResources?domain=ORG_UNIT&uid=0123456789a", image);
+    HttpResponse response = POST_MULTIPART("/fileResources?domain=ORG_UNIT&uid=fr123456789", image);
     JsonObject savedObject =
         response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
     assertEquals("OU_profile_image.png", savedObject.getString("name").string());
-    assertEquals("0123456789a", savedObject.getString("id").string());
+    assertEquals("fr123456789", savedObject.getString("id").string());
   }
 
   @Test
@@ -155,11 +155,11 @@ class FileResourceControllerTest extends H2ControllerIntegrationTestBase {
     MockMultipartFile image =
         new MockMultipartFile(
             "file", "OU_profile_image.png", "image/png", Files.readAllBytes(file.toPath()));
-    HttpResponse response = POST_MULTIPART("/fileResources?domain=ORG_UNIT&uid=0123456789x", image);
+    HttpResponse response = POST_MULTIPART("/fileResources?domain=ORG_UNIT&uid=fr987654321", image);
     JsonObject savedObject =
         response.content(HttpStatus.ACCEPTED).getObject("response").getObject("fileResource");
     assertEquals("OU_profile_image.png", savedObject.getString("name").string());
-    assertEquals("0123456789x", savedObject.getString("id").string());
+    assertEquals("fr987654321", savedObject.getString("id").string());
 
     // now update the resource with a different image but the same UID
     MockMultipartFile image2 =
@@ -171,8 +171,8 @@ class FileResourceControllerTest extends H2ControllerIntegrationTestBase {
             "Conflict",
             409,
             "ERROR",
-            "FileResource already exists: `0123456789x`",
-            POST_MULTIPART("/fileResources?domain=ORG_UNIT&uid=0123456789x", image2)
+            "FileResource already exists: `fr987654321`",
+            POST_MULTIPART("/fileResources?domain=ORG_UNIT&uid=fr987654321", image2)
                 .content(HttpStatus.CONFLICT));
     assertEquals(ErrorCode.E1119, message.getErrorCode());
   }

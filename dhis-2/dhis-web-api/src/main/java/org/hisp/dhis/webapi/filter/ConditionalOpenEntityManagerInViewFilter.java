@@ -78,10 +78,29 @@ public class ConditionalOpenEntityManagerInViewFilter extends OpenEntityManagerI
   private static final List<PathPattern> EXCLUDE_PATTERNS =
       Stream.of(
               "/api/tracker/**",
+              // Gist API
+              "/api/*/gist",
+              "/api/*/gist.csv",
+              "/api/*/*/gist",
+              "/api/*/*/gist.csv",
+              "/api/*/*/*/gist",
+              "/api/*/*/*/gist.csv",
+              // data entry, data export
+              "/api/dataValues",
+              "/api/dataValues/followup",
+              "/api/dataValues/followups",
+              "/api/dataValueSets",
+              // others
               "/api/ping",
               "/api/metrics",
               "/api/system/ping",
-              "/api/potentialDuplicates")
+              "/api/potentialDuplicates",
+              // Metadata version snapshots are streamed directly via JDBC; no Hibernate
+              // session is needed for either the plain or gzipped variant.
+              "/api/metadata/version/*/data",
+              "/api/metadata/version/*/data.gz",
+              "/api/*/metadata/version/*/data",
+              "/api/*/metadata/version/*/data.gz")
           .map(PARSER::parse)
           .toList();
 

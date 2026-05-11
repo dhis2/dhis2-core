@@ -51,11 +51,11 @@ class IdentifiableObjectControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testPutJsonObject() {
-    assertStatus(HttpStatus.METHOD_NOT_ALLOWED, PUT("/identifiableObjects/someId", "{}"));
+    assertStatus(HttpStatus.METHOD_NOT_ALLOWED, PUT("/identifiableObjects/someId78901", "{}"));
   }
 
   @Test
   void testDeleteObject() {
-    assertStatus(HttpStatus.METHOD_NOT_ALLOWED, DELETE("/identifiableObjects/someId"));
+    assertStatus(HttpStatus.METHOD_NOT_ALLOWED, DELETE("/identifiableObjects/someId78901"));
   }
 }

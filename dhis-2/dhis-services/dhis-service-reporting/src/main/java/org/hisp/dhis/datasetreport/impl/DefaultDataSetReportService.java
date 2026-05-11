@@ -61,9 +61,9 @@ import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dataset.comparator.SectionOrderComparator;
 import org.hisp.dhis.datasetreport.DataSetReportService;
 import org.hisp.dhis.datasetreport.DataSetReportStore;
-import org.hisp.dhis.datavalue.DataEntryKey;
 import org.hisp.dhis.datavalue.DataExportService;
 import org.hisp.dhis.datavalue.DataExportValue;
+import org.hisp.dhis.datavalue.DataValueKey;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
@@ -336,7 +336,7 @@ public class DefaultDataSetReportService implements DataSetReportService {
                 p -> {
                   try {
                     return dataExportService.exportValue(
-                        new DataEntryKey(dataElement, p, unit, optionCombo, null));
+                        new DataValueKey(dataElement, p, unit, optionCombo, null));
                   } catch (ConflictException e) {
                     return null; // best we can do ATM
                   }

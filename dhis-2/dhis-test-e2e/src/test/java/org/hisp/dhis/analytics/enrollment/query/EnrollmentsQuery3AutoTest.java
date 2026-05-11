@@ -298,8 +298,8 @@ public class EnrollmentsQuery3AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         8,
-        17,
-        14); // Pass runtime flag, row count, and expected header counts
+        19,
+        16); // Pass runtime flag, row count, and expected header counts
 
     List<Map<String, Object>> actualHeaders =
         response.extractList("headers", Map.class).stream()

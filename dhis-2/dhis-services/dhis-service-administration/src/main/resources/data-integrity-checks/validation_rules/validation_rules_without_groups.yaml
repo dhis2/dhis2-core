@@ -32,12 +32,12 @@ section_order: 1
 summary_sql: >-
     SELECT COUNT(*) as value,
     100.0 * count(*) / NULLIF( (select count(*) from validationrule), 0)  as percent
-    from validationrule where validationruleid NOT IN (
-    SELECT validationruleid from validationrulegroupmembers);
+    from validationrule vr WHERE NOT EXISTS (
+    SELECT 1 from validationrulegroupmembers m WHERE m.validationruleid = vr.validationruleid);
 details_sql: >-
     SELECT a.uid,a.name
-    from validationrule a where validationruleid NOT IN (
-    SELECT validationruleid from validationrulegroupmembers);
+    from validationrule a WHERE NOT EXISTS (
+    SELECT 1 from validationrulegroupmembers m WHERE m.validationruleid = a.validationruleid);
 details_id_type: validationRules
 severity: WARNING
 introduction: >

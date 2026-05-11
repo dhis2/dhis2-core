@@ -103,4 +103,18 @@ public class HibernateCategoryComboStore extends HibernateIdentifiableObjectStor
         .setLockOptions(new LockOptions(PESSIMISTIC_WRITE).setTimeOut(5000))
         .executeUpdate();
   }
+
+  @Override
+  public List<CategoryCombo> getCategoryCombosByUid(Collection<UID> uids) {
+    if (uids == null || uids.isEmpty()) return List.of();
+
+    return getQuery(
+            """
+            select cc from CategoryCombo cc
+            where cc.uid in :uids
+            """,
+            CategoryCombo.class)
+        .setParameter("uids", UID.toValueSet(uids))
+        .getResultList();
+  }
 }

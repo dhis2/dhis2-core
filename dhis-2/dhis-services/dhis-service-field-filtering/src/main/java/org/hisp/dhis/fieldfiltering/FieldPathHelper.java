@@ -134,7 +134,7 @@ public class FieldPathHelper {
     }
 
     Schema schema =
-        schemaService.getDynamicSchema(
+        schemaService.getSchema(
             property.isCollection() ? property.getItemKlass() : property.getKlass());
 
     if (schema == null) {
@@ -238,7 +238,7 @@ public class FieldPathHelper {
       return;
     }
 
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
 
     if (!schema.isIdentifiableObject()) {
       return;
@@ -257,7 +257,7 @@ public class FieldPathHelper {
       return;
     }
 
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
     String currentPath = paths.remove(0);
 
     Property property = schema.getProperty(currentPath);
@@ -416,7 +416,7 @@ public class FieldPathHelper {
     requireNonNull(klass);
 
     // get root schema
-    Schema schema = schemaService.getDynamicSchema(klass);
+    Schema schema = schemaService.getSchema(klass);
     Property currentProperty;
 
     for (String path : paths) {
@@ -427,9 +427,9 @@ public class FieldPathHelper {
       }
 
       if (currentProperty.isCollection()) {
-        schema = schemaService.getDynamicSchema(currentProperty.getItemKlass());
+        schema = schemaService.getSchema(currentProperty.getItemKlass());
       } else {
-        schema = schemaService.getDynamicSchema(currentProperty.getKlass());
+        schema = schemaService.getSchema(currentProperty.getKlass());
       }
     }
 

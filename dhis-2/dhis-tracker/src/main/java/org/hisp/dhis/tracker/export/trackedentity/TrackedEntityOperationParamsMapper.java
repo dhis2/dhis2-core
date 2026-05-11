@@ -141,6 +141,8 @@ class TrackedEntityOperationParamsMapper {
         .setProgramEnrollmentEndDate(operationParams.getProgramEnrollmentEndDate())
         .setProgramIncidentStartDate(operationParams.getProgramIncidentStartDate())
         .setProgramIncidentEndDate(operationParams.getProgramIncidentEndDate())
+        .setSkipChangedBefore(operationParams.getSkipChangedBefore())
+        .setSynchronizationQuery(operationParams.isSynchronizationQuery())
         .setTrackedEntityType(requestedTrackedEntityType)
         .setTrackedEntityTypes(trackedEntityTypes)
         .addOrgUnits(orgUnits)
@@ -197,7 +199,7 @@ class TrackedEntityOperationParamsMapper {
 
   private List<Program> getTrackerPrograms(Program program) {
     if (program == null) {
-      return trackerProgramService.getAccessibleTrackerPrograms();
+      return trackerProgramService.getTrackerProgramsWithDataReadAccess();
     }
 
     return emptyList();

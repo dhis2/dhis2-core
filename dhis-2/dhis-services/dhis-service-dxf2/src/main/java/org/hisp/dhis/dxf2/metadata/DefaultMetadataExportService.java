@@ -250,7 +250,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
       List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(fieldFilterParams);
 
       if (!objectNodes.isEmpty()) {
-        String plural = schemaService.getDynamicSchema(entry.getKey()).getPlural();
+        String plural = schemaService.getSchema(entry.getKey()).getPlural();
         rootNode.putArray(plural).addAll(objectNodes);
       }
     }
@@ -298,7 +298,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
                 .user(CurrentUserUtil.getCurrentUserDetails())
                 .build();
 
-        String plural = schemaService.getDynamicSchema(klass).getPlural();
+        String plural = schemaService.getSchema(klass).getPlural();
         generator.writeArrayFieldStart(plural);
         fieldFilterService.toObjectNodesStream(
             fieldFilterParams, params.getDefaults().isExclude(), generator);
@@ -338,7 +338,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
         List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(fieldFilterParams);
 
         if (!objectNodes.isEmpty()) {
-          String plural = schemaService.getDynamicSchema(klass).getPlural();
+          String plural = schemaService.getSchema(klass).getPlural();
           generator.writeArrayFieldStart(plural);
 
           for (ObjectNode objectNode : objectNodes) {
@@ -375,7 +375,7 @@ public class DefaultMetadataExportService implements MetadataExportService {
       List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes(fieldFilterParams);
 
       if (!objectNodes.isEmpty()) {
-        String plural = schemaService.getDynamicSchema(klass).getPlural();
+        String plural = schemaService.getSchema(klass).getPlural();
         rootNode.putArray(plural).addAll(objectNodes);
       }
     }

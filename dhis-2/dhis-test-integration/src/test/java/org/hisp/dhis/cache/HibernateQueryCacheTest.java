@@ -121,7 +121,8 @@ class HibernateQueryCacheTest extends PostgresIntegrationTestBase {
   void testHouseKeepingJobWithCache() {
     setUpData();
     createSelectQuery(10);
-    assertEquals(9, sessionFactory.getStatistics().getQueryCacheHitCount());
+    long queryCacheHitCountBefore = sessionFactory.getStatistics().getQueryCacheHitCount();
+    assertEquals(9, queryCacheHitCountBefore);
     housekeepingJob.execute(null, JobProgress.noop());
     createSelectQuery(1);
     assertEquals(
@@ -130,7 +131,7 @@ class HibernateQueryCacheTest extends PostgresIntegrationTestBase {
             .getStatistics()
             .getCacheRegionStatistics(OptionSet.class.getName())
             .getHitCount());
-    assertTrue(sessionFactory.getStatistics().getQueryCacheHitCount() > 10);
+    assertTrue(sessionFactory.getStatistics().getQueryCacheHitCount() > queryCacheHitCountBefore);
   }
 
   private void createSelectQuery(int numberOfQueries) {

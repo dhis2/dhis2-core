@@ -29,8 +29,13 @@
  */
 package org.hisp.dhis.db.sql;
 
+import java.util.Optional;
+import java.util.regex.Pattern;
+import org.hisp.dhis.period.PeriodTypeEnum;
+
 public class PostgreSqlAnalyticsSqlBuilder extends PostgreSqlBuilder
     implements AnalyticsSqlBuilder {
+  private static final Pattern WHITESPACE = Pattern.compile("\\s+");
 
   /**
    * Returns a subquery that expand the event datavalue jsonb with two additional fields:
@@ -71,5 +76,115 @@ public class PostgreSqlAnalyticsSqlBuilder extends PostgreSqlBuilder
   @Override
   public String renderTimestamp(String timestampAsString) {
     return timestampAsString;
+  }
+
+  @Override
+  public Optional<String> renderDateFieldPeriodBucketDate(
+      String dateColumn, PeriodTypeEnum periodType) {
+    return Optional.ofNullable(
+        switch (periodType) {
+          case DAILY -> dateColumn + "::date";
+          case YEARLY -> "date_trunc('year', " + dateColumn + ")::date";
+          case WEEKLY -> "date_trunc('week', " + dateColumn + ")::date";
+          case WEEKLY_WEDNESDAY ->
+              "date_trunc('week', "
+                  + dateColumn
+                  + " + interval '5 days')::date - interval '5 days'";
+          case WEEKLY_THURSDAY ->
+              "date_trunc('week', "
+                  + dateColumn
+                  + " + interval '4 days')::date - interval '4 days'";
+          case WEEKLY_FRIDAY ->
+              "date_trunc('week', "
+                  + dateColumn
+                  + " + interval '3 days')::date - interval '3 days'";
+          case WEEKLY_SATURDAY ->
+              "date_trunc('week', "
+                  + dateColumn
+                  + " + interval '2 days')::date - interval '2 days'";
+          case WEEKLY_SUNDAY ->
+              "date_trunc('week', " + dateColumn + " + interval '1 day')::date - interval '1 day'";
+          case BI_WEEKLY ->
+              "date_trunc('week', "
+                  + dateColumn
+                  + ")::date - ((extract(week from "
+                  + dateColumn
+                  + ")::int - 1) % 2) * interval '7 days'";
+          case MONTHLY -> "date_trunc('month', " + dateColumn + ")::date";
+          case QUARTERLY -> "date_trunc('quarter', " + dateColumn + ")::date";
+          case QUARTERLY_NOV ->
+              "date_trunc('quarter', "
+                  + dateColumn
+                  + " - interval '1 month')::date + interval '1 month'";
+          case BI_MONTHLY ->
+              collapseWhitespace(
+                  """
+                  make_date(
+                    extract(year from %1$s)::int,
+                    ((extract(month from %1$s)::int - 1) / 2) * 2 + 1,
+                    1
+                  )
+                  """
+                      .formatted(dateColumn));
+          case SIX_MONTHLY ->
+              collapseWhitespace(
+                  """
+                  make_date(
+                    extract(year from %1$s)::int,
+                    case when extract(month from %1$s) <= 6 then 1 else 7 end,
+                    1
+                  )
+                  """
+                      .formatted(dateColumn));
+          case SIX_MONTHLY_APRIL ->
+              collapseWhitespace(
+                  """
+                  case
+                    when extract(month from %1$s) between 4 and 9
+                      then make_date(extract(year from %1$s)::int, 4, 1)
+                    when extract(month from %1$s) >= 10
+                      then make_date(extract(year from %1$s)::int, 10, 1)
+                    else make_date(extract(year from %1$s)::int - 1, 10, 1)
+                  end
+                  """
+                      .formatted(dateColumn));
+          case SIX_MONTHLY_NOV ->
+              collapseWhitespace(
+                  """
+                  case
+                    when extract(month from %1$s) between 5 and 10
+                      then make_date(extract(year from %1$s)::int, 5, 1)
+                    when extract(month from %1$s) >= 11
+                      then make_date(extract(year from %1$s)::int, 11, 1)
+                    else make_date(extract(year from %1$s)::int - 1, 11, 1)
+                  end
+                  """
+                      .formatted(dateColumn));
+          case FINANCIAL_FEB -> renderFinancialYearStart(dateColumn, 2);
+          case FINANCIAL_APRIL -> renderFinancialYearStart(dateColumn, 4);
+          case FINANCIAL_JULY -> renderFinancialYearStart(dateColumn, 7);
+          case FINANCIAL_AUG -> renderFinancialYearStart(dateColumn, 8);
+          case FINANCIAL_SEP -> renderFinancialYearStart(dateColumn, 9);
+          case FINANCIAL_OCT -> renderFinancialYearStart(dateColumn, 10);
+          case FINANCIAL_NOV -> renderFinancialYearStart(dateColumn, 11);
+          default -> null;
+        });
+  }
+
+  private String renderFinancialYearStart(String dateColumn, int startMonth) {
+    return collapseWhitespace(
+        """
+        make_date(
+          case when extract(month from %1$s) >= %2$d
+               then extract(year from %1$s)::int
+               else extract(year from %1$s)::int - 1
+          end, %2$d, 1
+        )
+        """
+            .formatted(dateColumn, startMonth));
+  }
+
+  private static String collapseWhitespace(String input) {
+    return WHITESPACE.matcher(input).replaceAll(" ").trim();
   }
 }

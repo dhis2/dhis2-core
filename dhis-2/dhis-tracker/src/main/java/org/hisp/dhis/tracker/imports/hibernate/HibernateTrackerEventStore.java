@@ -34,7 +34,6 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.security.acl.AclService;
@@ -48,7 +47,6 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Abyot Asalefew
  */
-@Slf4j
 @Repository("org.hisp.dhis.tracker.imports.hibernate.TrackerEventStore")
 public class HibernateTrackerEventStore extends SoftDeleteHibernateObjectStore<TrackerEvent>
     implements TrackerEventStore {
@@ -120,7 +118,6 @@ public class HibernateTrackerEventStore extends SoftDeleteHibernateObjectStore<T
                 targetDataElement.getValue(),
                 sourceUidsString);
 
-    log.debug("Event data values merging SQL query to be used: \n{}", sql);
     jdbcTemplate.update(sql);
   }
 
@@ -139,7 +136,6 @@ public class HibernateTrackerEventStore extends SoftDeleteHibernateObjectStore<T
         update trackerevent set eventdatavalues = eventdatavalues - '{%s}'::text[]
         where eventdatavalues::jsonb ?| array[%s];"""
             .formatted(sourceUidsString, sourceUidsInSingleQuotesString);
-    log.debug("Event data values deleting SQL query to be used: \n{}", sql);
     jdbcTemplate.update(sql);
   }
 

@@ -83,6 +83,11 @@ public class MockAnalyticsService implements AnalyticsService {
   }
 
   @Override
+  public Grid getAggregatedDataValuesGrid(DataQueryParams params) {
+    throw new NotImplementedException("");
+  }
+
+  @Override
   public DataValueSet getAggregatedDataValueSet(DataQueryParams params) {
     throw new NotImplementedException("");
   }

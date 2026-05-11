@@ -383,7 +383,7 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
   private Predicate parseFilter(CriteriaBuilder builder, Root<?> root, List<String> filters) {
     Predicate conjunction = builder.conjunction();
 
-    Schema schema = schemaService.getDynamicSchema(MinMaxDataElement.class);
+    Schema schema = schemaService.getSchema(MinMaxDataElement.class);
 
     if (!filters.isEmpty()) {
       for (String filter : filters) {
@@ -434,9 +434,9 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
 
       if (curProperty.isCollection()) {
         currentPath = root.join(curProperty.getFieldName());
-        curSchema = schemaService.getDynamicSchema(curProperty.getItemKlass());
+        curSchema = schemaService.getSchema(curProperty.getItemKlass());
       } else if (!curProperty.isSimple()) {
-        curSchema = schemaService.getDynamicSchema(curProperty.getKlass());
+        curSchema = schemaService.getSchema(curProperty.getKlass());
         currentPath = root.join(curProperty.getFieldName());
       } else {
         return currentPath.get(curProperty.getFieldName());

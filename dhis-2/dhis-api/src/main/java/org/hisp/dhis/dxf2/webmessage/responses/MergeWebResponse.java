@@ -45,16 +45,27 @@ public class MergeWebResponse implements WebMessageResponse {
 
   public MergeWebResponse(@Nonnull MergeReport mergeReport) {
     this.mergeReport = mergeReport;
-    MergeType mergeType = mergeReport.getMergeType();
-    this.mergeReport.setMessage(
-        mergeReport.hasErrorMessages()
-            ? "%s merge has errors".formatted(mergeType.getName())
-            : "%s merge complete".formatted(mergeType.getName()));
+    this.mergeReport.setMessage(getReportMessage(mergeReport));
   }
 
   @Nonnull
   @Override
   public Class<? extends WebMessageResponse> getResponseClassType() {
     return MergeWebResponse.class;
+  }
+
+  private String getReportMessage(MergeReport mergeReport) {
+    MergeType mergeType = mergeReport.getMergeType();
+    StringBuilder message = new StringBuilder();
+    message.append(
+        mergeReport.hasErrorMessages()
+            ? "%s merge has errors".formatted(mergeType.getName())
+            : "%s merge complete".formatted(mergeType.getName()));
+
+    if (mergeType == MergeType.CATEGORY_COMBO && !mergeReport.hasErrorMessages()) {
+      message.append(
+          ". There will be duplicate CategoryOptionCombos as a result of the merge. These should be merged immediately to help keep system integrity. Duplicates can be found using the data integrity check `category_option_combos_have_duplicates`");
+    }
+    return message.toString();
   }
 }

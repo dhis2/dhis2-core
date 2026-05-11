@@ -98,8 +98,7 @@ public class NotOwnerReferencesCheck implements ValidationCheck {
 
     List<PreheatErrorReport> preheatErrorReports = new ArrayList<>();
 
-    Schema schema =
-        ctx.getSchemaService().getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema schema = ctx.getSchemaService().getSchema(HibernateProxyUtils.getRealClass(object));
 
     schema.getPersistedProperties().values().stream()
         .filter(

@@ -53,6 +53,22 @@ import org.springframework.transaction.annotation.Transactional;
 class MetadataImportExportControllerIntegrationTest extends PostgresControllerIntegrationTestBase {
 
   @Test
+  void testAggregateDataExchangeSuccess() {
+    POST("/metadata/", Path.of("metadata/aggregate_data_exchange.json")).content(HttpStatus.OK);
+    JsonTypeReport typeReport =
+        POST("/aggregateDataExchanges/iFOyIpQciyk/exchange")
+            .content(HttpStatus.CONFLICT)
+            .get("response")
+            .as(JsonTypeReport.class);
+    JsonImportSummary report = typeReport.getImportSummaries().get(0).as(JsonImportSummary.class);
+    // ADE requires analytics so the best we can do in a test is to assert the SQL error thrown
+    // from the lack of analytics
+    String description = report.getDescription();
+    assertTrue(description.contains("bad SQL grammar"));
+    assertTrue(description.contains("from analytics"));
+  }
+
+  @Test
   void testPostJsonMetadata_Async() {
     JsonWebMessage msg =
         assertWebMessage(

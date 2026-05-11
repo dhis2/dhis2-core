@@ -34,11 +34,11 @@ import java.util.Map;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.fileresource.events.BinaryFileSavedEvent;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
+import org.hisp.dhis.storage.BlobKey;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.format.PeriodFormat;
@@ -127,22 +127,22 @@ public class FileResourceEventListener {
   @TransactionalEventListener
   @Async
   public void deleteFile(FileDeletedEvent deleteFileEvent) {
-    if (!fileResourceContentStore.fileResourceContentExists(deleteFileEvent.getStorageKey())) {
-      log.error(String.format("No file exist for key: %s", deleteFileEvent.getStorageKey()));
+    if (!fileResourceContentStore.fileResourceContentExists(deleteFileEvent.storageKey())) {
+      log.error(String.format("No file exist for key: %s", deleteFileEvent.storageKey()));
       return;
     }
 
-    if (FileResource.isImage(deleteFileEvent.getContentType())
-        && FileResourceDomain.isDomainForMultipleImages(deleteFileEvent.getDomain())) {
-      String storageKey = deleteFileEvent.getStorageKey();
+    if (FileResource.isImage(deleteFileEvent.contentType())
+        && FileResourceDomain.isDomainForMultipleImages(deleteFileEvent.domain())) {
+      String baseKey = deleteFileEvent.storageKey().value();
 
       Stream.of(ImageFileDimension.values())
           .forEach(
               d ->
                   fileResourceContentStore.deleteFileResourceContent(
-                      StringUtils.join(storageKey, d.getDimension())));
+                      new BlobKey(baseKey + d.getDimension())));
     } else {
-      fileResourceContentStore.deleteFileResourceContent(deleteFileEvent.getStorageKey());
+      fileResourceContentStore.deleteFileResourceContent(deleteFileEvent.storageKey());
     }
   }
 

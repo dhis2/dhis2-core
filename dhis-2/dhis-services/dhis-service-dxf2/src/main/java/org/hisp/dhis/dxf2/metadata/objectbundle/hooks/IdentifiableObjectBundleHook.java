@@ -33,7 +33,6 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.SortableObject;
@@ -69,9 +68,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
       identifiableObject.getSharing().setOwner(identifiableObject.getCreatedBy());
     }
 
-    Schema schema =
-        schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(identifiableObject));
-    handleAttributeValues(identifiableObject, schema);
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(identifiableObject));
     handleSkipSharing(identifiableObject, bundle);
     handleSkipTranslation(identifiableObject, bundle);
     handleSortOrder(identifiableObject, bundle, schema);
@@ -136,16 +133,8 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
 
     handleCreatedByProperty(object, persistedObject, bundle);
 
-    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
-    handleAttributeValues(object, schema);
+    Schema schema = schemaService.getSchema(HibernateProxyUtils.getRealClass(object));
     handleSortOrder(object, bundle, schema);
-  }
-
-  private void handleAttributeValues(IdentifiableObject object, Schema schema) {
-    if (!schema.hasPersistedProperty("attributeValues")) return;
-
-    object.setAttributeValues(
-        object.getAttributeValues().mapValues(v -> v.replaceAll("\\s{2,}", StringUtils.SPACE)));
   }
 
   /**

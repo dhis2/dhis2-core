@@ -103,7 +103,7 @@ public class FieldsConverter implements ConditionalGenericConverter {
           "Cannot convert fields without @OpenApi.EntityType annotation on the controller or method. "
               + "Ensure controller or method has @OpenApi.EntityType annotation and conversion happens within web request context.");
     }
-    Schema schema = schemaService.getDynamicSchema(entityClass);
+    Schema schema = schemaService.getSchema(entityClass);
     if (schema == null) {
       throw new IllegalArgumentException(
           "No schema found for entity class "

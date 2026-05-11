@@ -39,7 +39,6 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper(
     uses = {
-      DebugMapper.class,
       AttributeValuesMapper.class,
       ProgramMapper.class,
       TrackedEntityTypeMapper.class,

@@ -340,6 +340,29 @@ class PeriodCriteriaUtilsTest {
   }
 
   @Test
+  void testHasPeriodEnrollment_whenEventDateParameterIsPresent() {
+    EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
+    c.setEventDate("2022Sep");
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @Test
+  void testHasPeriodEnrollment_whenDimensionContainsStageDotEventDate() {
+    EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
+    c.getDimension().add("ZkbAXlQUYJG.EVENT_DATE:THIS_YEAR");
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @Test
+  void testHasPeriodEnrollment_whenFilterContainsStageDotScheduledDate() {
+    EnrollmentAnalyticsQueryCriteria c = getDefaultEnrollmentsAnalyticsQueryCriteria();
+    Set<String> filters = new HashSet<>();
+    filters.add("A03MvHHogjR.SCHEDULED_DATE:201910");
+    c.setFilter(filters);
+    assertTrue(PeriodCriteriaUtils.hasPeriod(c));
+  }
+
+  @Test
   void testHasPeriodEvent_whenDimensionContainsStageDotEventDate() {
     EventsAnalyticsQueryCriteria c = getDefaultEventsAnalyticsQueryCriteria();
     c.getDimension().add("ZkbAXlQUYJG.EVENT_DATE:THIS_YEAR");

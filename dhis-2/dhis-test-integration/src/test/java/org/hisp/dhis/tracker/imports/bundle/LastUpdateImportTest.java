@@ -29,6 +29,7 @@
  */
 package org.hisp.dhis.tracker.imports.bundle;
 
+import static org.hisp.dhis.test.utils.Assertions.assertHasSize;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.SoftDeletableEntity;
@@ -58,6 +60,7 @@ import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
+import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeAll;
@@ -133,9 +136,60 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
     assertTrue(
         lastUpdateAfter.getTime() > entityBeforeUpdate.getLastUpdated().getTime(),
         String.format(
-            "Data integrity error for tracked entity %s. The lastUpdated date has not been updated"
+            "Data integrity error for tracked entity %s. The tracked entity lastUpdated date has not been updated"
                 + " after the import",
             trackedEntity.getUID()));
+  }
+
+  @Test
+  void shouldUpdateTEALastUpdatedWhenTEAIsUpdated() throws IOException {
+    TrackerImportParams params =
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
+    testSetup.importTrackerData("tracker/one_te_with_one_attribute.json", params);
+    Set<TrackedEntityAttributeValue> values = getTrackedEntity().getTrackedEntityAttributeValues();
+    assertHasSize(1, values);
+    TrackedEntityAttributeValue attributeValue = values.iterator().next();
+    Date lastUpdatedBefore = attributeValue.getLastUpdated();
+    String attributeUid = attributeValue.getAttribute().getUid();
+
+    updateAttributeValue(attributeUid, "updated value");
+    TrackedEntityAttributeValue updatedValue =
+        getTrackedEntity().getTrackedEntityAttributeValues().iterator().next();
+
+    Date lastUpdatedAfter = updatedValue.getLastUpdated();
+    assertTrue(
+        lastUpdatedAfter.after(lastUpdatedBefore),
+        () ->
+            String.format(
+                "Data integrity error for tracked entity attribute %s. "
+                    + "The attribute lastUpdated date has not been updated after the import",
+                attributeUid));
+  }
+
+  @Test
+  void shouldNotUpdateTEALastUpdatedWhenTEAIsNotUpdated() throws IOException {
+    TrackerImportParams params =
+        TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
+    testSetup.importTrackerData("tracker/one_te_with_one_attribute.json", params);
+    Set<TrackedEntityAttributeValue> values = getTrackedEntity().getTrackedEntityAttributeValues();
+    assertHasSize(1, values);
+    TrackedEntityAttributeValue attributeValue = values.iterator().next();
+    Date lastUpdatedBefore = attributeValue.getLastUpdated();
+    String attributeUid = attributeValue.getAttribute().getUid();
+
+    updateAttributeValue(attributeUid, "original value");
+    TrackedEntityAttributeValue updatedValue =
+        getTrackedEntity().getTrackedEntityAttributeValues().iterator().next();
+
+    Date lastUpdatedAfter = updatedValue.getLastUpdated();
+    assertEquals(
+        lastUpdatedAfter,
+        lastUpdatedBefore,
+        () ->
+            String.format(
+                "Data integrity error for tracked entity attribute %s. "
+                    + "The attribute lastUpdated date has been updated after the import",
+                attributeUid));
   }
 
   @Test
@@ -684,5 +738,18 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
             .createQuery("SELECT e FROM " + entity + " e WHERE e.uid = :uid")
             .setParameter("uid", uid)
             .getSingleResult();
+  }
+
+  private void updateAttributeValue(String attribute, String attributeValue) throws IOException {
+    TrackerObjects trackerObjects = testSetup.fromJson("tracker/one_te_with_one_attribute.json");
+    trackerObjects.getTrackedEntities().get(0).getAttributes().stream()
+        .filter(attr -> attribute.equals(attr.getAttribute().getIdentifier()))
+        .findFirst()
+        .ifPresent(attr -> attr.setValue(attributeValue));
+
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    ImportReport report = trackerImportService.importTracker(params, trackerObjects);
+
+    assertNoErrors(report);
   }
 }

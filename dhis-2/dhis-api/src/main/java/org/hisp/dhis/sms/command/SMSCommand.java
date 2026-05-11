@@ -40,6 +40,7 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.Program;
@@ -284,7 +285,7 @@ public class SMSCommand extends BaseIdentifiableObject implements MetadataObject
   }
 
   @JsonProperty
-  @JsonSerialize(contentAs = BaseIdentifiableObject.class)
+  @JsonSerialize(contentAs = IdentifiableObject.class)
   @JacksonXmlProperty(localName = "program", namespace = DxfNamespaces.DXF_2_0)
   public Program getProgram() {
     return program;

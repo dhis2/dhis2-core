@@ -32,17 +32,32 @@ package org.hisp.dhis.analytics.event.data;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
+import static org.hisp.dhis.test.TestBase.createDataElement;
+import static org.hisp.dhis.test.TestBase.createLegend;
+import static org.hisp.dhis.test.TestBase.createLegendSet;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
+import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
 import org.hisp.dhis.analytics.common.ColumnHeader;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.legend.Legend;
+import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -85,11 +100,72 @@ class EventAggregateServiceTest {
   }
 
   @Test
-  void shouldFallbackToPeHeaderWhenPeriodDateFieldsAreMixed() throws Exception {
-    GridHeader header = invokeAddDimensionHeaders(mixedPeriodDateFieldsParams());
+  void shouldExpandMixedPeriodDateFieldsIntoSeparateHeaders() throws Exception {
+    Grid grid = invokeDimensionHeadersGrid(mixedPeriodDateFieldsParams());
 
-    assertEquals("pe", header.getName());
-    assertEquals("Period", header.getColumn());
+    assertEquals(
+        List.of("enrollmentdate", "pe"),
+        grid.getHeaders().stream().map(GridHeader::getName).toList());
+    assertEquals(
+        List.of("Enrollment date", "Period"),
+        grid.getHeaders().stream().map(GridHeader::getColumn).toList());
+  }
+
+  @Test
+  void shouldRemoveRawPeMetadataWhenNoDefaultAggregatePeriodIsVisible() throws Exception {
+    Grid grid = new ListGrid();
+    grid.getMetaData()
+        .put(
+            AnalyticsMetaDataKey.DIMENSIONS.getKey(),
+            new LinkedHashMap<>(
+                Map.of("scheduleddate", List.of("2021"), PERIOD_DIM_ID, List.of("2021"))));
+
+    invokePrivate(
+        "removeRawPeriodDimensionMetadata",
+        Grid.class,
+        EventQueryParams.class,
+        grid,
+        singleDateFieldParams("SCHEDULED_DATE", new Program()));
+
+    @SuppressWarnings("unchecked")
+    Map<String, List<String>> dimensions =
+        (Map<String, List<String>>)
+            grid.getMetaData().get(AnalyticsMetaDataKey.DIMENSIONS.getKey());
+
+    assertEquals(List.of("scheduleddate"), dimensions.keySet().stream().toList());
+  }
+
+  @Test
+  void shouldFallBackToAllLegendsWhenDimensionsMetadataOmitsLegendSetDataElement()
+      throws Exception {
+    Legend legendA = createLegend('A', 0.0, 2.0);
+    Legend legendB = createLegend('B', 2.0, 4.0);
+    LegendSet legendSet = createLegendSet('A', legendA, legendB);
+
+    DataElement dataElement = createDataElement('A');
+    dataElement.setValueType(ValueType.NUMBER);
+    dataElement.setLegendSets(List.of(legendSet));
+
+    Grid grid = new ListGrid();
+    grid.getMetaData().put(AnalyticsMetaDataKey.DIMENSIONS.getKey(), new HashMap<String, Object>());
+
+    List<EventAnalyticsDimensionalItem> dimensionalItems = new ArrayList<>();
+
+    invokeAddEventReportDimensionalItems(dataElement, dimensionalItems, grid, dataElement.getUid());
+
+    assertFalse(dimensionalItems.isEmpty());
+  }
+
+  @Test
+  void shouldNotNpeWhenItemsMetadataOmitsRowDimension() throws Exception {
+    String missingDimensionUid = "deUidAAAAA";
+
+    Grid grid = new ListGrid();
+    grid.getMetaData().put(AnalyticsMetaDataKey.ITEMS.getKey(), new HashMap<String, Object>());
+
+    EventQueryParams params = new EventQueryParams.Builder().build();
+
+    invokeGenerateOutputGrid(grid, params, List.of(), List.of(), List.of(missingDimensionUid));
   }
 
   @Test
@@ -109,9 +185,13 @@ class EventAggregateServiceTest {
   }
 
   private GridHeader invokeAddDimensionHeaders(EventQueryParams params) throws Exception {
+    return invokeDimensionHeadersGrid(params).getHeaders().get(0);
+  }
+
+  private Grid invokeDimensionHeadersGrid(EventQueryParams params) throws Exception {
     Grid grid = new ListGrid();
     invokePrivate("addDimensionHeaders", EventQueryParams.class, Grid.class, params, grid);
-    return grid.getHeaders().get(0);
+    return grid;
   }
 
   private void invokePrivate(
@@ -120,6 +200,43 @@ class EventAggregateServiceTest {
     Method method = EventAggregateService.class.getDeclaredMethod(methodName, arg0Type, arg1Type);
     method.setAccessible(true);
     method.invoke(service, arg0, arg1);
+  }
+
+  private void invokeAddEventReportDimensionalItems(
+      ValueTypedDimensionalItemObject item,
+      List<EventAnalyticsDimensionalItem> dimensionalItems,
+      Grid grid,
+      String dimension)
+      throws Exception {
+    Method method =
+        EventAggregateService.class.getDeclaredMethod(
+            "addEventReportDimensionalItems",
+            ValueTypedDimensionalItemObject.class,
+            List.class,
+            Grid.class,
+            String.class);
+    method.setAccessible(true);
+    method.invoke(service, item, dimensionalItems, grid, dimension);
+  }
+
+  private Grid invokeGenerateOutputGrid(
+      Grid grid,
+      EventQueryParams params,
+      List<Map<String, EventAnalyticsDimensionalItem>> rowPermutations,
+      List<Map<String, EventAnalyticsDimensionalItem>> columnPermutations,
+      List<String> rowDimensions)
+      throws Exception {
+    Method method =
+        EventAggregateService.class.getDeclaredMethod(
+            "generateOutputGrid",
+            Grid.class,
+            EventQueryParams.class,
+            List.class,
+            List.class,
+            List.class);
+    method.setAccessible(true);
+    return (Grid)
+        method.invoke(service, grid, params, rowPermutations, columnPermutations, rowDimensions);
   }
 
   private EventQueryParams singleDateFieldParams(String dateField, Program program) {

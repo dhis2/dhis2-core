@@ -169,7 +169,7 @@ public interface DataEntryStore {
 
   int deleteScope(@Nonnull DataEntryGroup.Scope scope);
 
-  int deleteByKeys(List<DataEntryKey> keys);
+  int deleteByKeys(List<DataValueKey> keys);
 
   int upsertValues(List<DataEntryValue> values);
 

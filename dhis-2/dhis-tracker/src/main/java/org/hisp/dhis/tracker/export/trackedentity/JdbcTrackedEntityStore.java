@@ -44,7 +44,6 @@ import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
@@ -55,6 +54,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.Page;
 import org.hisp.dhis.tracker.PageParams;
 import org.hisp.dhis.tracker.export.Order;
+import org.hisp.dhis.tracker.export.OrderJdbcClause;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.jdbc.core.SqlParameterValue;
@@ -72,6 +72,8 @@ class JdbcTrackedEntityStore {
   private static final String ENROLLMENT_ALIAS = "en";
 
   private static final String DEFAULT_ORDER = MAIN_QUERY_ALIAS + ".trackedentityid desc";
+
+  private static final String PK_COLUMN = MAIN_QUERY_ALIAS + ".trackedentityid";
 
   private static final String ENROLLMENT_DATE_ALIAS = "en_enrollmentdate";
 
@@ -163,7 +165,25 @@ class JdbcTrackedEntityStore {
     return ORDERABLE_FIELDS.keySet();
   }
 
-  private Long getTrackedEntityCount(TrackedEntityQueryParams params) {
+  public void updateTrackedEntitiesSyncTimestamp(Set<UID> trackedEntities, Date lastSynchronized) {
+    if (trackedEntities.isEmpty()) {
+      return;
+    }
+
+    String sql =
+        """
+                      UPDATE trackedentity SET lastsynchronized = :lastSynchronized WHERE uid IN (:uids)
+                      """;
+
+    MapSqlParameterSource parameters =
+        new MapSqlParameterSource()
+            .addValue("lastSynchronized", new java.sql.Timestamp(lastSynchronized.getTime()))
+            .addValue("uids", trackedEntities.stream().map(UID::toString).toList());
+
+    namedParameterJdbcTemplate.update(sql, parameters);
+  }
+
+  public Long getTrackedEntityCount(TrackedEntityQueryParams params) {
     // A te which is not enrolled can only be accessed by a user that is able to enroll it into a
     // tracker program. Return an empty result if there are no tracker programs or the user does
     // not have access to one.
@@ -610,18 +630,22 @@ class JdbcTrackedEntityStore {
       sqlParameters.addValue("eventStatus", EventStatus.SKIPPED.name());
     } else if (params.isEventStatus(EventStatus.SCHEDULE)) {
       sql.append(EVENT_ALIAS)
-          .append(".status is not null and ")
+          .append(".status != :skippedStatus")
+          .append(" and ")
           .append(EVENT_ALIAS)
           .append(".occurreddate is null and date(now()) <= date(")
           .append(EVENT_ALIAS)
           .append(".scheduleddate)");
+      sqlParameters.addValue("skippedStatus", EventStatus.SKIPPED.name());
     } else if (params.isEventStatus(EventStatus.OVERDUE)) {
       sql.append(EVENT_ALIAS)
-          .append(".status is not null and ")
+          .append(".status != :skippedStatus")
+          .append(" and ")
           .append(EVENT_ALIAS)
           .append(".occurreddate is null and date(now()) > date(")
           .append(EVENT_ALIAS)
           .append(".scheduleddate)");
+      sqlParameters.addValue("skippedStatus", EventStatus.SKIPPED.name());
     }
   }
 
@@ -714,6 +738,16 @@ class JdbcTrackedEntityStore {
         sql.append(whereAnd.whereAnd()).append(" te.lastupdated <= :lastUpdatedEndDate ");
         sqlParameters.addValue(
             "lastUpdatedEndDate", timestampParameter(params.getLastUpdatedEndDate()));
+      }
+    }
+
+    if (params.isSynchronizationQuery()) {
+      sql.append(whereAnd.whereAnd()).append(" te.lastupdated >= te.lastsynchronized ");
+
+      if (params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() != 0L) {
+        sql.append(" AND te.lastupdated >= :skipChangedBefore ");
+        sqlParameters.addValue(
+            "skipChangedBefore", timestampParameter(params.getSkipChangedBefore()));
       }
     }
 
@@ -825,7 +859,7 @@ class JdbcTrackedEntityStore {
    * LIMIT) and the outer query (to return results in the correct order).
    */
   private void addOrderBy(StringBuilder sql, TrackedEntityQueryParams params) {
-    List<String> orderFields = new ArrayList<>();
+    List<OrderJdbcClause.SqlOrder> orderFields = new ArrayList<>();
     for (Order order : params.getOrder()) {
       if (order.getField() instanceof String field) {
         if (!ORDERABLE_FIELDS.containsKey(field)) {
@@ -836,9 +870,9 @@ class JdbcTrackedEntityStore {
                   String.join(", ", ORDERABLE_FIELDS.keySet().stream().sorted().toList())));
         }
 
-        orderFields.add(ORDERABLE_FIELDS.get(field) + " " + order.getDirection());
+        orderFields.add(OrderJdbcClause.SqlOrder.of(ORDERABLE_FIELDS.get(field), order));
       } else if (order.getField() instanceof TrackedEntityAttribute tea) {
-        orderFields.add(quote(tea.getUid()) + " " + order.getDirection());
+        orderFields.add(OrderJdbcClause.SqlOrder.of(quote(tea.getUid()), order));
       } else {
         throw new IllegalArgumentException(
             String.format(
@@ -848,14 +882,7 @@ class JdbcTrackedEntityStore {
       }
     }
 
-    sql.append("order by ");
-
-    if (orderFields.isEmpty()) {
-      sql.append(DEFAULT_ORDER);
-      return;
-    }
-
-    sql.append(StringUtils.join(orderFields, ',')).append(", ").append(DEFAULT_ORDER);
+    sql.append(OrderJdbcClause.of(orderFields, DEFAULT_ORDER, PK_COLUMN));
   }
 
   /**

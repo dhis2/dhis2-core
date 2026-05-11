@@ -91,8 +91,8 @@ class InterpretationControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "Interpretation does not exist: xyz",
-        DELETE("/interpretations/xyz").content(HttpStatus.NOT_FOUND));
+        "Interpretation does not exist: i1234567890",
+        DELETE("/interpretations/i1234567890").content(HttpStatus.NOT_FOUND));
   }
 
   @Test

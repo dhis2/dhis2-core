@@ -37,6 +37,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.query.Filters;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
@@ -84,7 +85,7 @@ class DefaultQueryPlannerTest {
     when(schema.hasPersistedProperty("id")).thenReturn(true);
 
     PropertyPath displayNamePath = new PropertyPath(displayNameProperty, true);
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(schema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(schema);
     when(schemaService.getPropertyPath(DataElement.class, "displayName"))
         .thenReturn(displayNamePath);
 
@@ -115,7 +116,7 @@ class DefaultQueryPlannerTest {
     when(schema.hasPersistedProperty("id")).thenReturn(true);
 
     PropertyPath displayDescriptionPath = new PropertyPath(displayDescriptionProperty, true);
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(schema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(schema);
     when(schemaService.getPropertyPath(DataElement.class, "displayDescription"))
         .thenReturn(displayDescriptionPath);
 
@@ -142,7 +143,7 @@ class DefaultQueryPlannerTest {
     when(schema.hasPersistedProperty("id")).thenReturn(true);
 
     PropertyPath displayShortNamePath = new PropertyPath(displayShortNameProperty, true);
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(schema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(schema);
     when(schemaService.getPropertyPath(DataElement.class, "displayShortName"))
         .thenReturn(displayShortNamePath);
 
@@ -168,7 +169,7 @@ class DefaultQueryPlannerTest {
     when(schema.hasPersistedProperty("name")).thenReturn(true);
     when(schema.hasPersistedProperty("id")).thenReturn(true);
 
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(schema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(schema);
 
     // When: Query plan is created
     QueryPlan<DataElement> plan = queryPlanner.planQuery(query);
@@ -202,7 +203,7 @@ class DefaultQueryPlannerTest {
     PropertyPath displayNamePath = new PropertyPath(displayNameProperty, true);
     PropertyPath customPropertyPath = new PropertyPath(customProperty, false);
 
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(schema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(schema);
     when(schemaService.getPropertyPath(DataElement.class, "displayName"))
         .thenReturn(displayNamePath);
     when(schemaService.getPropertyPath(DataElement.class, "customProperty"))
@@ -231,7 +232,7 @@ class DefaultQueryPlannerTest {
     when(schema.hasPersistedProperty("id")).thenReturn(true);
 
     PropertyPath nonPersistedPath = new PropertyPath(nonPersistedProperty, false);
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(schema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(schema);
     when(schemaService.getPropertyPath(DataElement.class, "nonPersistedProperty"))
         .thenReturn(nonPersistedPath);
 
@@ -276,7 +277,7 @@ class DefaultQueryPlannerTest {
     when(parentSchema.getProperty("id")).thenReturn(idProperty);
     when(parentSchema.getProperty("name")).thenReturn(nameProperty);
 
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(dataElementSchema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(dataElementSchema);
 
     // PropertyPath for "parent.id"
     PropertyPath parentIdPath = new PropertyPath(idProperty, true, new String[] {"parent"});
@@ -324,7 +325,7 @@ class DefaultQueryPlannerTest {
     // Mock id property
     Property idProperty = mockSimplePersistedProperty("id");
 
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(dataElementSchema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(dataElementSchema);
 
     // PropertyPath for "parent.id"
     PropertyPath parentIdPath = new PropertyPath(idProperty, true, new String[] {"parent"});
@@ -370,7 +371,7 @@ class DefaultQueryPlannerTest {
 
     Property idProperty = mockSimplePersistedProperty("id");
 
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(dataElementSchema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(dataElementSchema);
 
     // PropertyPath for "parent.parent.id"
     PropertyPath deepPath = new PropertyPath(idProperty, true, new String[] {"parent", "parent"});
@@ -384,12 +385,9 @@ class DefaultQueryPlannerTest {
     assertTrue(plan.memoryQuery().isEmpty(), "Memory query should be empty");
   }
 
-  /**
-   * Tests that collection paths (e.g., dataElementGroups.id) go to in-memory query even with
-   * multiple filters.
-   */
+  /** Tests that collection id paths (e.g., dataElementGroups.id) are planned for DB filtering. */
   @Test
-  void testCollectionPathGoesToInMemory() {
+  void testCollectionIdPathPlannedToDb() {
     // Given: A filter on collection path
     Query<DataElement> query = Query.of(DataElement.class);
     query.add(Filters.eq("dataElementGroups.id", "group123"));
@@ -404,7 +402,7 @@ class DefaultQueryPlannerTest {
 
     Property idProperty = mockSimplePersistedProperty("id");
 
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(dataElementSchema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(dataElementSchema);
 
     // PropertyPath for collection path - marked as collection
     PropertyPath collectionPath =
@@ -415,9 +413,41 @@ class DefaultQueryPlannerTest {
     // When: Query plan is created
     QueryPlan<DataElement> plan = queryPlanner.planQuery(query);
 
-    // Then: Filter should be in in-memory query (collection paths require JOINs)
-    assertEquals(0, plan.dbQuery().getFilters().size(), "Collection path should NOT be in DB");
-    assertEquals(1, plan.memoryQuery().getFilters().size(), "Collection path should be in memory");
+    // Then: Planner keeps this filter in DB query; DB engine handles SQL predicate composition
+    assertEquals(1, plan.dbQuery().getFilters().size(), "Collection id path should be in DB");
+    assertEquals(
+        0, plan.dbQuery().getPredicateSuppliers().size(), "Planner should not add JPA predicates");
+    assertTrue(plan.memoryQuery().isEmpty(), "Memory query should be empty");
+  }
+
+  /** Tests that non-id collection paths still fall back to in-memory filtering. */
+  @Test
+  void testCollectionNonIdPathFallsBackToInMemory() {
+    Query<DataElement> query = Query.of(DataElement.class);
+    query.add(Filters.eq("dataElementGroups.name", "Group A"));
+
+    Schema dataElementSchema = mockSchema();
+    when(dataElementSchema.hasPersistedProperty("name")).thenReturn(true);
+    when(dataElementSchema.hasPersistedProperty("id")).thenReturn(true);
+
+    Property collectionProperty = mockCollectionProperty("dataElementGroups");
+    when(dataElementSchema.getProperty("dataElementGroups")).thenReturn(collectionProperty);
+
+    Property nameProperty = mockSimplePersistedProperty("name");
+
+    when(schemaService.getSchema(DataElement.class)).thenReturn(dataElementSchema);
+
+    PropertyPath collectionNamePath =
+        new PropertyPath(nameProperty, true, new String[] {"dataElementGroups"});
+    when(schemaService.getPropertyPath(DataElement.class, "dataElementGroups.name"))
+        .thenReturn(collectionNamePath);
+
+    QueryPlan<DataElement> plan = queryPlanner.planQuery(query);
+
+    assertEquals(
+        0, plan.dbQuery().getFilters().size(), "Collection non-id path should not be in DB");
+    assertEquals(
+        1, plan.memoryQuery().getFilters().size(), "Collection non-id path should be in memory");
   }
 
   /**
@@ -442,7 +472,7 @@ class DefaultQueryPlannerTest {
     Property parentProperty = mockManyToOneRelationshipProperty("parent", DataElement.class);
     when(dataElementSchema.getProperty("parent")).thenReturn(parentProperty);
 
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(dataElementSchema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(dataElementSchema);
 
     // PropertyPath for "id" (no alias)
     PropertyPath simpleIdPath = new PropertyPath(idProperty, true);
@@ -487,7 +517,7 @@ class DefaultQueryPlannerTest {
     Property createdByProperty = mockManyToOneRelationshipProperty("createdBy", Object.class);
     when(dataElementSchema.getProperty("createdBy")).thenReturn(createdByProperty);
 
-    when(schemaService.getDynamicSchema(DataElement.class)).thenReturn(dataElementSchema);
+    when(schemaService.getSchema(DataElement.class)).thenReturn(dataElementSchema);
 
     // PropertyPath for "id" (no alias)
     PropertyPath simpleIdPath = new PropertyPath(idProperty, true);
@@ -571,6 +601,7 @@ class DefaultQueryPlannerTest {
     property.setPersisted(true);
     property.setSimple(false);
     property.setCollection(true);
+    property.setItemKlass(DataElementGroup.class);
     return property;
   }
 }

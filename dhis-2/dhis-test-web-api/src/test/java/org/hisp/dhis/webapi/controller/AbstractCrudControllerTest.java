@@ -229,8 +229,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     "/users/" + id + "/translations",
                     "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn'}]}")
                 .content(HttpStatus.CONFLICT));
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1107);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E1107);
     assertEquals("Object type `User` is not translatable", error.getMessage());
   }
 
@@ -259,7 +258,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
     JsonTranslation translation = translations.get(0, JsonTranslation.class);
     assertEquals("sv", translation.getLocale());
     assertEquals("name", translation.getProperty());
-    assertEquals("name sv", translation.getValue());
+    assertEquals("name sv", translation.value());
   }
 
   @Test
@@ -286,8 +285,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn 1'},{'locale':'sv', 'property':'name', 'value':'namn2'}]}")
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E1106);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E1106);
     assertEquals(
         String.format(
             "There are duplicate translation records for property `name` and locale `sv` on DataSet `%s`",
@@ -303,8 +301,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "User with id notanid could not be found.",
-        PUT("/users/notanid/translations", translations).content(HttpStatus.NOT_FOUND));
+        "User with id notanid0001 could not be found.",
+        PUT("/users/notanid0001/translations", translations).content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -327,8 +325,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     "{'translations': [{'locale':'en', 'property':'name'}]}")
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4000);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E4000);
 
     assertEquals("Missing required property `value`", error.getMessage());
   }
@@ -353,8 +350,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     "{'translations': [{'locale':'en', 'value':'namn 1'}]}")
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4000);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E4000);
 
     assertEquals("Missing required property `property`", error.getMessage());
   }
@@ -379,8 +375,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
                     "{'translations': [{'property':'name', 'value':'namn 1'}]}")
                 .content(HttpStatus.CONFLICT));
 
-    JsonErrorReport error =
-        message.find(JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E4000);
+    JsonErrorReport error = message.findErrorReport(ErrorCode.E4000);
 
     assertEquals("Missing required property `locale`", error.getMessage());
   }
@@ -444,7 +439,13 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         HttpStatus.OK,
         PUT(
             "/users/" + peterUserId,
-            Body(oldPeter.getString("firstName").node().replaceWith("\"Fry\"").getDeclaration()),
+            Body(
+                oldPeter
+                    .getString("firstName")
+                    .node()
+                    .replaceWith("\"Fry\"")
+                    .getDeclaration()
+                    .toString()),
             ContentType(MediaType.APPLICATION_JSON)));
     JsonUser newPeter = GET("/users/{id}", peterUserId).content().as(JsonUser.class);
     assertEquals("Fry", newPeter.getFirstName());
@@ -493,8 +494,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "Map with id xyz could not be found.",
-        POST("/maps/xyz/favorite").content(HttpStatus.NOT_FOUND));
+        "Map with id m1234567890 could not be found.",
+        POST("/maps/m1234567890/favorite").content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -520,7 +521,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         409,
         "ERROR",
         "Objects of this class cannot be set as favorite",
-        DELETE("/users/xyz/favorite").content(HttpStatus.CONFLICT));
+        DELETE("/users/u1234567890/favorite").content(HttpStatus.CONFLICT));
   }
 
   @Test
@@ -529,8 +530,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "Map with id xyz could not be found.",
-        DELETE("/maps/xyz/favorite").content(HttpStatus.NOT_FOUND));
+        "Map with id m1234567890 could not be found.",
+        DELETE("/maps/m1234567890/favorite").content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -563,8 +564,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "Map with id xyz could not be found.",
-        POST("/maps/xyz/subscriber").content(HttpStatus.NOT_FOUND));
+        "Map with id m1234567890 could not be found.",
+        POST("/maps/m1234567890/subscriber").content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -587,8 +588,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "Map with id xyz could not be found.",
-        DELETE("/maps/xyz/subscriber").content(HttpStatus.NOT_FOUND));
+        "Map with id m1234567890 could not be found.",
+        DELETE("/maps/m1234567890/subscriber").content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -598,7 +599,7 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         409,
         "ERROR",
         "Objects of this class cannot be subscribed to",
-        DELETE("/users/xyz/subscriber").content(HttpStatus.CONFLICT));
+        DELETE("/users/u1234567890/subscriber").content(HttpStatus.CONFLICT));
   }
 
   @Test
@@ -607,9 +608,9 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "OrganisationUnit with id xyz could not be found.",
+        "OrganisationUnit with id ou123456789 could not be found.",
         PUT(
-                "/organisationUnits/xyz",
+                "/organisationUnits/ou123456789",
                 "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}")
             .content(HttpStatus.NOT_FOUND));
   }
@@ -730,8 +731,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "OrganisationUnit with id xyz could not be found.",
-        DELETE("/organisationUnits/xyz").content(HttpStatus.NOT_FOUND));
+        "OrganisationUnit with id ou123456789 could not be found.",
+        DELETE("/organisationUnits/ou123456789").content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -1015,8 +1016,8 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
         "Not Found",
         404,
         "ERROR",
-        "Program with id doesNotExist could not be found.",
-        PUT("/programs/doesNotExist/sharing", "{}").content(HttpStatus.NOT_FOUND));
+        "Program with id doesNotExt1 could not be found.",
+        PUT("/programs/doesNotExt1/sharing", "{}").content(HttpStatus.NOT_FOUND));
   }
 
   @Test
@@ -1076,25 +1077,23 @@ class AbstractCrudControllerTest extends H2ControllerIntegrationTestBase {
             .as(JsonImportSummary.class);
     assertEquals(
         "Invalid UID `11111111111` for property `DataSet`",
-        response
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4014)
-            .getMessage());
+        response.findErrorReport(ErrorCode.E4014).getMessage());
   }
 
   @Test
   void testUpdateObjectWithInvalidUid() {
     DataSet dataSet = createDataSet('A');
     dataSet.setPeriodType(PeriodType.getPeriodTypeByName("Monthly"));
-    dataSet.setUid("11111111111");
+    dataSet.setUid("ds123456789");
     manager.save(dataSet);
 
     PUT(
-            "/dataSets/11111111111",
-            "{'id':'11111111111','name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}")
+            "/dataSets/ds123456789",
+            "{'id':'ds123456789','name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}")
         .content(HttpStatus.OK);
 
     JsonIdentifiableObject response =
-        GET("/dataSets/11111111111").content().as(JsonIdentifiableObject.class);
+        GET("/dataSets/ds123456789").content().as(JsonIdentifiableObject.class);
     assertEquals("My data set", response.getName());
   }
 

@@ -96,7 +96,8 @@ public class AuditManager {
   }
 
   public void send(Audit audit) {
-    if (!auditMatrix.isEnabled(audit) || audit.getAuditableEntity() == null) {
+    if (!auditMatrix.isEnabled(audit)) return;
+    if (audit.getData() == null && audit.getAuditableEntity() == null) {
       log.debug("Audit message ignored:\n" + audit.toLog());
       return;
     }

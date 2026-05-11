@@ -207,4 +207,10 @@ class CategoryControllerTest extends H2ControllerIntegrationTestBase {
         " cannot have more than 500 combinations, but requires: 512",
         msg.getResponse().getArray("errorReports").getObject(0).getString("message").string());
   }
+
+  @Test
+  @DisplayName("API doesn't error when version 44 included in API call")
+  void v44ApiTest() {
+    assertStatus(HttpStatus.OK, GET("/44/categories"));
+  }
 }

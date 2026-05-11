@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2025, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,22 +29,73 @@
  */
 package org.hisp.dhis.datavalue;
 
-import lombok.Value;
-import lombok.experimental.Accessors;
+import static java.util.Objects.requireNonNull;
 
-/**
- * Data record for a usual data value key (with no attribute option combo).
- *
- * @author Jan Bernitt
- */
-@Value
-@Accessors(fluent = true)
-public class DataValueKey {
-  String de;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UsageTestOnly;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 
-  String ou;
+/** A record of the ID combination that points to a unique aggregate data value row. */
+public record DataValueKey(
+    @Nonnull UID dataElement,
+    @Nonnull UID orgUnit,
+    @CheckForNull UID categoryOptionCombo,
+    @CheckForNull UID attributeOptionCombo,
+    @Nonnull Period period)
+    implements DataValueId {
 
-  long pe;
+  public DataValueKey {
+    requireNonNull(dataElement);
+    requireNonNull(orgUnit);
+    requireNonNull(period);
+  }
 
-  String co;
+  @UsageTestOnly
+  public DataValueKey(
+      @Nonnull DataElement dataElement,
+      @Nonnull Period period,
+      @Nonnull OrganisationUnit orgUnit,
+      @CheckForNull CategoryOptionCombo categoryOptionCombo,
+      @CheckForNull CategoryOptionCombo attributeOptionCombo) {
+    this(
+        UID.of(dataElement),
+        UID.of(orgUnit),
+        UID.of(categoryOptionCombo),
+        UID.of(attributeOptionCombo),
+        period);
+  }
+
+  @Nonnull
+  public DataEntryValue toDeletedValue() {
+    return new DataEntryValue(
+        0,
+        dataElement,
+        orgUnit,
+        categoryOptionCombo,
+        attributeOptionCombo,
+        period,
+        null,
+        null,
+        null,
+        true);
+  }
+
+  public record Input(
+      @Nonnull String dataElement,
+      @Nonnull String orgUnit,
+      @CheckForNull String categoryOptionCombo,
+      @CheckForNull String attributeOptionCombo,
+      @Nonnull String period) {
+
+    public Input {
+      requireNonNull(dataElement);
+      requireNonNull(orgUnit);
+      requireNonNull(period);
+    }
+  }
 }

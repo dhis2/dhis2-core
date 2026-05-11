@@ -82,7 +82,6 @@ class InQueryCteFilterTest {
     InQueryCteFilter inQueryCteFilter = createFilter("name", "O'Connor;Smith-Jones", true);
     String actual = inQueryCteFilter.getSqlFilter(0);
     String expectedEnding = "_0.name in ('O''Connor','Smith-Jones')";
-    System.out.println(actual);
     assertTrue(
         actual.endsWith(expectedEnding), () -> "Expected string to end with: " + expectedEnding);
   }

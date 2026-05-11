@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.tracker.program.message;
 
-import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
@@ -40,7 +39,6 @@ import org.springframework.stereotype.Component;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@Slf4j
 @Component("org.hisp.dhis.tracker.program.message.EmailDeliveryChannelStrategy")
 public class EmailDeliveryChannelStrategy extends DeliveryChannelStrategy {
   // -------------------------------------------------------------------------
@@ -89,8 +87,6 @@ public class EmailDeliveryChannelStrategy extends DeliveryChannelStrategy {
     }
 
     if (violation != null) {
-      log.info("Message validation failed: " + violation);
-
       throw new IllegalQueryException(violation);
     }
   }
@@ -98,8 +94,6 @@ public class EmailDeliveryChannelStrategy extends DeliveryChannelStrategy {
   @Override
   public String getOrganisationUnitRecipient(OrganisationUnit orgUnit) {
     if (orgUnit.getEmail() == null) {
-      log.error("Organisation unit does not have an email address");
-
       throw new IllegalQueryException("Organisation unit does not have an email address");
     }
 

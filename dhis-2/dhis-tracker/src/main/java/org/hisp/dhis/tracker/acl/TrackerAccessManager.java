@@ -32,7 +32,7 @@ package org.hisp.dhis.tracker.acl;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.tracker.imports.validation.ErrorMessage;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.tracker.model.Enrollment;
 import org.hisp.dhis.tracker.model.Relationship;
 import org.hisp.dhis.tracker.model.SingleEvent;
@@ -45,66 +45,117 @@ import org.hisp.dhis.user.UserDetails;
  */
 public interface TrackerAccessManager {
   /**
-   * Checks the data read permissions and ownership of a tracked entity given the programs for which
-   * the user has metadata access to.
+   * Checks data read access to the TET and ownership of a tracked entity across programs for which
+   * the user has data read access.
    *
-   * @return No errors if a user has access to at least one program
+   * @return No errors if the user has TET data read access and ownership in at least one program.
    */
-  List<String> canRead(UserDetails user, TrackedEntity trackedEntity);
+  List<ErrorMessage> canRead(UserDetails user, TrackedEntity trackedEntity);
 
   /**
-   * Checks the data write permissions to the TET of a given tracked entity.
+   * Checks capture scope and data write permissions to the TET of a given tracked entity.
    *
-   * @return No errors if the user has write access to the TET.
+   * @return No errors if the user has capture scope access and write access to the TET.
    */
   List<ErrorMessage> canCreate(@Nonnull UserDetails user, TrackedEntity trackedEntity);
 
   /**
-   * Checks the data write permissions to the TET and ownership of a tracked entity given the
-   * programs for which the user has metadata access to.
+   * Checks data write access to the TET and ownership of the tracked entity across programs for
+   * which the user has data write access. When {@code orgUnit} differs from the stored tracked
+   * entity's org unit, capture scope access to it is also required.
    *
-   * @return No errors if a user has write access to the TET and access to at least one program
+   * @param user the user whose access is being validated.
+   * @param trackedEntity the stored tracked entity to update.
+   * @param orgUnit the org unit the caller intends to move the entity to; if no org unit change is
+   *     intended, pass the entity's existing org unit.
+   * @return No errors if the user has all required access rights to update the tracked entity.
    */
-  List<ErrorMessage> canUpdate(UserDetails user, TrackedEntity trackedEntity);
+  List<ErrorMessage> canUpdate(
+      UserDetails user, TrackedEntity trackedEntity, @Nonnull OrganisationUnit orgUnit);
 
-  /** See {@link #canUpdate(UserDetails, TrackedEntity)}. */
+  /**
+   * Like {@link #canUpdate(UserDetails, TrackedEntity, OrganisationUnit)}, but also requires
+   * capture scope access.
+   */
   List<ErrorMessage> canDelete(UserDetails user, TrackedEntity trackedEntity);
 
-  List<String> canRead(UserDetails user, Enrollment enrollment);
+  /**
+   * Checks data read access to the program and TET, and ownership of the enrollment.
+   *
+   * @return No errors if the user has data read access to the program and TET, and has ownership.
+   */
+  List<ErrorMessage> canRead(UserDetails user, Enrollment enrollment);
 
-  List<String> canCreate(UserDetails user, Enrollment enrollment);
+  /**
+   * Checks data write access to the program, data read access to the TET, ownership, capture scope,
+   * and category option combo write access for the enrollment.
+   *
+   * @return No errors if the user has all required access rights to create the enrollment.
+   */
+  List<ErrorMessage> canCreate(UserDetails user, Enrollment enrollment);
 
-  List<String> canUpdate(UserDetails user, Enrollment enrollment);
+  /**
+   * Checks data write access to the program, data read access to the TET, ownership, and category
+   * option combo write access. When {@code orgUnit} differs from the stored enrollment's org unit,
+   * capture scope access to it is also required.
+   *
+   * @param user the user whose access is being validated.
+   * @param enrollment the stored enrollment to update.
+   * @param orgUnit the org unit the caller intends to move the entity to; if no org unit change is
+   *     intended, pass the entity's existing org unit.
+   * @return No errors if the user has all required access rights to update the enrollment.
+   */
+  List<ErrorMessage> canUpdate(
+      UserDetails user, Enrollment enrollment, @Nonnull OrganisationUnit orgUnit);
 
-  List<String> canDelete(UserDetails user, Enrollment enrollment);
+  /** Like {@link #canCreate(UserDetails, Enrollment)}. */
+  List<ErrorMessage> canDelete(UserDetails user, Enrollment enrollment);
 
-  List<String> canRead(UserDetails user, TrackerEvent event);
+  /**
+   * Checks data read access to the program, program stage, and TET, ownership of the enrolled
+   * tracked entity, and data read access to the category option combo.
+   *
+   * @return No errors if the user has data read access to the program, program stage, and TET, has
+   *     ownership, and has data read access to the category option combo.
+   */
+  List<ErrorMessage> canRead(UserDetails user, TrackerEvent event);
+
+  /**
+   * Checks data write access to the program stage, data read access to the program and TET,
+   * ownership, data write access to the category option combo, and org unit scope access. The org
+   * unit is checked against the search scope if the event is creatable in search scope, otherwise
+   * against the capture scope.
+   *
+   * @return No errors if the user has all required access rights to create the event.
+   */
+  List<ErrorMessage> canCreate(UserDetails user, TrackerEvent event);
+
+  /**
+   * Checks data write access to the program stage, data read access to the program and TET,
+   * ownership, and data write access to the category option combo. When {@code orgUnit} differs
+   * from the stored event's org unit, capture scope access to it is also required.
+   *
+   * @param user the user whose access is being validated.
+   * @param event the stored event to update.
+   * @param orgUnit the org unit the caller intends to move the entity to; if no org unit change is
+   *     intended, pass the entity's existing org unit.
+   * @return No errors if the user has all required access rights to update the event.
+   */
+  List<ErrorMessage> canUpdate(
+      UserDetails user, TrackerEvent event, @Nonnull OrganisationUnit orgUnit);
+
+  /** Like {@link #canCreate(UserDetails, TrackerEvent)}. */
+  List<ErrorMessage> canDelete(UserDetails user, TrackerEvent event);
 
   List<String> canRead(UserDetails user, SingleEvent event);
 
   List<String> canCreate(UserDetails user, SingleEvent event);
-
-  List<String> canCreate(UserDetails user, TrackerEvent event);
-
-  List<String> canUpdate(UserDetails user, TrackerEvent event);
-
-  List<String> canDelete(UserDetails user, TrackerEvent event);
 
   List<String> canRead(UserDetails user, Relationship relationship);
 
   List<String> canCreate(UserDetails user, Relationship relationship);
 
   List<String> canDelete(UserDetails user, @Nonnull Relationship relationship);
-
-  /**
-   * Checks the sharing read access to EventDataValue
-   *
-   * @param user User validated for write access
-   * @param event Event under which the EventDataValue belongs
-   * @param dataElement DataElement of EventDataValue
-   * @return Empty list if read access allowed, list of errors otherwise.
-   */
-  List<String> canRead(UserDetails user, TrackerEvent event, DataElement dataElement);
 
   /**
    * Checks the sharing read access to EventDataValue

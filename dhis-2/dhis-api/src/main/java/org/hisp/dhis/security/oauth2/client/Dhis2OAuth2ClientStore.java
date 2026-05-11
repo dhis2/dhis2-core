@@ -33,7 +33,13 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
-/** Store for OAuth2Client entities. */
+/**
+ * Persistence store for {@link Dhis2OAuth2Client}. Used by the authorization server's {@link
+ * org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository}
+ * implementation to load clients at token-endpoint time.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 public interface Dhis2OAuth2ClientStore extends IdentifiableObjectStore<Dhis2OAuth2Client> {
 
   /**

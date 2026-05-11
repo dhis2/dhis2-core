@@ -92,4 +92,7 @@ public interface DataElementStore extends GenericDimensionalObjectStore<DataElem
    * @return all DataElements which the user has access to.
    */
   DataElement getDataElement(String uid, User user);
+
+  /** Get all DataElements that have any of the CategoryCombos */
+  List<DataElement> getByCategoryCombo(List<CategoryCombo> categoryCombos);
 }

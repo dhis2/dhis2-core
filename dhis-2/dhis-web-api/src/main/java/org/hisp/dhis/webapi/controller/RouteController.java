@@ -34,6 +34,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.auth.OAuth2ClientCredentialsAuthScheme;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.BadGatewayException;
@@ -160,7 +161,7 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
   @Override
   @PostMapping(value = "/addCollectionItem__disabled")
   @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
-  public WebMessage addCollectionItem(String pvUid, String pvProperty, String pvItemId)
+  public WebMessage addCollectionItem(UID uid, String property, UID itemId)
       throws NotFoundException, ConflictException, ForbiddenException, BadRequestException {
     throw new NotFoundException("Method not allowed");
   }
@@ -169,7 +170,7 @@ public class RouteController extends AbstractCrudController<Route, GetObjectList
   @PostMapping(value = "/deleteCollectionItem__disabled")
   @ResponseStatus(HttpStatus.METHOD_NOT_ALLOWED)
   public WebMessage deleteCollectionItem(
-      String pvUid, String pvProperty, String pvItemId, HttpServletResponse response)
+      UID uid, String property, UID itemId, HttpServletResponse response)
       throws NotFoundException, ForbiddenException, ConflictException, BadRequestException {
     throw new NotFoundException("Method not allowed");
   }

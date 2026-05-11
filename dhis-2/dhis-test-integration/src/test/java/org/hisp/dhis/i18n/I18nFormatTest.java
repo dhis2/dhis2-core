@@ -40,24 +40,60 @@ import org.junit.jupiter.params.provider.MethodSource;
 class I18nFormatTest {
 
   @ParameterizedTest
-  @MethodSource("providePeriodData")
+  @MethodSource("provideWeekPeriodData")
   void testFormatPeriod(String period, String expected) {
     I18nFormat i18nFormat = new I18nFormat();
     assertEquals(expected, i18nFormat.formatPeriod(Period.of(period)));
   }
 
-  private static Stream<Arguments> providePeriodData() {
+  @ParameterizedTest
+  @MethodSource("provideWeekPeriodDataShortVersion")
+  void testFormatPeriodShortVersion(String period, String expected) {
+    I18nFormat i18nFormat = new I18nFormat();
+    assertEquals(expected, i18nFormat.formatPeriod(Period.of(period), true));
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideBiWeekPeriodData")
+  void testFormatPeriodBiWeekVersion(String period, String expected) {
+    I18nFormat i18nFormat = new I18nFormat();
+    assertEquals(expected, i18nFormat.formatPeriod(Period.of(period), false));
+  }
+
+  private static Stream<Arguments> provideWeekPeriodDataShortVersion() {
     return Stream.of(
-        Arguments.of("2024W1", "Week 1 2024-01-01 - 2024-01-07"),
-        Arguments.of("2024W2", "Week 2 2024-01-08 - 2024-01-14"),
-        Arguments.of("2024W3", "Week 3 2024-01-15 - 2024-01-21"),
-        Arguments.of("2021W1", "Week 1 2021-01-04 - 2021-01-10"),
-        Arguments.of("2021W2", "Week 2 2021-01-11 - 2021-01-17"),
-        Arguments.of("2024SunW1", "Week 1 2023-12-31 - 2024-01-06"),
-        Arguments.of("2024ThuW1", "Week 1 2024-01-04 - 2024-01-10"),
-        Arguments.of("2024SatW1", "Week 1 2023-12-30 - 2024-01-05"),
-        Arguments.of("2024WedW2", "Week 2 2024-01-10 - 2024-01-16"),
-        Arguments.of("2024ThuW2", "Week 2 2024-01-11 - 2024-01-17"),
-        Arguments.of("2024SatW2", "Week 2 2024-01-06 - 2024-01-12"));
+        Arguments.of("2024W1", "W1 - 2024-01-01 - 2024-01-07"),
+        Arguments.of("2024W2", "W2 - 2024-01-08 - 2024-01-14"),
+        Arguments.of("2024W3", "W3 - 2024-01-15 - 2024-01-21"),
+        Arguments.of("2021W1", "W1 - 2021-01-04 - 2021-01-10"),
+        Arguments.of("2021W2", "W2 - 2021-01-11 - 2021-01-17"),
+        Arguments.of("2024SunW1", "W1 - 2023-12-31 - 2024-01-06"),
+        Arguments.of("2024ThuW1", "W1 - 2024-01-04 - 2024-01-10"),
+        Arguments.of("2024SatW1", "W1 - 2023-12-30 - 2024-01-05"),
+        Arguments.of("2024WedW2", "W2 - 2024-01-10 - 2024-01-16"),
+        Arguments.of("2024ThuW2", "W2 - 2024-01-11 - 2024-01-17"),
+        Arguments.of("2024SatW2", "W2 - 2024-01-06 - 2024-01-12"));
+  }
+
+  private static Stream<Arguments> provideWeekPeriodData() {
+    return Stream.of(
+        Arguments.of("2024W1", "Week 1 - 2024-01-01 - 2024-01-07"),
+        Arguments.of("2024W2", "Week 2 - 2024-01-08 - 2024-01-14"),
+        Arguments.of("2024W3", "Week 3 - 2024-01-15 - 2024-01-21"),
+        Arguments.of("2021W1", "Week 1 - 2021-01-04 - 2021-01-10"),
+        Arguments.of("2021W2", "Week 2 - 2021-01-11 - 2021-01-17"),
+        Arguments.of("2024SunW1", "Week 1 - 2023-12-31 - 2024-01-06"),
+        Arguments.of("2024ThuW1", "Week 1 - 2024-01-04 - 2024-01-10"),
+        Arguments.of("2024SatW1", "Week 1 - 2023-12-30 - 2024-01-05"),
+        Arguments.of("2024WedW2", "Week 2 - 2024-01-10 - 2024-01-16"),
+        Arguments.of("2024ThuW2", "Week 2 - 2024-01-11 - 2024-01-17"),
+        Arguments.of("2024SatW2", "Week 2 - 2024-01-06 - 2024-01-12"));
+  }
+
+  private static Stream<Arguments> provideBiWeekPeriodData() {
+    return Stream.of(
+        Arguments.of("2024BiW1", "Bi-Week 1 - 2024-01-01 - 2024-01-14"),
+        Arguments.of("2024BiW2", "Bi-Week 2 - 2024-01-15 - 2024-01-28"),
+        Arguments.of("2024BiW3", "Bi-Week 3 - 2024-01-29 - 2024-02-11"));
   }
 }

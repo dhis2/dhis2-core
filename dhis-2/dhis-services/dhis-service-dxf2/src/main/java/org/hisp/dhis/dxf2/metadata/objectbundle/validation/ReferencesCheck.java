@@ -106,8 +106,7 @@ public class ReferencesCheck implements ValidationCheck {
 
     List<PreheatErrorReport> preheatErrorReports = new ArrayList<>();
 
-    Schema schema =
-        ctx.getSchemaService().getDynamicSchema(HibernateProxyUtils.getRealClass(object));
+    Schema schema = ctx.getSchemaService().getSchema(HibernateProxyUtils.getRealClass(object));
 
     schema.getProperties().stream()
         .filter(
@@ -155,7 +154,7 @@ public class ReferencesCheck implements ValidationCheck {
       Property p,
       EmbeddedObject embeddedObject) {
     Schema embeddedSchema =
-        ctx.getSchemaService().getDynamicSchema(p.isCollection() ? p.getItemKlass() : p.getKlass());
+        ctx.getSchemaService().getSchema(p.isCollection() ? p.getItemKlass() : p.getKlass());
     embeddedSchema.getProperties().stream()
         .filter(
             ep ->
@@ -266,8 +265,10 @@ public class ReferencesCheck implements ValidationCheck {
       List<PreheatErrorReport> preheatErrorReports) {
     object
         .getAttributeValues()
+        .keys()
         .forEach(
-            (attributeId, value) -> {
+            key -> {
+              String attributeId = key.toString();
               if (preheat.get(PreheatIdentifier.UID, Attribute.class, attributeId) == null) {
                 preheatErrorReports.add(
                     new PreheatErrorReport(

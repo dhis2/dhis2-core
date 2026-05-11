@@ -401,6 +401,12 @@ public class DefaultCategoryService implements CategoryService {
 
   @Override
   @Transactional(readOnly = true)
+  public CategoryCombo getCategoryCombo(UID uid) {
+    return categoryComboStore.getByUid(uid);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public CategoryCombo getCategoryComboByName(String name) {
     return categoryComboStore.getByName(name);
   }

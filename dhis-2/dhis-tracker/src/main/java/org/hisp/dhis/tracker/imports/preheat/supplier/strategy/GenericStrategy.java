@@ -55,7 +55,7 @@ public class GenericStrategy extends AbstractSchemaStrategy {
   }
 
   public void add(Class<?> klazz, List<List<String>> splitList, TrackerPreheat preheat) {
-    Schema schema = schemaService.getDynamicSchema(klazz);
+    Schema schema = schemaService.getSchema(klazz);
     queryForIdentifiableObjects(
         preheat,
         schema,

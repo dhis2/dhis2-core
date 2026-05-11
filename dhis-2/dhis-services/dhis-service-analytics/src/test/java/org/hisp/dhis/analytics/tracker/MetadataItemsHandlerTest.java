@@ -37,6 +37,7 @@ import static org.hisp.dhis.common.DimensionConstants.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionConstants.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.EVENT;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createLegend;
 import static org.hisp.dhis.test.TestBase.createLegendSet;
@@ -58,6 +59,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -87,6 +89,7 @@ import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
+import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -206,8 +209,8 @@ class MetadataItemsHandlerTest {
 
     @Test
     @DisplayName(
-        "should use raw item ID as dimension key for option set items in non-query context")
-    void shouldUseRawItemIdAsDimensionKeyForOptionSetItemsInNonQueryContext() {
+        "should use stage-prefixed dimension key for stage-scoped option set items in aggregate context")
+    void shouldUseStagePrefixedDimensionKeyForStageScopedOptionSetItemsInAggregateContext() {
       // Given
       Grid grid = new ListGrid();
 
@@ -225,12 +228,12 @@ class MetadataItemsHandlerTest {
               optionSetA);
       queryItem.setProgramStage(programStage);
 
-      // 3. Create params for a NON-QUERY action (AGGREGATE)
+      // 3. Create params for an aggregate action.
       EventQueryParams params =
           new EventQueryParams.Builder()
               .withProgram(programA)
               .withSkipMeta(false)
-              .withEndpointAction(AGGREGATE) // This ensures itemOptions is empty
+              .withEndpointAction(AGGREGATE)
               .withOrganisationUnits(List.of(orgUnitA))
               .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
               .addItem(queryItem)
@@ -248,20 +251,13 @@ class MetadataItemsHandlerTest {
 
       assertNotNull(dimensions);
 
-      // THE BUG CHECK:
-      // The bug causes the key to be "ProgramStageID.DataElementID"
-      // The fix ensures the key is just "DataElementID"
-
-      // 1. Assert the RAW ID is present
-      assertTrue(
-          dimensions.containsKey(dataElementA.getUid()),
-          "Dimensions map should contain the raw Data Element UID key");
-
-      // 2. Assert the PREFIXED ID is NOT present
       String prefixedId = programStage.getUid() + "." + dataElementA.getUid();
-      assertFalse(
+      assertTrue(
           dimensions.containsKey(prefixedId),
-          "Dimensions map should NOT contain the ProgramStage prefixed UID key");
+          "Dimensions map should contain the ProgramStage-prefixed Data Element UID key");
+      assertFalse(
+          dimensions.containsKey(dataElementA.getUid()),
+          "Dimensions map should not contain the raw Data Element UID key for stage-scoped items");
     }
 
     @Test
@@ -1662,6 +1658,109 @@ class MetadataItemsHandlerTest {
       assertNotNull(items);
       assertTrue(items.containsKey(orgUnitA.getUid()));
       assertTrue(items.containsKey(orgUnitB.getUid()));
+      assertTrue(items.containsKey("enrollmentou"));
+      assertEquals("Enrollment org. unit", ((MetadataItem) items.get("enrollmentou")).getName());
+    }
+  }
+
+  @Nested
+  @DisplayName("Program Status Metadata Tests")
+  class ProgramStatusMetadataTests {
+
+    @Test
+    @DisplayName("should include programstatus key in dimensions with selected statuses")
+    void shouldIncludeProgramStatusDimensions() {
+      Grid grid = new ListGrid();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(QUERY)
+              .withEnrollmentStatuses(
+                  new LinkedHashSet<>(List.of(EnrollmentStatus.ACTIVE, EnrollmentStatus.COMPLETED)))
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+      when(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(any()))
+          .thenReturn(Map.of());
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+
+      assertNotNull(dimensions);
+      assertTrue(dimensions.containsKey("programstatus"));
+      assertEquals(List.of("ACTIVE", "COMPLETED"), dimensions.get("programstatus"));
+    }
+
+    @Test
+    @DisplayName("should include programstatus and enrollment status items metadata")
+    void shouldIncludeProgramStatusItemsMetadata() {
+      Grid grid = new ListGrid();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(QUERY)
+              .withEnrollmentStatuses(new LinkedHashSet<>(List.of(EnrollmentStatus.ACTIVE)))
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+      when(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(any()))
+          .thenReturn(Map.of());
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+
+      assertNotNull(items);
+      assertTrue(items.containsKey("programstatus"));
+      assertEquals("Program status", ((MetadataItem) items.get("programstatus")).getName());
+
+      assertTrue(items.containsKey("ACTIVE"));
+      assertEquals("Active", ((MetadataItem) items.get("ACTIVE")).getName());
+
+      assertFalse(items.containsKey("COMPLETED"));
+      assertFalse(items.containsKey("CANCELLED"));
+    }
+
+    @Test
+    @DisplayName("should include programstatus dimensions and items for event query endpoint")
+    void shouldIncludeProgramStatusMetadataForEventQueryEndpoint() {
+      Grid grid = new ListGrid();
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(QUERY)
+              .withEndpointItem(EVENT)
+              .withEnrollmentStatuses(new LinkedHashSet<>(List.of(EnrollmentStatus.ACTIVE)))
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+      when(organisationUnitResolver.getMetadataItemsForOrgUnitDataElements(any()))
+          .thenReturn(Map.of());
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+
+      assertNotNull(dimensions);
+      assertEquals(List.of("ACTIVE"), dimensions.get("programstatus"));
+
+      assertNotNull(items);
+      assertEquals("Program status", ((MetadataItem) items.get("programstatus")).getName());
+      assertEquals("Active", ((MetadataItem) items.get("ACTIVE")).getName());
     }
   }
 

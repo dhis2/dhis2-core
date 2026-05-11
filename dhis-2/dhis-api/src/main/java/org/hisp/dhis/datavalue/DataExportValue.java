@@ -99,8 +99,8 @@ public record DataExportValue(
     return followUp != null && followUp;
   }
 
-  public DataEntryKey toKey() {
-    return new DataEntryKey(
+  public DataValueKey toKey() {
+    return new DataValueKey(
         dataElement, orgUnit, categoryOptionCombo, attributeOptionCombo, period);
   }
 
@@ -132,6 +132,32 @@ public record DataExportValue(
       // Note: AOC + COC can be null
       // AOC if it is defined in a group's header or is default
       // COC if it is default
+    }
+
+    public Output(
+        @Nonnull String dataElement,
+        @CheckForNull String period,
+        @CheckForNull String orgUnit,
+        @CheckForNull String categoryOptionCombo,
+        @CheckForNull String attributeOptionCombo,
+        @Nonnull ValueType type,
+        @CheckForNull String value,
+        @CheckForNull String comment) {
+      this(
+          dataElement,
+          period,
+          orgUnit,
+          categoryOptionCombo,
+          null,
+          attributeOptionCombo,
+          type,
+          value,
+          comment,
+          null,
+          null,
+          null,
+          null,
+          false);
     }
   }
 }

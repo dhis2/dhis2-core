@@ -37,6 +37,7 @@ import jakarta.persistence.criteria.Root;
 import jakarta.persistence.criteria.Subquery;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
@@ -45,6 +46,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.JpaPredicateSupplier;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
 
 /**
@@ -85,6 +87,7 @@ public class UserPredicateSupplier implements JpaPredicateSupplier {
     addAuthSubsetCondition(builder, query, u2, conditions);
     addDisjointRolesCondition(builder, query, u2, conditions);
     addUserGroupCondition(u2, conditions);
+    addInvitationExpiryCondition(builder, u2, conditions);
 
     subquery.where(conditions.toArray(new Predicate[0]));
     return builder.exists(subquery);
@@ -176,5 +179,15 @@ public class UserPredicateSupplier implements JpaPredicateSupplier {
     Collection<Long> groupIds = IdentifiableObjectUtils.getIdentifiers(params.getUserGroups());
     Join<Object, Object> groupJoin = u2.join("groups");
     conditions.add(groupJoin.get("id").in(groupIds));
+  }
+
+  private void addInvitationExpiryCondition(
+      CriteriaBuilder builder, Root<User> u2, List<Predicate> conditions) {
+    if (params.getInvitationStatus() != UserInvitationStatus.EXPIRED) return;
+
+    conditions.add(builder.isTrue(u2.get("invitation")));
+    conditions.add(builder.isNotNull(u2.get("restoreToken")));
+    conditions.add(builder.isNotNull(u2.get("restoreExpiry")));
+    conditions.add(builder.lessThan(u2.get("restoreExpiry"), new Date()));
   }
 }

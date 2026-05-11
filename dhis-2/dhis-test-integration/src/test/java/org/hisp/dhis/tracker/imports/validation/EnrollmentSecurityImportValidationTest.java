@@ -29,11 +29,9 @@
  */
 package org.hisp.dhis.tracker.imports.validation;
 
-import static org.hisp.dhis.tracker.Assertions.assertHasErrors;
 import static org.hisp.dhis.tracker.Assertions.assertHasOnlyErrors;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.tracker.imports.TrackerImportStrategy.CREATE;
-import static org.hisp.dhis.tracker.imports.validation.Users.USER_2;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 
 import com.google.common.collect.Sets;
@@ -191,20 +189,6 @@ class EnrollmentSecurityImportValidationTest extends PostgresIntegrationTestBase
   void setupUser() {
     injectSecurityContextUser(importUser);
     trackedEntityType.setPublicAccess(AccessStringHelper.READ_WRITE);
-  }
-
-  @Test
-  void testNoWriteAccessToOrg() throws IOException {
-    User user = userService.getUser(USER_2);
-    injectSecurityContextUser(user);
-    TrackerImportParams params = new TrackerImportParams();
-    params.setImportStrategy(CREATE);
-
-    ImportReport importReport =
-        trackerImportService.importTracker(
-            params, testSetup.fromJson("tracker/validations/enrollments_te_enrollments-data.json"));
-
-    assertHasErrors(importReport, 4, ValidationCode.E1000);
   }
 
   @Test

@@ -34,11 +34,8 @@ import java.util.Optional;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.scheduling.JobParameters;
 
 /**
@@ -53,10 +50,6 @@ public class SingleEventDataSynchronizationJobParameters implements JobParameter
   static final int PAGE_SIZE_MAX = 200;
 
   @JsonProperty private int pageSize = 60;
-
-  @OpenApi.Property({UID.class, Program.class})
-  @JsonProperty(required = true)
-  private String program;
 
   @Override
   public Optional<ErrorReport> validate() {

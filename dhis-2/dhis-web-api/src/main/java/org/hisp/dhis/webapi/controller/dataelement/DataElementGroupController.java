@@ -41,6 +41,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -74,7 +75,7 @@ public class DataElementGroupController
 
   @GetMapping("/{uid}/operands")
   public String getOperands(
-      @PathVariable("uid") String uid, @RequestParam Map<String, String> parameters, Model model)
+      @PathVariable("uid") UID uid, @RequestParam Map<String, String> parameters, Model model)
       throws NotFoundException {
     WebOptions options = new WebOptions(parameters);
 
@@ -102,7 +103,7 @@ public class DataElementGroupController
 
   @GetMapping("/{uid}/operands/query/{q}")
   public String getOperandsByQuery(
-      @PathVariable("uid") String uid,
+      @PathVariable("uid") UID uid,
       @PathVariable("q") String q,
       @RequestParam Map<String, String> parameters,
       Model model)

@@ -88,7 +88,7 @@ public class DefaultSystemSettingsTranslationService implements SystemSettingsTr
         datastore.deleteEntry(e);
         return;
       }
-      e.setValue(translations.node().removeMembers(Set.of(locale)).getDeclaration());
+      e.setValue(translations.node().removeMembers(Set.of(locale)).getDeclaration().toString());
       datastore.saveOrUpdateEntry(e);
     } else {
       if (e == null) {
@@ -101,7 +101,8 @@ public class DefaultSystemSettingsTranslationService implements SystemSettingsTr
             translations
                 .node()
                 .addMembers(obj -> obj.addString(locale, translation))
-                .getDeclaration());
+                .getDeclaration()
+                .toString());
         datastore.saveOrUpdateEntry(e);
       }
     }

@@ -35,7 +35,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {DebugMapper.class, AttributeValuesMapper.class})
+@Mapper(uses = {AttributeValuesMapper.class})
 public interface CategoryMapper extends PreheatMapper<Category> {
   CategoryMapper INSTANCE = Mappers.getMapper(CategoryMapper.class);
 

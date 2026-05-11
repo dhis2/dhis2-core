@@ -152,8 +152,7 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
 
   @SuppressWarnings("unchecked")
   @GetMapping(produces = "application/dsd+xml")
-  public void getStructureDefinition(
-      @RequestParam Map<String, String> parameters, HttpServletResponse response)
+  public void getStructureDefinition(HttpServletResponse response)
       throws IOException, TransformerException {
     MetadataExportParams exportParams = filterMetadataOptions();
 
@@ -187,9 +186,7 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
   @GetMapping("/{uid}/version")
   @ResponseBody
   @ResponseStatus(HttpStatus.OK)
-  public Map<String, Integer> getVersion(
-      @PathVariable("uid") String uid, @RequestParam Map<String, String> parameters)
-      throws Exception {
+  public Map<String, Integer> getVersion(@PathVariable("uid") UID uid) throws Exception {
     DataSet dataSet = manager.get(DataSet.class, uid);
 
     if (dataSet == null) {
@@ -201,7 +198,7 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
 
   @PostMapping("/{uid}/version")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void bumpVersion(@PathVariable("uid") String uid) throws Exception {
+  public void bumpVersion(@PathVariable("uid") UID uid) throws Exception {
     DataSet dataSet = manager.get(DataSet.class, uid);
 
     if (dataSet == null) {
@@ -221,7 +218,7 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
       })
   @GetMapping("/{uid}/categoryCombos")
   public ResponseEntity<JsonRoot> getCategoryCombinations(
-      @PathVariable("uid") String uid, @RequestParam(defaultValue = "*") List<FieldPath> fields)
+      @PathVariable("uid") UID uid, @RequestParam(defaultValue = "*") List<FieldPath> fields)
       throws Exception {
     DataSet dataSet = manager.get(DataSet.class, uid);
 
@@ -244,7 +241,7 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
 
   @GetMapping("/{uid}/dataValueSet")
   public @ResponseBody RootNode getDvs(
-      @PathVariable("uid") String uid,
+      @PathVariable("uid") UID uid,
       @RequestParam(value = "orgUnitIdScheme", defaultValue = "ID", required = false)
           String orgUnitIdScheme,
       @RequestParam(value = "dataElementIdScheme", defaultValue = "ID", required = false)
@@ -264,8 +261,8 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
   @ResponseBody
   @ResponseStatus(HttpStatus.OK)
   public Form getFormJson(
-      @PathVariable("uid") String uid,
-      @RequestParam(value = "ou", required = false) String orgUnit,
+      @PathVariable("uid") UID uid,
+      @RequestParam(value = "ou", required = false) UID orgUnit,
       @RequestParam(value = "pe", required = false) String period,
       @RequestParam(value = "categoryOptions", required = false) String categoryOptions,
       @RequestParam(required = false) boolean metaData)
@@ -286,8 +283,8 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
       value = "/{uid}/form",
       produces = {APPLICATION_XML_VALUE, TEXT_XML_VALUE})
   public void getFormXml(
-      @PathVariable("uid") String uid,
-      @RequestParam(value = "ou", required = false) String orgUnit,
+      @PathVariable("uid") UID uid,
+      @RequestParam(value = "ou", required = false) UID orgUnit,
       @RequestParam(value = "pe", required = false) String period,
       @RequestParam(value = "catOpts", required = false) String categoryOptions,
       @RequestParam(required = false) boolean metaData,
@@ -372,7 +369,7 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
       consumes = TEXT_HTML_VALUE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void updateCustomDataEntryFormHtml(
-      @PathVariable("uid") String uid, @RequestBody String formContent) throws NotFoundException {
+      @PathVariable("uid") UID uid, @RequestBody String formContent) throws NotFoundException {
     DataSet dataSet = getEntity(uid);
 
     DataEntryForm form = dataSet.getDataEntryForm();
@@ -393,8 +390,8 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
   @PostMapping(value = "/{uid}/form", consumes = APPLICATION_JSON_VALUE)
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void updateCustomDataEntryFormJson(
-      @PathVariable("uid") String uid, HttpServletRequest request) throws WebMessageException {
-    DataSet dataSet = dataSetService.getDataSet(uid);
+      @PathVariable("uid") UID uid, HttpServletRequest request) throws WebMessageException {
+    DataSet dataSet = dataSetService.getDataSet(uid.getValue());
 
     if (dataSet == null) {
       throw new WebMessageException(notFound("DataSet not found for uid: " + uid));
@@ -435,13 +432,13 @@ public class DataSetController extends AbstractCrudController<DataSet, GetObject
 
   @GetMapping("/{uid}/metadata")
   public ResponseEntity<MetadataExportParams> getDataSetWithDependencies(
-      @PathVariable("uid") String pvUid,
+      @PathVariable("uid") UID uid,
       @RequestParam(required = false, defaultValue = "false") boolean download)
       throws WebMessageException {
-    DataSet dataSet = dataSetService.getDataSet(pvUid);
+    DataSet dataSet = dataSetService.getDataSet(uid.getValue());
 
     if (dataSet == null) {
-      throw new WebMessageException(notFound("DataSet not found for uid: " + pvUid));
+      throw new WebMessageException(notFound("DataSet not found for uid: " + uid));
     }
 
     MetadataExportParams exportParams =

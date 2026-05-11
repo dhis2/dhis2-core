@@ -48,6 +48,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.springframework.security.core.session.SessionInformation;
@@ -491,6 +492,26 @@ public interface UserService {
   UserDetails createUserDetailsSafe(@Nonnull String userUid);
 
   /**
+   * Creates {@link UserDetails} for the user with the given username. The user lookup and details
+   * creation happen within a single transaction, ensuring lazy collections are accessible.
+   *
+   * @param username the username to look up
+   * @return the {@link UserDetails} or {@code null} if no user with the given username exists
+   */
+  @CheckForNull
+  UserDetails createUserDetailsByUsername(@Nonnull String username);
+
+  /**
+   * Creates {@link UserDetails} for the user with the given OpenID. The user lookup and details
+   * creation happen within a single transaction, ensuring lazy collections are accessible.
+   *
+   * @param openId the OpenID to look up
+   * @return the {@link UserDetails} or {@code null} if no user with the given OpenID exists
+   */
+  @CheckForNull
+  UserDetails createUserDetailsByOpenId(@Nonnull String openId);
+
+  /**
    * It creates a CurrentUserDetailsImpl object from a User object. It also fetches the users locked
    * and credentials expired status.
    *
@@ -866,7 +887,9 @@ public interface UserService {
    * @param password the password for the new user
    * @return the newly created user replica
    * @throws ConflictException if validation fails
+   * @throws ForbiddenException if the current user lacks permission to manage any of the source
+   *     user's groups
    */
   User replicateUser(User existingUser, String username, String password)
-      throws ConflictException, NotFoundException, BadRequestException;
+      throws ConflictException, NotFoundException, BadRequestException, ForbiddenException;
 }

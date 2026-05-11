@@ -39,6 +39,15 @@ public interface ProgramNotificationTemplateService {
 
   ProgramNotificationTemplate getByUid(String programNotificationTemplate);
 
+  /**
+   * Returns a cached template for use in async notification threads. The returned template may be
+   * detached from any Hibernate session but has its scalar associations initialized
+   * (deliveryChannels, recipientDataElement, recipientProgramAttribute). USER_GROUP templates are
+   * not cached and are loaded fresh from the DB on each call because group membership can change
+   * independently of the template. Cache is invalidated on template save/update/delete.
+   */
+  ProgramNotificationTemplate getByUidCached(String uid);
+
   void save(ProgramNotificationTemplate programNotificationTemplate);
 
   void update(ProgramNotificationTemplate programNotificationTemplate);

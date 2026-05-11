@@ -78,4 +78,17 @@ class AnalyticsPeriodCriteriaUtilsTest {
     assertNull(criteria.getEndDate());
     assertEquals(criteria.getDimension(), Set.of(period));
   }
+
+  @Test
+  void testDefineDefaultPeriodForCriteria_withEventDate() {
+    EnrollmentAnalyticsQueryCriteria criteria = new EnrollmentAnalyticsQueryCriteria();
+    criteria.setEventDate("2022Sep");
+    PeriodDataProvider periodDataProvider = new PeriodDataProvider(new JdbcTemplate());
+
+    AnalyticsPeriodCriteriaUtils.defineDefaultPeriodForCriteria(
+        criteria, periodDataProvider, PeriodDataProvider.PeriodSource.SYSTEM_DEFINED);
+
+    assertNull(criteria.getStartDate());
+    assertNull(criteria.getEndDate());
+  }
 }

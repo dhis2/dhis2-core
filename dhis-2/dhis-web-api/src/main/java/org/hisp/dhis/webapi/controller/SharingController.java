@@ -254,7 +254,7 @@ public class SharingController {
     // Ignore publicAccess if user is not allowed to make objects public
     // ---------------------------------------------------------------------
 
-    Schema schema = schemaService.getDynamicSchema(sharingClass);
+    Schema schema = schemaService.getSchema(sharingClass);
 
     if (aclService.canMakePublic(currentUserDetails, object)) {
       object.getSharing().setPublicAccess(sharing.getObject().getPublicAccess());

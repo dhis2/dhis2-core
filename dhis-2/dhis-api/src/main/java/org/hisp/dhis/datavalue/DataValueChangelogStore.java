@@ -86,7 +86,7 @@ public interface DataValueChangelogStore extends GenericStore<DataValueChangelog
    * @param key the key to the value
    * @return the audit events for the value stored most recent to oldest
    */
-  List<DataValueChangelogEntry> getEntries(@Nonnull DataEntryKey key);
+  List<DataValueChangelogEntry> getEntries(@Nonnull DataValueKey key);
 
   /**
    * Counts data value audits for the given query.

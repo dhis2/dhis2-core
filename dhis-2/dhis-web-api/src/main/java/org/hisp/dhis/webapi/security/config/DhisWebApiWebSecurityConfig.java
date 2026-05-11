@@ -41,7 +41,6 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import javax.sql.DataSource;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -60,6 +59,7 @@ import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.DhisCorsProcessor;
+import org.hisp.dhis.webapi.filter.SessionTimeoutHeaderFilter;
 import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.Http401LoginUrlAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
@@ -92,6 +92,7 @@ import org.springframework.security.web.csrf.XorCsrfTokenRequestAttributeHandler
 import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
+import org.springframework.security.web.session.SessionManagementFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.StringUtils;
@@ -140,8 +141,6 @@ public class DhisWebApiWebSecurityConfig {
   private HttpBasicWebAuthenticationDetailsSource httpBasicWebAuthenticationDetailsSource;
 
   @Autowired private ConfigurationService configurationService;
-
-  @Autowired private CacheProvider cacheProvider;
 
   @Autowired private ApiTokenAuthManager apiTokenAuthManager;
 
@@ -261,9 +260,11 @@ public class DhisWebApiWebSecurityConfig {
     }
 
     configureMatchers(http);
-    configureCspFilter(http, dhisConfig, configurationService, cacheProvider);
+    configureCspFilter(http, dhisConfig, configurationService);
     configureApiTokenAuthorizationFilter(http);
     configureOAuthTokenFilters(http);
+
+    http.addFilterAfter(new SessionTimeoutHeaderFilter(), SessionManagementFilter.class);
 
     setHttpHeaders(http);
 
@@ -286,7 +287,9 @@ public class DhisWebApiWebSecurityConfig {
         web.debug(false)
             .ignoring()
             .requestMatchers(
-                new AntPathRequestMatcher("/api/ping"), new AntPathRequestMatcher("/favicon.ico"));
+                new AntPathRequestMatcher("/api/ping"),
+                new AntPathRequestMatcher("/api/system/ping"),
+                new AntPathRequestMatcher("/favicon.ico"));
   }
 
   private void configureMatchers(HttpSecurity http) throws Exception {
@@ -429,7 +432,7 @@ public class DhisWebApiWebSecurityConfig {
         .logout()
         .logoutUrl("/dhis-web-commons-security/logout.action")
         .logoutSuccessHandler(dhisOidcLogoutSuccessHandler)
-        .deleteCookies("JSESSIONID")
+        .deleteCookies("JSESSIONID", "SESSION_EXPIRE")
         .and()
         ////////////////////
         .sessionManagement()
@@ -471,10 +474,8 @@ public class DhisWebApiWebSecurityConfig {
   private void configureCspFilter(
       HttpSecurity http,
       DhisConfigurationProvider dhisConfig,
-      ConfigurationService configurationService,
-      CacheProvider cacheProvider) {
-    http.addFilterBefore(
-        new CspFilter(dhisConfig, configurationService, cacheProvider), HeaderWriterFilter.class);
+      ConfigurationService configurationService) {
+    http.addFilterBefore(new CspFilter(dhisConfig, configurationService), HeaderWriterFilter.class);
   }
 
   private void configureApiTokenAuthorizationFilter(HttpSecurity http) {

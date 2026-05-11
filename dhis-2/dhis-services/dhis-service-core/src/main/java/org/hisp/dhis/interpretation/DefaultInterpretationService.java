@@ -248,7 +248,7 @@ public class DefaultInterpretationService implements InterpretationService {
       NotificationType notificationType) {
     IdentifiableObject interpretableObject = interpretation.getObject();
     Schema interpretableObjectSchema =
-        schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(interpretableObject));
+        schemaService.getSchema(HibernateProxyUtils.getRealClass(interpretableObject));
 
     if (interpretableObjectSchema.isSubscribable()) {
       SubscribableObject object = (SubscribableObject) interpretableObject;

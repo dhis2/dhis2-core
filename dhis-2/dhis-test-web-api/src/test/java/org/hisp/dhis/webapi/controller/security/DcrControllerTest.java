@@ -145,6 +145,8 @@ class DcrControllerTest extends ControllerWithJwtTokenAuthTestBase {
     ClientSettings clientSettings = client.getClientSettings();
     assertNotNull(clientSettings.getSetting("client.inline.jwks"));
     assertNull(client.getClientSecret());
+    // DCR-registered clients are first-party (Android) and must not require consent
+    assertEquals(false, clientSettings.isRequireAuthorizationConsent());
 
     // When calling token endpoint with private_key_jwt authentication
     String tokenResponse = callTokenEndpoint(keyPair, clientId);

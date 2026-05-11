@@ -40,10 +40,9 @@ import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.webapi.PostgresControllerIntegrationTestBase;
-import org.hisp.dhis.test.webapi.json.domain.JsonErrorReport;
+import org.hisp.dhis.test.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.Test;
@@ -78,14 +77,13 @@ class DashboardControllerTest extends PostgresControllerIntegrationTestBase {
     assertFalse(aclService.canRead(userA, visualization));
 
     // Add one more DashboardItem to the created Dashboard
-    JsonMixed response =
+    JsonWebMessage response =
         PUT("/dashboards/f1OijtLnf8a", Path.of("dashboard/update_dashboard.json"))
-            .content(HttpStatus.CONFLICT);
+            .content(HttpStatus.CONFLICT)
+            .as(JsonWebMessage.class);
     assertEquals(
         "DashboardItem `KnmKNIFiAwC` object reference `VISUALIZATION` with id `gyYXi0rXAIc` not accessible",
-        response
-            .find(JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4069)
-            .getMessage());
+        response.findErrorReport(ErrorCode.E4069).getMessage());
   }
 
   @Test

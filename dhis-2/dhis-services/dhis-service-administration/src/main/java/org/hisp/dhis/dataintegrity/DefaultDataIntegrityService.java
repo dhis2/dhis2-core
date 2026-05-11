@@ -379,7 +379,7 @@ public class DefaultDataIntegrityService implements DataIntegrityService {
             i18n.getString(format("data_integrity.%s.%s", name, property), defaultValue);
 
     try {
-      Schema issueSchema = issueIdType == null ? null : schemaService.getDynamicSchema(issueIdType);
+      Schema issueSchema = issueIdType == null ? null : schemaService.getSchema(issueIdType);
       String issueIdTypeName = issueSchema == null ? null : issueSchema.getPlural();
       checksByName.putIfAbsent(
           name,

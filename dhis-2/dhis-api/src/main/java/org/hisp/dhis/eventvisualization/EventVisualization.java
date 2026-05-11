@@ -68,6 +68,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EventAnalyticalObject;
 import org.hisp.dhis.common.FontSize;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.RegressionType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -437,7 +438,7 @@ public class EventVisualization extends BaseAnalyticalObject
 
   @Override
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DXF_2_0)
   public Program getProgram() {
     return program;

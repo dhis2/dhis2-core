@@ -49,12 +49,12 @@ import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 public enum TimeField {
   EVENT_DATE(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME),
   ENROLLMENT_DATE(
-      EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
       EventAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
+      EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
       "enrollmentdate"),
   INCIDENT_DATE(
+      EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
       EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
-      EventAnalyticsColumnName.ENROLLMENT_OCCURRED_DATE_COLUMN_NAME,
       "occurreddate"),
   OCCURRED_DATE("occurreddate"),
   SCHEDULED_DATE(EventAnalyticsColumnName.SCHEDULED_DATE_COLUMN_NAME),
@@ -62,8 +62,8 @@ public enum TimeField {
   CREATED(EventAnalyticsColumnName.CREATED_COLUMN_NAME),
   CREATED_DATE(EventAnalyticsColumnName.CREATED_DATE_COLUMN_NAME),
   LAST_UPDATED(
-      EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
       EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
+      EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
       "lastupdated");
 
   @Getter private final String enrollmentColumnName;
@@ -109,5 +109,9 @@ public enum TimeField {
         .flatMap(TimeField::from)
         .map(SUPPORTING_RAW_FIELD_TIME_FIELDS::contains)
         .orElse(false);
+  }
+
+  public String asString() {
+    return enrollmentColumnName + eventColumnName + trackedEntityColumnName;
   }
 }

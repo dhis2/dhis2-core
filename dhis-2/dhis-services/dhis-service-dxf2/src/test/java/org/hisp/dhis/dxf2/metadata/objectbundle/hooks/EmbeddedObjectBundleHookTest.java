@@ -86,7 +86,7 @@ class EmbeddedObjectBundleHookTest {
     property.setGetterMethod(EventVisualization.class.getMethod("getEventRepetitions"));
     schema.setPropertyMap(Map.of("eventRepetitions", property));
 
-    when(schemaService.getDynamicSchema(EventVisualization.class)).thenReturn(schema);
+    when(schemaService.getSchema(EventVisualization.class)).thenReturn(schema);
 
     // when the embedded bundle hook tries to clear an embedded collection
     // then no exception is thrown

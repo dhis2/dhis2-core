@@ -122,11 +122,9 @@ class ProgramSqlGeneratorVariablesTest extends TestBase {
     assertThat(
         sql,
         is(
-            "(select created from analytics_event_"
-                + enrollmentIndicator.getProgram().getUid()
-                + " where analytics_event_"
-                + enrollmentIndicator.getProgram().getUid()
-                + ".enrollment = ax.enrollment and created is not null order by occurreddate desc limit 1 )"));
+            "FUNC_CTE_VAR( type='vCreationDate', column='created', piUid='"
+                + enrollmentIndicator.getUid()
+                + "', psUid='null', offset='0')"));
   }
 
   @Test
@@ -162,6 +160,17 @@ class ProgramSqlGeneratorVariablesTest extends TestBase {
   }
 
   @Test
+  void testDueDateForEnrollment() {
+    String sql = castString(test("V{due_date}", new DefaultLiteral(), enrollmentIndicator));
+    assertThat(
+        sql,
+        is(
+            "FUNC_CTE_VAR( type='vDueDate', column='scheduleddate', piUid='"
+                + enrollmentIndicator.getUid()
+                + "', psUid='null', offset='0')"));
+  }
+
+  @Test
   void testEnrollmentCount() {
     String sql = castString(test("V{enrollment_count}", new DefaultLiteral(), eventIndicator));
     assertThat(sql, is("distinct enrollment"));
@@ -192,9 +201,42 @@ class ProgramSqlGeneratorVariablesTest extends TestBase {
   }
 
   @Test
+  void testExecutionDateForEnrollment() {
+    String sql = castString(test("V{execution_date}", new DefaultLiteral(), enrollmentIndicator));
+    assertThat(
+        sql,
+        is(
+            "FUNC_CTE_VAR( type='vEventDate', column='occurreddate', piUid='"
+                + enrollmentIndicator.getUid()
+                + "', psUid='null', offset='0')"));
+  }
+
+  @Test
   void testEventDate() {
     String sql = castString(test("V{event_date}", new DefaultLiteral(), eventIndicator));
     assertThat(sql, is("occurreddate"));
+  }
+
+  @Test
+  void testEventDateForEnrollment() {
+    String sql = castString(test("V{event_date}", new DefaultLiteral(), enrollmentIndicator));
+    assertThat(
+        sql,
+        is(
+            "FUNC_CTE_VAR( type='vEventDate', column='occurreddate', piUid='"
+                + enrollmentIndicator.getUid()
+                + "', psUid='null', offset='0')"));
+  }
+
+  @Test
+  void testEventStatusForEnrollment() {
+    String sql = castString(test("V{event_status}", new DefaultLiteral(), enrollmentIndicator));
+    assertThat(
+        sql,
+        is(
+            "FUNC_CTE_VAR( type='vEventStatus', column='eventstatus', piUid='"
+                + enrollmentIndicator.getUid()
+                + "', psUid='null', offset='0')"));
   }
 
   @Test

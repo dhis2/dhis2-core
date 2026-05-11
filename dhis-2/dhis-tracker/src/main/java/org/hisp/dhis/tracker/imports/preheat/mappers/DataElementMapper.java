@@ -35,7 +35,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {DebugMapper.class, OptionSetMapper.class, AttributeValuesMapper.class})
+@Mapper(uses = {OptionSetMapper.class, AttributeValuesMapper.class})
 public interface DataElementMapper extends PreheatMapper<DataElement> {
   DataElementMapper INSTANCE = Mappers.getMapper(DataElementMapper.class);
 

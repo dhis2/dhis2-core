@@ -31,7 +31,7 @@ package org.hisp.dhis.program.notification;
 
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.UID;
@@ -64,7 +64,7 @@ public class ProgramNotificationTemplateOperationParamsMapper {
         .build();
   }
 
-  private <T extends BaseIdentifiableObject> T getEntity(UID objectId, Class<T> klass)
+  private <T extends IdentifiableObject> T getEntity(UID objectId, Class<T> klass)
       throws IllegalQueryException {
     if (objectId == null) {
       return null;
