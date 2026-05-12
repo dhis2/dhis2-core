@@ -22,6 +22,10 @@ CI workflows use `./run-simulation.sh` the same way as local runs:
 * [`performance-tests.yml`](../../.github/workflows/performance-tests.yml) - Manual single test
 * [`performance-tests-compare.yml`](../../.github/workflows/performance-tests-compare.yml) - Manual baseline vs candidate comparison
 
+Performance tests run on a single shared [self-hosted
+runner](https://github.com/dhis2/dhis2-core/actions/runners?tab=self-hosted) with exclusive access.
+Iterate locally; use CI only to publish numbers for PRs or release notes.
+
 ## Results
 
 Test results are saved to `target/gatling/<simulation-class>-<timestamp>/`:
@@ -65,7 +69,7 @@ UI matters, use `index.html` as the source of truth.
 
 Since Gatling 3.12, test results are written in binary format. The `run-simulation.sh` script
 automatically converts `simulation.log` to `simulation.csv` if
-[glog](https://github.com/dhis2/gatling/releases) is installed like in CI. 
+[glog](https://github.com/dhis2/gatling/releases) is installed like in CI.
 
 
 ## Platform Tests
