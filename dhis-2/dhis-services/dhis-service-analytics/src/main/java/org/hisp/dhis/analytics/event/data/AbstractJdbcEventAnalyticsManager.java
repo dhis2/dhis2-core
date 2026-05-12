@@ -3664,8 +3664,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   private boolean shouldProjectValueName(QueryItem item) {
-    return item.hasOptionSet()
-        || (item.getValueType() == ValueType.ORGANISATION_UNIT && !isStageOuDimension(item));
+    return item.getValueType() == ValueType.ORGANISATION_UNIT && !isStageOuDimension(item);
   }
 
   private String getValueNameColumn(QueryItem item) {

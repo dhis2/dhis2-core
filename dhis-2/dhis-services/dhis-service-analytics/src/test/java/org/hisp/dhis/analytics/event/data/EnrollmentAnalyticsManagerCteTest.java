@@ -1084,7 +1084,7 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
   }
 
   @Test
-  void verifyWithProgramStageOptionSetDataElementAndFilterProjectsNameFromCte() {
+  void verifyWithProgramStageOptionSetDataElementAndFilterProjectsValueFromCte() {
     String optionCode = "OI0BQUurVFS";
     OptionSet optionSet = new OptionSet("Option set A", ValueType.TEXT);
     DataElement optionDataElement =
@@ -1119,13 +1119,15 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
         containsString(
             noEof(
                 """
-                %s_%s_0 as ( select enrollment, "%s" as value, "%s_name" as value_name,
+                %s_%s_0 as ( select enrollment, "%s" as value,
                 row_number() over ( partition by enrollment order by occurreddate desc, created desc ) as rn
                 from analytics_event_%s where eventstatus != 'SCHEDULE' and ps = '%s' and "%s" = '%s' )
                 """
-                    .formatted(
-                        stageUid, deUid, deUid, deUid, programAUid, stageUid, deUid, optionCode))));
-    assertThat(generatedSql, containsString(".value_name as \"" + stageUid + "." + deUid + "\""));
+                    .formatted(stageUid, deUid, deUid, programAUid, stageUid, deUid, optionCode))));
+    assertThat(generatedSql, containsString(".value as \"" + stageUid + "." + deUid + "\""));
+    assertThat(generatedSql, not(containsString("\"" + deUid + "_name\" as value_name")));
+    assertThat(
+        generatedSql, not(containsString(".value_name as \"" + stageUid + "." + deUid + "\"")));
     assertThat(generatedSql, not(containsString("select \"" + deUid + "_name\"")));
     assertThat(
         generatedSql,
