@@ -2837,13 +2837,22 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       SelectBuilder builder, String itemUid, CteDefinition cteDef, CteContext cteContext) {
     if (cteContext.isEventsAnalytics() && cteDef.getCteType() == PROGRAM_INDICATOR_ENROLLMENT) {
       builder.crossJoin(itemUid, cteDef.getAlias());
-    } else if (cteDef.getCteType() == PROGRAM_INDICATOR_EVENT) {
-      String alias = cteDef.getAlias();
-      builder.leftJoin(itemUid, alias, tableAlias -> tableAlias + ".event = ax.event");
     } else {
       String alias = cteDef.getAlias();
-      builder.leftJoin(itemUid, alias, tableAlias -> tableAlias + ".enrollment = ax.enrollment");
+      String joinColumn = resolveProgramIndicatorJoinColumn(cteDef, cteContext);
+      builder.leftJoin(
+          itemUid, alias, tableAlias -> tableAlias + "." + joinColumn + " = ax." + joinColumn);
     }
+  }
+
+  private String resolveProgramIndicatorJoinColumn(CteDefinition cteDef, CteContext cteContext) {
+    if (isNotBlank(cteDef.getJoinColumn())) {
+      return cteDef.getJoinColumn();
+    }
+    if (cteContext.isEnrollmentAnalytics()) {
+      return "enrollment";
+    }
+    return cteDef.getCteType() == PROGRAM_INDICATOR_EVENT ? "event" : "enrollment";
   }
 
   private void addFilterJoin(SelectBuilder builder, String itemUid, CteDefinition cteDef) {

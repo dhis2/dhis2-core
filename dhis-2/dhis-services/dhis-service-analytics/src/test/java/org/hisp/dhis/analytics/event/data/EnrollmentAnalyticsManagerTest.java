@@ -32,17 +32,22 @@ package org.hisp.dhis.analytics.event.data;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.analytics.AnalyticsConstants.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_DATABASE;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
@@ -63,6 +68,8 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
+import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
@@ -135,6 +142,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
             systemSettingsService,
             new PostgreSqlBuilder(),
             dataElementService);
+    programIndicatorSubqueryBuilder.init();
     when(rowSet.getMetaData()).thenReturn(rowSetMetaData);
     when(systemSettings.getOrgUnitCentroidsInEventsAnalytics()).thenReturn(false);
     ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
@@ -254,6 +262,41 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
                 + "\" is not null and ps = '"
                 + programStage.getUid()
                 + "' order by occurreddate desc, created desc  limit 1 )"));
+  }
+
+  @Test
+  void verifyEventProgramIndicatorOnEnrollmentQueryUsesEnrollmentKeyedCteJoin() {
+    mockEmptyRowSet();
+    ProgramIndicator programIndicator = new ProgramIndicator();
+    programIndicator.setUid("CH6wamtY9kK");
+    programIndicator.setProgram(programA);
+    programIndicator.setAnalyticsType(AnalyticsType.EVENT);
+    programIndicator.setAggregationType(AggregationType.COUNT);
+    programIndicator.setExpression("case when eventstatus in ('ACTIVE', 'COMPLETED') then 1 end");
+
+    when(programIndicatorService.getAnalyticsSql(
+            eq(programIndicator.getExpression()),
+            eq(NUMERIC),
+            eq(programIndicator),
+            any(),
+            any(),
+            eq("subax")))
+        .thenReturn("case when eventstatus in ('ACTIVE', 'COMPLETED') then 1 end");
+
+    subject.getEnrollments(createRequestParams(programIndicator, null), new ListGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue().toLowerCase();
+    assertThat(generatedSql, containsString("with ch6wamty9kk as"));
+    assertThat(
+        generatedSql,
+        containsString(
+            "select subax.enrollment as enrollment, count(case when eventstatus in ('active', 'completed') then 1 end) as value"));
+    assertThat(generatedSql, containsString("group by subax.enrollment"));
+    assertThat(generatedSql, containsString(" left join ch6wamty9kk "));
+    assertThat(generatedSql, containsString(".enrollment = ax.enrollment"));
+    assertThat(generatedSql, not(containsString(".event = ax.event")));
   }
 
   @Test

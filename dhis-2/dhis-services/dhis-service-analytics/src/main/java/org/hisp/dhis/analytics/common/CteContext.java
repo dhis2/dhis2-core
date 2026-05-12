@@ -154,16 +154,21 @@ public class CteContext {
    * @param cteDefinition The CTE definition (the SQL query)
    * @param functionRequiresCoalesce Whether the function requires to be "wrapped" in coalesce to
    *     avoid null values (e.g. avg, sum)
+   * @param joinColumn The column exposed by the CTE for joining it back to the outer query
    */
   public void addProgramIndicatorCte(
-      ProgramIndicator programIndicator, String cteDefinition, boolean functionRequiresCoalesce) {
+      ProgramIndicator programIndicator,
+      String cteDefinition,
+      boolean functionRequiresCoalesce,
+      String joinColumn) {
     cteDefinitions.put(
         programIndicator.getUid(),
         CteDefinition.forProgramIndicator(
             programIndicator.getUid(),
             programIndicator.getAnalyticsType(),
             cteDefinition,
-            functionRequiresCoalesce));
+            functionRequiresCoalesce,
+            joinColumn));
   }
 
   /**

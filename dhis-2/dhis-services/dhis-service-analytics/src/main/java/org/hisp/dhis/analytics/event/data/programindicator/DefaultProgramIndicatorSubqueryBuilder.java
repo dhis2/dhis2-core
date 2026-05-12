@@ -240,7 +240,8 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     cteContext.addProgramIndicatorCte(
         programIndicator,
         mainCteSql,
-        requireCoalesce(programIndicator, cteContext.getEndpointItem()));
+        requireCoalesce(programIndicator, cteContext.getEndpointItem()),
+        resolveProgramIndicatorJoinColumn(programIndicator, cteContext.getEndpointItem()));
   }
 
   private boolean isUnsupportedEventProgramIndicatorCte(
@@ -276,13 +277,25 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     cteContext.addProgramIndicatorCte(
         programIndicator,
         mainCteSql,
-        requireCoalesce(programIndicator, cteContext.getEndpointItem()));
+        requireCoalesce(programIndicator, cteContext.getEndpointItem()),
+        resolveProgramIndicatorJoinColumn(programIndicator, cteContext.getEndpointItem()));
   }
 
   private boolean isEventProgramIndicatorCte(
       ProgramIndicator programIndicator, CteContext cteContext) {
     return cteContext.isEventsAnalytics()
         && programIndicator.getAnalyticsType() == AnalyticsType.EVENT;
+  }
+
+  private String resolveProgramIndicatorJoinColumn(
+      ProgramIndicator programIndicator, EndpointItem endpointItem) {
+    if (endpointItem == EndpointItem.ENROLLMENT) {
+      return "enrollment";
+    }
+    if (programIndicator.getAnalyticsType() == AnalyticsType.EVENT) {
+      return "event";
+    }
+    return null;
   }
 
   private boolean isCustomAggregation(ProgramIndicator programIndicator) {

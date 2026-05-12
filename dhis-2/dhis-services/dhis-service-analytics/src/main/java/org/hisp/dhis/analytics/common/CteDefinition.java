@@ -217,6 +217,17 @@ public class CteDefinition {
       AnalyticsType programIndicatorType,
       String cteDefinition,
       boolean requiresCoalesce) {
+    return forProgramIndicator(
+        programIndicatorUid, programIndicatorType, cteDefinition, requiresCoalesce, null);
+  }
+
+  /** Creates a CTE definition for program indicators. */
+  public static CteDefinition forProgramIndicator(
+      String programIndicatorUid,
+      AnalyticsType programIndicatorType,
+      String cteDefinition,
+      boolean requiresCoalesce,
+      String joinColumn) {
     // Calls private constructor, passing CteType.PROGRAM_INDICATOR
     return new CteDefinition(
         programIndicatorUid, // itemId
@@ -228,7 +239,7 @@ public class CteDefinition {
         false, // isExists
         requiresCoalesce, // requiresCoalesce
         null, // aggregateWhereClause
-        null, // joinColumn
+        joinColumn, // joinColumn
         null, // targetRank
         programIndicatorType == AnalyticsType.EVENT
             ? PROGRAM_INDICATOR_EVENT
