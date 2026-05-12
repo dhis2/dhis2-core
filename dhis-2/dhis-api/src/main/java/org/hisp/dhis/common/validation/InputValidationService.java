@@ -27,45 +27,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.mvc;
+package org.hisp.dhis.common.validation;
 
-import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.common.UrlParams;
-import org.hisp.dhis.common.validation.InputValidationService;
+import java.util.function.Function;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.springframework.core.MethodParameter;
-import org.springframework.stereotype.Component;
-import org.springframework.web.bind.support.WebDataBinderFactory;
-import org.springframework.web.context.request.NativeWebRequest;
-import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.method.support.ModelAndViewContainer;
 
-@Component
-@RequiredArgsConstructor
-public class UrlParamsMethodArgumentResolver implements HandlerMethodArgumentResolver {
+/**
+ * Validates input against a schema {@link Class} which has {@link
+ * org.hisp.dhis.jsontree.Validation} annotations.
+ *
+ * <p>Formal input validation is all the validation that can be performed solely based on a target
+ * schema. In other words, it is a validation of input within the static (type) context without
+ * checking validity in the context the value will exist. Such semantic validation is performed in
+ * later stages.
+ *
+ * @author Jan Bernitt
+ * @since 2.44
+ */
+public interface InputValidationService {
 
-  private final InputValidationService inputValidationService;
+  /**
+   * Decodes key-value input such as request parameters into a JSON value based on the target
+   * schema.
+   *
+   * @param schema the target the key-value data should conform to
+   * @param values a lookup function to return the values for a given key
+   * @return a JSON object with the key-value data found in the given schema as provided by the
+   *     values loopup function
+   */
+  JsonObject decode(Class<? extends Record> schema, Function<String, String[]> values);
 
-  @Override
-  public boolean supportsParameter(MethodParameter parameter) {
-    Class<?> type = parameter.getParameterType();
-    return type.isRecord() && UrlParams.class.isAssignableFrom(type);
-  }
-
-  @Nonnull
-  @Override
-  public Object resolveArgument(
-      @Nonnull MethodParameter parameter,
-      @Nonnull ModelAndViewContainer mavContainer,
-      @Nonnull NativeWebRequest request,
-      @Nonnull WebDataBinderFactory binderFactory)
-      throws Exception {
-
-    @SuppressWarnings("unchecked")
-    Class<? extends Record> schema = (Class<? extends Record>) parameter.getParameterType();
-    JsonObject params = inputValidationService.decode(schema, request::getParameterValues);
-    inputValidationService.validate(schema, params);
-    return params.to(schema);
-  }
+  /**
+   * Formal validation of the given input against the given schema.
+   *
+   * @param schema the target type the input should conform to
+   * @param input typically user input such as request bodies
+   * @throws BadRequestException in case the input is not valid
+   */
+  void validate(Class<?> schema, JsonObject input) throws BadRequestException;
 }
