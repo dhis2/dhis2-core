@@ -1076,6 +1076,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Test
   void verifyEventProgramIndicatorCountUsesEventKeyedCte() {
+    when(sqlBuilder.supportsCorrelatedSubquery()).thenReturn(false);
     mockEmptyRowSet();
     ProgramIndicator programIndicator =
         createEventProgramIndicator("piEventCount", AggregationType.COUNT, "ou");
@@ -1102,6 +1103,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Test
   void verifyEventProgramIndicatorFilterOnlyCountUsesEventKeyedCte() {
+    when(sqlBuilder.supportsCorrelatedSubquery()).thenReturn(false);
     mockEmptyRowSet();
     ProgramIndicator programIndicator =
         createEventProgramIndicator("piEventFilter", AggregationType.COUNT, "ou");
@@ -1126,6 +1128,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Test
   void verifyEventProgramIndicatorWithInlineStageDataElementFilterUsesEventKeyedCte() {
+    when(sqlBuilder.supportsCorrelatedSubquery()).thenReturn(false);
     mockEmptyRowSet();
     ProgramIndicator programIndicator =
         createEventProgramIndicator("rxNjqzJ7dkK", AggregationType.COUNT, "distinct ou");
@@ -1165,6 +1168,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Test
   void verifyEventProgramIndicatorAverageWithInlineStageDataElementFilterUsesEventKeyedCte() {
+    when(sqlBuilder.supportsCorrelatedSubquery()).thenReturn(false);
     mockEmptyRowSet();
     ProgramIndicator programIndicator =
         createEventProgramIndicator(
@@ -1219,6 +1223,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Test
   void verifyEventProgramIndicatorNonCountFilterDoesNotCoalesce() {
+    when(sqlBuilder.supportsCorrelatedSubquery()).thenReturn(false);
     mockEmptyRowSet();
     ProgramIndicator programIndicator =
         createEventProgramIndicator("piEventSum", AggregationType.SUM, "1");

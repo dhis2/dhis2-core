@@ -266,6 +266,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Test
   void verifyEventProgramIndicatorOnEnrollmentQueryUsesEnrollmentKeyedCteJoin() {
+    when(sqlBuilder.supportsCorrelatedSubquery()).thenReturn(false);
     mockEmptyRowSet();
     ProgramIndicator programIndicator = new ProgramIndicator();
     programIndicator.setUid("CH6wamtY9kK");
