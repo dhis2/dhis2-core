@@ -2818,16 +2818,18 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   void handleProgramIndicatorCte(QueryItem item, CteContext cteContext, EventQueryParams params) {
-    // Event-analytics PI CTEs aggregate over events filtered only by the PI's own predicate,
+    ProgramIndicator pi = (ProgramIndicator) item.getItem();
+    // EVENT-type PI CTEs aggregate over events filtered only by the PI's own predicate,
     // ignoring the outer query's scope (periods, org units, etc.). For backends that support
     // correlated subqueries, fall back to the inline `(SELECT ... WHERE event = ax.event AND
     // <pi_filter>)` rendering in getColumnAndAlias, which is naturally scoped to the outer row.
     // Limited to event analytics: enrollment SELECT building has no master-subquery fallback for
-    // PIs and would otherwise omit the PI column entirely.
-    if (sqlBuilder.supportsCorrelatedSubquery() && cteContext.isEventsAnalytics()) {
+    // PIs and ENROLLMENT-type PIs need the CTE path to expand generated placeholders.
+    if (sqlBuilder.supportsCorrelatedSubquery()
+        && cteContext.isEventsAnalytics()
+        && pi.getAnalyticsType() == AnalyticsType.EVENT) {
       return;
     }
-    ProgramIndicator pi = (ProgramIndicator) item.getItem();
     if (item.hasRelationshipType()) {
       programIndicatorSubqueryBuilder.addCte(
           pi,

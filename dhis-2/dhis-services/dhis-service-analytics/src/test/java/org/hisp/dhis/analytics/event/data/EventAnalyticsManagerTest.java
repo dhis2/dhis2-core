@@ -1159,6 +1159,69 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void verifyEventQueryEnrollmentProgramIndicatorUsesCtePathToExpandPlaceholders() {
+    when(sqlBuilder.supportsCorrelatedSubquery()).thenReturn(true);
+    mockEmptyRowSet();
+    ProgramIndicator programIndicator =
+        createEventProgramIndicator("piEnrollComplex", AggregationType.SUM, "complex");
+    programIndicator.setAnalyticsType(AnalyticsType.ENROLLMENT);
+
+    String variablePlaceholder =
+        "FUNC_CTE_VAR( type='vCreationDate', column='created', piUid='piEnrollComplex', psUid='null', offset='0')";
+    String psdePlaceholder =
+        "__PSDE_CTE_PLACEHOLDER__(psUid='PgmStgUid1', deUid='DataElmUid1', offset='0', boundaryHash='noboundaries', piUid='piEnrollComplex')";
+    String d2Placeholder =
+        "__D2FUNC__(func='countIfValue', ps='PgmStgUid1', de='DataElmUid2', argType='val64', arg64='NQ==', hash='noboundaries', pi='piEnrollComplex')__";
+
+    when(programIndicatorService.getAnalyticsSql(
+            anyString(), eq(NUMERIC), eq(programIndicator), any(), any(), eq("subax")))
+        .thenReturn(variablePlaceholder + " + " + psdePlaceholder + " + " + d2Placeholder);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .addItem(createProgramIndicatorQueryItem(programIndicator))
+            .build();
+
+    subject.getEvents(params, createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue().toLowerCase();
+    assertThat(generatedSql, containsString("pienrollcomplex as ( select sum("));
+    assertThat(
+        generatedSql,
+        containsString("from analytics_enrollment_" + programA.getUid().toLowerCase()));
+    assertThat(generatedSql, containsString("cross join pienrollcomplex"));
+    assertTrue(
+        generatedSql.matches("(?s).*coalesce\\([a-z]{5}\\.value, 0\\) as pienrollcomplex.*"),
+        "ENROLLMENT PI select should read the joined PI CTE value: " + sql.getValue());
+    assertThat(generatedSql, containsString("row_number() over (partition by enrollment"));
+    assertThat(generatedSql, containsString("count(\"dataelmuid2\") as value"));
+    assertThat(generatedSql, not(containsString("func_cte_var(")));
+    assertThat(generatedSql, not(containsString("__psde_cte_placeholder__")));
+    assertThat(generatedSql, not(containsString("__d2func__(")));
+  }
+
+  @Test
+  void verifyPostgresEventProgramIndicatorKeepsInlineCorrelatedSubquery() {
+    when(sqlBuilder.supportsCorrelatedSubquery()).thenReturn(true);
+    mockEmptyRowSet();
+    ProgramIndicator programIndicator =
+        createEventProgramIndicator("piEventInline", AggregationType.COUNT, "1");
+    stubProgramIndicatorExpression(programIndicator, "1", "1");
+
+    subject.getEvents(createRequestParams(programIndicator, null), createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue().toLowerCase();
+    assertThat(generatedSql, not(containsString("pieventinline as")));
+    assertThat(generatedSql, not(containsString("event_pi_candidates")));
+    assertThat(generatedSql, containsString("(select count(1) from analytics_event_"));
+    assertThat(generatedSql, containsString("where event = ax.event"));
+  }
+
+  @Test
   void verifyEventProgramIndicatorWithInlineStageDataElementFilterUsesEventKeyedCte() {
     when(sqlBuilder.supportsCorrelatedSubquery()).thenReturn(false);
     mockEmptyRowSet();
