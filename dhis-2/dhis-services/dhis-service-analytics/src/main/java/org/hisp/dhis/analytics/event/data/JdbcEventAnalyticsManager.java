@@ -974,6 +974,10 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       cteContext = new CteContext(EndpointItem.EVENT);
     }
 
+    if (!sqlBuilder.supportsCorrelatedSubquery()) {
+      cteContext.useEventProgramIndicatorCandidateSource();
+    }
+
     for (QueryItem item :
         Stream.concat(params.getItems().stream(), params.getItemFilters().stream()).toList()) {
       if (item.isProgramIndicator()) {

@@ -1081,18 +1081,34 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     ProgramIndicator programIndicator =
         createEventProgramIndicator("piEventCount", AggregationType.COUNT, "ou");
     stubProgramIndicatorExpression(programIndicator, "ou", "ou");
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams(programIndicator, null))
+            .withProgramStage(programStage)
+            .build();
 
-    subject.getEvents(createRequestParams(programIndicator, null), createGrid(), 100);
+    subject.getEvents(params, createGrid(), 100);
 
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String generatedSql = sql.getValue().toLowerCase();
+    assertThat(generatedSql, containsString("with event_pi_candidates as ("));
+    assertTrue(
+        generatedSql.indexOf("event_pi_candidates as") < generatedSql.indexOf("pieventcount as"),
+        "Candidate event CTE must be declared before EVENT PI CTEs: " + sql.getValue());
     assertThat(
         generatedSql,
         containsString(
-            "with pieventcount as ( select subax.event as event, count(ou) as value from "
-                + getTable(programA.getUid()).toLowerCase()
+            "pieventcount as ( select subax.event as event, count(ou) as value from "
+                + "event_pi_candidates"
                 + " as subax group by subax.event )"));
+    String candidateSql = extractCte(generatedSql, "event_pi_candidates");
+    assertThat(
+        candidateSql,
+        containsString("select ax.* from " + getTable(programA.getUid()).toLowerCase() + " as ax"));
+    assertThat(candidateSql, containsString("ax.\"quarterly\" in ('2000q1')"));
+    assertThat(candidateSql, containsString("ax.\"uidlevel1\" in ('ouabcdefgha')"));
+    assertThat(
+        candidateSql, containsString("and ax.\"ps\" = '" + programStage.getUid().toLowerCase()));
     assertThat(generatedSql, containsString(" left join pieventcount "));
     assertThat(generatedSql, containsString(".event = ax.event"));
     assertTrue(
@@ -1119,11 +1135,27 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String generatedSql = sql.getValue().toLowerCase();
-    assertThat(generatedSql, containsString("with pieventfilter as"));
+    assertThat(generatedSql, containsString("with event_pi_candidates as"));
+    assertThat(generatedSql, containsString("pieventfilter as"));
+    assertThat(generatedSql, containsString("from event_pi_candidates as subax"));
+    assertThat(
+        extractCte(generatedSql, "event_pi_candidates"), not(containsString("pieventfilter")));
     assertThat(generatedSql, containsString(" left join pieventfilter "));
     assertTrue(
         generatedSql.matches("(?s).*coalesce\\([a-z]{5}\\.value, 0\\) >= 0.*"),
         "EVENT count PI filter should coalesce missing joined rows to zero: " + sql.getValue());
+  }
+
+  @Test
+  void verifyEventProgramIndicatorCandidatesNotEmittedWithoutEligibleEventPiCte() {
+    when(sqlBuilder.supportsCorrelatedSubquery()).thenReturn(false);
+    mockEmptyRowSet();
+
+    subject.getEvents(createRequestParams(), createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertThat(sql.getValue().toLowerCase(), not(containsString("event_pi_candidates")));
   }
 
   @Test
@@ -1154,9 +1186,11 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String generatedSql = sql.getValue().toLowerCase();
-    assertThat(generatedSql, containsString("with rxnjqzj7dkk as"));
+    assertThat(generatedSql, containsString("with event_pi_candidates as"));
+    assertThat(generatedSql, containsString("rxnjqzj7dkk as"));
     assertThat(
         generatedSql, containsString("select subax.event as event, count(distinct ou) as value"));
+    assertThat(generatedSql, containsString("from event_pi_candidates as subax"));
     assertThat(generatedSql, containsString("case when subax.\"ps\" = 'edqlbukwrfq'"));
     assertThat(generatedSql, containsString(" left join rxnjqzj7dkk "));
     assertThat(generatedSql, containsString(".event = ax.event"));
@@ -1206,10 +1240,12 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String generatedSql = sql.getValue().toLowerCase();
-    assertThat(generatedSql, containsString("with gxdhny5wmhq as"));
+    assertThat(generatedSql, containsString("with event_pi_candidates as"));
+    assertThat(generatedSql, containsString("gxdhny5wmhq as"));
     assertThat(
         generatedSql,
         containsString("select subax.event as event, avg((coalesce(tofloat64(case when subax."));
+    assertThat(generatedSql, containsString("from event_pi_candidates as subax"));
     assertThat(generatedSql, containsString(" where nullif(cast((case when \"gqy2lxrypjo\""));
     assertThat(generatedSql, containsString(" group by subax.event"));
     assertThat(generatedSql, containsString(" left join gxdhny5wmhq "));
@@ -1239,7 +1275,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     verify(jdbcTemplate).queryForRowSet(sql.capture());
 
     String generatedSql = sql.getValue().toLowerCase();
-    assertThat(generatedSql, containsString("with pieventsum as"));
+    assertThat(generatedSql, containsString("with event_pi_candidates as"));
+    assertThat(generatedSql, containsString("pieventsum as"));
+    assertThat(generatedSql, containsString("from event_pi_candidates as subax"));
     assertThat(generatedSql, containsString(".value >= 0"));
     assertFalse(
         generatedSql.matches("(?s).*coalesce\\([a-z]{5}\\.value, 0\\).*"),
@@ -1346,6 +1384,28 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     relationshipType.setFromConstraint(from);
     relationshipType.setToConstraint(to);
     return relationshipType;
+  }
+
+  private String extractCte(String sql, String cteName) {
+    String marker = cteName.toLowerCase() + " as (";
+    int start = sql.indexOf(marker);
+    assertTrue(start >= 0, "Expected CTE not found: " + cteName + " in " + sql);
+
+    int openParen = sql.indexOf('(', start);
+    int depth = 0;
+    for (int i = openParen; i < sql.length(); i++) {
+      char current = sql.charAt(i);
+      if (current == '(') {
+        depth++;
+      } else if (current == ')') {
+        depth--;
+        if (depth == 0) {
+          return sql.substring(start, i + 1);
+        }
+      }
+    }
+
+    throw new AssertionError("Could not parse CTE: " + cteName + " in " + sql);
   }
 
   private void verifyFirstOrLastAggregationTypeSubquery(

@@ -52,10 +52,14 @@ import org.hisp.dhis.program.ProgramStage;
  */
 @Slf4j
 public class CteContext {
+  public static final String EVENT_PROGRAM_INDICATOR_CANDIDATES = "event_pi_candidates";
+
   private final Map<String, CteDefinition> cteDefinitions = new LinkedHashMap<>();
 
   /** The type of analytics query being executed. This can be either EVENT or ENROLLMENT. */
   @Getter private final EndpointItem endpointItem;
+
+  @Getter private String eventProgramIndicatorSourceTable;
 
   public CteDefinition getDefinitionByItemUid(String itemUid) {
     return cteDefinitions.get(itemUid);
@@ -290,6 +294,22 @@ public class CteContext {
     // Use a simple CteDefinition for shadow CTEs
     CteDefinition shadowCte = CteDefinition.forShadowTable(tableName, sql, cteType);
     cteDefinitions.put(tableName, shadowCte);
+  }
+
+  public void useEventProgramIndicatorCandidateSource() {
+    eventProgramIndicatorSourceTable = EVENT_PROGRAM_INDICATOR_CANDIDATES;
+  }
+
+  public void addEventProgramIndicatorCandidatesCte(String sql) {
+    addShadowCte(
+        EVENT_PROGRAM_INDICATOR_CANDIDATES,
+        sql,
+        CteDefinition.CteType.EVENT_PROGRAM_INDICATOR_CANDIDATES);
+  }
+
+  public boolean hasEventProgramIndicatorCtes() {
+    return cteDefinitions.values().stream()
+        .anyMatch(def -> def.getCteType() == CteDefinition.CteType.PROGRAM_INDICATOR_EVENT);
   }
 
   public CteDefinition getBaseAggregatedCte() {

@@ -250,6 +250,10 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     String mainCteSql =
         assembleMainPiCteSql(
             programIndicator,
+            // The candidate-event source is only valid for the EVENT PI simple path below. This
+            // complex path supports enrollment-grain placeholder CTEs and is only reached for
+            // enrollment analytics after EVENT/simple PI handling has returned.
+            getTableName(programIndicator),
             relationshipCountSql.processedExpressionSql(),
             innerJoinSql,
             leftJoinSql,
@@ -291,6 +295,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     String mainCteSql =
         assembleMainPiCteSql(
             programIndicator,
+            getEventProgramIndicatorSourceTable(programIndicator, cteContext),
             relationshipCountSql.processedExpressionSql(),
             "",
             relationshipCountSql.relationshipCountJoinSql(),
@@ -331,6 +336,12 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
 
   private boolean hasGeneratedEnrollmentGrainPlaceholder(String sql) {
     return StringUtils.containsAny(sql, "FUNC_CTE_VAR(", "__PSDE_", "__D2FUNC__(");
+  }
+
+  private String getEventProgramIndicatorSourceTable(
+      ProgramIndicator programIndicator, CteContext cteContext) {
+    return StringUtils.defaultIfBlank(
+        cteContext.getEventProgramIndicatorSourceTable(), getTableName(programIndicator));
   }
 
   private FilterProcessingResult preprocessFilter(
@@ -524,6 +535,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
   /** Assembles the final SQL string for the main Program Indicator CTE definition. */
   private String assembleMainPiCteSql(
       ProgramIndicator programIndicator,
+      String tableName,
       String finalProcessedExpressionSql,
       String innerJoinSql,
       String leftJoinSql,
@@ -534,7 +546,6 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
         TextUtils.emptyIfEqual(
             programIndicator.getAggregationTypeFallback().getValue(),
             AggregationType.CUSTOM.getValue());
-    String tableName = getTableName(programIndicator);
 
     // Ensure space separation between join/where clauses only if they exist
     String joinsAndWhere =

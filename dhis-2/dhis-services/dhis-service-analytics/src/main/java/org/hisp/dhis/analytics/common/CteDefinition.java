@@ -70,6 +70,8 @@ public class CteDefinition {
     D2_FUNCTION(10),
     /** CTE for checking existence (rowContext=true). */
     EXISTS(10),
+    /** Candidate event rows used as input for EVENT program indicator CTEs. */
+    EVENT_PROGRAM_INDICATOR_CANDIDATES(4),
     /** Special CTE for pre-aggregated enrollments. */
     TOP_ENROLLMENTS(1),
     SHADOW_ENROLLMENT_TABLE(2),

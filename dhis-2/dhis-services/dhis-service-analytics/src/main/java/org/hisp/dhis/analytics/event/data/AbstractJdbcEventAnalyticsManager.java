@@ -2236,6 +2236,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       generateFilterCTEs(params, cteContext);
     }
 
+    addEventProgramIndicatorCandidatesCte(params, cteContext);
+
     // 3. Build up the final SQL using dedicated sub-steps
     SelectBuilder sb = new SelectBuilder();
 
@@ -2300,6 +2302,58 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   abstract void addFromClause(SelectBuilder sb, EventQueryParams params);
 
   abstract List<String> getStandardColumns(EventQueryParams params);
+
+  /**
+   * Adds the candidate-event CTE used as the input source for EVENT program-indicator CTEs on
+   * databases that cannot render correlated subqueries (such as Clickhouse).
+   *
+   * <p>The candidate CTE is only added for event analytics queries that already have eligible EVENT
+   * program-indicator CTEs. It mirrors the outer event query's base scope, but deliberately avoids
+   * PI filters because those filters depend on the PI CTEs themselves.
+   *
+   * @param params the event query parameters
+   * @param cteContext the CTE context to update
+   */
+  private void addEventProgramIndicatorCandidatesCte(
+      EventQueryParams params, CteContext cteContext) {
+    if (!cteContext.isEventsAnalytics()
+        || !cteContext.hasEventProgramIndicatorCtes()
+        || isBlank(cteContext.getEventProgramIndicatorSourceTable())
+        || cteContext.containsCte(cteContext.getEventProgramIndicatorSourceTable())) {
+      return;
+    }
+
+    SelectBuilder candidates = new SelectBuilder();
+    candidates.addColumn("ax.*");
+    addFromClause(candidates, params);
+    addOrgUnitJoin(candidates, params);
+    candidates.where(buildEventProgramIndicatorCandidateConditions(params));
+
+    cteContext.addEventProgramIndicatorCandidatesCte(candidates.build());
+  }
+
+  /**
+   * Builds the WHERE condition for the EVENT program-indicator candidate CTE.
+   *
+   * <p>The returned condition combines the outer event query's base filters with non-PI query-item
+   * filters. Program-indicator filters are excluded to avoid circular SQL dependencies, since those
+   * filters are evaluated from the joined PI CTE values in the outer query.
+   *
+   * @param params the event query parameters
+   * @return the candidate CTE condition
+   */
+  private Condition buildEventProgramIndicatorCandidateConditions(EventQueryParams params) {
+    Set<QueryItem> programIndicatorItems =
+        Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
+            .filter(QueryItem::isProgramIndicator)
+            .collect(toSet());
+
+    String nonProgramIndicatorItemFilters =
+        getQueryItemsAndFiltersWhereClause(params, programIndicatorItems, new SqlHelper());
+
+    return Condition.and(
+        Condition.raw(getWhereClause(params)), Condition.raw(nonProgramIndicatorItemFilters));
+  }
 
   /**
    * Adds a sequence of "shadow" Common Table Expressions (CTEs) to the CteContext to optimize
