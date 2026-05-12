@@ -32,26 +32,22 @@ package org.hisp.dhis.test.junit;
 import java.util.Properties;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.test.config.PostgresDhisConfigurationProvider;
-import org.junit.jupiter.api.extension.AfterAllCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.Extension;
 import org.springframework.context.annotation.Bean;
 import org.testcontainers.containers.MinIOContainer;
 
 /**
  * Use this configuration for tests relying on MinIO storage running in a Docker container. The
- * container is stopped after the tests in the class have completed. Just add to test class like
+ * container is started once per JVM and shared across all test classes that use this extension;
+ * Testcontainers' Ryuk reaper handles teardown on JVM exit. Just add to test class like
  *
  * <p>@ExtendWith(MinIOTestExtension.class)
  *
  * <p>@ContextConfiguration(classes = {MinIOConfig.class})
  *
- * <p>If there are many uses of this extension then it should be considered whether keeping the
- * container up for the entirety of the tests is more preferable, rather than starting/stopping
- * multiple containers.
- *
  * @author david mackessy
  */
-public class MinIOTestExtension implements AfterAllCallback {
+public class MinIOTestExtension implements Extension {
 
   public static final String MINIO_USER = "testuser";
   public static final String MINIO_PASSWORD = "testpassword";
@@ -90,10 +86,5 @@ public class MinIOTestExtension implements AfterAllCallback {
       pgDhisConfig.addProperties(properties);
       return pgDhisConfig;
     }
-  }
-
-  @Override
-  public void afterAll(ExtensionContext context) {
-    MIN_IO_CONTAINER.stop();
   }
 }
