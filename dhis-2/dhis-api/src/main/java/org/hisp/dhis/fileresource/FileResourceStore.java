@@ -120,4 +120,12 @@ public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
 
   List<FileResource> getUnassignedPassedGracePeriod(
       Set<FileResourceDomain> domainsToDeleteWhenUnassigned, DateTime minus);
+
+  /**
+   * Updates the assignment state and owner of the file resource with the given uid via a single
+   * JDBC UPDATE. Bypasses the Hibernate persistence context, so {@link
+   * org.hisp.dhis.artemis.audit.listener.AbstractHibernateListener Hibernate audit listeners} do
+   * not fire. No-op if no file resource with that uid exists.
+   */
+  void updateAssignment(@Nonnull String uid, boolean assigned, @Nonnull String fileResourceOwner);
 }

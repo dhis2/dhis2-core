@@ -108,6 +108,8 @@ class TeTaValidationTest extends PostgresIntegrationTestBase {
     List<TrackedEntityAttributeValue> attributeValues =
         trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
     assertEquals(1, attributeValues.size());
+    manager.clear();
+    manager.flush();
     fileResource = fileResourceService.getFileResource(fileResource.getUid());
     assertTrue(fileResource.isAssigned());
   }
@@ -137,6 +139,8 @@ class TeTaValidationTest extends PostgresIntegrationTestBase {
     List<TrackedEntityAttributeValue> attributeValues =
         trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
     assertEquals(1, attributeValues.size());
+    manager.clear();
+    manager.flush();
     fileResource = fileResourceService.getFileResource(fileResource.getUid());
     assertTrue(fileResource.isAssigned());
     trackerObjects =
