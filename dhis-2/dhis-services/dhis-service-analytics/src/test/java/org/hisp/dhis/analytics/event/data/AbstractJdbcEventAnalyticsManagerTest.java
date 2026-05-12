@@ -268,7 +268,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             stageQuerySqlFacade,
             new DateFieldPeriodBucketColumnResolver(new PostgreSqlAnalyticsSqlBuilder()),
             new EnrollmentEventSubqueryBuilder(
-                sqlBuilder, new ProgramStageOffsetSqlBuilder(sqlBuilder)));
+                sqlBuilder, new ProgramStageOffsetSqlBuilder(sqlBuilder)),
+            new AggregatedEnrollmentQueryAssembler(
+                sqlBuilder,
+                new DateFieldPeriodBucketColumnResolver(new PostgreSqlAnalyticsSqlBuilder())));
   }
 
   @Test
