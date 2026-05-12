@@ -105,6 +105,9 @@ public class UrlParamsMethodArgumentResolver implements HandlerMethodArgumentRes
                 }
               }
             });
+
+    //TODO move the below into a validation service
+
     JsonMixed params = JsonMixed.of(object);
     Validation.Result result = params.validate(paramsType, Validation.Mode.PROBE);
     if (!result.errors().isEmpty()) {
