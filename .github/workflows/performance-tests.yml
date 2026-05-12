@@ -101,9 +101,10 @@ jobs:
         sparse-checkout: |
           dhis-2/dhis-test-performance
 
-    # run-simulation.sh should cleanup after itself, this is to ensure the self-hosted runner is clean in case it did not.
+    # Backup cleanup before run: a previous job on this self-hosted runner may have left
+    # containers behind if its EXIT trap was killed before finishing.
     - name: Cleanup containers
-      run: docker compose --file docker-compose.yml --file docker-compose.profile.yml down --volumes
+      run: docker compose --file docker-compose.yml --file docker-compose.profile.yml down --volumes --remove-orphans
 
     - name: Clean target directory
       run: mvn clean
@@ -137,6 +138,14 @@ jobs:
         export REPORT_SUFFIX="${{ inputs.test_name }}"
 
         ./run-simulation.sh
+
+    # Backup cleanup on cancellation: GitHub sends SIGTERM then SIGKILL after a short grace
+    # period, which can interrupt run-simulation.sh's EXIT trap mid-teardown. This step runs
+    # as a separate process with its own grace window to ensure containers and volumes are
+    # removed.
+    - name: Cleanup containers on cancellation
+      if: cancelled()
+      run: docker compose --file docker-compose.yml --file docker-compose.profile.yml down --volumes --remove-orphans
 
     - name: Upload Gatling report
       if: always()
@@ -176,6 +185,7 @@ jobs:
         PROF_ARGS_VALUE=$(grep "^PROF_ARGS=" "$RUN_ENV" | cut -d= -f2-)
         CAPTURE_DHIS2_LOGS_VALUE=$(grep "^CAPTURE_DHIS2_LOGS=" "$RUN_ENV" | cut -d= -f2-)
         CAPTURE_SQL_LOGS_VALUE=$(grep "^CAPTURE_SQL_LOGS=" "$RUN_ENV" | cut -d= -f2-)
+        DB_DIR=$(grep "^DB_DIR=" "$RUN_ENV" | cut -d= -f2-)
         DB_TYPE=$(grep "^DB_TYPE=" "$RUN_ENV" | cut -d= -f2-)
         DB_VERSION=$(grep "^DB_VERSION=" "$RUN_ENV" | cut -d= -f2-)
 
@@ -190,7 +200,11 @@ jobs:
         echo "* **Simulation**: \`$SIM_CLASS\`" >> $GITHUB_STEP_SUMMARY
         echo "* **Performance tests git ref**: \`$PERF_GIT_BRANCH\` (\`$PERF_GIT_COMMIT\`)" >> $GITHUB_STEP_SUMMARY
         echo "* **Warmup iterations**: $WARMUP_COUNT" >> $GITHUB_STEP_SUMMARY
-        echo "* **Database**: \`$DB_TYPE\` / \`$DB_VERSION\`" >> $GITHUB_STEP_SUMMARY
+        if [ -n "$DB_DIR" ]; then
+          echo "* **Database**: \`$DB_DIR\` / \`$DB_TYPE\` / \`$DB_VERSION\`" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "* **Database**: \`$DB_TYPE\` / \`$DB_VERSION\`" >> $GITHUB_STEP_SUMMARY
+        fi
         if [ -n "$MVN_ARGS_VALUE" ]; then
           echo "* **Maven arguments**: \`$MVN_ARGS_VALUE\`" >> $GITHUB_STEP_SUMMARY
         fi
@@ -228,16 +242,24 @@ jobs:
 
         echo "## 📥 Download Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Download all results from all attempts:" >> $GITHUB_STEP_SUMMARY
+        echo "Recommended. Downloads this run's artifact in a layout [gstat](https://github.com/dhis2/gatling-statistics) can read directly:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
-        echo "gh run download --repo dhis2/dhis2-core ${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+        echo "gh run download ${{ github.run_id }} --repo dhis2/dhis2-core \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --name gatling-report-${{ inputs.test_name }}-${{ github.run_id }}-attempt-${{ github.run_attempt }} \\" >> $GITHUB_STEP_SUMMARY
+        echo "  --dir ./${{ inputs.test_name }}-${{ github.run_id }}" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Only needed if you re-ran failed jobs on this run. Downloads every preserved attempt, each in its own wrapper directory (not readable by [gstat](https://github.com/dhis2/gatling-statistics) directly):" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "gh run download ${{ github.run_id }} --repo dhis2/dhis2-core" >> $GITHUB_STEP_SUMMARY
         echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
         echo "## 📊 View Results" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "Results are in \`gatling-report-${{ inputs.test_name }}-${{ github.run_id }}-attempt-${{ github.run_attempt }}/\` with subdirectories:" >> $GITHUB_STEP_SUMMARY
+        echo "After the recommended download command above, the layout is \`./${{ inputs.test_name }}-${{ github.run_id }}/\` containing:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         if [ "$WARMUP_COUNT" -gt 0 ]; then
           echo "* **Warmup runs**: \`<simulation-class>-<timestamp>-${{ inputs.test_name }}-warmup-<number>/\`" >> $GITHUB_STEP_SUMMARY
@@ -247,15 +269,29 @@ jobs:
         echo "Each directory contains:" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "* \`index.html\` - Gatling HTML report" >> $GITHUB_STEP_SUMMARY
-        echo "* \`run-simulation.env\` - Complete test run metadata (read it on how to reproduce this run)" >> $GITHUB_STEP_SUMMARY
         echo "* \`simulation.log\` - Binary Gatling test data (response times, etc.)" >> $GITHUB_STEP_SUMMARY
-        echo "* \`simulation.csv\` - Parsed binary data in CSV format (requires [glog](https://github.com/dhis2/gatling/releases) and can be analyzed using [gatling-statistics](https://github.com/dhis2/gatling-statistics))" >> $GITHUB_STEP_SUMMARY
+        echo "* \`simulation.csv\` - Parsed binary data in CSV format (analyze using [gstat](https://github.com/dhis2/gatling-statistics))" >> $GITHUB_STEP_SUMMARY
+        echo "* \`run-simulation.env\` - Complete test run metadata (read it on how to reproduce this run)" >> $GITHUB_STEP_SUMMARY
         echo "* \`profile.html\` - Flamegraph visualization (if profiling enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`profile.jfr\` - JFR profiler data (if profiling enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`profile.collapsed\` - Collapsed stack traces (if profiling enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`dhis.log\` - DHIS2 application log (if DHIS2 logging enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`postgresql.log\` - PostgreSQL query logs (if SQL logging enabled)" >> $GITHUB_STEP_SUMMARY
         echo "* \`pgbadger.html\` - SQL log analysis report (if SQL logging enabled)" >> $GITHUB_STEP_SUMMARY
+        echo "* \`gc.log\` - JVM GC and safepoint logs (always captured; analyze with [Eclipse Jifa](https://github.com/eclipse-jifa/jifa))" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        echo "### Compare with another run" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Prints a Markdown table per request: p95 for each run, absolute diff (ms), and percent change vs the baseline (the first input). Download the baseline the same way as above, then:" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+        echo "gstat compare <baseline-dir> ./${{ inputs.test_name }}-${{ github.run_id }} --percentile 95" >> $GITHUB_STEP_SUMMARY
+        echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "\`gstat\` reports an exact percentile (linear interpolation over the full sample), so numbers may differ slightly from Gatling's \`index.html\`, which uses a t-digest approximation." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Tip**: \`gstat compare\` uses each input directory's basename as the column header. Pick a short, meaningful \`test_name\` (e.g. \`2.43.0-load-2u\`) so the table reads cleanly. Override per input with \`--label NAME\`." >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
         echo "## 🖥️ Environment" >> $GITHUB_STEP_SUMMARY
@@ -310,7 +346,7 @@ jobs:
 
     - name: Send Slack notification on failure
       if: failure() && steps.check_slack.outputs.webhook_configured == 'true'
-      uses: slackapi/slack-github-action@v3.0.2
+      uses: slackapi/slack-github-action@v3.0.3
       with:
         webhook: ${{ secrets.slack_webhook }}
         webhook-type: incoming-webhook

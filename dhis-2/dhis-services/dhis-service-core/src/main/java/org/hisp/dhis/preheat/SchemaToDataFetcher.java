@@ -31,12 +31,15 @@ package org.hisp.dhis.preheat;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.common.collect.Lists;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -59,6 +62,32 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class SchemaToDataFetcher {
+
+  /**
+   * Threshold that controls both:
+   *
+   * <ol>
+   *   <li>when to switch from the OR'd single-query fast path to the per-property batched path
+   *       (when {@code totalValues > MAX_VALUES_PER_QUERY});
+   *   <li>the partition size used inside the batched path so each IN-clause stays under
+   *       PostgreSQL's hard cap of 65,535 bind parameters.
+   * </ol>
+   *
+   * <p>20,000 is conservative relative to the 65,535 cap and matches the partition size already
+   * used elsewhere in the preheat pipeline (see {@link DefaultPreheatService}).
+   *
+   * <p>Trade-off worth knowing before tuning this: the threshold is summed across <em>all</em>
+   * unique properties, so an import with e.g. 12k values for {@code code} + 10k for {@code name}
+   * (22k total, but neither IN-clause large on its own) falls into the batched path and runs as N
+   * separate queries instead of one OR'd query. For totals between 20k and 65k the previous code
+   * ran in a single query; the batched path will do more round-trips. Raising this constant or
+   * splitting the threshold from the partition size would recover that, but the current value is
+   * intentionally conservative to keep behaviour predictable across imports.
+   */
+  private static final int MAX_VALUES_PER_QUERY = 20_000;
+
+  private static final String HQL_FILTERED_TEMPLATE = "SELECT :fields from :entity WHERE :filter";
+
   private final EntityManager entityManager;
 
   public SchemaToDataFetcher(EntityManager entityManager) {
@@ -100,31 +129,77 @@ public class SchemaToDataFetcher {
       return List.of();
     }
 
-    Query query = createQuery(schema, uniqueProperties, objectsBeingImported);
-    if (query == null) {
+    Map<String, Set<Object>> valuesToCheck =
+        extractValuesToCheck(uniqueProperties, objectsBeingImported);
+
+    int totalValues = valuesToCheck.values().stream().mapToInt(Set::size).sum();
+    if (totalValues == 0) {
       return List.of();
     }
 
-    List<Object> objects = query.getResultList();
+    // Fast path: single query when under the parameter limit
+    if (totalValues <= MAX_VALUES_PER_QUERY) {
+      Query query = createQuery(schema, uniqueProperties, valuesToCheck);
+      if (query == null) {
+        return List.of();
+      }
+      List<Object> objects = query.getResultList();
+      return uniqueProperties.size() == 1
+          ? handleSingleColumn(objects, uniqueProperties, schema)
+          : handleMultipleColumn((List<Object[]>) (List<?>) objects, uniqueProperties, schema);
+    }
 
-    // Hibernate returns a List containing an array of Objects if multiple
-    // columns are used in the query, or a "simple" List if only one column is used
-    return uniqueProperties.size() == 1
-        ? handleSingleColumn(objects, uniqueProperties, schema)
-        : handleMultipleColumn((List<Object[]>) (List<?>) objects, uniqueProperties, schema);
+    // Batched path: run one query per unique property, partitioning each property's values
+    // into chunks that stay under the parameter limit. Results are deduplicated because a row
+    // matching multiple unique properties can be returned by more than one query.
+    return runBatchedQueries(schema, uniqueProperties, valuesToCheck);
   }
 
-  private static final String HQL_FILTERED_TEMPLATE = "SELECT :fields from :entity WHERE :filter";
-
-  private Query createQuery(
-      Schema schema,
-      List<Property> uniqueProperties,
-      Collection<? extends IdentifiableObject> objectsBeingImported) {
+  @SuppressWarnings("unchecked")
+  private List<? extends IdentifiableObject> runBatchedQueries(
+      Schema schema, List<Property> uniqueProperties, Map<String, Set<Object>> valuesToCheck) {
     String fields = extractUniqueFields(uniqueProperties);
     String entity = schema.getKlass().getSimpleName();
+    boolean singleColumn = uniqueProperties.size() == 1;
 
-    Map<String, Set<Object>> valuesToCheck =
-        extractValuesToCheck(uniqueProperties, objectsBeingImported);
+    Set<Object> singleColumnResults = new LinkedHashSet<>();
+    Set<List<Object>> multiColumnResults = new LinkedHashSet<>();
+
+    for (Property property : uniqueProperties) {
+      Set<Object> values = valuesToCheck.get(property.getFieldName());
+      if (values == null || values.isEmpty()) {
+        continue;
+      }
+
+      String hql =
+          "SELECT %s FROM %s WHERE %s IN (:batch)"
+              .formatted(fields, entity, property.getFieldName());
+
+      for (List<Object> batch : Lists.partition(new ArrayList<>(values), MAX_VALUES_PER_QUERY)) {
+        Query query = entityManager.createQuery(hql).setHint(QueryHints.HINT_READONLY, true);
+        query.setParameter("batch", batch);
+        List<Object> rows = query.getResultList();
+        if (singleColumn) {
+          singleColumnResults.addAll(rows);
+        } else {
+          for (Object row : rows) {
+            multiColumnResults.add(Arrays.asList((Object[]) row));
+          }
+        }
+      }
+    }
+
+    if (singleColumn) {
+      return handleSingleColumn(new ArrayList<>(singleColumnResults), uniqueProperties, schema);
+    }
+    List<Object[]> dedupedRows = multiColumnResults.stream().map(List::toArray).toList();
+    return handleMultipleColumn(dedupedRows, uniqueProperties, schema);
+  }
+
+  private Query createQuery(
+      Schema schema, List<Property> uniqueProperties, Map<String, Set<Object>> valuesToCheck) {
+    String fields = extractUniqueFields(uniqueProperties);
+    String entity = schema.getKlass().getSimpleName();
 
     String whereClause = buildWhereClause(uniqueProperties, valuesToCheck);
     if (whereClause.isEmpty()) {

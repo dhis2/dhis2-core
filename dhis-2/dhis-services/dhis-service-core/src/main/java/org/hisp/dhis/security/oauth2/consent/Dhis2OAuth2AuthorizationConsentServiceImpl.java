@@ -45,8 +45,16 @@ import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
 /**
- * DHIS2 implementation of Spring Authorization Server's OAuth2AuthorizationConsentService that uses
- * HibernateOAuth2AuthorizationConsentStore for persistence.
+ * Spring-bean implementation of {@link Dhis2OAuth2AuthorizationConsentService} and Spring
+ * Authorization Server's {@link OAuth2AuthorizationConsentService}. Persistence is delegated to
+ * {@link Dhis2OAuth2AuthorizationConsentStore} (Hibernate-backed).
+ *
+ * <p>Rows are identified by the composite {@code (registeredClientId, principalName)}; {@link
+ * #toObject} / {@link #toEntity} translate between Spring AS's {@link
+ * org.springframework.security.oauth2.server.authorization.OAuth2AuthorizationConsent} and the flat
+ * DHIS2 entity (authorities stored as a comma-delimited string).
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Service
 public class Dhis2OAuth2AuthorizationConsentServiceImpl

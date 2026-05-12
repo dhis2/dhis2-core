@@ -40,8 +40,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Set;
 import java.util.regex.Pattern;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -57,16 +55,10 @@ public class CspFilter extends OncePerRequestFilter {
 
   private final ConfigurationService configurationService;
 
-  /** Cache for CORS whitelist to avoid DB lookups on every request. Expires after 5 minutes. */
-  private final Cache<Set<String>> corsWhitelistCache;
-
   public CspFilter(
-      DhisConfigurationProvider dhisConfig,
-      ConfigurationService configurationService,
-      CacheProvider cacheProvider) {
+      DhisConfigurationProvider dhisConfig, ConfigurationService configurationService) {
     this.enabled = dhisConfig.isEnabled(CSP_ENABLED);
     this.configurationService = configurationService;
-    this.corsWhitelistCache = cacheProvider.createCorsWhitelistCache();
   }
 
   @Override
@@ -91,7 +83,7 @@ public class CspFilter extends OncePerRequestFilter {
   }
 
   private void setFrameAncestorsCspRule(HttpServletResponse res) {
-    Set<String> corsWhitelist = getCorsWhitelist();
+    Set<String> corsWhitelist = configurationService.getCorsWhitelist();
     if (!corsWhitelist.isEmpty()) {
       String corsAllowedOrigins = String.join(" ", corsWhitelist);
       res.addHeader(
@@ -100,17 +92,6 @@ public class CspFilter extends OncePerRequestFilter {
     } else {
       res.addHeader(CONTENT_SECURITY_POLICY_HEADER_NAME, FRAME_ANCESTORS_DEFAULT_CSP + ";");
     }
-  }
-
-  /**
-   * Returns the cached CORS whitelist, refreshing from the database if the cache has expired (older
-   * than 5 minutes) or is not yet initialized.
-   *
-   * @return the CORS whitelist Set
-   */
-  private Set<String> getCorsWhitelist() {
-    return corsWhitelistCache.get(
-        "CORS_WHITELIST", key -> configurationService.getConfiguration().getCorsWhitelist());
   }
 
   private boolean isUploadedContentInsideApi(String requestURI) {
