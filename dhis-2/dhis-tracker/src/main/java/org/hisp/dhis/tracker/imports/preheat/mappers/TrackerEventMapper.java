@@ -35,7 +35,13 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper(uses = {ProgramStageMapper.class, OrganisationUnitMapper.class, EnrollmentMapper.class})
+@Mapper(
+    uses = {
+      ProgramStageMapper.class,
+      OrganisationUnitMapper.class,
+      EnrollmentMapper.class,
+      CategoryOptionComboMapper.class
+    })
 public interface TrackerEventMapper extends PreheatMapper<TrackerEvent> {
   TrackerEventMapper INSTANCE = Mappers.getMapper(TrackerEventMapper.class);
 
@@ -48,6 +54,7 @@ public interface TrackerEventMapper extends PreheatMapper<TrackerEvent> {
   @Mapping(target = "programStage")
   @Mapping(target = "status")
   @Mapping(target = "organisationUnit")
+  @Mapping(target = "attributeOptionCombo")
   @Mapping(target = "created")
   @Mapping(target = "eventDataValues")
   @Mapping(target = "notes")

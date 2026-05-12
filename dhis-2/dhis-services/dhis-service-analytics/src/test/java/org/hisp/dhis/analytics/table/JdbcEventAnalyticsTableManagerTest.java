@@ -34,8 +34,10 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hisp.dhis.db.model.DataType.BIGINT;
 import static org.hisp.dhis.db.model.DataType.CHARACTER_11;
@@ -112,6 +114,7 @@ import org.hisp.dhis.test.random.BeanRandomizer;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -1089,6 +1092,77 @@ class JdbcEventAnalyticsTableManagerTest {
     assertThat(sql.getValue(), containsString(ouUidQuery));
     assertThat(sql.getValue(), containsString(ouGeometryQuery));
     assertThat(sql.getValue(), containsString(ouNameQuery));
+  }
+
+  @Test
+  @DisplayName("removeUpdatedData deletes from the live table, not the staging table")
+  void removeUpdatedDataTargetsLiveTable() {
+    ArgumentCaptor<String> sql = ArgumentCaptor.forClass(String.class);
+    Program program = createProgram('A');
+    program.setProgramType(WITH_REGISTRATION);
+
+    Date lastFullTableUpdate = new DateTime(2019, 3, 1, 2, 0).toDate();
+    Date lastLatestPartitionUpdate = new DateTime(2019, 3, 1, 9, 0).toDate();
+    Date startTime = new DateTime(2019, 3, 1, 10, 0).toDate();
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder().startTime(startTime).build().withLatestPartition();
+
+    List<Map<String, Object>> queryResp = new ArrayList<>();
+    queryResp.add(Map.of("eventid", 1));
+
+    when(settings.getLastSuccessfulAnalyticsTablesUpdate()).thenReturn(lastFullTableUpdate);
+    when(settings.getLastSuccessfulLatestAnalyticsPartitionUpdate())
+        .thenReturn(lastLatestPartitionUpdate);
+    when(jdbcTemplate.queryForList(Mockito.anyString())).thenReturn(queryResp);
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(program));
+    whenConfigurationPeriodSettings();
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+    assertThat(tables, hasSize(1));
+
+    subject.removeUpdatedData(tables);
+
+    verify(jdbcTemplate).execute(sql.capture());
+
+    String mainTableName = TABLE_PREFIX + program.getUid().toLowerCase();
+    assertThat(sql.getValue(), containsString(quote(mainTableName)));
+    assertThat(sql.getValue(), not(containsString(quote(mainTableName + STAGING_TABLE_SUFFIX))));
+  }
+
+  @Test
+  @DisplayName("getRegularAnalyticsTables excludes programs listed in skipPrograms")
+  void getRegularAnalyticsTablesExcludesSkippedPrograms() {
+    Program prA = createProgram('A');
+    Program prB = createProgram('B');
+    Program prC = createProgram('C');
+    Program prD = createProgram('D');
+
+    Set<String> skipPrograms = new HashSet<>();
+    skipPrograms.add(prC.getUid());
+    skipPrograms.add(prD.getUid());
+
+    AnalyticsTableUpdateParams params =
+        AnalyticsTableUpdateParams.newBuilder()
+            .lastYears(2)
+            .startTime(START_TIME)
+            .today(today)
+            .skipPrograms(skipPrograms)
+            .build();
+
+    when(idObjectManager.getAllNoAcl(Program.class)).thenReturn(List.of(prA, prB, prC, prD));
+    mockPeriodYears(List.of(2018, 2019, now().getYear()));
+    whenConfigurationPeriodSettings();
+    when(jdbcTemplate.queryForList(Mockito.anyString(), Mockito.eq(Integer.class)))
+        .thenReturn(List.of(2018, 2019));
+
+    List<AnalyticsTable> tables = subject.getAnalyticsTables(params);
+
+    assertThat(tables, hasSize(2));
+
+    List<String> programUids = tables.stream().map(t -> t.getProgram().getUid()).toList();
+    assertThat(programUids, not(hasItem(prC.getUid())));
+    assertThat(programUids, not(hasItem(prD.getUid())));
   }
 
   private String toSelectExpression(String template, String uid) {

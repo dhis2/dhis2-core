@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import javax.sql.DataSource;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.notification.NotificationTrigger;
@@ -58,8 +59,9 @@ public class EnrollmentPersister
 
   public EnrollmentPersister(
       ReservedValueService reservedValueService,
+      DataSource dataSource,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService) {
-    super(reservedValueService);
+    super(reservedValueService, dataSource);
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
   }
 
