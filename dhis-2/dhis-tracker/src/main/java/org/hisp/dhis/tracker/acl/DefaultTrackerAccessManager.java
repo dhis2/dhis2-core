@@ -474,10 +474,21 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
           user, enrollment, enrollment.getOrganisationUnit(), enrollment.getAttributeOptionCombo());
     }
     if (item.getTrackerEvent() != null) {
-      TrackerEvent event = item.getTrackerEvent();
-      return canUpdate(user, event, event.getOrganisationUnit(), event.getAttributeOptionCombo());
+      TrackerEvent trackerEvent = item.getTrackerEvent();
+      return canUpdate(
+          user,
+          trackerEvent,
+          trackerEvent.getOrganisationUnit(),
+          trackerEvent.getAttributeOptionCombo());
     }
-    if (item.getSingleEvent() != null) return canCreate(user, item.getSingleEvent());
+    if (item.getSingleEvent() != null) {
+      SingleEvent singleEvent = item.getSingleEvent();
+      return canUpdate(
+          user,
+          singleEvent,
+          singleEvent.getOrganisationUnit(),
+          singleEvent.getAttributeOptionCombo());
+    }
 
     return List.of();
   }
