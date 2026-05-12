@@ -31,6 +31,7 @@ package org.hisp.dhis.db.sql;
 
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
@@ -56,6 +57,11 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
   public static final String NAMED_COLLECTION = "pg_dhis";
 
   private static final String QUOTE = "\"";
+
+  private static final Pattern DATE_LITERAL_PATTERN = Pattern.compile("'\\d{4}-\\d{2}-\\d{2}'");
+
+  private static final Pattern DATETIME_LITERAL_PATTERN =
+      Pattern.compile("'\\d{4}-\\d{2}-\\d{2}[ T]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?'");
 
   private final String databaseName;
 
@@ -278,6 +284,9 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
 
   @Override
   public String dateDifference(String startDate, String endDate, DateUnit dateUnit) {
+    startDate = normalizeDateDiffOperand(startDate, dateUnit);
+    endDate = normalizeDateDiffOperand(endDate, dateUnit);
+
     return switch (dateUnit) {
       case DAYS -> String.format("dateDiff('day', %s, %s)", startDate, endDate);
       case MINUTES -> String.format("dateDiff('minute', %s, %s)", startDate, endDate);
@@ -285,6 +294,20 @@ public class ClickHouseSqlBuilder extends AbstractSqlBuilder {
       case YEARS -> String.format("dateDiff('year', %s, %s)", startDate, endDate);
       case WEEKS -> String.format("dateDiff('week', %s, %s)", startDate, endDate);
     };
+  }
+
+  private String normalizeDateDiffOperand(String operand, DateUnit dateUnit) {
+    if (DATE_LITERAL_PATTERN.matcher(operand).matches()) {
+      return dateUnit == DateUnit.MINUTES
+          ? String.format("toDateTime(%s)", operand)
+          : String.format("toDate32(%s)", operand);
+    }
+
+    if (DATETIME_LITERAL_PATTERN.matcher(operand).matches()) {
+      return String.format("toDateTime64(%s, 3)", operand);
+    }
+
+    return operand;
   }
 
   @Override
