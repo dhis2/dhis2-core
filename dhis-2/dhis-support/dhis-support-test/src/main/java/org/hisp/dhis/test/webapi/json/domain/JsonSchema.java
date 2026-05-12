@@ -46,16 +46,8 @@ public interface JsonSchema extends JsonObject {
     return getString("klass").parsedClass();
   }
 
-  default List<Class<?>> getReferences() {
-    return getArray("references")
-        .values(
-            klass -> {
-              try {
-                return Class.forName(klass);
-              } catch (ClassNotFoundException ex) {
-                throw new IllegalArgumentException(ex);
-              }
-            });
+  default List<? extends Class<?>> getReferences() {
+    return getArray("references").values().map(e -> e.parsedChecked(Class::forName)).toList();
   }
 
   default String getRelativeApiEndpoint() {
