@@ -36,6 +36,8 @@ import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -49,6 +51,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.sql.DataSource;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -78,6 +81,7 @@ import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.UserDetails;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 
 /**
  * @author Luciano Fiandesio
@@ -92,6 +96,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
   @PersistenceContext private EntityManager entityManager;
 
   protected final ReservedValueService reservedValueService;
+
+  protected final DataSource dataSource;
 
   /**
    * Template method that can be used by classes extending this class to execute the persistence
@@ -115,50 +121,35 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
     //
     List<T> dtos = getByType(bundle);
 
-    for (T trackerDto : dtos) {
+    Connection conn = DataSourceUtils.getConnection(dataSource);
+    try {
+      for (T trackerDto : dtos) {
 
-      Entity objectReport = new Entity(getType(), trackerDto.getUID());
-      boolean isNewEntity = isNew(bundle, trackerDto);
-      // Capture before convert() which mutates the preheat entity's status
-      boolean completedInThisImport =
-          !bundle.isSkipSideEffects()
-              && isBeingCompleted(bundle.getPreheat(), trackerDto, isNewEntity);
-      ChangeLogAccumulator.Mark mark = changeLogs.mark();
-      try {
-        V originalEntity = cloneEntityProperties(bundle.getPreheat(), trackerDto);
+        Entity objectReport = new Entity(getType(), trackerDto.getUID());
+        boolean isNewEntity = isNew(bundle, trackerDto);
+        // Capture before convert() which mutates the preheat entity's status
+        boolean completedInThisImport =
+            !bundle.isSkipSideEffects()
+                && isBeingCompleted(bundle.getPreheat(), trackerDto, isNewEntity);
+        ChangeLogAccumulator.Mark mark = changeLogs.mark();
+        try {
+          V originalEntity = cloneEntityProperties(bundle.getPreheat(), trackerDto);
 
-        //
-        // Convert the TrackerDto into an Hibernate-managed entity
-        //
-        V convertedDto = convert(bundle, trackerDto);
+          //
+          // Convert the TrackerDto into an Hibernate-managed entity
+          //
+          V convertedDto = convert(bundle, trackerDto);
 
-        //
-        // Handle ownership records, if required
-        //
-        persistOwnership(bundle, trackerDto, convertedDto);
+          //
+          // Handle ownership records, if required
+          //
+          persistOwnership(bundle, trackerDto, convertedDto);
 
-        //
-        // Save or update the entity
-        //
-        if (isNew(bundle, trackerDto)) {
-          entityManager.persist(convertedDto);
-          updateDataValues(
-              bundle.getPreheat(),
-              trackerDto,
-              convertedDto,
-              originalEntity,
-              bundle.getUser(),
-              changeLogs);
-          typeReport.getStats().incCreated();
-          typeReport.addEntity(objectReport);
-          updateAttributes(
-              bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser(), changeLogs);
-          bundle.addUpdatedTrackedEntities(getUpdatedTrackedEntities(convertedDto));
-        } else {
-          if (trackerDto.getTrackerType() == TrackerType.RELATIONSHIP) {
-            typeReport.getStats().incIgnored();
-            // Relationships are not updated. A warning was already added to the report
-          } else {
+          //
+          // Save or update the entity
+          //
+          if (isNew(bundle, trackerDto)) {
+            entityManager.persist(convertedDto);
             updateDataValues(
                 bundle.getPreheat(),
                 trackerDto,
@@ -166,62 +157,91 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
                 originalEntity,
                 bundle.getUser(),
                 changeLogs);
+            typeReport.getStats().incCreated();
+            typeReport.addEntity(objectReport);
             updateAttributes(
                 bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser(), changeLogs);
-            entityManager.merge(convertedDto);
-            typeReport.getStats().incUpdated();
-            typeReport.addEntity(objectReport);
             bundle.addUpdatedTrackedEntities(getUpdatedTrackedEntities(convertedDto));
+          } else {
+            if (trackerDto.getTrackerType() == TrackerType.RELATIONSHIP) {
+              typeReport.getStats().incIgnored();
+              // Relationships are not updated. A warning was already added to the report
+            } else {
+              updateDataValues(
+                  bundle.getPreheat(),
+                  trackerDto,
+                  convertedDto,
+                  originalEntity,
+                  bundle.getUser(),
+                  changeLogs);
+              updateAttributes(
+                  bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser(), changeLogs);
+              entityManager.merge(convertedDto);
+              typeReport.getStats().incUpdated();
+              typeReport.addEntity(objectReport);
+              bundle.addUpdatedTrackedEntities(getUpdatedTrackedEntities(convertedDto));
+            }
           }
-        }
 
-        if (!bundle.isSkipSideEffects()) {
-          EntityNotifications entityNotifications =
-              collectNotifications(bundle, convertedDto, isNewEntity, completedInThisImport);
-          if (entityNotifications != null) {
-            notifications.add(entityNotifications);
+          if (!bundle.isSkipSideEffects()) {
+            EntityNotifications entityNotifications =
+                collectNotifications(bundle, convertedDto, isNewEntity, completedInThisImport);
+            if (entityNotifications != null) {
+              notifications.add(entityNotifications);
+            }
           }
-        }
 
-        //
-        // Add the entity to the Preheat
-        //
-        updatePreheat(bundle.getPreheat(), convertedDto);
+          //
+          // Add the entity to the Preheat
+          //
+          updatePreheat(bundle.getPreheat(), convertedDto);
 
-        if (FlushMode.OBJECT == bundle.getFlushMode()) {
-          // Flush entity INSERTs/UPDATEs before changelog INSERTs so FK references
-          // (trackedentityid, eventid) exist before changelog rows reference them.
-          entityManager.flush();
-          changeLogs.flushAll(entityManager);
-        }
-      } catch (Exception e) {
-        changeLogs.rollbackTo(mark);
+          if (FlushMode.OBJECT == bundle.getFlushMode()) {
+            // Flush entity INSERTs/UPDATEs before changelog INSERTs so FK references
+            // (trackedentityid, eventid) exist before changelog rows reference them.
+            entityManager.flush();
+            changeLogs.flushAll(conn);
+          }
+        } catch (Exception e) {
+          changeLogs.rollbackTo(mark);
 
-        final String msg =
-            "A Tracker Entity of type '"
-                + getType().getName()
-                + "' ("
-                + trackerDto.getUID()
-                + ") failed to persist.";
+          final String msg =
+              "A Tracker Entity of type '"
+                  + getType().getName()
+                  + "' ("
+                  + trackerDto.getUID()
+                  + ") failed to persist.";
 
-        if (AtomicMode.ALL.equals(bundle.getAtomicMode())) {
-          throw new PersistenceException(msg, e);
-        } else {
-          // TODO currently we do not keep track of the failed entity
-          // in the TrackerObjectReport
+          if (AtomicMode.ALL.equals(bundle.getAtomicMode())) {
+            throw new PersistenceException(msg, e);
+          } else {
+            // TODO currently we do not keep track of the failed entity
+            // in the TrackerObjectReport
 
-          log.warn(msg + "\nThe Import process will process remaining entities.", e);
+            // TODO: if the failure originated from a JDBC flush (changeLogs.flushAll or, from
+            // Phase 3 onward, EntityWriteBatch.flush), the underlying PostgreSQL connection is
+            // now in an aborted-transaction state. Any subsequent SQL on the same connection
+            // will fail with "current transaction is aborted". This means a single JDBC flush
+            // failure in non-atomic mode silently cascades and causes all remaining entities to
+            // be ignored as well. Consider wrapping each entity's JDBC flush in a savepoint so
+            // that a failure can be rolled back to the savepoint and the connection stays usable.
+            log.warn(msg + "\nThe Import process will process remaining entities.", e);
 
-          typeReport.getStats().incIgnored();
+            typeReport.getStats().incIgnored();
+          }
         }
       }
-    }
 
-    if (FlushMode.AUTO == bundle.getFlushMode()) {
-      // Flush entity INSERTs/UPDATEs before changelog INSERTs so FK references
-      // (trackedentityid, eventid) exist before changelog rows reference them.
-      entityManager.flush();
-      changeLogs.flushAll(entityManager);
+      if (FlushMode.AUTO == bundle.getFlushMode()) {
+        // Flush entity INSERTs/UPDATEs before changelog INSERTs so FK references
+        // (trackedentityid, eventid) exist before changelog rows reference them.
+        entityManager.flush();
+        changeLogs.flushAll(conn);
+      }
+    } catch (SQLException e) {
+      throw new PersistenceException(e);
+    } finally {
+      DataSourceUtils.releaseConnection(conn, dataSource);
     }
     return new PersistResult(typeReport, notifications);
   }
