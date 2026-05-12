@@ -56,6 +56,7 @@ import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.analytics.SortOrder.ASC;
 import static org.hisp.dhis.analytics.SortOrder.DESC;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_INDICATOR_ENROLLMENT;
+import static org.hisp.dhis.analytics.common.CteDefinition.CteType.PROGRAM_INDICATOR_EVENT;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_ENROLLMENT_TABLE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.SHADOW_EVENT_TABLE;
 import static org.hisp.dhis.analytics.common.CteDefinition.CteType.TOP_ENROLLMENTS;
@@ -2836,6 +2837,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       SelectBuilder builder, String itemUid, CteDefinition cteDef, CteContext cteContext) {
     if (cteContext.isEventsAnalytics() && cteDef.getCteType() == PROGRAM_INDICATOR_ENROLLMENT) {
       builder.crossJoin(itemUid, cteDef.getAlias());
+    } else if (cteDef.getCteType() == PROGRAM_INDICATOR_EVENT) {
+      String alias = cteDef.getAlias();
+      builder.leftJoin(itemUid, alias, tableAlias -> tableAlias + ".event = ax.event");
     } else {
       String alias = cteDef.getAlias();
       builder.leftJoin(itemUid, alias, tableAlias -> tableAlias + ".enrollment = ax.enrollment");
@@ -3153,7 +3157,15 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       QueryFilter filter, QueryItem item, CteDefinition cteDef, EventQueryParams params) {
     String value = getSqlFilterValue(filter, item, params);
     String operator = resolveOperator(filter, value);
-    return Condition.raw(String.format("%s.value %s %s", cteDef.getAlias(), operator, value));
+    String lhs =
+        shouldCoalesceProgramIndicatorFilter(cteDef)
+            ? "coalesce(" + cteDef.getAlias() + ".value, 0)"
+            : cteDef.getAlias() + ".value";
+    return Condition.raw(String.format("%s %s %s", lhs, operator, value));
+  }
+
+  private boolean shouldCoalesceProgramIndicatorFilter(CteDefinition cteDef) {
+    return cteDef.getCteType() == PROGRAM_INDICATOR_EVENT && cteDef.isRequiresCoalesce();
   }
 
   private String resolveOperator(QueryFilter filter, String value) {

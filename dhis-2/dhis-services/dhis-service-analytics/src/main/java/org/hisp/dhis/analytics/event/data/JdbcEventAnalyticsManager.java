@@ -55,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
@@ -973,12 +974,13 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       cteContext = new CteContext(EndpointItem.EVENT);
     }
 
-    for (QueryItem item : params.getItems()) {
+    for (QueryItem item :
+        Stream.concat(params.getItems().stream(), params.getItemFilters().stream()).toList()) {
       if (item.isProgramIndicator()) {
         ProgramIndicator programIndicator = (ProgramIndicator) item.getItem();
         // Handle any program indicator CTE logic.
-        if (programIndicator.getAnalyticsType().equals(AnalyticsType.ENROLLMENT)) {
-          // CTE needed only for Enrollment type
+        if (programIndicator.getAnalyticsType().equals(AnalyticsType.ENROLLMENT)
+            || programIndicator.getAnalyticsType().equals(AnalyticsType.EVENT)) {
           handleProgramIndicatorCte(item, cteContext, params);
         }
       }

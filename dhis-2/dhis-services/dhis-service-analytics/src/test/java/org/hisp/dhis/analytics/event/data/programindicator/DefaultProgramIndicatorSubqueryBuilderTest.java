@@ -68,6 +68,7 @@ import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -126,6 +127,239 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
     testPI.setAnalyticsPeriodBoundaries(Collections.emptySet());
 
     builder.init();
+  }
+
+  @Test
+  void addCte_eventEndpointEventTypePiCountProducesEventKeyedCte() {
+    programIndicator.setAnalyticsType(AnalyticsType.EVENT);
+    programIndicator.setAggregationType(AggregationType.COUNT);
+    programIndicator.setExpression("ou");
+    programIndicator.setFilter(null);
+    cteContext = new CteContext(EndpointItem.EVENT);
+
+    when(programIndicatorService.getAnalyticsSql(
+            eq("ou"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn("ou");
+
+    builder.addCte(programIndicator, null, AnalyticsType.EVENT, startDate, endDate, cteContext);
+
+    assertTrue(cteContext.containsCte(piUid), "Main PI CTE should be added");
+    CteDefinition mainPiCte = cteContext.getDefinitionByKey(piUid);
+    assertNotNull(mainPiCte);
+    assertTrue(mainPiCte.isRequiresCoalesce(), "EVENT count PI should require coalesce");
+
+    String mainCteSql = mainPiCte.getCteDefinition();
+    assertTrue(
+        mainCteSql.startsWith("select subax.event as event, count(ou) as value"),
+        "Main CTE should be keyed by event");
+    assertTrue(
+        mainCteSql.contains(" from " + eventTable.toLowerCase() + " as " + subax),
+        "Main CTE should read from the event analytics table");
+    assertTrue(mainCteSql.endsWith(" group by subax.event"), "Main CTE should group by event");
+  }
+
+  @Test
+  void addCte_eventEndpointEventTypePiSumDoesNotRequireCoalesce() {
+    programIndicator.setAnalyticsType(AnalyticsType.EVENT);
+    programIndicator.setAggregationType(AggregationType.SUM);
+    programIndicator.setExpression("1");
+    programIndicator.setFilter(null);
+    cteContext = new CteContext(EndpointItem.EVENT);
+
+    when(programIndicatorService.getAnalyticsSql(
+            eq("1"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn("1");
+
+    builder.addCte(programIndicator, null, AnalyticsType.EVENT, startDate, endDate, cteContext);
+
+    assertTrue(cteContext.containsCte(piUid), "Main PI CTE should be added");
+    CteDefinition mainPiCte = cteContext.getDefinitionByKey(piUid);
+    assertNotNull(mainPiCte);
+    assertFalse(mainPiCte.isRequiresCoalesce(), "Only EVENT count PIs should be coalesced");
+    assertTrue(mainPiCte.getCteDefinition().contains("sum(1) as value"));
+  }
+
+  @Test
+  void addCte_eventEndpointEventTypePiWithRelationshipTypeDoesNotRegisterCte() {
+    programIndicator.setAnalyticsType(AnalyticsType.EVENT);
+    programIndicator.setAggregationType(AggregationType.COUNT);
+    programIndicator.setExpression("ou");
+    cteContext = new CteContext(EndpointItem.EVENT);
+
+    builder.addCte(
+        programIndicator,
+        new RelationshipType(),
+        AnalyticsType.EVENT,
+        startDate,
+        endDate,
+        cteContext);
+
+    assertFalse(cteContext.containsCte(piUid), "Relationship EVENT PIs stay on inline SQL path");
+  }
+
+  @Test
+  void addCte_eventEndpointEventTypePiWithGeneratedEnrollmentGrainPlaceholdersDoesNotRegisterCte() {
+    assertEventPiExpressionDoesNotRegisterCte(
+        "V{event_date}",
+        "FUNC_CTE_VAR( type='vEventDate', column='occurreddate', piUid='"
+            + piUid
+            + "', psUid='null', offset='0')");
+    assertEventPiExpressionDoesNotRegisterCte(
+        "#{PgmStgUid1.DataElmUid1}",
+        "__PSDE_CTE_PLACEHOLDER__(psUid='PgmStgUid1', deUid='DataElmUid1', offset='0', boundaryHash='noboundaries', piUid='"
+            + piUid
+            + "')");
+    assertEventPiExpressionDoesNotRegisterCte(
+        "d2:countIfValue(#{PgmStgUid1.DataElmUid2}, 5)",
+        "__D2FUNC__(func='countIfValue', ps='PgmStgUid1', de='DataElmUid2', argType='val64', arg64='NQ==', hash='noboundaries', pi='"
+            + piUid
+            + "')__");
+  }
+
+  @Test
+  void addCte_eventEndpointEventTypePiWithInlineStageDataElementFilterProducesEventKeyedCte() {
+    programIndicator.setAnalyticsType(AnalyticsType.EVENT);
+    programIndicator.setAggregationType(AggregationType.COUNT);
+    programIndicator.setExpression("distinct ou");
+    programIndicator.setFilter("#{edqlbukwRfQ.nhW3SZX9JaN} == 'Ongoing'");
+    cteContext = new CteContext(EndpointItem.EVENT);
+
+    String renderedFilter =
+        "coalesce(toString(case when subax.\"ps\" = 'edqlbukwRfQ' then \"nhW3SZX9JaN\" else null end), '') = 'Ongoing'";
+    when(programIndicatorService.getAnalyticsSql(
+            eq("distinct ou"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn("distinct ou");
+    when(programIndicatorService.getAnalyticsSql(
+            eq("#{edqlbukwRfQ.nhW3SZX9JaN} == 'Ongoing'"),
+            eq(BOOLEAN),
+            eq(programIndicator),
+            any(),
+            any(),
+            eq(subax)))
+        .thenReturn(renderedFilter);
+
+    builder.addCte(programIndicator, null, AnalyticsType.EVENT, startDate, endDate, cteContext);
+
+    assertTrue(cteContext.containsCte(piUid), "Main PI CTE should be added");
+    String mainCteSql = cteContext.getDefinitionByKey(piUid).getCteDefinition();
+    assertTrue(mainCteSql.startsWith("select subax.event as event, count(distinct ou) as value"));
+    assertTrue(mainCteSql.contains(" where " + renderedFilter));
+    assertTrue(mainCteSql.endsWith(" group by subax.event"));
+  }
+
+  @Test
+  void addCte_eventEndpointEventTypePiWithInlineAverageFilterProducesEventKeyedCte() {
+    programIndicator.setAnalyticsType(AnalyticsType.EVENT);
+    programIndicator.setAggregationType(AggregationType.AVERAGE);
+    programIndicator.setExpression(
+        "(#{A03MvHHogjR.UXz7xuGCEhU} + #{ZzYYXq4fJie.GQY2lXrypjO}) / V{event_count}");
+    programIndicator.setFilter("V{event_count} > 0");
+    cteContext = new CteContext(EndpointItem.EVENT);
+
+    String renderedExpression =
+        "(coalesce(toFloat64(case when subax.\"ps\" = 'A03MvHHogjR' then \"UXz7xuGCEhU\" else null end), 0) "
+            + "+ coalesce(toFloat64(case when subax.\"ps\" = 'ZzYYXq4fJie' then \"GQY2lXrypjO\" else null end), 0)) "
+            + "/ nullif(cast((case when \"GQY2lXrypjO\" is not null then 1 else 0 end "
+            + "+ case when \"UXz7xuGCEhU\" is not null then 1 else 0 end) as Float64), 0)";
+    String renderedFilter =
+        "nullif(cast((case when \"GQY2lXrypjO\" is not null then 1 else 0 end "
+            + "+ case when \"UXz7xuGCEhU\" is not null then 1 else 0 end) as Float64), 0) > toFloat64(0)";
+    when(programIndicatorService.getAnalyticsSql(
+            eq(programIndicator.getExpression()),
+            eq(NUMERIC),
+            eq(programIndicator),
+            any(),
+            any(),
+            eq(subax)))
+        .thenReturn(renderedExpression);
+    when(programIndicatorService.getAnalyticsSql(
+            eq(programIndicator.getFilter()),
+            eq(BOOLEAN),
+            eq(programIndicator),
+            any(),
+            any(),
+            eq(subax)))
+        .thenReturn(renderedFilter);
+
+    builder.addCte(programIndicator, null, AnalyticsType.EVENT, startDate, endDate, cteContext);
+
+    assertTrue(cteContext.containsCte(piUid), "Main PI CTE should be added");
+    CteDefinition mainPiCte = cteContext.getDefinitionByKey(piUid);
+    assertFalse(mainPiCte.isRequiresCoalesce(), "EVENT avg PI should stay nullable");
+    String mainCteSql = mainPiCte.getCteDefinition();
+    assertTrue(mainCteSql.startsWith("select subax.event as event, avg(" + renderedExpression));
+    assertTrue(mainCteSql.contains(" as value from " + eventTable.toLowerCase() + " as subax"));
+    assertTrue(mainCteSql.contains(" where " + renderedFilter));
+    assertTrue(mainCteSql.endsWith(" group by subax.event"));
+  }
+
+  @Test
+  void addCte_eventEndpointEventTypePiWithSimpleVariableFilterDoesNotRegisterCte() {
+    programIndicator.setAnalyticsType(AnalyticsType.EVENT);
+    programIndicator.setAggregationType(AggregationType.COUNT);
+    programIndicator.setExpression("1");
+    programIndicator.setFilter("V{event_status} == 'ACTIVE'");
+    cteContext = new CteContext(EndpointItem.EVENT);
+
+    when(programIndicatorService.getAnalyticsSql(
+            eq("1"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn("1");
+    when(programIndicatorService.getAnalyticsSql(
+            eq("V{event_status} == 'ACTIVE'"),
+            eq(BOOLEAN),
+            eq(programIndicator),
+            any(),
+            any(),
+            eq(subax)))
+        .thenReturn(
+            "FUNC_CTE_VAR( type='vEventStatus', column='eventstatus', piUid='"
+                + piUid
+                + "', psUid='null', offset='0') = 'ACTIVE'");
+
+    builder.addCte(programIndicator, null, AnalyticsType.EVENT, startDate, endDate, cteContext);
+
+    assertFalse(cteContext.containsCte(piUid), "Filter CTE dependent EVENT PIs stay inline");
+    assertTrue(cteContext.getCteKeys().isEmpty(), "Unsupported EVENT PI should not leave CTEs");
+  }
+
+  @Test
+  void addCte_eventEndpointEnrollmentTypePiKeepsSingleRowAggregateCte() {
+    programIndicator.setAnalyticsType(AnalyticsType.ENROLLMENT);
+    programIndicator.setAggregationType(AggregationType.SUM);
+    programIndicator.setExpression("1");
+    programIndicator.setFilter(null);
+    cteContext = new CteContext(EndpointItem.EVENT);
+
+    when(programIndicatorService.getAnalyticsSql(
+            eq("1"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn("1");
+
+    builder.addCte(programIndicator, null, AnalyticsType.EVENT, startDate, endDate, cteContext);
+
+    assertTrue(cteContext.containsCte(piUid), "Main PI CTE should be added");
+    String mainCteSql = cteContext.getDefinitionByKey(piUid).getCteDefinition();
+    assertTrue(mainCteSql.startsWith("select sum(1) as value"));
+    assertFalse(mainCteSql.contains("group by subax.event"));
+    assertFalse(mainCteSql.contains("group by subax.enrollment"));
+  }
+
+  private void assertEventPiExpressionDoesNotRegisterCte(String expression, String renderedSql) {
+    programIndicator.setAnalyticsType(AnalyticsType.EVENT);
+    programIndicator.setAggregationType(AggregationType.COUNT);
+    programIndicator.setExpression(expression);
+    programIndicator.setFilter(null);
+    cteContext = new CteContext(EndpointItem.EVENT);
+
+    when(programIndicatorService.getAnalyticsSql(
+            eq(expression), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn(renderedSql);
+
+    builder.addCte(programIndicator, null, AnalyticsType.EVENT, startDate, endDate, cteContext);
+
+    assertFalse(
+        cteContext.containsCte(piUid),
+        "Enrollment-grain placeholder EVENT PIs stay inline: " + expression);
+    assertTrue(cteContext.getCteKeys().isEmpty(), "Unsupported EVENT PI should not leave CTEs");
   }
 
   @Test

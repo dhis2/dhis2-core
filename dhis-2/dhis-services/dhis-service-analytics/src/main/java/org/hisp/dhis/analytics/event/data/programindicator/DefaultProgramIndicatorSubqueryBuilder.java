@@ -188,13 +188,23 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
       Date latestDate,
       CteContext cteContext) {
 
-    // 1. Pre-process Filter
+    if (isUnsupportedEventProgramIndicatorCte(programIndicator, relationshipType, cteContext)) {
+      return;
+    }
+
+    if (isEventProgramIndicatorCte(programIndicator, cteContext)) {
+      addEventProgramIndicatorCte(programIndicator, earliestStartDate, latestDate, cteContext);
+      return;
+    }
+
+    // 1. Get the raw SQL for the main expression of the Program Indicator.
+    String rawExpressionSql =
+        getRawSqlForExpression(programIndicator, earliestStartDate, latestDate);
+
+    // 2. Pre-process Filter.
     FilterProcessingResult filterResult =
         preprocessFilter(programIndicator, cteContext, earliestStartDate, latestDate);
 
-    // 2. Get the raw SQL for the main expression of the Program Indicator
-    String rawExpressionSql =
-        getRawSqlForExpression(programIndicator, earliestStartDate, latestDate);
     String rawComplexFilterSql =
         getRawSqlForFilter(
             filterResult.complexFilterString(), programIndicator, earliestStartDate, latestDate);
@@ -228,7 +238,63 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
 
     // 7. Register Main PI CTE
     cteContext.addProgramIndicatorCte(
-        programIndicator, mainCteSql, requireCoalesce(programIndicator));
+        programIndicator,
+        mainCteSql,
+        requireCoalesce(programIndicator, cteContext.getEndpointItem()));
+  }
+
+  private boolean isUnsupportedEventProgramIndicatorCte(
+      ProgramIndicator programIndicator, RelationshipType relationshipType, CteContext cteContext) {
+    return isEventProgramIndicatorCte(programIndicator, cteContext)
+        && (relationshipType != null || isCustomAggregation(programIndicator));
+  }
+
+  private void addEventProgramIndicatorCte(
+      ProgramIndicator programIndicator,
+      Date earliestStartDate,
+      Date latestDate,
+      CteContext cteContext) {
+    String expressionSql = getRawSqlForExpression(programIndicator, earliestStartDate, latestDate);
+    String filterSql =
+        getRawSqlForFilter(
+            programIndicator.getFilter(), programIndicator, earliestStartDate, latestDate);
+
+    if (hasGeneratedEnrollmentGrainPlaceholder(expressionSql)
+        || hasGeneratedEnrollmentGrainPlaceholder(filterSql)) {
+      return;
+    }
+
+    String mainCteSql =
+        assembleMainPiCteSql(
+            programIndicator,
+            expressionSql,
+            "",
+            "",
+            buildWhereClause(filterSql),
+            cteContext.getEndpointItem());
+
+    cteContext.addProgramIndicatorCte(
+        programIndicator,
+        mainCteSql,
+        requireCoalesce(programIndicator, cteContext.getEndpointItem()));
+  }
+
+  private boolean isEventProgramIndicatorCte(
+      ProgramIndicator programIndicator, CteContext cteContext) {
+    return cteContext.isEventsAnalytics()
+        && programIndicator.getAnalyticsType() == AnalyticsType.EVENT;
+  }
+
+  private boolean isCustomAggregation(ProgramIndicator programIndicator) {
+    String function =
+        TextUtils.emptyIfEqual(
+            programIndicator.getAggregationTypeFallback().getValue(),
+            AggregationType.CUSTOM.getValue());
+    return StringUtils.isBlank(function);
+  }
+
+  private boolean hasGeneratedEnrollmentGrainPlaceholder(String sql) {
+    return StringUtils.containsAny(sql, "FUNC_CTE_VAR(", "__PSDE_", "__D2FUNC__(");
   }
 
   private FilterProcessingResult preprocessFilter(
@@ -401,6 +467,16 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
           SUBQUERY_TABLE_ALIAS,
           joinsAndWhere,
           SUBQUERY_TABLE_ALIAS);
+    } else if (programIndicator.getAnalyticsType() == AnalyticsType.EVENT) {
+      return String.format(
+          "select %s.event as event, %s(%s) as value from %s as %s %s group by %s.event",
+          SUBQUERY_TABLE_ALIAS,
+          function,
+          finalProcessedExpressionSql,
+          tableName,
+          SUBQUERY_TABLE_ALIAS,
+          joinsAndWhere,
+          SUBQUERY_TABLE_ALIAS);
     } else {
       return String.format(
           "select %s(%s) as value from %s as %s %s",
@@ -499,11 +575,15 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
         alias, alias, alias, SUBQUERY_TABLE_ALIAS);
   }
 
-  private boolean requireCoalesce(ProgramIndicator programIndicator) {
+  private boolean requireCoalesce(ProgramIndicator programIndicator, EndpointItem endpointItem) {
     String function =
         TextUtils.emptyIfEqual(
             programIndicator.getAggregationTypeFallback().getValue(),
             AggregationType.CUSTOM.getValue());
+    if (endpointItem == EndpointItem.EVENT
+        && programIndicator.getAnalyticsType() == AnalyticsType.EVENT) {
+      return function.equalsIgnoreCase("count");
+    }
     return switch (function.toLowerCase()) {
       case "count", "sum", "min", "max" -> true;
       default -> false;

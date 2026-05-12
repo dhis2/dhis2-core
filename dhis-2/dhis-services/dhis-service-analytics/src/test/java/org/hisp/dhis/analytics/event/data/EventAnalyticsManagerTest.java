@@ -35,6 +35,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
 import static org.hisp.dhis.common.DimensionConstants.OPTION_SEP;
 import static org.hisp.dhis.common.QueryOperator.EQ;
@@ -49,10 +50,11 @@ import static org.hisp.dhis.test.TestBase.createOrganisationUnitGroup;
 import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.getDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -96,8 +98,13 @@ import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.relationship.RelationshipConstraint;
+import org.hisp.dhis.relationship.RelationshipEntity;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -130,6 +137,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   @Mock private PiDisagInfoInitializer piDisagInfoInitializer;
 
   @Mock private PiDisagQueryGenerator piDisagQueryGenerator;
+
+  @Mock private ProgramIndicatorService programIndicatorService;
 
   private QueryItemFilterBuilder filterBuilder;
 
@@ -1065,15 +1074,204 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     assertThat(sql.getValue(), not(containsString("make_date")));
   }
 
+  @Test
+  void verifyEventProgramIndicatorCountUsesEventKeyedCte() {
+    mockEmptyRowSet();
+    ProgramIndicator programIndicator =
+        createEventProgramIndicator("piEventCount", AggregationType.COUNT, "ou");
+    stubProgramIndicatorExpression(programIndicator, "ou", "ou");
+
+    subject.getEvents(createRequestParams(programIndicator, null), createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue().toLowerCase();
+    assertThat(
+        generatedSql,
+        containsString(
+            "with pieventcount as ( select subax.event as event, count(ou) as value from "
+                + getTable(programA.getUid()).toLowerCase()
+                + " as subax group by subax.event )"));
+    assertThat(generatedSql, containsString(" left join pieventcount "));
+    assertThat(generatedSql, containsString(".event = ax.event"));
+    assertTrue(
+        generatedSql.matches("(?s).*coalesce\\([a-z]{5}\\.value, 0\\) as pieventcount.*"),
+        "EVENT count PI select should coalesce missing joined rows to zero: " + sql.getValue());
+    assertThat(generatedSql, not(containsString("where event = ax.event")));
+  }
+
+  @Test
+  void verifyEventProgramIndicatorFilterOnlyCountUsesEventKeyedCte() {
+    mockEmptyRowSet();
+    ProgramIndicator programIndicator =
+        createEventProgramIndicator("piEventFilter", AggregationType.COUNT, "ou");
+    stubProgramIndicatorExpression(programIndicator, "ou", "ou");
+
+    QueryItem filterItem = createProgramIndicatorQueryItem(programIndicator);
+    filterItem.addFilter(new QueryFilter(QueryOperator.GE, "0"));
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams()).addItemFilter(filterItem).build();
+
+    subject.getEvents(params, createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue().toLowerCase();
+    assertThat(generatedSql, containsString("with pieventfilter as"));
+    assertThat(generatedSql, containsString(" left join pieventfilter "));
+    assertTrue(
+        generatedSql.matches("(?s).*coalesce\\([a-z]{5}\\.value, 0\\) >= 0.*"),
+        "EVENT count PI filter should coalesce missing joined rows to zero: " + sql.getValue());
+  }
+
+  @Test
+  void verifyEventProgramIndicatorWithInlineStageDataElementFilterUsesEventKeyedCte() {
+    mockEmptyRowSet();
+    ProgramIndicator programIndicator =
+        createEventProgramIndicator("rxNjqzJ7dkK", AggregationType.COUNT, "distinct ou");
+    programIndicator.setFilter("#{edqlbukwRfQ.nhW3SZX9JaN} == 'Ongoing'");
+    stubProgramIndicatorExpression(programIndicator, "distinct ou", "distinct ou");
+    when(programIndicatorService.getAnalyticsSql(
+            eq("#{edqlbukwRfQ.nhW3SZX9JaN} == 'Ongoing'"),
+            eq(org.hisp.dhis.analytics.DataType.BOOLEAN),
+            eq(programIndicator),
+            any(),
+            any(),
+            eq("subax")))
+        .thenReturn(
+            "coalesce(toString(case when subax.\"ps\" = 'edqlbukwRfQ' then \"nhW3SZX9JaN\" else null end), '') = 'Ongoing'");
+
+    QueryItem queryItem = createProgramIndicatorQueryItem(programIndicator);
+    queryItem.addFilter(new QueryFilter(QueryOperator.GE, "0"));
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams()).addItem(queryItem).build();
+
+    subject.getEvents(params, createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue().toLowerCase();
+    assertThat(generatedSql, containsString("with rxnjqzj7dkk as"));
+    assertThat(
+        generatedSql, containsString("select subax.event as event, count(distinct ou) as value"));
+    assertThat(generatedSql, containsString("case when subax.\"ps\" = 'edqlbukwrfq'"));
+    assertThat(generatedSql, containsString(" left join rxnjqzj7dkk "));
+    assertThat(generatedSql, containsString(".event = ax.event"));
+    assertTrue(
+        generatedSql.matches("(?s).*coalesce\\([a-z]{5}\\.value, 0\\) >= 0.*"),
+        "EVENT count PI query-item filter should use the joined CTE value: " + sql.getValue());
+    assertThat(generatedSql, not(containsString("where event = ax.event")));
+  }
+
+  @Test
+  void verifyEventProgramIndicatorAverageWithInlineStageDataElementFilterUsesEventKeyedCte() {
+    mockEmptyRowSet();
+    ProgramIndicator programIndicator =
+        createEventProgramIndicator(
+            "GxdhnY5wmHq",
+            AggregationType.AVERAGE,
+            "(#{A03MvHHogjR.UXz7xuGCEhU} + #{ZzYYXq4fJie.GQY2lXrypjO}) / V{event_count}");
+    programIndicator.setFilter("V{event_count} > 0");
+
+    String renderedExpression =
+        "(coalesce(toFloat64(case when subax.\"ps\" = 'A03MvHHogjR' then \"UXz7xuGCEhU\" else null end), 0) "
+            + "+ coalesce(toFloat64(case when subax.\"ps\" = 'ZzYYXq4fJie' then \"GQY2lXrypjO\" else null end), 0)) "
+            + "/ nullif(cast((case when \"GQY2lXrypjO\" is not null then 1 else 0 end "
+            + "+ case when \"UXz7xuGCEhU\" is not null then 1 else 0 end) as Float64), 0)";
+    String renderedFilter =
+        "nullif(cast((case when \"GQY2lXrypjO\" is not null then 1 else 0 end "
+            + "+ case when \"UXz7xuGCEhU\" is not null then 1 else 0 end) as Float64), 0) > toFloat64(0)";
+    stubProgramIndicatorExpression(
+        programIndicator, programIndicator.getExpression(), renderedExpression);
+    when(programIndicatorService.getAnalyticsSql(
+            eq(programIndicator.getFilter()),
+            eq(org.hisp.dhis.analytics.DataType.BOOLEAN),
+            eq(programIndicator),
+            any(),
+            any(),
+            eq("subax")))
+        .thenReturn(renderedFilter);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .addItem(createProgramIndicatorQueryItem(programIndicator))
+            .build();
+
+    subject.getEvents(params, createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue().toLowerCase();
+    assertThat(generatedSql, containsString("with gxdhny5wmhq as"));
+    assertThat(
+        generatedSql,
+        containsString("select subax.event as event, avg((coalesce(tofloat64(case when subax."));
+    assertThat(generatedSql, containsString(" where nullif(cast((case when \"gqy2lxrypjo\""));
+    assertThat(generatedSql, containsString(" group by subax.event"));
+    assertThat(generatedSql, containsString(" left join gxdhny5wmhq "));
+    assertThat(generatedSql, containsString(".event = ax.event"));
+    assertThat(generatedSql, containsString(".value as gxdhny5wmhq"));
+    assertFalse(
+        generatedSql.matches("(?s).*coalesce\\([a-z]{5}\\.value, 0\\).*"),
+        "EVENT avg PI select should not coalesce the joined CTE value: " + sql.getValue());
+    assertThat(generatedSql, not(containsString("where event = ax.event")));
+  }
+
+  @Test
+  void verifyEventProgramIndicatorNonCountFilterDoesNotCoalesce() {
+    mockEmptyRowSet();
+    ProgramIndicator programIndicator =
+        createEventProgramIndicator("piEventSum", AggregationType.SUM, "1");
+    stubProgramIndicatorExpression(programIndicator, "1", "1");
+
+    QueryItem filterItem = createProgramIndicatorQueryItem(programIndicator);
+    filterItem.addFilter(new QueryFilter(QueryOperator.GE, "0"));
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams()).addItemFilter(filterItem).build();
+
+    subject.getEvents(params, createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue().toLowerCase();
+    assertThat(generatedSql, containsString("with pieventsum as"));
+    assertThat(generatedSql, containsString(".value >= 0"));
+    assertFalse(
+        generatedSql.matches("(?s).*coalesce\\([a-z]{5}\\.value, 0\\).*"),
+        "Non-count EVENT PI filter should not coalesce its CTE value: " + sql.getValue());
+  }
+
+  @Test
+  void verifyRelationshipEventProgramIndicatorKeepsInlineRelationshipPredicate() {
+    mockEmptyRowSet();
+    ProgramIndicator programIndicator =
+        createEventProgramIndicator("piRelEvent", AggregationType.COUNT, "1");
+    stubProgramIndicatorExpression(programIndicator, "1", "1");
+    RelationshipType relationshipType =
+        createRelationshipType(
+            RelationshipEntity.PROGRAM_STAGE_INSTANCE, RelationshipEntity.PROGRAM_STAGE_INSTANCE);
+
+    subject.getEvents(createRequestParams(programIndicator, relationshipType), createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = sql.getValue();
+    assertThat(generatedSql, not(containsString("with pirelevent as")));
+    assertThat(generatedSql, containsString("select count(1) from"));
+    assertThat(
+        generatedSql, containsString("where rty.relationshiptypeid = " + relationshipType.getId()));
+    assertThat(generatedSql, containsString("ev2.uid = ax.event"));
+  }
+
   private JdbcEventAnalyticsManager createEventAnalyticsManager(
       AnalyticsSqlBuilder builder, String analyticsDatabase) {
     when(config.getPropertyOrDefault(ANALYTICS_DATABASE, "")).thenReturn(analyticsDatabase);
 
     EventTimeFieldSqlRenderer timeCoordinateSelector = new EventTimeFieldSqlRenderer(builder);
-    ProgramIndicatorService programIndicatorService = mock(ProgramIndicatorService.class);
     DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder =
         new DefaultProgramIndicatorSubqueryBuilder(
             programIndicatorService, systemSettingsService, builder, dataElementService);
+    programIndicatorSubqueryBuilder.init();
     ColumnMapper columnMapper = new ColumnMapper(builder, systemSettingsService);
     filterBuilder = new QueryItemFilterBuilder(organisationUnitResolver, builder);
     StageQuerySqlFacade stageQuerySqlFacade =
@@ -1100,6 +1298,49 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
         new DateFieldPeriodBucketColumnResolver(builder),
         new FirstOrLastValueSubqueryRenderer(
             builder, timeCoordinateSelector, programIndicatorService));
+  }
+
+  private ProgramIndicator createEventProgramIndicator(
+      String uid, AggregationType aggregationType, String expression) {
+    ProgramIndicator programIndicator = new ProgramIndicator();
+    programIndicator.setUid(uid);
+    programIndicator.setProgram(programA);
+    programIndicator.setAnalyticsType(AnalyticsType.EVENT);
+    programIndicator.setAggregationType(aggregationType);
+    programIndicator.setExpression(expression);
+    return programIndicator;
+  }
+
+  private QueryItem createProgramIndicatorQueryItem(ProgramIndicator programIndicator) {
+    return new QueryItem(
+        programIndicator,
+        programIndicator.getProgram(),
+        null,
+        ValueType.NUMBER,
+        programIndicator.getAggregationType(),
+        null);
+  }
+
+  private void stubProgramIndicatorExpression(
+      ProgramIndicator programIndicator, String expression, String renderedSql) {
+    when(programIndicatorService.getAnalyticsSql(
+            eq(expression), eq(NUMERIC), eq(programIndicator), any(), any(), eq("subax")))
+        .thenReturn(renderedSql);
+  }
+
+  private RelationshipType createRelationshipType(
+      RelationshipEntity fromEntity, RelationshipEntity toEntity) {
+    RelationshipType relationshipType = new RelationshipType();
+    relationshipType.setId(12L);
+
+    RelationshipConstraint from = new RelationshipConstraint();
+    from.setRelationshipEntity(fromEntity);
+    RelationshipConstraint to = new RelationshipConstraint();
+    to.setRelationshipEntity(toEntity);
+
+    relationshipType.setFromConstraint(from);
+    relationshipType.setToConstraint(to);
+    return relationshipType;
   }
 
   private void verifyFirstOrLastAggregationTypeSubquery(
