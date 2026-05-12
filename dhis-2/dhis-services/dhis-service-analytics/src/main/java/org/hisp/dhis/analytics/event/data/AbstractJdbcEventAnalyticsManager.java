@@ -1909,8 +1909,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         if (params.getCoordinateFields().stream()
             .anyMatch(f -> queryItem.getItem().getUid().equals(f))) {
           columns.add(getCoordinateColumn(queryItem, OU_GEOMETRY_COL_POSTFIX).asSql());
-        } else if (!cteContext.isEventsAnalytics() && isStageOuDimension(queryItem)) {
-          // Stage.ou dimensions use CTE columns (only for enrollment analytics)
+        } else if (!cteContext.isEventsAnalytics() && queryItem.hasProgramStage()) {
+          // Enrollment stage org-unit items use CTE columns to avoid correlated subqueries.
           columns.add(getColumnWithCte(queryItem, cteContext, params));
         } else {
           columns.add(getOrgUnitQueryItemColumnAndAlias(params, queryItem).asSql());
@@ -2089,14 +2089,19 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         getAlias(item).orElse("%s.%s".formatted(item.getProgramStage().getUid(), item.getItemId()));
 
     List<CteColumn> columns = new ArrayList<>();
-    columns.add(valueColumn(cteAlias, valueAlias));
+    columns.add(valueColumn(cteDef, cteAlias, item, valueAlias));
     columns.addAll(stageOuHelperColumns(cteAlias, item, params));
     columns.addAll(rowContextColumns(cteDef, cteAlias, offset, valueAlias));
     return columns.stream().map(CteColumn::sql).collect(joining(",\n"));
   }
 
-  private CteColumn valueColumn(String cteAlias, String valueAlias) {
-    return new CteColumn(cteAlias + ".value", quote(valueAlias));
+  private CteColumn valueColumn(
+      CteDefinition cteDef, String cteAlias, QueryItem item, String valueAlias) {
+    String valueExpression =
+        cteDef.hasValueName() && shouldProjectValueName(item)
+            ? cteAlias + ".value_name"
+            : cteAlias + ".value";
+    return new CteColumn(valueExpression, quote(valueAlias));
   }
 
   /**
@@ -2921,7 +2926,9 @@ public abstract class AbstractJdbcEventAnalyticsManager {
         item,
         cteSql,
         computeRowNumberOffset(programStageOffset),
-        hasRowContext);
+        hasRowContext,
+        filterBuilder.hasNonNvFilter(item),
+        shouldProjectValueName(item));
 
     // If row context is needed, we add an extra "exists" CTE for event checks.
     if (hasRowContext) {
@@ -3636,6 +3643,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       }
     }
 
+    if (shouldProjectValueName(item)) {
+      additionalCols += " " + getValueNameColumn(item) + " as value_name,";
+    }
+
     // Build enrollment pre-filter for performance optimization
     String enrollmentPrefilter = buildEnrollmentPrefilterSql(params);
 
@@ -3650,6 +3661,15 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     values.put("enrollmentPrefilter", enrollmentPrefilter);
 
     return new StringSubstitutor(values).replace(template);
+  }
+
+  private boolean shouldProjectValueName(QueryItem item) {
+    return item.hasOptionSet()
+        || (item.getValueType() == ValueType.ORGANISATION_UNIT && !isStageOuDimension(item));
+  }
+
+  private String getValueNameColumn(QueryItem item) {
+    return quote(item.getItemName() + "_name");
   }
 
   /**

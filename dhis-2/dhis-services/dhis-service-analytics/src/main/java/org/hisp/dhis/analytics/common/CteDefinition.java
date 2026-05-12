@@ -110,6 +110,9 @@ public class CteDefinition {
   /** Whether the query item has a filter that requires non-null values from this CTE */
   private final boolean hasFilter;
 
+  /** Whether the CTE exposes a display-name column as value_name. */
+  private final boolean hasValueName;
+
   private CteDefinition(
       String itemId,
       String programStageUid,
@@ -123,7 +126,8 @@ public class CteDefinition {
       String joinColumn,
       Integer targetRank,
       CteType cteType,
-      boolean hasFilter) {
+      boolean hasFilter,
+      boolean hasValueName) {
     this.itemId = itemId;
     this.programStageUid = programStageUid;
     this.programIndicatorUid = programIndicatorUid;
@@ -137,6 +141,7 @@ public class CteDefinition {
     this.targetRank = targetRank;
     this.cteType = cteType;
     this.hasFilter = hasFilter;
+    this.hasValueName = hasValueName;
   }
 
   /** Creates a CTE definition for program stage data elements. */
@@ -155,7 +160,8 @@ public class CteDefinition {
         null, // joinColumn
         null, // targetRank
         CteType.PROGRAM_STAGE, // Set type
-        false); // hasFilter
+        false, // hasFilter
+        false); // hasValueName
     this.offsets.add(offset);
   }
 
@@ -177,6 +183,18 @@ public class CteDefinition {
       int offset,
       boolean isRowContext,
       boolean hasFilter) {
+    this(programStageUid, queryItemId, cteDefinition, offset, isRowContext, hasFilter, false);
+  }
+
+  // Constructor for standard Program Stage CTEs with rowContext, hasFilter, and value_name
+  public CteDefinition(
+      String programStageUid,
+      String queryItemId,
+      String cteDefinition,
+      int offset,
+      boolean isRowContext,
+      boolean hasFilter,
+      boolean hasValueName) {
     this(
         queryItemId,
         programStageUid,
@@ -190,7 +208,8 @@ public class CteDefinition {
         null, // joinColumn
         null, // targetRank
         CteType.PROGRAM_STAGE, // Set type
-        hasFilter); // Pass hasFilter
+        hasFilter, // Pass hasFilter
+        hasValueName); // Pass hasValueName
     this.offsets.add(offset);
   }
 
@@ -208,7 +227,8 @@ public class CteDefinition {
         null, // joinColumn
         null, // targetRank
         CteType.BASE_AGGREGATION, // Set type
-        false); // hasFilter
+        false, // hasFilter
+        false); // hasValueName
   }
 
   /** Creates a CTE definition for program indicators. */
@@ -244,7 +264,8 @@ public class CteDefinition {
         programIndicatorType == AnalyticsType.EVENT
             ? PROGRAM_INDICATOR_EVENT
             : PROGRAM_INDICATOR_ENROLLMENT, // Set type
-        false); // hasFilter
+        false, // hasFilter
+        false); // hasValueName
   }
 
   /** Creates a CTE definition for filter CTEs (replacing filter subqueries). */
@@ -264,7 +285,8 @@ public class CteDefinition {
         null, // joinColumn
         null, // targetRank
         CteType.FILTER, // Set type
-        false); // hasFilter
+        false, // hasFilter
+        false); // hasValueName
   }
 
   /**
@@ -291,7 +313,8 @@ public class CteDefinition {
         joinColumn, // Pass joinColumn
         null, // targetRank
         CteType.VARIABLE, // Set type
-        false); // hasFilter
+        false, // hasFilter
+        false); // hasValueName
   }
 
   /**
@@ -313,7 +336,8 @@ public class CteDefinition {
         joinColumn, // Pass joinColumn
         targetRank, // Pass targetRank
         CteType.PROGRAM_STAGE_DATE_ELEMENT, // Set type
-        false); // hasFilter
+        false, // hasFilter
+        false); // hasValueName
   }
 
   /**
@@ -339,7 +363,8 @@ public class CteDefinition {
         joinColumn,
         null, // targetRank
         CteType.D2_FUNCTION,
-        false); // hasFilter
+        false, // hasFilter
+        false); // hasValueName
   }
 
   public static CteDefinition forShadowTable(String tableName, String sql, CteType cteType) {
@@ -354,7 +379,8 @@ public class CteDefinition {
         null, // aggregateWhereClause
         null, // joinColumn
         null, // targetRank
-        cteType, false); // hasFilter
+        cteType, false, // hasFilter
+        false); // hasValueName
   }
 
   public CteDefinition setExists(boolean exists) {
@@ -383,6 +409,10 @@ public class CteDefinition {
 
   public boolean isProgramStage() {
     return this.cteType == CteType.PROGRAM_STAGE && !isExists;
+  }
+
+  public boolean hasValueName() {
+    return hasValueName;
   }
 
   private static String generateRandomAlias() {

@@ -100,6 +100,28 @@ public class CteContext {
       int offset,
       boolean isRowContext,
       boolean hasFilter) {
+    addCte(programStage, item, cteDefinition, offset, isRowContext, hasFilter, false);
+  }
+
+  /**
+   * Adds a CTE definition to the context.
+   *
+   * @param programStage The program stage
+   * @param item The query item
+   * @param cteDefinition The CTE definition (the SQL query)
+   * @param offset The calculated offset
+   * @param isRowContext Whether the CTE is a row context
+   * @param hasFilter Whether the query item has a filter requiring non-null CTE values
+   * @param hasValueName Whether the CTE exposes the display-name column as value_name
+   */
+  public void addCte(
+      ProgramStage programStage,
+      QueryItem item,
+      String cteDefinition,
+      int offset,
+      boolean isRowContext,
+      boolean hasFilter,
+      boolean hasValueName) {
     String key = computeKey(item);
     if (cteDefinitions.containsKey(key)) {
       cteDefinitions.get(key).getOffsets().add(offset);
@@ -111,7 +133,8 @@ public class CteContext {
               cteDefinition,
               offset,
               isRowContext,
-              hasFilter);
+              hasFilter,
+              hasValueName);
       cteDefinitions.put(key, cteDef);
     }
   }

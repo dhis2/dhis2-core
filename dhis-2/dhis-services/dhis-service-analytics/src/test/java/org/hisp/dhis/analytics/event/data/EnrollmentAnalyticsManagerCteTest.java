@@ -93,6 +93,7 @@ import org.hisp.dhis.db.sql.ClickHouseAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.DorisAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
@@ -1080,6 +1081,106 @@ class EnrollmentAnalyticsManagerCteTest extends EventAnalyticsTest {
 
     // Inner join (not left join) because filter exists
     assertThat(generatedSql, containsString("inner join " + stageUid + "_" + deUid + "_0"));
+  }
+
+  @Test
+  void verifyWithProgramStageOptionSetDataElementAndFilterProjectsNameFromCte() {
+    String optionCode = "OI0BQUurVFS";
+    OptionSet optionSet = new OptionSet("Option set A", ValueType.TEXT);
+    DataElement optionDataElement =
+        org.hisp.dhis.test.TestBase.createDataElement('N', ValueType.TEXT, AggregationType.NONE);
+    optionDataElement.setUid("n1rtSHYf6O6");
+    optionDataElement.setOptionSet(optionSet);
+
+    QueryItem queryItem =
+        new QueryItem(
+            optionDataElement,
+            programA,
+            null,
+            ValueType.TEXT,
+            optionDataElement.getAggregationType(),
+            optionSet);
+    queryItem.setProgram(programA);
+    queryItem.setProgramStage(programStage);
+    queryItem.addFilter(new QueryFilter(EQ, optionCode));
+
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.addItem(queryItem);
+
+    subject.getEnrollments(params.build(), new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+    String stageUid = programStage.getUid();
+    String deUid = optionDataElement.getUid();
+
+    assertThat(
+        generatedSql,
+        containsString(
+            noEof(
+                """
+                %s_%s_0 as ( select enrollment, "%s" as value, "%s_name" as value_name,
+                row_number() over ( partition by enrollment order by occurreddate desc, created desc ) as rn
+                from analytics_event_%s where eventstatus != 'SCHEDULE' and ps = '%s' and "%s" = '%s' )
+                """
+                    .formatted(
+                        stageUid, deUid, deUid, deUid, programAUid, stageUid, deUid, optionCode))));
+    assertThat(generatedSql, containsString(".value_name as \"" + stageUid + "." + deUid + "\""));
+    assertThat(generatedSql, not(containsString("select \"" + deUid + "_name\"")));
+    assertThat(
+        generatedSql,
+        not(containsString(".enrollment = ax.enrollment and \"" + deUid + "_name\"")));
+  }
+
+  @Test
+  void verifyWithProgramStageOrgUnitDataElementAndFilterProjectsNameFromCte() {
+    String orgUnitUid = "OI0BQUurVFS";
+    DataElement orgUnitDataElement =
+        org.hisp.dhis.test.TestBase.createDataElement(
+            'O', ValueType.ORGANISATION_UNIT, AggregationType.SUM);
+    orgUnitDataElement.setUid("n1rtSHYf6O6");
+
+    QueryItem queryItem =
+        new QueryItem(
+            orgUnitDataElement,
+            programA,
+            null,
+            ValueType.ORGANISATION_UNIT,
+            orgUnitDataElement.getAggregationType(),
+            null);
+    queryItem.setProgram(programA);
+    queryItem.setProgramStage(programStage);
+    queryItem.addFilter(new QueryFilter(EQ, orgUnitUid));
+
+    when(organisationUnitResolver.resolveOrgUnits(any(QueryFilter.class), anyList()))
+        .thenReturn(orgUnitUid);
+
+    EventQueryParams.Builder params = createRequestParamsBuilder();
+    params.addItem(queryItem);
+
+    subject.getEnrollments(params.build(), new ListGrid(), 10000);
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    String generatedSql = noEof(sql.getValue());
+    String stageUid = programStage.getUid();
+    String deUid = orgUnitDataElement.getUid();
+
+    assertThat(
+        generatedSql,
+        containsString(
+            noEof(
+                """
+                %s_%s_0 as ( select enrollment, "%s" as value, "%s_name" as value_name,
+                row_number() over ( partition by enrollment order by occurreddate desc, created desc ) as rn
+                from analytics_event_%s where eventstatus != 'SCHEDULE' and ps = '%s' and "%s" = '%s' )
+                """
+                    .formatted(
+                        stageUid, deUid, deUid, deUid, programAUid, stageUid, deUid, orgUnitUid))));
+    assertThat(generatedSql, containsString(".value_name as \"" + stageUid + "." + deUid + "\""));
+    assertThat(generatedSql, not(containsString("select \"" + deUid + "_name\"")));
+    assertThat(
+        generatedSql,
+        not(containsString(".enrollment = ax.enrollment and \"" + deUid + "_name\"")));
   }
 
   @Test
