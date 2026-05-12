@@ -50,7 +50,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class CompletedEventValidatorTest {
+class CompletedTrackerEventValidatorTest {
   private static final UID EVENT_UID = UID.generate();
 
   @Mock private TrackerBundle bundle;
@@ -59,7 +59,7 @@ class CompletedEventValidatorTest {
 
   @Mock private UserDetails user;
 
-  private CompletedEventValidator validator;
+  private CompletedTrackerEventValidator validator;
 
   private Reporter reporter;
 
@@ -68,7 +68,7 @@ class CompletedEventValidatorTest {
     TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
     reporter = new Reporter(idSchemes);
 
-    validator = new CompletedEventValidator();
+    validator = new CompletedTrackerEventValidator();
   }
 
   @Test
