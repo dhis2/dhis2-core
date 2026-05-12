@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import java.util.List;
 import java.util.Set;
+import javax.sql.DataSource;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -47,6 +48,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class RelationshipPersister
     extends AbstractTrackerPersister<Relationship, org.hisp.dhis.tracker.model.Relationship> {
+
+  public RelationshipPersister(DataSource dataSource) {
+    super(dataSource);
+  }
 
   @Override
   protected org.hisp.dhis.tracker.model.Relationship convert(

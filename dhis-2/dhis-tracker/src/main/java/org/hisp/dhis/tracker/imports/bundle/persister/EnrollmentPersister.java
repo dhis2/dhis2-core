@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import javax.sql.DataSource;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.notification.NotificationTrigger;
@@ -55,7 +56,10 @@ public class EnrollmentPersister
     extends AbstractTrackerPersister<org.hisp.dhis.tracker.imports.domain.Enrollment, Enrollment> {
   private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
-  public EnrollmentPersister(TrackedEntityProgramOwnerService trackedEntityProgramOwnerService) {
+  public EnrollmentPersister(
+      DataSource dataSource,
+      TrackedEntityProgramOwnerService trackedEntityProgramOwnerService) {
+    super(dataSource);
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
   }
 

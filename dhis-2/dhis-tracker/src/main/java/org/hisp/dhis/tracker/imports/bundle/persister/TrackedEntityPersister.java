@@ -32,6 +32,7 @@ package org.hisp.dhis.tracker.imports.bundle.persister;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import javax.sql.DataSource;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -48,6 +49,10 @@ import org.springframework.stereotype.Component;
 public class TrackedEntityPersister
     extends AbstractTrackerPersister<
         org.hisp.dhis.tracker.imports.domain.TrackedEntity, TrackedEntity> {
+
+  public TrackedEntityPersister(DataSource dataSource) {
+    super(dataSource);
+  }
 
   @Override
   protected void updateAttributes(
