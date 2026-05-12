@@ -597,6 +597,101 @@ class DefaultProgramIndicatorSubqueryBuilderTest {
   }
 
   @Test
+  void testAddCteWithRelationshipCountFilterUsesJoinInsteadOfCorrelatedSubquery() {
+    String relationshipCountFilter = "d2:relationshipCount() > 0";
+    String relationshipCountSql =
+        """
+        (select sum(relationship_count)
+         from analytics_rs_relationship arr
+         where arr.trackedentityid = subax.trackedentity) > toFloat64(0)
+        """;
+    programIndicator.setAggregationType(AggregationType.SUM);
+    programIndicator.setExpression("1");
+    programIndicator.setFilter(relationshipCountFilter);
+
+    when(programIndicatorService.getAnalyticsSql(
+            eq("1"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn("1");
+    when(programIndicatorService.getAnalyticsSql(
+            eq(relationshipCountFilter),
+            eq(BOOLEAN),
+            eq(programIndicator),
+            any(),
+            any(),
+            eq(subax)))
+        .thenReturn(relationshipCountSql);
+
+    builder.addCte(
+        programIndicator, null, AnalyticsType.ENROLLMENT, startDate, endDate, cteContext);
+
+    String mainCteSql = cteContext.getDefinitionByKey(piUid).getCteDefinition();
+
+    assertTrue(
+        mainCteSql.contains(
+            "left join (select trackedentityid, sum(relationship_count) as value "
+                + "from analytics_rs_relationship group by trackedentityid) relcnt_0 "
+                + "on relcnt_0.trackedentityid = subax.trackedentity"),
+        "Relationship count should be joined at enrollment grain");
+    assertTrue(
+        mainCteSql.contains("where relcnt_0.value > toFloat64(0)"),
+        "Filter should reference the joined relationship count value");
+    assertFalse(
+        mainCteSql.contains("arr.trackedentityid = subax.trackedentity"),
+        "Main CTE should not keep the ClickHouse-unsupported correlated reference");
+    assertFalse(
+        mainCteSql.contains("from analytics_rs_relationship arr"),
+        "Main CTE filter should not keep the scalar relationship count subquery");
+  }
+
+  @Test
+  void testAddCteWithRelationshipCountTypeFilterUsesFilteredJoin() {
+    String relationshipCountFilter = "d2:relationshipCount('RelatnTypeA') > 0";
+    String relationshipCountSql =
+        """
+        (select relationship_count
+         from analytics_rs_relationship arr
+         where arr.trackedentityid = subax.trackedentity and relationshiptypeuid = 'RelatnTypeA') > toFloat64(0)
+        """;
+    programIndicator.setAggregationType(AggregationType.SUM);
+    programIndicator.setExpression("1");
+    programIndicator.setFilter(relationshipCountFilter);
+
+    when(programIndicatorService.getAnalyticsSql(
+            eq("1"), eq(NUMERIC), eq(programIndicator), any(), any(), eq(subax)))
+        .thenReturn("1");
+    when(programIndicatorService.getAnalyticsSql(
+            eq(relationshipCountFilter),
+            eq(BOOLEAN),
+            eq(programIndicator),
+            any(),
+            any(),
+            eq(subax)))
+        .thenReturn(relationshipCountSql);
+
+    builder.addCte(
+        programIndicator, null, AnalyticsType.ENROLLMENT, startDate, endDate, cteContext);
+
+    String mainCteSql = cteContext.getDefinitionByKey(piUid).getCteDefinition();
+
+    assertTrue(
+        mainCteSql.contains(
+            "left join (select trackedentityid, sum(relationship_count) as value "
+                + "from analytics_rs_relationship where relationshiptypeuid = 'RelatnTypeA' "
+                + "group by trackedentityid) relcnt_0 "
+                + "on relcnt_0.trackedentityid = subax.trackedentity"),
+        "Relationship type count should be filtered before joining");
+    assertTrue(
+        mainCteSql.contains("where relcnt_0.value > toFloat64(0)"),
+        "Filter should reference the joined relationship count value");
+    assertFalse(
+        mainCteSql.contains("arr.trackedentityid = subax.trackedentity"),
+        "Main CTE should not keep the ClickHouse-unsupported correlated reference");
+    assertFalse(
+        mainCteSql.contains("from analytics_rs_relationship arr"),
+        "Main CTE filter should not keep the scalar relationship count subquery");
+  }
+
+  @Test
   void testAddCteWithValueExpressionAndSimpleFilter() {
     programIndicator.setExpression("V{creation_date}");
     programIndicator.setFilter("V{event_status} == 'SKIPPED'");

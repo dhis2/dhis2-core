@@ -41,6 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
@@ -75,6 +77,17 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
           AnalyticsType.ENROLLMENT, AnalyticsTableType.ENROLLMENT);
 
   private static final String SUBQUERY_TABLE_ALIAS = "subax";
+
+  private static final Pattern RELATIONSHIP_COUNT_SUBQUERY_PATTERN =
+      Pattern.compile(
+          "\\(\\s*select\\s+(?:sum\\(relationship_count\\)|relationship_count)\\s+"
+              + "from\\s+analytics_rs_relationship\\s+(?:as\\s+)?([A-Za-z][A-Za-z0-9_]*)\\s+"
+              + "where\\s+\\1\\.trackedentityid\\s*=\\s*"
+              + SUBQUERY_TABLE_ALIAS
+              + "\\.trackedentity"
+              + "(?:\\s+and\\s+(?:\\1\\.)?relationshiptypeuid\\s*=\\s*'([^']+)')?"
+              + "\\s*\\)",
+          Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
   private final ProgramIndicatorService programIndicatorService;
   private final SystemSettingsService settingsService;
@@ -219,18 +232,25 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
             latestDate,
             cteContext);
 
+    RelationshipCountSql relationshipCountSql = rewriteRelationshipCountSubqueries(processedSql);
+
     // 4. Build Join Clauses
     String innerJoinSql = buildInnerJoinsForFilters(filterResult.filterAliases(), cteContext);
-    String leftJoinSql = buildLeftJoinsForAllValueCtes(cteContext);
+    String leftJoinSql =
+        Stream.of(
+                buildLeftJoinsForAllValueCtes(cteContext),
+                relationshipCountSql.relationshipCountJoinSql())
+            .filter(StringUtils::isNotBlank)
+            .collect(Collectors.joining(" "));
 
     // 5. Build Where Clause
-    String whereClause = buildWhereClause(processedSql.processedFilterSql());
+    String whereClause = buildWhereClause(relationshipCountSql.processedFilterSql());
 
     // 6. Assemble Main PI CTE SQL
     String mainCteSql =
         assembleMainPiCteSql(
             programIndicator,
-            processedSql.processedExpressionSql(),
+            relationshipCountSql.processedExpressionSql(),
             innerJoinSql,
             leftJoinSql,
             whereClause,
@@ -265,13 +285,16 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
       return;
     }
 
+    RelationshipCountSql relationshipCountSql =
+        rewriteRelationshipCountSubqueries(new ProcessedSql(expressionSql, filterSql));
+
     String mainCteSql =
         assembleMainPiCteSql(
             programIndicator,
-            expressionSql,
+            relationshipCountSql.processedExpressionSql(),
             "",
-            "",
-            buildWhereClause(filterSql),
+            relationshipCountSql.relationshipCountJoinSql(),
+            buildWhereClause(relationshipCountSql.processedFilterSql()),
             cteContext.getEndpointItem());
 
     cteContext.addProgramIndicatorCte(
@@ -414,6 +437,58 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
             sqlBuilder);
 
     return new ProcessedSql(finalProcessedExpressionSql, finalProcessedFilterSql);
+  }
+
+  private RelationshipCountSql rewriteRelationshipCountSubqueries(ProcessedSql processedSql) {
+    List<String> joinSql = new ArrayList<>();
+    Map<String, String> aliasesByRelationshipType = new HashMap<>();
+
+    String processedExpressionSql =
+        rewriteRelationshipCountSubqueries(
+            processedSql.processedExpressionSql(), aliasesByRelationshipType, joinSql);
+    String processedFilterSql =
+        rewriteRelationshipCountSubqueries(
+            processedSql.processedFilterSql(), aliasesByRelationshipType, joinSql);
+
+    return new RelationshipCountSql(
+        processedExpressionSql, processedFilterSql, String.join(" ", joinSql));
+  }
+
+  private String rewriteRelationshipCountSubqueries(
+      String sql, Map<String, String> aliasesByRelationshipType, List<String> joinSql) {
+    if (StringUtils.isBlank(sql)) {
+      return sql;
+    }
+
+    Matcher matcher = RELATIONSHIP_COUNT_SUBQUERY_PATTERN.matcher(sql);
+    StringBuffer rewrittenSql = new StringBuffer();
+
+    while (matcher.find()) {
+      String relationshipTypeUid = matcher.group(2) == null ? "" : matcher.group(2);
+      String alias =
+          aliasesByRelationshipType.computeIfAbsent(
+              relationshipTypeUid,
+              key -> {
+                String relationshipCountAlias = "relcnt_" + aliasesByRelationshipType.size();
+                joinSql.add(buildRelationshipCountJoin(relationshipCountAlias, key));
+                return relationshipCountAlias;
+              });
+      matcher.appendReplacement(rewrittenSql, Matcher.quoteReplacement(alias + ".value"));
+    }
+
+    matcher.appendTail(rewrittenSql);
+    return rewrittenSql.toString();
+  }
+
+  private String buildRelationshipCountJoin(String alias, String relationshipTypeUid) {
+    String relationshipTypeFilter =
+        StringUtils.isBlank(relationshipTypeUid)
+            ? ""
+            : " where relationshiptypeuid = '" + relationshipTypeUid + "'";
+
+    return String.format(
+        "left join (select trackedentityid, sum(relationship_count) as value from analytics_rs_relationship%s group by trackedentityid) %s on %s.trackedentityid = %s.trackedentity",
+        relationshipTypeFilter, alias, alias, SUBQUERY_TABLE_ALIAS);
   }
 
   /** Builds the INNER JOIN clause string for simple Filter CTEs. */
@@ -721,4 +796,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
   private record FilterProcessingResult(List<String> filterAliases, String complexFilterString) {}
 
   private record ProcessedSql(String processedExpressionSql, String processedFilterSql) {}
+
+  private record RelationshipCountSql(
+      String processedExpressionSql, String processedFilterSql, String relationshipCountJoinSql) {}
 }
