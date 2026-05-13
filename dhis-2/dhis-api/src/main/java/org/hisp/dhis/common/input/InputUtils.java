@@ -29,6 +29,8 @@
  */
 package org.hisp.dhis.common.input;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -44,8 +46,6 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.jsontree.Validation;
 import org.hisp.dhis.period.Period;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * Utilities around generic input decoding and formal (static context) validation.
@@ -103,12 +103,17 @@ public final class InputUtils {
   @Nonnull
   public static <T extends Record> T decodeInput(
       @Nonnull Class<T> schema, @Nonnull String properties) {
-    MultiValueMap<String, String> params =
-        UriComponentsBuilder.fromUriString("?" + properties).build().getQueryParams();
+    Map<String, List<String>> map = new HashMap<>();
+    for (String p : properties.split("&")) {
+      int eqIndex = p.indexOf('=');
+      String name = p.substring(0, eqIndex);
+      String value = p.substring(eqIndex + 1);
+      map.computeIfAbsent(name, key -> new ArrayList<>()).add(value);
+    }
     return decodeInput(
             schema,
             name -> {
-              List<String> values = params.get(name);
+              List<String> values = map.get(name);
               return values == null ? null : values.toArray(String[]::new);
             })
         .to(schema);
