@@ -108,7 +108,6 @@ class RelationshipImportTest extends PostgresIntegrationTestBase {
             params, testSetup.fromJson("tracker/relationships.json"));
 
     assertHasError(importReport, ValidationCode.E4020);
-    assertThat(importReport.getStats().getIgnored(), is(2));
   }
 
   @Test

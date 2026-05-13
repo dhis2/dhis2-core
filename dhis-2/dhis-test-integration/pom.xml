@@ -188,6 +188,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>minio</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.hisp.dhis.parser</groupId>
       <artifactId>dhis-antlr-expression-parser</artifactId>
       <scope>test</scope>
@@ -393,6 +398,7 @@
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-setting</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.testcontainers:postgresql</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.testcontainers:jdbc</ignoredUnusedDeclaredDependency>
+            <ignoredUnusedDeclaredDependency>org.testcontainers:minio</ignoredUnusedDeclaredDependency>
             <!-- log4j-slf4j-impl is needed to log using slf4j see https://www.slf4j.org/codes.html#noProviders -->
             <ignoredUnusedDeclaredDependency>org.apache.logging.log4j:log4j-slf4j-impl</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-service-audit-consumer</ignoredUnusedDeclaredDependency>
