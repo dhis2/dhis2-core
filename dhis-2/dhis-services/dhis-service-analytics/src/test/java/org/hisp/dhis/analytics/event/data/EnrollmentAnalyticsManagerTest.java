@@ -266,7 +266,6 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Test
   void verifyEventProgramIndicatorOnEnrollmentQueryUsesEnrollmentKeyedCteJoin() {
-    when(sqlBuilder.supportsCorrelatedSubquery()).thenReturn(false);
     mockEmptyRowSet();
     ProgramIndicator programIndicator = new ProgramIndicator();
     programIndicator.setUid("CH6wamtY9kK");
@@ -275,7 +274,7 @@ class EnrollmentAnalyticsManagerTest extends EventAnalyticsTest {
     programIndicator.setAggregationType(AggregationType.COUNT);
     programIndicator.setExpression("case when eventstatus in ('ACTIVE', 'COMPLETED') then 1 end");
 
-    when(programIndicatorService.getAnalyticsSql(
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
             eq(programIndicator.getExpression()),
             eq(NUMERIC),
             eq(programIndicator),

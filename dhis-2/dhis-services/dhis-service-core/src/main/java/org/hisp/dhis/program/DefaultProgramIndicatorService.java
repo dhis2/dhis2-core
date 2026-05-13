@@ -68,6 +68,7 @@ import org.hisp.dhis.parser.expression.ExpressionItemMethod;
 import org.hisp.dhis.parser.expression.ExpressionState;
 import org.hisp.dhis.parser.expression.ProgramExpressionParams;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
+import org.hisp.dhis.program.function.RelationshipCountPlaceholder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -242,7 +243,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       Date startDate,
       Date endDate) {
     return getAnalyticsSqlCached(
-        expression, dataType, programIndicator, startDate, endDate, null, true);
+        expression, dataType, programIndicator, startDate, endDate, null, true, true);
   }
 
   @Override
@@ -254,7 +255,7 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       Date startDate,
       Date endDate) {
     return getAnalyticsSqlCached(
-        expression, dataType, programIndicator, startDate, endDate, null, false);
+        expression, dataType, programIndicator, startDate, endDate, null, false, true);
   }
 
   @Override
@@ -267,7 +268,20 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       Date endDate,
       String tableAlias) {
     return getAnalyticsSqlCached(
-        expression, dataType, programIndicator, startDate, endDate, tableAlias, true);
+        expression, dataType, programIndicator, startDate, endDate, tableAlias, true, true);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public String getAnalyticsSqlDeferRelationshipCount(
+      String expression,
+      DataType dataType,
+      ProgramIndicator programIndicator,
+      Date startDate,
+      Date endDate,
+      String tableAlias) {
+    return getAnalyticsSqlCached(
+        expression, dataType, programIndicator, startDate, endDate, tableAlias, true, false);
   }
 
   @Override
@@ -290,14 +304,22 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       Date startDate,
       Date endDate,
       String tableAlias,
-      boolean replaceNulls) {
+      boolean replaceNulls,
+      boolean expandRelationshipCount) {
     if (expression == null) {
       return null;
     }
 
     String cacheKey =
         getAnalyticsSqlCacheKey(
-            expression, dataType, programIndicator, startDate, endDate, tableAlias, replaceNulls);
+            expression,
+            dataType,
+            programIndicator,
+            startDate,
+            endDate,
+            tableAlias,
+            replaceNulls,
+            expandRelationshipCount);
     return analyticsSqlCache.get(
         cacheKey,
         k ->
@@ -308,7 +330,8 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
                 startDate,
                 endDate,
                 tableAlias,
-                replaceNulls));
+                replaceNulls,
+                expandRelationshipCount));
   }
 
   private String getAnalyticsSqlCacheKey(
@@ -318,7 +341,8 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       Date startDate,
       Date endDate,
       String tableAlias,
-      boolean replaceNulls) {
+      boolean replaceNulls,
+      boolean expandRelationshipCount) {
     return expression
         + "|"
         + dataType.name()
@@ -328,7 +352,9 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
         + dateIfPresent(endDate)
         + "|"
         + (tableAlias == null ? "" : tableAlias)
-        + replaceNulls;
+        + replaceNulls
+        + "|"
+        + expandRelationshipCount;
   }
 
   /**
@@ -351,7 +377,8 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
       Date startDate,
       Date endDate,
       String tableAlias,
-      boolean replaceNulls) {
+      boolean replaceNulls,
+      boolean expandRelationshipCount) {
     // Get the uids from the expression even if this is the filter
     Set<String> uids =
         getDataElementAndAttributeIdentifiers(
@@ -373,9 +400,13 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
 
     String sql = castString(Parser.visit(expression, visitor));
 
-    return (tableAlias != null
-        ? sql.replaceAll(ANALYTICS_TBL_ALIAS + "\\.", tableAlias + "\\.")
-        : sql);
+    String aliasedSql =
+        tableAlias != null ? sql.replaceAll(ANALYTICS_TBL_ALIAS + "\\.", tableAlias + "\\.") : sql;
+
+    return expandRelationshipCount
+        ? RelationshipCountPlaceholder.expandCorrelated(
+            aliasedSql, tableAlias != null ? tableAlias : ANALYTICS_TBL_ALIAS)
+        : aliasedSql;
   }
 
   @Override

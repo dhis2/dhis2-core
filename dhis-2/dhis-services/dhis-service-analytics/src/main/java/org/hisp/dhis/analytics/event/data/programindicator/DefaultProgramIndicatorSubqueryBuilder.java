@@ -41,8 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
@@ -56,6 +54,7 @@ import org.hisp.dhis.analytics.common.CteContext;
 import org.hisp.dhis.analytics.common.CteDefinition;
 import org.hisp.dhis.analytics.common.EndpointItem;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.event.data.programindicator.ctefactory.RelationshipCountJoinExpander;
 import org.hisp.dhis.analytics.table.model.AnalyticsTable;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -77,17 +76,6 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
           AnalyticsType.ENROLLMENT, AnalyticsTableType.ENROLLMENT);
 
   private static final String SUBQUERY_TABLE_ALIAS = "subax";
-
-  private static final Pattern RELATIONSHIP_COUNT_SUBQUERY_PATTERN =
-      Pattern.compile(
-          "\\(\\s*select\\s+(?:sum\\(relationship_count\\)|relationship_count)\\s+"
-              + "from\\s+analytics_rs_relationship\\s+(?:as\\s+)?([A-Za-z][A-Za-z0-9_]*)\\s+"
-              + "where\\s+\\1\\.trackedentityid\\s*=\\s*"
-              + SUBQUERY_TABLE_ALIAS
-              + "\\.trackedentity"
-              + "(?:\\s+and\\s+(?:\\1\\.)?relationshiptypeuid\\s*=\\s*'([^']+)')?"
-              + "\\s*\\)",
-          Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
   private final ProgramIndicatorService programIndicatorService;
   private final SystemSettingsService settingsService;
@@ -232,19 +220,14 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
             latestDate,
             cteContext);
 
-    RelationshipCountSql relationshipCountSql = rewriteRelationshipCountSubqueries(processedSql);
+    ProcessedSql expandedSql = expandRelationshipCountPlaceholders(processedSql, cteContext);
 
     // 4. Build Join Clauses
     String innerJoinSql = buildInnerJoinsForFilters(filterResult.filterAliases(), cteContext);
-    String leftJoinSql =
-        Stream.of(
-                buildLeftJoinsForAllValueCtes(cteContext),
-                relationshipCountSql.relationshipCountJoinSql())
-            .filter(StringUtils::isNotBlank)
-            .collect(Collectors.joining(" "));
+    String leftJoinSql = buildLeftJoinsForAllValueCtes(cteContext);
 
     // 5. Build Where Clause
-    String whereClause = buildWhereClause(relationshipCountSql.processedFilterSql());
+    String whereClause = buildWhereClause(expandedSql.processedFilterSql());
 
     // 6. Assemble Main PI CTE SQL
     String mainCteSql =
@@ -254,7 +237,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
             // complex path supports enrollment-grain placeholder CTEs and is only reached for
             // enrollment analytics after EVENT/simple PI handling has returned.
             getTableName(programIndicator),
-            relationshipCountSql.processedExpressionSql(),
+            expandedSql.processedExpressionSql(),
             innerJoinSql,
             leftJoinSql,
             whereClause,
@@ -289,17 +272,17 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
       return;
     }
 
-    RelationshipCountSql relationshipCountSql =
-        rewriteRelationshipCountSubqueries(new ProcessedSql(expressionSql, filterSql));
+    ProcessedSql expandedSql =
+        expandRelationshipCountPlaceholders(new ProcessedSql(expressionSql, filterSql), cteContext);
 
     String mainCteSql =
         assembleMainPiCteSql(
             programIndicator,
             getEventProgramIndicatorSourceTable(programIndicator, cteContext),
-            relationshipCountSql.processedExpressionSql(),
+            expandedSql.processedExpressionSql(),
             "",
-            relationshipCountSql.relationshipCountJoinSql(),
-            buildWhereClause(relationshipCountSql.processedFilterSql()),
+            buildRelationshipCountJoins(cteContext),
+            buildWhereClause(expandedSql.processedFilterSql()),
             cteContext.getEndpointItem());
 
     cteContext.addProgramIndicatorCte(
@@ -450,56 +433,13 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     return new ProcessedSql(finalProcessedExpressionSql, finalProcessedFilterSql);
   }
 
-  private RelationshipCountSql rewriteRelationshipCountSubqueries(ProcessedSql processedSql) {
-    List<String> joinSql = new ArrayList<>();
-    Map<String, String> aliasesByRelationshipType = new HashMap<>();
-
-    String processedExpressionSql =
-        rewriteRelationshipCountSubqueries(
-            processedSql.processedExpressionSql(), aliasesByRelationshipType, joinSql);
-    String processedFilterSql =
-        rewriteRelationshipCountSubqueries(
-            processedSql.processedFilterSql(), aliasesByRelationshipType, joinSql);
-
-    return new RelationshipCountSql(
-        processedExpressionSql, processedFilterSql, String.join(" ", joinSql));
-  }
-
-  private String rewriteRelationshipCountSubqueries(
-      String sql, Map<String, String> aliasesByRelationshipType, List<String> joinSql) {
-    if (StringUtils.isBlank(sql)) {
-      return sql;
-    }
-
-    Matcher matcher = RELATIONSHIP_COUNT_SUBQUERY_PATTERN.matcher(sql);
-    StringBuffer rewrittenSql = new StringBuffer();
-
-    while (matcher.find()) {
-      String relationshipTypeUid = matcher.group(2) == null ? "" : matcher.group(2);
-      String alias =
-          aliasesByRelationshipType.computeIfAbsent(
-              relationshipTypeUid,
-              key -> {
-                String relationshipCountAlias = "relcnt_" + aliasesByRelationshipType.size();
-                joinSql.add(buildRelationshipCountJoin(relationshipCountAlias, key));
-                return relationshipCountAlias;
-              });
-      matcher.appendReplacement(rewrittenSql, Matcher.quoteReplacement(alias + ".value"));
-    }
-
-    matcher.appendTail(rewrittenSql);
-    return rewrittenSql.toString();
-  }
-
-  private String buildRelationshipCountJoin(String alias, String relationshipTypeUid) {
-    String relationshipTypeFilter =
-        StringUtils.isBlank(relationshipTypeUid)
-            ? ""
-            : " where relationshiptypeuid = '" + relationshipTypeUid + "'";
-
-    return String.format(
-        "left join (select trackedentityid, sum(relationship_count) as value from analytics_rs_relationship%s group by trackedentityid) %s on %s.trackedentityid = %s.trackedentity",
-        relationshipTypeFilter, alias, alias, SUBQUERY_TABLE_ALIAS);
+  private ProcessedSql expandRelationshipCountPlaceholders(
+      ProcessedSql processedSql, CteContext cteContext) {
+    return new ProcessedSql(
+        RelationshipCountJoinExpander.expand(
+            processedSql.processedExpressionSql(), cteContext, SUBQUERY_TABLE_ALIAS, sqlBuilder),
+        RelationshipCountJoinExpander.expand(
+            processedSql.processedFilterSql(), cteContext, SUBQUERY_TABLE_ALIAS, sqlBuilder));
   }
 
   /** Builds the INNER JOIN clause string for simple Filter CTEs. */
@@ -637,6 +577,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
       case VARIABLE -> formatVariableJoin(alias);
       case PROGRAM_STAGE_DATE_ELEMENT -> formatPsdeJoin(key, alias, definition.getTargetRank());
       case D2_FUNCTION -> formatD2FunctionJoin(alias);
+      case D2_RELATIONSHIP_COUNT -> formatRelationshipCountJoin(key, alias);
       default -> {
         log.trace(
             "Skipping join generation for non-value CTE type: {} with key: {}",
@@ -645,6 +586,32 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
         yield null;
       }
     };
+  }
+
+  /** Formats the LEFT JOIN for the per-trackedEntity relationship count CTE. */
+  private String formatRelationshipCountJoin(String key, String alias) {
+    return String.format(
+        "left join %s %s on %s.trackedentityid = %s.trackedentity",
+        key, alias, alias, SUBQUERY_TABLE_ALIAS);
+  }
+
+  /**
+   * Emits LEFT JOINs only for {@link CteDefinition.CteType#D2_RELATIONSHIP_COUNT} CTEs. Used by the
+   * event-PI path, which does not join other value/function CTEs at this level.
+   */
+  private String buildRelationshipCountJoins(CteContext cteContext) {
+    List<String> joinClauses = new ArrayList<>();
+    Set<String> joinedAliases = new HashSet<>();
+    for (String key : cteContext.getCteKeys()) {
+      CteDefinition definition = cteContext.getDefinitionByKey(key);
+      if (definition == null
+          || definition.getCteType() != CteDefinition.CteType.D2_RELATIONSHIP_COUNT
+          || !joinedAliases.add(definition.getAlias())) {
+        continue;
+      }
+      joinClauses.add(formatRelationshipCountJoin(key, definition.getAlias()));
+    }
+    return String.join(" ", joinClauses);
   }
 
   /** Formats the LEFT JOIN for Variable CTEs (rn=1). */
@@ -705,27 +672,29 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
             programIndicator.getAggregationTypeFallback().getValue(),
             AggregationType.CUSTOM.getValue());
     String aggregateSql =
-        getProgramIndicatorSql(
+        programIndicatorService.getAnalyticsSql(
             programIndicator.getExpression(),
             NUMERIC,
             programIndicator,
             earliestStartDate,
-            latestDate);
+            latestDate,
+            SUBQUERY_TABLE_ALIAS);
     aggregateSql += ")";
     aggregateSql += getFrom(programIndicator);
     String where = getWhere(outerSqlEntity, programIndicator, relationshipType);
     aggregateSql += where;
     if (!Strings.isNullOrEmpty(programIndicator.getFilter())) {
       aggregateSql +=
-          (where.isBlank() ? " WHERE " : " AND ")
-              + "("
-              + getProgramIndicatorFilterSql(
-                  programIndicator.getFilter(),
-                  BOOLEAN,
-                  programIndicator,
-                  earliestStartDate,
-                  latestDate)
-              + ")";
+              (where.isBlank() ? " WHERE " : " AND ")
+                      + "("
+                      + programIndicatorService.getAnalyticsSql(
+                      programIndicator.getFilter(),
+                      BOOLEAN,
+                      programIndicator,
+                      earliestStartDate,
+                      latestDate,
+                      SUBQUERY_TABLE_ALIAS)
+                      + ")";
     }
     return "(SELECT " + function + " (" + aggregateSql + ")";
   }
@@ -765,7 +734,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
       ProgramIndicator programIndicator,
       Date earliestStartDate,
       Date latestDate) {
-    return this.programIndicatorService.getAnalyticsSql(
+    return this.programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
         expression,
         dataType,
         programIndicator,
@@ -807,7 +776,4 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
   private record FilterProcessingResult(List<String> filterAliases, String complexFilterString) {}
 
   private record ProcessedSql(String processedExpressionSql, String processedFilterSql) {}
-
-  private record RelationshipCountSql(
-      String processedExpressionSql, String processedFilterSql, String relationshipCountJoinSql) {}
 }

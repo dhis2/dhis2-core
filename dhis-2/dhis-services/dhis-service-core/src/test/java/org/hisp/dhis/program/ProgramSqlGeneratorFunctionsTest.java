@@ -583,14 +583,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
   @Test
   void testRelationshipCountWithNoRelationshipId() {
     String sql = test("d2:relationshipCount()");
-    assertThat(
-        sql,
-        is(
-            """
-             (select sum(relationship_count)
-              from analytics_rs_relationship arr
-              where arr.trackedentityid = ax.trackedentity)
-             """));
+    assertThat(sql, is("__D2RELCNT__(uid='')__"));
   }
 
   @Test
@@ -598,14 +591,7 @@ class ProgramSqlGeneratorFunctionsTest extends TestBase {
     when(idObjectManager.get(RelationshipType.class, relTypeA.getUid())).thenReturn(relTypeA);
 
     String sql = test("d2:relationshipCount('RelatnTypeA')");
-    assertThat(
-        sql,
-        is(
-            """
-                     (select relationship_count
-                      from analytics_rs_relationship arr
-                      where arr.trackedentityid = ax.trackedentity and relationshiptypeuid = 'RelatnTypeA')
-                     """));
+    assertThat(sql, is("__D2RELCNT__(uid='RelatnTypeA')__"));
   }
 
   @Test

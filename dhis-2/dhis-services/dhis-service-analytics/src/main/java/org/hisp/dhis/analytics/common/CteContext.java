@@ -290,6 +290,21 @@ public class CteContext {
     }
   }
 
+  /**
+   * Registers a {@link CteDefinition.CteType#D2_RELATIONSHIP_COUNT} CTE. No-op if a CTE with the
+   * same key was already registered, so multiple PIs (or multiple references inside one PI) for the
+   * same relationship type share a single CTE.
+   */
+  public void addRelationshipCountCte(String key, CteDefinition cteDefinition) {
+    if (cteDefinition != null
+        && key != null
+        && cteDefinition.getCteType() == CteDefinition.CteType.D2_RELATIONSHIP_COUNT) {
+      cteDefinitions.putIfAbsent(key, cteDefinition);
+    } else {
+      log.warn("Attempted to add invalid relationship count CTE definition for key: {}", key);
+    }
+  }
+
   public void addShadowCte(String tableName, String sql, CteDefinition.CteType cteType) {
     // Use a simple CteDefinition for shadow CTEs
     CteDefinition shadowCte = CteDefinition.forShadowTable(tableName, sql, cteType);

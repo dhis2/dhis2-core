@@ -68,6 +68,8 @@ public class CteDefinition {
     PROGRAM_STAGE_DATE_ELEMENT(10),
     /** CTE replacing a d2:function(...) subquery (like d2:countIfValue). */
     D2_FUNCTION(10),
+    /** Per-trackedEntity relationship count CTE backing {@code d2:relationshipCount(...)}. */
+    D2_RELATIONSHIP_COUNT(10),
     /** CTE for checking existence (rowContext=true). */
     EXISTS(10),
     /** Candidate event rows used as input for EVENT program indicator CTEs. */
@@ -367,6 +369,32 @@ public class CteDefinition {
         CteType.D2_FUNCTION,
         false, // hasFilter
         false); // hasValueName
+  }
+
+  /**
+   * Creates a CTE definition for a d2:relationshipCount aggregation, joined per trackedEntity.
+   *
+   * @param key A unique key identifying this relationship-count CTE instance.
+   * @param cteDefinitionSql The SQL body for the CTE (selects {@code trackedentityid} and {@code
+   *     value}).
+   * @return The created CteDefinition.
+   */
+  public static CteDefinition forRelationshipCount(String key, String cteDefinitionSql) {
+    return new CteDefinition(
+        key,
+        null,
+        null,
+        cteDefinitionSql,
+        generateRandomAlias(),
+        false,
+        false,
+        false,
+        null,
+        "trackedentity",
+        null,
+        CteType.D2_RELATIONSHIP_COUNT,
+        false,
+        false);
   }
 
   public static CteDefinition forShadowTable(String tableName, String sql, CteType cteType) {

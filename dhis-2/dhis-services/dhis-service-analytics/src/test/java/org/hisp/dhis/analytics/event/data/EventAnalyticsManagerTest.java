@@ -1173,7 +1173,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
     String d2Placeholder =
         "__D2FUNC__(func='countIfValue', ps='PgmStgUid1', de='DataElmUid2', argType='val64', arg64='NQ==', hash='noboundaries', pi='piEnrollComplex')__";
 
-    when(programIndicatorService.getAnalyticsSql(
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
             anyString(), eq(NUMERIC), eq(programIndicator), any(), any(), eq("subax")))
         .thenReturn(variablePlaceholder + " + " + psdePlaceholder + " + " + d2Placeholder);
 
@@ -1229,7 +1229,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
         createEventProgramIndicator("rxNjqzJ7dkK", AggregationType.COUNT, "distinct ou");
     programIndicator.setFilter("#{edqlbukwRfQ.nhW3SZX9JaN} == 'Ongoing'");
     stubProgramIndicatorExpression(programIndicator, "distinct ou", "distinct ou");
-    when(programIndicatorService.getAnalyticsSql(
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
             eq("#{edqlbukwRfQ.nhW3SZX9JaN} == 'Ongoing'"),
             eq(org.hisp.dhis.analytics.DataType.BOOLEAN),
             eq(programIndicator),
@@ -1284,7 +1284,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + "+ case when \"UXz7xuGCEhU\" is not null then 1 else 0 end) as Float64), 0) > toFloat64(0)";
     stubProgramIndicatorExpression(
         programIndicator, programIndicator.getExpression(), renderedExpression);
-    when(programIndicatorService.getAnalyticsSql(
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
             eq(programIndicator.getFilter()),
             eq(org.hisp.dhis.analytics.DataType.BOOLEAN),
             eq(programIndicator),
@@ -1429,6 +1429,9 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
 
   private void stubProgramIndicatorExpression(
       ProgramIndicator programIndicator, String expression, String renderedSql) {
+    when(programIndicatorService.getAnalyticsSqlDeferRelationshipCount(
+            eq(expression), eq(NUMERIC), eq(programIndicator), any(), any(), eq("subax")))
+        .thenReturn(renderedSql);
     when(programIndicatorService.getAnalyticsSql(
             eq(expression), eq(NUMERIC), eq(programIndicator), any(), any(), eq("subax")))
         .thenReturn(renderedSql);
