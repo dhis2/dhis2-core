@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,23 +27,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.minmax;
-
-import java.util.List;
-import org.hisp.dhis.common.input.Paged;
-import org.hisp.dhis.common.input.UrlParams;
-import org.hisp.dhis.jsontree.Collapsed;
+package org.hisp.dhis.common.input;
 
 /**
- * @author Viet Nguyen <viet@dhis2.org>
+ * Marker interface to be implemented by {@link Record} classes to be mapped via json-tree.
+ *
+ * <p>This is so this becomes an opt-in feature.
+ *
+ * @author Jan Bernitt
+ * @since 2.44
  */
-public record MinMaxDataElementParams(
-    List<String> fields, List<String> filters, @Collapsed Paged paged) implements UrlParams {
-
-  public static final MinMaxDataElementParams DEFAULT =
-      new MinMaxDataElementParams(List.of(), List.of(), Paged.DEFAULT);
-
-  public MinMaxDataElementParams(List<String> filters) {
-    this(List.of(), filters, Paged.DEFAULT);
-  }
-}
+public interface UrlParams {}

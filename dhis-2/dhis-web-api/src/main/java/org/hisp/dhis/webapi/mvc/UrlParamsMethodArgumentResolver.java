@@ -33,7 +33,7 @@ import static org.hisp.dhis.common.input.InputUtils.decodeInput;
 import static org.hisp.dhis.common.input.InputUtils.validateInput;
 
 import javax.annotation.Nonnull;
-import org.hisp.dhis.common.UrlParams;
+import org.hisp.dhis.common.input.UrlParams;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;

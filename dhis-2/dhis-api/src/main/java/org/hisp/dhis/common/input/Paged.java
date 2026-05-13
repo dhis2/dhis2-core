@@ -27,14 +27,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.common.input;
 
-/**
- * Marker interface to be implemented by {@link Record} classes to be mapped via json-tree.
- *
- * <p>This is so this becomes an opt-in feature.
- *
- * @author Jan Bernitt
- * @since 2.44
- */
-public interface UrlParams {}
+import static org.hisp.dhis.jsontree.Validation.YesNo.NO;
+
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.jsontree.Validation;
+
+public record Paged(
+    Boolean skipPaging,
+    @Validation(required = NO) boolean paging,
+    @Validation(required = NO, minimum = 1) int page,
+    @Validation(required = NO, minimum = 1, maximum = 1000) int pageSize) {
+
+  public static final Paged DEFAULT = new Paged(null, true, 1, 50);
+
+  @OpenApi.Ignore
+  public boolean isPaged() {
+    if (skipPaging != null) return !skipPaging;
+    return paging;
+  }
+
+  public int offset() {
+    return (page - 1) * pageSize;
+  }
+}

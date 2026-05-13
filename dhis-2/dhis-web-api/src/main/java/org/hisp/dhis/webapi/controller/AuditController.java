@@ -51,6 +51,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.input.Paged;
 import org.hisp.dhis.dataapproval.DataApprovalAudit;
 import org.hisp.dhis.dataapproval.DataApprovalAuditQueryParams;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
@@ -163,11 +164,12 @@ public class AuditController {
     List<DataValueChangelog> entries;
     Pager pager = null;
 
-    if (!params.isPaged()) {
+    Paged paged = params.paged();
+    if (!paged.isPaged()) {
       entries = dataValueChangelogService.getChangelogEntries(params);
     } else {
       int total = dataValueChangelogService.countEntries(params);
-      pager = new Pager(params.page(), total, params.pageSize());
+      pager = new Pager(paged.page(), total, paged.pageSize());
       entries = dataValueChangelogService.getChangelogEntries(params);
     }
 

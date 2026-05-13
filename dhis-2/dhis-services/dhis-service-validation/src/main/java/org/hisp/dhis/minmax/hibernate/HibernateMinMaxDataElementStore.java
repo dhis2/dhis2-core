@@ -48,6 +48,7 @@ import javax.annotation.Nonnull;
 import org.hibernate.Session;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.input.Paged;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
@@ -139,11 +140,10 @@ public class HibernateMinMaxDataElementStore extends HibernateGenericStore<MinMa
     JpaQueryParameters<MinMaxDataElement> parameters = newJpaParameters();
     parameters.addPredicate(root -> parseFilter(builder, root, query.filters()));
 
-    if (query.isPaged()) {
-      int pageSize = query.pageSize();
-      int offset = (query.page() - 1) * pageSize;
-      parameters.setFirstResult(offset);
-      parameters.setMaxResults(pageSize);
+    Paged paged = query.paged();
+    if (paged.isPaged()) {
+      parameters.setFirstResult(paged.offset());
+      parameters.setMaxResults(paged.pageSize());
     }
 
     return getList(builder, parameters);

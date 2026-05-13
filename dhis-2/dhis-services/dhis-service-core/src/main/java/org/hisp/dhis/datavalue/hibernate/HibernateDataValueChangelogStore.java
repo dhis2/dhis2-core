@@ -35,6 +35,7 @@ import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.input.Paged;
 import org.hisp.dhis.datavalue.DataValueChangelog;
 import org.hisp.dhis.datavalue.DataValueChangelogEntry;
 import org.hisp.dhis.datavalue.DataValueChangelogQueryParams;
@@ -129,6 +130,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         AND pe.iso = ANY(:pe)
       ORDER BY dva.created DESC""";
 
+    Paged paged = params.paged();
     return SQL.of(sql, api)
         .setParameter("types", params.type(), DataValueChangelogType::name)
         .setParameter("pe", params.pe(), Period::getIsoDate)
@@ -137,8 +139,8 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         .setParameter("ou", params.ou())
         .setParameter("coc", params.co())
         .setParameter("aoc", params.cc())
-        .setOffset(params.isPaged() ? (params.page() - 1) * params.pageSize() : null)
-        .setLimit(params.isPaged() ? params.pageSize() : null)
+        .setOffset(paged.isPaged() ? paged.offset() : null)
+        .setLimit(paged.isPaged() ? paged.pageSize() : null)
         .eraseNullParameterLines()
         .useEqualsOverInForParameters("types", "ds", "de", "ou", "pe")
         .eraseNullParameterJoinLine("de", "de")
