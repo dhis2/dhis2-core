@@ -51,14 +51,14 @@ public interface TrackerAccessManager {
    *
    * @return No errors if the user has TET data read access and ownership in at least one program.
    */
-  List<ErrorMessage> canRead(UserDetails user, TrackedEntity trackedEntity);
+  List<ErrorMessage> canRead(@Nonnull UserDetails user, @Nonnull TrackedEntity trackedEntity);
 
   /**
    * Checks capture scope and data write permissions to the TET of a given tracked entity.
    *
    * @return No errors if the user has capture scope access and write access to the TET.
    */
-  List<ErrorMessage> canCreate(@Nonnull UserDetails user, TrackedEntity trackedEntity);
+  List<ErrorMessage> canCreate(@Nonnull UserDetails user, @Nonnull TrackedEntity trackedEntity);
 
   /**
    * Checks data write access to the TET and ownership of the tracked entity across programs for
@@ -72,20 +72,20 @@ public interface TrackerAccessManager {
    * @return No errors if the user has all required access rights to update the tracked entity.
    */
   List<ErrorMessage> canUpdate(
-      UserDetails user, TrackedEntity trackedEntity, @Nonnull OrganisationUnit orgUnit);
+      UserDetails user, @Nonnull TrackedEntity trackedEntity, @Nonnull OrganisationUnit orgUnit);
 
   /**
    * Like {@link #canUpdate(UserDetails, TrackedEntity, OrganisationUnit)}, but also requires
    * capture scope access.
    */
-  List<ErrorMessage> canDelete(UserDetails user, TrackedEntity trackedEntity);
+  List<ErrorMessage> canDelete(UserDetails user, @Nonnull TrackedEntity trackedEntity);
 
   /**
    * Checks data read access to the program and TET, and ownership of the enrollment.
    *
    * @return No errors if the user has data read access to the program and TET, and has ownership.
    */
-  List<ErrorMessage> canRead(UserDetails user, Enrollment enrollment);
+  List<ErrorMessage> canRead(@Nonnull UserDetails user, @Nonnull Enrollment enrollment);
 
   /**
    * Checks data write access to the program, data read access to the TET, ownership, capture scope,
@@ -93,7 +93,7 @@ public interface TrackerAccessManager {
    *
    * @return No errors if the user has all required access rights to create the enrollment.
    */
-  List<ErrorMessage> canCreate(UserDetails user, Enrollment enrollment);
+  List<ErrorMessage> canCreate(@Nonnull UserDetails user, @Nonnull Enrollment enrollment);
 
   /**
    * Checks data write access to the program, data read access to the TET, ownership, and data write
@@ -112,13 +112,13 @@ public interface TrackerAccessManager {
    * @return No errors if the user has all required access rights to update the enrollment.
    */
   List<ErrorMessage> canUpdate(
-      UserDetails user,
-      Enrollment enrollment,
-      OrganisationUnit orgUnit,
-      CategoryOptionCombo categoryOptionCombo);
+      @Nonnull UserDetails user,
+      @Nonnull Enrollment enrollment,
+      @Nonnull OrganisationUnit orgUnit,
+      @Nonnull CategoryOptionCombo categoryOptionCombo);
 
   /** Like {@link #canCreate(UserDetails, Enrollment)}. */
-  List<ErrorMessage> canDelete(UserDetails user, Enrollment enrollment);
+  List<ErrorMessage> canDelete(@Nonnull UserDetails user, @Nonnull Enrollment enrollment);
 
   /**
    * Checks data read access to the program, program stage, and TET, ownership of the enrolled
@@ -127,7 +127,7 @@ public interface TrackerAccessManager {
    * @return No errors if the user has data read access to the program, program stage, and TET, has
    *     ownership, and has data read access to the category option combo.
    */
-  List<ErrorMessage> canRead(UserDetails user, TrackerEvent event);
+  List<ErrorMessage> canRead(@Nonnull UserDetails user, @Nonnull TrackerEvent event);
 
   /**
    * Checks data write access to the program stage, data read access to the program and TET,
@@ -137,7 +137,7 @@ public interface TrackerAccessManager {
    *
    * @return No errors if the user has all required access rights to create the event.
    */
-  List<ErrorMessage> canCreate(UserDetails user, TrackerEvent event);
+  List<ErrorMessage> canCreate(@Nonnull UserDetails user, @Nonnull TrackerEvent event);
 
   /**
    * Checks data write access to the program stage, data read access to the program and TET,
@@ -156,13 +156,13 @@ public interface TrackerAccessManager {
    * @return No errors if the user has all required access rights to update the event.
    */
   List<ErrorMessage> canUpdate(
-      UserDetails user,
-      TrackerEvent event,
-      OrganisationUnit orgUnit,
-      CategoryOptionCombo attributeOptionCombo);
+      @Nonnull UserDetails user,
+      @Nonnull TrackerEvent event,
+      @Nonnull OrganisationUnit orgUnit,
+      @Nonnull CategoryOptionCombo attributeOptionCombo);
 
   /** Like {@link #canCreate(UserDetails, TrackerEvent)}. */
-  List<ErrorMessage> canDelete(UserDetails user, TrackerEvent event);
+  List<ErrorMessage> canDelete(@Nonnull UserDetails user, @Nonnull TrackerEvent event);
 
   /**
    * Checks org unit scope access, data read access to the program, and data read access to the
@@ -171,7 +171,7 @@ public interface TrackerAccessManager {
    * @return No errors if the user has org unit scope access, data read access to the program, and
    *     data read access to the category option combo.
    */
-  List<ErrorMessage> canRead(UserDetails user, SingleEvent event);
+  List<ErrorMessage> canRead(@Nonnull UserDetails user, @Nonnull SingleEvent event);
 
   /**
    * Checks capture scope access, data write access to the program, and data write access to the
@@ -179,7 +179,7 @@ public interface TrackerAccessManager {
    *
    * @return No errors if the user has all required access rights to create the event.
    */
-  List<ErrorMessage> canCreate(UserDetails user, SingleEvent event);
+  List<ErrorMessage> canCreate(@Nonnull UserDetails user, @Nonnull SingleEvent event);
 
   /**
    * Checks capture scope access, data write access to the program, and data write access to the
@@ -197,17 +197,38 @@ public interface TrackerAccessManager {
    * @return No errors if the user has all required access rights to update the event.
    */
   List<ErrorMessage> canUpdate(
-      UserDetails user,
-      SingleEvent event,
-      OrganisationUnit orgUnit,
-      CategoryOptionCombo categoryOptionCombo);
+      @Nonnull UserDetails user,
+      @Nonnull SingleEvent event,
+      @Nonnull OrganisationUnit orgUnit,
+      @Nonnull CategoryOptionCombo categoryOptionCombo);
 
   /** Like {@link #canCreate(UserDetails, SingleEvent)}. */
-  List<ErrorMessage> canDelete(UserDetails user, SingleEvent event);
+  List<ErrorMessage> canDelete(@Nonnull UserDetails user, @Nonnull SingleEvent event);
 
-  List<String> canRead(UserDetails user, Relationship relationship);
+  /**
+   * Checks data read access to the relationship type, and data read access to both the {@code from}
+   * and {@code to} items.
+   *
+   * @return No errors if the user has data read access to the relationship type and to both items.
+   */
+  List<ErrorMessage> canRead(@Nonnull UserDetails user, @Nonnull Relationship relationship);
 
-  List<String> canCreate(UserDetails user, Relationship relationship);
+  /**
+   * Checks data write access to the relationship type and data write access to the {@code from}
+   * item. For non-bidirectional relationship types, also checks data read access to the {@code to}
+   * item. For bidirectional relationship types, also checks data write access to the {@code to}
+   * item.
+   *
+   * @return No errors if the user has all required access rights to create the relationship.
+   */
+  List<ErrorMessage> canCreate(UserDetails user, @Nonnull Relationship relationship);
 
-  List<String> canDelete(UserDetails user, @Nonnull Relationship relationship);
+  /**
+   * Checks data write access to the relationship type and data write access to the {@code from}
+   * item. For bidirectional relationship types, also checks data write access to the {@code to}
+   * item.
+   *
+   * @return No errors if the user has all required access rights to delete the relationship.
+   */
+  List<ErrorMessage> canDelete(UserDetails user, @Nonnull Relationship relationship);
 }
