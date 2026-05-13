@@ -69,15 +69,6 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class HibernateDataExportStore implements DataExportStore {
 
-  private static final String AOC_CTE_BLOCK =
-      """
-      ,
-      aoc_ids AS MATERIALIZED (
-        SELECT aoc.categoryoptioncomboid, aoc.uid
-        FROM categoryoptioncombo aoc
-        WHERE NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co     JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid     WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:aocAccess))
-      )""";
-
   private final EntityManager entityManager;
 
   @Override
@@ -147,10 +138,72 @@ public class HibernateDataExportStore implements DataExportStore {
     if ((params.getAttributeOptionCombos() == null || params.getAttributeOptionCombos().isEmpty())
         && !isSuper)
       aocAclSql = generateSQlQueryForSharingCheck("co.sharing", currentUser, LIKE_READ_DATA);
+    String sql = getSql(aocAclSql);
+
+    Date lastUpdated = params.getLastUpdated();
+    if (lastUpdated == null && params.getLastUpdatedDuration() != null)
+      lastUpdated = new Date(currentTimeMillis() - params.getLastUpdatedDuration().toMillis());
+
+    boolean descendants = params.isIncludeDescendants();
+    List<Order> orders = params.getOrders();
+    if (isEmpty(orders)) orders = List.of(Order.PE, Order.CREATED, Order.DE);
+
+    List<UID> oug = params.getOrganisationUnitGroups();
+    Set<String> ouCapture = currentUser.getUserOrgUnitIds();
+    if (oug == null || oug.isEmpty() || isSuper) ouCapture = Set.of();
+    return SQL.of(sql, api)
+        .setParameter("ds", params.getDataSets())
+        .setParameter("de", params.getDataElements())
+        .setParameter("deg", params.getDataElementGroups())
+        .setParameter("pe", params.getPeriods(), Period::getIsoDate)
+        .setParameter("pt", params.getPeriodTypes(), PeriodType::getName)
+        .setParameter("start", params.getStartDate())
+        .setParameter("end", params.getEndDate())
+        .setParameter("includedDate", params.getIncludedDate())
+        .setParameter("ou", params.getOrganisationUnits())
+        .setParameter("oug", isSuper ? List.of() : oug)
+        .setParameter("capture", ouCapture, identity())
+        .setParameter("ougSuper", isSuper ? oug : List.of())
+        .setParameter("level", params.getOrgUnitLevel())
+        .setParameter("coc", params.getCategoryOptionCombos())
+        .setParameter("aoc", params.getAttributeOptionCombos())
+        .setParameter("lastUpdated", lastUpdated)
+        .setParameter("deleted", params.isIncludeDeleted() ? null : false)
+        .setDynamicClause("aocAccess", aocAclSql)
+        .eraseNullParameterLines()
+        // keep params below even when null
+        .eraseJoinLine("de_ids", !params.hasDataElementFilters())
+        .eraseJoinLine("pe_ids", !params.hasPeriodFilters())
+        .eraseJoinLine("ou_with_descendants_ids", !descendants || !params.hasOrgUnitFilters())
+        .eraseJoinLine("ou_ids", descendants || !params.hasOrgUnitFilters())
+        .useEqualsOverInForParameters("de", "pe", "pt", "ou", "path", "coc", "aoc")
+        .setLimit(params.getLimit())
+        .setOffset(params.getOffset())
+        .setOrders(
+            orders,
+            Map.ofEntries(
+                Map.entry(Order.OU, "ou.path"),
+                Map.entry(Order.PE, "pe.startdate, pe.enddate"),
+                Map.entry(Order.CREATED, "dv.created"),
+                Map.entry(Order.DE, "deid"),
+                Map.entry(Order.AOC, "aocid")));
+  }
+
+  private static String getSql(String aocAclSql) {
     boolean useAocCte = aocAclSql != null;
 
-    String sql =
+    String aocCTEBlock =
         """
+        ,
+        aoc_ids AS MATERIALIZED (
+          SELECT aoc.categoryoptioncomboid, aoc.uid
+          FROM categoryoptioncombo aoc
+          WHERE NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co
+          JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid
+          WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:aocAccess))
+        )""";
+
+    return """
       WITH
       de_ids AS (
         SELECT dataelementid
@@ -226,60 +279,12 @@ public class HibernateDataExportStore implements DataExportStore {
         AND dv.lastupdated >= :lastUpdated
         AND dv.deleted = :deleted
         AND ou.hierarchylevel = :level"""
-            .replace("${aocCte}", useAocCte ? AOC_CTE_BLOCK : "")
-            .replace(
-                "${aocJoin}",
-                useAocCte
-                    ? "JOIN aoc_ids aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid"
-                    : "JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid");
-
-    Date lastUpdated = params.getLastUpdated();
-    if (lastUpdated == null && params.getLastUpdatedDuration() != null)
-      lastUpdated = new Date(currentTimeMillis() - params.getLastUpdatedDuration().toMillis());
-
-    boolean descendants = params.isIncludeDescendants();
-    List<Order> orders = params.getOrders();
-    if (isEmpty(orders)) orders = List.of(Order.PE, Order.CREATED, Order.DE);
-
-    List<UID> oug = params.getOrganisationUnitGroups();
-    Set<String> ouCapture = currentUser.getUserOrgUnitIds();
-    if (oug == null || oug.isEmpty() || isSuper) ouCapture = Set.of();
-    return SQL.of(sql, api)
-        .setParameter("ds", params.getDataSets())
-        .setParameter("de", params.getDataElements())
-        .setParameter("deg", params.getDataElementGroups())
-        .setParameter("pe", params.getPeriods(), Period::getIsoDate)
-        .setParameter("pt", params.getPeriodTypes(), PeriodType::getName)
-        .setParameter("start", params.getStartDate())
-        .setParameter("end", params.getEndDate())
-        .setParameter("includedDate", params.getIncludedDate())
-        .setParameter("ou", params.getOrganisationUnits())
-        .setParameter("oug", isSuper ? List.of() : oug)
-        .setParameter("capture", ouCapture, identity())
-        .setParameter("ougSuper", isSuper ? oug : List.of())
-        .setParameter("level", params.getOrgUnitLevel())
-        .setParameter("coc", params.getCategoryOptionCombos())
-        .setParameter("aoc", params.getAttributeOptionCombos())
-        .setParameter("lastUpdated", lastUpdated)
-        .setParameter("deleted", params.isIncludeDeleted() ? null : false)
-        .setDynamicClause("aocAccess", aocAclSql)
-        .eraseNullParameterLines()
-        // keep params below even when null
-        .eraseJoinLine("de_ids", !params.hasDataElementFilters())
-        .eraseJoinLine("pe_ids", !params.hasPeriodFilters())
-        .eraseJoinLine("ou_with_descendants_ids", !descendants || !params.hasOrgUnitFilters())
-        .eraseJoinLine("ou_ids", descendants || !params.hasOrgUnitFilters())
-        .useEqualsOverInForParameters("de", "pe", "pt", "ou", "path", "coc", "aoc")
-        .setLimit(params.getLimit())
-        .setOffset(params.getOffset())
-        .setOrders(
-            orders,
-            Map.ofEntries(
-                Map.entry(Order.OU, "ou.path"),
-                Map.entry(Order.PE, "pe.startdate, pe.enddate"),
-                Map.entry(Order.CREATED, "dv.created"),
-                Map.entry(Order.DE, "deid"),
-                Map.entry(Order.AOC, "aocid")));
+        .replace("${aocCte}", useAocCte ? aocCTEBlock : "")
+        .replace(
+            "${aocJoin}",
+            useAocCte
+                ? "JOIN aoc_ids aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid"
+                : "JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid");
   }
 
   @CheckForNull

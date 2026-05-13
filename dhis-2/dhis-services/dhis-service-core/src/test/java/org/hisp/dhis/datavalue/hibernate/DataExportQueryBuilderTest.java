@@ -443,7 +443,9 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         aoc_ids AS MATERIALIZED (
           SELECT aoc.categoryoptioncomboid, aoc.uid
           FROM categoryoptioncombo aoc
-          WHERE NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co     JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid     WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT ( ( co.sharing->>'owner' is null or co.sharing->>'owner' = 'null')  or co.sharing->>'public' like '__r_____' or co.sharing->>'public' is null  or (jsonb_has_user_id( co.sharing, 'null') = true  and jsonb_check_user_access( co.sharing, 'null', '__r_____' ) = true )  ))
+          WHERE NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co
+          JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid
+          WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT ( ( co.sharing->>'owner' is null or co.sharing->>'owner' = 'null')  or co.sharing->>'public' like '__r_____' or co.sharing->>'public' is null  or (jsonb_has_user_id( co.sharing, 'null') = true  and jsonb_check_user_access( co.sharing, 'null', '__r_____' ) = true )  ))
         )
         SELECT
           de.uid AS deid,
