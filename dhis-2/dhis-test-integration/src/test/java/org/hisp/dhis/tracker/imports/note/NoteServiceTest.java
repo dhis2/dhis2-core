@@ -238,7 +238,7 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
   private Note note() {
     return Note.builder()
         .note(UID.generate())
-        .storedBy("This is the creator")
+        .storedBy(userDetails.getUsername())
         .value("This is a note")
         .build();
   }
