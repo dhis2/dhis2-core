@@ -38,6 +38,8 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1102;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1105;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1324;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1325;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4019;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4020;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +62,6 @@ import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -401,15 +402,17 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canRead(@Nonnull UserDetails user, Relationship relationship) {
-    if (user.isSuper() || relationship == null) {
+  public List<ErrorMessage> canRead(@Nonnull UserDetails user, @Nonnull Relationship relationship) {
+    if (user.isSuper()) {
       return List.of();
     }
 
     RelationshipType relationshipType = relationship.getRelationshipType();
-    List<String> errors = new ArrayList<>();
+    List<ErrorMessage> errors = new ArrayList<>();
     if (!aclService.canDataRead(user, relationshipType)) {
-      errors.add("User has no data read access to relationshipType: " + relationshipType.getUid());
+      errors.add(
+          new ErrorMessage(
+              E4019, user.getUid(), List.of(user.getUid(), relationshipType.getUid())));
     }
 
     RelationshipItem from = relationship.getFrom();
@@ -422,10 +425,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public List<String> canCreate(UserDetails user, Relationship relationship) {
-    if (user.isSuper() || relationship == null) return List.of();
-    List<String> errors = new ArrayList<>(canWriteRelationship(user, relationship));
+  public List<ErrorMessage> canCreate(UserDetails user, @Nonnull Relationship relationship) {
+    if (user.isSuper()) return List.of();
+    List<ErrorMessage> errors = new ArrayList<>(canWrite(user, relationship));
     if (!relationship.getRelationshipType().isBidirectional()) {
       errors.addAll(canRead(user, relationship.getTo()));
     }
@@ -433,74 +435,61 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public List<String> canDelete(UserDetails user, @Nonnull Relationship relationship) {
+  public List<ErrorMessage> canDelete(UserDetails user, @Nonnull Relationship relationship) {
     if (user.isSuper()) return List.of();
-    return canWriteRelationship(user, relationship);
+    return canWrite(user, relationship);
   }
 
-  private List<String> canWriteRelationship(UserDetails user, Relationship relationship) {
-    RelationshipType type = relationship.getRelationshipType();
-    List<String> errors = new ArrayList<>();
-    if (!aclService.canDataWrite(user, type)) {
-      errors.add("User has no data write access to relationshipType: " + type.getUid());
+  private List<ErrorMessage> canWrite(UserDetails user, Relationship relationship) {
+    RelationshipType relationshipType = relationship.getRelationshipType();
+    List<ErrorMessage> errors = new ArrayList<>();
+    if (!aclService.canDataWrite(user, relationshipType)) {
+      errors.add(
+          new ErrorMessage(
+              E4020, user.getUid(), List.of(user.getUid(), relationshipType.getUid())));
     }
     errors.addAll(canWrite(user, relationship.getFrom()));
-    if (type.isBidirectional()) {
+    if (relationshipType.isBidirectional()) {
       errors.addAll(canWrite(user, relationship.getTo()));
     }
     return errors;
   }
 
-  private List<String> canRead(@Nonnull UserDetails user, RelationshipItem item) {
-    if (item.getTrackedEntity() != null)
-      return canRead(user, item.getTrackedEntity()).stream()
-          .map(em -> em.validationCode().getMessage())
-          .toList();
-    if (item.getEnrollment() != null)
-      return canRead(user, item.getEnrollment()).stream()
-          .map(em -> em.validationCode().getMessage())
-          .toList();
-    if (item.getTrackerEvent() != null)
-      return canRead(user, item.getTrackerEvent()).stream()
-          .map(em -> em.validationCode().getMessage())
-          .toList();
-    if (item.getSingleEvent() != null)
-      return canRead(user, item.getSingleEvent()).stream()
-          .map(em -> em.validationCode().getMessage())
-          .toList();
+  private List<ErrorMessage> canRead(@Nonnull UserDetails user, RelationshipItem item) {
+    if (item.getTrackedEntity() != null) return canRead(user, item.getTrackedEntity());
+    if (item.getEnrollment() != null) return canRead(user, item.getEnrollment());
+    if (item.getTrackerEvent() != null) return canRead(user, item.getTrackerEvent());
+    if (item.getSingleEvent() != null) return canRead(user, item.getSingleEvent());
     return List.of();
   }
 
-  private List<String> canWrite(@Nonnull UserDetails user, RelationshipItem item) {
+  private List<ErrorMessage> canWrite(@Nonnull UserDetails user, RelationshipItem item) {
     if (item.getTrackedEntity() != null) {
       TrackedEntity te = item.getTrackedEntity();
-      return canUpdate(user, te, te.getOrganisationUnit()).stream()
-          .map(em -> em.validationCode().getMessage())
-          .toList();
+      return canUpdate(user, te, te.getOrganisationUnit());
     }
     if (item.getEnrollment() != null) {
       Enrollment enrollment = item.getEnrollment();
       return canUpdate(
-              user,
-              enrollment,
-              enrollment.getOrganisationUnit(),
-              enrollment.getAttributeOptionCombo())
-          .stream()
-          .map(em -> em.validationCode().getMessage())
-          .toList();
+          user, enrollment, enrollment.getOrganisationUnit(), enrollment.getAttributeOptionCombo());
     }
     if (item.getTrackerEvent() != null) {
-      TrackerEvent event = item.getTrackerEvent();
-      return canUpdate(user, event, event.getOrganisationUnit(), event.getAttributeOptionCombo())
-          .stream()
-          .map(em -> em.validationCode().getMessage())
-          .toList();
+      TrackerEvent trackerEvent = item.getTrackerEvent();
+      return canUpdate(
+          user,
+          trackerEvent,
+          trackerEvent.getOrganisationUnit(),
+          trackerEvent.getAttributeOptionCombo());
     }
-    if (item.getSingleEvent() != null)
-      return canCreate(user, item.getSingleEvent()).stream()
-          .map(em -> em.validationCode().getMessage())
-          .toList();
+    if (item.getSingleEvent() != null) {
+      SingleEvent singleEvent = item.getSingleEvent();
+      return canUpdate(
+          user,
+          singleEvent,
+          singleEvent.getOrganisationUnit(),
+          singleEvent.getAttributeOptionCombo());
+    }
+
     return List.of();
   }
 
