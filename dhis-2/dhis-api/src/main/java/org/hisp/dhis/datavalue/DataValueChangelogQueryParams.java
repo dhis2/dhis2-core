@@ -29,12 +29,14 @@
  */
 package org.hisp.dhis.datavalue;
 
-import java.util.ArrayList;
 import java.util.List;
-import lombok.Data;
-import lombok.experimental.Accessors;
-import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.common.UrlParams;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
 /**
@@ -42,20 +44,42 @@ import org.hisp.dhis.period.Period;
  *
  * @author Lars Helge Overland
  */
-@Data
-@Accessors(chain = true)
-public class DataValueChangelogQueryParams {
+public record DataValueChangelogQueryParams(
+    List<String> fields,
+    @OpenApi.Property({UID[].class, DataSet.class}) List<UID> ds,
+    @OpenApi.Property({UID[].class, DataElement.class}) List<UID> de,
+    List<Period> pe,
+    @OpenApi.Property({UID[].class, OrganisationUnit.class}) List<UID> ou,
+    @OpenApi.Property({UID[].class, CategoryOptionCombo.class}) UID co, // COC
+    @OpenApi.Property({UID[].class, CategoryOptionCombo.class}) UID cc, // AOC
+    List<DataValueChangelogType> type,
+    Boolean skipPaging,
+    boolean paging,
+    int page,
+    int pageSize)
+    implements UrlParams {
 
-  private List<UID> dataSets = new ArrayList<>();
-  private List<UID> dataElements = new ArrayList<>();
-  private List<Period> periods = new ArrayList<>();
-  private List<UID> orgUnits = new ArrayList<>();
-  private UID categoryOptionCombo;
-  private UID attributeOptionCombo;
-  private List<DataValueChangelogType> types = new ArrayList<>();
-  private Pager pager;
+  public static final DataValueChangelogQueryParams DEFAULT = ofType();
 
-  public boolean hasPaging() {
-    return pager != null;
+  public static DataValueChangelogQueryParams ofType(DataValueChangelogType... types) {
+    return new DataValueChangelogQueryParams(
+        List.of(),
+        List.of(),
+        List.of(),
+        List.of(),
+        List.of(),
+        null,
+        null,
+        List.of(types),
+        null,
+        true,
+        1,
+        50);
+  }
+
+  @OpenApi.Ignore
+  public boolean isPaged() {
+    if (skipPaging != null) return !skipPaging;
+    return paging;
   }
 }

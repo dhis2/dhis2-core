@@ -29,10 +29,11 @@
  */
 package org.hisp.dhis.webapi.mvc;
 
+import static org.hisp.dhis.common.input.InputUtils.decodeInput;
+import static org.hisp.dhis.common.input.InputUtils.validateInput;
+
 import javax.annotation.Nonnull;
-import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.UrlParams;
-import org.hisp.dhis.common.validation.InputValidationService;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
@@ -41,11 +42,16 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+/**
+ * Adapter to map {@link Record}-classes endpoint method parameters that implement {@link
+ * UrlParams}. This is so this is an opt-in features to not break existing usages of record types in
+ * that position.
+ *
+ * @author Jan Bernitt
+ * @since 2.44
+ */
 @Component
-@RequiredArgsConstructor
 public class UrlParamsMethodArgumentResolver implements HandlerMethodArgumentResolver {
-
-  private final InputValidationService inputValidationService;
 
   @Override
   public boolean supportsParameter(MethodParameter parameter) {
@@ -64,8 +70,8 @@ public class UrlParamsMethodArgumentResolver implements HandlerMethodArgumentRes
 
     @SuppressWarnings("unchecked")
     Class<? extends Record> schema = (Class<? extends Record>) parameter.getParameterType();
-    JsonObject params = inputValidationService.decode(schema, request::getParameterValues);
-    inputValidationService.validate(schema, params);
+    JsonObject params = decodeInput(schema, request::getParameterValues);
+    validateInput(schema, params);
     return params.to(schema);
   }
 }

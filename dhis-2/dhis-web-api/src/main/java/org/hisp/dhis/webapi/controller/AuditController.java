@@ -56,12 +56,9 @@ import org.hisp.dhis.dataapproval.DataApprovalAuditQueryParams;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValueChangelog;
 import org.hisp.dhis.datavalue.DataValueChangelogQueryParams;
 import org.hisp.dhis.datavalue.DataValueChangelogService;
-import org.hisp.dhis.datavalue.DataValueChangelogType;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -156,59 +153,22 @@ public class AuditController {
   }
 
   @GetMapping("dataValue")
-  public RootNode getAggregateDataValueChangelog(
-      @OpenApi.Param({UID[].class, DataSet.class}) @RequestParam(required = false) List<UID> ds,
-      @OpenApi.Param({UID[].class, DataElement.class}) @RequestParam(required = false) List<UID> de,
-      @OpenApi.Param(Period[].class) @RequestParam(required = false) List<String> pe,
-      @OpenApi.Param({UID[].class, OrganisationUnit.class}) @RequestParam(required = false)
-          List<UID> ou,
-      @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false) UID co,
-      @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false) UID cc,
-      @RequestParam(name = "auditType", required = false) List<DataValueChangelogType> type,
-      @RequestParam(required = false) Boolean skipPaging,
-      @RequestParam(required = false) Boolean paging,
-      @RequestParam(required = false, defaultValue = "50") int pageSize,
-      @RequestParam(required = false, defaultValue = "1") int page) {
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+  public RootNode getAggregateDataValueChangelog(DataValueChangelogQueryParams params) {
+    List<String> fields = params.fields();
 
     if (fields.isEmpty()) {
       fields.addAll(FieldPreset.ALL.getFields());
     }
 
-    List<Period> periods = getPeriods(pe);
-    List<DataValueChangelogType> types = emptyIfNull(type);
-
-    DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams()
-            .setDataSets(ds)
-            .setDataElements(de)
-            .setPeriods(periods)
-            .setOrgUnits(ou)
-            .setCategoryOptionCombo(co)
-            .setAttributeOptionCombo(cc)
-            .setTypes(types);
-
     List<DataValueChangelog> entries;
     Pager pager = null;
 
-    if (PagerUtils.isSkipPaging(skipPaging, paging)) {
+    if (!params.isPaged()) {
       entries = dataValueChangelogService.getChangelogEntries(params);
     } else {
       int total = dataValueChangelogService.countEntries(params);
-
-      pager = new Pager(page, total, pageSize);
-
-      entries =
-          dataValueChangelogService.getChangelogEntries(
-              new DataValueChangelogQueryParams()
-                  .setDataSets(ds)
-                  .setDataElements(de)
-                  .setPeriods(periods)
-                  .setOrgUnits(ou)
-                  .setCategoryOptionCombo(co)
-                  .setAttributeOptionCombo(cc)
-                  .setTypes(types)
-                  .setPager(pager));
+      pager = new Pager(params.page(), total, params.pageSize());
+      entries = dataValueChangelogService.getChangelogEntries(params);
     }
 
     RootNode rootNode = NodeUtils.createMetadata();

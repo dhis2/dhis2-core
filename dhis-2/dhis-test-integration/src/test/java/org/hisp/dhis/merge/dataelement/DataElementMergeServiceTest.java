@@ -31,6 +31,7 @@ package org.hisp.dhis.merge.dataelement;
 
 import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUidsNonNull;
+import static org.hisp.dhis.common.input.InputUtils.decodeInput;
 import static org.hisp.dhis.security.acl.AccessStringHelper.READ_ONLY;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEnrollment;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
@@ -3093,9 +3094,16 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
 
   private DataValueChangelogQueryParams getQueryParams(
       List<DataElement> dataElements, List<Period> periods) {
-    return new DataValueChangelogQueryParams()
-        .setDataElements(dataElements.stream().map(DataElement::getUid).map(UID::of).toList())
-        .setPeriods(periods);
+    return decodeInput(
+            DataValueChangelogQueryParams.class,
+            name ->
+                switch (name) {
+                  case "de" ->
+                      dataElements.stream().map(DataElement::getUid).toArray(String[]::new);
+                  case "pe" -> periods.stream().map(Period::getIsoDate).toArray(String[]::new);
+                  default -> null;
+                })
+        .to(DataValueChangelogQueryParams.class);
   }
 
   private void assertMergeSuccessfulSourcesNotDeleted(
