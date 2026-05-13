@@ -259,6 +259,11 @@ public class HibernateDataExportStore implements DataExportStore {
         .eraseJoinLine("pe_ids", !params.hasPeriodFilters())
         .eraseJoinLine("ou_with_descendants_ids", !descendants || !params.hasOrgUnitFilters())
         .eraseJoinLine("ou_ids", descendants || !params.hasOrgUnitFilters())
+        .eraseLineContaining("JOIN aoc_ids aoc", aocAclSql == null)
+        .eraseJoinLine(
+            "aoc_ids",
+            aocAclSql == null) // registers "aoc_ids" for CTE block erasure by eraseUnusedWith
+        .eraseLineContaining("categoryoptioncombo aoc ON", aocAclSql != null)
         .useEqualsOverInForParameters("de", "pe", "pt", "ou", "path", "coc", "aoc")
         .setLimit(params.getLimit())
         .setOffset(params.getOffset())
