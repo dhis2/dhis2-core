@@ -97,8 +97,8 @@ public class AggregateDataExportPerformanceTest extends Simulation {
     setUp(exportScenario.injectClosed(closedInjection))
         .protocols(httpProtocol)
         .assertions(
-            details(EXPORT_REQUEST).responseTime().percentile(95).lt(1500),
-            details(EXPORT_REQUEST).responseTime().max().lt(2000),
+            details(EXPORT_REQUEST).responseTime().percentile(95).lt(300),
+            details(EXPORT_REQUEST).responseTime().max().lt(500),
             details(EXPORT_REQUEST).successfulRequests().percent().is(100D));
   }
 }
