@@ -131,6 +131,14 @@ public class HibernateDataExportStore implements DataExportStore {
 
   static QueryBuilder createExportQuery(
       DataExportParams params, SQL.QueryAPI api, UserDetails currentUser) {
+    String aocAclSql = null;
+    boolean isSuper = currentUser.isSuper();
+    // explicit AOCs mean they are already sharing checked
+    if ((params.getAttributeOptionCombos() == null || params.getAttributeOptionCombos().isEmpty())
+        && !isSuper)
+      aocAclSql = generateSQlQueryForSharingCheck("co.sharing", currentUser, LIKE_READ_DATA);
+    boolean useAocCte = aocAclSql != null;
+
     String sql =
         """
       WITH
@@ -177,14 +185,7 @@ public class HibernateDataExportStore implements DataExportStore {
         FROM ou_ids
         JOIN organisationunit root USING (organisationunitid)
         JOIN organisationunit ou ON ou.path LIKE root.path || '%'
-      ),
-      aoc_ids AS MATERIALIZED (
-        SELECT aoc.categoryoptioncomboid, aoc.uid
-        FROM categoryoptioncombo aoc
-        WHERE NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co \
-          JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid \
-          WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:aocAccess))
-      )
+      )${aocCte}
       SELECT
         de.uid AS deid,
         pe.iso,
@@ -208,24 +209,32 @@ public class HibernateDataExportStore implements DataExportStore {
       JOIN period pe ON dv.periodid = pe.periodid
       JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
       JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
-      JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
-      JOIN aoc_ids aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+      ${aocJoin}
       WHERE 1=1
         AND coc.uid = ANY(:coc)
         AND aoc.uid = ANY(:aoc)
         AND dv.lastupdated >= :lastUpdated
         AND dv.deleted = :deleted
-        AND ou.hierarchylevel = :level""";
+        AND ou.hierarchylevel = :level"""
+            .replace(
+                "${aocCte}",
+                useAocCte
+                    ? ",\naoc_ids AS MATERIALIZED (\n"
+                        + "  SELECT aoc.categoryoptioncomboid, aoc.uid\n"
+                        + "  FROM categoryoptioncombo aoc\n"
+                        + "  WHERE NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co"
+                        + "     JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid"
+                        + "     WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:aocAccess))\n"
+                        + ")"
+                    : "")
+            .replace(
+                "${aocJoin}",
+                useAocCte
+                    ? "JOIN aoc_ids aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid"
+                    : "JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid");
     Date lastUpdated = params.getLastUpdated();
     if (lastUpdated == null && params.getLastUpdatedDuration() != null)
       lastUpdated = new Date(currentTimeMillis() - params.getLastUpdatedDuration().toMillis());
-
-    String aocAclSql = null;
-    boolean isSuper = currentUser.isSuper();
-    // explicit AOCs mean they are already sharing checked
-    if ((params.getAttributeOptionCombos() == null || params.getAttributeOptionCombos().isEmpty())
-        && !isSuper)
-      aocAclSql = generateSQlQueryForSharingCheck("co.sharing", currentUser, LIKE_READ_DATA);
 
     boolean descendants = params.isIncludeDescendants();
     List<Order> orders = params.getOrders();
@@ -259,11 +268,6 @@ public class HibernateDataExportStore implements DataExportStore {
         .eraseJoinLine("pe_ids", !params.hasPeriodFilters())
         .eraseJoinLine("ou_with_descendants_ids", !descendants || !params.hasOrgUnitFilters())
         .eraseJoinLine("ou_ids", descendants || !params.hasOrgUnitFilters())
-        .eraseLineContaining("JOIN aoc_ids aoc", aocAclSql == null)
-        .eraseJoinLine(
-            "aoc_ids",
-            aocAclSql == null) // registers "aoc_ids" for CTE block erasure by eraseUnusedWith
-        .eraseLineContaining("categoryoptioncombo aoc ON", aocAclSql != null)
         .useEqualsOverInForParameters("de", "pe", "pt", "ou", "path", "coc", "aoc")
         .setLimit(params.getLimit())
         .setOffset(params.getOffset())

@@ -38,7 +38,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -108,7 +107,6 @@ public final class QueryBuilder {
   private final Set<String> nullParams = new HashSet<>();
   private final Set<String> erasedParams = new HashSet<>();
   private final Set<String> eqParams = new HashSet<>();
-  private final Set<String> erasedFragments = new LinkedHashSet<>();
   private Integer limit;
   private Integer offset;
 
@@ -285,15 +283,6 @@ public final class QueryBuilder {
   }
 
   /**
-   * Erases all lines containing {@code fragment}. To also erase an orphaned CTE, pair with {@link
-   * #eraseJoinLine}.
-   */
-  public QueryBuilder eraseLineContaining(String fragment, boolean condition) {
-    if (condition) erasedFragments.add(fragment);
-    return this;
-  }
-
-  /**
    * For each of the given named parameters a SQL {@code IN(:name)} or {@code ANY(:name)} is
    * replaced with {@code = :name} if the current value for {@code name} is a single value.
    *
@@ -360,7 +349,6 @@ public final class QueryBuilder {
     String sql = eraseNullParams(this.sql);
     sql = eraseNullClauses(sql);
     sql = eraseNullJoins(sql);
-    sql = eraseFragmentLines(sql);
     sql = eraseUnusedWith(sql);
     sql = eraseOrders(sql, forCount);
     sql = eraseComments(sql);
@@ -384,13 +372,6 @@ public final class QueryBuilder {
 
   private String eraseAllOrders(String sql) {
     return sql.lines().filter(not(this::isOrderBy)).collect(joining("\n"));
-  }
-
-  private String eraseFragmentLines(String sql) {
-    if (erasedFragments.isEmpty()) return sql;
-    return sql.lines()
-        .filter(line -> erasedFragments.stream().noneMatch(line::contains))
-        .collect(joining("\n"));
   }
 
   private String eraseNullJoins(String sql) {
