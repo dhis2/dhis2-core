@@ -34,13 +34,23 @@ import static org.hisp.dhis.jsontree.Validation.YesNo.NO;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.jsontree.Validation;
 
-public record Paged(
+/**
+ * URL parameters for endpoints that offer paging.
+ *
+ * <p>Include via @{@link org.hisp.dhis.jsontree.Collapsed}.
+ *
+ * @param skipPaging override to {@link #paging()} to skip paging
+ * @param paging paging on/off (default on)
+ * @param page page no to show (default 1)
+ * @param pageSize entries per page (default 50)
+ */
+public record PagedParams(
     Boolean skipPaging,
     @Validation(required = NO) boolean paging,
     @Validation(required = NO, minimum = 1) int page,
     @Validation(required = NO, minimum = 1, maximum = 1000) int pageSize) {
 
-  public static final Paged DEFAULT = new Paged(null, true, 1, 50);
+  public static final PagedParams DEFAULT = new PagedParams(null, true, 1, 50);
 
   @OpenApi.Ignore
   public boolean isPaged() {

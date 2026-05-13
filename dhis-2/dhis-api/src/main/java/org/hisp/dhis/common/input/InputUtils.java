@@ -36,6 +36,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.jsontree.JsonAccess;
@@ -53,6 +55,7 @@ import org.hisp.dhis.period.Period;
  * @author Jan Bernitt
  * @since 2.44
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class InputUtils {
 
   static {
@@ -78,7 +81,6 @@ public final class InputUtils {
       throws BadRequestException {
     Validation.Result result = input.validate(schema, Validation.Mode.PROBE);
     if (!result.errors().isEmpty()) {
-      // TODO do we want to have different error codes per validation Rule?
       Validation.Error e0 = result.errors().get(0);
       throw new BadRequestException(
           "URL parameter `"

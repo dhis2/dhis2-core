@@ -37,7 +37,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -51,7 +50,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.input.Paged;
+import org.hisp.dhis.common.input.PagedParams;
 import org.hisp.dhis.dataapproval.DataApprovalAudit;
 import org.hisp.dhis.dataapproval.DataApprovalAuditQueryParams;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
@@ -75,7 +74,6 @@ import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 import org.hisp.dhis.tracker.audit.TrackedEntityAudit;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
@@ -164,7 +162,7 @@ public class AuditController {
     List<DataValueChangelog> entries;
     Pager pager = null;
 
-    Paged paged = params.paged();
+    PagedParams paged = params.paged();
     if (!paged.isPaged()) {
       entries = dataValueChangelogService.getChangelogEntries(params);
     } else {
@@ -300,23 +298,5 @@ public class AuditController {
             .getChildren());
 
     return rootNode;
-  }
-
-  // -----------------------------------------------------------------------------------------------------------------
-  // Helpers
-  // -----------------------------------------------------------------------------------------------------------------
-
-  private List<Period> getPeriods(List<String> isoPeriods) {
-    if (isoPeriods == null) {
-      return new ArrayList<>();
-    }
-
-    List<Period> periods = new ArrayList<>();
-
-    for (String pe : isoPeriods) {
-      periods.add(Period.of(pe));
-    }
-
-    return periods;
   }
 }

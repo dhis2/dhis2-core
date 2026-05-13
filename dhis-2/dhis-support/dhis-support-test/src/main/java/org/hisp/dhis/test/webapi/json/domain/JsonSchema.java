@@ -33,6 +33,7 @@ import java.util.List;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonURL;
+import org.hisp.dhis.jsontree.Streamable;
 import org.hisp.dhis.security.AuthorityType;
 
 /**
@@ -46,8 +47,11 @@ public interface JsonSchema extends JsonObject {
     return getString("klass").parsedClass();
   }
 
-  default List<? extends Class<?>> getReferences() {
-    return getArray("references").values().map(e -> e.parsedChecked(Class::forName)).toList();
+  default List<Class<?>> getReferences() {
+    // compiler inference issue...
+    Streamable.Sized<Class<?>> tmp =
+        getArray("references").values().map(e -> e.parsedChecked(Class::forName));
+    return tmp.toList();
   }
 
   default String getRelativeApiEndpoint() {

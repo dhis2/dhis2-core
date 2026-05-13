@@ -35,7 +35,7 @@ import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.input.Paged;
+import org.hisp.dhis.common.input.PagedParams;
 import org.hisp.dhis.datavalue.DataValueChangelog;
 import org.hisp.dhis.datavalue.DataValueChangelogEntry;
 import org.hisp.dhis.datavalue.DataValueChangelogQueryParams;
@@ -130,7 +130,7 @@ public class HibernateDataValueChangelogStore extends HibernateGenericStore<Data
         AND pe.iso = ANY(:pe)
       ORDER BY dva.created DESC""";
 
-    Paged paged = params.paged();
+    PagedParams paged = params.paged();
     return SQL.of(sql, api)
         .setParameter("types", params.type(), DataValueChangelogType::name)
         .setParameter("pe", params.pe(), Period::getIsoDate)

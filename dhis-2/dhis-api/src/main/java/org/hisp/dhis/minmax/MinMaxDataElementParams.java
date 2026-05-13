@@ -30,7 +30,7 @@
 package org.hisp.dhis.minmax;
 
 import java.util.List;
-import org.hisp.dhis.common.input.Paged;
+import org.hisp.dhis.common.input.PagedParams;
 import org.hisp.dhis.common.input.UrlParams;
 import org.hisp.dhis.jsontree.Collapsed;
 
@@ -38,12 +38,12 @@ import org.hisp.dhis.jsontree.Collapsed;
  * @author Viet Nguyen <viet@dhis2.org>
  */
 public record MinMaxDataElementParams(
-    List<String> fields, List<String> filters, @Collapsed Paged paged) implements UrlParams {
+    List<String> fields, List<String> filters, @Collapsed PagedParams paged) implements UrlParams {
 
   public static final MinMaxDataElementParams DEFAULT =
-      new MinMaxDataElementParams(List.of(), List.of(), Paged.DEFAULT);
+      new MinMaxDataElementParams(List.of(), List.of(), PagedParams.DEFAULT);
 
   public MinMaxDataElementParams(List<String> filters) {
-    this(List.of(), filters, Paged.DEFAULT);
+    this(List.of(), filters, PagedParams.DEFAULT);
   }
 }

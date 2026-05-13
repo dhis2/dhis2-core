@@ -44,7 +44,7 @@ import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.input.Paged;
+import org.hisp.dhis.common.input.PagedParams;
 import org.hisp.dhis.csv.CSV;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -104,7 +104,7 @@ public class MinMaxDataElementController {
 
     RootNode rootNode = NodeUtils.createMetadata();
 
-    Paged paged = query.paged();
+    PagedParams paged = query.paged();
     if (paged.isPaged()) {
       int total = minMaxService.countMinMaxDataElements(query);
       Pager pager = new Pager(paged.page(), total, paged.pageSize());

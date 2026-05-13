@@ -33,6 +33,7 @@ import static org.hisp.dhis.common.input.InputUtils.decodeInput;
 import static org.hisp.dhis.common.input.InputUtils.validateInput;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import org.hisp.dhis.common.input.UrlParams;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.springframework.core.MethodParameter;
@@ -63,9 +64,9 @@ public class UrlParamsMethodArgumentResolver implements HandlerMethodArgumentRes
   @Override
   public Object resolveArgument(
       @Nonnull MethodParameter parameter,
-      @Nonnull ModelAndViewContainer mavContainer,
+      @Nullable ModelAndViewContainer mavContainer,
       @Nonnull NativeWebRequest request,
-      @Nonnull WebDataBinderFactory binderFactory)
+      @Nullable WebDataBinderFactory binderFactory)
       throws Exception {
 
     @SuppressWarnings("unchecked")
