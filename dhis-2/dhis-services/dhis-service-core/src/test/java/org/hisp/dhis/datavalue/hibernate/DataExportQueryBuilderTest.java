@@ -32,10 +32,13 @@ package org.hisp.dhis.datavalue.hibernate;
 import static org.hisp.dhis.datavalue.DataExportParams.Order.*;
 import static org.hisp.dhis.datavalue.hibernate.HibernateDataExportStore.createExportQuery;
 import static org.hisp.dhis.period.Period.of;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.sql.AbstractQueryBuilderTest;
@@ -436,6 +439,11 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
             UNION (SELECT ougm.organisationunitid FROM orgunitgroupmembers ougm            JOIN orgunitgroup oug ON ougm.orgunitgroupid = oug.orgunitgroupid            JOIN organisationunit ou ON ougm.organisationunitid = ou.organisationunitid            WHERE oug.uid = ANY(:oug) AND ou.uid = ANY(:capture))
           ) ou_all
           WHERE organisationunitid IS NOT NULL
+        ),
+        aoc_ids AS MATERIALIZED (
+          SELECT aoc.categoryoptioncomboid, aoc.uid
+          FROM categoryoptioncombo aoc
+          WHERE NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co     JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid     WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT ( ( co.sharing->>'owner' is null or co.sharing->>'owner' = 'null')  or co.sharing->>'public' like '__r_____' or co.sharing->>'public' is null  or (jsonb_has_user_id( co.sharing, 'null') = true  and jsonb_check_user_access( co.sharing, 'null', '__r_____' ) = true )  ))
         )
         SELECT
           de.uid AS deid,
@@ -457,9 +465,8 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN period pe ON dv.periodid = pe.periodid
         JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
         JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
-        JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+        JOIN aoc_ids aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted
-          AND NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co     JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid     WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT ( ( co.sharing->>'owner' is null or co.sharing->>'owner' = 'null')  or co.sharing->>'public' like '__r_____' or co.sharing->>'public' is null  or (jsonb_has_user_id( co.sharing, 'null') = true  and jsonb_check_user_access( co.sharing, 'null', '__r_____' ) = true )  ))
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("oug", "capture", "deleted"),
         createExportQuery(params, createSpyQuery(), currentUser));
@@ -499,5 +506,37 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("lastUpdated"),
         createExportQuery(params, createSpyQuery(), new SystemUser()));
+  }
+
+  @Test
+  void testAocAccess_nonSuperuser_usesMaterializedCte() {
+    UserDetails user = UserDetails.empty().build();
+    DataExportParams params = DataExportParams.builder().includeDeleted(true).build();
+    AtomicReference<String> captured = new AtomicReference<>();
+    SQL.QueryAPI spy = SQL.spy(captured::set, (name, param) -> {});
+    createExportQuery(params, spy, user).stream();
+    String sql = captured.get();
+    assertTrue(sql.contains("aoc_ids AS MATERIALIZED"), "expected MATERIALIZED CTE: " + sql);
+    assertTrue(sql.contains("JOIN aoc_ids aoc ON"), "expected join to aoc_ids CTE: " + sql);
+    assertFalse(
+        sql.contains("JOIN categoryoptioncombo aoc ON"),
+        "expected no direct categoryoptioncombo join: " + sql);
+    assertFalse(
+        sql.contains("AND NOT EXISTS"),
+        "NOT EXISTS should not appear inline in WHERE clause: " + sql);
+  }
+
+  @Test
+  void testAocAccess_superuser_usesDirectJoin() {
+    DataExportParams params = DataExportParams.builder().includeDeleted(true).build();
+    AtomicReference<String> captured = new AtomicReference<>();
+    SQL.QueryAPI spy = SQL.spy(captured::set, (name, param) -> {});
+    createExportQuery(params, spy, new SystemUser()).stream();
+    String sql = captured.get();
+    assertFalse(sql.contains("aoc_ids"), "expected no aoc_ids CTE for superuser: " + sql);
+    assertTrue(
+        sql.contains("JOIN categoryoptioncombo aoc ON"),
+        "expected direct categoryoptioncombo join: " + sql);
+    assertFalse(sql.contains("NOT EXISTS"), "expected no NOT EXISTS correlated subquery: " + sql);
   }
 }
