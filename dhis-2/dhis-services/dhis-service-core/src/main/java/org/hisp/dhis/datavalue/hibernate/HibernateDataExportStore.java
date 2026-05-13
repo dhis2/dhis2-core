@@ -31,6 +31,7 @@ package org.hisp.dhis.datavalue.hibernate;
 
 import static java.lang.System.currentTimeMillis;
 import static java.util.function.Function.identity;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.query.JpaQueryUtils.generateSQlQueryForSharingCheck;
 import static org.hisp.dhis.security.acl.AclService.LIKE_READ_DATA;
 import static org.hisp.dhis.user.CurrentUserUtil.getCurrentUserDetails;
@@ -67,6 +68,15 @@ import org.springframework.stereotype.Repository;
 @Repository
 @RequiredArgsConstructor
 public class HibernateDataExportStore implements DataExportStore {
+
+  private static final String AOC_CTE_BLOCK =
+      """
+      ,
+      aoc_ids AS MATERIALIZED (
+        SELECT aoc.categoryoptioncomboid, aoc.uid
+        FROM categoryoptioncombo aoc
+        WHERE NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co     JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid     WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:aocAccess))
+      )""";
 
   private final EntityManager entityManager;
 
@@ -216,29 +226,20 @@ public class HibernateDataExportStore implements DataExportStore {
         AND dv.lastupdated >= :lastUpdated
         AND dv.deleted = :deleted
         AND ou.hierarchylevel = :level"""
-            .replace(
-                "${aocCte}",
-                useAocCte
-                    ? ",\naoc_ids AS MATERIALIZED (\n"
-                        + "  SELECT aoc.categoryoptioncomboid, aoc.uid\n"
-                        + "  FROM categoryoptioncombo aoc\n"
-                        + "  WHERE NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co"
-                        + "     JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid"
-                        + "     WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:aocAccess))\n"
-                        + ")"
-                    : "")
+            .replace("${aocCte}", useAocCte ? AOC_CTE_BLOCK : "")
             .replace(
                 "${aocJoin}",
                 useAocCte
                     ? "JOIN aoc_ids aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid"
                     : "JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid");
+
     Date lastUpdated = params.getLastUpdated();
     if (lastUpdated == null && params.getLastUpdatedDuration() != null)
       lastUpdated = new Date(currentTimeMillis() - params.getLastUpdatedDuration().toMillis());
 
     boolean descendants = params.isIncludeDescendants();
     List<Order> orders = params.getOrders();
-    if (orders == null || orders.isEmpty()) orders = List.of(Order.PE, Order.CREATED, Order.DE);
+    if (isEmpty(orders)) orders = List.of(Order.PE, Order.CREATED, Order.DE);
 
     List<UID> oug = params.getOrganisationUnitGroups();
     Set<String> ouCapture = currentUser.getUserOrgUnitIds();
