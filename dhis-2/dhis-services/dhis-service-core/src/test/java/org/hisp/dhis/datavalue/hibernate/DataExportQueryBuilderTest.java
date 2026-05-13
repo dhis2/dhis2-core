@@ -440,7 +440,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
           ) ou_all
           WHERE organisationunitid IS NOT NULL
         ),
-        aoc_ids AS MATERIALIZED (
+        aoc_access AS MATERIALIZED (
           SELECT aoc.categoryoptioncomboid, aoc.uid
           FROM categoryoptioncombo aoc
           WHERE NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co
@@ -467,7 +467,8 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
         JOIN period pe ON dv.periodid = pe.periodid
         JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
         JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
-        JOIN aoc_ids aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+        JOIN aoc_access ON dv.attributeoptioncomboid = aoc_access.categoryoptioncomboid
+        JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
         WHERE dv.deleted = :deleted
         ORDER BY pe.startdate, pe.enddate, dv.created, deid""",
         Set.of("oug", "capture", "deleted"),
@@ -518,11 +519,12 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
     SQL.QueryAPI spy = SQL.spy(captured::set, (name, param) -> {});
     createExportQuery(params, spy, user).stream();
     String sql = captured.get();
-    assertTrue(sql.contains("aoc_ids AS MATERIALIZED"), "expected MATERIALIZED CTE: " + sql);
-    assertTrue(sql.contains("JOIN aoc_ids aoc ON"), "expected join to aoc_ids CTE: " + sql);
-    assertFalse(
+    assertTrue(sql.contains("aoc_access AS MATERIALIZED"), "expected MATERIALIZED CTE: " + sql);
+    assertTrue(
+        sql.contains("JOIN aoc_access ON"), "expected join to aoc_access CTE: " + sql);
+    assertTrue(
         sql.contains("JOIN categoryoptioncombo aoc ON"),
-        "expected no direct categoryoptioncombo join: " + sql);
+        "expected direct categoryoptioncombo join for aoc alias: " + sql);
     assertFalse(
         sql.contains("AND NOT EXISTS"),
         "NOT EXISTS should not appear inline in WHERE clause: " + sql);
@@ -535,7 +537,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
     SQL.QueryAPI spy = SQL.spy(captured::set, (name, param) -> {});
     createExportQuery(params, spy, new SystemUser()).stream();
     String sql = captured.get();
-    assertFalse(sql.contains("aoc_ids"), "expected no aoc_ids CTE for superuser: " + sql);
+    assertFalse(sql.contains("aoc_access"), "expected no aoc_access CTE for superuser: " + sql);
     assertTrue(
         sql.contains("JOIN categoryoptioncombo aoc ON"),
         "expected direct categoryoptioncombo join: " + sql);

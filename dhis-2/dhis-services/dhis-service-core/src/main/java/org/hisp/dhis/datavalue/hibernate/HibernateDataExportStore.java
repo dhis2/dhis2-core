@@ -138,17 +138,6 @@ public class HibernateDataExportStore implements DataExportStore {
     if ((params.getAttributeOptionCombos() == null || params.getAttributeOptionCombos().isEmpty())
         && !isSuper)
       aocAclSql = generateSQlQueryForSharingCheck("co.sharing", currentUser, LIKE_READ_DATA);
-    boolean useAocCte = aocAclSql != null;
-    String aocCTEBlock =
-        """
-        ,
-        aoc_ids AS MATERIALIZED (
-          SELECT aoc.categoryoptioncomboid, aoc.uid
-          FROM categoryoptioncombo aoc
-          WHERE NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co
-          JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid
-          WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:aocAccess))
-        )""";
     String sql =
         """
       WITH
@@ -195,7 +184,14 @@ public class HibernateDataExportStore implements DataExportStore {
         FROM ou_ids
         JOIN organisationunit root USING (organisationunitid)
         JOIN organisationunit ou ON ou.path LIKE root.path || '%'
-      )${aocCte}
+      ),
+      aoc_access AS MATERIALIZED (
+        SELECT aoc.categoryoptioncomboid, aoc.uid
+        FROM categoryoptioncombo aoc
+        WHERE NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co
+        JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid
+        WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:aocAccess))
+      ),
       SELECT
         de.uid AS deid,
         pe.iso,
@@ -219,19 +215,14 @@ public class HibernateDataExportStore implements DataExportStore {
       JOIN period pe ON dv.periodid = pe.periodid
       JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
       JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
-      ${aocJoin}
+      JOIN aoc_access ON dv.attributeoptioncomboid = aoc_access.categoryoptioncomboid
+      JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
       WHERE 1=1
         AND coc.uid = ANY(:coc)
         AND aoc.uid = ANY(:aoc)
         AND dv.lastupdated >= :lastUpdated
         AND dv.deleted = :deleted
-        AND ou.hierarchylevel = :level"""
-            .replace("${aocCte}", useAocCte ? aocCTEBlock : "")
-            .replace(
-                "${aocJoin}",
-                useAocCte
-                    ? "JOIN aoc_ids aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid"
-                    : "JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid");
+        AND ou.hierarchylevel = :level""";
 
     Date lastUpdated = params.getLastUpdated();
     if (lastUpdated == null && params.getLastUpdatedDuration() != null)
@@ -265,6 +256,7 @@ public class HibernateDataExportStore implements DataExportStore {
         .setDynamicClause("aocAccess", aocAclSql)
         .eraseNullParameterLines()
         // keep params below even when null
+        .eraseJoinLine("aoc_access", aocAclSql == null)
         .eraseJoinLine("de_ids", !params.hasDataElementFilters())
         .eraseJoinLine("pe_ids", !params.hasPeriodFilters())
         .eraseJoinLine("ou_with_descendants_ids", !descendants || !params.hasOrgUnitFilters())
