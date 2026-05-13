@@ -520,8 +520,7 @@ class DataExportQueryBuilderTest extends AbstractQueryBuilderTest {
     createExportQuery(params, spy, user).stream();
     String sql = captured.get();
     assertTrue(sql.contains("aoc_access AS MATERIALIZED"), "expected MATERIALIZED CTE: " + sql);
-    assertTrue(
-        sql.contains("JOIN aoc_access ON"), "expected join to aoc_access CTE: " + sql);
+    assertTrue(sql.contains("JOIN aoc_access ON"), "expected join to aoc_access CTE: " + sql);
     assertTrue(
         sql.contains("JOIN categoryoptioncombo aoc ON"),
         "expected direct categoryoptioncombo join for aoc alias: " + sql);
