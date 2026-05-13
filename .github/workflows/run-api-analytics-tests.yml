@@ -4,6 +4,8 @@ env:
   MAVEN_OPTS: -Dhttp.keepAlive=false -Dmaven.wagon.http.pool=false -Dmaven.wagon.http.retryHandler.class=standard -Dmaven.wagon.http.retryHandler.count=3 -Dmaven.wagon.httpconnectionManager.ttlSeconds=125
   # PR → quiet (unless ci-verbose label), push/schedule → info, workflow_dispatch → user choice
   MAVEN_ARGS: ${{ (inputs.maven_log == 'debug' && '-X') || (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'ci-verbose') && '-q') || (inputs.maven_log == 'quiet' && '-q') || '' }}
+  # Controls log4j2 suppression of expected test errors. ci-verbose label sets to error to show them.
+  TEST_LOG_SUPPRESSED_LEVEL: ${{ (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'ci-verbose') && 'error') || (inputs.maven_log == 'debug' && 'error') || 'off' }}
 
 on:
   pull_request:
