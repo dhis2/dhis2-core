@@ -177,6 +177,13 @@ public class HibernateDataExportStore implements DataExportStore {
         FROM ou_ids
         JOIN organisationunit root USING (organisationunitid)
         JOIN organisationunit ou ON ou.path LIKE root.path || '%'
+      ),
+      aoc_ids AS MATERIALIZED (
+        SELECT aoc.categoryoptioncomboid, aoc.uid
+        FROM categoryoptioncombo aoc
+        WHERE NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co \
+          JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid \
+          WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:aocAccess))
       )
       SELECT
         de.uid AS deid,
@@ -202,16 +209,13 @@ public class HibernateDataExportStore implements DataExportStore {
       JOIN organisationunit ou ON dv.sourceid = ou.organisationunitid
       JOIN categoryoptioncombo coc ON dv.categoryoptioncomboid = coc.categoryoptioncomboid
       JOIN categoryoptioncombo aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
+      JOIN aoc_ids aoc ON dv.attributeoptioncomboid = aoc.categoryoptioncomboid
       WHERE 1=1
         AND coc.uid = ANY(:coc)
         AND aoc.uid = ANY(:aoc)
         AND dv.lastupdated >= :lastUpdated
         AND dv.deleted = :deleted
-        AND ou.hierarchylevel = :level
-        -- access check below must be 1 line for erasure
-        AND NOT EXISTS (SELECT 1 FROM categoryoptioncombos_categoryoptions coc_co \
-          JOIN categoryoption co ON coc_co.categoryoptionid = co.categoryoptionid \
-          WHERE coc_co.categoryoptioncomboid = aoc.categoryoptioncomboid AND NOT (:aocAccess))""";
+        AND ou.hierarchylevel = :level""";
     Date lastUpdated = params.getLastUpdated();
     if (lastUpdated == null && params.getLastUpdatedDuration() != null)
       lastUpdated = new Date(currentTimeMillis() - params.getLastUpdatedDuration().toMillis());
