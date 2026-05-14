@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -72,6 +72,7 @@ import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Error;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner.Builder;
@@ -96,8 +97,7 @@ public class S3BlobStoreService implements BlobStoreService {
   private final S3Presigner presigner;
 
   public S3BlobStoreService(DhisConfigurationProvider configurationProvider) {
-    String containerName =
-        configurationProvider.getProperty(ConfigurationKey.FILESTORE_CONTAINER);
+    String containerName = configurationProvider.getProperty(ConfigurationKey.FILESTORE_CONTAINER);
     String location = configurationProvider.getProperty(ConfigurationKey.FILESTORE_LOCATION);
     String endpoint = configurationProvider.getProperty(ConfigurationKey.FILESTORE_ENDPOINT);
     String identity = configurationProvider.getProperty(ConfigurationKey.FILESTORE_IDENTITY);
@@ -256,20 +256,33 @@ public class S3BlobStoreService implements BlobStoreService {
         bulkDelete(bucket, ids);
       }
 
-      continuationToken = Boolean.TRUE.equals(resp.isTruncated()) ? resp.nextContinuationToken() : null;
+      continuationToken =
+          Boolean.TRUE.equals(resp.isTruncated()) ? resp.nextContinuationToken() : null;
     } while (continuationToken != null);
   }
 
   @Override
   public Iterable<BlobKeyPrefix> listFolders(BlobKeyPrefix prefix) {
+    // S3 caps a single ListObjectsV2 response at 1000 entries; paginate via continuationToken
+    // so prefixes with more than 1000 immediate child folders are returned exhaustively.
+    String bucket = container.value();
     String listPrefix = prefix.value() + "/";
-    ListObjectsV2Response resp =
-        s3.listObjectsV2(
-            b -> b.bucket(container.value()).prefix(listPrefix).delimiter("/"));
-    return resp.commonPrefixes().stream()
-        .map(CommonPrefix::prefix)
-        .map(BlobKeyPrefix::of)
-        .toList();
+    List<BlobKeyPrefix> result = new ArrayList<>();
+    String continuationToken = null;
+    do {
+      ListObjectsV2Request.Builder list =
+          ListObjectsV2Request.builder().bucket(bucket).prefix(listPrefix).delimiter("/");
+      if (continuationToken != null) {
+        list.continuationToken(continuationToken);
+      }
+      ListObjectsV2Response resp = s3.listObjectsV2(list.build());
+      for (CommonPrefix cp : resp.commonPrefixes()) {
+        result.add(BlobKeyPrefix.of(cp.prefix()));
+      }
+      continuationToken =
+          Boolean.TRUE.equals(resp.isTruncated()) ? resp.nextContinuationToken() : null;
+    } while (continuationToken != null);
+    return result;
   }
 
   @Override
@@ -289,7 +302,8 @@ public class S3BlobStoreService implements BlobStoreService {
         if (obj.key().endsWith("/")) continue;
         result.add(new BlobKey(obj.key()));
       }
-      continuationToken = Boolean.TRUE.equals(resp.isTruncated()) ? resp.nextContinuationToken() : null;
+      continuationToken =
+          Boolean.TRUE.equals(resp.isTruncated()) ? resp.nextContinuationToken() : null;
     } while (continuationToken != null);
     return result;
   }
@@ -320,6 +334,14 @@ public class S3BlobStoreService implements BlobStoreService {
     return false;
   }
 
+  /**
+   * Issues a single S3 {@code DeleteObjects} call for up to {@value #DELETE_BATCH_SIZE} keys.
+   *
+   * <p>Per-key failures inside the response are logged as a single WARN summary (count + first
+   * error's details) and otherwise swallowed: deletion is best-effort and a partial failure should
+   * not abort an in-progress recursive {@code deleteDirectory} mid-batch. Callers that need
+   * stricter guarantees can re-run the operation — successfully deleted keys won't reappear.
+   */
   private void bulkDelete(String bucket, List<ObjectIdentifier> ids) {
     DeleteObjectsResponse resp =
         s3.deleteObjects(
@@ -327,19 +349,17 @@ public class S3BlobStoreService implements BlobStoreService {
                 .bucket(bucket)
                 .delete(d -> d.objects(ids).build())
                 .build());
-    log.debug(
-        "bulkDelete: requested {} keys, deleted {}, errors {}",
-        ids.size(),
-        resp.deleted().size(),
-        resp.errors().size());
-    resp.errors()
-        .forEach(
-            err ->
-                log.warn(
-                    "bulkDelete error: key='{}' code='{}' message='{}'",
-                    err.key(),
-                    err.code(),
-                    err.message()));
+    if (!resp.errors().isEmpty()) {
+      S3Error first = resp.errors().get(0);
+      log.warn(
+          "bulkDelete: {} of {} keys failed (first error: key='{}' code='{}' message='{}')",
+          resp.errors().size(),
+          ids.size(),
+          first.key(),
+          first.code(),
+          first.message());
+    }
+    log.debug("bulkDelete: requested {} keys, deleted {}", ids.size(), resp.deleted().size());
   }
 
   private static String hexToBase64(String hex) {

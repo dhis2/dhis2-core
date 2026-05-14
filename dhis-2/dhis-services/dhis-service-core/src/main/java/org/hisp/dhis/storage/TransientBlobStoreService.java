@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -88,8 +88,19 @@ public class TransientBlobStoreService implements BlobStoreService {
       @CheckForNull String contentType,
       @CheckForNull ContentDisposition contentDisposition,
       @CheckForNull ContentHash contentHash) {
+    // Read exactly contentLength bytes per BlobStoreService.putBlob's contract (the SDK-backed
+    // impls rely on the same guarantee for Content-Length). Math.toIntExact rejects anything
+    // larger than Integer.MAX_VALUE up-front — Transient is in-memory, so capping at int is the
+    // right limit anyway.
+    int length = Math.toIntExact(contentLength);
     try {
-      blobs.put(key.value(), content.readAllBytes());
+      byte[] payload = content.readNBytes(length);
+      if (payload.length != length) {
+        throw new IOException(
+            "Expected %d bytes for %s but stream produced %d"
+                .formatted(length, key, payload.length));
+      }
+      blobs.put(key.value(), payload);
     } catch (IOException e) {
       throw new UncheckedIOException("Unable to read blob payload for " + key, e);
     }
@@ -124,10 +135,15 @@ public class TransientBlobStoreService implements BlobStoreService {
 
   @Override
   public Iterable<BlobKey> listKeys(BlobKeyPrefix prefix) {
+    // Raw startsWith matches S3's native ListObjectsV2 behaviour and the BlobStoreService
+    // javadoc ("key starts with prefix"). FileSystemBlobStoreService diverges by directory
+    // boundary because filesystems can't list by raw prefix without iterating the parent —
+    // in practice DHIS2's UUID-shaped keys never produce ambiguous prefixes (e.g. "trash" vs
+    // "trashbag"), so the impls agree on every input that callers actually produce.
     String pfx = prefix.value();
     List<BlobKey> result = new ArrayList<>();
     for (String k : blobs.keySet()) {
-      if (k.equals(pfx) || k.startsWith(pfx + "/")) {
+      if (k.startsWith(pfx)) {
         result.add(new BlobKey(k));
       }
     }

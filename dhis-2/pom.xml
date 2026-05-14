@@ -2136,12 +2136,15 @@ jasperreports.version=${jasperreports.version}
               <ignoredUsedUndeclaredDependency>jakarta.jms:jakarta.jms-api</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.apache.activemq:artemis-server</ignoredUsedUndeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.mock-server:mockserver-core:jar</ignoredUnusedDeclaredDependency>
-              <!-- AWS SDK v2 splits its API across several modules (auth/regions/sdk-core/aws-core);
-                   we declare the service module (s3) only and treat the SDK as one BOM-managed unit. -->
+              <!-- AWS SDK v2 splits its API across several modules (auth/regions/sdk-core/aws-core/
+                   http-client-spi/utils); we declare the service module (s3) only and treat the SDK
+                   as one BOM-managed unit. -->
               <ignoredUsedUndeclaredDependency>software.amazon.awssdk:sdk-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>software.amazon.awssdk:aws-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>software.amazon.awssdk:auth</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>software.amazon.awssdk:regions</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>software.amazon.awssdk:http-client-spi</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>software.amazon.awssdk:utils</ignoredUsedUndeclaredDependency>
             </ignoredUsedUndeclaredDependencies>
             <ignoredNonTestScopedDependencies>
               <!-- Setting the scope to test makes the build fail -->

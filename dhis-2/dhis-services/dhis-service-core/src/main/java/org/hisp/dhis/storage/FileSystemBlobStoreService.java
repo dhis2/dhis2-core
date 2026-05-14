@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -72,8 +72,7 @@ public class FileSystemBlobStoreService implements BlobStoreService {
       throw new IllegalStateException(
           "File system blob store cannot start: external directory is not set.");
     }
-    String containerName =
-        configurationProvider.getProperty(ConfigurationKey.FILESTORE_CONTAINER);
+    String containerName = configurationProvider.getProperty(ConfigurationKey.FILESTORE_CONTAINER);
     this.container = new BlobContainerName(containerName);
     this.baseDir = Paths.get(locationManager.getExternalDirectoryPath(), containerName);
   }
@@ -83,8 +82,7 @@ public class FileSystemBlobStoreService implements BlobStoreService {
     try {
       Files.createDirectories(baseDir);
     } catch (IOException e) {
-      throw new UncheckedIOException(
-          "Unable to create file store directory at " + baseDir, e);
+      throw new UncheckedIOException("Unable to create file store directory at " + baseDir, e);
     }
     log.info("Filesystem blob store rooted at: '{}'", baseDir);
   }
@@ -193,7 +191,8 @@ public class FileSystemBlobStoreService implements BlobStoreService {
           new SimpleFileVisitor<>() {
             @Nonnull
             @Override
-            public FileVisitResult visitFile(@Nonnull Path file, @Nonnull BasicFileAttributes attrs) {
+            public FileVisitResult visitFile(
+                @Nonnull Path file, @Nonnull BasicFileAttributes attrs) {
               Path relative = baseDir.relativize(file);
               result.add(new BlobKey(toBlobPath(relative)));
               return FileVisitResult.CONTINUE;

@@ -349,8 +349,7 @@ public class BlobStoreAppStorageService implements AppStorageService {
       throws IOException {
     if (app == null || !app.getAppStorageSource().equals(AppStorageSource.BLOB_STORE)) {
       log.warn(
-          "Can't look up resource {}. The specified app was not found in blob storage.",
-          resource);
+          "Can't look up resource {}. The specified app was not found in blob storage.", resource);
       return new ResourceNotFound(resource);
     }
     if (resource.isBlank()) {
@@ -429,8 +428,7 @@ public class BlobStoreAppStorageService implements AppStorageService {
     } else {
       apps.values()
           .forEach(
-              pair ->
-                  log.info("Discovered app '{}' from blob storage ", pair.getLeft().getName()));
+              pair -> log.info("Discovered app '{}' from blob storage ", pair.getLeft().getName()));
     }
   }
 }

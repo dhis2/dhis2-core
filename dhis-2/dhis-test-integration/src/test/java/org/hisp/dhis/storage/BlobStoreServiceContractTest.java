@@ -77,8 +77,8 @@ import org.junit.jupiter.api.TestInstance;
  *   <li>{@link #validatesContentMd5()} — backend rejects an upload whose payload disagrees with the
  *       supplied {@link ContentHash} (true on real S3, false on local backends).
  *   <li>{@link #supportsRecursiveDirectoryDelete()} — backend implements {@link
- *       BlobStoreService#deleteDirectory} as a true recursive delete (false on the current S3
- *       path, which is non-recursive — see {@code BlobStoreAppStorageService#deleteApp}).
+ *       BlobStoreService#deleteDirectory} as a true recursive delete (false on the current S3 path,
+ *       which is non-recursive — see {@code BlobStoreAppStorageService#deleteApp}).
  * </ul>
  *
  * <p>Lifecycle: subclasses use {@code @BeforeAll}/{@code @AfterAll} to start and stop the backend

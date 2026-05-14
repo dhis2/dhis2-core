@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -36,27 +36,28 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.nio.file.Path;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.nio.file.Path;
-
 /** Verifies {@link BlobStoreConfig} selects the right {@link BlobStoreService} implementation. */
 class BlobStoreConfigTest {
 
   @Test
   void selectsS3ForS3Provider() {
-    BlobStoreService svc = new BlobStoreConfig().blobStoreService(config("s3"), mock(LocationManager.class));
+    BlobStoreService svc =
+        new BlobStoreConfig().blobStoreService(config("s3"), mock(LocationManager.class));
     assertInstanceOf(S3BlobStoreService.class, svc);
     ((S3BlobStoreService) svc).cleanUp();
   }
 
   @Test
   void selectsS3ForAwsS3Provider() {
-    BlobStoreService svc = new BlobStoreConfig().blobStoreService(config("aws-s3"), mock(LocationManager.class));
+    BlobStoreService svc =
+        new BlobStoreConfig().blobStoreService(config("aws-s3"), mock(LocationManager.class));
     assertInstanceOf(S3BlobStoreService.class, svc);
     ((S3BlobStoreService) svc).cleanUp();
   }
@@ -73,7 +74,8 @@ class BlobStoreConfigTest {
 
   @Test
   void selectsTransientForTransientProvider() {
-    BlobStoreService svc = new BlobStoreConfig().blobStoreService(config("transient"), mock(LocationManager.class));
+    BlobStoreService svc =
+        new BlobStoreConfig().blobStoreService(config("transient"), mock(LocationManager.class));
     assertInstanceOf(TransientBlobStoreService.class, svc);
   }
 
@@ -82,7 +84,8 @@ class BlobStoreConfigTest {
     IllegalArgumentException e =
         assertThrows(
             IllegalArgumentException.class,
-            () -> new BlobStoreConfig().blobStoreService(config("s4"), mock(LocationManager.class)));
+            () ->
+                new BlobStoreConfig().blobStoreService(config("s4"), mock(LocationManager.class)));
     assertEquals(true, e.getMessage().contains("s4"));
   }
 
