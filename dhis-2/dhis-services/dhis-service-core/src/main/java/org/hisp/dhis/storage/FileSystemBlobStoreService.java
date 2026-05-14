@@ -53,8 +53,8 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 
 /**
- * NIO-based implementation of {@link BlobStoreService} replacing the JClouds {@code filesystem}
- * path. Blobs are stored as plain files under {@code <DHIS2 external dir>/<container>/}.
+ * NIO-based implementation of {@link BlobStoreService} for the {@code filesystem} file store
+ * provider. Blobs are stored as plain files under {@code <DHIS2 external dir>/<container>/}.
  *
  * <p>The backend is unsigned and unmetadata-aware: {@code contentType}, {@code contentDisposition},
  * and {@code contentHash} are accepted but not persisted (no native filesystem support, and the

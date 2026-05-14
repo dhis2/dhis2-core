@@ -45,8 +45,8 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 
 /**
- * In-memory {@link BlobStoreService} used by tests and any deployment with {@code
- * filestore.provider=transient}. Replaces the JClouds {@code transient} provider.
+ * In-memory {@link BlobStoreService} for the {@code transient} file store provider — used by tests
+ * and any deployment with {@code filestore.provider=transient}.
  *
  * <p>State is held in a single {@link ConcurrentHashMap} keyed by the full blob key; nothing is
  * persisted across JVM restarts. {@link #signedGetUri} returns {@code null}.

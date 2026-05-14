@@ -47,7 +47,7 @@ import static org.springframework.util.MimeTypeUtils.IMAGE_JPEG;
 import static org.springframework.util.MimeTypeUtils.IMAGE_PNG;
 
 import com.google.gson.JsonObject;
-import org.hisp.dhis.fileresource.JCloudsFileResourceContentStore;
+import org.hisp.dhis.fileresource.BlobStoreFileResourceContentStore;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.test.webapi.WebSpringTestBase;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,7 +72,7 @@ class StaticContentControllerTest extends WebSpringTestBase {
 
   @Autowired private SystemSettingsService settingsService;
 
-  @Autowired private JCloudsFileResourceContentStore fileResourceContentStore;
+  @Autowired private BlobStoreFileResourceContentStore fileResourceContentStore;
 
   @BeforeEach
   void setUp() {

@@ -41,10 +41,10 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
- * Runs the {@link BlobStoreServiceContractTest} suite against the AWS SDK v2 {@link
- * S3BlobStoreService}, pointed at the MinIO container managed by {@link MinIOTestExtension}.
- * Validates the S3-shaped behaviours (presigned URLs, server-side MD5 validation, custom endpoint +
- * path-style addressing, recursive deleteDirectory) on the JClouds replacement.
+ * Runs the {@link BlobStoreServiceContractTest} suite against {@link S3BlobStoreService}, pointed
+ * at the MinIO container managed by {@link MinIOTestExtension}. Validates the S3-shaped behaviours
+ * (presigned URLs, server-side MD5 validation, custom endpoint + path-style addressing, recursive
+ * deleteDirectory).
  *
  * <p>Tagged {@code integration} because it requires Docker.
  */
