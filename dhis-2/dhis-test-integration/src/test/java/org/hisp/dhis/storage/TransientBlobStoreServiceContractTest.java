@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -27,43 +27,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.storage;
 
-import static org.jclouds.ContextBuilder.newBuilder;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 
-import java.util.NoSuchElementException;
-import org.junit.jupiter.api.Test;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 
 /**
- * Verify that the supported jclouds providers can be selected.
- *
- * @author Jim Grace
+ * Runs the {@link BlobStoreServiceContractTest} suite against the in-memory {@link
+ * TransientBlobStoreService} — the backend used by H2 and Postgres integration tests today.
  */
-class JCloudsProviderTest {
-  @Test
-  void verifyFilesystem() {
-    assertDoesNotThrow(() -> newBuilder("filesystem"));
+@Tag("integration")
+class TransientBlobStoreServiceContractTest extends BlobStoreServiceContractTest {
+
+  private TransientBlobStoreService store;
+
+  @BeforeAll
+  void start() {
+    DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
+    lenient().when(config.getProperty(ConfigurationKey.FILESTORE_CONTAINER)).thenReturn("contract");
+    store = new TransientBlobStoreService(config);
   }
 
-  @Test
-  void verifyAwsS3() {
-    assertDoesNotThrow(() -> newBuilder("aws-s3"));
+  @Override
+  protected BlobStoreService service() {
+    return store;
   }
 
-  @Test
-  void verifyS3() {
-    assertDoesNotThrow(() -> newBuilder("s3"));
-  }
-
-  @Test
-  void verifyInvalidProvider() {
-    assertThrows(NoSuchElementException.class, () -> newBuilder("s4"));
-  }
-
-  @Test
-  void verifyTransient() {
-    assertDoesNotThrow(() -> newBuilder("transient"));
+  @Override
+  protected boolean supportsRequestSigning() {
+    return false;
   }
 }

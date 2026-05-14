@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -27,41 +27,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.jclouds;
+package org.hisp.dhis.storage;
 
-import java.util.Arrays;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.external.location.LocationManager;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-/** The set of JClouds blob-store providers supported by DHIS2. */
-public enum FileStoreProvider {
-  FILESYSTEM("filesystem"),
-  AWS_S3("aws-s3"),
-  S3("s3"),
-  TRANSIENT("transient");
+/**
+ * Selects the {@link BlobStoreService} implementation at startup based on {@link
+ * ConfigurationKey#FILESTORE_PROVIDER}:
+ *
+ * <ul>
+ *   <li>{@link FileStoreProvider#S3} / {@link FileStoreProvider#AWS_S3} → {@link S3BlobStoreService}
+ *   <li>{@link FileStoreProvider#FILESYSTEM} → {@link FileSystemBlobStoreService}
+ *   <li>{@link FileStoreProvider#TRANSIENT} → {@link TransientBlobStoreService}
+ * </ul>
+ */
+@Configuration
+public class BlobStoreConfig {
 
-  private final String key;
-
-  FileStoreProvider(String key) {
-    this.key = key;
-  }
-
-  /** The configuration key used in {@code dhis.conf}. */
-  public String key() {
-    return key;
-  }
-
-  /**
-   * Returns the provider matching {@code key}, or throws {@link IllegalArgumentException} if the
-   * key is not recognised.
-   */
-  public static FileStoreProvider of(String key) {
-    return Arrays.stream(values())
-        .filter(p -> p.key.equals(key))
-        .findFirst()
-        .orElseThrow(
-            () ->
-                new IllegalArgumentException(
-                    "Unsupported file store provider '"
-                        + key
-                        + "'. Supported values are: filesystem, aws-s3, s3, transient."));
+  @Bean
+  public BlobStoreService blobStoreService(
+      DhisConfigurationProvider configurationProvider, LocationManager locationManager) {
+    FileStoreProvider provider =
+        FileStoreProvider.of(
+            configurationProvider.getProperty(ConfigurationKey.FILESTORE_PROVIDER));
+    return switch (provider) {
+      case S3, AWS_S3 -> new S3BlobStoreService(configurationProvider);
+      case FILESYSTEM -> new FileSystemBlobStoreService(configurationProvider, locationManager);
+      case TRANSIENT -> new TransientBlobStoreService(configurationProvider);
+    };
   }
 }

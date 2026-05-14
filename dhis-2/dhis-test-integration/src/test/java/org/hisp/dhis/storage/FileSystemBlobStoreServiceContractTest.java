@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -27,51 +27,57 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.jclouds;
+package org.hisp.dhis.storage;
 
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
-import org.hisp.dhis.storage.BlobStoreService;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 
 /**
- * Runs the {@link BlobStoreServiceContractTest} suite against the JClouds {@code transient}
- * (in-memory) provider — the backend used by H2 and Postgres integration tests today.
+ * Runs the {@link BlobStoreServiceContractTest} suite against {@link FileSystemBlobStoreService},
+ * rooted at a temporary directory created in {@code @BeforeAll}.
  *
- * <p>Tagged {@code integration}: although it uses an in-memory backend, it exercises full jclouds
- * machinery and runs ~25 real I/O round-trips per class — too heavy for the unit-test run. Belongs
- * alongside the other contract subclasses that validate cross-backend conformance.
+ * <p>Tagged {@code integration}: writes real files to disk on every test method.
  */
 @Tag("integration")
-class TransientBlobStoreServiceContractTest extends BlobStoreServiceContractTest {
+class FileSystemBlobStoreServiceContractTest extends BlobStoreServiceContractTest {
 
-  private JCloudsStore store;
+  private Path tempDir;
+  private FileSystemBlobStoreService store;
 
   @BeforeAll
-  void start() {
+  void start() throws IOException {
+    tempDir = Files.createTempDirectory("dhis-fs-contract-");
+
     DhisConfigurationProvider config = mock(DhisConfigurationProvider.class);
-    lenient().when(config.getProperty(ConfigurationKey.FILESTORE_PROVIDER)).thenReturn("transient");
     lenient().when(config.getProperty(ConfigurationKey.FILESTORE_CONTAINER)).thenReturn("contract");
-    lenient().when(config.getProperty(ConfigurationKey.FILESTORE_LOCATION)).thenReturn("");
-    lenient().when(config.getProperty(ConfigurationKey.FILESTORE_ENDPOINT)).thenReturn("");
-    lenient().when(config.getProperty(ConfigurationKey.FILESTORE_IDENTITY)).thenReturn("");
-    lenient().when(config.getProperty(ConfigurationKey.FILESTORE_SECRET)).thenReturn("");
 
     LocationManager locationManager = mock(LocationManager.class);
+    when(locationManager.externalDirectorySet()).thenReturn(true);
+    when(locationManager.getExternalDirectoryPath()).thenReturn(tempDir.toString());
 
-    store = new JCloudsStore(config, locationManager);
+    store = new FileSystemBlobStoreService(config, locationManager);
     store.init();
   }
 
   @AfterAll
-  void stop() {
-    if (store != null) store.cleanUp();
+  void stop() throws IOException {
+    if (tempDir != null && Files.exists(tempDir)) {
+      try (var paths = Files.walk(tempDir)) {
+        paths.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(java.io.File::delete);
+      }
+    }
   }
 
   @Override
@@ -81,14 +87,6 @@ class TransientBlobStoreServiceContractTest extends BlobStoreServiceContractTest
 
   @Override
   protected boolean supportsRequestSigning() {
-    return false;
-  }
-
-  @Override
-  protected boolean supportsRecursiveDirectoryDelete() {
-    // TODO(DHIS2-20648) jclouds-transient deleteDirectory is non-recursive in practice; same
-    // limitation as jclouds-S3. Drop this override once the replacement BlobStoreService
-    // implementation does recursive deleteDirectory on every backend.
     return false;
   }
 }

@@ -35,9 +35,10 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 /**
- * Provider-agnostic abstraction over a blob/object store. Implementations exist for JClouds
- * (current) and will be added for other backends (e.g. MinIO SDK + NIO filesystem) when JClouds is
- * replaced.
+ * Provider-agnostic abstraction over a blob/object store. Implementations: {@link
+ * S3BlobStoreService} (AWS SDK v2, for {@code s3} / {@code aws-s3}), {@link
+ * FileSystemBlobStoreService} (NIO, for {@code filesystem}), and {@link TransientBlobStoreService}
+ * (in-memory, for {@code transient}). Selection is performed at startup by {@link BlobStoreConfig}.
  *
  * <p>All methods operate against a single container/bucket configured at startup. Keys are
  * path-like strings (e.g. {@code apps/my-app/index.html}).
@@ -111,10 +112,6 @@ public interface BlobStoreService {
    * Recursively deletes all blobs whose key starts with {@code prefix}. On filesystem backends this
    * maps to a directory delete; on object-store backends it performs per-key deletion.
    */
-  // TODO(DHIS2-20648) The replacement implementation must honour this recursively for ALL
-  // backends. The current jclouds-transient and jclouds-S3 paths are non-recursive (callers
-  // work around it in JCloudsAppStorageService#deleteApp); see BlobStoreServiceContractTest's
-  // supportsRecursiveDirectoryDelete capability hook — drop the false overrides once fixed.
   void deleteDirectory(BlobKeyPrefix prefix);
 
   /**
@@ -128,9 +125,6 @@ public interface BlobStoreService {
    * iterable if no matching blobs exist. Returned keys identify real blobs only — synthetic
    * directory marker entries (values ending with {@code /}) must not be returned.
    */
-  // TODO(DHIS2-20648) The replacement implementation must filter directory markers. The current
-  // jclouds-filesystem provider emits them; see BlobStoreServiceContractTest's
-  // listKeysIncludesDirectoryMarkers capability hook — drop the true override once fixed.
   Iterable<BlobKey> listKeys(BlobKeyPrefix prefix);
 
   /**

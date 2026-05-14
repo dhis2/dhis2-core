@@ -33,5 +33,5 @@ package org.hisp.dhis.appmanager;
  * @author Stian Sandvold
  */
 public enum AppStorageSource {
-  JCLOUDS
+  BLOB_STORE
 }

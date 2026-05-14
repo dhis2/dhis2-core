@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -29,38 +29,41 @@
  */
 package org.hisp.dhis.storage;
 
-import javax.annotation.Nonnull;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
-/**
- * The name of the S3 bucket or filesystem directory in which all DHIS2 blobs are stored.
- *
- * <p>The value must not be blank and must not end with {@code /}. This ensures that {@link
- * #resolve(BlobKey)} always produces a clean path without any slash-cleaning.
- *
- * <p>Configured via {@link org.hisp.dhis.external.conf.ConfigurationKey#FILESTORE_CONTAINER} and
- * resolved once at startup by the {@link org.hisp.dhis.storage.BlobStoreService} implementation
- * selected for the configured {@code filestore.provider}.
- */
-public record BlobContainerName(String value) {
+/** The set of blob-store backends DHIS2 supports for {@code filestore.provider}. */
+public enum FileStoreProvider {
+  FILESYSTEM("filesystem"),
+  AWS_S3("aws-s3"),
+  S3("s3"),
+  TRANSIENT("transient");
 
-  public BlobContainerName {
-    if (value == null || value.isBlank()) {
-      throw new IllegalArgumentException("Container name must not be null or blank");
-    }
-    if (value.endsWith("/")) {
-      throw new IllegalArgumentException("Container name must not end with '/': " + value);
-    }
+  private final String key;
+
+  FileStoreProvider(String key) {
+    this.key = key;
   }
 
-  /** Returns the full filesystem/store path for {@code key}: {@code "<container>/<key>"}. */
-  @Nonnull
-  public String resolve(@Nonnull BlobKey key) {
-    return value + "/" + key.value();
+  /** The configuration key used in {@code dhis.conf}. */
+  public String key() {
+    return key;
   }
 
-  @Nonnull
-  @Override
-  public String toString() {
-    return value;
+  /**
+   * Returns the provider matching {@code key}, or throws {@link IllegalArgumentException} if the
+   * key is not recognised.
+   */
+  public static FileStoreProvider of(String key) {
+    return Arrays.stream(values())
+        .filter(p -> p.key.equals(key))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "Unsupported file store provider '"
+                        + key
+                        + "'. Supported values are: "
+                        + Arrays.stream(values()).map(FileStoreProvider::key).collect(Collectors.joining(", "))));
   }
 }

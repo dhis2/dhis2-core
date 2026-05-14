@@ -37,7 +37,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -69,6 +68,7 @@ import org.hisp.dhis.storage.BlobStoreService;
 import org.hisp.dhis.util.ZipBombException;
 import org.hisp.dhis.util.ZipFileUtils;
 import org.hisp.dhis.util.ZipSlipException;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -79,8 +79,8 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.appmanager.JCloudsAppStorageService")
-public class JCloudsAppStorageService implements AppStorageService {
+@Service("org.hisp.dhis.appmanager.BlobStoreAppStorageService")
+public class BlobStoreAppStorageService implements AppStorageService {
 
   private static final String BUNDLED_APP_INFO_FILENAME = "bundled-app-info.json";
   public static final String MANIFEST_WEBAPP_FILENAME = "manifest.webapp";
@@ -118,7 +118,7 @@ public class JCloudsAppStorageService implements AppStorageService {
       BiConsumer<App, BundledAppInfo> handler, BlobKeyPrefix folder, InputStream manifestStream) {
     try (InputStream inputStream = manifestStream) {
       App app = App.MAPPER.readValue(inputStream, App.class);
-      app.setAppStorageSource(AppStorageSource.JCLOUDS);
+      app.setAppStorageSource(AppStorageSource.BLOB_STORE);
       app.setFolderName(folder.value());
       app.setManifestTranslations(
           readAppManifestTranslations(
@@ -234,7 +234,7 @@ public class JCloudsAppStorageService implements AppStorageService {
       app = AppManager.readAppManifest(file, this.jsonMapper, topLevelFolder);
       folder = AppFolderName.ofKey(app.getKey());
       app.setFolderName(folder.path());
-      app.setAppStorageSource(AppStorageSource.JCLOUDS);
+      app.setAppStorageSource(AppStorageSource.BLOB_STORE);
     } catch (IOException e) {
       log.error("Failed to install app: Failure during reading manifest from zip file", e);
       app = new App();
@@ -291,6 +291,7 @@ public class JCloudsAppStorageService implements AppStorageService {
       Enumeration<? extends ZipEntry> entries = zipFile.entries();
       while (entries.hasMoreElements()) {
         ZipEntry zipEntry = entries.nextElement();
+        if (zipEntry.isDirectory()) continue;
         String filePath = getFilePath(folder.path(), topLevelFolder, zipEntry);
         // If it's the root folder, skip
         if (filePath == null) continue;
@@ -338,19 +339,7 @@ public class JCloudsAppStorageService implements AppStorageService {
     AppFolderName folder = app.appFolder();
     blobStore.deleteBlob(folder.resolve(MANIFEST_WEBAPP_FILENAME));
 
-    // TODO(DHIS2-20648) Once the replacement BlobStoreService implementation does recursive
-    // deleteDirectory on every backend (see contract test), this branch can collapse to a
-    // single blobStore.deleteDirectory(folder.asPrefix()) call.
-    if (blobStore.isFilesystem()) {
-      // Delete all files related to app (works for local filestore)
-      blobStore.deleteDirectory(folder.asPrefix());
-    } else {
-      // S3: deleteDirectory is not recursive, so enumerate and delete individually
-      for (BlobKey key : blobStore.listKeys(folder.asPrefix())) {
-        log.debug("Deleting app file: {}", key);
-        blobStore.deleteBlob(key);
-      }
-    }
+    blobStore.deleteDirectory(folder.asPrefix());
     log.info("Deleted app {}", app.getName());
   }
 
@@ -358,9 +347,9 @@ public class JCloudsAppStorageService implements AppStorageService {
   @Nonnull
   public ResourceResult getAppResource(@CheckForNull App app, @Nonnull String resource)
       throws IOException {
-    if (app == null || !app.getAppStorageSource().equals(AppStorageSource.JCLOUDS)) {
+    if (app == null || !app.getAppStorageSource().equals(AppStorageSource.BLOB_STORE)) {
       log.warn(
-          "Can't look up resource {}. The specified app was not found in JClouds storage.",
+          "Can't look up resource {}. The specified app was not found in blob storage.",
           resource);
       return new ResourceNotFound(resource);
     }
@@ -385,13 +374,20 @@ public class JCloudsAppStorageService implements AppStorageService {
     return blobStore.listKeys(BlobKeyPrefix.of(key.value())).iterator().hasNext();
   }
 
-  private Resource getResource(@Nonnull BlobKey key) throws MalformedURLException {
+  private Resource getResource(@Nonnull BlobKey key) throws IOException {
     if (blobStore.isFilesystem()) {
       return new FileSystemResource(
           locationManager.getFileForReading(blobStore.container().resolve(key)));
-    } else {
-      URI uri = fileResourceContentStore.getSignedGetContentUri(key);
+    }
+    URI uri = fileResourceContentStore.getSignedGetContentUri(key);
+    if (uri != null) {
       return new UrlResource(uri);
+    }
+    // Backend supports neither filesystem access nor signed URLs (e.g. transient): buffer
+    // the blob bytes so Spring can serve them directly.
+    try (InputStream in = blobStore.openStream(key)) {
+      if (in == null) throw new IOException("Blob not found: " + key);
+      return new ByteArrayResource(in.readAllBytes());
     }
   }
 
@@ -429,12 +425,12 @@ public class JCloudsAppStorageService implements AppStorageService {
 
   private static void logDiscoveredApps(Map<String, Pair<App, BundledAppInfo>> apps) {
     if (apps.isEmpty()) {
-      log.info("No apps found during JClouds discovery.");
+      log.info("No apps found during app discovery.");
     } else {
       apps.values()
           .forEach(
               pair ->
-                  log.info("Discovered app '{}' from JClouds storage ", pair.getLeft().getName()));
+                  log.info("Discovered app '{}' from blob storage ", pair.getLeft().getName()));
     }
   }
 }

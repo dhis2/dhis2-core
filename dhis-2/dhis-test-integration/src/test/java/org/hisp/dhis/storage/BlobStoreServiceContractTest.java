@@ -27,7 +27,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.jclouds;
+package org.hisp.dhis.storage;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -55,12 +55,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.awaitility.Awaitility;
-import org.hisp.dhis.storage.BlobContainerName;
-import org.hisp.dhis.storage.BlobKey;
-import org.hisp.dhis.storage.BlobKeyPrefix;
-import org.hisp.dhis.storage.BlobStoreService;
 import org.hisp.dhis.storage.BlobStoreService.ContentDisposition;
-import org.hisp.dhis.storage.ContentHash;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -82,8 +77,8 @@ import org.junit.jupiter.api.TestInstance;
  *   <li>{@link #validatesContentMd5()} — backend rejects an upload whose payload disagrees with the
  *       supplied {@link ContentHash} (true on real S3, false on local backends).
  *   <li>{@link #supportsRecursiveDirectoryDelete()} — backend implements {@link
- *       BlobStoreService#deleteDirectory} as a true recursive delete (false on the current jclouds
- *       S3 path, which is non-recursive — see {@code JCloudsAppStorageService#deleteApp}).
+ *       BlobStoreService#deleteDirectory} as a true recursive delete (false on the current S3
+ *       path, which is non-recursive — see {@code BlobStoreAppStorageService#deleteApp}).
  * </ul>
  *
  * <p>Lifecycle: subclasses use {@code @BeforeAll}/{@code @AfterAll} to start and stop the backend
@@ -91,7 +86,7 @@ import org.junit.jupiter.api.TestInstance;
  * {@link #cleanUpTestData()}.
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-abstract class BlobStoreServiceContractTest {
+public abstract class BlobStoreServiceContractTest {
 
   /** Implementation under test. Lifecycle is owned by the subclass. */
   protected abstract BlobStoreService service();

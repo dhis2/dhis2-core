@@ -56,7 +56,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class JCloudsAppStorageServiceTest {
+class BlobStoreAppStorageServiceTest {
 
   private static final String FOLDER = "apps/test-app_abc123";
   private static final BlobContainerName CONTAINER = new BlobContainerName("dhis2-store");
@@ -67,17 +67,17 @@ class JCloudsAppStorageServiceTest {
 
   @TempDir File tempDir;
 
-  private JCloudsAppStorageService service;
+  private BlobStoreAppStorageService service;
   private App app;
 
   @BeforeEach
   void setUp() {
     service =
-        new JCloudsAppStorageService(
+        new BlobStoreAppStorageService(
             blobStore, locationManager, new ObjectMapper(), fileResourceContentStore);
 
     app = new App();
-    app.setAppStorageSource(AppStorageSource.JCLOUDS);
+    app.setAppStorageSource(AppStorageSource.BLOB_STORE);
     app.setFolderName(FOLDER);
   }
 
