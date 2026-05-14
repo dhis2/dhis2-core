@@ -424,7 +424,7 @@ public class BlobStoreAppStorageService implements AppStorageService {
 
   private static void logDiscoveredApps(Map<String, Pair<App, BundledAppInfo>> apps) {
     if (apps.isEmpty()) {
-      log.info("No apps found during app discovery.");
+      log.info("No apps found during app discovery");
     } else {
       apps.values()
           .forEach(

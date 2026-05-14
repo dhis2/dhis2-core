@@ -185,7 +185,7 @@ public class S3BlobStoreService implements BlobStoreService {
         // Concurrent startup or external creation — bucket exists, nothing to do.
       }
     }
-    log.info("S3 file store configured with bucket: '{}'.", bucket);
+    log.info("S3 file store configured with bucket: '{}'", bucket);
   }
 
   @PreDestroy
