@@ -221,6 +221,7 @@ public class FileSystemBlobStoreService implements BlobStoreService {
   }
 
   private Path resolve(BlobKey key) {
+    // Path-traversal is prevented at construction time by BlobKey (rejects `..` segments).
     return baseDir.resolve(key.value());
   }
 

@@ -97,55 +97,80 @@ public class S3BlobStoreService implements BlobStoreService {
   private final S3Presigner presigner;
 
   public S3BlobStoreService(DhisConfigurationProvider configurationProvider) {
-    String containerName = configurationProvider.getProperty(ConfigurationKey.FILESTORE_CONTAINER);
-    String location = configurationProvider.getProperty(ConfigurationKey.FILESTORE_LOCATION);
-    String endpoint = configurationProvider.getProperty(ConfigurationKey.FILESTORE_ENDPOINT);
-    String identity = configurationProvider.getProperty(ConfigurationKey.FILESTORE_IDENTITY);
-    String secret = configurationProvider.getProperty(ConfigurationKey.FILESTORE_SECRET);
+    this(
+        new BlobContainerName(
+            configurationProvider.getProperty(ConfigurationKey.FILESTORE_CONTAINER)),
+        buildClient(configurationProvider),
+        buildPresigner(configurationProvider));
+  }
 
-    this.container = new BlobContainerName(containerName);
+  /**
+   * Package-private constructor for unit tests — lets the test supply mocked {@link S3Client} and
+   * {@link S3Presigner} without spinning up MinIO. The public constructor builds real clients from
+   * the {@link DhisConfigurationProvider}.
+   */
+  S3BlobStoreService(BlobContainerName container, S3Client s3, S3Presigner presigner) {
+    this.container = container;
+    this.s3 = s3;
+    this.presigner = presigner;
+  }
 
-    // SDK v2 requires a region even when an endpoint override is set; MinIO ≥ 2025-04 rejects a
-    // region that disagrees with the bucket's LocationConstraint, so fall back to us-east-1 (the
-    // S3 default that translates to no LocationConstraint on bucket creation) when unset.
-    Region region = StringUtils.isNotBlank(location) ? Region.of(location) : Region.US_EAST_1;
-
-    // Fall back to the SDK's default credential chain (env vars, system props, IAM role, EC2
-    // metadata, ...) when identity/secret are not explicitly configured — typical for AWS-hosted
-    // deployments that rely on IAM. Static credentials are used otherwise.
-    AwsCredentialsProvider credentials =
-        StringUtils.isNotBlank(identity) && StringUtils.isNotBlank(secret)
-            ? StaticCredentialsProvider.create(AwsBasicCredentials.create(identity, secret))
-            : DefaultCredentialsProvider.builder().build();
-
-    // Path-style addressing is required for custom endpoints (MinIO/Ceph) and applied uniformly
-    // here for aws-s3 as well, matching the addressing mode used historically.
+  private static S3Client buildClient(DhisConfigurationProvider config) {
+    Region region = region(config);
+    AwsCredentialsProvider credentials = credentials(config);
     S3Configuration s3Config = S3Configuration.builder().pathStyleAccessEnabled(true).build();
-
     // SDK ≥ 2.30 dropped legacy Content-MD5 in favour of x-amz-checksum-* headers for
     // httpChecksumRequired operations. Older MinIO/Ceph builds reject DeleteObjects without
-    // Content-MD5, so we re-add it via an interceptor below.
-    S3ClientBuilder clientBuilder =
+    // Content-MD5, so we re-add it via the interceptor.
+    S3ClientBuilder builder =
         S3Client.builder()
             .region(region)
             .credentialsProvider(credentials)
             .serviceConfiguration(s3Config)
             .overrideConfiguration(
                 o -> o.addExecutionInterceptor(new DeleteObjectsContentMd5Interceptor()));
-    Builder presignerBuilder =
+    String endpoint = config.getProperty(ConfigurationKey.FILESTORE_ENDPOINT);
+    if (StringUtils.isNotBlank(endpoint)) {
+      builder.endpointOverride(URI.create(endpoint));
+    }
+    return builder.build();
+  }
+
+  private static S3Presigner buildPresigner(DhisConfigurationProvider config) {
+    Region region = region(config);
+    AwsCredentialsProvider credentials = credentials(config);
+    // Path-style addressing is required for custom endpoints (MinIO/Ceph) and applied uniformly
+    // here for aws-s3 as well, matching the addressing mode used historically.
+    S3Configuration s3Config = S3Configuration.builder().pathStyleAccessEnabled(true).build();
+    Builder builder =
         S3Presigner.builder()
             .region(region)
             .credentialsProvider(credentials)
             .serviceConfiguration(s3Config);
-
+    String endpoint = config.getProperty(ConfigurationKey.FILESTORE_ENDPOINT);
     if (StringUtils.isNotBlank(endpoint)) {
-      URI endpointUri = URI.create(endpoint);
-      clientBuilder.endpointOverride(endpointUri);
-      presignerBuilder.endpointOverride(endpointUri);
+      builder.endpointOverride(URI.create(endpoint));
     }
+    return builder.build();
+  }
 
-    this.s3 = clientBuilder.build();
-    this.presigner = presignerBuilder.build();
+  private static Region region(DhisConfigurationProvider config) {
+    // SDK v2 requires a region even when an endpoint override is set; MinIO ≥ 2025-04 rejects a
+    // region that disagrees with the bucket's LocationConstraint, so fall back to us-east-1 (the
+    // S3 default that translates to no LocationConstraint on bucket creation) when unset.
+    String location = config.getProperty(ConfigurationKey.FILESTORE_LOCATION);
+    return StringUtils.isNotBlank(location) ? Region.of(location) : Region.US_EAST_1;
+  }
+
+  private static AwsCredentialsProvider credentials(DhisConfigurationProvider config) {
+    // Fall back to the SDK's default credential chain (env vars, system props, IAM role, EC2
+    // metadata, ...) when identity/secret are not explicitly configured — typical for AWS-hosted
+    // deployments that rely on IAM. Static credentials are used otherwise.
+    String identity = config.getProperty(ConfigurationKey.FILESTORE_IDENTITY);
+    String secret = config.getProperty(ConfigurationKey.FILESTORE_SECRET);
+    return StringUtils.isNotBlank(identity) && StringUtils.isNotBlank(secret)
+        ? StaticCredentialsProvider.create(AwsBasicCredentials.create(identity, secret))
+        : DefaultCredentialsProvider.builder().build();
   }
 
   @PostConstruct
