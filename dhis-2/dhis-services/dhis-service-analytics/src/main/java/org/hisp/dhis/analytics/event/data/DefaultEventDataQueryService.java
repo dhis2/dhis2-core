@@ -177,9 +177,9 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       enrollmentStatuses.addAll(request.getEnrollmentStatus());
     }
 
-    addDimensionsToParams(params, request, userOrgUnits, pr, idScheme);
+    addDimensionsToParams(params, request, userOrgUnits, pr, idScheme, enrollmentStatuses);
 
-    addFiltersToParams(params, request, userOrgUnits, pr, idScheme);
+    addFiltersToParams(params, request, userOrgUnits, pr, idScheme, enrollmentStatuses);
 
     addHeaderOnlyItemsToParams(params, request, pr);
 
@@ -666,7 +666,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       EventDataQueryRequest request,
       List<OrganisationUnit> userOrgUnits,
       Program pr,
-      IdScheme idScheme) {
+      IdScheme idScheme,
+      Set<EnrollmentStatus> enrollmentStatuses) {
     if (request.getFilter() != null) {
       for (NormalizedDimensionInput input : normalizeDimensionInputs(request.getFilter())) {
         if (ENROLLMENT_OU_DIMENSION.equals(input.dimensionId())) {
@@ -674,8 +675,12 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
           continue;
         }
         if (isProgramStatusDimension(input.dimensionId())) {
-          requireNonEmptyStatusFilter(input.items(), input.rawDimension());
-          params.addFilter(getProgramStatusDimension(input.items(), input.rawDimension()));
+          if (isAggregateRequest(request)) {
+            requireNonEmptyStatusFilter(input.items(), input.rawDimension());
+            params.addFilter(getProgramStatusDimension(input.items(), input.rawDimension()));
+          } else {
+            enrollmentStatuses.addAll(parseEnrollmentStatuses(input.items(), input.rawDimension()));
+          }
           continue;
         }
 
@@ -711,7 +716,8 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       EventDataQueryRequest request,
       List<OrganisationUnit> userOrgUnits,
       Program pr,
-      IdScheme idScheme) {
+      IdScheme idScheme,
+      Set<EnrollmentStatus> enrollmentStatuses) {
     if (request.getDimension() != null) {
       for (NormalizedDimensionInput input : normalizeDimensionInputs(request.getDimension())) {
         if (ENROLLMENT_OU_DIMENSION.equals(input.dimensionId())) {
@@ -719,7 +725,11 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
           continue;
         }
         if (isProgramStatusDimension(input.dimensionId())) {
-          params.addDimension(getProgramStatusDimension(input.items(), input.rawDimension()));
+          if (isAggregateRequest(request)) {
+            params.addDimension(getProgramStatusDimension(input.items(), input.rawDimension()));
+          } else {
+            enrollmentStatuses.addAll(parseEnrollmentStatuses(input.items(), input.rawDimension()));
+          }
           continue;
         }
 
@@ -993,12 +1003,16 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         || ColumnHeader.PROGRAM_STATUS.getItem().equalsIgnoreCase(dimensionId);
   }
 
+  private boolean isAggregateRequest(EventDataQueryRequest request) {
+    return request.getEndpointAction() == RequestTypeAware.EndpointAction.AGGREGATE;
+  }
+
   /**
    * Builds the {@link DimensionalObject} for {@code PROGRAM_STATUS}. The dimension identifier
    * ({@code "programstatus"}) drives the response header; {@code dimensionName} ({@code
    * "enrollmentstatus"}) is the underlying analytics column referenced by {@code quoteAlias} in the
-   * SQL builder. An empty item list is permitted on the dimension path — it means "include the
-   * column as a group-by without filtering rows."
+   * SQL builder. An empty item list is permitted on the aggregate dimension path — it means
+   * "include the column as a group-by without filtering rows."
    */
   private DimensionalObject getProgramStatusDimension(
       List<String> rawItems, String dimensionString) {
@@ -1008,6 +1022,15 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         EventAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME,
         ColumnHeader.PROGRAM_STATUS.getName(),
         parseStatusItems(rawItems, dimensionString));
+  }
+
+  private static Set<EnrollmentStatus> parseEnrollmentStatuses(
+      List<String> rawItems, String dimensionString) {
+    requireNonEmptyStatusFilter(rawItems, dimensionString);
+
+    return rawItems.stream()
+        .map(raw -> parseEnrollmentStatus(raw, dimensionString))
+        .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
   private static List<DimensionalItemObject> parseStatusItems(
