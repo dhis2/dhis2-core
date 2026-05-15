@@ -685,16 +685,16 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
     aggregateSql += where;
     if (!Strings.isNullOrEmpty(programIndicator.getFilter())) {
       aggregateSql +=
-              (where.isBlank() ? " WHERE " : " AND ")
-                      + "("
-                      + programIndicatorService.getAnalyticsSql(
-                      programIndicator.getFilter(),
-                      BOOLEAN,
-                      programIndicator,
-                      earliestStartDate,
-                      latestDate,
-                      SUBQUERY_TABLE_ALIAS)
-                      + ")";
+          (where.isBlank() ? " WHERE " : " AND ")
+              + "("
+              + programIndicatorService.getAnalyticsSql(
+                  programIndicator.getFilter(),
+                  BOOLEAN,
+                  programIndicator,
+                  earliestStartDate,
+                  latestDate,
+                  SUBQUERY_TABLE_ALIAS)
+              + ")";
     }
     return "(SELECT " + function + " (" + aggregateSql + ")";
   }
