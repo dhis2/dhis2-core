@@ -177,9 +177,9 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       enrollmentStatuses.addAll(request.getEnrollmentStatus());
     }
 
-    addDimensionsToParams(params, request, userOrgUnits, pr, idScheme, enrollmentStatuses);
+    addDimensionsToParams(params, request, userOrgUnits, pr, idScheme);
 
-    addFiltersToParams(params, request, userOrgUnits, pr, idScheme, enrollmentStatuses);
+    addFiltersToParams(params, request, userOrgUnits, pr, idScheme);
 
     addHeaderOnlyItemsToParams(params, request, pr);
 
@@ -666,8 +666,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       EventDataQueryRequest request,
       List<OrganisationUnit> userOrgUnits,
       Program pr,
-      IdScheme idScheme,
-      Set<EnrollmentStatus> enrollmentStatuses) {
+      IdScheme idScheme) {
     if (request.getFilter() != null) {
       for (NormalizedDimensionInput input : normalizeDimensionInputs(request.getFilter())) {
         if (ENROLLMENT_OU_DIMENSION.equals(input.dimensionId())) {
@@ -712,8 +711,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
       EventDataQueryRequest request,
       List<OrganisationUnit> userOrgUnits,
       Program pr,
-      IdScheme idScheme,
-      Set<EnrollmentStatus> enrollmentStatuses) {
+      IdScheme idScheme) {
     if (request.getDimension() != null) {
       for (NormalizedDimensionInput input : normalizeDimensionInputs(request.getDimension())) {
         if (ENROLLMENT_OU_DIMENSION.equals(input.dimensionId())) {

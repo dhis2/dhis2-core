@@ -176,6 +176,13 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     this.aggregatedAssembler = aggregatedAssembler;
   }
 
+  private enum AggregateEnrollmentHeaderType {
+    VALUE,
+    ORG_UNIT,
+    PERIOD,
+    OTHER
+  }
+
   @Override
   public void getEnrollments(EventQueryParams params, Grid grid, int maxLimit) {
     String sql;
@@ -1091,40 +1098,52 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
     periodHeaderNames.add(PERIOD_DIM_ID);
     periodHeaderNames.addAll(aggregatedAssembler.collectPeriodDateFieldKeys(params));
 
-    boolean valueAdded = false;
-    boolean orgUnitAdded = false;
-    boolean periodAdded = false;
+    Set<AggregateEnrollmentHeaderType> addedInfrastructureColumns =
+        EnumSet.noneOf(AggregateEnrollmentHeaderType.class);
 
     for (GridHeader header : headers) {
       String headerName = header.getName();
+      AggregateEnrollmentHeaderType headerType =
+          classifyAggregateEnrollmentHeader(headerName, periodHeaderNames);
 
-      if (COL_VALUE.equalsIgnoreCase(headerName)) {
-        if (!valueAdded) {
-          aggregatedAssembler.addAggregatedColumns(sb);
-          valueAdded = true;
+      switch (headerType) {
+        case VALUE -> {
+          if (addedInfrastructureColumns.add(headerType)) {
+            aggregatedAssembler.addAggregatedColumns(sb);
+          }
         }
-        continue;
-      }
-
-      if (ORGUNIT_DIM_ID.equalsIgnoreCase(headerName)) {
-        if (!orgUnitAdded) {
-          aggregatedAssembler.addOrgUnitAggregateColumns(sb, params);
-          orgUnitAdded = true;
+        case ORG_UNIT -> {
+          if (addedInfrastructureColumns.add(headerType)) {
+            aggregatedAssembler.addOrgUnitAggregateColumns(sb, params);
+          }
         }
-        continue;
-      }
-
-      if (periodHeaderNames.stream().anyMatch(headerName::equalsIgnoreCase)) {
-        if (!periodAdded) {
-          aggregatedAssembler.addPeriodAggregateColumns(params, sb, periodProjections);
-          periodAdded = true;
+        case PERIOD -> {
+          if (addedInfrastructureColumns.add(headerType)) {
+            aggregatedAssembler.addPeriodAggregateColumns(params, sb, periodProjections);
+          }
         }
-        continue;
+        case OTHER ->
+            aggregatedAssembler.addHeaderAggregateColumns(
+                List.of(header), params, cteContext, sb, periodProjections);
       }
-
-      aggregatedAssembler.addHeaderAggregateColumns(
-          List.of(header), params, cteContext, sb, periodProjections);
     }
+  }
+
+  private AggregateEnrollmentHeaderType classifyAggregateEnrollmentHeader(
+      String headerName, Set<String> periodHeaderNames) {
+    if (COL_VALUE.equalsIgnoreCase(headerName)) {
+      return AggregateEnrollmentHeaderType.VALUE;
+    }
+
+    if (ORGUNIT_DIM_ID.equalsIgnoreCase(headerName)) {
+      return AggregateEnrollmentHeaderType.ORG_UNIT;
+    }
+
+    if (periodHeaderNames.stream().anyMatch(headerName::equalsIgnoreCase)) {
+      return AggregateEnrollmentHeaderType.PERIOD;
+    }
+
+    return AggregateEnrollmentHeaderType.OTHER;
   }
 
   private boolean useItemUidForTable(CteDefinition cteDefinition) {
