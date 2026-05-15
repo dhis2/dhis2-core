@@ -122,7 +122,7 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
     HttpResponse response = GET("/apps/menu");
     JsonArray apps = response.content(HttpStatus.OK);
     assertEquals(
-        "../icons/test.png",
+        "http://localhost/api/apps/test/icons/test.png",
         apps.asObject()
             .get("modules")
             .asList(JsonObject.class)

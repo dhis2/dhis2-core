@@ -87,7 +87,9 @@ public class WebModule {
 
     String key = app.isBundled() ? AppManager.BUNDLED_APP_PREFIX + app.getKey() : app.getKey();
     String icon =
-        hasIcon ? app.getBaseUrl() + "/" + app.getIcons().getIcon48() : "../icons/" + key + ".png";
+        hasIcon
+            ? app.getBaseUrl() + "/" + app.getIcons().getIcon48()
+            : app.getBaseUrl() + "/icons/" + key + ".png";
 
     WebModule module = new WebModule(key, app.getBasePath(), defaultAction);
     module.setIcon(icon);
