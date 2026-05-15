@@ -60,8 +60,8 @@ public class AnalyticsTrackedEntityQuery2 extends Simulation implements Analytic
 
   public List<Assertion> buildAssertions() {
     return List.of(
-        details(GET_QUERY).responseTime().percentile(95).lt(215),
-        details(GET_QUERY).responseTime().max().lt(300),
+        details(GET_QUERY).responseTime().percentile(95).lt(1),
+        details(GET_QUERY).responseTime().max().lt(1),
         details(GET_QUERY).successfulRequests().percent().is(100D),
         details(GET_QUERY).successfulRequests().percent().is(100D));
   }
@@ -94,8 +94,8 @@ public class AnalyticsTrackedEntityQuery2 extends Simulation implements Analytic
     setUp(scenario.injectOpen(injectionStep))
         .protocols(httpProtocol)
         .assertions(
-            details(GET_QUERY).responseTime().percentile(95).lt(210),
-            details(GET_QUERY).responseTime().max().lt(320),
+            details(GET_QUERY).responseTime().percentile(95).lt(1),
+            details(GET_QUERY).responseTime().max().lt(1),
             details(GET_QUERY).successfulRequests().percent().is(100D),
             details(GET_QUERY).successfulRequests().percent().is(100D));
   }

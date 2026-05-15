@@ -51,8 +51,8 @@ public class AnalyticsEventAggregate2 extends Simulation implements AnalyticsSim
 
   public List<Assertion> buildAssertions() {
     return List.of(
-        details(GET_QUERY).responseTime().percentile(95).lt(150),
-        details(GET_QUERY).responseTime().max().lt(200),
+        details(GET_QUERY).responseTime().percentile(95).lt(1),
+        details(GET_QUERY).responseTime().max().lt(1),
         details(GET_QUERY).successfulRequests().percent().is(100D),
         details(GET_QUERY).successfulRequests().percent().is(100D));
   }

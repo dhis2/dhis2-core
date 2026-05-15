@@ -51,8 +51,8 @@ public class AnalyticsOutliers6 extends Simulation implements AnalyticsSimulatio
 
   public List<Assertion> buildAssertions() {
     return List.of(
-        details(GET_QUERY).responseTime().percentile(95).lt(230),
-        details(GET_QUERY).responseTime().max().lt(300),
+        details(GET_QUERY).responseTime().percentile(95).lt(1),
+        details(GET_QUERY).responseTime().max().lt(1),
         details(GET_QUERY).successfulRequests().percent().is(100D),
         details(GET_QUERY).successfulRequests().percent().is(100D));
   }

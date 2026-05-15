@@ -41,20 +41,19 @@ import org.hisp.dhis.test.analytics.AnalyticsSimulation;
 
 public class AnalyticsAggregate1 extends Simulation implements AnalyticsSimulation {
 
-  private static final String GET_AGGREGATED_ANALYTICS = "GET AGGREGATED ANALYTICS";
-  private static final String GET_AGGREGATED_ANALYTICS_API_QUERY =
+  private static final String GET_QUERY = "GET AGGREGATED ANALYTICS";
+  private static final String GET_QUERY_API =
       "/api/analytics?dimension=dx:GSae40Fyppf,pe:LAST_10_YEARS;&filter=ou:USER_ORGUNIT&displayProperty=NAME&includeNumDen=true&skipMeta=true&skipData=false&relativePeriodDate=2026-04-30";
 
   public PopulationBuilder buildPopulation(OpenInjectionStep injectionStep) {
-    return buildScenario(GET_AGGREGATED_ANALYTICS, GET_AGGREGATED_ANALYTICS_API_QUERY)
-        .injectOpen(injectionStep);
+    return buildScenario(GET_QUERY, GET_QUERY_API).injectOpen(injectionStep);
   }
 
   public List<Assertion> buildAssertions() {
     return List.of(
-        details(GET_AGGREGATED_ANALYTICS).responseTime().percentile(95).lt(380),
-        details(GET_AGGREGATED_ANALYTICS).responseTime().max().lt(400),
-        details(GET_AGGREGATED_ANALYTICS).successfulRequests().percent().is(100D),
-        details(GET_AGGREGATED_ANALYTICS).successfulRequests().percent().is(100D));
+        details(GET_QUERY).responseTime().percentile(95).lt(1),
+        details(GET_QUERY).responseTime().max().lt(1),
+        details(GET_QUERY).successfulRequests().percent().is(100D),
+        details(GET_QUERY).successfulRequests().percent().is(100D));
   }
 }
