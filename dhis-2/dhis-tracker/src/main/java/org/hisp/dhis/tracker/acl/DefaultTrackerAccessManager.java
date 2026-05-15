@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.tracker.acl;
 
-import static org.hisp.dhis.tracker.acl.TrackerOwnershipManager.NO_READ_ACCESS_TO_ORG_UNIT;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1096;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1097;
@@ -39,6 +38,8 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1102;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1105;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1324;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1325;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4019;
+import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4020;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +47,6 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -62,7 +62,6 @@ import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -197,7 +196,8 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   public List<ErrorMessage> canUpdate(
       @Nonnull UserDetails user,
       @Nonnull Enrollment enrollment,
-      @Nonnull OrganisationUnit orgUnit) {
+      @Nonnull OrganisationUnit orgUnit,
+      @Nonnull CategoryOptionCombo categoryOptionCombo) {
     if (user.isSuper()) {
       return List.of();
     }
@@ -206,6 +206,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     if (!orgUnit.getUid().equals(enrollment.getOrganisationUnit().getUid())) {
       checkOrgUnitInCaptureScope(errors, user, orgUnit);
+    }
+
+    if (!categoryOptionCombo.getUid().equals(enrollment.getAttributeOptionCombo().getUid())) {
+      checkDataWriteAccessToCategoryOptionCombo(errors, user, categoryOptionCombo);
     }
 
     return errors;
@@ -274,7 +278,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
   @Override
   public List<ErrorMessage> canUpdate(
-      @Nonnull UserDetails user, @Nonnull TrackerEvent event, @Nonnull OrganisationUnit orgUnit) {
+      @Nonnull UserDetails user,
+      @Nonnull TrackerEvent event,
+      @Nonnull OrganisationUnit orgUnit,
+      @Nonnull CategoryOptionCombo attributeOptionCombo) {
     if (user.isSuper()) {
       return List.of();
     }
@@ -283,6 +290,10 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
 
     if (!orgUnit.getUid().equals(event.getOrganisationUnit().getUid())) {
       checkOrgUnitInCaptureScope(errors, user, orgUnit);
+    }
+
+    if (!attributeOptionCombo.getUid().equals(event.getAttributeOptionCombo().getUid())) {
+      checkDataWriteAccessToCategoryOptionCombo(errors, user, attributeOptionCombo);
     }
 
     return errors;
@@ -319,71 +330,89 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  public List<String> canRead(@Nonnull UserDetails user, SingleEvent event) {
-    if (user.isSuper() || event == null) {
-      return List.of();
-    }
-    ProgramStage programStage = event.getProgramStage();
-
-    Program program = programStage.getProgram();
-    List<String> errors = new ArrayList<>();
-    if (!aclService.canDataRead(user, program)) {
-      errors.add("User has no data read access to program: " + program.getUid());
-    }
-    OrganisationUnit ou = event.getOrganisationUnit();
-    if (!canAccess(user, program, ou)) {
-      errors.add(NO_READ_ACCESS_TO_ORG_UNIT + ": " + ou.getUid());
-    }
-    errors.addAll(canRead(user, event.getAttributeOptionCombo()));
-
-    return errors;
-  }
-
-  @Override
-  public List<String> canRead(
-      @Nonnull UserDetails user, SingleEvent event, DataElement dataElement) {
+  public List<ErrorMessage> canRead(@Nonnull UserDetails user, @Nonnull SingleEvent event) {
     if (user.isSuper()) {
       return List.of();
     }
 
-    List<String> errors = new ArrayList<>(canRead(user, event));
+    ProgramStage programStage = event.getProgramStage();
+    Program program = programStage.getProgram();
 
-    if (!aclService.canRead(user, dataElement)) {
-      errors.add("User has no read access to data element: " + dataElement.getUid());
-    }
+    List<ErrorMessage> errors = new ArrayList<>();
+    checkOrgUnitInScope(
+        errors, user, event.getProgramStage().getProgram(), event.getOrganisationUnit());
+    checkDataReadAccessToProgram(errors, user, program);
+    checkDataReadAccessToCategoryOptionCombo(errors, user, event.getAttributeOptionCombo());
 
     return errors;
   }
 
   @Override
-  public List<String> canCreate(@Nonnull UserDetails user, SingleEvent event) {
-    if (user.isSuper() || event == null) {
+  public List<ErrorMessage> canCreate(@Nonnull UserDetails user, @Nonnull SingleEvent event) {
+    if (user.isSuper()) {
       return List.of();
     }
 
-    ProgramStage programStage = event.getProgramStage();
+    return new ArrayList<>(validateSingleEventAccess(user, event));
+  }
 
-    Program program = programStage.getProgram();
-    List<String> errors = new ArrayList<>();
-    if (!aclService.canDataWrite(user, program)) {
-      errors.add("User has no data write access to program: " + program.getUid());
+  @Override
+  public List<ErrorMessage> canUpdate(
+      @Nonnull UserDetails user,
+      @Nonnull SingleEvent event,
+      @Nonnull OrganisationUnit orgUnit,
+      @Nonnull CategoryOptionCombo categoryOptionCombo) {
+    if (user.isSuper()) {
+      return List.of();
     }
 
-    errors.addAll(canWrite(user, event.getAttributeOptionCombo()));
+    List<ErrorMessage> errors = new ArrayList<>(validateSingleEventAccess(user, event));
+    if (!orgUnit.getUid().equals(event.getOrganisationUnit().getUid())) {
+      checkOrgUnitInCaptureScope(errors, user, orgUnit);
+    }
+
+    if (!categoryOptionCombo.getUid().equals(event.getAttributeOptionCombo().getUid())) {
+      checkDataWriteAccessToCategoryOptionCombo(errors, user, categoryOptionCombo);
+    }
 
     return errors;
   }
 
   @Override
-  public List<String> canRead(@Nonnull UserDetails user, Relationship relationship) {
-    if (user.isSuper() || relationship == null) {
+  public List<ErrorMessage> canDelete(@Nonnull UserDetails user, @Nonnull SingleEvent event) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    return canCreate(user, event);
+  }
+
+  private List<ErrorMessage> validateSingleEventAccess(
+      @Nonnull UserDetails user, @Nonnull SingleEvent event) {
+    if (user.isSuper()) {
+      return List.of();
+    }
+
+    List<ErrorMessage> errors = new ArrayList<>();
+    checkOrgUnitInCaptureScope(errors, user, event.getOrganisationUnit());
+    checkDataWriteAccessToProgram(errors, user, event.getProgramStage().getProgram());
+    checkDataWriteAccessToCategoryOptionCombo(errors, user, event.getAttributeOptionCombo());
+
+    return errors;
+  }
+
+  @Override
+  public List<ErrorMessage> canRead(@Nonnull UserDetails user, @Nonnull Relationship relationship) {
+    if (user.isSuper()) {
       return List.of();
     }
 
     RelationshipType relationshipType = relationship.getRelationshipType();
-    List<String> errors = new ArrayList<>();
+    List<ErrorMessage> errors = new ArrayList<>();
     if (!aclService.canDataRead(user, relationshipType)) {
-      errors.add("User has no data read access to relationshipType: " + relationshipType.getUid());
+      errors.add(
+          new ErrorMessage(
+              E4019, user.getUid(), List.of(user.getUid(), relationshipType.getUid())));
     }
 
     RelationshipItem from = relationship.getFrom();
@@ -396,10 +425,9 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public List<String> canCreate(UserDetails user, Relationship relationship) {
-    if (user.isSuper() || relationship == null) return List.of();
-    List<String> errors = new ArrayList<>(canWriteRelationship(user, relationship));
+  public List<ErrorMessage> canCreate(UserDetails user, @Nonnull Relationship relationship) {
+    if (user.isSuper()) return List.of();
+    List<ErrorMessage> errors = new ArrayList<>(canWrite(user, relationship));
     if (!relationship.getRelationshipType().isBidirectional()) {
       errors.addAll(canRead(user, relationship.getTo()));
     }
@@ -407,88 +435,61 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
   }
 
   @Override
-  @Transactional(readOnly = true)
-  public List<String> canDelete(UserDetails user, @Nonnull Relationship relationship) {
+  public List<ErrorMessage> canDelete(UserDetails user, @Nonnull Relationship relationship) {
     if (user.isSuper()) return List.of();
-    return canWriteRelationship(user, relationship);
+    return canWrite(user, relationship);
   }
 
-  private List<String> canWriteRelationship(UserDetails user, Relationship relationship) {
-    RelationshipType type = relationship.getRelationshipType();
-    List<String> errors = new ArrayList<>();
-    if (!aclService.canDataWrite(user, type)) {
-      errors.add("User has no data write access to relationshipType: " + type.getUid());
+  private List<ErrorMessage> canWrite(UserDetails user, Relationship relationship) {
+    RelationshipType relationshipType = relationship.getRelationshipType();
+    List<ErrorMessage> errors = new ArrayList<>();
+    if (!aclService.canDataWrite(user, relationshipType)) {
+      errors.add(
+          new ErrorMessage(
+              E4020, user.getUid(), List.of(user.getUid(), relationshipType.getUid())));
     }
     errors.addAll(canWrite(user, relationship.getFrom()));
-    if (type.isBidirectional()) {
+    if (relationshipType.isBidirectional()) {
       errors.addAll(canWrite(user, relationship.getTo()));
     }
     return errors;
   }
 
-  /**
-   * Checks if the user has access to organisation unit under defined tracker program protection
-   * level
-   *
-   * @param user the user to check access for
-   * @param program program to check against protection level
-   * @param orgUnit the org unit to be checked under user's scope and program protection
-   * @return true if the user has access to the org unit under the mentioned program context,
-   *     otherwise return false
-   */
-  boolean canAccess(@Nonnull UserDetails user, Program program, OrganisationUnit orgUnit) {
-    if (orgUnit == null) {
-      return false;
-    }
-
-    if (user.isSuper()) {
-      return true;
-    }
-
-    if (program != null && (program.isClosed() || program.isProtected())) {
-      return user.isInUserHierarchy(orgUnit.getStoredPath());
-    }
-
-    return user.isInUserEffectiveSearchOrgUnitHierarchy(orgUnit.getStoredPath());
-  }
-
-  private List<String> canRead(@Nonnull UserDetails user, RelationshipItem item) {
-    if (item.getTrackedEntity() != null)
-      return canRead(user, item.getTrackedEntity()).stream()
-          .map(em -> em.validationCode().getMessage())
-          .toList();
-    if (item.getEnrollment() != null)
-      return canRead(user, item.getEnrollment()).stream()
-          .map(em -> em.validationCode().getMessage())
-          .toList();
-    if (item.getTrackerEvent() != null)
-      return canRead(user, item.getTrackerEvent()).stream()
-          .map(em -> em.validationCode().getMessage())
-          .toList();
+  private List<ErrorMessage> canRead(@Nonnull UserDetails user, RelationshipItem item) {
+    if (item.getTrackedEntity() != null) return canRead(user, item.getTrackedEntity());
+    if (item.getEnrollment() != null) return canRead(user, item.getEnrollment());
+    if (item.getTrackerEvent() != null) return canRead(user, item.getTrackerEvent());
     if (item.getSingleEvent() != null) return canRead(user, item.getSingleEvent());
     return List.of();
   }
 
-  private List<String> canWrite(@Nonnull UserDetails user, RelationshipItem item) {
+  private List<ErrorMessage> canWrite(@Nonnull UserDetails user, RelationshipItem item) {
     if (item.getTrackedEntity() != null) {
       TrackedEntity te = item.getTrackedEntity();
-      return canUpdate(user, te, te.getOrganisationUnit()).stream()
-          .map(em -> em.validationCode().getMessage())
-          .toList();
+      return canUpdate(user, te, te.getOrganisationUnit());
     }
     if (item.getEnrollment() != null) {
       Enrollment enrollment = item.getEnrollment();
-      return canUpdate(user, enrollment, enrollment.getOrganisationUnit()).stream()
-          .map(em -> em.validationCode().getMessage())
-          .toList();
+      return canUpdate(
+          user, enrollment, enrollment.getOrganisationUnit(), enrollment.getAttributeOptionCombo());
     }
     if (item.getTrackerEvent() != null) {
-      TrackerEvent event = item.getTrackerEvent();
-      return canUpdate(user, event, event.getOrganisationUnit()).stream()
-          .map(em -> em.validationCode().getMessage())
-          .toList();
+      TrackerEvent trackerEvent = item.getTrackerEvent();
+      return canUpdate(
+          user,
+          trackerEvent,
+          trackerEvent.getOrganisationUnit(),
+          trackerEvent.getAttributeOptionCombo());
     }
-    if (item.getSingleEvent() != null) return canCreate(user, item.getSingleEvent());
+    if (item.getSingleEvent() != null) {
+      SingleEvent singleEvent = item.getSingleEvent();
+      return canUpdate(
+          user,
+          singleEvent,
+          singleEvent.getOrganisationUnit(),
+          singleEvent.getAttributeOptionCombo());
+    }
+
     return List.of();
   }
 
@@ -573,23 +574,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
     }
   }
 
-  // TODO(tracker) Remove this method and use #checkDataReadAccessToCategoryOptionCombo when
-  // refactoring single events
-  private List<String> canRead(@Nonnull UserDetails user, CategoryOptionCombo categoryOptionCombo) {
-    if (user.isSuper() || categoryOptionCombo == null) {
-      return List.of();
-    }
-
-    List<String> errors = new ArrayList<>();
-    for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
-      if (!aclService.canDataRead(user, categoryOption)) {
-        errors.add("User has no read access to category option: " + categoryOption.getUid());
-      }
-    }
-
-    return errors;
-  }
-
   private void checkDataWriteAccessToCategoryOptionCombo(
       List<ErrorMessage> errors, UserDetails user, CategoryOptionCombo categoryOptionCombo) {
     if (categoryOptionCombo == null) {
@@ -603,24 +587,6 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
                 E1099, user.getUid(), List.of(user.getUid(), categoryOption.getUid())));
       }
     }
-  }
-
-  // TODO(tracker) Remove this method and use #checkDataWriteAccessToCategoryOptionCombo when
-  // refactoring single events
-  private List<String> canWrite(
-      @Nonnull UserDetails user, CategoryOptionCombo categoryOptionCombo) {
-    if (user.isSuper() || categoryOptionCombo == null) {
-      return List.of();
-    }
-
-    List<String> errors = new ArrayList<>();
-    for (CategoryOption categoryOption : categoryOptionCombo.getCategoryOptions()) {
-      if (!aclService.canDataWrite(user, categoryOption)) {
-        errors.add("User has no write access to category option: " + categoryOption.getUid());
-      }
-    }
-
-    return errors;
   }
 
   private void checkOwnershipAccess(
@@ -645,6 +611,22 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager {
       List<ErrorMessage> errors, UserDetails user, OrganisationUnit orgUnit) {
     if (!user.isInUserHierarchy(orgUnit.getStoredPath())) {
       errors.add(new ErrorMessage(E1000, user.getUid(), List.of(user.getUid(), orgUnit.getUid())));
+    }
+  }
+
+  private void checkOrgUnitInScope(
+      List<ErrorMessage> errors,
+      UserDetails user,
+      @Nonnull Program program,
+      @Nonnull OrganisationUnit orgUnit) {
+    if (user.isSuper()) {
+      return;
+    }
+
+    if (program.isClosed() || program.isProtected()) {
+      checkOrgUnitInCaptureScope(errors, user, orgUnit);
+    } else {
+      checkOrgUnitInSearchScope(errors, user, orgUnit);
     }
   }
 

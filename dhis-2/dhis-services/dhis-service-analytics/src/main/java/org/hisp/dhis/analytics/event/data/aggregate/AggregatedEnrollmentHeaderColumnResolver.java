@@ -29,6 +29,9 @@
  */
 package org.hisp.dhis.analytics.event.data.aggregate;
 
+import static org.hisp.dhis.analytics.event.data.AbstractJdbcEventAnalyticsManager.LATEST_EVENTS_CTE_PREFIX;
+import static org.hisp.dhis.analytics.util.RepeatableStageParamsHelper.removeRepeatableStageParams;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.function.UnaryOperator;
@@ -44,7 +47,6 @@ import org.hisp.dhis.analytics.util.sql.SqlColumnParser;
  * stage-specific dimensions via per-stage filter CTEs.
  */
 public final class AggregatedEnrollmentHeaderColumnResolver {
-  private static final String LATEST_EVENTS_CTE_PREFIX = "latest_events_";
 
   private final StageHeaderClassifier stageHeaderClassifier;
 
@@ -91,8 +93,8 @@ public final class AggregatedEnrollmentHeaderColumnResolver {
 
       Map.Entry<String, CteDefinition> matchingEntry = findMatchingCte(cteDefinitionMap, colName);
       if (matchingEntry != null) {
-        sb.addColumn(matchingEntry.getValue().getAlias() + ".value", "", matchingEntry.getKey());
-        sb.groupBy(matchingEntry.getKey());
+        sb.addColumn(matchingEntry.getValue().getAlias() + ".value", "", quotedCol);
+        sb.groupBy(quotedCol);
       } else {
         sb.addColumn(quotedCol);
         sb.groupBy(quotedCol);
@@ -155,8 +157,12 @@ public final class AggregatedEnrollmentHeaderColumnResolver {
 
   private Map.Entry<String, CteDefinition> findMatchingCte(
       Map<String, CteDefinition> cteDefinitionMap, String colName) {
+    String normalizedColName =
+        removeRepeatableStageParams(colName.replace("\"", "").replace("`", ""));
     for (Map.Entry<String, CteDefinition> entry : cteDefinitionMap.entrySet()) {
-      if (entry.getKey().contains(colName)) {
+      String normalizedKey =
+          removeRepeatableStageParams(entry.getKey().replace("\"", "").replace("`", ""));
+      if (normalizedKey.contains(normalizedColName)) {
         return entry;
       }
     }
