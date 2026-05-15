@@ -552,9 +552,19 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     List<DimensionalObject> dynamicDimensions =
         params.getDimensionsAndFilters(
-            Set.of(DimensionType.CATEGORY, DimensionType.CATEGORY_OPTION_GROUP_SET));
+            Set.of(
+                DimensionType.CATEGORY,
+                DimensionType.CATEGORY_OPTION_GROUP_SET,
+                DimensionType.PROGRAM_STATUS));
 
     for (DimensionalObject dim : dynamicDimensions) {
+      // PROGRAM_STATUS without items means group-by only — the column comes from the generic
+      // dimension SELECT loop; there is no IN-list to filter on.
+      DimensionType type = dim.getDimensionType();
+      if (type == DimensionType.PROGRAM_STATUS && dim.getItems().isEmpty()) {
+        continue;
+      }
+
       String dimName = dim.getDimensionName();
       String col =
           params.isPiDisagDimension(dimName)

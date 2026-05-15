@@ -1730,6 +1730,39 @@ class MetadataItemsHandlerTest {
     }
 
     @Test
+    @DisplayName("should use display names for generic programstatus dimension item metadata")
+    void shouldUseDisplayNamesForGenericProgramStatusDimensionItemsMetadata() {
+      Grid grid = new ListGrid();
+
+      BaseDimensionalObject programStatusDimension =
+          new BaseDimensionalObject(
+              "programstatus",
+              DimensionType.PROGRAM_STATUS,
+              "enrollmentstatus",
+              "Program status",
+              List.of(new BaseDimensionalItemObject("ACTIVE")));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .addDimension(programStatusDimension)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+
+      assertNotNull(items);
+      assertEquals("Program status", ((MetadataItem) items.get("programstatus")).getName());
+      assertEquals("Active", ((MetadataItem) items.get("ACTIVE")).getName());
+    }
+
+    @Test
     @DisplayName("should include programstatus dimensions and items for event query endpoint")
     void shouldIncludeProgramStatusMetadataForEventQueryEndpoint() {
       Grid grid = new ListGrid();
