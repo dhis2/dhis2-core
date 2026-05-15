@@ -185,7 +185,7 @@ class ProgramIndicatorSubqueryBuilderTest {
     when(programIndicatorService.getAnalyticsSql(
             DUMMY_EXPRESSION, NUMERIC, pi, startDate, endDate, "subax"))
         .thenReturn("distinct psi");
-    when(programIndicatorService.getAnalyticsSql(
+    when(programIndicatorService.getAnalyticsSqlAllowingNulls(
             DUMMY_FILTER_EXPRESSION, BOOLEAN, pi, startDate, endDate, "subax"))
         .thenReturn("a = b");
 
