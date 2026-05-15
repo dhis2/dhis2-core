@@ -36,9 +36,7 @@ import io.gatling.javaapi.core.Assertion;
 import io.gatling.javaapi.core.OpenInjectionStep;
 import io.gatling.javaapi.core.PopulationBuilder;
 import io.gatling.javaapi.core.Simulation;
-import java.lang.annotation.Target;
 import java.util.List;
-import jdk.jfr.Description;
 import org.hisp.dhis.test.analytics.AnalyticsSimulation;
 
 public class AnalyticsEventQuery4 extends Simulation implements AnalyticsSimulation {
