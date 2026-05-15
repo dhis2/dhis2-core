@@ -368,9 +368,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       return;
     }
 
-    // Direct JDBC update — bypasses the Hibernate persistence context so the entity is not
-    // dirty-marked and PostUpdateAuditListener does not fire. The in-memory copy in the preheat
-    // is intentionally left as-is; nothing reads it back later in this import.
     fileResourceStore.updateAssignment(fileResource.getUid(), isAssign, fileResourceOwner);
   }
 
