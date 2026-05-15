@@ -318,7 +318,8 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
   }
 
   private boolean hasGeneratedEnrollmentGrainPlaceholder(String sql) {
-    return StringUtils.containsAny(sql, "FUNC_CTE_VAR(", "__PSDE_", "__D2FUNC__(");
+    return org.apache.commons.lang3.Strings.CS.containsAny(
+        sql, "FUNC_CTE_VAR(", "__PSDE_", "__D2FUNC__(");
   }
 
   private String getEventProgramIndicatorSourceTable(
@@ -687,13 +688,12 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
       aggregateSql +=
           (where.isBlank() ? " WHERE " : " AND ")
               + "("
-              + programIndicatorService.getAnalyticsSql(
+              + getProgramIndicatorFilterSql(
                   programIndicator.getFilter(),
                   BOOLEAN,
                   programIndicator,
                   earliestStartDate,
-                  latestDate,
-                  SUBQUERY_TABLE_ALIAS)
+                  latestDate)
               + ")";
     }
     return "(SELECT " + function + " (" + aggregateSql + ")";
