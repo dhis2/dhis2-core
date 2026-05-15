@@ -57,6 +57,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -905,6 +907,43 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     queryItem.setGroupUUID(groupUUID);
     queryItem.setFilters(new ArrayList<>(filters));
     return queryItem;
+  }
+
+  /**
+   * DHIS2-20929: PI filters such as {@code #{stage.de} == 0} must not be wrapped in {@code
+   * coalesce(..., 0)} — otherwise events where the DE is NULL (or where the row belongs to a
+   * different program stage) incorrectly match the equality to zero. The filter must therefore be
+   * compiled with NULL-allowing semantics.
+   */
+  @Test
+  void verifyProgramIndicatorFilterCompiledAllowingNulls() {
+    ProgramIndicator programIndicator =
+        createProgramIndicator('A', programA, "V{event_count}", "#{ProgrmStagA.DataElmentA} == 0");
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .withProgramIndicator(programIndicator)
+            .build();
+
+    lenient()
+        .when(
+            programIndicatorService.getAnalyticsSqlAllowingNulls(
+                eq(programIndicator.getFilter()),
+                eq(org.hisp.dhis.analytics.DataType.BOOLEAN),
+                eq(programIndicator),
+                any(Date.class),
+                any(Date.class)))
+        .thenReturn("ax.\"DataElmentA\" = 0");
+
+    eventSubject.getWhereClause(params);
+
+    verify(programIndicatorService)
+        .getAnalyticsSqlAllowingNulls(
+            eq(programIndicator.getFilter()),
+            eq(org.hisp.dhis.analytics.DataType.BOOLEAN),
+            eq(programIndicator),
+            any(Date.class),
+            any(Date.class));
   }
 
   private EventQueryParams getEventQueryParamsForCoordinateFieldsTest(
