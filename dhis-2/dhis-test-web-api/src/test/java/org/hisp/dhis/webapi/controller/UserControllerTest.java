@@ -1547,4 +1547,80 @@ class UserControllerTest extends H2ControllerIntegrationTestBase {
     assertFalse(
         uids.contains(viewer.getUid()), "viewer (in orgA, not orgB) should not be returned");
   }
+
+  @Test
+  @DisplayName("GET /users?fields=twoFactorType exposes the per-user 2FA enrolment state")
+  void testGetUsers_includesTwoFactorTypeWhenRequested() {
+    User totpUser = userService.getUser(peter.getUid());
+    totpUser.setTwoFactorType(org.hisp.dhis.security.twofa.TwoFactorType.TOTP_ENABLED);
+    userService.updateUser(totpUser);
+
+    JsonList<JsonUser> users =
+        GET("/users?fields=id,username,twoFactorType&filter=id:eq:" + peter.getUid())
+            .content(OK)
+            .getList("users", JsonUser.class);
+
+    assertEquals(1, users.size());
+    assertEquals("TOTP_ENABLED", users.get(0).getTwoFactorType());
+  }
+
+  @Test
+  @DisplayName("GET /users/{uid}?fields=:all includes twoFactorType")
+  void testGetUser_byUidWithFieldsAllIncludesTwoFactorType() {
+    User emailUser = userService.getUser(peter.getUid());
+    emailUser.setTwoFactorType(org.hisp.dhis.security.twofa.TwoFactorType.EMAIL_ENABLED);
+    userService.updateUser(emailUser);
+
+    JsonUser user = GET("/users/{id}?fields=:all", peter.getUid()).content(OK).as(JsonUser.class);
+
+    assertEquals("EMAIL_ENABLED", user.getTwoFactorType());
+  }
+
+  @Test
+  @DisplayName("twoFactorType defaults to NOT_ENABLED for users without 2FA")
+  void testGetUser_twoFactorTypeDefaultsToNotEnabled() {
+    JsonUser user =
+        GET("/users/{id}?fields=id,username,twoFactorType", peter.getUid())
+            .content(OK)
+            .as(JsonUser.class);
+
+    assertEquals("NOT_ENABLED", user.getTwoFactorType());
+  }
+
+  @Test
+  @DisplayName("PUT /users/{uid} does not allow setting twoFactorType (read-only)")
+  void testPutUser_doesNotAllowSettingTwoFactorType() {
+    User target = userService.getUser(peter.getUid());
+    target.setTwoFactorType(org.hisp.dhis.security.twofa.TwoFactorType.NOT_ENABLED);
+    userService.updateUser(target);
+
+    assertStatus(
+        HttpStatus.OK,
+        PATCH(
+            "/users/{id}?importReportMode=ERRORS",
+            peter.getUid(),
+            Body("[{'op': 'replace', 'path': '/twoFactorType', 'value': 'TOTP_ENABLED'}]")));
+
+    User reloaded = userService.getUser(peter.getUid());
+    assertEquals(
+        org.hisp.dhis.security.twofa.TwoFactorType.NOT_ENABLED, reloaded.getTwoFactorType());
+  }
+
+  @Test
+  @DisplayName("GET /schemas/user declares twoFactorType as a read-only property")
+  void testUserSchema_declaresTwoFactorTypeAsReadOnly() {
+    JsonList<JsonObject> properties =
+        GET("/schemas/user").content(OK).getList("properties", JsonObject.class);
+
+    JsonObject twoFactorTypeProp =
+        properties.stream()
+            .filter(p -> "twoFactorType".equals(p.getString("name").string()))
+            .findFirst()
+            .orElse(null);
+
+    assertNotNull(twoFactorTypeProp, "twoFactorType must be declared in the User schema");
+    assertFalse(
+        twoFactorTypeProp.getBoolean("writable").booleanValue(true),
+        "twoFactorType must be schema-declared as read-only");
+  }
 }

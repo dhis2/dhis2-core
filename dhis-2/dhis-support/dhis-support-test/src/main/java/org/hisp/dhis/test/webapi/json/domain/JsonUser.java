@@ -74,4 +74,8 @@ public interface JsonUser extends JsonIdentifiableObject {
   default LocalDateTime getAccountExpiry() {
     return get("accountExpiry", JsonDate.class).date();
   }
+
+  default String getTwoFactorType() {
+    return getString("twoFactorType").string();
+  }
 }
