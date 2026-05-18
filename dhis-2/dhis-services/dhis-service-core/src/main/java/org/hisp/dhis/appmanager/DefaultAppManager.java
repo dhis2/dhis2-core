@@ -630,7 +630,11 @@ public class DefaultAppManager implements AppManager {
   @Override
   public int getUriContentLength(@Nonnull Resource resource) {
     try {
-      return (int) resource.contentLength();
+      if (resource.isFile()) {
+        return (int) resource.contentLength();
+      }
+      URLConnection urlConnection = resource.getURL().openConnection();
+      return urlConnection.getContentLength();
     } catch (IOException e) {
       log.error("Error trying to retrieve content length of Resource: {}", e.getMessage());
       return -1;

@@ -382,7 +382,7 @@ public class BlobStoreAppStorageService implements AppStorageService {
     if (uri != null) {
       return new UrlResource(uri);
     }
-    // Backend supports neither filesystem access nor signed URLs (e.g. transient): buffer
+    // When backend supports neither filesystem access nor signed URLs (e.g. transient): buffer
     // the blob bytes so Spring can serve them directly.
     try (InputStream in = blobStore.openStream(key)) {
       if (in == null) throw new IOException("Blob not found: " + key);
@@ -424,7 +424,7 @@ public class BlobStoreAppStorageService implements AppStorageService {
 
   private static void logDiscoveredApps(Map<String, Pair<App, BundledAppInfo>> apps) {
     if (apps.isEmpty()) {
-      log.info("No apps found during app discovery");
+      log.info("No apps found during blob store discovery");
     } else {
       apps.values()
           .forEach(
