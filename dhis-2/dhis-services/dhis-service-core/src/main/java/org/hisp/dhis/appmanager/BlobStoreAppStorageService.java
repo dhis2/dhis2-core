@@ -291,10 +291,15 @@ public class BlobStoreAppStorageService implements AppStorageService {
       Enumeration<? extends ZipEntry> entries = zipFile.entries();
       while (entries.hasMoreElements()) {
         ZipEntry zipEntry = entries.nextElement();
-        if (zipEntry.isDirectory()) continue;
         String filePath = getFilePath(folder.path(), topLevelFolder, zipEntry);
         // If it's the root folder, skip
         if (filePath == null) continue;
+        if (zipEntry.isDirectory()) {
+          // Materialise empty directories so the /api/apps/<app>/<dir> → /<dir>/ redirect
+          // contract holds even when the zip contains a directory with no files inside.
+          blobStore.createDirectory(BlobKeyPrefix.of(filePath));
+          continue;
+        }
         try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
           blobStore.putBlob(
               new BlobKey(filePath), zipInputStream, zipEntry.getSize(), null, null, null);
@@ -362,15 +367,11 @@ public class BlobStoreAppStorageService implements AppStorageService {
     if (blobStore.blobExists(key)) {
       return new ResourceFound(getResource(key));
     }
-    if (keyExistsAsDirectory(key)) {
+    if (blobStore.directoryExists(BlobKeyPrefix.of(key.value()))) {
       return new Redirect(resource + "/");
     }
     log.debug("ResourceNotFound {} for App {}", key, app.getName());
     return new ResourceNotFound(resource);
-  }
-
-  private boolean keyExistsAsDirectory(BlobKey key) {
-    return blobStore.listKeys(BlobKeyPrefix.of(key.value())).iterator().hasNext();
   }
 
   private Resource getResource(@Nonnull BlobKey key) throws IOException {

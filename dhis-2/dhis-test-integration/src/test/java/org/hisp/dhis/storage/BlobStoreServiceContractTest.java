@@ -50,9 +50,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import org.awaitility.Awaitility;
 import org.hisp.dhis.storage.BlobStoreService.ContentDisposition;
@@ -97,9 +95,10 @@ public abstract class BlobStoreServiceContractTest {
 
   @AfterEach
   void cleanUpTestData() {
-    List<BlobKey> keys = new ArrayList<>();
-    service().listKeys(testPrefix).forEach(keys::add);
-    keys.forEach(k -> assertDoesNotThrow(() -> service().deleteBlob(k)));
+    // deleteDirectory removes both real blobs and any synthetic directory markers (which
+    // listKeys deliberately excludes) so tests that exercise createDirectory leave no
+    // residue for subsequent tests.
+    assertDoesNotThrow(() -> service().deleteDirectory(testPrefix));
   }
 
   // -------------------------------------------------------------------- existence + read
@@ -276,6 +275,46 @@ public abstract class BlobStoreServiceContractTest {
     service().listKeys(BlobKeyPrefix.of(key("p1").value())).forEach(k -> keys.add(k.value()));
 
     assertEquals(Set.of(key("p1/x").value()), keys);
+  }
+
+  // -------------------------------------------------------------------- directories
+
+  @Test
+  void directoryExists_unknown_returnsFalse() {
+    assertFalse(service().directoryExists(BlobKeyPrefix.of(key("never-existed").value())));
+  }
+
+  @Test
+  void createDirectory_then_directoryExists_returnsTrue() {
+    BlobKeyPrefix dir = BlobKeyPrefix.of(key("empty-dir").value());
+    service().createDirectory(dir);
+    assertTrue(service().directoryExists(dir));
+  }
+
+  @Test
+  void directoryExists_returnsTrue_whenBlobStoredUnderPrefix() {
+    putString(key("populated/inside"), "x");
+    assertTrue(service().directoryExists(BlobKeyPrefix.of(key("populated").value())));
+  }
+
+  @Test
+  void createDirectory_isIdempotent() {
+    BlobKeyPrefix dir = BlobKeyPrefix.of(key("repeat").value());
+    service().createDirectory(dir);
+    assertDoesNotThrow(() -> service().createDirectory(dir));
+    assertTrue(service().directoryExists(dir));
+  }
+
+  @Test
+  void listKeys_excludesDirectoryMarkers() {
+    BlobKeyPrefix dir = BlobKeyPrefix.of(key("filtered").value());
+    service().createDirectory(dir);
+    putString(key("filtered/file"), "x");
+
+    Set<String> keys = new HashSet<>();
+    service().listKeys(dir).forEach(k -> keys.add(k.value()));
+
+    assertEquals(Set.of(key("filtered/file").value()), keys);
   }
 
   // -------------------------------------------------------------------- presigning

@@ -128,6 +128,30 @@ public interface BlobStoreService {
   Iterable<BlobKey> listKeys(BlobKeyPrefix prefix);
 
   /**
+   * Returns {@code true} if a directory exists at {@code prefix} — either because a real blob is
+   * stored under it, or because it was explicitly materialised via {@link
+   * #createDirectory(BlobKeyPrefix)}. Used by the app serving path to decide whether a request for
+   * {@code /someDir} should redirect to {@code /someDir/} or fall through to a 404.
+   *
+   * <p>Filesystem backends report directory existence directly. Object-store backends emulate
+   * directories: any object whose key starts with {@code prefix + "/"} causes this method to return
+   * {@code true}.
+   */
+  boolean directoryExists(BlobKeyPrefix prefix);
+
+  /**
+   * Records the existence of a (possibly empty) directory at {@code prefix}. Idempotent — calling
+   * this for an already-existing or non-empty directory is a no-op.
+   *
+   * <p>Filesystem backends create a real directory on disk. Object-store backends, which have no
+   * native directory concept, write a zero-byte placeholder object at {@code prefix + "/"} (the
+   * de-facto S3 convention) so that subsequent {@link #directoryExists(BlobKeyPrefix)} calls return
+   * {@code true} even when no real blobs have been stored beneath the prefix. The placeholder is
+   * never returned from {@link #listKeys(BlobKeyPrefix)}.
+   */
+  void createDirectory(BlobKeyPrefix prefix);
+
+  /**
    * Returns a pre-signed GET URI valid for {@code expirationSeconds} seconds, or {@code null} if
    * the backend does not support request signing (e.g. local filesystem).
    */

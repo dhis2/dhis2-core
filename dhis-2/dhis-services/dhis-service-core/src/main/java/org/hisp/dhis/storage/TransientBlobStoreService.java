@@ -143,11 +143,27 @@ public class TransientBlobStoreService implements BlobStoreService {
     String pfx = prefix.value();
     List<BlobKey> result = new ArrayList<>();
     for (String k : blobs.keySet()) {
-      if (k.startsWith(pfx)) {
+      // Filter out synthetic directory markers (keys ending with '/') so the listing
+      // contract matches the other backends.
+      if (k.startsWith(pfx) && !k.endsWith("/")) {
         result.add(new BlobKey(k));
       }
     }
     return result;
+  }
+
+  @Override
+  public boolean directoryExists(BlobKeyPrefix prefix) {
+    String pfx = prefix.value() + "/";
+    for (String k : blobs.keySet()) {
+      if (k.startsWith(pfx)) return true;
+    }
+    return false;
+  }
+
+  @Override
+  public void createDirectory(BlobKeyPrefix prefix) {
+    blobs.put(prefix.value() + "/", new byte[0]);
   }
 
   @Override

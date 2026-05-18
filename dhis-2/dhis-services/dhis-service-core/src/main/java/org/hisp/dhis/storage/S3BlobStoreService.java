@@ -334,6 +334,34 @@ public class S3BlobStoreService implements BlobStoreService {
   }
 
   @Override
+  public boolean directoryExists(BlobKeyPrefix prefix) {
+    ListObjectsV2Response resp =
+        s3.listObjectsV2(
+            ListObjectsV2Request.builder()
+                .bucket(container.value())
+                .prefix(prefix.value() + "/")
+                .maxKeys(1)
+                .build());
+    return !resp.contents().isEmpty();
+  }
+
+  @Override
+  public void createDirectory(BlobKeyPrefix prefix) {
+    // S3 has no native concept of an empty directory — write a zero-byte placeholder at
+    // `<prefix>/` so that `directoryExists` can answer true even before any real blobs are
+    // stored beneath the prefix. `listKeys` filters trailing-slash entries out, so the
+    // placeholder never surfaces through the listing contract.
+    String markerKey = prefix.value() + "/";
+    s3.putObject(
+        PutObjectRequest.builder()
+            .bucket(container.value())
+            .key(markerKey)
+            .contentLength(0L)
+            .build(),
+        RequestBody.fromBytes(new byte[0]));
+  }
+
+  @Override
   @CheckForNull
   public URI signedGetUri(BlobKey key, long expirationSeconds) {
     GetObjectPresignRequest presignRequest =

@@ -205,6 +205,21 @@ public class FileSystemBlobStoreService implements BlobStoreService {
   }
 
   @Override
+  public boolean directoryExists(BlobKeyPrefix prefix) {
+    return Files.isDirectory(baseDir.resolve(prefix.value()));
+  }
+
+  @Override
+  public void createDirectory(BlobKeyPrefix prefix) {
+    Path dir = baseDir.resolve(prefix.value());
+    try {
+      Files.createDirectories(dir);
+    } catch (IOException e) {
+      throw new UncheckedIOException("Unable to create directory " + dir, e);
+    }
+  }
+
+  @Override
   @CheckForNull
   public URI signedGetUri(BlobKey key, long expirationSeconds) {
     return null;

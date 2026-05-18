@@ -38,7 +38,6 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import org.hisp.dhis.appmanager.ResourceResult.Redirect;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceFound;
 import org.hisp.dhis.appmanager.ResourceResult.ResourceNotFound;
@@ -193,10 +192,10 @@ class BlobStoreAppStorageServiceTest {
 
   @Test
   void getAppResource_bareSubDirName_redirectsToTrailingSlash() throws IOException {
-    // blob "subDir" does not exist as a file, but keys exist under that prefix
+    // blob "subDir" does not exist as a file, but the directory does
     when(blobStore.blobExists(BlobKey.of(FOLDER, "subDir"))).thenReturn(false);
-    when(blobStore.listKeys(BlobKeyPrefix.of(BlobKey.of(FOLDER, "subDir").value())))
-        .thenReturn(List.of(BlobKey.of(FOLDER, "subDir", "index.html")));
+    when(blobStore.directoryExists(BlobKeyPrefix.of(BlobKey.of(FOLDER, "subDir").value())))
+        .thenReturn(true);
 
     ResourceResult result = service.getAppResource(app, "subDir");
 
@@ -207,7 +206,7 @@ class BlobStoreAppStorageServiceTest {
   @Test
   void getAppResource_missingResource_returnsNotFound() throws IOException {
     when(blobStore.blobExists(any())).thenReturn(false);
-    when(blobStore.listKeys(any())).thenReturn(List.of());
+    when(blobStore.directoryExists(any())).thenReturn(false);
 
     ResourceResult result = service.getAppResource(app, "missing.js");
 
