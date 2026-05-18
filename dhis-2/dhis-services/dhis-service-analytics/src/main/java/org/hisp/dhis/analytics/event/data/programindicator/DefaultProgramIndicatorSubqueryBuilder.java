@@ -613,6 +613,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
         latestDate,
         SUBQUERY_TABLE_ALIAS);
   }
+
   private String findKeyForAlias(String alias, CteContext cteContext) {
     for (String key : cteContext.getCteKeys()) {
       CteDefinition definition = cteContext.getDefinitionByKey(key);
