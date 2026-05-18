@@ -37,7 +37,6 @@ import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.validateValueType;
 
 import java.util.Set;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -57,10 +56,6 @@ import org.springframework.stereotype.Component;
 class AttributeValidator
     extends org.hisp.dhis.tracker.imports.validation.validator.AttributeValidator
     implements Validator<org.hisp.dhis.tracker.imports.domain.TrackedEntity> {
-
-  public AttributeValidator(DhisConfigurationProvider dhisConfigurationProvider) {
-    super(dhisConfigurationProvider);
-  }
 
   @Override
   public void validate(

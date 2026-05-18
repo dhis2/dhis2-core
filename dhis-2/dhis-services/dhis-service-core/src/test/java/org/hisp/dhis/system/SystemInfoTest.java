@@ -57,7 +57,6 @@ class SystemInfoTest {
             .memoryInfo("x")
             .cpuCores(-1)
             .systemMonitoringUrl("x")
-            .encryption(true)
             .redisEnabled(true)
             .redisHostname("x")
             .databaseInfo(DatabaseInfo.builder().name("x").build())
@@ -82,7 +81,6 @@ class SystemInfoTest {
     assertNull(info.getSystemMonitoringUrl());
     assertNull(info.getRedisHostname());
     assertFalse(info.isRedisEnabled());
-    assertFalse(info.isEncryption());
     assertNull(info.getDatabaseInfo().getName());
   }
 }

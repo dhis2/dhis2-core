@@ -38,7 +38,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
-import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 import org.hisp.dhis.user.CurrentUserUtil;
@@ -68,7 +67,6 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
       injectUserInSecurityContext(actingUser);
     }
 
-    checkSecurityConfiguration();
     checkServerBaseUrl();
 
     Configuration config = configurationService.getConfiguration();
@@ -80,16 +78,6 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
 
     if (!hasCurrentUser) {
       clearSecurityContext();
-    }
-  }
-
-  private void checkSecurityConfiguration() {
-    EncryptionStatus status = dhisConfigurationProvider.getEncryptionStatus();
-
-    if (!status.isOk()) {
-      log.warn("Encryption not configured: " + status.getKey());
-    } else {
-      log.info("Encryption is available");
     }
   }
 

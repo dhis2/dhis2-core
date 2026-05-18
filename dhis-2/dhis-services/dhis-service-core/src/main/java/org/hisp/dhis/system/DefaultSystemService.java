@@ -238,7 +238,6 @@ public class DefaultSystemService implements SystemService, InitializingBean {
         .osVersion(props.getProperty("os.version"))
         .memoryInfo(SystemUtils.getMemoryString())
         .cpuCores(SystemUtils.getCpuCores())
-        .encryption(dhisConfig.getEncryptionStatus().isOk())
         .build();
   }
 

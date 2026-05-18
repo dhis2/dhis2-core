@@ -45,8 +45,6 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.encryption.EncryptionStatus;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
@@ -87,8 +85,6 @@ class AttributeValidatorTest {
 
   @Mock private TrackerPreheat preheat;
 
-  @Mock private DhisConfigurationProvider dhisConfigurationProvider;
-
   private TrackerBundle bundle;
 
   private Reporter reporter;
@@ -111,7 +107,6 @@ class AttributeValidatorTest {
                   .collect(Collectors.toUnmodifiableSet());
             });
     reporter = new Reporter(idSchemes);
-    when(dhisConfigurationProvider.getEncryptionStatus()).thenReturn(EncryptionStatus.OK);
   }
 
   @Test
@@ -389,25 +384,6 @@ class AttributeValidatorTest {
         reporter, te, trackedEntityAttribute, "a".repeat(Constant.MAX_ATTR_VALUE_LENGTH + 1));
 
     assertHasError(reporter, te, ValidationCode.E1077);
-  }
-
-  @Test
-  void shouldFailEncryptionStatus() {
-    TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
-    trackedEntityAttribute.setValueType(ValueType.AGE);
-    trackedEntityAttribute.setConfidential(true);
-
-    when(dhisConfigurationProvider.getEncryptionStatus())
-        .thenReturn(EncryptionStatus.ENCRYPTION_PASSWORD_TOO_SHORT);
-    when(dhisConfigurationProvider.getProperty(any())).thenReturn("property");
-
-    when(preheat.getTrackedEntityAttribute((MetadataIdentifier) any()))
-        .thenReturn(trackedEntityAttribute);
-
-    TrackedEntity te = TrackedEntity.builder().trackedEntity(UID.generate()).build();
-    validator.validateAttributeValue(reporter, te, trackedEntityAttribute, "value");
-
-    assertHasError(reporter, te, ValidationCode.E1112);
   }
 
   @Test

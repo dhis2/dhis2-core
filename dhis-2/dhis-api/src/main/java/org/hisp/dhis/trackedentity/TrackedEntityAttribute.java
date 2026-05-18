@@ -77,8 +77,6 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
 
   private Integer sortOrderInListNoProgram;
 
-  private Boolean confidential = false;
-
   private Boolean unique = false;
 
   // For TextPattern:
@@ -153,12 +151,6 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
   /** Indicates whether the value type of this attribute is date. */
   public boolean isDateType() {
     return valueType.isDate();
-  }
-
-  /** Indicates whether this attribute has confidential information. */
-  @JsonIgnore
-  public boolean isConfidentialBool() {
-    return confidential != null && confidential;
   }
 
   /** Indicates whether this attribute has an option set. */
@@ -342,16 +334,6 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
     this.optionSet = optionSet;
   }
 
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public Boolean getConfidential() {
-    return confidential;
-  }
-
-  public void setConfidential(Boolean confidential) {
-    this.confidential = confidential;
-  }
-
   public TextPattern getTextPattern() {
     return textPattern;
   }
@@ -488,8 +470,6 @@ public class TrackedEntityAttribute extends BaseDimensionalItemObject
         + displayInListNoProgram
         + ", sortOrderInListNoProgram="
         + sortOrderInListNoProgram
-        + ", confidential="
-        + confidential
         + ", unique="
         + unique
         + ", generated="

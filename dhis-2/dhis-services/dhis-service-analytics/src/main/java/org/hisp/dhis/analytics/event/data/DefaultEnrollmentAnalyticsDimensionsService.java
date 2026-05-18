@@ -81,7 +81,7 @@ public class DefaultEnrollmentAnalyticsDimensionsService
                         filterByValueType(
                             QUERY,
                             ofItemsWithProgram(
-                                program, getTeasIfRegistrationAndNotConfidential(program))))))
+                                program, getTeasIfRegistrationAndNotSkipped(program))))))
         .orElse(List.of());
   }
 
@@ -127,20 +127,14 @@ public class DefaultEnrollmentAnalyticsDimensionsService
         .orElse(List.of());
   }
 
-  private Collection<TrackedEntityAttribute> getTeasIfRegistrationAndNotConfidential(
-      Program program) {
+  private Collection<TrackedEntityAttribute> getTeasIfRegistrationAndNotSkipped(Program program) {
     return Optional.of(program)
         .filter(Program::isRegistration)
         .map(Program::getTrackedEntityAttributes)
         .orElse(List.of())
         .stream()
-        .filter(this::isNotConfidential)
         .filter(this::isNotSkipped)
         .collect(Collectors.toList());
-  }
-
-  private boolean isNotConfidential(TrackedEntityAttribute trackedEntityAttribute) {
-    return !trackedEntityAttribute.isConfidentialBool();
   }
 
   private boolean isNotSkipped(TrackedEntityAttribute trackedEntityAttribute) {

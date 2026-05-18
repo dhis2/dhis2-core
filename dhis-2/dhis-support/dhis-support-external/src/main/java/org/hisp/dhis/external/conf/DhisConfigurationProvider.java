@@ -36,7 +36,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.model.GoogleAccessToken;
 
 /**
@@ -201,13 +200,6 @@ public interface DhisConfigurationProvider {
    * @return true if LDAP authentication is configured.
    */
   boolean isLdapConfigured();
-
-  /**
-   * Returns the status of the encryption setup.
-   *
-   * @return the EncryptionStatus.
-   */
-  EncryptionStatus getEncryptionStatus();
 
   /**
    * Indicates whether an analytics database instance is configured.

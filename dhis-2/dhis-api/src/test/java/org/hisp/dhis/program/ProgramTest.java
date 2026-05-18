@@ -188,8 +188,8 @@ class ProgramTest {
     assertTrue(copy.getAnalyticsDataElements().isEmpty());
     assertTrue(copy.getCategoryMappings().isEmpty());
     assertTrue(copy.getDataElements().isEmpty());
-    assertTrue(copy.getNonConfidentialTrackedEntityAttributes().isEmpty());
-    assertTrue(copy.getNonConfidentialTrackedEntityAttributesWithLegendSet().isEmpty());
+    assertTrue(copy.getNonSkippedTrackedEntityAttributes().isEmpty());
+    assertTrue(copy.getNonSkippedTrackedEntityAttributesWithLegendSet().isEmpty());
     assertTrue(copy.getNotificationTemplates().isEmpty());
     assertTrue(copy.getOrganisationUnits().isEmpty());
     assertTrue(copy.getProgramAttributes().isEmpty());

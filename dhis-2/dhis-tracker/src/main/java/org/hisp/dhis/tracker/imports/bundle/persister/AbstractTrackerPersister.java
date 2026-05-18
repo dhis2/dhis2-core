@@ -398,7 +398,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
               attributeValueById.get(attribute.getAttribute());
 
           boolean isNew = Objects.isNull(currentValue);
-          String previousValue = isNew ? null : currentValue.getPlainValue();
+          String previousValue = isNew ? null : currentValue.getValue();
           boolean valueChanged = isNew || !Objects.equals(previousValue, attribute.getValue());
 
           if (isDelete && !isNew) {
@@ -462,7 +462,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
     changeLogs.addTrackedEntityChangeLog(
         trackedEntity,
         trackedEntityAttributeValue.getAttribute(),
-        trackedEntityAttributeValue.getPlainValue(),
+        trackedEntityAttributeValue.getValue(),
         null,
         DELETE,
         user.getUsername());
@@ -496,7 +496,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
         trackedEntity,
         trackedEntityAttributeValue.getAttribute(),
         previousValue,
-        trackedEntityAttributeValue.getPlainValue(),
+        trackedEntityAttributeValue.getValue(),
         changeLogType,
         user.getUsername());
   }

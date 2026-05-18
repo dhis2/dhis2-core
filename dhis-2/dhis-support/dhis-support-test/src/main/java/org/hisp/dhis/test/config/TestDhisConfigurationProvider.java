@@ -41,7 +41,6 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.conf.model.GoogleAccessToken;
@@ -166,11 +165,6 @@ public class TestDhisConfigurationProvider implements DhisConfigurationProvider 
   @Override
   public boolean isAnalyticsDatabaseConfigured() {
     return false;
-  }
-
-  @Override
-  public EncryptionStatus getEncryptionStatus() {
-    return EncryptionStatus.OK;
   }
 
   @Override

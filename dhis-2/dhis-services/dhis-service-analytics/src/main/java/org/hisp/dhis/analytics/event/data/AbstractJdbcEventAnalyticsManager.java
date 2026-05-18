@@ -2500,7 +2500,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
     Set<String> enrollmentColumns = new HashSet<>();
 
     Set<String> columns =
-        params.getProgram().getNonConfidentialTrackedEntityAttributes().stream()
+        params.getProgram().getNonSkippedTrackedEntityAttributes().stream()
             .map(columnMapper::getColumnsForAttribute)
             .flatMap(Collection::stream)
             .map(AnalyticsTableColumn::getName)

@@ -38,7 +38,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -51,11 +50,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.PostConstruct;
-import javax.crypto.Cipher;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
-import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.model.GoogleAccessToken;
 import org.hisp.dhis.external.location.LocationManager;
 import org.hisp.dhis.external.location.LocationManagerException;
@@ -270,38 +267,6 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
   @Override
   public boolean isAnalyticsDatabaseConfigured() {
     return StringUtils.isNotBlank(getProperty(ANALYTICS_CONNECTION_URL));
-  }
-
-  @Override
-  public EncryptionStatus getEncryptionStatus() {
-    String password;
-
-    int maxKeyLength;
-
-    // Check for JCE files is present (key length > 128) and AES is
-    // available
-
-    try {
-      maxKeyLength = Cipher.getMaxAllowedKeyLength("AES");
-
-      if (maxKeyLength == 128) {
-        return EncryptionStatus.MISSING_JCE_POLICY;
-      }
-    } catch (NoSuchAlgorithmException e) {
-      return EncryptionStatus.MISSING_JCE_POLICY;
-    }
-
-    password = getProperty(ConfigurationKey.ENCRYPTION_PASSWORD);
-
-    if (password.length() == 0) {
-      return EncryptionStatus.MISSING_ENCRYPTION_PASSWORD;
-    }
-
-    if (password.length() < 24) {
-      return EncryptionStatus.ENCRYPTION_PASSWORD_TOO_SHORT;
-    }
-
-    return EncryptionStatus.OK;
   }
 
   @Override
