@@ -50,7 +50,6 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.input.PagedParams;
 import org.hisp.dhis.dataapproval.DataApprovalAudit;
 import org.hisp.dhis.dataapproval.DataApprovalAuditQueryParams;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
@@ -155,28 +154,13 @@ public class AuditController {
   public RootNode getAggregateDataValueChangelog(DataValueChangelogQueryParams params) {
     List<String> fields = params.fields();
 
-    if (fields.isEmpty()) {
-      fields.addAll(FieldPreset.ALL.getFields());
-    }
+    if (fields.isEmpty()) fields = FieldPreset.ALL.getFields();
 
-    List<DataValueChangelog> entries;
-    Pager pager = null;
-
-    PagedParams paged = params.paged();
-    if (!paged.isPaged()) {
-      entries = dataValueChangelogService.getChangelogEntries(params);
-    } else {
-      int total = dataValueChangelogService.countEntries(params);
-      pager = new Pager(paged.page(), total, paged.pageSize());
-      entries = dataValueChangelogService.getChangelogEntries(params);
-    }
+    List<DataValueChangelog> entries = dataValueChangelogService.getChangelogEntries(params);
+    Pager pager = params.paged().toPager(params, dataValueChangelogService::countEntries);
 
     RootNode rootNode = NodeUtils.createMetadata();
-
-    if (pager != null) {
-      rootNode.addChild(NodeUtils.createPager(pager));
-    }
-
+    if (pager != null) rootNode.addChild(NodeUtils.createPager(pager));
     CollectionNode trackedEntityAttributeValueAudits =
         rootNode.addChild(new CollectionNode("dataValueAudits", true));
     trackedEntityAttributeValueAudits.addChildren(

@@ -44,7 +44,6 @@ import org.hisp.dhis.common.Maturity;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.input.PagedParams;
 import org.hisp.dhis.csv.CSV;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -96,24 +95,16 @@ public class MinMaxDataElementController {
       throws QueryParserException {
 
     List<String> fields = query.fields();
-    if (fields.isEmpty()) {
-      fields = FieldPreset.ALL.getFields();
-    }
+    if (fields.isEmpty()) fields = FieldPreset.ALL.getFields();
 
-    List<MinMaxDataElement> minMaxDataElements = minMaxService.getMinMaxDataElements(query);
+    List<MinMaxDataElement> entries = minMaxService.getMinMaxDataElements(query);
+    Pager pager = query.paged().toPager(query, minMaxService::countMinMaxDataElements);
 
     RootNode rootNode = NodeUtils.createMetadata();
-
-    PagedParams paged = query.paged();
-    if (paged.isPaged()) {
-      int total = minMaxService.countMinMaxDataElements(query);
-      Pager pager = new Pager(paged.page(), total, paged.pageSize());
-      rootNode.addChild(NodeUtils.createPager(pager));
-    }
-
+    if (pager != null) rootNode.addChild(NodeUtils.createPager(pager));
     rootNode.addChild(
         fieldFilterService.toCollectionNode(
-            MinMaxDataElement.class, new FieldFilterParams(minMaxDataElements, fields)));
+            MinMaxDataElement.class, new FieldFilterParams(entries, fields)));
 
     return rootNode;
   }

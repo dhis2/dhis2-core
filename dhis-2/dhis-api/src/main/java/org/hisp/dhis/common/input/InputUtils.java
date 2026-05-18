@@ -133,7 +133,7 @@ public final class InputUtils {
   @Nonnull
   public static JsonObject decodeInput(
       @Nonnull Class<? extends Record> schema, @Nonnull Function<String, String[]> propertyLookup) {
-    List<JsonObject.Property> properties = JsonObject.collapsedProperties(schema);
+    List<JsonObject.Property> properties = JsonObject.properties(schema);
     JsonNode object =
         JsonBuilder.createObject(
             obj -> {

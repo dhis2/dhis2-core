@@ -31,7 +31,9 @@ package org.hisp.dhis.common.input;
 
 import static org.hisp.dhis.jsontree.Validation.YesNo.NO;
 
+import java.util.function.ToIntFunction;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.jsontree.Validation;
 
 /**
@@ -60,5 +62,13 @@ public record PagedParams(
 
   public int offset() {
     return (page - 1) * pageSize;
+  }
+
+  public Pager toPager(int totalPages) {
+    return !isPaged() ? null : new Pager(page, totalPages, pageSize);
+  }
+
+  public <T> Pager toPager(T params, ToIntFunction<T> count) {
+    return !isPaged() ? null : toPager(count.applyAsInt(params));
   }
 }
