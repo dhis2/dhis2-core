@@ -160,6 +160,13 @@
       "version": {
         "min": 43
       }
+    },
+    {
+      "name": "withProgramStatusNoFilter",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT,PROGRAM_STATUS,pe:202211",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }
