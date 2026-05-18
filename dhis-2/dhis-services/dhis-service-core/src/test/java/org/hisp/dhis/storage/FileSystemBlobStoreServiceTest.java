@@ -55,8 +55,9 @@ class FileSystemBlobStoreServiceTest {
   void constructor_externalDirectoryUnset_throws() {
     LocationManager lm = mock(LocationManager.class);
     when(lm.externalDirectorySet()).thenReturn(false);
+    DhisConfigurationProvider config = config();
 
-    assertThrows(IllegalStateException.class, () -> new FileSystemBlobStoreService(config(), lm));
+    assertThrows(IllegalStateException.class, () -> new FileSystemBlobStoreService(config, lm));
   }
 
   @Test

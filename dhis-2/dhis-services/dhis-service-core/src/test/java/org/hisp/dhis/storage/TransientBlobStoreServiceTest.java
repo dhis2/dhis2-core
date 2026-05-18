@@ -30,6 +30,7 @@
 package org.hisp.dhis.storage;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 
@@ -48,15 +49,14 @@ class TransientBlobStoreServiceTest {
   void putBlob_streamShorterThanContentLength_throws() {
     TransientBlobStoreService svc = newService();
     byte[] payload = "abc".getBytes();
+    ByteArrayInputStream bais = new ByteArrayInputStream(payload);
+    BlobKey key = new BlobKey("k");
     // Declare 10 bytes but only provide 3 — readNBytes returns the 3 it could read.
     UncheckedIOException ex =
         assertThrows(
-            UncheckedIOException.class,
-            () ->
-                svc.putBlob(
-                    new BlobKey("k"), new ByteArrayInputStream(payload), 10L, null, null, null));
+            UncheckedIOException.class, () -> svc.putBlob(key, bais, 10L, null, null, null));
     // Sanity-check the wrapped IOException message references the mismatch.
-    org.junit.jupiter.api.Assertions.assertTrue(
+    assertTrue(
         ex.getCause().getMessage().contains("Expected 10"),
         "expected wrapped IOException to mention declared length, got: "
             + ex.getCause().getMessage());
@@ -66,11 +66,9 @@ class TransientBlobStoreServiceTest {
   void putBlob_contentLengthAboveInt_throws() {
     TransientBlobStoreService svc = newService();
     long tooBig = (long) Integer.MAX_VALUE + 1;
-    assertThrows(
-        ArithmeticException.class,
-        () ->
-            svc.putBlob(
-                new BlobKey("k"), new ByteArrayInputStream(new byte[0]), tooBig, null, null, null));
+    BlobKey key = new BlobKey("k");
+    ByteArrayInputStream bais = new ByteArrayInputStream(new byte[0]);
+    assertThrows(ArithmeticException.class, () -> svc.putBlob(key, bais, tooBig, null, null, null));
   }
 
   private static TransientBlobStoreService newService() {

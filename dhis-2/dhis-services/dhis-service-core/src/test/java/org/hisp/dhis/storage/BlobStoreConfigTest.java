@@ -29,9 +29,9 @@
  */
 package org.hisp.dhis.storage;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -81,12 +81,14 @@ class BlobStoreConfigTest {
 
   @Test
   void rejectsUnknownProvider() {
+    LocationManager locationManager = mock(LocationManager.class);
+    BlobStoreConfig blobStoreConfig = new BlobStoreConfig();
+    DhisConfigurationProvider dhisConfigWithS4 = config("s4");
     IllegalArgumentException e =
         assertThrows(
             IllegalArgumentException.class,
-            () ->
-                new BlobStoreConfig().blobStoreService(config("s4"), mock(LocationManager.class)));
-    assertEquals(true, e.getMessage().contains("s4"));
+            () -> blobStoreConfig.blobStoreService(dhisConfigWithS4, locationManager));
+    assertTrue(e.getMessage().contains("s4"));
   }
 
   private static DhisConfigurationProvider config(String provider) {
