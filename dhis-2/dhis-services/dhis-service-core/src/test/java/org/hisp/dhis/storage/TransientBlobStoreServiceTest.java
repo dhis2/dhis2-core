@@ -50,7 +50,7 @@ class TransientBlobStoreServiceTest {
     TransientBlobStoreService svc = newService();
     byte[] payload = "abc".getBytes();
     ByteArrayInputStream bais = new ByteArrayInputStream(payload);
-    BlobKey key = new BlobKey("k");
+    BlobKey key = BlobKey.of("k");
     // Declare 10 bytes but only provide 3 — readNBytes returns the 3 it could read.
     UncheckedIOException ex =
         assertThrows(
@@ -66,7 +66,7 @@ class TransientBlobStoreServiceTest {
   void putBlob_contentLengthAboveInt_throws() {
     TransientBlobStoreService svc = newService();
     long tooBig = (long) Integer.MAX_VALUE + 1;
-    BlobKey key = new BlobKey("k");
+    BlobKey key = BlobKey.of("k");
     ByteArrayInputStream bais = new ByteArrayInputStream(new byte[0]);
     assertThrows(ArithmeticException.class, () -> svc.putBlob(key, bais, tooBig, null, null, null));
   }

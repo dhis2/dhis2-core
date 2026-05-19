@@ -141,7 +141,7 @@ public class BlobStoreFileResourceContentStore implements FileResourceContentSto
 
       try (InputStream is = new FileInputStream(file)) {
         blobStore.putBlob(
-            new BlobKey(fr.getStorageKey() + dimension),
+            BlobKey.of(fr.getStorageKey() + dimension),
             is,
             file.length(),
             fr.getContentType(),

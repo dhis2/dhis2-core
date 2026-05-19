@@ -67,15 +67,15 @@ class FileSystemBlobStoreServiceTest {
     byte[] payload = "ok".getBytes();
 
     svc.putBlob(
-        new BlobKey("nested/file.txt"),
+        BlobKey.of("nested/file.txt"),
         new ByteArrayInputStream(payload),
         payload.length,
         null,
         null,
         null);
 
-    assertTrue(svc.blobExists(new BlobKey("nested/file.txt")));
-    assertEquals(payload.length, svc.contentLength(new BlobKey("nested/file.txt")));
+    assertTrue(svc.blobExists(BlobKey.of("nested/file.txt")));
+    assertEquals(payload.length, svc.contentLength(BlobKey.of("nested/file.txt")));
   }
 
   private static FileSystemBlobStoreService newService(Path tempDir) {

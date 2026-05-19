@@ -194,7 +194,7 @@ public class FileSystemBlobStoreService implements BlobStoreService {
             public FileVisitResult visitFile(
                 @Nonnull Path file, @Nonnull BasicFileAttributes attrs) {
               Path relative = baseDir.relativize(file);
-              result.add(new BlobKey(toBlobPath(relative)));
+              result.add(BlobKey.of(toBlobPath(relative)));
               return FileVisitResult.CONTINUE;
             }
           });

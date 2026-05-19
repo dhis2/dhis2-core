@@ -302,7 +302,7 @@ public class BlobStoreAppStorageService implements AppStorageService {
         }
         try (InputStream zipInputStream = zipFile.getInputStream(zipEntry)) {
           blobStore.putBlob(
-              new BlobKey(filePath), zipInputStream, zipEntry.getSize(), null, null, null);
+              BlobKey.of(filePath), zipInputStream, zipEntry.getSize(), null, null, null);
         }
       }
     }

@@ -146,7 +146,7 @@ public class TransientBlobStoreService implements BlobStoreService {
       // Filter out synthetic directory markers (keys ending with '/') so the listing
       // contract matches the other backends.
       if (k.startsWith(pfx) && !k.endsWith("/")) {
-        result.add(new BlobKey(k));
+        result.add(BlobKey.of(k));
       }
     }
     return result;

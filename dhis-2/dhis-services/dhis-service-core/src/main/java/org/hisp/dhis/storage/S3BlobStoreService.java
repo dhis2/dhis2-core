@@ -325,7 +325,7 @@ public class S3BlobStoreService implements BlobStoreService {
       for (S3Object obj : resp.contents()) {
         // Skip synthetic directory markers — some S3-compatible backends emit them.
         if (obj.key().endsWith("/")) continue;
-        result.add(new BlobKey(obj.key()));
+        result.add(BlobKey.of(obj.key()));
       }
       continuationToken =
           Boolean.TRUE.equals(resp.isTruncated()) ? resp.nextContinuationToken() : null;
