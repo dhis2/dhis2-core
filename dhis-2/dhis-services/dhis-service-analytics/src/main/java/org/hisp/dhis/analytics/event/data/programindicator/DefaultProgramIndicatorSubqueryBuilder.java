@@ -540,7 +540,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
       aggregateSql +=
           (where.isBlank() ? " WHERE " : " AND ")
               + "("
-              + getProgramIndicatorSql(
+              + getProgramIndicatorFilterSql(
                   programIndicator.getFilter(),
                   BOOLEAN,
                   programIndicator,
@@ -597,6 +597,21 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
 
   protected boolean useExperimentalAnalyticsQueryEngine() {
     return this.settingsService.getCurrentSettings().getUseExperimentalAnalyticsQueryEngine();
+  }
+
+  private String getProgramIndicatorFilterSql(
+      String expression,
+      DataType dataType,
+      ProgramIndicator programIndicator,
+      Date earliestStartDate,
+      Date latestDate) {
+    return this.programIndicatorService.getAnalyticsSqlAllowingNulls(
+        expression,
+        dataType,
+        programIndicator,
+        earliestStartDate,
+        latestDate,
+        SUBQUERY_TABLE_ALIAS);
   }
 
   private String findKeyForAlias(String alias, CteContext cteContext) {

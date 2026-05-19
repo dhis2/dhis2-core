@@ -343,6 +343,7 @@ public class CategoryOption extends BaseMetadataObject
   // -------------------------------------------------------------------------
 
   @Override
+  @JsonProperty
   public String getDimensionItem() {
     return getUid();
   }
@@ -353,11 +354,13 @@ public class CategoryOption extends BaseMetadataObject
   }
 
   @Override
+  @JsonProperty
   public DimensionItemType getDimensionItemType() {
     return DimensionItemType.CATEGORY_OPTION;
   }
 
   @Override
+  @JsonProperty
   public AggregationType getAggregationType() {
     return (queryMods != null && queryMods.getAggregationType() != null)
         ? queryMods.getAggregationType()
@@ -365,11 +368,13 @@ public class CategoryOption extends BaseMetadataObject
   }
 
   @Override
+  @JsonProperty
   public boolean hasAggregationType() {
     return false;
   }
 
   @Override
+  @JsonProperty
   public TotalAggregationType getTotalAggregationType() {
     return null;
   }
