@@ -226,6 +226,7 @@ class EventAggregateServiceTest {
       List<Map<String, EventAnalyticsDimensionalItem>> columnPermutations,
       List<String> rowDimensions)
       throws Exception {
+
     Method method =
         EventAggregateService.class.getDeclaredMethod(
             "generateOutputGrid",
