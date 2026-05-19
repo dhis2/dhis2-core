@@ -168,7 +168,7 @@ class DataElementOperandControllerTest {
     final List<DataElement> dataElements =
         rnd.objects(DataElement.class, 1).collect(Collectors.toList());
 
-    when(manager.getAllSorted(DataElement.class)).thenReturn(dataElements);
+    when(manager.getAll(DataElement.class)).thenReturn(dataElements);
 
     final List<DataElementOperand> dataElementOperands =
         rnd.objects(DataElementOperand.class, (int) totalSize).collect(Collectors.toList());
@@ -225,7 +225,7 @@ class DataElementOperandControllerTest {
     final List<DataElement> dataElements =
         rnd.objects(DataElement.class, 1).collect(Collectors.toList());
 
-    when(manager.getAllSorted(DataElement.class)).thenReturn(dataElements);
+    when(manager.getAll(DataElement.class)).thenReturn(dataElements);
 
     final List<DataElementOperand> dataElementOperands =
         rnd.objects(DataElementOperand.class, (int) totalSize).collect(Collectors.toList());
