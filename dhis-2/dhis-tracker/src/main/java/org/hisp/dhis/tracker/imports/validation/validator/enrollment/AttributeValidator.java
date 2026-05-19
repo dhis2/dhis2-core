@@ -93,7 +93,7 @@ class AttributeValidator
           && teAttribute != null) {
 
         attributeValueMap.put(attribute.getAttribute(), attribute.getValue());
-        validateAttributeValue(reporter, enrollment, teAttribute, attribute.getValue());
+        validateAttributeValue(reporter, enrollment, attribute.getValue());
         validateValueType(reporter, bundle, enrollment, attribute.getValue(), teAttribute);
         validateOptionSet(reporter, enrollment, teAttribute, attribute.getValue());
 

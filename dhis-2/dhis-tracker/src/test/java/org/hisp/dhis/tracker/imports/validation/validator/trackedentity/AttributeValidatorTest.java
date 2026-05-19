@@ -380,8 +380,7 @@ class AttributeValidatorTest {
     trackedEntityAttribute.setValueType(ValueType.TEXT);
 
     TrackedEntity te = TrackedEntity.builder().trackedEntity(UID.generate()).build();
-    validator.validateAttributeValue(
-        reporter, te, trackedEntityAttribute, "a".repeat(Constant.MAX_ATTR_VALUE_LENGTH + 1));
+    validator.validateAttributeValue(reporter, te, "a".repeat(Constant.MAX_ATTR_VALUE_LENGTH + 1));
 
     assertHasError(reporter, te, ValidationCode.E1077);
   }

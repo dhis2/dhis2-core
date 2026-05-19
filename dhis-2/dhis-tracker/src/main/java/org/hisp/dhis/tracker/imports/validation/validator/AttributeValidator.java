@@ -50,8 +50,7 @@ public abstract class AttributeValidator {
 
   protected AttributeValidator() {}
 
-  public void validateAttributeValue(
-      Reporter reporter, TrackerDto trackerDto, TrackedEntityAttribute tea, String value) {
+  public void validateAttributeValue(Reporter reporter, TrackerDto trackerDto, String value) {
     // Validate value (string) don't exceed the max length
     reporter.addErrorIf(
         () -> value.length() > Constant.MAX_ATTR_VALUE_LENGTH,

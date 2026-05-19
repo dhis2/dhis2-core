@@ -126,7 +126,7 @@ class AttributeValidator
         continue;
       }
 
-      validateAttributeValue(reporter, trackedEntity, tea, attribute.getValue());
+      validateAttributeValue(reporter, trackedEntity, attribute.getValue());
       validateValueType(reporter, bundle, trackedEntity, attribute.getValue(), tea);
       validateOptionSet(reporter, trackedEntity, tea, attribute.getValue());
 
