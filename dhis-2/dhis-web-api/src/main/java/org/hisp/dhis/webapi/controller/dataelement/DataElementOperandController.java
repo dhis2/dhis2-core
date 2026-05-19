@@ -32,7 +32,6 @@ package org.hisp.dhis.webapi.controller.dataelement;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import com.google.common.collect.Lists;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -126,7 +125,7 @@ public class DataElementOperandController {
         DataSet dataSet = manager.get(DataSet.class, ds);
         dataElementOperands = dataElementCategoryService.getOperands(dataSet, totals);
       } else {
-        List<DataElement> dataElements = new ArrayList<>(manager.getAllSorted(DataElement.class));
+        List<DataElement> dataElements = manager.getAll(DataElement.class);
         dataElementOperands = dataElementCategoryService.getOperands(dataElements, totals);
       }
     }
