@@ -75,7 +75,6 @@ import org.hisp.dhis.jdbc.batchhandler.CompleteDataSetRegistrationBatchHandler;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
@@ -83,9 +82,7 @@ import org.hisp.dhis.setting.SystemSettingsProvider;
 import org.hisp.dhis.system.util.Clock;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CurrentUserUtil;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
@@ -113,8 +110,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
   private final IdentifiableObjectManager idObjManager;
 
-  private final OrganisationUnitService orgUnitService;
-
   private final I18nManager i18nManager;
 
   private final BatchHandlerFactory batchHandlerFactory;
@@ -136,8 +131,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   private final MessageService messageService;
 
   private final ObjectMapper jsonMapper;
-
-  private final UserService userService;
 
   // -------------------------------------------------------------------------
   // CompleteDataSetRegistrationService implementation
@@ -358,9 +351,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   }
 
   private void decideAccess(ExportParams params) throws IllegalQueryException {
-    User currentUser = userService.getUserByUsername(CurrentUserUtil.getCurrentUsername());
+    UserDetails userDetails = CurrentUserUtil.getCurrentUserDetails();
     for (OrganisationUnit ou : params.getOrganisationUnits()) {
-      if (!orgUnitService.isInUserHierarchy(currentUser, ou)) {
+      if (!userDetails.isInUserHierarchy(ou.getStoredPath())) {
         throw new IllegalQueryException(new ErrorMessage(ErrorCode.E2012, ou.getUid()));
       }
     }

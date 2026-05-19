@@ -80,7 +80,6 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.jdbc.batchhandler.CompleteDataSetRegistrationBatchHandler;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -113,8 +112,6 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
   @Mock private CompleteDataSetRegistrationExchangeStore cdsrStore;
 
   @Mock private IdentifiableObjectManager idObjManager;
-
-  @Mock private OrganisationUnitService orgUnitService;
 
   @Mock private Notifier notifier;
 
@@ -192,7 +189,6 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
         new DefaultCompleteDataSetRegistrationExchangeService(
             cdsrStore,
             idObjManager,
-            orgUnitService,
             i18nManager,
             batchHandlerFactory,
             settingsProvider,
@@ -203,9 +199,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest {
             aggregateAccessManager,
             notificationPublisher,
             messageService,
-            JacksonObjectMapperConfig.staticJsonMapper(),
-            orgUnitService,
-            userService);
+            JacksonObjectMapperConfig.staticJsonMapper());
 
     DEFAULT_COC = new CategoryOptionCombo();
   }
