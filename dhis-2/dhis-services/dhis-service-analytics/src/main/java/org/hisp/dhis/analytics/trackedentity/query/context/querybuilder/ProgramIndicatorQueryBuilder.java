@@ -237,7 +237,7 @@ public class ProgramIndicatorQueryBuilder implements SqlQueryBuilder {
             null,
             SUBQUERY_TABLE_ALIAS),
         // filter
-        programIndicatorService.getAnalyticsSql(
+        programIndicatorService.getAnalyticsSqlAllowingNulls(
             programIndicator.getFilter(),
             DataType.BOOLEAN,
             programIndicator,
