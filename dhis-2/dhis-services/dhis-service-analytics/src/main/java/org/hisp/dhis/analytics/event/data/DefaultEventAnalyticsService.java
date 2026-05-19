@@ -313,7 +313,8 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
       MetadataItem metadataItem =
           (MetadataItem) ((Map<String, Object>) grid.getMetaData().get(ITEMS.getKey())).get(row);
 
-      String name = StringUtils.defaultIfEmpty(metadataItem.getName(), row);
+      String name =
+          metadataItem == null ? row : StringUtils.defaultIfEmpty(metadataItem.getName(), row);
       String col = StringUtils.defaultIfEmpty(COLUMN_NAMES.get(row), row);
 
       outputGrid.addHeader(new GridHeader(name, col, ValueType.TEXT, false, true));
@@ -477,7 +478,7 @@ public class DefaultEventAnalyticsService extends AbstractAnalyticsService
           (List<String>)
               ((Map<String, Object>) grid.getMetaData().get(DIMENSIONS.getKey())).get(dimension);
 
-      if (legendOptions.isEmpty()) {
+      if (legendOptions == null || legendOptions.isEmpty()) {
         List<Legend> legends = eventDimensionalItemObject.getLegendSet().getSortedLegends();
 
         for (Legend legend : legends) {
