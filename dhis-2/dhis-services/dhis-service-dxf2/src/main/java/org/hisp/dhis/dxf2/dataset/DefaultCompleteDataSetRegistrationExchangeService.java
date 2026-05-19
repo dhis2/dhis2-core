@@ -46,14 +46,11 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DateRange;
-import org.hisp.dhis.common.IdCoder;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -140,11 +137,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
   private final ObjectMapper jsonMapper;
 
-  private final OrganisationUnitService organisationUnitService;
-
   private final UserService userService;
-
-  private final IdCoder idCoder;
 
   // -------------------------------------------------------------------------
   // CompleteDataSetRegistrationService implementation
@@ -407,12 +400,24 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             importOptions);
 
     // ---------------------------------------------------------------------
+    // Set up meta-data
+    // ---------------------------------------------------------------------
+
+    MetadataCaches caches = new MetadataCaches();
+    MetadataCallables metaDataCallables =
+        new MetadataCallables(cfg, this.idObjManager, this.periodService, this.categoryService);
+
+    if (importOptions.isPreheatCacheDefaultFalse()) {
+      caches.preheat(idObjManager, cfg);
+    }
+
+    // ---------------------------------------------------------------------
     // Perform import
     // ---------------------------------------------------------------------
 
     int totalCount =
         batchImport(
-            completeRegistrations, cfg, importSummary, batchHandler);
+            completeRegistrations, cfg, importSummary, metaDataCallables, caches, batchHandler);
 
     ImportCount count = importSummary.getImportCount();
 
@@ -433,6 +438,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
       CompleteDataSetRegistrations completeRegistrations,
       ImportConfig config,
       ImportSummary summary,
+      MetadataCallables mdCallables,
+      MetadataCaches mdCaches,
       BatchHandler<CompleteDataSetRegistration> batchHandler) {
 
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
@@ -445,10 +452,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     Date now = new Date();
 
-
-    List<CompleteDataSetRegistration> existingCompletions = new ArrayList<>();
-    //TODO load from store by using keys
-
     while (completeRegistrations.hasNextCompleteDataSetRegistration()) {
       org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr =
           completeRegistrations.getNextCompleteDataSetRegistration();
@@ -458,7 +461,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
       // Init meta-data properties against meta-data cache
       // ---------------------------------------------------------------------
 
-      MetadataProperties mdProps = initMetaDataProperties(cdsr);
+      MetadataProperties mdProps = initMetaDataProperties(cdsr, mdCallables, mdCaches);
 
       // ---------------------------------------------------------------------
       // Meta-data validation
@@ -473,7 +476,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         mdProps.validate(cdsr, config);
         validateOrgUnitInUserHierarchy(
-            mdProps, currentUser.getUserOrgUnitIds(), currentUserName);
+            mdCaches, mdProps, currentUser.getUserOrgUnitIds(), currentUserName);
 
         // Constraints validation
 
@@ -481,7 +484,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
           validateAocMatchesDataSetCc(mdProps);
         }
 
-        validateAttrOptCombo(mdProps, config);
+        validateAttrOptCombo(mdProps, mdCaches, config);
 
         if (config.isStrictPeriods()) {
           validateHasMatchingPeriodTypes(mdProps);
@@ -658,6 +661,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   }
 
   private void validateOrgUnitInUserHierarchy(
+      MetadataCaches mdCaches,
       MetadataProperties mdProps,
       final Set<String> userOrgUnitUids,
       String currentUsername)
@@ -686,7 +690,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   }
 
   private void validateAttrOptCombo(
-      MetadataProperties mdProps, ImportConfig config)
+      MetadataProperties mdProps, MetadataCaches mdCaches, ImportConfig config)
       throws ImportConflictException {
     final Period pe = mdProps.period;
 
@@ -790,9 +794,10 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
   }
 
-  record DataSetCompletionKey(UID ds, Period pe, UID ou, UID aoc) {}
   private MetadataProperties initMetaDataProperties(
-      org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr) {
+      org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr,
+      MetadataCallables callables,
+      MetadataCaches cache) {
     String ds = StringUtils.trimToNull(cdsr.getDataSet());
     String pe = StringUtils.trimToNull(cdsr.getPeriod());
     String ou = StringUtils.trimToNull(cdsr.getOrganisationUnit());
@@ -816,8 +821,11 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
   private static class MetadataProperties {
     final DataSet dataSet;
+
     final Period period;
+
     final OrganisationUnit orgUnit;
+
     CategoryOptionCombo attrOptCombo;
 
     MetadataProperties(

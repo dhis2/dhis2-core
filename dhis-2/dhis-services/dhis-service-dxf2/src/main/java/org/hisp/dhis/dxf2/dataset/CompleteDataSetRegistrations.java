@@ -98,6 +98,28 @@ public class CompleteDataSetRegistrations {
   // Logic
   // --------------------------------------------------------------------------
 
+  private Iterator<CompleteDataSetRegistration> itemIterator;
+
+  private void refreshIterator() {
+    itemIterator = completeDataSetRegistrations.iterator();
+  }
+
+  public boolean hasNextCompleteDataSetRegistration() {
+    if (itemIterator == null) {
+      refreshIterator();
+    }
+
+    return itemIterator.hasNext();
+  }
+
+  public CompleteDataSetRegistration getNextCompleteDataSetRegistration() {
+    if (itemIterator == null) {
+      refreshIterator();
+    }
+
+    return itemIterator.next();
+  }
+
   public CompleteDataSetRegistration getCompleteDataSetRegistrationInstance() {
     return new CompleteDataSetRegistration();
   }
