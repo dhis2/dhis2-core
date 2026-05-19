@@ -61,6 +61,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.BucketAlreadyExistsException;
 import software.amazon.awssdk.services.s3.model.BucketAlreadyOwnedByYouException;
 import software.amazon.awssdk.services.s3.model.CommonPrefix;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
@@ -68,7 +69,6 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectsResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
-import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -175,15 +175,16 @@ public class S3BlobStoreService implements BlobStoreService {
 
   @PostConstruct
   public void init() {
+    // Create-first idempotent pattern: try to create the bucket and swallow the "already exists"
+    // responses. Avoids HeadBucket, which is documented to return either 404 NoSuchBucket or 403
+    // Forbidden when the bucket doesn't exist (depending on caller permissions) — empty MinIO
+    // servers consistently return 403, which a strict NoSuchBucketException catch misses.
     String bucket = container.value();
     try {
-      s3.headBucket(b -> b.bucket(bucket));
-    } catch (NoSuchBucketException e) {
-      try {
-        s3.createBucket(b -> b.bucket(bucket));
-      } catch (BucketAlreadyOwnedByYouException ignored) {
-        // Concurrent startup or external creation — bucket exists, nothing to do.
-      }
+      s3.createBucket(b -> b.bucket(bucket));
+    } catch (BucketAlreadyOwnedByYouException | BucketAlreadyExistsException ignored) {
+      // Bucket already exists (either from a previous startup, a concurrent startup, or external
+      // creation). Nothing to do.
     }
     log.info("S3 file store configured with bucket: '{}'", bucket);
   }
