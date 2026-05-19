@@ -197,7 +197,6 @@ public abstract class BaseNotificationMessageRenderer<T> implements Notification
    *
    * <ul>
    *   <li>Returns a placeholder if the {@code DataElement} is not part of the program stage.
-   *   <li>Returns a missing value replacement if the underlying value is {@code null}.
    *   <li>Resolves OptionSet codes to their corresponding display names when applicable.
    *   <li>Otherwise, returns the raw data value.
    * </ul>
