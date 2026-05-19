@@ -409,10 +409,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     MetadataCallables metaDataCallables =
         new MetadataCallables(cfg, this.idObjManager, this.periodService, this.categoryService);
 
-    if (importOptions.isPreheatCacheDefaultFalse()) {
-      caches.preheat(idObjManager, cfg);
-    }
-
     // ---------------------------------------------------------------------
     // Perform import
     // ---------------------------------------------------------------------
