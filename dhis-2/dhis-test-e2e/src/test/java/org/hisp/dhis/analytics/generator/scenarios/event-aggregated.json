@@ -202,6 +202,27 @@
        "version": {
         "min": 43
       }
+    },
+    {
+      "name": "withProgramStatusNoFilter",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?stage=A03MvHHogjR&displayProperty=NAME&sortOrder=desc&totalPages=false&outputType=EVENT&dimension=PROGRAM_STATUS,pe:LAST_12_MONTHS,cejWyOfXge6,ou:O6uvpzGd5pu;fdc6uOvgoji&relativePeriodDate=2023-07-01",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "withProgramStatusAndEnrollmentOu",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?stage=A03MvHHogjR&displayProperty=NAME&sortOrder=desc&totalPages=false&dimension=pe:LAST_12_MONTHS&dimension=PROGRAM_STATUS:ACTIVE&dimension=ENROLLMENT_OU:USER_ORGUNIT&relativePeriodDate=2023-07-01",
+      "version": {
+        "min": 43
+      }
+    },
+    {
+      "name": "queryActiveStatusCasesByGenderLast12MonthsDim",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?stage=A03MvHHogjR&displayProperty=NAME&sortOrder=desc&totalPages=false&outputType=EVENT&dimension=PROGRAM_STATUS:ACTIVE,pe:LAST_12_MONTHS,cejWyOfXge6,ou:O6uvpzGd5pu;fdc6uOvgoji;lc3eMKXaEfw;jUb8gELQApl;PMa2VCrupOd;kJq2mPyFEHo;qhqAxPSTUXp;Vth0fbpFcsO;jmIPBj66vD6;TEQlaapDQoK;bL4ooGhyHRQ;eIQbndfxQMb;at6UHUQatSo&relativePeriodDate=2023-07-01",
+      "version": {
+        "min": 43
+      }
     }
   ]
 }
