@@ -64,8 +64,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @OpenApi.Tags("metadata")
 @Controller
 @RequestMapping("/api/mapViews")
-public class MapViewController
-    extends AbstractFullReadOnlyController<MapView> {
+public class MapViewController extends AbstractFullReadOnlyController<MapView> {
   @Autowired private MappingService mappingService;
 
   @Autowired private OrganisationUnitService organisationUnitService;
