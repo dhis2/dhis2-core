@@ -118,7 +118,6 @@ public class BlobStoreAppStorageService implements AppStorageService {
       BiConsumer<App, BundledAppInfo> handler, BlobKeyPrefix folder, InputStream manifestStream) {
     try (InputStream inputStream = manifestStream) {
       App app = App.MAPPER.readValue(inputStream, App.class);
-      app.setAppStorageSource(AppStorageSource.BLOB_STORE);
       app.setFolderName(folder.value());
       app.setManifestTranslations(
           readAppManifestTranslations(
@@ -234,7 +233,6 @@ public class BlobStoreAppStorageService implements AppStorageService {
       app = AppManager.readAppManifest(file, this.jsonMapper, topLevelFolder);
       folder = AppFolderName.ofKey(app.getKey());
       app.setFolderName(folder.path());
-      app.setAppStorageSource(AppStorageSource.BLOB_STORE);
     } catch (IOException e) {
       log.error("Failed to install app: Failure during reading manifest from zip file", e);
       app = new App();
@@ -352,7 +350,7 @@ public class BlobStoreAppStorageService implements AppStorageService {
   @Nonnull
   public ResourceResult getAppResource(@CheckForNull App app, @Nonnull String resource)
       throws IOException {
-    if (app == null || !app.getAppStorageSource().equals(AppStorageSource.BLOB_STORE)) {
+    if (app == null) {
       log.warn(
           "Can't look up resource {}. The specified app was not found in blob storage.", resource);
       return new ResourceNotFound(resource);

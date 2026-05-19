@@ -76,7 +76,6 @@ class BlobStoreAppStorageServiceTest {
             blobStore, locationManager, new ObjectMapper(), fileResourceContentStore);
 
     app = new App();
-    app.setAppStorageSource(AppStorageSource.BLOB_STORE);
     app.setFolderName(FOLDER);
   }
 
