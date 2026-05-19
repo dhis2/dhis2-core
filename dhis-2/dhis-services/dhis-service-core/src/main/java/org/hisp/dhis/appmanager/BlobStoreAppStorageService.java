@@ -79,7 +79,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @RequiredArgsConstructor
-@Service("org.hisp.dhis.appmanager.BlobStoreAppStorageService")
+@Service
 public class BlobStoreAppStorageService implements AppStorageService {
 
   private static final String BUNDLED_APP_INFO_FILENAME = "bundled-app-info.json";

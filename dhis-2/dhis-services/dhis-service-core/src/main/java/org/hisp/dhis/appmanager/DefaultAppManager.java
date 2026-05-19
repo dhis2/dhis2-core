@@ -86,7 +86,6 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
@@ -120,8 +119,7 @@ public class DefaultAppManager implements AppManager {
   public DefaultAppManager(
       DhisConfigurationProvider dhisConfigurationProvider,
       AppHubService appHubService,
-      @Qualifier("org.hisp.dhis.appmanager.BlobStoreAppStorageService")
-          AppStorageService blobStoreAppStorageService,
+      AppStorageService blobStoreAppStorageService,
       DatastoreService datastoreService,
       CacheBuilderProvider cacheBuilderProvider,
       I18nManager i18nManager,

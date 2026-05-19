@@ -47,7 +47,7 @@ class TransientBlobStoreServiceTest {
 
   @Test
   void putBlob_streamShorterThanContentLength_throws() {
-    TransientBlobStoreService svc = newService();
+    BlobStoreService svc = newService();
     byte[] payload = "abc".getBytes();
     ByteArrayInputStream bais = new ByteArrayInputStream(payload);
     BlobKey key = BlobKey.of("k");
@@ -64,7 +64,7 @@ class TransientBlobStoreServiceTest {
 
   @Test
   void putBlob_contentLengthAboveInt_throws() {
-    TransientBlobStoreService svc = newService();
+    BlobStoreService svc = newService();
     long tooBig = (long) Integer.MAX_VALUE + 1;
     BlobKey key = BlobKey.of("k");
     ByteArrayInputStream bais = new ByteArrayInputStream(new byte[0]);

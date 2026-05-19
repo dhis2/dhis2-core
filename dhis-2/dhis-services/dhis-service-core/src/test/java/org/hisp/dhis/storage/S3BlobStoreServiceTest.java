@@ -48,6 +48,7 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Error;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
@@ -69,7 +70,7 @@ class S3BlobStoreServiceTest {
         .thenReturn(page(List.of("apps/a", "apps/b"), true, "tok-1"))
         .thenReturn(page(List.of("apps/c"), false, null));
 
-    S3BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
+    BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
 
     List<String> keys = new ArrayList<>();
     svc.listKeys(BlobKeyPrefix.of("apps")).forEach(k -> keys.add(k.value()));
@@ -94,7 +95,7 @@ class S3BlobStoreServiceTest {
         .thenReturn(commonPrefixPage(List.of("apps/foo/", "apps/bar/"), true, "tok-1"))
         .thenReturn(commonPrefixPage(List.of("apps/baz/"), false, null));
 
-    S3BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
+    BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
 
     List<String> folders = new ArrayList<>();
     svc.listFolders(BlobKeyPrefix.of("apps")).forEach(p -> folders.add(p.value()));
@@ -112,7 +113,7 @@ class S3BlobStoreServiceTest {
     when(s3.deleteObjects(any(DeleteObjectsRequest.class)))
         .thenReturn(DeleteObjectsResponse.builder().build());
 
-    S3BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
+    BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
     svc.deleteDirectory(BlobKeyPrefix.of("apps"));
 
     // Two list calls (paginated), two delete calls (one per page since each page had <BATCH_SIZE).
@@ -132,7 +133,7 @@ class S3BlobStoreServiceTest {
                     S3Error.builder().key("apps/a").code("AccessDenied").message("nope").build())
                 .build());
 
-    S3BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
+    BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
 
     // Per the bulkDelete policy this must not throw — the WARN summary is the contract.
     assertDoesNotThrow(() -> svc.deleteDirectory(BlobKeyPrefix.of("apps")));
@@ -145,13 +146,60 @@ class S3BlobStoreServiceTest {
     when(s3.listObjectsV2(any(ListObjectsV2Request.class)))
         .thenReturn(page(List.of("apps/", "apps/a", "apps/b/", "apps/b/c"), false, null));
 
-    S3BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
+    BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class));
 
     List<String> keys = new ArrayList<>();
     svc.listKeys(BlobKeyPrefix.of("apps")).forEach(k -> keys.add(k.value()));
 
     assertEquals(List.of("apps/a", "apps/b/c"), keys);
     assertTrue(keys.stream().noneMatch(k -> k.endsWith("/")));
+  }
+
+  @Test
+  void keyPrefix_prependedOnListAndStrippedFromReturnedKeys() {
+    // With keyPrefix="dev", listObjectsV2 is issued with prefix "dev/apps" and any keys returned
+    // from the store come back stripped to the caller-visible "apps/..." form.
+    S3Client s3 = mock(S3Client.class);
+    when(s3.listObjectsV2(any(ListObjectsV2Request.class)))
+        .thenReturn(page(List.of("dev/apps/a", "dev/apps/b"), false, null));
+
+    BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class), "dev");
+
+    List<String> keys = new ArrayList<>();
+    svc.listKeys(BlobKeyPrefix.of("apps")).forEach(k -> keys.add(k.value()));
+    assertEquals(List.of("apps/a", "apps/b"), keys);
+
+    ArgumentCaptor<ListObjectsV2Request> listCaptor =
+        ArgumentCaptor.forClass(ListObjectsV2Request.class);
+    verify(s3).listObjectsV2(listCaptor.capture());
+    assertEquals("dev/apps", listCaptor.getValue().prefix());
+  }
+
+  @Test
+  void createDirectory_writesMarkerUnderPrefix() {
+    // The synthetic directory marker must also live under the configured prefix so it's covered
+    // by the IAM scoped to that prefix.
+    S3Client s3 = mock(S3Client.class);
+    BlobStoreService svc = new S3BlobStoreService(container, s3, mock(S3Presigner.class), "dev");
+
+    svc.createDirectory(BlobKeyPrefix.of("apps/my-app"));
+
+    ArgumentCaptor<PutObjectRequest> putCaptor = ArgumentCaptor.forClass(PutObjectRequest.class);
+    verify(s3)
+        .putObject(putCaptor.capture(), any(software.amazon.awssdk.core.sync.RequestBody.class));
+    assertEquals("dev/apps/my-app/", putCaptor.getValue().key());
+  }
+
+  @Test
+  void normalizeKeyPrefix_stripsLeadingAndTrailingSlashes() {
+    assertEquals("", S3BlobStoreService.normalizeKeyPrefix(null));
+    assertEquals("", S3BlobStoreService.normalizeKeyPrefix(""));
+    assertEquals("", S3BlobStoreService.normalizeKeyPrefix("  "));
+    assertEquals("dev", S3BlobStoreService.normalizeKeyPrefix("dev"));
+    assertEquals("dev", S3BlobStoreService.normalizeKeyPrefix("/dev"));
+    assertEquals("dev", S3BlobStoreService.normalizeKeyPrefix("dev/"));
+    assertEquals("dev", S3BlobStoreService.normalizeKeyPrefix("/dev/"));
+    assertEquals("a/b", S3BlobStoreService.normalizeKeyPrefix("/a/b/"));
   }
 
   private static ListObjectsV2Response page(

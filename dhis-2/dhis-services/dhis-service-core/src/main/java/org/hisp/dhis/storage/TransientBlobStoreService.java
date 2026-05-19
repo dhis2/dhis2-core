@@ -35,10 +35,10 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.CheckForNull;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -80,6 +80,20 @@ public class TransientBlobStoreService implements BlobStoreService {
     return payload == null ? 0L : payload.length;
   }
 
+  /**
+   * @param key identifies the blob within the container; acts as a path-like object-store key (e.g.
+   *     {@code apps/my-app/index.html})
+   * @param content the data to store; must be open and positioned at the start when passed in;
+   *     exactly {@code contentLength} bytes will be read
+   * @param contentLength the number of bytes in {@code content}; rejects anything larger than
+   *     Integer.MAX_VALUE up-front
+   * @param contentType MIME type of the blob (e.g. {@code "image/png"}); unused in this
+   *     implementation.
+   * @param contentDisposition how the blob should be presented when downloaded (e.g. {@code
+   *     attachment; filename="report.pdf"}); unused in this implementation.
+   * @param contentHash MD5 hash of the blob content used for integrity verification; unused in this
+   *     implementation.
+   */
   @Override
   public void putBlob(
       BlobKey key,
@@ -120,7 +134,7 @@ public class TransientBlobStoreService implements BlobStoreService {
   @Override
   public Iterable<BlobKeyPrefix> listFolders(BlobKeyPrefix prefix) {
     String pfx = prefix.value() + "/";
-    Set<String> immediate = new HashSet<>();
+    Set<String> immediate = new TreeSet<>();
     for (String k : blobs.keySet()) {
       if (!k.startsWith(pfx)) continue;
       String remainder = k.substring(pfx.length());
