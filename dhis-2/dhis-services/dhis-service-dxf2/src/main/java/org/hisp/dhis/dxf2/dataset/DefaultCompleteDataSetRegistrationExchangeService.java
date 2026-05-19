@@ -46,11 +46,13 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DateRange;
+import org.hisp.dhis.common.IdCoder;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.commons.util.StreamUtils;
@@ -102,7 +104,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service("org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService")
 public class DefaultCompleteDataSetRegistrationExchangeService
     implements CompleteDataSetRegistrationExchangeService {
-  private static final int CACHE_MISS_THRESHOLD = 500;
 
   private static final Set<IdScheme> EXPORT_ID_SCHEMES =
       Set.of(IdScheme.UID, IdScheme.NAME, IdScheme.CODE);
@@ -142,6 +143,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   private final OrganisationUnitService organisationUnitService;
 
   private final UserService userService;
+
+  private final IdCoder idCoder;
 
   // -------------------------------------------------------------------------
   // CompleteDataSetRegistrationService implementation
@@ -404,24 +407,12 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             importOptions);
 
     // ---------------------------------------------------------------------
-    // Set up meta-data
-    // ---------------------------------------------------------------------
-
-    MetadataCaches caches = new MetadataCaches();
-    MetadataCallables metaDataCallables =
-        new MetadataCallables(cfg, this.idObjManager, this.periodService, this.categoryService);
-
-    if (importOptions.isPreheatCacheDefaultFalse()) {
-      caches.preheat(idObjManager, cfg);
-    }
-
-    // ---------------------------------------------------------------------
     // Perform import
     // ---------------------------------------------------------------------
 
     int totalCount =
         batchImport(
-            completeRegistrations, cfg, importSummary, metaDataCallables, caches, batchHandler);
+            completeRegistrations, cfg, importSummary, batchHandler);
 
     ImportCount count = importSummary.getImportCount();
 
@@ -442,8 +433,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
       CompleteDataSetRegistrations completeRegistrations,
       ImportConfig config,
       ImportSummary summary,
-      MetadataCallables mdCallables,
-      MetadataCaches mdCaches,
       BatchHandler<CompleteDataSetRegistration> batchHandler) {
 
     UserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
@@ -456,6 +445,10 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
     Date now = new Date();
 
+
+    List<CompleteDataSetRegistration> existingCompletions = new ArrayList<>();
+    //TODO load from store by using keys
+
     while (completeRegistrations.hasNextCompleteDataSetRegistration()) {
       org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr =
           completeRegistrations.getNextCompleteDataSetRegistration();
@@ -465,9 +458,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
       // Init meta-data properties against meta-data cache
       // ---------------------------------------------------------------------
 
-      MetadataProperties mdProps = initMetaDataProperties(cdsr, mdCallables, mdCaches);
-
-      heatCaches(mdCaches, config);
+      MetadataProperties mdProps = initMetaDataProperties(cdsr);
 
       // ---------------------------------------------------------------------
       // Meta-data validation
@@ -482,7 +473,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         mdProps.validate(cdsr, config);
         validateOrgUnitInUserHierarchy(
-            mdCaches, mdProps, currentUser.getUserOrgUnitIds(), currentUserName);
+            mdProps, currentUser.getUserOrgUnitIds(), currentUserName);
 
         // Constraints validation
 
@@ -490,7 +481,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
           validateAocMatchesDataSetCc(mdProps);
         }
 
-        validateAttrOptCombo(mdProps, mdCaches, config);
+        validateAttrOptCombo(mdProps, config);
 
         if (config.isStrictPeriods()) {
           validateHasMatchingPeriodTypes(mdProps);
@@ -667,7 +658,6 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   }
 
   private void validateOrgUnitInUserHierarchy(
-      MetadataCaches mdCaches,
       MetadataProperties mdProps,
       final Set<String> userOrgUnitUids,
       String currentUsername)
@@ -696,7 +686,7 @@ public class DefaultCompleteDataSetRegistrationExchangeService
   }
 
   private void validateAttrOptCombo(
-      MetadataProperties mdProps, MetadataCaches mdCaches, ImportConfig config)
+      MetadataProperties mdProps, ImportConfig config)
       throws ImportConflictException {
     final Period pe = mdProps.period;
 
@@ -800,49 +790,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
   }
 
-  private void heatCaches(MetadataCaches caches, ImportConfig config) {
-    if (!caches.getDataSets().isCacheLoaded() && exceedsThreshold(caches.getDataSets())) {
-      caches
-          .getDataSets()
-          .load(
-              idObjManager.getAll(DataSet.class), ds -> ds.getPropertyValue(config.getDsScheme()));
-
-      log.info("Data set cache heated after cache miss threshold reached");
-    }
-
-    if (!caches.getOrgUnits().isCacheLoaded() && exceedsThreshold(caches.getOrgUnits())) {
-      caches
-          .getOrgUnits()
-          .load(
-              idObjManager.getAll(OrganisationUnit.class),
-              ou -> ou.getPropertyValue(config.getOuScheme()));
-
-      log.info("Org unit cache heated after cache miss threshold reached");
-    }
-
-    // TODO Consider need for checking/re-heating attrOptCombo and period
-    // caches
-
-    if (!caches.getAttrOptionCombos().isCacheLoaded()
-        && exceedsThreshold(caches.getAttrOptionCombos())) {
-      caches
-          .getAttrOptionCombos()
-          .load(
-              idObjManager.getAll(CategoryOptionCombo.class),
-              aoc -> aoc.getPropertyValue(config.getAocScheme()));
-
-      log.info("Attribute option combo cache heated after cache miss threshold reached");
-    }
-
-    if (!caches.getPeriods().isCacheLoaded() && exceedsThreshold(caches.getPeriods())) {
-      caches.getPeriods().load(periodService.getAllPeriods(), Period::getIsoDate);
-    }
-  }
-
+  record DataSetCompletionKey(UID ds, Period pe, UID ou, UID aoc) {}
   private MetadataProperties initMetaDataProperties(
-      org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr,
-      MetadataCallables callables,
-      MetadataCaches cache) {
+      org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration cdsr) {
     String ds = StringUtils.trimToNull(cdsr.getDataSet());
     String pe = StringUtils.trimToNull(cdsr.getPeriod());
     String ou = StringUtils.trimToNull(cdsr.getOrganisationUnit());
@@ -860,21 +810,14 @@ public class DefaultCompleteDataSetRegistrationExchangeService
         cache.getAttrOptionCombos().get(aoc, callables.getOptionComboCallable().setId(aoc)));
   }
 
-  private static boolean exceedsThreshold(CachingMap<?, ?> cachingMap) {
-    return cachingMap.getCacheMissCount() > CACHE_MISS_THRESHOLD;
-  }
-
   // -----------------------------------------------------------------
   // Internal classes
   // -----------------------------------------------------------------
 
   private static class MetadataProperties {
     final DataSet dataSet;
-
     final Period period;
-
     final OrganisationUnit orgUnit;
-
     CategoryOptionCombo attrOptCombo;
 
     MetadataProperties(
