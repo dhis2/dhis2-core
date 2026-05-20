@@ -125,7 +125,7 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
       aggregateSql +=
           (where.isBlank() ? " WHERE " : " AND ")
               + "("
-              + getProgramIndicatorSql(
+              + getProgramIndicatorFilterSql(
                   programIndicator.getFilter(),
                   BOOLEAN,
                   programIndicator,
@@ -198,6 +198,21 @@ public class DefaultProgramIndicatorSubqueryBuilder implements ProgramIndicatorS
       Date earliestStartDate,
       Date latestDate) {
     return this.programIndicatorService.getAnalyticsSql(
+        expression,
+        dataType,
+        programIndicator,
+        earliestStartDate,
+        latestDate,
+        SUBQUERY_TABLE_ALIAS);
+  }
+
+  private String getProgramIndicatorFilterSql(
+      String expression,
+      DataType dataType,
+      ProgramIndicator programIndicator,
+      Date earliestStartDate,
+      Date latestDate) {
+    return this.programIndicatorService.getAnalyticsSqlAllowingNulls(
         expression,
         dataType,
         programIndicator,
