@@ -1358,8 +1358,7 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
           }
         }
         case OTHER ->
-            addHeaderAggregateColumns(
-                List.of(header), params, cteContext, sb, periodProjections);
+            addHeaderAggregateColumns(List.of(header), params, cteContext, sb, periodProjections);
       }
     }
   }
