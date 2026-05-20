@@ -45,6 +45,7 @@ import org.hisp.dhis.common.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
@@ -71,14 +72,12 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @RequestMapping("/api/dataElementOperands")
 @RequiredArgsConstructor
 public class DataElementOperandController {
+
+  private final DataElementService dataElementService;
   private final IdentifiableObjectManager manager;
-
   private final QueryService queryService;
-
   private final FieldFilterService fieldFilterService;
-
   private final LinkService linkService;
-
   private final CategoryService dataElementCategoryService;
 
   @Data
@@ -104,7 +103,7 @@ public class DataElementOperandController {
     List<DataElementOperand> dataElementOperands = List.of();
 
     if (params.isPersisted()) {
-      dataElementOperands = Lists.newArrayList(manager.getAll(DataElementOperand.class));
+      dataElementOperands = Lists.newArrayList(dataElementService.getAllDataElementOperands());
     } else {
       boolean totals = params.isTotals();
 
@@ -125,7 +124,7 @@ public class DataElementOperandController {
         DataSet dataSet = manager.get(DataSet.class, ds);
         dataElementOperands = dataElementCategoryService.getOperands(dataSet, totals);
       } else {
-        List<DataElement> dataElements = manager.getAll(DataElement.class);
+        List<DataElement> dataElements = dataElementService.getAllDataElements();
         dataElementOperands = dataElementCategoryService.getOperands(dataElements, totals);
       }
     }
