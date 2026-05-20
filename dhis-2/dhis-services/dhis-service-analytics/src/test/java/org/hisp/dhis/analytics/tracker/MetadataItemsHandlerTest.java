@@ -83,11 +83,14 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
@@ -114,6 +117,10 @@ class MetadataItemsHandlerTest {
   @Mock private UserService userService;
 
   @Mock private OrganisationUnitResolver organisationUnitResolver;
+
+  @Mock private I18nManager i18nManager;
+
+  @Mock private I18nFormat i18nFormat;
 
   @InjectMocks private MetadataItemsHandler metadataItemsHandler;
 
@@ -1441,6 +1448,8 @@ class MetadataItemsHandlerTest {
               .build();
 
       when(userService.getUserByUsername(anyString())).thenReturn(null);
+      when(i18nManager.getI18nFormat()).thenReturn(i18nFormat);
+      when(i18nFormat.formatPeriod(any(Period.class))).thenReturn("May 2022");
 
       // When
       metadataItemsHandler.addMetadata(grid, params, List.of());
@@ -1458,6 +1467,13 @@ class MetadataItemsHandlerTest {
           List.of("202205"),
           dimensions.get("A03MvHHogjR.eventdate"),
           "Dimension values should contain the period identifier '202205'");
+
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+      MetadataItem periodItem = (MetadataItem) items.get("202205");
+      assertNotNull(periodItem);
+      assertEquals("May 2022", periodItem.getName());
     }
 
     @Test
@@ -1491,6 +1507,8 @@ class MetadataItemsHandlerTest {
               .build();
 
       when(userService.getUserByUsername(anyString())).thenReturn(null);
+      when(i18nManager.getI18nFormat()).thenReturn(i18nFormat);
+      when(i18nFormat.formatPeriod(any(Period.class))).thenReturn("May 2022");
 
       // When
       metadataItemsHandler.addMetadata(grid, params, List.of());
@@ -1504,6 +1522,7 @@ class MetadataItemsHandlerTest {
           items.containsKey("202205"), "Items should contain period metadata entry for '202205'");
       MetadataItem periodItem = (MetadataItem) items.get("202205");
       assertNotNull(periodItem.getName(), "Period metadata item should have a name");
+      assertEquals("May 2022", periodItem.getName());
     }
 
     @Test
