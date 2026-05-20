@@ -870,13 +870,17 @@ public class MetadataItemsHandler {
   private static void addItemFiltersToDimensionItems(
       List<QueryItem> itemsFilter, Map<String, List<String>> dimensionItems) {
     for (QueryItem item : itemsFilter) {
+      String itemUid = ResponseHelper.getItemUid(item);
+
       if (item.hasOptionSet()) {
-        dimensionItems.put(item.getItemId(), item.getOptionSetFilterItemsOrAll());
+        dimensionItems.put(itemUid, item.getOptionSetFilterItemsOrAll());
       } else if (item.hasLegendSet()) {
-        dimensionItems.put(item.getItemId(), item.getLegendSetFilterItemsOrAll());
+        dimensionItems.put(itemUid, item.getLegendSetFilterItemsOrAll());
+      } else if (!item.getDimensionValues().isEmpty()) {
+        dimensionItems.put(itemUid, item.getDimensionValues());
       } else {
         dimensionItems.put(
-            item.getItemId(),
+            itemUid,
             item.getFiltersAsString() != null ? List.of(item.getFiltersAsString()) : emptyList());
       }
     }

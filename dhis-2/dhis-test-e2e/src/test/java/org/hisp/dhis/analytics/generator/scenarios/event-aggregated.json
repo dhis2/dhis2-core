@@ -57,6 +57,13 @@
       }
     },
     {
+      "name": "stageAndEventDateSpecificYearAsFilter",
+      "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?displayProperty=NAME&sortOrder=desc&totalPages=false&outputType=EVENT&filter=A03MvHHogjR.EVENT_DATE:2021&relativePeriodDate=2023-07-01",
+      "version": {
+        "min": 44
+      }
+    },
+    {
       "name": "stageAndEventDateRange",
       "query": "/api/analytics/events/aggregate/IpHINAT79UW.json?displayProperty=NAME&sortOrder=desc&totalPages=false&outputType=EVENT&dimension=A03MvHHogjR.EVENT_DATE:2021-03-01_2021-05-31&relativePeriodDate=2023-07-01",
       "version": {
