@@ -1619,6 +1619,63 @@ class MetadataItemsHandlerTest {
       assertNotNull(items);
       assertFalse(items.containsKey("202205"));
     }
+
+    @Test
+    @DisplayName(
+        "should include stage-prefixed dimension values for date item filters with period identifiers")
+    void shouldIncludeStagePrefixedDimensionValuesForDateItemFilters() {
+      // Given
+      Grid grid = new ListGrid();
+
+      org.hisp.dhis.program.ProgramStage programStage = createProgramStage('S', programA);
+      programStage.setUid("A03MvHHogjR");
+
+      org.hisp.dhis.common.BaseDimensionalItemObject eventDateItem =
+          new org.hisp.dhis.common.BaseDimensionalItemObject("occurreddate");
+      eventDateItem.setUid("occurreddate");
+      eventDateItem.setName("Event date");
+
+      QueryItem queryItem = new QueryItem(eventDateItem, null, ValueType.DATE, null, null);
+      queryItem.setProgramStage(programStage);
+      queryItem.setCustomHeader(
+          org.hisp.dhis.common.AnalyticsCustomHeader.forEventDate(programStage));
+      queryItem.addDimensionValue("202205");
+      queryItem.addFilter(new QueryFilter(QueryOperator.GE, "2022-05-01"));
+      queryItem.addFilter(new QueryFilter(QueryOperator.LE, "2022-05-31"));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItemFilter(queryItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertNotNull(dimensions);
+
+      assertTrue(
+          dimensions.containsKey("A03MvHHogjR.eventdate"),
+          "Dimensions should contain stage-prefixed key 'A03MvHHogjR.eventdate'");
+      assertEquals(
+          List.of("202205"),
+          dimensions.get("A03MvHHogjR.eventdate"),
+          "Dimension values should contain the period identifier '202205', not the filter string");
+
+      assertFalse(
+          dimensions.containsKey("occurreddate"),
+          "Dimensions should not contain raw 'occurreddate' key for stage-scoped filter items");
+    }
   }
 
   @Nested
