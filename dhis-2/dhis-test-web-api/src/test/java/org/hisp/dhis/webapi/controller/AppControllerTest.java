@@ -60,6 +60,8 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.test.config.TestDhisConfigurationProvider;
 import org.hisp.dhis.test.webapi.H2ControllerIntegrationTestBase;
@@ -115,6 +117,25 @@ class AppControllerTest extends H2ControllerIntegrationTestBase {
     // make sure we reset the UI locale to default in case a test changes it
     DELETE("/systemSettings/keyUiLocale");
     DELETE("/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID);
+  }
+
+  @Test
+  void testGetAppMenuWhenInstalledAppWithoutIconInManifest() throws IOException {
+    appManager.installApp(new ClassPathResource("app/test-app-wihout-icon.zip").getFile());
+
+    HttpResponse response = GET("/apps/menu");
+    JsonArray apps = response.content(HttpStatus.OK);
+    String icon =
+        apps.asObject()
+            .get("modules")
+            .asList(JsonObject.class)
+            .get(0)
+            .get("icon")
+            .as(JsonString.class)
+            .string();
+    assertTrue(
+        icon.equals("http://localhost/api/apps/test/icons/test.png")
+            || icon.equals("http://localhost/api/apps/myapp/dhis2-app-icon.png"));
   }
 
   @Test
