@@ -289,6 +289,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   static final String ANALYTICS_EVENT = "analytics_event_";
 
+  public static final String LATEST_EVENTS_CTE_PREFIX = "latest_events_";
+
   static final String COLUMN_ENROLLMENT_GEOMETRY_GEOJSON =
       String.format(
           "ST_AsGeoJSON(%s)", EnrollmentAnalyticsColumnName.ENROLLMENT_GEOMETRY_COLUMN_NAME);
@@ -2572,16 +2574,16 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   void generateFilterCTEs(
       EventQueryParams params, CteContext cteContext, boolean isAggregateQuery) {
 
+    if (isAggregateQuery) {
+      generateAggregateFilterCTEs(params, cteContext);
+      return;
+    }
+
     // Combine items and item filters and filter only those with an actual filter
     List<QueryItem> queryItems =
         Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
             .filter(QueryItem::hasFilter)
             .toList();
-
-    if (isAggregateQuery) {
-      generateAggregateFilterCTEs(queryItems, params, cteContext);
-      return;
-    }
 
     // Group query items by repeatable and non-repeatable stages
     Map<RepeatableStateStatus, List<QueryItem>> itemsByRepeatableFlag =
@@ -2619,27 +2621,31 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   }
 
   /**
-   * Generates filter CTEs for aggregate enrollment queries. Items are grouped by program stage UID,
-   * producing one CTE per stage with all dimension columns and filter conditions combined.
+   * Generates filter CTEs for aggregate enrollment queries. Stage items (both dimensions and item
+   * filters) are grouped by program stage UID, producing one CTE per stage that projects eligible
+   * stage dimensions and applies the combined filter conditions.
    *
-   * @param queryItems filtered query items that have at least one filter
+   * <p>A {@code latest_events_<stage>} CTE is emitted only when at least one item for the stage
+   * carries a filter. Unfiltered stage items are still projected by the CTE when they can be read
+   * from the same "latest event" row without losing repeatable-stage offset semantics.
+   *
    * @param params the {@link EventQueryParams} object
    * @param cteContext the {@link CteContext} to register CTEs into
    */
-  private void generateAggregateFilterCTEs(
-      List<QueryItem> queryItems, EventQueryParams params, CteContext cteContext) {
-
-    // Collect all items that have a program stage and group by stage UID
+  private void generateAggregateFilterCTEs(EventQueryParams params, CteContext cteContext) {
     Map<String, List<QueryItem>> itemsByStage =
-        queryItems.stream()
+        Stream.concat(params.getItems().stream(), params.getItemFilters().stream())
             .filter(qi -> qi.hasProgram() && qi.hasProgramStage())
+            .filter(qi -> qi.hasFilter() || canProjectUnfilteredItemInAggregateFilterCte(qi))
             .collect(groupingBy(qi -> qi.getProgramStage().getUid(), LinkedHashMap::new, toList()));
 
-    // For each stage, build a single CTE with all dimension columns and filters
     itemsByStage.forEach(
         (stageUid, stageItems) -> {
+          if (stageItems.stream().noneMatch(QueryItem::hasFilter)) {
+            return;
+          }
           String cteSql = buildAggregateFilterCteSql(stageItems, params);
-          String cteKey = "latest_events_" + stageUid;
+          String cteKey = LATEST_EVENTS_CTE_PREFIX + stageUid;
           cteContext.addCteFilter(cteKey, stageItems.get(0), cteSql);
         });
   }
@@ -2815,6 +2821,14 @@ public abstract class AbstractJdbcEventAnalyticsManager {
       if (item.hasFilter()) {
         return;
       }
+      // The per-stage filter CTE projects non-offset dimensions for that stage,
+      // so a redundant per-item CTE would only inflate the query without adding data.
+      if (canProjectUnfilteredItemInAggregateFilterCte(item)
+          && cteContext.getDefinitionByItemUid(
+                  LATEST_EVENTS_CTE_PREFIX + item.getProgramStage().getUid())
+              != null) {
+        return;
+      }
       handleAggregatedEnrollments(cteContext, item, eventTableName, colName, params);
       return;
     }
@@ -2862,6 +2876,10 @@ public abstract class AbstractJdbcEventAnalyticsManager {
 
   protected boolean columnIsInFormula(String col) {
     return col.contains("(") && col.contains(")");
+  }
+
+  private boolean canProjectUnfilteredItemInAggregateFilterCte(QueryItem item) {
+    return !item.hasRepeatableStageParams() || item.getRepeatableStageParams().isDefaultObject();
   }
 
   /**
