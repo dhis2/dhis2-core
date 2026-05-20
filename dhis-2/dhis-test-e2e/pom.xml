@@ -9,7 +9,7 @@
   <properties>
     <rootDir>..</rootDir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <spotless.version>3.4.0</spotless.version>
+    <spotless.version>3.5.0</spotless.version>
     <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
     <maven-surefire-plugin.version>3.5.5</maven-surefire-plugin.version>
     <maven-surefire-junit5-tree-reporter.version>1.5.1</maven-surefire-junit5-tree-reporter.version>
@@ -31,8 +31,8 @@
     <awaitility.version>4.3.0</awaitility.version>
     <lombok.version>1.18.46</lombok.version>
     <allure.version>2.29.1</allure.version>
-    <selenium-java.version>4.43.0</selenium-java.version>
-    <slf4j-simple.version>2.0.17</slf4j-simple.version>
+    <selenium-java.version>4.44.0</selenium-java.version>
+    <slf4j-simple.version>2.0.18</slf4j-simple.version>
     <fluent-hc.version>4.5.14</fluent-hc.version>
     <httpclient5.version>5.6.1</httpclient5.version>
     <commons-io.version>2.22.0</commons-io.version>

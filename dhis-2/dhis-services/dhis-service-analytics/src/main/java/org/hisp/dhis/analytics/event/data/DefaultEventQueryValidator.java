@@ -205,7 +205,7 @@ public class DefaultEventQueryValidator implements EventQueryValidator {
   }
 
   private boolean hasDateQueryItem(EventQueryParams params) {
-    return params.getItems().stream()
+    return params.getItemsAndItemFilters().stream()
         .anyMatch(
             item ->
                 EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME.equals(item.getItemId())

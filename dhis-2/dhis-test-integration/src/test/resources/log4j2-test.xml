@@ -2,6 +2,9 @@
 <Configuration status="warn">
     <Properties>
         <Property name="layout">%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n</Property>
+        <!-- CI sets TEST_LOG_SUPPRESSED_LEVEL=error when ci-verbose label is present to show all errors.
+        Defaults to off which disables these loggers entirely. -->
+        <Property name="suppressed.level">${env:TEST_LOG_SUPPRESSED_LEVEL:-off}</Property>
     </Properties>
 
     <Appenders>
@@ -14,6 +17,23 @@
     </Appenders>
 
     <Loggers>
+        <!-- Suppress expected errors from tests exercising error paths and from resources
+        not available in test classpaths (e.g. build.properties, apps-bundle.json).
+        These are not real failures - the tests pass, but the application logs at ERROR. -->
+        <Logger name="org.hisp.dhis.scheduling" level="${suppressed.level}"/>
+        <Logger name="org.hisp.dhis.system" level="${suppressed.level}"/>
+        <Logger name="org.hisp.dhis.appmanager" level="${suppressed.level}"/>
+        <Logger name="org.hisp.dhis.fileresource" level="${suppressed.level}"/>
+        <Logger name="org.hisp.dhis.sms" level="${suppressed.level}"/>
+        <Logger name="org.hisp.dhis.route" level="${suppressed.level}"/>
+        <Logger name="org.hisp.dhis.dxf2.gml" level="${suppressed.level}"/>
+        <Logger name="org.hisp.dhis.rules.engine" level="${suppressed.level}"/>
+        <Logger name="org.hisp.dhis.tracker.imports.sms" level="${suppressed.level}"/>
+        <!-- CrudControllerAdvice is the global @ControllerAdvice that catches exceptions from tests
+        deliberately exercising error paths (e.g. SQL injection tests). The broad package suppression
+        was replaced with this targeted class to keep other controller errors visible. -->
+        <Logger name="org.hisp.dhis.webapi.controller.CrudControllerAdvice" level="${suppressed.level}"/>
+
         <Root level="warn">
             <!-- Set to error so CI test runs are quiet, we see failed tests easily but still see errors from libraries
             we use due to for example misconfigurations or so. If you want to increase the verbosity of specific
@@ -29,6 +49,10 @@
         Once you add an AppenderRef to a Logger you need to set additivity to false otherwise logs might appear twice
         as they propagate up from the Logger to its parent which is the Root.
         Check the log4j2 config documentation for more details. Uncomment the various loggers to debug the tests. -->
+
+        <!-- Tests that verify uniqueness constraints intentionally trigger duplicate-key
+             violations; Hibernate logs every such exception at ERROR via SqlExceptionHelper. -->
+        <Logger name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" level="fatal" additivity="false"/>
 
         <!-- DHIS2 -->
         <!--        
