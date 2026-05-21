@@ -81,7 +81,10 @@ public interface BlobStoreService {
   /**
    * Stores a streaming payload under the given key.
    *
-   * <p>The caller is responsible for closing {@code content} after this method returns.
+   * <p>The caller is responsible for closing {@code content} after this method returns. The
+   * supplied stream is consumed exactly once and need not support {@code mark/reset};
+   * implementations buffer internally if their backend requires re-reads (e.g. SDK retries on the
+   * S3 backend).
    *
    * @param key identifies the blob within the container; acts as a path-like object-store key (e.g.
    *     {@code apps/my-app/index.html})

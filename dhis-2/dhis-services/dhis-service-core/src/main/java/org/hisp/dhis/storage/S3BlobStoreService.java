@@ -31,6 +31,7 @@ package org.hisp.dhis.storage;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.MessageDigest;
@@ -249,7 +250,38 @@ public class S3BlobStoreService implements BlobStoreService {
       // S3 expects the Content-MD5 header as base64-encoded bytes; ContentHash stores hex.
       put.contentMD5(hexToBase64(contentHash.hex()));
     }
-    s3.putObject(put.build(), RequestBody.fromInputStream(content, contentLength));
+    s3.putObject(put.build(), requestBodyFor(content, contentLength));
+  }
+
+  /**
+   * Builds a {@link RequestBody} that the SDK can safely re-read across retries.
+   *
+   * <p>The SDK's SigV4 chunked-payload signing pipeline runs inside {@code RetryableStage}: when a
+   * request is retried (transient 5xx / socket reset / etc.), the whole pipeline re-runs and {@code
+   * AwsChunkedV4PayloadSigner.sign} calls {@code ContentStreamProvider.newStream()} again on each
+   * attempt. The wrapper from {@link RequestBody#fromInputStream} can only honour the second call
+   * when the underlying stream supports {@code mark/reset} — for streams that don't (e.g. {@code
+   * ZipFile.getInputStream(zipEntry)} used by app install) the wrapper throws.
+   *
+   * <p>If the caller's stream is non-resetable we pre-buffer it into a byte array and use {@link
+   * RequestBody#fromBytes}, which is safely re-readable. Resetable streams (file streams, byte
+   * arrays, anything {@code BufferedInputStream}-wrapped) pass through unchanged so we don't
+   * regress streaming behaviour where it already works.
+   */
+  private static RequestBody requestBodyFor(InputStream content, long contentLength) {
+    if (content.markSupported()) {
+      return RequestBody.fromInputStream(content, contentLength);
+    }
+    try {
+      byte[] buffered = content.readNBytes(Math.toIntExact(contentLength));
+      if (buffered.length != contentLength) {
+        throw new IOException(
+            "Expected %d bytes but stream produced %d".formatted(contentLength, buffered.length));
+      }
+      return RequestBody.fromBytes(buffered);
+    } catch (IOException e) {
+      throw new UncheckedIOException("Unable to buffer non-resetable blob payload", e);
+    }
   }
 
   @Override
