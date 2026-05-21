@@ -146,7 +146,7 @@ public final class InputUtils {
                 Set<Validation.NodeType> types = p.types();
                 if (types.isEmpty()) {
                   // default behaviour
-                  addAutoComplex(name, values, obj);
+                  addAutoComplex(name, values, true, obj);
                 } else if (values.length == 0) {
                   if (types.contains(Validation.NodeType.BOOLEAN)) {
                     obj.addBoolean(name, true);
@@ -163,7 +163,7 @@ public final class InputUtils {
                       case STRING ->
                           obj.addString(
                               name, values.length == 1 ? values[0] : String.join(",", values));
-                      case ARRAY, OBJECT -> addAutoComplex(name, values, obj);
+                      case ARRAY, OBJECT -> addAutoComplex(name, values, false, obj);
                     }
                   }
                 }
@@ -173,13 +173,16 @@ public final class InputUtils {
   }
 
   private static void addAutoComplex(
-      Text name, String[] values, JsonBuilder.JsonObjectBuilder obj) {
+      Text name, String[] values, boolean allowString, JsonBuilder.JsonObjectBuilder obj) {
     if (values.length == 1) {
       // assume JURL
-      if (values[0].startsWith("(")) {
-        obj.addMember(name, Jurl.of(values[0]).node());
+      String value = values[0];
+      if (value.startsWith("(")) {
+        obj.addMember(name, Jurl.of(value).node());
+      } else if (allowString) {
+        obj.addString(name, value);
       } else {
-        obj.addString(name, values[0]);
+        obj.addArray(name, arr -> arr.addString(value));
       }
     } else {
       obj.addArray(
