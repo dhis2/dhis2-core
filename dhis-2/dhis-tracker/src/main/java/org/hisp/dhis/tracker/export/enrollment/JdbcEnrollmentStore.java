@@ -292,7 +292,7 @@ class JdbcEnrollmentStore {
         """
       left join lateral (
         select json_agg(json_build_object('uid', n.uid, 'text', n.notetext,
-          'creator', n.creator, 'created', n.created, 'updatedByUid', u.uid,
+          'created', n.created, 'updatedByUid', u.uid,
           'updatedByUsername', u.username, 'updatedByFirstname', u.firstname,
           'updatedBySurname', u.surname, 'updatedByName', u.name)) as jsonnotes
           from enrollment_notes en
@@ -725,7 +725,6 @@ class JdbcEnrollmentStore {
         Note note = new Note();
         note.setUid(jdbcNote.getUid());
         note.setNoteText(jdbcNote.getText());
-        note.setCreator(jdbcNote.getCreator());
         note.setCreated(DateUtils.safeParseDate(jdbcNote.getCreated()));
         User user = new User();
         user.setUid(jdbcNote.getUpdatedByUid());
@@ -791,7 +790,6 @@ class JdbcEnrollmentStore {
   private static class JdbcNote {
     private String uid;
     private String text;
-    private String creator;
     private String created;
     private String updatedByUid;
     private String updatedByUsername;
