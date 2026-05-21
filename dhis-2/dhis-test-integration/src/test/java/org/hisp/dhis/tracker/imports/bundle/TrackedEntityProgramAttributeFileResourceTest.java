@@ -98,7 +98,6 @@ class TrackedEntityProgramAttributeFileResourceTest extends PostgresIntegrationT
         trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
     assertEquals(5, attributeValues.size());
     manager.clear();
-    manager.flush();
     fileResource = fileResourceService.getFileResource(fileResource.getUid());
     assertTrue(fileResource.isAssigned());
   }
