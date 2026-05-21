@@ -61,6 +61,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceStore;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
@@ -95,6 +96,8 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
   @PersistenceContext private EntityManager entityManager;
 
   protected final DataSource dataSource;
+
+  protected final FileResourceStore fileResourceStore;
 
   /**
    * Template method that can be used by classes extending this class to execute the persistence
@@ -362,9 +365,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       return;
     }
 
-    fileResource.setAssigned(isAssign);
-    fileResource.setFileResourceOwner(fileResourceOwner);
-    entityManager.merge(fileResource);
+    fileResourceStore.updateAssignment(fileResource.getUid(), isAssign, fileResourceOwner);
   }
 
   protected void handleTrackedEntityAttributeValues(
