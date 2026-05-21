@@ -45,6 +45,7 @@ import org.hisp.dhis.jsontree.JsonBuilder;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.Jurl;
 import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.jsontree.Validation;
 import org.hisp.dhis.period.Period;
@@ -144,16 +145,8 @@ public final class InputUtils {
                 if (values == null) continue;
                 Set<Validation.NodeType> types = p.types();
                 if (types.isEmpty()) {
-                  // default is string or array of string
-                  if (values.length == 1) {
-                    obj.addString(name, values[0]);
-                  } else {
-                    obj.addArray(
-                        name,
-                        arr -> {
-                          for (String v : values) arr.addString(v);
-                        });
-                  }
+                  // default behaviour
+                  addAutoComplex(name, values, obj);
                 } else if (values.length == 0) {
                   if (types.contains(Validation.NodeType.BOOLEAN)) {
                     obj.addBoolean(name, true);
@@ -167,20 +160,33 @@ public final class InputUtils {
                     switch (type) {
                       case INTEGER, NUMBER, BOOLEAN, NULL ->
                           obj.addMember(name, JsonNode.of(values[0]));
-                      case STRING, OBJECT ->
+                      case STRING ->
                           obj.addString(
                               name, values.length == 1 ? values[0] : String.join(",", values));
-                      case ARRAY ->
-                          obj.addArray(
-                              name,
-                              arr -> {
-                                for (String v : values) arr.addString(v);
-                              });
+                      case ARRAY, OBJECT -> addAutoComplex(name, values, obj);
                     }
                   }
                 }
               }
             });
     return JsonMixed.of(object);
+  }
+
+  private static void addAutoComplex(
+      Text name, String[] values, JsonBuilder.JsonObjectBuilder obj) {
+    if (values.length == 1) {
+      // assume JURL
+      if (values[0].startsWith("(")) {
+        obj.addMember(name, Jurl.of(values[0]).node());
+      } else {
+        obj.addString(name, values[0]);
+      }
+    } else {
+      obj.addArray(
+          name,
+          arr -> {
+            for (String v : values) arr.addString(v);
+          });
+    }
   }
 }
