@@ -56,7 +56,6 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -1473,9 +1472,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         () -> checkDate(currentTime, trackedEntity.getCreated()),
         () -> checkDate(currentTime, trackedEntity.getCreatedAtClient()),
         () -> checkDate(currentTime, trackedEntity.getLastUpdatedAtClient()),
-        () -> checkDate(currentTime, trackedEntity.getLastUpdated()),
-        // get stored by is always null
-        () -> assertNull(trackedEntity.getStoredBy()));
+        () -> checkDate(currentTime, trackedEntity.getLastUpdated()));
   }
 
   @Test
@@ -1514,8 +1511,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
         () -> checkDate(currentTime, enrollment.getLastUpdated()),
         () -> checkDate(currentTime, enrollment.getLastUpdatedAtClient()),
         () -> checkDate(currentTime, enrollment.getEnrollmentDate()),
-        () -> checkDate(currentTime, enrollment.getOccurredDate()),
-        () -> assertNull(enrollment.getStoredBy()));
+        () -> checkDate(currentTime, enrollment.getOccurredDate()));
   }
 
   @Test

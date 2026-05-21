@@ -576,7 +576,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
     assertTrue(response.header("content-disposition").contains("filename=trackedEntity.csv"));
     assertStartsWith(
         """
-    trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtClient,orgUnit,inactive,deleted,potentialDuplicate,geometry,latitude,longitude,storedBy,createdBy,updatedBy,attrCreatedAt,attrUpdatedAt,attribute,displayName,value,valueType
+    trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtClient,orgUnit,inactive,deleted,potentialDuplicate,geometry,latitude,longitude,createdBy,updatedBy,attrCreatedAt,attrUpdatedAt,attribute,displayName,value,valueType
     """,
         csvResponse);
     // TEAV order is not deterministic
@@ -601,7 +601,7 @@ class TrackedEntitiesExportControllerTest extends PostgresControllerIntegrationT
             Boolean.toString(te.isInactive()),
             Boolean.toString(te.isDeleted()),
             Boolean.toString(te.isPotentialDuplicate()),
-            ",,,",
+            ",,",
             importUser.getUsername(),
             importUser.getUsername())
         + ","
