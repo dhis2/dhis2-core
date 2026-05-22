@@ -60,7 +60,6 @@ jobs:
         run: ./findByName.sh dev $INSTANCE_NAME && ./destroy-deployment.sh $(./findByName.sh dev $INSTANCE_NAME | jq -r '.id')
 
       - name: Delete instance URL comment
-        uses: actions-cool/maintain-one-comment@v3
+        uses: marocchino/sticky-pull-request-comment@v2
         with:
-          body: "Instance deployed to https://dev.im.dhis2.org/pr-${{ github.event.pull_request.number }}"
           delete: true
