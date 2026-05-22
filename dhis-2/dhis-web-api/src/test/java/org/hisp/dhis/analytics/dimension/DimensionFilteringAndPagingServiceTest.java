@@ -76,7 +76,7 @@ public class DimensionFilteringAndPagingServiceTest {
   }
 
   @Test
-  public void testPaging() {
+  void testPaging() {
     DimensionsCriteria criteria = new DimensionsCriteria();
     criteria.setPageSize(5);
 
@@ -87,7 +87,7 @@ public class DimensionFilteringAndPagingServiceTest {
   }
 
   @Test
-  public void testFiltering() {
+  void testFiltering() {
     DimensionsCriteria criteria = new DimensionsCriteria();
     criteria.setFilter(Set.of("name:eq:test"));
 
@@ -98,7 +98,7 @@ public class DimensionFilteringAndPagingServiceTest {
   }
 
   @Test
-  public void testFilteringByInOperator() {
+  void testFilteringByInOperator() {
     DimensionsCriteria criteria = new DimensionsCriteria();
     criteria.setFilter(Set.of("valueType:in:[ NUMBER, INTEGER ]"));
 
