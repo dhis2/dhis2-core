@@ -459,9 +459,7 @@ public class User extends BaseIdentifiableObject implements MetadataObject {
     this.secret = secret;
   }
 
-  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  @Property(access = Property.Access.READ_ONLY)
+  @JsonIgnore
   public TwoFactorType getTwoFactorType() {
     return this.twoFactorType == null ? TwoFactorType.NOT_ENABLED : this.twoFactorType;
   }
