@@ -34,6 +34,7 @@ public enum ColumnHeader {
   TRACKED_ENTITY("tei", "Tracked entity"),
   ENROLLMENT("pi", "Enrollment"),
   GEOMETRY("geometry", "Geometry"),
+  GEOMETRY_SOURCE("geometrySource", "Geometry source"),
   ENROLLMENT_GEOMETRY("enrollmentgeometry", "Enrollment geometry"),
   ENROLLMENT_DATE("enrollmentdate", "Enrollment date"),
   /**

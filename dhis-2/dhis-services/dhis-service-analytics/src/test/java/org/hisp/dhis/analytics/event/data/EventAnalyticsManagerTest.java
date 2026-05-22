@@ -280,7 +280,34 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
             + " as ax where (ax.\"quarterly\" in ('2000Q1') ) and ax.\"uidlevel1\" in ('ouabcdefghA')";
 
     assertSql(expected, sql.getValue());
+    assertThat(sql.getValue(), not(containsString("geometrySource")));
     assertTrue(grid.hasLastDataRow());
+  }
+
+  @Test
+  void verifyGetEventSqlWithGeometrySourceWhenFallbackActive() {
+    mockEmptyRowSet();
+
+    EventQueryParams params =
+        createRequestParamsBuilder()
+            .withCoordinateFields(List.of("eventgeometry", "ougeometry"))
+            .withGeometrySources(
+                List.of(
+                    new EventQueryParams.GeometrySource("eventgeometry", "psigeometry"),
+                    new EventQueryParams.GeometrySource("ougeometry", "ougeometry")))
+            .build();
+
+    subject.getEvents(params, createGrid(), 100);
+
+    verify(jdbcTemplate).queryForRowSet(sql.capture());
+
+    assertThat(
+        sql.getValue(),
+        containsString(
+            "ST_AsGeoJSON(coalesce(ax.\"eventgeometry\", ax.\"ougeometry\"), 6) as geometry, "
+                + "(case when ax.\"eventgeometry\" IS not NULL then 'psigeometry' "
+                + "when ax.\"ougeometry\" IS not NULL then 'ougeometry' end) as geometrySource, "
+                + "ST_AsGeoJSON(coalesce(ax.enrollmentgeometry), 6) as enrollmentgeometry"));
   }
 
   @Test
