@@ -100,15 +100,19 @@ public class UserTwoFactorAuditController {
       @RequestParam(required = false, defaultValue = "1") int page,
       @RequestParam(required = false, defaultValue = "" + DEFAULT_PAGE_SIZE) int pageSize) {
     int total = auditService.count(status, type);
-    int effectivePage = Math.max(1, page);
-    int effectivePageSize = paging ? Math.min(Math.max(1, pageSize), MAX_PAGE_SIZE) : total;
-    int offset = paging ? (effectivePage - 1) * effectivePageSize : 0;
-    int limit = paging ? effectivePageSize : -1;
+    int requestedPageSize =
+        paging ? Math.min(Math.max(1, pageSize), MAX_PAGE_SIZE) : Math.max(1, total);
+    // Build the Pager first so its built-in [1, pageCount] page clamp drives
+    // BOTH the response metadata and the DB offset/limit — an out-of-bounds
+    // page request can no longer return an empty list with pager.page pinned
+    // to a different (clamped) page.
+    Pager pager = new Pager(page, total, requestedPageSize);
+    int offset = paging ? pager.getOffset() : 0;
+    int limit = paging ? pager.getPageSize() : -1;
     List<TwoFactorAuditEntry> entries =
         auditService.list(status, type, offset, limit).stream()
             .map(UserTwoFactorAuditController::toEntry)
             .toList();
-    Pager pager = new Pager(effectivePage, total, paging ? effectivePageSize : Math.max(1, total));
     return new TwoFactorAuditList(pager, entries);
   }
 

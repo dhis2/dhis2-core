@@ -60,6 +60,11 @@ public class TwoFactorAuditQueryService {
 
   private static final String ENABLED_TYPES_SQL_LIST = "('TOTP_ENABLED','EMAIL_ENABLED')";
 
+  // The DB column is NOT NULL today, but the Hibernate mapping declares it
+  // nullable; coalesce defensively so any drift can never silently misbucket
+  // rows under three-valued logic ({@code NULL NOT IN (...)} -> UNKNOWN).
+  private static final String EFFECTIVE_TYPE_SQL = "COALESCE(twofactortype, 'NOT_ENABLED')";
+
   private final JdbcTemplate jdbcTemplate;
 
   /** Returns the row count of {@code userinfo} grouped by {@code twofactortype}. */
@@ -69,7 +74,10 @@ public class TwoFactorAuditQueryService {
       result.put(type, 0L);
     }
     jdbcTemplate.query(
-        "SELECT twofactortype, COUNT(*) FROM userinfo GROUP BY twofactortype",
+        "SELECT "
+            + EFFECTIVE_TYPE_SQL
+            + " AS effective_type, COUNT(*) FROM userinfo GROUP BY "
+            + EFFECTIVE_TYPE_SQL,
         rs -> {
           String raw = rs.getString(1);
           if (raw != null) {
@@ -91,7 +99,7 @@ public class TwoFactorAuditQueryService {
     String sql =
         "SELECT COUNT(DISTINCT urm.userid) AS with_all,"
             + " COUNT(DISTINCT urm.userid) FILTER ("
-            + "   WHERE u.twofactortype NOT IN "
+            + "   WHERE COALESCE(u.twofactortype, 'NOT_ENABLED') NOT IN "
             + ENABLED_TYPES_SQL_LIST
             + " ) AS with_all_missing"
             + " FROM userrolemembers urm"
@@ -147,8 +155,16 @@ public class TwoFactorAuditQueryService {
 
   private static void appendStatusClause(StringBuilder sql, Status status) {
     switch (status) {
-      case ENABLED -> sql.append(" AND twofactortype IN ").append(ENABLED_TYPES_SQL_LIST);
-      case DISABLED -> sql.append(" AND twofactortype NOT IN ").append(ENABLED_TYPES_SQL_LIST);
+      case ENABLED ->
+          sql.append(" AND ")
+              .append(EFFECTIVE_TYPE_SQL)
+              .append(" IN ")
+              .append(ENABLED_TYPES_SQL_LIST);
+      case DISABLED ->
+          sql.append(" AND ")
+              .append(EFFECTIVE_TYPE_SQL)
+              .append(" NOT IN ")
+              .append(ENABLED_TYPES_SQL_LIST);
       case ALL -> {
         // no-op
       }
@@ -158,7 +174,7 @@ public class TwoFactorAuditQueryService {
   private static void appendTypeClause(
       StringBuilder sql, List<Object> params, @CheckForNull List<TwoFactorType> types) {
     if (types == null || types.isEmpty()) return;
-    sql.append(" AND twofactortype IN (");
+    sql.append(" AND ").append(EFFECTIVE_TYPE_SQL).append(" IN (");
     for (int i = 0; i < types.size(); i++) {
       sql.append(i == 0 ? "?" : ",?");
       params.add(types.get(i).name());

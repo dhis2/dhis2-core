@@ -157,6 +157,23 @@ class UserTwoFactorAuditControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(2, body.getList("users", JsonObject.class).size());
   }
 
+  @Test
+  @DisplayName(
+      "GET /users/twoFactor with out-of-bounds page returns clamped page with matching data")
+  void testList_outOfBoundsPage() {
+    JsonObject body = GET("/users/twoFactor?pageSize=2&page=999").content(OK);
+
+    JsonObject pager = body.getObject("pager");
+    int reportedPage = pager.getNumber("page").integer();
+    int pageCount = pager.getNumber("pageCount").integer();
+    assertEquals(
+        pageCount, reportedPage, "Out-of-bounds page must be clamped to the last available page");
+    assertTrue(
+        body.getList("users", JsonObject.class).size() > 0,
+        "Response body must contain the rows for the page reported by pager.page,"
+            + " not an empty list mismatched against pager.page");
+  }
+
   private User createUserWithTwoFactorType(String username, TwoFactorType type) {
     User user = createUserWithAuth(username);
     user.setTwoFactorType(type);
