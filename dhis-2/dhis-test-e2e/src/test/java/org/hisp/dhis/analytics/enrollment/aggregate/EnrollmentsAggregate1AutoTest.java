@@ -49,24 +49,6 @@ import org.junit.jupiter.api.Test;
 public class EnrollmentsAggregate1AutoTest extends AnalyticsApiTest {
   private final AnalyticsEnrollmentsActions actions = new AnalyticsEnrollmentsActions();
 
-
-  @Test
-  public void dimensions() throws JSONException {
-    // Given
-    QueryParamsBuilder params =
-            new QueryParamsBuilder()
-                    .add("stage=A03MvHHogjR")
-                    .add("displayProperty=SHORTNAME")
-                    .add("totalPages=false")
-                    .add("outputType=ENROLLMENT")
-                    .add("dimension=ou:DiszpKrYNg8,pe:THIS_YEAR,A03MvHHogjR.cejWyOfXge6")
-                    .add("relativePeriodDate=2023-08-01");
-
-    // When
-    ApiResponse response = actions.aggregate().get("IpHINAT79UW", JSON, JSON, params);
-  }
-
-
   @Test
   public void queryAggregatedenrollmentsbirthgenderthisyearlevel4orgtest() throws JSONException {
     // Given
