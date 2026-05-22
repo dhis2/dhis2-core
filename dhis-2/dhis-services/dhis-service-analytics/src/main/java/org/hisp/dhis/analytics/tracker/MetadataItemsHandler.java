@@ -84,6 +84,8 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
@@ -103,6 +105,8 @@ public class MetadataItemsHandler {
   private final UserService userService;
 
   private final OrganisationUnitResolver organisationUnitResolver;
+
+  private final I18nManager i18nManager;
 
   /**
    * Adds meta-data values to the given grid based on the given data query parameters.
@@ -495,6 +499,13 @@ public class MetadataItemsHandler {
     PeriodDimension periodDimension = PeriodDimension.of(periodDimensionValue);
     if (periodDimension == null) {
       return;
+    }
+
+    I18nFormat format = i18nManager.getI18nFormat();
+    if (format != null) {
+      String formattedName = format.formatPeriod(periodDimension.getPeriod());
+      periodDimension.setName(formattedName);
+      periodDimension.setShortName(formattedName);
     }
 
     metadataItemMap.put(
