@@ -59,4 +59,6 @@ public interface ProgramNotificationTemplateService {
 
   List<ProgramNotificationTemplate> getProgramNotificationTemplates(
       ProgramNotificationTemplateOperationParams programNotificationTemplateParam);
+
+  List<ProgramNotificationTemplate> getScheduledTemplates();
 }
