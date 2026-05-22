@@ -9,6 +9,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  checks: read           # for t3chguy/wait-on-check-action
+  pull-requests: write   # for actions-cool/maintain-one-comment
+
 jobs:
   deploy-instance:
     if: contains(github.event.pull_request.labels.*.name, 'deploy')
