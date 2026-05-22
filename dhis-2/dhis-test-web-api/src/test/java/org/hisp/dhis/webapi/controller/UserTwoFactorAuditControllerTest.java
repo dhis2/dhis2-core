@@ -143,10 +143,25 @@ class UserTwoFactorAuditControllerTest extends H2ControllerIntegrationTestBase {
     assertEquals(FORBIDDEN, GET("/users/twoFactor").status());
   }
 
+  @Test
+  @DisplayName("GET /users/twoFactor pages the result with pager total reflecting full match set")
+  void testList_paging() {
+    JsonObject body = GET("/users/twoFactor?pageSize=2&page=1").content(OK);
+
+    JsonObject pager = body.getObject("pager");
+    assertTrue(
+        pager.getNumber("total").integer() >= 3,
+        "pager.total must include every matching row, not just the page");
+    assertEquals(2, pager.getNumber("pageSize").integer());
+    assertEquals(1, pager.getNumber("page").integer());
+    assertEquals(2, body.getList("users", JsonObject.class).size());
+  }
+
   private User createUserWithTwoFactorType(String username, TwoFactorType type) {
     User user = createUserWithAuth(username);
     user.setTwoFactorType(type);
     userService.updateUser(user);
+    manager.flush(); // ensure twofactortype is visible to JDBC reads inside the controller
     return user;
   }
 

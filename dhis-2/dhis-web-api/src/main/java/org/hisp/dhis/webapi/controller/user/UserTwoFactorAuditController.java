@@ -32,18 +32,19 @@ package org.hisp.dhis.webapi.controller.user;
 import static org.hisp.dhis.security.Authorities.ALL;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import java.util.Comparator;
 import java.util.Date;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.CheckForNull;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.twofa.TwoFactorType;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.security.twofa.audit.TwoFactorAuditQueryService;
+import org.hisp.dhis.security.twofa.audit.TwoFactorAuditQueryService.PrivilegedCounts;
+import org.hisp.dhis.security.twofa.audit.TwoFactorAuditQueryService.Status;
+import org.hisp.dhis.security.twofa.audit.TwoFactorAuditQueryService.UserAuditRow;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -51,7 +52,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Admin-only 2FA enrolment audit for the user base. Restricted to callers holding {@link
- * org.hisp.dhis.security.Authorities#ALL}.
+ * org.hisp.dhis.security.Authorities#ALL}. All aggregation and filtering is delegated to {@link
+ * TwoFactorAuditQueryService}, which runs native SQL against the user tables — no User entities or
+ * lazy role collections are hydrated here.
  *
  * @author Morten Svanaes
  */
@@ -64,88 +67,54 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiresAuthority(anyOf = ALL)
 public class UserTwoFactorAuditController {
 
-  private final UserService userService;
+  private static final int DEFAULT_PAGE_SIZE = 50;
+  private static final int MAX_PAGE_SIZE = 1000;
+
+  private final TwoFactorAuditQueryService auditService;
 
   @GetMapping("/summary")
   public TwoFactorAuditSummary getSummary() {
-    Map<TwoFactorType, Long> byType = new EnumMap<>(TwoFactorType.class);
-    for (TwoFactorType type : TwoFactorType.values()) {
-      byType.put(type, 0L);
-    }
-    long total = 0;
-    long enabled = 0;
-    long withAllAuthority = 0;
-    long withAllAuthorityMissing2FA = 0;
-    for (User user : userService.getAllUsers()) {
-      total++;
-      TwoFactorType type = effectiveType(user);
-      byType.merge(type, 1L, Long::sum);
-      if (type.isEnabled()) {
-        enabled++;
-      }
-      if (user.isSuper()) {
-        withAllAuthority++;
-        if (!type.isEnabled()) {
-          withAllAuthorityMissing2FA++;
-        }
-      }
-    }
+    Map<TwoFactorType, Long> byType = auditService.countByType();
+    long total = byType.values().stream().mapToLong(Long::longValue).sum();
+    long enabled =
+        byType.getOrDefault(TwoFactorType.TOTP_ENABLED, 0L)
+            + byType.getOrDefault(TwoFactorType.EMAIL_ENABLED, 0L);
     long disabled = total - enabled;
     double coverage = total == 0 ? 0d : Math.round((double) enabled / total * 1000d) / 10d;
+    PrivilegedCounts privileged = auditService.countPrivileged();
     return new TwoFactorAuditSummary(
         total,
         enabled,
         disabled,
         coverage,
         byType,
-        new PrivilegedUserStats(withAllAuthority, withAllAuthorityMissing2FA));
+        new PrivilegedUserStats(
+            privileged.withAllAuthority(), privileged.withAllAuthorityMissing2FA()));
   }
 
   @GetMapping
   public TwoFactorAuditList getList(
-      @RequestParam(required = false, defaultValue = "ALL") AuditStatus status,
-      @CheckForNull @RequestParam(required = false) List<TwoFactorType> type) {
+      @RequestParam(required = false, defaultValue = "ALL") Status status,
+      @CheckForNull @RequestParam(required = false) List<TwoFactorType> type,
+      @RequestParam(required = false, defaultValue = "true") boolean paging,
+      @RequestParam(required = false, defaultValue = "1") int page,
+      @RequestParam(required = false, defaultValue = "" + DEFAULT_PAGE_SIZE) int pageSize) {
+    int total = auditService.count(status, type);
+    int effectivePage = Math.max(1, page);
+    int effectivePageSize = paging ? Math.min(Math.max(1, pageSize), MAX_PAGE_SIZE) : total;
+    int offset = paging ? (effectivePage - 1) * effectivePageSize : 0;
+    int limit = paging ? effectivePageSize : -1;
     List<TwoFactorAuditEntry> entries =
-        userService.getAllUsers().stream()
-            .filter(u -> matchesStatus(u, status))
-            .filter(u -> matchesType(u, type))
-            .sorted(Comparator.comparing(User::getUsername, String.CASE_INSENSITIVE_ORDER))
+        auditService.list(status, type, offset, limit).stream()
             .map(UserTwoFactorAuditController::toEntry)
             .toList();
-    return new TwoFactorAuditList(entries.size(), entries);
+    Pager pager = new Pager(effectivePage, total, paging ? effectivePageSize : Math.max(1, total));
+    return new TwoFactorAuditList(pager, entries);
   }
 
-  private static boolean matchesStatus(User user, AuditStatus status) {
-    TwoFactorType type = effectiveType(user);
-    return switch (status) {
-      case ALL -> true;
-      case ENABLED -> type.isEnabled();
-      case DISABLED -> !type.isEnabled();
-    };
-  }
-
-  private static boolean matchesType(User user, @CheckForNull List<TwoFactorType> types) {
-    return types == null || types.isEmpty() || types.contains(effectiveType(user));
-  }
-
-  private static TwoFactorType effectiveType(User user) {
-    TwoFactorType type = user.getTwoFactorType();
-    return type == null ? TwoFactorType.NOT_ENABLED : type;
-  }
-
-  private static TwoFactorAuditEntry toEntry(User user) {
+  private static TwoFactorAuditEntry toEntry(UserAuditRow row) {
     return new TwoFactorAuditEntry(
-        user.getUid(),
-        user.getUsername(),
-        user.getName(),
-        effectiveType(user),
-        user.getLastLogin());
-  }
-
-  public enum AuditStatus {
-    ALL,
-    ENABLED,
-    DISABLED
+        row.uid(), row.username(), row.name(), row.twoFactorType(), row.lastLogin());
   }
 
   public record TwoFactorAuditSummary(
@@ -160,7 +129,7 @@ public class UserTwoFactorAuditController {
       @JsonProperty long withAllAuthority, @JsonProperty long withAllAuthorityMissing2FA) {}
 
   public record TwoFactorAuditList(
-      @JsonProperty long total, @JsonProperty List<TwoFactorAuditEntry> users) {}
+      @JsonProperty Pager pager, @JsonProperty List<TwoFactorAuditEntry> users) {}
 
   public record TwoFactorAuditEntry(
       @JsonProperty String id,
