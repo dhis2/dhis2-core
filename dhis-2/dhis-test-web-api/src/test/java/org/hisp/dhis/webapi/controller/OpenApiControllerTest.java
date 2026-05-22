@@ -221,7 +221,7 @@ class OpenApiControllerTest extends H2ControllerIntegrationTestBase {
 
     assertEquals(
         Set.of("pager", "organisationUnits"),
-        properties.keys().map(Text::toString).collect(toSet()),
+        Set.copyOf(properties.keys().map(Text::toString).toList()),
         "there should only be a pager and an entity list property");
 
     SchemaObject listSchema = properties.get("organisationUnits");

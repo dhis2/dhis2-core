@@ -89,8 +89,7 @@ public interface OpenApiObject extends JsonObject {
   }
 
   default Stream<OperationObject> operations() {
-    return $paths()
-        .values()
+    return $paths().entries().stream()
         .flatMap(
             item ->
                 Stream.of(
@@ -305,8 +304,7 @@ public interface OpenApiObject extends JsonObject {
     }
 
     default String responseSuccessCode() {
-      return responses()
-          .keys()
+      return responses().keys().stream()
           .filter(code -> code.startsWith("2"))
           .map(Text::toString)
           .findFirst()
@@ -314,13 +312,12 @@ public interface OpenApiObject extends JsonObject {
     }
 
     default List<String> responseCodes() {
-      return responses().keys().distinct().sorted().map(Text::toString).toList();
+      return responses().keys().stream().distinct().sorted().map(Text::toString).toList();
     }
 
     default List<String> responseMediaSubTypes() {
-      return responses()
-          .values()
-          .flatMap(r -> r.content().keys())
+      return responses().entries().stream()
+          .flatMap(r -> r.content().keys().stream())
           .map(type -> type.toString().substring(type.indexOf('/') + 1).toLowerCase())
           .distinct()
           .sorted()
@@ -348,7 +345,7 @@ public interface OpenApiObject extends JsonObject {
 
     private static List<SchemaObject> toListOfSchemas(JsonMap<MediaTypeObject> content) {
       if (content.isUndefined() || content.isEmpty()) return List.of();
-      List<SchemaObject> schemas = content.values().map(MediaTypeObject::schema).toList();
+      List<SchemaObject> schemas = content.entries().map(MediaTypeObject::schema).toList();
       if (content.size() == 1) return schemas;
       if (MediaTypeObject.isUniform(content)) return List.of(schemas.get(0));
       return schemas;
@@ -455,7 +452,7 @@ public interface OpenApiObject extends JsonObject {
       if (content.isUndefined()) return false;
       if (content.size() == 1) return true;
       List<SchemaObject> types =
-          content.values().map(MediaTypeObject::schema).map(SchemaObject::resolve).toList();
+          content.entries().map(MediaTypeObject::schema).map(SchemaObject::resolve).toList();
       SchemaObject type0 = types.get(0);
       if (type0.isShared())
         return types.stream()
@@ -637,9 +634,8 @@ public interface OpenApiObject extends JsonObject {
       JsonMap<SchemaObject> properties = properties();
       if (properties.isUndefined()) return false;
       if (properties.size() != 2) return false;
-      if (properties.values().noneMatch(SchemaObject::isArrayType)) return false;
-      return properties
-          .values()
+      if (properties.entries().stream().noneMatch(SchemaObject::isArrayType)) return false;
+      return properties.entries().stream()
           .anyMatch(s -> s.isObjectType() || s.isRef() && s.resolve().isObjectType());
     }
 
