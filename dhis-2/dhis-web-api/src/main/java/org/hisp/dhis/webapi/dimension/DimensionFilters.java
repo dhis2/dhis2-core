@@ -45,6 +45,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -179,8 +180,12 @@ public class DimensionFilters implements Predicate<DimensionResponse> {
       if (!trimmedValue.startsWith("[") || !trimmedValue.endsWith("]")) {
         return Set.of();
       }
-      String listValue = trimmedValue.substring(1, trimmedValue.length() - 1);
-      return Arrays.stream(listValue.split(","))
+      String listValue = StringUtils.substringBetween(trimmedValue, "[", "]");
+      String[] values = StringUtils.split(listValue, ",");
+      if (Objects.isNull(values)) {
+        return Set.of();
+      }
+      return Arrays.stream(values)
           .map(String::trim)
           .filter(s -> !s.isEmpty())
           .collect(Collectors.toSet());
