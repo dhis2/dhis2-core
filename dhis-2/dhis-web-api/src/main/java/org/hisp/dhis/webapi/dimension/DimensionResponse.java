@@ -41,6 +41,8 @@ import lombok.With;
 public class DimensionResponse {
   @JsonProperty private final String valueType;
 
+  @JsonProperty private final String aggregationType;
+
   @JsonProperty private final String dimensionType;
 
   @JsonProperty private final Date created;
