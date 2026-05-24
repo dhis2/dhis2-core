@@ -29,13 +29,16 @@
  */
 package org.hisp.dhis.security.oidc;
 
+import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.source.JWKSource;
+import com.nimbusds.jose.proc.BadJOSEException;
 import com.nimbusds.jose.proc.JWSKeySelector;
 import com.nimbusds.jose.proc.JWSVerificationKeySelector;
 import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
+import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -110,6 +113,11 @@ public class SignedJwtUserInfoLoader {
    *     valid DHIS2 user
    */
   public OidcUser load(OidcUserRequest userRequest, DhisOidcClientRegistration reg) {
+    if (reg.getUserInfoJwsAlgorithm() == null) {
+      throw new OAuth2AuthenticationException(
+          new OAuth2Error("configuration_error"),
+          "userInfoJwsAlgorithm is required when userInfoResponseType is JWT");
+    }
     var providerDetails = userRequest.getClientRegistration().getProviderDetails();
     String userInfoUri = providerDetails.getUserInfoEndpoint().getUri();
     String idpJwkSetUri = providerDetails.getJwkSetUri();
@@ -154,7 +162,7 @@ public class SignedJwtUserInfoLoader {
           new JWSVerificationKeySelector<>(reg.getUserInfoJwsAlgorithm(), keySource);
       processor.setJWSKeySelector(selector);
       return processor.process(jwt, null);
-    } catch (Exception ex) {
+    } catch (BadJOSEException | JOSEException | ParseException ex) {
       log.debug("UserInfo JWT verification failed for registration {}", registrationId, ex);
       throw new OAuth2AuthenticationException(
           new OAuth2Error("jwt_processing_error"),
