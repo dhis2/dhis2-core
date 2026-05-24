@@ -74,12 +74,7 @@ public class PublicKeysController {
     DhisOidcClientRegistration dhisOidcClientRegistration =
         clientRegistrationRepository.getDhisOidcClientRegistration(clientId);
 
-    JWK jwk = dhisOidcClientRegistration.getJwk();
-    if (jwk == null) {
-      throw new WebMessageException(conflict(ErrorCode.E3040.getMessage(), ErrorCode.E3040));
-    }
-
-    JwsAlgorithm jwsAlgorithm = resolveAlgorithm(jwk);
+    JwsAlgorithm jwsAlgorithm = resolveAlgorithm(dhisOidcClientRegistration.getJwk());
     if (jwsAlgorithm == null) {
       throw new WebMessageException(conflict(ErrorCode.E3040.getMessage(), ErrorCode.E3040));
     }
@@ -88,13 +83,16 @@ public class PublicKeysController {
         new RSAKey.Builder(dhisOidcClientRegistration.getRsaPublicKey())
             .keyUse(KeyUse.SIGNATURE)
             .algorithm(JWSAlgorithm.parse(jwsAlgorithm.toString()))
-            .x509CertSHA256Thumbprint(jwk.getX509CertSHA256Thumbprint())
+            .x509CertSHA256Thumbprint(
+                dhisOidcClientRegistration.getJwk().getX509CertSHA256Thumbprint())
             .keyID(dhisOidcClientRegistration.getKeyId());
 
     return new JWKSet(builder.build()).toJSONObject();
   }
 
   private static JwsAlgorithm resolveAlgorithm(JWK jwk) {
+    if (jwk == null) return null;
+
     JwsAlgorithm jwsAlgorithm = null;
 
     if (jwk.getAlgorithm() != null) {

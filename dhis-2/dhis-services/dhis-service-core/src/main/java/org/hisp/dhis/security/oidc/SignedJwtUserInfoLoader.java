@@ -38,7 +38,6 @@ import com.nimbusds.jose.proc.SecurityContext;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
-import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -162,7 +161,7 @@ public class SignedJwtUserInfoLoader {
           new JWSVerificationKeySelector<>(reg.getUserInfoJwsAlgorithm(), keySource);
       processor.setJWSKeySelector(selector);
       return processor.process(jwt, null);
-    } catch (BadJOSEException | JOSEException | ParseException ex) {
+    } catch (BadJOSEException | JOSEException | java.text.ParseException ex) {
       log.debug("UserInfo JWT verification failed for registration {}", registrationId, ex);
       throw new OAuth2AuthenticationException(
           new OAuth2Error("jwt_processing_error"),
