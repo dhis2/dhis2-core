@@ -117,8 +117,7 @@ public class TwoFactorAuditQueryService {
   }
 
   /** Returns the number of active users matching the given filter. */
-  public int count(
-      TwoFactorAuditStatus status, @CheckForNull List<TwoFactorType> types) {
+  public int count(TwoFactorAuditStatus status, @CheckForNull List<TwoFactorType> types) {
     StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM userinfo WHERE 1=1");
     sql.append(ACTIVE_ACCOUNT_FILTER);
     List<Object> params = new ArrayList<>();
