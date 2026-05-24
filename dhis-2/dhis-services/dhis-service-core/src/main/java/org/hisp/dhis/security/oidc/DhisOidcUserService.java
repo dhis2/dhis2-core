@@ -101,16 +101,10 @@ public class DhisOidcUserService extends OidcUserService {
     }
 
     if (claimValue instanceof String s && !s.isBlank()) {
-      User user = userService.getUserByOpenId(s);
-      if (user != null && user.isExternalAuth()) {
-        if (user.isDisabled() || !user.isAccountNonExpired()) {
-          throw new OAuth2AuthenticationException(
-              new OAuth2Error("user_disabled"), "User is disabled");
-        }
-        UserDetails userDetails = userService.createUserDetails(user);
-        return new DhisOidcUser(
-            userDetails, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken());
-      }
+      User user = SignedJwtUserInfoLoader.resolveExternalAuthUser(userService, s, mappingClaimKey);
+      UserDetails userDetails = userService.createUserDetails(user);
+      return new DhisOidcUser(
+          userDetails, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken());
     }
 
     String errorMessage =

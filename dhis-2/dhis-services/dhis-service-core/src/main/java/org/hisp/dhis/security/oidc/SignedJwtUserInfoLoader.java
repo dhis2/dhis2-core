@@ -124,7 +124,7 @@ public class SignedJwtUserInfoLoader {
     JWTClaimsSet claims =
         verify(jwt, reg, userRequest.getClientRegistration().getRegistrationId(), idpJwkSetUri);
     String mappingValue = requireMappingClaim(claims, reg);
-    User user = requireExternalAuthUser(mappingValue, reg);
+    User user = resolveExternalAuthUser(userService, mappingValue, reg.getMappingClaimKey());
     UserDetails details = userService.createUserDetails(user);
     return new DhisOidcUser(
         details, claims.toJSONObject(), IdTokenClaimNames.SUB, userRequest.getIdToken());
@@ -182,13 +182,14 @@ public class SignedJwtUserInfoLoader {
     return s;
   }
 
-  private User requireExternalAuthUser(String mappingValue, DhisOidcClientRegistration reg) {
+  static User resolveExternalAuthUser(
+      UserService userService, String mappingValue, String mappingClaimKey) {
     User user = userService.getUserByOpenId(mappingValue);
     if (user == null || !user.isExternalAuth()) {
       throw new OAuth2AuthenticationException(
           new OAuth2Error("user_not_found"),
           "No external-auth DHIS2 user found for mapping claim '"
-              + reg.getMappingClaimKey()
+              + mappingClaimKey
               + "'='"
               + mappingValue
               + "'");
