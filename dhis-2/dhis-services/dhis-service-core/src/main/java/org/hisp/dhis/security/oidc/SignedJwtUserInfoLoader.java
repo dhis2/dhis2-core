@@ -38,16 +38,17 @@ import com.nimbusds.jwt.proc.ConfigurableJWTProcessor;
 import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import java.util.List;
 import java.util.Map;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
@@ -71,12 +72,33 @@ import org.springframework.web.client.RestTemplate;
  */
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class SignedJwtUserInfoLoader {
+
+  private static final int CONNECT_TIMEOUT_MS = 5_000;
+  private static final int READ_TIMEOUT_MS = 10_000;
 
   private final UserService userService;
   private final JwkSourceCache jwkSourceCache;
   private final RestTemplate restTemplate;
+
+  @Autowired
+  SignedJwtUserInfoLoader(UserService userService, JwkSourceCache jwkSourceCache) {
+    this(userService, jwkSourceCache, createRestTemplate());
+  }
+
+  SignedJwtUserInfoLoader(
+      UserService userService, JwkSourceCache jwkSourceCache, RestTemplate restTemplate) {
+    this.userService = userService;
+    this.jwkSourceCache = jwkSourceCache;
+    this.restTemplate = restTemplate;
+  }
+
+  private static RestTemplate createRestTemplate() {
+    SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+    factory.setConnectTimeout(CONNECT_TIMEOUT_MS);
+    factory.setReadTimeout(READ_TIMEOUT_MS);
+    return new RestTemplate(factory);
+  }
 
   /**
    * Fetches, verifies and maps a signed-JWT userinfo response to a {@link DhisOidcUser}.

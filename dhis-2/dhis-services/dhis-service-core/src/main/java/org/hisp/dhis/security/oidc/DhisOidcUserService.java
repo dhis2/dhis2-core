@@ -80,8 +80,7 @@ public class DhisOidcUserService extends OidcUserService {
 
   /**
    * JSON-userinfo path: delegates to Spring's {@link OidcUserService#loadUser(OidcUserRequest)},
-   * then resolves the mapping claim to a local DHIS2 user. Package-private to allow direct stubbing
-   * in {@link DhisOidcUserServiceDispatchTest}.
+   * then resolves the mapping claim to a local DHIS2 user.
    */
   OidcUser loadFromJsonUserInfo(OidcUserRequest userRequest, DhisOidcClientRegistration reg) {
     OidcUser oidcUser = super.loadUser(userRequest);
