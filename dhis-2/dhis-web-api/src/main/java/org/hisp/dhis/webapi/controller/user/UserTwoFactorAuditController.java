@@ -69,6 +69,7 @@ public class UserTwoFactorAuditController {
 
   private static final int DEFAULT_PAGE_SIZE = 50;
   private static final int MAX_PAGE_SIZE = 1000;
+  private static final int UNPAGED_HARD_CEILING = 10_000;
 
   private final TwoFactorAuditQueryService auditService;
 
@@ -101,14 +102,12 @@ public class UserTwoFactorAuditController {
       @RequestParam(required = false, defaultValue = "" + DEFAULT_PAGE_SIZE) int pageSize) {
     int total = auditService.count(status, type);
     int requestedPageSize =
-        paging ? Math.min(Math.max(1, pageSize), MAX_PAGE_SIZE) : Math.max(1, total);
-    // Build the Pager first so its built-in [1, pageCount] page clamp drives
-    // BOTH the response metadata and the DB offset/limit — an out-of-bounds
-    // page request can no longer return an empty list with pager.page pinned
-    // to a different (clamped) page.
+        paging
+            ? Math.min(Math.max(1, pageSize), MAX_PAGE_SIZE)
+            : Math.max(1, Math.min(total, UNPAGED_HARD_CEILING));
     Pager pager = new Pager(page, total, requestedPageSize);
     int offset = paging ? pager.getOffset() : 0;
-    int limit = paging ? pager.getPageSize() : -1;
+    int limit = paging ? pager.getPageSize() : UNPAGED_HARD_CEILING;
     List<TwoFactorAuditEntry> entries =
         auditService.list(status, type, offset, limit).stream()
             .map(UserTwoFactorAuditController::toEntry)
@@ -118,7 +117,14 @@ public class UserTwoFactorAuditController {
 
   private static TwoFactorAuditEntry toEntry(UserAuditRow row) {
     return new TwoFactorAuditEntry(
-        row.uid(), row.username(), row.name(), row.twoFactorType(), row.lastLogin());
+        row.uid(),
+        row.username(),
+        row.name(),
+        row.twoFactorType(),
+        row.lastLogin(),
+        row.email(),
+        row.disabled(),
+        row.invitation());
   }
 
   public record TwoFactorAuditSummary(
@@ -140,5 +146,8 @@ public class UserTwoFactorAuditController {
       @JsonProperty String username,
       @JsonProperty String name,
       @JsonProperty TwoFactorType twoFactorType,
-      @JsonProperty Date lastLogin) {}
+      @JsonProperty Date lastLogin,
+      @JsonProperty String email,
+      @JsonProperty boolean disabled,
+      @JsonProperty boolean invitation) {}
 }

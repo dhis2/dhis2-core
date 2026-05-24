@@ -60,14 +60,15 @@ public class TwoFactorAuditQueryService {
 
   private static final String ENABLED_TYPES_SQL_LIST = "('TOTP_ENABLED','EMAIL_ENABLED')";
 
-  // The DB column is NOT NULL today, but the Hibernate mapping declares it
-  // nullable; coalesce defensively so any drift can never silently misbucket
-  // rows under three-valued logic ({@code NULL NOT IN (...)} -> UNKNOWN).
   private static final String EFFECTIVE_TYPE_SQL = "COALESCE(twofactortype, 'NOT_ENABLED')";
+
+  // Only count accounts that can actually log in.
+  private static final String ACTIVE_ACCOUNT_FILTER =
+      " AND disabled = false AND invitation = false";
 
   private final JdbcTemplate jdbcTemplate;
 
-  /** Returns the row count of {@code userinfo} grouped by {@code twofactortype}. */
+  /** Returns the row count of active users grouped by {@code twofactortype}. */
   public Map<TwoFactorType, Long> countByType() {
     Map<TwoFactorType, Long> result = new EnumMap<>(TwoFactorType.class);
     for (TwoFactorType type : TwoFactorType.values()) {
@@ -76,7 +77,9 @@ public class TwoFactorAuditQueryService {
     jdbcTemplate.query(
         "SELECT "
             + EFFECTIVE_TYPE_SQL
-            + " AS effective_type, COUNT(*) FROM userinfo GROUP BY "
+            + " AS effective_type, COUNT(*) FROM userinfo WHERE 1=1"
+            + ACTIVE_ACCOUNT_FILTER
+            + " GROUP BY "
             + EFFECTIVE_TYPE_SQL,
         rs -> {
           String raw = rs.getString(1);
@@ -84,7 +87,7 @@ public class TwoFactorAuditQueryService {
             try {
               result.put(TwoFactorType.valueOf(raw), rs.getLong(2));
             } catch (IllegalArgumentException ignore) {
-              // Out-of-enum value in the column — drop it from the breakdown.
+              // Out-of-enum value in the column.
             }
           }
         });
@@ -92,8 +95,8 @@ public class TwoFactorAuditQueryService {
   }
 
   /**
-   * Returns the count of users holding the {@code ALL} authority and how many of them have no
-   * active 2FA. Done in a single query to keep the privileged-user detection on the DB side.
+   * Returns the count of active users holding the {@code ALL} authority and how many of them have
+   * no active 2FA.
    */
   public PrivilegedCounts countPrivileged() {
     String sql =
@@ -105,16 +108,18 @@ public class TwoFactorAuditQueryService {
             + " FROM userrolemembers urm"
             + " JOIN userroleauthorities ura ON ura.userroleid = urm.userroleid"
             + " JOIN userinfo u ON u.userinfoid = urm.userid"
-            + " WHERE ura.authority = 'ALL'";
+            + " WHERE ura.authority = 'ALL'"
+            + " AND u.disabled = false AND u.invitation = false";
     PrivilegedCounts counts =
         jdbcTemplate.queryForObject(
             sql, (rs, n) -> new PrivilegedCounts(rs.getLong(1), rs.getLong(2)));
     return counts == null ? new PrivilegedCounts(0L, 0L) : counts;
   }
 
-  /** Returns the number of users matching the given filter. */
+  /** Returns the number of active users matching the given filter. */
   public int count(Status status, @CheckForNull List<TwoFactorType> types) {
     StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM userinfo WHERE 1=1");
+    sql.append(ACTIVE_ACCOUNT_FILTER);
     List<Object> params = new ArrayList<>();
     appendStatusClause(sql, status);
     appendTypeClause(sql, params, types);
@@ -123,19 +128,21 @@ public class TwoFactorAuditQueryService {
   }
 
   /**
-   * Returns the matching user rows projected to the audit-row shape. {@code offset}/{@code limit}
-   * are applied DB-side via {@code OFFSET} / {@code LIMIT}; pass {@code limit < 0} to return all
-   * matches.
+   * Returns the matching active user rows projected to the audit-row shape. {@code offset}/{@code
+   * limit} are applied DB-side via {@code OFFSET} / {@code LIMIT}; pass {@code limit < 0} to return
+   * all matches.
    */
   public List<UserAuditRow> list(
       Status status, @CheckForNull List<TwoFactorType> types, int offset, int limit) {
     StringBuilder sql =
         new StringBuilder(
-            "SELECT uid, username, name, twofactortype, lastlogin FROM userinfo WHERE 1=1");
+            "SELECT uid, username, name, twofactortype, lastlogin,"
+                + " email, disabled, invitation FROM userinfo WHERE 1=1");
+    sql.append(ACTIVE_ACCOUNT_FILTER);
     List<Object> params = new ArrayList<>();
     appendStatusClause(sql, status);
     appendTypeClause(sql, params, types);
-    sql.append(" ORDER BY LOWER(username)");
+    sql.append(" ORDER BY username");
     if (limit >= 0) {
       sql.append(" LIMIT ? OFFSET ?");
       params.add(limit);
@@ -150,7 +157,10 @@ public class TwoFactorAuditQueryService {
                 rs.getString("username"),
                 rs.getString("name"),
                 parseType(rs.getString("twofactortype")),
-                rs.getTimestamp("lastlogin")));
+                rs.getTimestamp("lastlogin"),
+                rs.getString("email"),
+                rs.getBoolean("disabled"),
+                rs.getBoolean("invitation")));
   }
 
   private static void appendStatusClause(StringBuilder sql, Status status) {
@@ -194,5 +204,12 @@ public class TwoFactorAuditQueryService {
   public record PrivilegedCounts(long withAllAuthority, long withAllAuthorityMissing2FA) {}
 
   public record UserAuditRow(
-      String uid, String username, String name, TwoFactorType twoFactorType, Date lastLogin) {}
+      String uid,
+      String username,
+      String name,
+      TwoFactorType twoFactorType,
+      Date lastLogin,
+      String email,
+      boolean disabled,
+      boolean invitation) {}
 }
