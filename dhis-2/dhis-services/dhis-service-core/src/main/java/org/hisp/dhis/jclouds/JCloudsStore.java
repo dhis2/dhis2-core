@@ -213,7 +213,8 @@ public class JCloudsStore implements BlobStoreService {
   /**
    * Iterates every page of a JClouds {@code list} call, following {@code nextMarker} until the
    * store reports no more results. Without this, the default single-page call caps at the
-   * provider's page size (e.g. 1000 for S3-compatible stores) and silently truncates the listing.
+   * provider's page size (e.g. 1000 keys for S3-compatible stores) and silently truncates the
+   * listing, which breaks any caller that needs to enumerate every blob under a prefix.
    */
   private void forEachPage(
       ListContainerOptions options, Consumer<PageSet<? extends StorageMetadata>> handler) {
