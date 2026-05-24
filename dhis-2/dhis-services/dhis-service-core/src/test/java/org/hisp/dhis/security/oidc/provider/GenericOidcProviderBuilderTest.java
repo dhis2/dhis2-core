@@ -156,8 +156,10 @@ class GenericOidcProviderBuilderTest {
   void buildThrowsWhenSecretMissingAndNotPrivateKeyJwt() {
     Map<String, String> cfg = baseConfig();
     cfg.remove(CLIENT_SECRET);
+    Map<String, Map<String, String>> noExternalClients = Map.of();
     assertThrows(
-        IllegalArgumentException.class, () -> GenericOidcProviderBuilder.build(cfg, Map.of()));
+        IllegalArgumentException.class,
+        () -> GenericOidcProviderBuilder.build(cfg, noExternalClients));
   }
 
   @Test

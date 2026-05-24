@@ -218,11 +218,9 @@ class GenericOidcProviderBuilderConfigParserTest {
     // Builder may still fail to load the keystore from disk; we only assert the
     // *parser* accepts the config. Wrap to ignore loader-time IO errors.
     try {
-      GenericOidcProviderConfigParser.parse(p);
+      assertThat(GenericOidcProviderConfigParser.parse(p), hasSize(1));
     } catch (IllegalStateException expected) {
-      // builder can throw when reading non-existent keystore — that's fine for
-      // this parser-level assertion: validation passed before construction.
-      return;
+      // builder can throw when reading non-existent keystore
     }
   }
 
