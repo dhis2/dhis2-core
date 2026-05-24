@@ -43,7 +43,7 @@ import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.twofa.TwoFactorType;
 import org.hisp.dhis.security.twofa.audit.TwoFactorAuditQueryService;
 import org.hisp.dhis.security.twofa.audit.TwoFactorAuditQueryService.PrivilegedCounts;
-import org.hisp.dhis.security.twofa.audit.TwoFactorAuditQueryService.Status;
+import org.hisp.dhis.security.twofa.audit.TwoFactorAuditQueryService.TwoFactorAuditStatus;
 import org.hisp.dhis.security.twofa.audit.TwoFactorAuditQueryService.UserAuditRow;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -95,7 +95,7 @@ public class UserTwoFactorAuditController {
 
   @GetMapping
   public TwoFactorAuditList getList(
-      @RequestParam(required = false, defaultValue = "ALL") Status status,
+      @RequestParam(required = false, defaultValue = "ALL") TwoFactorAuditStatus status,
       @CheckForNull @RequestParam(required = false) List<TwoFactorType> type,
       @RequestParam(required = false, defaultValue = "true") boolean paging,
       @RequestParam(required = false, defaultValue = "1") int page,

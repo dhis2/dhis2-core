@@ -52,7 +52,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class TwoFactorAuditQueryService {
 
-  public enum Status {
+  public enum TwoFactorAuditStatus {
     ALL,
     ENABLED,
     DISABLED
@@ -117,7 +117,8 @@ public class TwoFactorAuditQueryService {
   }
 
   /** Returns the number of active users matching the given filter. */
-  public int count(Status status, @CheckForNull List<TwoFactorType> types) {
+  public int count(
+      TwoFactorAuditStatus status, @CheckForNull List<TwoFactorType> types) {
     StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM userinfo WHERE 1=1");
     sql.append(ACTIVE_ACCOUNT_FILTER);
     List<Object> params = new ArrayList<>();
@@ -133,7 +134,7 @@ public class TwoFactorAuditQueryService {
    * all matches.
    */
   public List<UserAuditRow> list(
-      Status status, @CheckForNull List<TwoFactorType> types, int offset, int limit) {
+      TwoFactorAuditStatus status, @CheckForNull List<TwoFactorType> types, int offset, int limit) {
     StringBuilder sql =
         new StringBuilder(
             "SELECT uid, username, name, twofactortype, lastlogin,"
@@ -163,7 +164,7 @@ public class TwoFactorAuditQueryService {
                 rs.getBoolean("invitation")));
   }
 
-  private static void appendStatusClause(StringBuilder sql, Status status) {
+  private static void appendStatusClause(StringBuilder sql, TwoFactorAuditStatus status) {
     switch (status) {
       case ENABLED ->
           sql.append(" AND ")
