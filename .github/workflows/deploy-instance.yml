@@ -31,7 +31,10 @@ jobs:
         # as it will filter out and check only the latest run of a workflow when checking for the allowed conclusions,
         # instead of checking all of the re-runs and possibly failing due to skipped or cancelled runs.
         # See https://github.com/lewagon/wait-on-check-action/issues/85 for more info.
-        uses: t3chguy/wait-on-check-action@master
+        # SHA-pinned to immutable commit instead of mutable @master to mitigate supply-chain
+        # risk from this dormant single-maintainer fork. Update deliberately after reviewing
+        # upstream changes. Current pin equals master HEAD as of 2026-05-22.
+        uses: t3chguy/wait-on-check-action@18541021811b56544d90e0f073401c2b99e249d6 # master @ 2026-05-22 (fork has no tags)
         with:
           ref: ${{ github.head_ref }}
           check-name: 'api-test'
