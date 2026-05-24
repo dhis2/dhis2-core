@@ -9,6 +9,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  pull-requests: write   # for actions-cool/maintain-one-comment delete
+  issues: read           # for gh api issues/<n>/events
+
 jobs:
   check-deploy-label:
     runs-on: ubuntu-latest
