@@ -45,12 +45,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.beanutils.BeanUtils;
-import org.apache.commons.beanutils.PropertyUtils;
 import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.stereotype.Component;
 
 /**
@@ -238,9 +238,10 @@ public class SchemaToDataFetcher {
     }
 
     for (IdentifiableObject object : objectsBeingImported) {
+      BeanWrapper wrapper = new BeanWrapperImpl(object);
       for (Property property : uniqueProperties) {
         try {
-          Object value = PropertyUtils.getProperty(object, property.getFieldName());
+          Object value = wrapper.getPropertyValue(property.getFieldName());
           if (value != null) {
             valuesToCheck.get(property.getFieldName()).add(value);
           }
@@ -311,7 +312,8 @@ public class SchemaToDataFetcher {
     try {
       IdentifiableObject identifiableObject =
           (IdentifiableObject) schema.getKlass().getDeclaredConstructor().newInstance();
-      BeanUtils.populate(identifiableObject, valuesMap);
+      BeanWrapper wrapper = new BeanWrapperImpl(identifiableObject);
+      valuesMap.forEach(wrapper::setPropertyValue);
       resultsObjects.add(identifiableObject);
     } catch (ReflectiveOperationException e) {
       log.error(
