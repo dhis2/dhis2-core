@@ -51,7 +51,7 @@ public class RemoveUsedOrExpiredReservedValuesJob implements Job {
   public void execute(JobConfiguration jobConfiguration, JobProgress progress) {
     progress.startingProcess("Delete expired reserved values");
     progress.startingStage("Deleting expired reserved values");
-    progress.endingProcess(
-        progress.runStage(reservedValueService::removeUsedOrExpiredReservations));
+    Integer total = progress.runStage(reservedValueService::removeUsedOrExpiredReservations);
+    progress.completedProcess("Deleted {} reserved values", total);
   }
 }

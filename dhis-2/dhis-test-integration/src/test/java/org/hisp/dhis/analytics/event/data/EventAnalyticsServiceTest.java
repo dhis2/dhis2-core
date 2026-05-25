@@ -787,6 +787,24 @@ class EventAnalyticsServiceTest extends SingleSetupIntegrationTestBase {
   }
 
   @Test
+  void testGetAggregatedEventDataWithEventOrgUnit() {
+    EventQueryParams params =
+        getAggregatedQueryBuilderA().withOrgUnitField(new OrgUnitField("EVENT")).build();
+
+    Grid grid = eventTarget.getAggregatedEventData(params);
+
+    assertGridContains(
+        // Headers
+        List.of("pe", "ou"),
+        // Grid
+        List.of(
+            List.of("201701", "ouabcdefghI"),
+            List.of("201702", "ouabcdefghJ"),
+            List.of("201703", "ouabcdefghK")),
+        grid);
+  }
+
+  @Test
   void testGetAggregatedEventDataWithDefaultEventOrgUnit() {
     EventQueryParams params = getAggregatedQueryBuilderA().build();
 
