@@ -34,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -62,9 +61,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class DhisOidcUserService extends OidcUserService {
 
-  @Autowired public UserService userService;
-  @Autowired DhisOidcProviderRepository clientRegistrationRepository;
-  @Autowired SignedJwtUserInfoLoader signedJwtUserInfoLoader;
+  private final UserService userService;
+  private final DhisOidcProviderRepository clientRegistrationRepository;
+  private final SignedJwtUserInfoLoader signedJwtUserInfoLoader;
+
+  DhisOidcUserService(
+      UserService userService,
+      DhisOidcProviderRepository clientRegistrationRepository,
+      SignedJwtUserInfoLoader signedJwtUserInfoLoader) {
+    this.userService = userService;
+    this.clientRegistrationRepository = clientRegistrationRepository;
+    this.signedJwtUserInfoLoader = signedJwtUserInfoLoader;
+  }
 
   @Override
   public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {

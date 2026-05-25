@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,7 +42,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -68,13 +68,11 @@ class DhisOidcUserServiceDispatchTest {
   @Mock private OidcUser jsonResult;
   @Mock private OidcUser jwtResult;
 
-  @Spy private DhisOidcUserService service = new DhisOidcUserService();
+  private DhisOidcUserService service;
 
   @BeforeEach
   void wire() {
-    service.userService = userService;
-    service.clientRegistrationRepository = repo;
-    service.signedJwtUserInfoLoader = signedJwtLoader;
+    service = spy(new DhisOidcUserService(userService, repo, signedJwtLoader));
     when(request.getClientRegistration()).thenReturn(clientRegistration);
     when(clientRegistration.getRegistrationId()).thenReturn("p1");
   }
