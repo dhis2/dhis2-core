@@ -133,11 +133,9 @@ public class HibernateUserSettingStore extends HibernateNativeStore<UserSetting>
   }
 
   /**
-   * ATM values are stored as binary data serialized from {@link java.io.Serializable}. As we are
-   * only dealing with primitive values they all implement {@link Object#toString()} in a way that
-   * yields the proper {@link String} form. This is the 1st step in away from storing binary data by
-   * only using strings outside the store layer. Also, once settings are updated they always are
-   * {@link String}s just still in their binary form.
+   * Deserializes a binary-stored user setting value to its String form. After V2_44_8 migration,
+   * all rows contain serialized Strings. The ObjectInputFilter remains as a safety net against
+   * unexpected types or tampered data.
    */
   static String fromBinary(String key, Object value) {
     if (value == null) return "";
