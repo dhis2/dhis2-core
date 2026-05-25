@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.Locale;
 import java.util.stream.Stream;
 import javax.management.BadAttributeValueExpException;
@@ -60,6 +61,8 @@ class HibernateUserSettingStoreFilterTest {
         Arguments.of("Long value", 100L, "100"),
         Arguments.of("Double value", 3.14, "3.14"),
         Arguments.of("java.util.Locale", Locale.FRENCH, "fr"),
+        Arguments.of("java.util.Date", new Date(1700000000000L), "1700000000000"),
+        Arguments.of("DHIS2 Locale", org.hisp.dhis.common.Locale.FRENCH, "fr"),
         Arguments.of("DisplayProperty enum", DisplayProperty.NAME, "NAME"));
   }
 
