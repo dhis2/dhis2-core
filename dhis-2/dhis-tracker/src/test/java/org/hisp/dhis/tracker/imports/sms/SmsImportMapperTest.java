@@ -230,7 +230,6 @@ class SmsImportMapperTest extends TrackerTestBase {
                         DataValue.builder()
                             .dataElement(MetadataIdentifier.ofUid("oHvZHthw9Y0"))
                             .value("hello")
-                            .storedBy("francis")
                             .build()))
                 .enrollment(UID.of(input.getEnrollment().getUid()))
                 .build());
@@ -405,7 +404,6 @@ class SmsImportMapperTest extends TrackerTestBase {
                     DataValue.builder()
                         .dataElement(MetadataIdentifier.ofUid("oHvZHthw9Y0"))
                         .value("hello")
-                        .storedBy("francis")
                         .build()))
             .build();
     assertContainsOnly(List.of(expected), actual.getEvents());

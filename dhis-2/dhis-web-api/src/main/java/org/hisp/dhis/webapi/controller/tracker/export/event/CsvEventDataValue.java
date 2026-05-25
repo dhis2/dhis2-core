@@ -65,7 +65,6 @@ import org.springframework.util.Assert;
   "value",
   "storedBy",
   "providedElsewhere",
-  "storedByDataValue",
   "createAtDataValue",
   "updatedAtDataValue"
 })
@@ -128,8 +127,6 @@ class CsvEventDataValue {
 
   private String updatedAtDataValue;
 
-  private String storedByDataValue;
-
   public CsvEventDataValue() {}
 
   public CsvEventDataValue(CsvEventDataValue dataValue) {
@@ -161,7 +158,6 @@ class CsvEventDataValue {
     providedElsewhere = dataValue.getProvidedElsewhere();
     createdAtDataValue = dataValue.getCreatedAtDataValue();
     updatedAtDataValue = dataValue.getUpdatedAtDataValue();
-    storedByDataValue = dataValue.getStoredByDataValue();
   }
 
   @JsonProperty
@@ -424,14 +420,5 @@ class CsvEventDataValue {
 
   public void setUpdatedAtDataValue(String updatedAtDataValue) {
     this.updatedAtDataValue = updatedAtDataValue;
-  }
-
-  @JsonProperty
-  public String getStoredByDataValue() {
-    return storedByDataValue;
-  }
-
-  public void setStoredByDataValue(String storedByDataValue) {
-    this.storedByDataValue = storedByDataValue;
   }
 }

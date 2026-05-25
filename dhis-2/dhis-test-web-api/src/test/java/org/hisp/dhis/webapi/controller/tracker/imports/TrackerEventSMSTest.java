@@ -542,7 +542,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertNotNull(actual.getCompletedDate()),
         () -> {
           EventDataValue expected = new EventDataValue(de.getUid(), "hello");
-          expected.setStoredBy(user1.getUsername());
           assertDataValues(Set.of(expected), actual.getEventDataValues());
         },
         () -> assertNull(actual.getGeometry()));
@@ -612,7 +611,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertGeometry(submission.getCoordinates(), actual.getGeometry()),
         () -> {
           EventDataValue expected = new EventDataValue(de.getUid(), "hello");
-          expected.setStoredBy(user1.getUsername());
           assertDataValues(Set.of(expected), actual.getEventDataValues());
         });
   }
@@ -674,7 +672,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEquals(user1.getUsername(), actual.getStoredBy()),
         () -> {
           EventDataValue expected = new EventDataValue(de.getUid(), "hello");
-          expected.setStoredBy(user1.getUsername());
           assertDataValues(Set.of(expected), actual.getEventDataValues());
         });
   }
@@ -756,7 +753,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEquals(user1.getUsername(), actualEvent.getStoredBy()),
         () -> {
           EventDataValue expected = new EventDataValue(de.getUid(), "hello");
-          expected.setStoredBy(user1.getUsername());
           assertDataValues(Set.of(expected), actualEvent.getEventDataValues());
         });
   }
@@ -823,7 +819,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEquals(user2.getUsername(), actual.getStoredBy()),
         () -> {
           EventDataValue expected = new EventDataValue(de.getUid(), "hello");
-          expected.setStoredBy(user2.getUsername());
           assertDataValues(Set.of(expected), actual.getEventDataValues());
         });
   }
@@ -938,8 +933,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
       assertAll(
           "assert data value " + expected.getDataElement(),
           () -> assertEquals(expected.getDataElement(), actual.getDataElement()),
-          () -> assertEquals(expected.getValue(), actual.getValue()),
-          () -> assertEquals(expected.getStoredBy(), actual.getStoredBy()));
+          () -> assertEquals(expected.getValue(), actual.getValue()));
     };
   }
 }

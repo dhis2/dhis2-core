@@ -139,10 +139,6 @@ class SingleEventCsvWriter {
     result.setUpdatedAtDataValue(
         value.getUpdatedAt() == null ? null : value.getUpdatedAt().toString());
 
-    if (value.getStoredBy() != null) {
-      result.setStoredBy(value.getStoredBy());
-    }
-
     return result;
   }
 }

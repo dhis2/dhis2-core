@@ -399,7 +399,6 @@ class JdbcTrackerEventStore {
     eventDataValue.setValue(dataValueJson.getString("value").string(""));
     eventDataValue.setProvidedElsewhere(
         dataValueJson.getBoolean("providedElsewhere").booleanValue(false));
-    eventDataValue.setStoredBy(dataValueJson.getString("storedBy").string(null));
 
     eventDataValue.setCreated(DateUtils.parseDate(dataValueJson.getString("created").string("")));
     if (dataValueJson.has("createdByUserInfo")) {

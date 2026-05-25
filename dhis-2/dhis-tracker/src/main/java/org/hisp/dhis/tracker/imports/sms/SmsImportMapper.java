@@ -294,7 +294,7 @@ class SmsImportMapper {
         .scheduledAt(toInstant(submission.getDueDate()))
         .status(map(submission.getEventStatus()))
         .geometry(map(submission.getCoordinates()))
-        .dataValues(map(submission.getValues(), username))
+        .dataValues(map(submission.getValues()))
         .build();
   }
 
@@ -318,7 +318,7 @@ class SmsImportMapper {
         .scheduledAt(toInstant(submission.getDueDate()))
         .status(map(submission.getEventStatus()))
         .geometry(map(submission.getCoordinates()))
-        .dataValues(map(submission.getValues(), username))
+        .dataValues(map(submission.getValues()))
         .build();
   }
 
@@ -341,7 +341,7 @@ class SmsImportMapper {
         .scheduledAt(toInstant(submission.getDueDate()))
         .status(map(submission.getEventStatus()))
         .geometry(map(submission.getCoordinates()))
-        .dataValues(map(submission.getValues(), username))
+        .dataValues(map(submission.getValues()))
         .build();
   }
 
@@ -361,15 +361,13 @@ class SmsImportMapper {
   }
 
   @Nonnull
-  private static Set<DataValue> map(
-      @CheckForNull List<SmsDataValue> dataValues, @Nonnull String username) {
+  private static Set<DataValue> map(@CheckForNull List<SmsDataValue> dataValues) {
     return emptyIfNull(dataValues).stream()
         .map(
             dv ->
                 DataValue.builder()
                     .dataElement(metadataUid(dv.getDataElement()))
                     .value(dv.getValue())
-                    .storedBy(username)
                     .build())
         .collect(Collectors.toSet());
   }
@@ -523,15 +521,13 @@ class SmsImportMapper {
         .attributeOptionCombo(
             metadataUid(dataElementCategoryService.getDefaultCategoryOptionCombo()))
         .storedBy(username)
-        .dataValues(map(smsCommand.getCodes(), dataValues, username))
+        .dataValues(map(smsCommand.getCodes(), dataValues))
         .build();
   }
 
   @Nonnull
   private static Set<DataValue> map(
-      @Nonnull Set<SMSCode> codes,
-      @Nonnull Map<String, String> dataValues,
-      @Nonnull String username) {
+      @Nonnull Set<SMSCode> codes, @Nonnull Map<String, String> dataValues) {
     Set<DataValue> result = new HashSet<>();
     for (SMSCode code : codes) {
       String value = dataValues.get(code.getCode());
@@ -545,7 +541,6 @@ class SmsImportMapper {
           DataValue.builder()
               .dataElement(MetadataIdentifier.ofUid(code.getDataElement().getUid()))
               .value(value)
-              .storedBy(username)
               .build());
     }
 

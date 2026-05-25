@@ -66,7 +66,6 @@ import org.springframework.util.Assert;
   "value",
   "storedBy",
   "providedElsewhere",
-  "storedByDataValue",
   "createdAtDataValue",
   "updatedAtDataValue"
 })
@@ -131,8 +130,6 @@ class TrackerEventCsvRow {
 
   private String updatedAtDataValue;
 
-  private String storedByDataValue;
-
   public TrackerEventCsvRow() {}
 
   public TrackerEventCsvRow(TrackerEventCsvRow dataValue) {
@@ -164,6 +161,5 @@ class TrackerEventCsvRow {
     providedElsewhere = dataValue.getProvidedElsewhere();
     createdAtDataValue = dataValue.getCreatedAtDataValue();
     updatedAtDataValue = dataValue.getUpdatedAtDataValue();
-    storedByDataValue = dataValue.getStoredByDataValue();
   }
 }

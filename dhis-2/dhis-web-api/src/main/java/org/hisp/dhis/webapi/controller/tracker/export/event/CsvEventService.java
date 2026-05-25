@@ -163,10 +163,6 @@ class CsvEventService implements CsvService<Event> {
     result.setUpdatedAtDataValue(
         value.getUpdatedAt() == null ? null : value.getUpdatedAt().toString());
 
-    if (value.getStoredBy() != null) {
-      result.setStoredBy(value.getStoredBy());
-    }
-
     return result;
   }
 
@@ -200,8 +196,7 @@ class CsvEventService implements CsvService<Event> {
           dataValue.getDataElement(),
           dataValue.getValue(),
           dataValue.getCreatedAtDataValue(),
-          dataValue.getUpdatedAtDataValue(),
-          dataValue.getStoredByDataValue())) {
+          dataValue.getUpdatedAtDataValue())) {
         DataValue value = new DataValue();
         value.setProvidedElsewhere(
             dataValue.getProvidedElsewhere() != null && dataValue.getProvidedElsewhere());
@@ -209,7 +204,6 @@ class CsvEventService implements CsvService<Event> {
         value.setValue(dataValue.getValue());
         value.setCreatedAt(DateUtils.instantFromDateAsString(dataValue.getCreatedAtDataValue()));
         value.setUpdatedAt(DateUtils.instantFromDateAsString(dataValue.getUpdatedAtDataValue()));
-        value.setStoredBy(dataValue.getStoredByDataValue());
         event.getDataValues().add(value);
       }
     }
