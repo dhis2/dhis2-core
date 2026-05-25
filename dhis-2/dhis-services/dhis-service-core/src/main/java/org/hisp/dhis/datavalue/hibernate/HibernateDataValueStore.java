@@ -165,8 +165,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
       predicateList.add(root -> builder.lessThanOrEqualTo(root.get(LAST_UPATED), endDate));
     }
 
-    return getCount(
-            builder, newJpaParameters().addPredicates(predicateList).count(builder::count))
+    return getCount(builder, newJpaParameters().addPredicates(predicateList).count(builder::count))
         .intValue();
   }
 
