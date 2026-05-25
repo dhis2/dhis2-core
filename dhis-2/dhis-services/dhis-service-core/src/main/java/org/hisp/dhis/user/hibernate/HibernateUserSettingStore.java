@@ -58,14 +58,15 @@ import org.springframework.stereotype.Repository;
 public class HibernateUserSettingStore extends HibernateNativeStore<UserSetting>
     implements UserSettingStore {
 
-  static final String DESERIALIZATION_FILTER =
-      "maxdepth=5;maxrefs=20;maxarray=0;maxbytes=65536;"
-          + "java.lang.String;java.lang.Boolean;"
-          + "java.lang.Number;java.lang.Integer;java.lang.Long;"
-          + "java.lang.Double;java.lang.Float;java.lang.Enum;"
-          + "java.util.Locale;java.util.Date;"
-          + "org.hisp.dhis.common.Locale;org.hisp.dhis.common.DisplayProperty;"
-          + "!*";
+  private static final ObjectInputFilter DESERIALIZATION_FILTER =
+      ObjectInputFilter.Config.createFilter(
+          "maxdepth=5;maxrefs=20;maxarray=0;maxbytes=65536;"
+              + "java.lang.String;java.lang.Boolean;"
+              + "java.lang.Number;java.lang.Integer;java.lang.Long;"
+              + "java.lang.Double;java.lang.Float;java.lang.Enum;"
+              + "java.util.Locale;java.util.Date;"
+              + "org.hisp.dhis.common.Locale;org.hisp.dhis.common.DisplayProperty;"
+              + "!*");
 
   public HibernateUserSettingStore(EntityManager em) {
     super(em, UserSetting.class);
@@ -144,7 +145,7 @@ public class HibernateUserSettingStore extends HibernateNativeStore<UserSetting>
       try {
         ByteArrayInputStream bis = new ByteArrayInputStream(binary);
         ObjectInputStream ois = new ObjectInputStream(bis);
-        ois.setObjectInputFilter(ObjectInputFilter.Config.createFilter(DESERIALIZATION_FILTER));
+        ois.setObjectInputFilter(DESERIALIZATION_FILTER);
         return Settings.valueOf((Serializable) ois.readObject());
       } catch (InvalidClassException ex) {
         log.error(
