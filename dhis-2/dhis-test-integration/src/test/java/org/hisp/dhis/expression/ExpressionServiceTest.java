@@ -66,7 +66,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.beanutils.BeanUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.ParserException;
@@ -113,6 +112,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -792,7 +792,9 @@ class ExpressionServiceTest extends PostgresIntegrationTestBase {
 
   private Object clone(Object object) {
     try {
-      return BeanUtils.cloneBean(object);
+      Object clone = object.getClass().getDeclaredConstructor().newInstance();
+      BeanUtils.copyProperties(object, clone);
+      return clone;
     } catch (Exception e) {
       throw new RuntimeException(e);
     }

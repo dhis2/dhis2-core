@@ -38,11 +38,9 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Date;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.beanutils.BeanUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
@@ -61,6 +59,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -198,14 +197,11 @@ public class DatastoreController extends AbstractDatastoreController {
       @PathVariable String namespace,
       @PathVariable String key,
       @CurrentUser UserDetails currentUser)
-      throws NotFoundException,
-          InvocationTargetException,
-          IllegalAccessException,
-          ForbiddenException {
+      throws NotFoundException, ForbiddenException {
     DatastoreEntry entry = getExistingEntry(namespace, key);
 
     DatastoreEntry metaData = new DatastoreEntry();
-    BeanUtils.copyProperties(metaData, entry);
+    BeanUtils.copyProperties(entry, metaData);
     metaData.setValue(null);
     metaData.setJbPlainValue(null);
     metaData.setEncryptedValue(null);

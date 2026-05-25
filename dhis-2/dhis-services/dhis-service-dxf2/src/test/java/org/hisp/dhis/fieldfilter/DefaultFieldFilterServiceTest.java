@@ -32,6 +32,7 @@ package org.hisp.dhis.fieldfilter;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,7 +41,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.beanutils.PropertyUtils;
+import java.util.stream.Stream;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.NoOpCache;
@@ -169,7 +170,11 @@ class DefaultFieldFilterServiceTest {
 
   private static Property addProperty(
       Map<String, Property> propertyMap, Object bean, String property) throws Exception {
-    PropertyDescriptor pd = PropertyUtils.getPropertyDescriptor(bean, property);
+    PropertyDescriptor pd =
+        Stream.of(Introspector.getBeanInfo(bean.getClass()).getPropertyDescriptors())
+            .filter(d -> d.getName().equals(property))
+            .findFirst()
+            .orElseThrow();
     Property p = new Property(pd.getPropertyType(), pd.getReadMethod(), pd.getWriteMethod());
     p.setName(pd.getName());
     p.setReadable(true);

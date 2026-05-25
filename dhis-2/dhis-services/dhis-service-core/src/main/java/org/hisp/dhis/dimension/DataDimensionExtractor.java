@@ -38,7 +38,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.beanutils.BeanUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionalItemId;
@@ -64,6 +63,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeOptionDimensionItem;
 import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -447,7 +447,9 @@ public class DataDimensionExtractor {
     }
 
     try {
-      BaseDimensionalItemObject clone = (BaseDimensionalItemObject) BeanUtils.cloneBean(item);
+      BaseDimensionalItemObject clone =
+          (BaseDimensionalItemObject) item.getClass().getDeclaredConstructor().newInstance();
+      BeanUtils.copyProperties(item, clone);
       clone.setQueryMods(id.getQueryMods());
       return clone;
     } catch (Exception e) {

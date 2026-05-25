@@ -32,8 +32,9 @@ package org.hisp.dhis.query;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.lessThan;
 
+import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
-import org.apache.commons.beanutils.PropertyUtils;
+import java.util.stream.Stream;
 import org.hisp.dhis.schema.Property;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -60,7 +61,11 @@ class OrderTest {
   void setUp() throws Exception {
     object1 = new TestObject();
     object2 = new TestObject();
-    PropertyDescriptor propertyDescriptor = PropertyUtils.getPropertyDescriptor(object1, "value");
+    PropertyDescriptor propertyDescriptor =
+        Stream.of(Introspector.getBeanInfo(object1.getClass()).getPropertyDescriptors())
+            .filter(d -> d.getName().equals("value"))
+            .findFirst()
+            .orElseThrow();
     valueProperty =
         new Property(
             String.class, propertyDescriptor.getReadMethod(), propertyDescriptor.getWriteMethod());

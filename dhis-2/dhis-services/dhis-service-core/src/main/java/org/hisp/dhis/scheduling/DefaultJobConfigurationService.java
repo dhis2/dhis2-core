@@ -36,6 +36,7 @@ import static org.hisp.dhis.scheduling.JobType.values;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
+import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -57,7 +58,6 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.beanutils.PropertyUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -375,10 +375,15 @@ public class DefaultJobConfigurationService implements JobConfigurationService {
       return jobParameters;
     }
 
-    final Set<PropertyDescriptor> properties =
-        Stream.of(PropertyUtils.getPropertyDescriptors(paramsType))
-            .filter(pd -> pd.getReadMethod() != null && pd.getWriteMethod() != null)
-            .collect(Collectors.toSet());
+    final Set<PropertyDescriptor> properties;
+    try {
+      properties =
+          Stream.of(Introspector.getBeanInfo(paramsType).getPropertyDescriptors())
+              .filter(pd -> pd.getReadMethod() != null && pd.getWriteMethod() != null)
+              .collect(Collectors.toSet());
+    } catch (java.beans.IntrospectionException e) {
+      return jobParameters;
+    }
 
     for (Field field : paramsType.getDeclaredFields()) {
       PropertyDescriptor descriptor =
