@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,49 +27,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datavalue;
+package org.hisp.dhis.common.input;
 
-import java.util.List;
-import org.hisp.dhis.category.CategoryOptionCombo;
+import static org.hisp.dhis.jsontree.Validation.YesNo.NO;
+
+import java.util.function.ToIntFunction;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.common.input.PagedParams;
-import org.hisp.dhis.common.input.UrlParams;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.jsontree.Collapsed;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.jsontree.Validation;
 
 /**
- * Encapsulation of a web API request for data value audit records.
+ * URL parameters for endpoints that offer paging.
  *
- * @author Lars Helge Overland
+ * <p>Include via @{@link org.hisp.dhis.jsontree.Collapsed}.
+ *
+ * @param skipPaging override to {@link #paging()} to skip paging
+ * @param paging paging on/off (default on)
+ * @param page page no to show (default 1)
+ * @param pageSize entries per page (default 50)
  */
-public record DataValueChangelogQueryParams(
-    List<String> fields,
-    @OpenApi.Property({UID[].class, DataSet.class}) List<UID> ds,
-    @OpenApi.Property({UID[].class, DataElement.class}) List<UID> de,
-    List<Period> pe,
-    @OpenApi.Property({UID[].class, OrganisationUnit.class}) List<UID> ou,
-    @OpenApi.Property({UID[].class, CategoryOptionCombo.class}) UID co, // COC
-    @OpenApi.Property({UID[].class, CategoryOptionCombo.class}) UID cc, // AOC
-    List<DataValueChangelogType> type,
-    @Collapsed PagedParams paged)
-    implements UrlParams {
+public record PagedParams(
+    Boolean skipPaging,
+    @Validation(required = NO) boolean paging,
+    @Validation(required = NO, minimum = 1) int page,
+    @Validation(required = NO, minimum = 1, maximum = 1000) int pageSize) {
 
-  public static final DataValueChangelogQueryParams DEFAULT = ofType();
+  public static final PagedParams DEFAULT = new PagedParams(null, true, 1, 50);
 
-  public static DataValueChangelogQueryParams ofType(DataValueChangelogType... types) {
-    return new DataValueChangelogQueryParams(
-        List.of(),
-        List.of(),
-        List.of(),
-        List.of(),
-        List.of(),
-        null,
-        null,
-        List.of(types),
-        PagedParams.DEFAULT);
+  @OpenApi.Ignore
+  public boolean isPaged() {
+    if (skipPaging != null) return !skipPaging;
+    return paging;
+  }
+
+  public int offset() {
+    return (page - 1) * pageSize;
+  }
+
+  public Pager toPager(int totalPages) {
+    return !isPaged() ? null : new Pager(page, totalPages, pageSize);
+  }
+
+  public <T> Pager toPager(T params, ToIntFunction<T> count) {
+    return !isPaged() ? null : toPager(count.applyAsInt(params));
   }
 }

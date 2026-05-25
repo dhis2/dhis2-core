@@ -86,9 +86,8 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{},\"202105\":{\"name\":\"202105\"},\"202106\":{\"name\":\"202106\"},\"202103\":{\"name\":\"202103\"},\"202104\":{\"name\":\"202104\"},\"202101\":{\"name\":\"202101\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202102\":{\"name\":\"202102\"},\"A03MvHHogjR.eventdate\":{\"name\":\"Report date\"},\"A03MvHHogjR\":{\"name\":\"Birth\"}},\"dimensions\":{\"A03MvHHogjR.eventdate\":[\"202101\",\"202102\",\"202103\",\"202104\",\"202105\",\"202106\"],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+        "{\"items\":{\"202101\":{\"name\":\"January 2021\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202102\":{\"name\":\"February 2021\"},\"A03MvHHogjR.eventdate\":{\"name\":\"Report date\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ZzYYXq4fJie\":{\"name\":\"Baby Postnatal\"},\"ou\":{},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"202105\":{\"name\":\"May 2021\"},\"202106\":{\"name\":\"June 2021\"},\"202103\":{\"name\":\"March 2021\"},\"202104\":{\"name\":\"April 2021\"}},\"dimensions\":{\"A03MvHHogjR.eventdate\":[\"202101\",\"202102\",\"202103\",\"202104\",\"202105\",\"202106\"],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}\n";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
-
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // 4. Validate Headers By Name (conditionally checking PostGIS headers).
@@ -828,7 +827,7 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"ou\":{},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"202107\":{\"name\":\"202107\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"ZkbAXlQUYJG.scheduleddate\":{\"name\":\"Scheduled date\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"ZkbAXlQUYJG.scheduleddate\":[\"202107\"]}}";
+        "{\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"EPEcjy3FWmI\":{\"name\":\"Lab monitoring\"},\"ur1Edk5Oe2n\":{\"name\":\"TB program\"},\"ou\":{},\"jdRD35YwbRH\":{\"name\":\"Sputum smear microscopy test\"},\"202107\":{\"name\":\"July 2021\"},\"ZkbAXlQUYJG\":{\"name\":\"TB visit\"},\"ZkbAXlQUYJG.scheduleddate\":{\"name\":\"Scheduled date\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"ZkbAXlQUYJG.scheduleddate\":[\"202107\"]}}\n";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
@@ -1297,7 +1296,7 @@ public class EventsAggregate11AutoTest extends AnalyticsApiTest {
 
     // 3. Assert metaData.
     String expectedMetaData =
-        "{\"items\":{\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{},\"202105\":{\"name\":\"202105\"},\"202106\":{\"name\":\"202106\"},\"202103\":{\"name\":\"202103\"},\"202104\":{\"name\":\"202104\"},\"202101\":{\"name\":\"202101\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202102\":{\"name\":\"202102\"},\"A03MvHHogjR.eventdate\":{\"name\":\"Report date\"},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"A03MvHHogjR.bx6fsa0t90x\":{\"code\":\"DE_2006101\",\"name\":\"MCH BCG dose\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"],\"A03MvHHogjR.eventdate\":[\"202101\",\"202102\",\"202103\",\"202104\",\"202105\",\"202106\"]}}";
+        "{\"items\":{\"202101\":{\"name\":\"January 2021\"},\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"202102\":{\"name\":\"February 2021\"},\"A03MvHHogjR.eventdate\":{\"name\":\"Report date\"},\"IpHINAT79UW\":{\"name\":\"Child Programme\"},\"ou\":{},\"A03MvHHogjR\":{\"name\":\"Birth\"},\"202105\":{\"name\":\"May 2021\"},\"202106\":{\"name\":\"June 2021\"},\"202103\":{\"name\":\"March 2021\"},\"A03MvHHogjR.bx6fsa0t90x\":{\"code\":\"DE_2006101\",\"name\":\"MCH BCG dose\"},\"202104\":{\"name\":\"April 2021\"}},\"dimensions\":{\"A03MvHHogjR.eventdate\":[\"202101\",\"202102\",\"202103\",\"202104\",\"202105\",\"202106\"],\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}\n";
     String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,37 +27,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.dimension.mappers;
+package org.hisp.dhis.common.input;
 
-import static org.hisp.dhis.analytics.dimension.DimensionMapperTestSupport.asserter;
-
-import java.util.List;
-import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.webapi.dimension.DimensionResponse;
-import org.hisp.dhis.webapi.dimension.mappers.DataElementMapper;
-import org.junit.jupiter.api.Test;
-
-class DataElementMapperTest {
-  private static final DimensionItemType DIMENSION_ITEM_TYPE = DimensionItemType.DATA_ELEMENT;
-
-  @Test
-  void testDataElementObjectMapperId() {
-    asserter(
-        new DataElementMapper(),
-        DataElement::new,
-        List.of(
-            b -> b.setDimensionItemType(DIMENSION_ITEM_TYPE),
-            b -> b.setValueType(ValueType.TEXT),
-            b -> b.setAggregationType(AggregationType.AVERAGE),
-            b -> b.setUid("DE_ID")),
-        List.of(
-            Pair.of(DimensionResponse::getDimensionType, DIMENSION_ITEM_TYPE),
-            Pair.of(DimensionResponse::getAggregationType, AggregationType.AVERAGE),
-            Pair.of(DimensionResponse::getId, "PROGRAM_STAGE_ID.DE_ID")),
-        "PROGRAM_STAGE_ID");
-  }
-}
+/**
+ * Marker interface to be implemented by {@link Record} classes to be mapped via json-tree.
+ *
+ * <p>This is so this becomes an opt-in feature.
+ *
+ * @author Jan Bernitt
+ * @since 2.44
+ */
+public interface UrlParams {}
