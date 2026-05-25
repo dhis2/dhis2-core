@@ -39,11 +39,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.beanutils.BeanUtils;
 import org.hibernate.jpa.QueryHints;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
+import org.springframework.beans.BeanWrapper;
+import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.stereotype.Component;
 
 /**
@@ -135,8 +136,10 @@ public class SchemaToDataFetcher {
   private void addToResult(
       Schema schema, Map<String, Object> valuesMap, List<IdentifiableObject> resultsObjects) {
     try {
-      IdentifiableObject identifiableObject = (IdentifiableObject) schema.getKlass().newInstance();
-      BeanUtils.populate(identifiableObject, valuesMap);
+      IdentifiableObject identifiableObject =
+          (IdentifiableObject) schema.getKlass().getDeclaredConstructor().newInstance();
+      BeanWrapper wrapper = new BeanWrapperImpl(identifiableObject);
+      valuesMap.forEach(wrapper::setPropertyValue);
       resultsObjects.add(identifiableObject);
     } catch (Exception e) {
       log.error(
