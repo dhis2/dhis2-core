@@ -370,7 +370,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     eventA.setCompletedDate(parseDate("2021-02-27T11:05:00.000"));
     eventA.setCompletedBy("herb");
     eventA.setAssignedUser(user);
-    Note note = new Note("note1", "ant");
+    Note note = new Note("note1");
     note.setUid(generateUid());
     note.setCreated(new Date());
     note.setLastUpdated(new Date());
