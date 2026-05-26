@@ -81,6 +81,7 @@ import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
@@ -474,7 +475,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
                         .setAttribute(
                             getTrackedEntityAttributeFromPreheat(preheat, attribute.getAttribute()))
                         .setTrackedEntity(trackedEntity))
-            .setStoredBy(attribute.getStoredBy())
+            .setStoredBy(CurrentUserUtil.getCurrentUsername())
             .setValue(attribute.getValue())
             .setLastUpdated(new Date());
 
