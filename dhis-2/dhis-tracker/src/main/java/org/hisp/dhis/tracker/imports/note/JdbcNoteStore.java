@@ -127,7 +127,7 @@ public class JdbcNoteStore {
 
     MapSqlParameterSource params = new MapSqlParameterSource();
     params.addValue("text", note.getValue());
-    params.addValue("creator", note.getStoredBy());
+    params.addValue("creator", user.getUsername());
     params.addValue("lastUpdatedBy", user.getUid());
     params.addValue("uid", note.getNote().getValue());
     params.addValue("created", new Date());

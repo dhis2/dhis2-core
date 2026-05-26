@@ -99,7 +99,6 @@ public class SingleEventListener extends CommandSMSListener {
             smsCommand,
             dataValues,
             smsCreatedBy.getUserOrgUnitIds().iterator().next(),
-            smsCreatedBy.getUsername(),
             dataElementCategoryService);
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
