@@ -71,13 +71,15 @@ public class EnrollmentPersister
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
       Enrollment enrollmentToPersist,
       UserDetails user,
-      ChangeLogAccumulator changeLogs) {
+      ChangeLogAccumulator changeLogs,
+      EntityWriteBatch batch) {
     handleTrackedEntityAttributeValues(
         preheat,
         enrollment.getAttributes(),
         enrollmentToPersist.getTrackedEntity(),
         user,
-        changeLogs);
+        changeLogs,
+        batch);
   }
 
   @Override

@@ -61,8 +61,10 @@ public class TrackedEntityPersister
       org.hisp.dhis.tracker.imports.domain.TrackedEntity trackerDto,
       TrackedEntity te,
       UserDetails user,
-      ChangeLogAccumulator changeLogs) {
-    handleTrackedEntityAttributeValues(preheat, trackerDto.getAttributes(), te, user, changeLogs);
+      ChangeLogAccumulator changeLogs,
+      EntityWriteBatch batch) {
+    handleTrackedEntityAttributeValues(
+        preheat, trackerDto.getAttributes(), te, user, changeLogs, batch);
   }
 
   @Override
