@@ -108,7 +108,6 @@ class JdbcTrackerEventStore {
        n.noteid as note_id,\
        n.notetext as note_text,\
        n.created as note_created,\
-       n.creator as note_creator,\
        n.uid as note_uid,\
        userinfo.userinfoid as note_user_id,\
        userinfo.code as note_user_code,\
@@ -362,7 +361,6 @@ class JdbcTrackerEventStore {
               note.setUid(resultSet.getString("note_uid"));
               note.setNoteText(resultSet.getString("note_text"));
               note.setCreated(resultSet.getTimestamp("note_created"));
-              note.setCreator(resultSet.getString("note_creator"));
 
               if (resultSet.getObject("note_user_id") != null) {
                 User noteLastUpdatedBy = new User();

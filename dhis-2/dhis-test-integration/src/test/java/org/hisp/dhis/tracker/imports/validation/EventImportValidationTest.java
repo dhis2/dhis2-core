@@ -42,7 +42,6 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1102;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -357,7 +356,6 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
               Note note = getByNote(event.getNotes(), t);
               assertTrue(CodeGenerator.isValidUid(note.getUid()));
               assertTrue(note.getCreated().getTime() > now.getTime());
-              assertNull(note.getCreator());
               assertEquals(importUser.getUid(), note.getLastUpdatedBy().getUid());
             });
   }
@@ -380,7 +378,6 @@ class EventImportValidationTest extends PostgresIntegrationTestBase {
               Note note = getByNote(event.getNotes(), t);
               assertTrue(CodeGenerator.isValidUid(note.getUid()));
               assertTrue(note.getCreated().getTime() > now.getTime());
-              assertNull(note.getCreator());
               assertEquals(importUser.getUid(), note.getLastUpdatedBy().getUid());
             });
   }
