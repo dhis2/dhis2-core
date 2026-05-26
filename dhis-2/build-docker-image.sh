@@ -14,7 +14,9 @@ CURL_VERSION=${CURL_VERSION:-'8.20.0'}
 CURL_SHA256_AMD64='3cf20eb1bca2726d74a39fcda2b758a08a23a3dce73ad6f3f468d7e4d49d215b'
 CURL_SHA256_ARM64='061b624119f128038bdfa96f975980d6c35ed502130c4825d59b3143efeafa0e'
 
-ARCHITECTURES=${ARCHITECTURES:-'amd64 arm64'}
+_default_architectures='amd64'
+[ -n "${JENKINS_URL:-}" ] && _default_architectures='amd64 arm64'
+ARCHITECTURES=${ARCHITECTURES:-"$_default_architectures"}
 
 downloaded_war_name='downloaded-dhis2.war'
 old_version_schema_prefix='2'
@@ -28,8 +30,9 @@ function help() {
    echo '-h          Print this help message.'
    echo
    echo 'Environment variables:'
-   echo 'ARCHITECTURES   Space-separated list of architectures to build. Defaults to "amd64 arm64".'
-   echo '                Example: ARCHITECTURES=amd64 build-docker-image.sh -t 40.1.1 -d'
+   echo 'ARCHITECTURES   Space-separated list of architectures to build. Defaults to "amd64 arm64" in'
+   echo '                Jenkins (detected via JENKINS_URL) and "amd64" otherwise.'
+   echo '                Example: ARCHITECTURES="amd64 arm64" build-docker-image.sh -t 40.1.1 -d'
    echo
    echo 'Example: build-docker-image.sh -t 40.1.1 -r'
 }
