@@ -14,6 +14,8 @@ CURL_VERSION=${CURL_VERSION:-'8.20.0'}
 CURL_SHA256_AMD64='3cf20eb1bca2726d74a39fcda2b758a08a23a3dce73ad6f3f468d7e4d49d215b'
 CURL_SHA256_ARM64='061b624119f128038bdfa96f975980d6c35ed502130c4825d59b3143efeafa0e'
 
+ARCHITECTURES=${ARCHITECTURES:-'amd64 arm64'}
+
 downloaded_war_name='downloaded-dhis2.war'
 old_version_schema_prefix='2'
 stable_versions_json="$(curl -fsSL "https://releases.dhis2.org/v1/versions/stable.json")"
@@ -24,6 +26,10 @@ function help() {
    echo '-d          Create image from a "dev" version.'
    echo '-r          Rebuild image with an existing WAR for the given DHIS2 version. Without this option the image will be built with a new WAR.'
    echo '-h          Print this help message.'
+   echo
+   echo 'Environment variables:'
+   echo 'ARCHITECTURES   Space-separated list of architectures to build. Defaults to "amd64 arm64".'
+   echo '                Example: ARCHITECTURES=amd64 build-docker-image.sh -t 40.1.1 -d'
    echo
    echo 'Example: build-docker-image.sh -t 40.1.1 -r'
 }
@@ -157,7 +163,10 @@ function build_main_image() {
   local timestamp
   timestamp="$(date +'%s000')" # Unix time with zeroed milliseconds; will be shown as "2023-11-02T14:40:32Z"
 
-  for arch in amd64 arm64; do
+  local -a arch_list
+  read -ra arch_list <<< "$ARCHITECTURES"
+
+  for arch in "${arch_list[@]}"; do
     local curl_dir="curl-bin-${arch}"
     fetch_curl_binary "$arch" "$curl_dir"
 
@@ -176,9 +185,12 @@ function build_main_image() {
       --parameter timestamp="$timestamp"
   done
 
-  docker manifest create "$IMAGE_REPOSITORY:$main_image_tag" \
-    "$IMAGE_REPOSITORY:${main_image_tag}-amd64" \
-    "$IMAGE_REPOSITORY:${main_image_tag}-arm64"
+  local -a arch_images=()
+  for arch in "${arch_list[@]}"; do
+    arch_images+=("$IMAGE_REPOSITORY:${main_image_tag}-${arch}")
+  done
+
+  docker manifest create "$IMAGE_REPOSITORY:$main_image_tag" "${arch_images[@]}"
   docker manifest push "$IMAGE_REPOSITORY:$main_image_tag"
 }
 
