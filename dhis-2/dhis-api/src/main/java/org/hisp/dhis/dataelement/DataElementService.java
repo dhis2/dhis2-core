@@ -34,7 +34,6 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
-import org.hisp.dhis.period.PeriodType;
 
 /**
  * Defines service functionality for DataElements and DataElementGroups.
@@ -231,6 +230,4 @@ public interface DataElementService {
   // -------------------------------------------------------------------------
 
   List<DataElementOperand> getAllDataElementOperands();
-
-  PeriodType getPeriodType(DataElement dataElement);
 }
