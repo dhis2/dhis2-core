@@ -402,8 +402,7 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         eventCoordinateService.getFallbackCoordinateFields(
             program, fallbackCoordinateField, defaultCoordinateFallback));
 
-    List<String> distinctCoordinateFields =
-        coordinateFields.stream().distinct().collect(Collectors.toList());
+    List<String> distinctCoordinateFields = coordinateFields.stream().distinct().toList();
 
     return new CoordinateFieldResolution(
         distinctCoordinateFields,
