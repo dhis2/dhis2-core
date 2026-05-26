@@ -62,9 +62,7 @@ import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -79,8 +77,6 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DataQueryRequest;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -178,20 +174,7 @@ public class DefaultDataQueryService implements DataQueryService {
         .withUserOrganisationUnitsCriteria(request.getUserOrganisationUnitCriteria())
         .withLocale(locale)
         .withOutputFormat(ANALYTICS)
-        .withDataElementPeriodTypes(resolveDataElementPeriodTypes(params.build()))
         .build();
-  }
-
-  private Map<String, PeriodType> resolveDataElementPeriodTypes(DataQueryParams params) {
-    Map<String, PeriodType> periodTypes = new HashMap<>();
-    for (DimensionalItemObject item : params.getAllDataElements()) {
-      DataElement de = (DataElement) item;
-      PeriodType pt = de.getPeriodType();
-      if (pt != null) {
-        periodTypes.put(de.getUid(), pt);
-      }
-    }
-    return periodTypes;
   }
 
   @Override

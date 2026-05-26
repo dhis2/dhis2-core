@@ -44,6 +44,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import jakarta.persistence.Cacheable;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -130,6 +131,7 @@ import org.hisp.dhis.user.sharing.UserGroupAccess;
 @Setter
 @Entity
 @Table(name = "dataelement")
+@Cacheable
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
 @JacksonXmlRootElement(localName = "dataElement", namespace = DxfNamespaces.DXF_2_0)
 public class DataElement extends BaseMetadataObject
@@ -451,7 +453,7 @@ public class DataElement extends BaseMetadataObject
    * an immutable set of data sets associated with this data element.
    */
   public Set<DataSet> getDataSets() {
-    return getDataSetElements().stream()
+    return dataSetElements.stream()
         .map(DataSetElement::getDataSet)
         .filter(Objects::nonNull)
         .collect(toUnmodifiableSet());
@@ -487,6 +489,7 @@ public class DataElement extends BaseMetadataObject
    * @return true if this data element has a description.
    */
   public boolean hasDescription() {
+
     return isNotEmpty(description);
   }
 

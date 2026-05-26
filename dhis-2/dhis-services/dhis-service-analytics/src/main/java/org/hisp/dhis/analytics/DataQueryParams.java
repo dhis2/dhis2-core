@@ -440,7 +440,12 @@ public class DataQueryParams {
   /** Mapping of organisation unit sub-hierarchy roots and lowest available data approval levels. */
   protected transient Map<OrganisationUnit, Integer> dataApprovalLevels = new HashMap<>();
 
-  /** Pre-resolved period types per data element UID, keyed by UID. */
+  /**
+   * Resolved period type per data element UID, populated by the query planner via a single batch
+   * query. Used by {@link org.hisp.dhis.analytics.data.QueryPlannerUtils} so downstream grouping
+   * does not depend on lazy-loading {@code DataElement.dataSetElements} on entities that may be
+   * detached.
+   */
   protected transient Map<String, PeriodType> dataElementPeriodTypes = new HashMap<>();
 
   /** Hints for the aggregation process. */

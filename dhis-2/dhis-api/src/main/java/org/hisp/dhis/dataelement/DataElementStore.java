@@ -29,9 +29,12 @@
  */
 package org.hisp.dhis.dataelement;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
 
 /**
@@ -95,4 +98,14 @@ public interface DataElementStore extends GenericDimensionalObjectStore<DataElem
 
   /** Get all DataElements that have any of the CategoryCombos */
   List<DataElement> getByCategoryCombo(List<CategoryCombo> categoryCombos);
+
+  /**
+   * Returns the {@link PeriodType} for each given DataElement UID, derived from the associated
+   * DataSet with the highest collection frequency (see {@code DataSetFrequencyComparator}).
+   * DataElements with no associated DataSet are omitted from the result.
+   *
+   * <p>Resolves all UIDs in a single query so callers can build a session-independent lookup
+   * map and avoid per-element lazy loads on {@code DataElement.dataSetElements}.
+   */
+  Map<String, PeriodType> getPeriodTypesByUid(Collection<String> uids);
 }

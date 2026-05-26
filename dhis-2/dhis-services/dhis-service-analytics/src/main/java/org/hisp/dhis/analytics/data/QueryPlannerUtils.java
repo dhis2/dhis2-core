@@ -260,7 +260,8 @@ public class QueryPlannerUtils {
    * @return a {@link ListMap} of period type and data elements.
    */
   public static ListMap<PeriodType, DimensionalItemObject> getPeriodTypeDataElementMap(
-      Collection<DimensionalItemObject> dataElements, Map<String, PeriodType> dataElementPeriodTypes) {
+      Collection<DimensionalItemObject> dataElements,
+      Map<String, PeriodType> dataElementPeriodTypes) {
     ListMap<PeriodType, DimensionalItemObject> map = new ListMap<>();
     dataElements.forEach(
         item -> {
