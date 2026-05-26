@@ -100,7 +100,7 @@ public class BaseMetadataObject implements MetadataObject, Serializable {
   @Transient @Setter protected String href;
 
   /** Access information for this object. Applies to current user. */
-  @Transient @Setter protected Access access;
+  @Transient @Setter protected transient Access access;
 
   // -------------------------------------------------------------------------------------------
   // Getters

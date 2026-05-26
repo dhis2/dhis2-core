@@ -446,7 +446,7 @@ public class DataQueryParams {
    * does not depend on lazy-loading {@code DataElement.dataSetElements} on entities that may be
    * detached.
    */
-  protected transient Map<String, PeriodType> dataElementPeriodTypes = new HashMap<>();
+  protected Map<String, PeriodType> dataElementPeriodTypes = new HashMap<>();
 
   /** Hints for the aggregation process. */
   protected transient Set<ProcessingHint> processingHints = new HashSet<>();
