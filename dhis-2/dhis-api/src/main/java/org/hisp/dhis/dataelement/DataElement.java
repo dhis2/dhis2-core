@@ -524,6 +524,8 @@ public class DataElement extends BaseMetadataObject
   }
 
   @Override
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public String getDimensionItem() {
     return getUid();
   }
