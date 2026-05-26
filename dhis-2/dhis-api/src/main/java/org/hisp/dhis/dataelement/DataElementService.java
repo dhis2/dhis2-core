@@ -231,6 +231,6 @@ public interface DataElementService {
   // -------------------------------------------------------------------------
 
   List<DataElementOperand> getAllDataElementOperands();
-  
+
   PeriodType getPeriodType(DataElement dataElement);
 }

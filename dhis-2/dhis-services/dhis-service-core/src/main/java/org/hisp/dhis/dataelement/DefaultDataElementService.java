@@ -272,15 +272,16 @@ public class DefaultDataElementService implements DataElementService {
   public List<DataElementOperand> getAllDataElementOperands() {
     return dataElementOperandStore.getAll();
   }
-  
+
   @Override
   @Transactional(readOnly = true)
   public PeriodType getPeriodType(DataElement dataElement) {
-    List<DataSet> list = dataElement.getDataSetElements().stream()
-        .map(DataSetElement::getDataSet)
-        .filter(Objects::nonNull)
-        .sorted(DataSetFrequencyComparator.INSTANCE)
-        .collect(Collectors.toUnmodifiableList());
+    List<DataSet> list =
+        dataElement.getDataSetElements().stream()
+            .map(DataSetElement::getDataSet)
+            .filter(Objects::nonNull)
+            .sorted(DataSetFrequencyComparator.INSTANCE)
+            .collect(Collectors.toUnmodifiableList());
 
     return !list.isEmpty() ? list.get(0).getPeriodType() : null;
   }

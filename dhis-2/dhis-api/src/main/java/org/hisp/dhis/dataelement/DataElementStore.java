@@ -104,8 +104,8 @@ public interface DataElementStore extends GenericDimensionalObjectStore<DataElem
    * DataSet with the highest collection frequency (see {@code DataSetFrequencyComparator}).
    * DataElements with no associated DataSet are omitted from the result.
    *
-   * <p>Resolves all UIDs in a single query so callers can build a session-independent lookup
-   * map and avoid per-element lazy loads on {@code DataElement.dataSetElements}.
+   * <p>Resolves all UIDs in a single query so callers can build a session-independent lookup map
+   * and avoid per-element lazy loads on {@code DataElement.dataSetElements}.
    */
   Map<String, PeriodType> getPeriodTypesByUid(Collection<String> uids);
 }
