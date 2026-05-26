@@ -206,7 +206,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .enrolledAt(NOW.toInstant())
             .occurredAt(YESTERDAY.toInstant())
             .status(ACTIVE)
-            .notes(notes(creatingUser))
+            .notes(notes())
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
             .build();
 
@@ -231,7 +231,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .updatedAtClient(NOW.toInstant())
             .enrolledAt(NOW.toInstant())
             .status(ACTIVE)
-            .notes(notes(creatingUser))
+            .notes(notes())
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
             .build();
 
@@ -258,7 +258,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .updatedAtClient(NOW.toInstant())
             .enrolledAt(NOW.toInstant())
             .status(EnrollmentStatus.COMPLETED)
-            .notes(notes(creatingUser))
+            .notes(notes())
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
             .build();
 
@@ -285,7 +285,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .updatedAtClient(NOW.toInstant())
             .enrolledAt(NOW.toInstant())
             .status(EnrollmentStatus.CANCELLED)
-            .notes(notes(creatingUser))
+            .notes(notes())
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
             .build();
 
@@ -312,7 +312,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .updatedAtClient(NOW.toInstant())
             .enrolledAt(NOW.toInstant())
             .status(ACTIVE)
-            .notes(notes(creatingUser))
+            .notes(notes())
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
             .build();
 
@@ -359,7 +359,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .program(MetadataIdentifier.ofUid(PROGRAM_UID))
             .orgUnit(MetadataIdentifier.ofUid(ORGANISATION_UNIT_UID))
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
-            .notes(notes(creatingUser))
+            .notes(notes())
             .build();
 
     TrackerEvent result = TrackerObjectsMapper.map(preheat, event, updatingUser);
@@ -385,7 +385,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .program(MetadataIdentifier.ofUid(PROGRAM_UID))
             .orgUnit(MetadataIdentifier.ofUid(ORGANISATION_UNIT_UID))
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
-            .notes(notes(creatingUser))
+            .notes(notes())
             .build();
 
     TrackerEvent result = TrackerObjectsMapper.map(preheat, event, updatingUser);
@@ -416,7 +416,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .program(MetadataIdentifier.ofUid(PROGRAM_UID))
             .orgUnit(MetadataIdentifier.ofUid(ORGANISATION_UNIT_UID))
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
-            .notes(notes(creatingUser))
+            .notes(notes())
             .assignedUser(user)
             .build();
 
@@ -447,7 +447,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
             .program(MetadataIdentifier.ofUid(PROGRAM_UID))
             .orgUnit(MetadataIdentifier.ofUid(ORGANISATION_UNIT_UID))
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
-            .notes(notes(creatingUser))
+            .notes(notes())
             .assignedUser(user)
             .attributeOptionCombo(MetadataIdentifier.ofUid(COC_UID))
             .build();
@@ -690,7 +690,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
     return dbEvent;
   }
 
-  private List<org.hisp.dhis.tracker.imports.domain.Note> notes(UserDetails user) {
+  private List<org.hisp.dhis.tracker.imports.domain.Note> notes() {
     return List.of(
         org.hisp.dhis.tracker.imports.domain.Note.builder()
             .note(NOTE_UID)

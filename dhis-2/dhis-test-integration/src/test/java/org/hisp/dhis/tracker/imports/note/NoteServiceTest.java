@@ -236,8 +236,7 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldSetCreatorToAuthenticatedUserForEnrollmentNote()
-      throws ForbiddenException, NotFoundException {
+  void shouldSetCreatorToAuthenticatedUserForEnrollmentNote() throws NotFoundException {
     Enrollment enrollment = enrollmentService.getEnrollment(UID.of("TvctPPhpD8z"));
     org.hisp.dhis.note.Note note =
         enrollment.getNotes().stream()
@@ -249,8 +248,7 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldSetCreatorToAuthenticatedUserForTrackerEventNote()
-      throws ForbiddenException, NotFoundException {
+  void shouldSetCreatorToAuthenticatedUserForTrackerEventNote() throws NotFoundException {
     TrackerEvent event = trackerEventService.getEvent(UID.of("pTzf9KYMk72"));
     org.hisp.dhis.note.Note note =
         event.getNotes().stream()
@@ -262,8 +260,7 @@ class NoteServiceTest extends PostgresIntegrationTestBase {
   }
 
   @Test
-  void shouldSetCreatorToAuthenticatedUserForSingleEventNote()
-      throws ForbiddenException, NotFoundException {
+  void shouldSetCreatorToAuthenticatedUserForSingleEventNote() throws NotFoundException {
     SingleEvent event = singleEventService.getEvent(UID.of("QRYjLTiJTrA"));
     org.hisp.dhis.note.Note note =
         event.getNotes().stream()

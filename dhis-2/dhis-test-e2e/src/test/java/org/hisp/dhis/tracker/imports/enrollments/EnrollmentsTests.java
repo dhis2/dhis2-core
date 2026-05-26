@@ -209,7 +209,7 @@ public class EnrollmentsTests extends TrackerApiTest {
         .body("storedAt", notNullValue())
         .body("updatedAt", notNullValue())
         .body("value", notNullValue())
-        .body("storedBy", CoreMatchers.everyItem(equalTo(null)))
+        .body("storedBy", CoreMatchers.everyItem(equalTo("taadmin")))
         .body("createdBy.username", CoreMatchers.everyItem(equalTo("taadmin")));
   }
 
