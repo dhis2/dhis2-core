@@ -120,8 +120,7 @@ class EnrollmentTrackerConverterServiceTest extends DhisConvenienceTest {
             .enrolledAt(NOW.toInstant())
             .occurredAt(YESTERDAY.toInstant())
             .status(ACTIVE)
-            .storedBy(creatingUser.getUsername())
-            .notes(notes(creatingUser))
+            .notes(notes())
             .build();
     preheat.setUser(userC);
     preheat.setUserInfo(UserInfoSnapshot.from(creatingUser));
@@ -147,8 +146,7 @@ class EnrollmentTrackerConverterServiceTest extends DhisConvenienceTest {
             .updatedAtClient(NOW.toInstant())
             .enrolledAt(NOW.toInstant())
             .status(ACTIVE)
-            .storedBy(creatingUser.getUsername())
-            .notes(notes(creatingUser))
+            .notes(notes())
             .build();
     preheat.setUser(userC);
     preheat.setUserInfo(UserInfoSnapshot.from(creatingUser));
@@ -176,8 +174,7 @@ class EnrollmentTrackerConverterServiceTest extends DhisConvenienceTest {
             .updatedAtClient(NOW.toInstant())
             .enrolledAt(NOW.toInstant())
             .status(EnrollmentStatus.COMPLETED)
-            .storedBy(creatingUser.getUsername())
-            .notes(notes(creatingUser))
+            .notes(notes())
             .build();
     preheat.setUser(userU);
     preheat.setUserInfo(UserInfoSnapshot.from(updatingUser));
@@ -205,8 +202,7 @@ class EnrollmentTrackerConverterServiceTest extends DhisConvenienceTest {
             .updatedAtClient(NOW.toInstant())
             .enrolledAt(NOW.toInstant())
             .status(EnrollmentStatus.CANCELLED)
-            .storedBy(creatingUser.getUsername())
-            .notes(notes(creatingUser))
+            .notes(notes())
             .build();
     preheat.setUser(userU);
     preheat.setUserInfo(UserInfoSnapshot.from(updatingUser));
@@ -234,8 +230,7 @@ class EnrollmentTrackerConverterServiceTest extends DhisConvenienceTest {
             .updatedAtClient(NOW.toInstant())
             .enrolledAt(NOW.toInstant())
             .status(ACTIVE)
-            .storedBy(creatingUser.getUsername())
-            .notes(notes(creatingUser))
+            .notes(notes())
             .build();
     preheat.setUser(userU);
     preheat.setUserInfo(UserInfoSnapshot.from(updatingUser));
@@ -280,7 +275,7 @@ class EnrollmentTrackerConverterServiceTest extends DhisConvenienceTest {
           dbNotes.stream().filter(n -> n.getUid().equals(note.getNote())).findFirst().orElse(null);
       assertNotNull(dbNote);
       assertEquals(note.getValue(), dbNote.getNoteText());
-      assertEquals(note.getStoredBy(), dbNote.getCreator());
+      assertEquals(updatedBy.getUsername(), dbNote.getCreator());
       assertEquals(updatedBy.getUid(), dbNote.getLastUpdatedBy().getUid());
     }
   }
@@ -322,12 +317,11 @@ class EnrollmentTrackerConverterServiceTest extends DhisConvenienceTest {
     return dbEnrollment;
   }
 
-  private List<org.hisp.dhis.tracker.imports.domain.Note> notes(UserDetails user) {
+  private List<org.hisp.dhis.tracker.imports.domain.Note> notes() {
     return List.of(
         org.hisp.dhis.tracker.imports.domain.Note.builder()
             .note(NOTE_UID)
             .value("This is a note")
-            .storedBy(user.getUsername())
             .build());
   }
 }

@@ -55,7 +55,6 @@ public class NotesConverterService
             .firstName(note.getLastUpdatedBy().getFirstName())
             .surname(note.getLastUpdatedBy().getSurname())
             .build());
-    trackerNote.setStoredBy(note.getCreator());
     return trackerNote;
   }
 
@@ -72,7 +71,7 @@ public class NotesConverterService
     trackerNote.setNoteText(note.getValue());
 
     trackerNote.setLastUpdatedBy(preheat.getUser());
-    trackerNote.setCreator(note.getStoredBy());
+    trackerNote.setCreator(preheat.getUsername());
     return trackerNote;
   }
 

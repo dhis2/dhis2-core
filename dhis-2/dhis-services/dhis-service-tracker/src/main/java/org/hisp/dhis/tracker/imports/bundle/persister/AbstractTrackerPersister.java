@@ -448,7 +448,7 @@ public abstract class AbstractTrackerPersister<
                         .setAttribute(
                             getTrackedEntityAttributeFromPreheat(preheat, attribute.getAttribute()))
                         .setTrackedEntity(trackedEntity))
-            .setStoredBy(attribute.getStoredBy())
+            .setStoredBy(preheat.getUsername())
             .setValue(attribute.getValue())
             .setLastUpdated(new Date());
 
