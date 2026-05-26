@@ -27,49 +27,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.datavalue;
+package org.hisp.dhis.minmax;
 
 import java.util.List;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.input.PagedParams;
 import org.hisp.dhis.common.input.UrlParams;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.jsontree.Collapsed;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 
 /**
- * Encapsulation of a web API request for data value audit records.
- *
- * @author Lars Helge Overland
+ * @author Viet Nguyen <viet@dhis2.org>
  */
-public record DataValueChangelogQueryParams(
-    List<String> fields,
-    @OpenApi.Property({UID[].class, DataSet.class}) List<UID> ds,
-    @OpenApi.Property({UID[].class, DataElement.class}) List<UID> de,
-    List<Period> pe,
-    @OpenApi.Property({UID[].class, OrganisationUnit.class}) List<UID> ou,
-    @OpenApi.Property({UID[].class, CategoryOptionCombo.class}) UID co, // COC
-    @OpenApi.Property({UID[].class, CategoryOptionCombo.class}) UID cc, // AOC
-    List<DataValueChangelogType> type,
-    @Collapsed PagedParams paged)
-    implements UrlParams {
+public record MinMaxDataElementParams(
+    List<String> fields, List<String> filters, @Collapsed PagedParams paged) implements UrlParams {
 
-  public static final DataValueChangelogQueryParams DEFAULT = ofType();
+  public static final MinMaxDataElementParams DEFAULT =
+      new MinMaxDataElementParams(List.of(), List.of(), PagedParams.DEFAULT);
 
-  public static DataValueChangelogQueryParams ofType(DataValueChangelogType... types) {
-    return new DataValueChangelogQueryParams(
-        List.of(),
-        List.of(),
-        List.of(),
-        List.of(),
-        List.of(),
-        null,
-        null,
-        List.of(types),
-        PagedParams.DEFAULT);
+  public MinMaxDataElementParams(List<String> filters) {
+    this(List.of(), filters, PagedParams.DEFAULT);
   }
 }

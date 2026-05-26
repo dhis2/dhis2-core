@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,42 +27,14 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.note;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
+package org.hisp.dhis.common.input;
 
 /**
- * @author Chau Thu Tran
+ * Marker interface to be implemented by {@link Record} classes to be mapped via json-tree.
+ *
+ * <p>This is so this becomes an opt-in feature.
+ *
+ * @author Jan Bernitt
+ * @since 2.44
  */
-@JacksonXmlRootElement(localName = "trackedEntityComment", namespace = DxfNamespaces.DXF_2_0)
-public class Note extends BaseIdentifiableObject {
-  private String noteText;
-
-  // -------------------------------------------------------------------------
-  // Constructor
-  // -------------------------------------------------------------------------
-
-  public Note() {}
-
-  public Note(String noteText) {
-    this.noteText = noteText;
-  }
-
-  // -------------------------------------------------------------------------
-  // Getters/Setters
-  // -------------------------------------------------------------------------
-
-  @JsonProperty
-  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
-  public String getNoteText() {
-    return noteText;
-  }
-
-  public void setNoteText(String noteText) {
-    this.noteText = noteText;
-  }
-}
+public interface UrlParams {}

@@ -363,6 +363,5 @@ public interface RelationshipItemMapper {
   @Mapping(target = "created")
   @Mapping(target = "noteText")
   @Mapping(target = "lastUpdatedBy")
-  @Mapping(target = "creator")
   Note map(Note note);
 }

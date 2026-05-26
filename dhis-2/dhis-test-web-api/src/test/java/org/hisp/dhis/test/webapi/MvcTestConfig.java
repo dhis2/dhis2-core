@@ -48,6 +48,7 @@ import org.hisp.dhis.webapi.fields.FieldsConverter;
 import org.hisp.dhis.webapi.mvc.CurrentSystemSettingsHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
+import org.hisp.dhis.webapi.mvc.UrlParamsMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.AuthorityInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.SystemSettingsInterceptor;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
@@ -102,12 +103,12 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
   @Autowired private NodeService nodeService;
 
-  @Autowired
-  private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
+  @Autowired private CurrentUserHandlerMethodArgumentResolver currentUserArgResolver;
 
   @Autowired
-  private CurrentSystemSettingsHandlerMethodArgumentResolver
-      currentSystemSettingsHandlerMethodArgumentResolver;
+  private CurrentSystemSettingsHandlerMethodArgumentResolver currentSystemSettingsArgResolver;
+
+  @Autowired private UrlParamsMethodArgumentResolver urlParamsArgResolver;
 
   @Autowired private FieldsConverter fieldsConverter;
 
@@ -252,8 +253,9 @@ public class MvcTestConfig implements WebMvcConfigurer {
 
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
-    resolvers.add(currentUserHandlerMethodArgumentResolver);
-    resolvers.add(currentSystemSettingsHandlerMethodArgumentResolver);
+    resolvers.add(currentUserArgResolver);
+    resolvers.add(currentSystemSettingsArgResolver);
+    resolvers.add(urlParamsArgResolver);
   }
 
   @Bean
