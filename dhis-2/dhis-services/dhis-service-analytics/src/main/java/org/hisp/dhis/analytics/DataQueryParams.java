@@ -440,6 +440,14 @@ public class DataQueryParams {
   /** Mapping of organisation unit sub-hierarchy roots and lowest available data approval levels. */
   protected transient Map<OrganisationUnit, Integer> dataApprovalLevels = new HashMap<>();
 
+  /**
+   * Resolved period type per data element UID, populated by the query planner via a single batch
+   * query. Used by {@link org.hisp.dhis.analytics.data.QueryPlannerUtils} so downstream grouping
+   * does not depend on lazy-loading {@code DataElement.dataSetElements} on entities that may be
+   * detached.
+   */
+  protected Map<String, PeriodType> dataElementPeriodTypes = new HashMap<>();
+
   /** Hints for the aggregation process. */
   protected transient Set<ProcessingHint> processingHints = new HashSet<>();
 
@@ -548,6 +556,7 @@ public class DataQueryParams {
     params.startDateRestriction = this.startDateRestriction;
     params.endDateRestriction = this.endDateRestriction;
     params.dataApprovalLevels = new HashMap<>(this.dataApprovalLevels);
+    params.dataElementPeriodTypes = new HashMap<>(this.dataElementPeriodTypes);
     params.skipDataDimensionValidation = this.skipDataDimensionValidation;
     params.userOrgUnitType = this.userOrgUnitType;
     params.explainOrderId = this.explainOrderId;
@@ -2214,6 +2223,10 @@ public class DataQueryParams {
     this.dataApprovalLevels = dataApprovalLevels;
   }
 
+  public Map<String, PeriodType> getDataElementPeriodTypes() {
+    return dataElementPeriodTypes;
+  }
+
   // -------------------------------------------------------------------------
   // Get helpers for dimensions and filters
   // -------------------------------------------------------------------------
@@ -3002,6 +3015,11 @@ public class DataQueryParams {
 
     public Builder withDataApprovalLevels(Map<OrganisationUnit, Integer> dataApprovalLevels) {
       this.params.dataApprovalLevels = dataApprovalLevels;
+      return this;
+    }
+
+    public Builder withDataElementPeriodTypes(Map<String, PeriodType> dataElementPeriodTypes) {
+      this.params.dataElementPeriodTypes = dataElementPeriodTypes;
       return this;
     }
 
