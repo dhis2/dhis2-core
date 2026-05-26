@@ -34,7 +34,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.analytics.ValidationHelper.*;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import static org.skyscreamer.jsonassert.JSONAssert.assertEquals;
 
 import java.util.HashSet;
@@ -42,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEventActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
@@ -658,72 +656,101 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
     boolean expectPostgis = isPostgres();
 
     // Given
-    QueryParamsBuilder params = new QueryParamsBuilder().add("filter=pe:2022")
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=pe:2022")
             .add("headers=geometry,geometrySource")
             .add("coordinatesOnly=true")
             .add("stage=Zj7UnCAulEk")
             .add("coordinateField=EVENT")
             .add("dimension=ou:ImspTQPwCqd")
             .add("fallbackCoordinateField=F3ogKBuviRA")
-            .add("desc=lastupdated")
-            ;
+            .add("desc=lastupdated");
 
     // When
     ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
 
     // Then
     // 1. Validate Response Structure (Counts, Headers, Height/Width)
-    //    This helper checks basic counts and dimensions, adapting based on the runtime 'expectPostgis' flag.
-    validateResponseStructure(response, expectPostgis, 28, 2, 1); // Pass runtime flag, row count, and expected header counts
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        28,
+        2,
+        1); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
-    List<Map<String, Object>> actualHeaders = response.extractList("headers", Map.class).stream()
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
             .map(obj -> (Map<String, Object>) obj) // Ensure correct type
             .collect(Collectors.toList());
 
-
     // 3. Assert metaData.
-    String expectedMetaData = "{\"pager\":{\"page\":1,\"total\":28,\"pageSize\":50,\"pageCount\":1},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"eBAyeGv0exc\":{\"name\":\"Inpatient morbidity and mortality\"},\"ou\":{\"name\":\"Organisation unit\"},\"Zj7UnCAulEk\":{\"name\":\"Inpatient morbidity and mortality\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
-    String actualMetaData = new JSONObject((Map)response.extract("metaData")).toString();
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"total\":28,\"pageSize\":50,\"pageCount\":1},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"eBAyeGv0exc\":{\"name\":\"Inpatient morbidity and mortality\"},\"ou\":{\"name\":\"Organisation unit\"},\"Zj7UnCAulEk\":{\"name\":\"Inpatient morbidity and mortality\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
     assertEquals(expectedMetaData, actualMetaData, false);
 
     // 4. Validate Headers By Name (conditionally checking PostGIS headers).
     if (expectPostgis) {
-      validateHeaderPropertiesByName(response, actualHeaders,"geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+      validateHeaderPropertiesByName(
+          response, actualHeaders, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
     }
-    validateHeaderPropertiesByName(response, actualHeaders,"geometrySource", "Geometry source", "TEXT", "java.lang.String", false, true);
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "geometrySource",
+        "Geometry source",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
 
     // rowContext not found or empty in the response, skipping assertions.
 
     // 7. Assert row values by name at specific indices (sorted results).
     // Validate selected values for row index 0
-    validateRowValueByName(response, actualHeaders, 0, "geometry", "{\"type\":\"Point\",\"coordinates\":[-12.262115,8.195179]}");
+    validateRowValueByName(
+        response,
+        actualHeaders,
+        0,
+        "geometry",
+        "{\"type\":\"Point\",\"coordinates\":[-12.262115,8.195179]}");
     validateRowValueByName(response, actualHeaders, 0, "geometrySource", "psigeometry");
 
     // Validate selected values for row index 5
-    validateRowValueByName(response, actualHeaders, 5, "geometry", "{\"type\":\"Point\",\"coordinates\":[0,0]}");
+    validateRowValueByName(
+        response, actualHeaders, 5, "geometry", "{\"type\":\"Point\",\"coordinates\":[0,0]}");
     validateRowValueByName(response, actualHeaders, 5, "geometrySource", "psigeometry");
 
     // Validate selected values for row index 10
-    validateRowValueByName(response, actualHeaders, 10, "geometry", "{\"type\":\"Point\",\"coordinates\":[0,0]}");
+    validateRowValueByName(
+        response, actualHeaders, 10, "geometry", "{\"type\":\"Point\",\"coordinates\":[0,0]}");
     validateRowValueByName(response, actualHeaders, 10, "geometrySource", "psigeometry");
 
     // Validate selected values for row index 15
-    validateRowValueByName(response, actualHeaders, 15, "geometry", "{\"type\":\"Point\",\"coordinates\":[0,0]}");
+    validateRowValueByName(
+        response, actualHeaders, 15, "geometry", "{\"type\":\"Point\",\"coordinates\":[0,0]}");
     validateRowValueByName(response, actualHeaders, 15, "geometrySource", "psigeometry");
 
     // Validate selected values for row index 20
-    validateRowValueByName(response, actualHeaders, 20, "geometry", "{\"type\":\"Point\",\"coordinates\":[0,0]}");
+    validateRowValueByName(
+        response, actualHeaders, 20, "geometry", "{\"type\":\"Point\",\"coordinates\":[0,0]}");
     validateRowValueByName(response, actualHeaders, 20, "geometrySource", "psigeometry");
 
     // Validate selected values for row index 25
-    validateRowValueByName(response, actualHeaders, 25, "geometry", "{\"type\":\"Point\",\"coordinates\":[0,0]}");
+    validateRowValueByName(
+        response, actualHeaders, 25, "geometry", "{\"type\":\"Point\",\"coordinates\":[0,0]}");
     validateRowValueByName(response, actualHeaders, 25, "geometrySource", "psigeometry");
 
     // Validate selected values for row index 27
-    validateRowValueByName(response, actualHeaders, 27, "geometry", "{\"type\":\"Point\",\"coordinates\":[0,0]}");
+    validateRowValueByName(
+        response, actualHeaders, 27, "geometry", "{\"type\":\"Point\",\"coordinates\":[0,0]}");
     validateRowValueByName(response, actualHeaders, 27, "geometrySource", "psigeometry");
   }
+
   @Test
   public void metadataForDataElementOfTypeOrgUnitFilterEq() throws JSONException {
 
