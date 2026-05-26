@@ -1189,57 +1189,18 @@ class JdbcEventStore implements EventStore {
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
 
-    // WITHOUT_REGISTRATION — three access patterns depending on query shape:
-    //   1. Date range present: push ev.organisationunitid IN (subquery) so the planner drives
-    //      the scan from idx_event_ou_ps_occurreddate(ou, ps, date) — best case.
-    //   2. No date range, ORDER BY lastupdated DESC (typical Android sync): fall back to path
-    //      LIKE so the planner uses idx_psi_lastupdated_desc, scanning newest-first and stopping
-    //      early at LIMIT — acceptable. Adding the IN subquery here forces a full seq scan + sort.
-    //   3. No date range, no ORDER BY lastupdated: path LIKE fallback, no efficient access path.
-    // WITH_REGISTRATION: filter on ou.path resolved via the TPO INNER JOIN —
-    //   ev.organisationunitid is provenance, not ownership.
-    String directDescendantsPredicate =
-        isWithoutRegistrationQuery(params) && hasDateRange(params)
-            ? " ev.organisationunitid IN ("
-                + "SELECT organisationunitid FROM organisationunit "
-                + "WHERE path LIKE CONCAT(:"
-                + COLUMN_ORG_UNIT_PATH
-                + ", '%'))"
-                + AND
-            : CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + AND;
-
     if (isProgramRestricted(params.getEnrolledInProgram())) {
-      return directDescendantsPredicate
-          + createCaptureScopeQuery(
-              user, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
+      return createCaptureScopeQuery(
+          user, mapSqlParameterSource, AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return directDescendantsPredicate
-        + getSearchAndCaptureScopeOrgUnitPathMatchQuery(CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY);
   }
 
   private String createChildrenSql(
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
-    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_ID, params.getOrgUnit().getId());
-
-    String directChildrenPredicate =
-        isWithoutRegistrationQuery(params)
-            ? " (ev.organisationunitid = :"
-                + COLUMN_ORG_UNIT_ID
-                + " OR ev.organisationunitid IN ("
-                + "SELECT organisationunitid FROM organisationunit WHERE parentid = :"
-                + COLUMN_ORG_UNIT_ID
-                + "))"
-                + AND
-            : " (ou.organisationunitid = :"
-                + COLUMN_ORG_UNIT_ID
-                + " OR ou.organisationunitid IN ("
-                + "SELECT organisationunitid FROM organisationunit WHERE parentid = :"
-                + COLUMN_ORG_UNIT_ID
-                + "))"
-                + AND;
 
     String customChildrenQuery =
         " and (ou.hierarchylevel = "
@@ -1249,17 +1210,15 @@ class JdbcEventStore implements EventStore {
             + " ) ";
 
     if (isProgramRestricted(params.getEnrolledInProgram())) {
-      return directChildrenPredicate
-          + createCaptureScopeQuery(
-              user,
-              mapSqlParameterSource,
-              AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
+      return createCaptureScopeQuery(
+          user,
+          mapSqlParameterSource,
+          AND + CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return directChildrenPredicate
-        + getSearchAndCaptureScopeOrgUnitPathMatchQuery(
-            CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
+    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(
+        CUSTOM_ORG_UNIT_PATH_LIKE_MATCH_QUERY + customChildrenQuery);
   }
 
   private String createSelectedSql(
@@ -1341,10 +1300,6 @@ class JdbcEventStore implements EventStore {
   private boolean isWithoutRegistrationQuery(EventQueryParams params) {
     return params.getEnrolledInProgram() != null
         && params.getEnrolledInProgram().getProgramType() == ProgramType.WITHOUT_REGISTRATION;
-  }
-
-  private boolean hasDateRange(EventQueryParams params) {
-    return params.getOccurredStartDate() != null || params.getOccurredEndDate() != null;
   }
 
   private boolean isProgramRestricted(Program program) {
