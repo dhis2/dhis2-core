@@ -78,7 +78,7 @@ public class SimpleEventSMSListener extends CompressionSMSListener {
         TrackerImportParams.builder()
             .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
             .build();
-    TrackerObjects trackerObjects = map(subm, smsCreatedBy.getUsername());
+    TrackerObjects trackerObjects = map(subm);
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     if (Status.OK == importReport.getStatus()) {
