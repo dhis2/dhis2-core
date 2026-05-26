@@ -270,6 +270,19 @@ public class DefaultProgramIndicatorService implements ProgramIndicatorService {
         expression, dataType, programIndicator, startDate, endDate, tableAlias, true);
   }
 
+  @Override
+  @Transactional(readOnly = true)
+  public String getAnalyticsSqlAllowingNulls(
+      String expression,
+      DataType dataType,
+      ProgramIndicator programIndicator,
+      Date startDate,
+      Date endDate,
+      String tableAlias) {
+    return getAnalyticsSqlCached(
+        expression, dataType, programIndicator, startDate, endDate, tableAlias, false);
+  }
+
   private String getAnalyticsSqlCached(
       String expression,
       DataType dataType,

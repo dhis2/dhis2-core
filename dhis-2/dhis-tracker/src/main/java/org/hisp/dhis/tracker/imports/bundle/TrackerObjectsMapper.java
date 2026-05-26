@@ -398,7 +398,6 @@ public class TrackerObjectsMapper {
     dbNote.setUid(note.getNote().getValue());
     dbNote.setCreated(now);
     dbNote.setLastUpdatedBy(user);
-    dbNote.setCreator(note.getStoredBy());
     dbNote.setNoteText(note.getValue());
 
     return dbNote;

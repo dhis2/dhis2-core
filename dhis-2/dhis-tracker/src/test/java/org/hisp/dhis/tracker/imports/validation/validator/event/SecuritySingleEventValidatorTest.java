@@ -31,24 +31,25 @@ package org.hisp.dhis.tracker.imports.validation.validator.event;
 
 import static org.hisp.dhis.test.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1000;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1083;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1091;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1099;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Set;
-import org.hisp.dhis.category.CategoryOption;
+import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.acl.ErrorMessage;
+import org.hisp.dhis.tracker.acl.TrackerAccessManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -56,13 +57,13 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.test.TrackerTestBase;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -83,7 +84,7 @@ class SecuritySingleEventValidatorTest extends TrackerTestBase {
 
   @Mock private TrackerPreheat preheat;
 
-  @Mock private AclService aclService;
+  @Mock private TrackerAccessManager trackerAccessManager;
 
   private final UserDetails user = UserDetails.fromUser(makeUser("A"));
 
@@ -91,47 +92,29 @@ class SecuritySingleEventValidatorTest extends TrackerTestBase {
 
   private OrganisationUnit organisationUnit;
 
-  private Program program;
-
   private ProgramStage programStage;
-
-  private CategoryOptionCombo categoryOptionCombo;
-
-  private CategoryOption categoryOption;
 
   @BeforeEach
   void setUp() {
     when(bundle.getPreheat()).thenReturn(preheat);
     when(bundle.getUser()).thenReturn(user);
+
     organisationUnit = createOrganisationUnit('A');
     organisationUnit.setUid(ORG_UNIT_ID);
     organisationUnit.updatePath();
 
-    program = createProgram('A');
+    Program program = createProgram('A');
     program.setUid(PROGRAM_ID);
     program.setProgramType(ProgramType.WITHOUT_REGISTRATION);
-
     programStage = createProgramStage('A', program);
     programStage.setUid(PS_ID);
 
-    categoryOption = createCategoryOption('A');
-    categoryOptionCombo = createCategoryOptionCombo('A');
-    categoryOptionCombo.setCategoryOptions(Set.of(categoryOption));
+    reporter = new Reporter(TrackerIdSchemeParams.builder().build());
+    validator = new SecuritySingleEventValidator(trackerAccessManager);
 
-    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-    reporter = new Reporter(idSchemes);
-
-    validator = new SecuritySingleEventValidator(aclService);
-
-    when(bundle.getPreheat()).thenReturn(preheat);
-  }
-
-  private UserDetails setUpUserWithOrgUnit() {
-    User userWithOrgUnit = makeUser("B");
-    userWithOrgUnit.setOrganisationUnits(Set.of(organisationUnit));
-    UserDetails currentUserDetails = UserDetails.fromUser(userWithOrgUnit);
-    when(bundle.getUser()).thenReturn(currentUserDetails);
-    return currentUserDetails;
+    lenient()
+        .when(preheat.getProgramStage(MetadataIdentifier.ofUid(PS_ID)))
+        .thenReturn(programStage);
   }
 
   @ParameterizedTest
@@ -141,20 +124,11 @@ class SecuritySingleEventValidatorTest extends TrackerTestBase {
       names = {"CREATE"})
   void shouldFailValidationWhenUserDoNotHaveOrgUnitInCaptureScoreForCreateStrategy(
       TrackerImportStrategy strategy) {
-    UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.SingleEvent.builder()
-            .event(UID.generate())
-            .enrollment(enrollmentUid)
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .programStage(MetadataIdentifier.ofUid(PS_ID))
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .build();
-
+    org.hisp.dhis.tracker.imports.domain.Event event = singleEvent();
     when(bundle.getStrategy(event)).thenReturn(strategy);
-    when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
-    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
-        .thenReturn(organisationUnit);
+    when(trackerAccessManager.canCreate(any(UserDetails.class), any(SingleEvent.class)))
+        .thenReturn(
+            List.of(new ErrorMessage(E1000, user.getUid(), List.of(user.getUid(), ORG_UNIT_ID))));
 
     validator.validate(reporter, bundle, event);
 
@@ -166,25 +140,24 @@ class SecuritySingleEventValidatorTest extends TrackerTestBase {
       value = TrackerImportStrategy.class,
       mode = EnumSource.Mode.INCLUDE,
       names = {"UPDATE", "DELETE"})
-  void
-      shouldFailValidationWhenUserDoesNotHaveDatabaseOrgUnitInCaptureScopeForUpdateAndDeleteStrategy(
-          TrackerImportStrategy strategy) {
-    UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.SingleEvent.builder()
-            .event(UID.generate())
-            .enrollment(enrollmentUid)
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .programStage(MetadataIdentifier.ofUid(PS_ID))
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .build();
-
+  void shouldFailValidationWhenUserDoesNotHaveOrgUnitInCaptureScopeForUpdateAndDeleteStrategy(
+      TrackerImportStrategy strategy) {
+    org.hisp.dhis.tracker.imports.domain.Event event = singleEvent();
     when(bundle.getStrategy(event)).thenReturn(strategy);
-    SingleEvent preheatEvent = getEvent();
-    when(preheat.getSingleEvent(event.getEvent())).thenReturn(preheatEvent);
+    when(preheat.getSingleEvent(event.getEvent())).thenReturn(dbSingleEvent());
     lenient()
-        .when(bundle.getPreheat().getOrganisationUnit(event.getOrgUnit()))
-        .thenReturn(organisationUnit);
+        .when(
+            trackerAccessManager.canUpdate(
+                any(UserDetails.class),
+                any(SingleEvent.class),
+                any(OrganisationUnit.class),
+                any(CategoryOptionCombo.class)))
+        .thenReturn(
+            List.of(new ErrorMessage(E1000, user.getUid(), List.of(user.getUid(), ORG_UNIT_ID))));
+    lenient()
+        .when(trackerAccessManager.canDelete(any(UserDetails.class), any(SingleEvent.class)))
+        .thenReturn(
+            List.of(new ErrorMessage(E1000, user.getUid(), List.of(user.getUid(), ORG_UNIT_ID))));
 
     validator.validate(reporter, bundle, event);
 
@@ -198,29 +171,17 @@ class SecuritySingleEventValidatorTest extends TrackerTestBase {
       names = {"UPDATE"})
   void shouldFailValidationWhenUserDoesNotHavePayloadOrgUnitInCaptureScopeForUpdateStrategy(
       TrackerImportStrategy strategy) {
-    UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.SingleEvent.builder()
-            .event(UID.generate())
-            .enrollment(enrollmentUid)
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .programStage(MetadataIdentifier.ofUid(PS_ID))
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .build();
-
-    User user = makeUser("B");
-    user.setOrganisationUnits(Set.of(organisationUnit));
-    UserDetails userDetails = UserDetails.fromUser(user);
-    when(bundle.getUser()).thenReturn(userDetails);
-
-    OrganisationUnit outOfScopeOrgUnit = createOrganisationUnit('B');
-    outOfScopeOrgUnit.setUid("ORG_UNIT_UID");
-    outOfScopeOrgUnit.updatePath();
-
+    org.hisp.dhis.tracker.imports.domain.Event event = singleEvent();
     when(bundle.getStrategy(event)).thenReturn(strategy);
-    SingleEvent preheatEvent = getEvent();
-    when(preheat.getSingleEvent(event.getEvent())).thenReturn(preheatEvent);
-    when(bundle.getPreheat().getOrganisationUnit(event.getOrgUnit())).thenReturn(outOfScopeOrgUnit);
+    when(preheat.getSingleEvent(event.getEvent())).thenReturn(dbSingleEvent());
+    when(preheat.getOrganisationUnit(event.getOrgUnit())).thenReturn(organisationUnit);
+    when(trackerAccessManager.canUpdate(
+            any(UserDetails.class),
+            any(SingleEvent.class),
+            any(OrganisationUnit.class),
+            any(CategoryOptionCombo.class)))
+        .thenReturn(
+            List.of(new ErrorMessage(E1000, user.getUid(), List.of(user.getUid(), ORG_UNIT_ID))));
 
     validator.validate(reporter, bundle, event);
 
@@ -234,23 +195,11 @@ class SecuritySingleEventValidatorTest extends TrackerTestBase {
       names = {"CREATE"})
   void shouldFailValidationWhenUserDoNotHaveWriteAccessToProgramForCreateStrategy(
       TrackerImportStrategy strategy) {
-    UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.SingleEvent.builder()
-            .event(UID.generate())
-            .enrollment(enrollmentUid)
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .programStage(MetadataIdentifier.ofUid(PS_ID))
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .build();
-
+    org.hisp.dhis.tracker.imports.domain.Event event = singleEvent();
     when(bundle.getStrategy(event)).thenReturn(strategy);
-    when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
-    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
-        .thenReturn(organisationUnit);
-
-    UserDetails userDetails = setUpUserWithOrgUnit();
-    when(aclService.canDataWrite(userDetails, program)).thenReturn(false);
+    when(trackerAccessManager.canCreate(any(UserDetails.class), any(SingleEvent.class)))
+        .thenReturn(
+            List.of(new ErrorMessage(E1091, user.getUid(), List.of(user.getUid(), PROGRAM_ID))));
 
     validator.validate(reporter, bundle, event);
 
@@ -264,24 +213,22 @@ class SecuritySingleEventValidatorTest extends TrackerTestBase {
       names = {"UPDATE", "DELETE"})
   void shouldFailValidationWhenUserDoNotHaveWriteAccessToProgramForUpdateAndDeleteStrategy(
       TrackerImportStrategy strategy) {
-    UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.SingleEvent.builder()
-            .event(UID.generate())
-            .enrollment(enrollmentUid)
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .programStage(MetadataIdentifier.ofUid(PS_ID))
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .build();
-
+    org.hisp.dhis.tracker.imports.domain.Event event = singleEvent();
     when(bundle.getStrategy(event)).thenReturn(strategy);
-    SingleEvent preheatEvent = getEvent();
-    when(preheat.getSingleEvent(event.getEvent())).thenReturn(preheatEvent);
-    UserDetails userDetails = setUpUserWithOrgUnit();
-    when(aclService.canDataWrite(userDetails, program)).thenReturn(false);
+    when(preheat.getSingleEvent(event.getEvent())).thenReturn(dbSingleEvent());
     lenient()
-        .when(bundle.getPreheat().getOrganisationUnit(event.getOrgUnit()))
-        .thenReturn(organisationUnit);
+        .when(
+            trackerAccessManager.canUpdate(
+                any(UserDetails.class),
+                any(SingleEvent.class),
+                any(OrganisationUnit.class),
+                any(CategoryOptionCombo.class)))
+        .thenReturn(
+            List.of(new ErrorMessage(E1091, user.getUid(), List.of(user.getUid(), PROGRAM_ID))));
+    lenient()
+        .when(trackerAccessManager.canDelete(any(UserDetails.class), any(SingleEvent.class)))
+        .thenReturn(
+            List.of(new ErrorMessage(E1091, user.getUid(), List.of(user.getUid(), PROGRAM_ID))));
 
     validator.validate(reporter, bundle, event);
 
@@ -295,28 +242,11 @@ class SecuritySingleEventValidatorTest extends TrackerTestBase {
       names = {"CREATE"})
   void shouldFailValidationWhenUserDoNotHaveWriteAccessToCategoryOptionForCreateStrategy(
       TrackerImportStrategy strategy) {
-    UID enrollmentUid = UID.generate();
-    MetadataIdentifier attributeOptionComboUid =
-        MetadataIdentifier.ofUid(categoryOptionCombo.getUid());
-    org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.SingleEvent.builder()
-            .event(UID.generate())
-            .enrollment(enrollmentUid)
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .programStage(MetadataIdentifier.ofUid(PS_ID))
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .attributeOptionCombo(attributeOptionComboUid)
-            .build();
-
-    UserDetails userDetails = setUpUserWithOrgUnit();
+    org.hisp.dhis.tracker.imports.domain.Event event = singleEvent();
     when(bundle.getStrategy(event)).thenReturn(strategy);
-    when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo)))
-        .thenReturn(categoryOptionCombo);
-    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
-        .thenReturn(organisationUnit);
-    when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
-    when(aclService.canDataWrite(userDetails, categoryOption)).thenReturn(false);
+    when(trackerAccessManager.canCreate(any(UserDetails.class), any(SingleEvent.class)))
+        .thenReturn(
+            List.of(new ErrorMessage(E1099, user.getUid(), List.of(user.getUid(), "catOptUid"))));
 
     validator.validate(reporter, bundle, event);
 
@@ -330,29 +260,23 @@ class SecuritySingleEventValidatorTest extends TrackerTestBase {
       names = {"UPDATE", "DELETE"})
   void shouldFailValidationWhenUserDoNotHaveWriteAccessToCategoryOptionForUpdateAndDeleteStrategy(
       TrackerImportStrategy strategy) {
-    UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.SingleEvent.builder()
-            .event(UID.generate())
-            .enrollment(enrollmentUid)
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .programStage(MetadataIdentifier.ofUid(PS_ID))
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .attributeOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo))
-            .build();
-
+    org.hisp.dhis.tracker.imports.domain.Event event = singleEvent();
     when(bundle.getStrategy(event)).thenReturn(strategy);
-    SingleEvent preheatEvent = getEvent();
-    when(preheat.getSingleEvent(event.getEvent())).thenReturn(preheatEvent);
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo)))
-        .thenReturn(categoryOptionCombo);
-
-    UserDetails userDetails = setUpUserWithOrgUnit();
-    when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
-    when(aclService.canDataWrite(userDetails, categoryOption)).thenReturn(false);
+    when(preheat.getSingleEvent(event.getEvent())).thenReturn(dbSingleEvent());
     lenient()
-        .when(bundle.getPreheat().getOrganisationUnit(event.getOrgUnit()))
-        .thenReturn(organisationUnit);
+        .when(
+            trackerAccessManager.canUpdate(
+                any(UserDetails.class),
+                any(SingleEvent.class),
+                any(OrganisationUnit.class),
+                any(CategoryOptionCombo.class)))
+        .thenReturn(
+            List.of(new ErrorMessage(E1099, user.getUid(), List.of(user.getUid(), "catOptUid"))));
+    lenient()
+        .when(trackerAccessManager.canDelete(any(UserDetails.class), any(SingleEvent.class)))
+        .thenReturn(
+            List.of(new ErrorMessage(E1099, user.getUid(), List.of(user.getUid(), "catOptUid"))));
+
     validator.validate(reporter, bundle, event);
 
     assertHasError(reporter, event, E1099);
@@ -364,31 +288,20 @@ class SecuritySingleEventValidatorTest extends TrackerTestBase {
       mode = EnumSource.Mode.INCLUDE,
       names = {"UPDATE", "DELETE"})
   void shouldPassValidationWhenDeletingOrUpdatingSingleEvent(TrackerImportStrategy strategy) {
-    UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.SingleEvent.builder()
-            .event(UID.generate())
-            .enrollment(enrollmentUid)
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .programStage(MetadataIdentifier.ofUid(PS_ID))
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .status(EventStatus.COMPLETED)
-            .attributeOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo))
-            .build();
-
+    org.hisp.dhis.tracker.imports.domain.Event event = singleEvent();
     when(bundle.getStrategy(event)).thenReturn(strategy);
-    SingleEvent preheatEvent = getEvent();
-
-    when(preheat.getSingleEvent(event.getEvent())).thenReturn(preheatEvent);
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo)))
-        .thenReturn(categoryOptionCombo);
-
-    UserDetails userDetails = setUpUserWithOrgUnit();
-    when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
-    when(aclService.canDataWrite(userDetails, categoryOption)).thenReturn(true);
+    when(preheat.getSingleEvent(event.getEvent())).thenReturn(dbSingleEvent());
     lenient()
-        .when(bundle.getPreheat().getOrganisationUnit(event.getOrgUnit()))
-        .thenReturn(organisationUnit);
+        .when(
+            trackerAccessManager.canUpdate(
+                any(UserDetails.class),
+                any(SingleEvent.class),
+                any(OrganisationUnit.class),
+                any(CategoryOptionCombo.class)))
+        .thenReturn(List.of());
+    lenient()
+        .when(trackerAccessManager.canDelete(any(UserDetails.class), any(SingleEvent.class)))
+        .thenReturn(List.of());
 
     validator.validate(reporter, bundle, event);
 
@@ -401,27 +314,10 @@ class SecuritySingleEventValidatorTest extends TrackerTestBase {
       mode = EnumSource.Mode.INCLUDE,
       names = {"CREATE"})
   void shouldPassValidationWhenCreatingSingleEvent(TrackerImportStrategy strategy) {
-    org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.SingleEvent.builder()
-            .event(UID.generate())
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .programStage(MetadataIdentifier.ofUid(PS_ID))
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .attributeOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo))
-            .build();
-
+    org.hisp.dhis.tracker.imports.domain.Event event = singleEvent();
     when(bundle.getStrategy(event)).thenReturn(strategy);
-    when(preheat.getProgramStage(event.getProgramStage())).thenReturn(programStage);
-    SingleEvent preheatEvent = getEvent();
-    when(preheat.getSingleEvent(event.getEvent())).thenReturn(preheatEvent);
-    when(preheat.getOrganisationUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID)))
-        .thenReturn(organisationUnit);
-    when(preheat.getCategoryOptionCombo(MetadataIdentifier.ofUid(categoryOptionCombo)))
-        .thenReturn(categoryOptionCombo);
-
-    UserDetails userDetails = setUpUserWithOrgUnit();
-    when(aclService.canDataWrite(userDetails, program)).thenReturn(true);
-    when(aclService.canDataWrite(userDetails, categoryOption)).thenReturn(true);
+    when(trackerAccessManager.canCreate(any(UserDetails.class), any(SingleEvent.class)))
+        .thenReturn(List.of());
 
     validator.validate(reporter, bundle, event);
 
@@ -429,35 +325,112 @@ class SecuritySingleEventValidatorTest extends TrackerTestBase {
   }
 
   @Test
-  void shouldFailValidationWhenUpdatingCompletedEventAndUserHasNoAuthorityToUncompleteEvent() {
-    UID enrollmentUid = UID.generate();
-    org.hisp.dhis.tracker.imports.domain.Event event =
-        org.hisp.dhis.tracker.imports.domain.SingleEvent.builder()
-            .event(UID.generate())
-            .enrollment(enrollmentUid)
-            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
-            .programStage(MetadataIdentifier.ofUid(PS_ID))
-            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
-            .status(EventStatus.ACTIVE)
-            .build();
-
+  void shouldPassDatabaseAocToCanUpdateWhenPayloadOmitsAoc() {
+    org.hisp.dhis.tracker.imports.domain.Event event = singleEvent();
     when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
-    SingleEvent preheatEvent = getEvent();
-    when(preheat.getSingleEvent(event.getEvent())).thenReturn(preheatEvent);
-
-    when(aclService.canDataWrite(user, program)).thenReturn(true);
-    when(bundle.getPreheat().getOrganisationUnit(event.getOrgUnit())).thenReturn(organisationUnit);
+    CategoryOptionCombo dbAoc = createCategoryOptionCombo('A');
+    SingleEvent dbEvent = dbSingleEvent();
+    dbEvent.setAttributeOptionCombo(dbAoc);
+    when(preheat.getSingleEvent(event.getEvent())).thenReturn(dbEvent);
+    when(trackerAccessManager.canUpdate(
+            any(UserDetails.class),
+            any(SingleEvent.class),
+            any(OrganisationUnit.class),
+            any(CategoryOptionCombo.class)))
+        .thenReturn(List.of());
 
     validator.validate(reporter, bundle, event);
 
-    assertHasError(reporter, event, E1083);
+    ArgumentCaptor<CategoryOptionCombo> aocCaptor =
+        ArgumentCaptor.forClass(CategoryOptionCombo.class);
+    verify(trackerAccessManager)
+        .canUpdate(
+            any(UserDetails.class),
+            any(SingleEvent.class),
+            any(OrganisationUnit.class),
+            aocCaptor.capture());
+    assertEquals(dbAoc, aocCaptor.getValue());
   }
 
-  private SingleEvent getEvent() {
+  @Test
+  void shouldPassPayloadAocToCanUpdateWhenPayloadSpecifiesAoc() {
+    CategoryOptionCombo payloadAoc = createCategoryOptionCombo('B');
+    MetadataIdentifier aocId = MetadataIdentifier.ofUid(payloadAoc.getUid());
+    org.hisp.dhis.tracker.imports.domain.Event event =
+        org.hisp.dhis.tracker.imports.domain.SingleEvent.builder()
+            .event(UID.generate())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .programStage(MetadataIdentifier.ofUid(PS_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .attributeOptionCombo(aocId)
+            .build();
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.UPDATE);
+    CategoryOptionCombo dbAoc = createCategoryOptionCombo('A');
+    SingleEvent dbEvent = dbSingleEvent();
+    dbEvent.setAttributeOptionCombo(dbAoc);
+    when(preheat.getSingleEvent(event.getEvent())).thenReturn(dbEvent);
+    when(preheat.getCategoryOptionCombo(aocId)).thenReturn(payloadAoc);
+    when(trackerAccessManager.canUpdate(
+            any(UserDetails.class),
+            any(SingleEvent.class),
+            any(OrganisationUnit.class),
+            any(CategoryOptionCombo.class)))
+        .thenReturn(List.of());
+
+    validator.validate(reporter, bundle, event);
+
+    ArgumentCaptor<CategoryOptionCombo> aocCaptor =
+        ArgumentCaptor.forClass(CategoryOptionCombo.class);
+    verify(trackerAccessManager)
+        .canUpdate(
+            any(UserDetails.class),
+            any(SingleEvent.class),
+            any(OrganisationUnit.class),
+            aocCaptor.capture());
+    assertEquals(payloadAoc, aocCaptor.getValue());
+  }
+
+  @Test
+  void shouldPassDatabaseAocToCanDeleteRegardlessOfPayloadAoc() {
+    CategoryOptionCombo payloadAoc = createCategoryOptionCombo('B');
+    MetadataIdentifier aocId = MetadataIdentifier.ofUid(payloadAoc.getUid());
+    org.hisp.dhis.tracker.imports.domain.Event event =
+        org.hisp.dhis.tracker.imports.domain.SingleEvent.builder()
+            .event(UID.generate())
+            .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+            .programStage(MetadataIdentifier.ofUid(PS_ID))
+            .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+            .attributeOptionCombo(aocId)
+            .build();
+    when(bundle.getStrategy(event)).thenReturn(TrackerImportStrategy.DELETE);
+    CategoryOptionCombo dbAoc = createCategoryOptionCombo('A');
+    SingleEvent dbEvent = dbSingleEvent();
+    dbEvent.setAttributeOptionCombo(dbAoc);
+    when(preheat.getSingleEvent(event.getEvent())).thenReturn(dbEvent);
+    when(trackerAccessManager.canDelete(any(UserDetails.class), any(SingleEvent.class)))
+        .thenReturn(List.of());
+
+    validator.validate(reporter, bundle, event);
+
+    ArgumentCaptor<SingleEvent> captor = ArgumentCaptor.forClass(SingleEvent.class);
+    verify(trackerAccessManager).canDelete(any(UserDetails.class), captor.capture());
+    assertEquals(dbAoc, captor.getValue().getAttributeOptionCombo());
+  }
+
+  private org.hisp.dhis.tracker.imports.domain.Event singleEvent() {
+    return org.hisp.dhis.tracker.imports.domain.SingleEvent.builder()
+        .event(UID.generate())
+        .orgUnit(MetadataIdentifier.ofUid(ORG_UNIT_ID))
+        .programStage(MetadataIdentifier.ofUid(PS_ID))
+        .program(MetadataIdentifier.ofUid(PROGRAM_ID))
+        .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
+        .build();
+  }
+
+  private SingleEvent dbSingleEvent() {
     SingleEvent event = new SingleEvent();
-    event.setProgramStage(programStage);
     event.setOrganisationUnit(organisationUnit);
-    event.setStatus(EventStatus.COMPLETED);
+    event.setAttributeOptionCombo(createCategoryOptionCombo('Z'));
     return event;
   }
 }

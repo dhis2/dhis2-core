@@ -33,7 +33,6 @@ import static org.hisp.dhis.changelog.ChangeLogType.CREATE;
 import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 
-import jakarta.persistence.EntityManager;
 import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
@@ -46,12 +45,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
+import javax.sql.DataSource;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.fileresource.FileResourceStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.program.notification.NotificationTrigger;
@@ -75,8 +76,11 @@ import org.springframework.stereotype.Component;
 public class TrackerEventPersister
     extends AbstractTrackerPersister<
         org.hisp.dhis.tracker.imports.domain.TrackerEvent, TrackerEvent> {
-  public TrackerEventPersister(ReservedValueService reservedValueService) {
-    super(reservedValueService);
+  public TrackerEventPersister(
+      ReservedValueService reservedValueService,
+      DataSource dataSource,
+      FileResourceStore fileResourceStore) {
+    super(reservedValueService, dataSource, fileResourceStore);
   }
 
   @Override
@@ -152,7 +156,6 @@ public class TrackerEventPersister
 
   @Override
   protected void updateAttributes(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.TrackerEvent event,
       TrackerEvent hibernateEntity,
@@ -163,20 +166,17 @@ public class TrackerEventPersister
 
   @Override
   protected void updateDataValues(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.TrackerEvent event,
       TrackerEvent payloadEntity,
       TrackerEvent currentEntity,
       UserDetails user,
       ChangeLogAccumulator changeLogs) {
-    handleDataValues(
-        entityManager, preheat, event.getDataValues(), payloadEntity, user, changeLogs);
+    handleDataValues(preheat, event.getDataValues(), payloadEntity, user, changeLogs);
     logFieldChanges(currentEntity, payloadEntity, user.getUsername(), changeLogs);
   }
 
   private void handleDataValues(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       Set<DataValue> payloadDataValues,
       TrackerEvent event,
@@ -195,7 +195,7 @@ public class TrackerEventPersister
           if (isNewDataValue(dbDataValue, dataValue)) {
             changeLogs.addTrackerEventChangeLog(
                 event, dataElement, program, null, dataValue.getValue(), CREATE, username);
-            saveDataValue(dataValue, event, dataElement, user, entityManager, preheat);
+            saveDataValue(dataValue, event, dataElement, user, preheat);
           } else if (isUpdate(dbDataValue, dataValue)) {
             changeLogs.addTrackerEventChangeLog(
                 event,
@@ -205,12 +205,11 @@ public class TrackerEventPersister
                 dataValue.getValue(),
                 UPDATE,
                 username);
-            updateDataValue(
-                dbDataValue, dataValue, event, dataElement, user, entityManager, preheat);
+            updateDataValue(dbDataValue, dataValue, event, dataElement, user, preheat);
           } else if (isDeletion(dbDataValue, dataValue)) {
             changeLogs.addTrackerEventChangeLog(
                 event, dataElement, program, dbDataValue.getValue(), null, DELETE, username);
-            deleteDataValue(dbDataValue, event, dataElement, entityManager, preheat);
+            deleteDataValue(dbDataValue, event, dataElement, preheat);
           }
         });
   }
@@ -275,7 +274,6 @@ public class TrackerEventPersister
       TrackerEvent event,
       DataElement dataElement,
       UserDetails user,
-      EntityManager entityManager,
       TrackerPreheat preheat) {
     EventDataValue eventDataValue = new EventDataValue();
     eventDataValue.setDataElement(dataElement.getUid());
@@ -290,7 +288,7 @@ public class TrackerEventPersister
     eventDataValue.setProvidedElsewhere(dv.isProvidedElsewhere());
 
     if (dataElement.isFileType()) {
-      assignFileResource(entityManager, preheat, event.getUid(), eventDataValue.getValue());
+      assignFileResource(preheat, event.getUid(), eventDataValue.getValue());
     }
 
     event.getEventDataValues().add(eventDataValue);
@@ -302,14 +300,13 @@ public class TrackerEventPersister
       TrackerEvent event,
       DataElement dataElement,
       UserDetails user,
-      EntityManager entityManager,
       TrackerPreheat preheat) {
     eventDataValue.setLastUpdated(new Date());
     eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));
 
     if (dataElement.isFileType()) {
-      unassignFileResource(entityManager, preheat, event.getUid(), eventDataValue.getValue());
-      assignFileResource(entityManager, preheat, event.getUid(), dv.getValue());
+      unassignFileResource(preheat, event.getUid(), eventDataValue.getValue());
+      assignFileResource(preheat, event.getUid(), dv.getValue());
     }
 
     eventDataValue.setProvidedElsewhere(dv.isProvidedElsewhere());
@@ -320,10 +317,9 @@ public class TrackerEventPersister
       EventDataValue eventDataValue,
       TrackerEvent event,
       DataElement dataElement,
-      EntityManager entityManager,
       TrackerPreheat preheat) {
     if (dataElement.isFileType()) {
-      unassignFileResource(entityManager, preheat, event.getUid(), eventDataValue.getValue());
+      unassignFileResource(preheat, event.getUid(), eventDataValue.getValue());
     }
 
     event.getEventDataValues().remove(eventDataValue);

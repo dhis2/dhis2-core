@@ -66,6 +66,7 @@ import org.hisp.dhis.analytics.common.EndpointItem;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlConstants;
 import org.hisp.dhis.analytics.event.data.ou.OrgUnitSqlCoordinator;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagInfoInitializer;
 import org.hisp.dhis.analytics.event.data.programindicator.disag.PiDisagQueryGenerator;
@@ -551,9 +552,19 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     List<DimensionalObject> dynamicDimensions =
         params.getDimensionsAndFilters(
-            Set.of(DimensionType.CATEGORY, DimensionType.CATEGORY_OPTION_GROUP_SET));
+            Set.of(
+                DimensionType.CATEGORY,
+                DimensionType.CATEGORY_OPTION_GROUP_SET,
+                DimensionType.PROGRAM_STATUS));
 
     for (DimensionalObject dim : dynamicDimensions) {
+      // PROGRAM_STATUS without items means group-by only — the column comes from the generic
+      // dimension SELECT loop; there is no IN-list to filter on.
+      DimensionType type = dim.getDimensionType();
+      if (type == DimensionType.PROGRAM_STATUS && dim.getItems().isEmpty()) {
+        continue;
+      }
+
       String dimName = dim.getDimensionName();
       String col =
           params.isPiDisagDimension(dimName)
@@ -623,7 +634,7 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
 
     if (params.hasProgramIndicatorDimension() && params.getProgramIndicator().hasFilter()) {
       String filter =
-          programIndicatorService.getAnalyticsSql(
+          programIndicatorService.getAnalyticsSqlAllowingNulls(
               params.getProgramIndicator().getFilter(),
               BOOLEAN,
               params.getProgramIndicator(),
@@ -874,21 +885,26 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
       if (ValueType.ORGANISATION_UNIT == queryItem.getValueType()
           && OrganisationUnitResolver.isStageOuDimension(queryItem)) {
         String stageUid = queryItem.getProgramStage().getUid();
-        // Main value column (uidlevelX from the event table)
+        // Main value column (uidlevelX), qualified to avoid ambiguity when ENROLLMENT_OU joins.
         OrganisationUnitResolver.StageOuCteContext stageOuContext =
-            organisationUnitResolver.buildStageOuCteContext(queryItem, params);
+            organisationUnitResolver.buildStageOuCteContext(
+                queryItem, params, getStageOuValueColumnTableAlias(params));
         columns.add(stageOuContext.valueColumn() + " as " + quote(stageUid + ".ou"));
         // Conditionally add ouname/oucode columns
         if (params.hasHeaders()) {
           if (params.getHeaders().contains(stageUid + ".ouname")) {
             columns.add(
-                quote(EventAnalyticsColumnName.OU_NAME_COLUMN_NAME)
+                sqlBuilder.quote(
+                        getStageOuValueColumnTableAlias(params),
+                        EventAnalyticsColumnName.OU_NAME_COLUMN_NAME)
                     + " as "
                     + quote(stageUid + ".ouname"));
           }
           if (params.getHeaders().contains(stageUid + ".oucode")) {
             columns.add(
-                quote(EventAnalyticsColumnName.OU_CODE_COLUMN_NAME)
+                sqlBuilder.quote(
+                        getStageOuValueColumnTableAlias(params),
+                        EventAnalyticsColumnName.OU_CODE_COLUMN_NAME)
                     + " as "
                     + quote(stageUid + ".oucode"));
           }
@@ -904,6 +920,12 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         handleRowContext(columns, params, queryItem, columnAndAlias);
       }
     }
+  }
+
+  private String getStageOuValueColumnTableAlias(EventQueryParams params) {
+    return params.hasEnrollmentOu()
+        ? OrgUnitSqlConstants.ENROLLMENT_TABLE_ALIAS
+        : ANALYTICS_TBL_ALIAS;
   }
 
   /**

@@ -338,6 +338,9 @@ public class JCloudsAppStorageService implements AppStorageService {
     AppFolderName folder = app.appFolder();
     blobStore.deleteBlob(folder.resolve(MANIFEST_WEBAPP_FILENAME));
 
+    // TODO(DHIS2-20648) Once the replacement BlobStoreService implementation does recursive
+    // deleteDirectory on every backend (see contract test), this branch can collapse to a
+    // single blobStore.deleteDirectory(folder.asPrefix()) call.
     if (blobStore.isFilesystem()) {
       // Delete all files related to app (works for local filestore)
       blobStore.deleteDirectory(folder.asPrefix());

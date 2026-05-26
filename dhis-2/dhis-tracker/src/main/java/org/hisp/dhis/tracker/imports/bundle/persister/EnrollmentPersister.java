@@ -29,11 +29,12 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
-import jakarta.persistence.EntityManager;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
+import javax.sql.DataSource;
 import org.hisp.dhis.common.UID;
+import org.hisp.dhis.fileresource.FileResourceStore;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -59,21 +60,21 @@ public class EnrollmentPersister
 
   public EnrollmentPersister(
       ReservedValueService reservedValueService,
+      DataSource dataSource,
+      FileResourceStore fileResourceStore,
       TrackedEntityProgramOwnerService trackedEntityProgramOwnerService) {
-    super(reservedValueService);
+    super(reservedValueService, dataSource, fileResourceStore);
     this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
   }
 
   @Override
   protected void updateAttributes(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
       Enrollment enrollmentToPersist,
       UserDetails user,
       ChangeLogAccumulator changeLogs) {
     handleTrackedEntityAttributeValues(
-        entityManager,
         preheat,
         enrollment.getAttributes(),
         enrollmentToPersist.getTrackedEntity(),
@@ -160,7 +161,6 @@ public class EnrollmentPersister
 
   @Override
   protected void updateDataValues(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto,
       Enrollment payloadEntity,

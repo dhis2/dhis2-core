@@ -109,6 +109,9 @@ on:
         type: string
         default: manual
 
+permissions:
+  contents: read
+
 jobs:
   performance-tests:
     if: github.repository == 'dhis2/dhis2-core'
@@ -127,9 +130,10 @@ jobs:
         sparse-checkout: |
           dhis-2/dhis-test-performance
 
-    # run-simulation.sh should cleanup after itself, this is to ensure the self-hosted runner is clean in case it did not.
+    # Backup cleanup before run: a previous job on this self-hosted runner may have left
+    # containers behind if its EXIT trap was killed before finishing.
     - name: Cleanup containers
-      run: docker compose --file docker-compose.yml --file docker-compose.profile.yml down --volumes
+      run: docker compose --file docker-compose.yml --file docker-compose.profile.yml down --volumes --remove-orphans
 
     - name: Clean target directory
       run: mvn clean
@@ -213,6 +217,14 @@ jobs:
         export REPORT_SUFFIX="candidate"
 
         ./run-simulation.sh
+
+    # Backup cleanup on cancellation: GitHub sends SIGTERM then SIGKILL after a short grace
+    # period, which can interrupt run-simulation.sh's EXIT trap mid-teardown. This step runs
+    # as a separate process with its own grace window to ensure containers and volumes are
+    # removed.
+    - name: Cleanup containers on cancellation
+      if: cancelled()
+      run: docker compose --file docker-compose.yml --file docker-compose.profile.yml down --volumes --remove-orphans
 
     - name: Upload Gatling report
       if: always()

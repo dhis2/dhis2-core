@@ -27,41 +27,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.validation.validator.event;
+package org.hisp.dhis.common.input;
 
-import static org.hisp.dhis.security.Authorities.F_UNCOMPLETE_EVENT;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1083;
+import static org.hisp.dhis.jsontree.Validation.YesNo.NO;
 
-import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Event;
-import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.tracker.imports.validation.Validator;
-import org.hisp.dhis.user.UserDetails;
+import java.util.function.ToIntFunction;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.jsontree.Validation;
 
-class CompletedEventValidator implements Validator<Event> {
+/**
+ * URL parameters for endpoints that offer paging.
+ *
+ * <p>Include via @{@link org.hisp.dhis.jsontree.Collapsed}.
+ *
+ * @param skipPaging override to {@link #paging()} to skip paging
+ * @param paging paging on/off (default on)
+ * @param page page no to show (default 1)
+ * @param pageSize entries per page (default 50)
+ */
+public record PagedParams(
+    Boolean skipPaging,
+    @Validation(required = NO) boolean paging,
+    @Validation(required = NO, minimum = 1) int page,
+    @Validation(required = NO, minimum = 1, maximum = 1000) int pageSize) {
 
-  @Override
-  public void validate(Reporter reporter, TrackerBundle bundle, Event event) {
-    if (!(event instanceof org.hisp.dhis.tracker.imports.domain.TrackerEvent trackerEvent)) {
-      return;
-    }
+  public static final PagedParams DEFAULT = new PagedParams(null, true, 1, 50);
 
-    UserDetails user = bundle.getUser();
-    org.hisp.dhis.tracker.model.TrackerEvent databaseTrackerEvent =
-        bundle.getPreheat().getTrackerEvent(trackerEvent.getUID());
-
-    if (EventStatus.COMPLETED == databaseTrackerEvent.getStatus()
-        && trackerEvent.getStatus() != null
-        && trackerEvent.getStatus() != databaseTrackerEvent.getStatus()
-        && !user.isAuthorized(F_UNCOMPLETE_EVENT)) {
-      reporter.addError(trackerEvent, E1083, user.getUid());
-    }
+  @OpenApi.Ignore
+  public boolean isPaged() {
+    if (skipPaging != null) return !skipPaging;
+    return paging;
   }
 
-  @Override
-  public boolean needsToRun(TrackerImportStrategy strategy) {
-    return strategy.isUpdate();
+  public int offset() {
+    return (page - 1) * pageSize;
+  }
+
+  public Pager toPager(int totalPages) {
+    return !isPaged() ? null : new Pager(page, totalPages, pageSize);
+  }
+
+  public <T> Pager toPager(T params, ToIntFunction<T> count) {
+    return !isPaged() ? null : toPager(count.applyAsInt(params));
   }
 }

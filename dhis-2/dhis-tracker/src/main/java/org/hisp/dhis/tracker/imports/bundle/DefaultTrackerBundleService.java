@@ -108,16 +108,11 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
       return new CommitResult(PersistenceReport.emptyReport(), List.of());
     }
 
-    PersistResult trackedEntities =
-        commitService.getTrackerPersister().persist(entityManager, bundle);
-    PersistResult enrollments =
-        commitService.getEnrollmentPersister().persist(entityManager, bundle);
-    PersistResult trackerEvents =
-        commitService.getTrackerEventPersister().persist(entityManager, bundle);
-    PersistResult singleEvents =
-        commitService.getSingleEventPersister().persist(entityManager, bundle);
-    PersistResult relationships =
-        commitService.getRelationshipPersister().persist(entityManager, bundle);
+    PersistResult trackedEntities = commitService.getTrackerPersister().persist(bundle);
+    PersistResult enrollments = commitService.getEnrollmentPersister().persist(bundle);
+    PersistResult trackerEvents = commitService.getTrackerEventPersister().persist(bundle);
+    PersistResult singleEvents = commitService.getSingleEventPersister().persist(bundle);
+    PersistResult relationships = commitService.getRelationshipPersister().persist(bundle);
 
     PersistenceReport report =
         new PersistenceReport(

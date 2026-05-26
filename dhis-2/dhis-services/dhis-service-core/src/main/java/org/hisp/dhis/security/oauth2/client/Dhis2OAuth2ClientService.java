@@ -40,25 +40,59 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 
 /**
- * Service for managing OAuth2 clients in DHIS2.
+ * Admin-facing service for managing DHIS2 OAuth2 clients and the bridge to Spring Authorization
+ * Server's {@link
+ * org.springframework.security.oauth2.server.authorization.client.RegisteredClientRepository}.
+ *
+ * <p>Two concerns live on this interface:
+ *
+ * <ul>
+ *   <li>CRUD + lookup used by the metadata import path and the REST controller (see {@code save},
+ *       {@code findByUID}, {@code findByClientId}, {@code getAll}).
+ *   <li>Validation and defaulting hooks ({@link #validateCreate}, {@link #validateUpdate}, {@link
+ *       #applyCreateDefaults}, {@link #applyUpdateDefaults}) invoked by both the CRUD controller
+ *       and the metadata-bundle import so admin input is checked the same way on every entry point.
+ * </ul>
+ *
+ * <p>The token endpoint calls {@link #findByClientId} on every incoming authentication, so this
+ * lookup sits on a hot path.
+ *
+ * <p>Admin callers can only set the {@code authorization_code} and {@code refresh_token} grant
+ * types; {@code client_credentials} is reserved for the DCR system registrar created server-side by
+ * {@code OAuth2DcrService}.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public interface Dhis2OAuth2ClientService {
+  /**
+   * Persist a {@link RegisteredClient}. If the current security context is authenticated with a JWT
+   * (i.e. a DCR Initial Access Token), the token's {@code sub} claim is resolved to a DHIS2 user
+   * and used as {@code createdBy} on the new client; otherwise the caller's current user is used.
+   */
   void save(RegisteredClient registeredClient);
 
+  /** Persist a {@link RegisteredClient} recording the given user as {@code createdBy}. */
   void save(RegisteredClient registeredClient, UserDetails userDetails);
 
+  /** Look up a client by its DHIS2 UID. Returns {@code null} if no match. */
   RegisteredClient findByUID(String uid);
 
+  /** Look up a client by its internal id. Returns {@code null} if no match. */
   RegisteredClient findById(String id);
 
-  /*
-   * Returns the RegisteredClient with the given clientId, or null if not found.
+  /**
+   * Look up a client by OAuth2 {@code client_id}. Called by Spring Authorization Server on every
+   * token-endpoint authentication.
+   *
+   * @return the matching {@link RegisteredClient}, or {@code null} if none.
    */
   @CheckForNull
   RegisteredClient findByClientId(String clientId);
 
+  /**
+   * Look up the raw {@link Dhis2OAuth2Client} entity (not the Spring AS projection) by OAuth2
+   * {@code client_id}. Used where DHIS2-specific fields (e.g. {@code createdBy}) are needed.
+   */
   Dhis2OAuth2Client getAsDhis2OAuth2ClientByClientId(String clientId);
 
   /**
@@ -85,11 +119,12 @@ public interface Dhis2OAuth2ClientService {
    */
   String writeMap(Map<String, Object> data);
 
+  /** Return all persisted clients. */
   List<Dhis2OAuth2Client> getAll();
 
   /**
    * Collect validation errors that would block creating the given client. Errors are reported to
-   * the consumer rather than thrown — callers (REST controller, metadata-import bundle hook) decide
+   * the consumer rather than thrown; callers (REST controller, metadata-import bundle hook) decide
    * whether to translate to a {@code ConflictException} or merge into a bundle report.
    */
   void validateCreate(Dhis2OAuth2Client entity, Consumer<ErrorReport> errors);
@@ -102,7 +137,7 @@ public interface Dhis2OAuth2ClientService {
   void applyCreateDefaults(Dhis2OAuth2Client entity);
 
   /**
-   * Apply update-time defaults — preserves the existing persisted name when the caller didn't send
+   * Apply update-time defaults; preserves the existing persisted name when the caller did not send
    * one (the settings UI has no name field, so a REPLACE merge would otherwise clobber it).
    */
   void applyUpdateDefaults(Dhis2OAuth2Client persisted, Dhis2OAuth2Client newEntity);

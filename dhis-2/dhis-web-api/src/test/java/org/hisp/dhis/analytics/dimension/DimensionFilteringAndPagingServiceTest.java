@@ -76,7 +76,7 @@ public class DimensionFilteringAndPagingServiceTest {
   }
 
   @Test
-  public void testPaging() {
+  void testPaging() {
     DimensionsCriteria criteria = new DimensionsCriteria();
     criteria.setPageSize(5);
 
@@ -87,7 +87,7 @@ public class DimensionFilteringAndPagingServiceTest {
   }
 
   @Test
-  public void testFiltering() {
+  void testFiltering() {
     DimensionsCriteria criteria = new DimensionsCriteria();
     criteria.setFilter(Set.of("name:eq:test"));
 
@@ -97,8 +97,21 @@ public class DimensionFilteringAndPagingServiceTest {
     assertThat(pagingWrapper.getDimensions().size(), is(5));
   }
 
+  @Test
+  void testFilteringByInOperator() {
+    DimensionsCriteria criteria = new DimensionsCriteria();
+    criteria.setFilter(Set.of("valueType:in:[ NUMBER, INTEGER ]"));
+
+    AnalyticsDimensionsPagingWrapper<ObjectNode> pagingWrapper =
+        service.pageAndFilter(dimensionResponses, criteria, Collections.singletonList("*"));
+
+    assertThat(pagingWrapper.getDimensions().size(), is(7));
+  }
+
   private DimensionResponse buildDimensionResponse(int operand) {
     DimensionResponse.DimensionResponseBuilder builder = DimensionResponse.builder();
-    return (operand % 2 == 0 ? builder.name("test") : builder.name("another")).build();
+    builder.name(operand % 2 == 0 ? "test" : "another");
+    builder.valueType(operand % 3 == 0 ? "INTEGER" : operand % 2 == 0 ? "NUMBER" : "TEXT");
+    return builder.build();
   }
 }

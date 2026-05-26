@@ -35,7 +35,6 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.period.PeriodType;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Defines service functionality for DataElements and DataElementGroups.
@@ -227,6 +226,11 @@ public interface DataElementService {
 
   DataElementGroupSet getDataElementGroupSet(String uid);
 
-  @Transactional(readOnly = true)
+  // -------------------------------------------------------------------------
+  // DataElementOperand
+  // -------------------------------------------------------------------------
+
+  List<DataElementOperand> getAllDataElementOperands();
+  
   PeriodType getPeriodType(DataElement dataElement);
 }
