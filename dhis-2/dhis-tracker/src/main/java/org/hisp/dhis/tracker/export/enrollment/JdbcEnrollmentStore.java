@@ -168,7 +168,7 @@ class JdbcEnrollmentStore {
         """
             select e.enrollmentid, e.uid, e.created, e.createdatclient, e.createdbyuserinfo,
             e.lastupdated, e.lastupdatedatclient, e.lastupdatedbyuserinfo, e.occurreddate,
-            e.enrollmentdate, e.completeddate, e.followup, e.completedby, e.storedby, e.deleted, e.status,
+            e.enrollmentdate, e.completeddate, e.followup, e.completedby, e.deleted, e.status,
             ST_AsBinary(e.geometry) as geometry,
         """);
 
@@ -629,7 +629,6 @@ class JdbcEnrollmentStore {
       enrollment.setCompletedDate(formatDate(rs.getTimestamp("completeddate")));
       enrollment.setFollowup(rs.getBoolean("followup"));
       enrollment.setCompletedBy(rs.getString("completedby"));
-      enrollment.setStoredBy(rs.getString("storedby"));
       enrollment.setDeleted(rs.getBoolean("deleted"));
       enrollment.setStatus(EnrollmentStatus.valueOf(rs.getString("status")));
       enrollment.setGeometry(Geometries.fromWkb(rs.getBytes("geometry")));

@@ -301,7 +301,6 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
                             .build())
                     .build()))
         .scheduledAt(DATE)
-        .storedBy("fred")
         .followUp(true)
         .createdAt(DATE)
         .attributeOptionCombo(UID.generate().getValue())

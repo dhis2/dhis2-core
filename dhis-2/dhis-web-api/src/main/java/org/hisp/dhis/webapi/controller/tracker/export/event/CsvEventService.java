@@ -133,7 +133,6 @@ class CsvEventService implements CsvService<Event> {
     result.setUpdatedAtClient(
         event.getUpdatedAtClient() == null ? null : event.getUpdatedAtClient().toString());
     result.setUpdatedBy(event.getUpdatedBy() == null ? null : event.getUpdatedBy().getUsername());
-    result.setStoredBy(event.getStoredBy());
     result.setCompletedAt(
         event.getCompletedAt() == null ? null : event.getCompletedAt().toString());
     result.setCompletedBy(event.getCompletedBy());
@@ -162,10 +161,6 @@ class CsvEventService implements CsvService<Event> {
         value.getCreatedAt() == null ? null : value.getCreatedAt().toString());
     result.setUpdatedAtDataValue(
         value.getUpdatedAt() == null ? null : value.getUpdatedAt().toString());
-
-    if (value.getStoredBy() != null) {
-      result.setStoredBy(value.getStoredBy());
-    }
 
     return result;
   }
@@ -237,7 +232,6 @@ class CsvEventService implements CsvService<Event> {
     event.setScheduledAt(DateUtils.instantFromDateAsString(dataValue.getScheduledAt()));
     event.setCompletedAt(DateUtils.instantFromDateAsString(dataValue.getCompletedAt()));
     event.setCompletedBy(dataValue.getCompletedBy());
-    event.setStoredBy(dataValue.getStoredBy());
     event.setAttributeOptionCombo(dataValue.getAttributeOptionCombo());
     event.setAttributeCategoryOptions(dataValue.getAttributeCategoryOptions());
     event.setAssignedUser(User.builder().username(dataValue.getAssignedUser()).build());

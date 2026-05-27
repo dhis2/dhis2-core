@@ -289,7 +289,6 @@ class SmsImportMapper {
         .orgUnit(metadataUid(submission.getOrgUnit()))
         .programStage(metadataUid(submission.getProgramStage()))
         .attributeOptionCombo(metadataUid(submission.getAttributeOptionCombo()))
-        .storedBy(username)
         .occurredAt(toInstant(submission.getEventDate()))
         .scheduledAt(toInstant(submission.getDueDate()))
         .status(map(submission.getEventStatus()))
@@ -313,7 +312,6 @@ class SmsImportMapper {
         .orgUnit(metadataUid(submission.getOrgUnit()))
         .programStage(metadataUid(submission.getProgramStage()))
         .attributeOptionCombo(metadataUid(submission.getAttributeOptionCombo()))
-        .storedBy(username)
         .occurredAt(toInstant(submission.getEventDate()))
         .scheduledAt(toInstant(submission.getDueDate()))
         .status(map(submission.getEventStatus()))
@@ -336,7 +334,6 @@ class SmsImportMapper {
         .orgUnit(metadataUid(submission.getOrgUnit()))
         .program(metadataUid(submission.getEventProgram()))
         .attributeOptionCombo(metadataUid(submission.getAttributeOptionCombo()))
-        .storedBy(username)
         .occurredAt(toInstant(submission.getEventDate()))
         .scheduledAt(toInstant(submission.getDueDate()))
         .status(map(submission.getEventStatus()))
@@ -522,7 +519,6 @@ class SmsImportMapper {
         .scheduledAt(sms.getSentDate().toInstant())
         .attributeOptionCombo(
             metadataUid(dataElementCategoryService.getDefaultCategoryOptionCombo()))
-        .storedBy(username)
         .dataValues(map(smsCommand.getCodes(), dataValues, username))
         .build();
   }
