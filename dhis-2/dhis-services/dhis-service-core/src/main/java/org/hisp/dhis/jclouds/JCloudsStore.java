@@ -194,11 +194,13 @@ public class JCloudsStore implements BlobStoreService {
   public Iterable<BlobKeyPrefix> listFolders(BlobKeyPrefix prefix) {
     // JClouds directory listing requires a trailing "/" on the prefix
     String jcloudsPrefix = prefix.value() + "/";
-    List<BlobKeyPrefix> folders = new ArrayList<>();
-    forEachPage(
-        prefix(jcloudsPrefix).delimiter("/"),
-        page -> page.forEach(m -> folders.add(BlobKeyPrefix.of(m.getName()))));
-    return folders;
+    return StreamSupport.stream(
+            BlobStores.listAll(
+                    getBlobStore(), fileStoreConfig.container, prefix(jcloudsPrefix).delimiter("/"))
+                .spliterator(),
+            false)
+        .map(m -> BlobKeyPrefix.of(m.getName()))
+        .toList();
   }
 
   @Override
