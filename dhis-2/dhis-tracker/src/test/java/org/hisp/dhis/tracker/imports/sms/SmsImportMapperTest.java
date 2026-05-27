@@ -224,7 +224,6 @@ class SmsImportMapperTest extends TrackerTestBase {
                 .attributeOptionCombo(
                     MetadataIdentifier.ofUid(smsEvent.getAttributeOptionCombo().getUid()))
                 .status(EventStatus.SCHEDULE)
-                .storedBy("francis")
                 .dataValues(
                     Set.of(
                         DataValue.builder()
@@ -361,7 +360,6 @@ class SmsImportMapperTest extends TrackerTestBase {
             .attributeOptionCombo(
                 MetadataIdentifier.ofUid(input.getAttributeOptionCombo().getUid()))
             .status(EventStatus.COMPLETED)
-            .storedBy("francis")
             .build();
     assertContainsOnly(List.of(expected), actual.getEvents());
   }
@@ -395,7 +393,6 @@ class SmsImportMapperTest extends TrackerTestBase {
             .attributeOptionCombo(
                 MetadataIdentifier.ofUid(input.getAttributeOptionCombo().getUid()))
             .status(EventStatus.ACTIVE)
-            .storedBy("francis")
             .occurredAt(occurredDate.toInstant())
             .scheduledAt(scheduledDate.toInstant())
             .geometry(new GeometryFactory().createPoint(new Coordinate(2.3514f, 48.8575f)))

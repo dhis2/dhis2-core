@@ -75,7 +75,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
     // When
     ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
     // Then
-    validateResponseStructure(response, expectPostgis, 100, 25, 21);
+    validateResponseStructure(response, expectPostgis, 100, 24, 20);
 
     List<Map<String, Object>> actualHeaders = ValidationHelper.getHeadersFromResponse(response);
     // Assert metaData.
@@ -96,12 +96,11 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeader(response, 3, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 4, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
+        response, 3, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
-        5,
+        4,
         "lastupdatedbydisplayname",
         "Last updated by",
         "TEXT",
@@ -110,7 +109,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
         true);
     validateHeader(
         response,
-        6,
+        5,
         "lastupdated",
         "Last updated on",
         "DATETIME",
@@ -119,7 +118,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
         true);
     validateHeader(
         response,
-        9,
+        8,
         "scheduleddate",
         "Scheduled date",
         "DATETIME",
@@ -127,10 +126,10 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
         false,
         true);
     if (expectPostgis) {
-      validateHeader(response, 10, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+      validateHeader(response, 9, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
       validateHeader(
           response,
-          11,
+          10,
           "enrollmentgeometry",
           "Enrollment geometry",
           "TEXT",
@@ -138,9 +137,9 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
           false,
           true);
       validateHeader(
-          response, 12, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
+          response, 11, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
       validateHeader(
-          response, 13, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
+          response, 12, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
     }
     validateHeaderPropertiesByName(
         response,
@@ -268,7 +267,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "lfjiNgsMNCR",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:07:13.867",
@@ -299,7 +297,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "TMRkAnM7gZZ",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:07:01.119",
@@ -330,7 +327,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "AO60KwZsiqV",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:06:56.139",
@@ -361,7 +357,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "LuWr34lQMb4",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:06:54.225",
@@ -392,7 +387,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "LgM2AaC1ubP",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:06:28.112",
@@ -423,7 +417,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "WwXhCNmvzkl",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:06:26.247",
@@ -454,7 +447,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "S8kymiASP85",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:06:22.467",
@@ -485,7 +477,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "kBbrcUfM8OA",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:06:19.506",
@@ -516,7 +507,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "uHGNhaC9tcG",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:06:15.463",
@@ -547,7 +537,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "nLpj83AM1Mh",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:06:07.929",
@@ -578,7 +567,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "fM9apOQyeMf",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:06:04.136",
@@ -609,7 +597,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "bUleS7Ekhta",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:05:57.426",
@@ -640,7 +627,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "rAhz0PiUQ4L",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:05:42.537",
@@ -671,7 +657,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "jBoydJDRHc4",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:05:41.236",
@@ -702,7 +687,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "vXUvDnM1VD3",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:05:32.858",
@@ -733,7 +717,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "gid65YNwRAd",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:05:29.872",
@@ -764,7 +747,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "FTqzaxFJVAM",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:05:29.842",
@@ -795,7 +777,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "zZnrqOgkOpC",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:05:16.793",
@@ -826,7 +807,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "fGRi36ns4kX",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:05:07.665",
@@ -857,7 +837,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "PogaCZ7f5kC",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:05:06.479",
@@ -888,7 +867,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "RHPJ0uLgtYP",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:04:59.342",
@@ -919,7 +897,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "ZpOsj9mJdWT",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:04:58.568",
@@ -950,7 +927,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "plw3UY4hUoJ",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:04:55.022",
@@ -981,7 +957,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "cGWnyNqQrE0",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:04:51.319",
@@ -1012,7 +987,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "MYczOjCZE2p",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:04:50.865",
@@ -1043,7 +1017,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "yrVIYlz9XMd",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:04:48.346",
@@ -1074,7 +1047,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "sF31lDPq5ej",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:04:42.411",
@@ -1105,7 +1077,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "tA6FviZCjM3",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:04:41.885",
@@ -1136,7 +1107,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "SjyQ8bI5l4J",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:04:37.317",
@@ -1167,7 +1137,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "LpMU90dBAmB",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:04:25.424",
@@ -1198,7 +1167,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "qzoQFp8Q1yG",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:04:13.024",
@@ -1229,7 +1197,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "oaMKrRMkZKX",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:04:10.749",
@@ -1260,7 +1227,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "RoiCBxDnKoZ",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:04:05.965",
@@ -1291,7 +1257,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "shwSJGASXBZ",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:03:53.577",
@@ -1322,7 +1287,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "gbGszbReIaS",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:03:31.339",
@@ -1353,7 +1317,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "acz17cIlCy0",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:03:29.923",
@@ -1384,7 +1347,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "xqVvqBBh3MY",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:03:06.536",
@@ -1415,7 +1377,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "pq1iSwca80J",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:02:58.747",
@@ -1447,7 +1408,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "OuExP6nBOcO",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:02:19.108",
@@ -1478,7 +1438,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "Fg1Zztm38KJ",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:00:52.137",
@@ -1510,7 +1469,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "U7wFRlvCGMM",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:00:21.003",
@@ -1541,7 +1499,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "mf5pEqIKBJY",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:00:00.201",
@@ -1572,7 +1529,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "FMZmzqbLD3m",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:59:42.124",
@@ -1604,7 +1560,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "okUBcWiw4XC",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:58:36.212",
@@ -1635,7 +1590,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "h9DAtfCj1Hv",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:57:54.842",
@@ -1667,7 +1621,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "u7Phq0A0y20",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:56:14.295",
@@ -1698,7 +1651,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "RPNgwvx5j65",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:55:28.644",
@@ -1745,7 +1697,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
     // When
     ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
     // Then
-    validateResponseStructure(response, expectPostgis, 100, 26, 22);
+    validateResponseStructure(response, expectPostgis, 100, 25, 21);
 
     List<Map<String, Object>> actualHeaders = ValidationHelper.getHeadersFromResponse(response);
 
@@ -1767,12 +1719,11 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeader(response, 3, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 4, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
+        response, 3, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
-        5,
+        4,
         "lastupdatedbydisplayname",
         "Last updated by",
         "TEXT",
@@ -1781,7 +1732,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
         true);
     validateHeader(
         response,
-        6,
+        5,
         "lastupdated",
         "Last updated on",
         "DATETIME",
@@ -1790,7 +1741,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
         true);
     validateHeader(
         response,
-        9,
+        8,
         "scheduleddate",
         "Scheduled date",
         "DATETIME",
@@ -1798,10 +1749,10 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
         false,
         true);
     if (expectPostgis) {
-      validateHeader(response, 10, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+      validateHeader(response, 9, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
       validateHeader(
           response,
-          11,
+          10,
           "enrollmentgeometry",
           "Enrollment geometry",
           "TEXT",
@@ -1809,9 +1760,9 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
           false,
           true);
       validateHeader(
-          response, 12, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
+          response, 11, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
       validateHeader(
-          response, 13, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
+          response, 12, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
     }
     validateHeaderPropertiesByName(
         response,
@@ -1948,7 +1899,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "lfjiNgsMNCR",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:07:13.867",
@@ -1981,7 +1931,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "fM9apOQyeMf",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:06:04.136",
@@ -2014,7 +1963,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "RHPJ0uLgtYP",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:04:59.342",
@@ -2046,7 +1994,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "qzoQFp8Q1yG",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:04:13.024",
@@ -2078,7 +2025,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "OuExP6nBOcO",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:02:19.108",
@@ -2110,7 +2056,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "Fg1Zztm38KJ",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:00:52.137",
@@ -2143,7 +2088,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "FMZmzqbLD3m",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:59:42.124",
@@ -2176,7 +2120,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "okUBcWiw4XC",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:58:36.212",
@@ -2208,7 +2151,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "h9DAtfCj1Hv",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:57:54.842",
@@ -2241,7 +2183,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "u7Phq0A0y20",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:56:14.295",
@@ -2273,7 +2214,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "RPNgwvx5j65",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:55:28.644",
@@ -2321,7 +2261,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
     // When
     ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
     // Then
-    validateResponseStructure(response, expectPostgis, 100, 26, 22);
+    validateResponseStructure(response, expectPostgis, 100, 25, 21);
 
     List<Map<String, Object>> actualHeaders = ValidationHelper.getHeadersFromResponse(response);
 
@@ -2343,12 +2283,11 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeader(response, 3, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 4, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
+        response, 3, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
-        5,
+        4,
         "lastupdatedbydisplayname",
         "Last updated by",
         "TEXT",
@@ -2357,7 +2296,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
         true);
     validateHeader(
         response,
-        6,
+        5,
         "lastupdated",
         "Last updated on",
         "DATETIME",
@@ -2366,7 +2305,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
         true);
     validateHeader(
         response,
-        9,
+        8,
         "scheduleddate",
         "Scheduled date",
         "DATETIME",
@@ -2374,10 +2313,10 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
         false,
         true);
     if (expectPostgis) {
-      validateHeader(response, 10, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+      validateHeader(response, 9, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
       validateHeader(
           response,
-          11,
+          10,
           "enrollmentgeometry",
           "Enrollment geometry",
           "TEXT",
@@ -2385,9 +2324,9 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
           false,
           true);
       validateHeader(
-          response, 12, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
+          response, 11, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
       validateHeader(
-          response, 13, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
+          response, 12, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
     }
     validateHeaderPropertiesByName(
         response,
@@ -2524,7 +2463,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "lfjiNgsMNCR",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:07:13.867",
@@ -2557,7 +2495,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "fM9apOQyeMf",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:06:04.136",
@@ -2590,7 +2527,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "RHPJ0uLgtYP",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:04:59.342",
@@ -2622,7 +2558,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "qzoQFp8Q1yG",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:04:13.024",
@@ -2654,7 +2589,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "OuExP6nBOcO",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:02:19.108",
@@ -2686,7 +2620,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "Fg1Zztm38KJ",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:00:52.137",
@@ -2718,7 +2651,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "FMZmzqbLD3m",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:59:42.124",
@@ -2750,7 +2682,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "okUBcWiw4XC",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:58:36.212",
@@ -2782,7 +2713,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "h9DAtfCj1Hv",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:57:54.842",
@@ -2815,7 +2745,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "u7Phq0A0y20",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:56:14.295",
@@ -2847,7 +2776,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "RPNgwvx5j65",
                 "Zj7UnCAulEk",
                 "2022-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:55:28.644",
@@ -2895,7 +2823,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
     // When
     ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
 
-    validateResponseStructure(response, expectPostgis, 100, 39, 35);
+    validateResponseStructure(response, expectPostgis, 100, 38, 34);
 
     List<Map<String, Object>> actualHeaders = ValidationHelper.getHeadersFromResponse(response);
 
@@ -2917,12 +2845,11 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeader(response, 3, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 4, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
+        response, 3, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
-        5,
+        4,
         "lastupdatedbydisplayname",
         "Last updated by",
         "TEXT",
@@ -2931,7 +2858,7 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
         true);
     validateHeader(
         response,
-        6,
+        5,
         "lastupdated",
         "Last updated on",
         "DATETIME",
@@ -2939,13 +2866,13 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
         false,
         true);
     validateHeader(
-        response, 7, "created", "Created on", "DATETIME", "java.time.LocalDateTime", false, true);
+        response, 6, "created", "Created on", "DATETIME", "java.time.LocalDateTime", false, true);
 
     if (expectPostgis) {
-      validateHeader(response, 10, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+      validateHeader(response, 9, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
       validateHeader(
           response,
-          11,
+          10,
           "enrollmentgeometry",
           "Enrollment geometry",
           "TEXT",
@@ -2953,9 +2880,9 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
           false,
           true);
       validateHeader(
-          response, 12, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
+          response, 11, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
       validateHeader(
-          response, 13, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
+          response, 12, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
     }
 
     validateHeaderPropertiesByName(
@@ -3211,7 +3138,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "S2hqRdCx1JG",
                 "Zj7UnCAulEk",
                 "2021-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:26:09.835",
@@ -3257,7 +3183,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "CQjGZqaN1mY",
                 "Zj7UnCAulEk",
                 "2021-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:25:53.747",
@@ -3302,7 +3227,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "R5eEyrqW5WP",
                 "Zj7UnCAulEk",
                 "2021-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:24:19.06",
@@ -3347,7 +3271,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "Ae9AJjglGFY",
                 "Zj7UnCAulEk",
                 "2021-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:23:43.812",
@@ -3392,7 +3315,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "KlTpqegSYwz",
                 "Zj7UnCAulEk",
                 "2021-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:22:20.429",
@@ -3438,7 +3360,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "KwbTEOVva4Z",
                 "Zj7UnCAulEk",
                 "2021-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:21:48.302",
@@ -3483,7 +3404,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "eHt4y1RZxIk",
                 "Zj7UnCAulEk",
                 "2021-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:21:48.019",
@@ -3528,7 +3448,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "IbYqpD7hrLX",
                 "Zj7UnCAulEk",
                 "2021-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:21:43.358",
@@ -3573,7 +3492,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "xbdwu7zC6FO",
                 "Zj7UnCAulEk",
                 "2021-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:21:35.724",
@@ -3618,7 +3536,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "oZF5gJADwO2",
                 "Zj7UnCAulEk",
                 "2021-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:21:23.974",
@@ -3663,7 +3580,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "TIGqi2u13ju",
                 "Zj7UnCAulEk",
                 "2021-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:21:05.422",
@@ -3708,7 +3624,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "GwWORP9Dgbh",
                 "Zj7UnCAulEk",
                 "2021-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:20:26.397",
@@ -3753,7 +3668,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "Z3rMvGhgfw3",
                 "Zj7UnCAulEk",
                 "2021-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:18:11.966",
@@ -3798,7 +3712,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "xy8EfO751VK",
                 "Zj7UnCAulEk",
                 "2021-12-29 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:40:30.19",
@@ -3843,7 +3756,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "uJhIGcLH0TT",
                 "Zj7UnCAulEk",
                 "2021-12-28 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:25:21.591",
@@ -3888,7 +3800,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "xrUSZbEsywo",
                 "Zj7UnCAulEk",
                 "2021-12-28 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:24:52.951",
@@ -3933,7 +3844,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "i16du9niPDK",
                 "Zj7UnCAulEk",
                 "2021-12-28 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:22:25.81",
@@ -3978,7 +3888,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "lg4EFb4tsya",
                 "Zj7UnCAulEk",
                 "2021-12-28 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:21:50.214",
@@ -4023,7 +3932,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "H9gO19mTwpL",
                 "Zj7UnCAulEk",
                 "2021-12-28 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:20:58.968",
@@ -4068,7 +3976,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "TPpzFsbCrTJ",
                 "Zj7UnCAulEk",
                 "2021-12-28 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:20:56.049",
@@ -4113,7 +4020,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "HZtcf9YeQy8",
                 "Zj7UnCAulEk",
                 "2021-12-28 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:20:55.464",
@@ -4158,7 +4064,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "lioiKjqCHDz",
                 "Zj7UnCAulEk",
                 "2021-12-28 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:20:28.07",
@@ -4203,7 +4108,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "sAy8lHLvcVf",
                 "Zj7UnCAulEk",
                 "2021-12-28 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:20:18.304",
@@ -4248,7 +4152,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "ixg0YRSAR5n",
                 "Zj7UnCAulEk",
                 "2021-12-28 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:19:18.798",
@@ -4293,7 +4196,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "LGJzPnySjme",
                 "Zj7UnCAulEk",
                 "2021-12-28 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:18:12.326",
@@ -4338,7 +4240,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "W04878zrrQK",
                 "Zj7UnCAulEk",
                 "2021-12-28 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:49:35.939",
@@ -4383,7 +4284,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "Wh65IBqba2m",
                 "Zj7UnCAulEk",
                 "2021-12-28 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:40:22.166",
@@ -4428,7 +4328,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "FUp1kMlm7hm",
                 "Zj7UnCAulEk",
                 "2021-12-28 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:40:04.932",
@@ -4473,7 +4372,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "T4Jx4pbLn84",
                 "Zj7UnCAulEk",
                 "2021-12-27 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:24:48.732",
@@ -4518,7 +4416,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "wuQk7XrYGzS",
                 "Zj7UnCAulEk",
                 "2021-12-27 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:24:08.196",
@@ -4563,7 +4460,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "En16HiUWya1",
                 "Zj7UnCAulEk",
                 "2021-12-27 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:23:29.642",
@@ -4609,7 +4505,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "j3yYAZI5EYe",
                 "Zj7UnCAulEk",
                 "2021-12-27 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:23:29.096",
@@ -4654,7 +4549,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "Pev9xIYaVq9",
                 "Zj7UnCAulEk",
                 "2021-12-27 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:22:59.124",
@@ -4699,7 +4593,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "HKuUSUd5zdW",
                 "Zj7UnCAulEk",
                 "2021-12-27 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:22:05.362",
@@ -4744,7 +4637,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "eohc0QUwCmG",
                 "Zj7UnCAulEk",
                 "2021-12-27 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:21:39.738",
@@ -4789,7 +4681,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "NRwDA29312T",
                 "Zj7UnCAulEk",
                 "2021-12-27 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:21:26.865",
@@ -4834,7 +4725,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "HsT4isPTkkp",
                 "Zj7UnCAulEk",
                 "2021-12-27 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:20:53.848",
@@ -4879,7 +4769,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "eKq7FMDtzDT",
                 "Zj7UnCAulEk",
                 "2021-12-27 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:20:25.34",
@@ -4924,7 +4813,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "kH893xFHfWp",
                 "Zj7UnCAulEk",
                 "2021-12-27 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:20:24.246",
@@ -4969,7 +4857,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "DpnHI6hyjqz",
                 "Zj7UnCAulEk",
                 "2021-12-27 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:20:03.352",
@@ -5014,7 +4901,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "Kz5EFG9gN8V",
                 "Zj7UnCAulEk",
                 "2021-12-27 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:19:01.526",
@@ -5059,7 +4945,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "JwIUmFhl3s8",
                 "Zj7UnCAulEk",
                 "2021-12-27 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:50:35.682",
@@ -5104,7 +4989,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "rhmIsfN8FLB",
                 "Zj7UnCAulEk",
                 "2021-12-27 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:39:04.264",
@@ -5149,7 +5033,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "U1ym9oky1DI",
                 "Zj7UnCAulEk",
                 "2021-12-26 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:25:57.378",
@@ -5194,7 +5077,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "dX54BEZYei3",
                 "Zj7UnCAulEk",
                 "2021-12-26 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:25:41.935",
@@ -5239,7 +5121,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "s4g26MhxLrj",
                 "Zj7UnCAulEk",
                 "2021-12-26 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:25:13.259",
@@ -5284,7 +5165,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "uvNcgo9B5gX",
                 "Zj7UnCAulEk",
                 "2021-12-26 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:25:09.551",
@@ -5329,7 +5209,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "oqqgOcpPTZo",
                 "Zj7UnCAulEk",
                 "2021-12-26 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:23:24.119",
@@ -5374,7 +5253,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "KNPhz7NfvJf",
                 "Zj7UnCAulEk",
                 "2021-12-26 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:21:54.681",
@@ -5419,7 +5297,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "s1uJLmh8LFs",
                 "Zj7UnCAulEk",
                 "2021-12-26 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:21:18.567",
@@ -5464,7 +5341,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "iZ2AucB5q7U",
                 "Zj7UnCAulEk",
                 "2021-12-26 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:20:47.157",
@@ -5509,7 +5385,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "hdsP9YrgqWg",
                 "Zj7UnCAulEk",
                 "2021-12-26 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:20:24.905",
@@ -5554,7 +5429,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "mkEl9lWvhru",
                 "Zj7UnCAulEk",
                 "2021-12-26 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:20:14.133",
@@ -5599,7 +5473,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "vNakBpfejEy",
                 "Zj7UnCAulEk",
                 "2021-12-26 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:18:52.294",
@@ -5644,7 +5517,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "t6WY2Z28iOf",
                 "Zj7UnCAulEk",
                 "2021-12-26 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:17:58.537",
@@ -5689,7 +5561,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "fuNSPtKYUeF",
                 "Zj7UnCAulEk",
                 "2021-12-26 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:40:00.957",
@@ -5734,7 +5605,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "HAJNFRbI3IB",
                 "Zj7UnCAulEk",
                 "2021-12-26 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:38:52.875",
@@ -5779,7 +5649,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "DJkOYtFJIqr",
                 "Zj7UnCAulEk",
                 "2021-12-25 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:25:34.453",
@@ -5824,7 +5693,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "RuVSPnu38OZ",
                 "Zj7UnCAulEk",
                 "2021-12-25 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:24:35.416",
@@ -5869,7 +5737,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "Mj8VkUUBbOx",
                 "Zj7UnCAulEk",
                 "2021-12-25 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:22:51.184",
@@ -5914,7 +5781,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "a7x07h2dasp",
                 "Zj7UnCAulEk",
                 "2021-12-25 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:22:39.436",
@@ -5960,7 +5826,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "D3JpVoGH83P",
                 "Zj7UnCAulEk",
                 "2021-12-25 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:21:37.465",
@@ -6005,7 +5870,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "kaKcZUQswgm",
                 "Zj7UnCAulEk",
                 "2021-12-25 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:20:32.167",
@@ -6050,7 +5914,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "ofrf8Trl0vU",
                 "Zj7UnCAulEk",
                 "2021-12-25 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:20:11.63",
@@ -6095,7 +5958,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "h93WIuZn99i",
                 "Zj7UnCAulEk",
                 "2021-12-25 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:20:09.578",
@@ -6140,7 +6002,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "a4qLtVgKSfn",
                 "Zj7UnCAulEk",
                 "2021-12-25 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:19:01.278",
@@ -6185,7 +6046,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "h4xBuARJWQb",
                 "Zj7UnCAulEk",
                 "2021-12-25 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:40:15.909",
@@ -6230,7 +6090,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "VX1qTbgSJDD",
                 "Zj7UnCAulEk",
                 "2021-12-25 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:39:45.582",
@@ -6275,7 +6134,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "hy7A0bo0Plk",
                 "Zj7UnCAulEk",
                 "2021-12-25 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:39:45.031",
@@ -6320,7 +6178,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "Vu464kkInnX",
                 "Zj7UnCAulEk",
                 "2021-12-25 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:38:54.052",
@@ -6365,7 +6222,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "Gmucavi6w4A",
                 "Zj7UnCAulEk",
                 "2021-12-25 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2017-09-08 21:40:22.0",
@@ -6410,7 +6266,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "bmkARqEpggZ",
                 "Zj7UnCAulEk",
                 "2021-12-24 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:26:09.87",
@@ -6455,7 +6310,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "S9JqUvrxHe7",
                 "Zj7UnCAulEk",
                 "2021-12-24 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:25:43.552",
@@ -6500,7 +6354,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "bydpN3uxrJi",
                 "Zj7UnCAulEk",
                 "2021-12-24 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:23:28.692",
@@ -6545,7 +6398,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "R4664k0Y8UW",
                 "Zj7UnCAulEk",
                 "2021-12-24 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:22:38.383",
@@ -6590,7 +6442,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "s2KfOxJHWeT",
                 "Zj7UnCAulEk",
                 "2021-12-24 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:21:27.059",
@@ -6635,7 +6486,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "TImAdyKGinR",
                 "Zj7UnCAulEk",
                 "2021-12-24 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:21:16.958",
@@ -6680,7 +6530,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "IALqwIk4dXE",
                 "Zj7UnCAulEk",
                 "2021-12-24 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:21:03.514",
@@ -6725,7 +6574,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "Fj9euszXdr9",
                 "Zj7UnCAulEk",
                 "2021-12-24 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:20:56.397",
@@ -6770,7 +6618,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "o7Dm5OHxDMw",
                 "Zj7UnCAulEk",
                 "2021-12-24 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:20:50.515",
@@ -6815,7 +6662,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "rmHYNLN3ivU",
                 "Zj7UnCAulEk",
                 "2021-12-24 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:20:46.841",
@@ -6860,7 +6706,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "or8fGbKWOcS",
                 "Zj7UnCAulEk",
                 "2021-12-24 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:20:39.735",
@@ -6905,7 +6750,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "gvBrZRxYn1t",
                 "Zj7UnCAulEk",
                 "2021-12-24 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:20:28.312",
@@ -6950,7 +6794,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "Gy6teoVqqNL",
                 "Zj7UnCAulEk",
                 "2021-12-24 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:19:13.892",
@@ -6995,7 +6838,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "rrN195AYxDG",
                 "Zj7UnCAulEk",
                 "2021-12-24 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:19:07.399",
@@ -7040,7 +6882,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "wz5R2v8UZ6B",
                 "Zj7UnCAulEk",
                 "2021-12-24 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:17:46.738",
@@ -7085,7 +6926,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "G4hw2GlE2nv",
                 "Zj7UnCAulEk",
                 "2021-12-24 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:17:39.866",
@@ -7130,7 +6970,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "YNkUffkx9aE",
                 "Zj7UnCAulEk",
                 "2021-12-24 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:17:29.246",
@@ -7175,7 +7014,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "RQm5kadVu4C",
                 "Zj7UnCAulEk",
                 "2021-12-24 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:49:19.573",
@@ -7220,7 +7058,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "EWM4XkVUeJc",
                 "Zj7UnCAulEk",
                 "2021-12-24 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 13:39:44.607",
@@ -7265,7 +7102,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "bQR1uh4EcDV",
                 "Zj7UnCAulEk",
                 "2021-12-23 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:25:44.627",
@@ -7310,7 +7146,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "UIgdQVWtYff",
                 "Zj7UnCAulEk",
                 "2021-12-23 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:25:42.902",
@@ -7355,7 +7190,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "h3wEIe9lv3E",
                 "Zj7UnCAulEk",
                 "2021-12-23 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:25:01.588",
@@ -7400,7 +7234,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "O8py8mDmZSN",
                 "Zj7UnCAulEk",
                 "2021-12-23 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:23:00.438",
@@ -7445,7 +7278,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "QnQYxxrTKnc",
                 "Zj7UnCAulEk",
                 "2021-12-23 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:22:57.036",
@@ -7490,7 +7322,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "RbiwikjDcIQ",
                 "Zj7UnCAulEk",
                 "2021-12-23 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:22:28.016",
@@ -7535,7 +7366,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "fTMzbbcCPsi",
                 "Zj7UnCAulEk",
                 "2021-12-23 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:21:00.766",
@@ -7580,7 +7410,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "LurlxTLlHDj",
                 "Zj7UnCAulEk",
                 "2021-12-23 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:19:37.336",
@@ -7625,7 +7454,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "eRNMer9q5PC",
                 "Zj7UnCAulEk",
                 "2021-12-23 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:19:28.098",
@@ -7670,7 +7498,6 @@ public class EventsQuery1AutoTest extends AnalyticsApiTest {
                 "tDMBOdziU05",
                 "Zj7UnCAulEk",
                 "2021-12-23 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-04-21 14:19:17.729",

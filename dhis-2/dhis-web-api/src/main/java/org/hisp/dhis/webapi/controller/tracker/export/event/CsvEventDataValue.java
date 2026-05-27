@@ -63,7 +63,6 @@ import org.springframework.util.Assert;
   "assignedUser",
   "dataElement",
   "value",
-  "storedBy",
   "providedElsewhere",
   "createAtDataValue",
   "updatedAtDataValue"
@@ -119,8 +118,6 @@ class CsvEventDataValue {
 
   private String value;
 
-  private String storedBy;
-
   private Boolean providedElsewhere;
 
   private String createdAtDataValue;
@@ -154,7 +151,6 @@ class CsvEventDataValue {
     longitude = dataValue.getLongitude();
     dataElement = dataValue.getDataElement();
     value = dataValue.getValue();
-    storedBy = dataValue.getStoredBy();
     providedElsewhere = dataValue.getProvidedElsewhere();
     createdAtDataValue = dataValue.getCreatedAtDataValue();
     updatedAtDataValue = dataValue.getUpdatedAtDataValue();
@@ -366,15 +362,6 @@ class CsvEventDataValue {
 
   public void setProvidedElsewhere(Boolean providedElsewhere) {
     this.providedElsewhere = providedElsewhere;
-  }
-
-  @JsonProperty
-  public String getStoredBy() {
-    return storedBy;
-  }
-
-  public void setStoredBy(String storedBy) {
-    this.storedBy = storedBy;
   }
 
   @JsonProperty

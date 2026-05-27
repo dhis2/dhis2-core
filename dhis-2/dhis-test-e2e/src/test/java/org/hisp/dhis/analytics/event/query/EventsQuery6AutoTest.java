@@ -84,8 +84,8 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         100,
-        20,
-        16); // Pass runtime flag, row count, and expected header counts
+        19,
+        15); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -113,8 +113,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeaderPropertiesByName(
         response,
         actualHeaders,
@@ -404,8 +402,8 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         100,
-        20,
-        16); // Pass runtime flag, row count, and expected header counts
+        19,
+        15); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -433,8 +431,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeaderPropertiesByName(
         response,
         actualHeaders,
@@ -638,8 +634,8 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         100,
-        20,
-        16); // Pass runtime flag, row count, and expected header counts
+        19,
+        15); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -667,8 +663,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeaderPropertiesByName(
         response,
         actualHeaders,
@@ -935,8 +929,8 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         100,
-        20,
-        16); // Pass runtime flag, row count, and expected header counts
+        19,
+        15); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -964,8 +958,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeaderPropertiesByName(
         response,
         actualHeaders,
@@ -1162,8 +1154,8 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         100,
-        20,
-        16); // Pass runtime flag, row count, and expected header counts
+        19,
+        15); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -1191,8 +1183,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeaderPropertiesByName(
         response,
         actualHeaders,
@@ -1389,8 +1379,8 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         100,
-        20,
-        16); // Pass runtime flag, row count, and expected header counts
+        19,
+        15); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -1418,8 +1408,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeaderPropertiesByName(
         response,
         actualHeaders,
@@ -1611,8 +1599,8 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         100,
-        20,
-        16); // Pass runtime flag, row count, and expected header counts
+        19,
+        15); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -1640,8 +1628,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeaderPropertiesByName(
         response,
         actualHeaders,
@@ -1901,8 +1887,8 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         4,
-        24,
-        20); // Pass runtime flag, row count, and expected header counts
+        23,
+        19); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -1930,8 +1916,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeaderPropertiesByName(
         response,
         actualHeaders,
@@ -2163,8 +2147,8 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         1,
-        24,
-        20); // Pass runtime flag, row count, and expected header counts
+        23,
+        19); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -2192,8 +2176,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeaderPropertiesByName(
         response,
         actualHeaders,
@@ -2388,8 +2370,8 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         2,
-        24,
-        20); // Pass runtime flag, row count, and expected header counts
+        23,
+        19); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -2417,8 +2399,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeaderPropertiesByName(
         response,
         actualHeaders,
@@ -2664,8 +2644,8 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         1,
-        24,
-        20); // Pass runtime flag, row count, and expected header counts
+        23,
+        19); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -2693,8 +2673,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeaderPropertiesByName(
         response,
         actualHeaders,
@@ -2912,8 +2890,8 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         response,
         expectPostgis,
         1,
-        24,
-        20); // Pass runtime flag, row count, and expected header counts
+        23,
+        19); // Pass runtime flag, row count, and expected header counts
 
     // 2. Extract Headers into a List of Maps for easy access by name
     List<Map<String, Object>> actualHeaders =
@@ -2941,8 +2919,6 @@ public class EventsQuery6AutoTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeaderPropertiesByName(
-        response, actualHeaders, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeaderPropertiesByName(
         response,
         actualHeaders,

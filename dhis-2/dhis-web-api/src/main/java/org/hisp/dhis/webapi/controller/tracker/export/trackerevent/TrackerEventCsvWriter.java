@@ -115,7 +115,6 @@ class TrackerEventCsvWriter {
     result.setUpdatedAtClient(
         event.getUpdatedAtClient() == null ? null : event.getUpdatedAtClient().toString());
     result.setUpdatedBy(event.getUpdatedBy() == null ? null : event.getUpdatedBy().getUsername());
-    result.setStoredBy(event.getStoredBy());
     result.setCompletedAt(
         event.getCompletedAt() == null ? null : event.getCompletedAt().toString());
     result.setCompletedBy(event.getCompletedBy());

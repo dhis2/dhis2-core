@@ -69,11 +69,11 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("headers", hasSize(equalTo(18)))
+        .body("headers", hasSize(equalTo(17)))
         .body("rows", hasSize(equalTo(10)))
         .body("height", equalTo(10))
-        .body("width", equalTo(18))
-        .body("headerWidth", equalTo(18));
+        .body("width", equalTo(17))
+        .body("headerWidth", equalTo(17));
 
     // Assert metaData.
     String expectedMetaData =
@@ -106,34 +106,33 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
         response, 3, "created", "Created", "DATETIME", "java.time.LocalDateTime", false, true);
     validateHeader(
         response, 4, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
-    validateHeader(response, 5, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
-    validateHeader(response, 6, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 5, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 7, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
-    validateHeader(response, 8, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
+        response, 6, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
+    validateHeader(response, 7, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
     validateHeader(
-        response, 9, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
+        response, 8, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 10, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true);
+        response, 9, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
-        11,
+        10,
         "ounamehierarchy",
         "Organisation unit hierarchy",
         "TEXT",
         "java.lang.String",
         false,
         true);
-    validateHeader(response, 12, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 11, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 13, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true);
+        response, 12, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 14, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true);
+        response, 13, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 15, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true);
+        response, 14, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
-        16,
+        15,
         "IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU",
         "MCH Weight (g), Child Programme, Birth",
         "NUMBER",
@@ -142,7 +141,7 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
         true);
     validateHeader(
         response,
-        17,
+        16,
         "IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6",
         "MCH Apgar Score, Child Programme, Birth",
         "NUMBER",
@@ -151,7 +150,7 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
         true);
 
     // Assert rowContext
-    validateRowContext(response, 1, 17, "NS");
+    validateRowContext(response, 1, 16, "NS");
 
     // Assert rows.
     validateRow(
@@ -163,7 +162,6 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
             ",  ()",
             "2015-08-06 21:20:41.753",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -188,7 +186,6 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "",
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
@@ -207,7 +204,6 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
             ",  ()",
             "2014-11-15 21:22:30.204",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -231,7 +227,6 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "",
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
@@ -252,7 +247,6 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "",
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
@@ -270,7 +264,6 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
             ",  ()",
             "2015-08-07 15:47:20.218",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -370,11 +363,11 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("headers", hasSize(equalTo(18)))
+        .body("headers", hasSize(equalTo(17)))
         .body("rows", hasSize(equalTo(10)))
         .body("height", equalTo(10))
-        .body("width", equalTo(18))
-        .body("headerWidth", equalTo(18));
+        .body("width", equalTo(17))
+        .body("headerWidth", equalTo(17));
 
     // Assert metaData.
     String expectedMetaData =
@@ -407,34 +400,33 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
         response, 3, "created", "Created", "DATETIME", "java.time.LocalDateTime", false, true);
     validateHeader(
         response, 4, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
-    validateHeader(response, 5, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
-    validateHeader(response, 6, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 5, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 7, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
-    validateHeader(response, 8, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
+        response, 6, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
+    validateHeader(response, 7, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
     validateHeader(
-        response, 9, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
+        response, 8, "ouname", "Organisation unit name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 10, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true);
+        response, 9, "oucode", "Organisation unit code", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
-        11,
+        10,
         "ounamehierarchy",
         "Organisation unit hierarchy",
         "TEXT",
         "java.lang.String",
         false,
         true);
-    validateHeader(response, 12, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
+    validateHeader(response, 11, "cejWyOfXge6", "Gender", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 13, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true);
+        response, 12, "lZGmxYbs97q", "Unique ID", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 14, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true);
+        response, 13, "w75KJ2mc4zz", "First name", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 15, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true);
+        response, 14, "zDhUuAYrxNC", "Last name", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
-        16,
+        15,
         "IpHINAT79UW.A03MvHHogjR.UXz7xuGCEhU",
         "MCH Weight (g), Child Programme, Birth",
         "NUMBER",
@@ -443,7 +435,7 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
         true);
     validateHeader(
         response,
-        17,
+        16,
         "IpHINAT79UW.A03MvHHogjR.a3kGcGDCuk6",
         "MCH Apgar Score, Child Programme, Birth",
         "NUMBER",
@@ -464,7 +456,6 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
             ",  ()",
             "2017-01-20 10:44:02.77",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -489,7 +480,6 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "",
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
@@ -508,7 +498,6 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
             ",  ()",
             "2017-01-20 10:40:31.623",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -533,7 +522,6 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "",
             "Mapailleh MCHP",
             "OU_247072",
             "Sierra Leone / Moyamba / Kargboro / Mapailleh MCHP",
@@ -552,7 +540,6 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
             ",  ()",
             "2014-03-06 05:49:28.256",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -577,7 +564,6 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "",
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
@@ -596,7 +582,6 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
             ",  ()",
             "2015-08-07 15:47:25.385",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -621,7 +606,6 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "",
             "Masoko MCHP",
             "OU_268158",
             "Sierra Leone / Tonkolili / Kholifa Rowalla / Masoko MCHP",
@@ -643,7 +627,6 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "",
             "Tonko Maternity Clinic",
             "OU_193214",
             "Sierra Leone / Bombali / Bombali Sebora / Tonko Maternity Clinic",
@@ -662,7 +645,6 @@ public class TrackedEntityQuery1AutoTest extends AnalyticsApiTest {
             ",  ()",
             "2015-08-07 15:47:29.3",
             ",  ()",
-            "",
             "",
             "",
             "",

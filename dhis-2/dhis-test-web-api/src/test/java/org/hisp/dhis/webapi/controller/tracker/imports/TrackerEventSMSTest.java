@@ -467,7 +467,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(submission.getProgramStage(), actual.getProgramStage()),
         () ->
             assertEqualUids(submission.getAttributeOptionCombo(), actual.getAttributeOptionCombo()),
-        () -> assertEquals(user1.getUsername(), actual.getStoredBy()),
         () -> assertEquals(submission.getEventDate(), actual.getOccurredDate()),
         () -> assertEquals(submission.getDueDate(), actual.getScheduledDate()),
         () -> assertEquals(EventStatus.COMPLETED, actual.getStatus()),
@@ -534,7 +533,6 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(submission.getProgramStage(), actual.getProgramStage()),
         () ->
             assertEqualUids(submission.getAttributeOptionCombo(), actual.getAttributeOptionCombo()),
-        () -> assertNull(actual.getStoredBy()),
         () -> assertEquals(event.getOccurredDate(), actual.getOccurredDate()),
         () -> assertEquals(event.getScheduledDate(), actual.getScheduledDate()),
         () -> assertEquals(EventStatus.COMPLETED, actual.getStatus()),
@@ -603,10 +601,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(submission.getOrgUnit(), actual.getOrganisationUnit()),
         () ->
             assertEqualUids(submission.getAttributeOptionCombo(), actual.getAttributeOptionCombo()),
-        () -> assertEquals(user1.getUsername(), actual.getStoredBy()),
         () -> assertEquals(submission.getEventDate(), actual.getOccurredDate()),
         () -> assertEquals(EventStatus.ACTIVE, actual.getStatus()),
-        () -> assertEquals(user1.getUsername(), actual.getStoredBy()),
         () -> assertNull(actual.getCompletedDate()),
         () -> assertGeometry(submission.getCoordinates(), actual.getGeometry()),
         () -> {
@@ -667,9 +663,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(orgUnit, actual.getOrganisationUnit()),
         () -> assertEqualUids(eventProgram, actual.getProgramStage().getProgram()),
         () -> assertEqualUids(eventProgramStage, actual.getProgramStage()),
-        () -> assertEquals(user1.getUsername(), actual.getStoredBy()),
         () -> assertEquals(EventStatus.ACTIVE, actual.getStatus()),
-        () -> assertEquals(user1.getUsername(), actual.getStoredBy()),
         () -> {
           EventDataValue expected = new EventDataValue(de.getUid(), "hello");
           assertDataValues(Set.of(expected), actual.getEventDataValues());
@@ -748,9 +742,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(trackerProgram, actualEvent.getEnrollment().getProgram()),
         () -> assertEqualUids(trackerProgramStage, actualEvent.getProgramStage()),
         () -> assertEqualUids(actualEnrollment, actualEvent.getEnrollment()),
-        () -> assertEquals(user1.getUsername(), actualEvent.getStoredBy()),
         () -> assertEquals(EventStatus.ACTIVE, actualEvent.getStatus()),
-        () -> assertEquals(user1.getUsername(), actualEvent.getStoredBy()),
         () -> {
           EventDataValue expected = new EventDataValue(de.getUid(), "hello");
           assertDataValues(Set.of(expected), actualEvent.getEventDataValues());
@@ -814,9 +806,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
         () -> assertEqualUids(trackerProgram, actual.getEnrollment().getProgram()),
         () -> assertEqualUids(trackerProgramStage, actual.getProgramStage()),
         () -> assertEqualUids(enrollment, actual.getEnrollment()),
-        () -> assertEquals(user2.getUsername(), actual.getStoredBy()),
         () -> assertEquals(EventStatus.ACTIVE, actual.getStatus()),
-        () -> assertEquals(user2.getUsername(), actual.getStoredBy()),
         () -> {
           EventDataValue expected = new EventDataValue(de.getUid(), "hello");
           assertDataValues(Set.of(expected), actual.getEventDataValues());

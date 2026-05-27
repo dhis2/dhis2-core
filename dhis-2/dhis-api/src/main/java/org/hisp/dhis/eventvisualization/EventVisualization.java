@@ -472,7 +472,7 @@ public class EventVisualization extends BaseAnalyticalObject
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DXF_2_0)
   public DataElement getDataElementValueDimension() {
     return dataElementValueDimension;
