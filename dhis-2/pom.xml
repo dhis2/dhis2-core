@@ -1940,7 +1940,7 @@
           <version>${maven-surefire-plugin.version}</version>
           <configuration>
             <excludedGroups>benchmark</excludedGroups>
-            <argLine>${surefireArgLine}</argLine>
+            <argLine>@{argLine} ${surefireArgLine}</argLine>
           </configuration>
         </plugin>
         <plugin>

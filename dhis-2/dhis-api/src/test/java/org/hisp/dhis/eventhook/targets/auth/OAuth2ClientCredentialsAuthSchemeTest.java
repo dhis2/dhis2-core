@@ -127,19 +127,24 @@ class OAuth2ClientCredentialsAuthSchemeTest extends AbstractAuthSchemeTest {
             });
     when(mockApplicationContext.getBean(OAuth2AuthorizedClientProvider.class))
         .thenReturn(
-            context ->
-                new OAuth2AuthorizedClient(
-                    ClientRegistration.withRegistrationId(
-                            context.getClientRegistration().getRegistrationId())
-                        .clientId(context.getClientRegistration().getClientId())
-                        .clientSecret(context.getClientRegistration().getClientSecret())
-                        .tokenUri(
-                            context.getClientRegistration().getProviderDetails().getTokenUri())
-                        .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                        .build(),
-                    "principal",
-                    new OAuth2AccessToken(
-                        OAuth2AccessToken.TokenType.BEARER, "foo", null, null)));
+            context -> {
+              OAuth2AuthorizedClient mockOAuth2AuthorizedClient =
+                  mock(OAuth2AuthorizedClient.class);
+              when(mockOAuth2AuthorizedClient.getAccessToken())
+                  .thenReturn(
+                      new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, "foo", null, null));
+              when(mockOAuth2AuthorizedClient.getClientRegistration())
+                  .thenReturn(
+                      ClientRegistration.withRegistrationId(
+                              context.getClientRegistration().getRegistrationId())
+                          .clientId(context.getClientRegistration().getClientId())
+                          .clientSecret(context.getClientRegistration().getClientSecret())
+                          .tokenUri(
+                              context.getClientRegistration().getProviderDetails().getTokenUri())
+                          .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                          .build());
+              return mockOAuth2AuthorizedClient;
+            });
 
     SecurityContextHolder.getContext()
         .setAuthentication(new TestingAuthenticationToken(null, null));
@@ -167,18 +172,18 @@ class OAuth2ClientCredentialsAuthSchemeTest extends AbstractAuthSchemeTest {
                   String clientRegistrationId,
                   Authentication principal,
                   HttpServletRequest request) {
-                return (T)
-                    new OAuth2AuthorizedClient(
+                OAuth2AuthorizedClient mockOAuth2AuthorizedClient =
+                    mock(OAuth2AuthorizedClient.class);
+                when(mockOAuth2AuthorizedClient.getClientRegistration())
+                    .thenReturn(
                         ClientRegistration.withRegistrationId(
                                 oAuth2ClientCredentialsAuthScheme.getRegistrationId())
                             .clientId(oAuth2ClientCredentialsAuthScheme.getClientId())
                             .clientSecret(oAuth2ClientCredentialsAuthScheme.getClientSecret())
                             .tokenUri(oAuth2ClientCredentialsAuthScheme.getTokenUri())
                             .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                            .build(),
-                        "principal",
-                        new OAuth2AccessToken(
-                            OAuth2AccessToken.TokenType.BEARER, "dummy", null, null));
+                            .build());
+                return (T) mockOAuth2AuthorizedClient;
               }
 
               @Override
@@ -213,10 +218,13 @@ class OAuth2ClientCredentialsAuthSchemeTest extends AbstractAuthSchemeTest {
                   oAuth2ClientCredentialsAuthScheme.getTokenUri(),
                   clientRegistration.getProviderDetails().getTokenUri());
 
-              return new OAuth2AuthorizedClient(
-                  clientRegistration,
-                  "principal",
-                  new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, "bar", null, null));
+              OAuth2AuthorizedClient mockOAuth2AuthorizedClient =
+                  mock(OAuth2AuthorizedClient.class);
+              when(mockOAuth2AuthorizedClient.getAccessToken())
+                  .thenReturn(
+                      new OAuth2AccessToken(OAuth2AccessToken.TokenType.BEARER, "bar", null, null));
+
+              return mockOAuth2AuthorizedClient;
             });
 
     SecurityContextHolder.getContext()
