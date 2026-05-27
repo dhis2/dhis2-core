@@ -371,7 +371,6 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
         EventAnalyticsColumnName.EVENT_COLUMN_NAME,
         EventAnalyticsColumnName.PS_COLUMN_NAME,
         EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
-        EventAnalyticsColumnName.STORED_BY_COLUMN_NAME,
         EventAnalyticsColumnName.CREATED_BY_DISPLAYNAME_COLUMN_NAME,
         EventAnalyticsColumnName.LAST_UPDATED_BY_DISPLAYNAME_COLUMN_NAME,
         EventAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,
