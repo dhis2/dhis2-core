@@ -124,17 +124,17 @@ public class DefaultGistService implements GistService {
     RelativePropertyContext context = createPropertyContext(query);
     List<ObjectOutput.Property> res = new ArrayList<>(query.getFields().size());
     for (GistQuery.Field f : query.getFields()) {
-      String name = f.getName();
-      if (f.isAttribute()) {
+      String name = f.name();
+      if (f.attribute()) {
         res.add(new ObjectOutput.Property(name, ObjectOutput.Type.STRING, false));
-      } else if (GistQuery.Field.REFS_PATH.equals(f.getPropertyPath())) {
+      } else if (GistQuery.Field.REFS_PATH.equals(f.propertyPath())) {
         res.add(
             new ObjectOutput.Property(
                 "apiEndpoints", new ObjectOutput.Type(Map.class, String.class), false));
       } else {
-        Property p = context.resolveMandatory(f.getPropertyPath());
+        Property p = context.resolveMandatory(f.propertyPath());
         ObjectOutput.Type type =
-            switch (f.getTransformation()) {
+            switch (f.transformation()) {
               case IS_EMPTY, IS_NOT_EMPTY, MEMBER, NOT_MEMBER -> ObjectOutput.Type.BOOLEAN;
               case SIZE -> ObjectOutput.Type.INTEGER;
               case IDS -> new ObjectOutput.Type(String[].class);
@@ -145,7 +145,7 @@ public class DefaultGistService implements GistService {
               case ID_OBJECTS -> new ObjectOutput.Type(JsonBuilder.JsonEncodable[].class);
               default -> type(p);
             };
-        boolean arrayAggregate = f.getTransformation().isArrayAggregate() && !f.isMultiPluck();
+        boolean arrayAggregate = f.transformation().isArrayAggregate() && !f.isMultiPluck();
         res.add(new ObjectOutput.Property(name, type, arrayAggregate));
       }
     }

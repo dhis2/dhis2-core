@@ -99,8 +99,8 @@ final class GistValidator {
   }
 
   private void validateField(Field f, RelativePropertyContext context) {
-    String path = f.getPropertyPath();
-    if (Field.REFS_PATH.equals(path) || f.isAttribute()) {
+    String path = f.propertyPath();
+    if (Field.REFS_PATH.equals(path) || f.attribute()) {
       return;
     }
     Property field = context.resolveMandatory(path);
@@ -113,8 +113,8 @@ final class GistValidator {
             "Property `%s` computes to many values and therefore cannot be used as a field.");
       }
     }
-    Transform transformation = f.getTransformation();
-    String transArgs = f.getTransformationArgument();
+    Transform transformation = f.transformation();
+    String transArgs = f.transformationArgument();
     if (transformation == Transform.PLUCK && transArgs != null) {
       for (String arg : transArgs.split(",")) {
         Property plucked = context.switchedTo(getBaseType(field)).resolveMandatory(arg);
@@ -169,7 +169,7 @@ final class GistValidator {
    * type but there are fields that are generally visible.
    */
   private void validateFieldAccess(Field f, RelativePropertyContext context) {
-    String path = f.getPropertyPath();
+    String path = f.propertyPath();
     Property field = context.resolveMandatory(path);
     if (!access.canRead(query.getElementType(), path)) {
       throw createNoReadAccess(f, query.getElementType());
@@ -256,9 +256,12 @@ final class GistValidator {
   }
 
   private void validateOrder(Property order) {
-    if (!order.isPersisted() || !order.isSimple()) {
-      throw createIllegalProperty(order, "Property `%s` cannot be used as order property.");
+    if (order.isSimple()) {
+      if (order.isPersisted()) return;
+      Property base = context.resolve(Property.resolveBasePropertyName(order.getName()));
+      if (base != null && base.isPersisted() && base.canBeTranslated()) return;
     }
+    throw createIllegalProperty(order, "Property `%s` cannot be used as order property.");
   }
 
   private IllegalArgumentException createIllegalProperty(Property property, String message) {
@@ -277,11 +280,11 @@ final class GistValidator {
       Field field, Class<? extends PrimaryKeyObject> ownerType) {
     if (ownerType == null) {
       return new AccessDeniedException(
-          String.format("Property `%s` is not readable.", field.getPropertyPath()));
+          String.format("Property `%s` is not readable.", field.propertyPath()));
     }
     return new AccessDeniedException(
         String.format(
             "Field `%s` is not readable as user is not allowed to view objects of type %s.",
-            field.getPropertyPath(), ownerType.getSimpleName()));
+            field.propertyPath(), ownerType.getSimpleName()));
   }
 }

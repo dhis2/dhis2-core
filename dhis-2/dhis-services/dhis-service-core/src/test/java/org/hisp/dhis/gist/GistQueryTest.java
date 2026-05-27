@@ -32,7 +32,9 @@ package org.hisp.dhis.gist;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.List;
 import org.hisp.dhis.gist.GistQuery.Comparison;
+import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.junit.jupiter.api.Test;
 
@@ -86,6 +88,63 @@ class GistQueryTest {
   @Test
   void testFilterParse_GroupArrayValueWithDelimiters() {
     assertFilterEquals("2:name:eq:[1:1,2:2]", 2, "name", Comparison.EQ, "1:1", "2:2");
+  }
+
+  @Test
+  void testFieldsOf_Simple() {
+    assertEquals(List.of(new Field("foo"), new Field("bar")), Field.of("foo,bar"));
+  }
+
+  @Test
+  void testFieldsOf_Nest1() {
+    assertEquals(List.of(new Field("foo"), new Field("foo.bar")), Field.of("foo[bar]"));
+  }
+
+  @Test
+  void testFieldsOf_Nest2() {
+    assertEquals(
+        List.of(
+            new Field("foo"), new Field("foo.bar"), new Field("foo.baz"), new Field("foo.baz.que")),
+        Field.of("foo[bar,baz[que]]"));
+  }
+
+  @Test
+  void testFieldsOf_Nest3() {
+    assertEquals(
+        List.of(
+            new Field("foo"),
+            new Field("foo.bar"),
+            new Field("foo.bar.hey"),
+            new Field("foo.bar.ho"),
+            new Field("foo.baz"),
+            new Field("foo.baz.que")),
+        Field.of("foo[bar[hey,ho],baz[que]]"));
+  }
+
+  @Test
+  void testFieldsOf_Nest3Rename1() {
+    assertEquals(
+        List.of(
+            new Field("foo").withAlias("x"),
+            new Field("foo.bar").withAlias("x.bar"),
+            new Field("foo.bar.hey").withAlias("x.bar.hey"),
+            new Field("foo.bar.ho").withAlias("x.bar.ho"),
+            new Field("foo.baz").withAlias("x.baz"),
+            new Field("foo.baz.que").withAlias("x.baz.que")),
+        Field.of("foo~rename(x)[bar[hey,ho],baz[que]]"));
+  }
+
+  @Test
+  void testFieldsOf_Nest3Rename2() {
+    assertEquals(
+        List.of(
+            new Field("foo").withAlias("x"),
+            new Field("foo.bar").withAlias("x.bar"),
+            new Field("foo.bar.hey").withAlias("x.bar.y"),
+            new Field("foo.bar.ho").withAlias("x.bar.ho"),
+            new Field("foo.baz").withAlias("x.baz"),
+            new Field("foo.baz.que").withAlias("x.baz.que")),
+        Field.of("foo~rename(x)[bar[hey~rename(y),ho],baz[que]]"));
   }
 
   private void assertFilterEquals(

@@ -49,6 +49,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.common.PrimaryKeyObject;
+import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
 
 /**
@@ -160,7 +161,7 @@ public final class GistQuery {
   @JsonProperty @Builder.Default private final List<Order> orders = emptyList();
 
   public List<String> getFieldNames() {
-    return fields.stream().map(Field::getName).collect(toList());
+    return fields.stream().map(Field::name).collect(toList());
   }
 
   public Transform getDefaultTransformation() {
@@ -173,6 +174,10 @@ public final class GistQuery {
 
   public boolean hasFilterGroups() {
     return filters.size() > 1 && filters.stream().anyMatch(f -> f.getGroup() >= 0);
+  }
+
+  public boolean hasTranslationContext() {
+    return translationLocale != null;
   }
 
   private static List<String> getStrings(String value, String splitRegex) {
@@ -313,54 +318,60 @@ public final class GistQuery {
     }
   }
 
-  @Getter
-  @Builder(toBuilder = true)
-  @AllArgsConstructor
-  public static final class Field {
+  public record Field(
+      @JsonProperty String propertyPath,
+      @JsonProperty Transform transformation,
+      @JsonProperty String alias,
+      @JsonProperty String transformationArgument,
+      @JsonProperty boolean translate,
+      @JsonProperty boolean attribute) {
 
     public static final String REFS_PATH = "__refs__";
     public static final String ALL_PATH = "*";
     public static final Field ALL = new Field(ALL_PATH, Transform.NONE);
 
-    @JsonProperty private final String propertyPath;
-    @JsonProperty private final Transform transformation;
-    @JsonProperty private final String alias;
-    @JsonProperty private final String transformationArgument;
-    @JsonProperty private final boolean translate;
-    @JsonProperty private final boolean attribute;
+    public Field(String propertyPath) {
+      this(propertyPath, Transform.AUTO);
+    }
 
     public Field(String propertyPath, Transform transformation) {
       this(propertyPath, transformation, "", null, false, false);
     }
 
     @Nonnull
-    public static List<Field> ofList(String fields) {
-      return getStrings(fields, FIELD_SPLIT).stream().map(Field::parse).toList();
+    public static List<Field> of(String fields) {
+      List<Field> res = new ArrayList<>();
+      for (Expression e : Expression.split(Text.of(fields))) e.addFields(res, "", "");
+      return res;
     }
 
     @JsonProperty
-    public String getName() {
+    public String name() {
       return alias.isEmpty() ? propertyPath : alias;
     }
 
     public Field withTransformation(Transform transform) {
-      return toBuilder().transformation(transform).build();
+      return new Field(
+          propertyPath, transform, alias, transformationArgument, translate, attribute);
     }
 
     public Field withPropertyPath(String path) {
-      return toBuilder().propertyPath(path).build();
+      return new Field(path, transformation, alias, transformationArgument, translate, attribute);
     }
 
     public Field withAlias(String alias) {
-      return toBuilder().alias(alias).build();
+      return new Field(
+          propertyPath, transformation, alias, transformationArgument, translate, attribute);
     }
 
     public Field withTranslate() {
-      return toBuilder().translate(true).build();
+      return new Field(
+          propertyPath, transformation, alias, transformationArgument, true, attribute);
     }
 
     public Field asAttribute() {
-      return toBuilder().attribute(true).build();
+      return new Field(
+          propertyPath, transformation, alias, transformationArgument, translate, true);
     }
 
     public boolean isMultiPluck() {
@@ -369,37 +380,88 @@ public final class GistQuery {
           && transformationArgument.contains(",");
     }
 
-    @Override
-    public String toString() {
-      return transformation == Transform.NONE
-          ? propertyPath
-          : propertyPath + "::" + transformation.name().toLowerCase().replace('_', '-');
-    }
-
-    public static Field parse(String field) {
-      String[] parts = field.split("(?:::|~|@)(?![^\\[\\]]*\\])");
-      if (parts.length == 1) {
-        return new Field(field, Transform.AUTO);
-      }
-      Transform transform = Transform.AUTO;
-      String alias = "";
-      String arg = null;
-      for (int i = 1; i < parts.length; i++) {
-        String part = parts[i];
-        if (part.startsWith("rename")) {
-          alias = parseArgument(part);
-        } else {
-          transform = Transform.parse(part);
-          if (part.indexOf('(') >= 0) {
-            arg = parseArgument(part);
-          }
-        }
-      }
-      return new Field(parts[0], transform, alias, arg, false, false);
-    }
-
     private static String parseArgument(String part) {
       return part.substring(part.indexOf('(') + 1, part.lastIndexOf(')'));
+    }
+
+    private record Expression(Text field, List<Expression> children) {
+
+      void addFields(List<Field> res, String parentPath, String parentName) {
+        Field f = parse(field.toString());
+        String path = f.propertyPath();
+        if (!parentPath.isEmpty()) f = f.withPropertyPath(chain(parentPath, path));
+        if (!parentPath.equals(parentName) && !parentName.isEmpty())
+          f = f.withAlias(chain(parentName, !f.alias().isEmpty() ? f.alias() : path));
+        res.add(f);
+        for (Expression e : children) e.addFields(res, f.propertyPath(), f.name());
+      }
+
+      private static Field parse(String field) {
+        String[] parts = field.split("(?:::|~|@)(?![^\\[\\]]*])");
+        if (parts.length == 1) {
+          return new Field(field, Transform.AUTO);
+        }
+        Transform transform = Transform.AUTO;
+        String alias = "";
+        String arg = null;
+        for (int i = 1; i < parts.length; i++) {
+          String part = parts[i];
+          if (part.startsWith("rename")) {
+            alias = parseArgument(part);
+          } else {
+            transform = Transform.parse(part);
+            if (part.indexOf('(') >= 0) {
+              arg = parseArgument(part);
+            }
+          }
+        }
+        return new Field(parts[0], transform, alias, arg, false, false);
+      }
+
+      static String chain(String parent, String child) {
+        return parent.isEmpty() ? child : parent + "." + child;
+      }
+
+      static List<Expression> split(Text fields) {
+        int s = 0;
+        int len = fields.length();
+        List<Expression> res = new ArrayList<>();
+        while (s < len) {
+          int nextComma = fields.indexOf(',', s);
+          int nextOpen = fields.indexOf('[', s);
+          if (nextComma > 0 && (nextComma < nextOpen || nextOpen < 0)) {
+            // until , (no [...])
+            res.add(new Expression(fields.subSequence(s, nextComma), List.of()));
+            s = nextComma + 1;
+          } else if (nextOpen > 0) {
+            // until [ with children
+            Text field = fields.subSequence(s, nextOpen);
+            s = skipToClosingBracket(fields, nextOpen + 1);
+            res.add(new Expression(field, split(fields.subSequence(nextOpen + 1, s))));
+            s++; // now skip the ]
+            if (s < len && fields.charAt(s) == ',') s++; // skip , after [...]
+          } else {
+            // until end of input...
+            res.add(new Expression(fields.subSequence(s, len), List.of()));
+            s = len;
+          }
+        }
+        return res;
+      }
+
+      private static int skipToClosingBracket(Text fields, int from) {
+        int open = 0;
+        int i = from;
+        int len = fields.length();
+        while (i < len) {
+          char c = fields.charAt(i++);
+          if (c == ']') {
+            if (open == 0) return i - 1;
+            open--;
+          } else if (c == '[') open++;
+        }
+        return len; // treat end as ]
+      }
     }
   }
 

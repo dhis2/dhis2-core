@@ -214,17 +214,20 @@ public abstract class AbstractFullReadOnlyController<
     boolean isAlwaysEmpty =
         params.getRootJunction() == Junction.Type.AND
             && additionalFilters.stream().anyMatch(Filter::isAlwaysFalse);
-    List<T> entities = isAlwaysEmpty ? List.of() : getEntityList(params, additionalFilters);
-    postProcessResponseEntities(entities, params);
 
-    List<String> fields = params.getFieldsJsonList();
-    handleLinksAndAccess(entities, fields, false);
-
+    List<T> entities = List.of();
     Pager pager = null;
-    if (params.isPaging()) {
-      long totalCount = isAlwaysEmpty ? 0 : countGetObjectList(params, additionalFilters);
-      pager = new Pager(params.getPage(), totalCount, params.getPageSize());
-      linkService.generatePagerLinks(pager, getEntityClass());
+
+    if (!isAlwaysEmpty) {
+      entities = getEntityList(params, additionalFilters);
+      postProcessResponseEntities(entities, params);
+      handleLinksAndAccess(entities, params.getFieldsJsonList(), false);
+
+      if (params.isPaging()) {
+        long totalCount = countGetObjectList(params, additionalFilters);
+        pager = new Pager(params.getPage(), totalCount, params.getPageSize());
+        linkService.generatePagerLinks(pager, getEntityClass());
+      }
     }
 
     cachePrivate(response);
@@ -232,7 +235,7 @@ public abstract class AbstractFullReadOnlyController<
         new StreamingJsonRoot<>(
             pager,
             getSchema().getCollectionName(),
-            FieldFilterParams.of(entities, fields),
+            FieldFilterParams.of(entities, params.getFieldsJsonList()),
             params.getDefaults().isExclude()));
   }
 
