@@ -85,7 +85,7 @@ class CsvEventServiceTest {
 
     service.write(out, Collections.singletonList(new Event()), false);
 
-    assertEquals(",ACTIVE,,,,,,,,,,false,false,,,,,,,,,,,,,,,,,\n", out.toString());
+    assertEquals(",ACTIVE,,,,,,,,,,false,false,,,,,,,,,,,,,,,,\n", out.toString());
   }
 
   @Test
@@ -102,7 +102,7 @@ class CsvEventServiceTest {
 
     service.write(out, Collections.singletonList(event), false);
 
-    assertEquals("BuA2R2Gr4vt,ACTIVE,,,,,,,,,,true,false,,,,,,,,,,,,,,,,,\n", out.toString());
+    assertEquals("BuA2R2Gr4vt,ACTIVE,,,,,,,,,,true,false,,,,,,,,,,,,,,,,\n", out.toString());
   }
 
   @Test
@@ -125,8 +125,8 @@ class CsvEventServiceTest {
 
     service.write(out, Collections.singletonList(event), false);
 
-    assertInCSV(out, "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,true,false,,,,,,,,,,,color,yellow,,true,,,\n");
-    assertInCSV(out, "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,true,false,,,,,,,,,,,color,purple,,true,,,\n");
+    assertInCSV(out, "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,true,false,,,,,,,,,,,color,yellow,true,,,\n");
+    assertInCSV(out, "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,true,false,,,,,,,,,,,color,purple,true,,,\n");
   }
 
   private void assertInCSV(ByteArrayOutputStream out, String expectedLine) {
@@ -176,7 +176,6 @@ class CsvEventServiceTest {
     assertNull(events.get(0).getScheduledAt());
     assertNull(events.get(0).getCompletedAt());
     assertNull(events.get(0).getCompletedBy());
-    assertNull(events.get(0).getStoredBy());
     assertNull(events.get(0).getAttributeCategoryOptions());
     assertEquals(new User(), events.get(0).getAssignedUser());
     assertTrue(events.get(0).getDataValues().isEmpty());
@@ -207,7 +206,6 @@ class CsvEventServiceTest {
     assertEquals("2020-02-26T23:06:00Z", events.get(0).getUpdatedAtClient().toString());
     assertEquals("2020-02-26T23:07:00Z", events.get(0).getCompletedAt().toString());
     assertEquals("admin", events.get(0).getCompletedBy());
-    assertEquals("admin", events.get(0).getStoredBy());
     assertEquals("attributeOptionCombo", events.get(0).getAttributeOptionCombo());
     assertEquals("attributeCategoryOptions", events.get(0).getAttributeCategoryOptions());
     assertEquals("assignedUser", events.get(0).getAssignedUser().getUsername());
@@ -277,7 +275,7 @@ class CsvEventServiceTest {
 
     assertEquals(
 """
-FRM97UKN8te,COMPLETED,programId,programStageId,PSeMWi7rBgb,orgUnitId,2020-02-26T23:01:00Z,2020-02-26T23:02:00Z,,,,false,false,2020-02-26T23:03:00Z,,2020-02-26T23:05:00Z,,admin,2020-02-26T23:07:00Z,,attributeOptionCombo,attributeCategoryOptions,,dataElement,value,admin,false,,2020-02-26T23:08:00Z,2020-02-26T23:09:00Z
+FRM97UKN8te,COMPLETED,programId,programStageId,PSeMWi7rBgb,orgUnitId,2020-02-26T23:01:00Z,2020-02-26T23:02:00Z,,,,false,false,2020-02-26T23:03:00Z,,2020-02-26T23:05:00Z,,admin,2020-02-26T23:07:00Z,,attributeOptionCombo,attributeCategoryOptions,,dataElement,value,false,,2020-02-26T23:08:00Z,2020-02-26T23:09:00Z
 """,
         csvStream.toString(),
         "The event does not match or not exists in the Zip File.");
@@ -307,7 +305,7 @@ FRM97UKN8te,COMPLETED,programId,programStageId,PSeMWi7rBgb,orgUnitId,2020-02-26T
 
     assertEquals(
 """
-FRM97UKN8te,COMPLETED,programId,programStageId,PSeMWi7rBgb,orgUnitId,2020-02-26T23:01:00Z,2020-02-26T23:02:00Z,,,,false,false,2020-02-26T23:03:00Z,,2020-02-26T23:05:00Z,,admin,2020-02-26T23:07:00Z,,attributeOptionCombo,attributeCategoryOptions,,dataElement,value,admin,false,,2020-02-26T23:08:00Z,2020-02-26T23:09:00Z
+FRM97UKN8te,COMPLETED,programId,programStageId,PSeMWi7rBgb,orgUnitId,2020-02-26T23:01:00Z,2020-02-26T23:02:00Z,,,,false,false,2020-02-26T23:03:00Z,,2020-02-26T23:05:00Z,,admin,2020-02-26T23:07:00Z,,attributeOptionCombo,attributeCategoryOptions,,dataElement,value,false,,2020-02-26T23:08:00Z,2020-02-26T23:09:00Z
 """,
         csvStream.toString(),
         "The event does not match or not exists in the GZip File.");
