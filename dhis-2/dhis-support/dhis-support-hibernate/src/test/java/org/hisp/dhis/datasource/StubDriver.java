@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -29,9 +29,8 @@
  */
 package org.hisp.dhis.datasource;
 
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
-
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverPropertyInfo;
@@ -43,10 +42,49 @@ import java.util.logging.Logger;
 public class StubDriver implements Driver {
   @Override
   public Connection connect(String s, Properties properties) throws SQLException {
-    Statement mockStatement = mock(Statement.class);
-    Connection mockConnection = mock(Connection.class);
-    given(mockConnection.createStatement()).willReturn(mockStatement);
-    return mockConnection;
+    Statement stubStatement = proxyFor(Statement.class, null);
+    return proxyFor(
+        Connection.class,
+        (proxy, method, args) -> {
+          return switch (method.getName()) {
+            case "createStatement" -> stubStatement;
+            case "isValid" -> true;
+            case "getTransactionIsolation" -> Connection.TRANSACTION_READ_COMMITTED;
+            default -> null;
+          };
+        });
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <T> T proxyFor(Class<T> iface, java.lang.reflect.InvocationHandler extra) {
+    return (T)
+        Proxy.newProxyInstance(
+            StubDriver.class.getClassLoader(),
+            new Class[] {iface},
+            (proxy, method, args) -> {
+              if (extra != null) {
+                Object result = extra.invoke(proxy, method, args);
+                if (result != null) return result;
+              }
+              return defaultFor(proxy, method);
+            });
+  }
+
+  private static Object defaultFor(Object proxy, Method method) {
+    String name = method.getName();
+    if ("hashCode".equals(name)) return System.identityHashCode(proxy);
+    if ("equals".equals(name)) return false;
+    if ("toString".equals(name)) return proxy.getClass().getName() + "@stub";
+    Class<?> ret = method.getReturnType();
+    if (ret == boolean.class || ret == Boolean.class) return false;
+    if (ret == int.class || ret == Integer.class) return 0;
+    if (ret == long.class || ret == Long.class) return 0L;
+    if (ret == double.class || ret == Double.class) return 0.0;
+    if (ret == float.class || ret == Float.class) return 0.0f;
+    if (ret == short.class || ret == Short.class) return (short) 0;
+    if (ret == byte.class || ret == Byte.class) return (byte) 0;
+    if (ret == char.class || ret == Character.class) return (char) 0;
+    return null;
   }
 
   @Override
