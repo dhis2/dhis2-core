@@ -205,11 +205,14 @@ public class JCloudsStore implements BlobStoreService {
 
   @Override
   public Iterable<BlobKey> listKeys(BlobKeyPrefix prefix) {
-    List<BlobKey> keys = new ArrayList<>();
-    forEachPage(
-        prefix(prefix.value()).recursive(),
-        page -> page.forEach(m -> keys.add(new BlobKey(m.getName()))));
-    return keys;
+return StreamSupport.stream(
+            BlobStores.listAll(
+                    getBlobStore(), fileStoreConfig.container, prefix(prefix.value()).recursive())
+                .spliterator(),
+            false)
+        .map(StorageMetadata::getName)
+        .map(BlobKey::new)
+        .toList();
   }
 
   /**
