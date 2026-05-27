@@ -113,7 +113,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener {
         TrackerImportParams.builder()
             .importStrategy(TrackerImportStrategy.CREATE_AND_UPDATE)
             .build();
-    TrackerObjects trackerObjects = map(subm, program, trackedEntity, smsCreatedBy.getUsername());
+    TrackerObjects trackerObjects = map(subm, program, trackedEntity);
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
     if (Status.OK == importReport.getStatus()) {

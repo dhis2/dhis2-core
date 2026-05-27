@@ -85,7 +85,7 @@ public class TrackerObjectsMapper {
       dbTrackedEntity.setUid(trackedEntity.getTrackedEntity().getValue());
       dbTrackedEntity.setCreated(now);
       dbTrackedEntity.setCreatedByUserInfo(UserInfoSnapshot.from(user));
-      dbTrackedEntity.setStoredBy(trackedEntity.getStoredBy());
+      dbTrackedEntity.setStoredBy(user.getUsername());
     }
 
     dbTrackedEntity.setLastUpdated(now);
@@ -119,7 +119,7 @@ public class TrackerObjectsMapper {
       dbEnrollment = new Enrollment();
       dbEnrollment.setUid(enrollment.getEnrollment().getValue());
       dbEnrollment.setCreated(now);
-      dbEnrollment.setStoredBy(enrollment.getStoredBy());
+      dbEnrollment.setStoredBy(user.getUsername());
       dbEnrollment.setCreatedByUserInfo(UserInfoSnapshot.from(user));
     }
 
@@ -196,7 +196,7 @@ public class TrackerObjectsMapper {
       dbEvent = new TrackerEvent();
       dbEvent.setUid(event.getEvent().getValue());
       dbEvent.setCreated(now);
-      dbEvent.setStoredBy(event.getStoredBy());
+      dbEvent.setStoredBy(user.getUsername());
       dbEvent.setCreatedByUserInfo(UserInfoSnapshot.from(user));
     }
     dbEvent.setLastUpdated(now);
@@ -268,7 +268,7 @@ public class TrackerObjectsMapper {
       dbEvent = new SingleEvent();
       dbEvent.setUid(event.getEvent().getValue());
       dbEvent.setCreated(now);
-      dbEvent.setStoredBy(event.getStoredBy());
+      dbEvent.setStoredBy(user.getUsername());
       dbEvent.setCreatedByUserInfo(UserInfoSnapshot.from(user));
     }
     dbEvent.setLastUpdated(now);
@@ -398,7 +398,7 @@ public class TrackerObjectsMapper {
     dbNote.setUid(note.getNote().getValue());
     dbNote.setCreated(now);
     dbNote.setLastUpdatedBy(user);
-    dbNote.setCreator(note.getStoredBy());
+    dbNote.setCreator(user != null ? user.getUsername() : null);
     dbNote.setNoteText(note.getValue());
 
     return dbNote;
