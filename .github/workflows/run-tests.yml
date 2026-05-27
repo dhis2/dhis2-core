@@ -82,10 +82,15 @@ jobs:
   # integration-test profile's `groups=integration` tag filter then runs ONLY
   # integration-tagged tests, so over-included unit/H2/abstract classes are skipped.
   # The union of all shards is the full candidate set, so no integration test can be
-  # silently dropped. The integration-test-report job sums the per-shard results so
-  # coverage parity (sum of shards == full suite) is visible in every run's summary.
+  # silently dropped. The aggregating integration-test job sums the per-shard results
+  # so coverage parity (sum of shards == full suite) is visible in every run's summary.
+  #
+  # This matrix job is intentionally NOT named `integration-test`: a matrix reports its
+  # checks as `integration-test-shard (0..N)`, which would never satisfy a branch-
+  # protection rule that requires the bare name. The aggregating `integration-test` job
+  # below provides that stable required-check name and gates on every shard's result.
   # NOTE: keep SHARD_TOTAL equal to the length of matrix.shard.
-  integration-test:
+  integration-test-shard:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -147,11 +152,15 @@ jobs:
           path: surefire_reports.tar
           retention-days: 5
 
-  # Combines the per-shard surefire reports and publishes total test/skip/failure
-  # counts to the run summary, so coverage parity across shards is visible at a glance.
-  integration-test-report:
+  # Aggregating gate for the sharded integration tests. This job carries the stable
+  # `integration-test` name that branch protection requires as a status check, combines
+  # the per-shard surefire reports into a single run-summary table (so coverage parity
+  # across shards is visible at a glance), and then fails if ANY shard did not succeed.
+  # `needs.integration-test-shard.result` collapses the whole matrix to `success` only
+  # when every leg passed, so this gate cannot go green while a shard is red.
+  integration-test:
     runs-on: ubuntu-latest
-    needs: integration-test
+    needs: integration-test-shard
     if: always()
     steps:
       - uses: actions/download-artifact@v7
@@ -180,6 +189,11 @@ jobs:
             rm -rf "$d"
           done
           echo "| **Total** | **$tot_c** | **$tot_t** | **$tot_f** | **$tot_e** | **$tot_s** |" >> "$GITHUB_STEP_SUMMARY"
+      - name: Fail if any shard failed
+        if: needs.integration-test-shard.result != 'success'
+        run: |
+          echo "::error::integration-test-shard result was '${{ needs.integration-test-shard.result }}' (one or more shards did not succeed)"
+          exit 1
 
   integration-h2-test:
     runs-on: ubuntu-latest
