@@ -64,7 +64,6 @@ import org.springframework.util.Assert;
   "assignedUser",
   "dataElement",
   "value",
-  "storedBy",
   "providedElsewhere",
   "storedByDataValue",
   "createdAtDataValue",
@@ -123,8 +122,6 @@ class TrackerEventCsvRow {
 
   private String value;
 
-  private String storedBy;
-
   private Boolean providedElsewhere;
 
   private String createdAtDataValue;
@@ -160,7 +157,6 @@ class TrackerEventCsvRow {
     longitude = dataValue.getLongitude();
     dataElement = dataValue.getDataElement();
     value = dataValue.getValue();
-    storedBy = dataValue.getStoredBy();
     providedElsewhere = dataValue.getProvidedElsewhere();
     createdAtDataValue = dataValue.getCreatedAtDataValue();
     updatedAtDataValue = dataValue.getUpdatedAtDataValue();

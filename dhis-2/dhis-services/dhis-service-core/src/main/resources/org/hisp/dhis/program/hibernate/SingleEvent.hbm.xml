@@ -36,8 +36,6 @@
 
     <property name="deleted" column="deleted" />
 
-    <property name="storedBy" />
-
     <property name="occurredDate" column="occurreddate" type="timestamp" />
 
     <many-to-one name="organisationUnit" class="org.hisp.dhis.organisationunit.OrganisationUnit" column="organisationunitid"
