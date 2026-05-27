@@ -158,7 +158,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
                                 .collect(Collectors.toSet())),
                         filterByValueType(QUERY, ofDataElements(programStage)),
                         filterByValueType(
-                            QUERY, ofItemsWithProgram(p, getTeasIfRegistrationAndNotSkipped(p))),
+                            QUERY, ofItemsWithProgram(p, getTeasIfRegistrationAndAnalyzable(p))),
                         ofItemsWithProgram(p, getCategories(p)),
                         ofItemsWithProgram(p, getAttributeCategoryOptionGroupSetsIfNeeded(p)))))
         .orElse(List.of());
@@ -188,7 +188,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
         .orElse(List.of());
   }
 
-  private List<TrackedEntityAttribute> getTeasIfRegistrationAndNotSkipped(Program program) {
+  private List<TrackedEntityAttribute> getTeasIfRegistrationAndAnalyzable(Program program) {
     return Optional.of(program)
         .filter(Program::isRegistration)
         .map(Program::getTrackedEntityAttributes)
@@ -199,6 +199,6 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
   }
 
   private boolean isNotSkipped(TrackedEntityAttribute trackedEntityAttribute) {
-    return !trackedEntityAttribute.isSkipAnalytics();
+    return !trackedEntityAttribute.getSkipAnalytics();
   }
 }

@@ -390,8 +390,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
     payloadAttributes.forEach(
         attribute -> {
-          // We cannot get the value from attributeToStore because it uses
-          // encryption logic, so we need to use the one from payload
           boolean isDelete = StringUtils.isEmpty(attribute.getValue());
 
           TrackedEntityAttributeValue currentValue =

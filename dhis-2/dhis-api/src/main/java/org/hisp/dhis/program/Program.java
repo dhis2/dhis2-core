@@ -462,9 +462,9 @@ public class Program extends BaseMetadataObject
    * Returns non-skipped TrackedEntityAttributes from ProgramTrackedEntityAttributes. Use
    * getAttributes() to access the persisted attribute list.
    */
-  public List<TrackedEntityAttribute> getNonSkippedTrackedEntityAttributes() {
+  public List<TrackedEntityAttribute> getAnalyzableTrackedEntityAttributes() {
     return getTrackedEntityAttributes().stream()
-        .filter(a -> !a.isSkipAnalytics())
+        .filter(a -> !a.getSkipAnalytics())
         .collect(Collectors.toList());
   }
 
@@ -472,9 +472,9 @@ public class Program extends BaseMetadataObject
    * Returns TrackedEntityAttributes from ProgramTrackedEntityAttributes which have a legend set,
    * are of numeric value type and are not skipped.
    */
-  public List<TrackedEntityAttribute> getNonSkippedTrackedEntityAttributesWithLegendSet() {
+  public List<TrackedEntityAttribute> getAnalyzableTrackedEntityAttributesWithLegendSet() {
     return getTrackedEntityAttributes().stream()
-        .filter(a -> !a.isSkipAnalytics() && a.hasLegendSet() && a.isNumericType())
+        .filter(a -> !a.getSkipAnalytics() && a.hasLegendSet() && a.isNumericType())
         .collect(Collectors.toList());
   }
 

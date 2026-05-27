@@ -143,7 +143,7 @@ public abstract class AbstractEventJdbcTableManager extends AbstractJdbcTableMan
         on en.trackedentityid=${uid}.trackedentityid \
         and ${uid}.trackedentityattributeid = ${id}\s""";
 
-    return program.getNonSkippedTrackedEntityAttributes().stream()
+    return program.getAnalyzableTrackedEntityAttributes().stream()
         .map(attribute -> replaceQualify(sqlBuilder, template, toVariableMap(attribute)))
         .collect(Collectors.joining());
   }
