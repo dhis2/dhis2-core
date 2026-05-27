@@ -79,6 +79,10 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
   private static final String DATA_ELEMENT_VALUE = "value 1";
 
   @Autowired private IdentifiableObjectManager manager;
+
+  @Autowired
+  private org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService programOwnerService;
+
   private User user;
   private Program program;
   private ProgramStage programStage;
@@ -363,6 +367,7 @@ class EventsExportControllerPostgresTest extends DhisControllerIntegrationTest {
     enrollment.setOccurredDate(new Date());
     enrollment.setStatus(ProgramStatus.COMPLETED);
     manager.save(enrollment);
+    programOwnerService.createTrackedEntityProgramOwner(te, program, te.getOrganisationUnit());
     return enrollment;
   }
 

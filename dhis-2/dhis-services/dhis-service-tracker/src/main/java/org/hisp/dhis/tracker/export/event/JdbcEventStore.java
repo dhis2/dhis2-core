@@ -188,6 +188,7 @@ class JdbcEventStore implements EventStore {
   private static final String COLUMN_EVENT_ASSIGNED_USER_DISPLAY_NAME = "user_assigned_name";
   private static final String COLUMN_USER_UID = "u_uid";
   private static final String COLUMN_ORG_UNIT_PATH = "ou_path";
+  private static final String COLUMN_ORG_UNIT_ID = "ou_id";
   private static final String DEFAULT_ORDER = COLUMN_EVENT_ID + " desc";
   private static final String USER_SCOPE_ORG_UNIT_PATH_LIKE_MATCH_QUERY =
       " ou.path like CONCAT(orgunit.path, '%') ";
@@ -901,20 +902,41 @@ class JdbcEventStore implements EventStore {
       User user,
       SqlHelper hlp,
       StringBuilder dataElementAndFiltersSql) {
-    StringBuilder fromBuilder =
-        new StringBuilder(" from event ev ")
-            .append("inner join enrollment en on en.enrollmentid=ev.enrollmentid ")
-            .append("inner join program p on p.programid=en.programid ")
-            .append("inner join programstage ps on ps.programstageid=ev.programstageid ");
+    StringBuilder fromBuilder = new StringBuilder(" from event ev ");
 
-    fromBuilder
-        .append(
-            "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
-        .append(
-            "inner join organisationunit ou on (coalesce(po.organisationunitid,"
-                + " ev.organisationunitid)=ou.organisationunitid) ")
-        .append(
-            "inner join organisationunit evou on (ev.organisationunitid=evou.organisationunitid) ");
+    if (isWithoutRegistrationQuery(params)) {
+      // For WITHOUT_REGISTRATION programs: derive program via programstage and demote enrollment
+      // to LEFT JOIN. Enrollment is always present but carries no filter role here — program
+      // identity comes from the programstage FK. Demoting to LEFT JOIN prevents the planner from
+      // using enrollment as the Nested Loop outer, which causes a catastrophic BitmapAnd via the
+      // enrollmentid index on programs where a single enrollment owns the majority of events.
+      // Master applies the same pattern in JdbcSingleEventStore.
+      fromBuilder
+          .append("inner join programstage ps on ps.programstageid=ev.programstageid ")
+          .append("inner join program p on p.programid=ps.programid ")
+          .append("left join enrollment en on en.enrollmentid=ev.enrollmentid ")
+          .append("inner join organisationunit ou on ev.organisationunitid=ou.organisationunitid ");
+    } else if (params.getEnrolledInProgram() != null) {
+      fromBuilder
+          .append("inner join enrollment en on en.enrollmentid=ev.enrollmentid ")
+          .append("inner join program p on p.programid=en.programid ")
+          .append("inner join programstage ps on ps.programstageid=ev.programstageid ")
+          .append(
+              "inner join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
+          .append("inner join organisationunit ou on po.organisationunitid=ou.organisationunitid ");
+    } else {
+      // No program filter
+      fromBuilder
+          .append("inner join enrollment en on en.enrollmentid=ev.enrollmentid ")
+          .append("inner join program p on p.programid=en.programid ")
+          .append("inner join programstage ps on ps.programstageid=ev.programstageid ")
+          .append(
+              "left join trackedentityprogramowner po on (en.trackedentityid=po.trackedentityid and en.programid=po.programid) ")
+          .append(
+              "inner join organisationunit ou on (COALESCE(po.organisationunitid,ev.organisationunitid)=ou.organisationunitid) ");
+    }
+    fromBuilder.append(
+        "inner join organisationunit evou on (ev.organisationunitid=evou.organisationunitid) ");
 
     fromBuilder
         .append("left join trackedentity te on te.trackedentityid=en.trackedentityid ")
@@ -1202,6 +1224,11 @@ class JdbcEventStore implements EventStore {
   private String createSelectedSql(
       User user, EventQueryParams params, MapSqlParameterSource mapSqlParameterSource) {
     mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_PATH, params.getOrgUnit().getStoredPath());
+    mapSqlParameterSource.addValue(COLUMN_ORG_UNIT_ID, params.getOrgUnit().getId());
+    String directOrgUnitPredicate =
+        isWithoutRegistrationQuery(params)
+            ? " ev.organisationunitid = :" + COLUMN_ORG_UNIT_ID + AND
+            : " ou.organisationunitid = :" + COLUMN_ORG_UNIT_ID + AND;
 
     String orgUnitPathEqualsMatchQuery =
         " ou.path = :"
@@ -1212,11 +1239,13 @@ class JdbcEventStore implements EventStore {
 
     if (isProgramRestricted(params.getEnrolledInProgram())) {
       String customSelectedClause = AND + orgUnitPathEqualsMatchQuery;
-      return createCaptureScopeQuery(user, mapSqlParameterSource, customSelectedClause);
+      return directOrgUnitPredicate
+          + createCaptureScopeQuery(user, mapSqlParameterSource, customSelectedClause);
     }
 
     mapSqlParameterSource.addValue(COLUMN_USER_UID, user.getUid());
-    return getSearchAndCaptureScopeOrgUnitPathMatchQuery(orgUnitPathEqualsMatchQuery);
+    return directOrgUnitPredicate
+        + getSearchAndCaptureScopeOrgUnitPathMatchQuery(orgUnitPathEqualsMatchQuery);
   }
 
   /**
@@ -1266,6 +1295,11 @@ class JdbcEventStore implements EventStore {
         + AND
         + orgUnitMatcher
         + " )) ";
+  }
+
+  private boolean isWithoutRegistrationQuery(EventQueryParams params) {
+    return params.getEnrolledInProgram() != null
+        && params.getEnrolledInProgram().getProgramType() == ProgramType.WITHOUT_REGISTRATION;
   }
 
   private boolean isProgramRestricted(Program program) {
