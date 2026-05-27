@@ -207,7 +207,9 @@ public class Category extends BaseMetadataObject
             && HibernateProxyUtils.getRealClass(this) == HibernateProxyUtils.getRealClass(obj)
             && Objects.equals(getUid(), other.getUid())
             && Objects.equals(getCode(), other.getCode())
-            && Objects.equals(getName(), other.getName());
+            && Objects.equals(getName(), other.getName())
+            && Objects.equals(getShortName(), other.getShortName())
+            && Objects.equals(getDescription(), other.getDescription());
   }
 
   @Override
@@ -215,6 +217,8 @@ public class Category extends BaseMetadataObject
     int result = getUid() != null ? getUid().hashCode() : 0;
     result = 31 * result + (getCode() != null ? getCode().hashCode() : 0);
     result = 31 * result + (getName() != null ? getName().hashCode() : 0);
+    result = 31 * result + (getShortName() != null ? getShortName().hashCode() : 0);
+    result = 31 * result + (getDescription() != null ? getDescription().hashCode() : 0);
     return result;
   }
 
