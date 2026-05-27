@@ -1381,13 +1381,13 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("headers", hasSize(equalTo(17)))
+        .body("headers", hasSize(equalTo(16)))
         .body("rows", hasSize(equalTo(14)))
         .body("metaData.dimensions.ou", hasSize(equalTo(1)))
         .body("metaData.dimensions.ou", hasItem("BV4IomHvri4"))
         .body("height", equalTo(14))
-        .body("width", equalTo(17))
-        .body("headerWidth", equalTo(17));
+        .body("width", equalTo(16))
+        .body("headerWidth", equalTo(16));
 
     // Validate the first three rows, as samples.
     validateRow(
@@ -1399,7 +1399,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2015-08-07 15:47:24.376",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -1424,7 +1423,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "",
             "Ahmadiyya Muslim Hospital",
             "OU_268246",
             "Sierra Leone / Tonkolili / Yoni / Ahmadiyya Muslim Hospital",
@@ -1443,7 +1441,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2015-08-07 15:47:22.383",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -1476,13 +1473,13 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("headers", hasSize(equalTo(17)))
+        .body("headers", hasSize(equalTo(16)))
         .body("rows", hasSize(equalTo(14)))
         .body("metaData.dimensions.ou", hasSize(equalTo(1)))
         .body("metaData.dimensions.ou", hasItem("BV4IomHvri4"))
         .body("height", equalTo(14))
-        .body("width", equalTo(17))
-        .body("headerWidth", equalTo(17));
+        .body("width", equalTo(16))
+        .body("headerWidth", equalTo(16));
 
     // Validate the first three rows, as samples.
     validateRow(
@@ -1494,7 +1491,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2015-08-07 15:47:24.376",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -1519,7 +1515,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "",
             "Ahmadiyya Muslim Hospital",
             "OU_268246",
             "Sierra Leone / Tonkolili / Yoni / Ahmadiyya Muslim Hospital",
@@ -1538,7 +1533,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2015-08-07 15:47:22.383",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -1900,7 +1894,7 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("headers", hasSize(equalTo(17)))
+        .body("headers", hasSize(equalTo(16)))
         .body("rows", hasSize(equalTo(1)))
         .body("metaData.pager.page", equalTo(1))
         .body("metaData.pager.pageSize", equalTo(50))
@@ -1914,8 +1908,8 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "metaData.items[\"IpHINAT79UW.ZzYYXq4fJie.GQY2lXrypjO\"].name",
             equalTo("MCH Infant Weight  (g)"))
         .body("height", equalTo(1))
-        .body("width", equalTo(17))
-        .body("headerWidth", equalTo(17));
+        .body("width", equalTo(16))
+        .body("headerWidth", equalTo(16));
 
     validateRow(
         response,
@@ -1926,7 +1920,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2014-10-01 12:27:35.417",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -2098,9 +2091,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .statusCode(200)
         .body("rows", hasSize(equalTo(50)))
         .body("height", equalTo(50))
-        .body("width", equalTo(17))
-        .body("headerWidth", equalTo(17))
-        .body("headers", hasSize(equalTo(17)))
+        .body("width", equalTo(16))
+        .body("headerWidth", equalTo(16))
+        .body("headers", hasSize(equalTo(16)))
         .body("metaData.pager.page", equalTo(1))
         .body("metaData.pager.pageSize", equalTo(50))
         .body("metaData.pager.isLastPage", is(false))
@@ -2120,7 +2113,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2015-08-06 21:12:36.226",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -2145,7 +2137,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "",
             "Yankasa MCHP",
             "OU_193257",
             "Sierra Leone / Bombali / Makari Gbanti / Yankasa MCHP",
@@ -2164,7 +2155,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2015-08-06 21:20:47.467",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -2199,9 +2189,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .statusCode(200)
         .body("rows", hasSize(equalTo(50)))
         .body("height", equalTo(50))
-        .body("width", equalTo(17))
-        .body("headerWidth", equalTo(17))
-        .body("headers", hasSize(equalTo(17)))
+        .body("width", equalTo(16))
+        .body("headerWidth", equalTo(16))
+        .body("headers", hasSize(equalTo(16)))
         .body("metaData.pager.page", equalTo(1))
         .body("metaData.pager.pageSize", equalTo(50))
         .body("metaData.pager.isLastPage", is(false))
@@ -2221,7 +2211,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2015-08-06 21:12:36.226",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -2246,7 +2235,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "",
             "Yankasa MCHP",
             "OU_193257",
             "Sierra Leone / Bombali / Makari Gbanti / Yankasa MCHP",
@@ -2265,7 +2253,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2015-08-06 21:20:47.467",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -2299,9 +2286,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .statusCode(200)
         .body("rows", hasSize(equalTo(15)))
         .body("height", equalTo(15))
-        .body("width", equalTo(23))
-        .body("headerWidth", equalTo(23))
-        .body("headers", hasSize(equalTo(23)))
+        .body("width", equalTo(22))
+        .body("headerWidth", equalTo(22))
+        .body("headers", hasSize(equalTo(22)))
         .body("metaData.pager.page", equalTo(1))
         .body("metaData.pager.pageSize", equalTo(50))
         .body("metaData.pager.isLastPage", is(true))
@@ -2321,7 +2308,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2019-08-21 13:25:38.022",
             ",  ()",
-            "",
             "SRID=4326;POINT(-11.7896 8.2593)",
             "-11.7896",
             "8.2593",
@@ -2349,7 +2335,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2019-08-21 13:25:29.756",
             ",  ()",
-            "",
             "SRID=4326;POINT(-11.773 8.3201)",
             "-11.773",
             "8.3201",
@@ -2377,7 +2362,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2019-08-21 13:24:59.811",
             ",  ()",
-            "",
             "SRID=4326;POINT(-11.7809 8.3373)",
             "-11.7809",
             "8.3373",
@@ -2417,9 +2401,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .statusCode(200)
         .body("rows", hasSize(equalTo(15)))
         .body("height", equalTo(15))
-        .body("width", equalTo(23))
-        .body("headerWidth", equalTo(23))
-        .body("headers", hasSize(equalTo(23)))
+        .body("width", equalTo(22))
+        .body("headerWidth", equalTo(22))
+        .body("headers", hasSize(equalTo(22)))
         .body("metaData.pager.page", equalTo(1))
         .body("metaData.pager.pageSize", equalTo(50))
         .body("metaData.pager.isLastPage", is(true))
@@ -2439,7 +2423,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2019-08-21 13:25:38.022",
             ",  ()",
-            "",
             "SRID=4326;POINT(-11.7896 8.2593)",
             "-11.7896",
             "8.2593",
@@ -2467,7 +2450,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2019-08-21 13:25:29.756",
             ",  ()",
-            "",
             "SRID=4326;POINT(-11.773 8.3201)",
             "-11.773",
             "8.3201",
@@ -2495,7 +2477,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2019-08-21 13:24:59.811",
             ",  ()",
-            "",
             "SRID=4326;POINT(-11.7809 8.3373)",
             "-11.7809",
             "8.3373",
@@ -2538,9 +2519,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .statusCode(200)
         .body("rows", hasSize(equalTo(50)))
         .body("height", equalTo(50))
-        .body("width", equalTo(18))
-        .body("headerWidth", equalTo(18))
-        .body("headers", hasSize(equalTo(18)))
+        .body("width", equalTo(17))
+        .body("headerWidth", equalTo(17))
+        .body("headers", hasSize(equalTo(17)))
         .body("metaData.pager.page", equalTo(1))
         .body("metaData.pager.pageSize", equalTo(50))
         .body("metaData.pager.isLastPage", is(false))
@@ -2560,7 +2541,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2015-08-06 21:20:52.78",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -2586,7 +2566,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "",
             "Mattru Jong MCHP",
             "OU_197389",
             "Sierra Leone / Bonthe / Jong / Mattru Jong MCHP",
@@ -2606,7 +2585,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2015-08-06 21:20:52.776",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -2644,9 +2622,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .statusCode(200)
         .body("rows", hasSize(equalTo(50)))
         .body("height", equalTo(50))
-        .body("width", equalTo(18))
-        .body("headerWidth", equalTo(18))
-        .body("headers", hasSize(equalTo(18)))
+        .body("width", equalTo(17))
+        .body("headerWidth", equalTo(17))
+        .body("headers", hasSize(equalTo(17)))
         .body("metaData.pager.page", equalTo(1))
         .body("metaData.pager.pageSize", equalTo(50))
         .body("metaData.pager.isLastPage", is(false))
@@ -2666,7 +2644,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2015-08-06 21:20:52.78",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -2692,7 +2669,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "",
             "Mattru Jong MCHP",
             "OU_197389",
             "Sierra Leone / Bonthe / Jong / Mattru Jong MCHP",
@@ -2712,7 +2688,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2015-08-06 21:20:52.776",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -2748,9 +2723,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .statusCode(200)
         .body("rows", hasSize(equalTo(3)))
         .body("height", equalTo(3))
-        .body("width", equalTo(17))
-        .body("headerWidth", equalTo(17))
-        .body("headers", hasSize(equalTo(17)))
+        .body("width", equalTo(16))
+        .body("headerWidth", equalTo(16))
+        .body("headers", hasSize(equalTo(16)))
         .body("metaData.pager.page", equalTo(1))
         .body("metaData.pager.pageSize", equalTo(50))
         .body("metaData.pager.isLastPage", is(true))
@@ -2770,7 +2745,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2017-01-20 10:44:02.77",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -2805,9 +2779,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .statusCode(200)
         .body("rows", hasSize(equalTo(3)))
         .body("height", equalTo(3))
-        .body("width", equalTo(17))
-        .body("headerWidth", equalTo(17))
-        .body("headers", hasSize(equalTo(17)))
+        .body("width", equalTo(16))
+        .body("headerWidth", equalTo(16))
+        .body("headers", hasSize(equalTo(16)))
         .body("metaData.pager.page", equalTo(1))
         .body("metaData.pager.pageSize", equalTo(50))
         .body("metaData.pager.isLastPage", is(true))
@@ -2827,7 +2801,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2017-01-20 10:44:02.77",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -2862,9 +2835,9 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
         .statusCode(200)
         .body("rows", hasSize(equalTo(3)))
         .body("height", equalTo(3))
-        .body("width", equalTo(17))
-        .body("headerWidth", equalTo(17))
-        .body("headers", hasSize(equalTo(17)))
+        .body("width", equalTo(16))
+        .body("headerWidth", equalTo(16))
+        .body("headers", hasSize(equalTo(16)))
         .body("metaData.pager.page", equalTo(1))
         .body("metaData.pager.pageSize", equalTo(50))
         .body("metaData.pager.isLastPage", is(true))
@@ -2884,7 +2857,6 @@ public class TrackedEntityQueryTest extends AnalyticsApiTest {
             ",  ()",
             "2017-01-20 10:44:02.77",
             ",  ()",
-            "",
             "",
             "",
             "",

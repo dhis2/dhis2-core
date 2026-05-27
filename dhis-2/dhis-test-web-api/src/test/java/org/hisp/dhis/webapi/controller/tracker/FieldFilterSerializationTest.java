@@ -301,7 +301,6 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
                             .build())
                     .build()))
         .scheduledAt(DATE)
-        .storedBy("fred")
         .followUp(true)
         .createdAt(DATE)
         .attributeOptionCombo(UID.generate().getValue())
@@ -315,16 +314,8 @@ class FieldFilterSerializationTest extends H2ControllerIntegrationTestBase {
                 .build())
         .dataValues(
             Set.of(
-                DataValue.builder()
-                    .dataElement(UID.generate().getValue())
-                    .value("14")
-                    .storedBy("alice")
-                    .build(),
-                DataValue.builder()
-                    .dataElement(UID.generate().getValue())
-                    .value("78")
-                    .storedBy("bob")
-                    .build()))
+                DataValue.builder().dataElement(UID.generate().getValue()).value("14").build(),
+                DataValue.builder().dataElement(UID.generate().getValue()).value("78").build()))
         .notes(List.of(Note.builder().note(UID.generate()).value("lovely note").build()))
         .build();
   }

@@ -64,8 +64,6 @@ public class SingleEvent implements Event {
 
   @JsonProperty private Instant occurredAt;
 
-  @JsonProperty private String storedBy;
-
   @JsonProperty private Instant createdAtClient;
 
   @JsonProperty private Instant updatedAtClient;
@@ -103,7 +101,6 @@ public class SingleEvent implements Event {
         .programStage(event.getProgramStage())
         .orgUnit(event.getOrgUnit())
         .occurredAt(event.getOccurredAt())
-        .storedBy(event.getStoredBy())
         .createdAtClient(event.getCreatedAtClient())
         .updatedAtClient(event.getUpdatedAtClient())
         .attributeOptionCombo(event.getAttributeOptionCombo())

@@ -1,25 +1,12 @@
 {
-  "type": "object",
+  "additionalProperties": true,
   "properties": {
-    "id": {
-      "type": "string"
-    },
-    "name": {
-      "type": "string"
-    },
-    "displayName": {
-      "type": "string"
-    },
     "attributeValues": {
-      "type": "array",
       "items": {
-        "type": "object",
+        "additionalProperties": true,
         "properties": {
-          "value": {
-            "type": "string"
-          },
           "attribute": {
-            "type": "object",
+            "additionalProperties": true,
             "properties": {
               "id": {
                 "type": "string"
@@ -28,49 +15,62 @@
             "required": [
               "id"
             ],
-            "additionalProperties": true
+            "type": "object"
+          },
+          "value": {
+            "type": "string"
           }
         },
         "required": [
           "value",
           "attribute"
         ],
-        "additionalProperties": true
-      }
-    },
-    "dataDimensionType": {
-      "type": "string",
-      "enum": [
-        "DISAGGREGATION",
-        "ATTRIBUTE"
-      ]
-    },
-    "shortName": {
-      "type": "string"
-    },
-    "description": {
-      "type": "string"
-    },
-    "dataDimension": {
-      "type": "boolean"
+        "type": "object"
+      },
+      "type": "array"
     },
     "categoryOptions": {
-      "type": "array",
       "items": {
-        "type": "object",
+        "additionalProperties": true,
         "properties": {
-          "id": {
+          "displayName": {
             "type": "string"
           },
-          "displayName": {
+          "id": {
             "type": "string"
           }
         },
         "required": [
           "id"
         ],
-        "additionalProperties": true
-      }
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "dataDimension": {
+      "type": "boolean"
+    },
+    "dataDimensionType": {
+      "enum": [
+        "DISAGGREGATION",
+        "ATTRIBUTE"
+      ],
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "displayName": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "shortName": {
+      "type": "string"
     }
   },
   "required": [
@@ -82,5 +82,5 @@
     "dataDimension",
     "categoryOptions"
   ],
-  "additionalProperties": true
+  "type": "object"
 }

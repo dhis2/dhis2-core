@@ -259,7 +259,7 @@ public class EventChart extends BaseChart implements EventAnalyticalObject, Meta
   }
 
   @JsonProperty
-  @JsonSerialize(as = BaseIdentifiableObject.class)
+  @JsonSerialize(as = IdentifiableObject.class)
   @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
   public DataElement getDataElementValueDimension() {
     return dataElementValueDimension;

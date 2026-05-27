@@ -424,11 +424,6 @@ public class JdbcTrackedEntityAnalyticsTableManager extends AbstractEventJdbcTab
                     .selectExpression("te.coordinates")
                     .build(),
                 AnalyticsTableColumn.builder()
-                    .name("storedby")
-                    .dataType(VARCHAR_255)
-                    .selectExpression("te.storedby")
-                    .build(),
-                AnalyticsTableColumn.builder()
                     .name("potentialduplicate")
                     .dataType(BOOLEAN)
                     .selectExpression("te.potentialduplicate")

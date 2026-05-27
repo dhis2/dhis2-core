@@ -52,6 +52,7 @@ import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.fileresource.FileResourceStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.program.notification.NotificationTrigger;
@@ -75,8 +76,11 @@ import org.springframework.stereotype.Component;
 public class TrackerEventPersister
     extends AbstractTrackerPersister<
         org.hisp.dhis.tracker.imports.domain.TrackerEvent, TrackerEvent> {
-  public TrackerEventPersister(ReservedValueService reservedValueService, DataSource dataSource) {
-    super(reservedValueService, dataSource);
+  public TrackerEventPersister(
+      ReservedValueService reservedValueService,
+      DataSource dataSource,
+      FileResourceStore fileResourceStore) {
+    super(reservedValueService, dataSource, fileResourceStore);
   }
 
   @Override
@@ -156,7 +160,8 @@ public class TrackerEventPersister
       org.hisp.dhis.tracker.imports.domain.TrackerEvent event,
       TrackerEvent hibernateEntity,
       UserDetails user,
-      ChangeLogAccumulator changeLogs) {
+      ChangeLogAccumulator changeLogs,
+      EntityWriteBatch batch) {
     // DO NOTHING - EVENT HAVE NO ATTRIBUTES
   }
 
@@ -275,7 +280,6 @@ public class TrackerEventPersister
     eventDataValue.setDataElement(dataElement.getUid());
     eventDataValue.setCreated(new Date());
     eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(user));
-    eventDataValue.setStoredBy(user.getUsername());
 
     eventDataValue.setLastUpdated(new Date());
     eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));

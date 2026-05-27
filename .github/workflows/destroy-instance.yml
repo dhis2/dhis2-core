@@ -9,6 +9,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  pull-requests: write   # for actions-cool/maintain-one-comment delete
+  issues: read           # for gh api issues/<n>/events
+
 jobs:
   check-deploy-label:
     runs-on: ubuntu-latest
@@ -60,7 +65,6 @@ jobs:
         run: ./findByName.sh dev $INSTANCE_NAME && ./destroy-deployment.sh $(./findByName.sh dev $INSTANCE_NAME | jq -r '.id')
 
       - name: Delete instance URL comment
-        uses: actions-cool/maintain-one-comment@v3
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # v3.0.4
         with:
-          body: "Instance deployed to https://dev.im.dhis2.org/pr-${{ github.event.pull_request.number }}"
           delete: true

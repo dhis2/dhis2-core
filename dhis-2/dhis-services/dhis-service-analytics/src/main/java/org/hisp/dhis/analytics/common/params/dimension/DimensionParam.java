@@ -278,7 +278,6 @@ public class DimensionParam implements UidObject {
     LASTUPDATEDBYDISPLAYNAME("Last Updated By", TEXT, STATIC),
     CREATED("Created", DATETIME, DimensionParamObjectType.PERIOD),
     CREATEDBYDISPLAYNAME("Created By", TEXT, STATIC),
-    STOREDBY("Stored By", TEXT, STATIC),
     ENROLLMENT_STATUS("Enrollment Status", TEXT, STATIC, null, "enrollmentstatus"),
     PROGRAM_STATUS(
         "Program Status",
