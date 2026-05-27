@@ -75,6 +75,7 @@ import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
@@ -595,16 +596,37 @@ public class MetadataItemsHandler {
 
   private void addProgramStatusMetadata(
       Map<String, MetadataItem> metadataItemMap, EventQueryParams params) {
-    if (!params.hasEnrollmentStatuses()) {
-      return;
+    if (params.hasEnrollmentStatuses()) {
+      metadataItemMap.putIfAbsent(
+          PROGRAM_STATUS.getItem(), new MetadataItem(PROGRAM_STATUS.getName()));
+
+      for (EnrollmentStatus status : params.getEnrollmentStatus()) {
+        metadataItemMap.put(
+            status.name(), new MetadataItem(getEnrollmentStatusDisplayName(status)));
+      }
     }
 
-    metadataItemMap.putIfAbsent(
-        PROGRAM_STATUS.getItem(), new MetadataItem(PROGRAM_STATUS.getName()));
-
-    for (EnrollmentStatus status : params.getEnrollmentStatus()) {
+    for (DimensionalObject dim : params.getDimensionsAndFilters()) {
+      if (dim.getDimensionType() != DimensionType.PROGRAM_STATUS) {
+        continue;
+      }
       metadataItemMap.putIfAbsent(
-          status.name(), new MetadataItem(getEnrollmentStatusDisplayName(status)));
+          PROGRAM_STATUS.getItem(), new MetadataItem(PROGRAM_STATUS.getName()));
+      for (DimensionalItemObject item : dim.getItems()) {
+        EnrollmentStatus status = parseEnrollmentStatus(item.getUid());
+        if (status != null) {
+          metadataItemMap.put(
+              status.name(), new MetadataItem(getEnrollmentStatusDisplayName(status)));
+        }
+      }
+    }
+  }
+
+  private static EnrollmentStatus parseEnrollmentStatus(String value) {
+    try {
+      return EnrollmentStatus.valueOf(value);
+    } catch (IllegalArgumentException | NullPointerException ex) {
+      return null;
     }
   }
 
