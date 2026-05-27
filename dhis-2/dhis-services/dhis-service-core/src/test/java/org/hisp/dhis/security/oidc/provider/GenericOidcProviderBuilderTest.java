@@ -29,9 +29,15 @@
  */
 package org.hisp.dhis.security.oidc.provider;
 
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_AUTHENTICATION_METHOD;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_SECRET;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.EXTRA_REQUEST_PARAMETERS;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.USER_INFO_JWS_ALGORITHM;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.USER_INFO_RESPONSE_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
@@ -40,6 +46,7 @@ import java.util.Map;
 import java.util.Properties;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.GenericOidcProviderConfigParser;
+import org.hisp.dhis.security.oidc.UserInfoResponseType;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -126,5 +133,58 @@ class GenericOidcProviderBuilderTest {
     assertEquals("4", params.get("acr_value"));
     assertEquals("five", params.get("test_param"));
     assertEquals("six", params.get("test_param2"));
+  }
+
+  @Test
+  void buildPropagatesUserInfoResponseTypeAndAlgorithm() {
+    Map<String, String> cfg = baseConfig();
+    cfg.put(USER_INFO_RESPONSE_TYPE, "jwt");
+    cfg.put(USER_INFO_JWS_ALGORITHM, "ES256");
+    DhisOidcClientRegistration reg = GenericOidcProviderBuilder.build(cfg, Map.of());
+    assertEquals(UserInfoResponseType.JWT, reg.getUserInfoResponseType());
+    assertEquals("ES256", reg.getUserInfoJwsAlgorithm().getName());
+  }
+
+  @Test
+  void buildDefaultsToJsonAndNoAlgorithm() {
+    DhisOidcClientRegistration reg = GenericOidcProviderBuilder.build(baseConfig(), Map.of());
+    assertEquals(UserInfoResponseType.JSON, reg.getUserInfoResponseType());
+    assertNull(reg.getUserInfoJwsAlgorithm());
+  }
+
+  @Test
+  void buildThrowsWhenSecretMissingAndNotPrivateKeyJwt() {
+    Map<String, String> cfg = baseConfig();
+    cfg.remove(CLIENT_SECRET);
+    Map<String, Map<String, String>> noExternalClients = Map.of();
+    assertThrows(
+        IllegalArgumentException.class,
+        () -> GenericOidcProviderBuilder.build(cfg, noExternalClients));
+  }
+
+  @Test
+  void buildAcceptsMissingSecretUnderPrivateKeyJwt() {
+    Map<String, String> cfg = baseConfig();
+    cfg.remove(CLIENT_SECRET);
+    cfg.put(CLIENT_AUTHENTICATION_METHOD, "private_key_jwt");
+    // No keystore configured here — getJWK() returns null, so build() should
+    // succeed and produce a registration without a secret.
+    DhisOidcClientRegistration reg = GenericOidcProviderBuilder.build(cfg, Map.of());
+    assertNotNull(reg);
+    // Spring ClientRegistration returns "" (empty) when no secret was set, never null
+    String secret = reg.getClientRegistration().getClientSecret();
+    assertTrue(secret == null || secret.isEmpty());
+  }
+
+  private static Map<String, String> baseConfig() {
+    Map<String, String> cfg = new HashMap<>();
+    cfg.put(AbstractOidcProvider.PROVIDER_ID, "idporten");
+    cfg.put(AbstractOidcProvider.CLIENT_ID, "test-client");
+    cfg.put(AbstractOidcProvider.CLIENT_SECRET, "test-secret");
+    cfg.put(AbstractOidcProvider.AUTHORIZATION_URI, "https://oidc-ver2.difi.no/authorize");
+    cfg.put(AbstractOidcProvider.TOKEN_URI, "https://oidc-ver2.difi.no/token");
+    cfg.put(AbstractOidcProvider.USERINFO_URI, "https://oidc-ver2.difi.no/userinfo");
+    cfg.put(AbstractOidcProvider.JWK_URI, "https://oidc-ver2.difi.no/jwk");
+    return cfg;
   }
 }

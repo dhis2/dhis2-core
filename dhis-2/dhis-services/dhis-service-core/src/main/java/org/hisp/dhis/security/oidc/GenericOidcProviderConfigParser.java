@@ -55,6 +55,8 @@ import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.REDIRECT
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.SCOPES;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.TOKEN_URI;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.USERINFO_URI;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.USER_INFO_JWS_ALGORITHM;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.USER_INFO_RESPONSE_TYPE;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -76,6 +78,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.security.oidc.provider.GenericOidcProviderBuilder;
+import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 
 /**
  * Parses {@code dhis.conf} for generic OIDC provider configurations under the {@code
@@ -138,6 +141,10 @@ public final class GenericOidcProviderConfigParser {
     builder.put(AUTHORIZATION_GRANT_TYPE, Boolean.FALSE);
     builder.put(CLIENT_AUTHENTICATION_METHOD, Boolean.FALSE);
     builder.put(JWK_SET_URL, Boolean.FALSE);
+
+    // userinfo JWT response support
+    builder.put(USER_INFO_RESPONSE_TYPE, Boolean.FALSE);
+    builder.put(USER_INFO_JWS_ALGORITHM, Boolean.FALSE);
 
     KEY_REQUIRED_MAP = builder.build();
   }
@@ -405,12 +412,17 @@ public final class GenericOidcProviderConfigParser {
     Objects.requireNonNull(providerConfig);
 
     String providerId = providerConfig.get(PROVIDER_ID);
+    boolean privateKeyJwt = isPrivateKeyJwt(providerConfig);
 
     for (Map.Entry<String, Boolean> entry : KEY_REQUIRED_MAP.entrySet()) {
       String key = entry.getKey();
       boolean isRequired = entry.getValue();
-
       String value = providerConfig.get(key);
+
+      if (CLIENT_SECRET.equals(key) && privateKeyJwt) {
+        // client_secret is not used when authenticating with private_key_jwt
+        continue;
+      }
 
       if (isRequired && Strings.isNullOrEmpty(value)) {
         log.error(
@@ -418,7 +430,6 @@ public final class GenericOidcProviderConfigParser {
                 + "Failed to configure the provider successfully!",
             providerId,
             key);
-
         return false;
       }
 
@@ -430,11 +441,51 @@ public final class GenericOidcProviderConfigParser {
             providerId,
             key,
             value);
-
         return false;
       }
     }
 
+    return validateUserInfoResponseType(providerId, providerConfig);
+  }
+
+  private static boolean isPrivateKeyJwt(Map<String, String> providerConfig) {
+    String method = providerConfig.get(CLIENT_AUTHENTICATION_METHOD);
+    if (!ClientAuthenticationMethod.PRIVATE_KEY_JWT.getValue().equalsIgnoreCase(method)) {
+      return false;
+    }
+    return !Strings.isNullOrEmpty(providerConfig.get(JWT_PRIVATE_KEY_KEYSTORE_PATH))
+        && !Strings.isNullOrEmpty(providerConfig.get(JWT_PRIVATE_KEY_KEYSTORE_PASSWORD))
+        && !Strings.isNullOrEmpty(providerConfig.get(JWT_PRIVATE_KEY_ALIAS))
+        && !Strings.isNullOrEmpty(providerConfig.get(JWT_PRIVATE_KEY_PASSWORD));
+  }
+
+  private static boolean validateUserInfoResponseType(
+      String providerId, Map<String, String> providerConfig) {
+    String type = providerConfig.get(USER_INFO_RESPONSE_TYPE);
+    UserInfoResponseType resolved;
+    try {
+      resolved = UserInfoResponseType.fromConfig(type);
+    } catch (IllegalArgumentException ex) {
+      log.error(
+          "OIDC provider '{}' has invalid user_info_response_type='{}'. Allowed: json, jwt.",
+          providerId,
+          type);
+      return false;
+    }
+
+    if (resolved == UserInfoResponseType.JWT) {
+      String alg = providerConfig.get(USER_INFO_JWS_ALGORITHM);
+      try {
+        SupportedJwsAlgorithms.parseOrDefault(alg);
+      } catch (IllegalArgumentException ex) {
+        log.error(
+            "OIDC provider '{}' has unsupported user_info_jws_algorithm='{}'. {}",
+            providerId,
+            alg,
+            ex.getMessage());
+        return false;
+      }
+    }
     return true;
   }
 }

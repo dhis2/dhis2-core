@@ -31,6 +31,7 @@ package org.hisp.dhis.security.oidc;
 
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_ID;
 
+import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWK;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Collection;
@@ -39,6 +40,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.CheckForNull;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -104,6 +106,20 @@ public class DhisOidcClientRegistration {
   private final String keyId;
 
   private final String jwkSetUrl;
+
+  /**
+   * Selects how DHIS2 consumes this provider's userinfo response. Defaults to {@link
+   * UserInfoResponseType#JSON}, preserving the historical Spring Security behaviour for every
+   * existing provider.
+   */
+  @Builder.Default
+  private final UserInfoResponseType userInfoResponseType = UserInfoResponseType.JSON;
+
+  /**
+   * JWS algorithm used to verify the signed userinfo JWT. Only consulted when {@link
+   * #userInfoResponseType} is {@link UserInfoResponseType#JWT}.
+   */
+  @CheckForNull private final JWSAlgorithm userInfoJwsAlgorithm;
 
   @Builder.Default private final boolean visibleOnLoginPage = true;
 

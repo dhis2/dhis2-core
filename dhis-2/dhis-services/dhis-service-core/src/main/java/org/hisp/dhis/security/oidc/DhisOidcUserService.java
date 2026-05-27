@@ -34,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -46,51 +45,55 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Service;
 
 /**
- * DHIS2 extension of Spring Security's {@link OidcUserService} that runs after a successful
- * authorization-code exchange against an OIDC Identity Provider. It reads the claim configured by
- * {@code mapping_claim} on the provider (default {@code email} for external providers, {@code
- * username} for the internal DHIS2 provider) from the ID token and userinfo response, then resolves
- * that value to a local DHIS2 user via {@code UserService.getUserByOpenId}.
+ * DHIS2 extension of Spring Security's {@link OidcUserService}. Dispatches userinfo handling based
+ * on the provider registration's {@link UserInfoResponseType}: JSON (default; Spring's standard
+ * path) or JWT (eSignet-style signed JWT, handled by {@link SignedJwtUserInfoLoader}). On both
+ * paths it then resolves the configured {@code mapping_claim} value to a local DHIS2 user via
+ * {@link UserService#getUserByOpenId}.
  *
- * <p>The matched DHIS2 user must have the "External authentication only (OpenID or LDAP)" flag set
- * ({@code isExternalAuth()}), must not be disabled, and must not have an expired account; otherwise
- * authentication fails with an {@link OAuth2AuthenticationException}. The lookup supports the
- * linked-accounts feature: when a single IdP claim value maps to multiple DHIS2 users, {@code
- * getUserByOpenId} returns the most recently signed-in account.
- *
- * <p>On success the method returns a {@link DhisOidcUser} wrapping the DHIS2 {@code UserDetails}
- * together with the raw OIDC claims and the validated ID token.
+ * <p>The matched DHIS2 user must be flagged for external authentication, must not be disabled, and
+ * must not have an expired account; otherwise authentication fails with an {@link
+ * OAuth2AuthenticationException}.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
 @Service
 public class DhisOidcUserService extends OidcUserService {
-  @Autowired public UserService userService;
 
-  @Autowired private DhisOidcProviderRepository clientRegistrationRepository;
+  private final UserService userService;
+  private final DhisOidcProviderRepository clientRegistrationRepository;
+  private final SignedJwtUserInfoLoader signedJwtUserInfoLoader;
 
-  /**
-   * Delegates to {@link OidcUserService#loadUser(OidcUserRequest)} to fetch the OIDC user and then
-   * maps the provider's {@code mapping_claim} value to a local DHIS2 user. Throws {@link
-   * OAuth2AuthenticationException} if the claim is missing, no matching DHIS2 user exists, the
-   * DHIS2 user is not flagged for external authentication, or the account is disabled or expired.
-   *
-   * @param userRequest the OIDC user request produced after the code-for-token exchange
-   * @return a {@link DhisOidcUser} bound to the resolved DHIS2 user
-   * @throws OAuth2AuthenticationException if the claim cannot be mapped to a valid DHIS2 user
-   */
+  DhisOidcUserService(
+      UserService userService,
+      DhisOidcProviderRepository clientRegistrationRepository,
+      SignedJwtUserInfoLoader signedJwtUserInfoLoader) {
+    this.userService = userService;
+    this.clientRegistrationRepository = clientRegistrationRepository;
+    this.signedJwtUserInfoLoader = signedJwtUserInfoLoader;
+  }
+
   @Override
   public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException {
+    ClientRegistration cr = userRequest.getClientRegistration();
+    DhisOidcClientRegistration reg =
+        clientRegistrationRepository.getDhisOidcClientRegistration(cr.getRegistrationId());
+
+    return switch (reg.getUserInfoResponseType()) {
+      case JSON -> loadFromJsonUserInfo(userRequest, reg);
+      case JWT -> signedJwtUserInfoLoader.load(userRequest, reg);
+    };
+  }
+
+  /**
+   * JSON-userinfo path: delegates to Spring's {@link OidcUserService#loadUser(OidcUserRequest)},
+   * then resolves the mapping claim to a local DHIS2 user.
+   */
+  OidcUser loadFromJsonUserInfo(OidcUserRequest userRequest, DhisOidcClientRegistration reg) {
     OidcUser oidcUser = super.loadUser(userRequest);
 
-    ClientRegistration clientRegistration = userRequest.getClientRegistration();
-
-    DhisOidcClientRegistration oidcClientRegistration =
-        clientRegistrationRepository.getDhisOidcClientRegistration(
-            clientRegistration.getRegistrationId());
-
-    String mappingClaimKey = oidcClientRegistration.getMappingClaimKey();
+    String mappingClaimKey = reg.getMappingClaimKey();
     Map<String, Object> attributes = oidcUser.getAttributes();
     Object claimValue = attributes.get(mappingClaimKey);
     OidcUserInfo userInfo = oidcUser.getUserInfo();
@@ -100,38 +103,26 @@ public class DhisOidcUserService extends OidcUserService {
 
     if (log.isDebugEnabled()) {
       log.debug(
-          String.format(
-              "Trying to look up DHIS2 user with OidcUser mapping mappingClaimKey='%s', claim value='%s'",
-              mappingClaimKey, claimValue));
+          "Trying to look up DHIS2 user with OidcUser mapping mappingClaimKey='{}', claim value='{}'",
+          mappingClaimKey,
+          claimValue);
     }
 
-    if (claimValue != null) {
-      User user = userService.getUserByOpenId((String) claimValue);
-      if (user != null && user.isExternalAuth()) {
-        if (user.isDisabled() || !user.isAccountNonExpired()) {
-          throw new OAuth2AuthenticationException(
-              new OAuth2Error("user_disabled"), "User is disabled");
-        }
-
-        UserDetails userDetails = userService.createUserDetails(user);
-
-        return new DhisOidcUser(
-            userDetails, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken());
-      }
+    if (claimValue instanceof String s && !s.isBlank()) {
+      User user = SignedJwtUserInfoLoader.resolveExternalAuthUser(userService, s, mappingClaimKey);
+      UserDetails userDetails = userService.createUserDetails(user);
+      return new DhisOidcUser(
+          userDetails, attributes, IdTokenClaimNames.SUB, oidcUser.getIdToken());
     }
 
     String errorMessage =
         String.format(
             "Failed to look up DHIS2 user with OidcUser mapping mapping; mappingClaimKey='%s', claimValue='%s'",
             mappingClaimKey, claimValue);
-
     if (log.isDebugEnabled()) {
       log.debug(errorMessage);
     }
-
-    OAuth2Error oauth2Error =
-        new OAuth2Error("could_not_map_oidc_user_to_dhis2_user", errorMessage, null);
-
-    throw new OAuth2AuthenticationException(oauth2Error, oauth2Error.toString());
+    OAuth2Error err = new OAuth2Error("could_not_map_oidc_user_to_dhis2_user", errorMessage, null);
+    throw new OAuth2AuthenticationException(err, err.toString());
   }
 }
