@@ -57,9 +57,9 @@ class SystemInfoTest {
             .memoryInfo("x")
             .cpuCores(-1)
             .systemMonitoringUrl("x")
+            .encryption(true)
             .redisEnabled(true)
             .redisHostname("x")
-            .encryption(true)
             .databaseInfo(DatabaseInfo.builder().name("x").build())
             .build();
 

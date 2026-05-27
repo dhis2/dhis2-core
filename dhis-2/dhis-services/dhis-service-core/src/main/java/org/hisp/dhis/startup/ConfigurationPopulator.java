@@ -68,8 +68,8 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
       injectUserInSecurityContext(actingUser);
     }
 
-    checkServerBaseUrl();
     checkSecurityConfiguration();
+    checkServerBaseUrl();
 
     Configuration config = configurationService.getConfiguration();
 
@@ -83,14 +83,6 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
     }
   }
 
-  private static final String BASE_URL_HINT =
-      " Expected an absolute URL without a trailing slash,"
-          + " for example: 'https://dhis2.example.org/dhis'."
-          + " This value is important: features including password recovery, OIDC/OAuth2"
-          + " redirects, notification emails, and interpretation sharing will not work"
-          + " correctly without it. See the 'Server base URL' section in the dhis.conf"
-          + " reference documentation.";
-
   private void checkSecurityConfiguration() {
     EncryptionStatus status = dhisConfigurationProvider.getEncryptionStatus();
 
@@ -100,6 +92,14 @@ public class ConfigurationPopulator extends TransactionContextStartupRoutine {
       log.info("Encryption is available");
     }
   }
+
+  private static final String BASE_URL_HINT =
+      " Expected an absolute URL without a trailing slash,"
+          + " for example: 'https://dhis2.example.org/dhis'."
+          + " This value is important: features including password recovery, OIDC/OAuth2"
+          + " redirects, notification emails, and interpretation sharing will not work"
+          + " correctly without it. See the 'Server base URL' section in the dhis.conf"
+          + " reference documentation.";
 
   private void checkServerBaseUrl() {
     String baseUrl = dhisConfigurationProvider.getServerBaseUrl();

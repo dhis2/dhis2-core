@@ -203,6 +203,13 @@ public interface DhisConfigurationProvider {
   boolean isLdapConfigured();
 
   /**
+   * Returns the status of the encryption setup.
+   *
+   * @return the EncryptionStatus.
+   */
+  EncryptionStatus getEncryptionStatus();
+
+  /**
    * Indicates whether an analytics database instance is configured.
    *
    * @return true if an analytics database instance is configured.
@@ -215,11 +222,4 @@ public interface DhisConfigurationProvider {
    * @return map containing name of property and its value.
    */
   Map<String, Serializable> getConfigurationsAsMap();
-
-  /**
-   * Returns the status of the encryption setup.
-   *
-   * @return the EncryptionStatus.
-   */
-  EncryptionStatus getEncryptionStatus();
 }

@@ -65,10 +65,10 @@ class ConfigurationPopulatorTest {
     populator = new ConfigurationPopulator(configurationService, dhisConfigurationProvider);
 
     // Stubs required by executeInTransaction() regardless of the test scenario
+    when(dhisConfigurationProvider.getEncryptionStatus()).thenReturn(EncryptionStatus.OK);
     Configuration config = new Configuration();
     config.setSystemId("existing-id");
     when(configurationService.getConfiguration()).thenReturn(config);
-    when(dhisConfigurationProvider.getEncryptionStatus()).thenReturn(EncryptionStatus.OK);
   }
 
   static Stream<Arguments> baseUrlScenarios() {
