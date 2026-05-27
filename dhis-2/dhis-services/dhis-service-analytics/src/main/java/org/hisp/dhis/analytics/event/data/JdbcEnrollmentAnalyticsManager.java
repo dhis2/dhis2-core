@@ -1216,7 +1216,6 @@ public class JdbcEnrollmentAnalyticsManager extends AbstractJdbcEventAnalyticsMa
         EnrollmentAnalyticsColumnName.TRACKED_ENTITY_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.ENROLLMENT_DATE_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME,
-        EnrollmentAnalyticsColumnName.STORED_BY_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.CREATED_BY_DISPLAY_NAME_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.LAST_UPDATED_BY_DISPLAY_NAME_COLUMN_NAME,
         EnrollmentAnalyticsColumnName.LAST_UPDATED_COLUMN_NAME,

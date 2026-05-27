@@ -231,11 +231,11 @@ public class TrackedEntityQuery4AutoTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("headers", hasSize(equalTo(45)))
+        .body("headers", hasSize(equalTo(44)))
         .body("rows", hasSize(equalTo(10)))
         .body("height", equalTo(10))
-        .body("width", equalTo(45))
-        .body("headerWidth", equalTo(45));
+        .body("width", equalTo(44))
+        .body("headerWidth", equalTo(44));
 
     // Assert metaData.
     String expectedMetaData =
@@ -287,15 +287,6 @@ public class TrackedEntityQuery4AutoTest extends AnalyticsApiTest {
         (headerIndex++),
         "createdbydisplayname",
         "Created by",
-        "TEXT",
-        "java.lang.String",
-        false,
-        true);
-    validateHeader(
-        response,
-        (headerIndex++),
-        "storedby",
-        "Stored by",
         "TEXT",
         "java.lang.String",
         false,
@@ -630,7 +621,6 @@ public class TrackedEntityQuery4AutoTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "",
             "Ngelehun CHC",
             "OU_559",
             "Sierra Leone / Bo / Badjia / Ngelehun CHC",
@@ -676,7 +666,6 @@ public class TrackedEntityQuery4AutoTest extends AnalyticsApiTest {
             ",  ()",
             "2015-10-14 14:14:21.384",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -728,7 +717,6 @@ public class TrackedEntityQuery4AutoTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "",
             "Blamawo MCHP",
             "OU_73727",
             "Sierra Leone / Bo / Baoma / Blamawo MCHP",
@@ -774,7 +762,6 @@ public class TrackedEntityQuery4AutoTest extends AnalyticsApiTest {
             ",  ()",
             "2017-01-26 13:48:13.369",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -827,7 +814,6 @@ public class TrackedEntityQuery4AutoTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "",
             "Kondewakoro CHP",
             "OU_233315",
             "Sierra Leone / Kono / Toli / Kondewakoro CHP",
@@ -873,7 +859,6 @@ public class TrackedEntityQuery4AutoTest extends AnalyticsApiTest {
             ",  ()",
             "2017-01-26 13:48:13.365",
             ",  ()",
-            "",
             "",
             "",
             "",
@@ -926,7 +911,6 @@ public class TrackedEntityQuery4AutoTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "",
             "Mbokie CHP",
             "OU_197401",
             "Sierra Leone / Bonthe / Sittia / Mbokie CHP",
@@ -976,7 +960,6 @@ public class TrackedEntityQuery4AutoTest extends AnalyticsApiTest {
             "",
             "",
             "",
-            "",
             "Kolisokor MCHP",
             "OU_193259",
             "Sierra Leone / Bombali / Makari Gbanti / Kolisokor MCHP",
@@ -1022,7 +1005,6 @@ public class TrackedEntityQuery4AutoTest extends AnalyticsApiTest {
             ",  ()",
             "2017-01-26 13:48:13.359",
             ",  ()",
-            "",
             "",
             "",
             "",

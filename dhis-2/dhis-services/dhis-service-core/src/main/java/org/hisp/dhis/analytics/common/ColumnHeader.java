@@ -42,7 +42,6 @@ public enum ColumnHeader {
   @Deprecated(since = "2.42")
   INCIDENT_DATE("incidentdate", "Incident date"),
   OCCURRED_DATE("occurreddate", "Occurred date"),
-  STORED_BY("storedby", "Stored by"),
   CREATED_BY_DISPLAY_NAME("createdbydisplayname", "Created by"),
   LAST_UPDATED_BY_DISPLAY_NAME("lastupdatedbydisplayname", "Last updated by"),
   LAST_UPDATED("lastupdated", "Last updated on"),
