@@ -108,6 +108,7 @@ public final class SystemInfo {
   @JsonProperty private final Boolean isMetadataVersionEnabled;
   @JsonProperty private final Date lastMetadataVersionSyncAttempt;
   @JsonProperty private final Boolean isMetadataSyncEnabled;
+  @JsonProperty private final boolean encryption;
 
   /**
    * Clears sensitive system info properties.
@@ -136,6 +137,7 @@ public final class SystemInfo {
         .redisEnabled(false)
         .redisHostname(null)
         .clusterHostname(null)
+        .encryption(false)
         .databaseInfo(databaseInfo.withoutSensitiveInfo())
         .build();
   }

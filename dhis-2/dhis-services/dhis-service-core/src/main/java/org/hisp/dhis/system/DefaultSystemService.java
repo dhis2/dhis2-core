@@ -160,6 +160,7 @@ public class DefaultSystemService implements SystemService, InitializingBean {
         .lastMetadataVersionSyncAttempt(
             getLastMetadataVersionSyncAttempt(
                 settings.getLastMetaDataSyncSuccess(), settings.getMetadataLastFailedTime()))
+        .encryption(dhisConfig.getEncryptionStatus().isOk())
         .build();
   }
 

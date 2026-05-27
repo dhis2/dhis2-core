@@ -36,6 +36,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.model.GoogleAccessToken;
 
 /**
@@ -214,4 +215,11 @@ public interface DhisConfigurationProvider {
    * @return map containing name of property and its value.
    */
   Map<String, Serializable> getConfigurationsAsMap();
+
+  /**
+   * Returns the status of the encryption setup.
+   *
+   * @return the EncryptionStatus.
+   */
+  EncryptionStatus getEncryptionStatus();
 }

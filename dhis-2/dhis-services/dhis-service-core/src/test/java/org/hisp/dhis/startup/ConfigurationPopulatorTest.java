@@ -36,6 +36,7 @@ import static org.mockito.Mockito.when;
 import java.util.stream.Stream;
 import org.hisp.dhis.configuration.Configuration;
 import org.hisp.dhis.configuration.ConfigurationService;
+import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,6 +68,7 @@ class ConfigurationPopulatorTest {
     Configuration config = new Configuration();
     config.setSystemId("existing-id");
     when(configurationService.getConfiguration()).thenReturn(config);
+    when(dhisConfigurationProvider.getEncryptionStatus()).thenReturn(EncryptionStatus.OK);
   }
 
   static Stream<Arguments> baseUrlScenarios() {

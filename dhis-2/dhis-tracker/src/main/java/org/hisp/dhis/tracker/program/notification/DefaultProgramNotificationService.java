@@ -476,7 +476,7 @@ public class DefaultProgramNotificationService extends HibernateGenericStore<Tra
   private List<ProgramNotificationTemplate> getScheduledTemplates() {
     return manager.getAll(ProgramNotificationTemplate.class).stream()
         .filter(n -> n.getNotificationTrigger().isScheduled())
-        .collect(toList());
+        .toList();
   }
 
   private void sendEnrollmentNotifications(Enrollment enrollment, NotificationTrigger trigger) {
