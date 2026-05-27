@@ -146,6 +146,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
     TrackerImportParams params =
         TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
     testSetup.importTrackerData("tracker/one_te_with_one_attribute.json", params);
+    manager.clear();
     Set<TrackedEntityAttributeValue> values = getTrackedEntity().getTrackedEntityAttributeValues();
     assertHasSize(1, values);
     TrackedEntityAttributeValue attributeValue = values.iterator().next();
@@ -171,6 +172,7 @@ class LastUpdateImportTest extends PostgresIntegrationTestBase {
     TrackerImportParams params =
         TrackerImportParams.builder().importStrategy(TrackerImportStrategy.UPDATE).build();
     testSetup.importTrackerData("tracker/one_te_with_one_attribute.json", params);
+    manager.clear();
     Set<TrackedEntityAttributeValue> values = getTrackedEntity().getTrackedEntityAttributeValues();
     assertHasSize(1, values);
     TrackedEntityAttributeValue attributeValue = values.iterator().next();

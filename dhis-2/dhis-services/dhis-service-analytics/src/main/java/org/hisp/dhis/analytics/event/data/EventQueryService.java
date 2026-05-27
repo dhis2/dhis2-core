@@ -237,7 +237,6 @@ public class EventQueryService {
                 DATETIME,
                 false,
                 true))
-        .addHeader(new GridHeader(STORED_BY.getItem(), STORED_BY.getName(), TEXT, false, true))
         .addHeader(
             new GridHeader(
                 CREATED_BY_DISPLAY_NAME.getItem(),
