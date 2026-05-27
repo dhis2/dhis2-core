@@ -101,15 +101,14 @@ class AnalyticsControllerTest {
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
   @AfterEach
-  public void tearDown() {
+  void tearDown() {
     CurrentUserUtil.clearSecurityContext();
   }
 
   @BeforeEach
   @SuppressWarnings("unchecked")
-  public void setUp() {
-    CurrentUserUtil.injectUserInSecurityContext(
-        UserDetails.empty().username("testuser").build());
+  void setUp() {
+    CurrentUserUtil.injectUserInSecurityContext(UserDetails.empty().username("testuser").build());
 
     DataQueryService dataQueryService =
         new DefaultDataQueryService(
