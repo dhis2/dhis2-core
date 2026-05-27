@@ -48,6 +48,7 @@ public class TrackedEntityQuery {
     TYPE_UID,
     ORGUNIT_UID,
     TRACKEDENTITYID,
+    STOREDBY,
 
     POTENTIALDUPLICATE
   }
@@ -67,6 +68,7 @@ public class TrackedEntityQuery {
           .put(COLUMNS.TYPE_UID, new TableColumn("tet", "uid", "type_uid"))
           .put(COLUMNS.ORGUNIT_UID, new TableColumn("o", "uid", "ou_uid"))
           .put(COLUMNS.TRACKEDENTITYID, new TableColumn("te", "trackedentityid", "trackedentityid"))
+          .put(COLUMNS.STOREDBY, new TableColumn("te", "storedby"))
           .put(
               COLUMNS.POTENTIALDUPLICATE,
               new TableColumn("te", "potentialduplicate", "potentialduplicate"))

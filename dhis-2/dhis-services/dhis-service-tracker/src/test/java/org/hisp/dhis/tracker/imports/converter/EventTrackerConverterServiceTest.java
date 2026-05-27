@@ -422,7 +422,6 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest {
     org.hisp.dhis.tracker.imports.domain.Event event = converter.to(this.dbEvent);
 
     assertEquals(ENROLLMENT_UID, event.getEnrollment());
-    assertEquals(event.getStoredBy(), user.getUsername());
     event
         .getDataValues()
         .forEach(
@@ -483,7 +482,6 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest {
         .createdBy(trackerUser)
         .updatedBy(trackerUser)
         .createdAt(Instant.now())
-        .storedBy(USERNAME)
         .updatedAt(Instant.now())
         .build();
   }

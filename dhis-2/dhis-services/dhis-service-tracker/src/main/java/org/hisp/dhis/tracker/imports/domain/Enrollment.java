@@ -77,8 +77,6 @@ public class Enrollment implements TrackerDto, Serializable {
 
   @JsonProperty private boolean deleted;
 
-  @JsonProperty private String storedBy;
-
   @JsonProperty private User createdBy;
 
   @JsonProperty private User updatedBy;

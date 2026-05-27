@@ -38,7 +38,6 @@ import static org.hisp.dhis.tracker.imports.validation.Users.USER_2;
 import static org.hisp.dhis.tracker.imports.validation.Users.USER_6;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -79,10 +78,13 @@ class EventImportValidationTest extends TrackerTest {
 
   @Autowired private UserService _userService;
 
+  private User importUser;
+
   @Override
   protected void initTest() throws IOException {
     userService = _userService;
     setUpMetadata("tracker/tracker_basic_metadata.json");
+    importUser = userService.getUser(ADMIN_USER_UID);
     injectAdminUser();
     assertNoErrors(
         trackerImportService.importTracker(
@@ -333,7 +335,7 @@ class EventImportValidationTest extends TrackerTest {
               assertTrue(CodeGenerator.isValidUid(note.getUid()));
               assertTrue(note.getCreated().getTime() > now.getTime());
               assertTrue(note.getLastUpdated().getTime() > now.getTime());
-              assertNull(note.getCreator());
+              assertEquals(importUser.getUsername(), note.getCreator());
               assertEquals(ADMIN_USER_UID, note.getLastUpdatedBy().getUid());
             });
   }
@@ -357,7 +359,7 @@ class EventImportValidationTest extends TrackerTest {
               assertTrue(CodeGenerator.isValidUid(note.getUid()));
               assertTrue(note.getCreated().getTime() > now.getTime());
               assertTrue(note.getLastUpdated().getTime() > now.getTime());
-              assertNull(note.getCreator());
+              assertEquals(importUser.getUsername(), note.getCreator());
               assertEquals(ADMIN_USER_UID, note.getLastUpdatedBy().getUid());
             });
   }

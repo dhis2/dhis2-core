@@ -132,7 +132,7 @@ public class EnrollmentTrackerConverterService
               ? enrollment.getEnrollment()
               : enrollment.getUid());
       dbEnrollment.setCreated(now);
-      dbEnrollment.setStoredBy(enrollment.getStoredBy());
+      dbEnrollment.setStoredBy(preheat.getUsername());
       dbEnrollment.setCreatedByUserInfo(preheat.getUserInfo());
     }
 

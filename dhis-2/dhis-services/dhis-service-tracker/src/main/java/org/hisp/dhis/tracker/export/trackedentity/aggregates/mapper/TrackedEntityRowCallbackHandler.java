@@ -75,6 +75,7 @@ public class TrackedEntityRowCallbackHandler implements RowCallbackHandler {
         te::setLastUpdatedByUserInfo);
     te.setInactive(rs.getBoolean(TrackedEntityQuery.getColumnName(COLUMNS.INACTIVE)));
     te.setDeleted(rs.getBoolean(TrackedEntityQuery.getColumnName(COLUMNS.DELETED)));
+    te.setStoredBy(rs.getString(TrackedEntityQuery.getColumnName(COLUMNS.STOREDBY)));
     te.setPotentialDuplicate(
         rs.getBoolean(TrackedEntityQuery.getColumnName(COLUMNS.POTENTIALDUPLICATE)));
     MapperGeoUtils.resolveGeometry(rs.getBytes(TrackedEntityQuery.getColumnName(COLUMNS.GEOMETRY)))
