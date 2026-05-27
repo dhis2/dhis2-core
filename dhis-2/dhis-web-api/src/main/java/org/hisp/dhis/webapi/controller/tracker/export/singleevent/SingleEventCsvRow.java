@@ -61,7 +61,6 @@ import org.springframework.util.Assert;
   "dataElement",
   "value",
   "providedElsewhere",
-  "storedByDataValue",
   "createdAtDataValue",
   "updatedAtDataValue"
 })
@@ -116,8 +115,6 @@ class SingleEventCsvRow {
 
   private String updatedAtDataValue;
 
-  private String storedByDataValue;
-
   public SingleEventCsvRow() {}
 
   public SingleEventCsvRow(SingleEventCsvRow dataValue) {
@@ -144,6 +141,5 @@ class SingleEventCsvRow {
     providedElsewhere = dataValue.getProvidedElsewhere();
     createdAtDataValue = dataValue.getCreatedAtDataValue();
     updatedAtDataValue = dataValue.getUpdatedAtDataValue();
-    storedByDataValue = dataValue.getStoredByDataValue();
   }
 }

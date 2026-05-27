@@ -394,7 +394,6 @@ class JdbcTrackerEventStore {
     eventDataValue.setDataElement(dataElement);
     JsonObject dataValueJson = JsonMixed.of(dataValueResult).asObject();
     eventDataValue.setValue(dataValueJson.getString("value").string(""));
-    eventDataValue.setStoredBy(dataValueJson.getString("storedBy").string(null));
     eventDataValue.setProvidedElsewhere(
         dataValueJson.getBoolean("providedElsewhere").booleanValue(false));
 
