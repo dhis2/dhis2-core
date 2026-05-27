@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors 
+ * 3. Neither the name of the copyright holder nor the names of its contributors
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -36,11 +36,8 @@ import com.google.common.hash.HashCode;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 import java.util.Set;
-import java.util.function.Consumer;
 import javax.annotation.CheckForNull;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -61,10 +58,8 @@ import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
 import org.jclouds.blobstore.LocalBlobRequestSigner;
 import org.jclouds.blobstore.domain.Blob;
-import org.jclouds.blobstore.domain.PageSet;
 import org.jclouds.blobstore.domain.StorageMetadata;
 import org.jclouds.blobstore.internal.RequestSigningUnsupported;
-import org.jclouds.blobstore.options.ListContainerOptions;
 import org.jclouds.domain.Location;
 import org.jclouds.domain.LocationBuilder;
 import org.jclouds.domain.LocationScope;
@@ -205,7 +200,7 @@ public class JCloudsStore implements BlobStoreService {
 
   @Override
   public Iterable<BlobKey> listKeys(BlobKeyPrefix prefix) {
-return StreamSupport.stream(
+    return StreamSupport.stream(
             BlobStores.listAll(
                     getBlobStore(), fileStoreConfig.container, prefix(prefix.value()).recursive())
                 .spliterator(),
@@ -213,25 +208,6 @@ return StreamSupport.stream(
         .map(StorageMetadata::getName)
         .map(BlobKey::new)
         .toList();
-  }
-
-  /**
-   * Iterates every page of a JClouds {@code list} call, following {@code nextMarker} until the
-   * store reports no more results. Without this, the default single-page call caps at the
-   * provider's page size (e.g. 1000 keys for S3-compatible stores) and silently truncates the
-   * listing, which breaks any caller that needs to enumerate every blob under a prefix.
-   */
-  private void forEachPage(
-      ListContainerOptions options, Consumer<PageSet<? extends StorageMetadata>> handler) {
-    BlobStore bs = getBlobStore();
-    PageSet<? extends StorageMetadata> page = bs.list(fileStoreConfig.container, options);
-    handler.accept(page);
-    String marker = page.getNextMarker();
-    while (marker != null) {
-      page = bs.list(fileStoreConfig.container, options.afterMarker(marker));
-      handler.accept(page);
-      marker = page.getNextMarker();
-    }
   }
 
   @Override
