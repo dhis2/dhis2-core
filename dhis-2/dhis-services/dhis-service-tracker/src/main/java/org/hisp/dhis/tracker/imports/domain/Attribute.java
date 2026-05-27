@@ -54,8 +54,6 @@ public class Attribute implements Serializable {
 
   @JsonProperty private Instant updatedAt;
 
-  @JsonProperty private String storedBy;
-
   @JsonProperty private ValueType valueType;
 
   @JsonProperty private String value;

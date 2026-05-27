@@ -74,15 +74,6 @@ class NotesConverterServiceTest extends DhisConvenienceTest {
   }
 
   @Test
-  void verifyConvertTrackerNoteToNoteWithNoStoredByDefined() {
-    org.hisp.dhis.tracker.imports.domain.Note trackerNote =
-        rnd.nextObject(org.hisp.dhis.tracker.imports.domain.Note.class);
-    trackerNote.setStoredBy(null);
-    final Note note = notesConverterService.from(preheat, trackerNote);
-    assertNoteValues(note, trackerNote);
-  }
-
-  @Test
   void verifyConvertTrackerNotesToNotes() {
     List<org.hisp.dhis.tracker.imports.domain.Note> trackerNotes =
         rnd.objects(org.hisp.dhis.tracker.imports.domain.Note.class, 10)
@@ -118,7 +109,7 @@ class NotesConverterServiceTest extends DhisConvenienceTest {
     assertThat(note, is(notNullValue()));
     assertThat(note.getUid(), is(trackerNote.getNote()));
     assertThat(note.getNoteText(), is(trackerNote.getValue()));
-    assertThat(note.getCreator(), is(trackerNote.getStoredBy()));
+    assertThat(note.getCreator(), is(CURRENT_USER));
     assertThat(note.getLastUpdatedBy().getUsername(), is(CURRENT_USER));
   }
 
@@ -126,7 +117,6 @@ class NotesConverterServiceTest extends DhisConvenienceTest {
     assertThat(trackerNotes, is(notNullValue()));
     assertThat(trackerNotes.getNote(), is(note.getUid()));
     assertThat(trackerNotes.getValue(), is(note.getNoteText()));
-    assertThat(trackerNotes.getStoredBy(), is(note.getCreator()));
     assertEquals(trackerNotes.getStoredAt(), DateUtils.instantFromDate(note.getCreated()));
     assertThat(
         note.getLastUpdatedBy().getUsername(), is(trackerNotes.getCreatedBy().getUsername()));

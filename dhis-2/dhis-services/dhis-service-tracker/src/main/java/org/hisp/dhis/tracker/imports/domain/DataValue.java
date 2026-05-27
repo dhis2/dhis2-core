@@ -47,8 +47,6 @@ public class DataValue implements Serializable {
 
   @JsonProperty private Instant updatedAt;
 
-  @JsonProperty private String storedBy;
-
   @JsonProperty private boolean providedElsewhere;
 
   @JsonProperty private MetadataIdentifier dataElement;

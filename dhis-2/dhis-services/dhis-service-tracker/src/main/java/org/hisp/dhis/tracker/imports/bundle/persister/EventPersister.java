@@ -212,7 +212,7 @@ public class EventPersister
 
           eventDataValue = valuesHolder.getEventDataValue();
           eventDataValue.setDataElement(dataElement.getUid());
-          eventDataValue.setStoredBy(dv.getStoredBy());
+          eventDataValue.setStoredBy(preheat.getUsername());
 
           if (StringUtils.isEmpty(dv.getValue())) {
             if (dataElement.isFileType()) {
