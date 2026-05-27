@@ -94,7 +94,7 @@ public class DatePeriodResourceTable
         // dynamic solution
         // instead of
         // fixing the date
-        Date endDate = new Cal( 2025, 1, 1, true ).time();
+        Date endDate = new Cal( 2035, 1, 1, true ).time();
 
         List<Period> dailyPeriods = new DailyPeriodType().generatePeriods( startDate, endDate );
 
