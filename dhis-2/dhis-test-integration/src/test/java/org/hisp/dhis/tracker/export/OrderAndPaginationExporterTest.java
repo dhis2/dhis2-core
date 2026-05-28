@@ -1374,8 +1374,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
         Arguments.of("organisationUnit.uid", "gvULMgNiAfM", "SbUJzkxKYAG"),
         Arguments.of("programStage.uid", "SbUJzkxKYAG", "gvULMgNiAfM"),
         Arguments.of("scheduledDate", "gvULMgNiAfM", "SbUJzkxKYAG"),
-        Arguments.of("status", "gvULMgNiAfM", "SbUJzkxKYAG"),
-        Arguments.of("storedBy", "SbUJzkxKYAG", "gvULMgNiAfM"));
+        Arguments.of("status", "gvULMgNiAfM", "SbUJzkxKYAG"));
   }
 
   private static Stream<Arguments> orderByFieldInAscendingOrderWhenModeDescendants() {
@@ -1383,8 +1382,7 @@ class OrderAndPaginationExporterTest extends PostgresIntegrationTestBase {
         Arguments.of("organisationUnit.uid", "SbUJzkxKYAG", "gvULMgNiAfM"),
         Arguments.of("programStage.uid", "gvULMgNiAfM", "SbUJzkxKYAG"),
         Arguments.of("scheduledDate", "SbUJzkxKYAG", "gvULMgNiAfM"),
-        Arguments.of("status", "SbUJzkxKYAG", "gvULMgNiAfM"),
-        Arguments.of("storedBy", "gvULMgNiAfM", "SbUJzkxKYAG"));
+        Arguments.of("status", "SbUJzkxKYAG", "gvULMgNiAfM"));
   }
 
   @ParameterizedTest

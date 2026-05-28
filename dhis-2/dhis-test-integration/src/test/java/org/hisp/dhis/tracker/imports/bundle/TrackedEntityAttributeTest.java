@@ -103,4 +103,14 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
         trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
     assertEquals(3, attributeValues.size());
   }
+
+  @Test
+  void shouldSetStoredByToAuthenticatedUserForTrackedEntityAttributeValue() throws IOException {
+    testSetup.importTrackerData("tracker/te_with_tea_data.json");
+
+    TrackedEntity trackedEntity = manager.getAll(TrackedEntity.class).get(0);
+    List<TrackedEntityAttributeValue> attributeValues =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
+    attributeValues.forEach(av -> assertEquals(importUser.getUsername(), av.getStoredBy()));
+  }
 }

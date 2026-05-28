@@ -66,12 +66,14 @@ class EventDataValueTest extends PostgresIntegrationTestBase {
 
   @Autowired private IdentifiableObjectManager manager;
 
+  private User importUser;
+
   @BeforeAll
   void setUp() throws IOException {
     testSetup.importMetadata();
 
-    final User userA = userService.getUser("tTgjgobT1oS");
-    injectSecurityContextUser(userA);
+    importUser = userService.getUser("tTgjgobT1oS");
+    injectSecurityContextUser(importUser);
 
     testSetup.importTrackerData("tracker/single_te.json");
     testSetup.importTrackerData("tracker/single_enrollment.json");
@@ -133,5 +135,16 @@ class EventDataValueTest extends PostgresIntegrationTestBase {
         dataValueMap.get(updatedDataElementId).getCreated(),
         updatedDataValueMap.get(updatedDataElementId).getCreated());
     assertEquals("Fourth updated", updatedDataValueMap.get(updatedDataElementId).getValue());
+  }
+
+  @Test
+  void shouldSetStoredByToAuthenticatedUserForEventDataValues() throws IOException {
+    testSetup.importTrackerData("tracker/event_with_data_values.json");
+
+    List<Event> events = manager.getAll(Event.class);
+    Event event = events.get(0);
+    for (EventDataValue dv : event.getEventDataValues()) {
+      assertEquals(importUser.getUsername(), dv.getStoredBy());
+    }
   }
 }
