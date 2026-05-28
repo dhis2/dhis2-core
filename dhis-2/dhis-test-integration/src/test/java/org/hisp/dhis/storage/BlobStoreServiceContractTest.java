@@ -317,6 +317,27 @@ public abstract class BlobStoreServiceContractTest {
     assertEquals(Set.of(key("filtered/file").value()), keys);
   }
 
+  /**
+   * Regression test for the bundled-app cleanup bug where {@code listKeys} returned only the
+   * provider's first page (1000 keys on S3) and {@code JCloudsAppStorageService#deleteApp} silently
+   * stopped after deleting that page, leaving the rest of the app's files behind as orphans.
+   */
+  @Test
+  void listKeys_paginatesPastDefaultPageSize() {
+    int total = 1100; // above the 1000-key default page size of S3-compatible stores
+    for (int i = 0; i < total; i++) {
+      putString(key("page/" + String.format("%05d", i)), "x");
+    }
+
+    Set<String> keys = new HashSet<>();
+    service().listKeys(BlobKeyPrefix.of(key("page").value())).forEach(k -> keys.add(k.value()));
+
+    assertEquals(
+        total,
+        withoutDirectoryMarkers(keys).size(),
+        "listKeys must return every blob across all pages, not just the first page");
+  }
+
   // -------------------------------------------------------------------- presigning
 
   @Test

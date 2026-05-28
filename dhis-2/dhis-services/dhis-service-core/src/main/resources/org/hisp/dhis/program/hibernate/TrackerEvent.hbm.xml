@@ -39,8 +39,6 @@
 
     <property name="deleted" column="deleted" />
 
-    <property name="storedBy" />
-
     <property name="scheduledDate" column="scheduleddate" />
 
     <property name="occurredDate" column="occurreddate" type="timestamp" />
