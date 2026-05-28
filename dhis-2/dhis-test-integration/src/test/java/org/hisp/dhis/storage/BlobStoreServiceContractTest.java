@@ -334,7 +334,7 @@ public abstract class BlobStoreServiceContractTest {
 
     assertEquals(
         total,
-        withoutDirectoryMarkers(keys).size(),
+        keys.size(),
         "listKeys must return every blob across all pages, not just the first page");
   }
 
