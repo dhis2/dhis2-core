@@ -43,6 +43,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -78,8 +79,12 @@ import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.jdbc.datasource.DataSourceUtils;
 
@@ -151,7 +156,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
           // Save or update the entity
           //
           if (isNew(bundle, trackerDto)) {
-            entityManager.persist(convertedDto);
+            stageInsert(convertedDto, batch);
             updateDataValues(
                 bundle.getPreheat(),
                 trackerDto,
@@ -183,7 +188,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
                   bundle.getUser(),
                   changeLogs,
                   batch);
-              entityManager.merge(convertedDto);
+              stageUpdate(convertedDto, batch);
               typeReport.getStats().incUpdated();
               typeReport.addEntity(objectReport);
               bundle.addUpdatedTrackedEntities(getUpdatedTrackedEntities(convertedDto));
@@ -254,6 +259,40 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       DataSourceUtils.releaseConnection(conn, dataSource);
     }
     return new PersistResult(typeReport, notifications);
+  }
+
+  private void stageInsert(V convertedDto, EntityWriteBatch batch) {
+    if (convertedDto instanceof TrackedEntity te) {
+      batch.stageInsert(te);
+    } else if (convertedDto instanceof Enrollment e) {
+      batch.stageInsert(e);
+    } else if (convertedDto instanceof TrackerEvent e) {
+      batch.stageInsert(e);
+    } else if (convertedDto instanceof SingleEvent e) {
+      batch.stageInsert(e);
+    } else if (convertedDto instanceof Relationship r) {
+      batch.stageInsert(r);
+    } else {
+      throw new IllegalArgumentException(
+          "Unsupported entity type: " + convertedDto.getClass().getName());
+    }
+  }
+
+  // Relationships are not updated -- the persister branch above ignores update payloads before
+  // this is called -- so no Relationship case is needed here.
+  private void stageUpdate(V convertedDto, EntityWriteBatch batch) {
+    if (convertedDto instanceof TrackedEntity te) {
+      batch.stageUpdate(te);
+    } else if (convertedDto instanceof Enrollment e) {
+      batch.stageUpdate(e);
+    } else if (convertedDto instanceof TrackerEvent e) {
+      batch.stageUpdate(e);
+    } else if (convertedDto instanceof SingleEvent e) {
+      batch.stageUpdate(e);
+    } else {
+      throw new IllegalArgumentException(
+          "Unsupported entity type for update: " + convertedDto.getClass().getName());
+    }
   }
 
   // // // // // // // //
@@ -404,19 +443,24 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
     // already attached to the session, preventing a duplicate em.persist that would throw
     // EntityExistsException. The batch overlay catches the within-persister case (e.g. two
     // enrollments under the same TE both carrying the same attribute) where the second occurrence
-    // would otherwise produce a fresh instance with the same composite key.
+    // would otherwise produce a fresh instance with the same composite key. A transient TE
+    // (id == 0) has no DB rows yet -- the insert is still staged in the batch -- so binding it as
+    // a query parameter would throw TransientObjectException; skip the JPQL in that case and rely
+    // on the batch overlay alone.
     Map<MetadataIdentifier, TrackedEntityAttributeValue> attributeValueById =
-        entityManager
-            .createQuery(
-                "select v from TrackedEntityAttributeValue v where v.trackedEntity = :te",
-                TrackedEntityAttributeValue.class)
-            .setParameter("te", trackedEntity)
-            .getResultList()
-            .stream()
-            .collect(
-                Collectors.toMap(
-                    teav -> idSchemes.toMetadataIdentifier(teav.getAttribute()),
-                    Function.identity()));
+        trackedEntity.getId() == 0
+            ? new HashMap<>()
+            : entityManager
+                .createQuery(
+                    "select v from TrackedEntityAttributeValue v where v.trackedEntity = :te",
+                    TrackedEntityAttributeValue.class)
+                .setParameter("te", trackedEntity)
+                .getResultList()
+                .stream()
+                .collect(
+                    Collectors.toMap(
+                        teav -> idSchemes.toMetadataIdentifier(teav.getAttribute()),
+                        Function.identity()));
     batch
         .stagedFor(trackedEntity)
         .forEach(
