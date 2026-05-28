@@ -216,18 +216,19 @@ public abstract class AbstractFullReadOnlyController<
             && additionalFilters.stream().anyMatch(Filter::isAlwaysFalse);
 
     List<T> entities = List.of();
-    Pager pager = null;
+    long totalCount = 0;
 
     if (!isAlwaysEmpty) {
       entities = getEntityList(params, additionalFilters);
       postProcessResponseEntities(entities, params);
       handleLinksAndAccess(entities, params.getFieldsJsonList(), false);
+      if (params.isPaging()) totalCount = countGetObjectList(params, additionalFilters);
+    }
 
-      if (params.isPaging()) {
-        long totalCount = countGetObjectList(params, additionalFilters);
-        pager = new Pager(params.getPage(), totalCount, params.getPageSize());
-        linkService.generatePagerLinks(pager, getEntityClass());
-      }
+    Pager pager = null;
+    if (params.isPaging()) {
+      pager = new Pager(params.getPage(), totalCount, params.getPageSize());
+      linkService.generatePagerLinks(pager, getEntityClass());
     }
 
     cachePrivate(response);
