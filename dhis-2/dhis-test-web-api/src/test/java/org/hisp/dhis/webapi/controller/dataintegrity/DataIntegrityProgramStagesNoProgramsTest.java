@@ -41,7 +41,7 @@ import org.hisp.dhis.tracker.model.SingleEvent;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class DataIntegrityProgramStagesNoPrograms extends AbstractDataIntegrityIntegrationTest {
+class DataIntegrityProgramStagesNoProgramsTest extends AbstractDataIntegrityIntegrationTest {
 
   @Autowired private ProgramService programService;
 
