@@ -321,7 +321,7 @@ public class Category extends BaseMetadataObject
   }
 
   @Override
-  @JsonProperty
+  @JsonProperty(access = JsonProperty.Access.READ_ONLY)
   @JsonSerialize(contentAs = DimensionalItemObject.class)
   @JacksonXmlElementWrapper(localName = "items", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "item", namespace = DxfNamespaces.DXF_2_0)
