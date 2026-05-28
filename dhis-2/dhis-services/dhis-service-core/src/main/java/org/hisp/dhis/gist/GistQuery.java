@@ -340,6 +340,7 @@ public final class GistQuery {
 
     @Nonnull
     public static List<Field> of(String fields) {
+      if (fields == null || fields.isEmpty()) return List.of();
       List<Field> res = new ArrayList<>();
       for (Expression e : Expression.split(Text.of(fields))) e.addFields(res, "", "");
       return res;

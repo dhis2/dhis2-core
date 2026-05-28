@@ -56,10 +56,9 @@ import org.springframework.security.access.AccessDeniedException;
  */
 @AllArgsConstructor
 final class GistValidator {
+
   private final GistQuery query;
-
   private final RelativePropertyContext context;
-
   private final GistAccessControl access;
 
   public void validateQuery() {
