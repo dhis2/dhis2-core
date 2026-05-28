@@ -144,7 +144,7 @@ public class MetadataItemsHandler {
    * @param grid the {@link Grid}.
    * @param params the {@link EventQueryParams}.
    * @param keywords the list of {@link Keyword}.
-   * @return a map of metadata items.
+   * @return a map containing the metadata items.
    */
   private Map<String, Object> buildMetadataItems(
       Grid grid, EventQueryParams params, List<Keyword> keywords) {
