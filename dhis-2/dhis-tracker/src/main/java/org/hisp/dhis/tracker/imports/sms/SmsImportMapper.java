@@ -122,8 +122,7 @@ class SmsImportMapper {
   static TrackerObjects map(
       @Nonnull EnrollmentSmsSubmission submission,
       @Nonnull Program program,
-      @CheckForNull org.hisp.dhis.tracker.model.TrackedEntity trackedEntity,
-      @Nonnull String username) {
+      @CheckForNull org.hisp.dhis.tracker.model.TrackedEntity trackedEntity) {
     Set<String> programAttributes =
         emptyIfNull(program.getProgramAttributes()).stream()
             .map(ProgramTrackedEntityAttribute::getAttribute)
@@ -146,7 +145,7 @@ class SmsImportMapper {
             List.of(mapToEnrollment(submission, programAttributes, existingAttributeValues)))
         .events(
             emptyIfNull(submission.getEvents()).stream()
-                .map(e -> mapToTrackerEvent(e, username, submission.getEnrollment()))
+                .map(e -> mapToTrackerEvent(e, submission.getEnrollment()))
                 .toList())
         .build();
   }
@@ -282,66 +281,59 @@ class SmsImportMapper {
 
   @Nonnull
   private static TrackerEvent mapToTrackerEvent(
-      @Nonnull SmsEvent submission, @Nonnull String username, @Nonnull Uid enrollment) {
+      @Nonnull SmsEvent submission, @Nonnull Uid enrollment) {
     return TrackerEvent.builder()
         .event(UID.of(submission.getEvent().getUid()))
         .enrollment(UID.of(enrollment.getUid()))
         .orgUnit(metadataUid(submission.getOrgUnit()))
         .programStage(metadataUid(submission.getProgramStage()))
         .attributeOptionCombo(metadataUid(submission.getAttributeOptionCombo()))
-        .storedBy(username)
         .occurredAt(toInstant(submission.getEventDate()))
         .scheduledAt(toInstant(submission.getDueDate()))
         .status(map(submission.getEventStatus()))
         .geometry(map(submission.getCoordinates()))
-        .dataValues(map(submission.getValues(), username))
+        .dataValues(map(submission.getValues()))
         .build();
   }
 
   @Nonnull
-  static TrackerObjects map(
-      @Nonnull TrackerEventSmsSubmission submission, @Nonnull String username) {
-    return TrackerObjects.builder().events(List.of(mapTrackerEvent(submission, username))).build();
+  static TrackerObjects map(@Nonnull TrackerEventSmsSubmission submission) {
+    return TrackerObjects.builder().events(List.of(mapTrackerEvent(submission))).build();
   }
 
   @Nonnull
-  private static TrackerEvent mapTrackerEvent(
-      @Nonnull TrackerEventSmsSubmission submission, @Nonnull String username) {
+  private static TrackerEvent mapTrackerEvent(@Nonnull TrackerEventSmsSubmission submission) {
     return TrackerEvent.builder()
         .event(UID.of(submission.getEvent().getUid()))
         .enrollment(UID.of(submission.getEnrollment().getUid()))
         .orgUnit(metadataUid(submission.getOrgUnit()))
         .programStage(metadataUid(submission.getProgramStage()))
         .attributeOptionCombo(metadataUid(submission.getAttributeOptionCombo()))
-        .storedBy(username)
         .occurredAt(toInstant(submission.getEventDate()))
         .scheduledAt(toInstant(submission.getDueDate()))
         .status(map(submission.getEventStatus()))
         .geometry(map(submission.getCoordinates()))
-        .dataValues(map(submission.getValues(), username))
+        .dataValues(map(submission.getValues()))
         .build();
   }
 
   @Nonnull
-  static TrackerObjects map(
-      @Nonnull SimpleEventSmsSubmission submission, @Nonnull String username) {
-    return TrackerObjects.builder().events(List.of(mapTrackerEvent(submission, username))).build();
+  static TrackerObjects map(@Nonnull SimpleEventSmsSubmission submission) {
+    return TrackerObjects.builder().events(List.of(mapTrackerEvent(submission))).build();
   }
 
   @Nonnull
-  private static TrackerEvent mapTrackerEvent(
-      @Nonnull SimpleEventSmsSubmission submission, @Nonnull String username) {
+  private static TrackerEvent mapTrackerEvent(@Nonnull SimpleEventSmsSubmission submission) {
     return TrackerEvent.builder()
         .event(UID.of(submission.getEvent().getUid()))
         .orgUnit(metadataUid(submission.getOrgUnit()))
         .program(metadataUid(submission.getEventProgram()))
         .attributeOptionCombo(metadataUid(submission.getAttributeOptionCombo()))
-        .storedBy(username)
         .occurredAt(toInstant(submission.getEventDate()))
         .scheduledAt(toInstant(submission.getDueDate()))
         .status(map(submission.getEventStatus()))
         .geometry(map(submission.getCoordinates()))
-        .dataValues(map(submission.getValues(), username))
+        .dataValues(map(submission.getValues()))
         .build();
   }
 
@@ -361,15 +353,13 @@ class SmsImportMapper {
   }
 
   @Nonnull
-  private static Set<DataValue> map(
-      @CheckForNull List<SmsDataValue> dataValues, @Nonnull String username) {
+  private static Set<DataValue> map(@CheckForNull List<SmsDataValue> dataValues) {
     return emptyIfNull(dataValues).stream()
         .map(
             dv ->
                 DataValue.builder()
                     .dataElement(metadataUid(dv.getDataElement()))
                     .value(dv.getValue())
-                    .storedBy(username)
                     .build())
         .collect(Collectors.toSet());
   }
@@ -409,7 +399,6 @@ class SmsImportMapper {
       @Nonnull SMSCommand smsCommand,
       @Nonnull Map<String, String> dataValues,
       @Nonnull String orgUnit,
-      @Nonnull String username,
       @Nonnull CategoryService categoryService,
       @Nonnull String trackedEntity,
       @CheckForNull UID enrollmentUid) {
@@ -431,8 +420,7 @@ class SmsImportMapper {
       enrollments = List.of(enrollment);
     }
 
-    TrackerEvent event =
-        mapCommandEvent(sms, smsCommand, dataValues, orgUnit, username, categoryService);
+    TrackerEvent event = mapCommandEvent(sms, smsCommand, dataValues, orgUnit, categoryService);
     event.setEnrollment(enrollmentUid);
 
     return TrackerObjects.builder().enrollments(enrollments).events(List.of(event)).build();
@@ -444,13 +432,11 @@ class SmsImportMapper {
       @Nonnull SMSCommand smsCommand,
       @Nonnull Map<String, String> dataValues,
       @Nonnull String orgUnit,
-      @Nonnull String username,
       @Nonnull CategoryService dataElementCategoryService) {
     return TrackerObjects.builder()
         .events(
             List.of(
-                mapCommandEvent(
-                    sms, smsCommand, dataValues, orgUnit, username, dataElementCategoryService)))
+                mapCommandEvent(sms, smsCommand, dataValues, orgUnit, dataElementCategoryService)))
         .build();
   }
 
@@ -511,7 +497,6 @@ class SmsImportMapper {
       @Nonnull SMSCommand smsCommand,
       @Nonnull Map<String, String> dataValues,
       @Nonnull String orgUnit,
-      @Nonnull String username,
       @Nonnull CategoryService dataElementCategoryService) {
     return TrackerEvent.builder()
         .event(UID.generate())
@@ -522,16 +507,13 @@ class SmsImportMapper {
         .scheduledAt(sms.getSentDate().toInstant())
         .attributeOptionCombo(
             metadataUid(dataElementCategoryService.getDefaultCategoryOptionCombo()))
-        .storedBy(username)
-        .dataValues(map(smsCommand.getCodes(), dataValues, username))
+        .dataValues(map(smsCommand.getCodes(), dataValues))
         .build();
   }
 
   @Nonnull
   private static Set<DataValue> map(
-      @Nonnull Set<SMSCode> codes,
-      @Nonnull Map<String, String> dataValues,
-      @Nonnull String username) {
+      @Nonnull Set<SMSCode> codes, @Nonnull Map<String, String> dataValues) {
     Set<DataValue> result = new HashSet<>();
     for (SMSCode code : codes) {
       String value = dataValues.get(code.getCode());
@@ -545,7 +527,6 @@ class SmsImportMapper {
           DataValue.builder()
               .dataElement(MetadataIdentifier.ofUid(code.getDataElement().getUid()))
               .value(value)
-              .storedBy(username)
               .build());
     }
 

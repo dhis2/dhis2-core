@@ -77,6 +77,8 @@ import org.hisp.dhis.analytics.event.data.queryitem.QueryItemFilterHandlerRegist
 import org.hisp.dhis.analytics.table.EnrollmentAnalyticsColumnName;
 import org.hisp.dhis.analytics.table.EventAnalyticsColumnName;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
@@ -673,7 +675,12 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
           continue;
         }
         if (isProgramStatusDimension(input.dimensionId())) {
-          enrollmentStatuses.addAll(parseEnrollmentStatuses(input.items(), input.rawDimension()));
+          if (isAggregateRequest(request)) {
+            requireNonEmptyStatusFilter(input.items(), input.rawDimension());
+            params.addFilter(getProgramStatusDimension(input.items(), input.rawDimension()));
+          } else {
+            enrollmentStatuses.addAll(parseEnrollmentStatuses(input.items(), input.rawDimension()));
+          }
           continue;
         }
 
@@ -718,7 +725,11 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
           continue;
         }
         if (isProgramStatusDimension(input.dimensionId())) {
-          enrollmentStatuses.addAll(parseEnrollmentStatuses(input.items(), input.rawDimension()));
+          if (isAggregateRequest(request)) {
+            params.addDimension(getProgramStatusDimension(input.items(), input.rawDimension()));
+          } else {
+            enrollmentStatuses.addAll(parseEnrollmentStatuses(input.items(), input.rawDimension()));
+          }
           continue;
         }
 
@@ -992,27 +1003,66 @@ public class DefaultEventDataQueryService implements EventDataQueryService {
         || ColumnHeader.PROGRAM_STATUS.getItem().equalsIgnoreCase(dimensionId);
   }
 
-  private Set<EnrollmentStatus> parseEnrollmentStatuses(
-      List<String> statusItems, String dimensionString) {
-    if (statusItems == null || statusItems.isEmpty()) {
+  private boolean isAggregateRequest(EventDataQueryRequest request) {
+    return request.getEndpointAction() == RequestTypeAware.EndpointAction.AGGREGATE;
+  }
+
+  /**
+   * Builds the {@link DimensionalObject} for {@code PROGRAM_STATUS}. The dimension identifier
+   * ({@code "programstatus"}) drives the response header; {@code dimensionName} ({@code
+   * "enrollmentstatus"}) is the underlying analytics column referenced by {@code quoteAlias} in the
+   * SQL builder. An empty item list is permitted on the aggregate dimension path — it means
+   * "include the column as a group-by without filtering rows."
+   */
+  private DimensionalObject getProgramStatusDimension(
+      List<String> rawItems, String dimensionString) {
+    return new BaseDimensionalObject(
+        ColumnHeader.PROGRAM_STATUS.getItem(),
+        DimensionType.PROGRAM_STATUS,
+        EventAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME,
+        ColumnHeader.PROGRAM_STATUS.getName(),
+        parseStatusItems(rawItems, dimensionString));
+  }
+
+  private static Set<EnrollmentStatus> parseEnrollmentStatuses(
+      List<String> rawItems, String dimensionString) {
+    requireNonEmptyStatusFilter(rawItems, dimensionString);
+
+    return rawItems.stream()
+        .map(raw -> parseEnrollmentStatus(raw, dimensionString))
+        .collect(Collectors.toCollection(LinkedHashSet::new));
+  }
+
+  private static List<DimensionalItemObject> parseStatusItems(
+      List<String> rawItems, String dimensionString) {
+    if (rawItems == null || rawItems.isEmpty()) {
+      return List.of();
+    }
+
+    return rawItems.stream()
+        .map(raw -> parseEnrollmentStatus(raw, dimensionString))
+        .distinct()
+        .<DimensionalItemObject>map(status -> new BaseDimensionalItemObject(status.name()))
+        .toList();
+  }
+
+  private static EnrollmentStatus parseEnrollmentStatus(String raw, String dimensionString) {
+    if (StringUtils.isBlank(raw)) {
       throwIllegalQueryEx(ErrorCode.E7222, dimensionString);
     }
 
-    Set<EnrollmentStatus> statuses = new LinkedHashSet<>();
-
-    for (String statusItem : statusItems) {
-      if (StringUtils.isBlank(statusItem)) {
-        throwIllegalQueryEx(ErrorCode.E7222, dimensionString);
-      }
-
-      try {
-        statuses.add(EnrollmentStatus.valueOf(statusItem.trim().toUpperCase()));
-      } catch (IllegalArgumentException ex) {
-        throwIllegalQueryEx(ErrorCode.E7222, dimensionString);
-      }
+    try {
+      return EnrollmentStatus.valueOf(raw.trim().toUpperCase(java.util.Locale.ROOT));
+    } catch (IllegalArgumentException ex) {
+      throwIllegalQueryEx(ErrorCode.E7222, dimensionString);
+      throw ex; // unreachable
     }
+  }
 
-    return statuses;
+  private static void requireNonEmptyStatusFilter(List<String> rawItems, String dimensionString) {
+    if (rawItems == null || rawItems.isEmpty()) {
+      throwIllegalQueryEx(ErrorCode.E7222, dimensionString);
+    }
   }
 
   /**
