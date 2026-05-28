@@ -273,21 +273,13 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
   }
 
   @Override
-  public Map<String, Serializable> getConfigurationsAsMap() {
-    return Stream.of(ConfigurationKey.values())
-        .collect(
-            Collectors.toMap(
-                ConfigurationKey::getKey,
-                v ->
-                    v.isConfidential()
-                        ? ""
-                        : getPropertyOrDefault(
-                            v, v.getDefaultValue() != null ? v.getDefaultValue() : "")));
-  }
-
-  @Override
   public EncryptionStatus getEncryptionStatus() {
+    String password;
+
     int maxKeyLength;
+
+    // Check for JCE files is present (key length > 128) and AES is
+    // available
 
     try {
       maxKeyLength = Cipher.getMaxAllowedKeyLength("AES");
@@ -299,7 +291,7 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
       return EncryptionStatus.MISSING_JCE_POLICY;
     }
 
-    String password = getProperty(ConfigurationKey.ENCRYPTION_PASSWORD);
+    password = getProperty(ConfigurationKey.ENCRYPTION_PASSWORD);
 
     if (password.length() == 0) {
       return EncryptionStatus.MISSING_ENCRYPTION_PASSWORD;
@@ -310,6 +302,19 @@ public class DefaultDhisConfigurationProvider extends LogOnceLogger
     }
 
     return EncryptionStatus.OK;
+  }
+
+  @Override
+  public Map<String, Serializable> getConfigurationsAsMap() {
+    return Stream.of(ConfigurationKey.values())
+        .collect(
+            Collectors.toMap(
+                ConfigurationKey::getKey,
+                v ->
+                    v.isConfidential()
+                        ? ""
+                        : getPropertyOrDefault(
+                            v, v.getDefaultValue() != null ? v.getDefaultValue() : "")));
   }
 
   // -------------------------------------------------------------------------
