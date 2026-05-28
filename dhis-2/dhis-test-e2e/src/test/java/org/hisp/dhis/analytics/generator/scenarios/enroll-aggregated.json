@@ -155,6 +155,13 @@
       }
     },
     {
+      "name": "withProgramStatusNoFilter",
+      "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?dimension=ou:USER_ORGUNIT,PROGRAM_STATUS,pe:202211",
+      "version": {
+        "min": 43
+      }
+    },
+    {
       "name": "stageAndUnfilteredEventStatus",
       "query": "/api/analytics/enrollments/aggregate/IpHINAT79UW.json?includeMetadataDetails=true&displayProperty=NAME&totalPages=false&pageSize=100&outputType=ENROLLMENT&page=1&dimension=A03MvHHogjR.EVENT_STATUS&dimension=A03MvHHogjR.EVENT_DATE:202205&dimension=A03MvHHogjR.wQLfBvPrXqq&dimension=A03MvHHogjR.ou:USER_ORGUNIT",
       "version": {

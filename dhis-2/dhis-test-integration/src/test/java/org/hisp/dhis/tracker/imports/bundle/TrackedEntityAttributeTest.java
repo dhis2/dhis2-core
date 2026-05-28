@@ -92,11 +92,13 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
 
   @Autowired private MetadataImportService metadataImportService;
 
+  private User importUser;
+
   @BeforeAll
   void setUp() throws IOException {
     testSetup.importMetadata("tracker/te_with_tea_metadata.json");
 
-    User importUser = userService.getUser("tTgjgobT1oS");
+    importUser = userService.getUser("tTgjgobT1oS");
     injectSecurityContextUser(importUser);
   }
 
@@ -124,6 +126,16 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
     List<TrackedEntityAttributeValue> attributeValues =
         trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
     assertEquals(3, attributeValues.size());
+  }
+
+  @Test
+  void shouldSetStoredByToAuthenticatedUserForTrackedEntityAttributeValue() throws IOException {
+    testSetup.importTrackerData("tracker/te_with_tea_data.json");
+
+    TrackedEntity trackedEntity = manager.getAll(TrackedEntity.class).get(0);
+    List<TrackedEntityAttributeValue> attributeValues =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
+    attributeValues.forEach(av -> assertEquals(importUser.getUsername(), av.getStoredBy()));
   }
 
   @Test
