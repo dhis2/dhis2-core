@@ -97,27 +97,19 @@ class GistQueryTest {
 
   @Test
   void testFieldsOf_Nest1() {
-    assertEquals(List.of(new Field("foo"), new Field("foo.bar")), Field.of("foo[bar]"));
+    assertEquals(List.of(new Field("foo.bar")), Field.of("foo[bar]"));
   }
 
   @Test
   void testFieldsOf_Nest2() {
     assertEquals(
-        List.of(
-            new Field("foo"), new Field("foo.bar"), new Field("foo.baz"), new Field("foo.baz.que")),
-        Field.of("foo[bar,baz[que]]"));
+        List.of(new Field("foo.bar"), new Field("foo.baz.que")), Field.of("foo[bar,baz[que]]"));
   }
 
   @Test
   void testFieldsOf_Nest3() {
     assertEquals(
-        List.of(
-            new Field("foo"),
-            new Field("foo.bar"),
-            new Field("foo.bar.hey"),
-            new Field("foo.bar.ho"),
-            new Field("foo.baz"),
-            new Field("foo.baz.que")),
+        List.of(new Field("foo.bar.hey"), new Field("foo.bar.ho"), new Field("foo.baz.que")),
         Field.of("foo[bar[hey,ho],baz[que]]"));
   }
 
@@ -125,12 +117,9 @@ class GistQueryTest {
   void testFieldsOf_Nest3Rename1() {
     assertEquals(
         List.of(
-            new Field("foo").withAlias("x"),
-            new Field("foo.bar").withAlias("x.bar"),
-            new Field("foo.bar.hey").withAlias("x.bar.hey"),
-            new Field("foo.bar.ho").withAlias("x.bar.ho"),
-            new Field("foo.baz").withAlias("x.baz"),
-            new Field("foo.baz.que").withAlias("x.baz.que")),
+            new Field("foo.bar.hey").withPropertyName("x.bar.hey"),
+            new Field("foo.bar.ho").withPropertyName("x.bar.ho"),
+            new Field("foo.baz.que").withPropertyName("x.baz.que")),
         Field.of("foo~rename(x)[bar[hey,ho],baz[que]]"));
   }
 
@@ -138,12 +127,9 @@ class GistQueryTest {
   void testFieldsOf_Nest3Rename2() {
     assertEquals(
         List.of(
-            new Field("foo").withAlias("x"),
-            new Field("foo.bar").withAlias("x.bar"),
-            new Field("foo.bar.hey").withAlias("x.bar.y"),
-            new Field("foo.bar.ho").withAlias("x.bar.ho"),
-            new Field("foo.baz").withAlias("x.baz"),
-            new Field("foo.baz.que").withAlias("x.baz.que")),
+            new Field("foo.bar.hey").withPropertyName("x.bar.y"),
+            new Field("foo.bar.ho").withPropertyName("x.bar.ho"),
+            new Field("foo.baz.que").withPropertyName("x.baz.que")),
         Field.of("foo~rename(x)[bar[hey~rename(y),ho],baz[que]]"));
   }
 

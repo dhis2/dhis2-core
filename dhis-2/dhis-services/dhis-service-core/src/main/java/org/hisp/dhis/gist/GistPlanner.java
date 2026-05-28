@@ -296,14 +296,14 @@ final class GistPlanner {
             fields,
             f -> isDisplayNameField(f.propertyPath()),
             f ->
-                f.withAlias(f.name())
+                f.withPropertyName(f.name())
                     .withTranslate()
                     .withPropertyPath(pathOnSameParent(f.propertyPath(), "name")));
     return map1to1(
         fields,
         f -> isDisplayShortName(f.propertyPath()),
         f ->
-            f.withAlias(f.name())
+            f.withPropertyName(f.name())
                 .withTranslate()
                 .withPropertyPath(pathOnSameParent(f.propertyPath(), "shortName")));
   }
@@ -318,10 +318,10 @@ final class GistPlanner {
         Property collection = context.resolveMandatory(parentPath);
         if ("id".equals(propertyName)
             && PrimaryKeyObject.class.isAssignableFrom(collection.getItemKlass())) {
-          mapped.add(
-              f.withPropertyPath(parentPath).withAlias(path).withTransformation(Transform.IDS));
+          mapped.add(f.withPropertyPath(parentPath).withTransformation(Transform.IDS));
         } else {
-          mapped.add(new Field(parentPath, Transform.PLUCK, path, propertyName, false, false));
+          mapped.add(
+              f.withPropertyPath(parentPath).withTransformation(Transform.PLUCK, propertyName));
         }
       } else {
         mapped.add(f);
@@ -349,7 +349,7 @@ final class GistPlanner {
       return fields;
     }
     ArrayList<Field> extended = new ArrayList<>(fields);
-    extended.add(new Field(Field.REFS_PATH, Transform.NONE).withAlias("apiEndpoints"));
+    extended.add(new Field(Field.REFS_PATH, Transform.NONE).withPropertyName("apiEndpoints"));
     return extended;
   }
 

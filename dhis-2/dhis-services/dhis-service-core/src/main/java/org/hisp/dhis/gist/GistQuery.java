@@ -318,10 +318,19 @@ public final class GistQuery {
     }
   }
 
+  /**
+   * @param propertyPath the path as found in the schema model
+   * @param propertyName the name (also nested) as it should be rendered in the response (if
+   *     different to the {@link #propertyPath()}) or empty if same as {@link #propertyPath()}
+   * @param transformation
+   * @param transformationArgument
+   * @param translate when true, translations should be considered
+   * @param attribute when true, the property is an attribute UID
+   */
   public record Field(
       @JsonProperty String propertyPath,
+      @JsonProperty String propertyName,
       @JsonProperty Transform transformation,
-      @JsonProperty String alias,
       @JsonProperty String transformationArgument,
       @JsonProperty boolean translate,
       @JsonProperty boolean attribute) {
@@ -335,7 +344,7 @@ public final class GistQuery {
     }
 
     public Field(String propertyPath, Transform transformation) {
-      this(propertyPath, transformation, "", null, false, false);
+      this(propertyPath, "", transformation, null, false, false);
     }
 
     @Nonnull
@@ -348,31 +357,35 @@ public final class GistQuery {
 
     @JsonProperty
     public String name() {
-      return alias.isEmpty() ? propertyPath : alias;
+      return propertyName.isEmpty() ? propertyPath : propertyName;
     }
 
     public Field withTransformation(Transform transform) {
-      return new Field(
-          propertyPath, transform, alias, transformationArgument, translate, attribute);
+      return withTransformation(transform, null);
+    }
+
+    public Field withTransformation(Transform transform, String argument) {
+      return new Field(propertyPath, propertyName, transform, argument, translate, attribute);
     }
 
     public Field withPropertyPath(String path) {
-      return new Field(path, transformation, alias, transformationArgument, translate, attribute);
+      return new Field(
+          path, propertyName, transformation, transformationArgument, translate, attribute);
     }
 
-    public Field withAlias(String alias) {
+    public Field withPropertyName(String name) {
       return new Field(
-          propertyPath, transformation, alias, transformationArgument, translate, attribute);
+          propertyPath, name, transformation, transformationArgument, translate, attribute);
     }
 
     public Field withTranslate() {
       return new Field(
-          propertyPath, transformation, alias, transformationArgument, true, attribute);
+          propertyPath, propertyName, transformation, transformationArgument, true, attribute);
     }
 
     public Field asAttribute() {
       return new Field(
-          propertyPath, transformation, alias, transformationArgument, translate, true);
+          propertyPath, propertyName, transformation, transformationArgument, translate, true);
     }
 
     public boolean isMultiPluck() {
@@ -392,9 +405,12 @@ public final class GistQuery {
         String path = f.propertyPath();
         if (!parentPath.isEmpty()) f = f.withPropertyPath(chain(parentPath, path));
         if (!parentPath.equals(parentName) && !parentName.isEmpty())
-          f = f.withAlias(chain(parentName, !f.alias().isEmpty() ? f.alias() : path));
-        res.add(f);
-        for (Expression e : children) e.addFields(res, f.propertyPath(), f.name());
+          f =
+              f.withPropertyName(
+                  chain(parentName, !f.propertyName().isEmpty() ? f.propertyName() : path));
+        if (children.isEmpty()) {
+          res.add(f);
+        } else for (Expression e : children) e.addFields(res, f.propertyPath(), f.name());
       }
 
       private static Field parse(String field) {
@@ -416,7 +432,7 @@ public final class GistQuery {
             }
           }
         }
-        return new Field(parts[0], transform, alias, arg, false, false);
+        return new Field(parts[0], alias, transform, arg, false, false);
       }
 
       static String chain(String parent, String child) {
