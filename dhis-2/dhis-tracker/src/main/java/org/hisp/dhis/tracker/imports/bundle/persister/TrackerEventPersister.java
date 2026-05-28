@@ -160,7 +160,8 @@ public class TrackerEventPersister
       org.hisp.dhis.tracker.imports.domain.TrackerEvent event,
       TrackerEvent hibernateEntity,
       UserDetails user,
-      ChangeLogAccumulator changeLogs) {
+      ChangeLogAccumulator changeLogs,
+      EntityWriteBatch batch) {
     // DO NOTHING - EVENT HAVE NO ATTRIBUTES
   }
 
@@ -279,7 +280,6 @@ public class TrackerEventPersister
     eventDataValue.setDataElement(dataElement.getUid());
     eventDataValue.setCreated(new Date());
     eventDataValue.setCreatedByUserInfo(UserInfoSnapshot.from(user));
-    eventDataValue.setStoredBy(user.getUsername());
 
     eventDataValue.setLastUpdated(new Date());
     eventDataValue.setLastUpdatedByUserInfo(UserInfoSnapshot.from(user));

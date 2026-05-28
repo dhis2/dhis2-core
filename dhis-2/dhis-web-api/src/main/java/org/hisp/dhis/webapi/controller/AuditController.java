@@ -37,7 +37,6 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import com.google.common.collect.Lists;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -56,12 +55,9 @@ import org.hisp.dhis.dataapproval.DataApprovalAuditQueryParams;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValueChangelog;
 import org.hisp.dhis.datavalue.DataValueChangelogQueryParams;
 import org.hisp.dhis.datavalue.DataValueChangelogService;
-import org.hisp.dhis.datavalue.DataValueChangelogType;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -77,7 +73,6 @@ import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 import org.hisp.dhis.tracker.audit.TrackedEntityAudit;
 import org.hisp.dhis.tracker.audit.TrackedEntityAuditService;
@@ -156,67 +151,16 @@ public class AuditController {
   }
 
   @GetMapping("dataValue")
-  public RootNode getAggregateDataValueChangelog(
-      @OpenApi.Param({UID[].class, DataSet.class}) @RequestParam(required = false) List<UID> ds,
-      @OpenApi.Param({UID[].class, DataElement.class}) @RequestParam(required = false) List<UID> de,
-      @OpenApi.Param(Period[].class) @RequestParam(required = false) List<String> pe,
-      @OpenApi.Param({UID[].class, OrganisationUnit.class}) @RequestParam(required = false)
-          List<UID> ou,
-      @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false) UID co,
-      @OpenApi.Param({UID.class, CategoryOptionCombo.class}) @RequestParam(required = false) UID cc,
-      @RequestParam(name = "auditType", required = false) List<DataValueChangelogType> type,
-      @RequestParam(required = false) Boolean skipPaging,
-      @RequestParam(required = false) Boolean paging,
-      @RequestParam(required = false, defaultValue = "50") int pageSize,
-      @RequestParam(required = false, defaultValue = "1") int page) {
-    List<String> fields = Lists.newArrayList(contextService.getParameterValues("fields"));
+  public RootNode getAggregateDataValueChangelog(DataValueChangelogQueryParams params) {
+    List<String> fields = params.fields();
 
-    if (fields.isEmpty()) {
-      fields.addAll(FieldPreset.ALL.getFields());
-    }
+    if (fields.isEmpty()) fields = FieldPreset.ALL.getFields();
 
-    List<Period> periods = getPeriods(pe);
-    List<DataValueChangelogType> types = emptyIfNull(type);
-
-    DataValueChangelogQueryParams params =
-        new DataValueChangelogQueryParams()
-            .setDataSets(ds)
-            .setDataElements(de)
-            .setPeriods(periods)
-            .setOrgUnits(ou)
-            .setCategoryOptionCombo(co)
-            .setAttributeOptionCombo(cc)
-            .setTypes(types);
-
-    List<DataValueChangelog> entries;
-    Pager pager = null;
-
-    if (PagerUtils.isSkipPaging(skipPaging, paging)) {
-      entries = dataValueChangelogService.getChangelogEntries(params);
-    } else {
-      int total = dataValueChangelogService.countEntries(params);
-
-      pager = new Pager(page, total, pageSize);
-
-      entries =
-          dataValueChangelogService.getChangelogEntries(
-              new DataValueChangelogQueryParams()
-                  .setDataSets(ds)
-                  .setDataElements(de)
-                  .setPeriods(periods)
-                  .setOrgUnits(ou)
-                  .setCategoryOptionCombo(co)
-                  .setAttributeOptionCombo(cc)
-                  .setTypes(types)
-                  .setPager(pager));
-    }
+    List<DataValueChangelog> entries = dataValueChangelogService.getChangelogEntries(params);
+    Pager pager = params.paged().toPager(params, dataValueChangelogService::countEntries);
 
     RootNode rootNode = NodeUtils.createMetadata();
-
-    if (pager != null) {
-      rootNode.addChild(NodeUtils.createPager(pager));
-    }
-
+    if (pager != null) rootNode.addChild(NodeUtils.createPager(pager));
     CollectionNode trackedEntityAttributeValueAudits =
         rootNode.addChild(new CollectionNode("dataValueAudits", true));
     trackedEntityAttributeValueAudits.addChildren(
@@ -338,23 +282,5 @@ public class AuditController {
             .getChildren());
 
     return rootNode;
-  }
-
-  // -----------------------------------------------------------------------------------------------------------------
-  // Helpers
-  // -----------------------------------------------------------------------------------------------------------------
-
-  private List<Period> getPeriods(List<String> isoPeriods) {
-    if (isoPeriods == null) {
-      return new ArrayList<>();
-    }
-
-    List<Period> periods = new ArrayList<>();
-
-    for (String pe : isoPeriods) {
-      periods.add(Period.of(pe));
-    }
-
-    return periods;
   }
 }

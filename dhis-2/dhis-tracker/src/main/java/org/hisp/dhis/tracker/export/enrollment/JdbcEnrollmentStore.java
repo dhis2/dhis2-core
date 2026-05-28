@@ -168,7 +168,7 @@ class JdbcEnrollmentStore {
         """
             select e.enrollmentid, e.uid, e.created, e.createdatclient, e.createdbyuserinfo,
             e.lastupdated, e.lastupdatedatclient, e.lastupdatedbyuserinfo, e.occurreddate,
-            e.enrollmentdate, e.completeddate, e.followup, e.completedby, e.storedby, e.deleted, e.status,
+            e.enrollmentdate, e.completeddate, e.followup, e.completedby, e.deleted, e.status,
             ST_AsBinary(e.geometry) as geometry,
         """);
 
@@ -292,7 +292,7 @@ class JdbcEnrollmentStore {
         """
       left join lateral (
         select json_agg(json_build_object('uid', n.uid, 'text', n.notetext,
-          'creator', n.creator, 'created', n.created, 'updatedByUid', u.uid,
+          'created', n.created, 'updatedByUid', u.uid,
           'updatedByUsername', u.username, 'updatedByFirstname', u.firstname,
           'updatedBySurname', u.surname, 'updatedByName', u.name)) as jsonnotes
           from enrollment_notes en
@@ -629,7 +629,6 @@ class JdbcEnrollmentStore {
       enrollment.setCompletedDate(formatDate(rs.getTimestamp("completeddate")));
       enrollment.setFollowup(rs.getBoolean("followup"));
       enrollment.setCompletedBy(rs.getString("completedby"));
-      enrollment.setStoredBy(rs.getString("storedby"));
       enrollment.setDeleted(rs.getBoolean("deleted"));
       enrollment.setStatus(EnrollmentStatus.valueOf(rs.getString("status")));
       enrollment.setGeometry(Geometries.fromWkb(rs.getBytes("geometry")));
@@ -725,7 +724,6 @@ class JdbcEnrollmentStore {
         Note note = new Note();
         note.setUid(jdbcNote.getUid());
         note.setNoteText(jdbcNote.getText());
-        note.setCreator(jdbcNote.getCreator());
         note.setCreated(DateUtils.safeParseDate(jdbcNote.getCreated()));
         User user = new User();
         user.setUid(jdbcNote.getUpdatedByUid());
@@ -791,7 +789,6 @@ class JdbcEnrollmentStore {
   private static class JdbcNote {
     private String uid;
     private String text;
-    private String creator;
     private String created;
     private String updatedByUid;
     private String updatedByUsername;

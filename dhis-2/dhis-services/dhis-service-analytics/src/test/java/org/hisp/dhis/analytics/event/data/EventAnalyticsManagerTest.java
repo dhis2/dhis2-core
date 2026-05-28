@@ -151,7 +151,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest {
   private PostgreSqlAnalyticsSqlBuilder analyticsSqlBuilder = new PostgreSqlAnalyticsSqlBuilder();
 
   private static final String BASE_COLUMNS =
-      "ax.event, ax.ps, ax.occurreddate, ax.storedby, "
+      "ax.event, ax.ps, ax.occurreddate, "
           + "ax.createdbydisplayname, ax.lastupdatedbydisplayname, "
           + "ax.lastupdated, ax.created, ax.completeddate, ax.scheduleddate";
 

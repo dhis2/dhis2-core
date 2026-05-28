@@ -285,7 +285,6 @@ public class Enrollment extends BaseTrackerObject
         .add("trackedEntity", trackedEntity)
         .add("program", program)
         .add("deleted", deleted)
-        .add("storedBy", storedBy)
         .toString();
   }
 
