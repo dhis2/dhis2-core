@@ -26,7 +26,7 @@
 #
 ---
 name: users_with_all_authority_no_2fa
-description: Users which have the ALL authority but do not have two-factor authentication enabled
+description: Users with the ALL authority who do not have two-factor authentication enabled
 section: Users
 section_order: 8
 summary_sql: >-
