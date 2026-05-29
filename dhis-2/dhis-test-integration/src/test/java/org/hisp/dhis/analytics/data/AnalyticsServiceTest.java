@@ -43,7 +43,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
@@ -231,8 +230,6 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
   @Autowired private CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
   @Autowired private SystemSettingsService settingsService;
-
-  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   private Date processStartTime;
 
@@ -515,7 +512,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
     ValidationResult resultBBA =
         new ValidationResult(validationRuleB, peFeb.getPeriod(), ouB, optionComboA, 1.0, 2.0, 3);
 
-    Date today = Date.from(TEST_NOW);
+    Date today = new Date();
     resultAA.setCreated(today);
     resultAB.setCreated(today);
     resultBA.setCreated(today);
@@ -536,7 +533,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
   private void parseDataSetRegistrations(List<String[]> lines) throws Exception {
     String storedBy = "johndoe";
     String lastUpdatedBy = "johndoe";
-    Date now = Date.from(TEST_NOW);
+    Date now = new Date();
     for (String[] line : lines) {
       DataSet dataSet = dataSetService.getDataSet(line[0]);
       Period period = periodService.getPeriod(line[1]);
@@ -549,7 +546,7 @@ class AnalyticsServiceTest extends PostgresIntegrationTestBase {
               ocDef,
               now,
               storedBy,
-              Date.from(TEST_NOW),
+              new Date(),
               lastUpdatedBy,
               true);
       completeDataSetRegistrationService.saveCompleteDataSetRegistration(
