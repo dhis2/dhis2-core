@@ -61,13 +61,13 @@ class DataIntegrityPeriodsSameStartEndDateControllerTest
   void testNoBadPeriodsExist() {
 
     PeriodType periodType = new MonthlyPeriodType();
-    Date date_future =
+    Date dateFuture =
         Date.from(TEST_NOW.atZone(ZoneOffset.UTC).plusYears(1).plusDays(1).toInstant());
-    Period periodA = periodType.createPeriod(date_future);
+    Period periodA = periodType.createPeriod(dateFuture);
     periodService.addPeriod(periodA);
 
-    Date date_past = Date.from(TEST_NOW.atZone(ZoneOffset.UTC).minusMonths(5).toInstant());
-    Period periodC = periodType.createPeriod(date_past);
+    Date datePast = Date.from(TEST_NOW.atZone(ZoneOffset.UTC).minusMonths(5).toInstant());
+    Period periodC = periodType.createPeriod(datePast);
     periodService.addPeriod(periodC);
     dbmsManager.clearSession();
 

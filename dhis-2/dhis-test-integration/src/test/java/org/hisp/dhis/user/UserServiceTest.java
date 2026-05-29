@@ -43,8 +43,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
-import java.time.Instant;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -82,8 +80,6 @@ import org.springframework.transaction.annotation.Transactional;
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
 class UserServiceTest extends PostgresIntegrationTestBase {
-  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
-  private static final ZonedDateTime TEST_NOW_ZDT = TEST_NOW.atZone(ZoneOffset.UTC);
 
   @Autowired private UserGroupService userGroupService;
 
@@ -570,7 +566,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetExpiringUserAccounts() {
-    ZonedDateTime now = TEST_NOW_ZDT;
+    ZonedDateTime now = ZonedDateTime.now();
     Date inFiveDays = Date.from(now.plusDays(5).toInstant());
     Date inSixDays = Date.from(now.plusDays(6).toInstant());
     Date inEightDays = Date.from(now.plusDays(8).toInstant());
@@ -597,7 +593,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testDisableUsersInactiveSince() {
-    ZonedDateTime now = TEST_NOW_ZDT;
+    ZonedDateTime now = ZonedDateTime.now();
     Date twoMonthsAgo = Date.from(now.minusMonths(2).toInstant());
     Date threeMonthAgo = Date.from(now.minusMonths(3).toInstant());
     Date fourMonthAgo = Date.from(now.minusMonths(4).toInstant());
@@ -627,7 +623,7 @@ class UserServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testFindNotifiableUsersWithLastLoginBetween() {
-    ZonedDateTime now = TEST_NOW_ZDT;
+    ZonedDateTime now = ZonedDateTime.now();
     Date oneMonthsAgo = Date.from(now.minusMonths(1).toInstant());
     Date twoMonthsAgo = Date.from(now.minusMonths(2).toInstant());
     Date threeMonthAgo = Date.from(now.minusMonths(3).toInstant());

@@ -88,7 +88,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @TestInstance(Lifecycle.PER_CLASS)
 class TrackedEntityCacheTest extends PostgresIntegrationTestBase {
-  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
   private final TestSetup testSetup;
   private final IdentifiableObjectManager manager;
   private final TrackedEntityService trackedEntityService;
@@ -276,8 +275,8 @@ class TrackedEntityCacheTest extends PostgresIntegrationTestBase {
         .trackedEntity(UID.of(trackedEntity))
         .program(MetadataIdentifier.ofUid(program))
         .orgUnit(MetadataIdentifier.ofUid(orgUnit))
-        .enrolledAt(TEST_NOW)
-        .occurredAt(TEST_NOW)
+        .enrolledAt(Instant.now())
+        .occurredAt(Instant.now())
         .status(EnrollmentStatus.ACTIVE)
         .attributeOptionCombo(MetadataIdentifier.ofUid("HllvX50cXC0"))
         .build();
@@ -287,8 +286,8 @@ class TrackedEntityCacheTest extends PostgresIntegrationTestBase {
       TrackedEntity trackedEntity, Program program, OrganisationUnit orgUnit) {
     TrackedEntityProgramOwner trackedEntityProgramOwner =
         new TrackedEntityProgramOwner(trackedEntity, program, orgUnit);
-    trackedEntityProgramOwner.setCreated(Date.from(TEST_NOW));
-    trackedEntityProgramOwner.setLastUpdated(Date.from(TEST_NOW));
+    trackedEntityProgramOwner.setCreated(Date.from(Instant.now()));
+    trackedEntityProgramOwner.setLastUpdated(Date.from(Instant.now()));
 
     return trackedEntityProgramOwner;
   }

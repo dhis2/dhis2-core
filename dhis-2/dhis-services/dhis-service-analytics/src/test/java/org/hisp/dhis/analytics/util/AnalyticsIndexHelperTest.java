@@ -92,11 +92,8 @@ class AnalyticsIndexHelperTest {
   }
 
   private AnalyticsTablePartition stubAnalyticsTablePartition() {
-    AnalyticsTablePartition analyticsTablePartitionStub =
-        new AnalyticsTablePartition(
-            stubAnalyticsTable(), List.of(), 2022, Date.from(TEST_NOW), Date.from(TEST_NOW));
-
-    return analyticsTablePartitionStub;
+    return new AnalyticsTablePartition(
+        stubAnalyticsTable(), List.of(), 2022, Date.from(TEST_NOW), Date.from(TEST_NOW));
   }
 
   private AnalyticsTable stubAnalyticsTable() {

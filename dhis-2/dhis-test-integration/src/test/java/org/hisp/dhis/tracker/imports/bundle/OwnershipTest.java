@@ -77,8 +77,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class OwnershipTest extends PostgresIntegrationTestBase {
-  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
-
   @Autowired private TestSetup testSetup;
 
   @Autowired private TrackerImportService trackerImportService;
@@ -189,10 +187,10 @@ class OwnershipTest extends PostgresIntegrationTestBase {
     org.hisp.dhis.tracker.imports.domain.Enrollment updatedEnrollment =
         trackerObjects.getEnrollments().get(0);
     updatedEnrollment.setStatus(EnrollmentStatus.COMPLETED);
-    updatedEnrollment.setCreatedAtClient(TEST_NOW);
-    updatedEnrollment.setUpdatedAtClient(TEST_NOW);
-    updatedEnrollment.setEnrolledAt(TEST_NOW);
-    updatedEnrollment.setOccurredAt(TEST_NOW);
+    updatedEnrollment.setCreatedAtClient(Instant.now());
+    updatedEnrollment.setUpdatedAtClient(Instant.now());
+    updatedEnrollment.setEnrolledAt(Instant.now());
+    updatedEnrollment.setOccurredAt(Instant.now());
     params.setImportStrategy(TrackerImportStrategy.CREATE_AND_UPDATE);
     ImportReport updatedReport = trackerImportService.importTracker(params, trackerObjects);
     manager.flush();

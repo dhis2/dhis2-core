@@ -129,8 +129,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
 
-  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
-
   @Autowired private TrackedEntityService trackedEntityService;
 
   @Autowired private IdentifiableObjectManager manager;
@@ -373,8 +371,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     eventA.setAssignedUser(user);
     Note note = new Note("note1");
     note.setUid(generateUid());
-    note.setCreated(Date.from(TEST_NOW));
-    note.setLastUpdated(Date.from(TEST_NOW));
+    note.setCreated(new Date());
+    note.setLastUpdated(new Date());
     eventA.setNotes(List.of(note));
     manager.save(eventA, false);
     enrollmentA.setEvents(Set.of(eventA));
@@ -1154,8 +1152,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .program(UID.of(programA))
             .eventStatus(EventStatus.OVERDUE)
-            .eventStartDate(Date.from(TEST_NOW.minus(20, ChronoUnit.DAYS)))
-            .eventEndDate(Date.from(TEST_NOW.plus(20, ChronoUnit.DAYS)))
+            .eventStartDate(Date.from(Instant.now().minus(20, ChronoUnit.DAYS)))
+            .eventEndDate(Date.from(Instant.now().plus(20, ChronoUnit.DAYS)))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
@@ -1177,8 +1175,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .orgUnitMode(SELECTED)
             .program(UID.of(programA))
             .eventStatus(EventStatus.SCHEDULE)
-            .eventStartDate(Date.from(TEST_NOW.minus(20, ChronoUnit.DAYS)))
-            .eventEndDate(Date.from(TEST_NOW.plus(20, ChronoUnit.DAYS)))
+            .eventStartDate(Date.from(Instant.now().minus(20, ChronoUnit.DAYS)))
+            .eventEndDate(Date.from(Instant.now().plus(20, ChronoUnit.DAYS)))
             .build();
 
     List<TrackedEntity> trackedEntities = trackedEntityService.findTrackedEntities(operationParams);
@@ -1196,8 +1194,8 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
             .assignedUserQueryParam(new AssignedUserQueryParam(null, null, UID.of(user)))
             .organisationUnits(orgUnitA)
             .program(programA)
-            .eventStartDate(Date.from(TEST_NOW.minus(10, ChronoUnit.DAYS)))
-            .eventEndDate(Date.from(TEST_NOW.plus(10, ChronoUnit.DAYS)));
+            .eventStartDate(Date.from(Instant.now().minus(10, ChronoUnit.DAYS)))
+            .eventEndDate(Date.from(Instant.now().plus(10, ChronoUnit.DAYS)));
 
     final List<TrackedEntity> trackedEntities =
         trackedEntityService.findTrackedEntities(
@@ -2544,7 +2542,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(te, programA, orgUnitA);
 
     TrackerEvent event = createEvent(programStageA1, enrollment, orgUnitA);
-    event.setScheduledDate(Date.from(TEST_NOW.plus(days, ChronoUnit.DAYS)));
+    event.setScheduledDate(Date.from(Instant.now().plus(days, ChronoUnit.DAYS)));
     event.setStatus(status);
     manager.save(event);
 
@@ -2561,7 +2559,7 @@ class TrackedEntityServiceTest extends PostgresIntegrationTestBase {
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(te, programA, orgUnitA);
 
     TrackerEvent event = createEvent(programStageA1, enrollment, orgUnitA);
-    event.setOccurredDate(Date.from(TEST_NOW));
+    event.setOccurredDate(Date.from(Instant.now()));
     event.setStatus(status);
     manager.save(event);
   }

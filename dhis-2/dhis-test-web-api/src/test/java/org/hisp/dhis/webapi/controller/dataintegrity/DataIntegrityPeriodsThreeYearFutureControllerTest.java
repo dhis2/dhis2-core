@@ -61,8 +61,8 @@ class DataIntegrityPeriodsThreeYearFutureControllerTest
         Date.from(TEST_NOW.atZone(ZoneOffset.UTC).plusYears(3).plusDays(1).toInstant());
     Period periodA = periodType.createPeriod(threeYearsFromNow);
 
-    Date date_now = Date.from(TEST_NOW);
-    Period periodB = periodType.createPeriod(date_now);
+    Date dateNow = Date.from(TEST_NOW);
+    Period periodB = periodType.createPeriod(dateNow);
 
     periodService.addPeriod(periodA);
     periodService.addPeriod(periodB);
@@ -79,8 +79,8 @@ class DataIntegrityPeriodsThreeYearFutureControllerTest
         Date.from(TEST_NOW.atZone(ZoneOffset.UTC).plusYears(1).plusDays(1).toInstant());
     Period periodA = periodType.createPeriod(oneYearFromNow);
 
-    Date date_now = Date.from(TEST_NOW);
-    Period periodB = periodType.createPeriod(date_now);
+    Date dateNow = Date.from(TEST_NOW);
+    Period periodB = periodType.createPeriod(dateNow);
 
     periodService.addPeriod(periodA);
     periodService.addPeriod(periodB);

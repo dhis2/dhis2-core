@@ -41,7 +41,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import org.apache.commons.lang3.time.DateUtils;
@@ -67,7 +66,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class DefaultMetadataVersionServiceTest extends PostgresIntegrationTestBase {
-  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
   @Autowired private MetadataVersionService versionService;
 
   @Autowired private MetadataDatastoreService metaDataDatastoreService;
@@ -89,7 +87,7 @@ class DefaultMetadataVersionServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeEach
   void setUp() {
-    startDate = Date.from(TEST_NOW);
+    startDate = new Date();
     versionA = new MetadataVersion("Version_1", VersionType.ATOMIC);
     versionA.setHashCode("12345");
     versionA.setCreated(startDate);

@@ -75,6 +75,9 @@ public class FixedClockExtension implements BeforeEachCallback, ParameterResolve
   private static final String CLOCK_KEY = "clock";
 
   @Override
+  // Field injection into the test instance inherently requires bypassing access checks, exactly as
+  // JUnit's own field-injection extensions do; the reflection is confined to test fixtures.
+  @SuppressWarnings("java:S3011")
   public void beforeEach(ExtensionContext context) throws Exception {
     Clock clock = getClock(context);
 

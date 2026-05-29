@@ -59,12 +59,12 @@ class DataIntegrityPeriodsDistantPastControllerTest extends AbstractDataIntegrit
   void testPeriodsInFarFutureExist() {
 
     PeriodType periodType = new MonthlyPeriodType();
-    Date date_past =
+    Date datePast =
         Date.from(TEST_NOW.atZone(ZoneOffset.UTC).minusYears(30).minusMonths(3).toInstant());
-    Period periodA = periodType.createPeriod(date_past);
+    Period periodA = periodType.createPeriod(datePast);
 
-    Date date_now = Date.from(TEST_NOW);
-    Period periodB = periodType.createPeriod(date_now);
+    Date dateNow = Date.from(TEST_NOW);
+    Period periodB = periodType.createPeriod(dateNow);
 
     periodService.addPeriod(periodA);
     periodService.addPeriod(periodB);
@@ -77,12 +77,12 @@ class DataIntegrityPeriodsDistantPastControllerTest extends AbstractDataIntegrit
   void testPeriodsInFarFutureDoNotExist() {
 
     PeriodType periodType = new MonthlyPeriodType();
-    Date date_future =
+    Date dateFuture =
         Date.from(TEST_NOW.atZone(ZoneOffset.UTC).minusYears(10).minusDays(1).toInstant());
-    Period periodA = periodType.createPeriod(date_future);
+    Period periodA = periodType.createPeriod(dateFuture);
 
-    Date date_now = Date.from(TEST_NOW);
-    Period periodB = periodType.createPeriod(date_now);
+    Date dateNow = Date.from(TEST_NOW);
+    Period periodB = periodType.createPeriod(dateNow);
 
     periodService.addPeriod(periodA);
     periodService.addPeriod(periodB);
