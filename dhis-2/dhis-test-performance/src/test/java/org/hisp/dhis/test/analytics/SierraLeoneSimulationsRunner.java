@@ -45,7 +45,7 @@ public class SierraLeoneSimulationsRunner extends Simulation {
 
   public SierraLeoneSimulationsRunner() {
     // How users should enter the scenarios.
-    OpenInjectionStep defaultInjectionStep = simpleUsersRumpUp(5, 15);
+    OpenInjectionStep defaultInjectionStep = simpleUsersRumpUp(15, 40);
 
     // Discover and instantiate every AnalyticsSimulation under the hmis package.
     List<AnalyticsSimulation> simulations = discoverSimulations(SIMULATIONS_PACKAGE);
