@@ -39,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.Set;
 import org.hisp.dhis.analytics.AggregationType;
@@ -89,6 +90,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private CategoryService categoryService;
@@ -285,8 +288,8 @@ class TrackerCreateRelationshipSMSTest extends PostgresControllerIntegrationTest
 
   private Enrollment enrollment(TrackedEntity te) {
     Enrollment enrollment = createEnrollment(program, te, te.getOrganisationUnit());
-    enrollment.setEnrollmentDate(new Date());
-    enrollment.setOccurredDate(new Date());
+    enrollment.setEnrollmentDate(Date.from(TEST_NOW));
+    enrollment.setOccurredDate(Date.from(TEST_NOW));
     enrollment.setStatus(EnrollmentStatus.COMPLETED);
     manager.save(enrollment);
     return enrollment;

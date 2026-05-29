@@ -31,6 +31,7 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.time.Instant;
 import java.util.Date;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.jsontree.JsonList;
@@ -46,6 +47,8 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityUsersWithNoRoleControllerTest extends AbstractDataIntegrityIntegrationTest {
 
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   private static final String CHECK_NAME = "users_with_no_user_role";
 
   private static final String DETAILS_ID_TYPE = "users";
@@ -60,8 +63,8 @@ class DataIntegrityUsersWithNoRoleControllerTest extends AbstractDataIntegrityIn
     user.setSurname("Tables");
     user.setUsername(DEFAULT_USERNAME + "_no_role_" + CodeGenerator.generateUid());
     user.setPassword(DEFAULT_ADMIN_PASSWORD);
-    user.setLastUpdated(new Date());
-    user.setCreated(new Date());
+    user.setLastUpdated(Date.from(TEST_NOW));
+    user.setCreated(Date.from(TEST_NOW));
     manager.persist(user);
     dbmsManager.clearSession();
 

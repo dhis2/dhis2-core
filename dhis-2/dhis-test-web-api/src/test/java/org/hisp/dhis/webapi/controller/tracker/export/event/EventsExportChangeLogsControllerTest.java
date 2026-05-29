@@ -42,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AggregationType;
@@ -85,6 +86,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 class EventsExportChangeLogsControllerTest extends PostgresControllerIntegrationTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   private static final String DATA_ELEMENT_VALUE = "value 1";
 
   @Autowired private IdentifiableObjectManager manager;
@@ -441,8 +444,8 @@ class EventsExportChangeLogsControllerTest extends PostgresControllerIntegration
 
   private Enrollment enrollment(TrackedEntity te) {
     Enrollment enrollment = TrackerTestBase.createEnrollment(program, te, te.getOrganisationUnit());
-    enrollment.setEnrollmentDate(new Date());
-    enrollment.setOccurredDate(new Date());
+    enrollment.setEnrollmentDate(Date.from(TEST_NOW));
+    enrollment.setOccurredDate(Date.from(TEST_NOW));
     enrollment.setStatus(EnrollmentStatus.COMPLETED);
     manager.save(enrollment);
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(

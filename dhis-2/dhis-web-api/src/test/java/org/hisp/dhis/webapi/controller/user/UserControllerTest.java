@@ -45,6 +45,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.hamcrest.MockitoHamcrest.argThat;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -84,6 +85,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
  */
 @ExtendWith(MockitoExtension.class)
 class UserControllerTest {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+  private static final Instant TEST_PAST = Instant.parse("2000-01-01T00:00:00Z");
   @Mock private UserService userService;
 
   @Mock private UserGroupService userGroupService;
@@ -204,7 +207,7 @@ class UserControllerTest {
     setUpUserExpireScenarios();
     when(userService.canAddOrUpdateUser(any())).thenReturn(true);
 
-    Date inTheFuture = new Date(System.currentTimeMillis() + 1000);
+    Date inTheFuture = Date.from(TEST_NOW.plusSeconds(3600));
     userController.expireUser(user.getUid(), inTheFuture);
 
     assertUserUpdatedWithAccountExpiry(inTheFuture);
@@ -215,10 +218,10 @@ class UserControllerTest {
   void expireUserNowDoesExpireSession() throws Exception {
     setUpUserExpireScenarios();
     when(userService.canAddOrUpdateUser(any())).thenReturn(true);
-    Date now = new Date();
-    userController.expireUser(user.getUid(), now);
+    Date pastDate = Date.from(TEST_PAST);
+    userController.expireUser(user.getUid(), pastDate);
 
-    assertUserUpdatedWithAccountExpiry(now);
+    assertUserUpdatedWithAccountExpiry(pastDate);
     verify(userService, atLeastOnce()).invalidateUserSessions(same(user.getUsername()));
   }
 
@@ -242,7 +245,8 @@ class UserControllerTest {
 
     WebMessageException ex =
         assertThrows(
-            WebMessageException.class, () -> userController.expireUser(user.getUid(), new Date()));
+            WebMessageException.class,
+            () -> userController.expireUser(user.getUid(), Date.from(TEST_NOW)));
     assertEquals(
         "You must have permissions to create user, or ability to manage at least one user group for the user.",
         ex.getWebMessage().getMessage());
@@ -255,7 +259,8 @@ class UserControllerTest {
 
     WebMessageException ex =
         assertThrows(
-            WebMessageException.class, () -> userController.expireUser(user.getUid(), new Date()));
+            WebMessageException.class,
+            () -> userController.expireUser(user.getUid(), Date.from(TEST_NOW)));
     assertEquals(
         "You must have permissions to create user, or ability to manage at least one user group for the user.",
         ex.getWebMessage().getMessage());
@@ -273,7 +278,8 @@ class UserControllerTest {
 
     Exception ex =
         assertThrows(
-            ForbiddenException.class, () -> userController.expireUser(user.getUid(), new Date()));
+            ForbiddenException.class,
+            () -> userController.expireUser(user.getUid(), Date.from(TEST_NOW)));
     assertEquals("You don't have the proper permissions to update this object.", ex.getMessage());
   }
 

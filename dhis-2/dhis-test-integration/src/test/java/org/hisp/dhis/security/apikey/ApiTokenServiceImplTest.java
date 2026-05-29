@@ -39,8 +39,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.test.integration.PostgresIntegrationTestBase;
@@ -60,6 +61,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Disabled("TODO(DHIS2-17768 platform) enable again")
 @Transactional
 class ApiTokenServiceImplTest extends PostgresIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
   @Autowired private ApiTokenStore apiTokenStore;
 
   @Autowired private ApiTokenService apiTokenService;
@@ -76,7 +79,7 @@ class ApiTokenServiceImplTest extends PostgresIntegrationTestBase {
   }
 
   public ApiToken createAndSaveToken() {
-    long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(30);
+    long thirtyDaysInTheFuture = TEST_NOW.plus(Duration.ofDays(30)).toEpochMilli();
     ApiKeyTokenGenerator.TokenWrapper apiTokenPair =
         generatePersonalAccessToken(null, thirtyDaysInTheFuture, null);
     apiTokenStore.save(apiTokenPair.getApiToken());
@@ -109,7 +112,7 @@ class ApiTokenServiceImplTest extends PostgresIntegrationTestBase {
 
   @Test
   void testSaveGetWithCode() {
-    long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(30);
+    long thirtyDaysInTheFuture = TEST_NOW.plus(Duration.ofDays(30)).toEpochMilli();
     ApiKeyTokenGenerator.TokenWrapper apiTokenPair =
         generatePersonalAccessToken(null, thirtyDaysInTheFuture, "code-1");
     apiTokenStore.save(apiTokenPair.getApiToken());

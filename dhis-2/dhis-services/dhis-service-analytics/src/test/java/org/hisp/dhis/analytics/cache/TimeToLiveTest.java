@@ -29,34 +29,46 @@
  */
 package org.hisp.dhis.analytics.cache;
 
-import static java.util.Calendar.DATE;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.analytics.cache.TimeToLive.DEFAULT_MULTIPLIER;
-import static org.hisp.dhis.util.DateUtils.calculateDateFrom;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.time.Clock;
+import java.time.Duration;
 import java.util.Date;
+import org.hisp.dhis.test.junit.TestClock;
 import org.junit.jupiter.api.Test;
 
+/**
+ * The TTL is the diff (in days) between an ending date and "now". Both the ending date and the
+ * {@code now} read by {@link TimeToLive#compute()} are derived from the same fixed {@link Clock},
+ * so a day-boundary crossing between the two reads can no longer shift the expected TTL.
+ */
+@TestClock(instant = "2026-06-15T10:00:00Z")
 class TimeToLiveTest {
+
+  /** Fixed by {@link TestClock}; passed into {@link TimeToLive} so test and code share "now". */
+  private Clock clock;
+
   @Test
   void testComputeForCurrentDayWhenCacheFactorIsNegative() {
     int aNegativeCachingFactor = -1;
-    Date endingDate = new Date();
+    Date endingDate = Date.from(clock.instant());
 
     assertThrows(
-        IllegalArgumentException.class, () -> new TimeToLive(endingDate, aNegativeCachingFactor));
+        IllegalArgumentException.class,
+        () -> new TimeToLive(endingDate, aNegativeCachingFactor, clock));
   }
 
   @Test
   void testComputeForZeroDayDiffWhenCacheFactorIsPositive() {
     int aPositiveCachingFactor = 3;
-    Date endingDate = new Date();
+    Date endingDate = Date.from(clock.instant());
     long expectedTtl = DEFAULT_MULTIPLIER * aPositiveCachingFactor;
 
-    long actualTtl = new TimeToLive(endingDate, aPositiveCachingFactor).compute();
+    long actualTtl = new TimeToLive(endingDate, aPositiveCachingFactor, clock).compute();
 
     assertThat(actualTtl, is(equalTo(expectedTtl)));
   }
@@ -65,10 +77,10 @@ class TimeToLiveTest {
   void testComputeForOneDayBeforeWhenCacheFactorIsPositive() {
     int oneDayDiff = 1;
     int aPositiveCachingFactor = 2;
-    Date endingDate = calculateDateFrom(new Date(), minus(oneDayDiff), DATE);
-    long expectedTtl = aPositiveCachingFactor * oneDayDiff;
+    Date endingDate = Date.from(clock.instant().minus(Duration.ofDays(oneDayDiff)));
+    long expectedTtl = (long) aPositiveCachingFactor * oneDayDiff;
 
-    long actualTtl = new TimeToLive(endingDate, aPositiveCachingFactor).compute();
+    long actualTtl = new TimeToLive(endingDate, aPositiveCachingFactor, clock).compute();
 
     assertThat(actualTtl, is(equalTo(expectedTtl)));
   }
@@ -78,10 +90,10 @@ class TimeToLiveTest {
     int oneDayDiff = 1;
     int aPositiveCachingFactor = 2;
     java.sql.Date endingDate =
-        new java.sql.Date(calculateDateFrom(new Date(), minus(oneDayDiff), DATE).getTime());
-    long expectedTtl = aPositiveCachingFactor * oneDayDiff;
+        new java.sql.Date(clock.instant().minus(Duration.ofDays(oneDayDiff)).toEpochMilli());
+    long expectedTtl = (long) aPositiveCachingFactor * oneDayDiff;
 
-    long actualTtl = new TimeToLive(endingDate, aPositiveCachingFactor).compute();
+    long actualTtl = new TimeToLive(endingDate, aPositiveCachingFactor, clock).compute();
 
     assertThat(actualTtl, is(equalTo(expectedTtl)));
   }
@@ -90,11 +102,10 @@ class TimeToLiveTest {
   void testComputeEndingDateIsAheadOfNowAndCacheFactorIsPositive() {
     int tenDaysAhead = 10;
     int aPositiveCachingFactor = 1;
-    Date beginningDate = new Date();
-    Date endingDate = calculateDateFrom(beginningDate, plus(tenDaysAhead), DATE);
+    Date endingDate = Date.from(clock.instant().plus(Duration.ofDays(tenDaysAhead)));
     long expectedTtl = DEFAULT_MULTIPLIER * aPositiveCachingFactor;
 
-    long actualTtl = new TimeToLive(endingDate, aPositiveCachingFactor).compute();
+    long actualTtl = new TimeToLive(endingDate, aPositiveCachingFactor, clock).compute();
 
     assertThat(actualTtl, is(equalTo(expectedTtl)));
   }
@@ -103,20 +114,11 @@ class TimeToLiveTest {
   void testComputeEndingDateIsTenDaysBeforeNowAndCacheFactorIsPositive() {
     int tenDays = 10;
     int aPositiveCachingFactor = 2;
-    Date now = new Date();
-    Date endingDate = calculateDateFrom(now, minus(tenDays), DATE);
-    long expectedTtl = aPositiveCachingFactor * tenDays;
+    Date endingDate = Date.from(clock.instant().minus(Duration.ofDays(tenDays)));
+    long expectedTtl = (long) aPositiveCachingFactor * tenDays;
 
-    long actualTtl = new TimeToLive(endingDate, aPositiveCachingFactor).compute();
+    long actualTtl = new TimeToLive(endingDate, aPositiveCachingFactor, clock).compute();
 
     assertThat(actualTtl, is(equalTo(expectedTtl)));
-  }
-
-  private int minus(int value) {
-    return -value;
-  }
-
-  private int plus(int value) {
-    return value;
   }
 }

@@ -43,6 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -65,6 +66,7 @@ import org.springframework.util.MimeTypeUtils;
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class IconTest extends PostgresIntegrationTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired private FileResourceService fileResourceService;
   @Autowired private IconService iconService;
@@ -306,7 +308,7 @@ class IconTest extends PostgresIntegrationTestBase {
         new FileResource(
             filename, contentType, content.length, contentMd5.toString(), FileResourceDomain.ICON);
     fileResource.setAssigned(false);
-    fileResource.setCreated(new Date());
+    fileResource.setCreated(Date.from(TEST_NOW));
     fileResource.setAutoFields();
 
     try {

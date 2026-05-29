@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -57,6 +58,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class CompleteDataSetRegistrationStoreTest extends PostgresIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired private CompleteDataSetRegistrationService completeDataSetRegistrationService;
   @Autowired private CompleteDataSetRegistrationStore completeDataSetRegistrationStore;
@@ -127,13 +130,37 @@ class CompleteDataSetRegistrationStoreTest extends PostgresIntegrationTestBase {
 
     CompleteDataSetRegistration registrationA =
         new CompleteDataSetRegistration(
-            dataSetA, periodA, sourceA, aoc1, new Date(), "", new Date(), "", true);
+            dataSetA,
+            periodA,
+            sourceA,
+            aoc1,
+            Date.from(TEST_NOW),
+            "",
+            Date.from(TEST_NOW),
+            "",
+            true);
     CompleteDataSetRegistration registrationB =
         new CompleteDataSetRegistration(
-            dataSetB, periodB, sourceA, aoc2, new Date(), "", new Date(), "", true);
+            dataSetB,
+            periodB,
+            sourceA,
+            aoc2,
+            Date.from(TEST_NOW),
+            "",
+            Date.from(TEST_NOW),
+            "",
+            true);
     CompleteDataSetRegistration registrationC =
         new CompleteDataSetRegistration(
-            dataSetC, periodB, sourceB, aoc3, new Date(), "", new Date(), "", true);
+            dataSetC,
+            periodB,
+            sourceB,
+            aoc3,
+            Date.from(TEST_NOW),
+            "",
+            Date.from(TEST_NOW),
+            "",
+            true);
     completeDataSetRegistrationService.saveCompleteDataSetRegistration(registrationA);
     completeDataSetRegistrationService.saveCompleteDataSetRegistration(registrationB);
     completeDataSetRegistrationService.saveCompleteDataSetRegistration(registrationC);

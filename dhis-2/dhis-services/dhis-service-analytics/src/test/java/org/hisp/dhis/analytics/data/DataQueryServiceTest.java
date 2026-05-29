@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -63,6 +64,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DataQueryServiceTest {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Mock private DimensionalObjectProvider dimensionalObjectProducer;
 
@@ -140,7 +143,13 @@ class DataQueryServiceTest {
 
     DimensionalObject result =
         dataQueryService.getDimension(
-            dimension, List.of(), new Date(), List.of(), false, DisplayProperty.NAME, IdScheme.UID);
+            dimension,
+            List.of(),
+            Date.from(TEST_NOW),
+            List.of(),
+            false,
+            DisplayProperty.NAME,
+            IdScheme.UID);
 
     assertNotNull(result);
     assertEquals(dimension, result.getDimension());

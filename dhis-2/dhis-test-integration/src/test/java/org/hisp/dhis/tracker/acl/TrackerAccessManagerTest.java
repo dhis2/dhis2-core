@@ -46,6 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -91,6 +92,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
 class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired private TrackerAccessManager trackerAccessManager;
 
@@ -208,7 +210,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     eventA.setProgramStage(programStageA);
     eventA.setOrganisationUnit(orgUnitA);
     eventA.setStatus(EventStatus.COMPLETED);
-    eventA.setOccurredDate(new Date());
+    eventA.setOccurredDate(Date.from(TEST_NOW));
     eventA.setAttributeOptionCombo(coA);
     manager.save(eventA, false);
 
@@ -217,7 +219,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     eventB.setProgramStage(programStageB);
     eventB.setOrganisationUnit(orgUnitB);
     eventB.setStatus(EventStatus.SCHEDULE);
-    eventB.setScheduledDate(DateUtils.addDays(new Date(), 10));
+    eventB.setScheduledDate(DateUtils.addDays(Date.from(TEST_NOW), 10));
     eventB.setAttributeOptionCombo(coA);
     manager.save(eventB, false);
 
@@ -282,7 +284,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     trackerEvent.setProgramStage(trackerEventProgramStage);
     trackerEvent.setOrganisationUnit(orgUnitA);
     trackerEvent.setAttributeOptionCombo(oldAoc);
-    trackerEvent.setOccurredDate(new Date());
+    trackerEvent.setOccurredDate(Date.from(TEST_NOW));
     manager.save(trackerEvent, false);
 
     enrollmentForAoc = createEnrollment(trackerEventProgram, trackerEventTe, orgUnitA);
@@ -305,7 +307,7 @@ class TrackerAccessManagerTest extends PostgresIntegrationTestBase {
     singleEvent.setProgramStage(singleEventProgramStage);
     singleEvent.setOrganisationUnit(orgUnitA);
     singleEvent.setAttributeOptionCombo(oldAoc);
-    singleEvent.setOccurredDate(new Date());
+    singleEvent.setOccurredDate(Date.from(TEST_NOW));
     manager.save(singleEvent);
 
     User adminUser = getAdminUser();

@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -47,6 +48,8 @@ import org.junit.jupiter.api.Test;
  * @author Lars Helge Overland
  */
 class AnalyticsTablePartitionTest {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   private final List<AnalyticsTableColumn> columnsA =
       List.of(
           AnalyticsTableColumn.builder().name("id").dataType(BIGINT).selectExpression("id").build(),
@@ -91,7 +94,11 @@ class AnalyticsTablePartitionTest {
 
     AnalyticsTablePartition partition =
         new AnalyticsTablePartition(
-            table, List.of(), AnalyticsTablePartition.LATEST_PARTITION, new Date(), new Date());
+            table,
+            List.of(),
+            AnalyticsTablePartition.LATEST_PARTITION,
+            Date.from(TEST_NOW),
+            Date.from(TEST_NOW));
 
     assertTrue(partition.isLatestPartition());
   }

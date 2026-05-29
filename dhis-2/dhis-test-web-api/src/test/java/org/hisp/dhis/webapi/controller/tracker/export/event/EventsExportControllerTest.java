@@ -53,6 +53,7 @@ import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -113,6 +114,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Transactional
 class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   private static final String DATA_ELEMENT_VALUE = "value";
   private static final String MULTI_TEXT_DATA_ELEMENT_VALUE_RBG = "red,blue,Green";
   private static final String MULTI_TEXT_DATA_ELEMENT_VALUE_RWY = "red,white,yellow";
@@ -1092,8 +1095,8 @@ class EventsExportControllerTest extends PostgresControllerIntegrationTestBase {
 
   private Enrollment enrollment(TrackedEntity te) {
     Enrollment result = createEnrollment(program, te, te.getOrganisationUnit());
-    result.setEnrollmentDate(new Date());
-    result.setOccurredDate(new Date());
+    result.setEnrollmentDate(Date.from(TEST_NOW));
+    result.setOccurredDate(Date.from(TEST_NOW));
     result.setStatus(EnrollmentStatus.COMPLETED);
     manager.save(result);
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(

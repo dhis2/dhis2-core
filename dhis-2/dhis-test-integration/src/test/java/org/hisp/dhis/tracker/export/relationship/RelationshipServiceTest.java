@@ -35,6 +35,7 @@ import static org.hisp.dhis.tracker.test.TrackerTestBase.createEvent;
 import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -72,6 +73,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RelationshipServiceTest extends PostgresIntegrationTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired protected UserService _userService;
 
@@ -117,7 +119,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() {
-    Date enrollmentDate = new Date();
+    Date enrollmentDate = Date.from(TEST_NOW);
 
     orgUnitA = createOrganisationUnit('A');
     manager.save(orgUnitA, false);
@@ -426,11 +428,11 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
   }
 
   private Relationship relationship(TrackedEntity from, TrackedEntity to) {
-    return relationship(from, to, teToTeType, new Date());
+    return relationship(from, to, teToTeType, Date.from(TEST_NOW));
   }
 
   private Relationship relationship(TrackedEntity from, TrackedEntity to, RelationshipType type) {
-    return relationship(from, to, type, new Date());
+    return relationship(from, to, type, Date.from(TEST_NOW));
   }
 
   private Relationship relationship(
@@ -467,7 +469,7 @@ class RelationshipServiceTest extends PostgresIntegrationTestBase {
   }
 
   private Relationship relationship(TrackedEntity from, TrackerEvent to) {
-    return relationship(from, to, teToEvType, new Date());
+    return relationship(from, to, teToEvType, Date.from(TEST_NOW));
   }
 
   private Relationship relationship(

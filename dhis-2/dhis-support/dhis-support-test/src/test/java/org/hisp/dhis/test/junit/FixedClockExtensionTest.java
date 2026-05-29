@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,41 +27,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.database;
+package org.hisp.dhis.test.junit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
+import java.time.Clock;
 import java.time.Instant;
-import java.util.Date;
+import java.time.ZoneOffset;
 import org.junit.jupiter.api.Test;
 
 /**
- * @author Volker Schmidt
+ * Tests that {@link FixedClockExtension} provides the {@link Clock} described by {@link TestClock}
+ * through both field injection and parameter resolution, and that the same instant is observed on
+ * every read.
  */
-class DatabaseInfoTest {
-  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+@TestClock(instant = "2026-06-15T10:00:00Z")
+class FixedClockExtensionTest {
+
+  private Clock injectedClock;
 
   @Test
-  void clearSensitiveInfo() {
-    DatabaseInfo info = getDataBaseInfo().withoutSensitiveInfo();
-    assertNull(info.getName());
-    assertNull(info.getUser());
-    assertNull(info.getUrl());
-    assertNull(info.getDatabaseVersion());
-    assertTrue(info.isSpatialSupport());
-    assertNotNull(info.getTime());
+  void shouldInjectFixedClockIntoField() {
+    assertNotNull(injectedClock, "clock field should have been assigned before the test");
+    assertEquals(Instant.parse("2026-06-15T10:00:00Z"), injectedClock.instant());
+    assertEquals(ZoneOffset.UTC, injectedClock.getZone());
   }
 
-  private DatabaseInfo getDataBaseInfo() {
-    return DatabaseInfo.builder()
-        .name("testDatabase")
-        .user("testUser")
-        .url("theUrl")
-        .databaseVersion("xzy 10.7")
-        .spatialSupport(true)
-        .time(Date.from(TEST_NOW))
-        .build();
+  @Test
+  void shouldResolveFixedClockAsParameter(Clock clock) {
+    assertEquals(Instant.parse("2026-06-15T10:00:00Z"), clock.instant());
+    assertSame(injectedClock, clock, "field and parameter should be the same cached clock");
+  }
+
+  @Test
+  void shouldReturnTheSameInstantOnRepeatedReads() {
+    assertEquals(injectedClock.instant(), injectedClock.instant());
   }
 }

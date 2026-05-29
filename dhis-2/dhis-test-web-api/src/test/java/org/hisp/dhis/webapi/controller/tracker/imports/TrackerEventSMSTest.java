@@ -46,6 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -152,6 +153,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
  */
 @TestInstance(Lifecycle.PER_CLASS)
 class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private CategoryService categoryService;
@@ -852,8 +854,8 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
   private Enrollment enrollment(TrackedEntity te) {
     Enrollment enrollment =
         TrackerTestBase.createEnrollment(trackerProgram, te, te.getOrganisationUnit());
-    enrollment.setEnrollmentDate(new Date());
-    enrollment.setOccurredDate(new Date());
+    enrollment.setEnrollmentDate(Date.from(TEST_NOW));
+    enrollment.setOccurredDate(Date.from(TEST_NOW));
     enrollment.setStatus(EnrollmentStatus.ACTIVE);
     manager.save(enrollment);
     trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
@@ -867,7 +869,7 @@ class TrackerEventSMSTest extends PostgresControllerIntegrationTestBase {
     event.setProgramStage(trackerProgramStage);
     event.setOrganisationUnit(enrollment.getOrganisationUnit());
     event.setAttributeOptionCombo(coc);
-    event.setOccurredDate(new Date());
+    event.setOccurredDate(Date.from(TEST_NOW));
     event.setAutoFields();
     manager.save(event);
     return event;

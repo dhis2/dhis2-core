@@ -98,6 +98,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
  */
 @ActiveProfiles("oauth2-authorization-server-test")
 class DcrControllerTest extends ControllerWithJwtTokenAuthTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired private SystemSettingsService systemSettingsService;
   @Autowired private Dhis2OAuth2ClientService oAuth2ClientService;
@@ -324,8 +325,8 @@ class DcrControllerTest extends ControllerWithJwtTokenAuthTestBase {
             .issuer(clientId)
             .subject(clientId)
             .audience(List.of(serverBaseUrlWithTrailingSlash))
-            .issuedAt(Instant.now())
-            .expiresAt(Instant.now().plus(1, ChronoUnit.HOURS))
+            .issuedAt(TEST_NOW)
+            .expiresAt(TEST_NOW.plus(1, ChronoUnit.HOURS))
             .build();
 
     String clientAssertion =

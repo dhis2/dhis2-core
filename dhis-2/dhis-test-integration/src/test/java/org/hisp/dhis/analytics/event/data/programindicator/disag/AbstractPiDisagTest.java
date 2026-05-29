@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics.event.data.programindicator.disag;
 import static org.hisp.dhis.analytics.OutputFormat.DATA_VALUE_SET;
 import static org.hisp.dhis.common.DimensionConstants.DATA_X_DIM_ID;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -55,6 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Jim Grace
  */
 abstract class AbstractPiDisagTest extends PostgresIntegrationTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired protected IdentifiableObjectManager manager;
 
@@ -330,8 +332,8 @@ abstract class AbstractPiDisagTest extends PostgresIntegrationTestBase {
         .addFilter(
             new BaseDimensionalObject(
                 category4.getDimension(), DimensionType.CATEGORY, List.of(optionG)))
-        .withStartDate(new Date())
-        .withEndDate(new Date())
+        .withStartDate(Date.from(TEST_NOW))
+        .withEndDate(Date.from(TEST_NOW))
         .build();
   }
 }

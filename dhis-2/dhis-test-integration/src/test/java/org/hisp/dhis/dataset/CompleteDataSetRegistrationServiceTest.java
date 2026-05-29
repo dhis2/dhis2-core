@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -67,6 +68,8 @@ import org.springframework.transaction.annotation.Transactional;
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
 class CompleteDataSetRegistrationServiceTest extends PostgresIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired private CompleteDataSetRegistrationService completeDataSetRegistrationService;
 
@@ -163,10 +166,26 @@ class CompleteDataSetRegistrationServiceTest extends PostgresIntegrationTestBase
   void testSaveGet() throws ConflictException {
     CompleteDataSetRegistration registrationA =
         new CompleteDataSetRegistration(
-            dataSetA, periodA, sourceA, optionCombo, new Date(), "", new Date(), "", true);
+            dataSetA,
+            periodA,
+            sourceA,
+            optionCombo,
+            Date.from(TEST_NOW),
+            "",
+            Date.from(TEST_NOW),
+            "",
+            true);
     CompleteDataSetRegistration registrationB =
         new CompleteDataSetRegistration(
-            dataSetB, periodB, sourceA, optionCombo, new Date(), "", new Date(), "", true);
+            dataSetB,
+            periodB,
+            sourceA,
+            optionCombo,
+            Date.from(TEST_NOW),
+            "",
+            Date.from(TEST_NOW),
+            "",
+            true);
     completeDataSetRegistrationService.saveCompleteDataSetRegistration(registrationA);
     completeDataSetRegistrationService.saveCompleteDataSetRegistration(registrationB);
     assertEquals(
@@ -196,10 +215,26 @@ class CompleteDataSetRegistrationServiceTest extends PostgresIntegrationTestBase
   void testDelete() throws ConflictException {
     CompleteDataSetRegistration registrationA =
         new CompleteDataSetRegistration(
-            dataSetA, periodA, sourceA, optionCombo, new Date(), "", new Date(), "", true);
+            dataSetA,
+            periodA,
+            sourceA,
+            optionCombo,
+            Date.from(TEST_NOW),
+            "",
+            Date.from(TEST_NOW),
+            "",
+            true);
     CompleteDataSetRegistration registrationB =
         new CompleteDataSetRegistration(
-            dataSetB, periodB, sourceA, optionCombo, new Date(), "", new Date(), "", true);
+            dataSetB,
+            periodB,
+            sourceA,
+            optionCombo,
+            Date.from(TEST_NOW),
+            "",
+            Date.from(TEST_NOW),
+            "",
+            true);
     completeDataSetRegistrationService.saveCompleteDataSetRegistration(registrationA);
     completeDataSetRegistrationService.saveCompleteDataSetRegistration(registrationB);
     assertNotNull(
@@ -221,10 +256,26 @@ class CompleteDataSetRegistrationServiceTest extends PostgresIntegrationTestBase
   void testGetAll() throws ConflictException {
     CompleteDataSetRegistration registrationA =
         new CompleteDataSetRegistration(
-            dataSetA, periodA, sourceA, optionCombo, new Date(), "", new Date(), "", true);
+            dataSetA,
+            periodA,
+            sourceA,
+            optionCombo,
+            Date.from(TEST_NOW),
+            "",
+            Date.from(TEST_NOW),
+            "",
+            true);
     CompleteDataSetRegistration registrationB =
         new CompleteDataSetRegistration(
-            dataSetB, periodB, sourceA, optionCombo, new Date(), "", new Date(), "", true);
+            dataSetB,
+            periodB,
+            sourceA,
+            optionCombo,
+            Date.from(TEST_NOW),
+            "",
+            Date.from(TEST_NOW),
+            "",
+            true);
     completeDataSetRegistrationService.saveCompleteDataSetRegistration(registrationA);
     completeDataSetRegistrationService.saveCompleteDataSetRegistration(registrationB);
     List<CompleteDataSetRegistration> registrations =

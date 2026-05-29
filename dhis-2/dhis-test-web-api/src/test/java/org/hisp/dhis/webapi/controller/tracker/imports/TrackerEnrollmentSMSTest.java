@@ -44,6 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -119,6 +120,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
  * </ul>
  */
 class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   @Autowired private IdentifiableObjectManager manager;
 
   @Autowired private TrackedEntityService trackedEntityService;
@@ -504,8 +507,8 @@ class TrackerEnrollmentSMSTest extends PostgresControllerIntegrationTestBase {
 
   private Enrollment enrollment(TrackedEntity te) {
     Enrollment enrollment = createEnrollment(trackerProgram, te, te.getOrganisationUnit());
-    enrollment.setEnrollmentDate(new Date());
-    enrollment.setOccurredDate(new Date());
+    enrollment.setEnrollmentDate(Date.from(TEST_NOW));
+    enrollment.setOccurredDate(Date.from(TEST_NOW));
     enrollment.setStatus(EnrollmentStatus.ACTIVE);
     manager.save(enrollment);
     te.getEnrollments().add(enrollment);

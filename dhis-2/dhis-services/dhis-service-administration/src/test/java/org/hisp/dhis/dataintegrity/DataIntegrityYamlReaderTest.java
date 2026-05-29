@@ -42,6 +42,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.networknt.schema.ValidationMessage;
 import java.io.InputStream;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -61,6 +62,8 @@ import org.springframework.core.io.ClassPathResource;
  * @author Jan Bernitt
  */
 class DataIntegrityYamlReaderTest {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   @Test
   void testAllChecksMatchSchema() throws Exception {
     ObjectMapper yaml = new ObjectMapper(new YAMLFactory());
@@ -273,13 +276,16 @@ class DataIntegrityYamlReaderTest {
             checksDirectory,
             checks::add,
             (property, defaultValue) -> defaultValue,
-            sql -> check -> new DataIntegritySummary(check, new Date(), new Date(), null, 1, 100d),
+            sql ->
+                check ->
+                    new DataIntegritySummary(
+                        check, Date.from(TEST_NOW), Date.from(TEST_NOW), null, 1, 100d),
             sql ->
                 check ->
                     new DataIntegrityDetails(
                         check,
-                        new Date(),
-                        new Date(),
+                        Date.from(TEST_NOW),
+                        Date.from(TEST_NOW),
                         null,
                         List.of(new DataIntegrityIssue("id", "name", sql, List.of())))));
   }

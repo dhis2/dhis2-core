@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
 import jakarta.persistence.EntityManager;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -93,6 +94,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 @SuppressWarnings("unchecked")
 @ExtendWith(MockitoExtension.class)
 class ProgramNotificationServiceTest extends TrackerTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   private static final String SUBJECT = "subject";
 
@@ -536,10 +539,7 @@ class ProgramNotificationServiceTest extends TrackerTestBase {
             ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE);
     programNotificationTemplate.setUid(notificationTemplate);
 
-    java.util.Calendar cal = java.util.Calendar.getInstance();
-
-    Date today = cal.getTime();
-    cal.add(java.util.Calendar.DATE, -1);
+    Date today = Date.from(TEST_NOW);
 
     ProgramNotificationTemplate programNotificationTemplateForToday =
         createProgramNotificationTemplate(

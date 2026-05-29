@@ -42,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -63,6 +64,8 @@ import org.junit.jupiter.api.Test;
  * @author Lars Helge Overland
  */
 class BaseAnalyticalObjectTest {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   @Test
   void testPopulateAnalyticalProperties() {
     TrackedEntityAttribute tea = new TrackedEntityAttribute();
@@ -194,7 +197,8 @@ class BaseAnalyticalObjectTest {
     visualization.setRawPeriods(List.of(period));
 
     DimensionalObject result =
-        visualization.getDimensionalObject(dimensionUid, new Date(), null, true, null, null, null);
+        visualization.getDimensionalObject(
+            dimensionUid, Date.from(TEST_NOW), null, true, null, null, null);
 
     assertEquals(PERIOD, result.getDimensionType());
     assertEquals(dimensionUid, result.getDimension());

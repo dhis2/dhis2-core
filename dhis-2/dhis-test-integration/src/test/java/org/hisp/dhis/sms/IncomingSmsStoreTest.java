@@ -32,6 +32,7 @@ package org.hisp.dhis.sms;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -55,6 +56,7 @@ import org.springframework.transaction.annotation.Transactional;
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
 class IncomingSmsStoreTest extends PostgresIntegrationTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired private IncomingSmsStore incomingSmsStore;
 
@@ -75,8 +77,8 @@ class IncomingSmsStoreTest extends PostgresIntegrationTestBase {
     sms.setOriginator("474000000");
     sms.setGatewayId("testGateway");
     sms.setCreatedBy(user);
-    sms.setSentDate(new Date());
-    sms.setReceivedDate(new Date());
+    sms.setSentDate(Date.from(TEST_NOW));
+    sms.setReceivedDate(Date.from(TEST_NOW));
     incomingSmsStore.save(sms);
     List<IncomingSms> incomingSmsList =
         incomingSmsStore.getSmsByStatus(SmsMessageStatus.INCOMING, "474");
@@ -90,7 +92,7 @@ class IncomingSmsStoreTest extends PostgresIntegrationTestBase {
   @Test
   void testOutboundSms() {
     OutboundSms outboundSms = new OutboundSms();
-    outboundSms.setDate(new Date());
+    outboundSms.setDate(Date.from(TEST_NOW));
     outboundSms.setMessage("testMessage");
     outboundSms.setSender("testSender");
     outboundSms.setStatus(OutboundSmsStatus.OUTBOUND);

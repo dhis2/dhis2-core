@@ -33,6 +33,7 @@ import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.Set;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -64,6 +65,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   @Autowired TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
   private User importUser;
 
@@ -244,8 +247,8 @@ class TrackerImportNoteControllerTest extends PostgresControllerIntegrationTestB
       TrackedEntity te, Program program, OrganisationUnit orgUnit, CategoryOptionCombo coc) {
     Enrollment enrollmentA = new Enrollment(program, te, orgUnit);
     enrollmentA.setAutoFields();
-    enrollmentA.setEnrollmentDate(new Date());
-    enrollmentA.setOccurredDate(new Date());
+    enrollmentA.setEnrollmentDate(Date.from(TEST_NOW));
+    enrollmentA.setOccurredDate(Date.from(TEST_NOW));
     enrollmentA.setStatus(EnrollmentStatus.COMPLETED);
     enrollmentA.setFollowup(true);
     enrollmentA.setAttributeOptionCombo(coc);

@@ -37,6 +37,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import com.google.common.collect.Sets;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -86,6 +87,8 @@ import org.mockito.quality.Strictness;
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
 class ValidationNotificationServiceTest extends TestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   private static final String STATIC_MOCK_SUBJECT = "Subject goes here";
 
@@ -336,7 +339,7 @@ class ValidationNotificationServiceTest extends TestBase {
             catOptCombo,
             412.0,
             532.0,
-            periodService.getDayInPeriod(period, new Date()));
+            periodService.getDayInPeriod(period, Date.from(TEST_NOW)));
     vr.setId(idCounter++);
     return vr;
   }
@@ -352,7 +355,7 @@ class ValidationNotificationServiceTest extends TestBase {
             catOptCombo,
             rnd.nextDouble(10, 1000),
             rnd.nextDouble(10, 1000),
-            periodService.getDayInPeriod(period, new Date()));
+            periodService.getDayInPeriod(period, Date.from(TEST_NOW)));
     vr.setId(idCounter++);
     return vr;
   }

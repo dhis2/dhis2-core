@@ -34,6 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hisp.dhis.analytics.util.ReportRatesHelper.getCalculatedTarget;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -49,6 +50,8 @@ import org.junit.jupiter.api.Test;
  * @author maikel arabori
  */
 class ReportRatesHelperTest {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   @Test
   void testGetCalculatedTargetWhenDataSetIsDailyAndHasPeriodInDimension() {
     Double theTarget = 10d;
@@ -122,8 +125,8 @@ class ReportRatesHelperTest {
 
   public PeriodDimension stubPeriod() {
     Period p = new Period();
-    p.setStartDate(new Date());
-    p.setEndDate(new Date());
+    p.setStartDate(Date.from(TEST_NOW));
+    p.setEndDate(Date.from(TEST_NOW));
     p.setPeriodType(DailyPeriodType.getByNameIgnoreCase("daily"));
     return PeriodDimension.of(p);
   }

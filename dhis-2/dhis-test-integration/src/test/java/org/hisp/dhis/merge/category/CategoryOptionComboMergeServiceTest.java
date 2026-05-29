@@ -42,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
@@ -136,6 +137,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired private CategoryService categoryService;
   @Autowired private CategoryOptionComboGenerateService categoryOptionComboGenerateService;
@@ -2256,7 +2258,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
     daa.setWorkflow(workflow);
     daa.setPeriod(p);
     daa.setAction(APPROVE);
-    daa.setCreated(new Date());
+    daa.setCreated(Date.from(TEST_NOW));
     daa.setCreator(getCurrentUser());
     return daa;
   }
@@ -2268,7 +2270,7 @@ class CategoryOptionComboMergeServiceTest extends PostgresIntegrationTestBase {
       Period p,
       OrganisationUnit org) {
     DataApproval da = new DataApproval(level, workflow, p, org, coc);
-    da.setCreated(new Date());
+    da.setCreated(Date.from(TEST_NOW));
     da.setCreator(getCurrentUser());
     return da;
   }

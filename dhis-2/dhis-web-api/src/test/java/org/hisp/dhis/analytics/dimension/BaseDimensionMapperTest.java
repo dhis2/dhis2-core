@@ -31,6 +31,7 @@ package org.hisp.dhis.analytics.dimension;
 
 import static org.hisp.dhis.analytics.dimension.DimensionMapperTestSupport.asserter;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -44,17 +45,19 @@ import org.hisp.dhis.webapi.dimension.DimensionResponse;
 import org.junit.jupiter.api.Test;
 
 class BaseDimensionMapperTest {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   public static final String UID = "uid";
 
   public static final long ID = 100L;
 
   public static final String NAME = "name";
 
-  public static final Date CREATED = new Date();
+  public static final Date CREATED = Date.from(TEST_NOW);
 
   public static final String CODE = "CODE";
 
-  public static final Date LAST_UPDATED = new Date();
+  public static final Date LAST_UPDATED = Date.from(TEST_NOW);
 
   public static final String SHORT_NAME = "shortName";
 

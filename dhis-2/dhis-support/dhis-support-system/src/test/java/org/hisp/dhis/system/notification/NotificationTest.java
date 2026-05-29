@@ -32,6 +32,8 @@ package org.hisp.dhis.system.notification;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -46,27 +48,30 @@ import org.junit.jupiter.api.Test;
  * @author Jan Bernitt
  */
 class NotificationTest {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   @Test
   void testNotificationAreNaturallySortedNewestFirst() {
-    Date now = new Date();
+    Date now = Date.from(TEST_NOW);
 
     Notification a = createNotificationWithTime(now);
-    Notification b = createNotificationWithTime(new Date(now.getTime() - 1000L));
-    Notification c = createNotificationWithTime(new Date(now.getTime() + 1000L));
+    Notification b = createNotificationWithTime(Date.from(TEST_NOW.minus(Duration.ofSeconds(1))));
+    Notification c = createNotificationWithTime(Date.from(TEST_NOW.plus(Duration.ofSeconds(1))));
 
     assertEquals(List.of(c, a, b), Stream.of(a, b, c).sorted().collect(toList()));
   }
 
   @Test
   void testCompletedNotificationsAreSortedAsLatestWhenSameTime() {
-    Date now = new Date();
+    Date now = Date.from(TEST_NOW);
 
     Notification a = createNotificationWithTime(now);
     a.setMessage("message should be sorted 2nd");
     Notification b = createNotificationWithTime(now);
     b.setMessage("message should be sorted 1st");
     b.setCompleted(true);
-    Notification c = createNotificationWithTime(new Date(now.getTime() - 1000L));
+    Notification c = createNotificationWithTime(Date.from(TEST_NOW.minus(Duration.ofSeconds(1))));
     c.setMessage("message should be sorted 3rd");
 
     List<Notification> notifications = new ArrayList<>(List.of(c, a, b));

@@ -42,6 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -82,6 +83,8 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
   private static final boolean ACCEPTED = true;
 
   private static final boolean NOT_ACCEPTED = false;
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired private DataApprovalService dataApprovalService;
 
@@ -604,7 +607,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
   void testAddDuplicateDataApproval() {
     switchToApprovalUser(
         organisationUnitA, DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS);
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     DataApproval dataApprovalA =
         new DataApproval(
             level2,
@@ -671,7 +674,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
   void testAddDataApprovalWithWrongPeriodType() {
     switchToApprovalUser(
         organisationUnitA, DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS);
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     try {
       dataApprovalService.approveData(
           newArrayList(
@@ -706,7 +709,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
   void testAddAllAndGetDataApprovalStatus() {
     switchToApprovalUser(
         organisationUnitA, DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS);
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     DataApproval dataApprovalA =
         new DataApproval(
             level1,
@@ -810,7 +813,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
   void testDeleteDataApproval() {
     switchToApprovalUser(
         organisationUnitA, DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS);
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     DataApproval dataApprovalA =
         new DataApproval(
             level1,
@@ -969,7 +972,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
         dataApprovalService
             .getDataApprovalStatus(workflow13, periodA, organisationUnitF, defaultOptionCombo)
             .getState());
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     // Approved for organisation unit F
     DataApproval dataApprovalF =
         new DataApproval(
@@ -1454,7 +1457,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
                   organisationUnitB,
                   defaultOptionCombo,
                   NOT_ACCEPTED,
-                  new Date(),
+                  Date.from(TEST_NOW),
                   userA));
           dbmsManager.clearSession();
           return null;
@@ -1502,7 +1505,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
         dataApprovalService
             .getDataApprovalStatus(workflow1234, periodA, organisationUnitF, defaultOptionCombo)
             .getState());
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     // Approved for organisation unit D
     DataApproval dataApprovalD =
         new DataApproval(
@@ -1593,7 +1596,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
   void testGetDataApprovalStateAbove() {
     switchToApprovalUser(
         organisationUnitA, DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS);
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     // Approved for organisation unit C
     DataApproval dataApprovalC =
         new DataApproval(
@@ -1622,7 +1625,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
   void testGetDataApprovalStateWithMultipleChildren() {
     switchToApprovalUser(
         organisationUnitA, DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS);
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     assertEquals(
         DataApprovalState.UNAPPROVED_WAITING,
         dataApprovalService
@@ -1837,7 +1840,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testMayApproveSameLevel() {
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     transactionTemplate.execute(
         status -> {
           switchToApprovalUser(organisationUnitB, DataApproval.AUTH_APPROVE, AUTH_APPR_LEVEL);
@@ -2210,7 +2213,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
   void testMayApproveLowerLevels() {
     switchToApprovalUser(
         organisationUnitB, DataApproval.AUTH_APPROVE_LOWER_LEVELS, AUTH_APPR_LEVEL);
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     // Level 4 (organisationUnitD and organisationUnitF ready)
     assertFalse(
         dataApprovalService
@@ -2412,7 +2415,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
         DataApproval.AUTH_APPROVE,
         DataApproval.AUTH_APPROVE_LOWER_LEVELS,
         AUTH_APPR_LEVEL);
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     // Level 4 (organisationUnitD and organisationUnitF ready)
     assertFalse(
         dataApprovalService
@@ -2594,7 +2597,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testMayApproveNoAuthority() {
     createUserAndInjectSecurityContext(singleton(organisationUnitB), false, AUTH_APPR_LEVEL);
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     assertFalse(
         dataApprovalService
             .getDataApprovalStatus(workflow1234, periodA, organisationUnitD, defaultOptionCombo)
@@ -2660,7 +2663,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testMayUnapproveSameLevel() {
     switchToApprovalUser(organisationUnitB, DataApproval.AUTH_APPROVE, AUTH_APPR_LEVEL);
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     DataApproval dataApprovalA =
         new DataApproval(
             level1,
@@ -2853,7 +2856,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
   void testMayUnapproveLowerLevels() {
     switchToApprovalUser(
         organisationUnitB, DataApproval.AUTH_APPROVE_LOWER_LEVELS, AUTH_APPR_LEVEL);
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     DataApproval dataApprovalA =
         new DataApproval(
             level1,
@@ -3045,7 +3048,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testMayUnapproveWithAcceptAuthority() {
     switchToApprovalUser(organisationUnitB, DataApproval.AUTH_ACCEPT_LOWER_LEVELS, AUTH_APPR_LEVEL);
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     DataApproval dataApprovalA =
         new DataApproval(
             level1,
@@ -3237,7 +3240,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
   @Test
   void testMayUnapproveNoAuthority() {
     createUserAndInjectSecurityContext(singleton(organisationUnitB), false, AUTH_APPR_LEVEL);
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     DataApproval dataApprovalA =
         new DataApproval(
             level1,
@@ -3428,7 +3431,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testGetDataApprovalStatuses() {
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     DataApproval dataApprovalA =
         new DataApproval(
             level1,
@@ -3533,7 +3536,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
   void testApprovalsWithCategories() {
     settingsService.put("keyAcceptanceRequiredForApproval", true);
     settingsService.clearCurrentSettings();
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     setUpCategories();
     createUserAndInjectSecurityContext(
         singleton(organisationUnitA),
@@ -3884,7 +3887,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
     assertEquals(
         "UNAPPROVED_READY level=null approve=T unapprove=F accept=F unaccept=F read=T",
         statusAndPermissions(workflow3, periodA, organisationUnitC, defaultOptionCombo));
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     dataApprovalStore.addDataApproval(
         new DataApproval(
             level4,
@@ -3938,7 +3941,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testPeriodsEndingDuringWorkflowApproval() {
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     transactionTemplate.execute(
         status -> {
           switchToApprovalUser(organisationUnitC, AUTH_APPR_LEVEL, DataApproval.AUTH_APPROVE);
@@ -4044,7 +4047,7 @@ class DataApprovalServiceTest extends PostgresIntegrationTestBase {
   @Disabled(
       "DHIS2-19679 not sure why this fails or how it is connected to any code changed in the PR")
   void testGetApprovedByOfAcceptedHere() {
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     DataApproval dataApprovalA =
         new DataApproval(
             level1,

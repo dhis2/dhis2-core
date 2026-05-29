@@ -33,8 +33,10 @@ import static org.hisp.dhis.common.QueryOperator.IN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -62,6 +64,11 @@ import org.junit.jupiter.api.Test;
  * @author Dusan Bernat
  */
 class QueryItemHelperTest extends TestBase {
+  private static final LocalDate TEST_DATE = LocalDate.parse("2026-06-15");
+
+  private static final LocalDateTime TEST_DATE_TIME =
+      LocalDateTime.ofInstant(Instant.parse("2026-06-15T10:00:00Z"), ZoneOffset.UTC);
+
   private final String UID_A = CodeGenerator.generateUid();
 
   private final String UID_B = CodeGenerator.generateUid();
@@ -306,17 +313,13 @@ class QueryItemHelperTest extends TestBase {
 
   @Test
   void testisItemOptionEqualToRowContentForLocalDate() {
-    LocalDate localDate = LocalDate.now();
-
-    assertTrue(QueryItemHelper.isItemOptionEqualToRowContent(localDate.toString(), localDate));
+    assertTrue(QueryItemHelper.isItemOptionEqualToRowContent(TEST_DATE.toString(), TEST_DATE));
   }
 
   @Test
   void testisItemOptionEqualToRowContentForLocalDateTime() {
-    LocalDateTime localDateTime = LocalDateTime.now();
-
     assertTrue(
-        QueryItemHelper.isItemOptionEqualToRowContent(localDateTime.toString(), localDateTime));
+        QueryItemHelper.isItemOptionEqualToRowContent(TEST_DATE_TIME.toString(), TEST_DATE_TIME));
   }
 
   private Grid stubGridWithRowsAndOptionSet(OptionSet optionSet) {

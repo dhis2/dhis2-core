@@ -63,6 +63,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class MessageFormatterTest {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   private TrackerIdSchemeParams idSchemes;
 
@@ -130,17 +131,15 @@ class MessageFormatterTest {
 
   @Test
   void formatArgumentsShouldTurnInstantIntoArgument() {
-    final Instant now = Instant.now();
-
-    List<String> args = MessageFormatter.formatArguments(idSchemes, now);
+    List<String> args = MessageFormatter.formatArguments(idSchemes, TEST_NOW);
 
     assertThat(args.size(), is(1));
-    assertThat(args.get(0), is(DateUtils.toIso8601NoTz(DateUtils.fromInstant(now))));
+    assertThat(args.get(0), is(DateUtils.toIso8601NoTz(DateUtils.fromInstant(TEST_NOW))));
   }
 
   @Test
   void formatArgumentsShouldTurnDateIntoArgument() {
-    final Date now = Date.from(Instant.now());
+    final Date now = Date.from(TEST_NOW);
 
     List<String> args = MessageFormatter.formatArguments(idSchemes, now);
 

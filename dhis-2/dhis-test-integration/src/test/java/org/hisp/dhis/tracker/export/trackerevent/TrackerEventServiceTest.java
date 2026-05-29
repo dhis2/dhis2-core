@@ -44,7 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
-import java.time.ZoneId;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
@@ -82,6 +82,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TrackerEventServiceTest extends PostgresIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   @Autowired private TestSetup testSetup;
 
   @Autowired private TrackerEventService trackerEventService;
@@ -303,23 +306,12 @@ class TrackerEventServiceTest extends PostgresIntegrationTestBase {
 
   @Test
   void testExportEventsWithLastUpdateDates() throws ForbiddenException, BadRequestException {
-    Date date = new Date();
     TrackerEventOperationParams params =
         operationParamsBuilder
             .enrollments(Set.of(UID.of("TvctPPhpD8z")))
             .programStage(programStage)
-            .updatedAfter(
-                Date.from(
-                    date.toInstant()
-                        .minus(1, ChronoUnit.DAYS)
-                        .atZone(ZoneId.systemDefault())
-                        .toInstant()))
-            .updatedBefore(
-                Date.from(
-                    date.toInstant()
-                        .plus(1, ChronoUnit.DAYS)
-                        .atZone(ZoneId.systemDefault())
-                        .toInstant()))
+            .updatedAfter(Date.from(TEST_NOW.minus(1, ChronoUnit.DAYS)))
+            .updatedBefore(Date.from(TEST_NOW.plus(1, ChronoUnit.DAYS)))
             .build();
 
     List<String> events = getEvents(params);

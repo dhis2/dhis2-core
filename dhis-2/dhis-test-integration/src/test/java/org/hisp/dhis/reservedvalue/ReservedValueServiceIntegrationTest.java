@@ -29,13 +29,13 @@
  */
 package org.hisp.dhis.reservedvalue;
 
-import static java.util.Calendar.DATE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Calendar;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -55,6 +55,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 class ReservedValueServiceIntegrationTest extends PostgresIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired private ReservedValueService reservedValueService;
 
@@ -78,9 +80,7 @@ class ReservedValueServiceIntegrationTest extends PostgresIntegrationTestBase {
   @BeforeEach
   void setUp() {
     // Set up future Date
-    Calendar calendar = Calendar.getInstance();
-    calendar.add(DATE, 10);
-    future = calendar.getTime();
+    future = Date.from(TEST_NOW.plus(Duration.ofDays(10)));
     // Set up dummy TrackedEntityAttribute
     TrackedEntityAttribute tea = createTrackedEntityAttribute('A');
     // Set up text patterns
@@ -138,8 +138,8 @@ class ReservedValueServiceIntegrationTest extends PostgresIntegrationTestBase {
 
     ReservedValue reservedValue = new ReservedValue();
     reservedValue.setTrackedEntityAttributeId(tea.getId());
-    reservedValue.setCreated(new Date());
-    reservedValue.setExpiryDate(new Date());
+    reservedValue.setCreated(Date.from(TEST_NOW));
+    reservedValue.setExpiryDate(Date.from(TEST_NOW));
     reservedValue.setOwnerObject(
         simpleRandomTextNumericPattern.getTextPattern().getOwnerObject().toString());
     reservedValue.setOwnerUid(tea.getUid());

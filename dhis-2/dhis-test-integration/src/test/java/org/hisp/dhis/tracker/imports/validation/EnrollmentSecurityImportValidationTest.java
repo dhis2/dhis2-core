@@ -80,6 +80,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class EnrollmentSecurityImportValidationTest extends PostgresIntegrationTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   @Autowired private TestSetup testSetup;
 
   @Autowired private TrackerImportService trackerImportService;
@@ -340,8 +342,8 @@ class EnrollmentSecurityImportValidationTest extends PostgresIntegrationTestBase
             .orgUnit(MetadataIdentifier.ofUid(orgUnit.getUid()))
             .trackedEntity(UID.of(trackedEntity))
             .status(EnrollmentStatus.ACTIVE)
-            .enrolledAt(Instant.now())
-            .occurredAt(Instant.now())
+            .enrolledAt(TEST_NOW)
+            .occurredAt(TEST_NOW)
             .enrollment(UID.generate())
             .attributeOptionCombo(
                 MetadataIdentifier.ofUid(categoryService.getDefaultCategoryOptionCombo().getUid()))

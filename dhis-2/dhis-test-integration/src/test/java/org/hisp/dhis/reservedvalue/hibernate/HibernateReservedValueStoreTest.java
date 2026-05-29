@@ -36,7 +36,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
-import java.util.Calendar;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -67,6 +68,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
 
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   private static final String teaUid = "tea";
 
   private static final String prog001 = "001";
@@ -80,7 +83,7 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
   private final ReservedValue.ReservedValueBuilder reservedValue =
       ReservedValue.builder()
           .ownerObject(Objects.TRACKEDENTITYATTRIBUTE.name())
-          .created(new Date())
+          .created(Date.from(TEST_NOW))
           .ownerUid(teaUid)
           .key(key)
           .expiryDate(futureDate);
@@ -99,9 +102,7 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
 
   @BeforeAll
   void setUp() {
-    Calendar future = Calendar.getInstance();
-    future.add(Calendar.DATE, 10);
-    futureDate = future.getTime();
+    futureDate = Date.from(TEST_NOW.plus(Duration.ofDays(10)));
   }
 
   @BeforeEach
@@ -141,7 +142,7 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
       saveReservedValue(
           ReservedValue.builder()
               .ownerObject(Objects.TRACKEDENTITYATTRIBUTE.name())
-              .created(new Date())
+              .created(Date.from(TEST_NOW))
               .ownerUid("FREE")
               .key("00X")
               .value(String.format("%03d", counter++))
@@ -209,9 +210,7 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
 
   @Test
   void removeExpiredReservations() {
-    Calendar pastDate = Calendar.getInstance();
-    pastDate.add(Calendar.DATE, -1);
-    reservedValue.expiryDate(pastDate.getTime());
+    reservedValue.expiryDate(Date.from(TEST_NOW.minus(Duration.ofDays(1))));
     ReservedValue rv = reservedValue.value(prog001).build();
     saveReservedValue(rv);
     assertTrue(
@@ -273,9 +272,11 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
   @Test
   void shouldRemoveAlreadyUsedOrExpiredReservedValues() {
     // expired value
-    Calendar pastDate = Calendar.getInstance();
-    pastDate.add(Calendar.DATE, -1);
-    saveReservedValue(reservedValue.value(prog002).expiryDate(pastDate.getTime()).build());
+    saveReservedValue(
+        reservedValue
+            .value(prog002)
+            .expiryDate(Date.from(TEST_NOW.minus(Duration.ofDays(1))))
+            .build());
 
     // used value
     OrganisationUnit ou = createOrganisationUnit("OU");

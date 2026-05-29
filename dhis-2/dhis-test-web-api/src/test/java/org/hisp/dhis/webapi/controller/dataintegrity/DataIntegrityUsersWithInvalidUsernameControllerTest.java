@@ -32,6 +32,7 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -50,6 +51,8 @@ import org.junit.jupiter.api.Test;
  */
 class DataIntegrityUsersWithInvalidUsernameControllerTest
     extends AbstractDataIntegrityIntegrationTest {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   private static final String CHECK_NAME = "users_with_invalid_usernames";
 
@@ -127,8 +130,8 @@ class DataIntegrityUsersWithInvalidUsernameControllerTest
     user.setSurname("Tables");
     user.setUsername(username);
     user.setPassword(DEFAULT_ADMIN_PASSWORD);
-    user.setLastUpdated(new Date());
-    user.setCreated(new Date());
+    user.setLastUpdated(Date.from(TEST_NOW));
+    user.setCreated(Date.from(TEST_NOW));
     manager.persist(user);
   }
 

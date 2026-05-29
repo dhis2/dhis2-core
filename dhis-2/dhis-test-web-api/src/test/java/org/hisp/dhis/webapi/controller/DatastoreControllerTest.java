@@ -42,7 +42,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.time.LocalDate;
 import java.util.List;
 import org.hisp.dhis.datastore.DatastoreEntry;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
@@ -154,11 +153,7 @@ class DatastoreControllerTest extends H2ControllerIntegrationTestBase {
   void testGetKeysInNamespace_LastUpdatedFilter() {
     assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/cat", "{'answer': 42}"));
     assertStatus(HttpStatus.CREATED, POST("/dataStore/pets/dog", "{'answer': true}"));
-    assertTrue(
-        GET("/dataStore/pets?lastUpdated=" + (LocalDate.now().getYear() + 1))
-            .content()
-            .stringValues()
-            .isEmpty());
+    assertTrue(GET("/dataStore/pets?lastUpdated=2999").content().stringValues().isEmpty());
   }
 
   @Test

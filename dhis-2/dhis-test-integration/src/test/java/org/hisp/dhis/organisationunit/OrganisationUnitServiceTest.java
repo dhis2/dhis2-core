@@ -39,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -72,6 +73,8 @@ import org.springframework.util.MimeTypeUtils;
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
 class OrganisationUnitServiceTest extends PostgresIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired private OrganisationUnitService organisationUnitService;
 
@@ -353,11 +356,11 @@ class OrganisationUnitServiceTest extends PostgresIntegrationTestBase {
     String oU2Code = "OU2Code";
     String oU3Code = "OU3Code";
     OrganisationUnit organisationUnit1 =
-        new OrganisationUnit(oU1Name, null, oU1ShortName, oU1Code, new Date(), null, null);
+        new OrganisationUnit(oU1Name, null, oU1ShortName, oU1Code, Date.from(TEST_NOW), null, null);
     OrganisationUnit organisationUnit2 =
-        new OrganisationUnit(oU2Name, null, oU2ShortName, oU2Code, new Date(), null, null);
+        new OrganisationUnit(oU2Name, null, oU2ShortName, oU2Code, Date.from(TEST_NOW), null, null);
     OrganisationUnit organisationUnit3 =
-        new OrganisationUnit(oU3Name, null, oU3ShortName, oU3Code, new Date(), null, null);
+        new OrganisationUnit(oU3Name, null, oU3ShortName, oU3Code, Date.from(TEST_NOW), null, null);
     organisationUnitService.addOrganisationUnit(organisationUnit1);
     organisationUnitService.addOrganisationUnit(organisationUnit2);
     organisationUnitService.addOrganisationUnit(organisationUnit3);
@@ -988,7 +991,7 @@ class OrganisationUnitServiceTest extends PostgresIntegrationTestBase {
             "md5",
             FileResourceDomain.ORG_UNIT);
     fileResource.setAssigned(false);
-    fileResource.setCreated(new Date());
+    fileResource.setCreated(Date.from(TEST_NOW));
     fileResource.setAutoFields();
     fileResourceService.asyncSaveFileResource(fileResource, content);
     OrganisationUnit orgUnit = createOrganisationUnit('A');

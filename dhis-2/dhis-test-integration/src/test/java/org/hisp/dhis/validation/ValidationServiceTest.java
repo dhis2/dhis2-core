@@ -48,6 +48,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -103,6 +104,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Jim Grace
  */
 class ValidationServiceTest extends PostgresIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired private ValidationService validationService;
 
@@ -352,10 +355,10 @@ class ValidationServiceTest extends PostgresIntegrationTestBase {
     periodB = createPeriod(ptMonthly, getDate(2000, 4, 1), getDate(2000, 4, 30));
     periodC = createPeriod(ptMonthly, getDate(2000, 5, 1), getDate(2000, 5, 31));
     periodY = createPeriod(ptYearly, getDate(2000, 1, 1), getDate(2000, 12, 31));
-    dayInPeriodA = periodService.getDayInPeriod(periodA, new Date());
-    dayInPeriodB = periodService.getDayInPeriod(periodB, new Date());
-    dayInPeriodC = periodService.getDayInPeriod(periodC, new Date());
-    dayInPeriodY = periodService.getDayInPeriod(periodY, new Date());
+    dayInPeriodA = periodService.getDayInPeriod(periodA, Date.from(TEST_NOW));
+    dayInPeriodB = periodService.getDayInPeriod(periodB, Date.from(TEST_NOW));
+    dayInPeriodC = periodService.getDayInPeriod(periodC, Date.from(TEST_NOW));
+    dayInPeriodY = periodService.getDayInPeriod(periodY, Date.from(TEST_NOW));
     dataSetWeekly = createDataSet('W', ptWeekly);
     dataSetMonthly = createDataSet('M', ptMonthly);
     dataSetYearly = createDataSet('Y', ptYearly);

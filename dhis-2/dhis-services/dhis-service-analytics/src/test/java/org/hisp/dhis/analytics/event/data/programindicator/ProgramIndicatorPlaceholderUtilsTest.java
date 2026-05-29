@@ -48,6 +48,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
@@ -81,11 +82,13 @@ class ProgramIndicatorPlaceholderUtilsTest extends TestBase {
   private Map<String, String> psdeAliasMap;
   private Map<String, String> d2FunctionAliasMap;
 
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   private final String piUid = "programInd1";
   private final String progUid = "programUid1";
   private final String eventTable = "analytics_event_" + progUid;
-  private final Date startDate = new Date();
-  private final Date endDate = new Date();
+  private final Date startDate = Date.from(TEST_NOW);
+  private final Date endDate = Date.from(TEST_NOW);
   private final String psUid = "PgmStgUid1";
   private final String deUid = "DataElmUid1";
   private final SimpleDateFormat dateFormat = new SimpleDateFormat(Period.DEFAULT_DATE_FORMAT);

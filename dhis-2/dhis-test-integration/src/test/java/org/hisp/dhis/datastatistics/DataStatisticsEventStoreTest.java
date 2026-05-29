@@ -36,6 +36,7 @@ import static org.hisp.dhis.datastatistics.DataStatisticsEventType.VISUALIZATION
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +54,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Julie Hill Roa
  */
 class DataStatisticsEventStoreTest extends PostgresIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
   @Autowired private DataStatisticsEventStore dataStatisticsEventStore;
 
   @Autowired private DashboardService dashboardService;
@@ -120,7 +123,8 @@ class DataStatisticsEventStoreTest extends PostgresIntegrationTestBase {
   @Test
   void getDataStatisticsEventCountNonExistingDatesTest() {
     final Map<DataStatisticsEventType, Long> eventsMap =
-        dataStatisticsEventStore.getDataStatisticsEventCount(new Date(), new Date());
+        dataStatisticsEventStore.getDataStatisticsEventCount(
+            Date.from(TEST_NOW), Date.from(TEST_NOW));
 
     // Test that the map contains the TOTAL_VIEW and ACTIVE_USERS keys
     assertTrue(eventsMap.containsKey(DataStatisticsEventType.TOTAL_VIEW));

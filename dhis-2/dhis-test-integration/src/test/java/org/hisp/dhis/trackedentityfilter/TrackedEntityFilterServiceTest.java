@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -62,6 +63,8 @@ import org.springframework.transaction.annotation.Transactional;
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
 class TrackedEntityFilterServiceTest extends PostgresIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired private ProgramService programService;
 
@@ -211,7 +214,7 @@ class TrackedEntityFilterServiceTest extends PostgresIntegrationTestBase {
 
     DateFilterPeriod correctDateFilterPeriod = new DateFilterPeriod();
     correctDateFilterPeriod.setType(DatePeriodType.ABSOLUTE);
-    correctDateFilterPeriod.setStartDate(new Date());
+    correctDateFilterPeriod.setStartDate(Date.from(TEST_NOW));
     TrackedEntityAttribute attributeA = createTrackedEntityAttribute('A');
     trackedEntityAttributeService.addTrackedEntityAttribute(attributeA);
 

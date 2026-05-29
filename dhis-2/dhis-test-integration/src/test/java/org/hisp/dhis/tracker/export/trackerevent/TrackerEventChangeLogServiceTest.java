@@ -38,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UID;
@@ -73,6 +74,10 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+  private static final org.joda.time.LocalDateTime TEST_LOCAL_DATE_TIME =
+      org.joda.time.LocalDateTime.parse("2026-06-15T10:00:00.000");
 
   @Autowired private TrackerEventChangeLogService trackerEventChangeLogService;
 
@@ -298,7 +303,7 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
             "previous",
             "current",
             UPDATE,
-            new java.util.Date(),
+            Date.from(TEST_NOW),
             deletedUser.getUsername()));
 
     List<EventChangeLog> changeLogs =
@@ -335,7 +340,7 @@ class TrackerEventChangeLogServiceTest extends PostgresIntegrationTestBase {
   void shouldReturnEventFieldChangeLogWhenExistingDateFieldUpdated()
       throws IOException, NotFoundException {
     UID event = UID.of("H0PbzJY8bJG");
-    LocalDateTime currentTime = LocalDateTime.now();
+    LocalDateTime currentTime = TEST_LOCAL_DATE_TIME;
 
     updateEventDates(event, currentTime.toDate().toInstant());
 

@@ -40,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Sets;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -101,6 +102,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
  * @author Enrico Colasante
  */
 class MaintenanceServiceTest extends PostgresIntegrationTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
   @Autowired private EnrollmentService enrollmentService;
 
   @Autowired private TrackerEventService trackerEventService;
@@ -212,14 +214,14 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     trackerEvent.setUid(UID.generate().getValue());
     trackerEvent.setOrganisationUnit(organisationUnit);
     trackerEvent.setEnrollment(enrollment);
-    trackerEvent.setOccurredDate(new Date());
+    trackerEvent.setOccurredDate(Date.from(TEST_NOW));
     trackerEvent.setAttributeOptionCombo(coA);
 
     singleEvent = new SingleEvent();
     singleEvent.setProgramStage(stageA);
     singleEvent.setUid(UID.generate().getValue());
     singleEvent.setOrganisationUnit(organisationUnit);
-    singleEvent.setOccurredDate(new Date());
+    singleEvent.setOccurredDate(Date.from(TEST_NOW));
     singleEvent.setAttributeOptionCombo(coA);
 
     TrackerEvent eventWithTeAssociation = new TrackerEvent();
@@ -228,7 +230,7 @@ class MaintenanceServiceTest extends PostgresIntegrationTestBase {
     eventWithTeAssociation.setUid(UID.generate().getValue());
     eventWithTeAssociation.setOrganisationUnit(organisationUnit);
     eventWithTeAssociation.setEnrollment(enrollmentWithTeAssociation);
-    eventWithTeAssociation.setOccurredDate(new Date());
+    eventWithTeAssociation.setOccurredDate(Date.from(TEST_NOW));
     eventWithTeAssociation.setAttributeOptionCombo(coA);
     manager.save(eventWithTeAssociation);
     relationshipType = createPersonToPersonRelationshipType('A', program, trackedEntityType, false);

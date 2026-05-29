@@ -44,9 +44,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import org.hisp.dhis.attribute.AttributeValues;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -78,6 +78,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class MeControllerTest extends H2ControllerIntegrationTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   private User userA;
 
   @Autowired private ApiTokenStore apiTokenStore;
@@ -300,7 +302,7 @@ class MeControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testPersonalAccessTokensIsPresent() {
-    long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(30);
+    long thirtyDaysInTheFuture = TEST_NOW.plusSeconds(30L * 24 * 3600).toEpochMilli();
     ApiKeyTokenGenerator.TokenWrapper wrapper =
         generatePersonalAccessToken(null, thirtyDaysInTheFuture, null);
     apiTokenStore.save(wrapper.getApiToken());

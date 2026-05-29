@@ -80,6 +80,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * <p>Not @Transactional because notifications dispatch asynchronously in a separate thread.
  */
 class TrackerNotificationTest extends PostgresIntegrationTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired private TestSetup testSetup;
   @Autowired private TrackerImportService trackerImportService;
@@ -253,8 +254,8 @@ class TrackerNotificationTest extends PostgresIntegrationTestBase {
                             .orgUnit(MetadataIdentifier.ofUid("h4w96yEMlzO"))
                             .trackedEntity(trackedEntityUid)
                             .status(EnrollmentStatus.ACTIVE)
-                            .enrolledAt(Instant.now())
-                            .occurredAt(Instant.now())
+                            .enrolledAt(TEST_NOW)
+                            .occurredAt(TEST_NOW)
                             .attributeOptionCombo(MetadataIdentifier.ofUid("HllvX50cXC0"))
                             .build()))
                 .build()));
@@ -279,7 +280,7 @@ class TrackerNotificationTest extends PostgresIntegrationTestBase {
             .programStage(MetadataIdentifier.ofUid(singleEventStage.getUid()))
             .orgUnit(MetadataIdentifier.ofUid("h4w96yEMlzO"))
             .status(EventStatus.COMPLETED)
-            .occurredAt(Instant.now())
+            .occurredAt(TEST_NOW)
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
             .build();
 
@@ -311,8 +312,8 @@ class TrackerNotificationTest extends PostgresIntegrationTestBase {
             .orgUnit(MetadataIdentifier.ofUid("h4w96yEMlzO"))
             .trackedEntity(trackedEntityUid)
             .status(status)
-            .enrolledAt(Instant.now())
-            .occurredAt(Instant.now())
+            .enrolledAt(TEST_NOW)
+            .occurredAt(TEST_NOW)
             .attributeOptionCombo(MetadataIdentifier.ofUid("HllvX50cXC0"))
             .build();
     assertNoErrors(
@@ -330,8 +331,8 @@ class TrackerNotificationTest extends PostgresIntegrationTestBase {
             .orgUnit(MetadataIdentifier.ofUid("h4w96yEMlzO"))
             .trackedEntity(trackedEntityUid)
             .status(EnrollmentStatus.ACTIVE)
-            .enrolledAt(Instant.now())
-            .occurredAt(Instant.now())
+            .enrolledAt(TEST_NOW)
+            .occurredAt(TEST_NOW)
             .attributeOptionCombo(MetadataIdentifier.ofUid("HllvX50cXC0"))
             .build();
     org.hisp.dhis.tracker.imports.domain.TrackerEvent event =
@@ -342,7 +343,7 @@ class TrackerNotificationTest extends PostgresIntegrationTestBase {
             .programStage(MetadataIdentifier.ofUid(programStage.getUid()))
             .orgUnit(MetadataIdentifier.ofUid("h4w96yEMlzO"))
             .status(EventStatus.COMPLETED)
-            .occurredAt(Instant.now())
+            .occurredAt(TEST_NOW)
             .attributeOptionCombo(MetadataIdentifier.EMPTY_UID)
             .build();
     assertNoErrors(

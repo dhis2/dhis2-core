@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -68,7 +69,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class TrackerObjectsMapperTest extends TrackerTestBase {
-  private static final Date NOW = new Date();
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
+  private static final Date NOW = Date.from(TEST_NOW);
 
   private static final Date YESTERDAY = DateUtils.addDays(NOW, -1);
 
@@ -96,7 +99,7 @@ class TrackerObjectsMapperTest extends TrackerTestBase {
 
   private static final String TE_TO_TE_RELATIONSHIP_TYPE = CodeGenerator.generateUid();
 
-  private static final Date today = new Date();
+  private static final Date today = Date.from(TEST_NOW);
 
   public TrackerPreheat preheat;
 

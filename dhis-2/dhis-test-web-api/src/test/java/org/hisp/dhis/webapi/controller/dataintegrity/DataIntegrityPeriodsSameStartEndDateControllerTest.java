@@ -29,7 +29,8 @@
  */
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
-import java.time.ZonedDateTime;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Date;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
@@ -54,16 +55,18 @@ class DataIntegrityPeriodsSameStartEndDateControllerTest
   @Autowired private PeriodService periodService;
 
   private static final String check = "periods_same_start_date_period_type";
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Test
   void testNoBadPeriodsExist() {
 
     PeriodType periodType = new MonthlyPeriodType();
-    Date date_future = Date.from(ZonedDateTime.now().plusYears(1).plusDays(1).toInstant());
+    Date date_future =
+        Date.from(TEST_NOW.atZone(ZoneOffset.UTC).plusYears(1).plusDays(1).toInstant());
     Period periodA = periodType.createPeriod(date_future);
     periodService.addPeriod(periodA);
 
-    Date date_past = Date.from(ZonedDateTime.now().minusMonths(5).toInstant());
+    Date date_past = Date.from(TEST_NOW.atZone(ZoneOffset.UTC).minusMonths(5).toInstant());
     Period periodC = periodType.createPeriod(date_past);
     periodService.addPeriod(periodC);
     dbmsManager.clearSession();

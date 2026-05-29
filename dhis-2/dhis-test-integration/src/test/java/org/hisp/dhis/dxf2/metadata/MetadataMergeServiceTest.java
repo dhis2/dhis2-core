@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.time.Instant;
 import java.util.Date;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dxf2.metadata.merge.Simple;
@@ -56,12 +57,13 @@ import org.springframework.transaction.annotation.Transactional;
 @TestInstance(Lifecycle.PER_CLASS)
 @Transactional
 class MetadataMergeServiceTest extends PostgresIntegrationTestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   @Autowired private MetadataMergeService metadataMergeService;
 
   @Test
   void simpleReplace() {
-    Date date = new Date();
+    Date date = Date.from(TEST_NOW);
     Simple source = new Simple("string", 10, date, false, 123, 2.5f);
     Simple target = new Simple();
     metadataMergeService.merge(

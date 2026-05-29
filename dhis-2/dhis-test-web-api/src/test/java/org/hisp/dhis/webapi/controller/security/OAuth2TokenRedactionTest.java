@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import org.hisp.dhis.http.HttpStatus;
@@ -57,6 +58,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class OAuth2TokenRedactionTest extends H2ControllerIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   /**
    * Every JSON field name on {@link Dhis2OAuth2Authorization} that must never appear in any REST
@@ -96,9 +99,9 @@ class OAuth2TokenRedactionTest extends H2ControllerIntegrationTestBase {
     row.setAttributes("{\"java.security.Principal\":\"admin\"}");
     row.setState("csrf-state-value");
     row.setAuthorizationCodeValue("AUTHCODE-SECRET");
-    row.setAuthorizationCodeIssuedAt(new Date());
+    row.setAuthorizationCodeIssuedAt(Date.from(TEST_NOW));
     row.setAccessTokenValue("ACCESS-TOKEN-SECRET");
-    row.setAccessTokenIssuedAt(new Date());
+    row.setAccessTokenIssuedAt(Date.from(TEST_NOW));
     row.setAccessTokenType("Bearer");
     row.setAccessTokenScopes("read,write");
     row.setRefreshTokenValue("REFRESH-TOKEN-SECRET");

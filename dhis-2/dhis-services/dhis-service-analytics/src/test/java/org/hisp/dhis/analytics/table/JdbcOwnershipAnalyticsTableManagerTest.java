@@ -55,6 +55,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -105,6 +106,7 @@ import org.springframework.jdbc.core.RowCallbackHandler;
  */
 @ExtendWith(MockitoExtension.class)
 class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
   @Mock private IdentifiableObjectManager idObjectManager;
 
   @Mock private OrganisationUnitService organisationUnitService;
@@ -171,7 +173,8 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
             Logged.UNLOGGED,
             programB);
 
-    partitionA = new AnalyticsTablePartition(tableA, List.of(), 1, new Date(), new Date());
+    partitionA =
+        new AnalyticsTablePartition(tableA, List.of(), 1, Date.from(TEST_NOW), Date.from(TEST_NOW));
   }
 
   @Test
@@ -197,7 +200,7 @@ class JdbcOwnershipAnalyticsTableManagerTest extends TestBase {
 
   @Test
   void testGetPartitionChecks() {
-    assertTrue(manager.getPartitionChecks(1, new Date()).isEmpty());
+    assertTrue(manager.getPartitionChecks(1, Date.from(TEST_NOW)).isEmpty());
   }
 
   @Test

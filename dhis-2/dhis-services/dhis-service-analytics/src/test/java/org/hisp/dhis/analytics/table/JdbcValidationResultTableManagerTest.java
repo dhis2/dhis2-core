@@ -41,6 +41,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -109,6 +110,8 @@ class JdbcValidationResultTableManagerTest {
 
   private JdbcValidationResultTableManager subject;
 
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
+
   private static final Date START_TIME = new DateTime(2021, 5, 10, 0, 0).toDate();
 
   @BeforeEach
@@ -156,7 +159,7 @@ class JdbcValidationResultTableManagerTest {
   @Test
   @DisplayName("Builds partition check clause using provided year (e.g. year = 2022)")
   void testGetPartitionChecks() {
-    assertEquals(List.of("year = 2022"), subject.getPartitionChecks(2022, new Date()));
+    assertEquals(List.of("year = 2022"), subject.getPartitionChecks(2022, Date.from(TEST_NOW)));
   }
 
   @Test
@@ -304,7 +307,7 @@ class JdbcValidationResultTableManagerTest {
   @DisplayName("getPartitionChecks throws when year is null to enforce non-null input")
   void testGetPartitionChecksNullYearThrows() {
     org.junit.jupiter.api.Assertions.assertThrows(
-        NullPointerException.class, () -> subject.getPartitionChecks(null, new Date()));
+        NullPointerException.class, () -> subject.getPartitionChecks(null, Date.from(TEST_NOW)));
   }
 
   @Test

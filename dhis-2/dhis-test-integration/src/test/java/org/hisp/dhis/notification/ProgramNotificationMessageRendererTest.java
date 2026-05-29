@@ -36,6 +36,8 @@ import static org.hisp.dhis.tracker.test.TrackerTestBase.createTrackedEntity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import com.google.common.collect.Sets;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
@@ -77,7 +79,6 @@ import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.tracker.program.notification.ProgramNotificationMessageRenderer;
 import org.hisp.dhis.tracker.program.notification.ProgramStageNotificationMessageRenderer;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
-import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,6 +89,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   private String dataElementUid = CodeGenerator.generateUid();
   private String dataElementNotInProgramStageUid = CodeGenerator.generateUid();
@@ -179,13 +182,8 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
 
   @BeforeEach
   void setUp() throws ConflictException {
-    DateTime testDate1 = DateTime.now();
-    testDate1.withTimeAtStartOfDay();
-    testDate1 = testDate1.minusDays(70);
-    Date occurredDate = testDate1.toDate();
-    DateTime testDate2 = DateTime.now();
-    testDate2.withTimeAtStartOfDay();
-    Date enrollmentDate = testDate2.toDate();
+    Date occurredDate = Date.from(TEST_NOW.minus(Duration.ofDays(70)));
+    Date enrollmentDate = Date.from(TEST_NOW);
     optionA = createOption('A');
     optionB = createOption('B');
 
@@ -271,7 +269,7 @@ class ProgramNotificationMessageRendererTest extends PostgresIntegrationTestBase
     // Event to be provided in message renderer
     eventA = createEvent(programStageA, enrollmentA, organisationUnitA);
     eventA.setScheduledDate(enrollmentDate);
-    eventA.setOccurredDate(new Date());
+    eventA.setOccurredDate(Date.from(TEST_NOW));
     eventA.setUid("PSI-UID");
     eventDataValueA = new EventDataValue();
     eventDataValueA.setDataElement(dataElementA.getUid());

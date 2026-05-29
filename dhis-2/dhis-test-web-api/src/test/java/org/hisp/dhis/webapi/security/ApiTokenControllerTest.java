@@ -36,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Instant;
 import org.hisp.dhis.http.HttpAssertions;
 import org.hisp.dhis.http.HttpStatus;
 import org.hisp.dhis.jsontree.JsonList;
@@ -56,6 +57,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class ApiTokenControllerTest extends H2ControllerIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   public static final String USER_A_USERNAME = "userA";
 
@@ -234,7 +237,7 @@ class ApiTokenControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testCreateApiTokenExpireInFuture() {
-    long oneHourFromNow = System.currentTimeMillis() + 3600000;
+    long oneHourFromNow = TEST_NOW.plusSeconds(3600).toEpochMilli();
     assertStatus(HttpStatus.CREATED, POST("/apiTokens/", "{'expire': " + oneHourFromNow + "}"));
   }
 

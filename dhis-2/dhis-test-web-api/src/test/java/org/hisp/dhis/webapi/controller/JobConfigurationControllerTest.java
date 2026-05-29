@@ -40,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Instant;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -66,6 +67,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class JobConfigurationControllerTest extends H2ControllerIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
 
   private static final String UID1 = "asdflksadfjlkj";
   private static final String UID2 = "kajshdfkjahsdkfhj";
@@ -268,36 +271,37 @@ class JobConfigurationControllerTest extends H2ControllerIntegrationTestBase {
 
   @Test
   void testLastExecutedIsIgnored_Create() {
-    assertNull(createExpectSuccess(Map.of("lastExecuted", new Date())).getLastExecuted());
+    assertNull(createExpectSuccess(Map.of("lastExecuted", Date.from(TEST_NOW))).getLastExecuted());
   }
 
   @Test
   void testLastExecutedIsIgnored_Update() {
     assertNull(
-        updateExpectSuccess(obj -> obj.addMember("lastExecuted", toJson(new Date())))
+        updateExpectSuccess(obj -> obj.addMember("lastExecuted", toJson(Date.from(TEST_NOW))))
             .getLastExecuted());
   }
 
   @Test
   void testLastAliveIsIgnored_Create() {
-    assertNull(createExpectSuccess(Map.of("lastAlive", new Date())).getLastAlive());
+    assertNull(createExpectSuccess(Map.of("lastAlive", Date.from(TEST_NOW))).getLastAlive());
   }
 
   @Test
   void testLastAliveIsIgnored_Update() {
     assertNull(
-        updateExpectSuccess(obj -> obj.addMember("lastAlive", toJson(new Date()))).getLastAlive());
+        updateExpectSuccess(obj -> obj.addMember("lastAlive", toJson(Date.from(TEST_NOW))))
+            .getLastAlive());
   }
 
   @Test
   void testLastFinishedIsIgnored_Create() {
-    assertNull(createExpectSuccess(Map.of("lastFinished", new Date())).getLastFinished());
+    assertNull(createExpectSuccess(Map.of("lastFinished", Date.from(TEST_NOW))).getLastFinished());
   }
 
   @Test
   void testLastFinishedIsIgnored_Update() {
     assertNull(
-        updateExpectSuccess(obj -> obj.addMember("lastFinished", toJson(new Date())))
+        updateExpectSuccess(obj -> obj.addMember("lastFinished", toJson(Date.from(TEST_NOW))))
             .getLastFinished());
   }
 

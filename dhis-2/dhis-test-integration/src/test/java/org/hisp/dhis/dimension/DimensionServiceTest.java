@@ -57,6 +57,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
@@ -114,6 +115,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Transactional
 class DimensionServiceTest extends PostgresIntegrationTestBase {
+
+  private static final Instant TEST_NOW = Instant.parse("2026-06-15T10:00:00Z");
   private Attribute atA;
 
   private DataElement deA;
@@ -310,8 +313,8 @@ class DimensionServiceTest extends PostgresIntegrationTestBase {
     attributeService.addAttributeValue(deC, atA.getUid(), "DEC");
     attributeService.addAttributeValue(dsA, atA.getUid(), "DSA");
     queryModsA = QueryModifiers.builder().periodOffset(10).build();
-    queryModsB = QueryModifiers.builder().minDate(new Date()).build();
-    queryModsC = QueryModifiers.builder().maxDate(new Date()).build();
+    queryModsB = QueryModifiers.builder().minDate(Date.from(TEST_NOW)).build();
+    queryModsC = QueryModifiers.builder().maxDate(Date.from(TEST_NOW)).build();
     itemObjectA = deA;
     itemObjectB = new DataElementOperand(deA, cocA);
     itemObjectC = new DataElementOperand(deA, null, cocA);
