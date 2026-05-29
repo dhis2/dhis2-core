@@ -387,8 +387,13 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
     }
 
     if (sqlBuilder.supportsGeospatialData()) {
+      columns.add(getCoordinateSelectExpression(params));
+
+      if (params.hasGeometrySources()) {
+        columns.add(getGeometrySourceSelectExpression(params));
+      }
+
       columns.add(
-          getCoordinateSelectExpression(params),
           getEnrollmentCoordinateSelectExpression(),
           EventAnalyticsColumnName.LONGITUDE_COLUMN_NAME,
           EventAnalyticsColumnName.LATITUDE_COLUMN_NAME);
@@ -428,6 +433,26 @@ public class JdbcEventAnalyticsManager extends AbstractJdbcEventAnalyticsManager
             params.getCoordinateFields(), FallbackCoordinateFieldType.EVENT_GEOMETRY.getValue());
 
     return String.format("ST_AsGeoJSON(%s, 6) as geometry", field);
+  }
+
+  /**
+   * Returns a geometry source select expression matching the coordinate coalesce priority.
+   *
+   * @param params the {@link EventQueryParams}.
+   * @return a geometry source select expression.
+   */
+  private String getGeometrySourceSelectExpression(EventQueryParams params) {
+    String whenClauses =
+        params.getGeometrySources().stream()
+            .map(
+                geometrySource ->
+                    String.format(
+                        "when %s is not null then %s",
+                        sqlBuilder.quoteAx(geometrySource.coordinateField()),
+                        singleQuote(geometrySource.source())))
+            .collect(joining(" "));
+
+    return String.format("(case %s end) as geometrySource", whenClauses);
   }
 
   /**
