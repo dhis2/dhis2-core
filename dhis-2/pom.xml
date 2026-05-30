@@ -83,7 +83,10 @@
 
     <byte-buddy.version>1.17.5</byte-buddy.version>
     <byte-buddy-agent.version>1.17.5</byte-buddy-agent.version>
-    <surefireArgLine>-Xmx2024m -Xshare:off -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy-agent.version}/byte-buddy-agent-${byte-buddy-agent.version}.jar</surefireArgLine>
+    <!-- -Xshare:auto lets the JVM use Class Data Sharing for faster test-fork startup. The byte-buddy
+         startup agent below supplies the Instrumentation the inline mock maker needs; CDS and the agent
+         coexist on JDK 17 (a class redefined by the agent simply isn't served from the shared archive). -->
+    <surefireArgLine>-Xmx2024m -Xshare:auto -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy-agent.version}/byte-buddy-agent-${byte-buddy-agent.version}.jar</surefireArgLine>
 
     <jrebel-maven-plugin.version>1.1.6</jrebel-maven-plugin.version>
     <maven-war-plugin.version>3.5.1</maven-war-plugin.version>
