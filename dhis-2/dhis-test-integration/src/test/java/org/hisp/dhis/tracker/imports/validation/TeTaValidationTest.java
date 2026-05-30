@@ -154,7 +154,7 @@ class TeTaValidationTest extends PostgresIntegrationTestBase {
         testSetup.fromJson("tracker/validations/te-program_with_tea_fileresource_data.json");
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasOnlyErrors(importReport, ValidationCode.E1084);
+    assertHasOnlyErrors(importReport, ValidationCode.E1007);
     List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
     assertEquals(0, trackedEntities.size());
   }
@@ -178,7 +178,7 @@ class TeTaValidationTest extends PostgresIntegrationTestBase {
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasOnlyErrors(importReport, ValidationCode.E1085);
+    assertHasOnlyErrors(importReport, ValidationCode.E1007);
   }
 
   @Test
@@ -189,7 +189,7 @@ class TeTaValidationTest extends PostgresIntegrationTestBase {
 
     ImportReport importReport = trackerImportService.importTracker(params, trackerObjects);
 
-    assertHasOnlyErrors(importReport, ValidationCode.E1085, ValidationCode.E1007);
+    assertHasOnlyErrors(importReport, ValidationCode.E1007);
   }
 
   @Test

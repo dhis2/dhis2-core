@@ -181,7 +181,6 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener {
             smsCommand,
             dataValues,
             smsCreatedBy.getUserOrgUnitIds().iterator().next(),
-            smsCreatedBy.getUsername(),
             dataElementCategoryService,
             trackedEntity.getUid(),
             enrollment);

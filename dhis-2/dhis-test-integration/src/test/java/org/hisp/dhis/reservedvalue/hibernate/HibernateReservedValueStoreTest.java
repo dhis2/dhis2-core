@@ -54,6 +54,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -99,6 +100,10 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     Calendar future = Calendar.getInstance();
     future.add(Calendar.DATE, 10);
     futureDate = future.getTime();
+  }
+
+  @BeforeEach
+  void resetBuilderState() {
     reservedValue.expiryDate(futureDate);
   }
 
@@ -210,15 +215,16 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     saveReservedValue(rv);
     assertTrue(
         reservedValueStore.isReserved(Objects.TRACKEDENTITYATTRIBUTE.name(), teaUid, prog001));
-    reservedValueStore.removeUsedOrExpiredReservations();
+    reservedValueStore.removeExpiredValues();
     assertFalse(reservedValueStore.getAll().contains(rv));
   }
 
   @Test
-  void removeExpiredReservationsDoesNotRemoveAnythingIfNothingHasExpired() {
+  void removeExpiredReservationsDoesNotRemoveAnythingIfNothingIsExpiredOrUsed() {
     saveReservedValue(reservedValue.value(prog001).build());
     int num = reservedValueStore.getCount();
-    reservedValueStore.removeUsedOrExpiredReservations();
+    reservedValueStore.removeExpiredValues();
+    reservedValueStore.removeUsedValues();
     assertEquals(num, reservedValueStore.getCount());
   }
 
@@ -256,7 +262,8 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     TrackedEntityAttributeValue teav = createTrackedEntityAttributeValue('Z', trackedEntity, tea);
     teav.setValue(prog001);
     trackedEntityAttributeValueService.addTrackedEntityAttributeValue(teav);
-    reservedValueStore.removeUsedOrExpiredReservations();
+    dbmsManager.clearSession();
+    reservedValueStore.removeUsedValues();
     assertFalse(
         reservedValueStore.isReserved(Objects.TRACKEDENTITYATTRIBUTE.name(), teaUid, prog001));
     assertEquals(0, reservedValueStore.getCount());
@@ -284,7 +291,9 @@ class HibernateReservedValueStoreTest extends PostgresIntegrationTestBase {
     trackedEntityAttributeValueService.addTrackedEntityAttributeValue(teav);
     ReservedValue rv = reservedValue.value(prog001).build();
     reservedValueStore.save(rv);
-    reservedValueStore.removeUsedOrExpiredReservations();
+    dbmsManager.clearSession();
+    reservedValueStore.removeExpiredValues();
+    reservedValueStore.removeUsedValues();
     assertFalse(
         reservedValueStore.isReserved(Objects.TRACKEDENTITYATTRIBUTE.name(), teaUid, prog001));
     assertFalse(

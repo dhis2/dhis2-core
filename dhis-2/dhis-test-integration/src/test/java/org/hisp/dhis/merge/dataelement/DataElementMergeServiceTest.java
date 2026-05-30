@@ -102,6 +102,7 @@ import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorStore;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementStore;
@@ -177,6 +178,7 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
   @Autowired private DataValueStore dataValueStore;
   @Autowired private DataValueAuditStore dataValueAuditStore;
   @Autowired private EventChangeLogService eventChangeLogService;
+  @Autowired private ProgramService programService;
 
   private DataElement deSource1;
   private DataElement deSource2;
@@ -318,14 +320,17 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
       "EventVisualization references to source DataElements are replaced with target DataElement, source DataElements are not deleted")
   void eventVisualizationMergeTest() throws ConflictException {
     // given
+    Program program1 = createProgram('A', null, null);
+    programService.addProgram(program1);
+
     // event visualizations
-    EventVisualization ev1 = createEventVisualization('1', null);
+    EventVisualization ev1 = createEventVisualization('1', program1);
     ev1.setDataElementValueDimension(deTarget);
-    EventVisualization ev2 = createEventVisualization('2', null);
+    EventVisualization ev2 = createEventVisualization('2', program1);
     ev2.setDataElementValueDimension(deSource1);
-    EventVisualization ev3 = createEventVisualization('3', null);
+    EventVisualization ev3 = createEventVisualization('3', program1);
     ev3.setDataElementValueDimension(deSource2);
-    EventVisualization ev4 = createEventVisualization('4', null);
+    EventVisualization ev4 = createEventVisualization('4', program1);
     ev4.setDataElementValueDimension(deRandom);
 
     identifiableObjectManager.save(List.of(ev1, ev2, ev3, ev4));
@@ -352,14 +357,17 @@ class DataElementMergeServiceTest extends PostgresIntegrationTestBase {
       "EventVisualization references to source DataElements are replaced with target DataElement, source DataElements are deleted")
   void eventVisualizationMergeDeleteSourcesTest() throws ConflictException {
     // given
+    Program program1 = createProgram('A', null, null);
+    programService.addProgram(program1);
+
     // min max data elements
-    EventVisualization ev5 = createEventVisualization('5', null);
+    EventVisualization ev5 = createEventVisualization('5', program1);
     ev5.setDataElementValueDimension(deTarget);
-    EventVisualization ev6 = createEventVisualization('6', null);
+    EventVisualization ev6 = createEventVisualization('6', program1);
     ev6.setDataElementValueDimension(deSource1);
-    EventVisualization ev7 = createEventVisualization('7', null);
+    EventVisualization ev7 = createEventVisualization('7', program1);
     ev7.setDataElementValueDimension(deSource2);
-    EventVisualization ev8 = createEventVisualization('8', null);
+    EventVisualization ev8 = createEventVisualization('8', program1);
     ev8.setDataElementValueDimension(deRandom);
 
     identifiableObjectManager.save(List.of(ev5, ev6, ev7, ev8));

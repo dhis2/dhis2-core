@@ -31,9 +31,19 @@ package org.hisp.dhis.security.oauth2.client;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+import javax.annotation.CheckForNull;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.user.UserDetails;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.server.authorization.client.RegisteredClient;
 
+/**
+ * Service for managing OAuth2 clients in DHIS2.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 public interface Dhis2OAuth2ClientService {
   void save(RegisteredClient registeredClient);
 
@@ -43,13 +53,63 @@ public interface Dhis2OAuth2ClientService {
 
   RegisteredClient findById(String id);
 
+  /*
+   * Returns the RegisteredClient with the given clientId, or null if not found.
+   */
+  @CheckForNull
   RegisteredClient findByClientId(String clientId);
 
+  Dhis2OAuth2Client getAsDhis2OAuth2ClientByClientId(String clientId);
+
+  /**
+   * Converts a DHIS2 OAuth2Client entity to Spring's RegisteredClient domain object.
+   *
+   * @param client The DHIS2 OAuth2Client entity
+   * @return The Spring RegisteredClient
+   */
   RegisteredClient toObject(Dhis2OAuth2Client client);
 
+  /**
+   * Converts Spring's RegisteredClient domain object to a DHIS2 OAuth2Client entity.
+   *
+   * @param registeredClient The Spring RegisteredClient
+   * @return The DHIS2 OAuth2Client entity
+   */
   Dhis2OAuth2Client toEntity(RegisteredClient registeredClient);
 
+  /**
+   * Converts a Map to a JSON string.
+   *
+   * @param data The Map to convert
+   * @return The JSON string
+   */
   String writeMap(Map<String, Object> data);
 
   List<Dhis2OAuth2Client> getAll();
+
+  /**
+   * Collect validation errors that would block creating the given client. Errors are reported to
+   * the consumer rather than thrown — callers (REST controller, metadata-import bundle hook) decide
+   * whether to translate to a {@code ConflictException} or merge into a bundle report.
+   */
+  void validateCreate(Dhis2OAuth2Client entity, Consumer<ErrorReport> errors);
+
+  /** Collect validation errors that would block updating an existing client. */
+  void validateUpdate(
+      Dhis2OAuth2Client persisted, Dhis2OAuth2Client newEntity, Consumer<ErrorReport> errors);
+
+  /** Apply server-side defaults that fill in fields on create (name, client/token settings). */
+  void applyCreateDefaults(Dhis2OAuth2Client entity);
+
+  /**
+   * Apply update-time defaults — preserves the existing persisted name when the caller didn't send
+   * one (the settings UI has no name field, so a REPLACE merge would otherwise clobber it).
+   */
+  void applyUpdateDefaults(Dhis2OAuth2Client persisted, Dhis2OAuth2Client newEntity);
+
+  /**
+   * Parse the comma-separated {@code authorizationGrantTypes} field into a typed set. Storage stays
+   * as a string column for now; callers should prefer this typed view.
+   */
+  Set<AuthorizationGrantType> getAuthorizationGrantTypesSet(Dhis2OAuth2Client entity);
 }

@@ -34,8 +34,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.PostConstruct;
+import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.provider.AzureAdProvider;
+import org.hisp.dhis.security.oidc.provider.Dhis2InternalOidcProvider;
 import org.hisp.dhis.security.oidc.provider.GoogleProvider;
 import org.hisp.dhis.security.oidc.provider.Wso2Provider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +61,10 @@ public class DhisOidcProviderRepository implements ClientRegistrationRepository 
 
     addRegistration(GoogleProvider.parse(config.getProperties()));
     addRegistration(Wso2Provider.parse(config.getProperties()));
+
+    if (config.isEnabled(ConfigurationKey.OAUTH2_SERVER_ENABLED)) {
+      addRegistration(Dhis2InternalOidcProvider.parse(config));
+    }
   }
 
   public void addRegistration(DhisOidcClientRegistration registration) {
@@ -94,12 +100,22 @@ public class DhisOidcProviderRepository implements ClientRegistrationRepository 
   }
 
   public DhisOidcClientRegistration findByIssuerUri(String issuerUri) {
+    String normalizedInput =
+        issuerUri == null
+            ? ""
+            : issuerUri.endsWith("/") ? issuerUri.substring(0, issuerUri.length() - 1) : issuerUri;
     return registrationHashMap.values().stream()
         .filter(
-            c ->
-                MoreObjects.firstNonNull(
-                        c.getClientRegistration().getProviderDetails().getIssuerUri(), "")
-                    .equals(issuerUri))
+            c -> {
+              String providerIssuer =
+                  MoreObjects.firstNonNull(
+                      c.getClientRegistration().getProviderDetails().getIssuerUri(), "");
+              String normalizedProviderIssuer =
+                  providerIssuer.endsWith("/") && providerIssuer.length() > 1
+                      ? providerIssuer.substring(0, providerIssuer.length() - 1)
+                      : providerIssuer;
+              return normalizedProviderIssuer.equals(normalizedInput);
+            })
         .findAny()
         .orElse(null);
   }

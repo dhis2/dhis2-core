@@ -885,6 +885,27 @@ class MetadataImportExportControllerTest extends H2ControllerIntegrationTestBase
             .contains("IndUid000x1"));
   }
 
+  @Test
+  void testSaveNotificationTemplateWithDeliveryChannels() {
+    POST("/metadata", Path.of("program/program_notification_template.json")).content(HttpStatus.OK);
+    JsonObject template =
+        GET("/programNotificationTemplates/uivYkvFEOss")
+            .content(HttpStatus.OK)
+            .as(JsonObject.class);
+    assertNotNull(template);
+    assertEquals(1, template.getArray("deliveryChannels").size());
+
+    // Update the template with an additional delivery channel
+    POST("/metadata", Path.of("program/program_notification_template_update.json"))
+        .content(HttpStatus.OK);
+    template =
+        GET("/programNotificationTemplates/uivYkvFEOss")
+            .content(HttpStatus.OK)
+            .as(JsonObject.class);
+    assertNotNull(template);
+    assertEquals(2, template.getArray("deliveryChannels").size());
+  }
+
   private void setupDataElementsWithCatCombos(CategoryCombo... categoryCombos) {
     DataElement deA = createDataElement('A', categoryCombos[0]);
     DataElement deB = createDataElement('B', categoryCombos[1]);

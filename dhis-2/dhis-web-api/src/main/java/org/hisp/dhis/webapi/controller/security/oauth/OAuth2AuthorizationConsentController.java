@@ -29,9 +29,12 @@
  */
 package org.hisp.dhis.webapi.controller.security.oauth;
 
+import static org.hisp.dhis.security.Authorities.ALL;
+
 import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.query.GetObjectListParams;
+import org.hisp.dhis.security.RequiresAuthority;
 import org.hisp.dhis.security.oauth2.consent.Dhis2OAuth2AuthorizationConsent;
 import org.hisp.dhis.webapi.controller.AbstractFullReadOnlyController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -39,7 +42,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * Controller for managing OAuth2 authorization consents for the DHIS2 OAuth2 authorization server.
+ * Read-only controller for inspecting OAuth2 authorization consents (principal to client scope
+ * grants stored by Spring Authorization Server). Gated on {@link
+ * org.hisp.dhis.security.Authorities#ALL}: only superusers may list or read these rows because they
+ * reveal which principals have granted which scopes to which clients.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -47,5 +53,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping({"/api/oAuth2AuthorizationConsents"})
 @RequiredArgsConstructor
 @ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+@RequiresAuthority(anyOf = ALL)
 public class OAuth2AuthorizationConsentController
     extends AbstractFullReadOnlyController<Dhis2OAuth2AuthorizationConsent, GetObjectListParams> {}

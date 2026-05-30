@@ -40,6 +40,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -48,22 +49,23 @@ import java.util.stream.Stream;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.changelog.ChangeLogType;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.export.event.EventChangeLogService;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.bundle.TrackerObjectsMapper;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
 import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.user.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -73,14 +75,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class EventPersister
     extends AbstractTrackerPersister<org.hisp.dhis.tracker.imports.domain.Event, Event> {
-  private final EventChangeLogService eventChangeLogService;
 
   public EventPersister(
-      ReservedValueService reservedValueService,
-      TrackedEntityChangeLogService trackedEntityChangeLogService,
-      EventChangeLogService eventChangeLogService) {
-    super(reservedValueService, trackedEntityChangeLogService);
-    this.eventChangeLogService = eventChangeLogService;
+      ReservedValueService reservedValueService, DhisConfigurationProvider config) {
+    super(reservedValueService, config);
   }
 
   @Override
@@ -91,16 +89,22 @@ public class EventPersister
   @Override
   protected TrackerNotificationDataBundle handleNotifications(
       TrackerBundle bundle, Event event, List<NotificationTrigger> triggers) {
+    boolean hasTemplates = hasMatchingNotificationTemplates(event.getProgramStage(), triggers);
+    List<Notification> ruleEngineNotifications =
+        bundle.getEventNotifications().getOrDefault(UID.of(event), List.of());
+    if (!hasTemplates && ruleEngineNotifications.isEmpty()) {
+      return null;
+    }
 
     return TrackerNotificationDataBundle.builder()
         .klass(Event.class)
-        .eventNotifications(bundle.getEventNotifications().get(UID.of(event)))
+        .eventNotifications(ruleEngineNotifications)
         .object(event.getUid())
         .importStrategy(bundle.getImportStrategy())
         .accessedBy(bundle.getUser().getUsername())
         .event(event)
         .program(event.getProgramStage().getProgram())
-        .triggers(triggers)
+        .triggers(hasTemplates ? triggers : List.of())
         .build();
   }
 
@@ -160,7 +164,8 @@ public class EventPersister
       TrackerPreheat preheat,
       org.hisp.dhis.tracker.imports.domain.Event event,
       Event hibernateEntity,
-      UserDetails user) {
+      UserDetails user,
+      ChangeLogAccumulator changeLogs) {
     // DO NOTHING - EVENT HAVE NO ATTRIBUTES
   }
 
@@ -171,9 +176,11 @@ public class EventPersister
       org.hisp.dhis.tracker.imports.domain.Event event,
       Event payloadEntity,
       Event currentEntity,
-      UserDetails user) {
-    handleDataValues(entityManager, preheat, event.getDataValues(), payloadEntity, user);
-    eventChangeLogService.addFieldChangeLog(currentEntity, payloadEntity, user.getUsername());
+      UserDetails user,
+      ChangeLogAccumulator changeLogs) {
+    handleDataValues(
+        entityManager, preheat, event.getDataValues(), payloadEntity, user, changeLogs);
+    logFieldChanges(currentEntity, payloadEntity, user.getUsername(), changeLogs);
   }
 
   private void handleDataValues(
@@ -181,7 +188,9 @@ public class EventPersister
       TrackerPreheat preheat,
       Set<DataValue> payloadDataValues,
       Event event,
-      UserDetails user) {
+      UserDetails user,
+      ChangeLogAccumulator changeLogs) {
+    String username = user.getUsername();
     Map<String, EventDataValue> dataValueDBMap =
         Optional.ofNullable(event)
             .map(
@@ -197,25 +206,66 @@ public class EventPersister
           EventDataValue dbDataValue = dataValueDBMap.get(dataElement.getUid());
 
           if (isNewDataValue(dbDataValue, dataValue)) {
-            eventChangeLogService.addEventChangeLog(
-                event, dataElement, null, dataValue.getValue(), CREATE, user.getUsername());
+            changeLogs.addEventChangeLog(
+                event, dataElement, null, dataValue.getValue(), CREATE, username);
             saveDataValue(dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isUpdate(dbDataValue, dataValue)) {
-            eventChangeLogService.addEventChangeLog(
-                event,
-                dataElement,
-                dbDataValue.getValue(),
-                dataValue.getValue(),
-                UPDATE,
-                user.getUsername());
+            changeLogs.addEventChangeLog(
+                event, dataElement, dbDataValue.getValue(), dataValue.getValue(), UPDATE, username);
             updateDataValue(
                 dbDataValue, dataValue, event, dataElement, user, entityManager, preheat);
           } else if (isDeletion(dbDataValue, dataValue)) {
-            eventChangeLogService.addEventChangeLog(
-                event, dataElement, dbDataValue.getValue(), null, DELETE, user.getUsername());
+            changeLogs.addEventChangeLog(
+                event, dataElement, dbDataValue.getValue(), null, DELETE, username);
             deleteDataValue(dbDataValue, event, dataElement, entityManager, preheat);
           }
         });
+  }
+
+  private static void logFieldChanges(
+      Event currentEntity, Event payloadEntity, String username, ChangeLogAccumulator changeLogs) {
+    logFieldChange(
+        changeLogs,
+        payloadEntity,
+        "scheduledAt",
+        formatDate(currentEntity.getScheduledDate()),
+        formatDate(payloadEntity.getScheduledDate()),
+        username);
+    logFieldChange(
+        changeLogs,
+        payloadEntity,
+        "occurredAt",
+        formatDate(currentEntity.getOccurredDate()),
+        formatDate(payloadEntity.getOccurredDate()),
+        username);
+    logFieldChange(
+        changeLogs,
+        payloadEntity,
+        "geometry",
+        formatGeometry(currentEntity.getGeometry()),
+        formatGeometry(payloadEntity.getGeometry()),
+        username);
+  }
+
+  private static void logFieldChange(
+      ChangeLogAccumulator changeLogs,
+      Event event,
+      String field,
+      String currentValue,
+      String newValue,
+      String username) {
+    if (!Objects.equals(currentValue, newValue)) {
+      ChangeLogType changeLogType;
+      if (currentValue == null) {
+        changeLogType = CREATE;
+      } else if (newValue == null) {
+        changeLogType = DELETE;
+      } else {
+        changeLogType = UPDATE;
+      }
+      changeLogs.addEventFieldChangeLog(
+          event, field, currentValue, newValue, changeLogType, username);
+    }
   }
 
   private void saveDataValue(

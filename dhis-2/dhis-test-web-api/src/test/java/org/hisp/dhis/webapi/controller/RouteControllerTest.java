@@ -190,7 +190,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
   @BeforeAll
   static void beforeAll() {
     tokenMockServerContainer =
-        new GenericContainer<>("mockserver/mockserver")
+        new GenericContainer<>("mockserver/mockserver:5.15.0")
             .waitingFor(new HttpWaitStrategy().forStatusCode(404))
             .withExposedPorts(1080);
     tokenMockServerContainer.start();
@@ -219,7 +219,7 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     @BeforeAll
     public static void beforeAll() {
       upstreamMockServerContainer =
-          new GenericContainer<>("mockserver/mockserver")
+          new GenericContainer<>("mockserver/mockserver:5.15.0")
               .waitingFor(new HttpWaitStrategy().forStatusCode(404))
               .withExposedPorts(1080);
       upstreamMockServerContainer.start();
@@ -696,6 +696,67 @@ class RouteControllerTest extends PostgresControllerIntegrationTestBase {
     assertEquals(
         "foo",
         responseBody.get("headers").asObject().get("X-API-KEY").as(JsonString.class).string());
+  }
+
+  @Test
+  void testRunRouteWhenUserIsNotRouteOwner() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    switchToNewUser(createAndAddRandomUser());
+    HttpResponse runRouteHttpResponse =
+        GET(
+            "/routes/"
+                + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                + "/run");
+
+    assertStatus(HttpStatus.FORBIDDEN, runRouteHttpResponse);
+  }
+
+  @Test
+  void testRunRouteWhenUserIsNotOwnerAndDoesNotHaveRouteAuthority() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+    route.put("authorities", List.of("F_TEST"));
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    switchToNewUser(createAndAddRandomUser());
+    HttpResponse runRouteHttpResponse =
+        GET(
+            "/routes/"
+                + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                + "/run");
+
+    assertStatus(HttpStatus.FORBIDDEN, runRouteHttpResponse);
+  }
+
+  @Test
+  void testRunRouteWhenUserIsNotOwnerButHasRouteAuthority() throws JsonProcessingException {
+    Map<String, Object> route = new HashMap<>();
+    route.put("name", "route-under-test");
+    route.put("url", "https://stub");
+    route.put("authorities", List.of("F_TEST"));
+
+    HttpResponse postHttpResponse = POST("/routes", jsonMapper.writeValueAsString(route));
+
+    switchToNewUser(createAndAddRandomUser("F_TEST"));
+    MvcResult mvcResult =
+        webRequestWithAsyncMvcResult(
+            buildMockRequest(
+                HttpMethod.GET,
+                "/routes/"
+                    + postHttpResponse.content().get("response.uid").as(JsonString.class).string()
+                    + "/run",
+                new ArrayList<>(),
+                "application/json",
+                null));
+
+    assertEquals(200, mvcResult.getResponse().getStatus());
   }
 
   @Test

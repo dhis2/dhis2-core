@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,29 +27,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security.config;
+package org.hisp.dhis.security.oauth2;
 
-import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import javax.annotation.Nonnull;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 
 /**
- * Condition that matches to true if redis.enabled property is set to true in dhis.conf.
+ * Shared helpers for Spring Authorization Server {@link AuthorizationGrantType} values.
  *
- * @author Ameen Mohamed
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class AuthorizationServerEnabledCondition extends PropertiesAwareConfigurationCondition {
-  @Override
-  public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-    if (!isTestRun(context)) {
-      return getConfiguration().isEnabled(ConfigurationKey.OAUTH2_SERVER_ENABLED);
-    }
-    return false;
-  }
+public final class OAuth2GrantTypes {
 
-  @Override
-  public ConfigurationPhase getConfigurationPhase() {
-    return ConfigurationPhase.REGISTER_BEAN;
+  private OAuth2GrantTypes() {}
+
+  /**
+   * Map a grant-type string back to Spring's canonical {@link AuthorizationGrantType} singleton
+   * (authorization_code, client_credentials, refresh_token, device_code). Falls back to a new
+   * instance for any custom value — the equality contract on {@code AuthorizationGrantType} is
+   * value-based, but returning the singleton where possible keeps identity comparisons working.
+   *
+   * <p>Case labels are the RFC-defined grant-type strings (RFC 6749 + RFC 8628); they match
+   * Spring's {@code AuthorizationGrantType.*.getValue()} by construction.
+   */
+  public static AuthorizationGrantType resolve(@Nonnull String value) {
+    return switch (value) {
+      case "authorization_code" -> AuthorizationGrantType.AUTHORIZATION_CODE;
+      case "client_credentials" -> AuthorizationGrantType.CLIENT_CREDENTIALS;
+      case "refresh_token" -> AuthorizationGrantType.REFRESH_TOKEN;
+      case "urn:ietf:params:oauth:grant-type:device_code" -> AuthorizationGrantType.DEVICE_CODE;
+      default -> new AuthorizationGrantType(value);
+    };
   }
 }

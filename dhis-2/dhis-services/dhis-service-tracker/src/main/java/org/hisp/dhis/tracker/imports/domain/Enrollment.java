@@ -72,8 +72,6 @@ public class Enrollment implements TrackerDto, Serializable {
 
   @JsonProperty private boolean followUp;
 
-  @JsonProperty private String storedBy;
-
   @JsonProperty private Instant completedAt;
 
   @JsonProperty private Geometry geometry;

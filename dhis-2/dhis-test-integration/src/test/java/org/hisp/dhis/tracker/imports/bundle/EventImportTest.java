@@ -147,6 +147,13 @@ class EventImportTest extends PostgresIntegrationTestBase {
     assertNotNull(event.getCompletedDate());
   }
 
+  @Test
+  void shouldSetStoredByToAuthenticatedUserForEvent() throws IOException {
+    testSetup.importTrackerData();
+    Event event = manager.get(Event.class, "pTzf9KYMk72");
+    assertEquals(importUser.getUsername(), event.getStoredBy());
+  }
+
   private void importTracker(TrackerImportParams params, TrackerObjects trackerObjects) {
     assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
     manager.flush();

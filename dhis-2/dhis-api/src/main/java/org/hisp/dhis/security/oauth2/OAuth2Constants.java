@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +27,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.util;
+package org.hisp.dhis.security.oauth2;
 
-public class Constants {
-  public static final int RESERVED_VALUE_GENERATION_ATTEMPT = 10;
+/**
+ * Shared constants for the DHIS2 OAuth2 authorization server integration.
+ *
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+public final class OAuth2Constants {
 
-  public static final long RESERVED_VALUE_GENERATION_TIMEOUT = (1000 * 30);
+  private OAuth2Constants() {}
 
-  public static final int RANDOM_GENERATION_CHUNK = 10;
+  /**
+   * Reserved clientId for the bootstrap client that the DCR flow uses to mint initial access tokens
+   * for new device registrations. Created and managed by {@code OAuth2DcrService.init()}; the
+   * REST/metadata pipelines must never allow an end user to create or rename a client to this
+   * value.
+   */
+  public static final String SYSTEM_REGISTRAR_CLIENTID = "system-dcr-registrar-client";
+
+  /**
+   * Max length of the persisted {@code oauth2_client.name} column; kept in sync with the HBM
+   * mapping.
+   */
+  public static final int CLIENT_NAME_MAX_LENGTH = 230;
 }

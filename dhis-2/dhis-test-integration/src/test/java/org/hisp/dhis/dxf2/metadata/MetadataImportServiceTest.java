@@ -1135,7 +1135,7 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
             RenderFormat.JSON);
     MetadataImportParams params = createParams(ImportStrategy.CREATE);
     ImportReport report = importService.importMetadata(params, new MetadataObjects(metadata));
-
+    report.getTypeReports();
     assertEquals(Status.OK, report.getStatus());
 
     metadata =
@@ -1144,7 +1144,7 @@ class MetadataImportServiceTest extends PostgresIntegrationTestBase {
             RenderFormat.JSON);
     params = createParams(ImportStrategy.CREATE);
     report = importService.importMetadata(params, new MetadataObjects(metadata));
-
+    report.getTypeReports();
     assertEquals(Status.OK, report.getStatus());
 
     EventVisualization visualization = manager.get(EventVisualization.class, "gyYXi0rXAIc");

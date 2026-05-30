@@ -41,7 +41,6 @@ import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.substringBefore;
 import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AnalyticsConstants.DATE_PERIOD_STRUCT_ALIAS;
@@ -83,6 +82,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -170,6 +170,8 @@ public abstract class AbstractJdbcEventAnalyticsManager {
   private static final Collector<CharSequence, ?, String> OR_JOINER = joining(OR, "(", ")");
 
   private static final Collector<CharSequence, ?, String> AND_JOINER = joining(AND);
+
+  private static final Pattern TRAILING_ALIAS_PATTERN = Pattern.compile("\\s+as\\s+\"?(\\w+)\"?+$");
 
   @Qualifier("analyticsJdbcTemplate")
   protected final JdbcTemplate jdbcTemplate;
@@ -332,7 +334,7 @@ public abstract class AbstractJdbcEventAnalyticsManager {
    * @return the columns without aliases.
    */
   List<String> removeAliases(List<String> columns) {
-    return columns.stream().map(c -> substringBefore(c, " as ")).toList();
+    return columns.stream().map(c -> TRAILING_ALIAS_PATTERN.matcher(c).replaceAll("")).toList();
   }
 
   /**

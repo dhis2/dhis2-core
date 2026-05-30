@@ -30,8 +30,10 @@
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
 import jakarta.persistence.EntityManager;
+import java.util.List;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
+import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 
 /**
@@ -41,13 +43,16 @@ import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
  */
 public interface TrackerPersister<T extends TrackerDto, V> {
 
+  record PersistResult(
+      TrackerTypeReport report, List<TrackerNotificationDataBundle> notificationBundles) {}
+
   /**
    * Persist one of the collections in the provided Tracker Bundle. Each class implementing this
    * method should be responsible to persist one collection of the TrackerBundle (e.g. Enrollments)
    *
    * @param entityManager a valid EntityManager
    * @param bundle the Bundle to persist
-   * @return a {@link TrackerTypeReport}
+   * @return a {@link PersistResult} containing the type report and notification bundles
    */
-  TrackerTypeReport persist(EntityManager entityManager, TrackerBundle bundle);
+  PersistResult persist(EntityManager entityManager, TrackerBundle bundle);
 }

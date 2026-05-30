@@ -29,33 +29,27 @@
  */
 package org.hisp.dhis.tracker.imports.programrule.engine;
 
-import static org.hisp.dhis.programrule.ProgramRuleActionType.SERVER_SUPPORTED_TYPES;
-
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleService;
-import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.rules.api.RuleContextRequirements;
 import org.hisp.dhis.rules.api.RuleEngine;
 import org.hisp.dhis.rules.api.RuleEngineContext;
-import org.hisp.dhis.rules.api.RuleSupplementaryData;
+import org.hisp.dhis.rules.models.Rule;
 import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.rules.models.RuleEnrollment;
 import org.hisp.dhis.rules.models.RuleEvent;
 import org.hisp.dhis.rules.models.RuleValidationResult;
-import org.hisp.dhis.user.UserDetails;
+import org.hisp.dhis.rules.models.RuleVariable;
 import org.springframework.stereotype.Component;
 
 /**
@@ -64,15 +58,12 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class DefaultProgramRuleEngine implements ProgramRuleEngine {
+
   private final ProgramRuleEntityMapperService programRuleEntityMapperService;
 
   private final ProgramRuleVariableService programRuleVariableService;
 
   private final ConstantService constantService;
-
-  private final ProgramRuleService programRuleService;
-
-  private final SupplementaryDataProvider supplementaryDataProvider;
 
   private final ProgramService programService;
 
@@ -82,14 +73,10 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
       ProgramRuleEntityMapperService programRuleEntityMapperService,
       ProgramRuleVariableService programRuleVariableService,
       ConstantService constantService,
-      ProgramRuleService programRuleService,
-      SupplementaryDataProvider supplementaryDataProvider,
       ProgramService programService) {
     this.programRuleEntityMapperService = programRuleEntityMapperService;
     this.programRuleVariableService = programRuleVariableService;
     this.constantService = constantService;
-    this.programRuleService = programRuleService;
-    this.supplementaryDataProvider = supplementaryDataProvider;
     this.programService = programService;
     this.ruleEngine = RuleEngine.getInstance();
   }
@@ -125,71 +112,38 @@ public class DefaultProgramRuleEngine implements ProgramRuleEngine {
   }
 
   @Override
-  public RuleEngineEffects evaluateEnrollmentAndTrackerEvents(
-      @Nonnull RuleEnrollment enrollment,
-      @Nonnull List<RuleEvent> events,
-      @Nonnull Program program,
-      @Nonnull UserDetails user) {
-    return evaluateEnrollmentAndEvents(enrollment, events, program, user);
+  public RuleEngineEffects evaluateEnrollmentsAndTrackerEvents(
+      @Nonnull Map<RuleEnrollment, List<RuleEvent>> enrollmentsWithEvents,
+      @Nonnull RuleEngineContext context) {
+    if (enrollmentsWithEvents.isEmpty()) {
+      return RuleEngineEffects.of(Collections.emptyList());
+    }
+    List<RuleEffects> allEffects = new ArrayList<>();
+    for (Map.Entry<RuleEnrollment, List<RuleEvent>> entry : enrollmentsWithEvents.entrySet()) {
+      try {
+        allEffects.addAll(ruleEngine.evaluateAll(entry.getKey(), entry.getValue(), context));
+      } catch (Exception e) {
+        log.error("Call to rule-engine failed", e);
+      }
+    }
+    return RuleEngineEffects.of(allEffects);
   }
 
   @Override
-  public RuleEngineEffects evaluateProgramEvents(
-      @Nonnull List<RuleEvent> events, @Nonnull Program program, @Nonnull UserDetails user) {
-    return evaluateEnrollmentAndEvents(null, events, program, user);
-  }
-
-  private RuleEngineEffects evaluateEnrollmentAndEvents(
-      @CheckForNull RuleEnrollment enrollment,
-      @Nonnull List<RuleEvent> events,
-      @Nonnull Program program,
-      @Nonnull UserDetails user) {
-    List<ProgramRule> rules =
-        programRuleService.getProgramRulesByActionTypes(program, SERVER_SUPPORTED_TYPES);
-
-    if (rules.isEmpty()) {
-      return RuleEngineEffects.of(Collections.emptyList());
-    }
-
-    List<RuleEffects> ruleEffects =
-        evaluateProgramRulesForMultipleTrackerObjects(enrollment, program, events, rules, user);
-    return RuleEngineEffects.of(ruleEffects);
-  }
-
-  private List<RuleEffects> evaluateProgramRulesForMultipleTrackerObjects(
-      @CheckForNull RuleEnrollment ruleEnrollment,
-      @Nonnull Program program,
-      @Nonnull List<RuleEvent> ruleEvents,
-      @Nonnull List<ProgramRule> rules,
-      @Nonnull UserDetails user) {
+  public RuleEngineEffects evaluateSingleEvents(
+      @Nonnull List<RuleEvent> events, @Nonnull RuleEngineContext context) {
     try {
-      RuleEngineContext ruleEngineContext = getRuleEngineContext(program, rules, user);
-      return ruleEngine.evaluateAll(ruleEnrollment, ruleEvents, ruleEngineContext);
+      return RuleEngineEffects.of(ruleEngine.evaluateAll(null, events, context));
     } catch (Exception e) {
-      log.error(DebugUtils.getStackTrace(e));
-      return Collections.emptyList();
+      log.error("Call to rule-engine failed", e);
+      return RuleEngineEffects.of(List.of());
     }
   }
 
-  private RuleEngineContext getRuleEngineContext(
-      @Nonnull Program program,
-      @Nonnull List<ProgramRule> programRules,
-      @Nonnull UserDetails user) {
-    List<ProgramRuleVariable> programRuleVariables =
-        programRuleVariableService.getProgramRuleVariable(program);
-
-    Map<String, String> constantMap =
-        constantService.getConstantMap().entrySet().stream()
-            .collect(
-                Collectors.toMap(Map.Entry::getKey, v -> Double.toString(v.getValue().getValue())));
-
-    RuleSupplementaryData supplementaryData =
-        supplementaryDataProvider.getSupplementaryData(programRules, user);
-
-    return new RuleEngineContext(
-        programRuleEntityMapperService.toRules(programRules),
-        programRuleEntityMapperService.toRuleVariables(programRuleVariables),
-        supplementaryData,
-        constantMap);
+  @Override
+  @Nonnull
+  public RuleContextRequirements analyzeContextRequirements(
+      @Nonnull List<Rule> rules, @Nonnull List<RuleVariable> variables) {
+    return ruleEngine.analyzeContextRequirements(rules, variables);
   }
 }

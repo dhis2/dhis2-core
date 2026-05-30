@@ -127,7 +127,8 @@ class TrackerImporterServiceTest {
     when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
         .thenReturn(ParamsConverter.convert(parameters, objects, user));
     when(trackerBundleService.commit(any(TrackerBundle.class)))
-        .thenReturn(PersistenceReport.emptyReport());
+        .thenReturn(
+            new TrackerBundleService.CommitResult(PersistenceReport.emptyReport(), List.of()));
 
     subject.importTracker(parameters, trackerObjects, JobProgress.noop());
 
@@ -140,7 +141,8 @@ class TrackerImporterServiceTest {
     when(trackerBundleService.create(any(TrackerImportParams.class), any(), any()))
         .thenReturn(ParamsConverter.convert(params, trackerObjects, user));
     when(trackerBundleService.commit(any(TrackerBundle.class)))
-        .thenReturn(PersistenceReport.emptyReport());
+        .thenReturn(
+            new TrackerBundleService.CommitResult(PersistenceReport.emptyReport(), List.of()));
 
     subject.importTracker(params, trackerObjects, JobProgress.noop());
 
