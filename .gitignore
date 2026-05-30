@@ -1,4 +1,9 @@
 .api_cache/**
+# CI-only Maven build-cache config, materialized by the `build` job in run-tests.yml.
+# Never committed, so local `mvn` invocations never load the build-cache extension.
+dhis-2/.mvn/extensions.xml
+dhis-2/.mvn/maven-build-cache-config.xml
+/.build-cache/
 target
 *.log
 *.log.*

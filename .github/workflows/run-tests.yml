@@ -29,7 +29,30 @@ permissions:
   contents: read
 
 jobs:
-  unit-test:
+  # ──────────────────────────────────────────────────────────────────────────
+  # Build the reactor ONCE per CI run, instead of every one of the 6 test jobs
+  # recompiling it.
+  #
+  # ~99% of every test job used to be one `mvn clean test` on the full ~39-module
+  # reactor — i.e. the same compile paid 6×. This job pays it once and hands the
+  # compiled output to the test jobs, which then skip the main compile (see
+  # `-Dmaven.main.skip=true` below).
+  #
+  # Incremental across runs: the Apache Maven Build Cache extension hashes each
+  # module's inputs and restores unchanged modules instead of recompiling them, so
+  # a PR touching a few modules only recompiles those (+ dependents). install:install
+  # is forced on cache hits (executionControl/runAlways) so a restored module's jar
+  # still lands in ~/.m2 — without that, a rebuilt downstream module can't resolve a
+  # cache-restored upstream one (the cross-module resolution failure proven in #24032).
+  #
+  # ALL build-cache machinery lives in THIS job only. The extension config is
+  # materialized on the runner here (never committed — see .gitignore), so local
+  # `mvn` invocations and every other CI job load no extension and behave exactly
+  # as before. The cache store only ever exists on this ephemeral, single-purpose
+  # runner; actions/cache is branch-scoped, immutable and read-only on restore, so
+  # concurrent CI runs cannot corrupt it, and the input-hash gate means a stale
+  # restore can only ever cause a recompile, never wrong output.
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -39,8 +62,131 @@ jobs:
           java-version: 17
           distribution: temurin
           cache: maven
+      # Materialize the build-cache extension + config on the runner ONLY. Kept out
+      # of the repo (.gitignore) so a local `mvn` never loads it — local builds and
+      # the multi-branch cache-staleness risk that comes with a shared local store
+      # are entirely avoided; the cache is a CI-only concern.
+      - name: Enable build cache (CI-only)
+        run: |
+          set -euo pipefail
+          mkdir -p dhis-2/.mvn
+          cat > dhis-2/.mvn/extensions.xml <<'XML'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <extensions xmlns="http://maven.apache.org/EXTENSIONS/1.0.0"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      xsi:schemaLocation="http://maven.apache.org/EXTENSIONS/1.0.0 https://maven.apache.org/xsd/core-extensions-1.0.0.xsd">
+            <extension>
+              <groupId>org.apache.maven.extensions</groupId>
+              <artifactId>maven-build-cache-extension</artifactId>
+              <version>1.2.3</version>
+            </extension>
+          </extensions>
+          XML
+          cat > dhis-2/.mvn/maven-build-cache-config.xml <<'XML'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <cache xmlns="http://maven.apache.org/BUILD-CACHE-CONFIG/1.0.0"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="http://maven.apache.org/BUILD-CACHE-CONFIG/1.0.0 https://maven.apache.org/xsd/build-cache-config-1.0.0.xsd">
+            <configuration>
+              <!-- Enabled via -Dmaven.build.cache.enabled=true on this job's mvn line. -->
+              <enabled>false</enabled>
+              <hashAlgorithm>XX</hashAlgorithm>
+              <validateXml>true</validateXml>
+              <remote enabled="false"/>
+              <local>
+                <maxBuildsCached>3</maxBuildsCached>
+              </local>
+            </configuration>
+            <!--
+              On a cache hit the extension restores a module's compiled output and skips
+              the goals that produced it. We force install:install to ALWAYS run so the
+              restored jar is (re)installed into ~/.m2 — otherwise a downstream module that
+              DID rebuild cannot resolve a cache-restored upstream module (the cross-module
+              resolution failure seen on a warm cache in #24032). This job runs no tests
+              (-DskipTests), so there is nothing else to force.
+            -->
+            <executionControl>
+              <runAlways>
+                <executions>
+                  <execution artifactId="maven-install-plugin">
+                    <execIds>
+                      <execId>default-install</execId>
+                    </execIds>
+                  </execution>
+                </executions>
+              </runAlways>
+            </executionControl>
+          </cache>
+          XML
+      # Persist the build-cache store across runs. Key is unique per commit (always
+      # saves a fresh generation); restore-keys falls back to the newest prior cache
+      # for this branch and — on a PR — the base branch (master), so even a PR's first
+      # run recompiles only what it changed.
+      - name: Restore/persist incremental build cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.build-cache
+          key: build-cache-${{ github.sha }}
+          restore-keys: |
+            build-cache-
+      - name: Build reactor once (compile + install, no tests)
+        # -DskipTests: no tests here (jacoco's <skip> is ${skipTests}, so no coverage data
+        #  is produced or expected in this job — the test jobs produce it).
+        # -Dmaven.build.cache.enabled=true opts THIS invocation into the build cache
+        #  (off by default in the config above).
+        run: >
+          mvn clean install -DskipTests --threads 2C --batch-mode --no-transfer-progress --update-snapshots
+          --file ./dhis-2/pom.xml
+          -Dmaven.build.cache.enabled=true
+          -Dmaven.build.cache.location=${{ github.workspace }}/.build-cache
+        timeout-minutes: 30
+      # Hand the compiled reactor to the test jobs: every module's target/classes (so
+      # the test jobs skip the main compile and jacoco can instrument the same classes)
+      # plus the installed reactor jars (resolution insurance for inter-module deps).
+      - name: Package compiled reactor for test jobs
+        run: |
+          set -euo pipefail
+          find dhis-2 -type d -path '*/target/classes' -print0 \
+            | tar --null --files-from=- -czf reactor-classes.tgz
+          echo "Packaged $(find dhis-2 -type d -path '*/target/classes' | wc -l) target/classes directories"
+          tar -czf reactor-m2.tgz -C "$HOME/.m2/repository" org/hisp/dhis
+      - uses: actions/upload-artifact@v7
+        with:
+          name: compiled-reactor
+          path: |
+            reactor-classes.tgz
+            reactor-m2.tgz
+          retention-days: 1
+          if-no-files-found: error
+
+  unit-test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          java-version: 17
+          distribution: temurin
+          cache: maven
+      # Restore the compiled reactor from the build job. The test command below skips
+      # the main compile, so these classes must be in place first.
+      - uses: actions/download-artifact@v7
+        with:
+          name: compiled-reactor
+      - name: Restore compiled reactor
+        run: |
+          set -euo pipefail
+          tar -xzf reactor-classes.tgz
+          mkdir -p "$HOME/.m2/repository"
+          tar -xzf reactor-m2.tgz -C "$HOME/.m2/repository"
+          echo "Restored $(find dhis-2 -type d -path '*/target/classes' | wc -l) target/classes directories"
       - name: Run unit tests
-        run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles unit-test
+        # NO `clean` (would wipe the restored classes) and -Dmaven.main.skip=true (the
+        # build job already compiled main). Test sources still compile here; surefire +
+        # jacoco run via the normal `test` lifecycle, so coverage is identical to before.
+        run: mvn test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles unit-test -Dmaven.main.skip=true
         timeout-minutes: 30
       - name: Run dependency analysis
         run: mvn dependency:analyze --file ./dhis-2/pom.xml
@@ -92,6 +238,7 @@ jobs:
   # NOTE: keep SHARD_TOTAL equal to the length of matrix.shard.
   integration-test-shard:
     runs-on: ubuntu-latest
+    needs: build
     strategy:
       fail-fast: false
       matrix:
@@ -106,6 +253,16 @@ jobs:
           java-version: 17
           distribution: temurin
           cache: maven
+      - uses: actions/download-artifact@v7
+        with:
+          name: compiled-reactor
+      - name: Restore compiled reactor
+        run: |
+          set -euo pipefail
+          tar -xzf reactor-classes.tgz
+          mkdir -p "$HOME/.m2/repository"
+          tar -xzf reactor-m2.tgz -C "$HOME/.m2/repository"
+          echo "Restored $(find dhis-2 -type d -path '*/target/classes' | wc -l) target/classes directories"
       - name: Compute shard test includes
         env:
           SHARD_INDEX: ${{ matrix.shard }}
@@ -120,9 +277,12 @@ jobs:
           echo "Shard $SHARD_INDEX of $SHARD_TOTAL: $(wc -l < "$GITHUB_WORKSPACE/shard-includes.txt") candidate include patterns"
           head -n 5 "$GITHUB_WORKSPACE/shard-includes.txt"
       - name: Run integration tests (shard ${{ matrix.shard }}/${{ env.SHARD_TOTAL }})
+        # NO `clean` (would wipe the restored classes) and -Dmaven.main.skip=true (the
+        # build job already compiled main). See the build job for the build-once rationale.
         run: >
-          mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots
+          mvn test --threads 2C --batch-mode --no-transfer-progress --update-snapshots
           --file ./dhis-2/pom.xml --activate-profiles integration-test
+          -Dmaven.main.skip=true
           -Dsurefire.includesFile=$GITHUB_WORKSPACE/shard-includes.txt
         timeout-minutes: 30
       - uses: actions/upload-artifact@v7
@@ -197,6 +357,7 @@ jobs:
 
   integration-h2-test:
     runs-on: ubuntu-latest
+    needs: build
     steps:
       - uses: actions/checkout@v6
       - name: Set up JDK 17
@@ -205,8 +366,19 @@ jobs:
           java-version: 17
           distribution: temurin
           cache: maven
+      - uses: actions/download-artifact@v7
+        with:
+          name: compiled-reactor
+      - name: Restore compiled reactor
+        run: |
+          set -euo pipefail
+          tar -xzf reactor-classes.tgz
+          mkdir -p "$HOME/.m2/repository"
+          tar -xzf reactor-m2.tgz -C "$HOME/.m2/repository"
+          echo "Restored $(find dhis-2 -type d -path '*/target/classes' | wc -l) target/classes directories"
       - name: Run integration h2 tests
-        run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles integration-h2-test
+        # NO `clean` and -Dmaven.main.skip=true — see the build job for the rationale.
+        run: mvn test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles integration-h2-test -Dmaven.main.skip=true
         timeout-minutes: 30
       - uses: actions/upload-artifact@v7
         name: Upload test logs on failure
@@ -253,7 +425,7 @@ jobs:
       contains(needs.*.result, 'failure') &&
       github.ref == 'refs/heads/master'
 
-    needs: [unit-test, integration-test, integration-h2-test]
+    needs: [build, unit-test, integration-test, integration-h2-test]
     steps:
       - uses: rtCamp/action-slack-notify@v2
         env:
