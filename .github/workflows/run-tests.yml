@@ -96,6 +96,20 @@ jobs:
               <local>
                 <maxBuildsCached>3</maxBuildsCached>
               </local>
+              <!--
+                On a cache hit the extension restores a module's published jar into ~/.m2
+                but does NOT, by default, repopulate the target/classes directory on disk.
+                The test jobs need every module's target/classes present (they're packaged
+                into the artifact and used to test-compile + instrument), so cache `classes`
+                explicitly — otherwise a warm build ships empty class dirs and the test jobs
+                fail to compile. (test-classes is deliberately NOT cached: the test jobs
+                recompile test sources themselves.)
+              -->
+              <attachedOutputs>
+                <dirNames>
+                  <dirName>classes</dirName>
+                </dirNames>
+              </attachedOutputs>
             </configuration>
             <!--
               On a cache hit the extension restores a module's compiled output and skips
@@ -188,9 +202,6 @@ jobs:
         # jacoco run via the normal `test` lifecycle, so coverage is identical to before.
         run: mvn test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles unit-test -Dmaven.main.skip=true
         timeout-minutes: 30
-      - name: Run dependency analysis
-        run: mvn dependency:analyze --file ./dhis-2/pom.xml
-        timeout-minutes: 2
       - name: Report coverage to codecov
         uses: codecov/codecov-action@v3
         with:
@@ -418,6 +429,35 @@ jobs:
             surefire_reports.tar
           retention-days: 5
 
+  # Dependency hygiene check (declared-but-unused / used-but-undeclared deps). Was a step
+  # in unit-test, but `dependency:analyze` forks a build up to test-compile, which recompiled
+  # main and defeated the build-once skip there. Split into its own job: it restores the
+  # compiled reactor and runs with -Dmaven.main.skip=true (no main recompile), in parallel
+  # off the critical path.
+  dependency-analysis:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v6
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          java-version: 17
+          distribution: temurin
+          cache: maven
+      - uses: actions/download-artifact@v7
+        with:
+          name: compiled-reactor
+      - name: Restore compiled reactor
+        run: |
+          set -euo pipefail
+          tar -xzf reactor-classes.tgz
+          mkdir -p "$HOME/.m2/repository"
+          tar -xzf reactor-m2.tgz -C "$HOME/.m2/repository"
+      - name: Run dependency analysis
+        run: mvn dependency:analyze --batch-mode --no-transfer-progress --file ./dhis-2/pom.xml -Dmaven.main.skip=true
+        timeout-minutes: 10
+
   send-slack-message:
     runs-on: ubuntu-latest
     if: |
@@ -425,7 +465,7 @@ jobs:
       contains(needs.*.result, 'failure') &&
       github.ref == 'refs/heads/master'
 
-    needs: [build, unit-test, integration-test, integration-h2-test]
+    needs: [build, unit-test, integration-test, integration-h2-test, dependency-analysis]
     steps:
       - uses: rtCamp/action-slack-notify@v2
         env:
