@@ -40,7 +40,7 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Run unit tests
-        run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles unit-test
+        run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --file ./dhis-2/pom.xml --activate-profiles unit-test
         timeout-minutes: 30
       - name: Run dependency analysis
         run: mvn dependency:analyze --file ./dhis-2/pom.xml
@@ -121,7 +121,7 @@ jobs:
           head -n 5 "$GITHUB_WORKSPACE/shard-includes.txt"
       - name: Run integration tests (shard ${{ matrix.shard }}/${{ env.SHARD_TOTAL }})
         run: >
-          mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots
+          mvn clean test --threads 2C --batch-mode --no-transfer-progress
           --file ./dhis-2/pom.xml --activate-profiles integration-test
           -Dsurefire.includesFile=$GITHUB_WORKSPACE/shard-includes.txt
         timeout-minutes: 30
@@ -206,7 +206,7 @@ jobs:
           distribution: temurin
           cache: maven
       - name: Run integration h2 tests
-        run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles integration-h2-test
+        run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --file ./dhis-2/pom.xml --activate-profiles integration-h2-test
         timeout-minutes: 30
       - uses: actions/upload-artifact@v7
         name: Upload test logs on failure
