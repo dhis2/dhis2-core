@@ -83,7 +83,7 @@
 
     <byte-buddy.version>1.17.5</byte-buddy.version>
     <byte-buddy-agent.version>1.17.5</byte-buddy-agent.version>
-    <surefireArgLine>-Xmx2024m -Xshare:off -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy-agent.version}/byte-buddy-agent-${byte-buddy-agent.version}.jar</surefireArgLine>
+    <surefireArgLine>-Xmx2024m -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy-agent.version}/byte-buddy-agent-${byte-buddy-agent.version}.jar</surefireArgLine>
 
     <jrebel-maven-plugin.version>1.1.6</jrebel-maven-plugin.version>
     <maven-war-plugin.version>3.5.1</maven-war-plugin.version>
