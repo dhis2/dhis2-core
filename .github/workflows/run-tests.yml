@@ -39,8 +39,24 @@ jobs:
           java-version: 17
           distribution: temurin
           cache: maven
+      # PILOT (task 07 / B1): cross-run incremental build cache, scoped to this one job.
+      # Persists the Maven build-cache extension's storage across runs. On a PR the first
+      # run restores master's cache, so unchanged modules are not recompiled. The key is
+      # unique per commit (always saves a fresh generation); restore-keys falls back to the
+      # newest prior cache for this job (incl. the base branch). All other jobs are unchanged.
+      - name: Cache Maven build outputs (incremental compile)
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.build-cache
+          key: maven-build-cache-unit-${{ github.sha }}
+          restore-keys: |
+            maven-build-cache-unit-
       - name: Run unit tests
-        run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles unit-test
+        # -Dmaven.build.cache.enabled=true opts THIS invocation into the build-cache
+        # extension (off by default in .mvn/maven-build-cache-config.xml). Surefire and
+        # JaCoCo are forced to always run, so a cache hit reuses compilation only — test
+        # counts and coverage are identical to a non-cached build.
+        run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles unit-test -Dmaven.build.cache.enabled=true -Dmaven.build.cache.location=${{ github.workspace }}/.build-cache
         timeout-minutes: 30
       - name: Run dependency analysis
         run: mvn dependency:analyze --file ./dhis-2/pom.xml

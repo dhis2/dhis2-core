@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extensions xmlns="http://maven.apache.org/EXTENSIONS/1.0.0"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/EXTENSIONS/1.0.0 https://maven.apache.org/xsd/core-extensions-1.0.0.xsd">
+  <!--
+    Apache Maven Build Cache extension. Hashes each module's inputs (sources, config,
+    upstream module outputs) and restores compiled output for modules whose inputs are
+    unchanged, so only changed modules (and their dependents) recompile across runs.
+
+    It is DISABLED by default (see .mvn/maven-build-cache-config.xml -> <enabled>false</enabled>)
+    so this declaration is a no-op for every Maven invocation unless a build explicitly
+    opts in with -Dmaven.build.cache.enabled=true. Today only the unit-test CI job does
+    (pilot rollout); all other CI jobs and local builds behave exactly as before.
+  -->
+  <extension>
+    <groupId>org.apache.maven.extensions</groupId>
+    <artifactId>maven-build-cache-extension</artifactId>
+    <version>1.2.3</version>
+  </extension>
+</extensions>

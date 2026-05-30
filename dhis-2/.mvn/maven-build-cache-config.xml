@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cache xmlns="http://maven.apache.org/BUILD-CACHE-CONFIG/1.0.0"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://maven.apache.org/BUILD-CACHE-CONFIG/1.0.0 https://maven.apache.org/xsd/build-cache-config-1.0.0.xsd">
+
+  <configuration>
+    <!--
+      OFF by default. The build-cache extension is declared in .mvn/extensions.xml but
+      stays a no-op for every build unless explicitly enabled per-invocation with
+      -Dmaven.build.cache.enabled=true. This keeps the pilot scoped to the single CI job
+      that opts in (unit-test); all other CI jobs and local builds are unaffected.
+    -->
+    <enabled>false</enabled>
+
+    <!-- Fast non-cryptographic hash; we only need change-detection, not security. -->
+    <hashAlgorithm>XX</hashAlgorithm>
+
+    <!-- Fail loudly on a malformed cache config rather than silently degrading. -->
+    <validateXml>true</validateXml>
+
+    <!-- No shared cache server; the cache lives only in the local storage dir, which CI
+         persists across runs via actions/cache (keyed so a PR restores master's cache). -->
+    <remote enabled="false"/>
+
+    <local>
+      <!-- Keep a few generations so a small source change still finds a near-neighbour. -->
+      <maxBuildsCached>3</maxBuildsCached>
+    </local>
+
+    <!--
+      By default the cache saves only the project's published artifact (the main jar),
+      which restores target/classes but NOT target/test-classes. Because we force surefire
+      to re-run on every cache hit (see <executionControl> below), the compiled TEST classes
+      and test resources must also be restored — otherwise surefire finds "No tests to run"
+      and JaCoCo emits no data. Caching test-classes makes a restored module run the exact
+      same tests against the exact same compiled classes, so test counts and coverage match
+      a no-cache build bit-for-bit.
+    -->
+    <attachedOutputs>
+      <dirNames>
+        <dirName>test-classes</dirName>
+      </dirNames>
+    </attachedOutputs>
+  </configuration>
+
+  <!--
+    CORRECTNESS GUARD — the heart of this change.
+
+    On a cache hit the extension restores a module's saved outputs (compiled main/test
+    classes) and SKIPS the mojos that produced them. We want it to skip only COMPILATION.
+    Test execution and coverage must ALWAYS run, otherwise a cache hit would silently skip
+    tests and/or emit no JaCoCo data — turning a green build into a false negative and
+    zeroing out coverage.
+
+    JaCoCo here is on-the-fly: prepare-agent sets @{argLine} and the agent instruments
+    classes in-JVM at test time, so cached *.class files are plain (uninstrumented) and are
+    re-instrumented fresh every run. Forcing surefire + jacoco to always run therefore
+    yields identical test counts and identical coverage to a no-cache build, while the
+    expensive compile is what gets reused.
+  -->
+  <executionControl>
+    <runAlways>
+      <plugins>
+        <!-- Always execute every JaCoCo goal: prepare-agent, report, report-aggregate. -->
+        <plugin artifactId="jacoco-maven-plugin"/>
+      </plugins>
+      <executions>
+        <!-- Always run the test goals even when the module is restored from cache. -->
+        <execution artifactId="maven-surefire-plugin">
+          <execIds>
+            <execId>default-test</execId>
+          </execIds>
+        </execution>
+        <execution artifactId="maven-failsafe-plugin">
+          <execIds>
+            <execId>default-integration-test</execId>
+            <execId>default-verify</execId>
+          </execIds>
+        </execution>
+      </executions>
+    </runAlways>
+  </executionControl>
+
+</cache>
