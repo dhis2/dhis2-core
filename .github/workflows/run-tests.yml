@@ -140,9 +140,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/.build-cache
-          key: build-cache-${{ github.sha }}
+          # The -v2- version tag namespaces the cache to the current stored format. Bump it
+          # whenever what the build cache stores changes (e.g. the attachedOutputs set), so a
+          # new run can't restore an older, incompatible cache via the restore-keys prefix.
+          key: build-cache-v2-${{ github.sha }}
           restore-keys: |
-            build-cache-
+            build-cache-v2-
       - name: Build reactor once (compile + install, no tests)
         # -DskipTests: no tests here (jacoco's <skip> is ${skipTests}, so no coverage data
         #  is produced or expected in this job — the test jobs produce it).
