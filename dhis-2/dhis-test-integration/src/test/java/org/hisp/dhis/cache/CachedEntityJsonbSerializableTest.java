@@ -179,9 +179,10 @@ class CachedEntityJsonbSerializableTest extends PostgresIntegrationTestBase {
   private static String buildFailureMessage(Map<String, List<String>> violations) {
     StringBuilder sb =
         new StringBuilder(
-            "Found JSONB value type(s) on L2-cached entities that do NOT implement "
-                + "java.io.Serializable.\nEhcache 3.12 (SerializingCopier) serializes cached entity "
-                + "state, so each of these (and its whole object graph) must implement Serializable:\n");
+            """
+            Found JSONB value type(s) on L2-cached entities that do NOT implement java.io.Serializable.
+            Ehcache 3.12 (SerializingCopier) serializes cached entity state, so each of these (and its whole object graph) must implement Serializable:
+            """);
     violations.forEach(
         (valueType, locations) ->
             sb.append("  - ")
