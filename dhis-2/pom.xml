@@ -1312,6 +1312,17 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <!-- Align every io.netty:* artifact (incl. modules Artemis pulls transitively,
+           e.g. netty-codec-haproxy / netty-transport-classes-*) to the same version as
+           netty-all. Without this, the netty-all uber jar mixes with older individual
+           netty modules on the classpath, causing AbstractMethodError at runtime. -->
+      <dependency>
+        <groupId>io.netty</groupId>
+        <artifactId>netty-bom</artifactId>
+        <version>${netty-all.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
       <dependency>
         <groupId>com.graphhopper.external</groupId>
         <artifactId>jackson-datatype-jts</artifactId>
