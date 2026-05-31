@@ -151,6 +151,14 @@ class CachedEntityJsonbSerializableTest extends PostgresIntegrationTestBase {
       UserType userType = ((CustomType) type).getUserType();
       if (userType instanceof JsonBinaryType) {
         Class<?> valueType = userType.returnedClass();
+        // Untyped JSONB columns (the "jbObject" type, returnedClass == java.lang.Object) are
+        // deserialized by Jackson into plain JDK types (LinkedHashMap, ArrayList, String, Number,
+        // Boolean), all of which are Serializable, so they are safe for the ehcache L2 cache. The
+        // declared Object type cannot be statically proven Serializable, so skip it to avoid a
+        // false positive (e.g. MapView#styleDataItem).
+        if (valueType == Object.class) {
+          return;
+        }
         inspected.add(valueType);
         if (!Serializable.class.isAssignableFrom(valueType)) {
           violations
