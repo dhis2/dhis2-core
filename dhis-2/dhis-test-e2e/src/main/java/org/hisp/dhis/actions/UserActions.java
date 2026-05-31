@@ -83,8 +83,10 @@ public class UserActions extends RestApiActions {
     ApiResponse response = this.get(userId);
     if (response
         .getBodyAsJsonValue()
-        .getArray("userRoles.id")
-        .stringValues()
+        .getArray("userRoles")
+        .stream()
+        .map(role -> role.getString("id").string())
+        .toList()
         .contains(userRoleId)) {
       return;
     }
