@@ -163,7 +163,7 @@ jobs:
     needs: integration-test-shard
     if: always()
     steps:
-      - uses: actions/download-artifact@v7
+      - uses: actions/download-artifact@v8
         with:
           pattern: integration-test-surefire-reports-*
           path: shard-reports
