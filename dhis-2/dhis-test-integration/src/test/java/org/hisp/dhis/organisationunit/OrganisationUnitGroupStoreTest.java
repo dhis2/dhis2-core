@@ -36,10 +36,12 @@ import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jan Bernitt
  */
+@Transactional
 class OrganisationUnitGroupStoreTest extends OrganisationUnitBaseSpringTest {
 
   @Test

@@ -50,10 +50,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Jim Grace
  */
+@Transactional
 class ProgramIndicatorServiceVariableTest extends PostgresIntegrationTestBase {
 
   @Autowired private ProgramIndicatorService programIndicatorService;
