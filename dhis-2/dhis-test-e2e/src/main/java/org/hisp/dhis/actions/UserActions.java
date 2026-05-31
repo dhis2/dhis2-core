@@ -81,10 +81,7 @@ public class UserActions extends RestApiActions {
 
   public void addRoleToUser(String userId, String userRoleId) {
     ApiResponse response = this.get(userId);
-    if (response
-        .getBodyAsJsonValue()
-        .getArray("userRoles")
-        .stream()
+    if (response.getBodyAsJsonValue().getArray("userRoles").stream()
         .map(role -> role.getString("id").string())
         .toList()
         .contains(userRoleId)) {
