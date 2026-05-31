@@ -318,7 +318,8 @@ public class ContextUtils {
       return null;
     }
 
-    String value = String.format("%s-%s", DateUtils.toLongDate(lastModified), user.getUid());
+    String value =
+        String.format("%s-%s", DateUtils.toLongDateWithMillis(lastModified), user.getUid());
 
     return HashUtils.hashMD5(value.getBytes());
   }
