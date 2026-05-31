@@ -32,32 +32,49 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegritySummary;
+import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.jsontree.JsonString;
+import org.hisp.dhis.test.webapi.json.domain.JsonUserRole;
 import org.junit.jupiter.api.Test;
 
-class DataIntegrityUserRolesNoUsers extends AbstractDataIntegrityIntegrationTest {
-  private static final String CHECK_NAME = "user_roles_with_no_users";
+class DataIntegrityUserRolesNoAuthoritiesTest extends AbstractDataIntegrityIntegrationTest {
+
+  private static final String CHECK_NAME = "user_roles_no_authorities";
 
   private static final String DETAILS_ID_TYPE = "userRoles";
 
   private String userRoleUid;
 
   @Test
-  void testUserRolesNoUsers() {
+  void testUserRolesNoAuthorities() {
     userRoleUid =
         assertStatus(
-            HttpStatus.CREATED,
-            POST("/userRoles", "{ 'name': 'Test role', 'authorities': ['F_DATAVALUE_ADD'] }"));
-    // Note that two user roles already exist as part of the setup in the
-    // AbstractDataIntegrityIntegrationTest class
-    // Thus, there should be three roles in total, two of which are valid since they already have
-    // users associated with them.
-    postSummary(CHECK_NAME);
+            HttpStatus.CREATED, POST("/userRoles", "{ 'name': 'Empty role', 'authorities': [] }"));
+    assertStatus(
+        HttpStatus.CREATED,
+        POST("/userRoles", "{ 'name': 'Good role', 'authorities': ['F_DATAVALUE_ADD'] }"));
 
-    JsonDataIntegritySummary summary = getSummary(CHECK_NAME);
-    assertEquals(1, summary.getCount());
+    JsonObject content = GET("/userRoles?fields=id,authorities").content();
+    JsonList<JsonUserRole> userRolesInSystem = content.getList("userRoles", JsonUserRole.class);
+    assertEquals(3, userRolesInSystem.size());
+
+    List<Integer> authorityCount =
+        userRolesInSystem.stream()
+            .map(userRole -> userRole.getList("authorities", JsonString.class).size())
+            .toList();
+
+    // Two of the roles have no authorities, one has one authority.
+    assertEquals(Set.of(0, 1), new HashSet<>(authorityCount));
+    assertEquals(1, Collections.frequency(authorityCount, 0));
+    assertEquals(2, Collections.frequency(authorityCount, 1));
+
     assertHasDataIntegrityIssues(
-        DETAILS_ID_TYPE, CHECK_NAME, 50, userRoleUid, "Test role", null, true);
+        DETAILS_ID_TYPE, CHECK_NAME, 33, userRoleUid, "Empty role", null, true);
   }
 }
