@@ -29,10 +29,6 @@
  */
 package org.hisp.dhis.user;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import java.util.Collection;
 import java.util.Set;
 import javax.annotation.Nonnull;
@@ -40,7 +36,6 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.jackson.Jacksonized;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.twofa.TwoFactorType;
@@ -48,22 +43,8 @@ import org.springframework.security.core.GrantedAuthority;
 
 @Getter
 @Builder
-@Jacksonized
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Slf4j
-@JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
-// Serialize by field name (not getters) so the JSON property names match the Lombok @Builder
-// setters that @Jacksonized wires up for deserialization; boolean getters such as isSuper() would
-// otherwise emit "super" while the builder method is named "isSuper". @Jacksonized makes Jackson
-// rebuild instances through the builder, which avoids the ambiguity of the hand-written factory and
-// the Lombok all-args constructor competing as creators. This is the shape the OAuth2 Authorization
-// Server persistence layer round-trips when an OIDC principal (DhisOidcUser) wraps a
-// UserDetailsImpl.
-@JsonAutoDetect(
-    fieldVisibility = JsonAutoDetect.Visibility.ANY,
-    getterVisibility = JsonAutoDetect.Visibility.NONE,
-    isGetterVisibility = JsonAutoDetect.Visibility.NONE)
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserDetailsImpl implements UserDetails {
 
   private final String uid;
@@ -96,18 +77,6 @@ public class UserDetailsImpl implements UserDetails {
   @Nonnull private final Set<String> userRoleIds;
   @Nonnull private final Set<Long> managedGroupLongIds;
   @Nonnull private final Set<Long> userRoleLongIds;
-
-  /**
-   * Serialize the UID under its own name. The inherited {@link
-   * org.hisp.dhis.common.UidObject#getUid()} maps it to {@code "id"} for the public metadata API,
-   * but this value object is only (de)serialized by the OAuth2 Authorization Server persistence
-   * layer, where {@code "id"} would collide with the numeric {@link #id} field.
-   */
-  @Override
-  @JsonProperty("uid")
-  public String getUid() {
-    return uid;
-  }
 
   @Override
   public boolean canModifyUser(User other) {
