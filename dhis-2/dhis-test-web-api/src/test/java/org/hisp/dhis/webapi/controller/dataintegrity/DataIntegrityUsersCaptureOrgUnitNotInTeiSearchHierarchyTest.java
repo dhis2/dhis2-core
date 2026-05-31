@@ -46,7 +46,7 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityUsersCaptureOrgUnitNotInTeiSearchHierarchy
+class DataIntegrityUsersCaptureOrgUnitNotInTeiSearchHierarchyTest
     extends AbstractDataIntegrityIntegrationTest {
 
   private static final String CHECK_NAME = "users_capture_ou_not_in_tei_search_ou";
