@@ -43,7 +43,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.security.jwt.Dhis2JwtAuthenticationManagerResolver;
@@ -127,7 +126,7 @@ class FederatedOidcTokenControllerTest extends ControllerWithJwtTokenAuthTestBas
         new OAuth2AuthenticationToken(oidcPrincipal, oidcPrincipal.getAuthorities(), "google");
 
     // And: a confidential authorization_code client (the native app's server-side equivalent).
-    String clientId = "federated-client-" + UUID.randomUUID();
+    String clientId = "federated-test-client";
     String clientSecret = "federated-secret";
     String redirectUri = "https://app.example.org/callback";
     RegisteredClient client =
@@ -146,7 +145,7 @@ class FederatedOidcTokenControllerTest extends ControllerWithJwtTokenAuthTestBas
 
     // And: the authorization the /oauth2/authorize step would have stored after the OIDC login.
     String issuer = authorizationServerSettings.getIssuer();
-    String codeValue = "fed-code-" + UUID.randomUUID();
+    String codeValue = "fed-code-value";
     OAuth2AuthorizationCode authorizationCode =
         new OAuth2AuthorizationCode(codeValue, now, now.plus(5, ChronoUnit.MINUTES));
     OAuth2AuthorizationRequest authorizationRequest =
