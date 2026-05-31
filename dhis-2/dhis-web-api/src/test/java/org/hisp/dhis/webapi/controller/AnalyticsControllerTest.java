@@ -64,7 +64,10 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.test.TestBase;
+import org.hisp.dhis.user.CurrentUserUtil;
+import org.hisp.dhis.user.UserDetails;
 import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -97,9 +100,16 @@ class AnalyticsControllerTest {
 
   @Mock private DhisConfigurationProvider dhisConfigurationProvider;
 
+  @AfterEach
+  void tearDown() {
+    CurrentUserUtil.clearSecurityContext();
+  }
+
   @BeforeEach
   @SuppressWarnings("unchecked")
-  public void setUp() {
+  void setUp() {
+    CurrentUserUtil.injectUserInSecurityContext(UserDetails.empty().username("testuser").build());
+
     DataQueryService dataQueryService =
         new DefaultDataQueryService(
             dimensionalObjectProducer,

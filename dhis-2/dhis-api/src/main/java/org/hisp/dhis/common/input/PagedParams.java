@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2024, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,37 +27,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.dataintegrity;
+package org.hisp.dhis.common.input;
 
-import static org.hisp.dhis.http.HttpAssertions.assertStatus;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.hisp.dhis.jsontree.Validation.YesNo.NO;
 
-import org.hisp.dhis.http.HttpStatus;
-import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegritySummary;
-import org.junit.jupiter.api.Test;
+import java.util.function.ToIntFunction;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.jsontree.Validation;
 
-class DataIntegrityUserRolesNoUsers extends AbstractDataIntegrityIntegrationTest {
-  private static final String CHECK_NAME = "user_roles_with_no_users";
+/**
+ * URL parameters for endpoints that offer paging.
+ *
+ * <p>Include via @{@link org.hisp.dhis.jsontree.Collapsed}.
+ *
+ * @param skipPaging override to {@link #paging()} to skip paging
+ * @param paging paging on/off (default on)
+ * @param page page no to show (default 1)
+ * @param pageSize entries per page (default 50)
+ */
+public record PagedParams(
+    Boolean skipPaging,
+    @Validation(required = NO) boolean paging,
+    @Validation(required = NO, minimum = 1) int page,
+    @Validation(required = NO, minimum = 1, maximum = 1000) int pageSize) {
 
-  private static final String DETAILS_ID_TYPE = "userRoles";
+  public static final PagedParams DEFAULT = new PagedParams(null, true, 1, 50);
 
-  private String userRoleUid;
+  @OpenApi.Ignore
+  public boolean isPaged() {
+    if (skipPaging != null) return !skipPaging;
+    return paging;
+  }
 
-  @Test
-  void testUserRolesNoUsers() {
-    userRoleUid =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST("/userRoles", "{ 'name': 'Test role', 'authorities': ['F_DATAVALUE_ADD'] }"));
-    // Note that two user roles already exist as part of the setup in the
-    // AbstractDataIntegrityIntegrationTest class
-    // Thus, there should be three roles in total, two of which are valid since they already have
-    // users associated with them.
-    postSummary(CHECK_NAME);
+  public int offset() {
+    return (page - 1) * pageSize;
+  }
 
-    JsonDataIntegritySummary summary = getSummary(CHECK_NAME);
-    assertEquals(1, summary.getCount());
-    assertHasDataIntegrityIssues(
-        DETAILS_ID_TYPE, CHECK_NAME, 50, userRoleUid, "Test role", null, true);
+  public Pager toPager(int totalPages) {
+    return !isPaged() ? null : new Pager(page, totalPages, pageSize);
+  }
+
+  public <T> Pager toPager(T params, ToIntFunction<T> count) {
+    return !isPaged() ? null : toPager(count.applyAsInt(params));
   }
 }

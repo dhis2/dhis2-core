@@ -83,11 +83,14 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.legend.Legend;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.program.EnrollmentStatus;
 import org.hisp.dhis.program.Program;
@@ -114,6 +117,10 @@ class MetadataItemsHandlerTest {
   @Mock private UserService userService;
 
   @Mock private OrganisationUnitResolver organisationUnitResolver;
+
+  @Mock private I18nManager i18nManager;
+
+  @Mock private I18nFormat i18nFormat;
 
   @InjectMocks private MetadataItemsHandler metadataItemsHandler;
 
@@ -1441,6 +1448,8 @@ class MetadataItemsHandlerTest {
               .build();
 
       when(userService.getUserByUsername(anyString())).thenReturn(null);
+      when(i18nManager.getI18nFormat()).thenReturn(i18nFormat);
+      when(i18nFormat.formatPeriod(any(Period.class))).thenReturn("May 2022");
 
       // When
       metadataItemsHandler.addMetadata(grid, params, List.of());
@@ -1458,6 +1467,13 @@ class MetadataItemsHandlerTest {
           List.of("202205"),
           dimensions.get("A03MvHHogjR.eventdate"),
           "Dimension values should contain the period identifier '202205'");
+
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+      assertNotNull(items);
+      MetadataItem periodItem = (MetadataItem) items.get("202205");
+      assertNotNull(periodItem);
+      assertEquals("May 2022", periodItem.getName());
     }
 
     @Test
@@ -1491,6 +1507,8 @@ class MetadataItemsHandlerTest {
               .build();
 
       when(userService.getUserByUsername(anyString())).thenReturn(null);
+      when(i18nManager.getI18nFormat()).thenReturn(i18nFormat);
+      when(i18nFormat.formatPeriod(any(Period.class))).thenReturn("May 2022");
 
       // When
       metadataItemsHandler.addMetadata(grid, params, List.of());
@@ -1504,6 +1522,7 @@ class MetadataItemsHandlerTest {
           items.containsKey("202205"), "Items should contain period metadata entry for '202205'");
       MetadataItem periodItem = (MetadataItem) items.get("202205");
       assertNotNull(periodItem.getName(), "Period metadata item should have a name");
+      assertEquals("May 2022", periodItem.getName());
     }
 
     @Test
@@ -1619,6 +1638,63 @@ class MetadataItemsHandlerTest {
       assertNotNull(items);
       assertFalse(items.containsKey("202205"));
     }
+
+    @Test
+    @DisplayName(
+        "should include stage-prefixed dimension values for date item filters with period identifiers")
+    void shouldIncludeStagePrefixedDimensionValuesForDateItemFilters() {
+      // Given
+      Grid grid = new ListGrid();
+
+      org.hisp.dhis.program.ProgramStage programStage = createProgramStage('S', programA);
+      programStage.setUid("A03MvHHogjR");
+
+      org.hisp.dhis.common.BaseDimensionalItemObject eventDateItem =
+          new org.hisp.dhis.common.BaseDimensionalItemObject("occurreddate");
+      eventDateItem.setUid("occurreddate");
+      eventDateItem.setName("Event date");
+
+      QueryItem queryItem = new QueryItem(eventDateItem, null, ValueType.DATE, null, null);
+      queryItem.setProgramStage(programStage);
+      queryItem.setCustomHeader(
+          org.hisp.dhis.common.AnalyticsCustomHeader.forEventDate(programStage));
+      queryItem.addDimensionValue("202205");
+      queryItem.addFilter(new QueryFilter(QueryOperator.GE, "2022-05-01"));
+      queryItem.addFilter(new QueryFilter(QueryOperator.LE, "2022-05-31"));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .withOrganisationUnits(List.of(orgUnitA))
+              .withPeriods(createPeriodDimensions("2023Q1"), "quarterly")
+              .addItemFilter(queryItem)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      // When
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      // Then
+      @SuppressWarnings("unchecked")
+      Map<String, List<String>> dimensions =
+          (Map<String, List<String>>) grid.getMetaData().get(DIMENSIONS.getKey());
+      assertNotNull(dimensions);
+
+      assertTrue(
+          dimensions.containsKey("A03MvHHogjR.eventdate"),
+          "Dimensions should contain stage-prefixed key 'A03MvHHogjR.eventdate'");
+      assertEquals(
+          List.of("202205"),
+          dimensions.get("A03MvHHogjR.eventdate"),
+          "Dimension values should contain the period identifier '202205', not the filter string");
+
+      assertFalse(
+          dimensions.containsKey("occurreddate"),
+          "Dimensions should not contain raw 'occurreddate' key for stage-scoped filter items");
+    }
   }
 
   @Nested
@@ -1727,6 +1803,39 @@ class MetadataItemsHandlerTest {
 
       assertFalse(items.containsKey("COMPLETED"));
       assertFalse(items.containsKey("CANCELLED"));
+    }
+
+    @Test
+    @DisplayName("should use display names for generic programstatus dimension item metadata")
+    void shouldUseDisplayNamesForGenericProgramStatusDimensionItemsMetadata() {
+      Grid grid = new ListGrid();
+
+      BaseDimensionalObject programStatusDimension =
+          new BaseDimensionalObject(
+              "programstatus",
+              DimensionType.PROGRAM_STATUS,
+              "enrollmentstatus",
+              "Program status",
+              List.of(new BaseDimensionalItemObject("ACTIVE")));
+
+      EventQueryParams params =
+          new EventQueryParams.Builder()
+              .withProgram(programA)
+              .withSkipMeta(false)
+              .withEndpointAction(AGGREGATE)
+              .addDimension(programStatusDimension)
+              .build();
+
+      when(userService.getUserByUsername(anyString())).thenReturn(null);
+
+      metadataItemsHandler.addMetadata(grid, params, List.of());
+
+      @SuppressWarnings("unchecked")
+      Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get(ITEMS.getKey());
+
+      assertNotNull(items);
+      assertEquals("Program status", ((MetadataItem) items.get("programstatus")).getName());
+      assertEquals("Active", ((MetadataItem) items.get("ACTIVE")).getName());
     }
 
     @Test

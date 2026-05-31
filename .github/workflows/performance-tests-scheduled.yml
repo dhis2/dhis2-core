@@ -11,6 +11,9 @@ on:
     # Run at 1 AM UTC every day
     - cron: "0 1 * * *"
 
+permissions:
+  contents: read
+
 jobs:
   run-scheduled-tests:
     name: ${{ matrix.name }}

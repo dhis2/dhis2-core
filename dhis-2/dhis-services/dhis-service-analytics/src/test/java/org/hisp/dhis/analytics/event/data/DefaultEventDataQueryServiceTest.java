@@ -354,13 +354,14 @@ class DefaultEventDataQueryServiceTest {
   }
 
   @Test
-  void getFromRequestParsesProgramStatusDimensionForEventQuery() {
+  void getFromRequestParsesProgramStatusDimensionForEventQueryAsEnrollmentStatusFilter() {
     EventDataQueryRequest request =
         baseRequestBuilder(QUERY, EVENT).dimension(Set.of(Set.of("PROGRAM_STATUS:ACTIVE"))).build();
 
     EventQueryParams params = subject.getFromRequest(request);
 
     assertEquals(Set.of(EnrollmentStatus.ACTIVE), params.getEnrollmentStatus());
+    assertNoProgramStatusDimension(params);
   }
 
   @Test
@@ -372,13 +373,11 @@ class DefaultEventDataQueryServiceTest {
 
     EventQueryParams params = subject.getFromRequest(request);
 
-    assertEquals(
-        Set.of(EnrollmentStatus.ACTIVE, EnrollmentStatus.COMPLETED, EnrollmentStatus.CANCELLED),
-        params.getEnrollmentStatus());
+    assertProgramStatusDimension(params, "ACTIVE", "COMPLETED", "CANCELLED");
   }
 
   @Test
-  void getFromRequestMergesProgramStatusDimensionWithProgramStatusRequestParam() {
+  void getFromRequestMergesProgramStatusDimensionWithProgramStatusRequestParamForQuery() {
     EventDataQueryRequest request =
         baseRequestBuilder(QUERY, EVENT)
             .dimension(Set.of(Set.of("PROGRAM_STATUS:ACTIVE")))
@@ -389,6 +388,7 @@ class DefaultEventDataQueryServiceTest {
 
     assertEquals(
         Set.of(EnrollmentStatus.ACTIVE, EnrollmentStatus.COMPLETED), params.getEnrollmentStatus());
+    assertNoProgramStatusDimension(params);
   }
 
   @Test
@@ -402,7 +402,30 @@ class DefaultEventDataQueryServiceTest {
   }
 
   @Test
-  void getFromRequestParsesProgramStatusDimensionForEnrollmentEndpoint() {
+  void getFromRequestAcceptsProgramStatusDimensionWithoutValue() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, ENROLLMENT)
+            .dimension(Set.of(Set.of("PROGRAM_STATUS")))
+            .build();
+
+    EventQueryParams params = subject.getFromRequest(request);
+
+    DimensionalObject dim = findStatusDimension(params, DimensionType.PROGRAM_STATUS);
+    assertEquals("programstatus", dim.getDimension());
+    assertEquals(EventAnalyticsColumnName.ENROLLMENT_STATUS_COLUMN_NAME, dim.getDimensionName());
+    assertTrue(dim.getItems().isEmpty(), "Dimension items should be empty for group-by only");
+  }
+
+  @Test
+  void getFromRequestRejectsProgramStatusFilterWithoutValue() {
+    EventDataQueryRequest request =
+        baseRequestBuilder(AGGREGATE, ENROLLMENT).filter(Set.of(Set.of("PROGRAM_STATUS"))).build();
+
+    assertThrows(IllegalQueryException.class, () -> subject.getFromRequest(request));
+  }
+
+  @Test
+  void getFromRequestParsesProgramStatusDimensionForEnrollmentQueryAsEnrollmentStatusFilter() {
     EventDataQueryRequest request =
         baseRequestBuilder(QUERY, ENROLLMENT)
             .dimension(Set.of(Set.of("PROGRAM_STATUS:ACTIVE")))
@@ -411,10 +434,11 @@ class DefaultEventDataQueryServiceTest {
     EventQueryParams params = subject.getFromRequest(request);
 
     assertEquals(Set.of(EnrollmentStatus.ACTIVE), params.getEnrollmentStatus());
+    assertNoProgramStatusDimension(params);
   }
 
   @Test
-  void getFromRequestParsesProgramStatusFilterForEnrollmentEndpoint() {
+  void getFromRequestParsesProgramStatusFilterForEnrollmentQueryAsEnrollmentStatusFilter() {
     EventDataQueryRequest request =
         baseRequestBuilder(QUERY, ENROLLMENT)
             .filter(Set.of(Set.of("PROGRAM_STATUS:ACTIVE;COMPLETED")))
@@ -424,6 +448,36 @@ class DefaultEventDataQueryServiceTest {
 
     assertEquals(
         Set.of(EnrollmentStatus.ACTIVE, EnrollmentStatus.COMPLETED), params.getEnrollmentStatus());
+    assertNoProgramStatusFilter(params);
+  }
+
+  private DimensionalObject findStatusDimension(EventQueryParams params, DimensionType type) {
+    return params.getDimensions().stream()
+        .filter(d -> d.getDimensionType() == type)
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("No dimension of type " + type + " in params"));
+  }
+
+  private void assertProgramStatusDimension(EventQueryParams params, String... expectedUids) {
+    DimensionalObject dim = findStatusDimension(params, DimensionType.PROGRAM_STATUS);
+    Set<String> actual =
+        dim.getItems().stream()
+            .map(BaseDimensionalItemObject.class::cast)
+            .map(BaseDimensionalItemObject::getUid)
+            .collect(java.util.stream.Collectors.toSet());
+    assertEquals(Set.of(expectedUids), actual);
+  }
+
+  private void assertNoProgramStatusDimension(EventQueryParams params) {
+    assertTrue(
+        params.getDimensions().stream()
+            .noneMatch(d -> d.getDimensionType() == DimensionType.PROGRAM_STATUS));
+  }
+
+  private void assertNoProgramStatusFilter(EventQueryParams params) {
+    assertTrue(
+        params.getFilters().stream()
+            .noneMatch(d -> d.getDimensionType() == DimensionType.PROGRAM_STATUS));
   }
 
   @Test

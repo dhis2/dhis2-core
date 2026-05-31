@@ -75,6 +75,7 @@ import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
+import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
@@ -84,6 +85,8 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.i18n.I18nFormat;
+import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodDimension;
@@ -103,6 +106,8 @@ public class MetadataItemsHandler {
   private final UserService userService;
 
   private final OrganisationUnitResolver organisationUnitResolver;
+
+  private final I18nManager i18nManager;
 
   /**
    * Adds meta-data values to the given grid based on the given data query parameters.
@@ -497,6 +502,13 @@ public class MetadataItemsHandler {
       return;
     }
 
+    I18nFormat format = i18nManager.getI18nFormat();
+    if (format != null) {
+      String formattedName = format.formatPeriod(periodDimension.getPeriod());
+      periodDimension.setName(formattedName);
+      periodDimension.setShortName(formattedName);
+    }
+
     metadataItemMap.put(
         periodDimensionValue,
         new MetadataItem(
@@ -595,16 +607,37 @@ public class MetadataItemsHandler {
 
   private void addProgramStatusMetadata(
       Map<String, MetadataItem> metadataItemMap, EventQueryParams params) {
-    if (!params.hasEnrollmentStatuses()) {
-      return;
+    if (params.hasEnrollmentStatuses()) {
+      metadataItemMap.putIfAbsent(
+          PROGRAM_STATUS.getItem(), new MetadataItem(PROGRAM_STATUS.getName()));
+
+      for (EnrollmentStatus status : params.getEnrollmentStatus()) {
+        metadataItemMap.put(
+            status.name(), new MetadataItem(getEnrollmentStatusDisplayName(status)));
+      }
     }
 
-    metadataItemMap.putIfAbsent(
-        PROGRAM_STATUS.getItem(), new MetadataItem(PROGRAM_STATUS.getName()));
-
-    for (EnrollmentStatus status : params.getEnrollmentStatus()) {
+    for (DimensionalObject dim : params.getDimensionsAndFilters()) {
+      if (dim.getDimensionType() != DimensionType.PROGRAM_STATUS) {
+        continue;
+      }
       metadataItemMap.putIfAbsent(
-          status.name(), new MetadataItem(getEnrollmentStatusDisplayName(status)));
+          PROGRAM_STATUS.getItem(), new MetadataItem(PROGRAM_STATUS.getName()));
+      for (DimensionalItemObject item : dim.getItems()) {
+        EnrollmentStatus status = parseEnrollmentStatus(item.getUid());
+        if (status != null) {
+          metadataItemMap.put(
+              status.name(), new MetadataItem(getEnrollmentStatusDisplayName(status)));
+        }
+      }
+    }
+  }
+
+  private static EnrollmentStatus parseEnrollmentStatus(String value) {
+    try {
+      return EnrollmentStatus.valueOf(value);
+    } catch (IllegalArgumentException | NullPointerException ex) {
+      return null;
     }
   }
 
@@ -870,13 +903,17 @@ public class MetadataItemsHandler {
   private static void addItemFiltersToDimensionItems(
       List<QueryItem> itemsFilter, Map<String, List<String>> dimensionItems) {
     for (QueryItem item : itemsFilter) {
+      String itemUid = ResponseHelper.getItemUid(item);
+
       if (item.hasOptionSet()) {
-        dimensionItems.put(item.getItemId(), item.getOptionSetFilterItemsOrAll());
+        dimensionItems.put(itemUid, item.getOptionSetFilterItemsOrAll());
       } else if (item.hasLegendSet()) {
-        dimensionItems.put(item.getItemId(), item.getLegendSetFilterItemsOrAll());
+        dimensionItems.put(itemUid, item.getLegendSetFilterItemsOrAll());
+      } else if (!item.getDimensionValues().isEmpty()) {
+        dimensionItems.put(itemUid, item.getDimensionValues());
       } else {
         dimensionItems.put(
-            item.getItemId(),
+            itemUid,
             item.getFiltersAsString() != null ? List.of(item.getFiltersAsString()) : emptyList());
       }
     }

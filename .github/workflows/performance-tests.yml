@@ -84,6 +84,9 @@ on:
         description: 'Slack webhook URL for failure notifications'
         required: false
 
+permissions:
+  contents: read
+
 jobs:
   performance-tests:
     if: github.repository == 'dhis2/dhis2-core'

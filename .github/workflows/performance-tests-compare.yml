@@ -109,6 +109,9 @@ on:
         type: string
         default: manual
 
+permissions:
+  contents: read
+
 jobs:
   performance-tests:
     if: github.repository == 'dhis2/dhis2-core'

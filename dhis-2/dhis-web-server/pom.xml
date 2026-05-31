@@ -15,7 +15,7 @@
   <properties>
     <rootDir>../</rootDir>
     <build.time>${maven.build.timestamp}</build.time>
-    <tomcat.version>11.0.21</tomcat.version>
+    <tomcat.version>11.0.22</tomcat.version>
     <jib.version>3.5.1</jib.version>
     <jib.from.image>gcr.io/distroless/java21-debian12@sha256:7c05bf8a64ff1a70a16083e9bdd35b463aa0d014c2fc782d31d13ea7a61de633</jib.from.image>
     <jib.to.image>dhis2/core-dev:local</jib.to.image>
@@ -268,6 +268,25 @@
       <build>
         <plugins>
           <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>fetch-curl-binary</id>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <phase>generate-resources</phase>
+                <configuration>
+                  <executable>${project.basedir}/../fetch-curl-binary.sh</executable>
+                  <arguments>
+                    <argument>${project.basedir}/src/main/jib/usr/local/bin</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
             <groupId>com.google.cloud.tools</groupId>
             <artifactId>jib-maven-plugin</artifactId>
             <executions>
@@ -290,6 +309,25 @@
       </properties>
       <build>
         <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>fetch-curl-binary</id>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <phase>generate-resources</phase>
+                <configuration>
+                  <executable>${project.basedir}/../fetch-curl-binary.sh</executable>
+                  <arguments>
+                    <argument>${project.basedir}/src/main/jib/usr/local/bin</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
           <plugin>
             <groupId>com.google.cloud.tools</groupId>
             <artifactId>jib-maven-plugin</artifactId>
@@ -327,6 +365,25 @@
       </properties>
       <build>
         <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>fetch-curl-binary</id>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <phase>generate-resources</phase>
+                <configuration>
+                  <executable>${project.basedir}/../fetch-curl-binary.sh</executable>
+                  <arguments>
+                    <argument>${project.basedir}/src/main/jib/usr/local/bin</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
           <plugin>
             <groupId>com.google.cloud.tools</groupId>
             <artifactId>jib-maven-plugin</artifactId>

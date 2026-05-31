@@ -224,4 +224,10 @@ public interface DataElementService {
   DataElementGroupSet getDataElementGroupSet(long id);
 
   DataElementGroupSet getDataElementGroupSet(String uid);
+
+  // -------------------------------------------------------------------------
+  // DataElementOperand
+  // -------------------------------------------------------------------------
+
+  List<DataElementOperand> getAllDataElementOperands();
 }
