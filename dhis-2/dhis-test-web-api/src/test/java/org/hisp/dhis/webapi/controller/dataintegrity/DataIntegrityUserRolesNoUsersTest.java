@@ -30,57 +30,34 @@
 package org.hisp.dhis.webapi.controller.dataintegrity;
 
 import static org.hisp.dhis.http.HttpAssertions.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.http.HttpStatus;
+import org.hisp.dhis.test.webapi.json.domain.JsonDataIntegritySummary;
 import org.junit.jupiter.api.Test;
 
-class DataIntegrityOptionGroupsWithoutOptions extends AbstractDataIntegrityIntegrationTest {
-  private static final String CHECK_NAME = "option_groups_empty";
+class DataIntegrityUserRolesNoUsersTest extends AbstractDataIntegrityIntegrationTest {
+  private static final String CHECK_NAME = "user_roles_with_no_users";
 
-  private static final String DETAILS_ID_TYPE = "optionGroups";
+  private static final String DETAILS_ID_TYPE = "userRoles";
+
+  private String userRoleUid;
 
   @Test
-  void testOptionGroupsWithNoOptions() {
-
-    String goodOptionGroup =
+  void testUserRolesNoUsers() {
+    userRoleUid =
         assertStatus(
-            HttpStatus.CREATED, POST("/optionGroups", "{ 'name': 'Taste', 'shortName': 'Taste' }"));
+            HttpStatus.CREATED,
+            POST("/userRoles", "{ 'name': 'Test role', 'authorities': ['F_DATAVALUE_ADD'] }"));
+    // Note that two user roles already exist as part of the setup in the
+    // AbstractDataIntegrityIntegrationTest class
+    // Thus, there should be three roles in total, two of which are valid since they already have
+    // users associated with them.
+    postSummary(CHECK_NAME);
 
+    JsonDataIntegritySummary summary = getSummary(CHECK_NAME);
+    assertEquals(1, summary.getCount());
     assertHasDataIntegrityIssues(
-        DETAILS_ID_TYPE, CHECK_NAME, 100, goodOptionGroup, "Taste", null, true);
-  }
-
-  @Test
-  void testOptionGroupsWithOptions() {
-    String goodOptionSet =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST("/optionSets", "{ 'name': 'Taste', 'shortName': 'Taste', 'valueType' : 'TEXT' }"));
-
-    String sweetOption =
-        assertStatus(
-            HttpStatus.CREATED,
-            POST(
-                "/options",
-                "{ 'code': 'SWEET',"
-                    + "  'sortOrder': 1,"
-                    + "  'name': 'Sweet',"
-                    + "  'optionSet': { "
-                    + "    'id': '"
-                    + goodOptionSet
-                    + "'"
-                    + "  }}"));
-
-    assertStatus(
-        HttpStatus.CREATED,
-        POST(
-            "/optionGroups",
-            "{ 'name': 'Taste', 'shortName': 'Taste' , 'optionSet' : { 'id' : '"
-                + goodOptionSet
-                + "' }, 'options' : [ { 'id' : '"
-                + sweetOption
-                + "' } ] }"));
-
-    assertHasNoDataIntegrityIssues(DETAILS_ID_TYPE, CHECK_NAME, true);
+        DETAILS_ID_TYPE, CHECK_NAME, 50, userRoleUid, "Test role", null, true);
   }
 }
