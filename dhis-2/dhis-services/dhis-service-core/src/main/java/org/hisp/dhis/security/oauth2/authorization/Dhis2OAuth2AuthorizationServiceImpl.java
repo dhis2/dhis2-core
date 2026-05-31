@@ -119,6 +119,10 @@ public class Dhis2OAuth2AuthorizationServiceImpl
         SecurityJackson2Modules.getModules(classLoader);
     this.objectMapper.registerModules(securityModules);
     this.objectMapper.registerModule(new OAuth2AuthorizationServerJackson2Module());
+    // Allowlist + (de)serialize the DHIS2-custom principal types (DhisOidcUser / UserDetailsImpl)
+    // that an OIDC login persists into the authorization attributes; without this the read side
+    // (e.g. /oauth2/token) fails the SecurityJackson2Modules allowlist.
+    this.objectMapper.registerModule(new Dhis2OAuth2PrincipalJackson2Module());
 
     this.objectMapper.enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
   }

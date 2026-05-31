@@ -29,7 +29,7 @@
  */
 package org.hisp.dhis.user;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -40,6 +40,7 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.jackson.Jacksonized;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.twofa.TwoFactorType;
@@ -47,75 +48,23 @@ import org.springframework.security.core.GrantedAuthority;
 
 @Getter
 @Builder
+@Jacksonized
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Slf4j
 @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
+// Serialize by field name (not getters) so the JSON property names match the Lombok @Builder
+// setters that @Jacksonized wires up for deserialization; boolean getters such as isSuper() would
+// otherwise emit "super" while the builder method is named "isSuper". @Jacksonized makes Jackson
+// rebuild instances through the builder, which avoids the ambiguity of the hand-written factory and
+// the Lombok all-args constructor competing as creators. This is the shape the OAuth2 Authorization
+// Server persistence layer round-trips when an OIDC principal (DhisOidcUser) wraps a
+// UserDetailsImpl.
+@JsonAutoDetect(
+    fieldVisibility = JsonAutoDetect.Visibility.ANY,
+    getterVisibility = JsonAutoDetect.Visibility.NONE,
+    isGetterVisibility = JsonAutoDetect.Visibility.NONE)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UserDetailsImpl implements UserDetails {
-
-  @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
-  public static UserDetailsImpl userDetailsMixin(
-      @JsonProperty("id") String uid,
-      @JsonProperty("code") String code,
-      @JsonProperty("username") String username,
-      @JsonProperty("firstName") String firstName,
-      @JsonProperty("surname") String surname,
-      @JsonProperty("password") String password,
-      @JsonProperty("externalAuth") boolean externalAuth,
-      @JsonProperty("isTwoFactorEnabled") boolean isTwoFactorEnabled,
-      @JsonProperty("twoFactorType") TwoFactorType twoFactorType,
-      @JsonProperty("secret") String secret,
-      @JsonProperty("email") String email,
-      @JsonProperty("isEmailVerified") boolean isEmailVerified,
-      @JsonProperty("enabled") boolean enabled,
-      @JsonProperty("accountNonExpired") boolean accountNonExpired,
-      @JsonProperty("accountNonLocked") boolean accountNonLocked,
-      @JsonProperty("credentialsNonExpired") boolean credentialsNonExpired,
-      @JsonProperty("dataViewMaxOrganisationUnitLevel") int dataViewMaxOrganisationUnitLevel,
-      @JsonProperty("authorities") Collection<GrantedAuthority> authorities,
-      @JsonProperty("allAuthorities") Set<String> allAuthorities,
-      @JsonProperty("allRestrictions") Set<String> allRestrictions,
-      @JsonProperty("userGroupIds") Set<String> userGroupIds,
-      @JsonProperty("userOrgUnitIds") Set<String> userOrgUnitIds,
-      @JsonProperty("userDataOrgUnitIds") Set<String> userDataOrgUnitIds,
-      @JsonProperty("userSearchOrgUnitIds") Set<String> userSearchOrgUnitIds,
-      @JsonProperty("userEffectiveSearchOrgUnitIds") Set<String> userEffectiveSearchOrgUnitIds,
-      @JsonProperty("isSuper") boolean isSuper,
-      @JsonProperty("userRoleIds") Set<String> userRoleIds,
-      @JsonProperty("managedGroupLongIds") Set<Long> managedGroupLongIds,
-      @JsonProperty("userRoleLongIds") Set<Long> userRoleLongIds) {
-    return UserDetailsImpl.builder()
-        .uid(uid)
-        .code(code)
-        .username(username)
-        .firstName(firstName)
-        .surname(surname)
-        .password(password)
-        .externalAuth(externalAuth)
-        .isTwoFactorEnabled(isTwoFactorEnabled)
-        .twoFactorType(twoFactorType)
-        .secret(secret)
-        .email(email)
-        .isEmailVerified(isEmailVerified)
-        .enabled(enabled)
-        .accountNonExpired(accountNonExpired)
-        .accountNonLocked(accountNonLocked)
-        .credentialsNonExpired(credentialsNonExpired)
-        .dataViewMaxOrganisationUnitLevel(dataViewMaxOrganisationUnitLevel)
-        .authorities(authorities)
-        .allAuthorities(allAuthorities)
-        .allRestrictions(allRestrictions)
-        .userGroupIds(userGroupIds)
-        .userOrgUnitIds(userOrgUnitIds)
-        .userDataOrgUnitIds(userDataOrgUnitIds)
-        .userSearchOrgUnitIds(userSearchOrgUnitIds)
-        .userEffectiveSearchOrgUnitIds(userEffectiveSearchOrgUnitIds)
-        .isSuper(isSuper)
-        .userRoleIds(userRoleIds)
-        .managedGroupLongIds(managedGroupLongIds)
-        .userRoleLongIds(userRoleLongIds)
-        .build();
-  }
 
   private final String uid;
   @Setter private Long id;
@@ -147,6 +96,18 @@ public class UserDetailsImpl implements UserDetails {
   @Nonnull private final Set<String> userRoleIds;
   @Nonnull private final Set<Long> managedGroupLongIds;
   @Nonnull private final Set<Long> userRoleLongIds;
+
+  /**
+   * Serialize the UID under its own name. The inherited {@link
+   * org.hisp.dhis.common.UidObject#getUid()} maps it to {@code "id"} for the public metadata API,
+   * but this value object is only (de)serialized by the OAuth2 Authorization Server persistence
+   * layer, where {@code "id"} would collide with the numeric {@link #id} field.
+   */
+  @Override
+  @JsonProperty("uid")
+  public String getUid() {
+    return uid;
+  }
 
   @Override
   public boolean canModifyUser(User other) {
