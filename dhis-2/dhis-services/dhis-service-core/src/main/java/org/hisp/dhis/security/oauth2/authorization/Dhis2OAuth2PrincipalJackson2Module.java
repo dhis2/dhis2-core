@@ -33,7 +33,6 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import java.util.Map;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
@@ -61,9 +60,9 @@ import org.springframework.security.oauth2.core.oidc.OidcIdToken;
  * on read.
  *
  * <p>{@link DhisOidcUserMixin} both allowlists {@code DhisOidcUser} and declares how to rebuild it.
- * {@code UserDetailsImpl} already declares its own JSON shape (a {@code @JsonCreator} factory plus
- * field visibility) on the class; {@link UserDetailsImplMixin} is registered purely to add it to
- * the allowlist.
+ * {@code UserDetailsImpl} already declares its own JSON shape (Lombok builder plus field
+ * visibility) on the class; {@link UserDetailsImplMixin} is registered purely to add it to the
+ * allowlist.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -90,8 +89,13 @@ public class Dhis2OAuth2PrincipalJackson2Module extends SimpleModule {
    * org.hisp.dhis.common.UidObject#getUid()}, which is annotated {@code @JsonProperty("id")}; left
    * in, that string UID would be written as {@code "id"} and then fail on read against {@code
    * setId(Long)}. The user's identity is preserved in the nested {@code user} object.
+   *
+   * <p>No {@code @JsonTypeInfo} is needed: the principal's static type is the {@code OAuth2User}
+   * interface, so the type id is already written by the mapper's allowlist default typing.
    */
-  @JsonTypeInfo(use = JsonTypeInfo.Id.CLASS)
+  // Must be a class, not an interface (S1610): a Jackson mix-in that maps a @JsonCreator onto the
+  // target's constructor has to declare a matching constructor, which interfaces cannot.
+  @SuppressWarnings("java:S1610")
   @JsonAutoDetect(
       fieldVisibility = JsonAutoDetect.Visibility.ANY,
       getterVisibility = JsonAutoDetect.Visibility.NONE,
@@ -109,10 +113,11 @@ public class Dhis2OAuth2PrincipalJackson2Module extends SimpleModule {
   }
 
   /**
-   * Allowlist marker for {@link UserDetailsImpl}. The (de)serialization shape lives on the class
-   * itself; registering any mixin is what adds the type to {@link SecurityJackson2Modules}'
-   * deserialization allowlist (an empty mixin contributes no annotations, leaving the class's own
-   * configuration in effect).
+   * Allowlist marker for {@link UserDetailsImpl}, whose own (de)serialization shape is declared on
+   * the class. Registering any mix-in is what adds the type to {@link SecurityJackson2Modules}'
+   * deserialization allowlist; the {@code ignoreUnknown} setting just mirrors the class so a stray
+   * property never breaks the read.
    */
-  abstract static class UserDetailsImplMixin {}
+  @JsonIgnoreProperties(ignoreUnknown = true)
+  interface UserDetailsImplMixin {}
 }
