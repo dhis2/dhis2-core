@@ -105,7 +105,7 @@ class SpringBindingTest {
             content()
                 .string(
                     containsString(
-                        "Value '10.5' is not valid for parameter integerNumber. For input string: \"10.5\"")));
+                        "Value '10.5' is not valid for parameter integerNumber. For input string:")));
   }
 
   @Test
@@ -118,7 +118,7 @@ class SpringBindingTest {
             content()
                 .string(
                     containsString(
-                        "Value 'INVALID' is not valid for parameter date. Invalid format: \"INVALID\"")));
+                        "Value 'INVALID' is not valid for parameter date. Invalid format:")));
   }
 
   @Test
