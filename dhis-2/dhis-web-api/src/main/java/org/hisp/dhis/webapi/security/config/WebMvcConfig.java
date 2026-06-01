@@ -239,10 +239,13 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     CustomRequestMappingHandlerMapping mapping = new CustomRequestMappingHandlerMapping();
     mapping.setOrder(0);
     mapping.setContentNegotiationManager(mvcContentNegotiationManager());
-    // Spring 7.0 removed suffix-pattern and trailing-slash matching from the handler mapping.
-    // Path-extension content negotiation (e.g. /api/x.json) is reinstated by MediaTypeSuffixFilter.
-    // TODO trailing-slash matching for /api/** (was setUseTrailingSlashMatch(true)) still needs an
-    // explicit-route / filter replacement under Spring 7.
+    // Spring 6.0 made PathPatternParser the default request-matching engine, but DHIS2's controller
+    // mappings rely on AntPathMatcher semantics (notably mid-pattern "**"). Keep AntPathMatcher by
+    // setting the pattern parser to null until the controllers are migrated to PathPattern.
+    // (Spring 7.0 also removed suffix-pattern and trailing-slash matching from the handler mapping;
+    // path-extension content negotiation, e.g. /api/x.json, is reinstated by MediaTypeSuffixFilter.)
+    // TODO migrate controller mappings to PathPattern; reinstate trailing-slash matching for /api/**.
+    mapping.setPatternParser(null);
     return mapping;
   }
 

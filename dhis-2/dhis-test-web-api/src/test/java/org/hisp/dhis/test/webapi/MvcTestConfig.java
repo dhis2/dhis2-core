@@ -152,8 +152,11 @@ public class MvcTestConfig implements WebMvcConfigurer {
                 new HeaderContentNegotiationStrategy(),
                 new FixedContentNegotiationStrategy(MediaType.APPLICATION_JSON))));
 
-    // Spring 7.0 removed suffix-pattern / trailing-slash matching; path-extension negotiation is
-    // reinstated via SuffixMediaTypeContentNegotiationStrategy (fed by MediaTypeSuffixFilter).
+    // Keep AntPathMatcher (PathPatternParser is the Spring 6+ default) so controller mappings match
+    // as before; mirrors WebMvcConfig#createRequestMappingHandlerMapping. Spring 7.0 removed
+    // suffix-pattern / trailing-slash matching; path-extension negotiation is reinstated via
+    // SuffixMediaTypeContentNegotiationStrategy (fed by MediaTypeSuffixFilter).
+    mapping.setPatternParser(null);
     return mapping;
   }
 
