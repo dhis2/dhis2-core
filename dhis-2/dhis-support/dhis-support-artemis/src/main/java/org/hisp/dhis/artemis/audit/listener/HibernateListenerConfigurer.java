@@ -31,7 +31,7 @@ package org.hisp.dhis.artemis.audit.listener;
 
 import jakarta.persistence.EntityManagerFactory;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;

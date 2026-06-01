@@ -33,7 +33,7 @@ import com.google.common.collect.ImmutableList;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.UID;

@@ -48,7 +48,7 @@ import java.util.Set;
 import java.util.UUID;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.condition.AuthorizationServerEnabledCondition;
 import org.hisp.dhis.security.oauth2.authorization.Dhis2OAuth2AuthorizationService;
