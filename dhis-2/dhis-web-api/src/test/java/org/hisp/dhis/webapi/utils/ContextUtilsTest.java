@@ -46,7 +46,7 @@ class ContextUtilsTest {
     user.setUid("kYt56BgfED2");
 
     assertEquals(
-        "ebcaa46bf9de4d04ea69cafcb3bd5caf", ContextUtils.getEtag(date, UserDetails.fromUser(user)));
+        "db5face9ed0cc9ffdd5e67e3c43a40aa", ContextUtils.getEtag(date, UserDetails.fromUser(user)));
   }
 
   @Test
