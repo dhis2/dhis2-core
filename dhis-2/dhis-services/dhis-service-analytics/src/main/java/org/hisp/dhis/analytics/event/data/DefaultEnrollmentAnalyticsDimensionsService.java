@@ -138,6 +138,6 @@ public class DefaultEnrollmentAnalyticsDimensionsService
   }
 
   private boolean isNotSkipped(TrackedEntityAttribute trackedEntityAttribute) {
-    return !trackedEntityAttribute.getSkipAnalytics();
+    return !Boolean.TRUE.equals(trackedEntityAttribute.getSkipAnalytics());
   }
 }
