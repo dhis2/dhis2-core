@@ -122,8 +122,8 @@ public class MediaTypeSuffixFilter extends OncePerRequestFilter {
   }
 
   /**
-   * Wraps a request to expose the path with an optional trailing slash and/or registered
-   * {@code .extension} suffix removed, so handler mapping matches the canonical mapping.
+   * Wraps a request to expose the path with an optional trailing slash and/or registered {@code
+   * .extension} suffix removed, so handler mapping matches the canonical mapping.
    */
   private static final class PathNormalizingRequestWrapper extends HttpServletRequestWrapper {
     private final String suffix;

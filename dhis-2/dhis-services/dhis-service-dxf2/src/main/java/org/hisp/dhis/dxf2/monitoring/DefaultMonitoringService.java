@@ -29,8 +29,8 @@
  */
 package org.hisp.dhis.dxf2.monitoring;
 
-import java.util.Date;
 import jakarta.annotation.PostConstruct;
+import java.util.Date;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

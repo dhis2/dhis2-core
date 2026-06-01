@@ -243,8 +243,10 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     // mappings rely on AntPathMatcher semantics (notably mid-pattern "**"). Keep AntPathMatcher by
     // setting the pattern parser to null until the controllers are migrated to PathPattern.
     // (Spring 7.0 also removed suffix-pattern and trailing-slash matching from the handler mapping;
-    // path-extension content negotiation, e.g. /api/x.json, is reinstated by MediaTypeSuffixFilter.)
-    // TODO migrate controller mappings to PathPattern; reinstate trailing-slash matching for /api/**.
+    // path-extension content negotiation, e.g. /api/x.json, is reinstated by
+    // MediaTypeSuffixFilter.)
+    // TODO migrate controller mappings to PathPattern; reinstate trailing-slash matching for
+    // /api/**.
     mapping.setPatternParser(null);
     return mapping;
   }

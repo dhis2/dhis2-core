@@ -30,10 +30,10 @@
 package org.hisp.dhis.security.oidc;
 
 import com.nimbusds.jose.jwk.JWK;
+import jakarta.annotation.PostConstruct;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.endpoint.NimbusJwtClientAuthenticationParametersConverter;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
