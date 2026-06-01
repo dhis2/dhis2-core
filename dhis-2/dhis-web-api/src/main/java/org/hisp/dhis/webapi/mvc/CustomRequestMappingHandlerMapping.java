@@ -31,7 +31,6 @@ package org.hisp.dhis.webapi.mvc;
 
 import java.lang.reflect.Method;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.servlet.mvc.condition.PatternsRequestCondition;
 import org.springframework.web.servlet.mvc.condition.RequestMethodsRequestCondition;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
@@ -58,23 +57,15 @@ public class CustomRequestMappingHandlerMapping extends RequestMappingHandlerMap
       return null;
     }
 
+    // Spring 7.0 removed the suffix-pattern / trailing-slash flags from PatternsRequestCondition;
+    // path-extension content negotiation is now handled by MediaTypeSuffixFilter. The only mapping
+    // adjustment that remains is to default a method-less mapping to GET (legacy DHIS2 behaviour).
     RequestMethodsRequestCondition methodsCondition = info.getMethodsCondition();
 
     if (methodsCondition.getMethods().isEmpty()) {
-      methodsCondition = new RequestMethodsRequestCondition(RequestMethod.GET);
+      return info.mutate().methods(RequestMethod.GET).build();
     }
 
-    PatternsRequestCondition patternsRequestCondition =
-        new PatternsRequestCondition(
-            info.getPatternValues().toArray(new String[] {}), null, null, true, true, null);
-    return new RequestMappingInfo(
-        null,
-        patternsRequestCondition,
-        methodsCondition,
-        info.getParamsCondition(),
-        info.getHeadersCondition(),
-        info.getConsumesCondition(),
-        info.getProducesCondition(),
-        info.getCustomCondition());
+    return info;
   }
 }

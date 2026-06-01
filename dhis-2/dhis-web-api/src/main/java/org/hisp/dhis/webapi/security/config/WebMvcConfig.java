@@ -60,7 +60,7 @@ import org.hisp.dhis.webapi.mvc.messageconverter.StreamingJsonRootMessageConvert
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlPathMappingJackson2XmlHttpMessageConverter;
 import org.hisp.dhis.webapi.staticresource.StaticCacheInterceptor;
-import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
+import org.hisp.dhis.webapi.view.SuffixMediaTypeContentNegotiationStrategy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -227,13 +227,9 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Bean
   @Override
   public ContentNegotiationManager mvcContentNegotiationManager() {
-    CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
-        new CustomPathExtensionContentNegotiationStrategy(MEDIA_TYPE_MAP);
-    pathExtensionNegotiationStrategy.setUseRegisteredExtensionsOnly(true);
-
     return new ContentNegotiationManager(
         Arrays.asList(
-            pathExtensionNegotiationStrategy,
+            new SuffixMediaTypeContentNegotiationStrategy(),
             new HeaderContentNegotiationStrategy(),
             new FixedContentNegotiationStrategy(MediaType.APPLICATION_JSON)));
   }
@@ -243,9 +239,10 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
     CustomRequestMappingHandlerMapping mapping = new CustomRequestMappingHandlerMapping();
     mapping.setOrder(0);
     mapping.setContentNegotiationManager(mvcContentNegotiationManager());
-    mapping.setUseTrailingSlashMatch(true);
-    mapping.setUseSuffixPatternMatch(true);
-    mapping.setUseRegisteredSuffixPatternMatch(true);
+    // Spring 7.0 removed suffix-pattern and trailing-slash matching from the handler mapping.
+    // Path-extension content negotiation (e.g. /api/x.json) is reinstated by MediaTypeSuffixFilter.
+    // TODO trailing-slash matching for /api/** (was setUseTrailingSlashMatch(true)) still needs an
+    // explicit-route / filter replacement under Spring 7.
     return mapping;
   }
 
@@ -263,8 +260,9 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
 
   @Override
   public void configureContentNegotiation(ContentNegotiationConfigurer config) {
+    // favorPathExtension was removed in Spring 7.0; path-extension negotiation is now provided by
+    // SuffixMediaTypeContentNegotiationStrategy (fed by MediaTypeSuffixFilter).
     config
-        .favorPathExtension(true)
         .favorParameter(false)
         .ignoreAcceptHeader(false)
         .defaultContentType(MediaType.APPLICATION_JSON)

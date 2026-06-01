@@ -43,6 +43,7 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.DefaultLocationManager;
 import org.hisp.dhis.system.startup.StartupListener;
 import org.hisp.dhis.webapi.filter.ConditionalOpenEntityManagerInViewFilter;
+import org.hisp.dhis.webapi.filter.MediaTypeSuffixFilter;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
@@ -166,6 +167,13 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer {
 
     context
         .addFilter("ApiVersionFilter", new DelegatingFilterProxy("apiVersionFilter"))
+        .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/api/*");
+
+    // Reinstates path-extension content negotiation (e.g. /api/x.json) removed in Spring 7.0.
+    // Registered after Spring Security so security path matching still sees the original suffix,
+    // but before the dispatcher so handler mapping matches the suffix-stripped path.
+    context
+        .addFilter("mediaTypeSuffixFilter", new MediaTypeSuffixFilter())
         .addMappingForUrlPatterns(EnumSet.allOf(DispatcherType.class), true, "/api/*");
 
     context
