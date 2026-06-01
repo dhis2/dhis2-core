@@ -38,6 +38,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.StreamSupport;
 import javax.annotation.CheckForNull;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -56,6 +57,7 @@ import org.jclouds.ContextBuilder;
 import org.jclouds.blobstore.BlobRequestSigner;
 import org.jclouds.blobstore.BlobStore;
 import org.jclouds.blobstore.BlobStoreContext;
+import org.jclouds.blobstore.BlobStores;
 import org.jclouds.blobstore.LocalBlobRequestSigner;
 import org.jclouds.blobstore.domain.Blob;
 import org.jclouds.blobstore.domain.StorageMetadata;
@@ -189,18 +191,22 @@ public class JCloudsStore implements BlobStoreService {
   public Iterable<BlobKeyPrefix> listFolders(BlobKeyPrefix prefix) {
     // JClouds directory listing requires a trailing "/" on the prefix
     String jcloudsPrefix = prefix.value() + "/";
-    return getBlobStore()
-        .list(fileStoreConfig.container, prefix(jcloudsPrefix).delimiter("/"))
-        .stream()
+    return StreamSupport.stream(
+            BlobStores.listAll(
+                    getBlobStore(), fileStoreConfig.container, prefix(jcloudsPrefix).delimiter("/"))
+                .spliterator(),
+            false)
         .map(m -> BlobKeyPrefix.of(m.getName()))
         .toList();
   }
 
   @Override
   public Iterable<BlobKey> listKeys(BlobKeyPrefix prefix) {
-    return getBlobStore()
-        .list(fileStoreConfig.container, prefix(prefix.value()).recursive())
-        .stream()
+    return StreamSupport.stream(
+            BlobStores.listAll(
+                    getBlobStore(), fileStoreConfig.container, prefix(prefix.value()).recursive())
+                .spliterator(),
+            false)
         .map(StorageMetadata::getName)
         .map(BlobKey::new)
         .toList();

@@ -137,7 +137,6 @@ class SingleEventsExportChangeLogsControllerTest extends PostgresControllerInteg
 
     dataValue = new EventDataValue();
     dataValue.setDataElement(dataElement.getUid());
-    dataValue.setStoredBy("user");
     dataValue.setValue(DATA_ELEMENT_VALUE);
 
     event = event();
