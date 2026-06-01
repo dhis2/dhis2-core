@@ -54,6 +54,7 @@ import org.hisp.dhis.test.IntegrationTestBase;
 import org.hisp.dhis.test.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.filter.ApiVersionFilter;
+import org.hisp.dhis.webapi.filter.MediaTypeSuffixFilter;
 import org.hisp.dhis.webapi.filter.RequestIdFilter;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,6 +136,9 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
                 requestIdFilter) // RequestIdFilter must run first to capture X-Request-ID for
             // logging/MDC
             .addFilter(apiVersionFilter)
+            // Reinstates .json/.xml content negotiation + trailing-slash matching that Spring 7
+            // removed from the handler mapping (matches DhisWebApiWebAppInitializer in production).
+            .addFilter(new MediaTypeSuffixFilter(), "/*")
             .build();
 
     switchContextToUser(getAdminUser());
