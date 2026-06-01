@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.test.webapi;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;

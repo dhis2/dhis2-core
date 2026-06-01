@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -37,16 +37,17 @@ import org.springframework.util.StringUtils;
 /**
  * Ant-style {@link RequestMatcher} backed by Spring's {@link AntPathMatcher}.
  *
- * <p>Spring Security 7.0 removed {@code org.springframework.security.web.util.matcher.AntPathRequestMatcher}
- * in favour of {@code PathPatternRequestMatcher}. {@code PathPattern} does not support the {@code **}
- * wildcard anywhere other than the end of the pattern, whereas DHIS2's security rules rely on
- * mid-pattern matches such as {@code /api/**&#47;loginConfig} (to match versioned API paths like
- * {@code /api/40/loginConfig}). This drop-in replacement preserves the exact Ant matching semantics
- * the security configuration depended on, so request-authorization behaviour is unchanged.
+ * <p>Spring Security 7.0 removed {@code
+ * org.springframework.security.web.util.matcher.AntPathRequestMatcher} in favour of {@code
+ * PathPatternRequestMatcher}. {@code PathPattern} does not support the {@code **} wildcard anywhere
+ * other than the end of the pattern, whereas DHIS2's security rules rely on mid-pattern matches
+ * such as {@code /api/**&#47;loginConfig} (to match versioned API paths like {@code
+ * /api/40/loginConfig}). This drop-in replacement preserves the exact Ant matching semantics the
+ * security configuration depended on, so request-authorization behaviour is unchanged.
  *
- * <p>Matching is performed against the same request path the removed Spring matcher used —
- * {@code servletPath + pathInfo} — using a case-sensitive {@link AntPathMatcher} with token
- * trimming disabled.
+ * <p>Matching is performed against the same request path the removed Spring matcher used — {@code
+ * servletPath + pathInfo} — using a case-sensitive {@link AntPathMatcher} with token trimming
+ * disabled.
  */
 public final class AntPathRequestMatcher implements RequestMatcher {
   /** Matches every request (the {@code **}/{@code /**} fast-path, as the original did). */

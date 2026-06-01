@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution.
  *
- * 3. Neither the name of the copyright holder nor the names of its contributors
+ * 3. Neither the name of the copyright holder nor the names of its contributors 
  * may be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
@@ -37,12 +37,12 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.RequestAttributes;
 
 /**
- * Resolves the requested {@link MediaType} from the URL path extension (e.g. {@code .json},
- * {@code .xml}, {@code adx.xml.gz}).
+ * Resolves the requested {@link MediaType} from the URL path extension (e.g. {@code .json}, {@code
+ * .xml}, {@code adx.xml.gz}).
  *
- * <p>Spring Framework 7.0 removed path-extension content negotiation entirely (the
- * {@code PathExtensionContentNegotiationStrategy} base class and the {@code favorPathExtension} /
- * {@code setUseRegisteredSuffixPatternMatch} flags). To preserve DHIS2's long-standing {@code
+ * <p>Spring Framework 7.0 removed path-extension content negotiation entirely (the {@code
+ * PathExtensionContentNegotiationStrategy} base class and the {@code favorPathExtension} / {@code
+ * setUseRegisteredSuffixPatternMatch} flags). To preserve DHIS2's long-standing {@code
  * /api/resource.json} behaviour, {@link MediaTypeSuffixFilter} resolves the extension to a media
  * type up-front and stores it as a request attribute (while stripping the suffix from the path so
  * handler mapping still matches the extension-less mapping). This strategy simply reads that
