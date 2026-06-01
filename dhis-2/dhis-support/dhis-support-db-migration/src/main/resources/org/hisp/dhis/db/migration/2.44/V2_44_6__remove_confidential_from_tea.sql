@@ -12,8 +12,10 @@ BEGIN
 
     IF encrypted_only_count > 0 THEN
         RAISE EXCEPTION
-            'Migration aborted: % row(s) in trackedentityattributevalue have an encrypted value '
-            'but no plain text value. Decrypt these attribute values before running this migration.',
+            'Migration aborted: % row(s) in trackedentityattributevalue have an encrypted value but no plain text value. '
+                'Resolve this data inconsistency before running the migration. '
+                'See the 2.44 migration notes: '
+                'https://github.com/dhis2/dhis2-releases/blob/master/releases/2.44/migration-notes.md#tracked-entity-value-has-encrypted-value-but-no-plain-text-value',
             encrypted_only_count;
     END IF;
 END;
