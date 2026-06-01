@@ -144,6 +144,17 @@ class EventImportTest extends TrackerTest {
     assertNotNull(event.getCompletedDate());
   }
 
+  @Test
+  void shouldSetStoredByToAuthenticatedUserForEvent() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    assertNoErrors(
+        trackerImportService.importTracker(params, fromJson("tracker/te_enrollment_event.json")));
+
+    Event event = manager.get(Event.class, "D9PbzJY8bJO");
+    assertNotNull(event);
+    assertEquals(importUser.getUsername(), event.getStoredBy());
+  }
+
   public Stream<Arguments> notCompletedStatus() {
     return Stream.of(
         Arguments.of(EventStatus.ACTIVE),

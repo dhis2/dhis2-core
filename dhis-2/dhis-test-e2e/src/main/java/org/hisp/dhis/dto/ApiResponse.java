@@ -40,7 +40,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonNode;
-import org.hisp.dhis.jsontree.JsonTypedAccess;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -116,7 +115,7 @@ public class ApiResponse {
   }
 
   public JsonMixed getBodyAsJsonValue() {
-    return JsonMixed.of(raw.asString(), JsonTypedAccess.GLOBAL);
+    return JsonMixed.of(raw.asString());
   }
 
   public JsonNode getBodyAsJsonNode() {

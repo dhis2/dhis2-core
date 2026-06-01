@@ -48,6 +48,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,10 +68,13 @@ class TrackedEntityAttributeTest extends TrackerTest {
 
   @Autowired protected UserService _userService;
 
+  private User importUser;
+
   @Override
   protected void initTest() throws IOException {
     userService = _userService;
     setUpMetadata("tracker/te_with_tea_metadata.json");
+    importUser = userService.getUser(ADMIN_USER_UID);
     injectAdminUser();
   }
 
@@ -100,5 +104,20 @@ class TrackedEntityAttributeTest extends TrackerTest {
     List<TrackedEntityAttributeValue> attributeValues =
         trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntity);
     assertEquals(3, attributeValues.size());
+  }
+
+  @Test
+  void shouldSetStoredByToAuthenticatedUserForTrackedEntityAttributeValue() throws IOException {
+    TrackerObjects trackerObjects = fromJson("tracker/te_with_tea_data.json");
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
+
+    List<TrackedEntity> trackedEntities = manager.getAll(TrackedEntity.class);
+    assertEquals(1, trackedEntities.size());
+    List<TrackedEntityAttributeValue> attributeValues =
+        trackedEntityAttributeValueService.getTrackedEntityAttributeValues(trackedEntities.get(0));
+    for (TrackedEntityAttributeValue av : attributeValues) {
+      assertEquals(importUser.getUsername(), av.getStoredBy());
+    }
   }
 }

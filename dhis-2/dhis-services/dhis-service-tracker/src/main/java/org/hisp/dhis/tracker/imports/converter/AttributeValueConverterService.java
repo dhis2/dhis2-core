@@ -55,7 +55,6 @@ public class AttributeValueConverterService
     attribute.setDisplayName(teav.getAttribute().getDisplayName());
     attribute.setCreatedAt(instantFromDate(teav.getCreated()));
     attribute.setUpdatedAt(instantFromDate(teav.getLastUpdated()));
-    attribute.setStoredBy(teav.getStoredBy());
     attribute.setValueType(teav.getAttribute().getValueType());
     attribute.setValue(teav.getValue());
 
@@ -79,7 +78,6 @@ public class AttributeValueConverterService
 
     teav.setCreated(fromInstant(at.getCreatedAt()));
     teav.setLastUpdated(fromInstant(at.getUpdatedAt()));
-    teav.setStoredBy(at.getStoredBy());
     teav.setValue(at.getValue());
     teav.setAttribute(attribute);
 
