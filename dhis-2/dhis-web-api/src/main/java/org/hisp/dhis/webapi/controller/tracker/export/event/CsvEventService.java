@@ -42,7 +42,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.util.DateUtils;
@@ -197,13 +196,12 @@ class CsvEventService implements CsvService<Event> {
         events.add(event);
       }
 
-      if (ObjectUtils.anyNotNull(
-          dataValue.getProvidedElsewhere(),
-          dataValue.getDataElement(),
-          dataValue.getValue(),
-          dataValue.getCreatedAtDataValue(),
-          dataValue.getUpdatedAtDataValue(),
-          dataValue.getStoredByDataValue())) {
+      if (dataValue.getProvidedElsewhere() != null
+          || StringUtils.isNotEmpty(dataValue.getDataElement())
+          || StringUtils.isNotEmpty(dataValue.getValue())
+          || StringUtils.isNotEmpty(dataValue.getCreatedAtDataValue())
+          || StringUtils.isNotEmpty(dataValue.getUpdatedAtDataValue())
+          || StringUtils.isNotEmpty(dataValue.getStoredByDataValue())) {
         DataValue value = new DataValue();
         value.setProvidedElsewhere(
             dataValue.getProvidedElsewhere() != null && dataValue.getProvidedElsewhere());
