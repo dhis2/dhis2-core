@@ -96,11 +96,13 @@ public class MetadataAttributeCheck implements ObjectValidationCheck {
       object
           .getAttributeValues()
           .forEach(
-              (attributeId, value) ->
-                  getValueType(attributeId, attributesMap, klass.getSimpleName(), errorReports::add)
-                      .ifPresent(
-                          type -> attributeValidator.validate(type, value, errorReports::add)));
-
+              (key, value) -> {
+                String attributeId = key.toString();
+                getValueType(attributeId, attributesMap, klass.getSimpleName(), errorReports::add)
+                    .ifPresent(
+                        type ->
+                            attributeValidator.validate(type, value.toString(), errorReports::add));
+              });
       if (!errorReports.isEmpty()) {
         addReports.accept(createObjectReport(errorReports, object, bundle));
         ctx.markForRemoval(object);

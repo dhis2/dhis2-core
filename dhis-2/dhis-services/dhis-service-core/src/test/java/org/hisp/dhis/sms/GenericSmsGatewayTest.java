@@ -61,6 +61,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpEntity;
@@ -100,7 +101,7 @@ class GenericSmsGatewayTest {
 
   @Captor private ArgumentCaptor<HttpMethod> httpMethodArgumentCaptor;
 
-  private SimplisticHttpGetGateWay subject;
+  @InjectMocks private SimplisticHttpGetGateWay subject;
 
   private GenericHttpGatewayConfig gatewayConfig;
 
@@ -116,7 +117,7 @@ class GenericSmsGatewayTest {
 
   @BeforeEach
   public void setUp() {
-    subject = new SimplisticHttpGetGateWay(restTemplate, pbeStringEncryptor);
+    subject.setRestTemplate(restTemplate);
 
     gatewayConfig = new GenericHttpGatewayConfig();
     gatewayConfig.setUseGet(false);

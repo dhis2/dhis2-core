@@ -32,13 +32,11 @@ package org.hisp.dhis.tracker.imports.bundle;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
-import jakarta.persistence.EntityManager;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Session;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -48,17 +46,18 @@ import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.bundle.persister.CommitService;
 import org.hisp.dhis.tracker.imports.bundle.persister.PersistenceException;
 import org.hisp.dhis.tracker.imports.bundle.persister.TrackerObjectDeletionService;
+import org.hisp.dhis.tracker.imports.bundle.persister.TrackerPersister.PersistResult;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
-import org.hisp.dhis.tracker.imports.notification.NotificationHandlerService;
+import org.hisp.dhis.tracker.imports.notification.EntityNotifications;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.imports.programrule.ProgramRuleService;
 import org.hisp.dhis.tracker.imports.report.PersistenceReport;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.hisp.dhis.user.UserDetails;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,7 +69,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultTrackerBundleService implements TrackerBundleService {
   private final TrackerPreheatService trackerPreheatService;
 
-  private final EntityManager entityManager;
+  private final NamedParameterJdbcTemplate jdbcTemplate;
 
   private final CommitService commitService;
 
@@ -79,13 +78,6 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   private final TrackerObjectDeletionService deletionService;
 
   private final ObjectMapper mapper;
-
-  private List<NotificationHandlerService> notificationHandlers = new ArrayList<>();
-
-  @Autowired(required = false)
-  public void setNotificationHandlers(List<NotificationHandlerService> notificationHandlers) {
-    this.notificationHandlers = notificationHandlers;
-  }
 
   @Nonnull
   @Override
@@ -111,28 +103,31 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
   @Nonnull
   @Override
   @Transactional
-  public PersistenceReport commit(@Nonnull TrackerBundle bundle) {
+  public CommitResult commit(@Nonnull TrackerBundle bundle) {
     if (TrackerBundleMode.VALIDATE == bundle.getImportMode()) {
-      return PersistenceReport.emptyReport();
+      return new CommitResult(PersistenceReport.emptyReport(), List.of());
     }
 
-    TrackerTypeReport trackedEntitiesReport =
-        commitService.getTrackerPersister().persist(entityManager, bundle);
-    TrackerTypeReport enrollmentsReport =
-        commitService.getEnrollmentPersister().persist(entityManager, bundle);
-    TrackerTypeReport trackerEventsReport =
-        commitService.getTrackerEventPersister().persist(entityManager, bundle);
-    TrackerTypeReport singleEventsReport =
-        commitService.getSingleEventPersister().persist(entityManager, bundle);
-    TrackerTypeReport relationshipsReport =
-        commitService.getRelationshipPersister().persist(entityManager, bundle);
+    PersistResult trackedEntities = commitService.getTrackerPersister().persist(bundle);
+    PersistResult enrollments = commitService.getEnrollmentPersister().persist(bundle);
+    PersistResult trackerEvents = commitService.getTrackerEventPersister().persist(bundle);
+    PersistResult singleEvents = commitService.getSingleEventPersister().persist(bundle);
+    PersistResult relationships = commitService.getRelationshipPersister().persist(bundle);
 
-    return new PersistenceReport(
-        trackedEntitiesReport,
-        enrollmentsReport,
-        trackerEventsReport,
-        singleEventsReport,
-        relationshipsReport);
+    PersistenceReport report =
+        new PersistenceReport(
+            trackedEntities.report(),
+            enrollments.report(),
+            trackerEvents.report(),
+            singleEvents.report(),
+            relationships.report());
+
+    List<EntityNotifications> notifications =
+        Stream.of(trackedEntities, enrollments, trackerEvents, singleEvents, relationships)
+            .flatMap(r -> r.notifications().stream())
+            .toList();
+
+    return new CommitResult(report, notifications);
   }
 
   @Override
@@ -146,37 +141,31 @@ public class DefaultTrackerBundleService implements TrackerBundleService {
       return;
     }
 
-    List<List<UID>> uidsPartitions =
-        Lists.partition(Lists.newArrayList(bundle.getUpdatedTrackedEntities()), 20000);
-
-    try (Session session = entityManager.unwrap(Session.class)) {
-      for (List<UID> trackedEntities : uidsPartitions) {
-        if (trackedEntities.isEmpty()) {
-          continue;
-        }
-        executeLastUpdatedQuery(session, UID.toValueList(trackedEntities), bundle.getUser());
-      }
-    }
-  }
-
-  private void executeLastUpdatedQuery(
-      Session session, List<String> trackedEntities, UserDetails user) {
+    String userInfoJson;
     try {
-      UserInfoSnapshot userInfo = UserInfoSnapshot.from(user);
-      session
-          .getNamedQuery("updateTrackedEntitiesLastUpdated")
-          .setParameter("trackedEntities", trackedEntities)
-          .setParameter("lastUpdated", new Date())
-          .setParameter("lastupdatedbyuserinfo", mapper.writeValueAsString(userInfo))
-          .executeUpdate();
+      userInfoJson = mapper.writeValueAsString(UserInfoSnapshot.from(bundle.getUser()));
     } catch (JsonProcessingException e) {
       throw new PersistenceException(e);
     }
-  }
 
-  @Override
-  public void sendNotifications(@Nonnull List<TrackerNotificationDataBundle> bundles) {
-    notificationHandlers.forEach(handler -> handler.handleNotifications(bundles));
+    Date lastUpdated = new Date();
+    String sql =
+        "update trackedentity set lastUpdated = :lastUpdated,"
+            + " lastupdatedbyuserinfo = CAST(:lastupdatedbyuserinfo as jsonb)"
+            + " where uid in (:trackedEntities)";
+
+    for (List<UID> partition :
+        Lists.partition(Lists.newArrayList(bundle.getUpdatedTrackedEntities()), 20000)) {
+      if (partition.isEmpty()) {
+        continue;
+      }
+      MapSqlParameterSource params =
+          new MapSqlParameterSource()
+              .addValue("trackedEntities", UID.toValueList(partition))
+              .addValue("lastUpdated", lastUpdated)
+              .addValue("lastupdatedbyuserinfo", userInfoJson);
+      jdbcTemplate.update(sql, params);
+    }
   }
 
   @Nonnull

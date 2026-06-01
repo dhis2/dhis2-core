@@ -237,7 +237,6 @@ public class EventQueryService {
                 DATETIME,
                 false,
                 true))
-        .addHeader(new GridHeader(STORED_BY.getItem(), STORED_BY.getName(), TEXT, false, true))
         .addHeader(
             new GridHeader(
                 CREATED_BY_DISPLAY_NAME.getItem(),
@@ -254,6 +253,10 @@ public class EventQueryService {
                 true))
         .addHeader(
             new GridHeader(LAST_UPDATED.getItem(), LAST_UPDATED.getName(), DATETIME, false, true))
+        .addHeader(new GridHeader(CREATED.getItem(), CREATED.getName(), DATETIME, false, true))
+        .addHeader(
+            new GridHeader(
+                COMPLETED_DATE.getItem(), COMPLETED_DATE.getName(), DATETIME, false, true))
         .addHeader(
             new GridHeader(
                 SCHEDULED_DATE.getItem(),
@@ -285,8 +288,15 @@ public class EventQueryService {
     }
 
     if (isGeospatialSupport()) {
-      grid.addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true))
-          .addHeader(
+      grid.addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true));
+
+      if (params.hasGeometrySources()) {
+        grid.addHeader(
+            new GridHeader(
+                GEOMETRY_SOURCE.getItem(), GEOMETRY_SOURCE.getName(), TEXT, false, true));
+      }
+
+      grid.addHeader(
               new GridHeader(
                   ENROLLMENT_GEOMETRY.getItem(), ENROLLMENT_GEOMETRY.getName(), TEXT, false, true))
           .addHeader(new GridHeader(LONGITUDE.getItem(), LONGITUDE.getName(), NUMBER, false, true))

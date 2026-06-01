@@ -35,8 +35,16 @@ import static org.hisp.dhis.changelog.ChangeLogType.DELETE;
 import static org.hisp.dhis.changelog.ChangeLogType.UPDATE;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -44,6 +52,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import javax.sql.DataSource;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,11 +62,12 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceStore;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityChangeLogService;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.FlushMode;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -65,14 +75,19 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
-import org.hisp.dhis.tracker.imports.job.NotificationTrigger;
-import org.hisp.dhis.tracker.imports.job.TrackerNotificationDataBundle;
+import org.hisp.dhis.tracker.imports.notification.EntityNotifications;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.programrule.engine.Notification;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
+import org.hisp.dhis.tracker.model.Enrollment;
+import org.hisp.dhis.tracker.model.Relationship;
+import org.hisp.dhis.tracker.model.SingleEvent;
 import org.hisp.dhis.tracker.model.TrackedEntity;
 import org.hisp.dhis.tracker.model.TrackedEntityAttributeValue;
+import org.hisp.dhis.tracker.model.TrackerEvent;
 import org.hisp.dhis.user.UserDetails;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 
 /**
  * @author Luciano Fiandesio
@@ -81,125 +96,206 @@ import org.hisp.dhis.user.UserDetails;
 @RequiredArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends IdentifiableObject>
     implements TrackerPersister<T, V> {
+  private static final DateTimeFormatter DATE_FORMATTER =
+      DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS").withZone(ZoneId.systemDefault());
+
+  @PersistenceContext private EntityManager entityManager;
+
   protected final ReservedValueService reservedValueService;
 
-  protected final TrackedEntityChangeLogService trackedEntityChangeLogService;
+  protected final DataSource dataSource;
+
+  protected final FileResourceStore fileResourceStore;
 
   /**
    * Template method that can be used by classes extending this class to execute the persistence
    * flow of Tracker entities
    *
-   * @param entityManager a valid EntityManager
    * @param bundle the Bundle to persist
    * @return a {@link TrackerTypeReport}
    */
   @Override
-  public TrackerTypeReport persist(EntityManager entityManager, TrackerBundle bundle) {
+  public PersistResult persist(TrackerBundle bundle) {
     //
     // Init the report that will hold the results of the persist operation
     //
     TrackerTypeReport typeReport = new TrackerTypeReport(getType());
 
-    List<TrackerNotificationDataBundle> notificationDataBundles = new ArrayList<>();
+    List<EntityNotifications> notifications = new ArrayList<>();
+    ChangeLogAccumulator changeLogs = new ChangeLogAccumulator();
+    EntityWriteBatch batch = new EntityWriteBatch();
 
     //
     // Extract the entities to persist from the Bundle
     //
     List<T> dtos = getByType(bundle);
 
-    for (T trackerDto : dtos) {
+    Connection conn = DataSourceUtils.getConnection(dataSource);
+    try {
+      for (T trackerDto : dtos) {
 
-      Entity objectReport = new Entity(getType(), trackerDto.getUID());
-      List<NotificationTrigger> triggers =
-          determineNotificationTriggers(bundle.getPreheat(), trackerDto);
+        Entity objectReport = new Entity(getType(), trackerDto.getUID());
+        boolean isNewEntity = isNew(bundle, trackerDto);
+        // Capture before convert() which mutates the preheat entity's status
+        boolean completedInThisImport =
+            !bundle.isSkipSideEffects()
+                && isBeingCompleted(bundle.getPreheat(), trackerDto, isNewEntity);
+        ChangeLogAccumulator.Mark changeLogMark = changeLogs.mark();
+        EntityWriteBatch.Mark batchMark = batch.mark();
+        try {
+          V originalEntity = cloneEntityProperties(bundle.getPreheat(), trackerDto);
 
-      try {
-        V originalEntity = cloneEntityProperties(bundle.getPreheat(), trackerDto);
+          //
+          // Convert the TrackerDto into an Hibernate-managed entity
+          //
+          V convertedDto = convert(bundle, trackerDto);
 
-        //
-        // Convert the TrackerDto into an Hibernate-managed entity
-        //
-        V convertedDto = convert(bundle, trackerDto);
+          //
+          // Handle ownership records, if required
+          //
+          persistOwnership(bundle, trackerDto, convertedDto);
 
-        //
-        // Handle ownership records, if required
-        //
-        persistOwnership(bundle, trackerDto, convertedDto);
-
-        //
-        // Save or update the entity
-        //
-        if (isNew(bundle, trackerDto)) {
-          entityManager.persist(convertedDto);
-          updateDataValues(
-              entityManager,
-              bundle.getPreheat(),
-              trackerDto,
-              convertedDto,
-              originalEntity,
-              bundle.getUser());
-          typeReport.getStats().incCreated();
-          typeReport.addEntity(objectReport);
-          updateAttributes(
-              entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
-          bundle.addUpdatedTrackedEntities(getUpdatedTrackedEntities(convertedDto));
-        } else {
-          if (trackerDto.getTrackerType() == TrackerType.RELATIONSHIP) {
-            typeReport.getStats().incIgnored();
-            // Relationships are not updated. A warning was already added to the report
-          } else {
+          //
+          // Save or update the entity
+          //
+          if (isNew(bundle, trackerDto)) {
+            stageInsert(convertedDto, batch);
             updateDataValues(
-                entityManager,
                 bundle.getPreheat(),
                 trackerDto,
                 convertedDto,
                 originalEntity,
-                bundle.getUser());
-            updateAttributes(
-                entityManager, bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser());
-            entityManager.merge(convertedDto);
-            typeReport.getStats().incUpdated();
+                bundle.getUser(),
+                changeLogs);
+            typeReport.getStats().incCreated();
             typeReport.addEntity(objectReport);
+            updateAttributes(
+                bundle.getPreheat(), trackerDto, convertedDto, bundle.getUser(), changeLogs, batch);
             bundle.addUpdatedTrackedEntities(getUpdatedTrackedEntities(convertedDto));
+          } else {
+            if (trackerDto.getTrackerType() == TrackerType.RELATIONSHIP) {
+              typeReport.getStats().incIgnored();
+              // Relationships are not updated. A warning was already added to the report
+            } else {
+              updateDataValues(
+                  bundle.getPreheat(),
+                  trackerDto,
+                  convertedDto,
+                  originalEntity,
+                  bundle.getUser(),
+                  changeLogs);
+              updateAttributes(
+                  bundle.getPreheat(),
+                  trackerDto,
+                  convertedDto,
+                  bundle.getUser(),
+                  changeLogs,
+                  batch);
+              stageUpdate(convertedDto, batch);
+              typeReport.getStats().incUpdated();
+              typeReport.addEntity(objectReport);
+              bundle.addUpdatedTrackedEntities(getUpdatedTrackedEntities(convertedDto));
+            }
+          }
+
+          if (!bundle.isSkipSideEffects()) {
+            EntityNotifications entityNotifications =
+                collectNotifications(bundle, convertedDto, isNewEntity, completedInThisImport);
+            if (entityNotifications != null) {
+              notifications.add(entityNotifications);
+            }
+          }
+
+          //
+          // Add the entity to the Preheat
+          //
+          updatePreheat(bundle.getPreheat(), convertedDto);
+
+          if (FlushMode.OBJECT == bundle.getFlushMode()) {
+            // Flush entity INSERTs/UPDATEs before changelog INSERTs so FK references
+            // (trackedentityid, eventid) exist before changelog rows reference them.
+            batch.flush(entityManager);
+            entityManager.flush();
+            changeLogs.flushAll(conn);
+          }
+        } catch (Exception e) {
+          batch.rollbackTo(batchMark);
+          changeLogs.rollbackTo(changeLogMark);
+
+          final String msg =
+              "A Tracker Entity of type '"
+                  + getType().getName()
+                  + "' ("
+                  + trackerDto.getUID()
+                  + ") failed to persist.";
+
+          if (AtomicMode.ALL.equals(bundle.getAtomicMode())) {
+            throw new PersistenceException(msg, e);
+          } else {
+            // TODO currently we do not keep track of the failed entity
+            // in the TrackerObjectReport
+
+            // TODO: if the failure originated from a JDBC flush (changeLogs.flushAll or, from
+            // Phase 3 onward, EntityWriteBatch.flush), the underlying PostgreSQL connection is
+            // now in an aborted-transaction state. Any subsequent SQL on the same connection
+            // will fail with "current transaction is aborted". This means a single JDBC flush
+            // failure in non-atomic mode silently cascades and causes all remaining entities to
+            // be ignored as well. Consider wrapping each entity's JDBC flush in a savepoint so
+            // that a failure can be rolled back to the savepoint and the connection stays usable.
+            log.warn(msg + "\nThe Import process will process remaining entities.", e);
+
+            typeReport.getStats().incIgnored();
           }
         }
-
-        if (!bundle.isSkipSideEffects()) {
-          notificationDataBundles.add(handleNotifications(bundle, convertedDto, triggers));
-        }
-
-        //
-        // Add the entity to the Preheat
-        //
-        updatePreheat(bundle.getPreheat(), convertedDto);
-
-        if (FlushMode.OBJECT == bundle.getFlushMode()) {
-          entityManager.flush();
-        }
-      } catch (Exception e) {
-        final String msg =
-            "A Tracker Entity of type '"
-                + getType().getName()
-                + "' ("
-                + trackerDto.getUID()
-                + ") failed to persist.";
-
-        if (AtomicMode.ALL.equals(bundle.getAtomicMode())) {
-          throw new PersistenceException(msg, e);
-        } else {
-          // TODO currently we do not keep track of the failed entity
-          // in the TrackerObjectReport
-
-          log.warn(msg + "\nThe Import process will process remaining entities.", e);
-
-          typeReport.getStats().incIgnored();
-        }
       }
+
+      if (FlushMode.AUTO == bundle.getFlushMode()) {
+        // Flush entity INSERTs/UPDATEs before changelog INSERTs so FK references
+        // (trackedentityid, eventid) exist before changelog rows reference them.
+        batch.flush(entityManager);
+        entityManager.flush();
+        changeLogs.flushAll(conn);
+      }
+    } catch (SQLException e) {
+      throw new PersistenceException(e);
+    } finally {
+      DataSourceUtils.releaseConnection(conn, dataSource);
     }
+    return new PersistResult(typeReport, notifications);
+  }
 
-    typeReport.getNotificationDataBundles().addAll(notificationDataBundles);
+  private void stageInsert(V convertedDto, EntityWriteBatch batch) {
+    if (convertedDto instanceof TrackedEntity te) {
+      batch.stageInsert(te);
+    } else if (convertedDto instanceof Enrollment e) {
+      batch.stageInsert(e);
+    } else if (convertedDto instanceof TrackerEvent e) {
+      batch.stageInsert(e);
+    } else if (convertedDto instanceof SingleEvent e) {
+      batch.stageInsert(e);
+    } else if (convertedDto instanceof Relationship r) {
+      batch.stageInsert(r);
+    } else {
+      throw new IllegalArgumentException(
+          "Unsupported entity type: " + convertedDto.getClass().getName());
+    }
+  }
 
-    return typeReport;
+  // Relationships are not updated -- the persister branch above ignores update payloads before
+  // this is called -- so no Relationship case is needed here.
+  private void stageUpdate(V convertedDto, EntityWriteBatch batch) {
+    if (convertedDto instanceof TrackedEntity te) {
+      batch.stageUpdate(te);
+    } else if (convertedDto instanceof Enrollment e) {
+      batch.stageUpdate(e);
+    } else if (convertedDto instanceof TrackerEvent e) {
+      batch.stageUpdate(e);
+    } else if (convertedDto instanceof SingleEvent e) {
+      batch.stageUpdate(e);
+    } else {
+      throw new IllegalArgumentException(
+          "Unsupported entity type for update: " + convertedDto.getClass().getName());
+    }
   }
 
   // // // // // // // //
@@ -227,44 +323,75 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
 
   /** Execute the persistence of Data values linked to the entity being processed */
   protected abstract void updateDataValues(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       T trackerDto,
       V payloadEntity,
       V currentEntity,
-      UserDetails user);
+      UserDetails user,
+      ChangeLogAccumulator changeLogs);
 
   /** Execute the persistence of Attribute values linked to the entity being processed */
   protected abstract void updateAttributes(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       T trackerDto,
       V hibernateEntity,
-      UserDetails user);
+      UserDetails user,
+      ChangeLogAccumulator changeLogs,
+      EntityWriteBatch batch);
 
   /** Updates the {@link TrackerPreheat} object with the entity that has been persisted */
   protected abstract void updatePreheat(TrackerPreheat preheat, V convertedDto);
 
-  /** TODO add comment */
-  protected abstract TrackerNotificationDataBundle handleNotifications(
-      TrackerBundle bundle, V entity, List<NotificationTrigger> triggers);
-
-  /**
-   * Determines the notification triggers based on the enrollment/event status.
-   *
-   * @param preheat the enrollment/event fetched from the database
-   * @param entity the enrollment/event coming from the request payload
-   * @return a list of NotificationTriggers
-   */
-  protected abstract List<NotificationTrigger> determineNotificationTriggers(
-      TrackerPreheat preheat, T entity);
-
-  /** Get the Tracker Type for which the current Persister is responsible for. */
-  protected abstract TrackerType getType();
-
   protected boolean isNew(TrackerBundle bundle, TrackerDto trackerDto) {
     return bundle.getStrategy(trackerDto) == TrackerImportStrategy.CREATE;
   }
+
+  /**
+   * Returns true if the entity is being set to completed status in this import. Must be called
+   * before convert() which mutates the preheat entity. Returns false by default.
+   */
+  protected boolean isBeingCompleted(TrackerPreheat preheat, T trackerDto, boolean isNew) {
+    return false;
+  }
+
+  /**
+   * Collects notifications for the persisted entity. Merges lifecycle notifications (from template
+   * trigger matching) and rule engine notifications. Override in persisters that support
+   * notifications (enrollments, events). Returns null by default.
+   */
+  protected EntityNotifications collectNotifications(
+      TrackerBundle bundle, V entity, boolean isNew, boolean completedInThisImport) {
+    return null;
+  }
+
+  /** Returns notification templates that match any of the given triggers. */
+  protected static Set<ProgramNotificationTemplate> filterTemplates(
+      Set<ProgramNotificationTemplate> templates,
+      EnumSet<org.hisp.dhis.program.notification.NotificationTrigger> triggers) {
+    if (templates == null || templates.isEmpty() || triggers.isEmpty()) {
+      return Set.of();
+    }
+    return templates.stream()
+        .filter(t -> triggers.contains(t.getNotificationTrigger()))
+        .collect(Collectors.toSet());
+  }
+
+  /**
+   * Merges lifecycle templates and rule engine notifications into a single deduplicated set.
+   * Lifecycle templates produce immediate notifications (scheduledAt=null).
+   */
+  protected static Set<Notification> mergeNotifications(
+      Set<ProgramNotificationTemplate> lifecycleTemplates,
+      List<Notification> ruleEngineNotifications) {
+    Set<Notification> notifications = new LinkedHashSet<>(ruleEngineNotifications);
+    for (ProgramNotificationTemplate t : lifecycleTemplates) {
+      notifications.add(new Notification(UID.of(t.getUid()), null));
+    }
+    return notifications;
+  }
+
+  /** Get the Tracker Type for which the current Persister is responsible for. */
+  protected abstract TrackerType getType();
 
   @SuppressWarnings("unchecked")
   protected abstract List<T> getByType(TrackerBundle bundle);
@@ -275,50 +402,73 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
   // // // // // // // //
   // // // // // // // //
 
-  protected void assignFileResource(
-      EntityManager entityManager, TrackerPreheat preheat, String fileResourceOwner, String fr) {
-    assignFileResource(entityManager, preheat, fileResourceOwner, fr, true);
+  protected void assignFileResource(TrackerPreheat preheat, String fileResourceOwner, String fr) {
+    assignFileResource(preheat, fileResourceOwner, fr, true);
   }
 
-  protected void unassignFileResource(
-      EntityManager entityManager, TrackerPreheat preheat, String fileResourceOwner, String fr) {
-    assignFileResource(entityManager, preheat, fileResourceOwner, fr, false);
+  protected void unassignFileResource(TrackerPreheat preheat, String fileResourceOwner, String fr) {
+    assignFileResource(preheat, fileResourceOwner, fr, false);
   }
 
   private void assignFileResource(
-      EntityManager entityManager,
-      TrackerPreheat preheat,
-      String fileResourceOwner,
-      String fr,
-      boolean isAssign) {
+      TrackerPreheat preheat, String fileResourceOwner, String fr, boolean isAssign) {
     FileResource fileResource = preheat.get(FileResource.class, fr);
 
     if (fileResource == null) {
       return;
     }
 
-    fileResource.setAssigned(isAssign);
-    fileResource.setFileResourceOwner(fileResourceOwner);
-    entityManager.merge(fileResource);
+    fileResourceStore.updateAssignment(fileResource.getUid(), isAssign, fileResourceOwner);
   }
 
   protected void handleTrackedEntityAttributeValues(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       List<Attribute> payloadAttributes,
       TrackedEntity trackedEntity,
-      UserDetails user) {
+      UserDetails user,
+      ChangeLogAccumulator changeLogs,
+      EntityWriteBatch batch) {
     if (payloadAttributes.isEmpty()) {
       return;
     }
 
     TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
+    // TODO [Phase 6 / DHIS2-21378]: drop this JPQL query and the batch overlay below once
+    // EntityWriteBatch is shared across persisters and writes go through JDBC instead of the
+    // EntityManager. At that point the batch itself is the source of truth for "what has already
+    // been staged for this TE", and DB rows can be loaded eagerly by the preheat -- no per-call
+    // round-trip needed here. Until then: build the lookup from the EntityManager rather than
+    // the lazy TE collection. The collection is a Hibernate PersistentSet whose in-memory state
+    // diverges from the persistence context once a write to a TE attribute has been deferred
+    // (staged in EntityWriteBatch) and flushed by a prior persister -- the same logical TEAV
+    // (composite key trackedentityid + trackedentityattributeid) can appear on a TrackedEntity
+    // payload and on an Enrollment payload, and querying the EM here sees both DB rows and TEAVs
+    // already attached to the session, preventing a duplicate em.persist that would throw
+    // EntityExistsException. The batch overlay catches the within-persister case (e.g. two
+    // enrollments under the same TE both carrying the same attribute) where the second occurrence
+    // would otherwise produce a fresh instance with the same composite key. A transient TE
+    // (id == 0) has no DB rows yet -- the insert is still staged in the batch -- so binding it as
+    // a query parameter would throw TransientObjectException; skip the JPQL in that case and rely
+    // on the batch overlay alone.
     Map<MetadataIdentifier, TrackedEntityAttributeValue> attributeValueById =
-        trackedEntity.getTrackedEntityAttributeValues().stream()
-            .collect(
-                Collectors.toMap(
-                    teav -> idSchemes.toMetadataIdentifier(teav.getAttribute()),
-                    Function.identity()));
+        trackedEntity.getId() == 0
+            ? new HashMap<>()
+            : entityManager
+                .createQuery(
+                    "select v from TrackedEntityAttributeValue v where v.trackedEntity = :te",
+                    TrackedEntityAttributeValue.class)
+                .setParameter("te", trackedEntity)
+                .getResultList()
+                .stream()
+                .collect(
+                    Collectors.toMap(
+                        teav -> idSchemes.toMetadataIdentifier(teav.getAttribute()),
+                        Function.identity()));
+    batch
+        .stagedFor(trackedEntity)
+        .forEach(
+            teav ->
+                attributeValueById.put(idSchemes.toMetadataIdentifier(teav.getAttribute()), teav));
 
     payloadAttributes.forEach(
         attribute -> {
@@ -334,30 +484,32 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
           boolean valueChanged = isNew || !Objects.equals(previousValue, attribute.getValue());
 
           if (isDelete && !isNew) {
-            delete(entityManager, preheat, currentValue, trackedEntity, user);
+            delete(preheat, currentValue, trackedEntity, user, changeLogs, batch);
           } else if (valueChanged) {
             saveOrUpdateAttributeValue(
-                entityManager,
                 preheat,
                 trackedEntity,
                 attribute,
                 currentValue,
                 isNew,
                 previousValue,
-                user);
+                user,
+                changeLogs,
+                batch);
           }
         });
   }
 
   private void saveOrUpdateAttributeValue(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       TrackedEntity trackedEntity,
       Attribute attribute,
       TrackedEntityAttributeValue currentValue,
       boolean isNew,
       String previousValue,
-      UserDetails user) {
+      UserDetails user,
+      ChangeLogAccumulator changeLogs,
+      EntityWriteBatch batch) {
     TrackedEntityAttributeValue attributeToPersist =
         Optional.ofNullable(currentValue)
             .orElseGet(
@@ -371,28 +523,25 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
             .setLastUpdated(new Date());
 
     saveOrUpdate(
-        entityManager, preheat, isNew, trackedEntity, attributeToPersist, previousValue, user);
+        preheat, isNew, trackedEntity, attributeToPersist, previousValue, user, changeLogs, batch);
 
     handleReservedValue(attributeToPersist);
   }
 
   private void delete(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       TrackedEntityAttributeValue trackedEntityAttributeValue,
       TrackedEntity trackedEntity,
-      UserDetails user) {
+      UserDetails user,
+      ChangeLogAccumulator changeLogs,
+      EntityWriteBatch batch) {
     if (isFileResource(trackedEntityAttributeValue)) {
-      unassignFileResource(
-          entityManager, preheat, trackedEntity.getUid(), trackedEntityAttributeValue.getValue());
+      unassignFileResource(preheat, trackedEntity.getUid(), trackedEntityAttributeValue.getValue());
     }
 
-    entityManager.remove(
-        entityManager.contains(trackedEntityAttributeValue)
-            ? trackedEntityAttributeValue
-            : entityManager.merge(trackedEntityAttributeValue));
+    batch.stageTeavDelete(trackedEntityAttributeValue);
 
-    trackedEntityChangeLogService.addTrackedEntityChangeLog(
+    changeLogs.addTrackedEntityChangeLog(
         trackedEntity,
         trackedEntityAttributeValue.getAttribute(),
         trackedEntityAttributeValue.getPlainValue(),
@@ -402,31 +551,28 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
   }
 
   private void saveOrUpdate(
-      EntityManager entityManager,
       TrackerPreheat preheat,
       boolean isNew,
       TrackedEntity trackedEntity,
       TrackedEntityAttributeValue trackedEntityAttributeValue,
       String previousValue,
-      UserDetails user) {
+      UserDetails user,
+      ChangeLogAccumulator changeLogs,
+      EntityWriteBatch batch) {
     if (isFileResource(trackedEntityAttributeValue)) {
-      assignFileResource(
-          entityManager, preheat, trackedEntity.getUid(), trackedEntityAttributeValue.getValue());
+      assignFileResource(preheat, trackedEntity.getUid(), trackedEntityAttributeValue.getValue());
     }
 
     ChangeLogType changeLogType;
     if (isNew) {
-      entityManager.persist(trackedEntityAttributeValue);
-      // In case it's a newly created attribute we'll add it back to TE,
-      // so it can end up in preheat
-      trackedEntity.getTrackedEntityAttributeValues().add(trackedEntityAttributeValue);
+      batch.stageTeavInsert(trackedEntityAttributeValue);
       changeLogType = CREATE;
     } else {
-      entityManager.merge(trackedEntityAttributeValue);
+      batch.stageTeavUpdate(trackedEntityAttributeValue);
       changeLogType = UPDATE;
     }
 
-    trackedEntityChangeLogService.addTrackedEntityChangeLog(
+    changeLogs.addTrackedEntityChangeLog(
         trackedEntity,
         trackedEntityAttributeValue.getAttribute(),
         previousValue,
@@ -458,5 +604,18 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends I
       reservedValueService.useReservedValue(
           attributeValue.getAttribute().getTextPattern(), attributeValue.getValue());
     }
+  }
+
+  protected static String formatDate(Date date) {
+    return date != null ? DATE_FORMATTER.format(date.toInstant()) : null;
+  }
+
+  protected static String formatGeometry(org.locationtech.jts.geom.Geometry geometry) {
+    if (geometry == null) {
+      return null;
+    }
+    return java.util.stream.Stream.of(geometry.getCoordinates())
+        .map(c -> String.format("(%f, %f)", c.x, c.y))
+        .collect(java.util.stream.Collectors.joining(", "));
   }
 }

@@ -68,6 +68,7 @@ import org.hisp.dhis.appmanager.webmodules.WebModule;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheBuilderProvider;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.common.Locale;
 import org.hisp.dhis.datastore.DatastoreNamespace;
 import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
@@ -84,7 +85,6 @@ import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.util.AppHtmlTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ByteArrayResource;
@@ -204,9 +204,17 @@ public class DefaultAppManager implements AppManager {
   private void cacheApp(@Nonnull App app) {
     if (app.getAppState() == AppStatus.OK) {
       app.setBundled(bundledAppManager.isBundledApp(app));
+      computeCacheBustKey(app);
       appCache.put(app.getKey(), app);
       registerDatastoreProtection(app);
     }
+  }
+
+  private void computeCacheBustKey(@Nonnull App app) {
+    if (app.getVersion() == null || app.getKey() == null) return;
+    String source = app.getKey() + "|" + app.getVersion();
+    app.setCacheBustKey(
+        HashUtils.hashMD5(source.getBytes(StandardCharsets.UTF_8)).substring(0, 16));
   }
 
   private Stream<App> getAppsStream() {
@@ -580,12 +588,11 @@ public class DefaultAppManager implements AppManager {
       } else if (pageName.endsWith(".html")
           || (resourceFound.resource().getFilename() != null
               && resourceFound.resource().getFilename().endsWith(".html"))) {
-        AppHtmlTemplate template = new AppHtmlTemplate(contextPath, app);
-        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-        template.apply(resourceFound.resource().getInputStream(), bout);
-        ByteArrayResource byteArrayResource =
-            toByteArrayResource(bout.toByteArray(), resourceFound.resource());
-        return new ResourceResult.ResourceFound(byteArrayResource, "text/html;charset=UTF-8");
+        // Return raw HTML with correct mime type — AppHtmlTemplate is applied later
+        // by AppController after cache-busting rewrite, so the cache stores only
+        // request-independent content.
+        return new ResourceResult.ResourceFound(
+            resourceFound.resource(), "text/html;charset=UTF-8");
       } else if (pageName.endsWith(".js")
           || (resourceFound.resource().getFilename() != null
               && resourceFound.resource().getFilename().endsWith(".js"))) {

@@ -107,10 +107,7 @@ public class OperationsParamsValidator {
   private static void validateUserScope(Program program, UserDetails user)
       throws ForbiddenException {
     if (program != null && (program.isClosed() || program.isProtected())) {
-      if (user.getUserOrgUnitIds().isEmpty()) {
-        throw new ForbiddenException("User needs to be assigned data capture org units");
-      }
-
+      validateCaptureScope(user);
     } else if (user.getUserEffectiveSearchOrgUnitIds().isEmpty()) {
       throw new ForbiddenException(
           "User needs to be assigned either search or data capture org units");

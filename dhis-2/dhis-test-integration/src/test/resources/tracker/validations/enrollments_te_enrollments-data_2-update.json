@@ -1,0 +1,26 @@
+{
+  "enrollments": [
+    {
+      "enrollment": "KNWZ6hnuhS1",
+      "trackedEntity": "KKKKj6vYdes",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "E8o1E9tAppy"
+      },
+      "status": "COMPLETED",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cW"
+      },
+      "enrolledAt": "2021-08-19T00:00:00.000",
+      "occurredAt": "2021-08-19T00:00:00.000",
+      "followUp": false,
+      "deleted": false,
+      "storedBy": "admin",
+      "attributeOptionCombo": {
+        "idScheme": "UID",
+        "identifier": "wpVV2AvPM89"
+      }
+    }
+  ]
+}

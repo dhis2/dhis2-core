@@ -354,8 +354,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
             "expected to find relationship " + relationship1.getUID());
 
     JsonList<JsonNote> notes = jsonRelationship.getTo().getEvent().getNotes();
-    notes.forEach(
-        note -> assertHasOnlyMembers(note, "note", "value", "storedAt", "storedBy", "createdBy"));
+    notes.forEach(note -> assertHasOnlyMembers(note, "note", "value", "storedAt", "createdBy"));
   }
 
   @Test
@@ -471,7 +470,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
 
       assertEquals(
           expectedValue,
-          matchingJsonAttribute.getValue(),
+          matchingJsonAttribute.value(),
           "Value mismatch for attribute " + expectedAttribute);
     }
   }
@@ -537,8 +536,7 @@ class RelationshipsExportControllerTest extends PostgresControllerIntegrationTes
             "expected to find relationship " + relationship2.getUID());
 
     JsonList<JsonNote> notes = jsonRelationship.getTo().getEnrollment().getNotes();
-    notes.forEach(
-        note -> assertHasOnlyMembers(note, "note", "value", "storedAt", "storedBy", "createdBy"));
+    notes.forEach(note -> assertHasOnlyMembers(note, "note", "value", "storedAt", "createdBy"));
   }
 
   @Test

@@ -302,14 +302,6 @@ public class SystemController {
     return new ObjectCount(statisticsProvider.getObjectCounts());
   }
 
-  @GetMapping("/ping")
-  @ResponseStatus(HttpStatus.OK)
-  public @ResponseBody String ping(HttpServletResponse response) {
-    setNoStore(response);
-
-    return "pong";
-  }
-
   @GetMapping(value = "/flags", produces = APPLICATION_JSON_VALUE)
   public @ResponseBody List<StyleObject> getFlags() {
     return getFlagObjects();

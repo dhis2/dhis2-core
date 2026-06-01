@@ -17,11 +17,15 @@ show_usage() {
   echo "  SIMULATION_CLASS      Fully qualified Gatling Simulation class name"
   echo ""
   echo "OPTIONS:"
+  echo "  DB_DIR                Optional top-level S3 directory (default: not set)"
+  echo "                        Valid values: dev"
+  echo "                        Pattern: s3://databases.dhis2.org/<dir>/<type>/<version>/dhis2-db-<type>.sql.gz"
   echo "  DB_TYPE               Database type (default: sierra-leone)"
-  echo "                        Valid values: sierra-leone, hmis"
+  echo "                        Valid values without DB_DIR: sierra-leone, hmis"
+  echo "                        Valid values with DB_DIR: platform-perf"
   echo "  DB_VERSION            Database version (default: dev)"
   echo "                        Must be alphanumeric, dots, hyphens, underscores only"
-  echo "                        Pattern: s3://databases.dhis2.org/<type>/<version>/dhis2-db-<type>.sql.gz"
+  echo "                        Pattern (no DB_DIR): s3://databases.dhis2.org/<type>/<version>/dhis2-db-<type>.sql.gz"
   echo "  DHIS2_USERNAME        DHIS2 username for API authentication (default: admin)"
   echo "  DHIS2_PASSWORD        DHIS2 password for API authentication (default: district)"
   echo "  ANALYTICS_GENERATE    Generate analytics tables before running tests (default: false)"
@@ -30,6 +34,8 @@ show_usage() {
   echo "  HEALTHCHECK_TIMEOUT   Max wait time for DHIS2 startup in seconds (default: 300 = 5min)"
   echo "  WARMUP                Number of warmup iterations before actual test (default: 1)"
   echo "  REPORT_SUFFIX         Suffix to append to Gatling report directory name (default: empty)"
+  echo "  CAPTURE_DHIS2_LOGS    Capture DHIS2 application logs from the web container"
+  echo "                        Set to any non-empty value to enable (default: disabled)"
   echo "  CAPTURE_SQL_LOGS      Capture and analyze SQL logs for non-warmup runs"
   echo "                        Set to any non-empty value to enable (default: disabled)"
   echo "                        Analysis requires pgbadger: https://github.com/darold/pgbadger"
@@ -87,6 +93,7 @@ fi
 # ENVIRONMENT SETUP
 ################################################################################
 
+DB_DIR=${DB_DIR:-""}
 DB_TYPE=${DB_TYPE:-"sierra-leone"}
 DB_VERSION=${DB_VERSION:-"dev"}
 DHIS2_USERNAME=${DHIS2_USERNAME:-"admin"}
@@ -96,6 +103,7 @@ ANALYTICS_TIMEOUT=${ANALYTICS_TIMEOUT:-900} # default of 15min
 HEALTHCHECK_TIMEOUT=${HEALTHCHECK_TIMEOUT:-300} # default of 5min
 WARMUP=${WARMUP:-1}
 REPORT_SUFFIX=${REPORT_SUFFIX:-""}
+CAPTURE_DHIS2_LOGS=${CAPTURE_DHIS2_LOGS:-""}
 CAPTURE_SQL_LOGS=${CAPTURE_SQL_LOGS:-""}
 PROF_ARGS=${PROF_ARGS:=""}
 MVN_ARGS=${MVN_ARGS:-""}
@@ -103,17 +111,35 @@ MVN_ARGS=${MVN_ARGS:-""}
 # Track last non-warmup run directory for output summary
 LAST_RUN_DIR=""
 
-# Validate DB_TYPE (only allow sierra-leone or hmis)
-case "$DB_TYPE" in
-  sierra-leone|hmis)
-    # Valid
-    ;;
-  *)
-    echo "Error: DB_TYPE must be 'sierra-leone' or 'hmis', got: $DB_TYPE" >&2
+# Validate DB_DIR: currently only 'dev' is supported
+if [ -n "$DB_DIR" ] && [ "$DB_DIR" != "dev" ]; then
+  echo "Error: DB_DIR must be 'dev', got: $DB_DIR" >&2
+  echo "Run '$0' without arguments to see usage" >&2
+  exit 1
+fi
+
+# Validate DB_TYPE
+if [ -z "$DB_DIR" ]; then
+  # No DB_DIR: only standard public databases are allowed
+  case "$DB_TYPE" in
+    sierra-leone|hmis)
+      # Valid
+      ;;
+    *)
+      echo "Error: DB_TYPE must be 'sierra-leone' or 'hmis' when DB_DIR is not set, got: $DB_TYPE" >&2
+      echo "Set DB_DIR to use a custom database type" >&2
+      echo "Run '$0' without arguments to see usage" >&2
+      exit 1
+      ;;
+  esac
+else
+  # DB_DIR is set: only 'platform-perf' is supported for now
+  if [ "$DB_TYPE" != "platform-perf" ]; then
+    echo "Error: DB_TYPE must be 'platform-perf' when DB_DIR is set, got: $DB_TYPE" >&2
     echo "Run '$0' without arguments to see usage" >&2
     exit 1
-    ;;
-esac
+  fi
+fi
 
 # Validate DB_VERSION (no slashes, no special characters that could be malicious)
 # Allow only alphanumeric, dots, hyphens, and underscores
@@ -164,7 +190,7 @@ cleanup() {
   if [ -n "$PROF_ARGS" ]; then
     compose_files+=("-f" "docker-compose.profile.yml")
   fi
-  docker compose "${compose_files[@]}" down --volumes 2>/dev/null || true
+  docker compose "${compose_files[@]}" down --volumes --remove-orphans 2>/dev/null || true
 
   # Show output summary for the main (non-warmup) run
   if [ -n "$LAST_RUN_DIR" ] && [ -d "$LAST_RUN_DIR" ]; then
@@ -261,7 +287,7 @@ start_containers() {
   start_time=$(date +%s)
 
   # shellcheck disable=SC2086
-  docker compose $compose_args down --volumes
+  docker compose $compose_args down --volumes --remove-orphans
 
   # shellcheck disable=SC2086
   if ! docker compose $compose_args up --detach --wait --wait-timeout "$HEALTHCHECK_TIMEOUT"; then
@@ -292,6 +318,44 @@ save_profiler_data() {
     echo "failed"
     echo "Warning: Failed to copy profiler data from container"
     return 1
+  fi
+}
+
+save_dhis2_logs() {
+  local gatling_dir="$1"
+  local warmup_num="${2:-0}"
+
+  if [ -z "$CAPTURE_DHIS2_LOGS" ] || [ "$warmup_num" -gt 0 ]; then
+    return 0
+  fi
+
+  if [ ! -d "$gatling_dir" ]; then
+    echo "Warning: Cannot save DHIS2 logs - directory does not exist: $gatling_dir"
+    return 1
+  fi
+
+  printf "Saving DHIS2 logs... "
+  if docker compose logs --no-color --timestamps web > "$gatling_dir/dhis.log" 2>/dev/null; then
+    echo "done"
+  else
+    echo "failed"
+    echo "Warning: Failed to save DHIS2 logs"
+    return 1
+  fi
+}
+
+save_gc_logs() {
+  local gatling_dir="$1"
+
+  if [ ! -d "$gatling_dir" ]; then
+    return 0
+  fi
+
+  printf "Saving GC logs... "
+  if docker compose cp web:/tmp/gc.log "$gatling_dir/gc.log" 2>/dev/null; then
+    echo "done"
+  else
+    echo "skipped (no GC log found)"
   fi
 }
 
@@ -535,6 +599,14 @@ prepare_database() {
   fi
 }
 
+prepare_database_for_measurement() {
+  # Drains warmup-induced WAL and reclaims dead tuples so the measured run starts
+  # from a clean state.
+  echo ""
+  echo "Preparing database for measurement (vacuum analyze + checkpoint)..."
+  docker compose exec db psql --username=dhis --quiet --command='vacuum analyze;' --command='checkpoint;' > /dev/null
+}
+
 start_profiler() {
   if [ -n "$PROF_ARGS" ]; then
     # shellcheck disable=SC2086
@@ -590,6 +662,7 @@ generate_metadata() {
     echo "# Args"
     echo "DHIS2_IMAGE=$DHIS2_IMAGE"
     echo "SIMULATION_CLASS=$SIMULATION_CLASS"
+    echo "DB_DIR=$DB_DIR"
     echo "DB_TYPE=$DB_TYPE"
     echo "DB_VERSION=$DB_VERSION"
     echo "DHIS2_USERNAME=$DHIS2_USERNAME"
@@ -599,6 +672,7 @@ generate_metadata() {
     echo "HEALTHCHECK_TIMEOUT=$HEALTHCHECK_TIMEOUT"
     echo "WARMUP=$WARMUP"
     echo "REPORT_SUFFIX=$REPORT_SUFFIX"
+    echo "CAPTURE_DHIS2_LOGS=$CAPTURE_DHIS2_LOGS"
     echo "CAPTURE_SQL_LOGS=$CAPTURE_SQL_LOGS"
     echo "PROF_ARGS=\"$PROF_ARGS\""
     echo "MVN_ARGS=\"$MVN_ARGS\""
@@ -636,6 +710,7 @@ print_output_summary() {
   [ -f "$dir/index.html" ]     && files+=("index.html|Gatling report")
   [ -f "$dir/simulation.csv" ] && files+=("simulation.csv|Gatling data")
   [ -f "$dir/profile.html" ]   && files+=("profile.html|Profiler flamegraph")
+  [ -f "$dir/dhis.log" ]       && files+=("dhis.log|DHIS2 application log")
   [ -f "$dir/pgbadger.html" ]  && files+=("pgbadger.html|SQL analysis")
 
   if [ ${#files[@]} -gt 0 ]; then
@@ -724,6 +799,8 @@ run_simulation() {
 
     # Post-process results for this run
     save_profiler_data "$gatling_run_dir" || echo "Warning: Failed to save profiler data"
+    save_dhis2_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to save DHIS2 logs"
+    save_gc_logs "$gatling_run_dir" || echo "Warning: Failed to save GC logs"
     save_sql_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to save SQL logs"
     post_process_profiler_data "$gatling_run_dir" || echo "Warning: Failed to post-process profiler data"
     post_process_sql_logs "$gatling_run_dir" "$warmup_num" || echo "Warning: Failed to post-process SQL logs"
@@ -762,6 +839,7 @@ if [ "$WARMUP" -gt 0 ]; then
     run_simulation "$i"
   done
   echo "Warmup complete."
+  prepare_database_for_measurement
 fi
 
 echo ""

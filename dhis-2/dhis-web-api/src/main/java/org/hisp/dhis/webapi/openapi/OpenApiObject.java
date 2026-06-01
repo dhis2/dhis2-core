@@ -44,6 +44,7 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.jsontree.Required;
+import org.hisp.dhis.jsontree.Text;
 import org.hisp.dhis.jsontree.Validation;
 import org.intellij.lang.annotations.Language;
 
@@ -88,8 +89,7 @@ public interface OpenApiObject extends JsonObject {
   }
 
   default Stream<OperationObject> operations() {
-    return $paths()
-        .values()
+    return $paths().entries().stream()
         .flatMap(
             item ->
                 Stream.of(
@@ -219,14 +219,11 @@ public interface OpenApiObject extends JsonObject {
     }
 
     default String operationMethod() {
-      return node().getPath().segments().get(2).substring(1);
+      return node().path().segments().get(2).toString();
     }
 
     default String operationPath() {
-      String path = node().getPath().segments().get(1);
-      return path.startsWith("{") && path.endsWith("}")
-          ? path.substring(1, path.length() - 1)
-          : path.substring(1);
+      return node().path().segments().get(1).toString();
     }
 
     default Map<String, String> x_classifiers() {
@@ -298,27 +295,30 @@ public interface OpenApiObject extends JsonObject {
       return parameters().stream().filter(p -> p.resolve().in() == in).toList();
     }
 
-    default Set<String> parameterNames() {
+    default Set<Text> parameterNames() {
       return parameters().stream()
           .map(ParameterObject::resolve)
-          .map(ParameterObject::name)
+          .map(ParameterObject::nameText)
           .filter(Objects::nonNull)
           .collect(toUnmodifiableSet());
     }
 
     default String responseSuccessCode() {
-      return responses().keys().filter(code -> code.startsWith("2")).findFirst().orElse(null);
+      return responses().keys().stream()
+          .filter(code -> code.startsWith("2"))
+          .map(Text::toString)
+          .findFirst()
+          .orElse(null);
     }
 
     default List<String> responseCodes() {
-      return responses().keys().distinct().sorted().toList();
+      return responses().keys().stream().distinct().sorted().map(Text::toString).toList();
     }
 
     default List<String> responseMediaSubTypes() {
-      return responses()
-          .values()
-          .flatMap(r -> r.content().keys())
-          .map(type -> type.substring(type.indexOf('/') + 1).toLowerCase())
+      return responses().entries().stream()
+          .flatMap(r -> r.content().keys().stream())
+          .map(type -> type.toString().substring(type.indexOf('/') + 1).toLowerCase())
           .distinct()
           .sorted()
           .toList();
@@ -345,7 +345,7 @@ public interface OpenApiObject extends JsonObject {
 
     private static List<SchemaObject> toListOfSchemas(JsonMap<MediaTypeObject> content) {
       if (content.isUndefined() || content.isEmpty()) return List.of();
-      List<SchemaObject> schemas = content.values().map(MediaTypeObject::schema).toList();
+      List<SchemaObject> schemas = content.entries().map(MediaTypeObject::schema).toList();
       if (content.size() == 1) return schemas;
       if (MediaTypeObject.isUniform(content)) return List.of(schemas.get(0));
       return schemas;
@@ -364,6 +364,10 @@ public interface OpenApiObject extends JsonObject {
     @Required
     default String name() {
       return getString("name").string();
+    }
+
+    default Text nameText() {
+      return getString("name").text();
     }
 
     @Required
@@ -397,16 +401,16 @@ public interface OpenApiObject extends JsonObject {
       if (!$ref.exists()) return this;
       String comp = $ref.string();
       String path = "components.parameters{" + comp.substring(24) + "}";
-      return node().getRoot().lift(getAccessStore()).asObject().get(path, ParameterObject.class);
+      return node().getRoot().lift(getAccessors()).asObject().get(path, ParameterObject.class);
     }
 
     default boolean isShared() {
-      String path = node().getPath().toString();
+      String path = node().path().toString();
       return path.substring(0, path.lastIndexOf('.')).equals(".components.parameters");
     }
 
     default String getSharedName() {
-      return isShared() ? node().getPath().toString().substring(24) : null;
+      return isShared() ? node().path().toString().substring(24) : null;
     }
 
     /**
@@ -448,7 +452,7 @@ public interface OpenApiObject extends JsonObject {
       if (content.isUndefined()) return false;
       if (content.size() == 1) return true;
       List<SchemaObject> types =
-          content.values().map(MediaTypeObject::schema).map(SchemaObject::resolve).toList();
+          content.entries().map(MediaTypeObject::schema).map(SchemaObject::resolve).toList();
       SchemaObject type0 = types.get(0);
       if (type0.isShared())
         return types.stream()
@@ -480,7 +484,7 @@ public interface OpenApiObject extends JsonObject {
       if (!$ref.exists()) return this;
       String comp = $ref.string();
       String path = "components.schemas{" + comp.substring(21) + "}";
-      return node().getRoot().lift(getAccessStore()).asObject().get(path, SchemaObject.class);
+      return node().getRoot().lift(getAccessors()).asObject().get(path, SchemaObject.class);
     }
 
     default boolean isRef() {
@@ -489,12 +493,12 @@ public interface OpenApiObject extends JsonObject {
 
     default boolean isShared() {
       if (!exists()) return false;
-      String path = node().getPath().toString();
+      String path = node().path().toString();
       return path.substring(0, path.lastIndexOf('.')).equals(".components.schemas");
     }
 
     default String getSharedName() {
-      return isShared() ? node().getPath().toString().substring(20) : null;
+      return isShared() ? node().path().toString().substring(20) : null;
     }
 
     default String x_kind() {
@@ -588,8 +592,8 @@ public interface OpenApiObject extends JsonObject {
     object types
      */
 
-    default List<String> required() {
-      return getArray("required").stringValues();
+    default List<Text> required() {
+      return getArray("required").stream().map(JsonString::text).toList();
     }
 
     /**
@@ -630,9 +634,8 @@ public interface OpenApiObject extends JsonObject {
       JsonMap<SchemaObject> properties = properties();
       if (properties.isUndefined()) return false;
       if (properties.size() != 2) return false;
-      if (properties.values().noneMatch(SchemaObject::isArrayType)) return false;
-      return properties
-          .values()
+      if (properties.entries().stream().noneMatch(SchemaObject::isArrayType)) return false;
+      return properties.entries().stream()
           .anyMatch(s -> s.isObjectType() || s.isRef() && s.resolve().isObjectType());
     }
 

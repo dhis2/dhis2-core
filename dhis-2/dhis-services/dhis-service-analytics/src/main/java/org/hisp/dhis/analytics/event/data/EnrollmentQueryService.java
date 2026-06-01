@@ -173,7 +173,6 @@ public class EnrollmentQueryService {
                 DATETIME,
                 false,
                 true))
-        .addHeader(new GridHeader(STORED_BY.getItem(), STORED_BY.getName(), TEXT, false, true))
         .addHeader(
             new GridHeader(
                 CREATED_BY_DISPLAY_NAME.getItem(),
@@ -189,7 +188,11 @@ public class EnrollmentQueryService {
                 false,
                 true))
         .addHeader(
-            new GridHeader(LAST_UPDATED.getItem(), LAST_UPDATED.getName(), DATETIME, false, true));
+            new GridHeader(LAST_UPDATED.getItem(), LAST_UPDATED.getName(), DATETIME, false, true))
+        .addHeader(new GridHeader(CREATED.getItem(), CREATED.getName(), DATETIME, false, true))
+        .addHeader(
+            new GridHeader(
+                COMPLETED_DATE.getItem(), COMPLETED_DATE.getName(), DATETIME, false, true));
 
     if (sqlBuilder.supportsGeospatialData()) {
       grid.addHeader(new GridHeader(GEOMETRY.getItem(), GEOMETRY.getName(), TEXT, false, true))

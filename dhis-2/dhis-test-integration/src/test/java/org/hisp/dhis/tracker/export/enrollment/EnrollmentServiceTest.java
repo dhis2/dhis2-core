@@ -782,7 +782,6 @@ class EnrollmentServiceTest extends PostgresIntegrationTestBase {
   @Test
   void shouldNotDeleteNoteWhenDeletingEnrollment() {
     Note note = new Note();
-    note.setCreator(CodeGenerator.generateUid());
     note.setNoteText("text");
     manager.save(note);
     enrollmentA.getNotes().add(note);

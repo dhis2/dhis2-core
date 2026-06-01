@@ -110,4 +110,8 @@ public enum TimeField {
         .map(SUPPORTING_RAW_FIELD_TIME_FIELDS::contains)
         .orElse(false);
   }
+
+  public String asString() {
+    return enrollmentColumnName + eventColumnName + trackedEntityColumnName;
+  }
 }

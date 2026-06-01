@@ -5,7 +5,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis</artifactId>
-    <version>2.43-SNAPSHOT</version>
+    <version>2.44-SNAPSHOT</version>
   </parent>
 
   <artifactId>dhis-web-server</artifactId>
@@ -15,7 +15,7 @@
   <properties>
     <rootDir>../</rootDir>
     <build.time>${maven.build.timestamp}</build.time>
-    <tomcat.version>11.0.15</tomcat.version>
+    <tomcat.version>11.0.22</tomcat.version>
     <jib.version>3.5.1</jib.version>
     <jib.from.image>gcr.io/distroless/java21-debian12@sha256:7c05bf8a64ff1a70a16083e9bdd35b463aa0d014c2fc782d31d13ea7a61de633</jib.from.image>
     <jib.to.image>dhis2/core-dev:local</jib.to.image>
@@ -75,6 +75,19 @@
       <artifactId>spring-boot-starter-tomcat</artifactId>
       <version>${spring-boot-maven-plugin.version}</version>
       <scope>provided</scope>
+      <exclusions>
+        <!--
+          Exclude Spring Boot's default logging starter. It pulls in
+          logback-classic and log4j-to-slf4j, both of which conflict with the
+          log4j2 backend DHIS2 already wires in via log4j-slf4j-impl above.
+          Running the executable WAR (java -jar dhis.war) otherwise fails at
+          startup with "log4j-slf4j-impl cannot be present with log4j-to-slf4j".
+        -->
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-logging</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.hisp.dhis</groupId>
@@ -255,6 +268,25 @@
       <build>
         <plugins>
           <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>fetch-curl-binary</id>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <phase>generate-resources</phase>
+                <configuration>
+                  <executable>${project.basedir}/../fetch-curl-binary.sh</executable>
+                  <arguments>
+                    <argument>${project.basedir}/src/main/jib/usr/local/bin</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
             <groupId>com.google.cloud.tools</groupId>
             <artifactId>jib-maven-plugin</artifactId>
             <executions>
@@ -277,6 +309,25 @@
       </properties>
       <build>
         <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>fetch-curl-binary</id>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <phase>generate-resources</phase>
+                <configuration>
+                  <executable>${project.basedir}/../fetch-curl-binary.sh</executable>
+                  <arguments>
+                    <argument>${project.basedir}/src/main/jib/usr/local/bin</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
           <plugin>
             <groupId>com.google.cloud.tools</groupId>
             <artifactId>jib-maven-plugin</artifactId>
@@ -314,6 +365,25 @@
       </properties>
       <build>
         <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>fetch-curl-binary</id>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <phase>generate-resources</phase>
+                <configuration>
+                  <executable>${project.basedir}/../fetch-curl-binary.sh</executable>
+                  <arguments>
+                    <argument>${project.basedir}/src/main/jib/usr/local/bin</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
           <plugin>
             <groupId>com.google.cloud.tools</groupId>
             <artifactId>jib-maven-plugin</artifactId>

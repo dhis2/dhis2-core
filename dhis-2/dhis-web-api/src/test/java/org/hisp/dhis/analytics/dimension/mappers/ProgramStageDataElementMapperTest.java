@@ -33,6 +33,7 @@ import static org.hisp.dhis.analytics.dimension.DimensionMapperTestSupport.asser
 
 import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStage;
@@ -56,6 +57,7 @@ class ProgramStageDataElementMapperTest {
         List.of(this::setDataElement, this::setProgramStage),
         List.of(
             Pair.of(DimensionResponse::getValueType, VALUE_TYPE),
+            Pair.of(DimensionResponse::getAggregationType, AggregationType.AVERAGE),
             Pair.of(DimensionResponse::getId, DATA_ELEMENT_UID)));
   }
 
@@ -63,6 +65,7 @@ class ProgramStageDataElementMapperTest {
     DataElement dataElement = new DataElement();
     dataElement.setUid(DATA_ELEMENT_UID);
     dataElement.setValueType(VALUE_TYPE);
+    dataElement.setAggregationType(AggregationType.AVERAGE);
     programStageDataElement.setDataElement(dataElement);
   }
 

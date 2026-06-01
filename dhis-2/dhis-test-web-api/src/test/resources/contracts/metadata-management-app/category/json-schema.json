@@ -1,0 +1,86 @@
+{
+  "additionalProperties": true,
+  "properties": {
+    "attributeValues": {
+      "items": {
+        "additionalProperties": true,
+        "properties": {
+          "attribute": {
+            "additionalProperties": true,
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id"
+            ],
+            "type": "object"
+          },
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value",
+          "attribute"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "categoryOptions": {
+      "items": {
+        "additionalProperties": true,
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "dataDimension": {
+      "type": "boolean"
+    },
+    "dataDimensionType": {
+      "enum": [
+        "DISAGGREGATION",
+        "ATTRIBUTE"
+      ],
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "displayName": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "shortName": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "attributeValues",
+    "dataDimensionType",
+    "shortName",
+    "dataDimension",
+    "categoryOptions"
+  ],
+  "type": "object"
+}

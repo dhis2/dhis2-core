@@ -38,6 +38,7 @@ import java.util.HashSet;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
+import org.hisp.dhis.message.Message;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -165,5 +166,19 @@ class SchemaServiceTest extends PostgresIntegrationTestBase {
     Schema schema = schemaService.getSchema(CategoryCombo.class);
     Property categoryCombo = schema.getProperty("name");
     assertTrue(categoryCombo.isTranslatable());
+  }
+
+  @Test
+  void testDashboardItemTextContentLength() {
+    Schema schema = schemaService.getSchema(DashboardItem.class);
+    Property text = schema.getProperty("text");
+    assertEquals(Integer.MAX_VALUE, text.getLength());
+  }
+
+  @Test
+  void tesMessageTextContentLength() {
+    Schema schema = schemaService.getSchema(Message.class);
+    Property text = schema.getProperty("text");
+    assertEquals(Integer.MAX_VALUE, text.getLength());
   }
 }

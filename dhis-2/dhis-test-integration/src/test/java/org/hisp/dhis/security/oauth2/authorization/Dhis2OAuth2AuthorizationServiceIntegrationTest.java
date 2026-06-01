@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -113,6 +112,46 @@ public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
   }
 
   @Test
+  void testSaveDerivesNameFromPrincipalName() {
+    // The Spring OAuth2Authorization domain object has no name field; the DHIS2
+    // entity derives `name` from `principalName` to satisfy the NOT NULL
+    // constraint required by BaseIdentifiableObject.
+    String uid = CodeGenerator.generateUid();
+    OAuth2Authorization authorization =
+        OAuth2Authorization.withRegisteredClient(registeredClient)
+            .principalName("principal-with-derived-name")
+            .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+            .id(uid)
+            .build();
+
+    authorizationService.save(authorization);
+
+    Dhis2OAuth2Authorization entity = authorizationStore.getByUidNoAcl(uid);
+    assertNotNull(entity);
+    assertEquals("principal-with-derived-name", entity.getName());
+  }
+
+  @Test
+  void testSaveTruncatesLongPrincipalNameToNameColumnLength() {
+    // principal_name is varchar(255); name is varchar(230). Verify truncation.
+    String longPrincipal = "p".repeat(255);
+    String uid = CodeGenerator.generateUid();
+    OAuth2Authorization authorization =
+        OAuth2Authorization.withRegisteredClient(registeredClient)
+            .principalName(longPrincipal)
+            .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
+            .id(uid)
+            .build();
+
+    authorizationService.save(authorization);
+
+    Dhis2OAuth2Authorization entity = authorizationStore.getByUidNoAcl(uid);
+    assertNotNull(entity);
+    assertEquals(230, entity.getName().length());
+    assertEquals(longPrincipal, entity.getPrincipalName());
+  }
+
+  @Test
   void testFindByAuthorizationCode() {
     // Given
     Instant now = Instant.now();
@@ -131,11 +170,6 @@ public class Dhis2OAuth2AuthorizationServiceIntegrationTest extends PostgresInte
 
     // When
     authorizationService.save(authorization);
-
-    List<Dhis2OAuth2Authorization> all = authorizationService.getAll();
-    for (Dhis2OAuth2Authorization oAuth2Authorization : all) {
-      System.out.println(oAuth2Authorization);
-    }
 
     OAuth2Authorization foundAuthorization =
         authorizationService.findByToken(

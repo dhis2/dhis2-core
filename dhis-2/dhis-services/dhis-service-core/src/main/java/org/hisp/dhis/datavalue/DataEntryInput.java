@@ -37,7 +37,7 @@ import com.lowagie.text.pdf.AcroFields;
 import com.lowagie.text.pdf.PdfReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -54,10 +54,12 @@ import org.hisp.dhis.dxf2.adx.AdxPeriod;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonNode;
+import org.hisp.dhis.jsontree.JsonNode.Index;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
-import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.hisp.staxwax.reader.XMLReader;
 
@@ -231,7 +233,12 @@ public final class DataEntryInput {
       @Nonnull InputStream in, @Nonnull ImportOptions options) throws IOException {
     IdSchemes schemes = options.getIdSchemes();
     JsonObject dvs =
-        JsonValue.of(new InputStreamReader(wrapAndCheckCompressionFormat(in))).asObject();
+        JsonMixed.of(
+            JsonNode.of(
+                wrapAndCheckCompressionFormat(in).readAllBytes(),
+                StandardCharsets.UTF_8,
+                null,
+                Index.AUTO_SKIP));
     String ds = dvs.getString("dataSet").string();
     String completionDate = dvs.getString("completeDate").string();
     // keys that are common for all values
@@ -280,34 +287,25 @@ public final class DataEntryInput {
 
     // values...
     List<DataEntryValue.Input> values = new ArrayList<>();
-    // Note that this uses JsonNode API to iterate without indexing
-    // to make the processing memory footprint smaller
-    JsonValue dataValues = dvs.get("dataValues");
+    JsonArray dataValues = dvs.get("dataValues");
     if (dataValues.exists())
-      dataValues
-          .node()
-          .elements(false)
-          .forEachRemaining(
-              node -> {
-                JsonObject dv = JsonMixed.of(node);
-                JsonString coc = dv.getString("categoryOptionCombo");
-                values.add(
-                    new DataEntryValue.Input(
-                        dv.getString("dataElement").string(),
-                        dv.getString("orgUnit").string(),
-                        coc.isString() ? coc.string() : null,
-                        coc.isObject()
-                            ? coc.asMap(JsonString.class).toMap(JsonString::string)
-                            : null,
-                        dv.getString("attributeOptionCombo").string(),
-                        null,
-                        null,
-                        dv.getString("period").string(),
-                        dv.getString("value").string(),
-                        dv.getString("comment").string(),
-                        dv.getBoolean("followUp").bool(),
-                        dv.getBoolean("deleted").bool()));
-              });
+      for (JsonObject dv : dataValues.values(Index.SKIP)) {
+        JsonString coc = dv.getString("categoryOptionCombo");
+        values.add(
+            new DataEntryValue.Input(
+                dv.getString("dataElement").string(),
+                dv.getString("orgUnit").string(),
+                coc.isString() ? coc.string() : null,
+                coc.isObject() ? coc.asMap(JsonString.class).toMap(JsonString::string) : null,
+                dv.getString("attributeOptionCombo").string(),
+                null,
+                null,
+                dv.getString("period").string(),
+                dv.getString("value").string(),
+                dv.getString("comment").string(),
+                dv.getBoolean("followUp").bool(),
+                dv.getBoolean("deleted").bool()));
+      }
     DataEntryGroup.Ids ids = DataEntryGroup.Ids.of(schemes);
     return List.of(
         new DataEntryGroup.Input(

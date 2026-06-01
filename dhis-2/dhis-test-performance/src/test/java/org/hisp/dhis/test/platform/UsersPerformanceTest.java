@@ -46,6 +46,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -142,6 +143,19 @@ public class UsersPerformanceTest extends Simulation {
   private static final int ITERATIONS = Integer.parseInt(prop("iterations", "3"));
   private static final String MODE = prop("mode", "parallel");
 
+  private enum Profile {
+    SMOKE,
+    LOAD;
+
+    static Profile fromString(String s) {
+      return "smoke".equalsIgnoreCase(s) ? SMOKE : LOAD;
+    }
+  }
+
+  private static final Profile PROFILE = Profile.fromString(prop("profile", "load"));
+
+  private record Thresholds(int p95, int max) {}
+
   // Request names — used in both scenario definitions and assertions
   private static final String POST_REQUEST = "POST User - create";
   private static final String GET_REQUEST = "GET User - by uid";
@@ -151,6 +165,32 @@ public class UsersPerformanceTest extends Simulation {
   private static final String REPLICA_REQUEST = "POST User - replicate";
   private static final String DELETE_REQUEST = "DELETE User - delete";
   private static final int PATCH_GROUP_COUNT = Integer.parseInt(prop("patchGroupCount", "7"));
+
+  // Thresholds per profile, slack 1.5× observed p95/max, rounded to nearest 50ms.
+  // LOAD:  10 nightly runs × 10 iterations (2026-04-02 – 2026-04-11), 100 samples each.
+  // SMOKE: 14 nightly runs × 3 iterations (2026-04-09 – 2026-04-22), 42–90 samples each.
+  //        Recalibrate with: scripts/download-user-perf-results.sh --test-name users-smoke
+  //                          scripts/analyze-user-perf-results.py --profile smoke
+  private static final Map<Profile, Thresholds> POST_THRESH =
+      Map.of(Profile.SMOKE, new Thresholds(1150, 1200), Profile.LOAD, new Thresholds(1250, 1500));
+
+  private static final Map<Profile, Thresholds> GET_THRESH =
+      Map.of(Profile.SMOKE, new Thresholds(1050, 1400), Profile.LOAD, new Thresholds(700, 1050));
+
+  private static final Map<Profile, Thresholds> PUT_THRESH =
+      Map.of(Profile.SMOKE, new Thresholds(1600, 1700), Profile.LOAD, new Thresholds(1500, 2100));
+
+  private static final Map<Profile, Thresholds> PATCH_THRESH =
+      Map.of(Profile.SMOKE, new Thresholds(1350, 1750), Profile.LOAD, new Thresholds(850, 950));
+
+  private static final Map<Profile, Thresholds> PATCH_GROUPS_THRESH =
+      Map.of(Profile.SMOKE, new Thresholds(1350, 1700), Profile.LOAD, new Thresholds(850, 950));
+
+  private static final Map<Profile, Thresholds> REPLICA_THRESH =
+      Map.of(Profile.SMOKE, new Thresholds(1250, 1800), Profile.LOAD, new Thresholds(1050, 1200));
+
+  private static final Map<Profile, Thresholds> DELETE_THRESH =
+      Map.of(Profile.SMOKE, new Thresholds(1400, 1650), Profile.LOAD, new Thresholds(1450, 1950));
 
   // Timestamp-based offset so each run generates unique usernames
   private static final int RUN_OFFSET = (int) (System.currentTimeMillis() % 10_000_000);
@@ -512,26 +552,41 @@ public class UsersPerformanceTest extends Simulation {
 
     sim.protocols(httpProtocol)
         .assertions(
-            details(POST_REQUEST).responseTime().percentile(95).lt(450),
-            details(POST_REQUEST).responseTime().max().lt(600),
+            details(POST_REQUEST).responseTime().percentile(95).lt(POST_THRESH.get(PROFILE).p95()),
+            details(POST_REQUEST).responseTime().max().lt(POST_THRESH.get(PROFILE).max()),
             details(POST_REQUEST).successfulRequests().percent().is(100D),
-            details(GET_REQUEST).responseTime().percentile(95).lt(350),
-            details(GET_REQUEST).responseTime().max().lt(500),
+            details(GET_REQUEST).responseTime().percentile(95).lt(GET_THRESH.get(PROFILE).p95()),
+            details(GET_REQUEST).responseTime().max().lt(GET_THRESH.get(PROFILE).max()),
             details(GET_REQUEST).successfulRequests().percent().is(100D),
-            details(PUT_REQUEST).responseTime().percentile(95).lt(600),
-            details(PUT_REQUEST).responseTime().max().lt(800),
+            details(PUT_REQUEST).responseTime().percentile(95).lt(PUT_THRESH.get(PROFILE).p95()),
+            details(PUT_REQUEST).responseTime().max().lt(PUT_THRESH.get(PROFILE).max()),
             details(PUT_REQUEST).successfulRequests().percent().is(100D),
-            details(PATCH_REQUEST).responseTime().percentile(95).lt(550),
-            details(PATCH_REQUEST).responseTime().max().lt(750),
+            details(PATCH_REQUEST)
+                .responseTime()
+                .percentile(95)
+                .lt(PATCH_THRESH.get(PROFILE).p95()),
+            details(PATCH_REQUEST).responseTime().max().lt(PATCH_THRESH.get(PROFILE).max()),
             details(PATCH_REQUEST).successfulRequests().percent().is(100D),
-            details(PATCH_GROUPS_REQUEST).responseTime().percentile(95).lt(700),
-            details(PATCH_GROUPS_REQUEST).responseTime().max().lt(900),
+            details(PATCH_GROUPS_REQUEST)
+                .responseTime()
+                .percentile(95)
+                .lt(PATCH_GROUPS_THRESH.get(PROFILE).p95()),
+            details(PATCH_GROUPS_REQUEST)
+                .responseTime()
+                .max()
+                .lt(PATCH_GROUPS_THRESH.get(PROFILE).max()),
             details(PATCH_GROUPS_REQUEST).successfulRequests().percent().is(100D),
-            details(REPLICA_REQUEST).responseTime().percentile(95).lt(700),
-            details(REPLICA_REQUEST).responseTime().max().lt(1000),
+            details(REPLICA_REQUEST)
+                .responseTime()
+                .percentile(95)
+                .lt(REPLICA_THRESH.get(PROFILE).p95()),
+            details(REPLICA_REQUEST).responseTime().max().lt(REPLICA_THRESH.get(PROFILE).max()),
             details(REPLICA_REQUEST).successfulRequests().percent().is(100D),
-            details(DELETE_REQUEST).responseTime().percentile(95).lt(1800),
-            details(DELETE_REQUEST).responseTime().max().lt(2500),
+            details(DELETE_REQUEST)
+                .responseTime()
+                .percentile(95)
+                .lt(DELETE_THRESH.get(PROFILE).p95()),
+            details(DELETE_REQUEST).responseTime().max().lt(DELETE_THRESH.get(PROFILE).max()),
             details(DELETE_REQUEST).successfulRequests().percent().is(100D));
   }
 }

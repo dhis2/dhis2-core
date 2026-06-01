@@ -52,6 +52,4 @@ public class Note implements Serializable {
   @Nonnull @JsonProperty private UID note;
 
   @JsonProperty private String value;
-
-  @JsonProperty private String storedBy;
 }

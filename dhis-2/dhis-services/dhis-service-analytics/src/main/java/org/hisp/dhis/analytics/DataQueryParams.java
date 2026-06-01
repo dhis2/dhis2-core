@@ -32,6 +32,7 @@ package org.hisp.dhis.analytics;
 import static java.util.Collections.emptyList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.collections4.MapUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.analytics.OrgUnitField.DEFAULT_ORG_UNIT_FIELD;
 import static org.hisp.dhis.analytics.TimeField.DEFAULT_TIME_FIELDS;
@@ -60,6 +61,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -69,6 +71,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -437,6 +440,14 @@ public class DataQueryParams {
   /** Mapping of organisation unit sub-hierarchy roots and lowest available data approval levels. */
   protected transient Map<OrganisationUnit, Integer> dataApprovalLevels = new HashMap<>();
 
+  /**
+   * Resolved period type per data element UID, populated by the query planner via a single batch
+   * query. Used by {@link org.hisp.dhis.analytics.data.QueryPlannerUtils} so downstream grouping
+   * does not depend on lazy-loading {@code DataElement.dataSetElements} on entities that may be
+   * detached.
+   */
+  protected Map<String, PeriodType> dataElementPeriodTypes = new HashMap<>();
+
   /** Hints for the aggregation process. */
   protected transient Set<ProcessingHint> processingHints = new HashSet<>();
 
@@ -545,6 +556,7 @@ public class DataQueryParams {
     params.startDateRestriction = this.startDateRestriction;
     params.endDateRestriction = this.endDateRestriction;
     params.dataApprovalLevels = new HashMap<>(this.dataApprovalLevels);
+    params.dataElementPeriodTypes = new HashMap<>(this.dataElementPeriodTypes);
     params.skipDataDimensionValidation = this.skipDataDimensionValidation;
     params.userOrgUnitType = this.userOrgUnitType;
     params.explainOrderId = this.explainOrderId;
@@ -619,7 +631,27 @@ public class DataQueryParams {
         .add("timeField", timeField)
         .add("orgUnitField", orgUnitField)
         .add("expressiondimensionitems", getExpressionDimensionItemsExpressions())
+        .add("timeDateRanges", getTimeDateRangesAsString())
         .addIgnoreNull("locale", locale);
+  }
+
+  private String getTimeDateRangesAsString() {
+    String value = EMPTY;
+
+    if (isNotEmpty(getTimeDateRanges())) {
+      Set<Entry<TimeField, List<DateRange>>> entries = getTimeDateRanges().entrySet();
+
+      for (Entry<TimeField, List<DateRange>> entry : entries) {
+        if (entry != null) {
+          value =
+              value
+                  .concat(entry.getKey().asString())
+                  .concat(Arrays.toString(entry.getValue().toArray()));
+        }
+      }
+    }
+
+    return value;
   }
 
   private String getExpressionDimensionItemsExpressions() {
@@ -2191,6 +2223,10 @@ public class DataQueryParams {
     this.dataApprovalLevels = dataApprovalLevels;
   }
 
+  public Map<String, PeriodType> getDataElementPeriodTypes() {
+    return dataElementPeriodTypes;
+  }
+
   // -------------------------------------------------------------------------
   // Get helpers for dimensions and filters
   // -------------------------------------------------------------------------
@@ -2979,6 +3015,11 @@ public class DataQueryParams {
 
     public Builder withDataApprovalLevels(Map<OrganisationUnit, Integer> dataApprovalLevels) {
       this.params.dataApprovalLevels = dataApprovalLevels;
+      return this;
+    }
+
+    public Builder withDataElementPeriodTypes(Map<String, PeriodType> dataElementPeriodTypes) {
+      this.params.dataElementPeriodTypes = dataElementPeriodTypes;
       return this;
     }
 

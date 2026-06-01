@@ -190,7 +190,8 @@ class AggregatedRowBuilder {
    * dimension value using the dimension name as the column identifier.
    */
   private void addDimensionData() {
-    for (DimensionalObject dimension : params.getDimensions()) {
+    for (DimensionalObject dimension :
+        PeriodDimensionSplitter.expandPeriodDimensions(params.getDimensions())) {
       String dimensionValue =
           extractStringValue(dimension.getDimensionName(), dimension.getValueType());
       row.add(dimensionValue);

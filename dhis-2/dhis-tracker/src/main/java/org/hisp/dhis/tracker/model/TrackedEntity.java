@@ -40,7 +40,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedNativeQuery;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
@@ -82,10 +81,6 @@ import org.locationtech.jts.geom.Geometry;
 @Setter
 @Getter
 @Table(name = "trackedentity")
-@NamedNativeQuery(
-    name = "updateTrackedEntitiesLastUpdated",
-    query =
-        "update trackedentity set lastUpdated = :lastUpdated, lastupdatedbyuserinfo = CAST(:lastupdatedbyuserinfo as jsonb) WHERE uid in :trackedEntities")
 @Auditable(scope = AuditScope.TRACKER)
 public class TrackedEntity extends BaseTrackerObject
     implements IdentifiableObject, SoftDeletableEntity {
@@ -98,7 +93,7 @@ public class TrackedEntity extends BaseTrackerObject
 
   private boolean deleted = false;
 
-  @ManyToOne
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "lastupdatedby")
   @Setter
   protected User lastUpdatedBy;

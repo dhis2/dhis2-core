@@ -46,12 +46,10 @@ import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.QueryOperator.NIEQ;
 import static org.hisp.dhis.common.QueryOperator.NILIKE;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
-import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
-import static org.hisp.dhis.period.RelativePeriodEnum.THIS_YEAR;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
 import static org.hisp.dhis.test.TestBase.createDataElement;
 import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
@@ -66,6 +64,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -120,16 +119,17 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.db.sql.AnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlAnalyticsSqlBuilder;
 import org.hisp.dhis.db.sql.PostgreSqlBuilder;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DefaultDhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.period.PeriodDimension;
 import org.hisp.dhis.period.PeriodTypeEnum;
-import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.setting.SystemSettings;
 import org.hisp.dhis.setting.SystemSettingsService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -163,6 +163,10 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   @Mock private SystemSettingsService systemSettingsService;
 
+  @Mock private DefaultDhisConfigurationProvider config;
+
+  @Mock private SystemSettings systemSettings;
+
   @Mock private OrganisationUnitResolver organisationUnitResolver;
 
   @Mock private PiDisagQueryGenerator piDisagQueryGenerator;
@@ -187,8 +191,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
   private JdbcEventAnalyticsManager eventSubject;
 
-  private JdbcEnrollmentAnalyticsManager enrollmentSubject;
-
   private Program programA;
 
   private DataElement dataElementA;
@@ -206,6 +208,11 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     programA = createProgram('A');
     dataElementA = createDataElement('A', ValueType.INTEGER, AggregationType.SUM);
     dataElementA.setUid("fWIAEtYVEGk");
+
+    lenient()
+        .when(config.getPropertyOrDefault(ConfigurationKey.ANALYTICS_DATABASE, ""))
+        .thenReturn("postgresql");
+    lenient().when(systemSettingsService.getCurrentSettings()).thenReturn(systemSettings);
 
     ColumnMapper columnMapper = new ColumnMapper(sqlBuilder, systemSettingsService);
     QueryItemFilterBuilder filterBuilder =
@@ -226,29 +233,15 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
             eventTimeFieldSqlRenderer,
             executionPlanStore,
             systemSettingsService,
-            null,
+            config,
             sqlBuilder,
             organisationUnitResolver,
             columnMapper,
             filterBuilder,
-            stageQuerySqlFacade);
-
-    enrollmentSubject =
-        new JdbcEnrollmentAnalyticsManager(
-            jdbcTemplate,
-            programIndicatorService,
-            programIndicatorSubqueryBuilder,
-            null,
-            piDisagQueryGenerator,
-            enrollmentTimeFieldSqlRenderer,
-            executionPlanStore,
-            systemSettingsService,
-            null,
-            sqlBuilder,
-            organisationUnitResolver,
-            columnMapper,
-            filterBuilder,
-            stageQuerySqlFacade);
+            stageQuerySqlFacade,
+            new DateFieldPeriodBucketColumnResolver(new PostgreSqlAnalyticsSqlBuilder()),
+            new FirstOrLastValueSubqueryRenderer(
+                sqlBuilder, eventTimeFieldSqlRenderer, programIndicatorService));
   }
 
   @Test
@@ -347,13 +340,42 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     EventQueryParams params =
         new EventQueryParams.Builder(createRequestParams()).addItem(stageOuItem).build();
 
-    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params))
+    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "ax"))
         .thenReturn(new OrganisationUnitResolver.StageOuCteContext("ax.\"uidlevel1\"", "", ""));
 
     ColumnAndAlias columnAndAlias =
         eventSubject.getColumnAndAlias(stageOuItem, params, false, true);
 
     assertThat(columnAndAlias.asSql(), is("ax.\"uidlevel1\" as \"ou\""));
+  }
+
+  @Test
+  void verifyGetColumnAndAliasQualifiesStageOuColumnForAggregateWhenEnrollmentOuJoined() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+
+    QueryItem stageOuItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME),
+            programA,
+            null,
+            ValueType.ORGANISATION_UNIT,
+            AggregationType.NONE,
+            null);
+    stageOuItem.setProgramStage(programStage);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .addItem(stageOuItem)
+            .withEnrollmentOuDimension(List.of(ouA))
+            .build();
+
+    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "enrl"))
+        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("enrl.\"uidlevel1\"", "", ""));
+
+    ColumnAndAlias columnAndAlias =
+        eventSubject.getColumnAndAlias(stageOuItem, params, false, true);
+
+    assertThat(columnAndAlias.asSql(), is("enrl.\"uidlevel1\" as \"ou\""));
   }
 
   @Test
@@ -810,29 +832,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
-  void testMissingPsiGeometryInDefaultCoordinatesFieldInSqlSelectClause() {
-    EventQueryParams params =
-        getEventQueryParamsForCoordinateFieldsTest(
-            List.of("enrollmentgeometry", "tegeometry", "ougeometry"));
-
-    String whereClause = this.eventSubject.getSelectClause(params);
-
-    assertThat(
-        whereClause,
-        containsString("coalesce(ax.\"enrollmentgeometry\",ax.\"tegeometry\",ax.\"ougeometry\")"));
-  }
-
-  @Test
-  void testValidExplicitCoordinatesFieldInSqlSelectClause() {
-    EventQueryParams params =
-        getEventQueryParamsForCoordinateFieldsTest(List.of("ougeometry", "eventgeometry"));
-
-    String whereClause = this.eventSubject.getSelectClause(params);
-
-    assertThat(whereClause, containsString("coalesce(ax.\"ougeometry\",ax.\"eventgeometry\")"));
-  }
-
-  @Test
   void testGetCoalesceReturnsDefaultColumnNameWhenCoordinateFieldIsEmpty() {
     String sql =
         this.eventSubject.getCoalesce(
@@ -1100,24 +1099,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
-  void testGetSelectClauseForAggregatedEnrollments() {
-    // Given
-    PeriodDimension period = PeriodDimension.of(THIS_YEAR);
-    period.getPeriod().setPeriodType(new YearlyPeriodType());
-    EventQueryParams params =
-        new EventQueryParams.Builder()
-            .withProgram(createProgram('A'))
-            .withEndpointAction(AGGREGATE)
-            .withEndpointItem(ENROLLMENT)
-            .withPeriods(List.of(period), PeriodTypeEnum.YEARLY.getName())
-            .build();
-    // When
-    String select = enrollmentSubject.getSelectClause(params);
-    // Then
-    assertEquals("select enrollment,Yearly ", select);
-  }
-
-  @Test
   void testItemsInFilterAreQuotedForOrganisationUnit() {
     // Given
     QueryItem queryItem = mock(QueryItem.class);
@@ -1160,25 +1141,6 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
 
     // Then
     assertEquals("ax.\"12345678\" in ('A','B','C')", sql);
-  }
-
-  @Test
-  void testGetSelectClauseForQueryEnrollments() {
-    // Given
-    PeriodDimension period = PeriodDimension.of(THIS_YEAR);
-    EventQueryParams params =
-        new EventQueryParams.Builder()
-            .withProgram(createProgram('A'))
-            .withEndpointAction(QUERY)
-            .withEndpointItem(ENROLLMENT)
-            .withPeriods(List.of(period), PeriodTypeEnum.YEARLY.getName())
-            .build();
-    // When
-    String select = enrollmentSubject.getSelectClause(params);
-    // Then
-    assertEquals(
-        "select enrollment,trackedentity,enrollmentdate,occurreddate,storedby,createdbydisplayname,lastupdatedbydisplayname,lastupdated,ST_AsGeoJSON(enrollmentgeometry),longitude,latitude,ouname,ounamehierarchy,oucode,enrollmentstatus,ax.\"yearly\" ",
-        select);
   }
 
   @Test
@@ -1508,6 +1470,81 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
   }
 
   @Test
+  void testExperimentalSelectClauseQualifiesStageOuLevelWhenEnrollmentOuJoinIsUsed() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    ProgramStage stage = createProgramStage('B', programA);
+    stage.setUid("ZkbAXlQUYJG");
+
+    QueryItem stageOuItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME),
+            programA,
+            null,
+            ValueType.ORGANISATION_UNIT,
+            AggregationType.NONE,
+            null);
+    stageOuItem.setProgramStage(stage);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withEnrollmentOuDimension(List.of(ouA))
+            .addItem(stageOuItem)
+            .build();
+
+    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "enrl"))
+        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("enrl.\"uidlevel1\"", "", ""));
+
+    SelectBuilder sb = new SelectBuilder();
+    eventSubject.addSelectClause(
+        sb, params, new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT));
+    String selectClause = sb.build();
+
+    assertThat(selectClause, containsString("enrl.\"uidlevel1\" as \"ZkbAXlQUYJG.ou\""));
+    assertTrue(!selectClause.contains(", \"uidlevel1\" as \"ZkbAXlQUYJG.ou\""));
+  }
+
+  @Test
+  void testExperimentalSelectClauseQualifiesStageOuHeadersWhenEnrollmentOuJoinIsUsed() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    ProgramStage stage = createProgramStage('B', programA);
+    stage.setUid("ZkbAXlQUYJG");
+
+    QueryItem stageOuItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OU_COLUMN_NAME),
+            programA,
+            null,
+            ValueType.ORGANISATION_UNIT,
+            AggregationType.NONE,
+            null);
+    stageOuItem.setProgramStage(stage);
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withStartDate(from)
+            .withEndDate(to)
+            .withEnrollmentOuDimension(List.of(ouA))
+            .addItem(stageOuItem)
+            .withHeaders(Set.of("enrollmentouname", "ZkbAXlQUYJG.ouname"))
+            .build();
+
+    when(organisationUnitResolver.buildStageOuCteContext(stageOuItem, params, "enrl"))
+        .thenReturn(new OrganisationUnitResolver.StageOuCteContext("enrl.\"uidlevel1\"", "", ""));
+
+    SelectBuilder sb = new SelectBuilder();
+    eventSubject.addSelectClause(
+        sb, params, new CteContext(org.hisp.dhis.analytics.common.EndpointItem.EVENT));
+    String selectClause = sb.build();
+
+    assertThat(selectClause, containsString("enrl.\"ouname\" as \"ZkbAXlQUYJG.ouname\""));
+    assertTrue(!selectClause.contains(", \"ouname\" as \"ZkbAXlQUYJG.ouname\""));
+  }
+
+  @Test
   void testEnrollmentOuLevelConstraintUsesOrgUnitLevelColumn() {
     EventQueryParams params =
         new EventQueryParams.Builder()
@@ -1562,6 +1599,79 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest {
     String sql = sqlCaptor.getValue();
     assertThat(sql, containsString("inner join analytics_enrollment_"));
     assertThat(sql, containsString("enrl.\"oulevel\" in (4)"));
+  }
+
+  @Test
+  void testGetEventCountIncludesStageDateFiltersForExperimentalEngine() {
+    when(jdbcTemplate.queryForObject(any(String.class), eq(Long.class))).thenReturn(1L);
+
+    ProgramStage ps = createProgramStage('A', programA);
+    ps.setUid("Zj7UnCAulEk");
+
+    QueryItem queryItem =
+        new QueryItem(
+            new BaseDimensionalItemObject(EventAnalyticsColumnName.OCCURRED_DATE_COLUMN_NAME));
+    queryItem.setProgramStage(ps);
+    queryItem.setValueType(ValueType.DATE);
+    queryItem.addFilter(new QueryFilter(QueryOperator.GE, "2021-03-01"));
+    queryItem.addFilter(new QueryFilter(QueryOperator.LE, "2021-05-31"));
+
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withTableName("analytics_event_test")
+            .withStartDate(from)
+            .withEndDate(to)
+            .withOrganisationUnits(List.of(createOrganisationUnit('A')))
+            .addItemFilter(queryItem)
+            .build();
+
+    eventSubject.getEventCount(params);
+
+    ArgumentCaptor<String> sqlCaptor = ArgumentCaptor.forClass(String.class);
+    verify(jdbcTemplate).queryForObject(sqlCaptor.capture(), eq(Long.class));
+
+    String sql = sqlCaptor.getValue();
+    assertThat(sql, containsString("\"occurreddate\" >= '2021-03-01'"));
+    assertThat(sql, containsString("\"occurreddate\" <= '2021-05-31'"));
+    assertThat(sql, containsString("\"ps\" = 'Zj7UnCAulEk'"));
+  }
+
+  /**
+   * DHIS2-20929: PI filters such as {@code #{stage.de} == 0} must not be wrapped in {@code
+   * coalesce(..., 0)} — otherwise events where the DE is NULL (or where the row belongs to a
+   * different program stage) incorrectly match the equality to zero. The filter must therefore be
+   * compiled with NULL-allowing semantics.
+   */
+  @Test
+  void verifyProgramIndicatorFilterCompiledAllowingNulls() {
+    ProgramIndicator programIndicator =
+        createProgramIndicator('A', programA, "V{event_count}", "#{ProgrmStagA.DataElmentA} == 0");
+
+    EventQueryParams params =
+        new EventQueryParams.Builder(createRequestParams())
+            .withProgramIndicator(programIndicator)
+            .build();
+
+    lenient()
+        .when(
+            programIndicatorService.getAnalyticsSqlAllowingNulls(
+                eq(programIndicator.getFilter()),
+                eq(org.hisp.dhis.analytics.DataType.BOOLEAN),
+                eq(programIndicator),
+                any(Date.class),
+                any(Date.class)))
+        .thenReturn("ax.\"DataElmentA\" = 0");
+
+    eventSubject.getWhereClause(params);
+
+    verify(programIndicatorService)
+        .getAnalyticsSqlAllowingNulls(
+            eq(programIndicator.getFilter()),
+            eq(org.hisp.dhis.analytics.DataType.BOOLEAN),
+            eq(programIndicator),
+            any(Date.class),
+            any(Date.class));
   }
 
   private EventQueryParams getEventQueryParamsForCoordinateFieldsTest(

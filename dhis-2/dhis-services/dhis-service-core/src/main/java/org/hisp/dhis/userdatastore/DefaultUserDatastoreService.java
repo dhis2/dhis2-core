@@ -137,7 +137,8 @@ public class DefaultUserDatastoreService implements UserDatastoreService {
   private static void validateEntry(String key, String value) throws BadRequestException {
     if (value == null) return;
     try {
-      JsonNode.of(value).visit(JsonNode::value);
+      // calling endIndex is the easiest way to ensure JSON is parsed fully
+      JsonNode.of(value).endIndex();
     } catch (RuntimeException e) {
       throw new BadRequestException(String.format("Invalid JSON value for key '%s'", key));
     }
