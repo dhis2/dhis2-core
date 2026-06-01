@@ -64,8 +64,6 @@ public class TrackerEvent extends SoftDeletableObject {
 
   @AuditAttribute private ProgramStage programStage;
 
-  private String storedBy;
-
   private UserInfoSnapshot createdByUserInfo;
 
   private UserInfoSnapshot lastUpdatedByUserInfo;

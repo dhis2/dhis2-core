@@ -326,7 +326,7 @@ class TrackedEntityAttributeTest extends PostgresIntegrationTestBase {
 
     assertEquals(
         expected,
-        tea.isSkipAnalytics(),
+        tea.getSkipAnalytics(),
         "Expected skip individual analytics flag for UID " + uid + " to be " + expected);
   }
 }

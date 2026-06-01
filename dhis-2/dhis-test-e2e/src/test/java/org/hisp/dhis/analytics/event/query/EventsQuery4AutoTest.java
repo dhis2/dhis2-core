@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.hisp.dhis.AnalyticsApiTest;
 import org.hisp.dhis.test.e2e.actions.analytics.AnalyticsEventActions;
 import org.hisp.dhis.test.e2e.dto.ApiResponse;
@@ -47,6 +48,7 @@ import org.hisp.dhis.test.e2e.helpers.QueryParamsBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
 
 /** Groups e2e tests for "/events/query" endpoint. */
 public class EventsQuery4AutoTest extends AnalyticsApiTest {
@@ -400,11 +402,11 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("headers", hasSize(equalTo(expectPostgis ? 20 : 16)))
+        .body("headers", hasSize(equalTo(expectPostgis ? 19 : 15)))
         .body("rows", hasSize(equalTo(4)))
         .body("height", equalTo(4))
-        .body("width", equalTo(expectPostgis ? 20 : 16))
-        .body("headerWidth", equalTo(expectPostgis ? 20 : 16));
+        .body("width", equalTo(expectPostgis ? 19 : 15))
+        .body("headerWidth", equalTo(expectPostgis ? 19 : 15));
 
     // Assert metaData.
     String expectedMetaData =
@@ -426,12 +428,11 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
         "java.time.LocalDateTime",
         false,
         true);
-    validateHeader(response, 3, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 4, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
+        response, 3, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
-        5,
+        4,
         "lastupdatedbydisplayname",
         "Last updated by",
         "TEXT",
@@ -440,7 +441,7 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
         true);
     validateHeader(
         response,
-        6,
+        5,
         "lastupdated",
         "Last updated on",
         "DATETIME",
@@ -449,7 +450,7 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
         true);
     validateHeader(
         response,
-        9,
+        8,
         "scheduleddate",
         "Scheduled date",
         "DATETIME",
@@ -457,10 +458,10 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
         false,
         true);
     if (expectPostgis) {
-      validateHeader(response, 10, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+      validateHeader(response, 9, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
       validateHeader(
           response,
-          11,
+          10,
           "enrollmentgeometry",
           "Enrollment geometry",
           "TEXT",
@@ -468,9 +469,9 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
           false,
           true);
       validateHeader(
-          response, 12, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
+          response, 11, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
       validateHeader(
-          response, 13, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
+          response, 12, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
     }
     validateHeaderPropertiesByName(
         response,
@@ -553,7 +554,6 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
                 "n1V0AKAOgj2",
                 "Zj7UnCAulEk",
                 "2022-08-01 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-08-04 15:17:39.87",
@@ -580,7 +580,6 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
                 "aTL7SjJycjA",
                 "Zj7UnCAulEk",
                 "2022-08-02 00:00:00.0",
-                "system",
                 ",  ()",
                 ",  ()",
                 "2018-08-04 15:17:10.722",
@@ -606,7 +605,6 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
                 "ldLR9NLHI5w",
                 "Zj7UnCAulEk",
                 "2022-08-01 00:00:00.0",
-                "system",
                 ",  ()",
                 ",  ()",
                 "2018-08-04 15:15:50.672",
@@ -632,7 +630,6 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
                 "vexvMPiL7fL",
                 "Zj7UnCAulEk",
                 "2022-01-05 00:00:00.0",
-                "",
                 ",  ()",
                 ",  ()",
                 "2018-01-15 18:15:59.488",
@@ -650,6 +647,108 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
                 "ACTIVE",
                 "DiszpKrYNg8"),
             (expectPostgis ? new HashSet<>() : Set.of(10, 11, 12, 13))));
+  }
+
+  @Test
+  @EnabledIf(value = "isPostgres", disabledReason = "Postgis not available in Doris/CH")
+  public void eventsWithFallbackCoordinateFieldReturnsGeometrySource() throws JSONException {
+    // Read the 'expect.postgis' system property at runtime to adapt assertions.
+    boolean expectPostgis = isPostgres();
+
+    // Given
+    QueryParamsBuilder params =
+        new QueryParamsBuilder()
+            .add("filter=pe:2022")
+            .add("headers=geometry,geometrySource")
+            .add("coordinatesOnly=true")
+            .add("stage=Zj7UnCAulEk")
+            .add("coordinateField=EVENT")
+            .add("dimension=ou:ImspTQPwCqd")
+            .add("fallbackCoordinateField=F3ogKBuviRA")
+            .add("desc=lastupdated");
+
+    // When
+    ApiResponse response = actions.query().get("eBAyeGv0exc", JSON, JSON, params);
+
+    // Then
+    // 1. Validate Response Structure (Counts, Headers, Height/Width)
+    //    This helper checks basic counts and dimensions, adapting based on the runtime
+    // 'expectPostgis' flag.
+    validateResponseStructure(
+        response,
+        expectPostgis,
+        28,
+        2,
+        1); // Pass runtime flag, row count, and expected header counts
+
+    // 2. Extract Headers into a List of Maps for easy access by name
+    List<Map<String, Object>> actualHeaders =
+        response.extractList("headers", Map.class).stream()
+            .map(obj -> (Map<String, Object>) obj) // Ensure correct type
+            .collect(Collectors.toList());
+
+    // 3. Assert metaData.
+    String expectedMetaData =
+        "{\"pager\":{\"page\":1,\"total\":28,\"pageSize\":50,\"pageCount\":1},\"items\":{\"ImspTQPwCqd\":{\"name\":\"Sierra Leone\"},\"eBAyeGv0exc\":{\"name\":\"Inpatient morbidity and mortality\"},\"ou\":{\"name\":\"Organisation unit\"},\"Zj7UnCAulEk\":{\"name\":\"Inpatient morbidity and mortality\"}},\"dimensions\":{\"pe\":[],\"ou\":[\"ImspTQPwCqd\"]}}";
+    String actualMetaData = new JSONObject((Map) response.extract("metaData")).toString();
+    assertEquals(expectedMetaData, actualMetaData, false);
+
+    // 4. Validate Headers By Name (conditionally checking PostGIS headers).
+    if (expectPostgis) {
+      validateHeaderPropertiesByName(
+          response, actualHeaders, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+    }
+    validateHeaderPropertiesByName(
+        response,
+        actualHeaders,
+        "geometrySource",
+        "Geometry source",
+        "TEXT",
+        "java.lang.String",
+        false,
+        true);
+
+    // rowContext not found or empty in the response, skipping assertions.
+
+    // 7. Assert row values by name at specific indices (sorted results).
+    // Validate selected values for row index 0
+    validateRowValueByName(
+        response,
+        actualHeaders,
+        0,
+        "geometry",
+        "{\"type\":\"Point\",\"coordinates\":[-12.262115,8.195179]}");
+    validateRowValueByName(response, actualHeaders, 0, "geometrySource", "psigeometry");
+
+    // Validate selected values for row index 5
+    validateRowValueByName(
+        response, actualHeaders, 5, "geometry", "{\"type\":\"Point\",\"coordinates\":[0,0]}");
+    validateRowValueByName(response, actualHeaders, 5, "geometrySource", "psigeometry");
+
+    // Validate selected values for row index 10
+    validateRowValueByName(
+        response, actualHeaders, 10, "geometry", "{\"type\":\"Point\",\"coordinates\":[0,0]}");
+    validateRowValueByName(response, actualHeaders, 10, "geometrySource", "psigeometry");
+
+    // Validate selected values for row index 15
+    validateRowValueByName(
+        response, actualHeaders, 15, "geometry", "{\"type\":\"Point\",\"coordinates\":[0,0]}");
+    validateRowValueByName(response, actualHeaders, 15, "geometrySource", "psigeometry");
+
+    // Validate selected values for row index 20
+    validateRowValueByName(
+        response, actualHeaders, 20, "geometry", "{\"type\":\"Point\",\"coordinates\":[0,0]}");
+    validateRowValueByName(response, actualHeaders, 20, "geometrySource", "psigeometry");
+
+    // Validate selected values for row index 25
+    validateRowValueByName(
+        response, actualHeaders, 25, "geometry", "{\"type\":\"Point\",\"coordinates\":[0,0]}");
+    validateRowValueByName(response, actualHeaders, 25, "geometrySource", "psigeometry");
+
+    // Validate selected values for row index 27
+    validateRowValueByName(
+        response, actualHeaders, 27, "geometry", "{\"type\":\"Point\",\"coordinates\":[0,0]}");
+    validateRowValueByName(response, actualHeaders, 27, "geometrySource", "psigeometry");
   }
 
   @Test
@@ -675,11 +774,11 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("headers", hasSize(equalTo(expectPostgis ? 20 : 16)))
+        .body("headers", hasSize(equalTo(expectPostgis ? 19 : 15)))
         .body("rows", hasSize(equalTo(0)))
         .body("height", equalTo(0))
         .body("width", equalTo(0))
-        .body("headerWidth", equalTo(expectPostgis ? 20 : 16));
+        .body("headerWidth", equalTo(expectPostgis ? 19 : 15));
 
     // Assert metaData.
     String expectedMetaData =
@@ -694,12 +793,11 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
     validateHeader(response, 1, "ps", "Program stage", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response, 2, "eventdate", "Event date", "DATETIME", "java.time.LocalDateTime", false, true);
-    validateHeader(response, 3, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 4, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
+        response, 3, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
-        5,
+        4,
         "lastupdatedbydisplayname",
         "Last updated by",
         "TEXT",
@@ -708,7 +806,7 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
         true);
     validateHeader(
         response,
-        6,
+        5,
         "lastupdated",
         "Last updated on",
         "DATETIME",
@@ -717,7 +815,7 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
         true);
     validateHeader(
         response,
-        9,
+        8,
         "scheduleddate",
         "Scheduled date",
         "DATETIME",
@@ -725,10 +823,10 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
         false,
         true);
     if (expectPostgis) {
-      validateHeader(response, 10, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+      validateHeader(response, 9, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
       validateHeader(
           response,
-          11,
+          10,
           "enrollmentgeometry",
           "Enrollment geometry",
           "TEXT",
@@ -736,9 +834,9 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
           false,
           true);
       validateHeader(
-          response, 12, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
+          response, 11, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
       validateHeader(
-          response, 13, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
+          response, 12, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
     }
     validateHeaderPropertiesByName(
         response,
@@ -840,11 +938,11 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
     response
         .validate()
         .statusCode(200)
-        .body("headers", hasSize(equalTo(expectPostgis ? 20 : 16)))
+        .body("headers", hasSize(equalTo(expectPostgis ? 19 : 15)))
         .body("rows", hasSize(equalTo(0)))
         .body("height", equalTo(0))
         .body("width", equalTo(0))
-        .body("headerWidth", equalTo(expectPostgis ? 20 : 16));
+        .body("headerWidth", equalTo(expectPostgis ? 19 : 15));
 
     // Assert metaData.
     String expectedMetaData =
@@ -859,12 +957,11 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
     validateHeader(response, 1, "ps", "Program stage", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response, 2, "eventdate", "Event date", "DATETIME", "java.time.LocalDateTime", false, true);
-    validateHeader(response, 3, "storedby", "Stored by", "TEXT", "java.lang.String", false, true);
     validateHeader(
-        response, 4, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
+        response, 3, "createdbydisplayname", "Created by", "TEXT", "java.lang.String", false, true);
     validateHeader(
         response,
-        5,
+        4,
         "lastupdatedbydisplayname",
         "Last updated by",
         "TEXT",
@@ -873,7 +970,7 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
         true);
     validateHeader(
         response,
-        6,
+        5,
         "lastupdated",
         "Last updated on",
         "DATETIME",
@@ -882,7 +979,7 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
         true);
     validateHeader(
         response,
-        9,
+        8,
         "scheduleddate",
         "Scheduled date",
         "DATETIME",
@@ -890,10 +987,10 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
         false,
         true);
     if (expectPostgis) {
-      validateHeader(response, 10, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
+      validateHeader(response, 9, "geometry", "Geometry", "TEXT", "java.lang.String", false, true);
       validateHeader(
           response,
-          11,
+          10,
           "enrollmentgeometry",
           "Enrollment geometry",
           "TEXT",
@@ -901,9 +998,9 @@ public class EventsQuery4AutoTest extends AnalyticsApiTest {
           false,
           true);
       validateHeader(
-          response, 12, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
+          response, 11, "longitude", "Longitude", "NUMBER", "java.lang.Double", false, true);
       validateHeader(
-          response, 13, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
+          response, 12, "latitude", "Latitude", "NUMBER", "java.lang.Double", false, true);
     }
     validateHeaderPropertiesByName(
         response,

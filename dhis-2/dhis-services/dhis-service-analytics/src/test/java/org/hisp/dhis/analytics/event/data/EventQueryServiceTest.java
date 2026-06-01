@@ -34,6 +34,7 @@ import static org.hisp.dhis.test.TestBase.createOrganisationUnit;
 import static org.hisp.dhis.test.TestBase.createPeriodDimensions;
 import static org.hisp.dhis.test.TestBase.createProgram;
 import static org.hisp.dhis.test.TestBase.injectSecurityContextNoSettings;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.doNothing;
@@ -41,6 +42,8 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.LinkedHashSet;
+import java.util.List;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.common.scheme.SchemeInfo;
 import org.hisp.dhis.analytics.common.scheme.SchemeInfo.Data;
@@ -53,6 +56,8 @@ import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.table.model.Partitions;
 import org.hisp.dhis.analytics.tracker.MetadataItemsHandler;
 import org.hisp.dhis.analytics.tracker.SchemeIdHandler;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.db.sql.SqlBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -133,6 +138,51 @@ class EventQueryServiceTest {
     verify(schemeIdResponseMapper, never()).getSchemeIdResponseMap(mockSchemeInfo);
   }
 
+  @Test
+  void testGeometrySourceHeaderIsIncludedWhenGeometrySourcesExist() {
+    OrganisationUnit mockOrgUnit = createOrganisationUnit('A');
+    Program mockProgram = createProgram('A', null, mockOrgUnit);
+    EventQueryParams params = mockEventQueryParamsWithGeometrySource(mockOrgUnit, mockProgram);
+
+    doNothing().when(securityManager).decideAccessEventQuery(params);
+    when(securityManager.withUserConstraints(params)).thenReturn(params);
+    when(sqlBuilder.supportsGeospatialData()).thenReturn(true);
+
+    Grid grid = eventQueryService.getEvents(params);
+
+    assertEquals(
+        List.of("geometry", "geometrySource", "enrollmentgeometry"),
+        grid.getHeaders().stream()
+            .map(GridHeader::getName)
+            .filter(
+                name ->
+                    name.equals("geometry")
+                        || name.equals("geometrySource")
+                        || name.equals("enrollmentgeometry"))
+            .toList());
+  }
+
+  @Test
+  void testGeometrySourceHeaderCanBeRetainedByHeadersParam() {
+    OrganisationUnit mockOrgUnit = createOrganisationUnit('A');
+    Program mockProgram = createProgram('A', null, mockOrgUnit);
+    EventQueryParams params =
+        new EventQueryParams.Builder(
+                mockEventQueryParamsWithGeometrySource(mockOrgUnit, mockProgram))
+            .withHeaders(new LinkedHashSet<>(List.of("geometry", "geometrySource")))
+            .build();
+
+    doNothing().when(securityManager).decideAccessEventQuery(params);
+    when(securityManager.withUserConstraints(params)).thenReturn(params);
+    when(sqlBuilder.supportsGeospatialData()).thenReturn(true);
+
+    Grid grid = eventQueryService.getEvents(params);
+
+    assertEquals(
+        List.of("geometry", "geometrySource"),
+        grid.getHeaders().stream().map(GridHeader::getName).toList());
+  }
+
   private EventQueryParams mockEventQueryParams(
       OrganisationUnit mockOrgUnit, Program mockProgram, IdScheme scheme) {
     return new EventQueryParams.Builder()
@@ -141,6 +191,18 @@ class EventQueryServiceTest {
         .withOrganisationUnits(getList(mockOrgUnit))
         .withProgram(mockProgram)
         .withOutputIdScheme(scheme)
+        .build();
+  }
+
+  private EventQueryParams mockEventQueryParamsWithGeometrySource(
+      OrganisationUnit mockOrgUnit, Program mockProgram) {
+    return new EventQueryParams.Builder()
+        .withPeriods(createPeriodDimensions("2000Q1"), "monthly")
+        .withOrganisationUnits(getList(mockOrgUnit))
+        .withProgram(mockProgram)
+        .withSkipData(true)
+        .withGeometrySources(
+            List.of(new EventQueryParams.GeometrySource("eventgeometry", "psigeometry")))
         .build();
   }
 
