@@ -256,6 +256,8 @@
             <ignoredUnusedDeclaredDependency>jakarta.annotation:jakarta.annotation-api</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.glassfish.jaxb:jaxb-runtime</ignoredUnusedDeclaredDependency>
             <ignoredUnusedDeclaredDependency>org.ehcache:ehcache</ignoredUnusedDeclaredDependency>
+            <!-- javaagent-only test dependency (no bytecode references) -->
+            <ignoredUnusedDeclaredDependency>com.google.code.java-allocation-instrumenter:java-allocation-instrumenter</ignoredUnusedDeclaredDependency>
           </ignoredUnusedDeclaredDependencies>
         </configuration>
       </plugin>

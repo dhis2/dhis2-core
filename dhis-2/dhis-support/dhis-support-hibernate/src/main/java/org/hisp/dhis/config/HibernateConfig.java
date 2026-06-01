@@ -162,7 +162,9 @@ public class HibernateConfig {
     Properties properties = new Properties();
     properties.put(
         "hibernate.current_session_context_class",
-        "org.springframework.orm.hibernate5.SpringSessionContext");
+        // Spring 7.0 moved SpringSessionContext from org.springframework.orm.hibernate5 to
+        // org.springframework.orm.jpa.hibernate (this is a runtime class name, not a compile import).
+        "org.springframework.orm.jpa.hibernate.SpringSessionContext");
 
     if ("true".equals(dhisConfig.getProperty(USE_SECOND_LEVEL_CACHE))) {
       properties.put(AvailableSettings.USE_SECOND_LEVEL_CACHE, "true");
