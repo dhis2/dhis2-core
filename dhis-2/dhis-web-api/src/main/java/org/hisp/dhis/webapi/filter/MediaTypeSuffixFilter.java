@@ -82,16 +82,24 @@ public class MediaTypeSuffixFilter extends OncePerRequestFilter {
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
-    String extension = getRegisteredExtension(request.getRequestURI());
+    String uri = request.getRequestURI();
 
-    if (extension == null) {
+    // Spring 7.0 removed setUseTrailingSlashMatch; normalise a single trailing slash here so
+    // e.g. POST /api/categoryOptions/ still matches the /api/categoryOptions mapping.
+    boolean trailingSlash = uri != null && uri.length() > 1 && uri.endsWith("/");
+    String pathForExtension = trailingSlash ? uri.substring(0, uri.length() - 1) : uri;
+    String extension = getRegisteredExtension(pathForExtension);
+
+    if (!trailingSlash && extension == null) {
       filterChain.doFilter(request, response);
       return;
     }
 
-    MediaType mediaType = mediaTypes.get(extension);
-    request.setAttribute(SUFFIX_MEDIA_TYPE_ATTRIBUTE, mediaType);
-    filterChain.doFilter(new SuffixStrippingRequestWrapper(request, extension), response);
+    if (extension != null) {
+      request.setAttribute(SUFFIX_MEDIA_TYPE_ATTRIBUTE, mediaTypes.get(extension));
+    }
+    filterChain.doFilter(
+        new PathNormalizingRequestWrapper(request, extension, trailingSlash), response);
   }
 
   /**
@@ -113,19 +121,32 @@ public class MediaTypeSuffixFilter extends OncePerRequestFilter {
     return mediaTypes.containsKey(extension) ? extension : null;
   }
 
-  /** Wraps a request to expose the path with the trailing {@code .extension} removed. */
-  private static final class SuffixStrippingRequestWrapper extends HttpServletRequestWrapper {
+  /**
+   * Wraps a request to expose the path with an optional trailing slash and/or registered
+   * {@code .extension} suffix removed, so handler mapping matches the canonical mapping.
+   */
+  private static final class PathNormalizingRequestWrapper extends HttpServletRequestWrapper {
     private final String suffix;
+    private final boolean trailingSlash;
 
-    SuffixStrippingRequestWrapper(HttpServletRequest request, String extension) {
+    PathNormalizingRequestWrapper(
+        HttpServletRequest request, String extension, boolean trailingSlash) {
       super(request);
-      this.suffix = EXTENSION_SEPARATOR + extension;
+      this.suffix = extension != null ? EXTENSION_SEPARATOR + extension : null;
+      this.trailingSlash = trailingSlash;
     }
 
     private String strip(String path) {
-      return (path != null && path.endsWith(suffix))
-          ? path.substring(0, path.length() - suffix.length())
-          : path;
+      if (path == null) {
+        return null;
+      }
+      if (trailingSlash && path.length() > 1 && path.charAt(path.length() - 1) == PATH_SEPARATOR) {
+        path = path.substring(0, path.length() - 1);
+      }
+      if (suffix != null && path.endsWith(suffix)) {
+        path = path.substring(0, path.length() - suffix.length());
+      }
+      return path;
     }
 
     @Override
@@ -145,10 +166,12 @@ public class MediaTypeSuffixFilter extends OncePerRequestFilter {
 
     @Override
     public StringBuffer getRequestURL() {
+      String stripped = strip(super.getRequestURI());
       StringBuffer url = super.getRequestURL();
-      int length = url.length();
-      if (length >= suffix.length() && url.substring(length - suffix.length()).equals(suffix)) {
-        url.setLength(length - suffix.length());
+      // Re-derive the URL from the (possibly normalised) URI suffix portion.
+      String original = super.getRequestURI();
+      if (stripped != null && original != null && !stripped.equals(original)) {
+        url.setLength(url.length() - (original.length() - stripped.length()));
       }
       return url;
     }
