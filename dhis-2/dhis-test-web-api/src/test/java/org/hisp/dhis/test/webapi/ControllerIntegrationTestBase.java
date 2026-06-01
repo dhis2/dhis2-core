@@ -67,6 +67,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.AbstractMockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -202,7 +203,7 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
     return perform(multipart(makeApiUrl(url)).file(part));
   }
 
-  protected HttpResponse perform(MockHttpServletRequestBuilder request) {
+  protected HttpResponse perform(AbstractMockHttpServletRequestBuilder<?> request) {
     return exceptionAsFail(
         () ->
             new HttpResponse(
@@ -280,14 +281,16 @@ public abstract class ControllerIntegrationTestBase extends IntegrationTestBase
     }
   }
 
-  protected final MvcResult webRequestWithAsyncMvcResult(MockHttpServletRequestBuilder request) {
+  protected final MvcResult webRequestWithAsyncMvcResult(
+      AbstractMockHttpServletRequestBuilder<?> request) {
     return exceptionAsFail(
         () ->
             mvc.perform(MockMvcRequestBuilders.asyncDispatch(webRequestWithMvcResult(request)))
                 .andReturn());
   }
 
-  protected final MvcResult webRequestWithMvcResult(MockHttpServletRequestBuilder request) {
+  protected final MvcResult webRequestWithMvcResult(
+      AbstractMockHttpServletRequestBuilder<?> request) {
     return exceptionAsFail(() -> mvc.perform(request.session(session)).andReturn());
   }
 
