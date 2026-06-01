@@ -75,8 +75,29 @@ jobs:
             surefire_reports.tar
           retention-days: 5
 
-  integration-test:
+  # The integration-test suite is the slowest part of CI, so it is split across a
+  # matrix of shards that run in parallel, each on its own runner with its own
+  # Testcontainers Postgres. Each shard runs a disjoint, interleaved slice of the
+  # surefire test-candidate classes (see "Compute shard test includes"); the
+  # integration-test profile's `groups=integration` tag filter then runs ONLY
+  # integration-tagged tests, so over-included unit/H2/abstract classes are skipped.
+  # The union of all shards is the full candidate set, so no integration test can be
+  # silently dropped. The aggregating integration-test job sums the per-shard results
+  # so coverage parity (sum of shards == full suite) is visible in every run's summary.
+  #
+  # This matrix job is intentionally NOT named `integration-test`: a matrix reports its
+  # checks as `integration-test-shard (0..N)`, which would never satisfy a branch-
+  # protection rule that requires the bare name. The aggregating `integration-test` job
+  # below provides that stable required-check name and gates on every shard's result.
+  # NOTE: keep SHARD_TOTAL equal to the length of matrix.shard.
+  integration-test-shard:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    env:
+      SHARD_TOTAL: "4"
     steps:
       - uses: actions/checkout@v6
       - name: Set up JDK 17
@@ -85,14 +106,30 @@ jobs:
           java-version: 17
           distribution: temurin
           cache: maven
-      - name: Run integration tests
-        run: mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots --file ./dhis-2/pom.xml --activate-profiles integration-test
+      - name: Compute shard test includes
+        env:
+          SHARD_INDEX: ${{ matrix.shard }}
+        run: |
+          set -euo pipefail
+          find dhis-2 -path '*/src/test/java/*' -type f \
+            \( -name 'Test*.java' -o -name '*Test.java' -o -name '*Tests.java' -o -name '*TestCase.java' \) \
+            | sed -E 's#.*/src/test/java/##' \
+            | LC_ALL=C sort -u \
+            | awk -v idx="$SHARD_INDEX" -v total="$SHARD_TOTAL" 'NR % total == idx { print "**/" $0 }' \
+            > "$GITHUB_WORKSPACE/shard-includes.txt"
+          echo "Shard $SHARD_INDEX of $SHARD_TOTAL: $(wc -l < "$GITHUB_WORKSPACE/shard-includes.txt") candidate include patterns"
+          head -n 5 "$GITHUB_WORKSPACE/shard-includes.txt"
+      - name: Run integration tests (shard ${{ matrix.shard }}/${{ env.SHARD_TOTAL }})
+        run: >
+          mvn clean test --threads 2C --batch-mode --no-transfer-progress --update-snapshots
+          --file ./dhis-2/pom.xml --activate-profiles integration-test
+          -Dsurefire.includesFile=$GITHUB_WORKSPACE/shard-includes.txt
         timeout-minutes: 30
       - uses: actions/upload-artifact@v7
         name: Upload test logs on failure
         if: failure()
         with:
-          name: integration-test-logs
+          name: integration-test-logs-${{ matrix.shard }}
           path: "**/target/test.log"
           if-no-files-found: error # check our logging configuration if that happens
           retention-days: 3
@@ -103,28 +140,60 @@ jobs:
           flags: integration
           fail_ci_if_error: false
           verbose: true
-      # delete the next 2 steps once we are confident in the coverage setup
-      - name: Tar jacoco coverage report to debug
-        run: tar -cvf coverage.tar dhis-2/dhis-test-coverage/target/site/jacoco-aggregate
-      - uses: actions/upload-artifact@v7
-        name: Upload jacoco coverage report to debug
-        with:
-          name: integration-test-coverage
-          path: coverage.tar
-          retention-days: 5
-      - name: Generate surefire aggregate report
-        run: mvn surefire-report:report-only -Daggregate=true --batch-mode --no-transfer-progress --file ./dhis-2/pom.xml --projects -dhis-test-coverage
       # tar due to https://github.com/actions/upload-artifact/blob/3cea5372237819ed00197afe530f5a7ea3e805c8/README.md?plain=1#L254
       - name: Tar surefire individual reports
-        run: find . -name "surefire-reports" -type d -exec find {} -type f -name "*.xml" -printf '%p\0' \; | tar --null --files-from=- -cvf surefire_reports.tar
+        if: always()
+        run: find . -name "surefire-reports" -type d -exec find {} -type f \( -name "*.xml" -o -name "*.txt" \) -printf '%p\0' \; | tar --null --files-from=- -cvf surefire_reports.tar
       - name: Archive surefire reports
+        if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: integration-test-surefire-reports
-          path: |
-            dhis-2/target/site/surefire-report.html
-            surefire_reports.tar
+          name: integration-test-surefire-reports-${{ matrix.shard }}
+          path: surefire_reports.tar
           retention-days: 5
+
+  # Aggregating gate for the sharded integration tests. This job carries the stable
+  # `integration-test` name that branch protection requires as a status check, combines
+  # the per-shard surefire reports into a single run-summary table (so coverage parity
+  # across shards is visible at a glance), and then fails if ANY shard did not succeed.
+  # `needs.integration-test-shard.result` collapses the whole matrix to `success` only
+  # when every leg passed, so this gate cannot go green while a shard is red.
+  integration-test:
+    runs-on: ubuntu-latest
+    needs: integration-test-shard
+    if: always()
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: integration-test-surefire-reports-*
+          path: shard-reports
+      - name: Combine shard test counts
+        run: |
+          set -euo pipefail
+          sumattr() { find "$1" -name 'TEST-*.xml' -exec grep -hoE "$2=\"[0-9]+\"" {} + 2>/dev/null | grep -oE '[0-9]+' | awk '{s+=$1} END{print s+0}'; }
+          tot_c=0; tot_t=0; tot_f=0; tot_e=0; tot_s=0
+          {
+            echo "## Integration test shards"
+            echo ""
+            echo "| Shard | Classes | Tests | Failures | Errors | Skipped |"
+            echo "|------:|--------:|------:|---------:|-------:|--------:|"
+          } >> "$GITHUB_STEP_SUMMARY"
+          for tar in shard-reports/*/surefire_reports.tar; do
+            [ -f "$tar" ] || continue
+            shard=$(basename "$(dirname "$tar")" | sed 's/.*-//')
+            d=$(mktemp -d); tar -xf "$tar" -C "$d"
+            c=$(find "$d" -name 'TEST-*.xml' | wc -l)
+            t=$(sumattr "$d" tests); f=$(sumattr "$d" failures); e=$(sumattr "$d" errors); s=$(sumattr "$d" skipped)
+            echo "| $shard | $c | $t | $f | $e | $s |" >> "$GITHUB_STEP_SUMMARY"
+            tot_c=$((tot_c+c)); tot_t=$((tot_t+t)); tot_f=$((tot_f+f)); tot_e=$((tot_e+e)); tot_s=$((tot_s+s))
+            rm -rf "$d"
+          done
+          echo "| **Total** | **$tot_c** | **$tot_t** | **$tot_f** | **$tot_e** | **$tot_s** |" >> "$GITHUB_STEP_SUMMARY"
+      - name: Fail if any shard failed
+        if: needs.integration-test-shard.result != 'success'
+        run: |
+          echo "::error::integration-test-shard result was '${{ needs.integration-test-shard.result }}' (one or more shards did not succeed)"
+          exit 1
 
   integration-h2-test:
     runs-on: ubuntu-latest

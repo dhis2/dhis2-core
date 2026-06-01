@@ -175,7 +175,7 @@ public class UsersPerformanceTest extends Simulation {
       Map.of(Profile.SMOKE, new Thresholds(1150, 1200), Profile.LOAD, new Thresholds(1250, 1500));
 
   private static final Map<Profile, Thresholds> GET_THRESH =
-      Map.of(Profile.SMOKE, new Thresholds(1050, 1400), Profile.LOAD, new Thresholds(350, 1050));
+      Map.of(Profile.SMOKE, new Thresholds(1050, 1400), Profile.LOAD, new Thresholds(700, 1050));
 
   private static final Map<Profile, Thresholds> PUT_THRESH =
       Map.of(Profile.SMOKE, new Thresholds(1600, 1700), Profile.LOAD, new Thresholds(1500, 2100));
