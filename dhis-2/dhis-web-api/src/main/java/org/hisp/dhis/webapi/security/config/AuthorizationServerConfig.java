@@ -158,7 +158,7 @@ public class AuthorizationServerConfig {
   public SecurityFilterChain authorizationServerSecurityFilterChain(
       HttpSecurity http, CustomClaimValidator<Jwt> customClaimValidator) throws Exception {
     OAuth2AuthorizationServerConfigurer authorizationServerConfigurer =
-        OAuth2AuthorizationServerConfigurer.authorizationServer();
+        new OAuth2AuthorizationServerConfigurer();
 
     http.securityMatcher(authorizationServerConfigurer.getEndpointsMatcher())
         .with(

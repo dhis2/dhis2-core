@@ -254,9 +254,9 @@ public class DhisWebApiWebSecurityConfig {
     http.cors(Customizer.withDefaults());
 
     if (dhisConfig.isEnabled(ConfigurationKey.LOGIN_SAVED_REQUESTS_ENABLE)) {
-      http.requestCache().requestCache(requestCache);
+      http.requestCache(rc -> rc.requestCache(requestCache));
     } else {
-      http.requestCache().disable();
+      http.requestCache(rc -> rc.disable());
     }
 
     configureMatchers(http);
@@ -272,13 +272,13 @@ public class DhisWebApiWebSecurityConfig {
   }
 
   public static void setHttpHeaders(HttpSecurity http) throws Exception {
-    http.headers()
-        .defaultsDisabled()
-        .contentTypeOptions()
-        .and()
-        .xssProtection()
-        .and()
-        .httpStrictTransportSecurity();
+    http.headers(
+        headers ->
+            headers
+                .defaultsDisabled()
+                .contentTypeOptions(Customizer.withDefaults())
+                .xssProtection(Customizer.withDefaults())
+                .httpStrictTransportSecurity(Customizer.withDefaults()));
   }
 
   @Bean
@@ -393,56 +393,63 @@ public class DhisWebApiWebSecurityConfig {
                   ///////////////////////////////////////////////////////////////////////////////////////////////
                   .requestMatchers(new AntPathRequestMatcher("/**"))
                   .authenticated();
-            })
-
-        /// HTTP BASIC///////////////////////////////////////
-        .httpBasic()
-        .authenticationDetailsSource(httpBasicWebAuthenticationDetailsSource)
-        .authenticationEntryPoint(formLoginBasicAuthenticationEntryPoint())
-        .addObjectPostProcessor(
-            new ObjectPostProcessor<BasicAuthenticationFilter>() {
-              @Override
-              public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
-                // Explicitly set security context repository on http basic, is
-                // NullSecurityContextRepository by default now.
-                filter.setSecurityContextRepository(new HttpSessionSecurityContextRepository());
-                return filter;
-              }
             });
+
+    /// HTTP BASIC///////////////////////////////////////
+    http.httpBasic(
+        httpBasic ->
+            httpBasic
+                .authenticationDetailsSource(httpBasicWebAuthenticationDetailsSource)
+                .authenticationEntryPoint(formLoginBasicAuthenticationEntryPoint())
+                .addObjectPostProcessor(
+                    new ObjectPostProcessor<BasicAuthenticationFilter>() {
+                      @Override
+                      public <O extends BasicAuthenticationFilter> O postProcess(O filter) {
+                        // Explicitly set security context repository on http basic, is
+                        // NullSecurityContextRepository by default now.
+                        filter.setSecurityContextRepository(
+                            new HttpSessionSecurityContextRepository());
+                        return filter;
+                      }
+                    }));
 
     /// OIDC /////////
     http.oauth2Login(
-            oauth2 ->
-                oauth2
-                    .tokenEndpoint()
-                    .accessTokenResponseClient(jwtPrivateCodeTokenResponseClient)
-                    .and()
-                    .failureUrl("/login/?oidcFailure=true")
-                    .clientRegistrationRepository(dhisOidcProviderRepository)
-                    .loginProcessingUrl("/oauth2/code/*")
-                    .authorizationEndpoint()
-                    .authorizationRequestResolver(dhisCustomAuthorizationRequestResolver))
+        oauth2 ->
+            oauth2
+                .tokenEndpoint(
+                    tokenEndpoint ->
+                        tokenEndpoint.accessTokenResponseClient(jwtPrivateCodeTokenResponseClient))
+                .failureUrl("/login/?oidcFailure=true")
+                .clientRegistrationRepository(dhisOidcProviderRepository)
+                .loginProcessingUrl("/oauth2/code/*")
+                .authorizationEndpoint(
+                    authorizationEndpoint ->
+                        authorizationEndpoint.authorizationRequestResolver(
+                            dhisCustomAuthorizationRequestResolver)));
 
-        ///////////////
-        .exceptionHandling()
-        .authenticationEntryPoint(entryPoint())
-        .and()
-        /// SESSION ////////////////
-        /// LOGOUT //////////////////
-        .logout()
-        .logoutUrl("/dhis-web-commons-security/logout.action")
-        .logoutSuccessHandler(dhisOidcLogoutSuccessHandler)
-        .deleteCookies("JSESSIONID", "SESSION_EXPIRE")
-        .and()
-        ////////////////////
-        .sessionManagement()
-        .sessionFixation()
-        .migrateSession()
-        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-        .enableSessionUrlRewriting(false)
-        .maximumSessions(
-            Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
-        .expiredUrl("/dhis-web-commons-security/logout.action");
+    http.exceptionHandling(
+        exceptionHandling -> exceptionHandling.authenticationEntryPoint(entryPoint()));
+
+    /// LOGOUT //////////////////
+    http.logout(
+        logout ->
+            logout
+                .logoutUrl("/dhis-web-commons-security/logout.action")
+                .logoutSuccessHandler(dhisOidcLogoutSuccessHandler)
+                .deleteCookies("JSESSIONID", "SESSION_EXPIRE"));
+
+    /// SESSION ////////////////
+    http.sessionManagement(
+        session ->
+            session
+                .sessionFixation(sessionFixation -> sessionFixation.migrateSession())
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                .enableSessionUrlRewriting(false)
+                .maximumSessions(
+                    Integer.parseInt(
+                        dhisConfig.getProperty(ConfigurationKey.MAX_SESSIONS_PER_USER)))
+                .expiredUrl("/dhis-web-commons-security/logout.action"));
   }
 
   @Bean
@@ -526,7 +533,10 @@ public class DhisWebApiWebSecurityConfig {
         (request, response, exception) -> {
           authenticationEventPublisher.publishAuthenticationFailure(
               exception,
-              new AbstractAuthenticationToken(null) {
+              new AbstractAuthenticationToken(
+                  (java.util.Collection<
+                          ? extends org.springframework.security.core.GrantedAuthority>)
+                      null) {
                 @Override
                 public Object getCredentials() {
                   return null;
