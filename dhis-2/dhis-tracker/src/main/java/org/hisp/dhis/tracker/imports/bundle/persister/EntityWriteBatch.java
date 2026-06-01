@@ -29,9 +29,13 @@
  */
 package org.hisp.dhis.tracker.imports.bundle.persister;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import jakarta.persistence.EntityManager;
+import java.io.IOException;
+import java.io.StringWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -41,7 +45,9 @@ import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.note.Note;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.model.Enrollment;
@@ -70,11 +76,17 @@ import org.hisp.dhis.tracker.model.TrackerEvent;
  *       programinstance_sequence}.
  *   <li>Enrollment updates are flushed via a single JDBC unnest UPDATE against {@code enrollment},
  *       writing the columns mutated by {@code TrackerObjectsMapper.map} on the update branch.
- *   <li>Any new {@code note}s on either inserted or updated enrollments are cascade-inserted in two
- *       further multi-row INSERTs (into {@code note} and {@code enrollment_notes}), replacing
- *       Hibernate's {@code @OneToMany(cascade=ALL)} behaviour. Notes are append-only on UPDATE.
- *   <li>All remaining entity types (TrackerEvent, SingleEvent, Relationship) still delegate to
- *       {@link EntityManager}; their Phase 6 JDBC replacements follow.
+ *   <li>TrackerEvent inserts are flushed via a multi-row JDBC INSERT against {@code trackerevent}
+ *       -- ids are pre-allocated from {@code trackerevent_sequence}. The {@code eventdatavalues}
+ *       jsonb column is serialized as a JSON object keyed by dataElement uid, matching {@code
+ *       JsonEventDataValueSetBinaryType}.
+ *   <li>TrackerEvent updates are flushed via a JDBC unnest UPDATE against {@code trackerevent}.
+ *   <li>Any new {@code note}s on inserted or updated enrollments / tracker events are
+ *       cascade-inserted in further multi-row INSERTs (into {@code note} plus the matching {@code
+ *       enrollment_notes} / {@code trackerevent_notes} join), replacing Hibernate's
+ *       {@code @OneToMany(cascade=ALL)} behaviour. Notes are append-only on UPDATE.
+ *   <li>All remaining entity types (SingleEvent, Relationship) still delegate to {@link
+ *       EntityManager}; their Phase 6 JDBC replacements follow.
  *   <li>TEAVs continue to delegate to {@link EntityManager} until their Phase 6 turn.
  * </ul>
  *
@@ -202,7 +214,69 @@ class EntityWriteBatch {
           + " unnest(?::text[]) as geometry"
           + " ) v where e.enrollmentid = v.enrollmentid";
 
-  // Cascade-INSERT targets for new enrollments that carry notes. See Enrollment.java:192-199.
+  private static final String TRACKER_EVENT_INSERT_PREFIX =
+      "insert into trackerevent ("
+          + "eventid, uid, created, lastupdated,"
+          + " createdatclient, lastupdatedatclient,"
+          + " createdbyuserinfo, lastupdatedbyuserinfo,"
+          + " status, occurreddate, scheduleddate, completeddate, completedby,"
+          + " deleted, lastsynchronized,"
+          + " enrollmentid, programstageid, organisationunitid, attributeoptioncomboid,"
+          + " assigneduserid, eventdatavalues, geometry) values ";
+
+  private static final String TRACKER_EVENT_INSERT_ROW =
+      "(?, ?, ?, ?, ?, ?, ?::jsonb, ?::jsonb, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?::jsonb, "
+          + "ST_GeomFromText(?, "
+          + TRACKED_ENTITY_SRID
+          + "))";
+
+  // Columns mutated by TrackerObjectsMapper.map(TrackerEvent) outside the new-entity branch
+  // (see TrackerObjectsMapper.java:199-251). Insert-only columns (uid, created,
+  // createdbyuserinfo, deleted) and columns owned by other code paths (lastsynchronized) are
+  // excluded.
+  private static final String TRACKER_EVENT_UPDATE_SQL =
+      "update trackerevent ev set"
+          + " lastupdated = v.lastupdated,"
+          + " createdatclient = v.createdatclient,"
+          + " lastupdatedatclient = v.lastupdatedatclient,"
+          + " lastupdatedbyuserinfo = v.lastupdatedbyuserinfo::jsonb,"
+          + " enrollmentid = v.enrollmentid,"
+          + " programstageid = v.programstageid,"
+          + " organisationunitid = v.organisationunitid,"
+          + " attributeoptioncomboid = v.attributeoptioncomboid,"
+          + " status = v.status,"
+          + " occurreddate = v.occurreddate,"
+          + " scheduleddate = v.scheduleddate,"
+          + " completeddate = v.completeddate,"
+          + " completedby = v.completedby,"
+          + " assigneduserid = v.assigneduserid,"
+          + " eventdatavalues = v.eventdatavalues::jsonb,"
+          + " geometry = case when v.geometry is null then null"
+          + " else ST_GeomFromText(v.geometry, "
+          + TRACKED_ENTITY_SRID
+          + ") end"
+          + " from ( select"
+          + " unnest(?::bigint[]) as eventid,"
+          + " unnest(?::timestamptz[]) as lastupdated,"
+          + " unnest(?::timestamptz[]) as createdatclient,"
+          + " unnest(?::timestamptz[]) as lastupdatedatclient,"
+          + " unnest(?::text[]) as lastupdatedbyuserinfo,"
+          + " unnest(?::bigint[]) as enrollmentid,"
+          + " unnest(?::bigint[]) as programstageid,"
+          + " unnest(?::bigint[]) as organisationunitid,"
+          + " unnest(?::bigint[]) as attributeoptioncomboid,"
+          + " unnest(?::text[]) as status,"
+          + " unnest(?::timestamptz[]) as occurreddate,"
+          + " unnest(?::timestamptz[]) as scheduleddate,"
+          + " unnest(?::timestamptz[]) as completeddate,"
+          + " unnest(?::text[]) as completedby,"
+          + " unnest(?::bigint[]) as assigneduserid,"
+          + " unnest(?::text[]) as eventdatavalues,"
+          + " unnest(?::text[]) as geometry"
+          + " ) v where ev.eventid = v.eventid";
+
+  // Cascade-INSERT targets for entities that carry notes (Enrollment, TrackerEvent). See
+  // Enrollment.java:192-199 and TrackerEvent.hbm.xml:65-70.
   private static final String NOTE_INSERT_PREFIX =
       "insert into note (noteid, uid, created, lastupdatedby, notetext) values ";
   private static final String NOTE_INSERT_ROW = "(?, ?, ?, ?, ?)";
@@ -210,6 +284,10 @@ class EntityWriteBatch {
   private static final String ENROLLMENT_NOTES_INSERT_PREFIX =
       "insert into enrollment_notes (enrollmentid, noteid, sort_order) values ";
   private static final String ENROLLMENT_NOTES_INSERT_ROW = "(?, ?, ?)";
+
+  private static final String TRACKER_EVENT_NOTES_INSERT_PREFIX =
+      "insert into trackerevent_notes (eventid, noteid, sort_order) values ";
+  private static final String TRACKER_EVENT_NOTES_INSERT_ROW = "(?, ?, ?)";
 
   private final ObjectMapper objectMapper;
 
@@ -350,8 +428,9 @@ class EntityWriteBatch {
     insertEnrollments(conn);
     updateEnrollments(entityManager, conn);
     insertEnrollmentNotes(conn);
-    persistAll(entityManager, trackerEventInserts);
-    mergeAll(entityManager, trackerEventUpdates);
+    insertTrackerEvents(conn);
+    updateTrackerEvents(entityManager, conn);
+    insertTrackerEventNotes(conn);
     persistAll(entityManager, singleEventInserts);
     mergeAll(entityManager, singleEventUpdates);
     persistAll(entityManager, relationshipInserts);
@@ -632,6 +711,155 @@ class EntityWriteBatch {
     }
   }
 
+  private void insertTrackerEvents(Connection conn) throws SQLException {
+    if (trackerEventInserts.isEmpty()) {
+      return;
+    }
+    for (int from = 0; from < trackerEventInserts.size(); from += INSERT_BATCH_SIZE) {
+      int to = Math.min(from + INSERT_BATCH_SIZE, trackerEventInserts.size());
+      List<TrackerEvent> chunk = trackerEventInserts.subList(from, to);
+      String sql =
+          buildMultiRowInsertSql(
+              TRACKER_EVENT_INSERT_PREFIX, TRACKER_EVENT_INSERT_ROW, chunk.size());
+      try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        int p = 1;
+        for (TrackerEvent e : chunk) {
+          p = bindTrackerEventRow(ps, p, e);
+        }
+        ps.executeUpdate();
+      }
+    }
+  }
+
+  private int bindTrackerEventRow(PreparedStatement ps, int p, TrackerEvent e) throws SQLException {
+    if (e.getId() == 0) {
+      throw new SQLException(
+          "TrackerEvent "
+              + e.getUid()
+              + " has no pre-allocated id; AbstractTrackerPersister"
+              + " must pre-allocate ids when sequenceName() is non-null.");
+    }
+    ps.setLong(p++, e.getId());
+    ps.setString(p++, e.getUid());
+    ps.setTimestamp(p++, toTimestamp(e.getCreated()));
+    ps.setTimestamp(p++, toTimestamp(e.getLastUpdated()));
+    setNullableTimestamp(ps, p++, e.getCreatedAtClient());
+    setNullableTimestamp(ps, p++, e.getLastUpdatedAtClient());
+    ps.setString(p++, toJson(e.getCreatedByUserInfo()));
+    ps.setString(p++, toJson(e.getLastUpdatedByUserInfo()));
+    ps.setString(p++, e.getStatus().name());
+    setNullableTimestamp(ps, p++, e.getOccurredDate());
+    setNullableTimestamp(ps, p++, e.getScheduledDate());
+    setNullableTimestamp(ps, p++, e.getCompletedDate());
+    if (e.getCompletedBy() != null) {
+      ps.setString(p++, e.getCompletedBy());
+    } else {
+      ps.setNull(p++, Types.VARCHAR);
+    }
+    ps.setBoolean(p++, e.isDeleted());
+    setNullableTimestamp(ps, p++, e.getLastSynchronized());
+    ps.setLong(p++, e.getEnrollment().getId());
+    ps.setLong(p++, e.getProgramStage().getId());
+    ps.setLong(p++, e.getOrganisationUnit().getId());
+    ps.setLong(p++, e.getAttributeOptionCombo().getId());
+    if (e.getAssignedUser() != null) {
+      ps.setLong(p++, e.getAssignedUser().getId());
+    } else {
+      ps.setNull(p++, Types.BIGINT);
+    }
+    ps.setString(p++, toEventDataValuesJson(e.getEventDataValues()));
+    if (e.getGeometry() != null) {
+      ps.setString(p++, e.getGeometry().toText());
+    } else {
+      ps.setNull(p++, Types.VARCHAR);
+    }
+    return p;
+  }
+
+  private void updateTrackerEvents(EntityManager entityManager, Connection conn)
+      throws SQLException {
+    if (trackerEventUpdates.isEmpty()) {
+      return;
+    }
+    for (int from = 0; from < trackerEventUpdates.size(); from += UPDATE_BATCH_SIZE) {
+      int to = Math.min(from + UPDATE_BATCH_SIZE, trackerEventUpdates.size());
+      List<TrackerEvent> chunk = trackerEventUpdates.subList(from, to);
+      int n = chunk.size();
+
+      Long[] ids = new Long[n];
+      Timestamp[] lastUpdated = new Timestamp[n];
+      Timestamp[] createdAtClient = new Timestamp[n];
+      Timestamp[] lastUpdatedAtClient = new Timestamp[n];
+      String[] lastUpdatedByUserInfo = new String[n];
+      Long[] enrollmentIds = new Long[n];
+      Long[] programStageIds = new Long[n];
+      Long[] organisationUnitIds = new Long[n];
+      Long[] attributeOptionComboIds = new Long[n];
+      String[] status = new String[n];
+      Timestamp[] occurredDate = new Timestamp[n];
+      Timestamp[] scheduledDate = new Timestamp[n];
+      Timestamp[] completedDate = new Timestamp[n];
+      String[] completedBy = new String[n];
+      Long[] assignedUserIds = new Long[n];
+      String[] eventDataValues = new String[n];
+      String[] geometry = new String[n];
+
+      for (int i = 0; i < n; i++) {
+        TrackerEvent e = chunk.get(i);
+        ids[i] = e.getId();
+        lastUpdated[i] = toTimestamp(e.getLastUpdated());
+        createdAtClient[i] = toTimestamp(e.getCreatedAtClient());
+        lastUpdatedAtClient[i] = toTimestamp(e.getLastUpdatedAtClient());
+        lastUpdatedByUserInfo[i] = toJson(e.getLastUpdatedByUserInfo());
+        enrollmentIds[i] = e.getEnrollment().getId();
+        programStageIds[i] = e.getProgramStage().getId();
+        organisationUnitIds[i] = e.getOrganisationUnit().getId();
+        attributeOptionComboIds[i] = e.getAttributeOptionCombo().getId();
+        status[i] = e.getStatus().name();
+        occurredDate[i] = toTimestamp(e.getOccurredDate());
+        scheduledDate[i] = toTimestamp(e.getScheduledDate());
+        completedDate[i] = toTimestamp(e.getCompletedDate());
+        completedBy[i] = e.getCompletedBy();
+        assignedUserIds[i] = e.getAssignedUser() != null ? e.getAssignedUser().getId() : null;
+        eventDataValues[i] = toEventDataValuesJson(e.getEventDataValues());
+        geometry[i] = e.getGeometry() != null ? e.getGeometry().toText() : null;
+      }
+
+      try (PreparedStatement ps = conn.prepareStatement(TRACKER_EVENT_UPDATE_SQL)) {
+        ps.setArray(1, conn.createArrayOf("bigint", ids));
+        ps.setArray(2, conn.createArrayOf("timestamptz", lastUpdated));
+        ps.setArray(3, conn.createArrayOf("timestamptz", createdAtClient));
+        ps.setArray(4, conn.createArrayOf("timestamptz", lastUpdatedAtClient));
+        ps.setArray(5, conn.createArrayOf("text", lastUpdatedByUserInfo));
+        ps.setArray(6, conn.createArrayOf("bigint", enrollmentIds));
+        ps.setArray(7, conn.createArrayOf("bigint", programStageIds));
+        ps.setArray(8, conn.createArrayOf("bigint", organisationUnitIds));
+        ps.setArray(9, conn.createArrayOf("bigint", attributeOptionComboIds));
+        ps.setArray(10, conn.createArrayOf("text", status));
+        ps.setArray(11, conn.createArrayOf("timestamptz", occurredDate));
+        ps.setArray(12, conn.createArrayOf("timestamptz", scheduledDate));
+        ps.setArray(13, conn.createArrayOf("timestamptz", completedDate));
+        ps.setArray(14, conn.createArrayOf("text", completedBy));
+        ps.setArray(15, conn.createArrayOf("bigint", assignedUserIds));
+        ps.setArray(16, conn.createArrayOf("text", eventDataValues));
+        ps.setArray(17, conn.createArrayOf("text", geometry));
+        ps.executeUpdate();
+      }
+    }
+    // Same L1 staleness fix as updateEnrollments.
+    for (TrackerEvent e : trackerEventUpdates) {
+      TrackerEvent managed = entityManager.find(TrackerEvent.class, e.getId());
+      if (managed != null) {
+        entityManager.detach(managed);
+      }
+    }
+  }
+
+  /** Shared shape between {@code enrollment_notes} and {@code trackerevent_notes} cascade rows. */
+  private interface NoteToInsert {
+    Note note();
+  }
+
   /**
    * Cascade-insert any notes attached to enrollments that were just inserted by {@link
    * #insertEnrollments} or appended to existing enrollments by {@link #updateEnrollments}. Mirrors
@@ -642,7 +870,8 @@ class EntityWriteBatch {
    * {@code @ListIndexBase(1)}). On INSERT every Note is new; on UPDATE only Notes with {@code id ==
    * 0} are new (existing ones were loaded by the preheat).
    */
-  private record EnrollmentNoteToInsert(long enrollmentId, Note note, int sortOrder) {}
+  private record EnrollmentNoteToInsert(long enrollmentId, Note note, int sortOrder)
+      implements NoteToInsert {}
 
   private void insertEnrollmentNotes(Connection conn) throws SQLException {
     List<EnrollmentNoteToInsert> newNotes = collectNewEnrollmentNotes();
@@ -688,15 +917,15 @@ class EntityWriteBatch {
     }
   }
 
-  private void insertNoteRows(Connection conn, List<EnrollmentNoteToInsert> newNotes)
+  private void insertNoteRows(Connection conn, List<? extends NoteToInsert> newNotes)
       throws SQLException {
     for (int from = 0; from < newNotes.size(); from += INSERT_BATCH_SIZE) {
       int to = Math.min(from + INSERT_BATCH_SIZE, newNotes.size());
-      List<EnrollmentNoteToInsert> chunk = newNotes.subList(from, to);
+      List<? extends NoteToInsert> chunk = newNotes.subList(from, to);
       String sql = buildMultiRowInsertSql(NOTE_INSERT_PREFIX, NOTE_INSERT_ROW, chunk.size());
       try (PreparedStatement ps = conn.prepareStatement(sql)) {
         int p = 1;
-        for (EnrollmentNoteToInsert item : chunk) {
+        for (NoteToInsert item : chunk) {
           Note n = item.note();
           ps.setLong(p++, n.getId());
           ps.setString(p++, n.getUid());
@@ -729,6 +958,68 @@ class EntityWriteBatch {
         int p = 1;
         for (EnrollmentNoteToInsert item : chunk) {
           ps.setLong(p++, item.enrollmentId());
+          ps.setLong(p++, item.note().getId());
+          ps.setInt(p++, item.sortOrder());
+        }
+        ps.executeUpdate();
+      }
+    }
+  }
+
+  /** Parallel of {@link EnrollmentNoteToInsert} for the {@code trackerevent_notes} join table. */
+  private record TrackerEventNoteToInsert(long eventId, Note note, int sortOrder)
+      implements NoteToInsert {}
+
+  private void insertTrackerEventNotes(Connection conn) throws SQLException {
+    List<TrackerEventNoteToInsert> newNotes = collectNewTrackerEventNotes();
+    if (newNotes.isEmpty()) {
+      return;
+    }
+
+    long[] noteIds = allocateIds(conn, "note_sequence", newNotes.size());
+    for (int i = 0; i < newNotes.size(); i++) {
+      newNotes.get(i).note().setId(noteIds[i]);
+    }
+
+    insertNoteRows(conn, newNotes);
+    insertTrackerEventNotesJoinRows(conn, newNotes);
+  }
+
+  private List<TrackerEventNoteToInsert> collectNewTrackerEventNotes() {
+    List<TrackerEventNoteToInsert> newNotes = new ArrayList<>();
+    collectNewTrackerEventNotesFrom(trackerEventInserts, newNotes);
+    collectNewTrackerEventNotesFrom(trackerEventUpdates, newNotes);
+    return newNotes;
+  }
+
+  private static void collectNewTrackerEventNotesFrom(
+      List<TrackerEvent> events, List<TrackerEventNoteToInsert> out) {
+    for (TrackerEvent e : events) {
+      if (e.getNotes() == null) {
+        continue;
+      }
+      List<Note> notes = e.getNotes();
+      for (int i = 0; i < notes.size(); i++) {
+        Note n = notes.get(i);
+        if (n.getId() == 0) {
+          out.add(new TrackerEventNoteToInsert(e.getId(), n, i + 1));
+        }
+      }
+    }
+  }
+
+  private void insertTrackerEventNotesJoinRows(
+      Connection conn, List<TrackerEventNoteToInsert> newNotes) throws SQLException {
+    for (int from = 0; from < newNotes.size(); from += INSERT_BATCH_SIZE) {
+      int to = Math.min(from + INSERT_BATCH_SIZE, newNotes.size());
+      List<TrackerEventNoteToInsert> chunk = newNotes.subList(from, to);
+      String sql =
+          buildMultiRowInsertSql(
+              TRACKER_EVENT_NOTES_INSERT_PREFIX, TRACKER_EVENT_NOTES_INSERT_ROW, chunk.size());
+      try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        int p = 1;
+        for (TrackerEventNoteToInsert item : chunk) {
+          ps.setLong(p++, item.eventId());
           ps.setLong(p++, item.note().getId());
           ps.setInt(p++, item.sortOrder());
         }
@@ -798,6 +1089,31 @@ class EntityWriteBatch {
       return objectMapper.writeValueAsString(info);
     } catch (JsonProcessingException e) {
       throw new SQLException("Failed to serialize UserInfoSnapshot to JSON", e);
+    }
+  }
+
+  /**
+   * Serializes the EventDataValues set as a JSON object keyed by {@code dataElement} uid, matching
+   * the on-disk shape produced by {@code JsonEventDataValueSetBinaryType}. An empty or null set is
+   * serialized as {@code "{}"} to match the column's NOT NULL default.
+   */
+  private String toEventDataValuesJson(Set<EventDataValue> values) throws SQLException {
+    ObjectWriter writer = objectMapper.writerFor(EventDataValue.class);
+    try {
+      StringWriter sw = new StringWriter();
+      try (JsonGenerator gen = objectMapper.getFactory().createGenerator(sw)) {
+        gen.writeStartObject();
+        if (values != null) {
+          for (EventDataValue edv : values) {
+            gen.writeFieldName(edv.getDataElement());
+            writer.writeValue(gen, edv);
+          }
+        }
+        gen.writeEndObject();
+      }
+      return sw.toString();
+    } catch (IOException e) {
+      throw new SQLException("Failed to serialize EventDataValues to JSON", e);
     }
   }
 
