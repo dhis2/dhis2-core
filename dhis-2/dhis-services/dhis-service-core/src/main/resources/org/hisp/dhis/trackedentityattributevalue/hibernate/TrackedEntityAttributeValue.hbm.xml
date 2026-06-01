@@ -23,7 +23,7 @@
 
     <property name="value" column="value" access="property" length="1200" />
 
-    <property name="storedBy" column="storedby" not-null="false" />
+    <property name="updatedBy" column="updatedby" not-null="false" />
 
   </class>
 </hibernate-mapping>
