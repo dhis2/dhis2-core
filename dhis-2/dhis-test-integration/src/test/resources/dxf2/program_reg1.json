@@ -311,7 +311,6 @@
       "displayOnVisitSchedule": false,
       "unique": false,
       "lastUpdated": "2016-03-11T06:59:40.866+0000",
-      "confidential": false,
       "code": "TrackedEntityAttributeCodeA",
       "shortName": "TrackedEntityAttributeShortA",
       "user": {
@@ -353,7 +352,6 @@
       "code": "TrackedEntityAttributeCodeB",
       "displayOnVisitSchedule": false,
       "unique": false,
-      "confidential": false,
       "lastUpdated": "2016-03-11T06:59:51.889+0000",
       "sharing": {
         "public": "rw------",

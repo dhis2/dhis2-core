@@ -29,7 +29,6 @@
  */
 package org.hisp.dhis.tracker.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.io.Serial;
@@ -67,14 +66,6 @@ public class TrackedEntityAttributeValue implements Serializable {
   @Setter @ToString.Include private Date created;
   @Setter @ToString.Include private Date lastUpdated;
   @Setter @ToString.Include private String storedBy;
-
-  private String encryptedValue;
-  private String plainValue;
-
-  /**
-   * This value is only used to store values from setValue when we don't know if attribute is set or
-   * not.
-   */
   @ToString.Include private String value;
 
   private transient boolean auditValueIsSet = false;
@@ -120,67 +111,13 @@ public class TrackedEntityAttributeValue implements Serializable {
     return lastUpdated;
   }
 
-  /**
-   * Retrieves the encrypted value if the attribute is confidential. If the value is not
-   * confidential, returns old value. Should be null unless it was confidential at an earlier stage.
-   *
-   * @return String with decrypted value or null.
-   */
-  @JsonIgnore
-  public String getEncryptedValue() {
-    return (getAttribute().getConfidential() && this.value != null
-        ? this.value
-        : this.encryptedValue);
-  }
-
-  public void setEncryptedValue(String encryptedValue) {
-    this.encryptedValue = encryptedValue;
-
-    if (getAttribute().getConfidential()) {
-      auditValue = encryptedValue;
-      auditValueIsSet = true;
-    }
-  }
-
-  /**
-   * Retrieves the plain-text value if the attribute isn't confidential. If the value is
-   * confidential, this value should be null, unless it was non-confidential at an earlier stage.
-   *
-   * @return String with plain-text value or null.
-   */
-  @JsonIgnore
-  public String getPlainValue() {
-    return (!getAttribute().getConfidential() && this.value != null ? this.value : this.plainValue);
-  }
-
-  public void setPlainValue(String plainValue) {
-    this.plainValue = plainValue;
-
-    if (!getAttribute().getConfidential()) {
-      auditValue = plainValue;
-      auditValueIsSet = true;
-    }
-  }
-
-  /**
-   * Returns the encrypted or the plain-text value based on the confidential state of the attribute.
-   *
-   * @return String with value, either plain-text or decrypted.
-   */
   @AuditAttribute
   @JsonProperty
   @EqualsAndHashCode.Include
   public String getValue() {
-    return (getAttribute().getConfidential() ? this.getEncryptedValue() : this.getPlainValue());
+    return this.value;
   }
 
-  /**
-   * Property which temporarily stores the attribute value. The {@link #getEncryptedValue} and
-   * {@link #getPlainValue} methods handle the value when requested.
-   *
-   * @param value the value to be stored.
-   * @return a {@link TrackedEntityAttributeValue}.
-   */
   public TrackedEntityAttributeValue setValue(String value) {
     if (!auditValueIsSet) {
       this.auditValue = valueIsSet ? this.value : value;
@@ -188,9 +125,7 @@ public class TrackedEntityAttributeValue implements Serializable {
     }
 
     valueIsSet = true;
-
     this.value = value;
-    this.plainValue = value;
 
     return this;
   }
