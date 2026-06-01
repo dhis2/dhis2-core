@@ -60,9 +60,11 @@ import org.hisp.dhis.tracker.model.TrackerEvent;
  *   <li>TrackedEntity inserts are flushed via a multi-row JDBC INSERT against {@code trackedentity}
  *       -- ids are pre-allocated by {@link AbstractTrackerPersister} from {@code
  *       trackedentityinstance_sequence} in one round-trip.
- *   <li>TrackedEntity updates and all other entity types (Enrollment, TrackerEvent, SingleEvent,
- *       Relationship) still delegate to {@link EntityManager}; their Phase 6 JDBC replacements
- *       follow.
+ *   <li>TrackedEntity updates are flushed via a single JDBC unnest UPDATE against {@code
+ *       trackedentity}, writing only the columns mutated by {@code TrackerObjectsMapper.map} on the
+ *       update branch.
+ *   <li>All other entity types (Enrollment, TrackerEvent, SingleEvent, Relationship) still delegate
+ *       to {@link EntityManager}; their Phase 6 JDBC replacements follow.
  *   <li>TEAVs continue to delegate to {@link EntityManager} until their Phase 6 turn.
  * </ul>
  *
@@ -81,6 +83,9 @@ class EntityWriteBatch {
   /** Cap on rows per multi-row INSERT statement, to keep query text manageable. */
   private static final int INSERT_BATCH_SIZE = 128;
 
+  /** Cap on rows per unnest UPDATE statement, to bound peak array memory per chunk. */
+  private static final int UPDATE_BATCH_SIZE = 128;
+
   private static final int TRACKED_ENTITY_SRID = 4326;
 
   private static final String TRACKED_ENTITY_INSERT_PREFIX =
@@ -95,6 +100,37 @@ class EntityWriteBatch {
       "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ST_GeomFromText(?, "
           + TRACKED_ENTITY_SRID
           + "), ?::jsonb, ?::jsonb)";
+
+  // Columns mutated by TrackerObjectsMapper.map() on the UPDATE branch (see lines 90-104). Insert-
+  // only columns (uid, created, createdbyuserinfo) and columns owned by other code paths
+  // (deleted, lastsynchronized -- the latter is bulk-updated by
+  // DefaultTrackerBundleService.postCommit) are deliberately excluded.
+  private static final String TRACKED_ENTITY_UPDATE_SQL =
+      "update trackedentity te set"
+          + " lastupdated = v.lastupdated,"
+          + " createdatclient = v.createdatclient,"
+          + " lastupdatedatclient = v.lastupdatedatclient,"
+          + " organisationunitid = v.organisationunitid,"
+          + " trackedentitytypeid = v.trackedentitytypeid,"
+          + " potentialduplicate = v.potentialduplicate,"
+          + " inactive = v.inactive,"
+          + " lastupdatedbyuserinfo = v.lastupdatedbyuserinfo::jsonb,"
+          + " geometry = case when v.geometry is null then null"
+          + " else ST_GeomFromText(v.geometry, "
+          + TRACKED_ENTITY_SRID
+          + ") end"
+          + " from ( select"
+          + " unnest(?::bigint[]) as trackedentityid,"
+          + " unnest(?::timestamptz[]) as lastupdated,"
+          + " unnest(?::timestamptz[]) as createdatclient,"
+          + " unnest(?::timestamptz[]) as lastupdatedatclient,"
+          + " unnest(?::bigint[]) as organisationunitid,"
+          + " unnest(?::bigint[]) as trackedentitytypeid,"
+          + " unnest(?::boolean[]) as potentialduplicate,"
+          + " unnest(?::boolean[]) as inactive,"
+          + " unnest(?::text[]) as lastupdatedbyuserinfo,"
+          + " unnest(?::text[]) as geometry"
+          + " ) v where te.trackedentityid = v.trackedentityid";
 
   private final ObjectMapper objectMapper;
 
@@ -219,9 +255,9 @@ class EntityWriteBatch {
   }
 
   /**
-   * Applies all staged writes. TrackedEntity inserts go through a JDBC multi-row INSERT on {@code
-   * conn}; everything else still delegates to {@code entityManager}. The connection must be the one
-   * bound to the current Spring-managed transaction so that the JDBC INSERT and any subsequent
+   * Applies all staged writes. TrackedEntity inserts and updates go through JDBC on {@code conn};
+   * everything else still delegates to {@code entityManager}. The connection must be the one bound
+   * to the current Spring-managed transaction so that the JDBC statements and any subsequent
    * Hibernate flush execute under the same commit.
    */
   void flush(EntityManager entityManager, Connection conn) throws SQLException {
@@ -230,7 +266,7 @@ class EntityWriteBatch {
     }
 
     insertTrackedEntities(conn);
-    mergeAll(entityManager, teUpdates);
+    updateTrackedEntities(entityManager, conn);
     persistAll(entityManager, enrollmentInserts);
     mergeAll(entityManager, enrollmentUpdates);
     persistAll(entityManager, trackerEventInserts);
@@ -261,6 +297,68 @@ class EntityWriteBatch {
     teavInserts.clear();
     teavUpdates.clear();
     teavDeletes.clear();
+  }
+
+  private void updateTrackedEntities(EntityManager entityManager, Connection conn)
+      throws SQLException {
+    if (teUpdates.isEmpty()) {
+      return;
+    }
+    for (int from = 0; from < teUpdates.size(); from += UPDATE_BATCH_SIZE) {
+      int to = Math.min(from + UPDATE_BATCH_SIZE, teUpdates.size());
+      List<TrackedEntity> chunk = teUpdates.subList(from, to);
+      int n = chunk.size();
+
+      Long[] ids = new Long[n];
+      Timestamp[] lastUpdated = new Timestamp[n];
+      Timestamp[] createdAtClient = new Timestamp[n];
+      Timestamp[] lastUpdatedAtClient = new Timestamp[n];
+      Long[] organisationUnitIds = new Long[n];
+      Long[] trackedEntityTypeIds = new Long[n];
+      Boolean[] potentialDuplicate = new Boolean[n];
+      Boolean[] inactive = new Boolean[n];
+      String[] lastUpdatedByUserInfo = new String[n];
+      String[] geometry = new String[n];
+
+      for (int i = 0; i < n; i++) {
+        TrackedEntity te = chunk.get(i);
+        ids[i] = te.getId();
+        lastUpdated[i] = toTimestamp(te.getLastUpdated());
+        createdAtClient[i] = toTimestamp(te.getCreatedAtClient());
+        lastUpdatedAtClient[i] = toTimestamp(te.getLastUpdatedAtClient());
+        organisationUnitIds[i] = te.getOrganisationUnit().getId();
+        trackedEntityTypeIds[i] = te.getTrackedEntityType().getId();
+        potentialDuplicate[i] = te.isPotentialDuplicate();
+        inactive[i] = te.isInactive();
+        lastUpdatedByUserInfo[i] = toJson(te.getLastUpdatedByUserInfo());
+        geometry[i] = te.getGeometry() != null ? te.getGeometry().toText() : null;
+      }
+
+      try (PreparedStatement ps = conn.prepareStatement(TRACKED_ENTITY_UPDATE_SQL)) {
+        ps.setArray(1, conn.createArrayOf("bigint", ids));
+        ps.setArray(2, conn.createArrayOf("timestamptz", lastUpdated));
+        ps.setArray(3, conn.createArrayOf("timestamptz", createdAtClient));
+        ps.setArray(4, conn.createArrayOf("timestamptz", lastUpdatedAtClient));
+        ps.setArray(5, conn.createArrayOf("bigint", organisationUnitIds));
+        ps.setArray(6, conn.createArrayOf("bigint", trackedEntityTypeIds));
+        ps.setArray(7, conn.createArrayOf("boolean", potentialDuplicate));
+        ps.setArray(8, conn.createArrayOf("boolean", inactive));
+        ps.setArray(9, conn.createArrayOf("text", lastUpdatedByUserInfo));
+        ps.setArray(10, conn.createArrayOf("text", geometry));
+        ps.executeUpdate();
+      }
+    }
+    // The TrackedEntity entities passed in here are detached copies from the preheat. The
+    // Hibernate persistence context separately holds the entities loaded by the preheat's queries
+    // (M_managed), and they still carry their pre-update state. Detach them so any subsequent
+    // JPQL read in this session reloads the fresh DB row instead of returning the stale L1
+    // instance.
+    for (TrackedEntity te : teUpdates) {
+      TrackedEntity managed = entityManager.find(TrackedEntity.class, te.getId());
+      if (managed != null) {
+        entityManager.detach(managed);
+      }
+    }
   }
 
   private void insertTrackedEntities(Connection conn) throws SQLException {
