@@ -71,7 +71,7 @@ public class EnrollmentPersister
 
   @Override
   protected String sequenceName() {
-    return null;
+    return "programinstance_sequence";
   }
 
   @Override
@@ -155,14 +155,13 @@ public class EnrollmentPersister
       TrackerBundle bundle,
       org.hisp.dhis.tracker.imports.domain.Enrollment trackerDto,
       Enrollment entity) {
-    if (isNew(bundle, trackerDto)
-        && (bundle.getPreheat().getProgramOwner().get(entity.getTrackedEntity().getUID()) == null
-            || bundle
-                    .getPreheat()
-                    .getProgramOwner()
-                    .get(entity.getTrackedEntity().getUID())
-                    .get(entity.getProgram().getUid())
-                == null)) {
+    if ((bundle.getPreheat().getProgramOwner().get(entity.getTrackedEntity().getUID()) == null
+        || bundle
+                .getPreheat()
+                .getProgramOwner()
+                .get(entity.getTrackedEntity().getUID())
+                .get(entity.getProgram().getUid())
+            == null)) {
       trackedEntityProgramOwnerService.createTrackedEntityProgramOwner(
           entity.getTrackedEntity(), entity.getProgram(), entity.getOrganisationUnit());
     }
