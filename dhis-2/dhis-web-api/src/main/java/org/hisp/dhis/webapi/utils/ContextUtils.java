@@ -319,7 +319,7 @@ public class ContextUtils {
     }
 
     String value =
-        String.format("%s-%s", DateUtils.toLongDateWithMillis(lastModified), user.getUid());
+        String.format("%d-%s", lastModified.getTime(), user.getUid());
 
     return HashUtils.hashMD5(value.getBytes());
   }
