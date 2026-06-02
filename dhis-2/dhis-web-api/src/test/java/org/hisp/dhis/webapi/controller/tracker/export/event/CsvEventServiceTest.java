@@ -236,7 +236,7 @@ class CsvEventServiceTest {
       throws IOException, ParseException {
     Event event =
         Event.builder()
-            .event(UID.of("BuA2R2Gr4vt"))
+            .event("BuA2R2Gr4vt")
             .status(EventStatus.ACTIVE)
             .program("programId")
             .programStage("programStageId")
