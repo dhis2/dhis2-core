@@ -173,19 +173,19 @@ public class Category extends BaseMetadataObject
   private Sharing sharing = new Sharing();
 
   @Transient private transient String dimensionName;
-  @Transient private String dimensionDisplayName;
-  @Transient private ValueType valueType;
-  @Transient private OptionSet optionSet;
-  @Transient private boolean allItems;
-  @Transient private LegendSet legendSet;
-  @Transient private ProgramStage programStage;
-  @Transient private Program program;
-  @Transient private AggregationType aggregationType;
-  @Transient private String filter;
-  @Transient private EventRepetition eventRepetition;
-  @Transient private DimensionItemKeywords dimensionItemKeywords;
-  @Transient private boolean fixed;
-  @Transient private UUID groupUUID;
+  @Transient private transient String dimensionDisplayName;
+  @Transient private transient ValueType valueType;
+  @Transient private transient OptionSet optionSet;
+  @Transient private transient boolean allItems;
+  @Transient private transient LegendSet legendSet;
+  @Transient private transient ProgramStage programStage;
+  @Transient private transient Program program;
+  @Transient private transient AggregationType aggregationType;
+  @Transient private transient String filter;
+  @Transient private transient EventRepetition eventRepetition;
+  @Transient private transient DimensionItemKeywords dimensionItemKeywords;
+  @Transient private transient boolean fixed;
+  @Transient private transient UUID groupUUID;
 
   public Category() {}
 
@@ -412,7 +412,7 @@ public class Category extends BaseMetadataObject
     final int opLen = inOp.length() + 1;
 
     if (filter == null || !filter.toLowerCase().startsWith(inOp) || filter.length() < opLen) {
-      return null;
+      return List.of();
     }
 
     String filterItems = filter.substring(opLen);
