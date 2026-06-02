@@ -266,7 +266,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration {
   @Override
   public void configureContentNegotiation(ContentNegotiationConfigurer config) {
     // favorPathExtension was removed in Spring 7.0; path-extension negotiation is now provided by
-    // SuffixMediaTypeContentNegotiationStrategy (fed by MediaTypeSuffixFilter).
+    // SuffixMediaTypeContentNegotiationStrategy (fed by CustomRequestMappingHandlerMapping).
     config
         .favorParameter(false)
         .ignoreAcceptHeader(false)

@@ -30,7 +30,6 @@
 package org.hisp.dhis.webapi.view;
 
 import java.util.List;
-import org.hisp.dhis.webapi.filter.MediaTypeSuffixFilter;
 import org.springframework.http.MediaType;
 import org.springframework.web.accept.ContentNegotiationStrategy;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -43,20 +42,23 @@ import org.springframework.web.context.request.RequestAttributes;
  * <p>Spring Framework 7.0 removed path-extension content negotiation entirely (the {@code
  * PathExtensionContentNegotiationStrategy} base class and the {@code favorPathExtension} / {@code
  * setUseRegisteredSuffixPatternMatch} flags). To preserve DHIS2's long-standing {@code
- * /api/resource.json} behaviour, {@link MediaTypeSuffixFilter} resolves the extension to a media
- * type up-front and stores it as a request attribute (while stripping the suffix from the path so
- * handler mapping still matches the extension-less mapping). This strategy simply reads that
- * attribute back during content negotiation.
+ * /api/resource.json} behaviour, {@code CustomRequestMappingHandlerMapping} resolves the extension
+ * to a media type when it falls back to matching the suffix-stripped path, storing it as the {@link
+ * #SUFFIX_MEDIA_TYPE_ATTRIBUTE} request attribute. This strategy reads that attribute back during
+ * content negotiation.
  *
  * @author Morten Olav Hansen
  */
 public class SuffixMediaTypeContentNegotiationStrategy implements ContentNegotiationStrategy {
+  /** Request attribute holding the {@link MediaType} resolved from the URL path extension. */
+  public static final String SUFFIX_MEDIA_TYPE_ATTRIBUTE =
+      SuffixMediaTypeContentNegotiationStrategy.class.getName() + ".SUFFIX_MEDIA_TYPE";
+
   @Override
   public List<MediaType> resolveMediaTypes(NativeWebRequest webRequest) {
     MediaType mediaType =
         (MediaType)
-            webRequest.getAttribute(
-                MediaTypeSuffixFilter.SUFFIX_MEDIA_TYPE_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);
+            webRequest.getAttribute(SUFFIX_MEDIA_TYPE_ATTRIBUTE, RequestAttributes.SCOPE_REQUEST);
 
     return mediaType != null ? List.of(mediaType) : MEDIA_TYPE_ALL_LIST;
   }

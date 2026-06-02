@@ -155,7 +155,7 @@ public class MvcTestConfig implements WebMvcConfigurer {
     // Keep AntPathMatcher (PathPatternParser is the Spring 6+ default) so controller mappings match
     // as before; mirrors WebMvcConfig#createRequestMappingHandlerMapping. Spring 7.0 removed
     // suffix-pattern / trailing-slash matching; path-extension negotiation is reinstated via
-    // SuffixMediaTypeContentNegotiationStrategy (fed by MediaTypeSuffixFilter).
+    // SuffixMediaTypeContentNegotiationStrategy (fed by CustomRequestMappingHandlerMapping).
     mapping.setPatternParser(null);
     return mapping;
   }
