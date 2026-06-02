@@ -37,7 +37,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Lists;
+import com.google.common.base.MoreObjects;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
@@ -62,6 +62,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.Setter;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -87,6 +88,7 @@ import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.common.TranslationProperty;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.eventvisualization.EventRepetition;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
@@ -100,7 +102,6 @@ import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.Sharing;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
 
 /**
  * A Category is a dimension of a data element. DataElements can have sets of dimensions (known as
@@ -185,6 +186,7 @@ public class Category extends BaseMetadataObject
   @Transient private DimensionItemKeywords dimensionItemKeywords;
   @Transient private boolean fixed;
   @Transient private UUID groupUUID;
+  @Transient private List<DimensionalItemObject> items = new ArrayList<>();
 
   public Category() {}
 
@@ -195,9 +197,9 @@ public class Category extends BaseMetadataObject
   }
 
   public Category(
-      String name, DataDimensionType dataDimensionType, List<CategoryOption> categoryOptions) {
+      String name, DataDimensionType dataDimensionType, List<DimensionalItemObject> items) {
     this(name, dataDimensionType);
-    this.categoryOptions = categoryOptions;
+    this.items = items;
   }
 
   @Override
@@ -326,7 +328,12 @@ public class Category extends BaseMetadataObject
   @JacksonXmlElementWrapper(localName = "items", namespace = DxfNamespaces.DXF_2_0)
   @JacksonXmlProperty(localName = "item", namespace = DxfNamespaces.DXF_2_0)
   public List<DimensionalItemObject> getItems() {
-    return Lists.newArrayList(categoryOptions);
+    return items;
+  }
+
+  @Override
+  public void setItems(List<DimensionalItemObject> items) {
+    this.items = items;
   }
 
   @Override
@@ -609,5 +616,26 @@ public class Category extends BaseMetadataObject
   private boolean hasCategoryOption(CategoryOption categoryOption) {
     return this.categoryOptions.stream()
         .anyMatch(co -> co.getUid().equals(categoryOption.getUid()));
+  }
+
+  @Override
+  public String toString() {
+    List<String> itemStr =
+        items.stream()
+            .map(
+                item ->
+                    MoreObjects.toStringHelper(DimensionalItemObject.class)
+                        .add("uid", item.getUid())
+                        .add("name", item.getName())
+                        .toString())
+            .collect(Collectors.toList());
+
+    return MoreObjects.toStringHelper(this)
+        .add("dimension", uid)
+        .add("type", DimensionType.CATEGORY)
+        .add("dimension display name", dimensionDisplayName)
+        .add("dimension value type", valueType)
+        .add("items", itemStr)
+        .toString();
   }
 }
