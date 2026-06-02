@@ -104,7 +104,7 @@ public class TrackedEntityTrackerConverterService
     }
 
     teTo.setLastUpdatedByUserInfo(preheat.getUserInfo());
-    teTo.setStoredBy(teFrom.getStoredBy());
+    teTo.setStoredBy(preheat.getUsername());
     teTo.setLastUpdated(now);
     teTo.setDeleted(false);
     teTo.setPotentialDuplicate(teFrom.isPotentialDuplicate());

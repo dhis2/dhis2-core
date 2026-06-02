@@ -39,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.io.IOException;
 import java.util.stream.Stream;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -47,6 +48,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackerObjects;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -123,6 +125,26 @@ class EnrollmentImportTest extends TrackerTest {
         Arguments.of(COMPLETED, COMPLETED),
         Arguments.of(COMPLETED, CANCELLED),
         Arguments.of(COMPLETED, COMPLETED));
+  }
+
+  @Test
+  void shouldSetStoredByToAuthenticatedUserForTrackedEntity() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    assertNoErrors(
+        trackerImportService.importTracker(params, fromJson("tracker/te_enrollment_event.json")));
+
+    TrackedEntity te = manager.get(TrackedEntity.class, "IOR1AXXl24H");
+    assertEquals(importUser.getUsername(), te.getStoredBy());
+  }
+
+  @Test
+  void shouldSetStoredByToAuthenticatedUserForEnrollment() throws IOException {
+    TrackerImportParams params = TrackerImportParams.builder().build();
+    assertNoErrors(
+        trackerImportService.importTracker(params, fromJson("tracker/te_enrollment_event.json")));
+
+    Enrollment enrollment = manager.get(Enrollment.class, "TvctPPhpD8u");
+    assertEquals(importUser.getUsername(), enrollment.getStoredBy());
   }
 
   private void assertEnrollmentCompletedData(Enrollment enrollment) {

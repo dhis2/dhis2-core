@@ -91,7 +91,6 @@ public class EventTrackerConverterService
           e.setStatus(event.getStatus());
           e.setOccurredAt(DateUtils.instantFromDate(event.getOccurredDate()));
           e.setScheduledAt(DateUtils.instantFromDate(event.getScheduledDate()));
-          e.setStoredBy(event.getStoredBy());
           e.setCompletedBy(event.getCompletedBy());
           e.setCompletedAt(DateUtils.instantFromDate(event.getCompletedDate()));
           e.setCreatedAt(DateUtils.instantFromDate(event.getCreated()));
@@ -125,7 +124,6 @@ public class EventTrackerConverterService
             value.setDataElement(MetadataIdentifier.ofUid(dataValue.getDataElement()));
             value.setValue(dataValue.getValue());
             value.setProvidedElsewhere(dataValue.getProvidedElsewhere());
-            value.setStoredBy(dataValue.getStoredBy());
             value.setUpdatedBy(
                 Optional.ofNullable(dataValue.getLastUpdatedByUserInfo())
                     .map(this::convertUserInfo)
@@ -226,7 +224,7 @@ public class EventTrackerConverterService
       result = new Event();
       result.setUid(!StringUtils.isEmpty(event.getEvent()) ? event.getEvent() : event.getUid());
       result.setCreated(now);
-      result.setStoredBy(event.getStoredBy());
+      result.setStoredBy(preheat.getUsername());
       result.setCreatedByUserInfo(preheat.getUserInfo());
     }
     result.setCreatedAtClient(DateUtils.fromInstant(event.getCreatedAtClient()));

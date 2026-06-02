@@ -64,13 +64,15 @@ class EventDataValueTest extends TrackerTest {
   @Autowired private EventService eventService;
   @Autowired protected UserService _userService;
 
+  private User importUser;
+
   @Override
   protected void initTest() throws IOException {
     userService = _userService;
     setUpMetadata("tracker/simple_metadata.json");
-    final User userA = userService.getUser("M5zQapPyTZI");
-    injectSecurityContextUser(userA);
-    TrackerImportParams params = TrackerImportParams.builder().userId(userA.getUid()).build();
+    importUser = userService.getUser("M5zQapPyTZI");
+    injectSecurityContextUser(importUser);
+    TrackerImportParams params = TrackerImportParams.builder().userId(importUser.getUid()).build();
     TrackerObjects trackerObjects = fromJson("tracker/single_tei.json");
     assertNoErrors(trackerImportService.importTracker(params, trackerObjects));
     TrackerObjects enTrackerObjects = fromJson("tracker/single_enrollment.json");
@@ -143,5 +145,18 @@ class EventDataValueTest extends TrackerTest {
         dataValueMap.get(updatedDataElementId).getCreated(),
         updatedDataValueMap.get(updatedDataElementId).getCreated());
     assertEquals("Fourth updated", updatedDataValueMap.get(updatedDataElementId).getValue());
+  }
+
+  @Test
+  void shouldSetStoredByToAuthenticatedUserForEventDataValues() throws IOException {
+    assertNoErrors(
+        trackerImportService.importTracker(
+            new TrackerImportParams(), fromJson("tracker/event_with_data_values.json")));
+
+    List<Event> events = manager.getAll(Event.class);
+    assertEquals(1, events.size());
+    for (EventDataValue dv : events.get(0).getEventDataValues()) {
+      assertEquals(importUser.getUsername(), dv.getStoredBy());
+    }
   }
 }
