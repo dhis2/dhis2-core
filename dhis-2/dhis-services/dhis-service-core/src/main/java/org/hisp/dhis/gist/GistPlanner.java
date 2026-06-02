@@ -318,10 +318,15 @@ final class GistPlanner {
         Property collection = context.resolveMandatory(parentPath);
         if ("id".equals(propertyName)
             && PrimaryKeyObject.class.isAssignableFrom(collection.getItemKlass())) {
-          mapped.add(f.withPropertyPath(parentPath).withTransformation(Transform.IDS));
+          mapped.add(
+              f.withPropertyPath(parentPath)
+                  .withPropertyName(f.name())
+                  .withTransformation(Transform.IDS));
         } else {
           mapped.add(
-              f.withPropertyPath(parentPath).withTransformation(Transform.PLUCK, propertyName));
+              f.withPropertyPath(parentPath)
+                  .withPropertyName(f.name())
+                  .withTransformation(Transform.PLUCK, propertyName));
         }
       } else {
         mapped.add(f);
