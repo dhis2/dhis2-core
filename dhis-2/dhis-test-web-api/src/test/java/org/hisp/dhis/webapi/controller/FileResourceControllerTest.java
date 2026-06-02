@@ -55,8 +55,7 @@ class FileResourceControllerTest extends H2ControllerIntegrationTestBase {
     // FileResourceUtils.saveFileResource is the one that fires.
     byte[] bytes = new byte[10_000_001];
     MockMultipartFile data =
-        new MockMultipartFile(
-            "file", "big.bin", "application/octet-stream", bytes);
+        new MockMultipartFile("file", "big.bin", "application/octet-stream", bytes);
     HttpResponse response = POST_MULTIPART("/fileResources?domain=DATA_VALUE", data);
     JsonString errorMessage = response.content(HttpStatus.CONFLICT).getString("message");
     assertEquals(
