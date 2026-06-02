@@ -175,7 +175,7 @@
     <jts.version>1.20.0</jts.version>
 
     <!-- Apache Artemis -->
-    <artemis-jakarta.version>2.42.0</artemis-jakarta.version>
+    <artemis-jakarta.version>2.54.0</artemis-jakarta.version>
     <netty-all.version>4.2.13.Final</netty-all.version>
     <classgraph.version>4.8.181</classgraph.version>
 
@@ -1393,12 +1393,12 @@
 
       <!-- Apache Artemis -->
       <dependency>
-        <groupId>org.apache.activemq</groupId>
+        <groupId>org.apache.artemis</groupId>
         <artifactId>artemis-jakarta-client</artifactId>
         <version>${artemis-jakarta.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.apache.activemq</groupId>
+        <groupId>org.apache.artemis</groupId>
         <artifactId>artemis-jakarta-server</artifactId>
         <version>${artemis-jakarta.version}</version>
         <exclusions>
@@ -2132,7 +2132,7 @@ jasperreports.version=${jasperreports.version}
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-commons</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-dataentry</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-approval</ignoredUnusedDeclaredDependency>
-              <ignoredUnusedDeclaredDependency>org.apache.activemq:artemis-jakarta-server</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>org.apache.artemis:artemis-jakarta-server</ignoredUnusedDeclaredDependency>
             </ignoredUnusedDeclaredDependencies>
             <ignoredUsedUndeclaredDependencies>
               <ignoredUsedUndeclaredDependency>javax.cache:cache-api:jar</ignoredUsedUndeclaredDependency>
@@ -2141,14 +2141,14 @@ jasperreports.version=${jasperreports.version}
               <ignoredUsedUndeclaredDependency>org.antlr:antlr4-runtime</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.junit.jupiter:junit-jupiter-api</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>io.prometheus:simpleclient</ignoredUsedUndeclaredDependency>
-              <ignoredUsedUndeclaredDependency>org.apache.activemq:artemis-commons</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>org.apache.artemis:artemis-commons</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.apache.kafka:connect-api</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>io.prometheus:simpleclient_common</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.springframework:spring-jcl</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>ognl:ognl</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.springframework.session:spring-session-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>jakarta.jms:jakarta.jms-api</ignoredUsedUndeclaredDependency>
-              <ignoredUsedUndeclaredDependency>org.apache.activemq:artemis-server</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>org.apache.artemis:artemis-server</ignoredUsedUndeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.mock-server:mockserver-core:jar</ignoredUnusedDeclaredDependency>
               <!-- AWS SDK v2 splits its API across several modules (auth/regions/sdk-core/aws-core/
                    http-client-spi/utils); we declare the service module (s3) only and treat the SDK
