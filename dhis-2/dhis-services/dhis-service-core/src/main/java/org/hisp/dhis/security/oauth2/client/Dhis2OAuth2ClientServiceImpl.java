@@ -389,7 +389,17 @@ public class Dhis2OAuth2ClientServiceImpl
       entity.setName(truncateName(entity.getClientId()));
     }
     if (entity.getClientSettings() == null) {
-      ClientSettings defaults = ClientSettings.builder().requireAuthorizationConsent(true).build();
+      // Spring Authorization Server 7 changed the ClientSettings.builder() default for
+      // requireProofKey from false to true (PKCE-by-default). DHIS2's existing OAuth2 clients and
+      // the authorization-code flow do not send a PKCE code_challenge, so the new default makes
+      // /oauth2/authorize fail with invalid_request. Explicitly disable it to preserve the prior
+      // (SAS 1.x) behaviour. SECURITY REVIEW: decide whether to adopt PKCE-by-default for DHIS2
+      // OAuth2 clients (recommended) and migrate clients/flows accordingly.
+      ClientSettings defaults =
+          ClientSettings.builder()
+              .requireProofKey(false)
+              .requireAuthorizationConsent(true)
+              .build();
       entity.setClientSettings(writeMap(defaults.getSettings()));
     }
     if (entity.getTokenSettings() == null) {
