@@ -70,24 +70,34 @@ class ProgramControllerTest extends DhisControllerConvenienceTest {
 
   @Test
   void testDeleteWithMapView() {
-    String mapViewJson =
-        "{"
-            + "\"name\": \"test mapview\","
-            + "\"id\": \"mVIVRd23Jm9\","
-            + "\"organisationUnitLevels\": [],"
-            + "\"maps\": [],"
-            + "\"layer\": \"event\","
-            + "\"program\": {"
-            + "\"id\": \"PrZMWi7rBga\""
-            + "},"
-            + "\"programStage\": {"
-            + "\"id\": \"PSzMWi7rBga\""
-            + "}"
-            + "}";
-    POST("/mapViews", mapViewJson).content(HttpStatus.CREATED);
-    assertStatus(HttpStatus.OK, DELETE(String.format("/programs/%s", PROGRAM_UID)));
-    assertStatus(HttpStatus.NOT_FOUND, GET(String.format("/programs/%s", PROGRAM_UID)));
-    JsonResponse mapview = GET("/mapViews/mVIVRd23Jm9").content();
+
+    String mapJson =
+        """
+        {
+          "name": "test map",
+          "id": "mAPVRd23Jm9",
+          "mapViews": [
+            {
+              "name": "test mapview",
+              "id": "mVIVRd23Jm9",
+              "organisationUnitLevels": [],
+              "layer": "event",
+              "program": {
+                "id": "PrZMWi7rBga"
+              },
+              "programStage": {
+                "id": "PSzMWi7rBga"
+              }
+            }
+          ]
+        }
+        """;
+    POST("/maps", mapJson).content(HttpStatus.CREATED);
+
+    assertStatus(HttpStatus.OK, DELETE("/programs/%s".formatted(PROGRAM_UID)));
+    assertStatus(HttpStatus.NOT_FOUND, GET("/programs/%s".formatted(PROGRAM_UID)));
+    JsonMixed mapview = GET("/mapViews/mVIVRd23Jm9").content().as(JsonMixed.class);
     assertFalse(mapview.has("program"));
+    assertFalse(mapview.has("programStage"));
   }
 }
