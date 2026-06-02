@@ -112,7 +112,6 @@ public enum ValidationCode {
   E1103("User: `{0}` lacks 'F_ENROLLMENT_CASCADE_DELETE' authority to delete Enrollment : `{1}`."),
   E1104("User: `{0}` has no data read access to Program: `{1}`, TrackedEntityType: `{2}`."),
   E1105("User: `{0}` has no search scope access to OrganisationUnit: `{1}`."),
-  E1112("AttributeValue: `{0}` is confidential but encryption is not enabled: `{1}`"),
   E1113("Enrollment: `{0}` is already deleted and cannot be modified."),
   E1114("TrackedEntity: `{0}` is already deleted and cannot be modified."),
   E1115("Could not find CategoryOptionCombo: `{0}`."),

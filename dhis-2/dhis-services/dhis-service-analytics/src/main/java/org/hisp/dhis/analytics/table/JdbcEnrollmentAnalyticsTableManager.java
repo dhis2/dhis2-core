@@ -205,7 +205,7 @@ public class JdbcEnrollmentAnalyticsTableManager extends AbstractEventJdbcTableM
    * @return a list of {@link AnalyticsTableColumn}.
    */
   private List<AnalyticsTableColumn> getTrackedEntityAttributeColumns(Program program) {
-    return program.getNonConfidentialTrackedEntityAttributes().stream()
+    return program.getAnalyzableTrackedEntityAttributes().stream()
         .map(this::getColumnForAttribute)
         .flatMap(Collection::stream)
         .toList();

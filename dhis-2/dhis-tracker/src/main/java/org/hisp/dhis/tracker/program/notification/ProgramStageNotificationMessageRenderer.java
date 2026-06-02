@@ -172,10 +172,10 @@ public class ProgramStageNotificationMessageRenderer
   // Internal methods
   // -------------------------------------------------------------------------
   private String resolveAttributeValue(TrackedEntityAttributeValue av) {
-    String value = av.getPlainValue();
+    String value = av.getValue();
 
     if (value == null) {
-      return CONFIDENTIAL_VALUE_REPLACEMENT;
+      return MISSING_VALUE_REPLACEMENT;
     }
 
     return av.getAttribute().hasOptionSet()
