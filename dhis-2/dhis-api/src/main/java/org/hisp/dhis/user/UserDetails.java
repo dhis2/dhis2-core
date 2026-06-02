@@ -52,13 +52,17 @@ public interface UserDetails extends UidObject {
    */
   record LoginCredentials(
       @Nonnull Collection<? extends GrantedAuthority> getAuthorities,
-      String getPassword,
       String getUsername,
+      String getPassword,
+      boolean isEnabled,
       boolean isAccountNonExpired,
       boolean isAccountNonLocked,
-      boolean isCredentialsNonExpired,
-      boolean isEnabled)
+      boolean isCredentialsNonExpired)
       implements org.springframework.security.core.userdetails.UserDetails {
+
+    public LoginCredentials(String username, String password) {
+      this(List.of(), username, password, true, true, true, true);
+    }
 
     @Override
     public int hashCode() {

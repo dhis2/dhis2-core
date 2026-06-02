@@ -85,7 +85,10 @@ class DefaultAnalyticsSecurityManagerTest extends TestBase {
     lenient().when(currentUser.getDataViewOrganisationUnits()).thenReturn(Set.of(ouB));
     lenient().when(currentUser.getUsername()).thenReturn("tester");
 
-    UserDetails currentUserDetails = UserDetails.empty().username("tester").build();
+    UserDetails currentUserDetails =
+        UserDetails.empty()
+            .loginCredentials(new UserDetails.LoginCredentials("tester", null))
+            .build();
     CurrentUserUtil.injectUserInSecurityContext(currentUserDetails);
   }
 

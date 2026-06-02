@@ -128,12 +128,7 @@ class UserReplicationServiceTest {
         UserDetails.empty()
             .id(42L)
             .uid("a1234567890")
-            .username("admin")
-            .password("secret")
-            .enabled(true)
-            .accountNonExpired(true)
-            .accountNonLocked(true)
-            .credentialsNonExpired(true)
+            .loginCredentials(new UserDetails.LoginCredentials("admin", "secret"))
             .build());
 
     User existingUser = new User();
@@ -174,12 +169,7 @@ class UserReplicationServiceTest {
         UserDetails.empty()
             .id(42L)
             .uid("a1234567890")
-            .username("admin")
-            .password("secret")
-            .enabled(true)
-            .accountNonExpired(true)
-            .accountNonLocked(true)
-            .credentialsNonExpired(true)
+            .loginCredentials(new UserDetails.LoginCredentials("admin", "secret"))
             .build());
 
     UserGroup group = new UserGroup();
@@ -212,12 +202,7 @@ class UserReplicationServiceTest {
         UserDetails.empty()
             .id(42L)
             .uid("a1234567890")
-            .username("admin")
-            .password("secret")
-            .enabled(true)
-            .accountNonExpired(true)
-            .accountNonLocked(true)
-            .credentialsNonExpired(true)
+            .loginCredentials(new UserDetails.LoginCredentials("admin", "secret"))
             .build());
 
     User existingUser = new User();

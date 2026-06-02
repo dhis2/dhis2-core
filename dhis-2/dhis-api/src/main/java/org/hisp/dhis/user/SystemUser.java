@@ -46,9 +46,9 @@ public class SystemUser implements UserDetails {
   static final LoginCredentials SUPER =
       new LoginCredentials(
           List.of((GrantedAuthority) Authorities.ALL::name),
+          "system-process_" + CodeGenerator.generateUid(),
           null,
           // Never rely on this method to get the username of the system user for identification.
-          "system-process_" + CodeGenerator.generateUid(),
           true,
           true,
           true,

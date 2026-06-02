@@ -93,12 +93,12 @@ public class UserDetailsImpl implements UserDetails {
     LoginCredentials credentials =
         new LoginCredentials(
             authorities,
-            password,
             username,
+            password,
+            enabled,
             accountNonExpired,
             accountNonLocked,
-            credentialsNonExpired,
-            enabled);
+            credentialsNonExpired);
     return UserDetailsImpl.builder()
         .uid(uid)
         .code(code)
@@ -236,12 +236,12 @@ public class UserDetailsImpl implements UserDetails {
     LoginCredentials credentials =
         new LoginCredentials(
             user.getAuthorities(),
-            user.getPassword(),
             user.getUsername(),
+            user.getPassword(),
+            user.isEnabled(),
             user.isAccountNonExpired(),
             accountNonLocked,
-            credentialsNonExpired,
-            user.isEnabled());
+            credentialsNonExpired);
     UserDetailsImplBuilder userDetailsImplBuilder =
         UserDetailsImpl.builder()
             .id(user.getId())

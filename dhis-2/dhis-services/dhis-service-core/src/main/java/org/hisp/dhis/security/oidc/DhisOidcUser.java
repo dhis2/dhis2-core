@@ -93,11 +93,6 @@ public class DhisOidcUser extends DefaultOAuth2User implements UserDetails, Oidc
   }
 
   @Override
-  public String getUsername() {
-    return user.getUsername();
-  }
-
-  @Override
   public boolean isSuper() {
     return user.isSuper();
   }

@@ -108,7 +108,10 @@ class AnalyticsControllerTest {
   @BeforeEach
   @SuppressWarnings("unchecked")
   void setUp() {
-    CurrentUserUtil.injectUserInSecurityContext(UserDetails.empty().username("testuser").build());
+    CurrentUserUtil.injectUserInSecurityContext(
+        UserDetails.empty()
+            .loginCredentials(new UserDetails.LoginCredentials("testuser", null))
+            .build());
 
     DataQueryService dataQueryService =
         new DefaultDataQueryService(
