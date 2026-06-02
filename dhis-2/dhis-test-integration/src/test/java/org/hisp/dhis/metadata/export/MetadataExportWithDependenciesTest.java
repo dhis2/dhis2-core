@@ -57,6 +57,8 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.user.UserService;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,6 +75,13 @@ class MetadataExportWithDependenciesTest extends SingleSetupIntegrationTestBase 
   @Autowired private RenderService renderService;
 
   @Autowired private ObjectMapper jsonMapper;
+
+  @Autowired private UserService _userService;
+
+  @BeforeAll
+  void init() {
+    this.userService = _userService;
+  }
 
   @Test
   void testExportProgramWithProgramSection() {
