@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -72,31 +72,23 @@ class ProgramControllerTest extends DhisControllerConvenienceTest {
   void testDeleteWithMapView() {
 
     String mapJson =
-        """
-        {
-          "name": "test map",
-          "id": "mAPVRd23Jm9",
-          "mapViews": [
-            {
-              "name": "test mapview",
-              "id": "mVIVRd23Jm9",
-              "organisationUnitLevels": [],
-              "layer": "event",
-              "program": {
-                "id": "PrZMWi7rBga"
-              },
-              "programStage": {
-                "id": "PSzMWi7rBga"
-              }
-            }
-          ]
-        }
-        """;
+        "{"
+            + "'name': 'test map',"
+            + "'id': 'mAPVRd23Jm9',"
+            + "'mapViews': [{"
+            + "'name': 'test mapview',"
+            + "'id': 'mVIVRd23Jm9',"
+            + "'organisationUnitLevels': [],"
+            + "'layer': 'event',"
+            + "'program': {'id': 'PrZMWi7rBga'},"
+            + "'programStage': {'id': 'PSzMWi7rBga'}"
+            + "}]"
+            + "}";
     POST("/maps", mapJson).content(HttpStatus.CREATED);
 
-    assertStatus(HttpStatus.OK, DELETE("/programs/%s".formatted(PROGRAM_UID)));
-    assertStatus(HttpStatus.NOT_FOUND, GET("/programs/%s".formatted(PROGRAM_UID)));
-    JsonMixed mapview = GET("/mapViews/mVIVRd23Jm9").content().as(JsonMixed.class);
+    assertStatus(HttpStatus.OK, DELETE("/programs/" + PROGRAM_UID));
+    assertStatus(HttpStatus.NOT_FOUND, GET("/programs/" + PROGRAM_UID));
+    JsonObject mapview = GET("/mapViews/mVIVRd23Jm9").content().as(JsonObject.class);
     assertFalse(mapview.has("program"));
     assertFalse(mapview.has("programStage"));
   }
