@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2026, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,43 +27,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.fileresource;
+package org.hisp.dhis.storage;
 
-import static org.jclouds.ContextBuilder.newBuilder;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
-import java.util.NoSuchElementException;
-import org.junit.jupiter.api.Test;
+/** The set of blob-store backends DHIS2 supports for {@code filestore.provider}. */
+public enum FileStoreProvider {
+  FILESYSTEM("filesystem"),
+  AWS_S3("aws-s3"),
+  S3("s3"),
+  TRANSIENT("transient");
 
-/**
- * Verify that the supported jclouds providers can be selected.
- *
- * @author Jim Grace
- */
-class JCloudsProviderTest {
-  @Test
-  void verifyFilesystem() {
-    assertDoesNotThrow(() -> newBuilder("filesystem"));
+  private final String key;
+
+  FileStoreProvider(String key) {
+    this.key = key;
   }
 
-  @Test
-  void verifyAwsS3() {
-    assertDoesNotThrow(() -> newBuilder("aws-s3"));
+  /** The configuration key used in {@code dhis.conf}. */
+  public String key() {
+    return key;
   }
 
-  @Test
-  void verifyS3() {
-    assertDoesNotThrow(() -> newBuilder("s3"));
-  }
-
-  @Test
-  void verifyInvalidProvider() {
-    assertThrows(NoSuchElementException.class, () -> newBuilder("s4"));
-  }
-
-  @Test
-  void verifyTransient() {
-    assertDoesNotThrow(() -> newBuilder("transient"));
+  /**
+   * Returns the provider matching {@code key}, or throws {@link IllegalArgumentException} if the
+   * key is not recognised.
+   */
+  public static FileStoreProvider of(String key) {
+    return Arrays.stream(values())
+        .filter(p -> p.key.equals(key))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new IllegalArgumentException(
+                    "Unsupported file store provider '"
+                        + key
+                        + "'. Supported values are: "
+                        + Arrays.stream(values())
+                            .map(FileStoreProvider::key)
+                            .collect(Collectors.joining(", "))));
   }
 }
